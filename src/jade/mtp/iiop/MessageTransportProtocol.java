@@ -441,7 +441,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 
     
     private void initFromIOR(String s) throws MTPException {
-
+     try {
       // Store stringified IOR
       ior = new String(s.toUpperCase());
 
@@ -460,6 +460,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       default:
 	throw new MTPException("Invalid endianness specifier");
       }
+
       try {
 	  // Read 'string type_id' field
 	  String typeID = codecStrategy.readString();
@@ -514,6 +515,9 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	  codecStrategy = null;
 
 	}
+      }
+      } catch (Exception e) { // all exceptions are converted into MTPException
+	  throw new MTPException(e.getMessage());
       }
     }
 
