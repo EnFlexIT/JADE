@@ -62,31 +62,42 @@ class MessageManager implements TimerListener {
 	// Default values for retry-interval and retry-maximum
 	private static final long  DEFAULT_RETRY_INTERVAL = 20000; // 20 sec
 	private static final long  DEFAULT_RETRY_MAXIMUM = 300000; // 5 minutes
+
+    // A shared instance to have a single thread pool
+    private static MessageManager theInstance; // FIXME: Maybe a table, indexed by a profile subset, would be better?
+
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 	private long retryMaximum = DEFAULT_RETRY_MAXIMUM;
-	
+
 //#MIDP_EXCLUDE_BEGIN
 	private static final int  DEFAULT_POOL_SIZE = 5;
 	private static final int  MAX_POOL_SIZE = 100;
 	private int poolSize = DEFAULT_POOL_SIZE;
-	
+
 	private OutBox outBox = new OutBox();
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 	private List         outBox = new LinkedList();
 #MIDP_INCLUDE_END*/    
 	private List   errBox = new ArrayList();
-	
-	private Channel myChannel;
-	
+
 	private int verbosity = 2;
-	
-	public MessageManager() {
+
+
+	private MessageManager() {
 	}
-	
-	public void initialize(Profile p, Channel ch) {
-		myChannel = ch;
-		
+
+    public static synchronized MessageManager instance(Profile p) {
+	if(theInstance == null) {
+	    theInstance = new MessageManager();
+	    theInstance.initialize(p);
+	}
+
+	return theInstance;
+    }
+
+	public void initialize(Profile p) {
+
 		String tmp = null;
 		// RETRY_INTERVAL
 		try {
@@ -144,12 +155,12 @@ class MessageManager implements TimerListener {
 	/**
 	   Activate the asynchronuos delivery of an ACLMessage
    */
-	public void deliver(ACLMessage msg, AID receiverID) {
+	public void deliver(ACLMessage msg, AID receiverID, Channel ch) {
 //#MIDP_EXCLUDE_BEGIN
-		outBox.addLast(receiverID, msg);
+		outBox.addLast(receiverID, msg, ch);
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
-		putInOutBox(new PendingMsg(msg, receiverID, -1));
+		putInOutBox(new PendingMsg(msg, receiverID, ch, -1));
 #MIDP_INCLUDE_END*/    
 	}
 	
@@ -191,7 +202,8 @@ class MessageManager implements TimerListener {
 				//log("Serving message for "+receiverID.getName());
 	    	try {
 	    		// Deliver the message
-		    	myChannel.deliverNow(msg, receiverID);
+		        Channel ch = pm.getChannel();
+		    	ch.deliverNow(msg, receiverID);
 					//log("Message served");
 	    		outBox.handleDelivered(receiverID);	
 	    	}
@@ -206,13 +218,14 @@ class MessageManager implements TimerListener {
  				PendingMsg pm = getFromOutBox();
  				ACLMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
+				Channel ch = pm.getChannel();
  				if (checkPostpone(receiverID, msg.getSender())) {
  					log("Postpone delivery to preserve order", 1);
  					deliverLater(pm);
  				}
  				else {
     			try {
-    				myChannel.deliverNow(msg, receiverID);
+    				ch.deliverNow(msg, receiverID);
     				//log("Message served");
     			}
     			catch (UnreachableException ue) {
@@ -231,31 +244,37 @@ class MessageManager implements TimerListener {
 	   Inner class PendingMsg
 	 */
 	public static class PendingMsg {
-		private final ACLMessage msg;
-		private final AID receiverID;
-		private long deadline;
+	    private final ACLMessage msg;
+	    private final AID receiverID;
+	    private final Channel channel;
+	    private long deadline;
 		
-		public PendingMsg(ACLMessage msg, AID receiverID, long deadline) {
-			this.msg = msg;
-			this.receiverID = receiverID;
-			this.deadline = deadline;
-		}
+	    public PendingMsg(ACLMessage msg, AID receiverID, Channel channel, long deadline) {
+		this.msg = msg;
+		this.receiverID = receiverID;
+		this.channel = channel;
+		this.deadline = deadline;
+	    }
+
+	    public ACLMessage getMessage() {
+		return msg;
+	    }
 		
-		public ACLMessage getMessage() {
-			return msg;
-		}
+	    public AID getReceiver() {
+		return receiverID;
+	    }
+
+	    public Channel getChannel() {
+		return channel;
+	    }
+
+	    public long getDeadline() {
+		return deadline;
+	    }
 		
-		public AID getReceiver() {
-			return receiverID;
-		}
-		
-		public long getDeadline() {
-			return deadline;
-		}
-		
-		public void setDeadline(long deadline) {
-			this.deadline = deadline;
-		}
+	    public void setDeadline(long deadline) {
+		this.deadline = deadline;
+	    }
 	}
 	
  	/////////////////////////////////////////////////////////
@@ -319,8 +338,9 @@ class MessageManager implements TimerListener {
 			while (it.hasNext()) {
 				PendingMsg pm = (PendingMsg) it.next();
 				if (System.currentTimeMillis() > pm.getDeadline()) {
-					// If the deadline has expired, don't even try again
-      		myChannel.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""));
+				    // If the deadline has expired, don't even try again
+				    Channel ch = pm.getChannel();
+				    ch.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""));
 				}
 				else {
 					// Otherwise schedule again the message for delivery
