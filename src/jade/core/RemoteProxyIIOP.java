@@ -25,8 +25,6 @@ package jade.core;
 
 import java.io.StringWriter;
 
-import FIPA_Agent_97;
-
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -34,6 +32,8 @@ import jade.lang.acl.ACLMessage;
 @version $Date$ $Revision$
 */
 class RemoteProxyIIOP implements RemoteProxy {
+
+  private class FIPA_Agent_97 { public void message(String s) { } } // STUB!!!
 
   private FIPA_Agent_97 ref;
   private String addr;
