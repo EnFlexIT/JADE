@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop
+Jade - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package test;
 
-import jade.util.leap.List;
+import java.util.List;
 import java.io.*;
 
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
@@ -122,7 +122,9 @@ protected void setup() {
       System.out.println("  read the following message:\n"+msg.toString());
       codec.write(msg);
       System.out.println("\nEXTRACTING THE CONTENT AND CREATING A LIST OF JAVA OBJECTS ...");
-      List l=extractMsgContent(msg);
+
+      List l=extractContent(msg);
+
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
@@ -132,18 +134,23 @@ protected void setup() {
 
       msg = msg.createReply();
       System.out.println("\nFILLING BACK THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
-      fillMsgContent(msg,l);
+
+      fillContent(msg,l);
       System.out.println("  created the following message:\n"+msg.toString());
 
       System.out.println("\nDOUBLE CHECK BY EXTRACTING THE CONTENT AGAIN ...");
-      l=extractMsgContent(msg);
+
+      l=extractContent(msg);
+
       System.out.print("  created the following classes: (");
       for (int i=0; i<l.size(); i++)
 	System.out.print(l.get(i).getClass().toString()+" ");
       System.out.println(")");
 
       System.out.println("\n FINAL CHECK BY FILLING AGAIN THE CONTENT WITH THE LIST OF JAVA OBJECTS ...");
-      fillMsgContent(msg,l);
+
+      fillContent(msg,l);
+
       System.out.println(" created the following message:\n"+msg.toString());
 
     } catch (FIPAException e) {
