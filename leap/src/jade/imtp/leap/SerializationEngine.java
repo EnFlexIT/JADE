@@ -170,8 +170,11 @@ class SerializationEngine {
     String inReplyTo = msg.getInReplyTo();
     String replyWith = msg.getReplyWith();
     Date replyBy = msg.getReplyByDate();
-    Envelope envelope = msg.getEnvelope();
-			
+    Envelope envelope = null;
+		//#CUSTOM_EXCLUDE_BEGIN
+		envelope = msg.getEnvelope();
+		//#CUSTOM_EXCLUDE_END
+
     Properties props = msg.getAllUserDefinedParameters();
     if (props.size() > 63) {
     	throw new LEAPSerializationException("Cannot serialize more than 63 params");
@@ -261,8 +264,9 @@ class SerializationEngine {
     if ((presence1 & 0x02) != 0) { msg.setInReplyTo(dis.readUTF()); }
     if ((presence1 & 0x01) != 0) { msg.setReplyWith(dis.readUTF()); }
     if ((presence2 & 0x80) != 0) { msg.setReplyByDate(new Date(dis.readLong())); }
+		//#CUSTOM_EXCLUDE_BEGIN
     if ((presence2 & 0x40) != 0) { msg.setEnvelope(deserializeEnvelope(dis)); }
-
+		//#CUSTOM_EXCLUDE_END
     // User defined properties
     int propsSize = presence2 & 0x3F;
     for (int i = 0; i < propsSize; ++i) {
@@ -301,15 +305,19 @@ class SerializationEngine {
     byte presence = 0;
     String name = id.getName();
     Iterator addresses = id.getAllAddresses();
+		//#CUSTOM_EXCLUDE_BEGIN
     Iterator resolvers = id.getAllResolvers();
     Properties props = id.getAllUserDefinedSlot();
     if (props.size() > 31) {
     	throw new LEAPSerializationException("Cannot serialize more than 31 slots");
     }
+		//#CUSTOM_EXCLUDE_END
     if (name != null) { presence |= 0x80; }
     if (addresses.hasNext()) { presence |= 0x40; }
+		//#CUSTOM_EXCLUDE_BEGIN
     if (resolvers.hasNext()) { presence |= 0x20; }
     presence |= (props.size() & 0x1F);
+		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence);
     
     if (name != null) { dos.writeUTF(name); }
@@ -318,6 +326,7 @@ class SerializationEngine {
     	dos.writeUTF((String) addresses.next());
     	dos.writeBoolean(addresses.hasNext());
     }
+		//#CUSTOM_EXCLUDE_BEGIN
     // Resolvers
     while (resolvers.hasNext()) {
     	serializeAID((AID) resolvers.next(), dos);
@@ -325,6 +334,7 @@ class SerializationEngine {
     }
     // User defined slots
     serializeProperties(props, dos);
+		//#CUSTOM_EXCLUDE_END
   }
   
   private final static AID deserializeAID(DataInputStream dis) throws IOException, LEAPSerializationException {
@@ -337,7 +347,7 @@ class SerializationEngine {
     		id.addAddresses(dis.readUTF());
     	} while (dis.readBoolean());
     }
-    
+    //#CUSTOM_EXCLUDE_BEGIN
     // Resolvers
     if ((presence & 0x20) != 0) {
     	do {
@@ -352,7 +362,7 @@ class SerializationEngine {
     	String val = dis.readUTF();
     	id.addUserDefinedSlot(key, val);
     }
-    
+    //#CUSTOM_EXCLUDE_END
   	return id;
   }
   

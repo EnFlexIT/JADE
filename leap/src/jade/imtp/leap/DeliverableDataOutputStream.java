@@ -555,7 +555,9 @@ class DeliverableDataOutputStream extends DataOutputStream {
 
         // User def properties can't be null!
         serializeProperties(msg.getAllUserDefinedParameters());
+				//#CUSTOM_EXCLUDE_BEGIN
         writeObject(msg.getEnvelope());
+				//#CUSTOM_EXCLUDE_END
     } 
 
     /**
@@ -572,7 +574,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
         } 
 
         writeBoolean(false);
-
+				//#CUSTOM_EXCLUDE_BEGIN
         it = id.getAllResolvers();
 
         while (it.hasNext()) {
@@ -584,6 +586,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
 
         // User def slots can't be null!
         serializeProperties(id.getAllUserDefinedSlot());
+				//#CUSTOM_EXCLUDE_END
     } 
 
     private void serializeAIDArray(AID[] aida) throws IOException, LEAPSerializationException {

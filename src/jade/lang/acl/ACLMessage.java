@@ -235,9 +235,9 @@ private int performative; // keeps the performative type of this object
   @serial
   */
   private Properties userDefProps = null; 
-
+	//#CUSTOM_EXCLUDE_BEGIN
   private Envelope messageEnvelope;
-
+	//#CUSTOM_EXCLUDE_END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.
@@ -815,7 +815,7 @@ private int performative; // keeps the performative type of this object
 			 else
 					 return (userDefProps.remove(key) != null);
    }
-
+	//#CUSTOM_EXCLUDE_BEGIN
   /**
      Attaches an envelope to this message. The envelope is used by the
      <b><it>ACC</it></b> for inter-platform messaging.
@@ -857,7 +857,7 @@ private int performative; // keeps the performative type of this object
   public Envelope getEnvelope() {
     return messageEnvelope;
   }
-
+	//#CUSTOM_EXCLUDE_END
   //#MIDP_EXCLUDE_BEGIN
 
   /**
@@ -917,11 +917,11 @@ private int performative; // keeps the performative type of this object
     result.protocol = protocol;
     result.conversation_id = conversation_id;
     result.userDefProps = userDefProps;
-
+ 	  //#CUSTOM_EXCLUDE_BEGIN
     if(messageEnvelope != null) {
 	  	result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
-
+	  //#CUSTOM_EXCLUDE_END
     result.dests = (ArrayList) dests.clone();
     if (reply_to != null)
 		result.reply_to = (ArrayList) reply_to.clone();
@@ -984,7 +984,7 @@ private int performative; // keeps the performative type of this object
     m.setReplyByDate(null);
     m.setContent(null);
     m.setEncoding(null);
-    
+   	//#CUSTOM_EXCLUDE_BEGIN
     //Set the Aclrepresentation of the reply message to the aclrepresentation of the sent message 
     if (messageEnvelope != null)
     {
@@ -995,7 +995,7 @@ private int performative; // keeps the performative type of this object
     }
     else
     m.setEnvelope(null);
-
+	  //#CUSTOM_EXCLUDE_END
     return m;
   }
 
@@ -1007,6 +1007,7 @@ private int performative; // keeps the performative type of this object
    */
   public Iterator getAllIntendedReceiver() {
 		Iterator it = null;
+	  //#CUSTOM_EXCLUDE_BEGIN
 		Envelope env = getEnvelope();
 		if (env != null) {
 			it = env.getAllIntendedReceiver();
@@ -1015,6 +1016,7 @@ private int performative; // keeps the performative type of this object
 				it = env.getAllTo();
 			}
 		}
+	  //#CUSTOM_EXCLUDE_END
 		if (it == null || !it.hasNext()) {
 			// Both the ":intended-receiver" and the ":to" fields are empty --> 
 			// Use the ACLMessage receivers

@@ -50,12 +50,14 @@ public class AID implements Comparable, Serializable {
   private String name; 
   
     private static final int EXPECTED_ADDRESSES_SIZE = 1;
+    //#CUSTOM_EXCLUDE_BEGIN
     private static final int EXPECTED_RESOLVERS_SIZE = 0;
+    //#CUSTOM_EXCLUDE_END
   /**
   @serial
   */
   private List addresses = new ArrayList(EXPECTED_ADDRESSES_SIZE);
-  
+  //#CUSTOM_EXCLUDE_BEGIN
   /**
   @serial
   */
@@ -65,7 +67,7 @@ public class AID implements Comparable, Serializable {
   @serial
   */
   private Properties userDefSlots = new Properties();
-
+  //#CUSTOM_EXCLUDE_END
 
   /**
    * Constructs an Agent-Identifier whose slot name is set to an empty string
@@ -141,7 +143,7 @@ public class AID implements Comparable, Serializable {
 		if (atHAP == null) {
 			String hap = getPlatformID();
 			if (hap == null) {
-				throw new RuntimeException("Can't set local-names since the platform ID is unknown");
+				throw new RuntimeException("Unknown Platform Name");
 			}
 	    atHAP = "@"+hap;
 		}
@@ -192,6 +194,7 @@ public class AID implements Comparable, Serializable {
     return addresses.iterator();
   }
 
+  //#CUSTOM_EXCLUDE_BEGIN
   /**
   * This method permits to add the AID of a resolver (an agent where name 
   * resolution services for the agent can be contacted) 
@@ -241,7 +244,6 @@ public class AID implements Comparable, Serializable {
   public boolean removeUserDefinedSlot(String key){
     return (userDefSlots.remove(key) != null);
   }
-
   
   /**
   * Returns an array of string containing all the addresses of the agent
@@ -271,7 +273,6 @@ public class AID implements Comparable, Serializable {
   public Properties getAllUserDefinedSlot(){
     return userDefSlots;
   }
-
 		
     /**
      * @return the String full representation of this AID
@@ -319,16 +320,16 @@ public class AID implements Comparable, Serializable {
 	s.append(")");
 	return s.toString();
     }
-
+  //#CUSTOM_EXCLUDE_END
 
   /**
   * Clone the AID object.
   */
     public synchronized Object clone() {
-        AID      result = new AID(this.name);
+        AID      result = new AID(this.name, ISGUID);
 
         result.addresses = (ArrayList)((ArrayList)addresses).clone();
-
+				//#CUSTOM_EXCLUDE_BEGIN
         result.resolvers = (ArrayList)((ArrayList)resolvers).clone();
 
         // Copying user defined slots
@@ -339,7 +340,7 @@ public class AID implements Comparable, Serializable {
         //                              (String) userDefSlots.getProperty(key));
         //}
         result.userDefSlots = userDefSlots;
-
+				//#CUSTOM_EXCLUDE_END
         return result;
     } 
 

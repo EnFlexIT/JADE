@@ -169,6 +169,7 @@ public abstract class Behaviour implements Serializable {
    */
   protected RunnableChangedEvent myEvent = new RunnableChangedEvent();
 
+	//#CUSTOM_EXCLUDE_BEGIN
   /**
      Back pointer to the enclosing Behaviour (if present).
      @see jade.core.behaviours.CompositeBehaviour
@@ -187,7 +188,7 @@ public abstract class Behaviour implements Serializable {
 	else
 	    myAgent = null;
   }
-
+	//#CUSTOM_EXCLUDE_END
   /**
      Default constructor. It does not set the agent owning this
      behaviour object.
@@ -328,12 +329,13 @@ public abstract class Behaviour implements Serializable {
   protected void handle(RunnableChangedEvent rce) {
   	// Set the new runnable state
     setRunnable(rce.isRunnable());
-    
+   	//#CUSTOM_EXCLUDE_BEGIN
     // If the notification is upwords and a parent exists -->
     // Notify the parent
     if( (parent != null) && (rce.isUpwards()) ) {
       parent.handle(rce);
     }
+  	//#CUSTOM_EXCLUDE_END
   }
 
   /**
@@ -347,9 +349,11 @@ public abstract class Behaviour implements Serializable {
      @see jade.core.behaviours.Behaviour#restart()
    */
   public Behaviour root() {
+ 	  //#CUSTOM_EXCLUDE_BEGIN
     if(parent != null)
       return parent.root();
     else
+ 	  //#CUSTOM_EXCLUDE_END
       return this;
   }
 
@@ -440,7 +444,7 @@ public abstract class Behaviour implements Serializable {
   public void setAgent(Agent a) {
     myAgent = a;
   }
-
+	//#CUSTOM_EXCLUDE_BEGIN
   /**
      Return the private data store of this <code>Behaviour</code>.
      If it was null, a new DataStore is created and returned.
@@ -461,4 +465,5 @@ public abstract class Behaviour implements Serializable {
   public void setDataStore(DataStore ds) {
   	myStore = ds;
   }  
+	//#CUSTOM_EXCLUDE_END
 }

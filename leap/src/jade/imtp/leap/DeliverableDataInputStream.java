@@ -427,9 +427,9 @@ class DeliverableDataInputStream extends DataInputStream {
         for (int i=0; i<size; i++) {
             msg.addUserDefinedParameter(readString(), readString());
         } 
-
+	      //#CUSTOM_EXCLUDE_BEGIN
         msg.setEnvelope((Envelope) readObject());
-
+	      //#CUSTOM_EXCLUDE_END
         return msg;
     } 
 
@@ -459,7 +459,7 @@ class DeliverableDataInputStream extends DataInputStream {
         while (readBoolean()) {
             id.addAddresses(readUTF());
         } 
-
+				//#CUSTOM_EXCLUDE_BEGIN
         while (readBoolean()) {
             id.addResolvers(deserializeAID());
         } 
@@ -471,7 +471,7 @@ class DeliverableDataInputStream extends DataInputStream {
         while (i++ < size) {
             id.addUserDefinedSlot(readString(), readString());
         } 
-
+				//#CUSTOM_EXCLUDE_END
         return id;
     } 
 
