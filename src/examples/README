@@ -130,33 +130,41 @@ This is an example of mobile agent.
 This example shows the usage of two behaviours provided by JADE 
 that implement the 'fipa-query' protocol and the 'fipa-request' protocol.
 
- - AgRequestInitiator.class	This agent plays initiator role in a
-                                conversation following standard
-                                'fipa-request' protocol. The example
-                                program shows how more complex
-                                interactions (such as agent
-                                interaction protocols) can be handled
-                                with primitives provided by JADE
-                                framework, such as composite
-                                behaviours and advanced message
-                                passing.
+ - Initiator.class	This agent plays initiator role in a
+                        conversation following standard 'fipa-request' or 'fipa-query' protocol.
+			It sends a REQUEST, a QUERY-IF or a QUERY-REF to a set of agent passed as argument.
+                                
+ - Responder.class	The companion agent of Initiator.
+                        This agent plays responder role in 'fipa-request' and  'fipa-query' protocol 
+			according to the messsage received. 
+			If a REQUEST arrives it answers random in one of the following way:
+			- send an AGREE message and then an INFORM message
+			- send an AGREE message and then a FAILURE message
+			- send an AGREE message and then no message (in this case the Initiator agent will wait forever for the INFORM/FAILURE message)
+			- send an AGREE message and then an out of sequence message
+			- send an INFORM message
+			- send a REFUSE message
+			- send a NOT_UNDERSTOD message
+			- send an out of sequence message
+			- send no message
 
- - AgRequestResponder.class	The companion agent of AgRequesteriInitiator.
-                                This agent plays responder role in
-                                'fipa-request' protocol and is able to
-                                manage multiple simultaneous
-                                conversations through
-                                'conversation-id' message field.
+			If a QUERY-IF/QUERY-REF message arrives if replies in one of the following way:
+			- sends a NOT_UNDERSTOOD message
+			- sends a REFUSE message
+			- sends a FAILURE message
+			- sends an INFORM message
+			- sends an out of sequence message
+			- sends no message
 
- - AgQueryInitiator.class	This agent is the initiator of the FIPAQueryprotocol.
-				You can execute the example with the following command: 
-					java jade.Boot -platform 
-					initiator:examples.ex6.AgQueryInitiator 																																				                                                															                                        responder:examples.ex6.AgQueryResponder
-				and then use the GUI of the initiator to send a query 
-				message to the responder.
-				
- - AgQueryResponder.class	The companion of the AgQueryInitiator that responds to the 
-				query message.
+ - ProtocolTest.class   This example using the inProcess interface
+			permits the user to launch a JADE main container
+                        with one Initiator agent and set of Responders, 
+                        For examples  the following command line: 
+			java examples.protocol.ProtocolTester receiver1 receiver2 receiver3
+			start an Initiator agent sending message to the 
+			three Responders: receiver1, receiver2 and receiver3.
+ 
+
 
 
 'receivers' subdirectory
