@@ -531,7 +531,7 @@ public class RMIIMTPManager implements IMTPManager {
 		      try {
 			  System.out.println("--- Trying <" + addrs[i] + "> ---");
 			  remoteSvcMgr = (ServiceManagerRMI)Naming.lookup(addrs[i] + SERVICE_MANAGER_NAME);
-			  remoteSvcMgr.ping();
+			  remoteSvcMgr.adopt(localNode);
 			  System.out.println("--- Service Manager found at <" + addrs[i] + "> ---");
 			  return true;
 		      }
