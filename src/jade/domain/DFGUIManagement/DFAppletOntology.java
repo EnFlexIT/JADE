@@ -69,26 +69,26 @@ public class DFAppletOntology extends Ontology implements DFAppletVocabulary {
 	  super(NAME, FIPAManagementOntology.getInstance(), new ReflectiveIntrospector());
 
     try {
-	  	add(new AgentActionSchema(GETDEFAULTDESCRIPTION), GetDefaultDescription.class);
-	  	add(new AgentActionSchema(FEDERATEWITH), Federate.class);
+	  	add(new AgentActionSchema(GETDESCRIPTION), GetDescription.class);
+	  	add(new AgentActionSchema(FEDERATE), Federate.class);
 	  	add(new AgentActionSchema(REGISTERWITH), RegisterWith.class);
 	  	add(new AgentActionSchema(DEREGISTERFROM), DeregisterFrom.class);
 	  	add(new AgentActionSchema(MODIFYON), ModifyOn.class);
 	  	add(new AgentActionSchema(SEARCHON), SearchOn.class);
-	  	add(new AgentActionSchema(GETPARENT), GetParent.class);
+	  	add(new AgentActionSchema(GETPARENTS), GetParents.class);
 	  	add(new AgentActionSchema(GETDESCRIPTIONUSED), GetDescriptionUsed.class);
 
-	  	AgentActionSchema as = (AgentActionSchema)getSchema(FEDERATEWITH);
-	  	as.add(FEDERATEWITH_PARENTDF, (TermSchema) getSchema(BasicOntology.AID));
-	  	as.add(FEDERATEWITH_CHILDRENDF, (TermSchema)getSchema(DFAGENTDESCRIPTION), ObjectSchema.OPTIONAL);
+	  	AgentActionSchema as = (AgentActionSchema)getSchema(FEDERATE);
+	  	as.add(FEDERATE_DF, (TermSchema) getSchema(BasicOntology.AID));
+	  	as.add(FEDERATE_DESCRIPTION, (TermSchema)getSchema(DFAGENTDESCRIPTION), ObjectSchema.OPTIONAL);
 	  	
 	  	as = (AgentActionSchema)getSchema(REGISTERWITH);
 	  	as.add(REGISTERWITH_DF, (TermSchema) getSchema(BasicOntology.AID));
 	  	as.add(REGISTERWITH_DESCRIPTION, (TermSchema)getSchema(DFAGENTDESCRIPTION));
 	  
 	  	as = (AgentActionSchema)getSchema(DEREGISTERFROM);
-	  	as.add(DEREGISTERFROM_PARENTDF, (TermSchema) getSchema(BasicOntology.AID));
-	  	as.add(DEREGISTERFROM_CHILDRENDF, (TermSchema) getSchema(DFAGENTDESCRIPTION));
+	  	as.add(DEREGISTERFROM_DF, (TermSchema) getSchema(BasicOntology.AID));
+	  	as.add(DEREGISTERFROM_DESCRIPTION, (TermSchema) getSchema(DFAGENTDESCRIPTION));
 	  
 	  	as = (AgentActionSchema)getSchema(MODIFYON);
 	  	as.add(MODIFYON_DF, (TermSchema) getSchema(BasicOntology.AID));

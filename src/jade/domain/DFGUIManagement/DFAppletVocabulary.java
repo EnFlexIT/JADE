@@ -17,19 +17,24 @@ public interface DFAppletVocabulary extends FIPAManagementVocabulary {
 
 
   // Action
-  public static final String GETDEFAULTDESCRIPTION= "getdefaultdescription";
+  public static final String GETDESCRIPTION= "getdescription";
 
-  public static final String FEDERATEWITH = "federatewith";
-  public static final String FEDERATEWITH_PARENTDF = "parentdf";
-  public static final String FEDERATEWITH_CHILDRENDF = "childrendf";
+  //public static final String FEDERATEWITH = "federatewith";
+  public static final String FEDERATE = "federate";
+  //public static final String FEDERATEWITH_PARENTDF = "parentdf";
+  public static final String FEDERATE_DF = "df";
+  //public static final String FEDERATEWITH_CHILDRENDF = "childrendf";
+  public static final String FEDERATE_DESCRIPTION = "description";
 
   public static final String REGISTERWITH = "registerwith";
   public static final String REGISTERWITH_DF = "df";
   public static final String REGISTERWITH_DESCRIPTION = "description";
 
   public static final String DEREGISTERFROM = "deregisterfrom";
-  public static final String DEREGISTERFROM_PARENTDF = "parentdf";
-  public static final String DEREGISTERFROM_CHILDRENDF = "childrendf";
+  //public static final String DEREGISTERFROM_PARENTDF = "parentdf";
+  public static final String DEREGISTERFROM_DF = "df";
+  //public static final String DEREGISTERFROM_CHILDRENDF = "childrendf";
+  public static final String DEREGISTERFROM_DESCRIPTION = "description";
 
   public static final String MODIFYON = "modifyon";
   public static final String MODIFYON_DF = "df";
@@ -40,7 +45,7 @@ public interface DFAppletVocabulary extends FIPAManagementVocabulary {
   public static final String SEARCHON_DESCRIPTION = "description";
   public static final String SEARCHON_CONSTRAINTS = "constraints";
 
-  public static final String GETPARENT = "getparent";
+  public static final String GETPARENTS = "getparents";
 
   public static final String GETDESCRIPTIONUSED = "getdescriptionused";
   public static final String GETDESCRIPTIONUSED_PARENTDF = "parentdf";

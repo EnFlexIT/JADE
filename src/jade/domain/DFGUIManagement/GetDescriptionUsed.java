@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.DFGUIManagement;
 
 import jade.content.AgentAction;
+import jade.core.AID;
 
 /**
    This class implements the GetDescriptionUsed action.
@@ -36,14 +37,14 @@ import jade.content.AgentAction;
 
 public class GetDescriptionUsed implements AgentAction{
 	
-	private Object parentDF;
+	private AID parentDF;
 	
-	public void setParentDF(Object parent)
+	public void setParentDF(AID parent)
 	{
 		parentDF = parent;
 	}
 	 
-	public Object getParentDF()
+	public AID getParentDF()
 	{
 		return parentDF;
 	} 

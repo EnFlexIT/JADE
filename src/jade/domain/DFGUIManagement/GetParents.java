@@ -27,12 +27,10 @@ package jade.domain.DFGUIManagement;
 import jade.content.AgentAction;
 
 /**
-   This class implements the GetParent action.
+   This class implements the GetParents action.
    @author Elisabetta Cortese -  TiLab S.p.A.
    @version $Date$
 */
 
-public class GetParent implements AgentAction{
-
-  
+public class GetParents implements AgentAction {
 }

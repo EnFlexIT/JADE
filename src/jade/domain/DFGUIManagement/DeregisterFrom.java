@@ -24,7 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.DFGUIManagement;
 
-
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.content.AgentAction;
 
 /**
@@ -35,26 +36,52 @@ import jade.content.AgentAction;
 
 public class DeregisterFrom implements AgentAction{
 	
-	private Object parentDF;
-	private Object childrenDF;
+	//private Object parentDF;
+	//private Object childrenDF;
+	private AID df;
+	private DFAgentDescription description;
 	
-	public void setParentDF(Object parent)
-	{
-		parentDF = parent;
+	public void setDf(AID df) {
+		this.df = df;
 	}
 	 
-	public Object getParentDF()
-	{
-		return parentDF;
+	public AID getDf() {
+		return df;
 	} 
 	
-	public void setChildrenDF(Object desc)
-	{
-		childrenDF = desc;
+	public void setDescription(DFAgentDescription description) {
+		this.description = description;
 	}
   
-	public Object getChildrenDF()
-	{
-		return childrenDF;
+	public DFAgentDescription getDescription() {
+		return description;
+	}
+	
+	/**
+	   @deprecated Use setDf() instead.
+	 */
+	public void setParentDF(Object df) {
+		setDf((AID) df);
+	}
+	
+	/**
+	   @deprecated Use getDf() instead.
+	 */
+	public Object getParentDF() {
+		return getDf();
+	}
+	
+	/**
+	   @deprecated Use setDescription() instead.
+	 */
+	public void setChildredDF(Object dsc) {
+		setDescription((DFAgentDescription) dsc);
+	}
+	
+	/**
+	   @deprecated Use getDescription() instead.
+	 */
+	public Object getChildrenDF() {
+		return getDescription();
 	}
 }

@@ -35,7 +35,7 @@ import jade.content.AgentAction;
 */
 
 
-public class GetDefaultDescription implements AgentAction{
+public class GetDescription implements AgentAction{
 
   
 }
