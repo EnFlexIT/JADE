@@ -2531,12 +2531,9 @@ public class Agent implements Runnable, Serializable
   		helpersTable = new Hashtable();
   	}
 
-    // is the helper already into the agent's helpersTable ?
-    if (helpersTable.get(serviceName)!=null) {
-      // there is already one into the helpersTable
-      se = (ServiceHelper) helpersTable.get(serviceName);
-    } 
-    else {
+    se = (ServiceHelper) helpersTable.get(serviceName);
+  	// is the helper already into the agent's helpersTable ?
+    if (se == null) {
       // there isn't, request its creation
       se = myToolkit.getHelper(this, serviceName);
       se.init(this);
