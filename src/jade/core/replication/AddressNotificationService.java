@@ -200,15 +200,7 @@ public class AddressNotificationService extends BaseService {
     private class ServiceComponent implements Service.Slice {
 
 	public ServiceComponent(Profile p) {
-
-	    try {
-		myServiceManager = myContainer.getServiceManager();
-		localSMAddr = myServiceManager.getLocalAddress();
-	    }
-	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
-	    }
-
+	    myServiceManager = myContainer.getServiceManager();
 	}
 
 
@@ -258,8 +250,14 @@ public class AddressNotificationService extends BaseService {
 
 
 	private void addServiceManagerAddress(String addr) throws IMTPException {
-	    if(!addr.equals(localSMAddr)) {
-		myServiceManager.addAddress(addr);
+	    try {
+		String localSMAddr = myServiceManager.getLocalAddress();
+		if(!addr.equals(localSMAddr)) {
+		    myServiceManager.addAddress(addr);
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		imtpe.printStackTrace();
 	    }
 	}
 
@@ -270,8 +268,6 @@ public class AddressNotificationService extends BaseService {
 	private String[] getServiceManagerAddresses() throws IMTPException {
 	    return myServiceManager.getAddresses();
 	}
-
-	private String localSMAddr;
 
     } // End of ServiceComponent class
 
@@ -291,6 +287,9 @@ public class AddressNotificationService extends BaseService {
 	Object[] slices = getAllSlices();
 	for(int i = 0; i < slices.length; i++) {
 	    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
+	    if(cmd.getName().equals(AddressNotificationSlice.H_ADDSERVICEMANAGERADDRESS)) {
+		System.out.println("@@@ Broadcasting addition of address [" + cmd.getParams()[0] + "] to slice " + slice.getNode().getName() + " @@@");
+	    }
 	    slice.serve(cmd);
 	}
 
