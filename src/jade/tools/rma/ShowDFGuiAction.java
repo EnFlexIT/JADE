@@ -59,7 +59,7 @@ class ShowDFGuiAction extends FixedAction
      msg.addReceiver(myRMA.getDefaultDF());
      msg.setOntology(JADEManagementOntology.NAME);
      msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-     msg.setProtocol("fipa-request");
+     msg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
      Action a = new Action();
      a.setActor(myRMA.getDefaultDF());
      a.setAction(new ShowGui());

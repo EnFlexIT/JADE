@@ -287,8 +287,8 @@ public class EngagerAgent extends Agent {
   	
 		// Create and add the behaviour for handling REQUESTS using the employment-ontology
 		MessageTemplate mt = MessageTemplate.and(
-														MessageTemplate.MatchProtocol("FIPA-Request"),
-														MessageTemplate.MatchOntology(EmploymentOntology.NAME));
+											MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST),
+											MessageTemplate.MatchOntology(EmploymentOntology.NAME));
   	HandleEnganementQueriesBehaviour b = new HandleEnganementQueriesBehaviour(this);
   	HandleEngageBehaviour c = new HandleEngageBehaviour(this);
   	addBehaviour(b);

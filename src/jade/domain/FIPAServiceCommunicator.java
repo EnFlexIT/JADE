@@ -67,7 +67,7 @@ public class FIPAServiceCommunicator {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
     request.setSender(sender.getAID());
     request.addReceiver(receiver);
-    request.setProtocol("fipa-request");
+    request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     request.setOntology(FIPAManagementOntology.NAME);
     request.setReplyWith("rw"+sender.getName()+(new Date()).getTime());

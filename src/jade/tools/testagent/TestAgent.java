@@ -85,7 +85,7 @@ public class TestAgent extends Agent {
     msg.setEncoding("String");
     msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     msg.setOntology(FIPAManagementVocabulary.NAME);
-    msg.setProtocol("fipa-request");
+    msg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     msg.setReplyWith("Req" + (new Date()).getTime());
     msg.setConversationId("Req" + (new Date()).getTime());
     return msg;
@@ -341,7 +341,7 @@ public class TestAgent extends Agent {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
     request.setSender(sender.getAID());
     request.addReceiver(receiver);
-    request.setProtocol("fipa-request");
+    request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     request.setEncoding("String");
     request.setOntology(FIPAManagementVocabulary.NAME);

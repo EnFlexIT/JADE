@@ -92,7 +92,7 @@ public class FIPAAppletRequestProto extends AppletRequestProto
     this.reqMsg = new ACLMessage(ACLMessage.REQUEST);
 
     this.reqMsg.addReceiver(receiver);
-    this.reqMsg.setProtocol("fipa-request");
+    this.reqMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     this.reqMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
     this.reqMsg.setOntology(FIPAManagementOntology.NAME);
     this.reqMsg.setReplyWith("rw"+(new Date()).getTime());

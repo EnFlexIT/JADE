@@ -66,7 +66,7 @@ public class FIPAServiceCommunicator {
 
     request.setSender(sender.getAID());
     request.addReceiver(receiver);
-    request.setProtocol("fipa-request");
+    request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     request.setLanguage(SL0Codec.NAME);
     request.setOntology(FIPAAgentManagementOntology.NAME);
     request.setReplyWith("rw"+sender.getName()+(new Date()).getTime());

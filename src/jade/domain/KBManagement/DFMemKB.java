@@ -41,6 +41,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.KBManagement.*;
+import jade.domain.FIPANames;
 
 /**
  * @author Elisabetta Cortese - TILab
@@ -282,7 +283,7 @@ public class DFMemKB extends MemKB{
 		    sd.setType("web-services");
 		    sd.setOwnership("Free");
 		    sd.addLanguages("SQL");
-		    sd.addProtocols("FIPA-REQUEST");
+		    sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
 		    dfd.addServices(sd);
 		   	// REGISTRO
 		    db.register("rosalba@napoli.it"+i, dfd);

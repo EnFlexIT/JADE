@@ -36,6 +36,7 @@ import jade.core.behaviours.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.domain.DFService;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -86,7 +87,7 @@ public class SubDF extends jade.domain.df {
      ServiceDescription sd = new ServiceDescription();
      sd.setName(getLocalName() + "-sub-df");
      sd.setType("fipa-df");
-     sd.addProtocols("fipa-request");
+     sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
      sd.addOntologies("fipa-agent-management");
      sd.setOwnership("JADE");
      dfd.addServices(sd);

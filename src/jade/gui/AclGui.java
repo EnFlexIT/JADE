@@ -255,11 +255,11 @@ public class AclGui extends JPanel
   private static int    N_FIPA_PROTOCOLS = 7;
   private static String fipaProtocols[] = {"fipa-auction-english",
                                            "fipa-auction-dutch",
-                                           "fipa-contract-net",
-                                           "fipa-iterated-contract-net",
-                                           "fipa-query",
-                                           "fipa-request",
-                                           "fipa-request-when" };
+                                           FIPANames.InteractionProtocol.FIPA_CONTRACT_NET,
+                                           FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET,
+                                           FIPANames.InteractionProtocol.FIPA_QUERY,
+                                           FIPANames.InteractionProtocol.FIPA_REQUEST,
+                                           FIPANames.InteractionProtocol.FIPA_REQUEST_WHEN };
                                              
   /**
   @serial

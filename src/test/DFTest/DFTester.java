@@ -77,7 +77,7 @@ public class DFTester extends Agent {
 	ServiceDescription sd = new ServiceDescription();
 	sd.setName(getLocalName() + "-Service");
 	sd.setType("Tester-Agent");
-	sd.addProtocols("fipa-request");
+	sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
 	sd.addOntologies("fipa-agent-management");
 	sd.setOwnership("JADE");
 	dfd.addServices(sd);

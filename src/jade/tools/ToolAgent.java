@@ -199,7 +199,7 @@ public abstract class ToolAgent extends Agent {
     AMSRequest.setSender(getAID());
     AMSRequest.clearAllReceiver();
     AMSRequest.addReceiver(getAMS());
-    AMSRequest.setProtocol("fipa-request");
+    AMSRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     AMSRequest.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 
     // Call tool-specific setup

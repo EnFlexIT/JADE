@@ -654,7 +654,6 @@ public class rma extends ToolAgent {
 		requestMsg.setSender(getAID());
     	requestMsg.clearAllReceiver();
     	requestMsg.addReceiver(remoteAMS);
-    	//requestMsg.setProtocol("fipa-request");
     	requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     	requestMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 		requestMsg.setOntology(FIPAManagementOntology.NAME);

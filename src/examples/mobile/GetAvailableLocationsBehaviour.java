@@ -62,7 +62,7 @@ public class GetAvailableLocationsBehaviour extends SimpleAchieveREInitiator {
      request.addReceiver(a.getAMS());
      request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
      request.setOntology(MobilityOntology.NAME);
-     request.setProtocol("fipa-request");
+     request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
      // creates the content of the ACLMessage
      try {
        Action action = new Action();

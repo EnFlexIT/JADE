@@ -277,7 +277,7 @@ class MainContainerProxy implements Platform {
       regMsg.addReceiver(localContainer.getAMS());
       regMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
       regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAManagementVocabulary.NAME);
-      regMsg.setProtocol("fipa-request");
+      regMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
 
       Agent[] agents = localContainer.getLocalAgents().values();
       for (int i = 0; i < agents.length; i++) {

@@ -100,7 +100,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
     //request.setSender(sender);
     request.addReceiver(receiver);
-    request.setProtocol("fipa-request");
+    request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
     request.setOntology(DFAppletOntology.NAME);
     request.setReplyWith("rw"+(new Date()).getTime());
