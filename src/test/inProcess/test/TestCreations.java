@@ -2,6 +2,8 @@ package test.inProcess.test;
 
 import jade.core.AID;
 import jade.core.behaviours.*;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.wrapper.*;
 import jade.content.onto.basic.*;
 import jade.domain.JADEAgentManagement.*;
@@ -25,7 +27,8 @@ import test.common.*;
 public class TestCreations extends Test {
 		private final static String AGENTNAME = "ThanksAgent";
 		private int availableContainers = 0;
-
+		private AgentController t;
+		
 		public Behaviour load(jade.core.Agent a) throws TestException {
 				try {
 						// get the number of current containers
@@ -34,49 +37,56 @@ public class TestCreations extends Test {
 						throw new TestException("Can't get number of currently active containers", e);
 				}
 				log("available Containers="+availableContainers);
-				// The test must complete in 5 sec
-				setTimeout(5000);
 
 				Behaviour b = new OneShotBehaviour(a) {
 								public void action() {
 										// create a new ThanksAgent
 										try {
-												myAgent.getContainerController().createNewAgent(AGENTNAME, "examples.thanksAgent.ThanksAgent", null).start();
+												t = myAgent.getContainerController().createNewAgent(AGENTNAME, "examples.thanksAgent.ThanksAgent", new Object[] {myAgent.getLocalName()});
+												t.start();
 										} catch (StaleProxyException e) {
 												failed("exception in creating new agent. "+e);
 												return;
 										}
-										// block for 3 seconds
-										myAgent.blockingReceive(4000);
+										// Wait for the notification from the ThanksAgent
+										AID thank = null; 
+										try {
+											thank = new AID(t.getName(), AID.ISGUID);
+										}
+										catch (StaleProxyException spe) {
+											spe.printStackTrace();
+											failed("Error getting agent name from controller");
+											return;
+										}
+										long start = System.currentTimeMillis();
+										ACLMessage inform = myAgent.blockingReceive(MessageTemplate.MatchSender(thank), 10000);
+										System.out.println("Elapsed time: "+(System.currentTimeMillis()-start));
 										// check if the test went ok
-										if (examples.thanksAgent.ThanksAgent.terminated == 2) {
+										if (inform != null) {
 												try {
+														// Kill the ThanksAgent
+														t.kill();
 														// check if the number of current containers is the same than before the test
 														if (availableContainers == ((List)TestUtility.requestAMSAction(myAgent, myAgent.getAMS(), new QueryPlatformLocationsAction())).size()) {
 																passed("TestCreations OK");
 														} else {
 																failed("There are more containers than the expected "+availableContainers);
 														}
-												} catch (TestException e) {
-														log(e.toString());
-														failed("Exception in requestAMSAction "+e);
+												} 
+												catch (StaleProxyException spe) {
+														log(spe.toString());
+														failed("Exception killing ThanksAgent "+spe);
 												}
-										}	else {
-												failed("ThanksAgent did not terminate both 2 agents"); 
+												catch (TestException te) {
+														log(te.toString());
+														failed("Exception in requestAMSAction "+te);
+												}
+										}
+										else {
+												failed("Timeout expired"); 
 										}
 								}
 						};
 				return b;
-		}
-
-		public void clean(jade.core.Agent a) {
-				try {
-						TestUtility.killAgent(a, new AID(AGENTNAME, AID.ISLOCALNAME));
-						TestUtility.killAgent(a, new AID(AGENTNAME+"t1", AID.ISLOCALNAME));
-				} catch (TestException any) {
-				}
-				examples.thanksAgent.ThanksAgent.terminated = 0;
-				examples.thanksAgent.ThanksAgent.IAmTheCreator = true; 
-				
 		}
 }
