@@ -26,9 +26,9 @@ package jade.core;
 
 import jade.util.leap.Serializable;
 import jade.util.leap.Comparable;
-import java.io.Writer; // FIXME: This must go away
-import java.io.IOException; // FIXME: This must go away
-//import java.io.StringWriter; 
+/*#MIDP_INCLUDE_BEGIN
+import jade.content.lang.sl.SimpleSLTokenizer;
+#MIDP_INCLUDE_END*/
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -371,7 +371,8 @@ public class AID implements Comparable, Serializable {
 			jade.lang.acl.StringACLCodec.appendACLExpression(s,":name",name);
     	//#MIDP_EXCLUDE_END
     	/*#MIDP_INCLUDE_BEGIN
-    	s.append(":name "+name);
+    	s.append(":name ");
+    	s.append(SimpleSLTokenizer.isAWord(name) ? name : SimpleSLTokenizer.quoteString(name));
     	#MIDP_INCLUDE_END*/
 			
 
@@ -407,13 +408,19 @@ public class AID implements Comparable, Serializable {
 	if (resolvers.size()>0)
 	    s.append(")");
 	Enumeration e = userDefSlots.propertyNames();
-	String tmp;
+	String key, value;
 	while (e.hasMoreElements()) {
-	    tmp = (String)e.nextElement();
+	    key = (String)e.nextElement();
+	    value = userDefSlots.getProperty(key);
 	    s.append(" :X-");
-	    s.append(tmp);
-	    s.append(" ");
-	    s.append(userDefSlots.getProperty(tmp));
+	    //#MIDP_EXCLUDE_BEGIN
+			jade.lang.acl.StringACLCodec.appendACLExpression(s,key,value); 
+    	//#MIDP_EXCLUDE_END
+    	/*#MIDP_INCLUDE_BEGIN
+    	s.append(key); 
+    	s.append(" ");
+    	s.append(SimpleSLTokenizer.isAWord(value) ? value : SimpleSLTokenizer.quoteString(value));
+    	#MIDP_INCLUDE_END*/
 	}
 	s.append(")");
 	return s.toString();
