@@ -5,6 +5,7 @@ package jade.imtp.leap.nio;
 import jade.core.Profile;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.security.JADESecurityException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.imtp.leap.ICPException;
@@ -21,6 +22,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -29,13 +31,13 @@ import java.util.StringTokenizer;
    This service handles BEContainer creation requests and manages IO operations
    for data exchanged between the created BEContainers and their FEContainers
    using java.nio
-   
+   <br><br>
    Having this functionality implemented as a service allows propagating
    (through the ServiceHelper) BackEnd related events (e.g. disconnections and 
    reconnections) at the agent level.
-   
-   This service accepts the following configuration parameters:
-   jade_imtp_leap_nio_BEManagementService_servers: <list of of IOEventServer ids separated by ';'>
+   <br><br>
+   This service accepts the following configuration parameters:<br>
+   <code>jade_imtp_leap_nio_BEManagementService_servers</code>: list of of IOEventServer ids separated by ';'<br>
    Actually this service is a collection of IOEventServer objects.
    Each IOEventServer opens and manages a server socket, accepts 
    BackEnd creation/connection requests and passes incoming data to BEDispatchers
@@ -43,14 +45,32 @@ import java.util.StringTokenizer;
    If the above parameter is not specified a single IOEventServer will
    be started and its ID will be <code>jade_imtp_leap_nio_BEManagementService</code>.
    All other parameters are related to a single IOEventServer and must 
-   be specified in the form 
-   <server-id>_<parameter>
+   be specified in the form<br> 
+   serverid_parametername<br>
    They are:
-   <server-id>_local-host: 
-   <server-id>_local-port:
-   <server-id>_protocol: 
-   <server-id>_leap-property-file:
-   <server-id>_poolsize:
+   <ul>
+   <li>
+   <code>serverid_local-host</code>: Specifies the local network interface 
+   for the server socket managed by this server (defaults to localhost).
+   </li>
+   <li>
+   <code>serverid_local-port</code>: Specifies the local port for the server 
+   socket managed by this server (defaults to 2099)
+   </li>
+   <li>
+   <code>serverid_protocol</code>: Specifies the protocol used by this 
+   server in the form of <code>jade.imtp.leap.JICP.ProtocolManager<code> 
+   class
+   </li>
+   <li>
+   <code>serverid_leap-property-file</code>: Specifies the leap-property
+   file to be used by this server.
+   </li>
+   <li>
+   <ode>serverid_poolsize</code>: Specifies the number of threads used by 
+   this server to manage IO events.
+   </li>
+   <ul>
    
    @author Giovanni Caire - TILAB
  */
@@ -69,6 +89,12 @@ public class BEManagementService extends BaseService {
  
   private Hashtable servers = new Hashtable(2);
   private Ticker myTicker;
+  
+  // The list of addresses considered malicious. Connections from
+  // these addresses will be rejected.
+  // FIXME: The mechanism for filling/clearing this list is not yet
+  // defined/implemented
+  private Vector maliciousAddresses = new Vector();
   
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
@@ -99,8 +125,8 @@ public class BEManagementService extends BaseService {
 			try {
 				IOEventServer srv = new IOEventServer();
 				srv.init(id, p);
-				srv.activate();
 				servers.put(id, srv);
+				srv.activate();
 			}
 			catch (Throwable t) {
 				myLogger.log(Logger.WARNING, "Error activating IOEventServer "+id+". "+t);
@@ -144,18 +170,16 @@ public class BEManagementService extends BaseService {
 	   that happen on it and on all sockets opened through it.
 	   The BEManagementService is basically a collection of these servers.
 	 */
-	private class IOEventServer implements PDPContextManager.Listener, JICPMediatorManager, Runnable {
+	private class IOEventServer implements PDPContextManager.Listener, JICPMediatorManager {
 		private String myID;
 		private String myLogPrefix;
 		private int state = INIT_STATE;
 		
 		private ServerSocketChannel mySSChannel;
-		private Selector mySelector;
-		private SelectionKey acceptSK;
 	
   	private int mediatorCnt = 1;
   	private Hashtable mediators = new Hashtable();
-		private Thread myThread;
+  	private Vector deregisteredMediators = new Vector();
 		
 		private String host;
 		private int port;
@@ -163,7 +187,7 @@ public class BEManagementService extends BaseService {
 	  private PDPContextManager  myPDPContextManager;
 	  private TransportProtocol myProtocol;
 	  private ConnectionFactory myConnectionFactory;
-	  private ServerThreadPool myPool;
+	  private LoopManager[] loopers;
 
 	  /**
 	     Initialize this IOEventServer according to the Profile
@@ -224,7 +248,7 @@ public class BEManagementService extends BaseService {
 				}
 			}
 			
-			// Servers pool size
+			// Looper pool size
 			int poolSize = DEFAULT_POOL_SIZE;
 			String strPoolSize = p.getParameter(id+'_'+"poolsize", null);
 	    try {
@@ -232,17 +256,17 @@ public class BEManagementService extends BaseService {
 	    } 
 	    catch (Exception e) {
 	  		// Keep default
-	    } 
-	    myPool = new ServerThreadPool(poolSize, this);				
+	    }
+	    loopers = new LoopManager[poolSize];
+	    for (int i = 0; i < loopers.length; ++i) {
+	    	loopers[i] = new LoopManager(this, i);
+	    }
 		}
 		
 		/**
 		   Start listening for IO events
 		 */
 		public synchronized void activate() throws Throwable {
-			// Start the pool size
-			myPool.start();
-			
 			// Create the ServerSocketChannel
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, myLogPrefix+"Opening server socket channel.");
@@ -265,25 +289,20 @@ public class BEManagementService extends BaseService {
 			}
 			ss.bind(addr);
 			
-			// Create the selector
+			// Register for asynchronous IO events
 			if (myLogger.isLoggable(Logger.CONFIG)) {
 				myLogger.log(Logger.CONFIG, myLogPrefix+"Registering for asynchronous IO events.");
 			}
-			mySelector = Selector.open();
 			
 			// Register with the selector
-			acceptSK = mySSChannel.register(mySelector, SelectionKey.OP_ACCEPT);
-
+			mySSChannel.register(getLooper().getSelector(), SelectionKey.OP_ACCEPT);
 			myLogger.log(Logger.INFO, myLogPrefix+"Ready to accept I/O events on address "+myProtocol.buildAddress(host, String.valueOf(port), null, null));
-
-			// Start the embedded thread
-			state = ACTIVE_STATE;
-			myThread = new Thread(this);
-			String threadName = (PREFIX.startsWith(myID) ? "BEManagementService-loop-manager" : "BEManagementService-"+myID+"-loop-manager");
-			myThread.setName(threadName);
-			myThread.start();
+			
+			// Start the loop managers
+			for (int i = 0; i < loopers.length; ++i) {
+				loopers[i].start();
+			}			
 	  }
-
 	
 	  /**
 	     @return The port this server is listening for connection on
@@ -303,73 +322,29 @@ public class BEManagementService extends BaseService {
 	     Make this IOEventServer terminate
 	   */
 	  public synchronized void shutdown() {
-	    if (state != TERMINATING_STATE && state != TERMINATED_STATE) {
-		  	state = TERMINATING_STATE;
-			  if(myLogger.isLoggable(Logger.CONFIG)) {
-			  	myLogger.log(Logger.CONFIG, myLogPrefix+"Shutting down...");
-			  }
-		
-		    try {
-		      // Force the embedded thread to terminate by closing the 
-		    	// server socket channel
-		    	if (mySSChannel != null) {
-			    	mySSChannel.close();
-		    	}
-		      
-		      // Wait for the loop manager thread to complete. This will 
-		    	// also stop the ServerThreadPool
-		    	if (myThread != null) {
-			      myThread.join();
-		    	}
-		    } 
-		    catch (IOException ioe) {
-		      ioe.printStackTrace();
-		    } 
-		    catch (InterruptedException ie) {
-		      ie.printStackTrace();
-		    }
-		    
-		    state = TERMINATED_STATE;
-	    }
-	  } 
-		
-	  /**
-	     IOEventServer Therad entry point.
-	     This is the Thread that executes the NIO inner loop
-	   */
-	  public void run() {
-	    while (state == ACTIVE_STATE) {
-	      try {
-	      	// Wait for the next IO events 
-	      	int n = mySelector.select();
-	      	if (n > 0) {
-		      	Set keys = mySelector.selectedKeys();
-		      	Iterator it = keys.iterator();
-		      	while (it.hasNext()) {
-		      		SelectionKey key = (SelectionKey) it.next();
-		      		if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-		      			// This is an incoming connection. The channel must be 
-		      			// the SerevrSocketChannel server
-		      			handleAcceptOp(key);
-		      		}
-		      		else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
-		      			// This is some incoming data for one of the BE
-		      			handleReadOp(key);
-		      		}
-		      		it.remove();
-		      	}
-	      	}
-	      } 
-	      catch (Exception e) {
-	      	if (state == ACTIVE_STATE) {
-	        	myLogger.log(Logger.WARNING, myLogPrefix+"Error waiting for the next IO event. ");
-	          e.printStackTrace();
+		  if(myLogger.isLoggable(Logger.CONFIG)) {
+		  	myLogger.log(Logger.CONFIG, myLogPrefix+"Shutting down...");
+		  }
 	
-	          // Abort
-	          state = ERROR_STATE;
-	      	}
-	      } 
-	    } // END of while
+	    try {
+	    	// Close the server socket
+	    	if (mySSChannel != null) {
+		    	mySSChannel.close();
+	    	}
+	      // Force the looper threads to terminate.
+	    	if (loopers != null) {
+	    		for (int i = 0; i < loopers.length; ++i) {
+	    			loopers[i].stop();
+	    			loopers[i].join();
+	    		}
+	    	}		      
+	    } 
+	    catch (IOException ioe) {
+	      ioe.printStackTrace();
+	    } 
+	    catch (InterruptedException ie) {
+	      ie.printStackTrace();
+	    }
 	    
 	    // Close all mediators
 		  synchronized (mediators) {
@@ -380,59 +355,53 @@ public class BEManagementService extends BaseService {
 		    } 
 		  }
 	    mediators.clear();
-		  
-		  // Stop the server pool
-		  myPool.stop();
-	  }
-
-	  String getId() {
+	  } 
+		
+	  final String getId() {
 	  	return myID;
 	  }
 	  
-	  String getLogPrefix() {
+	  final String getLogPrefix() {
 	  	return myLogPrefix;
 	  }
-	  
-	  private void handleAcceptOp(SelectionKey key) {
-	  	try {
-		  	SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
-		  	
-		  	sc.configureBlocking(false);
-		  	sc.register(mySelector, SelectionKey.OP_READ);
+
+	  /**
+	     Get the LoopManager with the minimum number of registered 
+	     keys.
+	   */
+	  final LoopManager getLooper() {
+	  	int minSize = 999999; // Big value;
+	  	int index = -1;
+	  	for (int i = 0; i < loopers.length; ++i) {
+	  		int size = loopers[i].size();
+	  		if (size < minSize) {
+	  			minSize = size;
+	  			index = i;
+	  		}
 	  	}
-	  	catch (Exception e) {
-	  		myLogger.log(Logger.WARNING, myLogPrefix+" Error accepting incoming connection");
-	  		e.printStackTrace();
-	  	}
+	  	return loopers[index];
 	  }
 	  
-	  private void handleReadOp(SelectionKey key) {
-	  	// Read the packet through a proper connection and then let the 
-	  	// therad pool process it
-	  	KeyManager mgr = (KeyManager) key.attachment();
-	  	if (mgr == null) {
-	  		// FIXME: Use the connection factory
-	  		mgr = new KeyManager(key, new NIOJICPConnection((SocketChannel) key.channel()));
-	  		key.attach(mgr);
-	  	}
-	  	mgr.readPacket();
-    	myPool.enqueue(key);
-	  }
-	  
+		final Connection createConnection(SelectionKey key) {
+			// FIXME: Use the ConnectionFactory
+			return new NIOJICPConnection(key);
+		}
+		
 	  /**
 	     Serve an IO event conveied by a SelectionKey (a JICPPacket or an IO exception).
 	     This method is executed by one of the threads in the 
 	     server Thread pool.
 	   */
-	  public void serveKey(SelectionKey key) {
+	  public void servePacket(KeyManager mgr, JICPPacket pkt) {
+	  	long start = System.currentTimeMillis();
+	  	
+	  	SelectionKey key = mgr.getKey();
 	  	SocketChannel sc = (SocketChannel) key.channel();
 	  	Socket s = sc.socket();
       InetAddress address = s.getInetAddress();
       int port = s.getPort();
       
-      KeyManager mgr = (KeyManager) key.attachment();
       Connection connection = mgr.getConnection();
-      JICPPacket pkt = mgr.getPacket();
       NIOMediator mediator = mgr.getMediator();
       JICPPacket reply = null;
       // If there is no mediator associated to this key prepare to close 
@@ -440,191 +409,180 @@ public class BEManagementService extends BaseService {
       boolean closeConnection = (mediator == null);
       
       // STEP 1) Serve the received packet
-      if (pkt != null) {
-	      int type = pkt.getType();	  
-        String recipientID = pkt.getRecipientID();
-        try {
-		      switch (type) {
-			      case JICPProtocol.GET_ADDRESS_TYPE: {
-			        // Respond sending back the caller address
+      int type = pkt.getType();	  
+      String recipientID = pkt.getRecipientID();
+      try {
+	      switch (type) {
+		      case JICPProtocol.GET_ADDRESS_TYPE: {
+		        // Respond sending back the caller address
+		        if(myLogger.isLoggable(Logger.INFO)) {
+		        	myLogger.log(Logger.INFO, myLogPrefix+"GET_ADDRESS request received from "+address+":"+port);
+		        }
+		        reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
+		        break;
+		      }
+		      case JICPProtocol.CREATE_MEDIATOR_TYPE: {
+		      	if (mediator == null) {
 			        if(myLogger.isLoggable(Logger.INFO)) {
-			        	myLogger.log(Logger.INFO, myLogPrefix+"GET_ADDRESS request received from "+address+":"+port);
+			        	myLogger.log(Logger.INFO, myLogPrefix+"CREATE_MEDIATOR request received from "+ address + ":" + port);
 			        }
-			        reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
-			        break;
-			      }
-			      case JICPProtocol.CREATE_MEDIATOR_TYPE: {
-			      	if (mediator == null) {
-				        if(myLogger.isLoggable(Logger.INFO)) {
-				        	myLogger.log(Logger.INFO, myLogPrefix+"CREATE_MEDIATOR request received from "+ address + ":" + port);
-				        }
-				
-				        // Create a new Mediator
-				        Properties p = parseProperties(new String(pkt.getData()));
-				        
-				        // If there is a PDPContextManager add the PDP context properties
-				        if (myPDPContextManager != null) {
-				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, p.getProperty(JICPProtocol.OWNER_KEY));
-				        	if (pdpContextInfo != null) {
-				          	mergeProperties(p, pdpContextInfo);
-				        	}
-				        	else {
-			        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request from non authorized address: "+address);
+			
+			        // Create a new Mediator
+			        Properties p = parseProperties(new String(pkt.getData()));
+			        
+			        // If there is a PDPContextManager add the PDP context properties
+			        if (myPDPContextManager != null) {
+			        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, p.getProperty(JICPProtocol.OWNER_KEY));
+			        	if (pdpContextInfo != null) {
+			          	mergeProperties(p, pdpContextInfo);
+			        	}
+			        	else {
+		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request from non authorized address: "+address);
+			        		reply = new JICPPacket("Not authorized", null);
+			        		break;
+			        	}
+			        }
+			
+						  // Get mediator ID from the passed properties (if present)
+			        String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
+			        String msisdn = p.getProperty(PDPContextManager.MSISDN);
+						  if(id != null) {
+						  	if (msisdn != null && !msisdn.equals(id)) {
+						  		// Security attack: Someone is pretending to be someone other
+		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
+									reply = new JICPPacket("Not authorized", null);
+			        		break;
+						  	}	
+						  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
+						  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
+						  }
+						  else {
+						  	// Use the MSISDN (if present) 
+						  	id = msisdn;
+						  	if (id == null) {
+						      // Construct a default id using the string representation of the server's TCP endpoint
+						      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+						  	}
+						  }
+						  
+						  // If last connection from the same device aborted, the old 
+						  // BackEnd may still exist as a zombie. In case ids are assigned
+						  // using the MSISDN the new name is equals to the old one.
+						  if (id.equals(msisdn)) {
+						  	NIOMediator old = (NIOMediator) mediators.get(id);	
+						  	if (old != null) {
+						  		// This is a zombie mediator --> kill it
+			  					myLogger.log(Logger.INFO, myLogPrefix+"Replacing old mediator "+id);
+						  		old.kill();
+						  		// Be sure the zombie container has been removed
+						  		waitABit(1000);
+						  	}
+						  }
+			
+			        // Create and start the new mediator
+			        mediator = startMediator(id, p);
+			  			closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
+			  			mediators.put(mediator.getId(), mediator);
+			  			
+							if (!closeConnection) {
+								// The mediator wants to keep this connection open --> associate 
+								// it to the current key
+								mgr.setMediator(mediator);
+							}
+									        
+			        // Create an ad-hoc reply including the assigned mediator-id and the IP address
+			        String replyMsg = id+'#'+address.getHostAddress();
+			        reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
+			        reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
+		      	}
+		      	else {
+		      		myLogger.log(Logger.WARNING, myLogPrefix+" CREATE_MEDIATOR request received on a connection already linked to an existing mediator");
+		        	reply = new JICPPacket("Unexpected packet type", null);
+		      	}
+		      	break;
+		      }
+		      case JICPProtocol.CONNECT_MEDIATOR_TYPE: {
+		      	if (mediator == null) {
+			        if(myLogger.isLoggable(Logger.INFO)) {
+			        	myLogger.log(Logger.INFO, myLogPrefix+"CONNECT_MEDIATOR request received from "+address+":"+port+". ID="+recipientID);
+			        }
+			        
+			        // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN.
+			        // Where should we get the owner from? It should likely be replicated in each 
+			        // CONNECT_MEDIATOR request.
+			        /*if (myPDPContextManager != null) {
+			        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, "OWNER???");
+			        	if (pdpContextInfo != null) {
+			        		String msisdn = pdpContextInfo.getProperty(PDPContextManager.MSISDN);
+			        		if (msisdn == null || !msisdn.equals(recipientID)) {
+			        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
 				        		reply = new JICPPacket("Not authorized", null);
 				        		break;
-				        	}
-				        }
-				
-							  // Get mediator ID from the passed properties (if present)
-				        String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
-				        String msisdn = p.getProperty(PDPContextManager.MSISDN);
-							  if(id != null) {
-							  	if (msisdn != null && !msisdn.equals(id)) {
-							  		// Security attack: Someone is pretending to be someone other
-			        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
-										reply = new JICPPacket("Not authorized", null);
-				        		break;
-							  	}	
-							  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
-							  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
-							  }
-							  else {
-							  	// Use the MSISDN (if present) 
-							  	id = msisdn;
-							  	if (id == null) {
-							      // Construct a default id using the string representation of the server's TCP endpoint
-							      id = "BE-"+getLocalHost() + ':' + getLocalPort() + '-' + String.valueOf(mediatorCnt++);
-							  	}
-							  }
-							  
-							  // If last connection from the same device aborted, the old 
-							  // BackEnd may still exist as a zombie. In case ids are assigned
-							  // using the MSISDN the new name is equals to the old one.
-							  if (id.equals(msisdn)) {
-							  	NIOMediator old = (NIOMediator) mediators.get(id);	
-							  	if (old != null) {
-							  		// This is a zombie mediator --> kill it
-				  					myLogger.log(Logger.INFO, myLogPrefix+"Replacing old mediator "+id);
-							  		old.kill();
-							  		// Be sure the zombie container has been removed
-							  		waitABit(1000);
-							  	}
-							  }
-				
-				        // Create and start the new mediator
-				        mediator = startMediator(id, p);
-				  			closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
-				  			mediators.put(mediator.getId(), mediator);
+			        		}
+			        	}
+			        	else {
+		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request from non authorized address: "+address);
+			        		reply = new JICPPacket("Not authorized", null);
+			        		break;
+			        	}
+			        }*/
+
+			        // Retrieve the mediator to connect to
+			        mediator = getFromID(recipientID);
+			        
+			        if (mediator != null) {
+			        	closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
 								if (!closeConnection) {
 									// The mediator wants to keep this connection open --> associate 
 									// it to the current key
 									mgr.setMediator(mediator);
 								}
-										        
-				        // Create an ad-hoc reply including the assigned mediator-id and the IP address
-				        String replyMsg = id+'#'+address.getHostAddress();
-				        reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
-				        reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
-			      	}
-			      	else {
-			      		myLogger.log(Logger.WARNING, myLogPrefix+" CREATE_MEDIATOR request received on a connection already linked to an existing mediator");
-			        	reply = new JICPPacket("Unexpected packet type", null);
-			      	}
-			      	break;
-			      }
-			      case JICPProtocol.CONNECT_MEDIATOR_TYPE: {
-			      	if (mediator == null) {
-				        if(myLogger.isLoggable(Logger.INFO)) {
-				        	myLogger.log(Logger.INFO, myLogPrefix+"CONNECT_MEDIATOR request received from "+address+":"+port+". ID="+recipientID);
-				        }
-				        
-				        // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN.
-				        // Where should we get the owner from? It should likely be replicated in each 
-				        // CONNECT_MEDIATOR request.
-				        /*if (myPDPContextManager != null) {
-				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, "OWNER???");
-				        	if (pdpContextInfo != null) {
-				        		String msisdn = pdpContextInfo.getProperty(PDPContextManager.MSISDN);
-				        		if (msisdn == null || !msisdn.equals(recipientID)) {
-				        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
-					        		reply = new JICPPacket("Not authorized", null);
-					        		break;
-				        		}
-				        	}
-				        	else {
-			        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request from non authorized address: "+address);
-				        		reply = new JICPPacket("Not authorized", null);
-				        		break;
-				        	}
-				        }*/
-
-				        // Retrieve the mediator to connect to
-				        mediator = getFromID(recipientID);
-				        
-				        if (mediator != null) {
-				        	closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
-									if (!closeConnection) {
-										// The mediator wants to keep this connection open --> associate 
-										// it to the current key
-										mgr.setMediator(mediator);
-									}
-				          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
-				        }
-				        else {
-			          	myLogger.log(Logger.WARNING, myLogPrefix+"Mediator "+recipientID+" not found");
-				        	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
-				        }
-			      	}
-			      	else {
-			      		myLogger.log(Logger.WARNING, myLogPrefix+" CONNECT_MEDIATOR request received on a connection already linked to an existing mediator");
-			        	reply = new JICPPacket("Unexpected packet type", null);
-			      	}
-			        break;
-			      }        
-			      default: {
-			      	// Pass all other JICP packets (command, responses, keep-alives ...)
-			      	// to the proper mediator.
-			        if (mediator == null) {
-			        	mediator = getFromID(recipientID);
+			          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, address.getHostAddress().getBytes());
 			        }
-			        
-			        if (mediator != null) {
-			        	if(myLogger.isLoggable(Logger.FINEST)) {
-			        		myLogger.log(Logger.FINEST, myLogPrefix+"Passing packet of type "+type+" to mediator "+mediator.getId());
-			        	}
-			          reply = mediator.handleJICPPacket(connection, pkt, address, port);
-			        } 
 			        else {
-			      		myLogger.log(Logger.WARNING, myLogPrefix+" No mediator for incoming packet of type "+type);
-			        	if (type == JICPProtocol.COMMAND_TYPE) {
-				        	reply = new JICPPacket(myLogPrefix+"Mediator not found", null);
-			        	}
+		          	myLogger.log(Logger.WARNING, myLogPrefix+"Mediator "+recipientID+" not found");
+			        	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
 			        }
-			      }
-		      } // END of switch
-        }
-        catch (Exception e) {
-        	// Error handling the received packet
-      		myLogger.log(Logger.WARNING, myLogPrefix+"Error handling incoming packet");
-        	e.printStackTrace();
-	      	// If the incoming packet was a command, send back a generic error response
-	        if (type == JICPProtocol.COMMAND_TYPE) {
-	        	reply = new JICPPacket("Unexpected error", e);
-	        }
-        }
+		      	}
+		      	else {
+		      		myLogger.log(Logger.WARNING, myLogPrefix+" CONNECT_MEDIATOR request received on a connection already linked to an existing mediator");
+		        	reply = new JICPPacket("Unexpected packet type", null);
+		      	}
+		        break;
+		      }        
+		      default: {
+		      	// Pass all other JICP packets (command, responses, keep-alives ...)
+		      	// to the proper mediator.
+		        if (mediator == null) {
+		        	mediator = getFromID(recipientID);
+		        }
+		        
+		        if (mediator != null) {
+		        	if(myLogger.isLoggable(Logger.FINEST)) {
+		        		myLogger.log(Logger.FINEST, myLogPrefix+"Passing packet of type "+type+" to mediator "+mediator.getId());
+		        	}
+		          reply = mediator.handleJICPPacket(connection, pkt, address, port);
+		        } 
+		        else {
+		      		myLogger.log(Logger.WARNING, myLogPrefix+" No mediator for incoming packet of type "+type);
+		        	if (type == JICPProtocol.COMMAND_TYPE) {
+			        	reply = new JICPPacket(myLogPrefix+"Mediator not found", null);
+		        	}
+		        }
+		      }
+	      } // END of switch
       }
-      else {
-      	// There was an IO error reading the packet. If the current key
-      	// is associated to a mediator, let it process the error. Otherwise
-      	// print a warning.
-      	Exception e = mgr.getException();
-  	    if (mediator != null) {
-  	    	mediator.handleConnectionError(connection, e);
-  	    }
-  	    else {
-    	    myLogger.log(Logger.WARNING, myLogPrefix+"Communication error reading incoming packet from "+address+":"+port+" ["+e+"]");
-  	    }
-  	    closeConnection = true;
+      catch (Exception e) {
+      	// Error handling the received packet
+    		myLogger.log(Logger.WARNING, myLogPrefix+"Error handling incoming packet");
+      	e.printStackTrace();
+      	// If the incoming packet was a request, send back a generic error response
+        if (type == JICPProtocol.COMMAND_TYPE ||
+        	  type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
+        	  type == JICPProtocol.CREATE_MEDIATOR_TYPE ||
+        	  type == JICPProtocol.GET_ADDRESS_TYPE) {
+        	reply = new JICPPacket("Unexpected error", e);
+        }
       }
 	      
       // STEP 2) Send back the response if any
@@ -642,8 +600,7 @@ public class BEManagementService extends BaseService {
       	closeConnection = false;
       }
       
-			// STEP 3) Unlock the KeyManager and close the connection if necessary
-      mgr.reset();
+			// STEP 3) Close the connection if necessary
       if (closeConnection) {
 	      try {
 	        // Close connection
@@ -658,9 +615,39 @@ public class BEManagementService extends BaseService {
 	        }
 	        io.printStackTrace();
 	      }
-      }      
+      }
+      
+		  long end = System.currentTimeMillis();
+		  if ((end - start) > 100) {
+		  	System.out.println("Serve time = "+(end-start));
+		  }
 	  }
 
+	  public void serveException(KeyManager mgr, Exception e) {
+    	// There was an exception reading the packet. If the current key
+    	// is associated to a mediator, let it process the exception. 
+	  	// Otherwise print a warning.      
+      Connection connection = mgr.getConnection();
+      NIOMediator mediator = mgr.getMediator();
+	    if (mediator != null) {
+	    	mediator.handleConnectionError(connection, e);
+	    }
+	    else {
+		  	SelectionKey key = mgr.getKey();
+		  	SocketChannel sc = (SocketChannel) key.channel();
+		  	Socket s = sc.socket();
+	      InetAddress address = s.getInetAddress();
+	      int port = s.getPort();
+  	    myLogger.log(Logger.WARNING, myLogPrefix+"Exception reading incoming packet from "+address+":"+port+" ["+e+"]");
+	    }
+	    
+	    // Always close the connection
+			try {
+				connection.close();
+			}
+			catch (Exception ex) {}
+    }
+    
 	  private NIOMediator getFromID(String recipientID) {
       if (recipientID != null) {
 		  	return (NIOMediator) mediators.get(recipientID);
@@ -669,16 +656,23 @@ public class BEManagementService extends BaseService {
 	  }
 	  
 	  /**
-	     Called by a Mediator to notify that it is no longer active
+	     Called by a Mediator to notify that it is no longer active.
+	     This is often called within the tick() method. In this case
+	     directly removing the deregistering mediator from the mediators table 
+	     would cause a ConcurrentModificationException --> We just add
+	     the deregistering mediator to a queue of mediators to be removed. 
+	     The actual remotion will occur at the next tick in asynchronized 
+	     way.
 	   */
 	  public void deregisterMediator(String id) {
 	  	if (myLogger.isLoggable(Logger.CONFIG)) {
 		  	myLogger.log(Logger.CONFIG, myLogPrefix+"Deregistering mediator "+id);
 	  	}
-	    mediators.remove(id);
+	  	deregisteredMediators.add(id);
 	  } 
 	  
 	  public void tick(long currentTime) {
+	  	// Forward the tick to all mediators
 	  	synchronized (mediators) {
 		    Iterator it = mediators.values().iterator();
 		    while (it.hasNext()) {
@@ -686,6 +680,22 @@ public class BEManagementService extends BaseService {
 		      m.tick(currentTime);
 		    }
 	  	}
+	  	// Remove mediators that have deregistered since the last tick
+	  	Object[] dms = null;
+	  	synchronized (deregisteredMediators) {
+	  		dms = deregisteredMediators.toArray();
+	  		deregisteredMediators.clear();
+	  	}
+	  	for (int i = 0; i < dms.length; ++i) {
+	  		synchronized (mediators) {
+		  		NIOMediator m = (NIOMediator) mediators.remove(dms[i]); 
+		  		if (m.getId() != null) {
+		  			// A new mediator with the same ID started in the meanwhile.
+		  			// It must not be removed.
+		  			mediators.put(m.getId(), m);
+		  		}
+	  		}
+  		}
 	  }
 	  
 	  /**
@@ -723,14 +733,12 @@ public class BEManagementService extends BaseService {
 		private SelectionKey key;
 		private Connection connection;
 		private NIOMediator mediator;
-		private JICPPacket pkt;
-		private Exception exc;
+		private IOEventServer server; 
 		
-		private boolean locked = false;
-		
-		public KeyManager(SelectionKey k, Connection c) {
+		public KeyManager(SelectionKey k, Connection c, IOEventServer s) {
 			key = k;
 			connection = c;
+			server = s;
 		}
 		
 		public final NIOMediator getMediator() {
@@ -741,135 +749,184 @@ public class BEManagementService extends BaseService {
 			mediator = m;
 		}
 
-		/**
-		   Read a packet or an IO Exception event from the connection 
-		   associated to the managed key.
-		   Locking before reading the packet is required to avoid a new
-		   packet to be read before the previous one has been consumend.
-		 */
-		public final void readPacket() {
-			lock();
-			try {
-				pkt = connection.readPacket();
-			}
-			catch (IOException ioe) {
-				exc = ioe;
-				try {
-					connection.close();
-				}
-				catch (Exception e) {}
-			}
-		}
-				
-		private synchronized final void lock() {
-			try {
-				while (locked) {
-					wait();
-				}
-				locked = true;
-			}
-			catch (InterruptedException ie) {
-				// There is nothing meaningful we can do
-				ie.printStackTrace();
-			}
-		}
-		
-		private synchronized final void unlock() {
-			locked = false;
-			notifyAll();
-		}
-		
-		public final void reset() {
-			pkt = null;
-			exc = null;
-			unlock();
-		}
-		
 		public final Connection getConnection() {
 			return connection;
-		}
+		}		
 		
-		public final JICPPacket getPacket() {
-			return pkt;
-		}
+		public final SelectionKey getKey() {
+			return key;
+		}		
 		
-		public final Exception getException() {
-			return exc;
-		}
+		/**
+		   Read some data from the connection associated to the managed key
+		   and let the IOEventServer serve it
+		 */
+		public final void read() {
+			try {
+				JICPPacket pkt = connection.readPacket();
+				server.servePacket(this, pkt);
+			}
+			catch (PacketIncompleteException pie) {
+				// The data ready to be read is not enough to complete
+				// a packet. Just do nothing and wait until more data is ready
+			}
+			catch (Exception e) {
+				server.serveException(this, e);
+			}
+		}				
 	} // END of inner class KeyManager
 	
 	
 	/**
-	   Inner class ServerThreadPool
+	   Inner class LoopManager
 	 */
-	private class ServerThreadPool implements Runnable {
-		private int size;
-		private int terminatedCnt = 0;
-		private IOEventServer myServer;
+	private class LoopManager implements Runnable {
+		private int myIndex;
+		private String displayId;
 		private int state = INIT_STATE;
-		private List pendingKeys = new LinkedList();
+		private Selector mySelector;
+		private Thread myThread;
+		private IOEventServer myServer;
+		private boolean pendingChannelPresent = false;
+		private List pendingChannels = new ArrayList();
 		
-		public ServerThreadPool(int s, IOEventServer server) {
+		public LoopManager(IOEventServer server, int index) {
 			myServer = server;
-			size = s;
+			myIndex = index;
+			String id = myServer.getId();
+			displayId = "BEManagementService"+(PREFIX.startsWith(id) ? "" : "-"+id);			
+			
+			try {
+				mySelector = Selector.open();
+			}
+			catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
 		}
 		
 		public void start() {
 			state = ACTIVE_STATE;
-			for (int i = 0; i < size; ++i) {
-				Thread t = new Thread(this);
-				String id = myServer.getId();
-				String serverId = (PREFIX.startsWith(id) ? "" : "-"+id);
-				t.setName("BEManagementService"+serverId+"-T"+i);
-				t.start();
-			}
+			String id = myServer.getId();
+			String serverId = (PREFIX.startsWith(id) ? "" : "-"+id);
+			myThread = new Thread(this);
+			myThread.setName(displayId+"-T"+myIndex);
+			myThread.start();
 		}
 		
-		public synchronized void stop() {
+		public void stop() {
 			state = TERMINATING_STATE;
-			notifyAll();
+			mySelector.wakeup();
+		}
+		
+		public void join() throws InterruptedException {
+			myThread.join();
 		}
 		
 		public void run() {
 			while (state == ACTIVE_STATE) {
-				SelectionKey key = dequeue();
-				if (key != null) {
-					myServer.serveKey(key);
-				}
-			}
-			terminatedCnt++;
-			if (terminatedCnt >= size) {
-				state = TERMINATED_STATE;
-			}
-		}
-		
-		public synchronized final void enqueue(SelectionKey key) {
-			pendingKeys.add(key);
-			int size = pendingKeys.size();
-			if (size > 20) {
-				myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"# "+size+" pending keys");
-			}
-			notifyAll();
-		}
-		
-		public synchronized SelectionKey dequeue() {
-			try {
-				while (state == ACTIVE_STATE && pendingKeys.isEmpty()) {
-					wait();
-				}
-			}
-			catch (InterruptedException ie) {
-				myLogger.log(Logger.WARNING, Thread.currentThread().getName()+": unexpected InterruptedException"); 
-			}
+				int n = 0;
+	      try {
+	      	// Wait for the next IO events 
+	      	//System.out.println(Thread.currentThread().getName()+": Selecting on "+mySelector);
+	      	n = mySelector.select();
+	      }
+	      catch (Exception e) {
+	      	if (state == ACTIVE_STATE) {
+	        	myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"Error selecting next IO event. ");
+	          e.printStackTrace();
+	
+	          // Abort
+	          state = ERROR_STATE;
+	      	}
+	      } 
+      	if (state == ACTIVE_STATE) {
+      		if (n > 0) {
+		      	Set keys = mySelector.selectedKeys();
+		      	Iterator it = keys.iterator();
+		      	while (it.hasNext()) {
+		      		SelectionKey key = (SelectionKey) it.next();
+		      		if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+		      			// This is an incoming connection. The channel must be 
+		      			// the SerevrSocketChannel server
+		      			//System.out.println(Thread.currentThread().getName()+": ACCEPT_OP on key "+key);
+		      			handleAcceptOp(key);
+		      		}
+		      		else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
+		      			// This is some incoming data for one of the BE
+		      			//System.out.println(Thread.currentThread().getName()+": READ_OP on key "+key);
+		      			handleReadOp(key);
+		      		}
+		      		it.remove();
+		      	}
+      		}
+      		handlePendingChannels();
+      	}
+			} // END of while
 			
-			if (!pendingKeys.isEmpty()) {
-				return (SelectionKey) pendingKeys.remove(0);
-			}
-			
-			// The pool was stopped or the thread was interrupted
-			return null;
-		}				
-	} // END of inner class ServerThreadPool
+			state = TERMINATED_STATE;
+		}		
+		
+	  private final void handleAcceptOp(SelectionKey key) {
+	  	try {
+		  	SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
+		  	
+		  	checkAddress(sc);
+		  	
+		  	sc.configureBlocking(false);
+		  	LoopManager lm = myServer.getLooper();
+		  	lm.register(sc);
+	  	}
+	  	catch (JADESecurityException jse) {
+	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Connection attempt from malicious address "+jse.getMessage());
+	  	}
+	  	catch (Exception e) {
+	  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Error accepting incoming connection");
+	  		e.printStackTrace();
+	  	}
+	  }
+	  
+	  private final void handleReadOp(SelectionKey key) {
+	  	KeyManager mgr = (KeyManager) key.attachment();
+	  	if (mgr == null) {
+	  		mgr = new KeyManager(key, myServer.createConnection(key), myServer);
+	  		key.attach(mgr);
+	  	}
+	  	mgr.read();
+	  }
+
+	  private synchronized final void register(SocketChannel sc) {
+	  	pendingChannels.add(sc);
+	  	pendingChannelPresent = true;
+	  	mySelector.wakeup();
+	  }
+
+	  private synchronized final void handlePendingChannels() {
+  		if (pendingChannelPresent) {
+		  	for (int i = 0; i < pendingChannels.size(); ++i) {
+	  			SocketChannel sc = (SocketChannel) pendingChannels.get(i);
+	  			//System.out.println(Thread.currentThread().getName()+": Registering channel on Selector "+mySelector);
+	  			try {
+				  	sc.register(mySelector, SelectionKey.OP_READ);
+		  			//System.out.println(Thread.currentThread().getName()+": Done");
+	  			}
+			  	catch (Exception e) {
+			  		myLogger.log(Logger.WARNING, myServer.getLogPrefix()+" Error registering socket channel for asynchronous IO");
+			  		e.printStackTrace();
+			  	}
+	  		}
+	  		pendingChannels.clear();
+	  		pendingChannelPresent = false;
+  		}
+	  }
+  			
+	  public final Selector getSelector() {
+	  	return mySelector;
+	  }
+	  
+	  public final int size() {
+	  	return mySelector.keys().size();
+	  }
+	} // END of inner class LoopManager
 	
 	
   /**
@@ -947,6 +1004,22 @@ public class BEManagementService extends BaseService {
   	Vector v = new Vector();
   	v.addElement(strList);
   	return v;
+  }
+  
+  /**
+     Check that the address of the initiator of a new connection
+     is not in the list of addresses considered as malicious.
+   */
+  private final void checkAddress(SocketChannel sc) throws JADESecurityException {
+  	Socket s = sc.socket();
+    InetAddress address = s.getInetAddress();
+  	if (maliciousAddresses.contains(address)) {
+  		try {
+  			sc.close();
+  		}
+  		catch (Exception e) {}
+  		throw new JADESecurityException(address.toString());
+  	}
   }
 }
 

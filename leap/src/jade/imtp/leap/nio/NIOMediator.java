@@ -10,7 +10,8 @@ import jade.imtp.leap.JICP.Connection;
 import java.net.InetAddress;
 
 /**
-   Base interface for all mediators that can be managed by the
+   Base interface for all mediators that can be managed by 
+   asynchronous JICPMediatorManagers such as the
    <code>BEManagementService</code>.
    @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */

@@ -20,71 +20,113 @@ public class NIOJICPConnection extends Connection {
 	// type+info+session+recipient-length+recipient(255)+payload-length(4)
 	private static final int MAX_HEADER_SIZE = 263;
 	
-	// FIXME: Use a generic channel
+	private SelectionKey myKey;
 	private SocketChannel myChannel;
 	private ByteBuffer headerBuf = ByteBuffer.allocateDirect(MAX_HEADER_SIZE);
+	private ByteBuffer payloadBuf;
+	private byte type;
+	private byte info;	
+	private byte sessionID;
+	private String recipientID;
+	private byte[] payload;
+	private boolean idle = true;
 	
-	// FIXME: Use a generic channel
-	public NIOJICPConnection(SocketChannel sc) {
-		myChannel = sc;
+	public NIOJICPConnection(SelectionKey k) {
+		myKey = k;
+		myChannel = (SocketChannel) k.channel();
 	}
 	
 	/**
 	   Read a JICPPacket from the connection.
 	   The method is synchronized since we reuse the same Buffer object 
 	   for reading the packet header.
+	   It should be noted that the packet data may not be completely
+	   available when the embedded channel is ready for a READ operation.
+	   In that case a PacketIncompleteException is thrown to indicate 
+	   that successive calls to this method must occur in order to 
+	   fully read the packet.
 	 */
 	public synchronized JICPPacket readPacket() throws IOException {
-		headerBuf.clear();
-		byte[] payload = null;
-		int n = myChannel.read(headerBuf);
-		if (n > 0) {
-			headerBuf.flip();
-			byte type = headerBuf.get();
-			byte info = headerBuf.get();
-			byte sessionID = -1;
-			String recipientID = null;
-			if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
-				sessionID = headerBuf.get();
-			}
-			if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-				byte recipientIDLength = headerBuf.get();
-				byte[] bb = new byte[recipientIDLength];
-				headerBuf.get(bb);
-				recipientID = new String(bb);
-			}
-			if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-	    	int b1 = (int) headerBuf.get();
-	    	int b2 = (int) headerBuf.get();
-	    	int payloadLength = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
-	    	int b3 = (int) headerBuf.get();
-	    	int b4 = (int) headerBuf.get();
-	    	payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
-				payload = new byte[payloadLength];
-				
-				int payloadRead = headerBuf.remaining();
-				int payloadUnread = payloadLength - payloadRead;
-				if (payloadRead > 0) {
-					// Part of the payload has already been read.
-					headerBuf.get(payload, 0, payloadRead);
+		if (idle) {
+			headerBuf.clear();
+			int n = myChannel.read(headerBuf);
+			if (n > 0) {
+				idle = false;
+				headerBuf.flip();
+				type = headerBuf.get();
+				info = headerBuf.get();
+				sessionID = -1;
+				if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
+					sessionID = headerBuf.get();
 				}
-				if (payloadUnread > 0) {
-					ByteBuffer payloadBuf = ByteBuffer.wrap(payload);
-					payloadBuf.position(payloadRead);
-					n = myChannel.read(payloadBuf);
-					if (n != payloadUnread) {
-						System.out.println("WARNING!!! Read "+n+" bytes from channel while "+payloadUnread+" were expected");
+				if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
+					byte recipientIDLength = headerBuf.get();
+					byte[] bb = new byte[recipientIDLength];
+					headerBuf.get(bb);
+					recipientID = new String(bb);
+				}
+				if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
+		    	int b1 = (int) headerBuf.get();
+		    	int b2 = (int) headerBuf.get();
+		    	int payloadLength = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+		    	int b3 = (int) headerBuf.get();
+		    	int b4 = (int) headerBuf.get();
+		    	payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
+					payload = new byte[payloadLength];
+					
+					int payloadRead = headerBuf.remaining();
+					int payloadUnread = payloadLength - payloadRead;
+					if (payloadRead > 0) {
+						// Part of the payload has already been read.
+						headerBuf.get(payload, 0, payloadRead);
+					}
+					if (payloadUnread > 0) {
+						payloadBuf = ByteBuffer.wrap(payload);
+						payloadBuf.position(payloadRead);
+						n = myChannel.read(payloadBuf);
+						if (payloadBuf.remaining() > 0) {
+							if (n > 0) {
+								throw new PacketIncompleteException();
+							}
+							else {
+								idle = true;
+								throw new EOFException("Channel closed");
+							}
+						}
 					}
 				}
+				return buildPacket();
 			}
-			JICPPacket pkt = new JICPPacket(type, info, recipientID, payload);
-			pkt.setSessionID(sessionID);
-			return pkt;
+			else { 
+				throw new EOFException("Channel closed");
+			}
 		}
-		else { 
-			throw new EOFException("Channel closed");
+		else {
+			// We are in the middle of reading the payload of a packet
+			int n = myChannel.read(payloadBuf);
+			if (payloadBuf.remaining() > 0) {
+				if (n > 0) {
+					throw new PacketIncompleteException();
+				}
+				else {
+					idle = true;
+					throw new EOFException("Channel closed");
+				}
+			}
+			return buildPacket();
 		}
 	}
+	
+	private JICPPacket buildPacket() {
+		JICPPacket pkt = new JICPPacket(type, info, recipientID, payload);
+		pkt.setSessionID(sessionID);
+		idle = true;
+		recipientID = null;
+		payload = null;
+		payloadBuf = null;
+		return pkt;
+	}
+		
 	
 	/**
 	   Write a JICPPacket on the connection
@@ -112,6 +154,16 @@ public class NIOJICPConnection extends Connection {
   	Socket s = myChannel.socket();
     InetAddress address = s.getInetAddress();
     return address.getHostAddress();
+  }
+  
+  public void configureBlocking() {
+  	try { 
+	  	myKey.cancel();
+	  	myChannel.configureBlocking(true);
+  	}
+  	catch (Exception e) {
+  		e.printStackTrace();
+  	}
   }
 }
 

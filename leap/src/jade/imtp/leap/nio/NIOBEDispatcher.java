@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 /**
-   This class implements the BEManagementService managable BackEnd dispatcher 
-   for BIFEDispatcher-s.
+   This class implements the BIFEDispatcher related BackEnd dispatcher 
+   managable by an asynchronous JICPMediatorManager  
    @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */
 public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispatcher {
@@ -48,10 +48,11 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
 	/**
-	   Retrieve the ID of this mediator
+	   Retrieve the ID of this mediator. Returns null if this mediator
+	   is not active
 	 */
 	public String getId() {
-		return myID;
+		return (active ? myID : null);
 	}
 	
 	/**
@@ -170,6 +171,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	}
    	if (inp) {
    		inpManager.setConnection(c);
+   		((NIOJICPConnection) c).configureBlocking();
    	}
    	else {
    		outManager.setConnection(c);
@@ -185,7 +187,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	   connections on its own (the JICPMediatorManager always does that).
 	 */
 	public void handleConnectionError(Connection c, Exception e) {
-		if (peerActive) {
+		if (active && peerActive) {
 			// Try assuming it is the input connection
 			try {
 				inpManager.checkConnection(c);
@@ -240,10 +242,11 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 		else if (type == JICPProtocol.KEEP_ALIVE_TYPE) {
 			return outManager.handleKeepAlive(c, pkt);
 		}
+		/* Asynch-reply
 		else if (type == JICPProtocol.RESPONSE_TYPE || type == JICPProtocol.ERROR_TYPE) {
 			inpManager.handleResponse(c, pkt);
 			return null;
-		}
+		}*/
 		else {
 			throw new ICPException("Unexpected packet type "+type);
 		}
@@ -254,45 +257,51 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	  used by this NIOMediator to evaluate the elapsed time without
 	  the need of a dedicated thread or timer.
 	 */
-	public void tick(long currentTime) {
-		// Evaluate the keep alive
-  	if (keepAliveTime > 0) {
-	  	if ((currentTime - lastReceivedTime) > (keepAliveTime + 50000)) {
-	  		// Missing keep-alive.
-	  		// The OUT connection is no longer valid
-	  		if (outManager.isConnected()) {
-					myLogger.log(Logger.WARNING, myID+": Missing keep-alive");
-		  		outManager.resetConnection();
-	  		}
-	  		// Check the INP connection. Since this method must return
-	  		// asap, does it in a separated Thread
-	  		if (inpManager.isConnected()) {
-		  		Thread t = new Thread() {
-		  			public void run() {
-		  				try {
-			  				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-			  				inpManager.dispatch(pkt, false);
-	              if(myLogger.isLoggable(Logger.CONFIG)) {
-	              	myLogger.log(Logger.CONFIG, myID+": IC valid");
-	              }
-		  				}
-		  				catch (Exception e) {
-		  					// Just do nothing: the INP connection has been reset
-		  				}
-		  			}
-		  		};
-		  		t.start();
-	  		}
+	public final void tick(long currentTime) {
+		if (active) {
+			// 1) If there is a blocking read operation in place check the 
+			// response timeout
+			inpManager.checkResponseTime(currentTime);
+				
+			// 2) Evaluate the keep alive
+	  	if (keepAliveTime > 0) {
+		  	if ((currentTime - lastReceivedTime) > (keepAliveTime + 50000)) {
+		  		// Missing keep-alive.
+		  		// The OUT connection is no longer valid
+		  		if (outManager.isConnected()) {
+						myLogger.log(Logger.WARNING, myID+": Missing keep-alive");
+			  		outManager.resetConnection();
+		  		}
+		  		// Check the INP connection. Since this method must return
+		  		// asap, does it in a separated Thread
+		  		if (inpManager.isConnected()) {
+			  		Thread t = new Thread() {
+			  			public void run() {
+			  				try {
+				  				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+				  				inpManager.dispatch(pkt, false);
+		              if(myLogger.isLoggable(Logger.CONFIG)) {
+		              	myLogger.log(Logger.CONFIG, myID+": IC valid");
+		              }
+			  				}
+			  				catch (Exception e) {
+			  					// Just do nothing: the INP connection has been reset
+			  				}
+			  			}
+			  		};
+			  		t.start();
+		  		}
+		  	}
 	  	}
-  	}
-  	
-		// Evaluate the max disconnection time
-  	if (outManager.checkMaxDisconnectionTime(currentTime)) {
-  		myLogger.log(Logger.SEVERE,  myID+": Max disconnection time expired."); 
-  		// Consider as if the FrontEnd has terminated spontaneously -->
-  		// Kill the above container (this will also kill this NIOBEDispatcher).
-  		kill();
-  	}  	
+	  	
+			// 3) Evaluate the max disconnection time
+	  	if (outManager.checkMaxDisconnectionTime(currentTime)) {
+	  		myLogger.log(Logger.SEVERE,  myID+": Max disconnection time expired."); 
+	  		// Consider as if the FrontEnd has terminated spontaneously -->
+	  		// Kill the above container (this will also kill this NIOBEDispatcher).
+	  		kill();
+	  	}
+		}
 	}
 	
 	
@@ -351,7 +360,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	private Connection myConnection;
   	private boolean connectionRefreshed;
   	private boolean waitingForFlush;
+  	private long readStartTime = -1;
   	private JICPPacket currentReply;
+  	private Object dispatchLock = new Object(); 
   	
   	private int inpCnt;
   	private FrontEndStub myStub;
@@ -382,9 +393,10 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   			close(myConnection);
 	  		myConnection = null;
   		}
+  		// Asynch-reply
   		// If there was someone waiting for a response on the 
   		// connection notify it.
-  		notifyAll();
+  		//notifyAll();
   	}
 
 	  final void checkConnection(Connection c) throws ICPException {
@@ -401,50 +413,87 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		resetConnection();
   	}
   	
-  	final synchronized JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
-  		if ((!active) || (myConnection == null) || (waitingForFlush && (!flush))) {
-	  		// If we are waiting for flushed packets and the current packet
-	  		// is a normal (i.e. non-flushed) one, then throw an exception -->
-	  		// The packet will be put in the queue of packets to be flushed
-	  		throw new ICPException("Unreachable");
-  		}
-  		
-  		waitingForFlush = false;
-  		connectionRefreshed = false;
-  		try {
-		  	pkt.setSessionID((byte) inpCnt);
-		  	if (myLogger.isLoggable(Logger.FINE)) {
-			  	myLogger.log(Logger.FINE, myID+": Sending command "+inpCnt+" to FE");
+  	/**
+  	   Dispatch a JICP command to the FE and get back a reply.
+  	   This method must NOT be executed in mutual exclusion with 
+  	   setConnection() and resetConnection() since it performs a 
+  	   blocking read operation --> It can't just be declared synchronized.
+  	 */
+  	final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
+  		synchronized (dispatchLock) {
+	  		synchronized (this) {
+		  		if ((!active) || (myConnection == null) || (waitingForFlush && (!flush))) {
+			  		// If we are waiting for flushed packets and the current packet
+			  		// is a normal (i.e. non-flushed) one, then throw an exception -->
+			  		// The packet will be put in the queue of packets to be flushed
+			  		throw new ICPException("Unreachable");
+		  		}
+		  		
+		  		waitingForFlush = false;
+		  		connectionRefreshed = false;
+	  		}
+	  		
+	  		try {
+			  	pkt.setSessionID((byte) inpCnt);
+			  	if (myLogger.isLoggable(Logger.FINE)) {
+				  	myLogger.log(Logger.FINE, myID+": Sending command "+inpCnt+" to FE");
+			  	}
+			  	
+				  long start = System.currentTimeMillis();
+					myConnection.writePacket(pkt);
+				  long mid = System.currentTimeMillis();
+					// Asynch-reply: JICPPacket reply = waitForReply(RESPONSE_TIMEOUT);
+				  readStartTime = System.currentTimeMillis();
+					JICPPacket reply = myConnection.readPacket();
+				  readStartTime = -1;
+				  long end = System.currentTimeMillis();
+				  if ((end - start) > 100) {
+				  	System.out.println("Dispatching time = "+(end-start)+" ("+(end-mid)+")");
+				  }
+				  
+			  	if (myLogger.isLoggable(Logger.FINER)) {
+				  	myLogger.log(Logger.FINER, myID+": Received response "+inpCnt+" from FE");
+			  	}
+			    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
+			    	// Communication OK, but there was a JICP error on the peer
+			      throw new ICPException(new String(pkt.getData()));
+			    }
+			    if (!peerActive) {
+			    	// This is the response to an exit command --> Suicide, without
+			    	// killing the above container since it is already dying. 
+			    	shutdown();
+			    }
+			  	inpCnt = (inpCnt+1) & 0x0f;
+			  	return reply;
+	  		}
+		  	catch (NullPointerException npe) {
+		  		// This can happen if a resetConnection() occurs just before 
+		  		// myConnection.writePacket()/readPacket() is called.
+		  		throw new ICPException("Connection reset.");
 		  	}
-				myConnection.writePacket(pkt);
-				JICPPacket reply = waitForReply(RESPONSE_TIMEOUT);
-		  	if (myLogger.isLoggable(Logger.FINER)) {
-			  	myLogger.log(Logger.FINER, myID+": Received response "+inpCnt+" from FE");
+		  	catch (IOException ioe) {
+		  		synchronized (this) {
+		  			if (myConnection != null && !connectionRefreshed) {
+				  		// Either there was an IO exception writing data to the connection
+				  		// or the response timeout expired --> reset the connection.
+							myLogger.log(Logger.WARNING,myID+": IOException IC. "+ioe);
+				  		resetConnection();
+		  			}
+		  		}
+				  readStartTime = -1;
+		  		throw new ICPException("Dispatching error.", ioe);
 		  	}
-		    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
-		    	// Communication OK, but there was a JICP error on the peer
-		      throw new ICPException(new String(pkt.getData()));
-		    }
-		    if (!peerActive) {
-		    	// This is the response to an exit command --> Suicide, without
-		    	// killing the above container since it is already dying. 
-		    	shutdown();
-		    }
-		  	inpCnt = (inpCnt+1) & 0x0f;
-		  	return reply;
   		}
-	  	catch (IOException ioe) {
-	  		// Either there was an IO exception writing data to the connection
-	  		// or the response timeout expired --> reset the connection.
-	  		// Note that if the connection was refreshed/reset while we were 
-	  		// waiting for the response there is an ICPException --> we don't 
-	  		// get here 
-				myLogger.log(Logger.WARNING,myID+": IOException IC. "+ioe);
-	  		resetConnection();
-	  		throw new ICPException("Dispatching error.", ioe);
-	  	}  		
   	}
   	
+  	public final void checkResponseTime(long currentTime) {
+  		if (readStartTime > 0 && (currentTime - readStartTime) > RESPONSE_TIMEOUT) {
+				myLogger.log(Logger.WARNING,myID+": Response timeout expired.");
+  			resetConnection();
+  		}
+  	}
+  		
+  	/* Asynch-reply
   	final synchronized void handleResponse(Connection c, JICPPacket reply) throws ICPException {
   		checkConnection(c);
   		currentReply = reply;
@@ -476,7 +525,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		catch (InterruptedException ie) {
   			throw new ICPException("Interrupted");
   		}
-  	}  	  	  	
+  	}*/
   } // END of inner class InputManager
   
   
@@ -573,7 +622,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 		  return new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
   	}
   	
-  	synchronized boolean checkMaxDisconnectionTime(long currentTime) {
+  	final synchronized boolean checkMaxDisconnectionTime(long currentTime) {
   		return (!isConnected()) && (currentTime > expirationDeadline);
   	}
   			
