@@ -49,6 +49,8 @@ import test.domain.df.*;
    @author Elisabetta Cortese - TILAB
  */
 public class TestDFLeaseTime extends Test {
+	private static final long LEASE_TIME = 10000; // 10 sec
+	
   private int informCnt = 0;
 	
   public String getName() {
@@ -69,7 +71,7 @@ public class TestDFLeaseTime extends Test {
   			
   			// Register with the DF
   			DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent.getAID());
-  			dfd.setLeaseTime(new Date(System.currentTimeMillis()+6000));
+  			dfd.setLeaseTime(new Date(System.currentTimeMillis()+LEASE_TIME));
   			try {
 	  			DFService.register(myAgent, myAgent.getDefaultDF(), dfd);
   			}
@@ -99,11 +101,11 @@ public class TestDFLeaseTime extends Test {
   				ret = Test.TEST_FAILED;
   				return;
   			}
-  			l.log("DF search-1 result OK");
+  			l.log("DF search-1 result OK: 1 item found as expected");
   			
   			// Wait
-  			try{Thread.sleep(6000);}catch(Exception e){}
-  			l.log("DF waited done");
+  			l.log("Now wait for the registration lease time to expire...");
+  			try{Thread.sleep(LEASE_TIME);}catch(Exception e){}
   			
   	  	// Search again with the DF
   			try {
@@ -121,8 +123,7 @@ public class TestDFLeaseTime extends Test {
  					ret = Test.TEST_FAILED;
   				return;
   			}
-  			l.log("DF search-2 result OK");
-  			l.log("No results returned.");
+  			l.log("DF search-2 result OK: no item found as expected.");
   		}
   		
   		public int onEnd() {
