@@ -6,16 +6,16 @@ import java.util.Vector;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
-class AgentPlatformImpl extends UnicastRemoteObject implements AgentPlatform {
+public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
 
   // Initial size of agent hash table
-  private static final int MAP_SIZE = 100;
+  private static final int GLOBALMAP_SIZE = 100;
 
   // Load factor of agent hash table
-  private static final float MAP_LOAD_FACTOR = 0.25f;
+  private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
 
   private Vector containers = new Vector();
-  private Hashtable agentMap = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
+  private Hashtable platformAgents = new Hashtable(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
 
   public AgentPlatformImpl() throws RemoteException {
   }
@@ -32,17 +32,17 @@ class AgentPlatformImpl extends UnicastRemoteObject implements AgentPlatform {
 
   public void bornAgent(AgentDescriptor desc) throws RemoteException {
     System.out.println("Born agent " + desc.getName());
-    agentMap.put(desc.getName(), desc);
+    platformAgents.put(desc.getName(), desc);
   }
 
   public void deadAgent(String name) throws RemoteException {
     System.out.println("Dead agent " + name);
-    agentMap.remove(name);
+    platformAgents.remove(name);
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
     System.out.println("Looking up " + agentName + " in agents table...");
-    Object o = agentMap.get(agentName);
+    Object o = platformAgents.get(agentName);
     if(o == null)
       throw new NotFoundException("Failed to find " + agentName);
     else
