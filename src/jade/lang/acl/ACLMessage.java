@@ -270,7 +270,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getSender()
   */
   public void setSender(AID s) {
-    if (source != null)
+    if (s != null)
       source = (AID)s.clone();
     else
       source = new AID();
@@ -653,7 +653,7 @@ private int performative; // keeps the performative type of this object
   /**
      Reads <code>:sender</code> slot.
      @return The value of <code>:sender</code>slot.
-     @see jade.lang.acl.ACLMessage#setSender(String).
+     @see jade.lang.acl.ACLMessage#setSender(AID).
   */
   public AID getSender() {
     return (AID)source.clone();
@@ -978,7 +978,8 @@ private int performative; // keeps the performative type of this object
     m.setProtocol(getProtocol());
     m.setSender(null);
     m.setInReplyTo(getReplyWith());
-    m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
+    if (source != null)
+      m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
     m.setConversationId(getConversationId());
     m.setReplyBy(null);
     m.setContent(null);
