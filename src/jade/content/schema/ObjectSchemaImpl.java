@@ -53,30 +53,12 @@ class ObjectSchemaImpl extends ObjectSchema {
 
     }
     
-    /** 
-       Canstant value indicating that a slot in a schema is mandatory,
-       i.e. its value must not be null
-     */
-    //public static final int MANDATORY = 0;
-    /** 
-       Canstant value indicating that a slot in a schema is optional,
-       i.e. its value can be null
-     */
-    //public static final int OPTIONAL = 1;
-    /** 
-       Canstant value indicating that a slot in a schema has an 
-       infinite maximum cardinality
-     */
-    //public static final int UNLIMITED = -1;
     
     private Hashtable       slots = new Hashtable();
     private Vector       		slotNames = new Vector();
     private Vector          superSchemas = new Vector();
     private String          typeName = null;
     private Hashtable       facets = new Hashtable();
-
-    //public static final String         BASE_NAME = "Object";
-    //private static ObjectSchema baseSchema = new ObjectSchemaImpl();
 
     static {
     	baseSchema = new ObjectSchemaImpl();
@@ -97,14 +79,6 @@ class ObjectSchemaImpl extends ObjectSchema {
     protected ObjectSchemaImpl(String typeName) {
         this.typeName = typeName;
     }
-
-    /**
-     * Retrieve the generic base schema for all objects.
-     * @return the generic base schema for all objects.
-     */
-    //public static ObjectSchema getBaseSchema() {
-    //    return baseSchema;
-    //} 
 
     /**
      * Add a slot to the schema.
@@ -132,12 +106,13 @@ class ObjectSchemaImpl extends ObjectSchema {
     /**
      * Add a slot with cardinality between <code>cardMin</code>
      * and <code>cardMax</code> to this schema. 
-     * Adding such a slot is equivalent to add a slot
+     * Adding such a slot corresponds to add a slot
      * of type Aggregate and then to add proper facets (constraints)
      * to check that the type of the elements in the aggregate are
      * compatible with <code>elementsSchema</code> and that the 
      * aggregate contains at least <code>cardMin</code> elements and
-     * at most <code>cardMax</code> elements.
+     * at most <code>cardMax</code> elements. By default the Aggregate 
+     * is of type <code>BasicOntology.SEQUENCE</code>.
      * @param name The name of the slot.
      * @param elementsSchema The schema for the elements of this slot.
      * @param cardMin This slot must get at least <code>cardMin</code>
@@ -146,9 +121,26 @@ class ObjectSchemaImpl extends ObjectSchema {
      * values
      */
     protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax) {
+    	add(name, elementsSchema, cardMin, cardMax, BasicOntology.SEQUENCE);
+    } 
+
+    /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema and allow specifying the type
+     * of Aggregate to be used for this slot.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     * @param aggType The type of Aggregate to be used
+     * @see #add(String, ObjectSchema, int, int)
+     */
+    protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType) {
       int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
     	try {
-    		add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
+    		add(name, BasicOntology.getInstance().getSchema(aggType), optionality);
      		// Add proper facets
     		addFacet(name, new TypedAggregateFacet(elementsSchema));
     		addFacet(name, new CardinalityFacet(cardMin, cardMax));
@@ -158,6 +150,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     		oe.printStackTrace();
     	}
     } 
+
 
     /**
      * Add a super schema tho this schema, i.e. this schema will

@@ -115,7 +115,6 @@ public class LEAPCodec extends ByteArrayCodec {
      * @throws CodecException
      */
     public byte[] encode(Ontology ontology, AbsContentElement content) throws CodecException {
-        // FIXME: check content against ontology.getSchema(content.getTypeName())
         return encode(content);
     } 
 

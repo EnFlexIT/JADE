@@ -84,12 +84,13 @@ public class ConceptSchema extends TermSchema {
     /**
      * Add a slot with cardinality between <code>cardMin</code>
      * and <code>cardMax</code> to this schema. 
-     * Adding such a slot is equivalent to add a slot
+     * Adding such a slot corresponds to add a slot
      * of type Aggregate and then to add proper facets (constraints)
      * to check that the type of the elements in the aggregate are
      * compatible with <code>elementsSchema</code> and that the 
      * aggregate contains at least <code>cardMin</code> elements and
-     * at most <code>cardMax</code> elements.
+     * at most <code>cardMax</code> elements. By default the Aggregate 
+     * is of type <code>BasicOntology.SEQUENCE</code>.
      * @param name The name of the slot.
      * @param elementsSchema The schema for the elements of this slot.
      * @param cardMin This slot must get at least <code>cardMin</code>
@@ -101,6 +102,23 @@ public class ConceptSchema extends TermSchema {
     	super.add(name, elementsSchema, cardMin, cardMax);
     } 
 
+    /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema and allow specifying the type
+     * of Aggregate to be used for this slot.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     * @param aggType The type of Aggregate to be used
+     * @see #add(String, TermSchema, int, int)
+     */
+    public void add(String name, TermSchema elementsSchema, int cardMin, int cardMax, String aggType) {
+      super.add(name, elementsSchema, cardMin, cardMax, aggType);
+    } 
+    
     /**
      * Adds a super-schema to this schema. This allows defining 
      * inheritance relationships between ontological concepts.

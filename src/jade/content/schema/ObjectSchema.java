@@ -87,12 +87,13 @@ public abstract class ObjectSchema {
     /**
      * Add a slot with cardinality between <code>cardMin</code>
      * and <code>cardMax</code> to this schema. 
-     * Adding such a slot is equivalent to add a slot
+     * Adding such a slot corresponds to add a slot
      * of type Aggregate and then to add proper facets (constraints)
      * to check that the type of the elements in the aggregate are
      * compatible with <code>elementsSchema</code> and that the 
      * aggregate contains at least <code>cardMin</code> elements and
-     * at most <code>cardMax</code> elements.
+     * at most <code>cardMax</code> elements. By default the Aggregate 
+     * is of type <code>BasicOntology.SEQUENCE</code>.
      * @param name The name of the slot.
      * @param elementsSchema The schema for the elements of this slot.
      * @param cardMin This slot must get at least <code>cardMin</code>
@@ -101,6 +102,21 @@ public abstract class ObjectSchema {
      * values
      */
     protected abstract void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax);
+
+    /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema and allow specifying the type
+     * of Aggregate to be used for this slot.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     * @param aggType The type of Aggregate to be used
+     * @see #add(String, ObjectSchema, int, int)
+     */
+    protected abstract void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType);
 
     /**
      * Add a super schema tho this schema, i.e. this schema will

@@ -116,12 +116,14 @@ public class AggregateSchema extends TermSchema {
   		}
   	}
   	
-  	// FIXME: This is redefined to make different types of aggregate
-  	// (e.g. SET and SEQUENCE) compatible as the framework is currently
-  	// only able to deal with SEQUENCE.
+  	/**
+  	   The difference between types of aggregates (such as SET and 
+  	   SEQUENCE) is quite fuzy. Therefore we don't throw a validation
+  	   exception if a SET is found where a SEQUENCE is expected and VV.
+  	 */
     public boolean equals(Object o) {
     	if (o != null) {
-	    	return getClass().getName().equals(o.getClass().getName());
+	    	return (o instanceof AggregateSchema);
     	}
     	else {
     		return false;
