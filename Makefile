@@ -1,6 +1,6 @@
 # Makefile for JADE project
 
-VERSION    = 1.0
+VERSION    = 1.1
 ARCHIVE    = JADE
 
 ROOTDIR = $(shell pwd)
@@ -50,7 +50,7 @@ demo:
 	@echo Demo applications built.
 
 clean:
-	rm -f *~ "#*#" *.IOR
+	rm -f *~ "#*#" *.IOR *.URL
 	cd $(SRCDIR); $(MAKE) clean
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
