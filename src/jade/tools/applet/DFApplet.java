@@ -37,16 +37,19 @@ import java.applet.Applet;
  * @see jade.applet.DFAppletCommunicator
  */
  
+ //to start the applet the dfproxy agent must be launched on the platform 
+ //and the file dfproxy.inf must be in the working directory (i.e. classes
+ //if the platform was launched from that directory).
+ //HTML Code:
  //<applet code = DFApplet.class width = 200 height=100></applet>
 public class DFApplet extends Applet {
 
   public void init() {
     DFAppletCommunicator dfc = new DFAppletCommunicator(this);
-    DFGUI gui = new DFGUI(dfc);
+    DFGUI gui = new DFGUI(dfc,true);
     dfc.setGUI(gui);  
     gui.setVisible(true); 
     gui.refresh();
   }
-
 }
 
