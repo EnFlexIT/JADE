@@ -61,8 +61,7 @@ public abstract class MemKB extends KB {
 	protected int currentReg = 0;
 	protected SubscriptionResponder sr;
 	
-	protected static int RESULT_TO_RETURN = 10;
-	protected final static int MAX_RESULT_TO_RETURN = 100;
+	protected static int maxResults = -1;
 	protected final static int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	
 	public MemKB(){
@@ -92,7 +91,7 @@ public abstract class MemKB extends KB {
 		List result = new ArrayList();
 	    Iterator it = facts.values().iterator();
 		int found = 0;
-	    while(it.hasNext() && found < RESULT_TO_RETURN) {
+	    while(it.hasNext() && (found < maxResults || maxResults < 0)) {
 	        Object fact = it.next();
 		    if(match(template, fact)){
 				result.add(fact);
@@ -110,7 +109,7 @@ public abstract class MemKB extends KB {
 			ACLMessage aclSub = (ACLMessage) s.getMessage();
 			subscriptions.put(dfdTemplate, s);
 		}catch(Exception e){
-			System.out.println("SUBSCRIBE: ERRORE "+e.getMessage());
+			System.out.println("Subscribe error: "+e.getMessage());
 			throw new NotUnderstoodException(e.getMessage());
 		}
 	}

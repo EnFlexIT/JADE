@@ -79,6 +79,7 @@ public class Boot {
     	} 
 
       // Start a new JADE runtime system
+      Runtime.instance().setCloseVM(true);
       Runtime.instance().startUp(p);
     }
     catch (ProfileException pe) {
@@ -240,55 +241,81 @@ import javax.microedition.lcdui.*;
 import java.io.*;
 import jade.util.leap.*;
 import jade.util.Logger;
+import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.core.Agent;
 
-public class Boot extends MIDlet {
+public class Boot extends MIDlet implements Runnable {
   public static MIDlet midlet;
 
-  public Boot() {
-    midlet = this;
-    Agent.midlet = this;
-  }
-
   public void startApp() throws MIDletStateChangeException {
-
-    // System.out.println(getCopyrightNotice());
-    Logger.println("This is JADE - LEAP J2ME kernel v3.0");
-
+  	if (Agent.midlet != null) {
+  		// This can happen when the MIDlet is paused and then resumed
+  		Logger.println("JADE runtime already active");
+  		return;
+  	}
+  	    
+    Agent.midlet = this;
+    midlet = this;
+    
     try {
-      ProfileImpl p = new ProfileImpl();
+    	String source = getAppProperty("MIDlet-LEAP-conf");
+      if (source == null) {
+      	// Use the JAD by default 
+      	source = "jad";
+			}
+      ProfileImpl p = new ProfileImpl(source);
 
-
-      Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
-
+  		customize(p);
 
       // small trick - moving much memory consuming instruction to the point where it is not so important
       if (null instanceof jade.lang.acl.ACLMessage) {
         ;
       } 
 
-      Runtime.instance().gc("Before start-up");
-
-      // Start a new JADE runtime system
+      // Start the JADE runtime system
+    	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
+			rt.gc();
+      Runtime.instance().invokeOnTermination(this);
       Runtime.instance().startUp(p);
-      Runtime.instance().gc("After start-up");
+			rt.gc();
+			
+			//#NODEBUG_EXCLUDE_BEGIN
+      //System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
+			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      System.err.println("Error creating the Profile Manager ["+e.getMessage()+"]");
+      Logger.println("Error creating the Profile Manager ["+e.getMessage()+"]");
       e.printStackTrace();
+      Agent.midlet = null;
+      midlet = null;
       notifyDestroyed();
     } 
   } 
 
   public void pauseApp() {
-    Logger.println("MIDlet paused");
+		Logger.println("pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-    Logger.println("MIDlet destroyed");
+		Logger.println("destroyApp() called");
+		// If the MIDlet is killed, kill JADE too
+  	Runtime.instance().shutDown();
   } 
+  
+  public void run() {
+  	// When JADE terminates, kill the MIDlet too (if still there)
+  	if (Agent.midlet != null) {
+	    Agent.midlet.notifyDestroyed();
+		}
+  	Agent.midlet = null;
+    midlet = null;
+  }
+  
+  protected void customize(Profile p) {
+    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
+  }
 #MIDP_INCLUDE_END*/
 }
 

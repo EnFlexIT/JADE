@@ -164,7 +164,7 @@ public class MicroBoot extends MIDlet implements Runnable {
     Agent.midlet = this;
     
     try {
-    	String source = getAppProperty("MIDlet-LEAP-Properties");
+    	String source = getAppProperty("MIDlet-LEAP-conf");
       if (source == null) {
       	// Use the JAD by default 
       	source = "jad";
@@ -183,13 +183,14 @@ public class MicroBoot extends MIDlet implements Runnable {
         ;
       } 
 
+      // Start the JADE runtime system
     	java.lang.Runtime rt = java.lang.Runtime.getRuntime();
 			rt.gc();
     	MicroRuntime.startJADE(props, this);
 			rt.gc();
 			
 			//#NODEBUG_EXCLUDE_BEGIN
-      System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
+      //System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
@@ -205,13 +206,16 @@ public class MicroBoot extends MIDlet implements Runnable {
   } 
 
   public void destroyApp(boolean unconditional) {
-		// Self-initiated shutdown
 		Logger.println("destroyApp() called");
+		// If the MIDlet is killed, kill JADE too
   	MicroRuntime.stopJADE();
   } 
   
   public void run() {
-    Agent.midlet.notifyDestroyed();
+  	// When JADE terminates, kill the MIDlet too (if still there)
+  	if (Agent.midlet != null) {
+    	Agent.midlet.notifyDestroyed();
+    }
     Agent.midlet = null;
   }
   
