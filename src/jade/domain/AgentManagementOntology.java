@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.16  1998/11/23 00:15:26  rimassa
+  Fixed a small bug: a method was missing the 'public' modifier.
+
   Revision 1.15  1998/11/15 23:04:59  rimassa
   Added a new AMS action 'kill-container', as an inner class of the
   ontology.
@@ -457,7 +460,7 @@ public class AgentManagementOntology {
       DFState = dfs;
     }
 
-    String getDFState() {
+    public String getDFState() {
       return DFState;
     }
 
