@@ -203,13 +203,10 @@ public class MainContainerImpl implements Platform, AgentManager {
 	for(int i = 0; i < allContainers.length; i++) {
 	    ContainerID targetID = allContainers[i];
 	    try {
-		Node target = containers.getContainerNode(targetID);
-		// This call indirectly removes target
-	     	target.exit(); 
+		killContainer(targetID);
 	    }
-	    catch(IMTPException imtp1) {
-	     	System.out.println("Container " + targetID.getName() + " is unreachable. Ignoring...");
-		removeRemoteContainer(targetID);
+	    catch(AuthException ae) {
+		System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
 	    }
 	    catch(NotFoundException nfe) {
 		// Ignore the exception as we are removing a non-existing container
@@ -293,19 +290,31 @@ public class MainContainerImpl implements Platform, AgentManager {
 
 	***/
 
-	// Spawn a blocking call to the remote container in a separate
-	// thread. This is a failure notification technique.
-	/*
-	  Thread t = new Thread(new FailureMonitor(ac, cid));
-	  t.start();
-	*/
-
 	// Notify listeners
 	fireAddedContainer(cid);
 
     }
 
-    public void removeRemoteContainer(ContainerID cid) {
+    public void removeRemoteContainer(NodeDescriptor desc) {
+	Node toRemove = desc.getNode();
+
+	// Find the container ID corresponding to the given node
+	ContainerID[] cids = containers.names();
+	for(int i = 0; i < cids.length; i++) {
+	    try {
+		Node n = containers.getContainerNode(cids[i]);
+		if(toRemove.getName().equals(n.getName())) {
+		    removeRemoteContainer(cids[i]);
+		    return;
+		}
+	    }
+	    catch(NotFoundException nfe) {
+		// Just ignore it: some other container was removed in the meanwhile...
+	    }
+	}
+    }
+
+    private void removeRemoteContainer(ContainerID cid) {
 	containers.removeContainer(cid);
 
 	// Notify listeners
@@ -347,7 +356,7 @@ public class MainContainerImpl implements Platform, AgentManager {
 	    e.printStackTrace();
 	    throw new IMTPException("Exception during AMS startup", e);
 	}
-
+ 
 	try {
 	    ac.initAgent(ac.getDefaultDF(), defaultDF, AgentContainerImpl.CREATE_AND_START);
 	    defaultDF.waitUntilStarted();
@@ -359,15 +368,7 @@ public class MainContainerImpl implements Platform, AgentManager {
     }
 
 
-    ///////////////////////////////////////////////////////
-	// MainContainer interface implementation.
-	// All these methods can be called from a remote site
-	// and can therefore throws IMTPException
-	///////////////////////////////////////////////////////
-	/**
-	   Return the name of the platform
-	 */
-  public String getPlatformName() throws IMTPException {
+  public String getPlatformName() {
     return platformID;
   }
 
@@ -789,25 +790,25 @@ public class MainContainerImpl implements Platform, AgentManager {
 	Kill a given container
     */
     public void killContainer(final ContainerID cid) throws NotFoundException, AuthException {
+
+	// --- This code should go into the Security Service ---
+
 	// Check permissions
 	authority.checkAction(Authority.CONTAINER_KILL, getPrincipal(cid), null);
 
-	// Do the action in a separate thread to avoid deadlock (we need 
-	// again full permissions to start a thread and execute a remote call)
-	final Node node = containers.getContainerNode(cid);
+	// --- End of code that should go into the Security Service ---
+
+
+	// Do the action in a separate thread to avoid deadlock (we
+	// need again full permissions to start a thread)
 	try {
 	    authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
 		    public Object run() {
 			Thread auxThread = new Thread() {
 				public void run() {
-				    try {
-					node.exit();
-				    }
-				    catch (IMTPException imtp1) {
-					System.out.println("Container " + cid.getName() + " is unreachable. Ignoring...");
-					handleCrash(cid);
-					removeRemoteContainer(cid);
-				    }
+				    GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.KILL_CONTAINER, jade.core.management.AgentManagementService.NAME, "");
+				    cmd.addParam(cid);
+				    myCommandProcessor.process(cmd);
 				}
 			    };
 
@@ -1274,58 +1275,6 @@ public class MainContainerImpl implements Platform, AgentManager {
 	 	return cp;
   }
   
-  /**
-     Inner class to detect AgentContainer failures
-   */
-    /***
-  private class FailureMonitor implements Runnable {
-
-    private AgentContainer target;
-    private ContainerID targetID;
-    private boolean active = true;
-
-    public FailureMonitor(AgentContainer ac, ContainerID cid) {
-      target = ac;
-      targetID = cid;
-    }
-
-    public void run() {
-      while(active) {
-	  try {
-	      target.ping(true); // Hang on this call
-	      active = false;
-	      System.out.println("PING from container "+targetID.getName()+" returned normally");
-	  }
-	  catch(IMTPException imtpe1) { // Connection down
-	      System.out.println("PING from container "+targetID.getName()+" exited with exception");
-	      try {
-		  target.ping(false); // Try a non blocking ping to check
-	      }
-	      catch(IMTPException imtpe2) { // Object down
-		  handleCrash(targetID);
-		  active = false;
-	      }
-	  }
-	  catch(Throwable t) {
-	      t.printStackTrace();
-	  }
-      } // END of while
-      
-      // If we reach this point the container is no longer active -->
-      // remove it
-      try {
-	  removeContainer(targetID);
-      }
-      catch (IMTPException imtpe) {
-	  // Should never happen as this is a local call
-	  imtpe.printStackTrace();
-      }
-
-    } // END of method run()
-
-  } // END of inner class FailureMonitor
-      ***/
-
   private void handleCrash(ContainerID crashedID) {
     // If a container has crashed all its agents
     // appear to be still alive in the GADT --> Clean them 
