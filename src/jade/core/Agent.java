@@ -443,10 +443,29 @@ public class Agent implements Runnable, Serializable {
   }
 
   /**
-  This method must be overridden in order to pass arguments to the agent.
-  @param args an array of string as passed on the command line.
+  * This method must be overridden by programmers in order to pass 
+  * arguments to the agent.
+  *  
+  * To run an agent by any Java program passing some parameters,with the 
+  * only requirement being that a JADE container is already running on the
+  * same host and the same JVM (Java Virtual Machine) of the Java program,
+  * the programmer must so use the following line of code:
+  *
+  * <code>
+  * ...
+  * String[] arg = ...;
+  * Agent a = new myAgent();
+  * a.setArguments(arg); 
+  * a.doStart(...);
+  * ... 
+  * </code>
+  *
+  * Otherwise, to pass argument to the agent by command line or using the RMA GUI
+  * see the programmer's guide for a better documentation.
+  *
+  * @param args an array of string (as passed on the command line - Unix-like syntax).
   */
-  protected void setArguments(String args[])
+  public void setArguments(String args[])
    {
    }
   
