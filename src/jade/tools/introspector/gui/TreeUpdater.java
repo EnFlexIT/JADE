@@ -46,7 +46,8 @@ public class TreeUpdater implements Runnable {
     private BehaviourID behaviour;
     private BehaviourPanel gui;
     private int action;
-    private boolean blocked;
+    //private boolean blocked;
+    private String state;
     
     private static final int ADD_NODE       = 0;
     private static final int REMOVE_NODE    = 1;
@@ -56,14 +57,16 @@ public class TreeUpdater implements Runnable {
         behaviour = b.getBehaviour();
         gui = bp;
         action = ADD_NODE;
-        blocked = false;
+        //blocked = false;
+        state = Behaviour.STATE_READY;
     }
     
     public TreeUpdater(RemovedBehaviour b, BehaviourPanel bp) {
         behaviour = b.getBehaviour();
         gui=bp;
         action = REMOVE_NODE;
-        blocked = false;
+        //blocked = false;
+        state = Behaviour.STATE_READY;
     }
     
     public TreeUpdater(ChangedBehaviourState b, BehaviourPanel bp) {
@@ -71,17 +74,19 @@ public class TreeUpdater implements Runnable {
         gui=bp;
         action = CHANGE_NODE;
         
-        if (b.getTo().equals(Behaviour.STATE_BLOCKED)) {
+        /*if (b.getTo().equals(Behaviour.STATE_BLOCKED)) {
             blocked = true;
         } else {
             blocked = false;
-        }
+        }*/
+        state = b.getTo();
     }
 
     public void createTree(DefaultMutableTreeNode r, Iterator v) {
         while(v.hasNext()){
             BehaviourID b=(BehaviourID)v.next();
-            DefaultMutableTreeNode rc = new DefaultMutableTreeNode(new BehaviourTreeNode(b, blocked));
+            //DefaultMutableTreeNode rc = new DefaultMutableTreeNode(new BehaviourTreeNode(b, blocked));
+            DefaultMutableTreeNode rc = new DefaultMutableTreeNode(new BehaviourTreeNode(b, state));
             if (!b.isSimple()) {
                 createTree(rc,b.getAllChildren());
             }
@@ -120,10 +125,14 @@ public class TreeUpdater implements Runnable {
                     description(gui.getBehaviourText(), b);
                     
                     // Update the blocked status.
-                    if ((blocked && !bNode.isBlocked()) ||
+                    /*if ((blocked && !bNode.isBlocked()) ||
                         (!blocked && bNode.isBlocked())) {
                         bNode.setBlocked(blocked);
                         model.nodeChanged(node);
+                    }*/
+                    if (!state.equals(bNode.getState())) {
+                    	bNode.setState(state);
+                    	model.nodeChanged(node);
                     }
 
                     bFound = true;
@@ -131,14 +140,16 @@ public class TreeUpdater implements Runnable {
                 }
             }
             
-            // If we didn't find the node in the tree, add it now.
+            /* If we didn't find the node in the tree, add it now.
             if (!bFound)
                 action = ADD_NODE;
+            */
         }
 
         if (action == ADD_NODE)
         {
-            DefaultMutableTreeNode beh = new DefaultMutableTreeNode(new BehaviourTreeNode(behaviour, blocked));
+            //DefaultMutableTreeNode beh = new DefaultMutableTreeNode(new BehaviourTreeNode(behaviour, blocked));
+            DefaultMutableTreeNode beh = new DefaultMutableTreeNode(new BehaviourTreeNode(behaviour, state));
 
             if (!behaviour.isSimple()) {
                 createTree(beh, behaviour.getAllChildren());
@@ -164,6 +175,6 @@ public class TreeUpdater implements Runnable {
     }
     
     public static void description (JTextArea t, BehaviourID b){
-        t.setText(b.getName());
+        t.setText("Name:\t"+b.getName()+"\nClass:\t"+b.getClassName()+"\nKind:\t"+b.getKind());
     }
 }

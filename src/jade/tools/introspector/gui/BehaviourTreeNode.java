@@ -27,6 +27,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import jade.core.BehaviourID;
+import jade.core.behaviours.Behaviour;
 
 /**
  * This class represents a tree node for a behaviour in the Introspector
@@ -36,15 +37,22 @@ import jade.core.BehaviourID;
 */
 public class BehaviourTreeNode {
       
-    private boolean blocked;
+    //private boolean blocked;
     private BehaviourID behaviour;
+    private String state;
       
     public BehaviourTreeNode(BehaviourID beh) {
         behaviour = beh;
-        blocked = false;
+        //blocked = false;
+        state = Behaviour.STATE_READY;
     }
       
-    public BehaviourTreeNode(BehaviourID beh, boolean bl) {
+    public BehaviourTreeNode(BehaviourID beh, String s) {
+        behaviour = beh;
+        state = s;
+    }
+
+    /*public BehaviourTreeNode(BehaviourID beh, boolean bl) {
         behaviour = beh;
         blocked = bl;
     }
@@ -55,6 +63,13 @@ public class BehaviourTreeNode {
       
     public boolean isBlocked() {
         return blocked;
+    }*/
+    public void setState(String s) {
+    	state = s;
+    }
+    
+    public String getState() {
+    	return state;
     }
     
     public String toString() {

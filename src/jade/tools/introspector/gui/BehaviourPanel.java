@@ -27,6 +27,8 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 
+import jade.core.behaviours.Behaviour;
+
 /**
    This panel contains the behaviour tree for a given agent. It adds a
    TreeMouseListener component to the tree.
@@ -40,6 +42,7 @@ public class BehaviourPanel extends JSplitPane{
   private JScrollPane textScroll;
   private JPanel treePanel;
   private TreeMouseListener treeListener;
+  private Icon readyIcon;
   private Icon runningIcon;
   private Icon blockedIcon;
   
@@ -61,17 +64,18 @@ public class BehaviourPanel extends JSplitPane{
 
     treePanel.setLayout(new BorderLayout());
 
-    runningIcon = new ImageIcon(getClass().getResource("images/behaviour.gif"));
+    readyIcon = new ImageIcon(getClass().getResource("images/behaviour.gif"));
     blockedIcon = new ImageIcon(getClass().getResource("images/blocked.gif"));
+    runningIcon = new ImageIcon(getClass().getResource("images/running.gif"));
     
     //behaviorTree.addMouseListener(new TreeListener);
     behaviourTree.putClientProperty("JTree.lineStyle","Angled");
     behaviourTree.setShowsRootHandles(true);
     
     DefaultTreeCellRenderer rend = (DefaultTreeCellRenderer)behaviourTree.getCellRenderer();
-    rend.setLeafIcon(runningIcon);
-    rend.setOpenIcon(runningIcon);
-    rend.setClosedIcon(runningIcon);
+    rend.setLeafIcon(readyIcon);
+    rend.setOpenIcon(readyIcon);
+    rend.setClosedIcon(readyIcon);
 
     treePanel.add(behaviourTree,BorderLayout.CENTER);
 
@@ -118,11 +122,21 @@ public class BehaviourPanel extends JSplitPane{
             DefaultMutableTreeNode mut = (DefaultMutableTreeNode)value;
             BehaviourTreeNode node = (BehaviourTreeNode)mut.getUserObject();
             
-            if (node.isBlocked()) {
+            String state = node.getState();
+            if (state.equals(Behaviour.STATE_BLOCKED)) {
+            	changeIcon(blockedIcon);
+            }
+            else if (state.equals(Behaviour.STATE_RUNNING)) {
+            	changeIcon(runningIcon);
+            }
+            else {
+            	changeIcon(readyIcon);
+            }
+            /*if (node.isBlocked()) {
                 changeIcon(blockedIcon);
             } else {
                 changeIcon(runningIcon);
-            }
+            }*/
         }
         catch(Exception e)
         {

@@ -95,7 +95,7 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
   }
 
   public void adjustDividerLocation() {
-    splitPanel.setDividerLocation(getWidth() / 2);
+    splitPanel.setDividerLocation(getHeight() / 2);
     lastDividerLocation = splitPanel.getDividerLocation();
   }
 
