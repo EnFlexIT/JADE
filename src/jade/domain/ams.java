@@ -320,7 +320,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		
 	  try {
 	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException, NameClashException {
 					myPlatform.copy(agentID, where, newName);
 					return null;
 		    }
@@ -335,6 +335,9 @@ public class ams extends Agent implements AgentManager.Listener {
     }
     catch (NotFoundException nfe) {
       throw new InternalError("NotFoundException. "+nfe.getMessage());
+    }
+    catch (NameClashException nce) {
+      throw new AlreadyRegistered();
     }
  		catch (Exception e) {
 			e.printStackTrace();
