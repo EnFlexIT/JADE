@@ -454,7 +454,7 @@ abstract class Initiator extends FSMBehaviour {
     	String convId = null;
 		  if (msgs.size() > 0) {
 		  	ACLMessage msg = (ACLMessage) msgs.elementAt(0);
-				if (msg.getConversationId() == null) {
+				if ((msg == null) || (msg.getConversationId() == null)) {
 					convId = "C"+hashCode()+"_"+System.currentTimeMillis();
 				}
 			  else {
