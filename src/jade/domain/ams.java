@@ -97,9 +97,6 @@ public class ams extends Agent implements AgentManager.Listener {
 
   // The codec for the SL language
   private Codec codec = new SLCodec();
-   
-  // Group of tools registered with this AMS
-  private List tools = new ArrayList();
 
   // ACL Message to use for tool notification
   private ACLMessage toolNotification = new ACLMessage(ACLMessage.INFORM);
@@ -155,7 +152,7 @@ public class ams extends Agent implements AgentManager.Listener {
     getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
     getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
     getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
-		
+
     // The behaviour managing FIPA requests
     MessageTemplate mtF = MessageTemplate.and(
     	MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
@@ -755,6 +752,20 @@ public class ams extends Agent implements AgentManager.Listener {
   toolNotification.addReceiver(newTool);
 	    
 	try {
+	  // Send a 'Reset' meta-event
+	  ResetEvents re = new ResetEvents();
+	  EventRecord er = new EventRecord(re, here());
+	  Occurred o = new Occurred();
+	  o.setWhat(er);
+
+	  try {
+	      getContentManager().fillContent(toolNotification, o);
+	      send(toolNotification);
+	  }
+	  catch (Exception e) {
+	      e.printStackTrace();
+	  }
+
 	  // Send back the whole container list.
 	  ContainerID[] ids = myPlatform.containerIDs();
 	  for(int i = 0; i < ids.length; i++) {
@@ -764,37 +775,37 @@ public class ams extends Agent implements AgentManager.Listener {
 	    ac.setContainer(cid);
 	    ac.setOwnership(getContainerOwnership(cid));
 
-	    EventRecord er = new EventRecord(ac, here());
-	    Occurred o = new Occurred();
+	    er = new EventRecord(ac, here());
+	    o = new Occurred();
 	    o.setWhat(er);
 
 	    try {
 	    	getContentManager().fillContent(toolNotification, o);
 	    	send(toolNotification);
-	 		} 
-	 		catch (Exception e) {
-	 			e.printStackTrace();
-	 		}
+	    } 
+	    catch (Exception e) {
+		e.printStackTrace();
+	    }
 	 		
-		  // Send the list of the MTPs installed on this container
-		  Iterator mtps = myPlatform.containerMTPs(cid).iterator();
-		  while (mtps.hasNext()) {
-		    AddedMTP amtp = new AddedMTP();
-		    amtp.setAddress(((MTPDescriptor) mtps.next()).getAddresses()[0]);
-		    amtp.setWhere(cid); 
+	    // Send the list of the MTPs installed on this container
+	    Iterator mtps = myPlatform.containerMTPs(cid).iterator();
+	    while (mtps.hasNext()) {
+		AddedMTP amtp = new AddedMTP();
+		amtp.setAddress(((MTPDescriptor) mtps.next()).getAddresses()[0]);
+		amtp.setWhere(cid); 
 	
-		    er = new EventRecord(amtp, here());
-		    o = new Occurred();
-		    o.setWhat(er);
+		er = new EventRecord(amtp, here());
+		o = new Occurred();
+		o.setWhat(er);
 	
-		    try {
-		    	getContentManager().fillContent(toolNotification, o);
-		    	send(toolNotification);
-		 		}
-		 		catch (Exception e) {
-		 			e.printStackTrace();
-		 		}
-		  }
+		try {
+		    getContentManager().fillContent(toolNotification, o);
+		    send(toolNotification);
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
 	  }
 
 	  // Send all agent names, along with their container name.
@@ -818,8 +829,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	    ba.setAgent(id);
 	    ba.setWhere(cid);
 
-	    EventRecord er = new EventRecord(ba, here());
-	    Occurred o = new Occurred();
+	    er = new EventRecord(ba, here());
+	    o = new Occurred();
 	    o.setWhat(er);
 
 	    try {
@@ -835,8 +846,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	  PlatformDescription ap = new PlatformDescription();
 	  ap.setPlatform(getDescriptionAction(null));
 
-	  EventRecord er = new EventRecord(ap,here());
-	  Occurred o = new Occurred();
+	  er = new EventRecord(ap,here());
+	  o = new Occurred();
 	  o.setWhat(er);
 
 	  try {
@@ -846,12 +857,9 @@ public class ams extends Agent implements AgentManager.Listener {
 	  catch (Exception e) {
 	   	e.printStackTrace();
 	  }
-	  
-	  // Add the new tool to tools list (unless it is already there; this
-	  // can happen after a container crash)
-	  if (!tools.contains(newTool)) {
-		  tools.add(newTool);
-	  }
+
+	  myPlatform.addTool(newTool);
+
 	}
 	catch(NotFoundException nfe) {
 	  nfe.printStackTrace();
@@ -894,8 +902,8 @@ public class ams extends Agent implements AgentManager.Listener {
       if(current != null) {
 	// FIXME: Should parse the content
 
-	// Remove this tool to tools agent group.
-	tools.remove(current.getSender());
+	// Remove this tool from tools agent group.
+	myPlatform.removeTool(current.getSender());
 
       }
       else
@@ -987,28 +995,28 @@ public class ams extends Agent implements AgentManager.Listener {
     	try {
 	    	EventRecord er = (EventRecord) eventQueue.get();
   	  	if (er != null) {
-			    // Perform event-specific actions (if any)
-			    Event ev = er.getWhat();
-			    log("EventManager serving event "+ev.getName(), 3);
-			    Handler handler = (Handler)handlers.get(ev.getName());
-			    if(handler != null) {
-			      handler.handle(ev);
-			    }
-			
-			    // Notify all tools about the event
-				  toolNotification.clearAllReceiver();
-				  Iterator toolIt = tools.iterator();				
-				  while(toolIt.hasNext()) {
-				    AID tool = (AID)toolIt.next();
-				    toolNotification.addReceiver(tool);
-				  }
-				  Occurred o = new Occurred();
-				  o.setWhat(er);
-			    getContentManager().fillContent(toolNotification, o);
-			    myAgent.send(toolNotification);
-				}
+		    // Perform event-specific actions (if any)
+		    Event ev = er.getWhat();
+		    log("EventManager serving event "+ev.getName(), 3);
+		    Handler handler = (Handler)handlers.get(ev.getName());
+		    if(handler != null) {
+			handler.handle(ev);
+		    }
+
+		    // Notify all tools about the event
+		    toolNotification.clearAllReceiver();
+		    AID[] allTools = myPlatform.agentTools();
+		    for(int i = 0; i < allTools.length; i++) {
+			AID tool = allTools[i];
+			toolNotification.addReceiver(tool);
+		    }
+		    Occurred o = new Occurred();
+		    o.setWhat(er);
+		    getContentManager().fillContent(toolNotification, o);
+		    myAgent.send(toolNotification);
+		}
 	    	else {
-		      block();
+		    block();
 	    	}
     	}
     	catch (Throwable t) {
@@ -1028,6 +1036,73 @@ public class ams extends Agent implements AgentManager.Listener {
   // AMS event queue. The EventManager behaviour will handle them within
   // the AMS thread.
   //////////////////////////////////////////////////////////////////
+
+    public void resetEvents(boolean sendSnapshot) {
+
+	// Put the initial event in the event queue
+	eventQueue.clear();
+	ResetEvents re = new ResetEvents();
+	EventRecord er = new EventRecord(re, here());
+	eventQueue.put(er);
+
+	if(sendSnapshot) {
+
+	    try {
+		// Send back the whole container list.
+		ContainerID[] ids = myPlatform.containerIDs();
+		for(int i = 0; i < ids.length; i++) {
+		    ContainerID cid = ids[i];
+
+		    AddedContainer ac = new AddedContainer();
+		    ac.setContainer(cid);
+		    ac.setOwnership(getContainerOwnership(cid));
+
+		    er = new EventRecord(ac, here());
+		    eventQueue.put(er);
+
+		    // Send the list of the MTPs installed on this container
+		    Iterator mtps = myPlatform.containerMTPs(cid).iterator();
+		    while (mtps.hasNext()) {
+			AddedMTP amtp = new AddedMTP();
+			amtp.setAddress(((MTPDescriptor) mtps.next()).getAddresses()[0]);
+			amtp.setWhere(cid);
+	
+			er = new EventRecord(amtp, here());
+			eventQueue.put(er);
+		    }
+
+		    // Send all agent names, along with their container name.
+		    AID[] agents = myPlatform.agentNames();
+		    for (int j = 0; j < agents.length; j++) {
+
+			AID agentName = agents[j];
+			ContainerID c = myPlatform.getContainerID(agentName);
+			AMSAgentDescription amsd = myPlatform.getAMSDescription(agentName);
+	    
+			BornAgent ba = new BornAgent();
+			// Note that "agentName" may not include agent addresses
+			AID id = agentName;
+			if (amsd != null) {
+			    if (amsd.getName() != null) {
+				id = amsd.getName();
+			    }
+			    ba.setState(amsd.getState());
+			    ba.setOwnership(amsd.getOwnership());
+			}
+			ba.setAgent(id);
+			ba.setWhere(c);
+
+			er = new EventRecord(ba, here());
+			eventQueue.put(er);
+		    }
+		}
+	    }
+	    catch(NotFoundException nfe) {
+		// It should never happen
+		nfe.printStackTrace();
+	    }
+	}
+    }
 
   /**
      Put a BornAgent event in the AMS event queue
