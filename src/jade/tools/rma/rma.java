@@ -66,7 +66,7 @@ import jade.tools.ToolAgent;
   which <b>JADE</b> Agent Platform can be administered.
 
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 
 */
@@ -593,8 +593,24 @@ public class rma extends ToolAgent {
    Callback method for platform management <em>GUI</em>.
    */
   public void shutDownPlatform() {
-    if(myGUI.showExitDialog("Shut down the platform"))
-      killContainer(AgentManager.MAIN_CONTAINER_NAME);
+      if(myGUI.showExitDialog("Shut down the platform")) {
+
+	  ShutdownPlatform sp = new ShutdownPlatform();
+	  try {
+	      Action a = new Action();
+	      a.setActor(getAMS());
+	      a.setAction(sp);
+
+	      ACLMessage requestMsg = getRequest();
+	      requestMsg.setOntology(JADEManagementOntology.NAME);
+	      getContentManager().fillContent(requestMsg, a);
+	      addBehaviour(new AMSClientBehaviour("ShutdownPlatform", requestMsg));
+	  }
+	  catch(Exception fe) {
+	      fe.printStackTrace();
+	  }
+      }
+
   }
 
   public void installMTP(String containerName) {
