@@ -900,7 +900,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		Search s = new Search();
 		s.setDescription(action.getDescription());
 		s.setConstraints(action.getConstraints());
-    Behaviour b = new RemoteDFRequester(remoteDF, action) {
+    Behaviour b = new RemoteDFRequester(remoteDF, s) {
     	public int onEnd() {
     		sendPendingNotification(action, getResult());
     		return 0;
