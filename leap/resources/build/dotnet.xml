@@ -38,6 +38,8 @@
 		</copy>
 	  <!-- 3) Preprocess the whole as if it were for PJAVA -->
 	  <pproc basedir="${src}" type="pjava"/>
+	  <!-- 4) Preprocess SL stuff as if it were for MIDP -->
+	  <pproc basedir="${src}/jade/content/lang/sl" type="midp"/>
 	</target>
 
 	
