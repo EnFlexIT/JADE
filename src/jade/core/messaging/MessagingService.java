@@ -174,7 +174,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// Implementation of the Sink interface
 
 	public void consume(VerticalCommand cmd) {
-
+		
 	    try {
 		String name = cmd.getName();
 		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
@@ -350,6 +350,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     private class CommandTargetSink implements Sink {
 
 	public void consume(VerticalCommand cmd) {
+		
 	    try {
 		String name = cmd.getName();
 		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
@@ -693,7 +694,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    if(cachedSlice != null) { // Cache hit :-)
 			try {
 			    //System.out.println("--- Cache Hit for AID [" + receiverID.getLocalName() + "] ---");
-			    cachedSlice.dispatchLocally(msg, receiverID);
+					cachedSlice.dispatchLocally(msg, receiverID);
 			}
 			catch(IMTPException imtpe) {
 			    cachedSlices.remove(receiverID); // Eliminate stale cache entry
@@ -719,6 +720,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	private void deliverUntilOK(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
+		System.out.println("deliverUntilOK() for "+receiverID.getLocalName());
 	    boolean ok = false;
 	    do {
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
@@ -1069,7 +1071,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// FIXME: the content should include the indication about the 
       // receiver to wich dispatching failed.
 	String content = "( (action " + msg.getSender().toString();
-	content = content + " ACLMessage ) " + ie.getMessage() + ")";
+	content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
 	failure.setContent(content);
 
 	try {
