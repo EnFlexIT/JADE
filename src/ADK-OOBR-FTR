@@ -133,7 +133,6 @@ ams@- instance@public Behaviour instance(ACLMessage msg, ACLMessage reply) {
 ams@= myAction@private AgentManagementOntology.AMSAction myAction;
 ams@= myActionName@private String myActionName;
 ams@= myOntology@protected AgentManagementOntology myOntology;
-ams@= myOntology.getException@throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING);
 ams@= myPlatform@private AgentPlatformImpl myPlatform;
 ams@= myReply@private ACLMessage myReply;
 ams@= myRequest@private ACLMessage myRequest;
@@ -812,14 +811,13 @@ Agent4@= myCode@private String myCode;
 Agent4@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
-AgentBroadcaster@- BehaviourElement@public BehaviourElement(AgentBroadcaster a, String source, String dest, String content) {
+AgentBroadcaster@- BehaviourElement@public BehaviourElement(String source, String dest, String content) {
 AgentBroadcaster@- action@public void action() {
 AgentBroadcaster@- appendMessage@public synchronized void appendMessage(ACLMessage msg) {
 AgentBroadcaster@- done@public boolean done() {
 AgentBroadcaster@- dumpMessage@public void dumpMessage() {
 AgentBroadcaster@= messages@private Vector messages =
 AgentBroadcaster@= msgSent@private boolean msgSent =
-AgentBroadcaster@= myAgent@private AgentBroadcaster myAgent;
 AgentBroadcaster@= myMessage@private ACLMessage myMessage;
 AgentBroadcaster@= replyReceived@private boolean replyReceived =
 AgentBroadcaster@- setup@protected void setup() {
@@ -837,8 +835,8 @@ AgentMessageFilter@- setup@protected void setup() {
 AgentThread@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex4/AgentRequester.java
-AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour(AgentRequester a) {
-Receiver@+ Receiver@private Receiver() {
+AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour() {
+AgentRequester@- Receiver@private static class Receiver {
 AgentRequester@> action@public abstract void action();
 AgentRequester@- agreed@public boolean agreed() {
 AgentRequester@= convCounter@private int convCounter =
@@ -851,27 +849,23 @@ AgentRequester@- getPeer@public String getPeer() {
 AgentRequester@- handleFailure@public void handleFailure(ACLMessage msg) {
 AgentRequester@- handleInform@public void handleInform(ACLMessage msg) {
 AgentRequester@= howManyRequests@private int howManyRequests;
-AgentRequester@= myAgent@protected AgentRequester myAgent;
 AgentRequester@= myPeer@private String myPeer;
 AgentRequester@- newConvID@private String newConvID() {
-Receiver@- receive@public static final ACLMessage receive(AgentRequester a,String messageType) {
 AgentRequester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
 AgentRequester@= receivedAgree@private boolean receivedAgree =
 AgentRequester@- sendRequest@public void sendRequest() {
 AgentRequester@- setup@protected void setup() {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex4/AgentResponder.java
-AgentResponder@- MultipleBehaviour@public MultipleBehaviour(AgentResponder a) {
-AgentResponder@- ResponderBehaviour@public ResponderBehaviour(AgentResponder a, ACLMessage msg) {
-AgentResponder@- SendBehaviour@public SendBehaviour(AgentResponder a, ACLMessage msg) {
+AgentResponder@- MultipleBehaviour@public MultipleBehaviour() {
+AgentResponder@- ResponderBehaviour@public ResponderBehaviour(ACLMessage msg) {
+AgentResponder@- SendBehaviour@public SendBehaviour(ACLMessage msg) {
 AgentResponder@- action@public void action() {
 AgentResponder@- action@public void action() {
 AgentResponder@- action@public void action() {
 AgentResponder@- done@public boolean done() {
 AgentResponder@= finished@private boolean finished =
 AgentResponder@= message@private ACLMessage message;
-AgentResponder@= myAgent@private AgentResponder myAgent;
-AgentResponder@= myAgent@private AgentResponder myAgent;
 AgentResponder@= myConvId@private String myConvId;
 AgentResponder@= myPeer@private String myPeer;
 AgentResponder@= pattern@MessageTemplate pattern;
@@ -1082,7 +1076,7 @@ ACLParserConstants@= tokenImage@String[] tokenImage =
 
 /home/rimassa/DEVEL/JADE/src/examples/ex5/amsTester.java
 amsTester@= APState@private String APState =
-amsTester@- ReceiveBehaviour@protected ReceiveBehaviour(amsTester a) {
+amsTester@- ReceiveBehaviour@protected ReceiveBehaviour() {
 amsTester@- Receiver@private static class Receiver {
 amsTester@> action@public abstract void action();
 amsTester@= address@private String address =
@@ -1100,7 +1094,6 @@ amsTester@- getConvID@public String getConvID() {
 amsTester@- handleFailure@public void handleFailure(ACLMessage msg) {
 amsTester@- handleInform@public void handleInform(ACLMessage msg) {
 amsTester@= myAction@private String myAction;
-amsTester@= myAgent@protected amsTester myAgent;
 amsTester@- newConvID@private String newConvID() {
 amsTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
 amsTester@= receivedAgree@private boolean receivedAgree =

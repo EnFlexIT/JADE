@@ -1,5 +1,8 @@
 /*
-  $Id$
+  $Log$
+  Revision 1.6  1998/10/04 18:01:27  rimassa
+  Added a 'Log:' field to every source file.
+
 */
 
 package jade.domain;

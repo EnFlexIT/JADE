@@ -1,5 +1,8 @@
 /*
-  $Id$
+  $Log$
+  Revision 1.5  1998/10/04 18:01:17  rimassa
+  Added a 'Log:' field to every source file.
+
 */
 
 package jade.core;
@@ -16,13 +19,4 @@ public abstract class SimpleBehaviour extends Behaviour {
     super(a);
   }    
 
-  /*
-  final void setRunnable(boolean runnable) {
-    // No-op
-  }
-
-  final boolean isRunnable() {
-    return true;
-  }
-  */
 }

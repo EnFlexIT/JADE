@@ -1,3 +1,10 @@
+/*
+  $Log$
+  Revision 1.5  1998/10/04 18:01:00  rimassa
+  Added a 'Log:' field to every source file.
+
+*/
+
 package jade.core;
 
 import java.rmi.Remote;

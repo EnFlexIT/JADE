@@ -33,8 +33,10 @@
 // FACTS project, AC317, of the European ACTS Programme.
 ////////////////////////////////////////////////////////////////////////
 /*
- $Id$
  $Log$
+ Revision 1.8  1998/10/04 18:02:09  rimassa
+ Added a 'Log:' field to every source file.
+
  Revision 1.7  1998/10/04 15:25:19  rimassa
  Fixed a bug: an 'if' clause tested the wrong variable.
 

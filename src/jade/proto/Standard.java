@@ -1,5 +1,8 @@
 /*
-  $Id$
+  $Log$
+  Revision 1.2  1998/10/04 18:02:19  rimassa
+  Added a 'Log:' field to every source file.
+
 */
 
 package jade.proto;

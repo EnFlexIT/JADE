@@ -1,5 +1,8 @@
 /*
-  $Id$
+  $Log$
+  Revision 1.5  1998/10/04 18:00:27  rimassa
+  Added a 'Log:' field to every source file.
+
 */
 
 package examples.ex4;
