@@ -115,21 +115,23 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 
-  // Interface AgentContainer implementation
-
+  // /////////////////////////////////////////
+  // AgentContainer INTERFACE
+  // /////////////////////////////////////////
   public void createAgent(AID agentID, String className, Object[] args, boolean startIt) throws IMTPException {
 
     Agent agent = null;
     try {
         agent = (Agent)Class.forName(new String(className)).newInstance();
-	agent.setArguments(args);
+				agent.setArguments(args);
     }
     catch(ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
-      return;
+      throw new IMTPException("ClassNotFoundException", cnfe);
     }
     catch( Exception e ){
       e.printStackTrace();
+      throw new IMTPException("Unexpected Exception", e);
     }
 
     initAgent(agentID, agent, startIt);
@@ -170,6 +172,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch(IMTPException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
 	re.printStackTrace();
+	localAgents.remove(agentID);
       }
     }
   }
@@ -460,26 +463,34 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     // Create and activate agents that must be launched at bootstrap
     try {
-	List l = myProfile.getSpecifiers(Profile.AGENTS);
+			List l = myProfile.getSpecifiers(Profile.AGENTS);
     	Iterator agentSpecifiers = l.iterator();
     	while(agentSpecifiers.hasNext()) {
     		Specifier s = (Specifier) agentSpecifiers.next();
       
       	AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
       	try {
-	  createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
-	  RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
-	  myMain.bornAgent(agentID, rp, myID);
+      		try {
+	  				createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
+      		}
+      		catch (IMTPException imtpe) {
+      			// The call to createAgent() in this case is local --> no need to
+      			// print the exception again. Just skip this agent
+      			continue;
+      		}
+	  			RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
+		  		myMain.bornAgent(agentID, rp, myID);
       	}
-      	catch(IMTPException re) { // It should never happen as this is a local call
-        	re.printStackTrace();
+      	catch(IMTPException imtpe1) {
+      		imtpe1.printStackTrace();
+        	localAgents.remove(agentID);
       	}
       	catch(NameClashException nce) {
         	System.out.println("Agent name already in use: " + nce.getMessage());
         	// FIXME: If we have two agents with the same name among the initial 
         	// agents, the second one replaces the first one, but then a 
         	// NameClashException is thrown --> both agents are removed even if
-        	// the platform believes that the first on is alive.
+        	// the platform "believes" that the first on is alive.
         	localAgents.remove(agentID);
       	}
     	}
