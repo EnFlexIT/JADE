@@ -213,6 +213,7 @@ public class TestMTPCrash extends Test {
   	b = new OneShotBehaviour(a) {			
   		public void action() {
   			jc.kill();
+			try { Thread.currentThread().sleep(5000); } catch(InterruptedException ie) { }
   		}
   	};
   	sb.addSubBehaviour(b);
