@@ -252,20 +252,8 @@ public class Sniffer extends ToolAgent {
   */
   private String myContainerName;
 
-  /**
-   * ACLMessages for subscription and unsubscription as <em>rma</em> are created and
-   * corresponding behaviours are set up.
-   */
-  public void toolSetup() {
-
-    loadSnifferConfigurationFile();
-
-    // Send 'subscribe' message to the AMS
-    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
-
-    // Handle incoming 'inform' messages
-    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour() {
-
+  class SnifferAMSListenerBehaviour extends AMSListenerBehaviour {
+  	
       protected void installHandlers(Map handlersTable) {
 
 
@@ -341,10 +329,23 @@ public class Sniffer extends ToolAgent {
 	  }
         });
 
-      } // End of installHandlers() method
+      } 
+  }	// END of inner class SnifferAMSListenerBehaviour
+  
+  /**
+   * ACLMessages for subscription and unsubscription as <em>rma</em> are created and
+   * corresponding behaviours are set up.
+   */
+  public void toolSetup() {
 
-    });
+    loadSnifferConfigurationFile();
 
+    // Send 'subscribe' message to the AMS
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
+
+    // Handle incoming 'inform' messages
+    AMSSubscribe.addSubBehaviour(new SnifferAMSListenerBehaviour());
+    
     // Schedule Behaviours for execution
     addBehaviour(AMSSubscribe);
     addBehaviour(new SniffListenerBehaviour()); 
