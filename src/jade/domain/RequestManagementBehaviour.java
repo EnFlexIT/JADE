@@ -129,8 +129,6 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
      Just return the (already prepared) notification message (if any).
    */
   protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
-  	//System.out.println("Notification is");		
-  	//System.out.println(notification);		
 		return notification;       
   }
     

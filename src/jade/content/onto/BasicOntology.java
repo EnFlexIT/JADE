@@ -144,7 +144,6 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       PredicateSchema resultSchema = new PredicateSchema(RESULT);
       resultSchema.add(RESULT_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
       resultSchema.add(RESULT_VALUE, (TermSchema) TermSchema.getBaseSchema());
-      //resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
       add(resultSchema); 
       
       // EQUALS Schema
