@@ -62,6 +62,7 @@ class MainWindow extends JFrame {
   private MainPanel tree;
   private ActionProcessor actPro;
   private PopupMenuAgent popA;
+  private PopupMenuFrozenAgent popFA;
   private PopupMenuContainer popC;
   private PopupMenuPlatform popP;
   private PopupMenuRemotePlatform popRP;
@@ -81,10 +82,13 @@ class MainWindow extends JFrame {
     actPro = new ActionProcessor(anRMA, this, tree);
     setJMenuBar(new MainMenu(this,actPro));
     popA = new PopupMenuAgent(actPro);
+    popFA = new PopupMenuFrozenAgent(actPro);
     popC = new PopupMenuContainer(actPro);
     popP = new PopupMenuPlatform(actPro);
     popRP = new PopupMenuRemotePlatform(actPro);
     tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
+    tree.treeAgent.register("FROZENAGENT",popFA,"images/freezeagent.png");
+    tree.treeAgent.register("FROZENCONTAINER", null, "images/frozenagents.png");
     tree.treeAgent.register("FIPACONTAINER",popC,"images/foldergreen.gif");
     tree.treeAgent.register("REMOTEPLATFORM",popRP ,"images/folderlightblue.gif");
     JPopupMenu popupRemote = new JPopupMenu();
@@ -226,6 +230,42 @@ class MainWindow extends JFrame {
       }
     };
     SwingUtilities.invokeLater(modifyIt);
+  }
+
+  public void moveAgent(final String fromContainer, final String toContainer, final AID agentID) {
+
+      // Move an agent from a container node to another
+      Runnable moveIt = new Runnable() {
+	  public void run() {
+	      String agentName = agentID.getName();
+	      tree.treeAgent.moveAgentNode(fromContainer, toContainer, agentName);
+	  }
+      };
+      SwingUtilities.invokeLater(moveIt);
+  }
+
+  public void modifyFrozenAgent(final String oldContainer, final String newContainer, final AID agentID) {
+
+    // Freeze an agent to the specified container
+    Runnable freezeIt = new Runnable() {
+      public void run() {
+	  String agentName = agentID.getName();
+	  tree.treeAgent.freezeAgentNode(oldContainer, newContainer, agentName);
+      }
+    };
+    SwingUtilities.invokeLater(freezeIt);
+  }
+
+  public void modifyThawedAgent(final String oldContainer, final String newContainer, final AID agentID) {
+
+    // Thaw an agent to the specified container
+    Runnable thawIt = new Runnable() {
+      public void run() {
+	  String agentName = agentID.getName();
+	  tree.treeAgent.thawAgentNode(oldContainer, newContainer, agentName);
+      }
+    };
+    SwingUtilities.invokeLater(thawIt);
   }
 
   public void addAddress(final String address, final String where) {
