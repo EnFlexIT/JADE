@@ -24,19 +24,43 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.util.leap.LinkedList;
-import jade.lang.acl.ACLMessage;
+import jade.util.Logger;
 
 /**
-   This class is a Singleton class, allowing intial access to the JADE
-   runtime system. Invoking methods on the shared instance of this
-   class (i.e. <code>Runtime.instance()</code>, 
-   it is possible to create <it>in-process</it> agent
-   containers.
+   The singleton instance (accessible through the 
+   <code>instance()</code> static method) of this class allows
+   controlling the JADE runtime system from an external application. 
+   Two different modalities of controlling the JADE runtime system exist:
+   <ul>
+   <li> Multiple-container: Several containers (belonging to the same
+   platform) can be executed in the local JVM. This modality is 
+   activated by means of the <code>createAgentContainer()</code>
+   and <code>createMainContainer()</code> methods plus the classes 
+   included in the <code>jade.wrapper</code> package.</li>
+   <li> Single-container: Only one container can be executed in the
+   local JVM. This modality is activated by means of the 
+   <code>startUp()</code> and <code>shutDown()<code> methods</li>
+   </ul>
+   Once a modality has been activated (by calling one of the above
+   methods) calling one of the methods for the other modality cause
+   an <code>IllegalStateException</code> to be thrown.
+   <p>
+   It should be noted that the Single-container modality only provides
+   a limited control of the JADE runtime system (e.g. it does not allow
+   creating and killing agents), but is the only one supported both 
+   in J2SE, PersonalJava and MIDP when using the LEAP add-on. 
 
    @author Giovanni Rimassa - Universita` di Parma
-
+   @author Giovanni Caire - TILAB
  */
 public class Runtime {
+	// JADE runtime execution modes: 
+	// MULTIPLE --> Several containers can be activated in a JVM
+	private static final int MULTIPLE_MODE = 0;
+	// SINGLE --> Only one container can be activated in a JVM
+	private static final int SINGLE_MODE = 1;
+	// UNKNOWN --> Mode not yet set
+	private static final int UNKNOWN_MODE = 2;
 
   private static Runtime theInstance;
   
@@ -44,10 +68,13 @@ public class Runtime {
     theInstance = new Runtime();
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   private ThreadGroup criticalThreads;
+  //#MIDP_EXCLUDE_END
   private int activeContainers = 0;
-  private Object lock = new Object();
   private LinkedList terminators = new LinkedList();
+  private AgentContainerImpl theContainer = null;
+  private int mode = UNKNOWN_MODE;
 
   // Private constructor to forbid instantiation outside the class.
   private Runtime() {
@@ -63,20 +90,30 @@ public class Runtime {
     return theInstance;
   }
 
+  //#MIDP_EXCLUDE_BEGIN
   /**
      Creates a new agent container in the current JVM, providing
-     access through a proxy object.
+     access through a proxy object.  
      @param p the profile containing boostrap and configuration
      data for this container
      @return A proxy object, through which services can be requested
      from the real JADE container.
+     @exception IllegalStateException if the Single-container modality
+     was previously activated by calling the <code>startUp()</code> 
+     method.
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
+  	if (mode == UNKNOWN_MODE || mode == MULTIPLE_MODE) {
+  		mode = MULTIPLE_MODE;
       p.setParameter(Profile.MAIN, "false"); // set to an agent container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();
 		  return new jade.wrapper.AgentContainer(impl, impl.getPlatformID());
+  	}
+  	else {
+  		throw new IllegalStateException("Single-container modality already activated");
+  	}
   }
 
   /**
@@ -86,49 +123,28 @@ public class Runtime {
      data for this container
      @return A proxy object, through which services can be requested
      from the real JADE main container.
+     @exception IllegalStateException if the Single-container modality
+     was previously activated by calling the <code>startUp()</code> 
+     method.
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
+  	if (mode == UNKNOWN_MODE || mode == MULTIPLE_MODE) {
+  		mode = MULTIPLE_MODE;
       p.setParameter(Profile.MAIN, "true"); // set to a main container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();
       return new jade.wrapper.MainContainer(impl, impl.getPlatformID());
+  	}
+  	else {
+  		throw new IllegalStateException("Single-container modality already activated");
+  	}
   }
-
-
+  
   /**
-     This method just wraps <code>createAgentContainer()</code> 
-     or <code>createMainContainer()</code> and
-     is here for compatibility with PersonalJava.
-     @param p the profile containing boostrap and configuration
-     data for this container
-     @see jade.core.Runtime#createAgentContainer(Profile p)
+     Causes the local JVM to be closed when the last container in this
+     JVM terminates.
    */
-  public void startUp(Profile p) {    
-	  // Set Runtime so that this JVM exits 
-	  // when there are no more containers around
-	  Runtime.instance().setCloseVM(true);
-	  
-		// Start the platform
-		if ("true".equalsIgnoreCase(p.getParameter(Profile.MAIN, "true"))) {
-			createMainContainer(p);
-		}
-		else {
-	  	createAgentContainer(p);
-		}
-  }
-
-
-  /**
-     Allwos setting a <code>Runnable</code> that is executed when
-     the last container in this JVM is terminated.
-   */
-  public void invokeOnTermination(Runnable r) {
-    terminators.addFirst(r);
-  }
-
-  // Called by jade.Boot to make the VM terminate when all the
-  // containers are closed.
   public void setCloseVM(boolean flag) {
   	if (flag) {
 	    terminators.addLast(new Runnable() {
@@ -139,28 +155,69 @@ public class Runtime {
     	} );
   	}
   }
+  //#MIDP_EXCLUDE_END
+
+
+  /**
+     Starts a JADE container in the Single-container modality. 
+     Successive calls to this method will take no effect.
+     @param p the profile containing boostrap and configuration
+     data for this container
+     @exception IllegalStateException if the Multiple-container modality
+     was previously activated by calling the <code>createAgentContainer()</code>
+     or <code>createMainContainer()</code> methods.
+   */
+  public void startUp(Profile p) {    
+  	if (mode == MULTIPLE_MODE) {
+  		throw new IllegalStateException("Multiple-container modality already activated");
+  	}
+  	if (mode == UNKNOWN_MODE) {
+  		mode = SINGLE_MODE;
+      theContainer = new AgentContainerImpl(p);
+      beginContainer();
+      theContainer.joinPlatform();
+  	}
+  }
+
+  /**
+     Stops the JADE container running in the Single-container modality. 
+   */
+  public void shutDown() { 
+  	if (theContainer != null) {
+	    theContainer.shutDown();
+  	}
+  }
+
+  /**
+     Allwos setting a <code>Runnable</code> that is executed when
+     the last container in this JVM terminates.
+   */
+  public void invokeOnTermination(Runnable r) {
+    terminators.addFirst(r);
+  }
 
   // Called by a starting up container.
   void beginContainer() {
-    System.out.println(getCopyrightNotice());
+    Logger.println(getCopyrightNotice());
     if(activeContainers == 0) {
-
+      // Initialize and start up the timer dispatcher
+      TimerDispatcher theDispatcher = new TimerDispatcher();
+      
+    	//#MIDP_EXCLUDE_BEGIN
       // Set up group and attributes for time critical threads
       criticalThreads = new ThreadGroup("JADE time-critical threads");
       criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
-
-      // Initialize and start up the timer dispatcher
-      TimerDispatcher theDispatcher = new TimerDispatcher();
       Thread t = new Thread(criticalThreads, theDispatcher);
       t.setPriority(criticalThreads.getMaxPriority());
       t.setName("JADE Timer dispatcher");
-      //Thread t = ResourceManager.getThread(ResourceManager.CRITICAL, theDispatcher);
+    	//#MIDP_EXCLUDE_END
+      /*#MIDP_INCLUDE_BEGIN
+      Thread t = new Thread(theDispatcher);
+      #MIDP_INCLUDE_END*/
       theDispatcher.setThread(t);
       TimerDispatcher.setTimerDispatcher(theDispatcher);
       theDispatcher.start();
-
     }
-
     ++activeContainers;
   }
 
@@ -178,12 +235,19 @@ public class Runtime {
       		}
       	}
       } );
+      //#MIDP_EXCLUDE_BEGIN
       t.setDaemon(false);
+      //#MIDP_EXCLUDE_END
       t.start();
       
       // Terminate the TimerDispatcher and release its resources
     	TimerDispatcher.getTimerDispatcher().stop();
+    	
+    	// Reset mode
+    	mode = UNKNOWN_MODE;
+    	theContainer = null;
       
+      //#MIDP_EXCLUDE_BEGIN
       try {
 				criticalThreads.destroy();
       }
@@ -194,6 +258,7 @@ public class Runtime {
       finally {
 				criticalThreads = null;
       }
+      //#MIDP_EXCLUDE_END
     }
   }
 
@@ -225,8 +290,6 @@ public class Runtime {
     date = date.trim();
     return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
   }
-
-  /************************************************************************/
 }
    
  
