@@ -643,8 +643,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       agentThreads.destroy();
     }
     catch(IllegalThreadStateException itse) {
-      System.out.println("Active threads in 'JADE-Agents' thread group:");
-      agentThreads.list();
+	//System.out.println("Active threads in 'JADE-Agents' thread group:");
+	//agentThreads.list();
     }
     finally {
       agentThreads = null;

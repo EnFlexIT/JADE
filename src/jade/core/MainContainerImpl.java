@@ -591,8 +591,8 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
       agentThreads.destroy();
     }
     catch(IllegalThreadStateException itse) {
-      System.out.println("Active threads in 'JADE-Agents' thread group:");
-      agentThreads.list();
+	//System.out.println("Active threads in 'JADE-Agents' thread group:");
+	//agentThreads.list();
     }
     finally {
       agentThreads = null;
@@ -602,8 +602,8 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
       systemAgentsThreads.destroy();
     }
     catch(IllegalThreadStateException itse) {
-      System.out.println("Active threads in 'JADE-System-Agents' thread group:");
-      systemAgentsThreads.list();
+	//System.out.println("Active threads in 'JADE-System-Agents' thread group:");
+	//systemAgentsThreads.list();
     }
     finally {
       systemAgentsThreads = null;
