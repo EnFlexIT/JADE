@@ -52,6 +52,7 @@ import jade.lang.acl.ACLMessage;
 
 import jade.domain.MobilityOntology;
 import jade.domain.FIPAAgentManagement.InternalError;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
@@ -622,7 +623,38 @@ private List getSniffer(AID id, java.util.Map theMap) {
     	}
     }
     //System.out.println("Sniffer to Notify- sender: "+ sniffersToNotify.size());
-    Iterator it = msg.getAllReceiver();
+    // 26-Mar-2001. The receivers set into the Envelope of the message, 
+    // if present, must have precedence over those set into the ACLMessage.
+    // If no :intended-receiver parameter is present in the Envelope, 
+    // then the :to parameter
+    // is used to generate :intended-receiver field. 
+    //
+    // create an Iterator with all the receivers to which the message must be 
+    // delivered
+    Iterator it=null;
+    Envelope env = msg.getEnvelope();
+    if (env != null) {
+	it = env.getAllIntendedReceiver();
+	if ( (it != null) && (it.hasNext()) ) {
+	    System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
+	    // ok. use the intendedreceiver
+	} else {
+	    it = env.getAllTo();
+	    if ( (it != null) && (it.hasNext()) ) {
+		System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
+		// ok. use the :to
+		// FIXME. Should I copy all the :to values in the :IntendedReceiver?
+	    } else {
+		it = msg.getAllReceiver();
+		// ok. use the receivers set in the ACLMessage
+	    }
+	}
+    } else 
+	it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
+    if (it == null)
+	return; //No Message is sent in this case because no receiver was found
+    // now it contains the Iterator with all the receivers of this message
+    // Iterator it = msg.getAllReceiver();
     while(it.hasNext()) {
       AID dest = (AID)it.next();
       currentSnifferVector = getSniffer(dest, SniffedAgents);	    
@@ -876,7 +908,13 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	System.err.println("Agent " + receiverID.getLocalName() + " has no valid addresses.");
 	notifyFailureToSender(msg, new InternalError("RemoteAgentNotFound"));
 	return;
+      }      
+      catch(acc.UnknownACLEncodingException uae) { // No ACLcodec available 
+	System.err.println(uae.getMessage()+" - message is undeliverable to " + receiverID.getLocalName());
+	notifyFailureToSender(msg, new InternalError("NoACLCodec_Available"));
+	return;
       }
+
       catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
 	ok = false;
       }

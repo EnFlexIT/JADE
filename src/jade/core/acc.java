@@ -61,6 +61,11 @@ class acc implements InChannel.Dispatcher {
       super(msg);
     }
   }
+  public static class UnknownACLEncodingException extends NotFoundException {
+    UnknownACLEncodingException(String msg) {
+      super(msg);
+    }
+  }
 
   private Map messageEncodings = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private RoutingTable routes = new RoutingTable();
@@ -135,10 +140,6 @@ class acc implements InChannel.Dispatcher {
     if(comments == null)
       env.setComments("");
 
-    String aclRepresentation = env.getAclRepresentation();
-    if(aclRepresentation == null)
-      env.setAclRepresentation("");
-
     Long payloadLength = env.getPayloadLength();
     if(payloadLength == null)
       env.setPayloadLength(new Long(-1));
@@ -153,8 +154,8 @@ class acc implements InChannel.Dispatcher {
     Envelope env = msg.getEnvelope();
     String enc = env.getAclRepresentation();
     ACLCodec codec = (ACLCodec)messageEncodings.get(enc.toLowerCase());
-    if(codec == null)
-      throw new NotFoundException("Unknown ACL encoding: " + enc + ".");
+    if(codec == null) 
+      throw new UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");
     return codec.encode(msg);
   }
 

@@ -1122,7 +1122,7 @@ public class AclGui extends JPanel
       
 			try{
 				param = envelope.getPayloadLength().toString();
-			}catch(NullPointerException e1){param ="";}
+			}catch(NullPointerException e1){param ="-1";}
 			payloadLength.setText(param);
       
 			try{
@@ -1361,9 +1361,9 @@ public class AclGui extends JPanel
 	param = payloadLength.getText().trim();
 	env.setPayloadLength(new Long(param));
     } catch (Exception e) { 
-	System.err.println("Incorrect int format. payloadLength must be an integer. Automatic reset to -1.");
-	env.setPayloadLength(new Long(-1));
-	payloadLength.setText("-1");
+	//System.err.println("Incorrect int format. payloadLength must be an integer. Automatic reset to -1.");
+	//env.setPayloadLength(new Long(-1));
+	//payloadLength.setText("-1");
     }
 	
     param = payloadEncoding.getText().trim();

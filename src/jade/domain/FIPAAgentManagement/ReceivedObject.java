@@ -41,10 +41,15 @@ public class ReceivedObject implements Serializable {
   private String via;
 
     /**
-     * The constructor initializes the date to current time.
+     * The constructor initializes the date to current time and 
+     * all the Strings to an empty string.
      **/
     public ReceivedObject() {
-	date = new Date();  
+	date = new Date();
+	by = new String();
+	from = new String();
+	id = new String();
+	via = new String();
     }
   public void setBy(String b) {
     by = b;
