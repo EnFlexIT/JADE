@@ -356,7 +356,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final AID getAMS() {
 		return myToolkit.getAMS();  
 	}
-//#CUSTOM_EXCLUDE_BEGIN
   /**
      Get the Agent ID for the platform default DF.
      @return An <code>AID</code> object, that can be used to contact
@@ -365,7 +364,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final AID getDefaultDF() {
 		return myToolkit.getDefaultDF();
 	}
-//#CUSTOM_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
   private int       msgQueueMaxSize = 0;
@@ -559,7 +557,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public final AID getAID() {
     return myAID;
   }
-//#CUSTOM_EXCLUDE_BEGIN
   /**
      This method adds a new platform address to the AID of this Agent.
      It is called by the container when a new MTP is activated
@@ -591,7 +588,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			myAID.removeAddresses(address);
 		}
   }
-//#CUSTOM_EXCLUDE_END
   /**
      Method to query the agent home address. This is the address of
      the platform where the agent was created, and will never change
@@ -1739,7 +1735,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     } 
 		#MIDP_INCLUDE_END*/
 	}
-		//#CUSTOM_EXCLUDE_BEGIN
 	/**
 		Receives an <b>ACL</b> message from the agent message
 		queue. This method is non-blocking and returns the first message
@@ -1752,7 +1747,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final ACLMessage receive() {
 		return receive(null);
 	}
-		//#CUSTOM_EXCLUDE_END
 	/**
 		Receives an <b>ACL</b> message matching a given template. This
 		method is non-blocking and returns the first matching message in
@@ -1790,7 +1784,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		return msg;
 	}
-//#CUSTOM_EXCLUDE_BEGIN
   /**
      Receives an <b>ACL</b> message from the agent message
      queue. This method is blocking and suspends the whole agent until
@@ -1905,7 +1898,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
     return msg;
   }
-//#CUSTOM_EXCLUDE_END
   /**
      Puts a received <b>ACL</b> message back into the message
      queue. This method can be used from an agent behaviour when it
