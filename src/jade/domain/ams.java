@@ -199,8 +199,9 @@ public class ams extends Agent {
 	myPlatform.AMSDumpData(agentName);
       else
 	myPlatform.AMSDumpData();
+
+      throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
     }
-    throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
 
   } // End of AuthBehaviour class
 
@@ -257,7 +258,6 @@ public class ams extends Agent {
 			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
   } // End of DeregBehaviour class
