@@ -126,12 +126,12 @@ public class Agent implements Runnable, Serializable
 	  BtoT.clear();
 	  TtoB.clear();
 
-	  //#MIDP_EXCLUDE_BEGIN
+	  //#J2ME_EXCLUDE_BEGIN
 
 	  // For persistence service
 	  persistentPendingTimers.clear();
 
-	  //#MIDP_EXCLUDE_END
+	  //#J2ME_EXCLUDE_END
 
       }
 
@@ -149,24 +149,24 @@ public class Agent implements Runnable, Serializable
 	  TBPair old = (TBPair)BtoT.put(pair.getBehaviour(), pair);
 	  if(old != null) {
 	      theDispatcher.remove(old.getTimer());
-	      //#MIDP_EXCLUDE_BEGIN
+	      //#J2ME_EXCLUDE_BEGIN
 	      persistentPendingTimers.remove(old);
-	      //#MIDP_EXCLUDE_END
+	      //#J2ME_EXCLUDE_END
 	  }
 	  old = (TBPair)TtoB.put(pair.getTimer(), pair);
 	  if(old != null) {
 	      theDispatcher.remove(old.getTimer());
-	      //#MIDP_EXCLUDE_BEGIN
+	      //#J2ME_EXCLUDE_BEGIN
 	      persistentPendingTimers.remove(old);
-	      //#MIDP_EXCLUDE_END
+	      //#J2ME_EXCLUDE_END
 	  }
 
-	  //#MIDP_EXCLUDE_BEGIN
+	  //#J2ME_EXCLUDE_BEGIN
 
 	  // For persistence service
 	  persistentPendingTimers.add(pair);
 
-	  //#MIDP_EXCLUDE_END
+	  //#J2ME_EXCLUDE_END
       }
 
       public synchronized void removeMapping(Behaviour b) {
@@ -174,12 +174,12 @@ public class Agent implements Runnable, Serializable
 	  if(pair != null) {
 	      TtoB.remove(pair.getTimer());
 
-	      //#MIDP_EXCLUDE_BEGIN
+	      //#J2ME_EXCLUDE_BEGIN
 
 	      // For persistence service
 	      persistentPendingTimers.remove(pair);
 
-	      //#MIDP_EXCLUDE_END
+	      //#J2ME_EXCLUDE_END
 
 	      theDispatcher.remove(pair.getTimer());
 	  }
@@ -190,12 +190,12 @@ public class Agent implements Runnable, Serializable
 	  if(pair != null) {
 	      BtoT.remove(pair.getBehaviour());
 
-	      //#MIDP_EXCLUDE_BEGIN
+	      //#J2ME_EXCLUDE_BEGIN
 
 	      // For persistence service
 	      persistentPendingTimers.remove(pair);
 
-	      //#MIDP_EXCLUDE_END
+	      //#J2ME_EXCLUDE_END
 
 	      theDispatcher.remove(pair.getTimer());
 	  }
@@ -1739,7 +1739,7 @@ public class Agent implements Runnable, Serializable
      actions just before the current agent is saved to a persistent
      store.
      <br>
-     <b>Not available in MIDP. Requires the Persistence JADE add-on</b>
+     <b>Not available in J2ME. Requires the Persistence JADE add-on</b>
      <br>
   */
   protected void beforeSave() {}
@@ -1750,7 +1750,7 @@ public class Agent implements Runnable, Serializable
      actions just after the current agent is loaded from a persistent
      store.
      <br>
-     <b>Not available in MIDP. Requires the Persistence JADE add-on</b>
+     <b>Not available in J2ME. Requires the Persistence JADE add-on</b>
      <br>
   */
   protected void afterLoad() {}
@@ -1843,9 +1843,10 @@ public class Agent implements Runnable, Serializable
     o2aLocks = new HashMap();
     myToolkit = DummyToolkit.instance();
 
-     //For persistence service
-     persistentPendingTimers = new java.util.HashSet();
-
+    //For persistence service
+    //#PJAVA_EXCLUDE_BEGIN
+    persistentPendingTimers = new java.util.HashSet();
+    //#PJAVA_EXCLUDE_END
   }
 
 
@@ -2631,7 +2632,7 @@ public class Agent implements Runnable, Serializable
   	#MIDP_INCLUDE_END*/
   }
 
-    //#MIDP_EXCLUDE_BEGIN
+    //#J2ME_EXCLUDE_BEGIN
 
     // For persistence service
     private void setBufferedState(int bs) {
@@ -2694,6 +2695,6 @@ public class Agent implements Runnable, Serializable
 	
     }
 
-    //#MIDP_EXCLUDE_END
+    //#J2ME_EXCLUDE_END
 
 }
