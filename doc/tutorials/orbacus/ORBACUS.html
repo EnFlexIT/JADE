@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.06 [en] (WinNT; I) [Netscape]">
+   <META NAME="ProgId" CONTENT="FrontPage.Editor.Document">
+   <TITLE>how to use Orbacus ORB in JADE</TITLE>
+
+<LINK REL ="stylesheet" TYPE="text/css" HREF="stylesheet.css" TITLE="Style">
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000FF" VLINK="#0000FF" ALINK="#0000FF">
+&nbsp;
+
+<H1 STYLE="border: none; padding: 0in">How to use Orbacus ORB in JADE </H1>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I>Author:
+Giovanni Rimassa (University of Parma), Tiziana Trucco (CSELT S.p.A.)
+</I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I>Date: <SDFIELD TYPE=DOCINFO SUBTYPE=CHANGE FORMAT=DATE SDNUM="1033;1033;NNNNMMMM D, YYYY">December 18, 2000</SDFIELD></I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I><FONT SIZE=2>Java
+platform: <A HREF="http://java.sun.com/j2se/1.3/">Sun JDK 1.2
+Windows</A></FONT></I></P>
+<P STYLE="margin-bottom: 0in; border: none; padding: 0in"><I><FONT SIZE=2><A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
+version 2.1</FONT></I></P>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+
+
+<P><SPAN lang="EN-GB">
+<BR><FONT FACE="Arial,Helvetica">
+Since JADE 2.1, FIPA-compliant Message Transport Protocols can be plugged and activated at run-time on any JADE container.
+By default, the ORB implementation of Sun is launched on the Main Container of the platform. However, in alternative, 
+the ORBacus implementation is also available. 
+This tutorial describes how to install and use this ORBacus implementation in JADE.
+<p>
+When a JADE container is started, it is possible to activate one ore more communication endpoints on it.
+<BR>In order to use ORBACUS ORB the following steps must be performed: 
+<UL>
+<li> Download from the OOC web site <A HREF="http://www.ooc.com">www.ooc.com </A> version 4 of Orbacus for JAVA. At the web site it 's possible to download the complete source code or the precompiled jar files for the ORBacus. Notice that If you downloaded the source code then you would also need the jidl (ORBacus IDL compiler).
+So far, JADE has been tested with version 4.0.3. </li> 
+<li> Download from the JADE site the add-on Orbacus in the download area of JADE.</li>
+<li> You can compile the JADE add-on by using its batch file or directly use the included jar file </li>
+<li> set the classpath to include the OB.jar (from ORBacus) and the iiopOB.jar (JADE add-on). NOTICE THAT conflict may arise
+between the Sun version and ORBacus version if you included also the iiop.jar. This implies that on each container only one
+of the two ORB must be used.</li>
+</ul>
+At this point in time, an IIOP endpoint that uses an ORBacus-based  IIOP MTP can be activated. 
+There are two ways available to activate it:
+<ul>
+<li> from the command line when you start a JADE container. In this case the following parameter must be specified on the command line:
+<code> -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:<i>hostname</i>:<i>port</i>/<i>name</i>) </code>
+<li> from the GUI of the RMA as specified later in this tutorial
+</ul>
+In brackets the IIOP address where the platform must listen to incoming FIPA messages can be specified. 
+This has the big advantage
+that the address of the platform can be selected by the user and, eventually, might be published on your business card. In other words, there is no more any need to publish the IOR of the agent platform.
+<p>
+When a container starts, it prints on the standard output all the activated MTP addresses, separated by a carriage return. Moreover, it writes the same addresses in a file, named:
+MTPs-<i>Container Name</i>.txt.
+<p>
+Using the -mtp command line option, a transport endpoint lives as long as its container is up; when a container is shut down, all its MTPs are deactivated and the AMS information is updated accordingly. The JADE RMA console enables a more flexible management of the MTPs, allowing to activate and deactivate transport protocols during normal platform operations.
+<p>
+<b>Configuring MTPs from the graphical management console.</b>
+<p>
+Select a container from the GUI, click the right button of the mouse and a popup menu appears.
+
+Choose the <code>Install a new MTP</code> option and a dialog will be shown.
+Here the following information can be set: the container to install the new MTP on (if different from the selected one), 
+the fully qualified name of the class implementing the <code>jade.mtp.MTP</code> interface, 
+and (if it is supported by the chosen protocol) the transport address that will be used to contact the new MTP. 
+<p>
+For example, 
+<ul>
+<li> in order to install a new IIOP endpoint by using the default JDK 1.2 ORB, one should write 
+<code>jade.mtp.iiop.MessageTransportProtocol</code> as the class name and nothing as the address. 
+<li> in order to install a new IIOP endpoint by using the ORBacus based implementation, one should write 
+<code>orbacus.MessageTransportProtocol</code> as the class name and 
+(if the endpoint had to be deployed at host sharon.cselt.it on the TCP port 1234 with an object ID jade) 
+<code>corbaloc:iiop:sharon.cselt.it:1234/jade</code> as the transport address.
+</ul>
+<p>
+Choosing Uninstall an MTP shows a dialog where the user can select from a list one of the currently installed MTPs and remove it from the platform.
+
+</FONT> 
+<HR>
+<CENTER>
+<P><FONT FACE="Arial"><FONT SIZE=-1><A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
+is a trademark of
+<A HREF="http://www.cselt.it">CSELT</A>. <A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
+has been developed jointly by <A HREF="http://www.cselt.it">CSELT</A> and
+the <A HREF="http://www.ce.unipr.it">Computer Engineering Group</A> of
+the <A HREF="http://www.unipr.it">University of Parma</A></FONT></FONT></CENTER>
+
+<BR>&nbsp;
+<P><BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+</BODY>
+</HTML>
