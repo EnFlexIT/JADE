@@ -41,6 +41,7 @@ package jade.core;
 public interface ServiceFinder {
 
     static final String MAIN_SLICE = "$$$Main-Slice$$$";
+    static final String THIS_SLICE = "$$$This-Slice$$$";
 
     /**
        Looks up a platform service by name.
