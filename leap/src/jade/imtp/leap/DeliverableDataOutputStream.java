@@ -108,7 +108,11 @@ class DeliverableDataOutputStream extends DataOutputStream {
 
                 // Directly handle serialization of classes that must be
                 // serialized more frequently
-                if (o instanceof ACLMessage) {                   // ACLMessage
+		if (o instanceof HorizontalCommand) {
+		    writeByte(Serializer.HORIZONTALCOMMAND_ID);
+		    serializeHorizontalCommand((HorizontalCommand)o);
+		}
+                else if (o instanceof ACLMessage) {                   // ACLMessage
                     writeByte(Serializer.ACL_ID);
                     serializeACL((ACLMessage) o);
                 } 
@@ -120,9 +124,9 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.STRING_ID);
                     writeUTF((String) o);
                 } 
-                else if (o instanceof RemoteContainerProxy) {    // RemoteContainerProxy
-                    writeByte(Serializer.REMOTEPROXY_ID);
-                    serializeProxy((RemoteContainerProxy) o);
+                else if (o instanceof NodeDescriptor) {    // NodeDescriptor
+                    writeByte(Serializer.NODEDESCRIPTOR_ID);
+                    serializeNodeDescriptor((NodeDescriptor) o);
                 } 
                 else if (o instanceof ContainerID) {             // ContainerID
                     writeByte(Serializer.CONTAINERID_ID);
@@ -151,22 +155,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
                 else if (o instanceof MTPDescriptor) {           // MTPDescriptor
                     writeByte(Serializer.MTPDESCRIPTOR_ID);
                     serializeMTPDescriptor((MTPDescriptor) o);
-                } 
-                else if (o instanceof MainContainer) {           // MainContainerStub
-                    if (!(o instanceof MainContainerStub)) {
-                        // A Stub must be serialized
-                        o = myStubHelper.buildLocalStub(o);
-                    } 
-                    writeByte(Serializer.MAINSTUB_ID);
-                    serializeMainStub((MainContainerStub) o);
-                } 
-                else if (o instanceof AgentContainer) {          // AgentContainerStub
-                    if (!(o instanceof AgentContainerStub)) {
-                        // A Stub must be serialized
-                        o = myStubHelper.buildLocalStub(o);
-                    }
-                    writeByte(Serializer.CONTAINERSTUB_ID);
-                    serializeContainerStub((AgentContainerStub) o);
+                }
+                else if (o instanceof Node) {                    // Node
+                    writeByte(Serializer.NODE_ID);
+                    serializeNode((Node) o);
+                }
+                else if (o instanceof Node[]) {                  // Array of Node
+                    writeByte(Serializer.NODEARRAY_ID);
+                    serializeNodeArray((Node[]) o);
                 }
                 else if (o instanceof ArrayList) {               // ArrayList
                     writeByte(Serializer.ARRAYLIST_ID);
@@ -226,9 +222,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
         }  // END of try
         catch (IOException ioe) {
             throw new LEAPSerializationException("Error Serializing object "+o);
-        } 
-        catch (IMTPException imtpe) {
-            throw new LEAPSerializationException("Can't get a Stub for object "+o);
         } 
     } 
 
@@ -436,13 +429,59 @@ class DeliverableDataOutputStream extends DataOutputStream {
         } 
     } 
 
-    /**
-     */
-    private void serializeProxy(RemoteContainerProxy proxy) 
-        throws IOException, LEAPSerializationException {
-        writeAID(proxy.getReceiver());
-        writeObject(proxy.getRemoteContainer());
-    } 
+    private void serializeNodeDescriptor(NodeDescriptor desc) throws IOException, LEAPSerializationException {
+
+	// Write the mandatory name and node attributes
+	writeUTF(desc.getName());
+	serializeNode(desc.getNode());
+
+	// Put boolean markers for optional attributes
+	ContainerID cid = desc.getContainer();
+	if(cid != null) {
+	    writeBoolean(true);
+	    serializeContainerID(cid);
+	}
+	else {
+	    writeBoolean(false);
+	}
+
+	String principalName = desc.getPrincipalName();
+	writeString(principalName);
+
+	byte[] principalPwd = desc.getPrincipalPwd();
+	if(principalPwd != null) {
+	    writeBoolean(true);
+	    serializeByteArray(principalPwd);
+	}
+	else {
+	    writeBoolean(false);
+	}
+
+    }
+
+
+    private void serializeHorizontalCommand(HorizontalCommand cmd) throws LEAPSerializationException {
+	try {
+
+	    // Write the mandatory command name and command service
+	    writeUTF(cmd.getName());
+	    writeUTF(cmd.getService());
+
+	    // Write optional interaction ID
+	    writeString(cmd.getInteraction());
+
+	    // Write all parameters
+	    Object[] params = cmd.getParams();
+	    int sz = params.length;
+	    writeInt(sz);
+	    for(int i = 0; i < sz; i++) {
+		writeObject(params[i]);
+	    }
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error serializing horizontal command");
+	}
+    }
 
     /**
      */
@@ -568,41 +607,71 @@ class DeliverableDataOutputStream extends DataOutputStream {
         } 
     } 
 
-    /**
-     */
-    private void serializeMainStub(MainContainerStub mcs) 
+    private void serializeNode(Node n) throws LEAPSerializationException {
+	try {
+	    writeString(n.getName());
+
+	    // Get a remote stub for the node and write it down
+	    NodeStub stub = (NodeStub)myStubHelper.buildLocalStub(n);
+	    writeByte(Serializer.NODESTUB_ID);
+	    serializeNodeStub(stub);
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("Error serializing Node");
+	}
+	catch(IMTPException imtpe) {
+	    throw new LEAPSerializationException("Error building a Node stub");
+	}
+    }
+
+    private void serializeNodeStub(NodeStub ns) throws LEAPSerializationException {
+	try {
+	    // Write the remote ID, uniquely identifying this node
+	    writeInt(ns.remoteID);
+
+	    // Write all the transport addresses
+	    int sz = ns.remoteTAs.size();
+	    writeInt(sz);
+	    for(int i = 0; i < sz; i++) {
+		writeObject(ns.remoteTAs.get(i));
+	    }
+	}
+	catch(IOException ioe) {
+	    throw new LEAPSerializationException("I/O Error during Node stub serialization");
+	}
+    }
+
+    private void serializeNodeArray(Node[] nodes) 
         throws LEAPSerializationException {
         try {
-            writeInt(mcs.remoteID);
-            int cnt = mcs.remoteTAs.size();
-            writeInt(cnt);
- 
-            for (int i = 0; i < cnt; ++i) {
-                writeObject(mcs.remoteTAs.get(i));
-            } 
+
+	    writeInt(nodes.length);
+
+	    for (int i = 0; i < nodes.length; i++) {
+		serializeNode(nodes[i]);
+	    }
         } 
         catch (IOException ioe) {
-            throw new LEAPSerializationException("IO error serializing object "+mcs);
+            throw new LEAPSerializationException("IO error serializing node array");
         } 
     }
 
-    /**
-     */
-    private void serializeContainerStub(AgentContainerStub acs) 
-        throws LEAPSerializationException {
+    public void writeNodeArray(Node[] nodes) throws LEAPSerializationException {
         try {
-            writeInt(acs.remoteID);
-            int cnt = acs.remoteTAs.size();
-            writeInt(cnt);
-            
-            for (int i = 0; i < cnt; ++i) {
-                writeObject(acs.remoteTAs.get(i));
+            if (nodes != null) {
+                writeBoolean(true);     // Presence flag true
+                serializeNodeArray(nodes);
+            } 
+            else {
+                writeBoolean(false);    // Presence flag false
             } 
         } 
         catch (IOException ioe) {
-            throw new LEAPSerializationException("IO error serializing Stub "+acs);
+            throw new LEAPSerializationException("Error serializing Node[]");
         } 
-    }
+    } 
+
+
 
     /**
      */
