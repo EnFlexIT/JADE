@@ -1236,6 +1236,10 @@ public class Agent implements Runnable, Serializable
     if(o2aQueue == null)
       return;
 
+		CondVar cond = null;
+		// the following block is synchronized because o2aQueue.add and o2aLocks.put must be
+		// an atomic operation
+		synchronized (o2aQueue) {
     // If the queue has a limited capacity and it is full, discard the
     // first element
     if((o2aQueueSize != 0) && (o2aQueue.size() == o2aQueueSize))
@@ -1245,21 +1249,18 @@ public class Agent implements Runnable, Serializable
 
     // If we are going to block, then activate behaviours after storing the CondVar object
     if(blocking) {
-      CondVar cond = new CondVar();
+      cond = new CondVar();
 
       // Store lock for later, when getO2AObject will be called
       o2aLocks.put(o, cond);
+		}
+		} // end synchronization
 
-	    // Reactivate the agent
-	    activateAllBehaviours();
-	    
-      // Sleep on the condition
+	  // Reactivate the agent. This method is synchronized on the scheduler
+		activateAllBehaviours();
+		if (blocking)
+      // Sleep on the condition. This method is synchronized on the condvar
       cond.waitOn();
-    }
-    else {
-	    // Reactivate the agent
-	    activateAllBehaviours();
-    }
   }
 
   /**
@@ -1286,16 +1287,21 @@ public class Agent implements Runnable, Serializable
     if(o2aQueue == null)
       return null;
 
+		CondVar cond = null;
+		Object result = null;
+		synchronized (o2aQueue) {
     if(o2aQueue.isEmpty())
       return null;
 
     // Retrieve the first object from the object-to-agent
     // communication queue
-    Object result = o2aQueue.remove(0);
+    result = o2aQueue.remove(0);
 
     // If some thread issued a blocking putO2AObject() call with this
-    // object, wake it up
-    CondVar cond = (CondVar)o2aLocks.remove(result);
+    // object, wake it up. cond.set is synchronized on CondVar object
+    cond = (CondVar)o2aLocks.remove(result);
+		}
+
     if(cond != null) {
       cond.set();
     }
@@ -1338,7 +1344,7 @@ public class Agent implements Runnable, Serializable
       Iterator it = o2aLocks.values().iterator();
       while(it.hasNext()) {
 	CondVar cv = (CondVar)it.next();
-	cv.set();
+	if (cv != null) cv.set();
       }
 
       o2aQueue = null;
