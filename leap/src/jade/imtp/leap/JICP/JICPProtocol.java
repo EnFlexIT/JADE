@@ -51,7 +51,7 @@ public class JICPProtocol extends TransportProtocol {
    * The protocol's name, as used in a URL protocol field.
    */
   public static final String NAME = "jicp";
-  public static final int    DEFAULT_PORT = 6837;
+  public static final int    DEFAULT_PORT = 1099;
 
 	// JICP packet types
   

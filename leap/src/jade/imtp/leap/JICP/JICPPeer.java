@@ -111,7 +111,7 @@ public class JICPPeer implements ICP {
 		}
 			
 		// Local port
-		boolean changePortIfBusy = false;
+		boolean changePortIfBusy = true;
 		sb.setLength(idLength);
 		sb.append(JICPProtocol.LOCAL_PORT_KEY);
 		String strPort = p.getParameter(sb.toString(), null);
@@ -120,7 +120,7 @@ public class JICPPeer implements ICP {
     } 
     catch (Exception e) {
       // Use default unless busy 
-    	changePortIfBusy = ("false".equalsIgnoreCase(p.getParameter(Profile.MAIN, "true")));
+    	//changePortIfBusy = ("false".equalsIgnoreCase(p.getParameter(Profile.MAIN, "true")));
     } 
 			
     // Start listening for connections
