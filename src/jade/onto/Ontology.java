@@ -26,7 +26,7 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 import java.util.List;
 import jade.lang.Codec.CodecException;
-import jade.onto.JadeMetaOntology.AnOntology;
+import jade.onto.JADEMetaOntology.AnOntology;
 
 /**
 	An application specific ontology is represented by a properly initialized
