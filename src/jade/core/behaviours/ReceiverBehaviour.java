@@ -23,10 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.behaviours;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import jade.core.Agent;
-import jade.core.AgentGroup;
+
+import jade.domain.FIPAAgentManagement.AID;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -348,22 +349,26 @@ public final class ReceiverBehaviour extends Behaviour {
       result.setConversationId(s);
     else
       result.setConversationId("");
-    AgentGroup ag = msg.getDests();
-    Enumeration e = ag.getMembers();
-    while(e.hasMoreElements()) {
-      s = (String)e.nextElement();
-      result.addDest(s);
+    Iterator dests = msg.getAllReceiver();
+    while(dests.hasNext()) {
+      AID id = (AID)dests.next();
+      result.addReceiver(id);
     }
-    s = msg.getEnvelope();
-    if(s != null)
-      result.setEnvelope(s);
-    else
-      result.setEnvelope("");
+    Iterator replies = msg.getAllReplyTo();
+    while(replies.hasNext()) {
+      AID id = (AID)replies.next();
+      result.addReplyTo(id);
+    }
     s = msg.getLanguage();
     if(s != null)
       result.setLanguage(s);
     else
       result.setLanguage("");
+    s = msg.getEncoding();
+    if(s != null)
+      result.setEncoding(s);
+    else
+      result.setEncoding("");
     s = msg.getOntology();
     if(s != null)
       result.setOntology(s);
@@ -379,21 +384,19 @@ public final class ReceiverBehaviour extends Behaviour {
       result.setReplyBy(s);
     else
       result.setReplyBy("");
-    s = msg.getReplyTo();
+    s = msg.getInReplyTo();
     if(s != null)
-      result.setReplyTo(s);
+      result.setInReplyTo(s);
     else
-      result.setReplyTo("");
+      result.setInReplyTo("");
     s = msg.getReplyWith();
     if(s != null)
       result.setReplyWith(s);
     else
       result.setReplyWith("");
-    s = msg.getSource();
-    if(s != null)
-      result.setSource(s);
-    else
-      result.setSource("");
+    AID src = msg.getSender();
+    result.setSender(src);
+
     if(future != null)
       future.setMessage(result);
 
