@@ -239,10 +239,9 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
     }
 
     public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
-	// First, deregister this node with the service manager
 
-	// Remote call, IMTP-dependent
-	removeRemoteNode(desc);
+	// No need to deregister this node with the service manager;
+	// the node termination will cause the deregistration...
 
 	// Then, locally deactivate all the services
 	Object[] names = services.keySet().toArray();
