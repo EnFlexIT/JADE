@@ -101,11 +101,13 @@ public class IncomingEncodingFilter extends Filter {
           }
           ((GenericMessage)params[1]).update(msg,null,null);
         } catch (MessagingService.UnknownACLEncodingException ee){
-          //FIXME 
-          ee.printStackTrace();
+        	ee.printStackTrace();
+        	cmd.setReturnValue(ee);
+        	return false;
         } catch (ACLCodec.CodecException ce){
-          //FIXME
           ce.printStackTrace();
+        	cmd.setReturnValue(ce);
+        	return false;
         }
       }
     }
