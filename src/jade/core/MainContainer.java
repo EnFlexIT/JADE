@@ -32,7 +32,11 @@ import java.rmi.RemoteException;
 @version $Date$ $Revision$
 */
 
-interface MainContainer extends AgentContainer {
+interface MainContainer extends Remote {
+
+    void register(AgentContainerImpl ac, ContainerID cid) throws RemoteException;
+
+    void deregister(AgentContainer ac) throws RemoteException;
 
     String getPlatformName() throws RemoteException;
 
