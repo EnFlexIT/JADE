@@ -42,15 +42,14 @@ import java.util.HashSet;
 import jade.core.*;
 import jade.core.behaviours.*;
 
+import jade.content.AgentAction;
+
 import jade.tools.introspector.gui.IntrospectorGUI;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAService;
 import jade.domain.introspection.*;
 
-// FIXME: These three imports will not be needed anymore, when
-// suitable actions will be put into the 'jade-introspection'
-// ontology.
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.DebugOn;
 import jade.domain.JADEAgentManagement.DebugOff;
@@ -59,11 +58,11 @@ import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.content.lang.sl.SLCodec;
 
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 
+import jade.proto.SimpleAchieveREResponder;
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.AchieveREInitiator;
 
@@ -85,6 +84,7 @@ import jade.util.Logger;
 */
 public class Introspector extends ToolAgent {
 
+    private Set allAgents = null;
     private Hashtable preload = null;
 
     //logging service
@@ -190,6 +190,7 @@ public class Introspector extends ToolAgent {
 	    ContainerID cid = ba.getWhere();
 	    String container = cid.getName();
 	    AID agent = ba.getAgent();
+	    allAgents.add(agent);
 	    myGUI.addAgent(container, agent);
         if( preloadContains( agent.getName() ) != null )
             Introspector.this.addAgent( agent );
@@ -204,6 +205,7 @@ public class Introspector extends ToolAgent {
 	    ContainerID cid = da.getWhere();
 	    String container = cid.getName();
 	    AID agent = da.getAgent();
+	    allAgents.remove(agent);
 	    MainWindow m = (MainWindow)windowMap.get(agent);
 	    if(m != null) {
 	      myGUI.closeInternal(m);
@@ -234,7 +236,7 @@ public class Introspector extends ToolAgent {
   }
 
   public void toolSetup() {
-
+		
     ACLMessage msg = getRequest();
     msg.setOntology(JADEManagementOntology.NAME);
 
@@ -253,6 +255,9 @@ public class Introspector extends ToolAgent {
     // Handle incoming INFORM messages about observation start/stop from
     // ToolNotifiers
     addBehaviour(new ControlListenerBehaviour(this));
+
+    // Handle incoming REQUEST to start/stop debugging agents
+    addBehaviour(new RequestListenerBehaviour());
 
     // Manages GUI events
     addBehaviour(new SensorManager(this, guiSensor) {
@@ -279,7 +284,7 @@ public class Introspector extends ToolAgent {
     	}
     }	);
 
-
+    allAgents = new HashSet();
     preload = new Hashtable();
 
     /*
@@ -304,7 +309,7 @@ public class Introspector extends ToolAgent {
     Adds an agent to the debugged agents map, and asks the AMS to
     start debugging mode on that agent.
   */
-  public void addAgent(AID name) {
+  public boolean addAgent(AID name) {
     if(!windowMap.containsKey(name)) {
 			MainWindow m = new MainWindow(guiSensor, name);
 			myGUI.addWindow(m);
@@ -315,7 +320,11 @@ public class Introspector extends ToolAgent {
 			//stepByStepAgents.add(name);
 
 			requestDebugOn(name);
+			return true;
     }
+    else {
+    	return false;
+    }    
   }
 
   private void requestDebugOn(AID name) {
@@ -737,4 +746,95 @@ public class Introspector extends ToolAgent {
         }
         preload.put(name, filter);
     }
+  
+  /**
+     Inner class RequestListenerBehaviour.
+     This behaviour serves requests to start debugging agents.
+     If an agent does not exist it is put into the 
+     preload table so that it will be debugged as soon as it starts.
+   */
+  private class RequestListenerBehaviour extends SimpleAchieveREResponder {  	
+		private Action requestAction;
+		private AgentAction aa;
+		
+		RequestListenerBehaviour() {
+			// We serve REQUEST messages refering to the JADE Management Ontology
+ 			super(Introspector.this, MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEManagementOntology.NAME)));
+		}
+	
+		protected ACLMessage prepareResponse (ACLMessage request) {
+			ACLMessage response = request.createReply();
+			try {			
+				requestAction = (Action) getContentManager().extractContent(request);
+				aa = (AgentAction) requestAction.getAction();
+				if (aa instanceof DebugOn || aa instanceof DebugOff) {
+					if (getAID().equals(requestAction.getActor())) {
+						response.setPerformative(ACLMessage.AGREE);
+						response.setContent(request.getContent());
+					}
+					else {
+						response.setPerformative(ACLMessage.REFUSE);
+						response.setContent("((unrecognised-parameter-value actor "+requestAction.getActor()+"))");
+					}
+				}
+				else {
+					response.setPerformative(ACLMessage.REFUSE);	
+					response.setContent("((unsupported-act "+aa.getClass().getName()+"))");
+				}
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+				response.setPerformative(ACLMessage.NOT_UNDERSTOOD);	
+			}
+			return response;					    		    		 	
+		}
+	
+		protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) {	
+			if (aa instanceof DebugOn) { 
+				// DEBUG ON
+				DebugOn requestDebugOn = (DebugOn) aa;
+				// Start debugging existing agents.
+				// Put non existing agents in the preload map. We will start
+				// debug them as soon as they start. 
+				List agentsToDebug = requestDebugOn.getCloneOfDebuggedAgents();											
+				for (int i=0;i<agentsToDebug.size();i++) {
+					AID aid = (AID)agentsToDebug.get(i); 
+					if (allAgents.contains(aid)) {
+						addAgent(aid);
+					} 
+					else {
+						//not alive -> put it into preload
+						int performativeCount = ACLMessage.getAllPerformativeNames().length;
+						boolean[] filter = new boolean[performativeCount];
+						for (int j=0; j<performativeCount;j++) {
+							filter[j] = true;
+						}
+						preload.put(aid.getName(), filter);									
+					}
+				}																		
+			}
+			else {
+				// DEBUG OFF
+				DebugOff requestDebugOff = (DebugOff) aa;
+				List agentsToDebug = requestDebugOff.getCloneOfDebuggedAgents();											
+				for (int i=0;i<agentsToDebug.size();i++) {
+					AID aid = (AID)agentsToDebug.get(i); 
+					removeAgent(aid);
+				}
+			}
+			
+			// Send back the notification
+			ACLMessage result = request.createReply();
+			result.setPerformative(ACLMessage.INFORM);
+			Done d = new Done(requestAction);
+			try {
+				myAgent.getContentManager().fillContent(result, d);
+			}
+			catch (Exception e) {
+				// Should never happen
+				e.printStackTrace();
+			}
+			return result;
+		}		
+  }  // END of inner class RequestListenerBehaviour 
 }
