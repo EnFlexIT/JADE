@@ -194,7 +194,14 @@ public class AgentMobilityService extends BaseService {
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
 		AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
-		targetSlice.moveAgent(agentID, where);
+		try {
+		    targetSlice.moveAgent(agentID, where);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    targetSlice = (AgentMobilitySlice)getFreshSlice(cid.getName());
+		    targetSlice.moveAgent(agentID, where);
+		}
 	    }
 	    else {
 		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -211,7 +218,14 @@ public class AgentMobilityService extends BaseService {
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
 		AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
-		targetSlice.copyAgent(agentID, where, newName);
+		try {
+		    targetSlice.copyAgent(agentID, where, newName);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    targetSlice = (AgentMobilitySlice)getFreshSlice(cid.getName());
+		    targetSlice.copyAgent(agentID, where, newName);
+		}
 	    }
 	    else {
 		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -272,17 +286,22 @@ public class AgentMobilityService extends BaseService {
 
 		// Gets the container where the agent classes can be retrieved
 		String classSiteName = (String)sites.get(a);
-		AgentMobilitySlice classSite;
+
 		if (classSiteName == null) {
 		    // The agent was born on this container
 		    classSiteName = getLocalNode().getName();
 		}
 
-		// Perform a slice lookup...
-		classSite = (AgentMobilitySlice)getSlice(classSiteName);
-
 		// Create the agent on the destination container
-		dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
+		try {
+		    dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    dest = (AgentMobilitySlice)getFreshSlice(where.getName());
+		    dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
+		}
+
 		transferState = 2;
 		log("Agent " + agentID + " correctly created on destination container", 1);
 
@@ -419,18 +438,21 @@ public class AgentMobilityService extends BaseService {
 
 		// Gets the container where the agent classes can be retrieved
 		String classSiteName = (String)sites.get(a);
-		AgentMobilitySlice classSite;
 		if (classSiteName == null) {
 		    // The agent was born on this container
 		    classSiteName = getLocalNode().getName();
 		}
 
-		// Perform a slice lookup...
-		classSite = (AgentMobilitySlice)getSlice(classSiteName);
-
 		// Create the agent on the destination container with the new AID
 		AID newID = new AID(newName, AID.ISLOCALNAME);
-		dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
+		try {
+		    dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    dest = (AgentMobilitySlice)getFreshSlice(where.getName());
+		    dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
+		}
 	    }
 	    catch (IOException ioe) {
 		// Error in agent serialization
@@ -867,7 +889,26 @@ public class AgentMobilityService extends BaseService {
 		    AgentMobilitySlice srcSlice = (AgentMobilitySlice)getSlice(src.getName());
 		    AgentMobilitySlice destSlice = (AgentMobilitySlice)getSlice(dest.getName());
 
-		    if(!srcSlice.prepare() || (!destSlice.prepare())) {
+		    boolean srcReady = false;
+		    boolean destReady = false;
+
+		    try {
+			srcReady = srcSlice.prepare();
+		    }
+		    catch(IMTPException imtpe) {
+			srcSlice = (AgentMobilitySlice)getFreshSlice(src.getName());
+			srcReady = srcSlice.prepare();
+		    }
+
+		    try {
+			destReady = destSlice.prepare();
+		    }
+		    catch(IMTPException imtpe) {
+			destSlice = (AgentMobilitySlice)getFreshSlice(dest.getName());
+			destReady = destSlice.prepare();
+		    }
+
+		    if(!srcReady || !destReady) {
 			// Problems on a participant slice: abort transaction
 			return false;
 		    }

@@ -192,7 +192,14 @@ public class AgentManagementService extends BaseService {
 	    if(impl != null) {
 		AID agentID = new AID(name, AID.ISLOCALNAME);
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-		targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+		try {
+		    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+		    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+		}
 	    }
 	    else {
 		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -255,7 +262,14 @@ public class AgentManagementService extends BaseService {
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-		targetSlice.killAgent(agentID);
+		try {
+		    targetSlice.killAgent(agentID);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+		    targetSlice.killAgent(agentID);
+		}
 	    }
 	    else {
 		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -283,7 +297,14 @@ public class AgentManagementService extends BaseService {
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
 		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-		targetSlice.changeAgentState(agentID, newState);
+		try {
+		    targetSlice.changeAgentState(agentID, newState);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+		    targetSlice.changeAgentState(agentID, newState);
+		}
 	    }
 	    else {
 		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
@@ -384,7 +405,14 @@ public class AgentManagementService extends BaseService {
 
 	    // Forward to the correct slice
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    targetSlice.exitContainer();
+	    try {
+		targetSlice.exitContainer();
+	    }
+	    catch(IMTPException imtpe) {
+		// Try to get a newer slice and repeat...
+		targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+		targetSlice.exitContainer();
+	    }
 
 	}
 

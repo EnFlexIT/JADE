@@ -512,7 +512,14 @@ public class NotificationService extends BaseService {
 		    ContainerID cid = impl.getContainerID(target);
 
 		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
-		    slice.sniffOn(sniffer, target);
+		    try {
+			slice.sniffOn(sniffer, target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			slice = (NotificationSlice)getFreshSlice(cid.getName());
+			slice.sniffOn(sniffer, target);
+		    }
 
 		}
 	    }
@@ -537,7 +544,14 @@ public class NotificationService extends BaseService {
 		    ContainerID cid = impl.getContainerID(target);
 
 		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
-		    slice.sniffOff(sniffer, target);
+		    try {
+			slice.sniffOff(sniffer, target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			slice = (NotificationSlice)getFreshSlice(cid.getName());
+			slice.sniffOff(sniffer, target);
+		    }
 
 		}
 	    }
@@ -562,7 +576,14 @@ public class NotificationService extends BaseService {
 		    ContainerID cid = impl.getContainerID(target);
 
 		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
-		    slice.debugOn(introspector, target);
+		    try {
+			slice.debugOn(introspector, target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			slice = (NotificationSlice)getFreshSlice(cid.getName());
+			slice.debugOn(introspector, target);
+		    }
 
 		}
 	    }
@@ -587,7 +608,14 @@ public class NotificationService extends BaseService {
 		    ContainerID cid = impl.getContainerID(target);
 
 		    NotificationSlice slice = (NotificationSlice)getSlice(cid.getName());
-		    slice.debugOff(introspector, target);
+		    try {
+			slice.debugOff(introspector, target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			slice = (NotificationSlice)getFreshSlice(cid.getName());
+			slice.debugOff(introspector, target);
+		    }
 
 		}
 	    }
