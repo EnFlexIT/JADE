@@ -57,7 +57,6 @@ public class AboutJadeAction extends AbstractAction
 	
   String imageFile = "jade/gui/images/jadelogo.jpg";
   String imageLogoCselt = "jade/gui/images/LogoCselt.gif";
-    
   Color dark_blue = new java.awt.Color(0,0,160);
  
 	
@@ -89,8 +88,10 @@ public class AboutJadeAction extends AbstractAction
                 f.disposeAsync();
             }
         });
-
-        Container theCont = f.getContentPane();
+        
+		f.addMouseListener(new MouseClick());
+		
+		Container theCont = f.getContentPane();
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         theCont.setLayout(gridbag);
@@ -118,7 +119,6 @@ public class AboutJadeAction extends AbstractAction
 							name = name.trim();
     		}
 
-        //label = new JLabel("Version 1.3");
     		label = new JLabel(name);
         label.setForeground(dark_blue);
 				c.ipady = 1;
@@ -172,7 +172,6 @@ public class AboutJadeAction extends AbstractAction
         c.gridy = 7;
         gridbag.setConstraints(imagePanel2,c);
         theCont.add(imagePanel2); 
-        
         f.setModal(true);
         f.setLocation(new Point(100,100));
         f.setSize(new Dimension(300,300));
@@ -228,5 +227,19 @@ private class ImagePanel extends JPanel {
     }
 	}
 
+	
+private class MouseClick implements MouseListener
+{
+	public void mouseClicked(MouseEvent event)
+	{
+		((AboutFrame)(event.getSource())).disposeAsync();	
+	
+	}
+	public void mouseReleased(MouseEvent event){}
+	public void mouseEntered(MouseEvent event){}
+	public void mouseExited(MouseEvent event){}
+	public void mousePressed(MouseEvent event){}
+	
+}	
 } //Ends AboutJadeAction class
 	
