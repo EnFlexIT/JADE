@@ -123,7 +123,7 @@ public class FIPAAgentManagementOntology {
   public static final String UNSUPPORTEDFUNCTION = "unsupported-function";
   public static final String MISSINGPARAMETER = "missing-parameter";
   public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
-public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
+  public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
 
   // Failure Exception Propositions
   public static final String ALREADYREGISTERED = "already-registered";
