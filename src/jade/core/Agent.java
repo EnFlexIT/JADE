@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.32  1999/02/14 23:06:15  rimassa
+  Changed agent name handling: now getName() returns the GUID, whereas
+  getLocalName() yields only the agent name.
+  Fixed a problem with erroneous throwing of AgentDeathError during
+  agent destruction.
+  deregisterWithDF() now is again a blocking call.
+
   Revision 1.31  1999/02/03 09:48:05  rimassa
   Added a timestamp to 'failure' and 'refuse' messages.
   Added a non blocking 'doFipaRequestClientNB()' method, as a temporary
@@ -257,8 +264,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     myScheduler = new Scheduler(this);
   }
 
-  public String getName() {
+  public String getLocalName() {
     return myName;
+  }
+
+  public String getName() {
+    return myName + '@' + myAddress;
   }
 
   public String getAddress() {
@@ -306,6 +317,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   public synchronized void doWait() { // Transition from Active to Waiting
+    int oldAPState = myAPState;
     myAPState = AP_WAITING;
     while(myAPState == AP_WAITING) {
       try {
@@ -313,7 +325,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       }
       catch(InterruptedException ie) {
 	myAPState = AP_DELETED;
-	throw new AgentDeathError();
+
+	// Avoid throwing AgentDeathError while deregistering with AMS
+        if(oldAPState != AP_DELETED)
+	  throw new AgentDeathError();
       }
     }
   }
@@ -394,7 +409,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  private void destroy() {
+  private void destroy() { 
 
     try {
       deregisterWithAMS();
@@ -720,7 +735,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setContent(text.toString());
 
     // Send message and collect reply
-    doFipaRequestClientNB(request, replyString);
+    doFipaRequestClient(request, replyString);
 
   }
 
