@@ -91,8 +91,6 @@ import jade.security.PrivilegedExceptionAction;
 public class ams extends Agent implements AgentManager.Listener {
 
 	private int verbosity = 0;
-	
-  Profile bootProfile = null;    
   
   // The AgentPlatform where information about agents is stored
   private AgentManager myPlatform;
@@ -123,22 +121,22 @@ public class ams extends Agent implements AgentManager.Listener {
      code. Therefore, no other <em>AMS</em> agent can be created
      beyond the default one.
   */
-  public ams(AgentManager ap, Profile aBootProfile) {
+  public ams(AgentManager ap) {
     myPlatform = ap;
     myPlatform.addListener(this);
-    bootProfile = aBootProfile;
-    try {
-    	verbosity = Integer.parseInt(bootProfile.getParameter("jade.domain.ams.verbosity", "0"));
-    }
-    catch (Exception e) {
-    	// Keep default (0)
-    }
   }
 
   /**
      AMS initialization
    */
   protected void setup() {
+    try {
+    	verbosity = Integer.parseInt(getProperty("jade.domain.ams.verbosity", "0"));
+    }
+    catch (Exception e) {
+    	// Keep default (0)
+    }
+    
     // Fill Agent Platform Description. 
     theProfile.setName("\"" + getHap() + "\"");
     theProfile.setDynamic(new Boolean(false));
@@ -1248,7 +1246,7 @@ public class ams extends Agent implements AgentManager.Listener {
   private void writeAPDescription(APDescription description) {
     //Write the APDescription file.
     try {
-      FileWriter f = new FileWriter(bootProfile.getParameter(Profile.FILE_DIR, "") + "APDescription.txt");
+      FileWriter f = new FileWriter(getProperty(Profile.FILE_DIR, "") + "APDescription.txt");
       f.write(description.toString());
 	  f.write('\n');
 	  f.flush();
