@@ -80,6 +80,14 @@ public interface IMTPManager {
     void exportServiceManager(ServiceManager mgr) throws IMTPException;
 
     /**
+       Stops making the platform <i>Service Manager</i> available
+       through this IMTP.
+       @throws IMTPException If something goes wrong in the underlying
+       network transport.
+    */
+    void unexportServiceManager(ServiceManager sm) throws IMTPException;
+
+    /**
        Builds a proxy object for the (possibly remote) platform
        service manager.
        @param proc The local Command Processor to which the service
@@ -143,7 +151,7 @@ public interface IMTPManager {
 
        @see jade.core.Service
     */
-    public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException;
+    Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException;
 
     /**
      * Release all resources of this IMTPManager
