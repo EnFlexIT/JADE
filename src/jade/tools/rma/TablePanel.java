@@ -190,4 +190,4 @@ class ColumnLayout implements LayoutManager {
 
   public void removeLayoutComponent(Component c) {}
 
-}   // End of ColumnLayout
+} 

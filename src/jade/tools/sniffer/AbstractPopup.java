@@ -56,4 +56,4 @@ abstract public class AbstractPopup extends AbstractAction {
     putValue(Action.NAME,actionName);
   }
 
-}  // End of class AbstractPopup
+}
