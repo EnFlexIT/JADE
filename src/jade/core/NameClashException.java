@@ -34,11 +34,17 @@ package jade.core;
 */
 public class NameClashException extends Exception {
 
+	/**
+	   This constant string is used to distinguish a name clash
+	   from other reasons that may prevent the creation of an agent.
+	 */
+	public static final String KEYWORD = "Name-clash";
+	
   /**
      Construct a <code>NameClashException</code> with no detail message
   */
   public NameClashException() {
-      super();
+      super(KEYWORD);
   }
 
   /**
@@ -46,6 +52,6 @@ public class NameClashException extends Exception {
     @param msg The exception message.
   */
   public NameClashException(String msg) {
-    super(msg);
+    super(KEYWORD+" "+msg);
   }
 }
