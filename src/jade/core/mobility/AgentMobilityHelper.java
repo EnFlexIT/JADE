@@ -47,7 +47,10 @@ import jade.util.leap.List;
 */
 public interface AgentMobilityHelper extends ServiceHelper {
 
-
+	void registerMovable(Movable m);
+	void move(Location destination);
+	void clone(Location destination, String newName);
+	
     /**
        The name of this service.
     */
@@ -98,8 +101,6 @@ public interface AgentMobilityHelper extends ServiceHelper {
     */
     static final String INFORM_CLONED = "Inform-Cloned";
 
-
-    void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException;
-    void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException;
+    //void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException;
 
 }

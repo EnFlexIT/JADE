@@ -35,6 +35,7 @@ import java.io.ObjectStreamClass;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.DataInputStream;
+import java.io.InterruptedIOException;
 import java.util.StringTokenizer;
 import java.util.zip.*;
 
@@ -52,9 +53,11 @@ import jade.core.ServiceException;
 import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
+import jade.core.LifeCycle;
 
 import jade.core.Profile;
 import jade.core.Agent;
+import jade.core.Agent.Interrupted;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.core.ContainerID;
@@ -92,6 +95,9 @@ import jade.util.Logger;
 */
 public class AgentMobilityService extends BaseService {
 
+  public static final int AP_TRANSIT = 7;
+  public static final int AP_COPY = 8;
+  public static final int AP_GONE = 9;
 
 
     private static final String[] OWNED_COMMANDS = new String[] {
@@ -131,7 +137,7 @@ public class AgentMobilityService extends BaseService {
     }
 
     public ServiceHelper getHelper(Agent a) {
-	return helper;
+	return new AgentMobilityHelperImpl();
     }
 
     public Filter getCommandFilter(boolean direction) {
@@ -248,13 +254,12 @@ public class AgentMobilityService extends BaseService {
 	    Agent a = myContainer.acquireLocalAgent(agentID);
 	    if (a == null) {
 		System.out.println("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
-		myContainer.abortMigration(a);
 		return;
 	    }
 	    String proto = where.getProtocol();
 	    if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
 		System.out.println("Mobility protocol not supported. Aborting transfer");
-		myContainer.abortMigration(a);
+		a.restoreBufferedState();
 		return;
 	    }
 
@@ -263,28 +268,15 @@ public class AgentMobilityService extends BaseService {
 	    AgentMobilitySlice dest = null;
 	    try {
 
-		/* --- This code should go into the Security Service ---
-
-		// Check for security permissions
-		// Note that CONTAINER_MOVE_TO will be checked on the destination container
-		myContainer.getAuthority().checkAction(Authority.AGENT_MOVE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder());
-		myContainer.getAuthority().checkAction(Authority.CONTAINER_MOVE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder());
-
-		log("Permissions for agent " + agentID + " OK", 2);
-
-		// --- End of code that should go into the Security Service ---
-		*/
 
 		// If the destination container is the same as this one, there is nothing to do
 		if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
-		    myContainer.abortMigration(a);
 		    return;
 		}
 
-		dest = (AgentMobilitySlice)getSlice(where.getName());
+		dest = (AgentMobilitySlice) getSlice(where.getName());
 		if (dest == null) {
 			System.out.println("Destination does not exist or does not support mobility");
-			myContainer.abortMigration(a);
 			return;
 		}
 		log("Destination container for agent " + agentID + " found", 2);
@@ -343,16 +335,24 @@ public class AgentMobilityService extends BaseService {
 
 		    dest.handleTransferResult(agentID, transferResult, messages);
 
-		    // Cause the invocation of 'beforeMove()' and the
-		    // subsequent termination of the agent thread, along
-		    // with its removal from the LADT
-		    myContainer.commitMigration(a);
+		    try {
+			    // Cause the invocation of 'beforeMove()' and the
+			    // subsequent termination of the agent thread
+				  AgentMobilityHelperImpl mobHelper = (AgentMobilityHelperImpl) a.getHelper(AgentMobilityHelper.NAME);
+				  mobHelper.gone();
+				  // Remove the gone agent from the LADT
+				  myContainer.removeLocalAgent(a.getAID());
+		    }
+		    catch (Exception e) {
+		    	// Should never happen
+		    	e.printStackTrace();
+		    }
 		    sites.remove(a);
-				log("Agent " + agentID + " correctly activated on destination container", 1);
+				log("Agent " + agentID + " correctly gone", 1);
 		}
 		else {
 				log("Error transferring identity of agent " + agentID, 1);
-		    myContainer.abortMigration(a);
+				a.restoreBufferedState();
 		    dest.handleTransferResult(agentID, transferResult, messages);
 				log("Migration of agent " + agentID + "aborted", 1);
 		}
@@ -360,54 +360,54 @@ public class AgentMobilityService extends BaseService {
 	    catch (IOException ioe) {
 		// Error in agent serialization
 		System.out.println("Error in agent serialization. Abort transfer. " + ioe);
-		myContainer.abortMigration(a);
 	    }
 	    catch (JADESecurityException ae) {
 		// Permission to move not owned
 		System.out.println("Permission to move not owned. Abort transfer. " + ae.getMessage());
-		myContainer.abortMigration(a);
 	    }
 	    catch(NotFoundException nfe) {
 		if(transferState == 0) {
 		    System.out.println("Destination container does not exist. Abort transfer. " + nfe.getMessage());
-		    myContainer.abortMigration(a);
 		}
 		else if(transferState == 2) {
 		    System.out.println("Transferring agent does not seem to be part of the platform. Abort transfer. " + nfe.getMessage());
-		    myContainer.abortMigration(a);
 		}
 		else if(transferState == 3) {
+				// PANIC !!!
 		    System.out.println("Transferred agent not found on destination container. Can't roll back. " + nfe.getMessage());
 		}
 	    }
 	    catch(NameClashException nce) {
 		// This should not happen, because the agent is not changing its name but just its location...
+	    	nce.printStackTrace();
 	    }
 	    catch(IMTPException imtpe) {
 		// Unexpected remote error
 		if (transferState == 0) {
 		    System.out.println("Can't retrieve destination container. Abort transfer. " + imtpe.getMessage());
-		    myContainer.abortMigration(a);
 		}
 		else if (transferState == 1) {
 		    System.out.println("Error creating agent on destination container. Abort transfer. " + imtpe.getMessage());
-		    myContainer.abortMigration(a);
 		}
 		else if (transferState == 2) {
 		    System.out.println("Error transferring agent identity. Abort transfer. " + imtpe.getMessage());
 		    try {
 			dest.handleTransferResult(agentID, TRANSFER_ABORT, messages);
-			myContainer.abortMigration(a);
 		    }
 		    catch (Exception e) {
 			e.printStackTrace();
 		    }
 		}
 		else if (transferState == 3) {
+				// PANIC !!!
 		    System.out.println("Error activating transferred agent. Can't roll back!!!. " + imtpe.getMessage());
 		}
 	    }
 	    finally {
+	  if (transferState <= 2) {
+	  	// Something went wrong --> Roll back.
+	  	a.restoreBufferedState();
+	  }
 		myContainer.releaseLocalAgent(agentID);
 	    }
 	}
@@ -881,7 +881,7 @@ public class AgentMobilityService extends BaseService {
 	    try {
 		Agent agent = myContainer.acquireLocalAgent(agentID);
 
-		if ((agent == null) || (agent.getState() != Agent.AP_TRANSIT)) {
+		if ((agent == null) || (agent.getState() != AP_TRANSIT)) {
 		    throw new NotFoundException("handleTransferResult() unable to find a suitable agent.");
 		}
 
@@ -1023,62 +1023,230 @@ public class AgentMobilityService extends BaseService {
     // The local slice for this service
     private final ServiceComponent localSlice = new ServiceComponent();
 
-    // The helper for this service (entry point for agents).
-    private final AgentMobilityHelper helper = new AgentMobilityHelper() {
+    
+    /**
+       Inner class AgentMobilityHelperImpl.
+       The actual implementation of the AgentMobilityHelper interface.
+     */
+    private class AgentMobilityHelperImpl implements AgentMobilityHelper {
+		  private Agent myAgent;
+		  private Movable myMovable;
+		  
+		  public void init(Agent a) {
+		  	myAgent = a;
+			}
+		
+			public void registerMovable(Movable m) {
+				myMovable = m;
+			}
+			
+			public void move(Location destination) {
+				myAgent.changeStateTo(new TransitLifeCycle(destination, myMovable, AgentMobilityService.this));
+			}
+				
+			public void clone(Location destination, String newName) {
+				myAgent.changeStateTo(new CopyLifeCycle(destination, newName, myMovable, AgentMobilityService.this));
+			}
+			
+			void gone() {
+				myAgent.changeStateTo(new GoneLifeCycle(myMovable));
+			}
+    }  // END of inner class AgentMobilityHelperImpl
 
-	public void init(Agent a) {
-	}
-
-	public void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException {
+    
+  /**
+     Inner class TransitLifeCycle
+   */
+  private static class TransitLifeCycle extends LifeCycle {
+  	private Location myDestination;
+  	private Movable myMovable;
+  	private transient AgentMobilityService myService; 
+  	
+  	private TransitLifeCycle(Location l, Movable m, AgentMobilityService s) {
+  		super(AP_TRANSIT);
+  		myDestination = l;
+  		myMovable = m;
+  		myService = s;
+  	}
+  	
+  	public void init() {
+			myAgent.restoreBufferedState();
+			if (myMovable != null) {
+				myMovable.afterMove();
+			}
+		}
+		
+		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
+		  try {
+		  	// Issue an INFORM_MOVED vertical command
+				informMoved(myAgent.getAID(), myDestination);
+		  }
+		  catch (Exception e) {
+		  	if (myAgent.getState() == myState) {
+			  	// Something went wrong during the transfer. Rollback
+			  	myAgent.restoreBufferedState();
+					myDestination = null;
+					if (e instanceof JADESecurityException) {
+						// Will be caught together with all other JADESecurityException-s
+						throw (JADESecurityException) e;
+			  	}
+			  	else {
+			  		e.printStackTrace();
+			  	}
+		  	}
+		  	else {
+		  		throw new Interrupted();
+		  	}
+		  }
+		}
+		
+		public void end() {
+    	System.err.println("***  Agent " + myAgent.getName() + " moved in a forbidden situation ***");
+			myAgent.clean(true);
+		}		
+		
+		public boolean transitionTo(LifeCycle newLF) {
+			int s = newLF.getState();
+			return (s == AP_GONE || s == Agent.AP_ACTIVE || s == Agent.AP_DELETED);
+		}
+		
+		public void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
 	    // Set the credentials of the moving agent
-	    initCredentials(cmd, agentID);
+	    myService.initCredentials(cmd, agentID);
 	    
-	    Object lastException = submit(cmd);
+	    Object lastException = myService.submit(cmd);
 	    if(lastException != null) {
-
-		if(lastException instanceof JADESecurityException) {
-		    throw (JADESecurityException)lastException;
-		}
-		if(lastException instanceof NotFoundException) {
-		    throw (NotFoundException)lastException;
-		}
-		if(lastException instanceof IMTPException) {
-		    throw (IMTPException)lastException;
-		}
+				if(lastException instanceof JADESecurityException) {
+				    throw (JADESecurityException)lastException;
+				}
+				if(lastException instanceof NotFoundException) {
+				    throw (NotFoundException)lastException;
+				}
+				if(lastException instanceof IMTPException) {
+				    throw (IMTPException)lastException;
+				}
 	    }
-	}
+		}
+  } // END of inner class TransitLifeCycle
 
-	public void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException {
+  
+  /**
+     Inner class CopyLifeCycle
+   */
+  private static class CopyLifeCycle extends LifeCycle {
+  	private Location myDestination;
+  	private String myNewName;
+  	private Movable myMovable;
+  	private transient AgentMobilityService myService; 
+  	
+  	private CopyLifeCycle(Location l, String newName, Movable m, AgentMobilityService s) {
+  		super(AP_COPY);
+  		myDestination = l;
+  		myNewName = newName;
+  		myMovable = m;
+  		myService = s;
+  	}
+  	
+  	public void init() {
+			myAgent.restoreBufferedState();
+			if (myMovable != null) {
+				myMovable.afterClone();
+			}
+		}
+		
+		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
+			if (myMovable != null) {
+		  	myMovable.beforeClone();
+			}
+		  try {
+			  informCloned(myAgent.getAID(), myDestination, myNewName);
+		  } 
+		  catch (Exception e) {
+		  	if (myAgent.getState() == myState) {
+			  	// Something went wrong during the clonation. Rollback
+					myDestination = null;
+					myNewName = null;
+					myAgent.restoreBufferedState();
+					if (e instanceof JADESecurityException) {
+						// Will be catched together with all other JADESecurityException-s
+						throw (JADESecurityException) e;
+			  	}
+			  	else {
+			  		e.printStackTrace();
+			  		return;
+			  	}
+		  	}
+		  	else {
+		  		throw new Interrupted();
+		  	}
+		  }
+		  // Once cloned go back to the previous state
+		  myAgent.restoreBufferedState();
+		}
+		
+		public boolean transitionTo(LifeCycle newLF) {
+			int s = newLF.getState();
+			return (s == Agent.AP_ACTIVE || s == Agent.AP_DELETED);
+		}
+		
+		public void end() {
+    	System.err.println("***  Agent " + myAgent.getName() + " cloned in a forbidden situation ***");
+			myAgent.clean(true);
+		}		
+		
+		public void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_CLONED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
 	    cmd.addParam(newName);
 	    // Set the credentials of the cloning agent
-	    initCredentials(cmd, agentID);
+	    myService.initCredentials(cmd, agentID);
 	    
-	    Object lastException = submit(cmd);
+	    Object lastException = myService.submit(cmd);
 	    if(lastException != null) {
-
-		if(lastException instanceof JADESecurityException) {
-		    throw (JADESecurityException)lastException;
-		}
-		if(lastException instanceof NotFoundException) {
-		    throw (NotFoundException)lastException;
-		}
-		if(lastException instanceof IMTPException) {
-		    throw (IMTPException)lastException;
-		}
-		if(lastException instanceof NameClashException) {
-		    throw (NameClashException)lastException;
-		}
+				if(lastException instanceof JADESecurityException) {
+				    throw (JADESecurityException)lastException;
+				}
+				if(lastException instanceof NotFoundException) {
+				    throw (NotFoundException)lastException;
+				}
+				if(lastException instanceof IMTPException) {
+				    throw (IMTPException)lastException;
+				}
+				if(lastException instanceof NameClashException) {
+				    throw (NameClashException)lastException;
+				}
 	    }
-	}
-
-    };
-
+		}
+  } // END of inner class CopyLifeCycle
+  
+  
+  /**
+     Inner class GoneLifeCycle
+   */
+  private static class GoneLifeCycle extends LifeCycle {
+  	private Movable myMovable;
+  	
+  	private GoneLifeCycle(Movable m) {
+  		super(AP_GONE);
+  		myMovable = m;
+  	}
+  	
+		public boolean alive() {
+			return false;
+		}
+		
+		public void transitionFrom(LifeCycle from) {
+			if (myMovable != null) {
+				myMovable.beforeMove();
+			}
+		}
+  } // END of inner class GoneLifeCycle
+  
+  
     // The command sink, source side
     private final CommandSourceSink senderSink = new CommandSourceSink();
 
@@ -1096,9 +1264,8 @@ public class AgentMobilityService extends BaseService {
   public void log(String txt, int l) {
     super.log(txt,l);
   }
-  #PJAVA_INCLUDE_END*/
-
-    
+  #PJAVA_INCLUDE_END*/    
+  
   private void initCredentials(Command cmd, AID id) {
   	Agent agent = myContainer.acquireLocalAgent(id);
   	if (agent != null) {
