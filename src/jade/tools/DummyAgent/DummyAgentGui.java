@@ -370,7 +370,10 @@ class DummyAgentGui extends JFrame implements ActionListener
 			{
 				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
 				ACLMessage m = mi.getMessage();
-				currentMsgGui.setMsg(m.createReply());
+				ACLMessage reply = m.createReply();
+				reply.setSender(myAgent.getAID());
+				//currentMsgGui.setMsg(m.createReply());
+				currentMsgGui.setMsg(reply);
 			}
 		}
 		// OPEN QUEUE
