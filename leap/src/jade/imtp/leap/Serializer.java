@@ -51,13 +51,13 @@ interface Serializer {
     static final byte DATE_ID = 5;
     static final byte DEFAULT_ID = 6;
     static final byte INTEGER_ID = 7;
-    static final byte REMOTEPROXY_ID = 8;
+    static final byte NODEDESCRIPTOR_ID = 8;
     static final byte STRING_ID = 9;
     static final byte STRINGARRAY_ID = 10;
     static final byte VECTOR_ID = 11;
     static final byte MTPDESCRIPTOR_ID = 12;
-    static final byte CONTAINERSTUB_ID = 13;
-    static final byte MAINSTUB_ID = 14;
+    static final byte NODE_ID = 13;
+    static final byte NODEARRAY_ID = 14;
     static final byte ENVELOPE_ID = 15;
     static final byte ARRAYLIST_ID = 16;
     static final byte BYTEARRAY_ID = 17;
@@ -68,6 +68,8 @@ interface Serializer {
     static final byte DUMMYCERTIFICATE_ID = 21;
     static final byte DUMMYPRINCIPAL_ID = 22;
     static final byte CERTIFICATEFOLDER_ID = 23;
+    static final byte NODESTUB_ID = 24;
+    static final byte HORIZONTALCOMMAND_ID = 25;
 
     /**
      * This method serializes an object according to the LEAP
