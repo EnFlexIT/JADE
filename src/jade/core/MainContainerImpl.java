@@ -752,7 +752,12 @@ class MainContainerImpl implements Platform, AgentManager {
 		catch (IMTPException re) {
 			throw new UnreachableException(re.getMessage());
 		}
+                catch(NotFoundException nfe) {
+                    // Let it through
+                    throw nfe;
+                }
 		catch (Exception e) {
+                    // It should never happen...
 		}
 	}
 
@@ -1050,7 +1055,7 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  public void killContainer(ContainerID cid) {
+  public void killContainer(ContainerID cid) throws NotFoundException, AuthException {
 
     // This call spawns a separate thread in order to avoid deadlock.
     try {
@@ -1081,9 +1086,12 @@ class MainContainerImpl implements Platform, AgentManager {
 			});
     }
     catch (NotFoundException nfe) {
-      nfe.printStackTrace();
+        // Let it through
+        throw nfe;
     }
     catch (Exception e) {
+        // Never thrown
+        e.printStackTrace();
     }
   }
 
