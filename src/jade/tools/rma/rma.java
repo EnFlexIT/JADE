@@ -219,7 +219,7 @@ public class rma extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-  private transient MainWindow myGUI = new MainWindow(this);
+  private transient MainWindow myGUI;
 
   private String myContainerName;
 
@@ -277,6 +277,7 @@ public class rma extends Agent {
     addBehaviour(AMSSubscribe);
 
     // Show Graphical User Interface
+    myGUI = new MainWindow(this);
     myGUI.ShowCorrect();
 
   }
