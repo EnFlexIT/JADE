@@ -173,5 +173,11 @@ This example shows some methods an agent can use to receive a message.
 				This agent can register itself with another
 				DF, exploiting recursive search capabilities.
 
-
+'ontology' subdirectory
+=======================
+- RequesterAgent and ExecutorAgent are a couple of agents that show the usage of
+                                the support to application-defined content languages
+                                and ontologies. All the other files in the directory
+                                are the JAva classes that implement the different
+                                entities belonging to this sample ontology.
 
