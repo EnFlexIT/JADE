@@ -83,6 +83,7 @@ MAJOR CHANGES in future JADE 2.2 ($Date$ $Name$)
   - small modifications to the Meeting Scheduler demo, adding agent names 
     to title bars, and to the default login and meeting description as 
     provided by Martin L. Griss
+- Added the PingAgent example that complies with the AgentCities specs
 	
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
 =============================================
