@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
+
 /**
    Abstract interface for Message Transport Protocols
 
@@ -63,5 +64,7 @@ public interface MTP extends InChannel, OutChannel {
      @return A string, that is the name of this MTP.
    */
   String getName();
+
+  String[] getSupportedProtocols();
 
 }
