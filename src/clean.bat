@@ -12,6 +12,10 @@ del jade\core\*.class
 del jade\core\*~
 del jade\core\behaviours\*.class
 del jade\core\behaviours\*~
+del jade\applet\*.class
+del jade\applet\*~
+del jade\tools\SocketProxyAgent\*.class
+del jade\tools\SocketProxyAgent\*~
 del jade\domain\*.class
 del jade\domain\*~
 del jade\gui\*.class
@@ -52,4 +56,19 @@ del examples\ex4\*.class
 del examples\ex4\*~
 del examples\ex5\*.class
 del examples\ex5\*~
+del examples\ex6\*.class
+del examples\ex6\*~
+del examples\ex7\*.class
+del examples\ex7\*~
+del examples\jess\*.class
+del examples\jess\*~
+
+del demo\MeetingScheduler\*~
+del demo\MeetingScheduler\*.class
+del demo\MeetingScheduler\CLP\*~
+del demo\MeetingScheduler\CLP\*.class  
+
+del starlight\util\*.class
+
+
 
