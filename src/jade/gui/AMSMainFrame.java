@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1999/03/03 16:00:51  rimassa
+  Added a getModel() method to access underlying TreeModel for GUI
+  updates.
+
   Revision 1.8  1999/02/04 14:47:24  rimassa
   Changed package specification for Swing: now it's 'javax.swing' and no more
   'com.sun.swing'.
@@ -85,6 +89,10 @@ public class AMSMainFrame extends JFrame {
     pack();
     setSize(600,400);
     setVisible(true);
+  }
+
+  public AMSTreeModel getModel() {
+    return tree.getModel();
   }
 
   public void addContainer(String name) {
