@@ -5,19 +5,19 @@ del FIPA_Agent_97Helper.java
 del _FIPA_Agent_97ImplBase.java
 
 del *.class
-del *.~jav
+del *~
 del jade\*.class
-del jade\*.~jav
+del jade\*~
 del jade\core\*.class
-del jade\core\*.~jav
+del jade\core\*~
 del jade\domain\*.class
-del jade\domain\*.~jav
+del jade\domain\*~
 del jade\gui\*.class
-del jade\gui\*.~jav
+del jade\gui\*~
 del jade\lang\acl\*.class
-del jade\lang\acl\*.~jav
+del jade\lang\acl\*~
 del jade\proto\*.class
-del jade\proto\*.~jav
+del jade\proto\*~
 del jade\lang\acl\ACLParser.java
 del jade\lang\acl\ACLParserConstants.java
 del jade\lang\acl\ACLParserTokenManager.java
@@ -34,7 +34,13 @@ del jade\domain\Token.java
 del jade\domain\TokenMgrError.java
 
 del examples\ex1\*.class
+del examples\ex1\*~
 del examples\ex2\*.class
+del examples\ex2\*~
 del examples\ex3\*.class
+del examples\ex3\*~
 del examples\ex4\*.class
+del examples\ex4\*~
 del examples\ex5\*.class
+del examples\ex5\*~
+
