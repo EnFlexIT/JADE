@@ -39,6 +39,7 @@ import jade.core.behaviours.*;
 import jade.domain.AMSEvent;
 import jade.domain.FIPAException;
 import jade.domain.JADEAgentManagement.*;
+import jade.domain.FIPAServiceCommunicator;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -479,20 +480,32 @@ public class Sniffer extends jade.core.Agent {
    * Currently sniffed agents are also unsniffed to avoid errors.
    */
   public void takeDown() {
-
+    
     List l = (List)(agentsUnderSniff.clone());
-    sniffMsg(l, SNIFF_OFF);
-
+    ACLMessage request = getSniffMsg(l, SNIFF_OFF);
+    //start a FIPARequestProtocol to sniffOf the agent since the sniffer will die
+    try{
+    if(request != null)
+        FIPAServiceCommunicator.doFipaRequestClient(this,requestMsg); 
+    }catch(jade.domain.FIPAException e){e.printStackTrace();}
+    
     myGUI.mainPanel.panelcan.canvMess.ml.removeAllMessages();
-
+  
     // Now we unsubscribe from the rma list
     send(AMSCancellation);
     myGUI.setVisible(false);
     myGUI.disposeAsync();
 
   }
-
-
+/**
+ * This method add an AMSBehaviour the perform a request to the AMS for sniffing/unsniffing list of agents.
+ **/
+ public void sniffMsg(List agents, boolean onFlag) {
+      ACLMessage request = getSniffMsg(agents,onFlag);
+      if (request != null)
+        addBehaviour(new AMSClientBehaviour((onFlag?"SniffAgentOn":"SniffAgentOff"),request));
+     
+ }
   /**
    * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
    * agent to be sniffed/unsniffed. The internal list of sniffed agents is also 
@@ -504,7 +517,7 @@ public class Sniffer extends jade.core.Agent {
    *			  <li> Sniffer.SNIFF_OFF to deactivate sniffer on an agent/group
    *		         </ul>
    */
-  public void sniffMsg(List agents, boolean onFlag) {
+  public ACLMessage getSniffMsg(List agents, boolean onFlag) {
 
     Iterator it = agents.iterator();
 
@@ -531,7 +544,7 @@ public class Sniffer extends jade.core.Agent {
 	  l.add(a);
 
 	  fillContent(requestMsg, l);
-	  addBehaviour(new AMSClientBehaviour("SniffAgentOn", requestMsg));
+          return requestMsg;
 	}
 	catch(FIPAException fe) {
 	  fe.printStackTrace();
@@ -562,14 +575,15 @@ public class Sniffer extends jade.core.Agent {
 	  l.add(a);
 
 	  fillContent(requestMsg, l);
-	  addBehaviour(new AMSClientBehaviour("SniffAgentOff", requestMsg));
+          requestMsg.setReplyWith(getName()+ (new Date().getTime()));
+          return requestMsg;
 	}
 	catch(FIPAException fe) {
 	  fe.printStackTrace();
 	}
       }
     }
-
+    return null;
   }
 
 }  // End of class Sniffer
