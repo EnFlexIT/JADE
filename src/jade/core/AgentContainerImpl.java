@@ -80,7 +80,7 @@ import jade.tools.ToolNotifier; // FIXME: This should not be imported
    @version $Date$ $Revision$
 
 */
-public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, AgentToolkit {
+public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   private static final int CACHE_SIZE = 10;
 
@@ -119,14 +119,27 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
+  // FIXME: Temporary hack
+  private jade.imtp.rmi.AgentContainerAdapter myAdapter;
+  public jade.imtp.rmi.AgentContainerAdapter getAdapter() {
+    return myAdapter;
+  }
+  
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
-  AgentContainerImpl(Profile p) throws IMTPException {
+  AgentContainerImpl(Profile p) {
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
-
     myProfile = p;
+    
+    // FIXME: Temporary hack
+    try {
+      myAdapter = new jade.imtp.rmi.AgentContainerAdapter(new jade.imtp.rmi.AgentContainerRMIImpl(this));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
 
   }
 
@@ -635,9 +648,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Deregister this container from the platform
       myMain.deregister(this);
 
-      // Unexport the container, without waiting for pending calls to
-      // complete.
-      unexportObject(this, true);
     }
     catch(IMTPException re) {
       re.printStackTrace();
