@@ -373,7 +373,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private transient List o2aQueue;
   private int o2aQueueSize;
   private transient Map o2aLocks = new HashMap();
-  private transient AgentToolkit myToolkit;
+  private transient AgentToolkit myToolkit = DummyToolkit.instance();
 
   /**
   @serial
@@ -487,8 +487,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     * @return jade.wrapper.AgentContainer The proxy container for this agent.
     */
    public final jade.wrapper.AgentContainer getContainerController() {
-     if (myContainer == null)  // first time called
+     if (myContainer == null) {  // first time called
        myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit, getHap());
+     }
      return myContainer;
    }
 
@@ -615,8 +616,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
   
   public Authority getAuthority() {
-  	if (myToolkit == null)
-  		return null;
     return myToolkit.getAuthority();
   }
 
@@ -909,6 +908,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
   void join() {
     try {
       myThread.join(5000);
+      if (myThread.isAlive()) {
+        System.out.println("*** Warning: Agent " + myName + " did not terminate when requested to do so.");
+   	    if(!myThread.equals(Thread.currentThread())) {
+	      myThread.interrupt();
+	      System.out.println("*** Second interrupt issued.");
+        }
+      }
     }
     catch(InterruptedException ie) {
       ie.printStackTrace();
@@ -982,7 +988,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 	public AgentPrincipal getPrincipal() {
 		AgentPrincipal p = null;
-		if (myToolkit != null) {
+		if (!(myToolkit instanceof DummyToolkit)) {
 			synchronized (principalLock) {
 				Authority authority = getAuthority();
 				if (principal == null) {
@@ -1044,8 +1050,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @param name The local name of the agent.
   */
   public void doStart(String name) {
-   if(myToolkit == null)
-      throw new InternalError("Trying to start an agent without proper runtime support.");
     myToolkit.handleStart(name, this);
   }
 
@@ -1505,7 +1509,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
 
       mainLoop();
-
     }
     catch(InterruptedException ie) {
       // Do Nothing, since this is a killAgent from outside
@@ -1617,8 +1620,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
       myHap = id.getHap();
       
       synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
-		    myAID = id;
-				myToolkit.setPlatformAddresses(myAID);
+        myAID = id;
+        myToolkit.setPlatformAddresses(myAID);
       }
 
       myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
@@ -1803,22 +1806,21 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 	private void destroy() { 
-		try {
-			if (myAID.equals(getAMS())) {
-				//special version for the AMS to avoid deadlock 
-				AMSAgentDescription amsd = new AMSAgentDescription();
-				amsd.setName(getAID());
-				((jade.domain.ams)this).AMSDeregister(amsd, myAID);
-			}
-			else {
-				AMSService.deregister(this);
-			}
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		catch (AuthException ae) {
-			ae.printStackTrace();
+		if (!(myToolkit instanceof DummyToolkit)) {
+		    try {
+			    if (myAID.equals(getAMS())) {
+				    //special version for the AMS to avoid deadlock 
+				    AMSAgentDescription amsd = new AMSAgentDescription();
+				    amsd.setName(getAID());
+				    ((jade.domain.ams)this).AMSDeregister(amsd, myAID);
+			    } else {
+				    AMSService.deregister(this);
+			    }
+		    } catch (FIPAException fe) {
+			    fe.printStackTrace();
+		    } catch (AuthException ae) {
+			    ae.printStackTrace();
+		    }
 		}
 
 		// Remove all pending timers
@@ -2108,7 +2110,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   final void resetToolkit() {
-    myToolkit = null;
+    myToolkit = DummyToolkit.instance();
   }
 
   /**
@@ -2168,35 +2170,30 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // Notify toolkit of the added behaviour
   private void notifyAddBehaviour(Behaviour b) {
-      if (myToolkit != null)
-          myToolkit.handleBehaviourAdded(myAID, b);
+    myToolkit.handleBehaviourAdded(myAID, b);
   }
   
   // Notify the toolkit of the removed behaviour
   private void notifyRemoveBehaviour(Behaviour b) {
-      if (myToolkit != null)
-          myToolkit.handleBehaviourRemoved(myAID, b);
+    myToolkit.handleBehaviourRemoved(myAID, b);
   }
   
   // Notify the toolkit of the change in behaviour state
   private void notifyChangeBehaviourState(Behaviour b, String from, String to) {
-      if (myToolkit != null)
-          myToolkit.handleChangeBehaviourState(myAID, b, from, to);
+    myToolkit.handleChangeBehaviourState(myAID, b, from, to);
   }
   
   // Notify toolkit that the current agent has changed its state
   private void notifyChangedAgentState(int oldState, int newState) {
     AgentState from = STATES[oldState];
     AgentState to = STATES[newState];
-    if (myToolkit != null)
-      myToolkit.handleChangedAgentState(myAID, from, to);
+    myToolkit.handleChangedAgentState(myAID, from, to);
   }
   
 //__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
   private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
-    if (myToolkit != null)
-      myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
+    myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
   }
 //__SECURITY__END
 
