@@ -101,7 +101,7 @@ public class ConstraintDlg extends JDialog
 		label= new JLabel("Max number of results:");
 		label.setPreferredSize(new Dimension(155,26));
 		label.setMinimumSize(new Dimension(155,26));
-	  label.setMaximumSize(new Dimension(160,26));
+	  label.setMaximumSize(new Dimension(155,26));
 		p.add(label);
 		maxResult = new JTextField("");
 		maxResult.setPreferredSize(new Dimension(30,26));

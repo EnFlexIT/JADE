@@ -41,9 +41,10 @@ import jade.core.AID;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A
+@author alessandro Chiarotto - TILAB
 @version $Date$ $Revision$
 */
-public class DFAgentDscDlg extends JDialog 
+public class DFAgentDscDlg extends JDialog implements ActionListener
 {
 	
 	/**
@@ -91,7 +92,16 @@ public class DFAgentDscDlg extends JDialog
   @serial
   */
   private JTextField agentName;
-	
+  
+  /* Button to set the exipire date of the lease time */
+  private JToggleButton setLTDateb;
+    
+  /* expire date of lease time set by the user */ 
+  private java.util.Date absDateLeaseTime;
+  
+  /* text field showing the value set by the user in the dialog */
+  private JTextField textFieldLeaseTime;
+  
 	// CONSTRUCTORS
 	public DFAgentDscDlg(Frame parent) 
 	{
@@ -234,7 +244,50 @@ public class DFAgentDscDlg extends JDialog
 	  servicesListPanel.setCheckMandatorySlots(checkMandatorySlots);
 	  pServices.add(servicesListPanel);
 	  main.add(pServices);
-	      
+          
+              /* lease-time panel
+               * The duration or time at which the lease time for this registration
+               * will expire. The default value of lease time is assumed to be 
+               * unlimeted
+               */
+               JPanel pLeaseTime = new JPanel();
+               pLeaseTime.setEnabled(editable);
+               pLeaseTime.setToolTipText("The duration or time at which the lease for this registration will expire");
+               pLeaseTime.setLayout(new GridLayout(2,1));
+               pLeaseTime.setSize(400, 45);
+               pLeaseTime.setBorder(BorderFactory.createTitledBorder("Lease Time"));
+               java.util.Date dleasetime = dfdAgent.getLeaseTime();
+               DFAgentDescription defaultDesc = new  DFAgentDescription();
+               if(dfdAgent.getLeaseTime().equals(defaultDesc.getLeaseTime())) {
+                    textFieldLeaseTime = new JTextField("unlimited");
+               } else {
+                    textFieldLeaseTime = new JTextField(dfdAgent.getLeaseTime().toString());
+               }
+               
+               textFieldLeaseTime.setEnabled(false); 
+               pLeaseTime.add(textFieldLeaseTime); 
+               // add 2 buttons: one to set the date and the second to set the time
+               // of the lease-time unlimeted
+               JPanel buttonLTp = new JPanel();
+               ButtonGroup buttonGroup = new ButtonGroup();
+               setLTDateb = new JToggleButton("Set");
+               setLTDateb.setEnabled(editable);
+               setLTDateb.setToolTipText("Set the date at which the lease time will expire");
+               buttonLTp.add(setLTDateb);
+               pLeaseTime.add(buttonLTp);
+               // when the button setLT is presse the dialog jade.gui.TimeChooser
+               // is shown to set the date 
+               // this is value is used to set the value of DFAgentDescription returned
+               // by the dialog (name of var is out see below)
+               absDateLeaseTime = dfdAgent.getLeaseTime();
+               setLTDateb.addActionListener(this);
+               // when the button 'unlimited is pressed set the lease time to 
+               // the default value and the update the text field that shows 
+               // the value of the lease time
+             
+               
+               main.add(pLeaseTime);
+          
     getContentPane().add(main,BorderLayout.NORTH);
 			
 		// OK BUTTON
@@ -283,6 +336,9 @@ public class DFAgentDscDlg extends JDialog
             	Enumeration serv = servicesListPanel.getContent();
             	while(serv.hasMoreElements())
             	  out.addServices((ServiceDescription)serv.nextElement());
+                // lease-time
+                out.setLeaseTime(absDateLeaseTime);
+                
             	  	
             }
             else
@@ -326,7 +382,9 @@ public class DFAgentDscDlg extends JDialog
 		return out;
     
 	}
-	
+        
+       
+        
 	private void ShowCorrect() 
  	 {
     pack();
@@ -341,6 +399,42 @@ public class DFAgentDscDlg extends JDialog
     toFront();
  	 }
 
+       
+        /* Handle action after the button of inesub panel are pressed */
+       public void actionPerformed(ActionEvent e) {
+            JToggleButton sourceEvent = (JToggleButton) e.getSource();
+            // when the button setLT is presse the dialog jade.gui.TimeChooser
+            // is shown to set the date 
+            // this is value is used to set the value of DFAgentDescription returned
+            // by the dialog (name of var is out see below)
+            if(sourceEvent.equals(setLTDateb)) {
+                TimeChooser timeChooser = new TimeChooser();
+                if (timeChooser.showEditTimeDlg(null) == TimeChooser.OK) {
+                    if(timeChooser.getDate()!= null) {    
+                        absDateLeaseTime = timeChooser.getDate();
+                        textFieldLeaseTime.setText(absDateLeaseTime.toString());
+                    } else {
+                       // the button "Reset" on the time choose impors pressed
+                       // the set the valut
+                       // set the lease time to 
+                       // the default value and the update the text field that shows 
+                       // the value of the lease time
+                        absDateLeaseTime = new java.util.Date(-1);
+                        textFieldLeaseTime.setText("unlimited");
+
+                    }
+                    
+                    
+                }
+            // when the button 'unlimited is pressed set the lease time to 
+           // the default value and the update the text field that shows 
+           // the value of the lease time
+           
+                return;
+            }
+            return;
+        }
+                
 
 	
 }
