@@ -66,14 +66,17 @@ public class Runtime {
      from the real JADE container.
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
-    String host = p.getMainContainerHost();
-    String port = p.getMainContainerPort();
+
+    String host = p.getParameter(ProfileImpl.HOST);
+    String port = p.getParameter(ProfileImpl.PORT);
 
     String platformRMI = "rmi://" + host + ":" + port + "/JADE";
     String[] empty = new String[] { };
     try {
       AgentContainerImpl impl = new AgentContainerImpl();
       impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
+      beginContainer();
+
       return new jade.wrapper.AgentContainer(impl);
     }
     catch(RemoteException re) {
@@ -90,9 +93,9 @@ public class Runtime {
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
 
-    String host = p.getMainContainerHost();
-    String port = p.getMainContainerPort();
-    String platformID = p.getPlatformID();
+    String host = p.getParameter(ProfileImpl.HOST);
+    String port = p.getParameter(ProfileImpl.PORT);
+    String platformID = p.getParameter(ProfileImpl.PLATFORM_ID);
 
     String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
@@ -106,6 +109,9 @@ public class Runtime {
 
       Registry theRegistry = LocateRegistry.createRegistry(portNumber);
       Naming.bind(platformRMI, impl);
+      String[] empty = new String[] { };
+      impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
+      beginContainer();
 
       return new jade.wrapper.MainContainer(impl);
     }
@@ -120,5 +126,45 @@ public class Runtime {
     }
 
   }
+
+
+  // Called by jade.core.Starter to make the VM terminate when all the
+  // containers are closed.
+  void setCloseVM(boolean flag) {
+    closeVM = flag;
+  }
+
+  // Called by a starting up container
+  void beginContainer() {
+    ++activeContainers;
+  }
+
+  // Called by a terminating container.
+  void endContainer() {
+    --activeContainers;
+    if((activeContainers == 0) && closeVM)
+      System.exit(0);
+  }
+
+
+  private int activeContainers = 0;
+  private boolean closeVM = false;
+
+
+
+  /********** FIXME: This is just to support the JSP example *************/
+
+  private AgentToolkit defaultToolkit;
+
+  void setDefaultToolkit(AgentToolkit tk) {
+    defaultToolkit = tk;
+  }
+
+  AgentToolkit getDefaultToolkit() {
+    return defaultToolkit;
+  }
+
+  /************************************************************************/
+
 
 }
