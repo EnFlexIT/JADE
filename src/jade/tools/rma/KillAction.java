@@ -38,7 +38,7 @@ import jade.gui.AgentTree;
   public void doAction(AgentTree.AgentNode node ) {
    if (node!=null) {
      String toKill = node.getName();
-     myRMA.killAgent(toKill);
+     //     myRMA.killAgent(toKill);
    }
  }
 

@@ -34,12 +34,13 @@ import java.util.Properties;
 
 import java.io.StringWriter;
 
+import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
 
 /*
  @author Tiziana Trucco - CSELT S.p.A.
  @version $Date$ $Revision$
- @see jade.domain.FIPAAgentManagement.AID
+ @see jade.domain.core.AID
 */
  
  public class AIDGui extends JDialog{

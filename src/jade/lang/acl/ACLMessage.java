@@ -42,7 +42,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Enumeration;
 
-import jade.onto.basic.AID;
+import jade.core.AID;
 
 import starlight.util.Base64;
 
@@ -175,37 +175,37 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer content = new StringBuffer();
+  private StringBuffer content = null;
 
   /**
   @serial
   */
-  private StringBuffer reply_with = new StringBuffer();
+  private StringBuffer reply_with = null;
 
   /**
   @serial
   */
-  private StringBuffer in_reply_to = new StringBuffer();
+  private StringBuffer in_reply_to = null;
 
   /**
   @serial
   */
-  private StringBuffer encoding = new StringBuffer();
+  private StringBuffer encoding = null;
 
   /**
   @serial
   */
-  private StringBuffer language = new StringBuffer();
+  private StringBuffer language = null;
 
   /**
   @serial
   */
-  private StringBuffer ontology = new StringBuffer();
+  private StringBuffer ontology = null;
 
   /**
   @serial
   */
-  private StringBuffer reply_by = new StringBuffer();
+  private StringBuffer reply_by = null;
 
   /**
   @serial
@@ -215,12 +215,12 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer protocol = new StringBuffer();
+  private StringBuffer protocol = null;
 
   /**
   @serial
   */
-  private StringBuffer conversation_id = new StringBuffer();
+  private StringBuffer conversation_id = null;
 
   /**
   @serial
@@ -281,7 +281,7 @@ private int performative; // keeps the performative type of this object
     if (s != null)
       source = (AID)s.clone();
     else
-      source = new AID();
+      source = null;
   }
 
   /**
@@ -377,7 +377,7 @@ private int performative; // keeps the performative type of this object
     if (content != null)
       this.content = new StringBuffer(content);
     else
-      this.content = new StringBuffer();
+      this.content = null;
   }
 
 
@@ -532,7 +532,7 @@ private int performative; // keeps the performative type of this object
     if (reply != null)
       reply_with = new StringBuffer(reply);
     else
-      reply_with = new StringBuffer();
+      reply_with = null;
   }
 
   /**
@@ -545,7 +545,7 @@ private int performative; // keeps the performative type of this object
     if (reply != null)
       in_reply_to = new StringBuffer(reply);
     else
-      in_reply_to = new StringBuffer();
+      in_reply_to = null;
   }
   
   /**
@@ -558,7 +558,7 @@ private int performative; // keeps the performative type of this object
     if (str != null)
       encoding = new StringBuffer(str);
     else
-      encoding = new StringBuffer();
+      encoding = null;
   }
 
   /**
@@ -571,7 +571,7 @@ private int performative; // keeps the performative type of this object
     if (str != null)
       language = new StringBuffer(str);
     else
-      language = new StringBuffer();
+      language = null;
   }
 
   /**
@@ -584,7 +584,7 @@ private int performative; // keeps the performative type of this object
     if (str != null)
       ontology = new StringBuffer(str);
     else
-      ontology = new StringBuffer();
+      ontology = null;
   }
 
   /**
@@ -602,7 +602,7 @@ private int performative; // keeps the performative type of this object
 	reply_byInMillisec = new Date().getTime(); // now
       }
     } else {
-      reply_by = new StringBuffer();
+      reply_by = null;
       reply_byInMillisec = new Date().getTime();
     }
   }	
@@ -628,7 +628,7 @@ private int performative; // keeps the performative type of this object
     if (str != null)
       protocol = new StringBuffer(str);
     else
-      protocol = new StringBuffer();
+      protocol = null;
   }
 
   /**
@@ -641,7 +641,7 @@ private int performative; // keeps the performative type of this object
     if (str != null)
       conversation_id = new StringBuffer(str);
     else
-      conversation_id = new StringBuffer();
+      conversation_id = null;
   }
 
 
@@ -670,7 +670,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setSender(AID).
   */
   public AID getSender() {
-    return (AID)source.clone();
+    if(source != null)
+      return (AID)source.clone();
+    else
+      return null;
   }
 
   /**
@@ -715,7 +718,10 @@ private int performative; // keeps the performative type of this object
    * @see java.io.ObjectInputStream
   */
   public String getContent() {
-    return new String(content);
+    if(content != null)
+      return new String(content);
+    else
+      return null;
   }
 
   /**
@@ -724,7 +730,9 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setReplyWith(String).
   */
   public String getReplyWith() {
-    return new String(reply_with);
+    if(reply_with != null)
+      return new String(reply_with);
+    else return null;
   }
 
   /**
@@ -733,7 +741,9 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setInReplyTo(String).
   */
   public String getInReplyTo() {
-    return new String(in_reply_to);
+    if(in_reply_to != null)
+      return new String(in_reply_to);
+    else return null;
   }
 
 
@@ -744,7 +754,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setEncoding(String).
   */
   public String getEncoding() {
-    return new String(encoding);
+    if(encoding != null)
+      return new String(encoding);
+    else
+      return null;
   }
 
   /**
@@ -753,7 +766,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setLanguage(String).
   */
   public String getLanguage() {
-    return new String(language);
+    if(language != null)
+      return new String(language);
+    else
+      return null;
   }
 
   /**
@@ -762,7 +778,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setOntology(String).
   */
   public String getOntology() {
-    return new String(ontology);
+    if(ontology != null)
+      return new String(ontology);
+    else
+      return null;
   }
 
   /**
@@ -771,7 +790,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setReplyBy(String).
   */
   public String getReplyBy() {
-    return new String(reply_by);
+    if(reply_by != null)
+      return new String(reply_by);
+    else
+      return null;
   }
 
   /**
@@ -781,7 +803,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setReplyByDate(Date).
   */
   public Date getReplyByDate() {
-   return new Date(reply_byInMillisec);
+    if(reply_by != null)
+      return new Date(reply_byInMillisec);
+    else
+      return null;
   }
 
   /**
@@ -790,7 +815,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setProtocol(String).
   */
   public String getProtocol() {
-    return new String(protocol);
+    if(protocol != null)
+      return new String(protocol);
+    else
+      return null;
   }
 
   /**
@@ -799,7 +827,10 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setConversationId(String).
   */
   public String getConversationId() {
-    return new String(conversation_id);
+    if(conversation_id != null)
+      return new String(conversation_id);
+    else
+      return null;
   }
  
 
@@ -857,7 +888,7 @@ private int performative; // keeps the performative type of this object
      @param w A <code>Writer</code> object to write the message onto.
      @see jade.lang.acl.ACLMessage#fromText(Reader r)
   */
-  void toText(Writer w) {
+  public void toText(Writer w) {
     try {
       w.write("(");
       w.write(getPerformative(getPerformative()) + "\n");
@@ -882,24 +913,33 @@ private int performative; // keeps the performative type of this object
 	}
 	w.write(")\n");
       }
-      if(content.length() > 0)
-	w.write(CONTENT + " " + content + "\n");
-      if(reply_with.length() > 0)
-	w.write(REPLY_WITH + " " + reply_with + "\n");
-      if(in_reply_to.length() > 0)
-	w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
-      if(encoding.length() > 0)
-	w.write(ENCODING + " " + encoding + "\n");
-      if(language.length() > 0)
-	w.write(LANGUAGE + " " + language + "\n");
-      if(ontology.length() > 0)
-	w.write(ONTOLOGY + " " + ontology + "\n");
-      if(reply_by.length() > 0)
-       w.write(REPLY_BY + " " + reply_by + "\n");
-      if(protocol.length() > 0)
-	w.write(PROTOCOL + " " + protocol + "\n");
-      if(conversation_id.length() > 0)
-	w.write(CONVERSATION_ID + " " + conversation_id + "\n");
+      if(content != null)
+	if(content.length() > 0)
+	  w.write(CONTENT + " " + content + "\n");
+      if(reply_with != null)
+	if(reply_with.length() > 0)
+	  w.write(REPLY_WITH + " " + reply_with + "\n");
+      if(in_reply_to != null)
+	if(in_reply_to.length() > 0)
+	  w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
+      if(encoding != null)
+	if(encoding.length() > 0)
+	  w.write(ENCODING + " " + encoding + "\n");
+      if(language != null)
+	if(language.length() > 0)
+	  w.write(LANGUAGE + " " + language + "\n");
+      if(ontology != null)
+	if(ontology.length() > 0)
+	  w.write(ONTOLOGY + " " + ontology + "\n");
+      if(reply_by != null)
+	if(reply_by.length() > 0)
+	  w.write(REPLY_BY + " " + reply_by + "\n");
+      if(protocol != null)
+	if(protocol.length() > 0)
+	  w.write(PROTOCOL + " " + protocol + "\n");
+      if(conversation_id != null)
+	if(conversation_id.length() > 0)
+	  w.write(CONVERSATION_ID + " " + conversation_id + "\n");
       Enumeration e = userDefProps.propertyNames();
       String tmp;
       while (e.hasMoreElements()) {
@@ -953,20 +993,20 @@ private int performative; // keeps the performative type of this object
   * Resets all the message slots.
  */
  public void reset() {
-  source=new AID();
+  source = null;
   dests.clear();
   reply_to.clear();
   performative = NOT_UNDERSTOOD;
-  content=new StringBuffer();
-  reply_with=new StringBuffer();
-  in_reply_to=new StringBuffer();
-  encoding=new StringBuffer();
-  language=new StringBuffer();
-  ontology=new StringBuffer();
-  reply_by=new StringBuffer();
+  content = null;
+  reply_with = null;
+  in_reply_to = null;
+  encoding = null;
+  language = null;
+  ontology = null;
+  reply_by = null;
   reply_byInMillisec = new Date().getTime();
-  protocol=new StringBuffer();
-  conversation_id=new StringBuffer();
+  protocol = null;
+  conversation_id = null;
   userDefProps = new Properties();
  }
 
@@ -993,8 +1033,7 @@ private int performative; // keeps the performative type of this object
     m.setProtocol(getProtocol());
     m.setSender(null);
     m.setInReplyTo(getReplyWith());
-    if (source != null)
-      m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
+    m.setReplyWith(source.getName() + java.lang.System.currentTimeMillis()); 
     m.setConversationId(getConversationId());
     m.setReplyBy(null);
     m.setContent(null);

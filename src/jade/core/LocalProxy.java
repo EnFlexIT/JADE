@@ -24,8 +24,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.util.Map;
-
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -35,21 +33,21 @@ import jade.lang.acl.ACLMessage;
 
 class LocalProxy implements AgentProxy {
 
-  private Map agents;
-  private String receiverName;
+  private LADT agents;
+  private AID receiverID;
 
-  public LocalProxy(Map a, String rn) {
+  public LocalProxy(LADT a, AID id) {
     agents = a;
-    receiverName = rn;
+    receiverID = id;
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
 
     synchronized(agents) {
-      Agent receiver = (Agent)agents.get(receiverName.toLowerCase());
+      Agent receiver = agents.get(receiverID);
 
       if(receiver == null) {
-	throw new NotFoundException("DispatchMessage failed to find " + receiverName);
+	throw new NotFoundException("DispatchMessage failed to find " + receiverID.getLocalName());
       }
 
       receiver.postMessage(msg);

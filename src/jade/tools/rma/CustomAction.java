@@ -48,7 +48,7 @@ import jade.gui.*;
 
     AgentTree.Node node=(AgentTree.Node) nod;
     ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-    msg2.addDest(node.getName());
+    // msg2.addDest(node.getName());
     ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
       if (msg != null)
 	  myRMA.send(msg);

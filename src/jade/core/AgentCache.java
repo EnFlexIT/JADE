@@ -22,8 +22,6 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-
-
 package jade.core;
 
 import java.util.Comparator;
@@ -40,16 +38,16 @@ import java.util.TreeSet;
 class AgentCache {
 
   private class CacheKey {
-    private String name;
+    private AID name;
     private long lastAccess;
 
-    public CacheKey(String s) {
+    public CacheKey(AID id) {
       lastAccess = getAccessNumber();
-      name = s;
+      name = id;
     }
 
     public int compareToByName(CacheKey ck) {
-      return String.CASE_INSENSITIVE_ORDER.compare(getName(), ck.getName());
+      return name.compareTo(ck.getName());
     }
 
     public int compareToByAccess(CacheKey ck) {
@@ -61,12 +59,12 @@ class AgentCache {
 	return (l1 < l2) ? -1 : 1;
     }
 
-    public String getName() {
+    public AID getName() {
       return name;
     }
 
-    public void setName(String s) {
-      name = s;
+    public void setName(AID id) {
+      name = id;
     }
 
     public void touch() {
@@ -102,7 +100,7 @@ class AgentCache {
       }
     });
 
-    keysByName = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+    keysByName = new TreeMap();
 
     keysByTime = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {
@@ -122,7 +120,7 @@ class AgentCache {
     return currentAccessNumber++;
   }
 
-  public synchronized AgentProxy get(String agentName) {
+  public synchronized AgentProxy get(AID agentName) {
     CacheKey key = (CacheKey)keysByName.get(agentName);
     if(key == null)
       return null;
@@ -132,7 +130,7 @@ class AgentCache {
     return (AgentProxy)mappings.get(key);
   }
 
-  public synchronized AgentProxy put(String agentName, AgentProxy ap) {
+  public synchronized AgentProxy put(AID agentName, AgentProxy ap) {
 
     CacheKey key = null;
 
@@ -140,7 +138,7 @@ class AgentCache {
       // get oldest cache key
       key = (CacheKey)keysByTime.first();
 
-      String LRUName = key.getName();
+      AID LRUName = key.getName();
 
       // Remove oldest key from cache
       keysByName.remove(key.getName());
@@ -161,7 +159,7 @@ class AgentCache {
 
   }
 
-  public synchronized AgentProxy remove(String agentName) {
+  public synchronized AgentProxy remove(AID agentName) {
     AgentProxy result = null;
     CacheKey key = (CacheKey)keysByName.remove(agentName);
     if(key != null) {

@@ -89,7 +89,8 @@ class SL0Encoder {
   }
 
 
+  //FIXME. There should be a better way to check if f is a Frame
    private boolean isFrame(Object f) {
-     return (f.getClass()==Frame.class);
+     return (f.getClass().getName() == (new Frame("")).getClass().getName());
    }
 }

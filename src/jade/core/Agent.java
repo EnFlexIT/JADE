@@ -51,21 +51,25 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.Codec;
 import jade.lang.acl.*;
 
+import jade.lang.sl.SL0Codec;
+
 import jade.onto.Name;
+import jade.onto.Action;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
 
 // Concepts from fipa-agent-management ontology
-import jade.onto.basic.AID;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
 // Actions from fipa-agent-management ontology
+import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.Deregister;
 import jade.domain.FIPAAgentManagement.Modify;
 import jade.domain.FIPAAgentManagement.Register;
 import jade.domain.FIPAAgentManagement.Search;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 
 import jade.domain.FIPAException;
 
@@ -92,7 +96,7 @@ import jade.domain.FIPAException;
    @version $Date$ $Revision$
  */
 
-public class Agent implements Runnable, Serializable, CommBroadcaster {
+public class Agent implements Runnable, Serializable {
 
   // This inner class is used to force agent termination when a signal
   // from the outside is received
@@ -302,30 +306,52 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      The Agent ID for the AMS of this platform.
    */
-  public static final AID AMS;
+  static AID AMS;
 
   /**
      The Agent ID for the Default DF of this platform.
    */
-  public static final AID DEFAULT_DF;
+  static AID DEFAULT_DF;
+
+  /**
+     Get the Agent ID for the platform AMS.
+     @return An <code>AID</code> object, that can be used to contact
+     the AMS of this platform.
+  */
+  public static final AID getAMS() {
+    return AMS;
+  }
+
+  /**
+     Get the Agent ID for the platform default DF.
+     @return An <code>AID</code> object, that can be used to contact
+     the default DF of this platform.
+  */
+  public static final AID getDefaultDF() {
+    return DEFAULT_DF;
+  }
 
   /**
   @serial
   */
   private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
-  private transient List listeners = new ArrayList();
+  private transient AgentToolkit myToolkit;
 
   /**
   @serial
   */
   private String myName = null;
   
+  /**
+  @serial
+  */
   private AID myAID = null;
 
   /**
   @serial
   */
   private String myHap = null;
+
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object waitLock = new Object();  // Used for agent waiting
   private transient Object suspendLock = new Object(); // Used for agent suspension
@@ -346,6 +372,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   private int messageCounter = 0 ;
 
+  // Common capabilities, shared by every agent
+  private static Map defaultLanguages = new HashMap();
+  private static Map defaultOntologies = new HashMap();
+
+
+  static {
+    defaultLanguages.put(new Name(SL0Codec.NAME), new SL0Codec());
+    defaultOntologies.put(new Name(FIPAAgentManagementOntology.NAME), FIPAAgentManagementOntology.instance());
+  }
+
+  // Individual agent capabilities
   private transient Map languages = new HashMap();
   private transient Map ontologies = new HashMap();
 
@@ -465,7 +502,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <code>null</code> if no translator was found.
    */
   public Codec lookupLanguage(String languageName) {
-    return (Codec)languages.get(new Name(languageName));
+    Codec result = (Codec)languages.get(new Name(languageName));
+    if(result == null)
+      result = (Codec)defaultLanguages.get(new Name(languageName));
+    return result;
   }
 
   /**
@@ -501,7 +541,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      ontology was found.
    */
   public Ontology lookupOntology(String ontologyName) {
-    return (Ontology)ontologies.get(new Name(ontologyName));
+    Ontology result = (Ontology)ontologies.get(new Name(ontologyName));
+    if(result == null)
+      result = (Ontology)defaultOntologies.get(new Name(ontologyName));
+    return result;
   }
 
   /**
@@ -542,11 +585,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       return o.createObject(tuple);
     }
     catch(Codec.CodecException cce) {
-      // cce.printStackTrace();
+      cce.getNested().printStackTrace();
       throw new FIPAException("Codec error: " + cce.getMessage());
     }
     catch(OntologyException oe) {
-      // oe.printStackTrace();
+      oe.printStackTrace();
       throw new FIPAException("Ontology error: " + oe.getMessage());
     }
 
@@ -661,13 +704,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @param name The local name of the agent.
   */
   public void doStart(String name) {
-    AgentContainerImpl thisContainer = Starter.getContainer();
-    try {
-      thisContainer.initAgent(name, this, AgentContainer.START);
-    }
-    catch(java.rmi.RemoteException jrre) {
-      jrre.printStackTrace();
-    }
+    myToolkit.handleStart(name, this);
   }
 
   /**
@@ -967,13 +1004,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public final void run() {
 
     try {
-
+      AMSAgentDescription amsd = new AMSAgentDescription();
+      amsd.setName(myAID);
+      amsd.setOwnership("JADE");
+      amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:
 	myAPState = AP_ACTIVE;
 	// No 'break' statement - fall through
       case AP_ACTIVE:
-	registerWithAMS(new AMSAgentDescription());
+	registerWithAMS(amsd);
 	setup();
 	break;
       case AP_TRANSIT:
@@ -982,7 +1022,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	break;
       case AP_COPY:
 	doExecute();
-	registerWithAMS(new AMSAgentDescription());
+	registerWithAMS(amsd);
 	afterClone();
 	break;
       }
@@ -1090,14 +1130,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   protected void afterClone() {}
 
   // This method is used by the Agent Container to fire up a new agent for the first time
-  void powerUp(String name, String platformID, ThreadGroup myGroup) {
+  void powerUp(AID id, ThreadGroup myGroup) {
 
     // Set this agent's name and address and start its embedded thread
     if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
-      myName = name;
-      myHap = platformID;
-      myAID = new AID();
-      myAID.setName(getName());
+      myName = id.getLocalName();
+      myHap = id.getHap();
+      myAID = id;
+
       myThread = new Thread(myGroup, this);    
       myThread.setName(getLocalName());
       myThread.setPriority(myGroup.getMaxPriority());
@@ -1113,7 +1153,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     in.defaultReadObject();
 
     // Restore transient fields (apart from myThread, which will be set by doStart())
-    listeners = new ArrayList();
     stateLock = new Object();
     suspendLock = new Object();
     waitLock = new Object();
@@ -1310,8 +1349,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     } catch (NullPointerException e) {
 	msg.setSender(myAID);
     }
-    CommEvent event = new CommEvent(this, msg);
-    broadcastEvent(event);
+    notifySend(msg);
   }
 
   /**
@@ -1484,8 +1522,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setSender(myAID);
     request.clearAllReceiver();
     request.addReceiver(dest);
-    request.setLanguage("SL0");
-    request.setOntology("fipa-agent-management");
+    request.setLanguage(SL0Codec.NAME);
+    request.setOntology(FIPAAgentManagementOntology.NAME);
     request.setProtocol("fipa-request");
     request.setReplyWith(replyString);
 
@@ -1541,16 +1579,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(AMS, replyString);
 
     // Build an AMS action object for the request
-    Register a = new Register();
+    Register r = new Register();
+    r.set_0(amsd);
 
-    // Use the agent name to fill in an AID to put in the :name slot
-    AID myID = new AID();
-    myID.setName(getName());
-    amsd.setName(myID);
-    a.set_0(amsd);
+    Action a = new Action();
+    a.set_0(AMS);
+    a.set_1(r);
 
-    // Convert action to String and write it in the :content slot of the request
-    fillContent(request, new ArrayList());
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1576,18 +1615,20 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(AMS, replyString);
 
     // Build an AMS action object for the request
-    Deregister a = new Deregister();
-
-    // Use the agent name to fill in an AID to put in the :name slot
-    AID myID = new AID();
-    myID.setName(getName());
+    Deregister d = new Deregister();
 
     AMSAgentDescription amsd = new AMSAgentDescription();
-    amsd.setName(myID);
-    a.set_0(amsd);
+    amsd.setName(myAID);
+    d.set_0(amsd);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(AMS);
+    a.set_1(d);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1619,11 +1660,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(AMS, replyString);
 
     // Build an AMS action object for the request
-    Modify a = new Modify();
-    a.set_0(amsd);
+    Modify m = new Modify();
+    m.set_0(amsd);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(AMS);
+    a.set_1(m);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1633,17 +1680,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   /**
      Searches the AMS for data.
    */
-  public void searchAMS(AMSAgentDescription amsd) throws FIPAException {
+  public void searchAMS(AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
 
     String replyString = myName + "-ams-search-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(AMS, replyString);
 
     // Build an AMS action object for the request
-    Search a = new Search();
-    a.set_0(amsd);
+    Search s = new Search();
+    s.set_0(amsd);
+    s.set_1(constraints);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(AMS);
+    a.set_1(s);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1668,11 +1722,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
-    Register a = new Register();
-    a.set_0(dfd);
+    Register r = new Register();
+    r.set_0(dfd);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(dfName);
+    a.set_1(r);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1697,11 +1757,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
-    Deregister a = new Deregister();
-    a.set_0(dfd);
+    Deregister d = new Deregister();
+    d.set_0(dfd);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(dfName);
+    a.set_1(d);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1728,11 +1794,17 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
-    Modify a = new Modify();
-    a.set_0(dfd);
+    Modify m = new Modify();
+    m.set_0(dfd);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(dfName);
+    a.set_1(m);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1765,17 +1837,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      a <code>refuse</code> or <code>failure</code> messages are
      received from the DF to indicate some error condition.
   */
-  public void searchDF(AID dfName, DFAgentDescription dfd, List constraints) throws FIPAException {
+  public void searchDF(AID dfName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
 
     String replyString = myName + "-df-search-" + (new Date()).getTime();
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
-    Search a = new Search();
-    a.set_0(dfd);
+    Search s = new Search();
+    s.set_0(dfd);
+    s.set_1(constraints);
 
-    // Convert it to a String and write it in content field of the request
-    fillContent(request, new ArrayList());
+    Action a = new Action();
+    a.set_0(dfName);
+    a.set_1(s);
+
+    // Write the action in the :content slot of the request
+    List l = new ArrayList(1);
+    l.add(a);
+    fillContent(request, l);
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -1783,65 +1862,36 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
 
-  // Event handling methods
-
-
-  // Broadcast communication event to registered listeners
-  private void broadcastEvent(CommEvent event) {
-    synchronized(listeners) {
-      Iterator i = listeners.iterator();
-      while(i.hasNext()) {
-	CommListener l = (CommListener)i.next();
-	l.CommHandle(event);
-      }
-    }
+  final void setToolkit(AgentToolkit at) {
+    myToolkit = at;
   }
 
-  // Register a new listener
-  public final void addCommListener(CommListener l) {
-    synchronized(listeners) {
-      listeners.add(l);
-    }
+  final void resetToolkit() {
+    myToolkit = null;
   }
 
-  // Remove a registered listener
-  public final void removeCommListener(CommListener l) {
-    synchronized(listeners) {
-      listeners.remove(l);
-    }
+
+  // Event firing methods
+
+
+  // Notify toolkit of the need to send a message
+  private void notifySend(ACLMessage msg) {
+    myToolkit.handleSend(msg);
   }
 
-  // Notify listeners of the destruction of the current agent
+  // Notify toolkit of the destruction of the current agent
   private void notifyDestruction() {
-    synchronized(listeners) {
-      Iterator i = listeners.iterator();
-      while(i.hasNext()) {
-	CommListener l = (CommListener)i.next();
-	l.endSource(myName);
-      }
-    }
+    myToolkit.handleEnd(myAID);
   }
 
-  // Notify listeners of the need to move the current agent
+  // Notify toolkit of the need to move the current agent
   private void notifyMove() {
-    synchronized(listeners) {
-      Iterator i = listeners.iterator();
-      while(i.hasNext()) {
-	CommListener l = (CommListener)i.next();
-	l.moveSource(myName, myDestination);
-      }
-    }
+    myToolkit.handleMove(myAID, myDestination);
   }
 
-  // Notify listeners of the need to copy the current agent
+  // Notify toolkit of the need to copy the current agent
   private void notifyCopy() {
-    synchronized(listeners) {
-      Iterator i = listeners.iterator();
-      while(i.hasNext()) {
-	CommListener l = (CommListener)i.next();
-	l.copySource(myName, myDestination, myNewName);
-      }
-    }
+    myToolkit.handleClone(myAID, myDestination, myNewName);
   }
 
   private void activateBehaviour(Behaviour b) {
@@ -1888,6 +1938,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       */
 
       if(msg != null) msgQueue.addLast(msg);
+      msg.toText(new java.io.OutputStreamWriter(System.out));
       doWake();
       messageCounter++;
     }

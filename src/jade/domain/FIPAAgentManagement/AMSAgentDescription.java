@@ -24,9 +24,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import jade.onto.basic.AID;
+import jade.core.AID;
 
 public class AMSAgentDescription {
+
+public static final String INITIATED = "initiated";
+public static final String ACTIVE = "active";
+public static final String SUSPENDED = "suspended";
+public static final String WAITING = "waiting";
+public static final String TRANSIT = "transit";
 
 private AID name;
 private String ownership;

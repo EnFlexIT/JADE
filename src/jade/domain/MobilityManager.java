@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 
 import jade.lang.acl.ACLMessage;
@@ -36,6 +37,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 
+import jade.onto.Action;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
@@ -66,31 +68,27 @@ class MobilityManager {
 			  MessageTemplate.MatchOntology(MobilityOntology.NAME));
     main = new FipaRequestResponderBehaviour(theAMS, mt);
 
-    // Register SL0 and jade-mobility-ontology into suitable AMS tables.
-    theAMS.registerLanguage(SL0Codec.NAME, new SL0Codec());
-    theAMS.registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-
     main.registerFactory(MobilityOntology.MOVE,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.Action create() {
+				 public FipaRequestResponderBehaviour.ActionHandler create() {
 				     return new MoveBehaviour();
 				 }
 			     });
     main.registerFactory(MobilityOntology.CLONE,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.Action create() {
+				 public FipaRequestResponderBehaviour.ActionHandler create() {
 				     return new CloneBehaviour();
 				 }
 			     });
     main.registerFactory(MobilityOntology.WHERE_IS,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.Action create() {
+				 public FipaRequestResponderBehaviour.ActionHandler create() {
 				     return new WhereIsBehaviour();
 				 }
 			     });
     main.registerFactory(MobilityOntology.QUERY_PLATFORM_LOCATIONS,
 			 new FipaRequestResponderBehaviour.Factory() {
-				 public FipaRequestResponderBehaviour.Action create() {
+				 public FipaRequestResponderBehaviour.ActionHandler create() {
 				     return new QPLBehaviour();
 				 }
 			     });
@@ -102,7 +100,7 @@ class MobilityManager {
   }
 
 
-  private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.Action {
+  private abstract class MobilityBehaviour extends FipaRequestResponderBehaviour.ActionHandler {
 
     MobilityBehaviour() {
       super(MobilityManager.this.theAMS);
@@ -114,7 +112,9 @@ class MobilityManager {
       Object o;
       ACLMessage msg = getRequest();
       try {
-	o = theAMS.extractContent(msg);
+	List l = theAMS.extractContent(msg);
+	Action a = (Action)l.get(0);
+	o = a.get_1();
 	sendAgree();
 	try {
 	  doAction(o);
@@ -146,7 +146,7 @@ class MobilityManager {
       MobilityOntology.MoveAction action = (MobilityOntology.MoveAction)o;
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
-      String agentName = desc.getName();
+      AID agentName = desc.getName();
       MobilityOntology.Location destination = desc.getDestination();
       theAMS.AMSMoveAgent(agentName, destination);
       sendInform();
@@ -160,7 +160,7 @@ class MobilityManager {
       MobilityOntology.CloneAction action = (MobilityOntology.CloneAction)o;
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
-      String agentName = desc.getName();
+      AID agentName = desc.getName();
       MobilityOntology.Location destination = desc.getDestination();
       String newName = action.get_1();
       theAMS.AMSCloneAgent(agentName, destination, newName);
@@ -174,7 +174,7 @@ class MobilityManager {
     protected void doAction(Object o) throws FIPAException {
       MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)o;
 
-      String agentName = action.get_0();
+      AID agentName = action.get_0();
       MobilityOntology.Location where = theAMS.AMSWhereIsAgent(agentName);
 
       ACLMessage reply = getReply();

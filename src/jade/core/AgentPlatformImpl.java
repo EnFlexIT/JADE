@@ -36,10 +36,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-
-import java.util.Vector;    // FIXME: This will go away
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -47,42 +47,28 @@ import java.rmi.server.UnicastRemoteObject;
 import jade.domain.ams;
 import jade.domain.acc;
 import jade.domain.df;
-import jade.domain.AgentManagementOntology;
 
 import jade.lang.acl.ACLMessage;
 
 class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, AgentManager {
 
-  private static final String AMS_NAME = "ams";
-  private static final String DEFAULT_DF_NAME = "df";
-
   // Initial size of containers hash table
   private static final int CONTAINERS_SIZE = 10;
 
-  // Initial size of agent hash table
-  private static final int GLOBALMAP_SIZE = 100;
-
-  // Load factor of agent hash table
-  private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
   private ThreadGroup systemAgentsThreads = new ThreadGroup("JADE System Agents");
 
   // The two mandatory system agents.
   private ams theAMS;
   private df defaultDF;
 
-  // The ACC is a platform service acting as a framework for MTPs.
-  private acc theACC;
-
+  private List platformListeners = new LinkedList();
   private Map containers = Collections.synchronizedMap(new HashMap(CONTAINERS_SIZE));
-  private Map platformAgents = Collections.synchronizedMap(new HashMap(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR));
+  private GADT platformAgents = new GADT();
 
   public AgentPlatformImpl(String args[]) throws RemoteException {
     super(args);
-    myName = AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME;
+    myName = MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
-    initACC();
-    initAMS();
-    initDF();
   }
 
   private void initAMS() {
@@ -90,24 +76,19 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     theAMS = new ams(this);
 
     // Subscribe as a listener for the AMS agent
-    theAMS.addCommListener(this);
+    Agent a = theAMS;
+    a.setToolkit(this);
 
     // Insert AMS into local agents table
-    localAgents.put(AMS_NAME, theAMS);
+    localAgents.put(Agent.AMS, theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this, AMS_NAME);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.AMS);
     desc.setContainerName(myName);
     desc.setProxy(rp);
 
-    String amsName = AMS_NAME + '@' + platformAddress;
-    platformAgents.put(amsName.toLowerCase(), desc);
+    platformAgents.put(Agent.AMS, desc);
 
-  }
-
-  private void initACC() {
-    theACC = new acc();
-    platformAddress = "IOR:0000cafebabe0000deadbeef0000";
   }
 
   private void initDF() {
@@ -115,22 +96,37 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     defaultDF = new df();
 
     // Subscribe as a listener for the DF agent
-    defaultDF.addCommListener(this);
+    Agent a = defaultDF;
+    a.setToolkit(this);
 
     // Insert DF into local agents table
-    localAgents.put(DEFAULT_DF_NAME, defaultDF);
+    localAgents.put(Agent.DEFAULT_DF, defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this, DEFAULT_DF_NAME);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.DEFAULT_DF);
     desc.setContainerName(myName);
     desc.setProxy(rp);
 
-    String defaultDfName = DEFAULT_DF_NAME + '@' + platformAddress;
-    platformAgents.put(defaultDfName.toLowerCase(), desc);
+    platformAgents.put(Agent.DEFAULT_DF, desc);
 
   }
 
-  public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
+  public void joinPlatform(String pID, List agentNamesAndClasses) {
+
+    // This string will be used to build the GUID for every agent on
+    // this platform.
+    platformID = pID;
+
+    String platformRMI = "rmi://" + platformID;
+
+    // Build the Agent IDs for the AMS and for the Default DF.
+    Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
+
+    theACC = new acc();
+
+    initAMS();
+    initDF();
+
     try {
       myPlatform = (AgentPlatform)Naming.lookup(platformRMI);
     }
@@ -139,27 +135,28 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       e.printStackTrace();
     }
 
-    containers.put(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME, this);
+    containers.put(MAIN_CONTAINER_NAME, this);
 
-    // Notify AMS
+    // Notify platform listeners
     try {
       InetAddress netAddr = InetAddress.getLocalHost();
-      theAMS.postNewContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME, netAddr);
+      postNewContainer(MAIN_CONTAINER_NAME, netAddr);
     }
     catch(UnknownHostException uhe) {
       uhe.printStackTrace();
     }
 
     Agent a = theAMS;
-    a.powerUp(AMS_NAME, platformAddress, systemAgentsThreads);
+    a.powerUp(Agent.AMS, systemAgentsThreads);
     a = defaultDF;
-    a.powerUp(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
+    a.powerUp(Agent.DEFAULT_DF, systemAgentsThreads);
 
     for(int i = 0; i < agentNamesAndClasses.size(); i += 2) {
-      String agentName = (String)agentNamesAndClasses.elementAt(i);
-      String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
+      String agentName = (String)agentNamesAndClasses.get(i);
+      String agentClass = (String)agentNamesAndClasses.get(i+1);
       try {
-	createAgent(agentName, agentClass, START);
+	AID id = globalAID(agentName);
+	createAgent(id, agentClass, START);
       }
       catch(RemoteException re) {
 	// It should never happen ...
@@ -173,20 +170,16 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   }
 
-  AgentContainer getContainerFromAgent(String agentName) throws NotFoundException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+  AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
+    AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null) {
-      throw new NotFoundException("Agent " + agentName + " not found in getContainerFromAgent()");
+      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerFromAgent()");
     }
     ad.lock();
     String name = ad.getContainerName();
     AgentContainer ac = (AgentContainer)containers.get(name);
     ad.unlock();
     return ac;
-  }
-
-  public String getAddress() throws RemoteException {
-    return platformAddress;
   }
 
   // Inner class to detect agent container failures
@@ -213,7 +206,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 	  catch(RemoteException re2) { // Object down
 
 	    containers.remove(targetName);
-	    theAMS.postDeadContainer(targetName);
+	    postDeadContainer(targetName);
 
 	    active = false;
 	  }
@@ -225,9 +218,49 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
+
+
+  // Private methods to notify platform listeners of a significant event.
+
+  private void postNewContainer(String name, InetAddress host) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleNewContainer(name, host);
+    }
+  }
+
+  private void postDeadContainer(String name) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleDeadContainer(name);
+    }
+  }
+
+  private void postNewAgent(String containerName, AID agentID) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleNewAgent(containerName, agentID);
+    }
+  }
+
+  private void postDeadAgent(String containerName, AID agentID) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleDeadAgent(containerName, agentID);
+    }
+  }
+
+  private void postMovedAgent(String fromContainer, String toContainer, AID agentID) {
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.handleMovedAgent(fromContainer, toContainer, agentID);
+    }
+  }
+
+
   public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
 
-    String name = AgentManagementOntology.PlatformProfile.AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
+    String name = AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
     containers.put(name, ac);
 
     // Spawn a blocking RMI call to the remote container in a separate
@@ -235,8 +268,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     Thread t = new Thread(new FailureMonitor(ac, name));
     t.start();
 
-    // Notify AMS
-    theAMS.postNewContainer(name, addr);
+    // Notify listeners
+    postNewContainer(name, addr);
 
     // Return the name given to the new container
     return name;
@@ -246,8 +279,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   public void removeContainer(String name) throws RemoteException {
     containers.remove(name);
 
-    // Notify AMS
-    theAMS.postDeadContainer(name);
+    // Notify listeners
+    postDeadContainer(name);
   }
 
   public AgentContainer lookup(String name) throws RemoteException, NotFoundException {
@@ -257,51 +290,50 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     return ac;
   }
 
-  public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException {
+  public void bornAgent(AID name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException {
     AgentDescriptor desc = new AgentDescriptor();
     desc.setProxy(rp);
     desc.setContainerName(containerName);
-    java.lang.Object old = platformAgents.put(name.toLowerCase(), desc);
+    AgentDescriptor old = platformAgents.put(name, desc);
 
     // If there's already an agent with name 'name' throw a name clash
     // exception unless the old agent's container is dead.
     if(old != null) {
-      AgentDescriptor ad = (AgentDescriptor)old;
-      RemoteProxy oldProxy = ad.getProxy();
+      RemoteProxy oldProxy = old.getProxy();
       try {
 	oldProxy.ping(); // Make sure agent is reachable, then raise a name clash exception
-	platformAgents.put(name.toLowerCase(), ad);
+	platformAgents.put(name, old);
 	throw new NameClashException("Agent " + name + " already present in the platform ");
       }
       catch(UnreachableException ue) {
 	System.out.println("Replacing a dead agent ...");
-	theAMS.postDeadAgent(ad.getContainerName(), name);
+	postDeadAgent(old.getContainerName(), name);
       }
     }
 
-    // Notify AMS
-    theAMS.postNewAgent(containerName, name);
+    // Notify listeners
+    postNewAgent(containerName, name);
 
   }
 
-  public void deadAgent(String name) throws RemoteException, NotFoundException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(name.toLowerCase());
+  public void deadAgent(AID name) throws RemoteException, NotFoundException {
+    AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
     String containerName = ad.getContainerName();
-    platformAgents.remove(name.toLowerCase());
+    platformAgents.remove(name);
 
-    // Notify AMS
-    theAMS.postDeadAgent(containerName, name);
+    // Notify listeners
+    postDeadAgent(containerName, name);
   }
 
-  public RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException {
-
+  public RemoteProxy getProxy(AID agentID) throws RemoteException, NotFoundException {
+    System.out.println("AgentPlatformImpl::getProxy() called");
     RemoteProxy rp;
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName + '@' + agentAddress);
+    AgentDescriptor ad = platformAgents.get(agentID);
 
     if(ad == null)
-      throw new NotFoundException("getProxy() failed to find " + agentName);
+      throw new NotFoundException("getProxy() failed to find " + agentID.getName());
     else {
       ad.lock();
       rp = ad.getProxy();
@@ -310,42 +342,16 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 	rp.ping();
       }
       catch(UnreachableException ue) {
-	throw new NotFoundException("Container for " + agentName + " is unreachable");
+	throw new NotFoundException("Container for " + agentID.getName() + " is unreachable");
       }
       return rp;
     }
   }
 
-  public void setDelegateAgent(String agentName, String delegateName) throws NotFoundException, UnreachableException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+  public boolean transferIdentity(AID agentID, String src, String dest) throws RemoteException, NotFoundException {
+    AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null)
-      throw new NotFoundException("setDelegateAgent failed to find " + agentName);
-    ad.lock();
-    AgentDescriptor adDelegate = (AgentDescriptor)platformAgents.get(delegateName.toLowerCase());
-    if(adDelegate == null)
-      throw new NotFoundException("setDelegateAgent failed to find " + delegateName);
-
-    AgentContainer ac = getContainerFromAgent(agentName);
-    if(delegateName.equalsIgnoreCase(agentName)) { // Remove a previous delegation
-      try {
-	ac.setDelegation(agentName, delegateName);
-      }
-      catch(RemoteException re) {
-	throw new UnreachableException(re.getMessage());
-      }
-      RemoteProxy rpd = new RemoteProxyDecorator(ad.getProxy());
-      ad.setProxy(rpd);
-    }
-    else { // Add a new delegation
-
-    }
-    ad.unlock();
-  }
-
-  public boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
-    if(ad == null)
-      throw new NotFoundException("transferIdentity() unable to find agent " + agentName);
+      throw new NotFoundException("transferIdentity() unable to find agent " + agentID.getName());
     AgentContainer srcAC = lookup(src);
     AgentContainer destAC = lookup(dest);
     try {
@@ -357,11 +363,11 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       return false;
     }
 
-    // Commit transaction and notify AMS
+    // Commit transaction and notify listeners
     ad.lock();
-    ad.setProxy(new RemoteProxyRMI(destAC, agentName));
+    ad.setProxy(new RemoteProxyRMI(destAC, agentID));
     ad.setContainerName(dest);
-    theAMS.postMovedAgent(agentName, src, dest);
+    postMovedAgent(src, dest, agentID);
     ad.unlock();
     return true;
   }
@@ -372,7 +378,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   public void shutDown() {
 
     // Deregister yourself as a container
-    containers.remove(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
+    containers.remove(MAIN_CONTAINER_NAME);
 
     // Kill every other container
     Collection c = containers.values();
@@ -388,16 +394,15 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
 
     // Kill all non-system agents
-    Set s = localAgents.keySet();
-    Object[] allLocalAgents = s.toArray(); 
-    for(int i = 0; i < allLocalAgents.length; i++) {
-      String name = (String)allLocalAgents[i];
-      if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
-	 name.equalsIgnoreCase(defaultDF.getLocalName()))
+    AID[] allLocalNames = localAgents.keys();
+    for(int i = 0; i < allLocalNames.length; i++) {
+      AID id = allLocalNames[i];
+      if(id.equals(Agent.AMS) || 
+	 id.equals(Agent.DEFAULT_DF))
 	  continue;
 
       // Kill agent and wait for its termination
-      Agent a = (Agent)localAgents.get(name);
+      Agent a = localAgents.get(id);
       a.doDelete();
       a.join();
     }
@@ -408,24 +413,25 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     Agent systemAgent = defaultDF;
     systemAgent.doDelete();
     systemAgent.join();
+    systemAgent.resetToolkit();
 
-    theAMS.removeCommListener(this);
     systemAgent = theAMS;
     systemAgent.doDelete();
     systemAgent.join();
+    systemAgent.resetToolkit();
+    removeListener(theAMS);
 
-    // Now, close MTP link to outside world
+    // Now, close all MTP links to the outside world
     theACC.shutdown();
   }
 
   // These methods dispatch agent management operations to
   // appropriate Agent Container through RMI.
 
-  public void kill(String agentName, String password) throws NotFoundException, UnreachableException {
+  public void kill(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
-      AgentContainer ac = getContainerFromAgent(agentName);
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      ac.killAgent(simpleName); // RMI call
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.killAgent(agentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
@@ -442,73 +448,62 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public void suspend(String agentName, String password) throws NotFoundException, UnreachableException {
+  public void suspend(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
-      AgentContainer ac = getContainerFromAgent(agentName);
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      ac.suspendAgent(simpleName); // RMI call
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.suspendAgent(agentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void activate(String agentName, String password) throws NotFoundException, UnreachableException {
+  public void activate(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
-      AgentContainer ac = getContainerFromAgent(agentName);
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      ac.resumeAgent(simpleName); // RMI call
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.resumeAgent(agentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void wait(String agentName, String password) throws NotFoundException, UnreachableException {
+  public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
-      AgentContainer ac = getContainerFromAgent(agentName);
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      ac.waitAgent(simpleName); // RMI call
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.waitAgent(agentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void wake(String agentName, String password) throws NotFoundException, UnreachableException {
+  public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
-      AgentContainer ac = getContainerFromAgent(agentName);
-      String simpleName = agentName.substring(0,agentName.indexOf('@'));
-      ac.wakeAgent(simpleName); // RMI call
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.wakeAgent(agentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void move(String agentName, Location where, String password) throws NotFoundException, UnreachableException {
+  public void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException {
     // Retrieve the container for the original agent
-    AgentContainer src = getContainerFromAgent(agentName);
+    AgentContainer src = getContainerFromAgent(agentID);
     try {
-      int atPos = agentName.indexOf('@');
-      if(atPos != -1)
-	agentName = agentName.substring(0, atPos);
-      src.moveAgent(agentName, where);
+      src.moveAgent(agentID, where);
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
   }
 
-  public void copy(String agentName, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException {
+  public void copy(AID agentID, Location where, String newAgentID, String password) throws NotFoundException, UnreachableException {
     // Retrieve the container for the original agent
-    AgentContainer src = getContainerFromAgent(agentName);
+    AgentContainer src = getContainerFromAgent(agentID);
     try {
-      int atPos = agentName.indexOf('@');
-      if(atPos != -1)
-	agentName = agentName.substring(0, atPos);
-
-      src.copyAgent(agentName, where, newAgentName); // RMI call
+      src.copyAgent(agentID, where, newAgentID); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
@@ -517,6 +512,13 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   // These methods are to be used only by AMS agent.
 
+  public void addListener(AgentManager.Listener l) {
+    platformListeners.add(l);
+  }
+
+  public void removeListener(AgentManager.Listener l) {
+    platformListeners.remove(l);
+  }
 
   // This is used by AMS to obtain the set of all the Agent Containers of the platform.
   public String[] containerNames() {
@@ -527,34 +529,28 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
-  public String[] agentNames() {
-    Object[] objs = platformAgents.keySet().toArray();
-    String[] names = new String[objs.length];
-    System.arraycopy(objs, 0, names, 0, names.length);
-    return names;
+  public AID[] agentNames() {
+    return platformAgents.keys();
+  }
+
+  public String[] platformAddresses() {
+    // FIXME: Return the real list of platform addresses
+    return new String[0];
   }
 
   // This maps the name of an agent to the name of the Agent Container the agent lives in.
-  public String getContainerName(String agentName) throws NotFoundException {
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+  public String getContainerName(AID agentID) throws NotFoundException {
+    AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null)
-      throw new NotFoundException("Agent " + agentName + " not found in getContainerName()");
+      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerName()");
     ad.lock();
     String result = ad.getContainerName();
     ad.unlock();
     return result;
   }
 
-  // This maps the name of an agent to its IIOP address.
-  public String getAddress(String agentName) {
-    // FIXME: Should not even exist; it would be better to put the
-    // complete agent name in the hash table
-    return platformAddress; 
-  }
-
   // This is called in response to a 'create-agent' action
   public void create(String agentName, String className, String containerName) throws UnreachableException {
-    String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
       AgentContainer ac;
       // If no name is given, the agent is started on the AgentPlatform itself
@@ -566,7 +562,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       // If a wrong name is given, then again the agent starts on the AgentPlatform itself
       if(ac == null)
 	ac = this;
-      ac.createAgent(simpleName, className, START); // RMI call
+      AID id = globalAID(agentName);
+      ac.createAgent(id, className, START); // RMI call
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
@@ -586,7 +583,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 	catch(RemoteException re) {
 	  System.out.println("Container " + cName + " is unreachable.");
 	  containers.remove(cName);
-	  theAMS.postDeadContainer(cName);
+	  postDeadContainer(cName);
 
 	}
       }

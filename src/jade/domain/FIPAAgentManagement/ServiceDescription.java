@@ -55,43 +55,43 @@ public String getType() {
   return type;
 }
 
-    public void addProtocols(String ip) {
+    public void addProtocol(String ip) {
       interactionProtocols.add(ip);
     }
-    public boolean removeProtocols(String ip) {
+    public boolean removeProtocol(String ip) {
       return interactionProtocols.remove(ip);
     }
-    public void clearAllProtocols(){
+    public void clearAllProtocol(){
       interactionProtocols.clear();
     }
-    public Iterator getAllProtocols() {
+    public Iterator getAllProtocol() {
       return interactionProtocols.iterator();
     }
 
 
-    public void addLanguages(String ip) {
+    public void addLanguage(String ip) {
       language.add(ip);
     }
-    public boolean removeLanguages(String ip) {
+    public boolean removeLanguage(String ip) {
       return language.remove(ip);
     }
-    public void clearAllLanguages(){
+    public void clearAllLanguage(){
       language.clear();
     }
-    public Iterator getAllLanguages() {
+    public Iterator getAllLanguage() {
       return language.iterator();
     }
 
-    public void addOntologies(String ip) {
+    public void addOntology(String ip) {
       ontology.add(ip);
     }
-    public boolean removeOntologies(String ip) {
+    public boolean removeOntology(String ip) {
       return ontology.remove(ip);
     }
-    public void clearAllOntologies(){
+    public void clearAllOntology(){
       ontology.clear();
     }
-    public Iterator getAllOntologies() {
+    public Iterator getAllOntology() {
       return ontology.iterator();
     }
 

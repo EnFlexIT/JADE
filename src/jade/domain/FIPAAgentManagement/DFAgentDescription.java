@@ -23,9 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import jade.onto.basic.AID;
+import jade.core.AID;
 
   /**
     Models a DF agent descriptor.  This class provides platform-level
@@ -60,13 +62,13 @@ import jade.onto.basic.AID;
       return services.remove(a);
     }
 
-public void clearAllServices(){
-  services.clear();
-}
+    public void clearAllServices(){
+      services.clear();
+    }
 
-public Iterator getAllServices(){
-  return services.iterator();
-}
+    public Iterator getAllServices(){
+      return services.iterator();
+    }
 
     public void addProtocols(String ip) {
       interactionProtocols.add(ip);
@@ -81,29 +83,29 @@ public Iterator getAllServices(){
       return interactionProtocols.iterator();
     }
 
-    public void addOntologies(String ip) {
+    public void addOntology(String ip) {
       ontology.add(ip);
     }
-    public boolean removeOntologies(String ip) {
+    public boolean removeOntology(String ip) {
       return ontology.remove(ip);
     }
-    public void clearAllOntologies(){
+    public void clearAllOntology(){
       ontology.clear();
     }
-    public Iterator getAllOntologies() {
+    public Iterator getAllOntology() {
       return ontology.iterator();
     }
 
-    public void addLanguages(String ip) {
+    public void addLanguage(String ip) {
       language.add(ip);
     }
-    public boolean removeLanguages(String ip) {
+    public boolean removeLanguage(String ip) {
       return language.remove(ip);
     }
-    public void clearAllLanguages(){
+    public void clearAllLanguage(){
       language.clear();
     }
-    public Iterator getAllLanguages() {
+    public Iterator getAllLanguage() {
       return language.iterator();
     }
 

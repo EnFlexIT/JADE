@@ -35,18 +35,16 @@ import java.rmi.RemoteException;
 
 interface AgentPlatform extends AgentContainer {
 
-  String getAddress() throws RemoteException;
-
   String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException;
   void removeContainer(String name) throws RemoteException;
 
   AgentContainer lookup(String name) throws RemoteException, NotFoundException;
 
-  void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
-  void deadAgent(String name) throws RemoteException, NotFoundException;
+  void bornAgent(AID name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException;
+  void deadAgent(AID name) throws RemoteException, NotFoundException;
 
-  boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException;
+  boolean transferIdentity(AID agentID, String src, String dest) throws RemoteException, NotFoundException;
 
-  RemoteProxy getProxy(String agentName, String agentAddress) throws RemoteException, NotFoundException;
+  RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
 
 }

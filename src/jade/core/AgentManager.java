@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.net.InetAddress;
+
 import java.util.Set;
 import java.util.Map;
 
@@ -37,29 +39,46 @@ import java.util.Map;
   */
 public interface AgentManager {
 
+  static final String MAIN_CONTAINER_NAME = "Front-End";
+  static final String AUX_CONTAINER_NAME = "Container-";
+
+  /**
+     This callback interface is implemented by the AMS in order to be
+     notified of significant platform-level events (e.g. container
+     added or removed, agent state changes, etc.).
+   */
+  static interface Listener {
+    void handleNewContainer(String name, InetAddress host);
+    void handleDeadContainer(String name);
+    void handleNewAgent(String containerName, AID agentID);
+    void handleDeadAgent(String containerName, AID agentID);
+    void handleMovedAgent(String fromContainer, String toContainer, AID agentID);
+  }
+
+  void addListener(Listener l);
+  void removeListener(Listener l);
+
   String[] containerNames();
-  String[] agentNames();
-  String getContainerName(String agentName) throws NotFoundException;
-  String getAddress(String agentName);
+  AID[] agentNames();
+  String[] platformAddresses();
 
-  void setDelegateAgent(String agentName, String delegateName) throws NotFoundException, UnreachableException;
-
+  String getContainerName(AID agentID) throws NotFoundException;
   void create(String agentName, String className, String containerName) throws UnreachableException;
 
   void killContainer(String containerName);
-  void kill(String agentName, String password) throws NotFoundException, UnreachableException;
+  void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
 
-  void suspend(String agentName, String password) throws NotFoundException, UnreachableException;
-  void activate(String agentName, String password) throws NotFoundException, UnreachableException;
+  void suspend(AID agentID, String password) throws NotFoundException, UnreachableException;
+  void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
 
-  void wait(String agentName, String password) throws NotFoundException, UnreachableException;
-  void wake(String agentName, String password) throws NotFoundException, UnreachableException;
+  void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
+  void wake(AID agentID, String password) throws NotFoundException, UnreachableException;
 
   void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException;
   void sniffOff(String SnifferName, Map ToBeSniffed) throws UnreachableException;
 
-  void move(String agentName, Location where, String password ) throws NotFoundException, UnreachableException;
-  void copy(String agentName, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
+  void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
+  void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
 }
 

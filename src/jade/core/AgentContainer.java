@@ -28,7 +28,7 @@ package jade.core;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import java.util.Vector;
+import java.util.List;
 
 import jade.lang.acl.ACLMessage;
 
@@ -45,28 +45,25 @@ interface AgentContainer extends Remote {
   static final boolean TRANSFER_ABORT = false;
   static final boolean TRANSFER_COMMIT = true;
 
-  void createAgent(String agentName, String className, boolean startIt) throws RemoteException;
-  void createAgent(String agentName, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException;
+  void createAgent(AID agentID, String className, boolean startIt) throws RemoteException;
+  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException;
   byte[] fetchClassFile(String name) throws RemoteException, ClassNotFoundException;
 
-  void suspendAgent(String agentName) throws RemoteException, NotFoundException;
-  void resumeAgent(String agentName) throws RemoteException, NotFoundException;
+  void suspendAgent(AID agentID) throws RemoteException, NotFoundException;
+  void resumeAgent(AID agentID) throws RemoteException, NotFoundException;
 
-  void waitAgent(String agentName) throws RemoteException, NotFoundException;
-  void wakeAgent(String agentName) throws RemoteException, NotFoundException;
+  void waitAgent(AID agentID) throws RemoteException, NotFoundException;
+  void wakeAgent(AID agentID) throws RemoteException, NotFoundException;
 
-  void moveAgent(String agentName, Location where) throws RemoteException, NotFoundException;
-  void copyAgent(String agentName, Location where, String newName) throws RemoteException, NotFoundException;
+  void moveAgent(AID agentID, Location where) throws RemoteException, NotFoundException;
+  void copyAgent(AID agentID, Location where, String newName) throws RemoteException, NotFoundException;
 
-  void killAgent(String agentName) throws RemoteException, NotFoundException;
+  void killAgent(AID agentID) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
 
-  void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException;
-  void dispatch(ACLMessage msg, String receiverName) throws RemoteException, NotFoundException;
+  void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException;
+  void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException;
   void ping(boolean hang) throws RemoteException;
-
-  void setDelegation(String delegatingName, String delegateName) throws RemoteException;
-  void dispatchToDelegate(ACLMessage msg, String delegatingName, String delegateName) throws RemoteException, NotFoundException;
 
   void enableSniffer(String SnifferName, java.util.Map ToBeSniffed) throws RemoteException;
   void disableSniffer(String SnifferName, java.util.Map NotToBeSniffed) throws RemoteException;

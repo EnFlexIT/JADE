@@ -57,7 +57,7 @@ PARSER_BEGIN(ACLParser)
 package jade.lang.acl;
 
 import java.io.*;
-import jade.onto.basic.AID;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
 Javadoc documentation for the file
@@ -65,7 +65,7 @@ Javadoc documentation for the file
 @version $Date$ $Revision$
 */
 
-class ACLParser {
+public class ACLParser {
   ACLMessage msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 
   public static void main(String args[]) throws ParseException {
@@ -83,12 +83,12 @@ class ACLParser {
     }
   }
 
-  static ACLParser create() {
+  public static ACLParser create() {
     Reader r = new StringReader("");
     return new ACLParser(r);
   }
 
-  ACLMessage parse(Reader text) throws ParseException {
+  public ACLMessage parse(Reader text) throws ParseException {
     ReInit(text);
     return Message();
   }
@@ -109,22 +109,22 @@ ACLMessage Message() :
 void MessageType() :
 { Token t; }
 {
-  t= <MESSAGETYPE> 	{ msg.setPerformative(ACLMessage.getInteger(t.image));}
+  t= <MESSAGETYPE> 	{ msg.setType(t.image);}
 }
 
 
 void MessageParameter() :
 { String s; Token t; AID aid;}
 {
-  <SENDER>          aid=AgentIdentifier()			{ msg.setSender(aid); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <RECEIVER>        {msg.clearAllReceiver();}
-        <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addReceiver(aid);})* <RBRACE2> 
+  <SENDER>          aid=AgentIdentifier()			{ msg.setSource(aid); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <RECEIVER>        {msg.removeAllDests();}
+        <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addDest(aid);})* <RBRACE2> 
         { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONTENT>         s=Expression()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_BY>        s=DateTimeToken()		{ msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <IN_REPLY_TO>     s=Expression()			{ msg.setInReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <REPLY_TO>       {msg.clearAllReplyTo();}
+| <REPLY_TO>       {msg.removeAllReplyTo();}
       <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addReplyTo(aid);})* <RBRACE2>
       { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <ENCODING>        s=Expression()		{ msg.setEncoding(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}

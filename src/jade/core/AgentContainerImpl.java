@@ -38,30 +38,32 @@ import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
-import java.util.Enumeration;
-import java.util.HashMap;
+
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Set;
-import java.util.Vector;
 
 import jade.lang.acl.*;
+import jade.domain.acc;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
-class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, CommListener {
+class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, AgentToolkit {
 
-  private static final int MAP_SIZE = 50;
-  private static final float MAP_LOAD_FACTOR = 0.50f;
+  private static final int CACHE_SIZE = 10;
 
   // Local agents, indexed by agent name
-  protected Map localAgents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
+  protected LADT localAgents = new LADT();
 
   // Agents cache, indexed by agent name
-  private AgentCache cachedProxies = new AgentCache(MAP_SIZE);
+  private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
 
   // ClassLoader table, used for agent mobility
   private Map loaders = new HashMap();
@@ -71,8 +73,12 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   protected String myName;
 
-  // IIOP address of the platform, will be used for inter-platform communications
-  protected String platformAddress;
+  // The Agent Communication Channel, managing the external MTPs.
+  protected acc theACC;
+
+  // Unique ID of the platform, used to build the GUID of resident
+  // agents.
+  protected String platformID;
 
   private Map SniffedAgents = new HashMap();
   private String theSniffer;           
@@ -91,7 +97,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       System.getProperties().put("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
     }
     catch(java.net.UnknownHostException jnue) {
-      // Silently ignore it
+      jnue.printStackTrace();
     }
 
     // Set up attributes for agents thread group
@@ -114,24 +120,24 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   // Interface AgentContainer implementation
 
-  public void createAgent(String agentName, String className, boolean startIt) throws RemoteException {
+  public void createAgent(AID agentID, String className, boolean startIt) throws RemoteException {
 
     Agent agent = null;
     try {
       agent = (Agent)Class.forName(new String(className)).newInstance();
     }
     catch(ClassNotFoundException cnfe) {
-      System.err.println("Class " + className + " for agent " + agentName + " was not found.");
+      System.err.println("Class " + className + " for agent " + agentID + " was not found.");
       return;
     }
     catch( Exception e ){
       e.printStackTrace();
     }
 
-    initAgent(agentName, agent, startIt);
+    initAgent(agentID, agent, startIt);
   }
 
-  public void createAgent(String agentName, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException {
+  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws RemoteException {
 
     final AgentContainer ac = classSite;
 
@@ -156,7 +162,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance));
 
       Agent instance = (Agent)in.readObject();
-      initAgent(agentName, instance, startIt);
+      initAgent(agentID, instance, startIt);
 
     }
     catch(IOException ioe) {
@@ -185,77 +191,78 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  void initAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
+  void initAgent(AID agentID, Agent instance, boolean startIt) {
 
     // Subscribe as a listener for the new agent
-    instance.addCommListener(this);
+    instance.setToolkit(this);
 
     // Insert new agent into local agents table
-    localAgents.put(agentName.toLowerCase(), instance);
+    localAgents.put(agentID, instance);
 
     if(startIt) {
       try {
-	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentName);
-	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
+	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
+	myPlatform.bornAgent(agentID, rp, myName); // RMI call
       }
       catch(NameClashException nce) {
 	System.out.println("Agent name already in use");
-	localAgents.remove(agentName.toLowerCase());
+	localAgents.remove(agentID);
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
 	re.printStackTrace();
       }
-      instance.powerUp(agentName, platformAddress, agentThreads);
+
+      instance.powerUp(agentID, agentThreads);
     }
   }
 
-  public void suspendAgent(String agentName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void suspendAgent(AID agentID) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent == null)
-      throw new NotFoundException("SuspendAgent failed to find " + agentName);
+      throw new NotFoundException("SuspendAgent failed to find " + agentID);
     agent.doSuspend();
   }
 
-  public void resumeAgent(String agentName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void resumeAgent(AID agentID) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent == null)
-      throw new NotFoundException("ResumeAgent failed to find " + agentName);
+      throw new NotFoundException("ResumeAgent failed to find " + agentID);
     agent.doActivate();
   }
 
-  public void waitAgent(String agentName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void waitAgent(AID agentID) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent==null)
-      throw new NotFoundException("WaitAgent failed to find " + agentName);
+      throw new NotFoundException("WaitAgent failed to find " + agentID);
     agent.doWait();
   }
 
-  public void wakeAgent(String agentName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void wakeAgent(AID agentID) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent==null)
-      throw new NotFoundException("WakeAgent failed to find " + agentName);
+      throw new NotFoundException("WakeAgent failed to find " + agentID);
     agent.doWake();
   }
 
-  public void moveAgent(String agentName, Location where) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void moveAgent(AID agentID, Location where) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent==null)
-      throw new NotFoundException("MoveAgent failed to find " + agentName);
+      throw new NotFoundException("MoveAgent failed to find " + agentID);
     agent.doMove(where);
   }
 
-  public void copyAgent(String agentName, Location where, String newName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void copyAgent(AID agentID, Location where, String newName) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent == null)
-      throw new NotFoundException("CopyAgent failed to find " + agentName);
+      throw new NotFoundException("CopyAgent failed to find " + agentID);
     agent.doClone(where, newName);
   }
 
-  public void killAgent(String agentName) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+  public void killAgent(AID agentID) throws RemoteException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
     if(agent == null)
-      throw new NotFoundException("KillAgent failed to find " + agentName);
+      throw new NotFoundException("KillAgent failed to find " + agentID);
     agent.doDelete();
   }
 
@@ -264,26 +271,26 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     System.exit(0);
   }
 
-  public void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException {
+  public void postTransferResult(AID agentID, boolean result, List messages) throws RemoteException, NotFoundException {
     synchronized(localAgents) {
-      Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+      Agent agent = localAgents.get(agentID);
       if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
 	throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
       }
       if(result == TRANSFER_ABORT)
-	localAgents.remove(agentName.toLowerCase());
+	localAgents.remove(agentID);
       else {
 	// Insert received messages at the start of the queue
 	for(int i = messages.size(); i > 0; i--)
-	  agent.putBack((ACLMessage)messages.elementAt(i - 1));
-	agent.powerUp(agentName, platformAddress, agentThreads);
+	  agent.putBack((ACLMessage)messages.get(i - 1));
+	agent.powerUp(agentID, agentThreads);
       }
     }
   }
 
   protected String getCorrectName(String name) {
     String correctName = null;
-
+    /*
     int atPos = name.indexOf('@');
     if ( atPos == -1 ) {
       // it is a local name: we simply force lowercase
@@ -299,16 +306,16 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	correctName = name.toLowerCase();
       }
     }
-
+    */
     return correctName;
   }
 
   public void enableSniffer(String SnifferName, Map ToBeSniffed) throws RemoteException {
-    /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
+    /* In the SniffedAgents hashmap the key is the agent name and the value is a list
        containing the sniffer names for that agent */
-
+      /*
     String currentAgent = null;
-	
+
     Set sniffedAgentsSet = ToBeSniffed.keySet();
     Iterator sniffedAgentsIt = sniffedAgentsSet.iterator();
 
@@ -318,7 +325,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	currentAgent = (String)sniffedAgentsIt.next();
 	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
 	  // there is at least one sniffer name for this agent
-	  Vector curVector = (Vector)SniffedAgents.get(getCorrectName(currentAgent));
+	  List curVector = (List)SniffedAgents.get(getCorrectName(currentAgent));
 	  if (!curVector.contains(getCorrectName(SnifferName))) {
 	    // we add it only if there isn't one
 	    curVector.add(getCorrectName(SnifferName));
@@ -326,7 +333,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	}
 	else {
 	  // there is no sniffer for that agent
-	  Vector curVector = new Vector(3);
+	  List curVector = new ArrayList(3);
 	  curVector.add(getCorrectName(SnifferName));
 	  SniffedAgents.put(getCorrectName(currentAgent),curVector);
 	}				
@@ -336,19 +343,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       // the list is empty
       while (sniffedAgentsIt.hasNext()) {
 	currentAgent = (String)sniffedAgentsIt.next();
-	Vector curVector = new Vector(3);
+	List curVector = new ArrayList(3);
 	curVector.add(getCorrectName(SnifferName));
 	SniffedAgents.put(getCorrectName(currentAgent),curVector);
       }	
     }
-
+      */
   }
 
 
   public void disableSniffer(String SnifferName, Map NotToBeSniffed) throws RemoteException {
     /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
        containing the sniffer names for that agent */
-
+      /*
     String currentAgent = null;
 	
     Set sniffedAgentsSet = NotToBeSniffed.keySet();
@@ -361,7 +368,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 			
 	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
 	  // there is at least one sniffer name for this agent
-	  Vector curVector = (Vector)SniffedAgents.get(getCorrectName(currentAgent));
+	  List curVector = (List)SniffedAgents.get(getCorrectName(currentAgent));
 	  if (curVector.contains(getCorrectName(SnifferName))) {
 	    // we add it only if there isn't one
 	    curVector.remove(getCorrectName(SnifferName));
@@ -372,18 +379,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       }
     }
+      */
   }
 
 
 
-  public void dispatch(ACLMessage msg, String receiverName) throws RemoteException, NotFoundException {
+  public void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException {
 
-    // Mutual exclusion with moveSource() method
+    // Mutual exclusion with handleMove() method
     synchronized(localAgents) {
-      Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
+      Agent receiver = localAgents.get(receiverID);
 
       if(receiver == null) {
-	throw new NotFoundException("DispatchMessage failed to find " + receiverName);
+	throw new NotFoundException("DispatchMessage failed to find " + receiverID);
       }
 
       receiver.postMessage(msg);
@@ -404,22 +412,23 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  public void setDelegation(String delegatingName, String delegateName) throws RemoteException {
+  public void joinPlatform(String pID, List agentNamesAndClasses) {
 
-  }
+    // This string will be used to build the GUID for every agent on this platform.
+    platformID = pID;
 
-  public void dispatchToDelegate(ACLMessage msg, String delegatingName, String delegateName) throws RemoteException, NotFoundException {
+    // Build the Agent IDs for the AMS and for the Default DF.
+    Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
 
-  }
+    theACC = new acc();
 
-  public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
-
-     // Retrieve agent platform from RMI registry and register as agent container
     try {
+      // Retrieve agent platform from RMI registry and register as agent container
+      String platformRMI = "rmi://" + platformID;
       myPlatform = lookup3(platformRMI);
+
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call
-      platformAddress = myPlatform.getAddress(); // RMI call
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -437,35 +446,35 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
        b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from AgentPlatform)
        c) AgentContainer 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
 
-       agentNamesAndClasses is a Vector of String containing, orderly, the name of an agent and the name of Agent
+       agentNamesAndClasses is a List of String containing, orderly, the name of an agent and the name of Agent
        concrete subclass which implements that agent.
     */
-    for( int i=0; i < agentNamesAndClasses.size(); i+=2 ) {
-      String agentName = (String)agentNamesAndClasses.elementAt(i);
-      String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
+    for(int i=0; i < agentNamesAndClasses.size(); i += 2) {
+      String agentName = (String)agentNamesAndClasses.get(i);
+      String agentClass = (String)agentNamesAndClasses.get(i+1);
+
+      AID agentID = globalAID(agentName);
       try {
-	createAgent(agentName, agentClass, NOSTART);
-	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentName);
-	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName);
+	createAgent(agentID, agentClass, NOSTART);
+	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
+	myPlatform.bornAgent(agentID, rp, myName);
       }
       catch(RemoteException re) { // It should never happen
 	re.printStackTrace();
       }
       catch(NameClashException nce) {
 	System.out.println("Agent name already in use");
-	localAgents.remove(agentName.toLowerCase());
+	localAgents.remove(agentID);
       }
 
     }
 
     // Now activate all agents (this call starts their embedded threads)
-    Set names = localAgents.keySet();
-    Iterator nameList = names.iterator();
-    String currentName = null;
-    while(nameList.hasNext()) {
-      currentName = (String)nameList.next();
-      Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
-      agent.powerUp(currentName, platformAddress, agentThreads);
+    AID[] allLocalNames = localAgents.keys();
+    for(int i = 0; i < allLocalNames.length; i++) {
+      AID id = allLocalNames[i];
+      Agent agent = localAgents.get(id);
+      agent.powerUp(id, agentThreads);
     }
 
     System.out.println("Agent container " + myName + " is ready.");
@@ -477,15 +486,14 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     Agent.stopDispatcher();
 
     // Remove all agents
-    Set s = localAgents.keySet();
-		java.lang.Object[] allLocalAgents = s.toArray();
-    for(int i = 0; i < allLocalAgents.length; i++) {
-      String name = (String)allLocalAgents[i];
+    Agent[] allLocalAgents = localAgents.values();
 
+    for(int i = 0; i < allLocalAgents.length; i++) {
       // Kill agent and wait for its termination
-      Agent a = (Agent)localAgents.get(name);
+      Agent a = allLocalAgents[i];
       a.doDelete();
       a.join();
+      a.resetToolkit();
     }
 
     // Unblock threads hung in ping() method (this will deregister the container)
@@ -493,38 +501,43 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       pingLock.notifyAll();
     }
 
-  }
+    // Now, close all MTP links to the outside world
+    theACC.shutdown();
 
+  }
 
 
 /*
  * This method returns the vector of the sniffers registered for 
  * theAgent
  */
-private Vector getSniffer(String theAgent, java.util.Map theMap) {
+private List getSniffer(AID id, java.util.Map theMap) {
 
-  Vector theSniffer = null;
+  List theSniffer = null;
+  /*
+  String theAgent = id.getName();
 
   theAgent = getCorrectName(theAgent);
   int atPos = theAgent.indexOf('@');
   if ( atPos == -1 ) {
     // theAgent is a local name
-    theSniffer = (Vector)theMap.get(theAgent);
+    theSniffer = (List)theMap.get(theAgent);
 
     // if the search fails let's add the platform address and see if it works
     if ( theSniffer == null ) {
-      theSniffer = (Vector)theMap.get(theAgent+"@"+platformAddress);
+      theSniffer = (List)theMap.get(theAgent + "@" + platformAddress);
     }
   } 
   else { 
     // theAgent is an absolute name
-    theSniffer = (Vector)theMap.get(theAgent);
+    theSniffer = (List)theMap.get(theAgent);
 
     // if the search fails let's remove the platform address ad see if it works
     if ( theSniffer == null ) {
-      theSniffer = (Vector)theMap.get(theAgent.substring(0,atPos));
+      theSniffer = (List)theMap.get(theAgent.substring(0,atPos));
     }
   }
+  */
   return theSniffer;
 }
 
@@ -534,125 +547,73 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
    * message is put in the content field of this message.
    *
    * @param theMsg handler of the sniffed message
-   * @param theDests vector of the destination (sniffers)
+   * @param theDests list of the destination (sniffers)
    */
-  private void sendMsgToSniffers(ACLMessage theMsg, Vector theDests){
+  private void sendMsgToSniffers(ACLMessage theMsg, List theDests){
 
-    String currentSniffer;
+    AID currentSniffer;
 
     for (int z = 0; z < theDests.size(); z++) {
-      currentSniffer = (String)theDests.elementAt(z);
-      ACLMessage SniffedMessage = new ACLMessage("inform");
-      SniffedMessage.removeAllDests();
-      SniffedMessage.addDest(currentSniffer);
-      SniffedMessage.setSource("ams");
+      currentSniffer = (AID)theDests.get(z);
+      ACLMessage SniffedMessage = new ACLMessage(ACLMessage.INFORM);
+      SniffedMessage.clearAllReceiver();
+      SniffedMessage.addReceiver(currentSniffer);
+      SniffedMessage.setSender(null);
       SniffedMessage.setContent(theMsg.toString());
       SniffedMessage.setOntology("sniffed-message");
       unicastPostMessage(SniffedMessage,currentSniffer);	    
     }
-}
+  }
 
-  // Implementation of CommListener interface
 
-  public void CommHandle(CommEvent event) {
+  // Implementation of AgentToolkit interface
 
-    // Get ACL message from the event.
-    ACLMessage msg = event.getMessage();
+  public void handleSend(ACLMessage msg) {
 
-    AgentGroup group = null;
-    
     String currentSniffer;
-    Vector currentSnifferVector;
+    List currentSnifferVector;
 
-    if(event.isMulticast()) {
-    	
-      String msgSource = msg.getSource();
-          	
-      group = event.getRecipients();
-      Enumeration e = group.getMembers();
-      while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();				
-	ACLMessage copy = (ACLMessage)msg.clone();
-	copy.removeAllDests();
-	copy.addDest(dest);
-	unicastPostMessage(copy, dest);
-      }
-
-      currentSnifferVector = getSniffer(msgSource,SniffedAgents);
-      if(currentSnifferVector != null){
-      	/* Sniffed sender: don't care about receivers */
-      	ACLMessage cloned = (ACLMessage)msg.clone();
-      	e = group.getMembers();
-      	while(e.hasMoreElements()){
-	  String dest = (String)e.nextElement();
-	  cloned.removeAllDests();
-	  cloned.addDest(dest);
-	  sendMsgToSniffers(cloned,currentSnifferVector);
-      	}
-      }
-      else {
-      	/* The sender is not sniffed: let's look at all the receivers */
-      	ACLMessage cloned = (ACLMessage)msg.clone();
-      	e = group.getMembers();
-      	while(e.hasMoreElements()) {
-	  String dest = (String)e.nextElement();
-	  currentSnifferVector = getSniffer(dest,SniffedAgents);
-	  if (currentSnifferVector != null) {
-	    cloned.removeAllDests();
-	    cloned.addDest(dest);
-	    sendMsgToSniffers(cloned,currentSnifferVector);
-	  }
-      	}
-      }
+    boolean sniffedSource = false;
+    AID msgSource = msg.getSender();
+    currentSnifferVector = getSniffer(msgSource, SniffedAgents);
+    if (currentSnifferVector != null) {
+      sniffedSource = true;
+      sendMsgToSniffers(msg, currentSnifferVector);		
     }
-    else {  // FIXME: This is probably not compliant
-      group = msg.getDests();
-      
-      boolean sniffedSource = false;
-      String msgSource = msg.getSource();
-      currentSnifferVector = getSniffer(msgSource, SniffedAgents);
-      if (currentSnifferVector != null) {
-	sniffedSource = true;
-	sendMsgToSniffers(msg,currentSnifferVector);		
+
+    Iterator it = msg.getAllReceiver();
+    while(it.hasNext()) {
+      AID dest = (AID)it.next();
+      currentSnifferVector = getSniffer(dest, SniffedAgents);	    
+      if((currentSnifferVector != null) && (!sniffedSource)) {
+	sendMsgToSniffers(msg,currentSnifferVector);	    		
       }
 
-      Enumeration e = group.getMembers();
-      while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();		
-	currentSnifferVector = getSniffer(dest, SniffedAgents);	    
-	if((currentSnifferVector != null) && (!sniffedSource)) {
-	  sendMsgToSniffers(msg,currentSnifferVector);	    		
-	}
-
-	ACLMessage copy = (ACLMessage)msg.clone();
-	copy.removeAllDests();
-	copy.addDest(dest);
-	unicastPostMessage(copy, dest);
-      }
+      ACLMessage copy = (ACLMessage)msg.clone();
+      unicastPostMessage(copy, dest);
     }
   }
 
-  public void endSource(String name) {
+  public void handleStart(String localName, Agent instance) {
+    AID agentID = globalAID(localName);
+    initAgent(agentID, instance, START);
+  }
+
+  public void handleEnd(AID agentID) {
     try {
-      localAgents.remove(name.toLowerCase());
-      myPlatform.deadAgent(name + '@' + platformAddress); // RMI call
-      cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
+      localAgents.remove(agentID);
+      myPlatform.deadAgent(agentID); // RMI call
+      cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
     }
     catch(RemoteException re) {
-      // FIXME: This happens with 'Resource temporarily unavailable'
-      // since RMA GUI disposal has been made asynchronous.
-      Throwable t = re.detail;
-      if(t instanceof java.net.SocketException)
-	System.out.println(t.getMessage());
-      else
-	re.printStackTrace();
+      re.printStackTrace();
     }
     catch(NotFoundException nfe) {
       nfe.printStackTrace();
     }
   }
 
-  public void moveSource(String name, Location where) {
+  public void handleMove(AID agentID, Location where) {
     // Mutual exclusion with dispatch() method
     synchronized(localAgents) {
       try {
@@ -662,9 +623,9 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 
 	String destName = where.getName();
 	AgentContainer ac = myPlatform.lookup(destName);
-	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	Agent a = localAgents.get(agentID);
 	if(a == null)
-	  throw new NotFoundException("Internal error: moveSource() called with a wrong name !!!");
+	  throw new NotFoundException("Internal error: handleMove() called with a wrong name !!!");
 
 	// Handle special 'running to stand still' case
 	if(where.getName().equalsIgnoreCase(myName)) {
@@ -682,55 +643,55 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	}
 
 	byte[] bytes = out.toByteArray();
-	ac.createAgent(name, bytes, this, NOSTART);
+	ac.createAgent(agentID, bytes, this, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
-	boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, destName);
-	Vector messages = new Vector();
+	boolean transferResult = myPlatform.transferIdentity(agentID, myName, destName);
+	List messages = new ArrayList();
 	if(transferResult == TRANSFER_COMMIT) {
 
 	  // Send received messages to the destination container
 	  Iterator i = a.messages();
 	  while(i.hasNext())
 	    messages.add(i.next());
-	  ac.postTransferResult(name, transferResult, messages);
+	  ac.postTransferResult(agentID, transferResult, messages);
 
 	  // From now on, messages will be routed to the new agent
 	  a.doGone();
-	  localAgents.remove(name.toLowerCase());
-	  cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
+	  localAgents.remove(agentID);
+	  cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
 	}
 	else {
 	  a.doExecute();
-	  ac.postTransferResult(name, transferResult, messages);
+	  ac.postTransferResult(agentID, transferResult, messages);
 	}
       }
       catch(RemoteException re) {
 	re.printStackTrace();
 	// FIXME: Complete undo on exception
-	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	Agent a = localAgents.get(agentID);
 	if(a != null)
 	  a.doDelete();
       }
       catch(NotFoundException nfe) {
 	nfe.printStackTrace();
 	// FIXME: Complete undo on exception
-	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	Agent a = localAgents.get(agentID);
 	if(a != null)
 	  a.doDelete();
       }
     }
   }
 
-  public void copySource(String name, Location where, String newName) {
+  public void handleClone(AID agentID, Location where, String newName) {
     try {
       String proto = where.getProtocol();
       if(!proto.equalsIgnoreCase("JADE-IPMT"))
 	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
       AgentContainer ac = myPlatform.lookup(where.getName());
-      Agent a = (Agent)localAgents.get(name.toLowerCase());
+      Agent a = localAgents.get(agentID);
       if(a == null)
-	throw new NotFoundException("Internal error: copySource() called with a wrong name !!!");
+	throw new NotFoundException("Internal error: handleCopy() called with a wrong name !!!");
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       try {
@@ -741,8 +702,9 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	ioe.printStackTrace();
       }
 
+      AID newID = globalAID(newName);
       byte[] bytes = out.toByteArray();
-      ac.createAgent(name, bytes, this, NOSTART);
+      ac.createAgent(newID, bytes, this, NOSTART);
 
     }
     catch(RemoteException re) {
@@ -753,8 +715,29 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     }
   }
 
+  protected AID localAID(String agentName) {
+    if(!agentName.endsWith('@' + platformID))
+      agentName = agentName.concat('@' + platformID);
+    AID id = new AID();
+    id.setGUID(agentName);
+    id.clearAllAddresses();
+    id.clearAllResolvers();
+    return id;
+  }
+
+  protected AID globalAID(String agentName) {
+    AID id = localAID(agentName);
+    // FIXME: Add all platform addresses to this AID
+    return id;
+  }
+
+
   // Private methods
 
+  private boolean livesHere(AID id) {
+    String hap = id.getHap();
+    return hap.equalsIgnoreCase(platformID);
+  }
 
   // This hack is needed to overcome a bug in java.rmi.Naming class:
   // when an object reference is binded, unbinded and then rebinded
@@ -779,53 +762,45 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     return (AgentPlatform)o;
   }
 
-  private void unicastPostMessage(ACLMessage msg, String completeName) {
-    String receiverName = null;
-    String receiverAddr = null;
+  private void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
-    int atPos = completeName.indexOf('@');
-    if(atPos == -1) {
-      receiverName = completeName;
-      receiverAddr = platformAddress.toLowerCase();
-      completeName = completeName.concat('@' + receiverAddr);
-    }
-    else {
-      receiverName = completeName.substring(0,atPos);
-      receiverAddr = completeName.substring(atPos + 1);
-    }
+      //    msg.toText(new java.io.OutputStreamWriter(System.out));
 
-    AgentProxy ap = cachedProxies.get(completeName);
+    AgentProxy ap = cachedProxies.get(receiverID);
     if(ap != null) { // Cache hit :-)
       try {
 	ap.dispatch(msg);
       }
       catch(NotFoundException nfe) { // Stale cache entry
-	cachedProxies.remove(completeName);
-	dispatchUntilOK(msg, completeName, receiverName, receiverAddr);
+	cachedProxies.remove(receiverID);
+	dispatchUntilOK(msg, receiverID);
       }
     }
     else { // Cache miss :-(
-      dispatchUntilOK(msg, completeName, receiverName, receiverAddr);
+      dispatchUntilOK(msg, receiverID);
     }
 
   }
 
-  private void dispatchUntilOK(ACLMessage msg, String completeName, String name, String addr) {
+  private void dispatchUntilOK(ACLMessage msg, AID receiverID) {
     boolean ok;
     int i = 0;
     do {
       AgentProxy proxy;
       try {
-	proxy = getFreshProxy(name, addr);
+	proxy = getFreshProxy(receiverID);
       }
       catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
-	System.err.println("Agent " + name + " was not found on agent platform");
+	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform");
 	System.err.println("Message from platform was: " + nfe.getMessage());
+	System.out.println("------------------------------------------------");
+	msg.toText(new java.io.OutputStreamWriter(System.out));
+	System.out.println("------------------------------------------------");
 	return;
       }
       try {
 	proxy.dispatch(msg);
-	cachedProxies.put(completeName, proxy);
+	cachedProxies.put(receiverID, proxy);
 	ok = true;
       }
       catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
@@ -834,38 +809,30 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     } while(!ok);
   }
 
-  private AgentProxy getFreshProxy(String name, String addr) throws NotFoundException {
+  private AgentProxy getFreshProxy(AID id) throws NotFoundException {
     AgentProxy result = null;
 
-    // Look first in local agents
-    Agent a = (Agent)localAgents.get(name.toLowerCase());
-    if((a != null)&&(addr.equalsIgnoreCase(platformAddress))) {
-      result = new LocalProxy(localAgents, name);
+    if(livesHere(id)) { // the receiver agent lives in this platform...
+      // Look first in local agents
+      Agent a = localAgents.get(id);
+      if(a != null) {
+	System.out.println("Found in LADT...");
+	result = new LocalProxy(localAgents, id);
+      }
+      else { // Agent is not local
+	System.out.println("Looking in GADT...");
+	// Maybe it's registered with this AP on some other container...
+        try {
+	  result = myPlatform.getProxy(id); // RMI call
+	}
+	catch(RemoteException re) {
+	  System.out.println("Communication error while contacting agent platform");
+	  re.printStackTrace();
+	}
+      }
     }
-    else { // Agent is not local
-
-      // Maybe it's registered with this AP on some other container...
-      try {
-        result = myPlatform.getProxy(name.toLowerCase(), addr.toLowerCase()); // RMI call
-      }
-      catch(RemoteException re) {
-	System.out.println("Communication error while contacting agent platform");
-	re.printStackTrace();
-      }
-      catch(NotFoundException nfe) { // Agent is neither local nor registered with this platform
-
-        // Then it must be reachable using IIOP, on a different platform
-	try {
-	  if(addr.equalsIgnoreCase(platformAddress))
-	    throw new NotFoundException("No agent named " + name + " present in this platform");
-	  result = null;
-	}
-	catch(IIOPFormatException iiopfe) { // Invalid address
-	  throw new NotFoundException("Invalid agent address: [" + iiopfe.getMessage() + "]");
-	}
-
-      }
-
+    else { // It lives outside: then it's a job for the ACC...
+      System.out.println("Using the ACC...");
     }
 
     return result;

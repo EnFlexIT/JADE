@@ -330,7 +330,7 @@ public class Boot {
     isPlatform = (Boolean.valueOf(p.getProperty("platform"))).booleanValue();
     
     if(isPlatform)
-    	arguments.add("-platform");
+      arguments.add("-platform");
     else
       arguments.add("-container");
     

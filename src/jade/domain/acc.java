@@ -27,7 +27,7 @@ package jade.domain;
 import java.util.Map;
 import java.util.HashMap;
 
-import jade.domain.FIPAAgentManagement.AID;
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -53,7 +53,7 @@ public class acc {
 
     // Steps:
     // 0. Split the operation in a suitable number of single-receiver operations.
-    // 1. Select the message encoding, (reading the ':encoding' slot from ACL ?)
+    // 1. Select the message encoding, (reading the ':acl-representation' slot from the ACL message)
     // 2. Encode the message into a byte array.
     // 3. Deliver the message over an MTP.
     //    3.1. Build the message envelope.

@@ -42,59 +42,99 @@ import java.util.Iterator;
 */
 class FrameSchema implements Cloneable, Serializable {
 
-  static class WrongSlotTypeException extends OntologyException {
-    public WrongSlotTypeException(String functorName, String slotName, String slotType) {
-      super("No slot of type " + slotType + " named " + slotName + " in functor " + functorName);
+  static class WrongTermTypeException extends OntologyException {
+    public WrongTermTypeException(String functorName, String termName, String termType) {
+      super("No term of type " + termType + " named " + termName + " in functor " + functorName);
     }
   }
 
   private Ontology myOntology;
   private Name myName;
-  private List slots;
+  private List terms;
 
 
   public FrameSchema(Ontology o, String n) {
     myOntology = o;
     myName = new Name(n);
-    slots = new ArrayList();
+    terms = new ArrayList();
   }
 
   public String getName() {
     return myName.toString();
   }
 
-  public void addSlot(SlotDescriptor td) {
-    slots.add(td);
+  public void addTerm(TermDescriptor td) {
+    terms.add(td);
   }
 
 
-	private boolean isGoodPrimitiveType(String required, Object current) {
-  	try { 
-    	return (Class.forName(required).isInstance(current));
-  	} catch (Exception e) {
-    	e.printStackTrace();
-    	return false;
-  	}
-	}
-
 
   public void checkAgainst(Frame f) throws OntologyException {
-    for(int i = 0; i < slots.size(); i++) {
-      SlotDescriptor sd = (SlotDescriptor)slots.get(i);
-      String name = sd.getName();
-      if(!sd.isOptional()) {
-				Object o = f.getSlot(name); // If a slot called name is not present in f, this method throws an exception
-				if (sd.isPrimitive()) {
-	  			if (!isGoodPrimitiveType(sd.getType(),o))
-	    			throw new WrongSlotTypeException(f.getName(), name, sd.getType()); 
-				} 
-				else {
-					// If the slot is not primitive than its value must be an instance of Frame
-					// In this case recursively check that frame
-	  			if(!(o instanceof Frame))
-	    			throw new WrongSlotTypeException(f.getName(), name, "Frame");
-	  			myOntology.check((Frame)o);
-				}
+    for(int i = 0; i < terms.size(); i++) {
+      TermDescriptor td = (TermDescriptor)terms.get(i);
+      String name = td.getName();
+      if(!td.isOptional()) {
+	Object o = f.getSlot(name);
+	switch(td.getType()) {
+	case Ontology.BOOLEAN_TYPE: {
+	  if(!(o instanceof Boolean))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BOOLEAN_TYPE]); 
+	  break;
+	}
+	case Ontology.BYTE_TYPE: {
+	  if(!(o instanceof Byte))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BYTE_TYPE]); 
+	  break;
+	}
+	case Ontology.CHARACTER_TYPE: {
+	  if(!(o instanceof Character))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CHARACTER_TYPE]); 
+	  break;
+	}
+	case Ontology.DOUBLE_TYPE: {
+	  if(!(o instanceof Double))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.DOUBLE_TYPE]); 
+	  break;
+	}
+	case Ontology.FLOAT_TYPE: {
+	  if(!(o instanceof Float))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.FLOAT_TYPE]); 
+	  break;
+	}
+	case Ontology.INTEGER_TYPE: {
+	  if(!(o instanceof Integer))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.INTEGER_TYPE]); 
+	  break;
+	}
+	case Ontology.LONG_TYPE: {
+	  if(!(o instanceof Long))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.LONG_TYPE]); 
+	  break;
+	}
+	case Ontology.SHORT_TYPE: {
+	  if(!(o instanceof Short))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.SHORT_TYPE]); 
+	  break;
+	}
+	case Ontology.STRING_TYPE: {
+	  if(!(o instanceof String))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.STRING_TYPE]); 
+	  break;
+	}
+	case Ontology.BINARY_TYPE: {
+	  if(!(o instanceof Byte[]))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BINARY_TYPE]); 
+	  break;
+	}
+	case Ontology.FRAME_TERM: {
+	  if(!(o instanceof Frame))
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.FRAME_TERM]); 
+	  myOntology.check((Frame)o);
+	  break;
+	}
+	default:
+	  throw new InternalError("Non existent term type");
+	}
 
       } // End of 'if slot is not optional'
 
@@ -103,12 +143,12 @@ class FrameSchema implements Cloneable, Serializable {
   }
 
   Iterator subSchemas() {
-    return slots.iterator();
+    return terms.iterator();
   }
 
-  SlotDescriptor[] slotsArray() {
-    Object[] objs = slots.toArray();
-    SlotDescriptor[] result = new SlotDescriptor[objs.length];
+  TermDescriptor[] termsArray() {
+    Object[] objs = terms.toArray();
+    TermDescriptor[] result = new TermDescriptor[objs.length];
     System.arraycopy(objs, 0, result, 0, objs.length);
     return result;
   }

@@ -1,4 +1,3 @@
-
 /*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
@@ -25,13 +24,18 @@ Boston, MA  02111-1307, USA.
 package jade.proto;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
 import jade.core.*;
 import jade.core.behaviours.*;
-import jade.lang.acl.*;
 
+import jade.domain.FIPAException;
+
+import jade.onto.*;
+
+import jade.lang.acl.*;
 
 /** 
   This behaviour plays the <em>Responder</em> role in
@@ -81,9 +85,10 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     /**
        Creates a new object, implementing the <code>Action</code>
        interface.
-       @return A new <code>Action</code> object.
+       @param a An ontological object representing the action to perform.
+       @return A new <code>ActionHandler</code> object.
      */
-    Action create();
+    ActionHandler create();
   }
 
   /**
@@ -93,48 +98,32 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     <code>failure</code> messages. Besides, it holds request and reply
     ACL messages.
   */
-  public static abstract class Action extends Behaviour {
+  public static abstract class ActionHandler extends Behaviour {
 
-  	/**
-  	@serial
-  	*/
-    private String myActionName;
     /**
     @serial
     */
     private ACLMessage myRequest;
+
     /**
     @serial
     */
     private ACLMessage myReply;
 
     /**
-      Constructor for <code>Action</code>objects.
-      @param a The agent this <code>Action</code> belongs to.
+      Constructor for <code>ActionHandler</code>objects.
+      @param a The agent this <code>ActionHandler</code> belongs to.
      */
-    protected Action(Agent a) {
-      super(a);
+    protected ActionHandler(Agent ag) {
+      super(ag);
     }
 
-    final void setActionName(String an) {
-      myActionName = an;
-    }
-       
     final void setRequest(ACLMessage request) { 
 	myRequest = request;
     }
 
     final void setReply(ACLMessage reply) {
       myReply = reply;
-    }
-
-    /**
-      Reads action name slot.
-      @return The name of this action as will appear in content of
-      <code>request</code> ACL messages.
-    */
-    protected final String getActionName() {
-      return myActionName;
     }
 
     /**
@@ -191,7 +180,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     */
     protected void sendRefuse(String reason) {
       myReply.setPerformative(ACLMessage.REFUSE);
-      myReply.setContent("( ( action " + myAgent.getLocalName() + " " + myActionName + " ) " + reason + ")");
+      myReply.setContent("STUB");
       myAgent.send(myReply);
     }
 
@@ -207,7 +196,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     */
     protected void sendFailure(String reason) {
         myReply.setPerformative(ACLMessage.FAILURE);
-	myReply.setContent("( ( action " + myAgent.getLocalName() + " " + myActionName + " ) " + reason + ")");
+	myReply.setContent("STUB");
 	myAgent.send(myReply);
     }
 
@@ -220,7 +209,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     */
     protected void sendAgree() {
       myReply.setPerformative(ACLMessage.AGREE);
-      myReply.setContent("( action " + myAgent.getLocalName() + " " + myActionName + " )");
+      myReply.setContent("STUB");
       myAgent.send(myReply);
     }
 
@@ -233,11 +222,11 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     */
     protected void sendInform() {
       myReply.setPerformative(ACLMessage.INFORM);
-      myReply.setContent("( done ( " + myActionName + " ) )");
+      myReply.setContent("STUB");
       myAgent.send(myReply);
     }
 
-  } // End of Action class
+  } // End of ActionHandler class
 
   /**
   @serial
@@ -272,7 +261,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   public FipaRequestResponderBehaviour(Agent a, MessageTemplate match) {
     this(a);
-    requestTemplate = MessageTemplate.and( requestTemplate, match);
+    requestTemplate = MessageTemplate.and(requestTemplate, match);
   }
 
   public void action() {
@@ -282,22 +271,33 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       reply.setPerformative(ACLMessage.INFORM);
       reply.setSender(myAgent.getAID());
 
-      String token = getActionName(msg);
-	
-      Factory action = (Factory)actions.get(token);
+      try {
+	List l = myAgent.extractContent(msg);
+	Action a = (Action)l.get(0);
 
-      if(action == null) {
+	// Use the ontology to discover the action name
+	Ontology o = myAgent.lookupOntology(msg.getOntology());
+
+	String actionName = getActionName(a, o);
+
+	Factory actionFactory = (Factory)actions.get(actionName);
+
+	if(actionFactory == null) {
+	  sendNotUnderstood(reply);
+	  return;
+	}
+	else {
+	  ActionHandler toDo = actionFactory.create();
+	  toDo.setRequest(msg);
+	  toDo.setReply(reply);
+	  myAgent.addBehaviour(toDo);
+	}
+      }
+      catch(FIPAException fe) {
+	fe.printStackTrace();
 	sendNotUnderstood(reply);
 	return;
       }
-      else {
-	Action ab = action.create();
-	ab.setActionName(token);
-	ab.setRequest(msg);
-	ab.setReply(reply);
-	myAgent.addBehaviour(ab);
-      }
-
     }
     else block();
 }
@@ -319,18 +319,33 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     This method is used to get the right behaviour from the <code>Factory</code>.
     It must return the name of the action that is then used to look-up 
     in the factory with the list of registered actions.
-    This default implementation has been provided, but take care because
-    it works only for SL content language and it is also case-sensitive. 
-    Infact, the case of the returned <code>actionName</code> and that of the 
-    <code>actionName</code> passed as a parameter to <code>registerFactory</code> 
+    A default implementation is provided that is case-sensitive.
+    So, the case of the returned <code>String</code> and that of the 
+    <code>String</code> passed as a parameter to <code>registerFactory</code> 
     must be the same.
-    @param msg  the received ACLMessage.
-    @return the name of the action. If the content of the message is empty or its
-    syntax does not comply with SL, it returns an empty String.
-    @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f) 
+    @param a An <code>Action</code> ontological object, that holds the
+    content of a received <em>request</em> ACL message.
+    @return the name of the action. If some problem occurs, it returns
+    a null String.
+    @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f)
   */
-  protected String getActionName(ACLMessage msg) {  
-    return ""; // FIXME: Must use extractContent() and get the action name directly from the Frame.
+  protected String getActionName(Action a, Ontology o) {
+    try {
+      Object obj = a.get_1(); // get the ontological object for the actual action
+
+      String roleName = o.getRoleName(obj.getClass());
+      Frame f = o.createFrame(obj, roleName);
+      return f.getName();
+
+    }
+    catch(OntologyException oe) {
+      oe.printStackTrace();
+      return null; // So that the action lookup will fail and 'not-understood' will be sent back...
+    }
+    catch(ClassCastException cce) {
+      cce.printStackTrace();
+      return null; // So that the action lookup will fail and 'not-understood' will be sent back...
+    }
   }
 
   /**

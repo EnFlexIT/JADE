@@ -31,10 +31,10 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.util.*;
 
-// Import required Jade classes
+// Import required JADE classes
 import jade.core.*;
 import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.AID;
+import jade.core.AID;
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 

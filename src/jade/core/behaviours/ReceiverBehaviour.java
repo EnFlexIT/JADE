@@ -27,7 +27,7 @@ import java.util.Iterator;
 
 import jade.core.Agent;
 
-import jade.domain.FIPAAgentManagement.AID;
+import jade.core.AID;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;

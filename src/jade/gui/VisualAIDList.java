@@ -25,7 +25,7 @@ package jade.gui;
 
 import java.awt.Component;
 import java.util.Iterator;
-import jade.domain.FIPAAgentManagement.AID;
+import jade.core.AID;
 
 /**
 * This class extends the VisualStringList in order to show a list of AID (Agent-Identifer).

@@ -30,8 +30,11 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 import jade.core.*;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import jade.lang.sl.SL0Codec;
 
 import jade.proto.FipaRequestInitiatorBehaviour;
 
@@ -53,8 +56,8 @@ import jade.proto.FipaRequestInitiatorBehaviour;
 public class RequestDFActionBehaviour extends FipaRequestInitiatorBehaviour {
 
   private static final MessageTemplate mt = 
-    MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
-			MessageTemplate.MatchOntology("fipa-agent-management"));
+    MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
+			MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
 
   /**
   @serial
@@ -106,8 +109,8 @@ public class RequestDFActionBehaviour extends FipaRequestInitiatorBehaviour {
       
       	throw o.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
     
-    msg.setLanguage("SL0");
-    msg.setOntology("fipa-agent-management");
+    msg.setLanguage(SL0Codec.NAME);
+    msg.setOntology(FIPAAgentManagementOntology.NAME);
     msg.addDest(dfName);
     
     if(AgentManagementOntology.DFAction.SEARCH.equalsIgnoreCase(dfAction))

@@ -49,7 +49,7 @@ import jade.gui.AgentTreeModel;
     node.changeIcon(1);
     String toResume = node.getName();
 
-    myRMA.resumeAgent(toResume);
+    //myRMA.resumeAgent(toResume);
     AgentTreeModel myModel = myRMA.getModel();
     myModel.nodeChanged(node);
   }

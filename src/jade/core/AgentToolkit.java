@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.rmi.RemoteException;
+import java.util.EventListener;
 
 import jade.lang.acl.ACLMessage;
 
@@ -31,33 +31,11 @@ import jade.lang.acl.ACLMessage;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class RemoteProxyRMI implements RemoteProxy {
 
-  private AgentContainer ref;
-  private AID receiverName;
-
-  public RemoteProxyRMI(AgentContainer ac, AID rn) {
-    ref = ac;
-    receiverName = rn;
-  }
-
-  public void dispatch(ACLMessage msg) throws NotFoundException {
-    try {
-      ref.dispatch(msg, receiverName); // RMI call
-    }
-    catch(RemoteException re) {
-      throw new NotFoundException("RMI communication failure: ["+ re.getMessage() + "]");
-    }
-
-  }
-
-  public void ping() throws UnreachableException {
-    try {
-      ref.ping(false);
-    }
-    catch(RemoteException re) {
-      throw new UnreachableException("Unreachable RMI object");
-    }
-  }
-
+interface AgentToolkit {
+  void handleStart(String localName, Agent instance);
+  void handleEnd(AID agentID);
+  void handleMove(AID agentID, Location where);
+  void handleClone(AID agentID, Location where, String newName);
+  void handleSend(ACLMessage msg);
 }

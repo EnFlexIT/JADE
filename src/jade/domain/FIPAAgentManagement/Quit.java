@@ -21,10 +21,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.domain.FIPAAgentManagement;
 
-import jade.onto.basic.AID;
+import jade.core.AID;
 
 public class Quit {
 AID aid;

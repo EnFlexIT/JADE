@@ -40,22 +40,14 @@ import java.util.HashMap;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.domain.FIPAAgentManagement.AID;
-import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-import jade.domain.FIPAAgentManagement.APDescription;
-import jade.domain.FIPAAgentManagement.AlreadyRegistered;
-import jade.domain.FIPAAgentManagement.NotRegistered;
-import jade.domain.FIPAAgentManagement.InternalError;
+import jade.domain.FIPAAgentManagement.*;
+import jade.domain.JADEAgentManagement.*;
 
-import jade.domain.FIPAAgentManagement.Register;
-import jade.domain.FIPAAgentManagement.Deregister;
-import jade.domain.FIPAAgentManagement.Modify;
-import jade.domain.FIPAAgentManagement.Search;
-import jade.domain.FIPAAgentManagement.SearchConstraints;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import jade.lang.sl.SL0Codec;
 
 import jade.onto.Action;
 
@@ -72,10 +64,10 @@ import jade.proto.FipaRequestResponderBehaviour;
   @version $Date$ $Revision$
 
 */
-public class ams extends Agent {
+public class ams extends Agent implements AgentManager.Listener {
 
   private abstract class AMSBehaviour
-      extends FipaRequestResponderBehaviour.Action
+      extends FipaRequestResponderBehaviour.ActionHandler
       implements FipaRequestResponderBehaviour.Factory {
 
     protected AMSBehaviour() {
@@ -91,9 +83,8 @@ public class ams extends Agent {
       try {
 
 	ACLMessage msg = getRequest();
-        
-       	// Extract the Action object from the message content
-	List l = extractContent(msg);
+
+	List l = myAgent.extractContent(msg);
 	Action a = (Action)l.get(0);
 
 	// Do real action, deferred to subclasses
@@ -123,7 +114,7 @@ public class ams extends Agent {
 
   private class RegBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new RegBehaviour();
     }
 
@@ -166,7 +157,7 @@ public class ams extends Agent {
 
   private class DeregBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new DeregBehaviour();
     }
 
@@ -182,7 +173,7 @@ public class ams extends Agent {
 
   private class ModBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new ModBehaviour();
     }
 
@@ -198,7 +189,7 @@ public class ams extends Agent {
 
   private class SrchBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new SrchBehaviour();
     }
 
@@ -214,7 +205,7 @@ public class ams extends Agent {
 
   private class GetDescriptionBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new GetDescriptionBehaviour();
     }
 
@@ -233,19 +224,19 @@ public class ams extends Agent {
   } // End of GetDescriptionBehaviour class
 
 
-  // These Behaviours handle interactions with Remote Management Agent.
+  // These Behaviours handle interactions with platform tools.
 
-  private class RegisterRMABehaviour extends CyclicBehaviour {
+  private class RegisterToolBehaviour extends CyclicBehaviour {
 
     private MessageTemplate subscriptionTemplate;
 
-    RegisterRMABehaviour() {
+    RegisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage("SL");
-      MessageTemplate mt2 = MessageTemplate.MatchOntology("jade-agent-management");
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
-      mt1 = MessageTemplate.MatchReplyWith("RMA-subscription");
+      mt1 = MessageTemplate.MatchReplyWith("tool-subscription");
       mt2 = MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE);
       subscriptionTemplate = MessageTemplate.and(mt1, mt2);
       subscriptionTemplate = MessageTemplate.and(subscriptionTemplate, mt12);
@@ -259,70 +250,98 @@ public class ams extends Agent {
       if(current != null) {
 	// FIXME: Should parse 'iota ?x ...'
 
-	// Get new RMA name from subscription message
-	AID newRMA = current.getSender();
+	// Get new tool name from subscription message
+	AID newTool = current.getSender();
 
-	// Send back the whole container list.
-	String[] names = myPlatform.containerNames();
-	for(int i = 0; i < names.length; i++) {
-	  String containerName = names[i];
+	try {
 
-	  // Create an ontological object corresponding to a sequence<string> ...
+	  // Send back the whole container list.
+	  String[] names = myPlatform.containerNames();
+	  for(int i = 0; i < names.length; i++) {
 
-	  RMANotification.clearAllReceiver();
-	  RMANotification.addReceiver(newRMA);
-	  RMANotification.setContent("");
-	  send(RMANotification);
+	    String containerName = names[i];
 
-	}
+	    // FIXME: Need to retrieve the real host from the platform
+	    InetAddress addr = null;
+	    try {
+	      addr = InetAddress.getLocalHost();
+	    }
+	    catch(java.net.UnknownHostException jnuhe) {
+	      jnuhe.printStackTrace();
+	    }
 
-	// Send all agent names, along with their container name.
-	names = myPlatform.agentNames();
-	for(int i = 0; i < names.length; i++) {
-          try {
-	    String agentName = names[i];
+	    String containerHost = addr.getHostName();
+
+	    ContainerBorn cb = new ContainerBorn();
+	    cb.setName(containerName);
+	    cb.setHost(containerHost);
+	    EventOccurred eo = new EventOccurred();
+	    eo.setEvent(cb);
+
+	    List l = new ArrayList(1);
+	    l.add(eo);
+
+	    toolNotification.clearAllReceiver();
+	    toolNotification.addReceiver(newTool);
+	    fillContent(toolNotification, l);
+
+	    send(toolNotification);
+
+	  }
+
+	  // Send all agent names, along with their container name.
+	  AID[] agents = myPlatform.agentNames();
+	  for(int i = 0; i < agents.length; i++) {
+
+	    AID agentName = agents[i];
 	    String containerName = myPlatform.getContainerName(agentName);
 
-	    AMSAgentDescription amsd = new AMSAgentDescription();
+	    AgentBorn ab = new AgentBorn();
+	    ab.setContainer(containerName);
+	    ab.setAgent(agentName);
+	    EventOccurred eo = new EventOccurred();
+	    eo.setEvent(ab);
+
 	    List l = new ArrayList(1);
-	    l.add(amsd);
+	    l.add(eo);
 
-	    fillContent(RMANotification, l);
-	    RMANotification.clearAllReceiver();
-	    RMANotification.addReceiver(newRMA);
-	    send(RMANotification);
+	    toolNotification.clearAllReceiver();
+	    toolNotification.addReceiver(newTool);
+	    fillContent(toolNotification, l);
+
+	    send(toolNotification);
 	  }
-	  catch(NotFoundException nfe) {
-	    nfe.printStackTrace();
-	  }
-	  catch(FIPAException fe) {
-	    fe.printStackTrace();
-	  }
+
+	  // Add the new tool to tools list.
+	  tools.add(newTool);
+
 	}
-
-	// Add the new RMA to RMAs list.
-	RMAs.add(newRMA);
-
+	catch(NotFoundException nfe) {
+	  nfe.printStackTrace();
+	}
+	catch(FIPAException fe) {
+	  fe.printStackTrace();
+	}
       }
       else
 	block();
 
     }
 
-  } // End of RegisterRMABehaviour class
+  } // End of RegisterToolBehaviour class
 
 
-  private class DeregisterRMABehaviour extends CyclicBehaviour {
+  private class DeregisterToolBehaviour extends CyclicBehaviour {
 
     private MessageTemplate cancellationTemplate;
 
-    DeregisterRMABehaviour() {
+    DeregisterToolBehaviour() {
 
-      MessageTemplate mt1 = MessageTemplate.MatchLanguage("SL");
-      MessageTemplate mt2 = MessageTemplate.MatchOntology("jade-agent-management");
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
-      mt1 = MessageTemplate.MatchReplyWith("RMA-cancellation");
+      mt1 = MessageTemplate.MatchReplyWith("tool-cancellation");
       mt2 = MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
       cancellationTemplate = MessageTemplate.and(mt1, mt2);
       cancellationTemplate = MessageTemplate.and(cancellationTemplate, mt12);
@@ -334,10 +353,10 @@ public class ams extends Agent {
       // Receive 'cancel' ACL messages.
       ACLMessage current = receive(cancellationTemplate);
       if(current != null) {
-	// FIXME: Should parse 'iota ?x ...'
+	// FIXME: Should parse the content
 
-	// Remove this RMA to RMAs agent group.
-	RMAs.remove(current.getSender());
+	// Remove this tool to tools agent group.
+	tools.remove(current.getSender());
 
       }
       else
@@ -345,185 +364,105 @@ public class ams extends Agent {
 
     }
 
-  } // End of DeregisterRMABehaviour class
+  } // End of DeregisterToolBehaviour class
 
 
-  private class NotifyRMAsBehaviour extends CyclicBehaviour {
-
-    private void processNewContainers() {
-      Iterator it = newContainersBuffer.iterator();
-      while(it.hasNext()) {
-	ContDesc c  = (ContDesc)it.next();
-	String name = c.name;
-	InetAddress addr = c.addr;
-	MobilityOntology.Location loc = new MobilityOntology.Location();
-	loc.setName(name);
-	loc.setTransportProtocol("JADE-IPMT");
-	loc.setTransportAddress(getHap() + "." + name);
-	mobilityMgr.addLocation(name, loc);
-
-	// Fill the content with a suitable ontological object
-	RMANotification.setContent("");
-	RMANotification.clearAllReceiver();
-	Iterator rmaIt = RMAs.iterator();
-	while(rmaIt.hasNext())
-	  RMANotification.addReceiver((AID)rmaIt.next());
-
-	send(RMANotification);
-
-	it.remove();
-      }
-    }
-
-    private void processDeadContainers() {
-      Iterator it = deadContainersBuffer.iterator();
-      while(it.hasNext()) {
-	String name = (String)it.next();
-	mobilityMgr.removeLocation(name);
-
-	// Fill the content with a suitable ontological object
-	RMANotification.setContent("");
-	RMANotification.clearAllReceiver();
-	Iterator rmaIt = RMAs.iterator();
-	while(rmaIt.hasNext())
-	  RMANotification.addReceiver((AID)rmaIt.next());
-
-	send(RMANotification);
-
-	it.remove();
-      }
-    }
-
-    private void processNewAgents() {
-      Iterator it = newAgentsBuffer.iterator();
-      while(it.hasNext()) {
-	AgDesc ad = (AgDesc)it.next();
-
-	// Fill the content with a suitable ontological object
-	RMANotification.setContent("");
-	RMANotification.clearAllReceiver();
-	Iterator rmaIt = RMAs.iterator();
-	while(rmaIt.hasNext())
-	  RMANotification.addReceiver((AID)rmaIt.next());
-
-	send(RMANotification);
-
-	it.remove();
-      }
-    }
-
-    private void processDeadAgents() {
-      Iterator it = deadAgentsBuffer.iterator();
-      while(it.hasNext()) {
-	AgDesc ad = (AgDesc)it.next();
-
-	// Remove Agent Descriptor from table
-
-	// Fill the content with a suitable ontological object
-	RMANotification.setContent("");
-	RMANotification.clearAllReceiver();
-	Iterator rmaIt = RMAs.iterator();
-	while(rmaIt.hasNext())
-	  RMANotification.addReceiver((AID)rmaIt.next());
-
-	send(RMANotification);
-	it.remove();
-      }
-    }
-
-    private void processMovedAgents() {
-      Iterator it = movedAgentsBuffer.iterator();
-      while(it.hasNext()) {
-	MotionDesc md = (MotionDesc)it.next();
-
-	// Fill the content with a suitable ontological object
-	RMANotification.setContent("");
-	RMANotification.clearAllReceiver();
-	Iterator rmaIt = RMAs.iterator();
-	while(rmaIt.hasNext())
-	  RMANotification.addReceiver((AID)rmaIt.next());
-
-	send(RMANotification);
-	it.remove();
-      }
-    }
+  private class NotifyToolsBehaviour extends CyclicBehaviour {
 
     public void action() {
-      // Look into the event buffers with AgentPlatform and send
-      // appropriate ACL messages to registered RMAs
 
-      // Mutual exclusion with postXXX() methods
-      synchronized(ams.this) {
-	processNewContainers();
-	processDeadContainers();
-	processNewAgents();
-	processDeadAgents();
-	processMovedAgents();
+      synchronized(ams.this) { // Mutual exclusion with handleXXX() methods
+
+	// Look into the event buffer
+	Iterator it = eventQueue.iterator();
+	EventOccurred eo = new EventOccurred();
+
+	while(it.hasNext()) {
+
+	  // Write the event into the notification message
+	  AMSEvent ev = (AMSEvent)it.next();
+	  List l = new ArrayList(1);
+	  eo.setEvent(ev);
+	  l.add(eo);
+	  try {
+	    fillContent(toolNotification, l);
+	  }
+	  catch(FIPAException fe) {
+	    fe.printStackTrace();
+	  }
+
+	  // Put all tools in the receiver list
+	  toolNotification.clearAllReceiver();
+	  Iterator toolIt = tools.iterator();
+	  while(toolIt.hasNext()) {
+	    AID tool = (AID)toolIt.next();
+	    toolNotification.addReceiver(tool);
+	  }
+
+	  send(toolNotification);
+	  it.remove();
+	}
       }
 
       block();
-
     }
 
-  } // End of NotifyRMAsBehaviour class
+  } // End of NotifyToolsBehaviour class
 
   private class KillContainerBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new KillContainerBehaviour();
     }
 
     protected void processAction(Action a) throws FIPAException {
 
-	/*
-      // Obtain container name and ask AgentPlatform to kill it
-      AgentManagementOntology.KillContainerAction kca = (AgentManagementOntology.KillContainerAction)a;
-      String containerName = kca.getContainerName();
+      KillContainer kc = (KillContainer)a.get_1();
+      String containerName = kc.getName();
       myPlatform.killContainer(containerName);
       sendAgree();
       sendInform();
-	*/
+
     }
 
   } // End of KillContainerBehaviour class
 
   private class CreateBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new CreateBehaviour();
     }
 
     protected void processAction(Action a) throws FIPAException {
-	/*
-      AgentManagementOntology.CreateAgentAction caa = (AgentManagementOntology.CreateAgentAction)a;
-      String className = caa.getClassName();
-      String containerName = caa.getProperty(AgentManagementOntology.CreateAgentAction.CONTAINER);
+      CreateAgent ca = (CreateAgent)a.get_1();
+
+      String agentName = ca.getAgentName();
+      String className = ca.getClassName();
+      String containerName = ca.getContainerName();
 
       sendAgree();
 
-      // Create a new agent
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
       try {
-	myPlatform.create(amsd.getName(), className, containerName);
+	myPlatform.create(agentName, className, containerName);
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.
 	ACLMessage reply = getReply();
 	reply = (ACLMessage)reply.clone();
 
-	pendingInforms.put(amsd.getName(), reply);
+	pendingInforms.put(agentName, reply);
       }
       catch(UnreachableException ue) {
-	throw new NoCommunicationMeansException();
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
-	*/
+
     }
 
   } // End of CreateBehaviour class
 
   private class KillBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new KillBehaviour();
     }
 
@@ -552,7 +491,7 @@ public class ams extends Agent {
 
   private class SniffAgentOnBehaviour extends AMSBehaviour { 
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new SniffAgentOnBehaviour();
     }
 
@@ -574,7 +513,7 @@ public class ams extends Agent {
 
   private class SniffAgentOffBehaviour extends AMSBehaviour {
 
-    public FipaRequestResponderBehaviour.Action create() {
+    public FipaRequestResponderBehaviour.ActionHandler create() {
       return new SniffAgentOffBehaviour();
     }
 
@@ -595,43 +534,7 @@ public class ams extends Agent {
   } // End of SniffAgentOffBehaviour class
 
 
-  private static class AgDesc {
 
-    public AgDesc(String s, AMSAgentDescription a) {
-      containerName = s;
-      amsd = a;
-    }
-
-    public String containerName;
-    public AMSAgentDescription amsd;
-
-  }
-
-  private static class ContDesc {
-
-    public ContDesc(String s, InetAddress a) {
-      name = s;
-      addr = a;
-    }
-
-    public String name;
-    public InetAddress addr;
-
-  }
-
-  private static class MotionDesc {
-
-    public MotionDesc(AMSAgentDescription amsd, String s, String d) {
-      desc = amsd;
-      src = s;
-      dest = d;
-    }
-
-    public AMSAgentDescription desc;
-    public String src;
-    public String dest;
-
-  }
 
   // The AgentPlatform where information about agents is stored 
   /**
@@ -639,12 +542,19 @@ public class ams extends Agent {
   */
   private AgentManager myPlatform;
 
-
-  // Maintains an association between action names and behaviours
+  // Maintains an association between action names and behaviours to
+  // handle 'fipa-agent-management' actions
   /**
   @serial
   */
   private FipaRequestResponderBehaviour dispatcher;
+
+  // Maintains an association between action names and behaviours to
+  // handle 'jade-agent-management' actions
+  /**
+  @serial
+  */
+  private FipaRequestResponderBehaviour extensionsDispatcher;
 
   // Contains a main Behaviour and some utilities to handle JADE mobility
   /**
@@ -652,60 +562,42 @@ public class ams extends Agent {
   */
   private MobilityManager mobilityMgr;
 
-  // Behaviour to listen to incoming 'subscribe' messages from Remote
-  // Management Agents.
+  // Behaviour to listen to incoming 'subscribe' messages from tools.
   /**
   @serial
   */
-  private RegisterRMABehaviour registerRMA;
+  private RegisterToolBehaviour registerTool;
 
   // Behaviour to broadcats AgentPlatform notifications to each
-  // registered Remote Management Agent.
+  // registered tool.
   /**
   @serial
   */
-  private NotifyRMAsBehaviour notifyRMAs;
+  private NotifyToolsBehaviour notifyTools;
 
-  // Behaviour to listen to incoming 'cancel' messages from Remote
-  // Management Agents.
+  // Behaviour to listen to incoming 'cancel' messages from tools.
   /**
   @serial
   */
-  private DeregisterRMABehaviour deregisterRMA;
+  private DeregisterToolBehaviour deregisterTool;
 
-  // Group of Remote Management Agents registered with this AMS
+  // Group of tools registered with this AMS
   /**
   @serial
   */
-  private List RMAs;
+  private List tools;
 
-  // ACL Message to use for RMA notification
+  // ACL Message to use for tool notification
   /**
   @serial
   */
-  private ACLMessage RMANotification = new ACLMessage(ACLMessage.INFORM);
+  private ACLMessage toolNotification = new ACLMessage(ACLMessage.INFORM);
 
-  // Buffers for AgentPlatform notifications
+  // Buffer for AgentPlatform notifications
   /**
   @serial
   */
-  private List newContainersBuffer = new ArrayList();
-  /**
-  @serial
-  */
-  private List deadContainersBuffer = new ArrayList();
-  /**
-  @serial
-  */
-  private List newAgentsBuffer = new ArrayList();
-  /**
-  @serial
-  */
-  private List deadAgentsBuffer = new ArrayList();
-  /**
-  @serial
-  */
-  private List movedAgentsBuffer = new ArrayList();
+  private List eventQueue = new ArrayList(10);
 
   /**
   @serial
@@ -726,22 +618,29 @@ public class ams extends Agent {
   */
   public ams(AgentManager ap) {
     myPlatform = ap;
+    myPlatform.addListener(this);
 
-    MessageTemplate mt = 
-      MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
+    MessageTemplate mtFIPA = 
+      MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			  MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
-    dispatcher = new FipaRequestResponderBehaviour(this, mt);
+    dispatcher = new FipaRequestResponderBehaviour(this, mtFIPA);
+
+    MessageTemplate mtJADE = 
+      MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
+			  MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME));
+    extensionsDispatcher = new FipaRequestResponderBehaviour(this, mtJADE);
+
     mobilityMgr = new MobilityManager(this);
-    registerRMA = new RegisterRMABehaviour();
-    deregisterRMA = new DeregisterRMABehaviour();
-    notifyRMAs = new NotifyRMAsBehaviour();
+    registerTool = new RegisterToolBehaviour();
+    deregisterTool = new DeregisterToolBehaviour();
+    notifyTools = new NotifyToolsBehaviour();
 
-    RMAs = new ArrayList();
+    tools = new ArrayList();
 
-    RMANotification.setSender(new AID());
-    RMANotification.setLanguage("SL");
-    RMANotification.setOntology("jade-agent-management");
-    RMANotification.setInReplyTo("RMA-subscription");
+    toolNotification.setSender(new AID());
+    toolNotification.setLanguage(SL0Codec.NAME);
+    toolNotification.setOntology("jade-agent-management");
+    toolNotification.setInReplyTo("tool-subscription");
 
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
@@ -752,13 +651,13 @@ public class ams extends Agent {
     dispatcher.registerFactory(FIPAAgentManagementOntology.SEARCH, new SrchBehaviour());
 
     dispatcher.registerFactory(FIPAAgentManagementOntology.GETDESCRIPTION, new GetDescriptionBehaviour());
-    /*
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLCONTAINER, new KillContainerBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTON, new SniffAgentOnBehaviour());
-    dispatcher.registerFactory(AgentManagementOntology.AMSAction.SNIFFAGENTOFF, new SniffAgentOffBehaviour());
-    */
+
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.CREATEAGENT, new CreateBehaviour());
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLAGENT, new KillBehaviour());
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLCONTAINER, new KillContainerBehaviour());
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFON, new SniffAgentOnBehaviour());
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFOFF, new SniffAgentOffBehaviour());
+
   }
 
   /**
@@ -773,18 +672,28 @@ public class ams extends Agent {
     theProfile.setMobility(new Boolean(false));
     theProfile.setTransportProfile(null);
 
+
+    // Register the two supported ontologies (beyond the default capabilities).
+    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+
+
     // Add a dispatcher Behaviour for all ams actions following from a
-    // 'fipa-request' interaction
+    // 'fipa-request' interaction with 'fipa-agent-management' ontology.
     addBehaviour(dispatcher);
+
+    // Add a dispatcher Behaviour for all ams actions following from a
+    // 'fipa-request' interaction with 'jade-agent-management' ontology.
+    addBehaviour(extensionsDispatcher);
 
     // Add a main behaviour to manage mobility related messages
     addBehaviour(mobilityMgr.getMain());
 
-    // Add a Behaviour to accept incoming RMA registrations and a
-    // Behaviour to broadcast events to registered RMAs.
-    addBehaviour(registerRMA);
-    addBehaviour(deregisterRMA);
-    addBehaviour(notifyRMAs);
+    // Add a Behaviour to accept incoming tool registrations and a
+    // Behaviour to broadcast events to registered tools.
+    addBehaviour(registerTool);
+    addBehaviour(deregisterTool);
+    addBehaviour(notifyTools);
 
   }
 
@@ -805,15 +714,12 @@ public class ams extends Agent {
   }
 
   // This one is called in response to a 'move-agent' action
-  void AMSMoveAgent(String agentName, Location where) throws FIPAException {
+  void AMSMoveAgent(AID agentID, Location where) throws FIPAException {
     try {
-      int atPos = agentName.indexOf('@');
-      if(atPos == -1)
-        agentName = agentName.concat('@' + getHap());
-      myPlatform.move(agentName, where, "");
+      myPlatform.move(agentID, where, "");
     }
     catch(UnreachableException ue) {
-      throw new InternalError("The container is not reachable");
+      throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
     }
     catch(NotFoundException nfe) {
       throw new NotRegistered();
@@ -821,15 +727,12 @@ public class ams extends Agent {
   }
 
   // This one is called in response to a 'clone-agent' action
-  void AMSCloneAgent(String agentName, Location where, String newName) throws FIPAException {
+  void AMSCloneAgent(AID agentID, Location where, String newName) throws FIPAException {
     try {
-      int atPos = agentName.indexOf('@');
-      if(atPos == -1)
-        agentName = agentName.concat('@' + getHap());
-      myPlatform.copy(agentName, where, newName, "");
+      myPlatform.copy(agentID, where, newName, "");
     }
     catch(UnreachableException ue) {
-      throw new InternalError("The container is not reachable");
+      throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
     }
     catch(NotFoundException nfe) {
       throw new NotRegistered();
@@ -838,12 +741,9 @@ public class ams extends Agent {
 
 
   // This one is called in response to a 'where-is-agent' action
-  MobilityOntology.Location AMSWhereIsAgent(String agentName) throws FIPAException {
+  MobilityOntology.Location AMSWhereIsAgent(AID agentID) throws FIPAException {
     try {
-      int atPos = agentName.indexOf('@');
-      if(atPos == -1)
-        agentName = agentName.concat('@' + getHap());
-      String containerName = myPlatform.getContainerName(agentName);
+      String containerName = myPlatform.getContainerName(agentID);
       return mobilityMgr.getLocation(containerName);
     }
     catch(NotFoundException nfe) {
@@ -879,6 +779,7 @@ public class ams extends Agent {
   */
   public void deregisterWithAMS() throws FIPAException {
     AMSAgentDescription amsd = new AMSAgentDescription(); // Get the standard AMS AID.
+    amsd.setName(getAID());
     AMSDeregister(amsd);
   }
 
@@ -888,8 +789,20 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postNewContainer(String name, InetAddress addr) {
-    newContainersBuffer.add(new ContDesc(name, addr));
+  public synchronized void handleNewContainer(String name, InetAddress addr) {
+
+    // Add a new location to the locations list
+    MobilityOntology.Location loc = new MobilityOntology.Location();
+    loc.setName(name);
+    loc.setTransportProtocol("JADE-IPMT");
+    loc.setTransportAddress(getHap() + "." + name);
+    mobilityMgr.addLocation(name, loc);
+
+    // Fire a 'container is born' event
+    ContainerBorn cb = new ContainerBorn();
+    cb.setName(name);
+    cb.setHost(addr.getHostName());
+    eventQueue.add(cb);
     doWake();
   }
 
@@ -897,8 +810,14 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postDeadContainer(String name) {
-    deadContainersBuffer.add(new String(name));
+  public synchronized void handleDeadContainer(String name) {
+    // Remove the location from the location list
+    mobilityMgr.removeLocation(name);
+
+    // Fire a 'container is dead' event
+    ContainerDead cd = new ContainerDead();
+    cd.setName(name);
+    eventQueue.add(cd);
     doWake();
   }
 
@@ -906,9 +825,11 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postNewAgent(String containerName, String agentName) {
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    newAgentsBuffer.add(new AgDesc(containerName, amsd));
+  public synchronized void handleNewAgent(String containerName, AID agentID) {
+    AgentBorn ab = new AgentBorn();
+    ab.setAgent(agentID);
+    ab.setContainer(containerName);
+    eventQueue.add(ab);
     doWake();
   }
 
@@ -916,10 +837,11 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postDeadAgent(String containerName, String agentName) {
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    //(AMSAgentDescription)descrTable.get(agentName.toLowerCase());
-    deadAgentsBuffer.add(new AgDesc(containerName, amsd));
+  public synchronized void handleDeadAgent(String containerName, AID agentID) {
+    AgentDead ad = new AgentDead();
+    ad.setAgent(agentID);
+    ad.setContainer(containerName);
+    eventQueue.add(ad);
     doWake();
   }
 
@@ -927,10 +849,12 @@ public class ams extends Agent {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void postMovedAgent(String agentName, String src, String dest) {
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    //(AMSAgentDescription)descrTable.get(agentName.toLowerCase());
-    movedAgentsBuffer.add(new MotionDesc(amsd, src, dest));
+  public synchronized void handleMovedAgent(String fromContainer, String toContainer, AID agentID) {
+    AgentMoved am = new AgentMoved();
+    am.setFrom(fromContainer);
+    am.setTo(toContainer);
+    am.setAgent(agentID);
+    eventQueue.add(am);
     doWake();
   }
 

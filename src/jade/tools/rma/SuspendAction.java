@@ -44,7 +44,7 @@ class SuspendAction extends  AgentAction {
     node.changeIcon(0);
     String toSuspend = node.getName();
 
-    myRMA.suspendAgent(toSuspend);
+    // myRMA.suspendAgent(toSuspend);
     AgentTreeModel myModel = myRMA.getModel();
     myModel.nodeChanged(node);
 

@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 
-import jade.onto.basic.AID;
+import jade.core.AID;
 
 /**
    A pattern for matching incoming ACL messages. This class allows to
@@ -48,22 +48,22 @@ import jade.onto.basic.AID;
 */
 public class MessageTemplate implements Serializable {
 
-  private static final String wildCard = "*";
-
   // Names of the various fields of an ACL messages.
   // Used to build the names of get()/set() methods.
-  private static final String[] fieldNames = { "Content",
-					       "ConversationId",
-					       "Encoding",
-					       "InReplyTo",
-					       "Language",
-					       "Ontology",
-					       "Protocol",
-					       "Receiver",
-					       "ReplyBy",
-					       "ReplyTo",
-					       "ReplyWith",
-					       "Sender"
+  private static final String[] stringFields = { "Content",
+						 "ConversationId",
+						 "Encoding",
+						 "InReplyTo",
+						 "Language",
+						 "Ontology",
+						 "Protocol",
+						 "ReplyBy",
+						 "ReplyWith",
+  };
+
+  private static final String[] listFields = { 
+    "Receiver",
+    "ReplyTo"
   };
 
   private static interface MatchExpression {
@@ -182,19 +182,6 @@ public class MessageTemplate implements Serializable {
     public boolean match(ACLMessage msg) {
       Class ACLMessageClass = msg.getClass();
 
-      // Used to hold the classes of the formal parameters of
-      // get<name>() methods.
-      Class[] noClass = new Class[0];
-
-      // Used to hold actual parameters of get<name>() methods.
-      Object[] noParams = new Object[0];
-
-      Method getValue = null;
-
-      String s1 = null;
-      String s2 = null;
-
-      boolean result = true;
       ACLMessage templMessage = template.getMsg();
 
       if(template.matchPerformative()) {
@@ -204,49 +191,84 @@ public class MessageTemplate implements Serializable {
 	  return false;
       }
 
-      for(int i = 0; i<fieldNames.length; i++) {
-	String name = fieldNames[i];
+      try {
+	// Match String slots
+	for(int i = 0; i < stringFields.length; i++) {
 
-	try {
-
-	  getValue = ACLMessageClass.getMethod("get"+name, noClass);
+	  String name = stringFields[i];
+	  Method getValue = ACLMessageClass.getMethod("get" + name, new Class[] { });
 
 	  // This means: s1 = templMessage.get<value>();
-	  s1 = (String)getValue.invoke(templMessage, noParams); // FIXME: Need to handle also List slots
+	  String s1 = (String)getValue.invoke(templMessage, new Object[] { });
 
 	  // This means: s2 = msg.get<value>();
-	  s2 = (String)getValue.invoke(msg, noParams); // FIXME: Need to handle also List slots
+	  String s2 = (String)getValue.invoke(msg, new Object[] { });
 
-	  if((!(s1.equalsIgnoreCase(wildCard))&&(!s1.equalsIgnoreCase(s2)))) {
-	    result = false;
-	    break; // Exit for loop
+	  if(s1 != null)
+	    if((s1.length() > 0) && (!s1.equalsIgnoreCase(s2)))
+	      return false;
+	}
+
+	// Match 'sender' slot
+	AID id1 = templMessage.getSender();
+	AID id2 = msg.getSender();
+	if(id1 != null)
+	  if(!id1.equals(id2))
+	    return false;
+
+	// Match List slots
+	for(int i = 0; i < listFields.length; i++) {
+	  String name = listFields[i];
+	  Method getValues = ACLMessageClass.getMethod("getAll" + name, new Class[] { });
+
+	  // This means: it1 = templMessage.getAll<name>();
+	  Iterator it1 = (Iterator)getValues.invoke(templMessage, new Object[] { });
+	  while(it1.hasNext()) {
+	    Object templateListElement = it1.next();
+
+	    // This means: it2 = templMessage.getAll<name>();
+	    Iterator it2 = (Iterator)getValues.invoke(msg, new Object[] { });
+	    boolean found = false;
+	    while(it2.hasNext()) {
+	      if(templateListElement.equals(it2.next())) {
+		found = true;
+		break; // Out of the inner while loop
+	      }
+	    }
+	    // If an element of the template list is not found within
+	    // the message list, the message does not match.
+	    if(found == false)
+	      return false;
 	  }
+
 	}
-	catch(Exception e) {
-	  e.printStackTrace();
-	}
+
+      }
+      catch(Exception e) {
+	e.printStackTrace();
+	return false;
       }
 
-      return result;
+      return true;
 
     }
 
-    public void toText(Writer w) {
+    public void toText(Writer w) { // FIXME: This method just prints out the String slots.
       try {
 	w.write("(\n");
-	for(int i = 0; i<fieldNames.length; i++) {
-	  String name = fieldNames[i];
+	for(int i = 0; i < stringFields.length; i++) {
+	  String name = stringFields[i];
 	  String value = null;
 	  try {
 	    ACLMessage msg = template.getMsg();
-	    Method getValue = ACLMessage.class.getMethod("get"+name, new Class[0]);
+	    Method getValue = ACLMessage.class.getMethod("get" + name, new Class[] { });
 	    // This means: s1 = msg.get<value>();
-	    value = (String)getValue.invoke(msg, new Object[0]);
+	    value = (String)getValue.invoke(msg, new Object[] { });
 	  }
 	  catch(Exception e) {
 	    e.printStackTrace();
 	  }
-	  if((value != null) && (!value.equals(wildCard)))
+	  if(value != null)
 	    w.write(" :" + name + " == " + value + "\n");
 	}
 	w.write(")\n");
@@ -267,30 +289,36 @@ public class MessageTemplate implements Serializable {
   // Creates an ACL message with all fields set to the special,
   // out-of-band wildcard value.
   private static ACLMessage allWildCard() {
-    ACLMessage msg = new ACLMessage(wildCard);
+    ACLMessage msg = new ACLMessage(ACLMessage.UNKNOWN);
 
-    Class ACLMessageClass = msg.getClass();
+    try {
+      for(int i = 0; i < stringFields.length; i++) {
 
-    Method setValue = null;
-    String name = null;
+	Class ACLMessageClass = ACLMessage.class;
+	String name = stringFields[i];
 
-    // Formal parameter type for set<name>() method call
-    Class[] paramType = { wildCard.getClass() };
-
-    // Actual parameter for set<name>() method call
-    Object[] param = { wildCard };
-
-    for(int i = 0; i<fieldNames.length; i++) {
-      name = fieldNames[i];
-    
-      try {
 	// This means: msg.set<name>(param)
-	setValue = ACLMessageClass.getMethod("set" + name, paramType);
-	setValue.invoke(msg, param);
+	Method setValue = ACLMessageClass.getMethod("set" + name, new Class[] { String.class });
+	setValue.invoke(msg, new Object[] { null });
+
+	msg.setSender(null); // The 'sender' slot is different, because it is of AID type.
       }
-      catch(Exception e) {
-	e.printStackTrace();
+
+      for(int i = 0; i < listFields.length; i++) {
+
+	Class ACLMessageClass = ACLMessage.class;
+	String name = listFields[i];
+
+	// This means: msg.clearAll<name>(param)
+	Method clearValue = ACLMessageClass.getMethod("clearAll" + name, new Class[] { });
+	clearValue.invoke(msg, new Object[] { });
+
+	msg.setSender(null); // The 'sender' slot is different, because it is of AID type.
       }
+
+    }
+    catch(Exception e) {
+      e.printStackTrace();
     }
 
     return msg;
@@ -523,47 +551,7 @@ public class MessageTemplate implements Serializable {
      message according to the above algorithm.
   */
   public static MessageTemplate MatchCustom(ACLMessage msg, boolean matchPerformative) {
-    ACLMessage message = allWildCard();
-
-    Class ACLMessageClass = msg.getClass();
-
-    // Used to hold the classes of the formal parameters of
-    // get<name>() methods.
-    Class[] noClass = new Class[0];
-
-    // Used to hold actual parameters of get<name>() methods.
-    Object[] noParams = new Object[0];
-
-    // Used to hold the classes of the formal parameters of
-    // set<name>() methods.
-    Class[] stringClass = { String.class };
-
-    Method getValue = null;
-    Method setValue = null;
-
-    String s1 = null;
-    String s2 = null;
-
-    boolean result = true;
-    for(int i = 0; i<fieldNames.length; i++) {
-      String name = fieldNames[i];
-      try {
-	getValue = ACLMessageClass.getMethod("get" + name, noClass);
-	setValue = ACLMessageClass.getMethod("set" + name, stringClass);
-
-	// This means: s1 = msg.get<value>();
-	s1 = (String)getValue.invoke(msg, noParams);
-	if(s1 != null) {
-	  Object[] stringParams = { s1 };
-	  // This means: message.set<value>(s1);
-	  setValue.invoke(message, stringParams);
-	}
-      }
-      catch(Exception e) {
-        e.printStackTrace();
-      }
-    }
-
+    ACLMessage message = (ACLMessage)msg.clone();
     return new MessageTemplate(message, matchPerformative);
   }
 

@@ -26,17 +26,18 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/domain/MobilityOntology.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
+		jade/tools/rma/rma.java \
 #		jade/proto/FipaContractNetInitiatorBehaviour.java \
 #		jade/proto/FipaContractNetResponderBehaviour.java \
 #		jade/proto/FipaQueryInitiatorBehaviour.java \
 #		jade/proto/FipaQueryResponderBehaviour.java \
-		jade/onto/DefaultOntology.java \
+#		jade/onto/DefaultOntology.java \
 #		jade/tools/rma/rma.java \
 #		jade/tools/sniffer/Sniffer.java \
 #		jade/tools/DummyAgent/DummyAgent.java \
 #		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 #		jade/tools/applet/DFApplet.java \
-		starlight/util/Base64.java
+#		starlight/util/Base64.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/ACLParserConstants.java \

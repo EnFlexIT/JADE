@@ -325,19 +325,24 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   If no timeout is specified it will be set to infinite.
   */
   private void arrangeReqMsg(){
-  
+
     // Set type and protocol for request
     reqMsg.setPerformative(ACLMessage.REQUEST);
     reqMsg.setProtocol("fipa-request");
-		if (reqMsg.getReplyWith().length()<1)
+    if ((reqMsg.getReplyWith() == null) || reqMsg.getReplyWith().length()<1)
       	reqMsg.setReplyWith("Req"+(new Date()).getTime());
-    if (reqMsg.getConversationId().length()<1)
+    if ((reqMsg.getConversationId() == null) || reqMsg.getConversationId().length()<1)
 	      reqMsg.setConversationId("Req"+(new Date()).getTime());
-		
-	  timeout = reqMsg.getReplyByDate().getTime() - (new Date()).getTime();
-	  if (timeout<=1000)
-	  		timeout = -1;//infinite timeout
-	  endingTime = System.currentTimeMillis() + timeout;	
+
+    Date d = reqMsg.getReplyByDate();
+    if(d != null) {
+      timeout = d.getTime() - (new Date()).getTime();
+      if (timeout<=1000)
+	timeout = -1;//infinite timeout
+    }
+    else
+      timeout = -1;
+    endingTime = System.currentTimeMillis() + timeout;	
   }
   
   /**
@@ -350,7 +355,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   	  secondReqTemplate = MessageTemplate.MatchProtocol("fipa-request");
   		if (reqTemplate != null)  		
   			secondReqTemplate = MessageTemplate.and(reqTemplate, secondReqTemplate);
- 			// converation-id and reply-with are forced to be present 
+		// conversation-id and reply-with are forced to be present 
   		// by the method arrageReqMsg. 
       secondReqTemplate = MessageTemplate.and(MessageTemplate.MatchConversationId(reqMsg.getConversationId()),
   	                                          secondReqTemplate);

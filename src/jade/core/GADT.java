@@ -26,7 +26,6 @@ package jade.core;
 import java.util.Map;
 import java.util.HashMap;
 
-import jade.domain.FIPAAgentManagement.AID;
 
 // Class for the Global Agent Descriptor Table.
 class GADT {
@@ -39,8 +38,8 @@ class GADT {
 
   private Map descriptors = new HashMap(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
 
-  public synchronized void put(AID aid, AgentDescriptor desc) {
-    descriptors.put(aid, desc);
+  public synchronized AgentDescriptor put(AID aid, AgentDescriptor desc) {
+    return (AgentDescriptor)descriptors.put(aid, desc);
   }
 
   public synchronized AgentDescriptor get(AID key) {
@@ -59,7 +58,7 @@ class GADT {
   }
 
   public synchronized AgentDescriptor[] values() {
-    Object[] objs = descriptors.valueSet().toArray();
+    Object[] objs = descriptors.values().toArray();
     AgentDescriptor[] result = new AgentDescriptor[objs.length];
     System.arraycopy(objs, 0, result, 0, result.length);
     return result;

@@ -35,6 +35,8 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.tree.MutableTreeNode;
 
+import jade.core.AID;
+
 import jade.gui.AgentTreeModel;
 import jade.gui.AgentTree;
 
@@ -128,26 +130,28 @@ class MainWindow extends JFrame {
     SwingUtilities.invokeLater(removeIt);
   }
 
-  public void addAgent(final String containerName, final String agentName, final String agentAddress, final String typeAgent) {
+  public void addAgent(final String containerName, final AID agentID) {
 
-   // Add an agent to the specified container
-     Runnable addIt = new Runnable() {
+    // Add an agent to the specified container
+    Runnable addIt = new Runnable() {
       public void run() {
-       	AgentTree.Node node = tree.treeAgent.createNewNode(agentName,1);
-        tree.treeAgent.addAgentNode((AgentTree.AgentNode)node,containerName,agentName,agentAddress,"FIPAAGENT");
+	  String agentName = agentID.getName();
+       	AgentTree.Node node = tree.treeAgent.createNewNode(agentName, 1);
+        tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
         tree.treeAgent.setParameter("FIPAAGENT",popA);
       }
     };
     SwingUtilities.invokeLater(addIt);
   }
 
-  public void removeAgent(final String containerName, final String agentName) {
+  public void removeAgent(final String containerName, final AID agentID) {
 
     // Remove an agent from the specified container
     Runnable removeIt = new Runnable() {
       public void run() {
-       tree.treeAgent.removeAgentNode(containerName,agentName);
-     }
+	String agentName = agentID.getName();
+	tree.treeAgent.removeAgentNode(containerName, agentName);
+      }
     };
     SwingUtilities.invokeLater(removeIt);
   }

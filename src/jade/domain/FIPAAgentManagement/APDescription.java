@@ -32,9 +32,6 @@ package jade.domain.FIPAAgentManagement;
  */
 public class APDescription {
 
-  public static final String MAIN_CONTAINER_NAME = "Front-End";
-  public static final String AUX_CONTAINER_NAME = "Container-";
-
   private String name;
   private boolean dynamic;
   private boolean mobility;
