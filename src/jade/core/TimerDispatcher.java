@@ -43,10 +43,6 @@ public class TimerDispatcher implements Runnable {
   //private SortedSet timers = new SortedSetImpl();
   private boolean active;
 
-  TimerDispatcher() {
-    active = true;
-  }
-
   void setThread(Thread t) {
     if(myThread == null) {
       myThread = t;
@@ -109,10 +105,12 @@ public class TimerDispatcher implements Runnable {
     catch(InterruptedException ie) {
       // Do nothing, but just return, since this is a shutdown.
     }
+    timers.removeAllElements();
   }
 
   void start() {
-    synchronized(myThread) {
+  	synchronized(myThread) {
+  		active = true;
       myThread.start();
     }
   }
@@ -135,6 +133,7 @@ public class TimerDispatcher implements Runnable {
 		  			// Do nothing
 					}
 	      }
+	      myThread = null;
 	    }
   	}
   }
