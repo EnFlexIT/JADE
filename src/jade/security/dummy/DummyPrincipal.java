@@ -63,5 +63,16 @@ public class DummyPrincipal implements AgentPrincipal, ContainerPrincipal, jade.
 	public String toString() {
 		return getName();
 	}
+
+        public jade.security.SDSIName getSDSIName() {
+         
+               return new jade.security.SDSIName (){
+                  public String getAlgorithm() { return " "; }
+                  public byte[] getEncoded()  { return new byte[] {}; }
+                  public String getFormat() { return " "; }
+                  public String[] getLocalNames() { return new String[] {"."}; }
+                  };
+        }
+         
 	
 }

@@ -64,5 +64,10 @@ public class DummyCertificate implements IdentityCertificate, DelegationCertific
 	public void addPermission(Object permission) { }
 	public void addPermissions(List permissions) { }
 	public List getPermissions() { return new jade.util.leap.ArrayList(); }
+
+
+        public jade.security.JADEPrincipal getIssuer() { return new DummyPrincipal(); }
+        public void setIssuer(jade.security.JADEPrincipal p) { System.out.print(" "); }
+
 	
 }
