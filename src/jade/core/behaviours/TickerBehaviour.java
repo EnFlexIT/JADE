@@ -70,8 +70,11 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
     	onTick();
 			wakeupTime = System.currentTimeMillis() + period;
 			blockTime = period;
-    } 
-    block(blockTime);
+    }
+    // Maybe this behaviour has been removed within the onTick() method
+    if (myAgent != null) {
+	    block(blockTime);
+    }
 	} 
 
 	public boolean done() {
