@@ -66,7 +66,8 @@ class MsgIndication
 
 	String getIndication()
 	{
-		String tmpType = msg.getType();
+		int perf = msg.getPerformative();
+		String tmpType = ACLMessage.getPerformative(perf);
 		int blancCharCnt = TYPE_LEN - tmpType.length();
 		while (blancCharCnt-- > 0)
 			tmpType += " ";
