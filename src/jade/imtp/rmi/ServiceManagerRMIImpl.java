@@ -177,8 +177,8 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	}
     }
 
-    public void ping() throws RemoteException {
-	// Do nothing...
+    public void adopt(Node n) throws RemoteException {
+	impl.monitor(n);
     }
 
     public String[] addReplica(String addr) throws RemoteException {

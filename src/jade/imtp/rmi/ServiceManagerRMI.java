@@ -54,7 +54,7 @@ interface ServiceManagerRMI extends Remote {
     Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException;
 
     // Service methods
-    void ping() throws RemoteException;
+    void adopt(Node n) throws RemoteException;
     String[] addReplica(String addr) throws RemoteException;
     void updateCounters(int nodeCnt, int mainCnt) throws RemoteException;
 
