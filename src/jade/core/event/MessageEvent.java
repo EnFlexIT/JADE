@@ -29,11 +29,11 @@ import jade.core.Channel;
 import jade.lang.acl.ACLMessage;
 
 /**
-   This class represents the <code>added-mtp</code> concept in the
-   <code>jade-introspection</code> ontology.
+   This class represents the events related to ACL message passing.
 
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
+
  */
 public class MessageEvent extends JADEEvent {
 
