@@ -87,9 +87,67 @@ public class SL0Parser implements Codec {
     try {
       Ontology o = new DefaultOntology();
 
+      // DF supported actions
+      o.addFrame("register", Ontology.ACTION_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+      });
+
+      o.addFrame("deregister", Ontology.ACTION_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+      });
+
+      o.addFrame("modify", Ontology.ACTION_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
+      });
+
+      o.addFrame("search", Ontology.ACTION_TYPE, new TermDescriptor[] { 
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M),
+	new TermDescriptor("arg1", Ontology.PREDICATE_TYPE, ":df-depth", Ontology.O),
+	new TermDescriptor("arg2", Ontology.PREDICATE_TYPE, ":resp-req", Ontology.O)
+      });
+
+      o.addFrame(":df-depth", Ontology.PREDICATE_TYPE, new TermDescriptor[] {
+	new TermDescriptor("Fn",Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor("arg", Ontology.LONG_TYPE, Ontology.M),
+      });
+
+      o.addFrame(":resp-req", Ontology.PREDICATE_TYPE, new TermDescriptor[] {
+	new TermDescriptor("Fn",Ontology.STRING_TYPE, Ontology.M),
+	new TermDescriptor("arg", Ontology.LONG_TYPE, Ontology.M),
+      });
+
+      // AMS supported actions
+      o.addFrame("register-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+      });
+
+      o.addFrame("deregister-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+      });
+
+      o.addFrame("authenticate", Ontology.ACTION_TYPE, new TermDescriptor[] {
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+      });
+
+      o.addFrame("modify-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
+	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
+      });
+
+
+      // Concepts
+
       o.addFrame(":service-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	new TermDescriptor(":service-name", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor(":service-type", Ontology.STRING_TYPE, Ontology.M)
+      });
+
+      o.addFrame(":ams-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	new TermDescriptor(":agent-name", Ontology.STRING_TYPE, Ontology.O),
+	new TermDescriptor(":address", Ontology.STRING_TYPE, Ontology.O),
+	new TermDescriptor(":delegate-agent", Ontology.STRING_TYPE, Ontology.O),
+	new TermDescriptor(":forward-address", Ontology.STRING_TYPE, Ontology.O),
+	new TermDescriptor(":ap-state", Ontology.STRING_TYPE, Ontology.O),
+	new TermDescriptor(":ownership", Ontology.STRING_TYPE, Ontology.O),
       });
 
       o.addFrame(":df-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
@@ -102,10 +160,6 @@ public class SL0Parser implements Codec {
 	new TermDescriptor(":ownership", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor(":df-state", Ontology.STRING_TYPE, Ontology.M)
       });
-      o.addFrame("register", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor("arg0", Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
-      });
-
 
       Frame result = theParser.SL0Content(o);
       result.dump();
