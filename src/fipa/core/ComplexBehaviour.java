@@ -21,7 +21,7 @@ package fipa.core;
 import java.util.Vector;
 
 
-public abstract class ComplexBehaviour implements Behaviour {
+public class ComplexBehaviour implements Behaviour {
 
   // Inner class to implement a singly linked list of behaviours
   private class BehaviourList {
@@ -47,7 +47,8 @@ public abstract class ComplexBehaviour implements Behaviour {
       Node n = new Node();
       n.item = b;
       n.next = null;
-      last.next = n;
+      if(last != null)
+	last.next = n;
       last = n;
       if(first == null)
 	first = n;
@@ -97,17 +98,14 @@ public abstract class ComplexBehaviour implements Behaviour {
     public boolean next() {
       if(current != null) {
 	current = current.next;
-	return false;
-      }
-      else {
-	return true;
       }
 
+      return current == null;
     }
 
   }
 
-  private Agent myAgent;
+  protected Agent myAgent;
   private BehaviourList subBehaviours = new BehaviourList();
 
   // This variables mark the states when no sub-behaviour has been run
@@ -123,13 +121,16 @@ public abstract class ComplexBehaviour implements Behaviour {
     myAgent = a;
   } 
 
-  // These two methods must be implemented by derived classes.
-  protected abstract void preAction();
-  protected abstract void postAction();
+  protected void preAction() {
+  }
+
+  protected void postAction() {
+  }
 
   public final void execute() {
     if(starting) {
       preAction();
+      subBehaviours.begin();
       starting = false;
     }
     Behaviour b = subBehaviours.getCurrent();
@@ -139,7 +140,6 @@ public abstract class ComplexBehaviour implements Behaviour {
     }
     if(finished) {
       postAction();
-      // Remove yourself from ready queue
     }
   }
 
