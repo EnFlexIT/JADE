@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
-import jade.domain.agentmanagement.Envelope;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 /**
    Abstract interface for Message Transport Protocols
@@ -93,7 +93,7 @@ public interface MTP {
      close is listening to.
      @exception MTPException Thrown if some MTP cleanup error occurs.
    */
-  void deactivate(transportAddress ta);
+  void deactivate(TransportAddress ta);
 
   /**
      Deactivates all the MTP handlers.
@@ -125,7 +125,6 @@ public interface MTP {
    */
   TransportAddress strToAddr(String rep) throws MTPException;
 
-
   /**
      Converts a <code>TransportAddress</code> object into a string
      representation.
@@ -136,7 +135,6 @@ public interface MTP {
      MTP.
    */
   String addrToStr(TransportAddress ta) throws MTPException;
-
 
   /**
      Reads the name of the message transport protocol managed by this
