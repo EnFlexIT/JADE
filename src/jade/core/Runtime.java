@@ -189,7 +189,7 @@ public class Runtime {
   }
 
   /**
-     Allwos setting a <code>Runnable</code> that is executed when
+     Allows setting a <code>Runnable</code> that is executed when
      the last container in this JVM terminates.
    */
   public void invokeOnTermination(Runnable r) {
@@ -262,9 +262,11 @@ public class Runtime {
     }
   }
 
+  //#APIDOC_EXCLUDE_BEGIN
   public TimerDispatcher getTimerDispatcher() {
     return TimerDispatcher.getTimerDispatcher();
   }
+  //#APIDOC_EXCLUDE_END
 
 
   /**
