@@ -158,6 +158,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Get ACL message from the event.
     ACLMessage msg = event.getMessage();
 
+    // FIXME: Must use multicast also when more than a recipient is
+    // present in ':receiver' field.
     if(event.isMulticast()) {
       AgentGroup group = event.getRecipients();
       while(group.hasMoreMembers()) {
