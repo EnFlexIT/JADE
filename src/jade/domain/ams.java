@@ -868,7 +868,7 @@ public class ams extends Agent implements AgentManager.Listener {
   }
 
   // This one is called in response to a 'query-platform-locations' action
-  MobilityOntology.PlatformLocations AMSGetPlatformLocations() {
+  Iterator AMSGetPlatformLocations() {
     return mobilityMgr.getLocations();
   }
 
