@@ -29,7 +29,12 @@ import java.util.StringTokenizer;
 
 import jade.core.*;
 import jade.core.behaviours.*;
+
+import jade.domain.MobilityOntology;
+import jade.domain.FIPAException;
+
 import jade.lang.acl.*;
+import jade.lang.sl.SL0Codec;
 
 /**
 This is the main behaviour of the Agent. It serves all the received messages. In particular,
@@ -58,6 +63,7 @@ class ExecutorBehaviour extends SimpleBehaviour
 	{
 		ACLMessage msg;
 		MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+		Location dest;
 
 		// Get a message from the queue or wait for a new one if queue is empty
 		msg = myAgent.receive(mt);
@@ -101,8 +107,26 @@ class ExecutorBehaviour extends SimpleBehaviour
 			// MOVE TO ANOTHER LOCATION				
 			else if (action.equals("move"))
 			{
-				// Get destination
-				String dest = st.nextToken();
+			        String content = msg.getContent();
+
+			        // Select the substring after the 'move' word. The destination location starts there
+				int locationPos = content.indexOf("move") + 4;
+				content = content.substring(locationPos);
+				msg.setContent(content);
+
+				// Set the language to 'SL0' and the ontology to 'jade-mobility-ontology'
+				msg.setLanguage(SL0Codec.NAME);
+				msg.setOntology(MobilityOntology.NAME);
+
+				// Get destination from the new content
+				try {
+				  dest = (Location)myAgent.buildFrom(msg);
+				}
+				catch(FIPAException fe) {
+				  fe.printStackTrace();
+				  return;
+				}
+
 				System.out.println("They requested me to go to " + dest);
 				// Set reply sentence
 				replySentence = new String("\"OK moving to " + dest+" \"");
