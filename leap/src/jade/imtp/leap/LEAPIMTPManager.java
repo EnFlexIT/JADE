@@ -247,20 +247,7 @@ public class LEAPIMTPManager implements IMTPManager {
   public void shutDown() {
   	try {
 	    localNode.exit();
-	    // Hack: If the PlatformManager monitoring this node is in the same 
-	    // JVM it needs some time to broadcast the termination of this node
-	    // to its replicas --> asynchronously deregister the skeleton after 
-	    // a while
-	    Thread t = new Thread() {
-	    	public void run() {
-	    		try {
-	    			Thread.sleep(1000);
-	    		}
-	    		catch (InterruptedException ie) {}
-			    theDispatcher.deregisterSkeleton(localNode);
-	    	}
-	    };
-	    t.start();
+      theDispatcher.deregisterSkeleton(localNode);
   	}
   	catch (IMTPException imtpe) {
   		// Should never happen since this is a local call

@@ -746,13 +746,33 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * @param remoteObject the remote object related to the specified
    * skeleton.
    */
-  public void deregisterSkeleton(Object remoteObject) {
+  public void deregisterSkeleton(final Object remoteObject) {
     try {
-      skeletons.remove(ids.remove(remoteObject));
-    } 
+      if (skeletons.size() == 1) {
+        // This is the only skeleton
+        skeletons.remove(ids.remove(remoteObject));
+      }
+      else {
+        
+        // Hack: If the PlatformManager monitoring this node is in the same 
+        // JVM it needs some time to broadcast the termination of this node
+        // to its replicas --> asynchronously deregister the skeleton after 
+        // a while
+        Thread t = new Thread() {
+            public void run() {
+              try {
+                Thread.sleep(1000);
+              }
+              catch (InterruptedException ie) {}
+              skeletons.remove(ids.remove(remoteObject));
+            }
+          };
+        t.start();
+      } 
+    }
     catch (NullPointerException npe) {
     } 
-
+    
     if (ids.isEmpty()) {
       //System.out.println("CommandDispatcher shutting down");
       shutDown();
