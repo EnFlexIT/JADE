@@ -40,7 +40,6 @@
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
-				<exclude name="**/jade/core/MainContainerProxy.java"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
