@@ -515,7 +515,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	if (arguments != null) { //FIXME. This code goes away with the depcreated setArguments(String[]) method
 	    String sargs[] = new String[args.length];
 	    for (int i=0; i<args.length; i++)
-		sargs[i]=args[i].toString();
+		sargs[i]=(args[i]==null?null:args[i].toString());
 	    setArguments(sargs);
 	}
     }
