@@ -84,9 +84,10 @@ public class rma extends ToolAgent {
 
     public AMSClientBehaviour(String an, ACLMessage request) {
       super(rma.this, request,
-	    MessageTemplate.and(MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME),
-				MessageTemplate.MatchLanguage(SL0Codec.NAME)
-				)
+	    MessageTemplate.and(
+	      MessageTemplate.or(MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME),
+				 MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME)),
+	      MessageTemplate.MatchLanguage(SL0Codec.NAME))
 	    );
       actionName = an;
     }
