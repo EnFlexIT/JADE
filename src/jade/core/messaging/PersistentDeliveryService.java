@@ -75,7 +75,6 @@ public class PersistentDeliveryService extends BaseService {
 	PersistentDeliverySlice.DEACTIVATE_MESSAGE_STORE,
 	PersistentDeliverySlice.REGISTER_MESSAGE_TEMPLATE,
 	PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE,
-	PersistentDeliverySlice.STORE_UNDELIVERED_MESSAGE
     };
 
 
@@ -120,7 +119,7 @@ public class PersistentDeliveryService extends BaseService {
 	    return inFilter;
 	}
 	else {
-	    return null;
+	    return outFilter;
 	}
     }
 
@@ -159,9 +158,6 @@ public class PersistentDeliveryService extends BaseService {
 		}
 		else if(name.equals(PersistentDeliverySlice.DEREGISTER_MESSAGE_TEMPLATE)) {
 		    handleDeregisterMessageTemplate(cmd);
-		}
-		else if(name.equals(PersistentDeliverySlice.STORE_UNDELIVERED_MESSAGE)) {
-		    cmd.setReturnValue(new Boolean(handleStoreUndeliveredMessage(cmd)));
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -245,31 +241,6 @@ public class PersistentDeliveryService extends BaseService {
 		targetSlice.deregisterTemplate(storeName, mt);
 	    }
 	}
-
-	private boolean handleStoreUndeliveredMessage(VerticalCommand cmd) throws IMTPException, ServiceException {
-
-	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
-	    AID receiver = (AID)params[1];
-
-	    Service.Slice[] slices = getAllSlices();
-	    for(int i = 0; i < slices.length; i++) {
-		try {
-		    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
-		    boolean accepted = slice.storeMessage(null, msg, receiver);
-
-		    if(accepted) {
-			return true;
-		    }
-		}
-		catch(Exception e) {
-		    // Ignore it and try other slices...
-		}
-	    }
-
-	    return false;
-	}
-
 
     } // End of CommandSourceSink class
 
@@ -356,9 +327,74 @@ public class PersistentDeliveryService extends BaseService {
     } // End of CommandTargetSink class
 
 
+    private class CommandOutgoingFilter implements Filter {
+
+	public boolean accept(VerticalCommand cmd) {
+
+	    try {
+		String name = cmd.getName();
+
+		if(name.equals(jade.core.messaging.MessagingSlice.NOTIFY_FAILURE)) {
+		    return handleNotifyFailure(cmd);
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(imtpe);
+	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(se);
+	    }
+
+	    // Let the command through
+	    return true;
+	}
+
+	public void setBlocking(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+    	public boolean isBlocking() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+	public void setSkipping(boolean newState) {
+	    // Do nothing. Blocking and Skipping not supported
+	}
+
+	public boolean isSkipping() {
+	    return false; // Blocking and Skipping not implemented
+	}
+
+	private boolean handleNotifyFailure(VerticalCommand cmd) throws IMTPException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    ACLMessage msg = (ACLMessage)params[0];
+	    AID receiver = (AID)params[1];
+
+	    Service.Slice[] slices = getAllSlices();
+	    for(int i = 0; i < slices.length; i++) {
+		try {
+		    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
+		    boolean accepted = slice.storeMessage(null, msg, receiver);
+
+		    if(accepted) {
+			return false; // This will cause the NOTIFY_FAILURE command to be vetoed
+		    }
+		}
+		catch(Exception e) {
+		    // Ignore it and try other slices...
+		}
+	    }
+
+	    return true;
+	}
+
+    } // End of CommandOutgoingFilter class
+
+
     private class CommandIncomingFilter implements Filter {
 
-	public void accept(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -373,6 +409,9 @@ public class PersistentDeliveryService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
+
+	    // Never veto a command
+	    return true;
 	}
 
 	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, ServiceException {
@@ -598,6 +637,9 @@ public class PersistentDeliveryService extends BaseService {
 
     // The command sink, target side
     private final CommandTargetSink receiverSink = new CommandTargetSink();
+
+    // The command filter, outgoing direction
+    private final CommandOutgoingFilter outFilter = new CommandOutgoingFilter();
 
     // The command filter, incoming direction
     private final CommandIncomingFilter inFilter = new CommandIncomingFilter();
