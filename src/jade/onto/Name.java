@@ -24,12 +24,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto;
 
+import java.io.Serializable;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
-public class Name {
+public class Name implements Serializable {
 
   String s;
 
