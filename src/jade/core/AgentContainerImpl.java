@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.17  1998/10/31 16:30:58  rimassa
+  Added support for correct agent and container termination. Now when an
+  Agent informs its AgentContainer it is ended, the container removes
+  the dead agent from the agent table and informs the
+  AgentPlatform. Besides, when the last agent of an agent container
+  ends, the container itself is shut down.
+
   Revision 1.16  1998/10/25 23:58:26  rimassa
   Moved agent creation code into a 'createAgent()' method. Besides,
   createAgent() and killAgent() are now Remote Methods, thus allowing to
@@ -172,7 +179,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     remoteAgentsCache.remove(key);
   }
 
-
   public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
 
     platformAddress = platformIIOP;
@@ -224,21 +230,22 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void shutDown() {
-    Enumeration agentNames = localAgents.keys();
 
+    Enumeration agentNames = localAgents.keys();
     try {
 
       // Remove all agents
       while(agentNames.hasMoreElements()) {
 	String name = (String)agentNames.nextElement();
 	Agent a = (Agent)localAgents.get(name);
-	localAgents.remove(name);
 	a.doDelete();
-	myPlatform.deadAgent(name); // RMI call
       }
 
       // Deregister itself as a container
       myPlatform.removeContainer(this); // RMI call
+
+      System.exit(0);
+
     }
     catch(RemoteException re) {
       re.printStackTrace();
@@ -246,8 +253,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   protected void finalize() {
-    shutDown();
   }
+
+  // Implementation of CommListener interface
 
   public void CommHandle(CommEvent event) {
 
@@ -266,6 +274,25 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     else
       unicastPostMessage(msg);
   }
+
+  public void endSource(String name) {
+    try {
+
+      localAgents.remove(name);
+      myPlatform.deadAgent(name); // RMI call
+
+      if(localAgents.isEmpty())
+	shutDown();
+
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
+    }
+  }
+
+
+  // Private methods
+
 
   // This hack is needed to overcome a bug in java.rmi.Naming class:
   // when an object reference is binded, unbinded and then rebinded
