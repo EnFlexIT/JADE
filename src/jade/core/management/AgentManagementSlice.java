@@ -163,7 +163,7 @@ public interface AgentManagementSlice extends Service.Slice {
     void killAgent(AID agentID, Command sourceCmd) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid, String ownership, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name, Command sourceCmd) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;

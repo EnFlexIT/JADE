@@ -269,10 +269,9 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 	    Agent instance = (Agent)params[1];
-	    String ownership = (String) params[2];
 
     	log("Source Sink consuming command INFORM_CREATED. Name is "+target.getName(), 3);
-	    initAgent(target, instance, ownership, cmd);
+	    initAgent(target, instance, cmd);
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
@@ -482,10 +481,9 @@ public class AgentManagementService extends BaseService {
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    String ownership = (String) params[2];
 
 			log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
-	    bornAgent(agentID, cid, ownership, cmd.getPrincipal());
+	    bornAgent(agentID, cid, cmd.getPrincipal(), cmd.getCredentials());
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws NotFoundException, ServiceException {
@@ -575,12 +573,20 @@ public class AgentManagementService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	private void bornAgent(AID name, ContainerID cid, String ownership, JADEPrincipal principal) throws NameClashException, NotFoundException {
+	private void bornAgent(AID name, ContainerID cid, JADEPrincipal principal, Credentials credentials) throws NameClashException, NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
+	  // Retrieve the ownership from the credentials
+    String ownership = "NONE";
+    if (credentials != null) {
+    	JADEPrincipal ownerPr = credentials.getOwner();
+    	if (ownerPr != null) {
+    		ownership = ownerPr.getName();
+    	}
+    }
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(name, cid, ownership, principal, false); 
+		    impl.bornAgent(name, cid, principal, ownership, false); 
 		}
 		catch(NameClashException nce) {
 			//#CUSTOMJ2SE_EXCLUDE_BEGIN
@@ -599,7 +605,7 @@ public class AgentManagementService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(name, cid, ownership, principal, true);
+			impl.bornAgent(name, cid, principal, ownership, true);
 		    }
 			//#CUSTOMJ2SE_EXCLUDE_END
 			/*#CUSTOMJ2SE_INCLUDE_BEGIN
@@ -608,11 +614,11 @@ public class AgentManagementService extends BaseService {
 				dyingAgents.add(name);
 				((jade.core.AgentManager) impl).kill(name);
 				waitUntilDead(name);
-		    impl.bornAgent(name, cid, ownership, principal, false); 
+		    impl.bornAgent(name, cid, principal, ownership, false); 
 			}
 			catch (Exception e) {
 				dyingAgents.remove(name);
-				impl.bornAgent(name, cid, ownership, principal, true);
+				impl.bornAgent(name, cid, principal, ownership, true);
 			}				
 			#CUSTOMJ2SE_INCLUDE_END*/
 		}
@@ -740,10 +746,8 @@ public class AgentManagementService extends BaseService {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_CREATED, AgentManagementSlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    String ownership = (String) params[2];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(cid);
-		    gCmd.addParam(ownership);
 
 		    result = gCmd;
 		}
@@ -788,7 +792,7 @@ public class AgentManagementService extends BaseService {
 
 
 
-    private void initAgent(AID target, Agent instance, String ownership, VerticalCommand vCmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+    private void initAgent(AID target, Agent instance, VerticalCommand vCmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
   // Connect the new instance to the local container
 	Agent old = myContainer.addLocalAgent(target, instance);
 
@@ -797,12 +801,12 @@ public class AgentManagementService extends BaseService {
 		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 		try {
-		    mainSlice.bornAgent(target, myContainer.getID(), ownership, vCmd);
+		    mainSlice.bornAgent(target, myContainer.getID(), vCmd);
 		}
 		catch(IMTPException imtpe) {
 		    // Try to get a newer slice and repeat...
 		    mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-		    mainSlice.bornAgent(target, myContainer.getID(), ownership, vCmd);
+		    mainSlice.bornAgent(target, myContainer.getID(), vCmd);
 		}
 	}
 	catch(NameClashException nce) {

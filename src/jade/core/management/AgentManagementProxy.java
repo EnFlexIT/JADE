@@ -138,12 +138,11 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	}
     }
 
-    public void bornAgent(AID name, ContainerID cid, String ownership, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    public void bornAgent(AID name, ContainerID cid, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 	    cmd.addParam(cid);
-	    cmd.addParam(ownership);
 	    cmd.setPrincipal(sourceCmd.getPrincipal());
 	    cmd.setCredentials(sourceCmd.getCredentials());
 
