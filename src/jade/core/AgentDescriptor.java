@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/11/02 01:56:20  rimassa
+  Removed every reference to MessageDispatcher class; now an
+  AgentDescriptor uses AgentContainer directly.
+
   Revision 1.6  1998/10/04 18:00:58  rimassa
   Added a 'Log:' field to every source file.
 
@@ -25,24 +29,23 @@ import jade.domain.FIPAException;
 class AgentDescriptor implements Serializable {
 
   private AgentManagementOntology.AMSAgentDescriptor desc;
-  private MessageDispatcher demux;
+  private AgentContainer container;
 
   public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
     desc = amsd;
   }
 
-  public void setDemux(MessageDispatcher md) {
-    demux = md;
+  public void setContainer(AgentContainer ac) {
+    container = ac;
   }
 
   public AgentManagementOntology.AMSAgentDescriptor getDesc() {
     return desc;
   }
 
-  public MessageDispatcher getDemux() {
-    return demux;
+  public AgentContainer getContainer() {
+    return container;
   }
-
 
 }
 
