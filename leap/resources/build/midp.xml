@@ -12,7 +12,7 @@
         <!--Filtered src directory property--> 
         <property name="filtered.src" location="${midp-root}/filtered/src"/>    
 
-	
+	<!-- MAAAAAVAVVVAVAVAVAVAVAVAVAVAVAVA-->
 	<!-- INIT -->
 	<target name="do-init"  
 	        description="Create the appropriate directories">
@@ -68,6 +68,7 @@
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
+				<exclude name="**/jade/imtp/leap/sms/*"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
@@ -99,7 +100,8 @@
 	<!-- COMPILE -->
 	<target name="do-compile" depends="do-setup"
 	        description="Compile sources">
-        <echo>MIDP version: ${midp-version}</echo>
+    <echo>MIDP version: ${midp-version}</echo>
+    <echo>Bootclasspath: ${boot-midp-classes}</echo>
 		<javac srcdir="${src}"
 		       destdir="${unverified}"
 		       debug="${debug-build}"
@@ -179,5 +181,5 @@
 		<delete file="${demo}/demoMidp.jar" quiet="true"/>
 		<jar jarfile="${demo}/demoMidp.jar" basedir="${demo-classes}" manifest="${demo}/demo.manifest"/>
 	</target>
-	
+
 </project>
