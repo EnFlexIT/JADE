@@ -90,14 +90,32 @@ public class TestRTT2Containers extends Test {
     	// Create the behaviour to return  	  
     	Behaviour b = new SimpleBehaviour(a) {
     		private boolean finished = false;
+    		private MessageTemplate template = MessageTemplate.or(
+    			MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+    			MessageTemplate.MatchPerformative(ACLMessage.FAILURE));
     		
     		public void action() {
-    			ACLMessage msg = myAgent.receive();
+    			ACLMessage msg = myAgent.receive(template);
     			if (msg != null) {
-    				Logger l = Logger.getLogger();
-    				l.log("---------------------------------------------------------------------");
-    				l.log("Average RTT ["+nCouples+" couples, "+nIterations+" iterations] = "+msg.getContent());
-    				l.log("---------------------------------------------------------------------");
+	    			Logger l = Logger.getLogger();
+	    			if (msg.getPerformative() == ACLMessage.INFORM) {
+	    				try {
+  	  					double rtt = Double.parseDouble(msg.getContent());
+  		  				l.log("---------------------------------------------------------------------");
+    						l.log("Average RTT ["+nCouples+" couples, "+nIterations+" iterations] = "+rtt);
+    						l.log("---------------------------------------------------------------------");
+								store.put(key, new Integer(Test.TEST_PASSED));
+	    				}
+	    				catch (Exception e) {
+	    					l.log("Unexpected information received. Message is:\n"+msg);
+								store.put(key, new Integer(Test.TEST_FAILED));
+	    				}
+	    			}
+	    			else {
+	    				// It must be a FAILURE
+	    				l.log("FAILURE message received:\n"+msg);
+							store.put(key, new Integer(Test.TEST_FAILED));
+	    			}
     				finished = true;
     			}
     			else {
@@ -107,11 +125,6 @@ public class TestRTT2Containers extends Test {
     	
     		public boolean done() {
     	 		return finished;
-    		}
-    	
-    		public int onEnd() {
-					store.put(key, new Integer(Test.TEST_PASSED));
-    			return 0;
     		}
     	};
     	

@@ -98,32 +98,53 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
 			else {
 				throw new TestException("Remote platform does not have any IOR");
 			}
+			System.out.println("Remote AMS is "+remoteAMS);
 			  	
 	    // Launch receivers on the remote platform (receivers must be launched first)
   	  for (int i = 0; i < nCouples; ++i) {
   	  	String name = new String("r"+i);
     		TestUtility.createAgent(a, name, RoundTripTimeTesterAgent.RECEIVER_CLASS, null, remoteAMS, null); 
   	  }
-    
+			System.out.println("Receivers created");
+  	  
 	    // Launch senders on peripheral container
   	  for (int i = 0; i < nCouples; ++i) {
   	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String receiverName = new String("r"+i+"@"+REMOTE_PLATFORM_NAME);
     		String[] args = new String[] {receiverName, String.valueOf(nIterations), ior, String.valueOf(nCouples), a.getLocalName()}; 
     		TestUtility.createAgent(a, senderName, RoundTripTimeTesterAgent.ROUNDTRIPPER_CLASS, args, null, containerName); 
   	  }
+			System.out.println("Senders created");
     
     	// Create the behaviour to return  	  
     	Behaviour b = new SimpleBehaviour(a) {
     		private boolean finished = false;
+    		private MessageTemplate template = MessageTemplate.or(
+    			MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+    			MessageTemplate.MatchPerformative(ACLMessage.FAILURE));
     		
     		public void action() {
-    			ACLMessage msg = myAgent.receive();
+    			ACLMessage msg = myAgent.receive(template);
     			if (msg != null) {
-    				Logger l = Logger.getLogger();
-    				l.log("---------------------------------------------------------------------");
-    				l.log("Average RTT ["+nCouples+" couples, "+nIterations+" iterations] = "+msg.getContent());
-    				l.log("---------------------------------------------------------------------");
+	    			Logger l = Logger.getLogger();
+	    			if (msg.getPerformative() == ACLMessage.INFORM) {
+	    				try {
+  	  					double rtt = Double.parseDouble(msg.getContent());
+  		  				l.log("---------------------------------------------------------------------");
+    						l.log("Average RTT ["+nCouples+" couples, "+nIterations+" iterations] = "+rtt);
+    						l.log("---------------------------------------------------------------------");
+								store.put(key, new Integer(Test.TEST_PASSED));
+	    				}
+	    				catch (Exception e) {
+	    					l.log("Unexpected information received. Message is:\n"+msg);
+								store.put(key, new Integer(Test.TEST_FAILED));
+	    				}
+	    			}
+	    			else {
+	    				// It must be a FAILURE
+	    				l.log("FAILURE message received:\n"+msg);
+							store.put(key, new Integer(Test.TEST_FAILED));
+	    			}
     				finished = true;
     			}
     			else {
@@ -133,11 +154,6 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
     	
     		public boolean done() {
     	 		return finished;
-    		}
-    	
-    		public int onEnd() {
-					store.put(key, new Integer(Test.TEST_PASSED));
-    			return 0;
     		}
     	};
     	
