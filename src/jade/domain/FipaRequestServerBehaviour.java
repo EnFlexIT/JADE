@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1998/10/18 15:56:49  rimassa
+  Modified code to avoid using deprecated ACLMessage constructor.
+
   Revision 1.6  1998/10/04 18:01:27  rimassa
   Added a 'Log:' field to every source file.
 
@@ -51,7 +54,7 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
     ACLMessage msg = myAgent.receive(requestTemplate);
     if(msg != null) {
 
-      ACLMessage reply = new ACLMessage();
+      ACLMessage reply = new ACLMessage("inform");
 
       // Write content-independent fields of reply message
 
