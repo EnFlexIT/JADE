@@ -22,7 +22,6 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-
 package jade.gui;
 
 // Import required java classes
@@ -35,6 +34,7 @@ import java.util.*;
 // Import required Jade classes
 import jade.core.*;
 import jade.lang.acl.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 
@@ -101,6 +101,15 @@ import jade.lang.acl.*;
 public class AclGui extends JPanel
 {
 	// Controls for ACL message parameter editing
+	static String ADD_NEW_RECEIVER = "Insert receiver"; 
+	
+	AID SenderAID = new AID();
+	AID newAIDSender = null;
+
+	VisualAIDList receiverListPanel;
+	VisualAIDList replyToListPanel;
+	VisualPropertiesList propertiesListPanel;
+	
 	/**
 	@serial
 	*/
@@ -113,10 +122,7 @@ public class AclGui extends JPanel
 	@serial
 	*/
 	private boolean      senderEnabledFlag;
-	/**
-	@serial
-	*/
-	private JTextField   receiver;
+	
 	/**
 	@serial
 	*/
@@ -153,6 +159,12 @@ public class AclGui extends JPanel
 	@serial
 	*/
 	private JTextField   replyBy;
+	
+	/**
+	@serial
+	*/
+	private JTextField   encoding;
+	
 	/**
 	@serial
 	*/
@@ -164,7 +176,8 @@ public class AclGui extends JPanel
 	/**
 	@serial
 	*/
-	private JTextArea    envelope;
+	
+	//private JTextArea    envelope;
 
 	// Data for panel layout definition
 	/**
@@ -193,31 +206,11 @@ public class AclGui extends JPanel
 	private int colWidth[];
 	private static final int TEXT_SIZE = 30;
 
-	// Data for initialization and handling of FIPA communicative acts 
-	// and iteration protocols
-	private static int    N_FIPA_ACTS = 18;
-	private static String fipaActs[] = {"accept-proposal",
-	                                    "agree",
-	                                    "cancel",
-	                                    "cfp",
-	                                    "confirm",
-	                                    "disconfirm",
-	                                    "failure",
-	                                    "inform",
-	                                    "not-understood",
-	                                    "propose",
-	                                    "query-if",
-	                                    "query-ref",
-	                                    "refuse",
-	                                    "reject-proposal",
-	                                    "request",
-	                                    "request-when",
-	                                    "request-whenever",
-	                                    "subscribe"};
 	/**
 	@serial
 	*/
 	private Vector fipaActVector;
+	
 	private static int    N_FIPA_PROTOCOLS = 7;
 	private static String fipaProtocols[] = {"fipa-auction-english",
 	                                         "fipa-auction-dutch",
@@ -230,7 +223,7 @@ public class AclGui extends JPanel
   /**
   @serial
   */
-	private Vector fipaProtocolVector;
+	private ArrayList fipaProtocolArrayList;
 
 
 	// Data for the editing of user defined iteration protocols
@@ -262,6 +255,7 @@ public class AclGui extends JPanel
 	private static ACLMessage editedMsg;
 
 	
+	private JButton senderButton;
 	
 	/////////////////
 	// CONSTRUCTOR
@@ -272,17 +266,15 @@ public class AclGui extends JPanel
 	*/
 	public AclGui()
 	{
-	JLabel l;
-	int    i;
-
-
-		// Initialize the Vector of FIPA communicative acts and iteration protocols
-		fipaActVector = new Vector();
-		fipaProtocolVector = new Vector();
-		for (i = 0;i < N_FIPA_ACTS; ++i)
-			fipaActVector.add((Object) fipaActs[i]);
+	
+		JLabel l;
+	  int    i;
+    
+		// Initialize the Vector of interaction protocols
+		fipaProtocolArrayList = new ArrayList();
+	
 		for (i = 0;i < N_FIPA_PROTOCOLS; ++i)
-			fipaProtocolVector.add((Object) fipaProtocols[i]);
+			fipaProtocolArrayList.add((Object) fipaProtocols[i]);
 
 		firstPaintFlag = true;
 		guiEnabledFlag = true;
@@ -299,67 +291,117 @@ public class AclGui extends JPanel
 		            5,   // Bottom border
 		            2,   // Space between columns
 		            2);  // Space between rows
-		setGridColumnWidth(0, 120);
-		setGridColumnWidth(1, 65);
-		setGridColumnWidth(2, 180);
-
+		setGridColumnWidth(0, 115);
+		setGridColumnWidth(1, 40);
+		setGridColumnWidth(2, 170);
+    
+    
 		// Sender  (line # 0)
 		l = new JLabel("Sender:");
 		put(l, 0, 0, 1, 1, false); 
 		senderEnabledFlag = false; // The sender field is disabled by default, but can be enabled with the setSenderEnabled() method.
-		sender = new JTextField(); 	
-		put(sender, 1, 0, 2, 1, false);	
-
+		sender = new JTextField();
+		sender.setPreferredSize(new Dimension(80,26));
+    sender.setMinimumSize(new Dimension(80,26));
+    sender.setMaximumSize(new Dimension(80,26));
+    sender.setEditable(false);
+    sender.setBackground(Color.white);
+		senderButton = new JButton("Set");
+		senderButton.setMargin(new Insets(2,3,2,3));
+	
+		put(senderButton,1,0,1,1,false);
+    put(sender, 2, 0, 1, 1, false);	
+	
+    senderButton.addActionListener(new ActionListener(){
+    	public void actionPerformed(ActionEvent e)
+    	{
+    		String command = e.getActionCommand();
+    		AIDGui guiSender = new AIDGui();
+    		
+    		if(command.equals("Set"))
+    		{
+    		  newAIDSender = guiSender.ShowAIDGui(SenderAID,true);
+    		  //the name can be different
+    			if (newAIDSender != null)
+    				sender.setText(newAIDSender.getName());
+    		}
+    		else
+    		if(command.equals("View"))
+    			guiSender.ShowAIDGui(SenderAID, false);
+    		
+    	}
+    });
+    
 		// Receiver (line # 1)
-		l = new JLabel("Receiver:");
-		put(l, 0, 1, 1, 1, false); 
-		receiver = new JTextField(); 	
-		put(receiver, 1, 1, 2, 1, false);	
+    l = new JLabel("Receivers:");
+    put(l,0,1,1,1,false);
+    receiverListPanel = new VisualAIDList(new ArrayList().iterator());
+    receiverListPanel.setDimension(new Dimension(205,37));
+ 	  put(receiverListPanel,1,1,2,1,false);
 
-		// Communicative act (line # 2)
+		
+		//Reply-to (line #2)
+		l = new JLabel("Reply-to:");
+		put(l, 0, 2, 1, 1,false);
+		replyToListPanel = new VisualAIDList(new ArrayList().iterator());
+		replyToListPanel.setDimension(new Dimension(205,37));
+		put(replyToListPanel,1,2,2,1,false);
+			
+		// Communicative act (line # 3)
 		l = new JLabel("Communicative act:");
-		put(l, 0, 2, 1, 1, false);  
+		put(l, 0, 3, 1, 1, false);  
 		communicativeAct = new JComboBox();
-		for (i = 0;i < fipaActVector.size(); ++i)
-			communicativeAct.addItem((String) fipaActVector.get(i));
-		communicativeAct.addItem("UNKNOWN");
+		
+		Iterator comm_Act = ACLMessage.getAllPerformatives().iterator();
+		while(comm_Act.hasNext())
+			communicativeAct.addItem(((String)comm_Act.next()).toLowerCase());
+			
 		communicativeAct.setSelectedIndex(0);
-		put(communicativeAct, 1, 2, 2, 1, true);
+		put(communicativeAct, 1, 3, 2, 1, true);
 
-		// Content (line # 3-7)
+		// Content (line # 4-8)
 		l = new JLabel("Content:");
-		put(l, 0, 3, 3, 1, false);  		
+		put(l, 0, 4, 3, 1, false);  		
 		content = new JTextArea(5,TEXT_SIZE);
 		JScrollPane contentPane = new JScrollPane();
 		contentPane.getViewport().setView(content); 	
-		put(contentPane, 0, 4, 3, 4, false);
+		put(contentPane, 0, 5, 3, 4, false);
 		contentPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 		
 		contentPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 		
 
-		// Language (line # 8)
+		// Language (line # 9)
 		l = new JLabel("Language:");
-		put(l, 0, 8, 1, 1, false);  		
-		language = new JTextField(); 	
-		put(language, 1, 8, 2, 1, false);	
-
-		// Ontology (line # 9)
-		l = new JLabel("Ontology:");
 		put(l, 0, 9, 1, 1, false);  		
-		ontology = new JTextField(); 	
-		put(ontology, 1, 9, 2, 1, false);	
-
-		// Protocol (line # 10)
-		l = new JLabel("Protocol:");
+		language = new JTextField();
+		language.setBackground(Color.white);
+		put(language, 1, 9, 2, 1, false);	
+	
+		//Encoding (line # 10)
+	  l = new JLabel("Encoding:");
 		put(l, 0, 10, 1, 1, false);  		
+		encoding = new JTextField(); 
+		encoding.setBackground(Color.white);
+		put(encoding, 1, 10, 2, 1, false);	
+		
+		// Ontology (line # 11)
+		l = new JLabel("Ontology:");
+		put(l, 0, 11, 1, 1, false);  		
+		ontology = new JTextField();
+		ontology.setBackground(Color.white);
+		put(ontology, 1, 11, 2, 1, false);	
+
+		// Protocol (line # 12)
+		l = new JLabel("Protocol:");
+		put(l, 0, 12, 1, 1, false);  		
 		protocol = new JComboBox(); 	
-		for (i = 0;i < fipaProtocolVector.size(); ++i)
-			protocol.addItem((String) fipaProtocolVector.get(i));
+		for (i = 0;i < fipaProtocolArrayList.size(); ++i)
+			protocol.addItem((String) fipaProtocolArrayList.get(i));
 		protocol.addItem(LABEL_TO_ADD_PROT);
 		protocol.addItem("Null");
 		protocol.setSelectedItem("Null");
 		lastSelectedIndex = protocol.getSelectedIndex();
 		lastSelectedItem = (String) protocol.getSelectedItem();
-		put(protocol, 1, 10, 2, 1, true);
+		put(protocol, 1, 12, 2, 1, true);
 		protocol.addActionListener( new ActionListener()
 		                                {
 											public void actionPerformed(ActionEvent e)
@@ -370,7 +412,7 @@ public class AclGui extends JPanel
 												if (!protocol.isEditable()) 
 												{
 													// If a user defined protocol has just been selected --> set editable to true
-													if (fipaProtocolVector.indexOf((Object) param) < 0 && !param.equals("Null"))
+													if (fipaProtocolArrayList.indexOf((Object) param) < 0 && !param.equals("Null"))
 													{
 														protocol.setEditable(true);
 													}
@@ -379,7 +421,7 @@ public class AclGui extends JPanel
 												else 
 												{
 													// The user selected a FIPA protocol or null (he didn't perform any editing operation) 
-													if (fipaProtocolVector.indexOf((Object) param) >= 0 || param.equals("Null"))
+													if (fipaProtocolArrayList.indexOf((Object) param) >= 0 || param.equals("Null"))
 													{
 														protocol.setEditable(false);
 														protocol.setSelectedItem(param);
@@ -430,32 +472,37 @@ public class AclGui extends JPanel
 											}
 										} );
 
-		// Conversation-id (line # 11)
+		// Conversation-id (line # 13)
 		l = new JLabel("Conversation-id:");
-		put(l, 0, 11, 1, 1, false);  		
-		conversationId = new JTextField(); 	
-		put(conversationId, 1, 11, 2, 1, false);	
-
-		// In-reply-to (line # 12)
-		l = new JLabel("In-reply-to:");
-		put(l, 0, 12, 1, 1, false);  		
-		inReplyTo = new JTextField(); 	
-		put(inReplyTo, 1, 12, 2, 1, false);	
-
-		// Reply-with (line # 13)
-		l = new JLabel("Reply-with:");
 		put(l, 0, 13, 1, 1, false);  		
+		conversationId = new JTextField();
+		conversationId.setBackground(Color.white);
+		put(conversationId, 1, 13, 2, 1, false);	
+
+		// In-reply-to (line # 14)
+		l = new JLabel("In-reply-to:");
+		put(l, 0, 14, 1, 1, false);  		
+		inReplyTo = new JTextField(); 	
+		inReplyTo.setBackground(Color.white);
+		put(inReplyTo, 1, 14, 2, 1, false);	
+
+		// Reply-with (line # 15)
+		l = new JLabel("Reply-with:");
+		put(l, 0, 15, 1, 1, false);  		
 		replyWith = new JTextField(); 	
-		put(replyWith, 1, 13, 2, 1, false);	
+		replyWith.setBackground(Color.white);
+		put(replyWith, 1, 15, 2, 1, false);	
 		
-		// Reply-by (line # 14)
+		// Reply-by (line # 16)
 		replyByDate = null;
 		l = new JLabel("Reply-by:");
-		put(l, 0, 14, 1, 1, false);
+		put(l, 0, 16, 1, 1, false);
 		replyBySet = new JButton("Set");
+		replyBySet.setMargin(new Insets(2,3,2,3));
 		replyBy = new JTextField();
-		put(replyBySet, 1, 14, 1, 1, false);
-		put(replyBy, 2, 14, 1, 1, false);	
+		replyBy.setBackground(Color.white);
+		put(replyBySet, 1, 16, 1, 1, false);
+		put(replyBy, 2, 16, 1, 1, false);	
 		replyBySet.addActionListener(new	ActionListener()
 											{
 												public void actionPerformed(ActionEvent e)
@@ -490,18 +537,25 @@ public class AclGui extends JPanel
 												}
 											} );
 
+		
+		//Properties (line #17)
+		l = new JLabel("User Properties:");
+		put(l, 0, 17, 1, 1, false);
+	  propertiesListPanel = new VisualPropertiesList(new Properties());
+	  propertiesListPanel.setDimension(new Dimension(205,37));
+	  put(propertiesListPanel,1,17,2,1,false);
 
+		
 		// Envelope (line # 15-19)
-		l = new JLabel("Envelope:");
+		/*l = new JLabel("Envelope:");
 		put(l, 0, 15, 3, 1, false);  		
 		envelope = new JTextArea(5, TEXT_SIZE); 
 		JScrollPane envelopePane = new JScrollPane();
 		envelopePane.getViewport().setView(envelope);	
 		put(envelopePane, 0, 16, 3, 4, false);	
 		envelopePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 		
-		envelopePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 		
-	
-		
+		envelopePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);*/ 		
+
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(aclPanel);
 
@@ -569,19 +623,27 @@ public class AclGui extends JPanel
 	private void updateEnabled()
 	{
 		communicativeAct.setEnabled(guiEnabledFlag);
-		sender.setEditable(guiEnabledFlag && senderEnabledFlag);
-		receiver.setEditable(guiEnabledFlag);
+		//sender.setEditable(guiEnabledFlag && senderEnabledFlag); 
+		senderButton.setText(senderEnabledFlag ? "Set" : "View");
+	
+		receiverListPanel.setEnabled(guiEnabledFlag);
+		replyToListPanel.setEnabled(guiEnabledFlag);
+		propertiesListPanel.setEnabled(guiEnabledFlag);
+		
 		replyWith.setEditable(guiEnabledFlag);
 		inReplyTo.setEditable(guiEnabledFlag);
 		conversationId.setEditable(guiEnabledFlag);
 		replyBy.setEditable(false);
 		replyBySet.setEnabled(true);
-		replyBySet.setText(guiEnabledFlag ? "Set" : "View"); 
-		envelope.setEditable(guiEnabledFlag);
+		replyBySet.setText(guiEnabledFlag ? "Set" : "View");
+		encoding.setEditable(guiEnabledFlag);
+		
+	  //envelope.setEditable(guiEnabledFlag);
 		protocol.setEnabled(guiEnabledFlag);
 		language.setEditable(guiEnabledFlag);
 		ontology.setEditable(guiEnabledFlag);
 		content.setEditable(guiEnabledFlag);
+			
 	}
 
 
@@ -595,48 +657,53 @@ public class AclGui extends JPanel
 	*/
 	public void setMsg(ACLMessage msg)
 	{
-	int    i;
-	String param, lowerCase;
+		int    i;
+		String param, lowerCase;
+		
     int perf = msg.getPerformative(); 
 		lowerCase = (ACLMessage.getPerformative(perf)).toLowerCase();
-		if ((i = fipaActVector.indexOf((Object) lowerCase)) < 0)
-			communicativeAct.setSelectedItem("UNKNOWN");
-		else
-			communicativeAct.setSelectedIndex(i);
-		if ((param = msg.getSource()) == null) param = "";
+		
+		//No control if the ACLMessage is a well-known one
+		//if not present the first of the comboBox is selected
+		communicativeAct.setSelectedItem(lowerCase);	
+		
+		this.SenderAID = msg.getSender();
+		
+		if ((param = SenderAID.getName()) == null) param = "";
+	
 		sender.setText(param);
-		// Destination: a group of agents
-		param = new String("");
-		AgentGroup destAG = msg.getDests();
-		if (destAG != null)
-		{
-			Enumeration destE = destAG.getMembers();
-			while (destE.hasMoreElements())
-			{
-				String dest = (String) destE.nextElement();
-				param = param.concat(dest);
-				param = param.concat(" ");
-			}
-		}
-		receiver.setText(param);
+		
+	  receiverListPanel.resetContent(msg.getAllReceiver());
+		replyToListPanel.resetContent(msg.getAllReplyTo());
+		
+		Enumeration e = 	msg.getAllUserDefinedParameters().propertyNames();
+		ArrayList list = new ArrayList();
+		while(e.hasMoreElements())
+			list.add(e.nextElement());
+		propertiesListPanel.resetContent(list.iterator());
+		propertiesListPanel.setContentProperties(msg.getAllUserDefinedParameters());
+		
 		if ((param = msg.getReplyWith()) == null) param = "";
 		replyWith.setText(param);
-		if ((param = msg.getReplyTo()) == null) param = "";
+		if ((param = msg.getInReplyTo()) == null) param = "";
 		inReplyTo.setText(param);
 		if ((param = msg.getConversationId()) == null) param = "";
 		conversationId.setText(param);
 		if ((param = msg.getReplyBy()) == null) param = "";
 		replyBy.setText(param);
+		
+		/*Not yet existing
 		if ((param = msg.getEnvelope()) == null) param = "";
-		envelope.setText(param);
-		if      ((param = msg.getProtocol()) == null)
+		envelope.setText(param);*/
+		
+		if((param = msg.getProtocol()) == null)
 			protocol.setSelectedItem("Null");
 		else if (param.equals("") || param.equalsIgnoreCase("Null"))
 			protocol.setSelectedItem("Null");
 		else
 		{
 			lowerCase = param.toLowerCase();
-			if ((i = fipaProtocolVector.indexOf((Object) lowerCase)) < 0)
+			if ((i = fipaProtocolArrayList.indexOf((Object) lowerCase)) < 0)
 			{
 				// This is done to avoid inserting the same user-defined protocol more than once
 				protocol.addItem(param);
@@ -655,6 +722,11 @@ public class AclGui extends JPanel
 		ontology.setText(param);
 		if ((param = msg.getContent()) == null) param = "";
 		content.setText(param);
+		if((param = msg.getEncoding())== null) param = "";
+		encoding.setText(param);
+		
+		
+
 	}
 	
 	/**
@@ -664,56 +736,48 @@ public class AclGui extends JPanel
 	*/
 	public ACLMessage getMsg()
 	{
-	String param;
-
+		String param;
 		param = (String) communicativeAct.getSelectedItem();
 		int perf = ACLMessage.getInteger(param);
 		ACLMessage msg = new ACLMessage(perf);
     
-		if (!(param = sender.getText()).equals(""))
-			msg.setSource(param);
-		// Destination: a group of agents
-		if (!(param = receiver.getText()).equals(""))
-		{
-			String s1 = param.trim();
-			// The list of destinations can be in the form (d1 d2 ...)
-			// If this is the case, skip the initial '(' and final ')'
-			int start = (s1.charAt(0) == '(' ? 1 : 0);
-			int end = (s1.charAt(s1.length() -1) == ')' ? s1.length()-1 : s1.length());
-			String s2 = s1.substring(start,end);
+		if(newAIDSender != null)
+			SenderAID = newAIDSender;
+		
+		if ( ((param = sender.getText()).trim()).length() > 0 )
+			SenderAID.setName(param);
+	
+		msg.setSender(SenderAID);
+
+		Enumeration rec_Enum = receiverListPanel.getContent();
+		while(rec_Enum.hasMoreElements())
+			msg.addReceiver((AID)rec_Enum.nextElement());
+		
+		Enumeration replyTo_Enum = replyToListPanel.getContent();
+		while(replyTo_Enum.hasMoreElements())
+			msg.addReplyTo((AID)replyTo_Enum.nextElement());
 			
-			char[] separator = new char[3];
-			separator[0] = ' ';
-			separator[1] = '\t';
-			separator[2] = '\n';
-			String dest;
-			start = 0;
-			while ((end = StringParser.firstOccurrence(s2, start, separator, 3)) > 0)
-			{
-				dest = s2.substring(start, end);
-				if (dest.length() > 0)
-				{
-					msg.addDest(dest);
-				}
-				start = end + StringParser.skip(s2, end, separator, 3);
-			}
-			dest = s2.substring(start);
-			if (dest.length() > 0)
-			{
-				msg.addDest(dest);
-			}
-		} 
+		Properties user_Prop = propertiesListPanel.getContentProperties();
+		Enumeration keys = user_Prop.propertyNames();
+		while(keys.hasMoreElements())
+		{
+			String k = (String)keys.nextElement();
+			msg.addUserDefinedParameter(k,user_Prop.getProperty(k));
+		}
+		
 		if (!(param = replyWith.getText()).equals(""))
 			msg.setReplyWith(param);
 		if (!(param = inReplyTo.getText()).equals(""))
-			msg.setReplyTo(param);
+			msg.setInReplyTo(param);
 		if (!(param = conversationId.getText()).equals(""))
 			msg.setConversationId(param);
 		if (!(param = replyBy.getText()).equals(""))
 			msg.setReplyBy(param);
-		if (!(param = envelope.getText()).equals(""))
-			msg.setEnvelope(param);
-		if (!(param = (String) protocol.getSelectedItem()).equals("Null"))
+		
+	  /* if (!(param = envelope.getText()).equals(""))
+			msg.setEnvelope(param);*/
+		
+			if (!(param = (String) protocol.getSelectedItem()).equals("Null"))
 			msg.setProtocol(param);
 		if (!(param = language.getText()).equals(""))
 			msg.setLanguage(param);
@@ -721,6 +785,11 @@ public class AclGui extends JPanel
 			msg.setOntology(param);
 		if (!(param = content.getText()).equals(""))
 			msg.setContent(param);
+	  
+		param = (encoding.getText()).trim();
+	  if(param.length() > 0)
+	  	msg.setEncoding(param);
+			
 		return msg;
 	}
 
@@ -880,9 +949,9 @@ public class AclGui extends JPanel
 		ACLMessage m = null;
 		if (editedMsg != null)
 			m = (ACLMessage) editedMsg.clone();
-		//if (m == null)
-		//System.out.println("MERDA");
+		
 		return m;
 	}
 
+	
 }
