@@ -1,3 +1,99 @@
+
+(REQUEST
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (action (Agent-Identifier :name AMS)
+              (kill-container 
+               :name container-1
+               :password PWD    
+             )))  
+ :X-comment "Some sample JADE agent management messages"
+)
+
+(REQUEST
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (action (Agent-Identifier :name AMS)
+              (create-agent
+               :agent-name a-1
+               :class-name examples.ontology.TestAgent
+               :container-name c2
+               :password PWD    
+             )))  
+ :X-comment "Some sample JADE agent management messages"
+)
+
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (done (action (Agent-Identifier :name AMS)
+              (kill-agent
+               :agent (Agent-Identifier :name a-1)
+               :password PWD    
+             )))  )
+ :X-comment "Some sample JADE agent management messages"
+)
+
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (done (action (Agent-Identifier :name AMS)
+              (sniff-on
+               :sniffer (Agent-Identifier :name a-1)
+               :sniffed-agents (sequence (Agent-Identifier :name a-1))
+               :password PWD    
+             )))  )
+ :X-comment "Some sample JADE agent management messages"
+)
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (done (action (Agent-Identifier :name AMS)
+              (sniff-off
+               :sniffer (Agent-Identifier :name a-1)
+               :sniffed-agents (sequence (Agent-Identifier :name a-1))
+               :password PWD    
+             ))))  
+ :X-comment "Some sample JADE agent management messages"
+)
+
+
+(SUBSCRIBE
+ :language FIPA-SL0
+ :ontology jade-agent-management
+ :content ( (event-occurred (Container-born :name c1 :host sharon) )
+            (event-occurred (Container-dead :name c1 ) )
+            (event-occurred (Agent-born :container c2 :agent (Agent-identifier :name c1) ) )
+            (event-occurred (Agent-dead :container c2 :agent (Agent-Identifier :name c1) ) )
+            (event-occurred (Agent-moved :from c1 :to c2 :agent (Agent-Identifier :name pippo) ) )
+            true
+            FALSE
+          )
+)
+
+
+(INFORM
+ :language FIPA-SL0
+ :ontology fipa-agent-management
+ :content (( result (action (Agent-Identifier :name DF@IOR:001122)
+                            (GET-DESCRIPTION))
+           (AP-Description 
+             :name JADE
+             :dynamic true
+             :mobility FALsE
+             :transport-profile 
+              (AP-Transport-Description
+               :available-mtps (set
+                (mtp-description :profile alpha :mtp-name IIOP
+                 :addresses (sequence iiop://cselt.it:50/acc)))))
+          ))
+ :X-comment "Inform of the result of the action"
+)
+
+
 (REQUEST
  :language FIPA-SL0
  :ontology fipa-agent-management
@@ -254,7 +350,7 @@
            (AP-Description 
              :name JADE
              :dynamic true
-             :mobility true
+             :mobility FALsE
              :transport-profile 
               (AP-Transport-Description
                :available-mtps (set
@@ -393,4 +489,7 @@
  :X-mycomment Just_A_Test
  :X-myparam2 "0x23AF"
 )
+
+
+
 

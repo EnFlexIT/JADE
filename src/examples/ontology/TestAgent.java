@@ -28,18 +28,20 @@ import java.util.List;
 import java.io.*;
 
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.MobilityOntology;
+import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
 import jade.domain.FIPAException;
 import jade.lang.acl.*;
 import jade.core.Agent;
 import jade.lang.sl.SL0Codec;
-import jade.domain.MobilityOntology;
+
 
 public class TestAgent extends Agent {
 
 final static String SAMPLEFILE = "examples/ontology/testmessages.msg";
 
   private StringACLCodec getStringACLCodec() {
-    System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology all together.");
+    System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, the Fipa-Agent-Management ontology, the Mobility Ontology, and the JADE-Agent-Management ontology all together.");
     System.out.println("It is an application (i.e. do not need to run a JADE Agent Platform).");
     System.out.println("The application reads from a file, or from standard input,  a sequence of ACL messages, whose language parameter is set to FIPA-SL0 and whose ontology parameter is set to fipa-agent-management or to jade-mobility-ontology. Then it parses the message, creates the Java objects according to the ontology, fills back the content on the basis of these Java objects, and double check these last two operations.");
     System.out.println("The file "+SAMPLEFILE+ " is provided with a lot of interesting sample messages"); 
@@ -73,6 +75,7 @@ protected void setup() {
   registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
   // register the ontology used by application
   registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+  registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
 	
 
   StringACLCodec codec = getStringACLCodec(); 
