@@ -119,7 +119,7 @@ public final void action() {
     if (blockTime <= 0) {
       // timeout is expired
       finished = true;
-      handleElapsedTimeout();
+      onWake();
     } else 
       block(blockTime);
     break;
@@ -132,13 +132,23 @@ public final void action() {
   return;
 } //end of action
 
-/**
-   * This method is called by this subclass only after the given timeout is
-   * elapsed.
-   * The method has available the class variable <code>myAgent</code> that
-   * points to the agent class.
+  /**
+     This method is invoked when the deadline defined in the
+     constructor is reached (or when the timeout specified in the 
+     constructor expires).
+     Subclasses are expected to define this method specifying the action
+     that must be performed at that time.
    */
-protected abstract void handleElapsedTimeout();
+	protected void onWake() {
+		handleElapsedTimeout();
+	}
+	
+/**
+   This method has the same effect as onWake(). It will be deprecated soon
+   
+   */
+protected void handleElapsedTimeout() {
+}
 
   /**
    * This method must be called to reset the behaviour and starts again

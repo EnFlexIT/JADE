@@ -85,10 +85,10 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	}
 	
   /**
-   * Subclasses are expected to define this method specifying the action
-   * that must be performed at every tick
-   * @return when this method returns <code>true</code> the 
-   * <code>TickerBehaviour</code> terminates
+     This method is invoked periodically with the period defined in the
+     constructor.
+     Subclasses are expected to define this method specifying the action
+     that must be performed at every tick.
    */
 	protected abstract void onTick();
 	
