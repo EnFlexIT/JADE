@@ -27,7 +27,13 @@ ant testsuite - to compile test Suite
   	</echo>
   	
   	<!-- Compile the java code source files -->
-    <javac srcdir="${src}/test" destdir="${dest}" classpath="${classpath}" nowarn="off" optimize="on" deprecation="on"/>
+  	
+  	<javac srcdir="${src}/test" 
+  	       destdir="${dest}" 
+  	       excludes="**/TestAgent.java"
+  	       classpath="${classpath}" 
+  	       nowarn="off" optimize="on" 
+  	       deprecation="on"/>
 
   	<!-- RMIC the TSDaemon -->
     <rmic classname="test.common.remote.TSDaemon" base="${dest}"/>
