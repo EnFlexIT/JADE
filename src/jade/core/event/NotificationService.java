@@ -52,6 +52,8 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.UnreachableException;
 
+import jade.core.messaging.GenericMessage;
+
 import jade.core.behaviours.Behaviour;
 
 import jade.lang.acl.ACLMessage;
@@ -594,8 +596,8 @@ public class NotificationService extends BaseService {
 
 	private void handleSendMessage(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
-	    ACLMessage msg = (ACLMessage)params[0];
-	    AID sender = (AID)params[1];
+	    AID sender = (AID)params[0];
+	    ACLMessage msg = ((GenericMessage)params[1]).getACLMessage();
 
 	    fireSentMessage(msg, sender);
 	}
