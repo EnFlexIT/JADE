@@ -61,6 +61,9 @@ public class ParallelBehaviour extends CompositeBehaviour {
   private Hashtable blockedChildren = new Hashtable(); 
   private BehaviourList terminatedChildren = new BehaviourList();
 
+    public ParallelBehaviour() {
+	whenToStop = WHEN_ALL;
+    }
  
   /**
      Construct a <code>ParallelBehaviour</code> without setting the 
@@ -211,6 +214,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
+    b.setAgent(myAgent);
 	
 	if (b.isRunnable()) {
 		// If all previous children were blocked (this Parallel Behaviour 
@@ -376,6 +380,58 @@ public class ParallelBehaviour extends CompositeBehaviour {
 
     return cond;
   }
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private java.util.Set getSubBehaviours() {
+
+	/***
+	java.util.Set result = new java.util.HashSet();
+	Iterator it = subBehaviours.iterator();
+	while(it.hasNext()) {
+	    result.add(it.next());
+	}
+
+	return result;
+	***/
+	return java.util.Collections.EMPTY_SET;
+    }
+
+    // For persistence service
+    private void setSubBehaviours(java.util.Set behaviours) {
+	/***
+	subBehaviours.clear();
+	java.util.Iterator it = behaviours.iterator();
+	while(it.hasNext()) {
+	    Behaviour b = (Behaviour)it.next();
+	    subBehaviours.addElement(b);
+
+	    if(!b.isRunnable()) {
+		blockedChildren.put(b, b);
+	    }
+	}
+
+	// The internal iterator position is not saved, but it
+	// restarts at the beginning.
+	subBehaviours.begin();
+	terminatedChildren.clear();
+	***/
+    }
+
+    // For persistence service
+    private int getWhenToStop() {
+	return whenToStop;
+    }
+
+    // For persistence service
+    private void setWhenToStop(int when) {
+	whenToStop = when;
+    }
+
+
+  //#MIDP_EXCLUDE_END
    
  
 }

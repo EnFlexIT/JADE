@@ -174,6 +174,43 @@ public class SequentialBehaviour extends SerialBehaviour {
   public void skipNext() {
   	current = subBehaviours.size();
   }
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private Behaviour[] getSubBehaviours() {
+	Object[] objs = subBehaviours.toArray();
+	Behaviour[] result = new Behaviour[objs.length];
+	for(int i = 0; i < objs.length; i++) {
+	    result[i] = (Behaviour)objs[i];
+	}
+
+	return result;
+    }
+
+    // For persistence service
+    private void setSubBehaviours(Behaviour[] behaviours) {
+	subBehaviours.clear();
+	for(int i = 0; i < behaviours.length; i++) {
+	    subBehaviours.add(behaviours[i]);
+	}
+    }
+
+    // For persistence service
+    private int getCurrentIndex() {
+	return current;
+    }
+
+    // For persistence service
+    private void setCurrentIndex(int idx) {
+	current = idx;
+    }
+
+
+  //#MIDP_EXCLUDE_END
+
+
 }
 
 

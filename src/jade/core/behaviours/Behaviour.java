@@ -35,7 +35,7 @@ import jade.core.Agent;
    directly accessible at this level.
    
    
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
 
 */
@@ -188,6 +188,12 @@ public abstract class Behaviour implements Serializable {
 	else
 	    myAgent = null;
   }
+
+    // For persistence service
+    private CompositeBehaviour getParent() {
+	return parent;
+    }
+
 	//#CUSTOM_EXCLUDE_END
   /**
      Default constructor. It does not set the agent owning this
@@ -444,6 +450,13 @@ public abstract class Behaviour implements Serializable {
   public void setAgent(Agent a) {
     myAgent = a;
   }
+
+    // For persistence service
+    private Agent getAgent() {
+	return myAgent;
+    }
+
+
 	//#CUSTOM_EXCLUDE_BEGIN
   /**
      Return the private data store of this <code>Behaviour</code>.
@@ -465,5 +478,20 @@ public abstract class Behaviour implements Serializable {
   public void setDataStore(DataStore ds) {
   	myStore = ds;
   }  
+
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
 	//#CUSTOM_EXCLUDE_END
 }
