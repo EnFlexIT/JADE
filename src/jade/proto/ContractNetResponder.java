@@ -98,448 +98,138 @@ import java.util.Date;
 * @version $Date$ $Revision$
 */
 
-public class ContractNetResponder extends FSMBehaviour {
-	
-
-//FSM states names
-
-	private static final String RESET_STATE = "Reset_state";
-	private static final String RECEIVE_CFP_STATE = "Receive-CallForProposal";
-	private static final String PREPARE_PROPOSE_STATE = "Prepare-Propose";
-	private static final String SEND_PROPOSE_STATE = "Send-response";
-	private static final String WAIT_ACCEPTANCE_STATE = "Wait-Acceptance";
-  private static final String HANDLE_REJECT_STATE ="Handle-Reject";
-  private static final String PREPARE_RESULT_NOTIFICATION_STATE = "Prepare-result-notification";
-  private static final String SEND_RESULT_NOTIFICATION_STATE = "Send-result-notification";
-	private static final String HANDLE_OUT_OF_SEQUENCE_STATE = "Handle-Out-Of-Sequence";
-// Data store keys
- /** 
- * key to retrieve from the DataStore of the behaviour the ACLMessage 
- *	object received by the initiator.
- **/
-public final String CFP_KEY = "__CFP_key" + hashCode();
-
-/** 
- * key to retrieve from the DataStore of the behaviour the ACLMessage 
- *	object sent as a response to the initiator CFP.
- **/
-public final String RESPONSE_KEY = "__Response" + hashCode();
-		/**
-		 * @deprecated use RESPONSE_KEY instead
-		 **/
-public final String PROPOSE_KEY = RESPONSE_KEY;
-
-/** 
- * key to retrieve from the DataStore of the behaviour the ACLMessage 
- *	object sent as an ACCEPT/REJECT PROPOSAL response to the initiator CFP.
- **/             
-public final String PROPOSE_ACCEPTANCE_KEY = "___propose_acceptance"+hashCode();
+public class ContractNetResponder extends SSContractNetResponder {
+	/**
+	   @deprecated Use <code>REPLY_KEY</code>
+	 */
+	public final String RESPONSE_KEY = REPLY_KEY;
+	/** 
+	   @deprecated Use either <code>ACCEPT_PROPOSAL_KEY</code> or 
+	   <code>REJECT_PROPOSAL_KEY</code> according to the message 
+	   that has been received
+	 */             
+	public final String PROPOSE_ACCEPTANCE_KEY = RECEIVED_KEY;
   /** 
-   * key to retrieve from the DataStore of the behaviour the ACLMessage 
-   *	object sent as a result notification to the initiator.
-   **/
-public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode();
-
-
-    // Private inner classes for the FSM states
-    private static class PreparePropose extends OneShotBehaviour {
-
-	public PreparePropose(Agent a) {
-	    super(a);
-	}
-
-	// For persistence service
-	private PreparePropose() {
-	}
-
-	public void action() {
-
-	    ContractNetResponder fsm = (ContractNetResponder)getParent();
-	    DataStore ds = getDataStore();
-	    ACLMessage request = (ACLMessage) ds.get(fsm.CFP_KEY);
-
-	    ACLMessage response = null;
-	    try {
-		response = fsm.prepareResponse(request); 
-	    }
-	    catch (NotUnderstoodException nue) {
-		response = nue.getACLMessage();
-	    }
-	    catch (RefuseException re) {
-		response = re.getACLMessage();
-	    }
-	    ds.put(fsm.RESPONSE_KEY, response);
-	}
-
-    } // End of PreparePropose class
-
-    private static class AcceptReceiver extends MsgReceiver {
-
-
-	public AcceptReceiver(Agent myAgent, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
-	    super(myAgent, mt, deadline, s, msgKey);
-	}
-
-	// For persistence service
-	private AcceptReceiver() {
-	}
-
-	public void onStart() {
-
-	    ContractNetResponder fsm = (ContractNetResponder)getParent();
-	    DataStore ds = getDataStore();
-	    ACLMessage propose = (ACLMessage)ds.get(fsm.RESPONSE_KEY);
-	    if(propose == null) {
-		return;
-	    }
-	    long t_out;
-	    Date reply_by = propose.getReplyByDate();
-	    if(reply_by == null) {
-		t_out = MsgReceiver.INFINITE;
-	    }
-	    else {
-		t_out = reply_by.getTime();
-	    }
-	    MessageTemplate mtemplate = MessageTemplate.and(
-							    MessageTemplate.MatchConversationId(propose.getConversationId()),
-							    MessageTemplate.MatchInReplyTo(propose.getReplyWith())
-							    );
-	    setDeadline(t_out);
-	    setTemplate(mtemplate);
-	}
-
-    } // End of AcceptReceiver class
-
-
-    private static class PrepareResult extends OneShotBehaviour {
-
-	public PrepareResult(Agent a) {
-	    super(a);
-	}
-
-	public void action() {
-	    ContractNetResponder fsm = (ContractNetResponder)getParent();
-	    DataStore ds = getDataStore();
-	    ACLMessage cfp = (ACLMessage) ds.get(fsm.CFP_KEY);
-	    ACLMessage propose = (ACLMessage) ds.get(fsm.RESPONSE_KEY);
-	    ACLMessage accept = (ACLMessage) ds.get(fsm.PROPOSE_ACCEPTANCE_KEY);
-	    ACLMessage resNotification = null;
-	    try {
-		resNotification = fsm.prepareResultNotification(cfp, propose, accept); 
-	    }
-	    catch (FailureException fe) {
-		resNotification = fe.getACLMessage();
-	    }
-	    ds.put(fsm.RESULT_NOTIFICATION_KEY, resNotification);
-	}
-
-	// For persistence service
-	private PrepareResult() {
-	}
-
-    } // End of PrepareResult class
-
-
-
-    //#MIDP_EXCLUDE_BEGIN
-
-    // For persistence service
-    private ContractNetResponder() {
-    }
-    //#MIDP_EXCLUDE_END
-
-    /**
-     * Constructor of the behaviour that creates a new empty DataStore
-     * @see #ContractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
-     **/
-    public ContractNetResponder(Agent a,MessageTemplate mt) {
-	this(a,mt, new DataStore());
-    }
-
-    /**
-     * Constructor of the behaviour.
-     * @param a is the reference to the Agent object
-     * @param mt is the MessageTemplate that must be used to match
-     * the initiator message. Take care that 
-     * if mt is null every message is consumed by this protocol.
-     * The best practice is to have a MessageTemplate that matches
-     * the protocol slot; the static method <code>createMessageTemplate</code>
-     * might be usefull. 
-     * @param store the DataStore for this protocol behaviour
-     **/
-    public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
-	super(a);
-
-	setDataStore(store);
-
-	registerDefaultTransition(RECEIVE_CFP_STATE,PREPARE_PROPOSE_STATE);
-	registerDefaultTransition(PREPARE_PROPOSE_STATE, SEND_PROPOSE_STATE);
-	registerTransition(SEND_PROPOSE_STATE,WAIT_ACCEPTANCE_STATE,ACLMessage.PROPOSE);
-
-	registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,ACLMessage.REJECT_PROPOSAL);
-	registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,MsgReceiver.TIMEOUT_EXPIRED); // Time Out
-	registerTransition(WAIT_ACCEPTANCE_STATE,PREPARE_RESULT_NOTIFICATION_STATE,ACLMessage.ACCEPT_PROPOSAL);
-	registerDefaultTransition(WAIT_ACCEPTANCE_STATE,HANDLE_OUT_OF_SEQUENCE_STATE);
-
-	registerDefaultTransition(PREPARE_RESULT_NOTIFICATION_STATE,SEND_RESULT_NOTIFICATION_STATE);
-
-	registerDefaultTransition(SEND_PROPOSE_STATE, RESET_STATE);
-	registerDefaultTransition(HANDLE_REJECT_STATE, RESET_STATE);
-	registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_STATE, RESET_STATE);
-	registerDefaultTransition(SEND_RESULT_NOTIFICATION_STATE, RESET_STATE);
-
-	Behaviour b;
-
-	// Reset state
-	b = new StateResetter();
-	registerState(b,RESET_STATE);
-
-	// RECEIVE_CFP
-	b = new MsgReceiver(myAgent,mt,-1,getDataStore(),CFP_KEY);
-	registerFirstState(b, RECEIVE_CFP_STATE);
-
-	// PREPARE_PROPOSE
-	b = new PreparePropose(myAgent);
-	registerDSState(b, PREPARE_PROPOSE_STATE);
-
-	// SEND_PROPOSE
-	b = new ReplySender(myAgent,RESPONSE_KEY,CFP_KEY);
-	registerDSState(b, SEND_PROPOSE_STATE);
-
-	// RECEIVE_ACCEPT
-	b = new AcceptReceiver(myAgent, mt, -1, getDataStore(), PROPOSE_ACCEPTANCE_KEY);
-	registerDSState(b, WAIT_ACCEPTANCE_STATE);
-
-	// PREPARE_RESULT_NOTIFICATION
-	b = new PrepareResult(myAgent);
-	registerDSState(b, PREPARE_RESULT_NOTIFICATION_STATE);
-	
-	// SEND_RESULT_NOTIFICATION
-	b = new ReplySender(myAgent, RESULT_NOTIFICATION_KEY, PROPOSE_ACCEPTANCE_KEY);
-	registerDSState(b, SEND_RESULT_NOTIFICATION_STATE );
-
-	// Handle reject/Time out
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-		    ACLMessage propose = (ACLMessage) ds.get(RESPONSE_KEY);
-		    ACLMessage reject = (ACLMessage) ds.get(PROPOSE_ACCEPTANCE_KEY);
-
-		    handleRejectProposal(cfp,propose,reject); 
-		    
-		}
-	    };
-
-	registerDSState(b,HANDLE_REJECT_STATE);
-
-	  // Handle Out of sequence in wait acceptance
-	    
-	    
-	b = new OneShotBehaviour(myAgent) {
-	
-				public void action() {
-		  	  DataStore ds = getDataStore();
-		    	ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-		    	ACLMessage propose = (ACLMessage) ds.get(RESPONSE_KEY);
-		    	ACLMessage outMsg = (ACLMessage) ds.get(PROPOSE_ACCEPTANCE_KEY);
-				    handleOutOfSequence(cfp,propose,outMsg); 
- 				}
-	    };
-	    
-	registerDSState(b,HANDLE_OUT_OF_SEQUENCE_STATE);
-
-	
-}
-
-
-/**   
-* This method is called after the <code>reject-propose</code> has been received
-* or the timeout expires, as expressed by the <code>reply-by</code> value of
-* the <code>PROPOSE</code> reply.
-* This default implementation do nothing.
-* Programmers should override the method in case they need to react to this event.
-* After the execution of this method this responder behaviour is 
-* automatically resetted. 
-* @param cfp the received message
-* @param propose the previously sent propose message
-* @param rejectProposal the received reject-propose message, 
-* null if the timeout expired
-**/
-protected void handleRejectProposal(ACLMessage cfp,ACLMessage propose,ACLMessage rejectProposal){
-}
-
-/**   
-* This callback method is called after a message arrives
-* that does not respect the 
-* protocol (i.e.
-* a message with the correct in-reply-to field but with a unexpected
-* performative).
-* This default implementation do nothing.
-* Programmers should override the method in case they need to react to this event.
-* After the execution of this method this responder behaviour is reset. 
-* @param cfp the received message
-* @param propose the previously sent propose message
-* @param  outOfSequence the received message that does not respect the protocol
-**/
-protected void handleOutOfSequence(ACLMessage cfp,ACLMessage propose,ACLMessage outOfSequenceMsg){
-}
-
-
-/**   
-* This callback method is called after the acceptance has been sent
-* and only if the response was an <code>accept-propose</code> message. 
-* This default implementation return null which has
-* the effect of sending no result notification. Programmers should
-* override the method in case they need to react to this event.
-* @param cfp the received message
-* @param propose the previously sent propose message
-* @param accept the received accept-propose message
-* @return the ACLMessage to be sent as a result notification (i.e. one of
-* <code>inform, failure</code>. <b>Remind</b> to
-* use the method createReply of the class ACLMessage in order
-* to create a valid reply message
-* @see jade.lang.acl.ACLMessage#createReply()
-**/
-protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose,ACLMessage accept ) throws FailureException {
-		System.out.println("prepareResultNotification() method not re-defined");
-		return null;
-}
-    
-
-/**
-   This method allows to register a user defined <code>Behaviour</code>
-   in the HANDLE_REJECT state.
-   This behaviour would override the homonymous method.
-   This method also set the  data store of the registered <code>Behaviour</code> to the
-   DataStore of this current behaviour.
-   The registered behaviour can find the sent and receivet messages 
-   within the datastore 
-   at the keys: <code>CFP_KEY</code>, <code>RESPONSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
-   @param b the Behaviour that will handle this state
-  **/
-public void registerHandleRejectProposal(Behaviour b){
-		registerDSState(b,HANDLE_REJECT_STATE);
-}
-
-    /**
-       This method allows to register a user defined <code>Behaviour</code>
-       in the PREPARE_RESPONSE state.
-       This behaviour would override the homonymous method.
-       This method also set the 
-       data store of the registered <code>Behaviour</code> to the
-       DataStore of this current behaviour.
-       It is responsibility of the registered behaviour to put the
-       response to be sent into the datastore at the <code>RESPONSE_KEY</code>
-       key.
-       @param b the Behaviour that will handle this state
-    */
-public void registerPrepareResponse(Behaviour b) {
-	registerDSState(b, PREPARE_PROPOSE_STATE);
-}
-
- /**
-   This method allows to register a user defined <code>Behaviour</code>
-   in the PREPARE_RESULT_NOTIFICATION state.
-   This behaviour would override the homonymous method.
-   This method also set the  data store of the registered <code>Behaviour</code> to the
-   DataStore of this current behaviour.
-   It is responsibility of the registered behaviour to put the
-   result notification message to be sent into the datastore at the 
-   <code>RESULT_NOTIFICATION_KEY</code>  key.
-       @param b the Behaviour that will handle this state
-  **/
-public void registerPrepareResultNotification(Behaviour b) {
-	registerDSState(b, PREPARE_RESULT_NOTIFICATION_STATE);
-}
-
-/**
-   This method allows to register a user defined <code>Behaviour</code>
-   in the HANDLE_OUT_OF_SEQUENCE state.
-   This behaviour would override the homonymous method.
-   This method also set the  data store of the registered <code>Behaviour</code> to the
-   DataStore of this current behaviour.
-   The registered behaviour can found the send and received message in the datastore 
-   at the keys: <code>CFP_KEY</code>, <code>RESPONSE_KEY</code>,<code> PROPOSE_ACCEPTANCE_KEY_KEY</code>,
-   @param b the Behaviour that will handle this state
-  **/
-public void registerHandleOutOfSequnece(Behaviour b) {
-	registerDSState(b, HANDLE_OUT_OF_SEQUENCE_STATE);
-}
-
-
- /**
-  *  This static method can be used 
-  *  to set the proper message Template (based on the interaction protocol 
-  *  and the performative) to be passed to the constructor of this behaviour.
-  *  @see jade.domain.FIPANames.InteractionProtocol
-  **/
-    public static MessageTemplate createMessageTemplate(String iprotocol){
-
-       if(CaseInsensitiveString.equalsIgnoreCase(FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET,iprotocol))
-	         	return MessageTemplate.and(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET),MessageTemplate.MatchPerformative(ACLMessage.CFP));
-   	 	 else
-   	 	 if(CaseInsensitiveString.equalsIgnoreCase(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET,iprotocol))
-	    			return MessageTemplate.and(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),MessageTemplate.MatchPerformative(ACLMessage.CFP));
-			 else
-	  				return MessageTemplate.MatchProtocol(iprotocol);
-    }
-
-
-    /**   
-     * This method is called when the initiator's
-     * message is received that matches the message template
-     * passed in the constructor. 
-     * This default implementation return null which has
-     * the effect of sending no reponse. Programmers should
-     * override the method in case they need to react to this event.
-     * @param request the received message
-     * @return the ACLMessage to be sent as a response (i.e. one of
-     * <code>PROPOSE, refuse, not-understood</code>. <b>Remind</b> to
-     * use the method <code>createReply</code> of the class ACLMessage in order
-     * to create a valid reply message
-     * @see jade.lang.acl.ACLMessage#createReply()
-     **/
-    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-	System.out.println("prepareResponse() method not re-defined");
-	return null;
-    }
-
-    
-    
-  /**
-   * Reset the behaviour.
+	   @deprecated Use <code>REPLY_KEY</code>
    */
-  public void reset() {
-		super.reset();
-		DataStore ds = getDataStore();
-		ds.remove(CFP_KEY);
-		ds.remove(PROPOSE_ACCEPTANCE_KEY);
-		ds.remove(RESPONSE_KEY);
-		ds.remove(RESULT_NOTIFICATION_KEY);
-  }
-    
+	public final String RESULT_NOTIFICATION_KEY = REPLY_KEY;
+
+	public static final String RECEIVE_CFP = "Receive-Cfp";
+	
   /**
-   * This method reset the behaviour and 
-   * allows to change the <code>MessageTemplate</code>
-   * that defines what messages this ContractNetResponder will react to. 
+   * Constructor of the behaviour that creates a new empty DataStore
+   * @see #ContractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
    **/
-  public void reset(MessageTemplate mt) {
-      this.reset();
+  public ContractNetResponder(Agent a,MessageTemplate mt) {
+		this(a,mt, new DataStore());
+  }
 
-      MsgReceiver cfp_rec = (MsgReceiver)getState(RECEIVE_CFP_STATE);
-      cfp_rec.reset(mt, -1, getDataStore(), CFP_KEY);
+  /**
+   * Constructor of the behaviour.
+   * @param a is the reference to the Agent object
+   * @param mt is the MessageTemplate that must be used to match
+   * the initiator message. Take care that 
+   * if mt is null every message is consumed by this protocol.
+   * The best practice is to have a MessageTemplate that matches
+   * the protocol slot; the static method <code>createMessageTemplate</code>
+   * might be usefull. 
+   * @param store the DataStore for this protocol behaviour
+   **/
+  public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store) {
+		super(a, null, store);
 
-      MsgReceiver accept_rec = (MsgReceiver)getState(WAIT_ACCEPTANCE_STATE);
-      accept_rec.reset(mt, -1, getDataStore(), PROPOSE_ACCEPTANCE_KEY);
+		Behaviour b = null;
+		
+		// RECEIVE_CFP
+		b = new MsgReceiver(myAgent, mt, -1, getDataStore(), CFP_KEY);
+		registerFirstState(b, RECEIVE_CFP);
 
+		// The DUMMY_FINAL state must no longer be final
+		b = deregisterState(DUMMY_FINAL);
+		registerDSState(b, DUMMY_FINAL);
+		
+		registerDefaultTransition(RECEIVE_CFP, HANDLE_CFP);
+		registerDefaultTransition(DUMMY_FINAL, RECEIVE_CFP);
+	}
+  
+	/**
+     @deprecated Use <code>handleCfp()</code> instead
+   */
+  protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+		return null;
+  }
+
+	/**
+	   @deprecated Use <code>handleAcceptProposal()</code> instead.
+	 */
+	protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose,ACLMessage accept ) throws FailureException {
+		return null;
+	}	
+	
+  /**
+     @deprecated Use <code>registerHandleCfp()</code> instead.
+   */
+	public void registerPrepareResponse(Behaviour b) {
+		registerHandleCfp(b);
+	}
+
+	 /**
+     @deprecated Use <code>registerHandleAcceptProposal()</code> instead.
+	  */
+	public void registerPrepareResultNotification(Behaviour b) {
+		registerHandleAcceptProposal(b);
+	}
+	
+
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	   Redefine this method to call prepareResponse()
+	 */
+  protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException, FailureException, NotUnderstoodException {
+  	return prepareResponse(cfp);
+  }
+
+	/**
+	   Redefine this method to call prepareResultNotification()
+	 */
+  protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
+  	return prepareResultNotification(cfp, propose, accept);
+  }
+
+	/**
+	   Redefine this method so that the HANDLE_CFP state is not registered
+	   as first state
+	 */
+  public void registerHandleCfp(Behaviour b) {
+		registerDSState(b, HANDLE_CFP);
   }
     
+  protected void sessionTerminated() {
+  	// Once the current session is terminated reinit the 
+  	// internal state to handle the next one
+  	reinit();
+  	
+  	// Be sure all children can be correctly re-executed
+  	resetChildren();
+  }
+	//#APIDOC_EXCLUDE_END
+  
 
-private void registerDSState(Behaviour b,String name){
-		b.setDataStore(getDataStore());		
-		registerState(b,name);
-}
-
+	/**
+	   This static method can be used 
+     to set the proper message Template (based on the interaction protocol 
+     and the performative) to be passed to the constructor of this behaviour.
+     @see jade.domain.FIPANames.InteractionProtocol
+  */
+  public static MessageTemplate createMessageTemplate(String iprotocol){
+		if(CaseInsensitiveString.equalsIgnoreCase(FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET,iprotocol)) {
+			return MessageTemplate.and(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET),MessageTemplate.MatchPerformative(ACLMessage.CFP));
+		}
+		else if(CaseInsensitiveString.equalsIgnoreCase(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET,iprotocol)) {
+			return MessageTemplate.and(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET),MessageTemplate.MatchPerformative(ACLMessage.CFP));
+		}
+		else {
+			return MessageTemplate.MatchProtocol(iprotocol);
+		}
+	}  
 }
