@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.19  1999/02/16 08:08:18  rimassa
+  Removed a useless Reader, fixing a FIXME.
+
   Revision 1.18  1999/02/04 12:49:59  rimassa
   Added 'unknown' state to DF Life Cycle states.
   '( action ... )' expression made optional in DF search result.
@@ -96,8 +99,6 @@ import jade.lang.acl.ACLParser;
 
 class AgentManagementParser {
 
-  private Reader myReader; // FIXME: Maybe it's unnecessary
-
   public static void main(String args[]) throws ParseException {
     AgentManagementParser parser = new AgentManagementParser(System.in);
 
@@ -123,61 +124,51 @@ class AgentManagementParser {
   }
 
   public AgentManagementOntology.Action parseAction(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return Action();
   }
 
   public AgentManagementOntology.AMSAction parseAMSAction(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return AMSAction();
   }
 
   public AgentManagementOntology.AMSEvent parseAMSEvent(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return AMSEvent();
   }
 
   public AgentManagementOntology.DFAction parseDFAction(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return DFAction();
   }
 
   public AgentManagementOntology.ACCAction parseACCAction(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return ACCAction();
   }
 
   public AgentManagementOntology.DFAgentDescriptor parseDFDescriptor(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return DF_description();
   }
 
   public AgentManagementOntology.AMSAgentDescriptor parseAMSDescriptor(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return AMS_Description();
   }
 
   public AgentManagementOntology.ServiceDescriptor parseServiceDescriptor(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return FIPA_Service_Desc();
   }
 
   public AgentManagementOntology.DFSearchResult parseSearchResult(Reader r) throws ParseException {
-    myReader = r;
     ReInit(r);
     return Search_Result();
   }
 
   public FIPAException parseFIPAException(Reader r, AgentManagementOntology o) throws ParseException {
-    myReader = r;
     ReInit(r);
     return FIPA_Exception(o);
   }
