@@ -959,9 +959,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     // The local slice for this service
     private ServiceComponent localSlice;
 
-    // The node for the local slice of this service
-    private Node localNode;
-
     // The cached AID -> MessagingSlice associations
     private Map cachedSlices;
 
