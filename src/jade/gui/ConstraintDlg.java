@@ -41,18 +41,18 @@ import jade.domain.FIPAAgentManagement.SearchConstraints;
 /**
 * This class implements the gui to insert the constraints for the search operation.
 */
-class ConstraintDlg extends JDialog
+public class ConstraintDlg extends JDialog
 {
 	JTextField maxDepth,	maxResult ;
 	SearchConstraints constraints = new SearchConstraints();
 	
 	//CONSTRUCTORS
-	ConstraintDlg(Frame parent)
+	public ConstraintDlg(Frame parent)
 	{
 		super(parent);
 	}
 	
-	ConstraintDlg(Dialog parent)
+	public ConstraintDlg(Dialog parent)
 	{
 		super(parent);
 	}
@@ -60,7 +60,7 @@ class ConstraintDlg extends JDialog
 	/**
 	This method display a gui to insert the search constraints. Return a <code>SearchConstraints </code> if the OK button is pressed null otherwise.
 	*/
-	SearchConstraints setConstraint()
+	public SearchConstraints setConstraint()
 	{
 			
 		setTitle("Insert Search Constraints");

@@ -41,7 +41,7 @@ import jade.core.AID;
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */
-class DFAgentDscDlg extends JDialog 
+public class DFAgentDscDlg extends JDialog 
 {
 	
 	Dialog     dlgParent;
@@ -58,13 +58,13 @@ class DFAgentDscDlg extends JDialog
 	private JTextField agentName;
 	
 	// CONSTRUCTORS
-	DFAgentDscDlg(Frame parent) 
+	public DFAgentDscDlg(Frame parent) 
 	{
 		super(parent);
 		dlgParent = (Dialog) this;
 	}
 
-	DFAgentDscDlg(Dialog parent) 
+	public DFAgentDscDlg(Dialog parent) 
 	{
 		super(parent);
 		dlgParent = (Dialog) this;
@@ -78,7 +78,7 @@ class DFAgentDscDlg extends JDialog
 	* @return a DFAgentDescription if the OK button is pressed, false if the Cancel button is pressed.
 	*/
 	
-	DFAgentDescription ShowDFDGui(DFAgentDescription dfd, boolean ed , boolean checkMandatorySlots)
+	public DFAgentDescription ShowDFDGui(DFAgentDescription dfd, boolean ed , boolean checkMandatorySlots)
 	{
 		setTitle("DF description");
 
