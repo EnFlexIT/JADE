@@ -101,7 +101,7 @@ public interface AgentManager {
   void wake(AID agentID, String password) throws NotFoundException, UnreachableException;
 
   void move(AID agentID, Location where) throws NotFoundException, UnreachableException, AuthException;
-  void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, UnreachableException, AuthException;
+  void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, NameClashException, UnreachableException, AuthException;
 
   void killContainer(ContainerID cid) throws NotFoundException, AuthException;
   MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
