@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.18  1999/02/04 12:49:59  rimassa
+  Added 'unknown' state to DF Life Cycle states.
+  '( action ... )' expression made optional in DF search result.
+  Fixed a bug in the parsing of request forward. Now the content of the
+  forward is parsed according to balanced parenthesis
+
   Revision 1.17  1999/02/03 10:35:16  rimassa
   Changed grammar to support both URLs and stringified IORs as agent
   addresses.
@@ -65,10 +71,10 @@
 
 
 options {
-
+  // DEBUG_PARSER = true;
+  // DEBUG_TOKEN_MANAGER = true;
   IGNORE_CASE = true;
   STATIC = false;
-
 }
 
 
@@ -87,6 +93,7 @@ import java.io.BufferedWriter;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLParser;
 
+
 class AgentManagementParser {
 
   private Reader myReader; // FIXME: Maybe it's unnecessary
@@ -95,14 +102,19 @@ class AgentManagementParser {
     AgentManagementParser parser = new AgentManagementParser(System.in);
 
     while (true) {
+
       try {
-	AgentManagementOntology.Action result = parser.parseAction(new BufferedReader(new InputStreamReader(System.in)));
+	AgentManagementOntology.DFSearchResult result = parser.parseSearchResult(new BufferedReader(new InputStreamReader(System.in)));
+	//AgentManagementOntology.Action result = parser.parseAction(new BufferedReader(new InputStreamReader(System.in)));
 	result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       }
       catch(ParseException pe) {
 	pe.printStackTrace();
 	System.exit(1);
       }
+      catch (FIPAException e) {
+	e.printStackTrace();
+     } 
     }
   }
 
@@ -185,9 +197,17 @@ AgentManagementOntology.Action Action() :
   AgentManagementOntology.Action a;
 }
 {
-  "(" <ACTION> AgentName()
-    "(" ( a = AMSActionBody() | a = DFActionBody() | a = ACCActionBody() ) ")"
-  ")"
+  "(" a=ActionWithoutParenthesis() ")"
+  { return a; }
+}
+
+AgentManagementOntology.Action ActionWithoutParenthesis() :
+{
+  AgentManagementOntology.Action a;
+}
+{
+  <ACTION> AgentName()
+    "(" ( a = AMSActionBody() | a = DFActionBody() | a = DFSearchBody() | a = ACCActionBody() ) ")"
   { return a; }
 }
 
@@ -399,7 +419,7 @@ AgentManagementOntology.DFSearchAction DFSearchBody() :
 }
 {
   t = <SEARCH> { a.setName(t.image); }
-  dfd = DF_description() { a.setArg(dfd); }
+  dfd = DF_description()  { a.setArg(dfd); }
   ( Constraint(a) )+
   { return a; }
 }
@@ -435,19 +455,24 @@ AgentManagementOntology.ACCAction ACCActionBody() :
 
 String ACLMessage() :
 {
-  String s;
+  String s; Token t;
 }
-{
-  "("
+{ 
   { token_source.SwitchTo(ACL_BODYSTATE); }
-  s = ACLMessageBody()
-  { token_source.SwitchTo(DEFAULT); }
-  ")"
-  {
-    return "(" + s + ")";
-  }
+    t = <ACL_MESSAGE>
+  { token_source.SwitchTo(DEFAULT); 
+    return(t.image);	}
+//  "("
+//  { token_source.SwitchTo(ACL_BODYSTATE); }
+//  s = ACLMessageBody()
+//  { token_source.SwitchTo(DEFAULT); }
+//  ")"
+//  {
+//    return "(" + s + ")";
+//  }
 }
 
+/**
 String ACLMessageBody() :
 {
   String s = new String();
@@ -470,6 +495,8 @@ String ACLMessageBody() :
     return s;
   }
 }
+***/
+
 
 AgentManagementOntology.AMSAgentDescriptor AMS_Description() :
 {
@@ -766,9 +793,13 @@ AgentManagementOntology.DFSearchResult Search_Result() :
 {
   AgentManagementOntology.DFSearchResult dfsa = new AgentManagementOntology.DFSearchResult();
   AgentManagementOntology.DFAgentDescriptor dfd;
+  AgentManagementOntology.Action a;
 }
 {
-  "(" <RESULT> "(" ( dfd = DF_description() { dfsa.put(dfd.getName(), dfd); } )* ")" ")"
+  "(" <RESULT> "("
+    ( a=ActionWithoutParenthesis() ")" "(" )?
+    ( dfd = DF_description() { dfsa.put(dfd.getName(), dfd); } )* 
+  ")" ")"
   { return dfsa; }
 }
 
@@ -903,35 +934,60 @@ SKIP:
 <DfLifeCycleState>
 TOKEN:
 {
-  <DfLifecycleState : "active" | "suspended" | "retired"> : DEFAULT
+  <DfLifecycleState : "active" | "suspended" | "retired" | "unknown" > : DEFAULT
 }
 
 <ACL_BODYSTATE>
+SKIP:
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+<ACL_BODYSTATE>
 TOKEN:
 {
-  <STRING_LITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\"">
-| <BLE_STRING: "#" <INT> "\"" >
-    {
-      String tmp = matchedToken.image.substring(1, matchedToken.image.length() - 1);
-      int numBytes = Integer.parseInt(tmp);
-      if (numBytes < 0) 
-	throw new TokenMgrError("ERROR: PrefixByteLengthEncodedString with length < 0", TokenMgrError.STATIC_LEXER_ERROR);
-      char[] bytes = new char[numBytes];
-      int i = 0; 
- 	
-      while (numBytes-- > 0) 
+<ACL_MESSAGE:  "(" >
+    { // consume balanced parenthesis
+        String aclm = "("; 
 	try {
-	  bytes[i++] = input_stream.readChar(); 
-	}
-        catch (IOException e) {
-	  System.out.println("IOException during PREFIXBYTELENGTHENCODEDSTRING");
+	 int parent = 1;
+	 while (parent > 0) {
+		char p = input_stream.readChar();
+		if (p=='(') parent++;
+		else if (p == ')') parent--;
+		aclm = aclm + p;
+	 }
+        } catch (IOException e) {
+	  System.out.println("IOException during ACLMessage to forward");
 	  throw new TokenMgrError(true, curLexState, input_stream.getEndLine(), input_stream.getEndColumn(),input_stream.GetImage(), curChar, TokenMgrError.LEXICAL_ERROR);
-	}
-      // If you want, you can add bytes to matchedToken.image here.
-      matchedToken.image = new String(bytes);
+        }
+	matchedToken.image = aclm;
     }
-| <REMAINDER: (~["(", "#", "\"", ")" ])+ >
-| <INT : ["0"-"9"](["0"-"9"])*>
+| <STRING_LITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\"">
+//| <BLE_STRING: "#" <INT> "\"" >
+//    {
+ //     String tmp = matchedToken.image.substring(1, matchedToken.image.length() - 1);
+//      int numBytes = Integer.parseInt(tmp);
+//      if (numBytes < 0) 
+//	throw new TokenMgrError("ERROR: PrefixByteLengthEncodedString with length < 0", TokenMgrError.STATIC_LEXER_ERROR);
+//      char[] bytes = new char[numBytes];
+//      int i = 0; 
+// 	
+//      while (numBytes-- > 0) 
+//	try {
+//	  bytes[i++] = input_stream.readChar(); 
+//	}
+//        catch (IOException e) {
+//	  System.out.println("IOException during PREFIXBYTELENGTHENCODEDSTRING");
+//	  throw new TokenMgrError(true, curLexState, input_stream.getEndLine(), input_stream.getEndColumn(),input_stream.GetImage(), curChar, TokenMgrError.LEXICAL_ERROR);
+//	}
+ //     // If you want, you can add bytes to matchedToken.image here.
+//      matchedToken.image = new String(bytes);
+//    }
+//| <REMAINDER: (~["(", "#", "\"", ")" ])+ >
+//| <INT : ["0"-"9"](["0"-"9"])*>
 
 }
 
