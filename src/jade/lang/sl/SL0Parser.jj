@@ -244,8 +244,11 @@ String String() :
                            */
                           StringBuffer result = new StringBuffer(t.image.length());
                           for( int i=1; i<t.image.length()-1; i++)
-                            if( t.image.charAt(i) == '\\' && t.image.charAt(i+1) == '\"' ) 
+                            if( t.image.charAt(i) == '\\' && t.image.charAt(i+1) == '\"' )
+                            {
                               result.append("\"");
+                              i++;
+                            }
                             else
                               result.append(t.image.charAt(i));
                           return result.toString();
