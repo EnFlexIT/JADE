@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.38  1999/03/10 06:55:05  rimassa
+  Removed a useless import clause.
+
   Revision 1.37  1999/03/03 16:14:19  rimassa
   Used split synchronization locks for different agent parts
   (suspending, waiting for events, message queue handling, ...).
@@ -220,7 +223,6 @@ import java.util.Vector;
 
 import jade.lang.acl.*;
 import jade.domain.AgentManagementOntology;
-import jade.domain.FipaRequestClientBehaviour;
 import jade.domain.FIPAException;
 
 /**
