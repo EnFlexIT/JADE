@@ -51,6 +51,7 @@ ant testsuite - to compile test Suite
   	       deprecation="off">
   		<exclude name="TestAgent.java"/>
   		<exclude name="mobility/separate/**"/>
+  		<exclude name="leap/midp/**"/>
   	</javac>
   				
   	<!-- RMIC the TSDaemon -->
@@ -94,6 +95,7 @@ ant testsuite - to compile test Suite
 				<include name="**/examples/mobile/**"/>
 				<include name="**/examples/content/**"/>
   			<exclude name="**/test/mobility/separate/**"/>
+  			<exclude name="**/test/leap/midp/**"/>
 			</fileset>
 		</jar>
 	</target>
