@@ -139,10 +139,8 @@ public class ams extends Agent implements AgentManager.Listener {
     
     // Fill Agent Platform Description. 
     theProfile.setName("\"" + getHap() + "\"");
-    theProfile.setDynamic(new Boolean(false));
-    theProfile.setMobility(new Boolean(false));
-    APTransportDescription mtps = new APTransportDescription();
-    theProfile.setTransportProfile(mtps);
+    APService mtp = new APService();
+    theProfile.addAPServices(mtp);
     writeAPDescription(theProfile);
     
     // Register the supported ontologies
@@ -650,36 +648,37 @@ public class ams extends Agent implements AgentManager.Listener {
   // SEARCH
   List searchAction(Search s, AID requester) {
     log("Agent "+requester+" requesting AMS-search", 2);
-  	AMSAgentDescription template = (AMSAgentDescription) s.getDescription();
-  	long max = -1;
-  	SearchConstraints sc = s.getConstraints();
-  	if (sc != null) {
-  		Long l = sc.getMaxResults();
-  		if (l != null) {
-  			max = l.longValue();
-  		}
-  	}
-  	return myPlatform.amsSearch(template, max);
+    return myPlatform.amsSearch((AMSAgentDescription)s.getDescription(), getActualMaxResults(s.getConstraints()));
+  }
+  
+  /** max number of results returned by a SEARCH action **/
+  private static long LIMIT_MAXRESULT = 100;
+        /**
+   * @return 
+   * <ul>
+   * <li> 1 if constraints.maxResults == null (according to FIPA specs)
+   * <li> LIMIT_MAXRESULT if constraints.maxResults < 0 (the FIPA specs requires it to be 
+   * infinite, but for practical reason we prefer to limit it)
+   * <li> constraints.maxResults otherwise
+   * </ul>
+   **/
+  private long getActualMaxResults(SearchConstraints constraints) {
+      long maxResult = (constraints.getMaxResults() == null ? 1 : constraints.getMaxResults().longValue());
+      maxResult = (maxResult < 0 ? LIMIT_MAXRESULT : maxResult); // limit the max num of results
+      return maxResult;              
   }
 
   // GET_DESCRIPTION
   APDescription getDescriptionAction(AID requester) {
     log("Agent "+requester+" requesting AMS-get-description", 2);
-  	APTransportDescription tdsc = theProfile.getTransportProfile();
-  	tdsc.clearAllAvailableMtps();
-  	Iterator mtps = platformMTPs().iterator();
-  	while (mtps.hasNext()) {
-  		MTPDescriptor dr = (MTPDescriptor) mtps.next();
-    	MTPDescription dn = new MTPDescription();
-    	dn.setMtpName(dr.getName());
-    	String[] addresses = dr.getAddresses();
-    	for (int i = 0; i < addresses.length; ++i) {
-    		dn.addAddresses(addresses[i]);
-    	}
-    	tdsc.addAvailableMtps(dn);
-  	}
-  	
-  	return theProfile;
+    theProfile.clearAllAPServices(); // clear all the services and recreate the new APDescription
+    MTPDescriptor dr;
+    for (Iterator mtps = platformMTPs().iterator(); mtps.hasNext(); ) {
+        dr=(MTPDescriptor) mtps.next();
+        // convert from an internal MTPDescriptor to a FIPA APService
+        theProfile.addAPServices(new APService(dr.getName(), dr.getAddresses()));
+    }	
+    return theProfile;
   } 
 
   //////////////////////////////////////////////////////////////////
