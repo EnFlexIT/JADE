@@ -29,6 +29,13 @@
 			<WhenTestPass> The test passes if a FAILURE message indicating already-registered as the failure reason is received from the DF</WhenTestPass>
 		</Test>		
 
+		<Test name="Automatic clean up" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFCleanUp</TestClassName>
+			<WhatTest> Test that when an agent shuts down the DF automatically cleans up its registration.</WhatTest>
+			<HowWorkTest> An agent is started that registers with the DF. Then that agent is killed ant the DF is searched to see if its registration has been cleaned up </HowWorkTest>
+			<WhenTestPass> The test passes if the registration is not found and no exception is thrown</WhenTestPass>
+		</Test>		
+
 		<Test name="Registration from remote platform" skip="false">
 			<TestClassName>test.domain.df.tests.TestRemoteRegistration</TestClassName>
 			<WhatTest> Tests accessing the DF agent by an agent living on a remote platform.</WhatTest>
