@@ -91,7 +91,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	agent = (Agent)Class.forName(new String(agentClass)).newInstance();
       }
       catch(ClassNotFoundException cnfe) {
-	System.err.println("Class " + agentClass + "for agent " + agentName + " was not found.");
+	System.err.println("Class " + agentClass + " for agent " + agentName + " was not found.");
 	continue;
       }
       catch( Exception e ){
