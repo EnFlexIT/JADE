@@ -24,8 +24,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
-import java.util.Hashtable;
-import java.util.StringTokenizer;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -245,7 +246,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   /**
   @serial
   */
-  private Hashtable actions;
+  private Map actions;
 
   /**
     Public constructor for this behaviour.
@@ -254,7 +255,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   public FipaRequestResponderBehaviour(Agent a) {
 
     myAgent = a;
-    actions = new Hashtable();
+    actions = new HashMap();
 
     requestTemplate = MessageTemplate.and(
 			  MessageTemplate.MatchProtocol("fipa-request"),
@@ -277,40 +278,26 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   public void action() {
     ACLMessage msg = myAgent.receive(requestTemplate);
     if(msg != null) {
-      ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
+      ACLMessage reply = msg.createReply();
+      reply.setPerformative(ACLMessage.INFORM);
+      reply.setSender(myAgent.getAID());
 
-      // Write content-independent fields of reply message
-
-      reply.removeAllDests();
-      reply.addDest(msg.getSource());
-      reply.setSource(msg.getFirstDest());
-      reply.setProtocol("fipa-request");
-      reply.setOntology(msg.getOntology());
-      reply.setLanguage(msg.getLanguage());
-
-      String s = msg.getReplyWith();
-      if(s != null)
-	reply.setReplyTo(s);
-      s = msg.getConversationId();
-      if(s != null)
-	reply.setConversationId(s);
-
-	String token=getActionName(msg);
+      String token = getActionName(msg);
 	
-	Factory action = (Factory)actions.get(token);
+      Factory action = (Factory)actions.get(token);
 
-	if(action == null) {
-	  sendNotUnderstood(reply);
-	  return;
-	}
-	else {
-	  Action ab = action.create();
-	  ab.setActionName(token);
-	  ab.setRequest(msg);
-	  ab.setReply(reply);
-	  myAgent.addBehaviour(ab);
-	}
-      
+      if(action == null) {
+	sendNotUnderstood(reply);
+	return;
+      }
+      else {
+	Action ab = action.create();
+	ab.setActionName(token);
+	ab.setRequest(msg);
+	ab.setReply(reply);
+	myAgent.addBehaviour(ab);
+      }
+
     }
     else block();
 }
@@ -328,37 +315,24 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     actions.put(actionName, f);
   }
 
-/**
-  This method is used to get the right behaviour from the <code>Factory</code>.
-  It must return the name of the action that is then used to look-up 
-  in the factory with the list of registered actions.
-  This default implementation has been provided, but take care because
-  it works only for SL content language and it is also case-sensitive. 
-  Infact, the case of the returned <code>actionName</code> and that of the 
-  <code>actionName</code> passed as a parameter to <code>registerFactory</code> 
-  must be the same.
-  @param msg  the received ACLMessage.
-  @return the name of the action. If the content of the message is empty or its
-  syntax does not comply with SL, it returns an empty String.
-  @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f) 
+  /**
+    This method is used to get the right behaviour from the <code>Factory</code>.
+    It must return the name of the action that is then used to look-up 
+    in the factory with the list of registered actions.
+    This default implementation has been provided, but take care because
+    it works only for SL content language and it is also case-sensitive. 
+    Infact, the case of the returned <code>actionName</code> and that of the 
+    <code>actionName</code> passed as a parameter to <code>registerFactory</code> 
+    must be the same.
+    @param msg  the received ACLMessage.
+    @return the name of the action. If the content of the message is empty or its
+    syntax does not comply with SL, it returns an empty String.
+    @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f) 
   */
-protected String getActionName(ACLMessage msg) {  
-  try {  
-		String content = msg.getContent();
-    if(content == null) 
-     	return "";
-    StringTokenizer st = new StringTokenizer(content," \t\n\r()",false);
-    String token = st.nextToken();  // this is action
-	  token = st.nextToken(); 				// Now 'token' is the agent name
-		token = st.nextToken(); 				// Now 'token' is the action name
-		return token;
-  } 
-  catch (Exception e) { 
-  	return "";
+  protected String getActionName(ACLMessage msg) {  
+    return ""; // FIXME: Must use extractContent() and get the action name directly from the Frame.
   }
-}
 
- 
   /**
     Remove a action name - <code>Factory</code> object
     association. This method deregisters a <code>Factory</code> object

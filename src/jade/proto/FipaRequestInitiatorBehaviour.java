@@ -354,7 +354,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   		// by the method arrageReqMsg. 
       secondReqTemplate = MessageTemplate.and(MessageTemplate.MatchConversationId(reqMsg.getConversationId()),
   	                                          secondReqTemplate);
-			firstReqTemplate = MessageTemplate.and(MessageTemplate.MatchReplyTo(reqMsg.getReplyWith()),
+			firstReqTemplate = MessageTemplate.and(MessageTemplate.MatchInReplyTo(reqMsg.getReplyWith()),
 				                                     secondReqTemplate);
 
   } 
