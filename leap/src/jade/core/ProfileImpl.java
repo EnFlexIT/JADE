@@ -60,14 +60,14 @@ public class ProfileImpl extends Profile {
   private static final String IMTP = "imtp";
   
   private Properties          props = null;
-  
+ 
+  private ServiceManager myServiceManager = null;
+  private ServiceFinder myServiceFinder = null;
+  private CommandProcessor myCommandProcessor = null; 
   private Platform            myPlatform = null;
   private IMTPManager         myIMTPManager = null;
 	//#MIDP_EXCLUDE_BEGIN
-  private acc                 myAcc = null;
   private ResourceManager     myResourceManager = null;
-  private MobilityManager     myMobilityManager = null;
-  private NotificationManager myNotificationManager = null;
 	//#MIDP_EXCLUDE_END
 
   /**
@@ -78,7 +78,7 @@ public class ProfileImpl extends Profile {
   	
   	init();
   }
-  
+
   /**
    * Create a Profile object initialized with the settings specified
    * in a given property file
@@ -183,7 +183,33 @@ public class ProfileImpl extends Profile {
     //#PJAVA_EXCLUDE_END
   	//#MIDP_EXCLUDE_END
   }
-  
+
+
+    protected ServiceManager getServiceManager() throws ProfileException {
+      if(myServiceManager == null) {
+	  createServiceManager();
+      }
+
+      return myServiceManager;
+    }
+
+    protected ServiceFinder getServiceFinder() throws ProfileException {
+      if(myServiceFinder == null) {
+	  createServiceFinder();
+      }
+
+      return myServiceFinder;
+    }
+
+    protected CommandProcessor getCommandProcessor() throws ProfileException {
+      if(myCommandProcessor == null) {
+	  createCommandProcessor();
+      }
+
+      return myCommandProcessor;
+    }
+
+
   /**
    */
   protected Platform getPlatform() throws ProfileException {
@@ -202,21 +228,6 @@ public class ProfileImpl extends Profile {
     }
 
     return myPlatform;
-  }
-
-  /**
-   */
-  protected acc getAcc() throws ProfileException {
-  	//#MIDP_EXCLUDE_BEGIN
-    if (myAcc == null) {
-      createAcc();
-    }
-
-    return myAcc;
-  	//#MIDP_EXCLUDE_END
-  	/*#MIDP_INCLUDE_BEGIN
-    return new LightAcc();
-  	#MIDP_INCLUDE_END*/
   }
 
   /**
@@ -242,7 +253,7 @@ public class ProfileImpl extends Profile {
 
   /**
    */
-  protected ResourceManager getResourceManager() throws ProfileException {
+  public ResourceManager getResourceManager() throws ProfileException {
   	//#MIDP_EXCLUDE_BEGIN
     if (myResourceManager == null) {
       createResourceManager();
@@ -255,37 +266,68 @@ public class ProfileImpl extends Profile {
   	#MIDP_INCLUDE_END*/
   }
 
-  /**
-   */
-  protected MobilityManager getMobilityManager() throws ProfileException {
-  	//#MIDP_EXCLUDE_BEGIN
-    if (myMobilityManager == null) {
-      createMobilityManager();
+    private void createServiceManager() throws ProfileException {
+	try {
+	    // Make sure the IMTP manager is initialized
+	    myIMTPManager = getIMTPManager();
+
+	    // Make sure the Command Processor is initialized
+	    myCommandProcessor = getCommandProcessor();
+
+	    String isMain = props.getProperty(MAIN);
+	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+		// This is a main container: create a real Service Manager and export it
+		myServiceManager = new ServiceManagerImpl(this);
+		myIMTPManager.exportServiceManager(myServiceManager);
+	    }
+	    else {
+		// This is a peripheral container: create a Service Manager Proxy
+		myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
+	    }
+	}
+	catch(IMTPException imtpe) {
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    pe.initCause(imtpe);
+	    throw pe;
+	}
     }
 
-    return myMobilityManager;
-  	//#MIDP_EXCLUDE_END
-  	/*#MIDP_INCLUDE_BEGIN
-    return new DummyMobilityManager();
-  	#MIDP_INCLUDE_END*/
-  }
+    private void createServiceFinder() throws ProfileException {
+	try {
+	    // Make sure the IMTP manager is initialized
+	    myIMTPManager = getIMTPManager();
 
-  /**
-   */
-  protected NotificationManager getNotificationManager() throws ProfileException {
-  	//#MIDP_EXCLUDE_BEGIN
-    if (myNotificationManager == null) {
-      createNotificationManager();
+	    String isMain = props.getProperty(MAIN);
+	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+		// This is a main container: use the real
+		// implementation of the Service Manager as the
+		// service finder.
+		myServiceFinder = (ServiceFinder)myServiceManager;
+	    }
+	    else {
+		// This is a peripheral container: create a Service Finder Proxy
+		myServiceFinder = myIMTPManager.createServiceFinderProxy();
+	    }
+	}
+	catch(IMTPException imtpe) {
+	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	    pe.initCause(imtpe);
+	    throw pe;
+	}
     }
 
-    return myNotificationManager;
-  	//#MIDP_EXCLUDE_END
-  	/*#MIDP_INCLUDE_BEGIN
-    return new DummyNotificationManager();
-  	#MIDP_INCLUDE_END*/
-  }
 
-  //#MIDP_EXCLUDE_BEGIN
+    private void createCommandProcessor() throws ProfileException {
+	try {
+	    myCommandProcessor = new CommandProcessor();
+	}
+	catch(Exception e) {
+	    ProfileException pe = new ProfileException("Exception creating the Command Processor");
+	    pe.initCause(e);
+	    throw pe;
+	}
+    }
+
   /**
    */
   private void createPlatform() throws ProfileException {
@@ -301,18 +343,6 @@ public class ProfileImpl extends Profile {
     }
     catch (IMTPException imtpe) {
       throw new ProfileException("Can't get a stub of the MainContainer: "+imtpe.getMessage());
-    }
-  }
-
-  /**
-   */
-  private void createAcc() throws ProfileException {
-    String className = getParameter(ACC, "jade.core.FullAcc");
-    try {
-      myAcc = (acc) Class.forName(className).newInstance();
-    }
-    catch (Exception e) {
-      throw new ProfileException("Error loading acc class"+className);
     }
   }
 
@@ -347,37 +377,6 @@ public class ProfileImpl extends Profile {
     }
   }
 
-  /**
-   */
-  private void createMobilityManager() throws ProfileException {
-    String className = getParameter(MOBILITY, "jade.core.RealMobilityManager");
-
-    try {
-      myMobilityManager = (MobilityManager) Class.forName(className).newInstance();
-    }
-    catch (Exception e) {
-      throw new ProfileException("Error loading MobilityManager class"+className);
-    }
-  }
-
-  /**
-   */
-  private void createNotificationManager() throws ProfileException {
-  	//#PJAVA_EXCLUDE_BEGIN
-    String className = getParameter(NOTIFICATION, "jade.core.RealNotificationManager");
-  	//#PJAVA_EXCLUDE_END
-  	/*#PJAVA_INCLUDE_BEGIN
-    String className = getParameter(NOTIFICATION, "jade.core.DummyNotificationManager");
-  	#PJAVA_INCLUDE_END*/
-
-    try {
-      myNotificationManager = (NotificationManager) Class.forName(className).newInstance();
-    }
-    catch (Exception e) {
-      throw new ProfileException("Error loading NotificationManager class"+className);
-    }
-  }
- 	//#MIDP_EXCLUDE_END
 
   /**
    * Retrieve a String value from the configuration properties.
