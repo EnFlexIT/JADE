@@ -51,12 +51,15 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/ContractNetResponder.java \
 		jade/proto/SubscriptionInitiator.java \
 		jade/proto/states/HandlerSelector.java \
+		jade/security/UserPrincipal.java \
 		jade/security/dummy/DummyAuthority.java \
 		jade/tools/rma/rma.java \
+		jade/tools/rma/InstallMTPDialog.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
 		jade/tools/sniffer/Sniffer.java \
 		jade/tools/introspector/Introspector.java \
+		jade/tools/introspector/gui/MyDialog.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 		jade/tools/applet/DFApplet.java \
 		jade/tools/sl/SLFormatter.java \
@@ -92,6 +95,7 @@ ROOTCLASSES2 =	jade/content/abs/AbsAgentAction.java \
 ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
 		jade/content/lang/sl/SLCodec.java \
+		jade/content/lang/sl/SimpleSLCodec.java \
 		jade/content/onto/ACLOntology.java \
 		jade/content/onto/BasicOntology.java \
 		jade/content/onto/BCReflectiveIntrospector.java \
