@@ -103,7 +103,7 @@ public class ConstraintDlg extends JDialog
 		label.setMinimumSize(new Dimension(155,26));
 	  label.setMaximumSize(new Dimension(155,26));
 		p.add(label);
-		maxResult = new JTextField("");
+		maxResult = new JTextField("100");
 		maxResult.setPreferredSize(new Dimension(30,26));
 		maxResult.setMinimumSize(new Dimension(30,26));
 	  maxResult.setMaximumSize(new Dimension(30,26));
@@ -145,18 +145,21 @@ public class ConstraintDlg extends JDialog
             	if(result.length() !=0)
             	{
                      /*
-                      * A negative value indicates that the sender agent is willing
-                      * to allow the search to propagate across all DFs.
-                      * The default value is 1
+                      * The max result must be a positive value. It's initialized to 100.
                      */
                     Long r = Long.valueOf(result);
-                    constraints.setMaxResults(r);              	
+					if(r.compareTo(new Long(0)) >= 0)
+                    	constraints.setMaxResults(r);              	
+					else{
+						JOptionPane.showMessageDialog(null,"The max result must be positive !!!.","Error Message",JOptionPane.ERROR_MESSAGE); 
+						return;
+					}
             	}
                else {
                      /* the user didnt set any value so set the value of max-result
                       * to the default value
                      */
-                      constraints.setMaxResults(new Long(-1));
+                      constraints.setMaxResults(new Long(100));
                 }
  
             	dispose();

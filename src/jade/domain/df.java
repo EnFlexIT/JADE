@@ -278,16 +278,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	boolean performRecursiveSearch(List l, SearchConstraints constraints, DFAgentDescription dfd, ACLMessage request, Action action){
 
 	    boolean out = false;
-	    Long maxResults=constraints.getMaxResults();
-
+	    //Long maxResults=constraints.getMaxResults();
+		Long maxResults= new Long(getActualMaxResults(constraints));
 	    RecursiveSearchHandler rsh = new RecursiveSearchHandler(l, constraints, dfd, request, action);
 	    SearchConstraints newConstr = new SearchConstraints();
 	    
 	    newConstr.setMaxDepth(new Long ((new Integer(constraints.getMaxDepth().intValue()-1)).longValue()));
 	    
-	    if(maxResults != null)
-		newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));	    
-	
+		if(maxResults != null)
+		//newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));	    
+			newConstr.setMaxResults(new Long((new Integer(getActualMaxResults(constraints) - l.size())).longValue()));	    	
+		
 		String searchId = constraints.getSearchId();
 		if (searchId == null) {
 			// then create a globally unique searchId and store into searchIdCache
@@ -925,7 +926,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
   // a negative value of maxresults indicates that the sender agent is willing to receive
   // all available results 
-  private static final String DEFAULT_MAX_RESULTS = "-1";
+  private static final String DEFAULT_MAX_RESULTS = "100";
   /*
    * This is the actual value for the limit on the maximum number of results to be
    * returned in case of an ulimited search. This value is read from the Profile,
@@ -994,6 +995,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		// Convert max results into a number	
   	try {
   		maxResultLimit = Integer.parseInt(sMaxResults);
+		if(maxResultLimit < 0){
+			maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
+			log("WARNING: The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS ,0);
+		}else if(maxResultLimit > Integer.parseInt(DEFAULT_MAX_RESULTS)){
+			log("WARNING: Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!",0);
+		}
   	}
   	catch (Exception e) {
       // Keep default

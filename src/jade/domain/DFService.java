@@ -310,6 +310,8 @@ public class DFService extends FIPAServiceCommunicator {
   	}
   }
 
+    // constant used to set max results of SearchConstraints
+    private static Long MINUSONE = new Long(-1);
   /**
      Searches for data contained within a <b>DF</b> agent. 
      @param a is the Agent requesting the search 
@@ -336,6 +338,7 @@ public class DFService extends FIPAServiceCommunicator {
   	}
   	if (constraints == null) {
   		constraints = new SearchConstraints();
+		constraints.setMaxResults(MINUSONE);
   	}
   	
     ACLMessage request = createRequestMessage(a, dfName, FIPAManagementVocabulary.SEARCH, dfd, constraints);
@@ -837,6 +840,7 @@ public class DFService extends FIPAServiceCommunicator {
   	encodeDfd(sb, dfd);
   	if (actionName.equals(FIPAManagementVocabulary.SEARCH) && sc == null) {
 			sc = new SearchConstraints();
+			sc.setMaxResults(MINUSONE);
   	}
   	if (sc != null) {
   		sb.append(SPACE_BRACKET);
@@ -1031,6 +1035,7 @@ a default AgentDescription is used, where only the agent AID is set.
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(a.getAID());
     SearchConstraints constraints = new SearchConstraints();
+    constraints.setMaxResults(MINUSONE);
     return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
@@ -1045,6 +1050,7 @@ a default AgentDescription is used, where only the agent AID is set.
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(a.getAID());
     SearchConstraints constraints = new SearchConstraints();
+    constraints.setMaxResults(MINUSONE);
     return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
 
@@ -1057,6 +1063,7 @@ a default AgentDescription is used, where only the agent AID is set.
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, String actionName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
+    constraints.setMaxResults(MINUSONE);
     return getNonBlockingBehaviour(a,a.getDefaultDF(),actionName,dfd,constraints);
   }
 
@@ -1067,6 +1074,7 @@ a default AgentDescription is used, where only the agent AID is set.
   **/
   public static RequestFIPAServiceBehaviour getNonBlockingBehaviour(Agent a, AID dfName, String actionName, DFAgentDescription dfd) throws FIPAException {
     SearchConstraints constraints = new SearchConstraints();
+    constraints.setMaxResults(MINUSONE);
     return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
  	//#MIDP_EXCLUDE_END 
