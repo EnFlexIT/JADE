@@ -66,7 +66,7 @@ public class Runtime {
   /**
      Creates a new agent container in the current JVM, providing
      access through a proxy object.
-     @parameter p the profile containing boostrap and configuration
+     @param p the profile containing boostrap and configuration
      data for this container
      @return A proxy object, through which services can be requested
      from the real JADE container.
@@ -82,7 +82,7 @@ public class Runtime {
   /**
      Creates a new main container in the current JVM, providing
      access through a proxy object.
-     @parameter p the profile containing boostrap and configuration
+     @param p the profile containing boostrap and configuration
      data for this container
      @return A proxy object, through which services can be requested
      from the real JADE main container.
@@ -100,7 +100,7 @@ public class Runtime {
      This method just wraps <code>createAgentContainer()</code> 
      or <code>createMainContainer()</code> and
      is here for compatibility with PersonalJava.
-     @parameter p the profile containing boostrap and configuration
+     @param p the profile containing boostrap and configuration
      data for this container
      @see jade.core.Runtime#createAgentContainer(Profile p)
    */
