@@ -228,7 +228,7 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private final Properties userDefProps = new Properties();
+  private Properties userDefProps = new Properties();
 
   private Envelope messageEnvelope;
 
