@@ -6,7 +6,7 @@ package examples.ex1;
 
 import jade.core.*;
 
-
+// More examples on Complex Behaviours, featuring NonDeterministic Behaviours.
 public class Agent4 extends Agent {
 
   class Behaviour4Step implements Behaviour {

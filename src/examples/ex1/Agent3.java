@@ -7,6 +7,7 @@ package examples.ex1;
 import jade.core.*;
 
 
+// An example of recursive aggregation of complex agent behaviours.
 public class Agent3 extends Agent {
 
   class Behaviour3Step extends SimpleBehaviour {
