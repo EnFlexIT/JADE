@@ -28,6 +28,8 @@ import java.net.InetAddress;
 import java.util.Set;
 import java.util.List;
 
+import jade.mtp.MTPException;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -82,8 +84,8 @@ public interface AgentManager {
   void move(AID agentID, Location where, String password) throws NotFoundException, UnreachableException;
   void copy(AID agentID, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
-  String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException;
-  void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException;
+  String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException, MTPException;
+  void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException, MTPException;
 
 }
 
