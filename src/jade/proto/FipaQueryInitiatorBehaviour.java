@@ -154,13 +154,18 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       //queryMsg.setType("query-ref");
       queryMsg.setProtocol("FIPA-Query");
       queryMsg.setSender(myAgent.getAID());
-      if (queryMsg.getReplyWith().length()<1)
+      if (queryMsg.getReplyWith() == null)
       	queryMsg.setReplyWith("Query"+myAgent.getLocalName()+(new Date()).getTime());
-      if (queryMsg.getConversationId().length()<1)
+      if (queryMsg.getConversationId() == null)
 	      queryMsg.setConversationId("Query"+myAgent.getLocalName()+(new Date()).getTime());
-      timeout = queryMsg.getReplyByDate().getTime()-(new Date()).getTime();
-      if (timeout <= 1000) timeout = -1; // infinite timeout
-      endingTime = System.currentTimeMillis() + timeout;
+      if (queryMsg.getReplyByDate() != null){
+	    	timeout = queryMsg.getReplyByDate().getTime() - System.currentTimeMillis();
+      	if (timeout <= 0) //DUBBIO: perche` se la risposta e` richiesta entro un secondo questo requisito viene ignorato?
+      		timeout = 1; // Minimum default timeout
+      }
+      else 
+      	timeout = -1; // infinite timeout
+      endingTime = System.currentTimeMillis() + timeout; // Has no meaning if timeout is < 0
       //      System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis());
       myAgent.send(queryMsg);
 
@@ -173,20 +178,22 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       // remains in this state until all the inform arrive or timeout expires
       ACLMessage msg=myAgent.receive(template);
       if (msg == null) {
-	if (timeout > 0) {
-	  blockTime = endingTime - System.currentTimeMillis();
-	  //	  System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
-	  if (blockTime <= 0) { //timeout expired
-	    state=2;
-	    return;
-	  } else {
-	    block(blockTime);
-	    return;
-	  }
-	} else { // query without timeout
-	  block();
-	  return;
-	}
+				if (timeout > 0) {
+	  			blockTime = endingTime - System.currentTimeMillis();
+	  			//	  System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
+	  			if (blockTime <= 0) { //timeout expired
+	    			state=2;
+	    			return;
+	  			} 
+	  			else {
+	    			block(blockTime);
+	    			return;
+	  			}
+				} 
+				else { // query without timeout
+	  			block();
+	  			return;
+				}
       }
 
       // a new message is arrived and must be processed.		
@@ -197,7 +204,7 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       if (waitedAgents.size()==0) 
       	state=2;
       
-      if (ACLMessage.INFORM == msg.getPerformative()) 
+      if (msg.getPerformative() == ACLMessage.INFORM) 
         // add msg to the vector of the received inform messages
 	      msgInforms.addElement(msg);
       else	

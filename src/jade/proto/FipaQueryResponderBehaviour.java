@@ -26,8 +26,11 @@ package jade.proto;
 
 import jade.core.behaviours.SimpleBehaviour;
 import jade.core.Agent;
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import java.util.Iterator;
 
 /**
  * Behaviour class for <code>fipa-query</code> <em>Responder</em>
@@ -122,7 +125,7 @@ public boolean done() {
       if (!  (ACLMessage.QUERY_IF ==msg.getPerformative()|| 
 	      ACLMessage.QUERY_REF == msg.getPerformative())) {
 	if (! (ACLMessage.NOT_UNDERSTOOD == msg.getPerformative()))
-	  SendNotUnderstood(msg, "(unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+")");
+	  SendNotUnderstood(msg, "((unexpected-act "+ACLMessage.getPerformative(msg.getPerformative())+"))");
 	state = 0;
       } else { 
 	reply = handleQueryMessage(msg);
@@ -135,7 +138,7 @@ public boolean done() {
 	      ACLMessage.NOT_UNDERSTOOD == reply.getPerformative() ||
 	      ACLMessage.FAILURE == reply.getPerformative()||
 	      ACLMessage.REFUSE == reply.getPerformative()))
-	SendFailure(msg,"(unexpected-act "+ACLMessage.getPerformative(reply.getPerformative())+")");
+	SendFailure(msg,"((unexpected-act "+ACLMessage.getPerformative(reply.getPerformative())+"))");
       else 
 	SendReply(msg,reply);
       state=0;
@@ -169,15 +172,30 @@ private void SendFailure(ACLMessage msg, String reason) {
    * @param rep is the message to be sent
    */
 private void SendReply(ACLMessage msg, ACLMessage rep) {
+	// The :receiver, :sender, :protocol and :conversation-id slots are set 
+	// by default regardless of how they are set in the rep message.
   ACLMessage reply=msg.createReply();
+  
+  // The :performative, :content, :language, :ontology, :encoding and 
+  // :reply-by slots are maintained as in the rep message.
+  reply.setPerformative(rep.getPerformative());
   reply.setContent(rep.getContent());
-  // language, ontology, and encoding are set to what is in rep
-  if (rep.getLanguage().length()>1)
-    reply.setLanguage(rep.getLanguage());
-  if (rep.getOntology().length()>1)
-    reply.setOntology(rep.getOntology());
-  if (rep.getEncoding().length()>1)
-    reply.setEncoding(rep.getEncoding());
+  reply.setLanguage(rep.getLanguage());
+  reply.setOntology(rep.getOntology());
+  reply.setEncoding(rep.getEncoding());
+  reply.setReplyBy(rep.getReplyBy());
+  
+  // The :reply-to, and :reply-with slots are set by default unless
+  // they are explicitly set in the rep message.
+  Iterator i = rep.getAllReplyTo();
+  if (i.hasNext()){ // If some replyTo is set in rep --> preserve them
+  	reply.clearAllReplyTo();
+  	while (i.hasNext())
+  		reply.addReplyTo((AID) i.next());
+  }
+  if (rep.getReplyWith() != null)
+  	reply.setReplyWith(rep.getReplyWith());
+  
   myAgent.send(reply);
 }
 
