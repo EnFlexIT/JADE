@@ -111,6 +111,19 @@ public abstract class BaseNode implements Node, Serializable {
 	}
     }
 
+    public void setCommandProcessor(CommandProcessor cp) {
+	processor = cp;
+    }
+
+    public Object serve(VerticalCommand cmd) throws ServiceException {
+	if(processor == null) {
+	    throw new ServiceException("No command processor for node <" + getName() + ">");
+	}
+
+	return processor.processIncoming(cmd);
+    }
+
+    private transient CommandProcessor processor;
     // The name of this node
     private String myName;
 
