@@ -8,88 +8,88 @@ public class OntologyTest {
 
   // These two classes are provided by application programmers...
 
-  public static class Person {
+  // An abstract interface to represent the "real" Person
+  // abstraction. As far as ontology is concerned, this *is* a Person
+  // abstraction.
+  public static interface OntologicalPerson {
 
-    private Frame myFrame;
-    private Ontology myOntology;
+    void setName(String s);
+    String getName();
 
-    public void setOntology(Ontology o) {
-      myOntology = o;
+    void setSurname(String s);
+    String getSurname();
+
+    int getAge();
+    void setAge(int i);
+
+    PlainAddress getAddress();
+    void setAddress(PlainAddress p);
+
+  }
+
+  public static class Person implements OntologicalPerson {
+
+    private String name;
+    private String surname;
+    private int age;
+    private PlainAddress address = new PlainAddress();
+
+    public Person() {
     }
 
-    public void init(Frame f) {
-      myFrame = f;
+    public Person(PlainAddress p) { // Get address from the outside
+      address = p;
     }
 
-    public String getName() throws OntologyException {
-      return (String)myFrame.getSlot("name");
+    public String getName() {
+      return name;
     }
 
     public void setName(String s) {
-      myFrame.putSlot("name", s);
+      name = s;
     }
 
-    public String getSurname() throws OntologyException {
-      return (String)myFrame.getSlot("surname");
+    public String getSurname() {
+      return surname;
     }
 
     public void setSurname(String s) {
-      myFrame.putSlot("surname", s);
+      surname = s;
     }
 
-    public int getAge() throws OntologyException {
-      return ((Integer)myFrame.getSlot("age")).intValue();
+    public int getAge() {
+      return age;
     }
 
     public void setAge(int i) {
-      myFrame.putSlot("name", new Integer(i));
+      age = i;
     }
 
-    public PlainAddress getAddress() throws OntologyException {
-	// PlainAddress p = new PlainAddress(); p.init((Frame)myFrame.getSlot("address"), myOntology); return p; // NO! Non polymorphic
-      return (PlainAddress)myOntology.createObject((Frame)myFrame.getSlot("address")); // OK! Use Ontology as Factory
+    public PlainAddress getAddress() {
+      return address;
     }
 
     public void setAddress(PlainAddress p) {
-      try {
-	Frame addressFrame = (Frame)myFrame.getSlot("address");
-	addressFrame.putSlot("Street", p.getStreet());
-	addressFrame.putSlot("N", new Integer(p.getN()));
-	addressFrame.putSlot("City", p.getCity());
-      }
-      catch(OntologyException oe) {
-	// Some error occurred ...
-      }
+      address = p;
     }
 
     public void dump() {
-      try {
-	System.out.println("I'm an User");
-	System.out.println("My name is " + getName());
-	System.out.println("My age is " + getAge());
-	System.out.println("My address is ");
-	getAddress().dump();
-      }
-      catch(OntologyException oe) {
-	oe.printStackTrace();
-      }
-
+      System.out.println("I'm an User");
+      System.out.println("My name is " + getName());
+      System.out.println("My age is " + getAge());
+      System.out.println("My address is ");
+      getAddress().dump();
     }
 
   } // End of Person class
 
 
-  public static class PlainAddress { // Different implementation wrt Person: no real Frame inside.
+  public static class PlainAddress {
 
     private String street;
     private int number;
     private String city;
 
-    public void init(Frame f) throws OntologyException {
-      street = new String((String)f.getSlot("Street"));
-      number = ((Integer)f.getSlot("N")).intValue();
-      city = new String((String)f.getSlot("City"));
-    }
 
     public void dump() {
       System.out.println(getStreet() + ", " + getN() + " - " + getCity());
@@ -126,17 +126,6 @@ public class OntologyTest {
     private String email; // Mandatory
     private byte[] photo; // Optional
 
-    public void init(Frame f) throws OntologyException {
-      super.init(f);
-      email = (String)f.getSlot("email");
-      try {
-	photo = (byte[])f.getSlot("photo");
-      }
-      catch(OntologyException oe) {
-	// Use default icon
-	photo = null; // new byte[0];
-      }
-    }
 
     public void dump() {
       System.out.print(getStreet() + ", " + getN() + " - " + getCity());
@@ -182,21 +171,22 @@ public class OntologyTest {
     // Application 1: Using the raw Frame interface, without Java classes.
     System.out.println("Now using simple Frame objects");
     System.out.println();
+    user.dump();
     System.out.println();
 
     Ontology withFrames = new DefaultOntology();
     try {
-      withFrames.addConcept("Address", new TermDescriptor[] { 
+      withFrames.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
 	    });
 
-      withFrames.addConcept("User", new TermDescriptor[] {
+      withFrames.addFrame("User", Ontology.CONCEPT, new TermDescriptor[] {
 	  new TermDescriptor("NAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("SURNAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
-	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, Ontology.M)
+	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, "Address", Ontology.M)
 	      });
 
       System.out.print("Checking user frame... ");
@@ -231,31 +221,34 @@ public class OntologyTest {
     Ontology withClasses = new DefaultOntology();
     try {
 
-      withClasses.addConcept("Address", new TermDescriptor[] { 
+      withClasses.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
 	    });
 
-      withClasses.addConcept("User", new TermDescriptor[] {
+      withClasses.addFrame("User", Ontology.CONCEPT, new TermDescriptor[] {
 	  new TermDescriptor("NAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("SURNAME", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("AGE", Ontology.INTEGER_TYPE, Ontology.M),
-	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, Ontology.M)
+	  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE, "Address", Ontology.M)
 	      });
 
-      withClasses.addClass("User", Person.class);
+      withClasses.addClass("User", OntologicalPerson.class); // <-- Using an abstract interface !!!
       withClasses.addClass("Address", PlainAddress.class);
 
       System.out.println("Building an ontological object from a Frame...");
-      Person pWithPlainAddr = (Person)withClasses.createObject(user);
-      pWithPlainAddr.setOntology(withClasses);
+
+      Person p = new Person(); // Implementation-specific initialization.
+
+      // Now get information from frame and write it into the (already created) Java object
+      Person pWithPlainAddr = (Person)withClasses.initObject(user, p);
       System.out.println();
       System.out.println();
       pWithPlainAddr.dump();
 
       System.out.println("Now building a Frame from an ontological object...");
-      Frame fromPerson = withClasses.createConcept(pWithPlainAddr, "User");
+      Frame fromPerson = withClasses.createFrame(pWithPlainAddr, "User");
 
       System.out.print("Checking Java object... ");
       try {
@@ -267,7 +260,7 @@ public class OntologyTest {
 	oe.printStackTrace();
       }
 
-      withClasses.addConcept("Address", new TermDescriptor[] { 
+      withClasses.addFrame("Address", Ontology.CONCEPT, new TermDescriptor[] { 
 	new TermDescriptor("STREET", Ontology.STRING_TYPE, Ontology.M),
 	new TermDescriptor("N", Ontology.INTEGER_TYPE, Ontology.M),
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M),
@@ -276,9 +269,7 @@ public class OntologyTest {
 
       withClasses.addClass("Address", FullAddress.class);
 
-
-      Person pWithFullAddr = (Person)withClasses.createObject(user);
-      pWithFullAddr.setOntology(withClasses);
+      Person pWithFullAddr = (Person)withClasses.initObject(user, new Person(new FullAddress()));
       System.out.println();
       System.out.println();
       pWithFullAddr.dump();
@@ -295,29 +286,14 @@ public class OntologyTest {
 
 
       // Now create a Frame object from the user-defined class instance, via Reflection
-      Frame person1Frame = withClasses.createConcept(pWithPlainAddr, "User");
-      Frame person2Frame = withClasses.createConcept(pWithFullAddr, "User");
+      Frame personFrame = withClasses.createFrame(pWithFullAddr, "User");
       System.out.println();
 
-      //      person1Frame.toText(new java.io.OutputStreamWriter(System.out));
+      personFrame.dump();
       System.out.println();
       System.out.print("Checking Frame... ");
       try {
-	withFrames.check(person1Frame);
-	System.out.println("PASSED");
-      }
-      catch(OntologyException oe) {
-	System.out.println("FAILED");
-	oe.printStackTrace();
-      }
-
-      System.out.println();
-
-      //      person2Frame.toText(new java.io.OutputStreamWriter(System.out));
-      System.out.println();
-      System.out.print("Checking Frame... ");
-      try {
-	withFrames.check(person2Frame);
+	withFrames.check(personFrame);
 	System.out.println("PASSED");
       }
       catch(OntologyException oe) {
@@ -375,7 +351,8 @@ public class OntologyTest {
 	  break;
 	}
       }
-      // addrFromOrderedCL.toText(new java.io.OutputStreamWriter(System.out));
+
+      addrFromOrderedCL.dump();
       System.out.println();
       System.out.print("Now checking the newly constructed Frame... ");
       try {
