@@ -320,26 +320,22 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			AID id = (AID) it.next();
 			Agent a = (Agent) localAgents.get(id.getLocalName());
 			if (a != null) {
-				a.postMessage((ACLMessage) msg.clone());
+				ACLMessage m = (ACLMessage) msg.clone();
+				// Check if the sender is set. Note that for remote receivers
+				// this is done by the Back end.
+				try {
+					m.getSender().getName().charAt(0);
+				}
+				catch (Exception e) {
+					m.setSender(sender);
+				}
+				a.postMessage(m);
 				remoteCnt--;
 			}
 		}
 		// If some receiver is remote --> pass the message to the BackEnd		
 		if (remoteCnt > 0) {
 			post(msg, sender.getLocalName());
-			/*try {
-				myBackEnd.messageOut(msg, sender.getLocalName());
-			}
-			catch (IMTPException imtpe) {
-				// FIXME: notify failure to sender
-		  	Logger.println(imtpe.toString());
-			}
-			catch (NotFoundException nfe) {
-				// Note that "NotFound" here is referred to the sender and
-				// indicates an inconsistency between the FrontEnd and the BackEnd
-				// FIXME: recover the inconsistency
-		  	Logger.println(nfe.toString());
-			}*/
 		}
   }
   
