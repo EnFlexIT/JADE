@@ -74,7 +74,9 @@ public class DFMemKB extends MemKB{
 			DFAgentDescription dfd = (DFAgentDescription) iter.next();
 			long leaseR = dfd.getRemainingLeaseTime();
 			Date lease = dfd.getLeaseTime();
-			if(leaseR < 0 && lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 ){
+			long leaseLong = lease.getTime();
+//			if(leaseR < 0 && lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 ){
+			if(leaseR < 0 && leaseLong != (lm.INFINITE_LEASE_TIME).getTime() ){
 				AID aidToClean = dfd.getName();
 				facts.remove(aidToClean);
 			}
@@ -97,9 +99,11 @@ public class DFMemKB extends MemKB{
 		  }
 		  // Match lease ritorno false se il lease e' scaduto
 		  Date lease = factDesc.getLeaseTime();	
+		  long leaseLong = lease.getTime();
 		  long leaseR = factDesc.getRemainingLeaseTime();
 		  
-	    if(lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 && leaseR < 0)
+//	    if(lease.compareTo(lm.INFINITE_LEASE_TIME) != 0 && leaseR < 0)
+	    if(leaseLong != (lm.INFINITE_LEASE_TIME).getTime() && leaseR < 0)
 		      return false;
 	
 		  // Match protocol set
