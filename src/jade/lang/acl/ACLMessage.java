@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.ClassNotFoundException;
 
 import java.util.Date;
@@ -45,7 +46,6 @@ import java.util.Enumeration;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-import starlight.util.Base64;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the <b>FIPA 2000</b> "FIPA ACL Message Structure Specification" (fipa000061) specifications.
@@ -53,10 +53,16 @@ import starlight.util.Base64;
  * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
  * the methods <em>get</em>. <p>
- * The methods <code> setContentObject() </code> and 
+ * <p> The methods <code> setByteSequenceContent() </code> and 
+ * <code> getByteSequenceContent() </code> allow to send arbitrary
+ * sequence of bytes
+ * over the content of an ACLMessage.
+ * <p> The couple of methods 
+ * <code> setContentObject() </code> and 
  * <code> getContentObject() </code> allow to send
  * serialized Java objects over the content of an ACLMessage.
- * These method are not FIPA compliant so their usage is not encouraged.
+ * These method are not strictly 
+ * FIPA compliant so their usage is not encouraged.
  * @author Fabio Bellifemine - CSELT
  * @version $Date$ $Revision$
  * @see <a href=http://www.fipa.org/specs/fipa00061/XC00061D.html>FIPA Spec</a>
@@ -143,18 +149,7 @@ private int performative; // keeps the performative type of this object
     performatives.add("PROPAGATE");
   }
 
-  private static final String SENDER          = new String(" :sender ");
-  private static final String RECEIVER        = new String(" :receiver ");
-  private static final String CONTENT         = new String(" :content ");
-  private static final String REPLY_WITH      = new String(" :reply-with ");
-  private static final String IN_REPLY_TO     = new String(" :in-reply-to ");
-  private static final String REPLY_TO        = new String(" :reply-to ");
-  private static final String LANGUAGE        = new String(" :language ");
-  private static final String ENCODING        = new String(" :encoding ");
-  private static final String ONTOLOGY        = new String(" :ontology ");
-  private static final String REPLY_BY        = new String(" :reply-by ");
-  private static final String PROTOCOL        = new String(" :protocol ");
-  private static final String CONVERSATION_ID = new String(" :conversation-id ");
+
  
   /**
   @serial
@@ -174,7 +169,10 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
+    // At a given time or content or byteSequenceContent are != null,
+    // it is not allowed that both are != null
   private StringBuffer content = null;
+  private byte[] byteSequenceContent = null;
 
   /**
   @serial
@@ -368,65 +366,47 @@ private int performative; // keeps the performative type of this object
   /**
    * Writes the <code>:content</code> slot. <em><b>Warning:</b> no
    * checks are made to validate the slot value.</em> <p>
-   * In order to transport serialized Java objects,
-   * or arbitrary sequence of bytes (i.e. something different from 
-   * a Java <code>String</code>) over an ACL message, it is suggested to use
-   * the method <code>ACLMessage.setContentObject()</code> instead. 
+   * <p>Notice that, in general, setting a String content and getting
+   * back a byte sequence content - or viceversa - does not return
+   * the same value, i.e. the following relation does not hold
+   * <code>
+   * getByteSequenceContent(setByteSequenceContent(getContent().getBytes())) 
+   * is equal to getByteSequenceContent()
+   * </code>
    * @param content The new value for the slot.
    * @see jade.lang.acl.ACLMessage#getContent()
+   * @see jade.lang.acl.ACLMessage#setByteSequenceContent(byte[])
    * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
    */
   public void setContent(String content) {
+      byteSequenceContent = null; //make to null the other variable
     if (content != null)
       this.content = new StringBuffer(content);
     else
       this.content = null;
   }
 
-
   /**
-   * This method sets the current content of this ACLmessage to
-   * the passed sequence of bytes. 
-   * Base64 encoding is applied. <p>
-   * This method should be used to write serialized Java objects over the 
-   * content of an ACL Message to override the limitations of the Strings. <p>
-   * For example, to write Java objects into the content: <br>
-   * <PRE>
-   *    ACLMessage msg;
-   *    ByteArrayOutputStream c = new ByteArrayOutputStream();
-   *    ObjectOutputStream oos = new ObjectOutputStream(c);
-   *    oos.writeInt(1234); 
-   *    oos.writeObject("Today"); 
-   *    oos.writeObject(new Date()); 
-   *    oos.flush();
-   *    msg.setContentBase64(c.toByteArray());
-   *
-   * </PRE>   
-   * 
-   * @see jade.lang.acl.ACLMessage#getContentBase64()
-   * @see jade.lang.acl.ACLMessage#getContent()
-   * @see java.io.ObjectOutputStream#writeObject(Object o)
-   * @param bytes is the the sequence of bytes to be appended to the content of this message
+   * Writes the <code>:content</code> slot. <em><b>Warning:</b> no
+   * checks are made to validate the slot value.</em> <p>
+   * <p>Notice that, in general, setting a String content and getting
+   * back a byte sequence content - or viceversa - does not return
+   * the same value, i.e. the following relation does not hold
+   * <code>
+   * getByteSequenceContent(setByteSequenceContent(getContent().getBytes())) 
+   * is equal to getByteSequenceContent()
+   * </code>
+   * @param content The new value for the slot.
+   * @see jade.lang.acl.ACLMessage#setContent()
+   * @see jade.lang.acl.ACLMessage#getByteSequenceContent()
+   * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
    */
-  private void setContentBase64(byte[] bytes) {
-    try {
-      content = new StringBuffer().append(Base64.encode(bytes));
-    }
-    catch(java.lang.NoClassDefFoundError jlncdfe) {
-      System.err.println("\n\t===== E R R O R !!! =======\n");
-      System.err.println("Missing support for Base64 conversions");
-      System.err.println("Please refer to the documentation for details.");
-      System.err.println("=============================================\n\n");
-      System.err.println("");
-      try {
-	Thread.currentThread().sleep(3000);
-      }
-      catch(InterruptedException ie) {
-      }
-
-      content = null;
-    }
+  public void setByteSequenceContent(byte[] content) {
+      this.content = null; //make to null the other variable
+      byteSequenceContent = content;
   }
+
+
 
   /**
   * This method sets the content of this ACLMessage to a Java object.
@@ -449,53 +429,15 @@ private int performative; // keeps the performative type of this object
   	ObjectOutputStream oos = new ObjectOutputStream(c);
   	oos.writeObject(s);
   	oos.flush();
-  	setContentBase64(c.toByteArray());
+	setByteSequenceContent(c.toByteArray());
   }
+
+
   /**
-   * This method returns the content of this ACLmessage
-   * after decoding according to Base64.
-   * For example to read Java objects from the content 
-   * (when they have been written by using the setContentBase64() method,: <br>
-   * <PRE>
-   *    ACLMessage msg;
-   *    ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(msg.getContentBase64()));;
-   *
-   *    int i = oin.readInt();
-   *    String today = (String)oin.readObject();
-   *    Date date = (Date)oin.readObject();
-   *
-   * </PRE>   
-   * @see jade.lang.acl.ACLMessage#setContentBase64(byte[])
-   * @see jade.lang.acl.ACLMessage#getContent()
-   * @see java.io.ObjectInputStream#readObject()
-   */
-  private byte[] getContentBase64() {
-    try {
-      char[] cc = new char[content.length()];
-      content.getChars(0,content.length(),cc,0);
-      return Base64.decode(cc);
-    } catch(java.lang.StringIndexOutOfBoundsException e){
-    		return new byte[0];
-    } catch(java.lang.NullPointerException e){
-    		return new byte[0];
-    } catch(java.lang.NoClassDefFoundError jlncdfe) {
-      	System.err.println("\t\t===== E R R O R !!! =======\n");
-      	System.err.println("Missing support for Base64 conversions");
-      	System.err.println("Please refer to the documentation for details.");
-      	System.err.println("=============================================\n\n");
-      	try {
-					Thread.currentThread().sleep(3000);
-      	}catch(InterruptedException ie) {
-      	}
-      	return new byte[0];
-    }
-    
-  }
-  /**
-  * This method returns the content of this ACLMessage after decoding according to Base64.
+  * This method returns the content of this ACLMessage when they have
+  * been written via the method <code>setContentObject</code>.
   * It is not FIPA compliant so its usage is not encouraged.
   * For example to read Java objects from the content 
-  * (when they have been written by using the setContentOnbject() method): <br>
   * <PRE>
   * ACLMessage msg = blockingReceive();
   * try{
@@ -510,7 +452,7 @@ private int performative; // keeps the performative type of this object
   {
   	
     try{
-      ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(getContentBase64()));
+      ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(getByteSequenceContent()));
       java.io.Serializable s = (java.io.Serializable)oin.readObject();
       return s;
     }
@@ -714,21 +656,58 @@ private int performative; // keeps the performative type of this object
     return performative;
   }
 
+    /**
+     * This method allows to check if the content of this ACLMessage
+     * is a byteSequence or a String
+     * @return true if it is a byteSequence, false if it is a String
+     **/
+    public boolean hasByteSequenceContent(){
+	return (byteSequenceContent != null);
+    }
+
   /**
    * Reads <code>:content</code> slot. <p>
-   * It is sometimes useful to transport serialized Java objects,
-   * or arbitrary sequence of bytes (i.e. something different from 
-   * a Java <code>String</code>) over an ACL message. See
-   * getContentObject(). 
+   * <p>Notice that, in general, setting a String content and getting
+   * back a byte sequence content - or viceversa - does not return
+   * the same value, i.e. the following relation does not hold
+   * <code>
+   * getByteSequenceContent(setByteSequenceContent(getContent().getBytes())) 
+   * is equal to getByteSequenceContent()
+   * </code>
    * @return The value of <code>:content</code> slot.
    * @see jade.lang.acl.ACLMessage#setContent(String)
+   * @see jade.lang.acl.ACLMessage#getByteSequenceContent()
    * @see jade.lang.acl.ACLMessage#getContentObject()
    * @see java.io.ObjectInputStream
   */
   public String getContent() {
     if(content != null)
       return new String(content);
-    else
+    else if (byteSequenceContent != null)
+	return new String(byteSequenceContent);
+    return null;
+  }
+
+ /**
+   * Reads <code>:content</code> slot. <p>
+   * <p>Notice that, in general, setting a String content and getting
+   * back a byte sequence content - or viceversa - does not return
+   * the same value, i.e. the following relation does not hold
+   * <code>
+   * getByteSequenceContent(setByteSequenceContent(getContent().getBytes())) 
+   * is equal to getByteSequenceContent()
+   * </code>
+   * @return The value of <code>:content</code> slot.
+   * @see jade.lang.acl.ACLMessage#setContent(String)
+   * @see jade.lang.acl.ACLMessage#getContent()
+   * @see jade.lang.acl.ACLMessage#getContentObject()
+   * @see java.io.ObjectInputStream
+  */
+  public byte[] getByteSequenceContent() {
+      if (content != null) 
+	  return content.toString().getBytes();
+      else if (byteSequenceContent != null)
+          return byteSequenceContent;
       return null;
   }
 
@@ -978,54 +957,12 @@ private int performative; // keeps the performative type of this object
      Convert an ACL message to its string representation. This method
      writes a representation of this <code>ACLMessage</code> into a
      character string.
+     If the content is a bytesequence, then it is automatically converted
+     into Base64 encoding. 
      @return A <code>String</code> representing this message.
-    
   */
   public String toString(){
-      StringBuffer str = new StringBuffer("(");
-      str.append(getPerformative(getPerformative()) + "\n");
-      if (source != null) 
-	str.append(SENDER + " "+ source.toString()+"\n");
-      if (dests.size() > 0) {
-	str.append(RECEIVER + " (set ");
-	Iterator it = dests.iterator();
-	while(it.hasNext()) 
-	  str.append(it.next().toString()+" ");
-	str.append(")\n");
-      }
-      if (reply_to.size() > 0) {
-	str.append(REPLY_TO + " (set \n");
-	Iterator it = reply_to.iterator();
-	while(it.hasNext()) 
-	  str.append(it.next().toString()+" ");
-	str.append(")\n");
-      }
-      if ( (content != null) && (content.length() > 0) )
-	      str.append(CONTENT + " \"" + escape(content) + "\" \n");
-      if ( (reply_with != null) && (reply_with.length() > 0) )
-	      str.append(REPLY_WITH + " " + reply_with + "\n");
-      if ( (in_reply_to != null) && (in_reply_to.length() > 0) )
-	      str.append(IN_REPLY_TO + " " + in_reply_to + "\n");
-      if ( (encoding != null) && (encoding.length() > 0) )
-	  str.append(ENCODING + " " + encoding + "\n");
-      if ( (language != null) && (language.length() > 0) )
-	  str.append(LANGUAGE + " " + language + "\n");
-      if ( (ontology != null) && (ontology.length() > 0) )
-	  str.append(ONTOLOGY + " " + ontology + "\n");
-      if (reply_byInMillisec != 0)
-	  str.append(REPLY_BY + " " + ISO8601.toString(new Date(reply_byInMillisec)) + "\n");
-      if ( (protocol != null) && (protocol.length() > 0) )
-	  str.append(PROTOCOL + " " + protocol + "\n");
-      if ( (conversation_id != null) && (conversation_id.length() > 0) )
-	  str.append(CONVERSATION_ID + " " + conversation_id + "\n");
-      Enumeration e = userDefProps.propertyNames();
-      String tmp;
-      while (e.hasMoreElements()) {
-	tmp = (String)e.nextElement();
-	str.append(" " + tmp + " " + userDefProps.getProperty(tmp) + "\n");
-      }
-      str.append(")");
-      return str.toString();
+      return StringACLCodec.toString(this);
   }
 
 
@@ -1038,6 +975,7 @@ private int performative; // keeps the performative type of this object
   reply_to.clear();
   performative = NOT_UNDERSTOOD;
   content = null;
+  byteSequenceContent = null;
   reply_with = null;
   in_reply_to = null;
   encoding = null;
@@ -1095,18 +1033,5 @@ private int performative; // keeps the performative type of this object
     return m;
   }
 
-  private String escape(StringBuffer s) {
-    // Make the stringBuffer a little larger than strictly
-    // necessary in case we need to insert any additional
-    // characters.  (If our size estimate is wrong, the
-    // StringBuffer will automatically grow as needed).
-    StringBuffer result = new StringBuffer(s.length()+20);
-    for( int i=0; i<s.length(); i++)
-      if( s.charAt(i) == '"' ) 
-	result.append("\\\"");
-      else 
-	result.append(s.charAt(i));
-    return result.toString();
-  }
 
 }

@@ -58,6 +58,7 @@ protected void setup() {
     while (true) {
       System.out.println(getLocalName()+ " waiting for an ObjectReaderAgent registering with the DF");
       SearchConstraints c = new SearchConstraints();
+      c.setMaxDepth(new Long(3));
       List result = DFServiceCommunicator.search(this,dfd,c);
       if (result.size() > 0) {
 	dfd = (DFAgentDescription)result.get(0);
@@ -81,9 +82,9 @@ protected void setup() {
       msg.setContentObject(p);
     
       send(msg);
-      System.out.println(getLocalName()+" sent a message to "+reader);
+      System.out.println(getLocalName()+" sent message "+msg.toString()+" to "+reader);
   } catch (IOException e ) {
     e.printStackTrace();}
-    doDelete();
+   //doDelete();
   }
 }

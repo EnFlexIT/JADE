@@ -123,7 +123,7 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology ontology = lookupOntology(msg.getOntology());
 
-        msg.setContent(new String(encodeContent(codec, ontology, content)));
+        msg.setByteSequenceContent(encodeContent(codec, ontology, content));
     } 
 
     /**
@@ -142,7 +142,7 @@ public class ContentManager implements Serializable {
     public void fillContent(ACLMessage msg, Codec language, Ontology o, 
                             AbsContentElement content) throws CodecException, 
                             OntologyException {
-        msg.setContent(new String(encodeContent(language, o, content)));
+        msg.setByteSequenceContent(encodeContent(language, o, content));
     }
     ***********/
 
@@ -165,7 +165,7 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(language);
         Ontology ontology = lookupOntology(onto);
 
-        msg.setContent(new String(encodeContent(codec, ontology, content)));
+        msg.setByteSequenceContent(encodeContent(codec, ontology, content));
     } 
     ****************/
 
@@ -186,7 +186,7 @@ public class ContentManager implements Serializable {
         Ontology onto = lookupOntology(msg.getOntology());
         Codec    codec = lookupLanguage(msg.getLanguage());
 
-        return decodeContent(codec, onto, (msg.getContent()).getBytes());
+        return decodeContent(codec, onto, msg.getByteSequenceContent());
     } 
 
     /**
@@ -204,8 +204,8 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology ontology = lookupOntology(msg.getOntology());
 
-        msg.setContent(new String(encodeContent(codec, ontology, 
-                                                (AbsContentElement) (ontology).fromObject(content))));
+        msg.setByteSequenceContent(encodeContent(codec, ontology, 
+						 (AbsContentElement) (ontology).fromObject(content)));
     } 
 
     /**
@@ -224,8 +224,8 @@ public class ContentManager implements Serializable {
     public void fillContent(ACLMessage msg, Codec language, Ontology o, 
                             ContentElement content) throws CodecException, 
                             OntologyException {
-        msg.setContent(new String(encodeContent(language, o, 
-                                                (AbsContentElement) o.fromObject(content))));
+        msg.setByteSequenceContent(encodeContent(language, o, 
+	(AbsContentElement) o.fromObject(content)));
     }
     ****************/
 
@@ -248,8 +248,8 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(language);
         Ontology ontology = lookupOntology(onto);
 
-        msg.setContent(new String(encodeContent(codec, ontology, 
-                                                (AbsContentElement) ontology.fromObject(content))));
+        msg.setByteSequenceContent(encodeContent(codec, ontology, 
+                                                (AbsContentElement) ontology.fromObject(content)));
      }
     ***************/
 
@@ -271,7 +271,7 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
 
         return (ContentElement) (onto.toObject(decodeContent(codec, onto, 
-                msg.getContent().getBytes())));
+                msg.getByteSequenceContent())));
     } 
 
     /**

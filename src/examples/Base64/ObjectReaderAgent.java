@@ -70,6 +70,7 @@ protected void setup() {
     try {
       System.out.println(getLocalName()+" is waiting for a message");
       ACLMessage msg = blockingReceive(); 
+      System.out.println(getLocalName()+ " rx msg"+msg); 
   
       Person p = (Person)msg.getContentObject();
       System.out.println(getLocalName()+ " read Java Object " + p.getClass().getName() + p.toString());
