@@ -422,12 +422,26 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     //#APIDOC_EXCLUDE_BEGIN
     public Object clone(){
 	Envelope env = new Envelope();
-	env.to = (ArrayList)to.clone();
-	env.intendedReceiver= (ArrayList)intendedReceiver.clone();
+	
+	// Deep clone
+	env.to = new ArrayList(to.size());
+	for(int i = 0; i < to.size(); i++) {
+	    AID id = (AID)to.get(i);
+	    env.to.add(id.clone());	
+	}
+
+	// Deep clone
+	env.intendedReceiver = new ArrayList(intendedReceiver.size());
+	for(int i = 0; i < intendedReceiver.size(); i++) {
+	    AID id = (AID)intendedReceiver.get(i);
+	    env.intendedReceiver.add(id.clone());
+	}
+
 	env.stamps = (ArrayList)stamps.clone();
+	
 	if (from != null) {
-    env.from = (AID)from.clone();
-  }
+	    env.from = (AID)from.clone();
+	}
 	env.comments = comments;
 	env.aclRepresentation = aclRepresentation;
 	env.payloadLength = payloadLength;
