@@ -387,6 +387,31 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
+  public void setDelegateAgent(String agentName, String delegateName) throws NotFoundException {
+      /*
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null)
+      throw new NotFoundException("setDelegateAgent failed to find " + agentName);
+    AgentDescriptor adDelegate = (AgentDescriptor)platformAgents.get(delegateName.toLowerCase());
+    if(adDelegate == null)
+      throw new NotFoundException("setDelegateAgent failed to find " + delegateName);
+    if(delegateName != null) {
+      RemoteProxy rpd = new RemoteProxyDelegate(adDelegate.getProxy());
+      ad.setProxy(rpd);
+    }
+    else {
+      try {
+	RemoteProxyDelegate rpd = (RemoteProxyDelegate)ad.getProxy();
+	RemoteProxy rp = rpd.getOriginal();
+	ad.setProxy(rp);
+      }
+      catch(ClassCastException cce) {
+	throw new NotFoundException("Agent " + agentName + " has no delegate");
+      }
+    }
+      */
+  }
+
   public boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException {
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     if(ad == null)
@@ -618,20 +643,6 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       if(ac == null)
 	ac = this;
       ac.createAgent(simpleName, className, START); // RMI call
-    }
-    catch(RemoteException re) {
-      throw new UnreachableException(re.getMessage());
-    }
-  }
-
-  public void create(String agentName, Agent instance, String containerName) throws UnreachableException {
-    String simpleName = agentName.substring(0,agentName.indexOf('@'));
-    try {
-      AgentContainer ac = (AgentContainer)containers.get(containerName);
-      ac.createAgent(simpleName, instance, START); // RMI call, 'instance' is serialized
-    }
-    catch(ArrayIndexOutOfBoundsException aioobe) {
-      throw new UnreachableException(aioobe.getMessage());
     }
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
