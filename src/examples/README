@@ -283,3 +283,18 @@ optionally also with protege. Aspects are
 * protege ontology support for JADE agents in JESS rules
 The example has been kindly developed by Oliver Hoffmann (oliver@hoffmann.org)
 and it is described by the file 'readme.txt' in its subdirectory.
+
+
+'inprocess' subdirectory
+========================
+InProcessTest is a simple application that shows how to use the InProcess
+Interface of JADE in order to launch JADE agents and agent containers
+from within an external Java application.
+The example must be launched separately from JADE, i.e.
+java -classpath jade.jar example.inprocess.InProcessTest
+It launches a complete platform composed of a main container (listening
+on the port number 8888) and a normal container plus the RMA agent.
+If the option  "-container" is given on the command line, it launches, instead,
+a container that tries to join with an existing main container on the
+localhost and the default port number (i.e. 1099). Then it starts and kills
+a DummyAgent and finally it starts the MobileAgent example.
