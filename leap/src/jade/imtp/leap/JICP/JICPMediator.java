@@ -62,11 +62,12 @@ public interface JICPMediator {
    * This is called by the JICPServer this Mediator is attached to
    * as soon as the mediated entity (re)connects.
    * @param c the connection to the mediated entity
+   * @param pkt the packet that was sent by the mediated entity when 
+   * opening this connection
    * @param addr the address of the mediated entity
    * @param port the local port used by the mediated entity
-   * @param pktKind the precise kind of packet that requested the connection
    */
-  JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind);
+  JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port);
   
   /**
    * Passes to this JICPMediator a JICP packet.

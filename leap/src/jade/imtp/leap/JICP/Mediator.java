@@ -270,7 +270,7 @@ public class Mediator extends EndPoint implements JICPMediator {
    * as soon as the mediated container (re)connects.
    * @param c the connection to the mediated container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
     if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.

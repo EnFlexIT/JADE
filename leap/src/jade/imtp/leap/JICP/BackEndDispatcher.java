@@ -332,7 +332,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
    * attached to as soon as the FrontEnd container (re)connects.
    * @param c the connection to the FrontEnd container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
    	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
@@ -342,7 +342,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     newConnectionReady = true;
 
     // On reconnections, a back end container becomes the master node
-    if((pktKind == JICPProtocol.CONNECT_MEDIATOR_TYPE) && (!myContainer.isMaster())) {
+    if((pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) && (!myContainer.isMaster())) {
 	myContainer.becomeMaster();
 	start();
     }
