@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.57  1999/06/16 12:14:48  rimassa
+  Corrected an error in a Javadoc comment.
+
   Revision 1.56  1999/06/16 00:16:00  rimassa
   Handled special case of 0 timeout in restartLater() method.
   Fixed a bug in activateBehaviour() method.
@@ -1092,7 +1095,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @return A new ACL message, blocking the agent until one is
      available.
      @see jade.lang.acl.ACLMessage
-     @see jade.core.ReceiverBehaviour
+     @see jade.core.behaviours.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive() {
     ACLMessage msg = null;
@@ -1132,7 +1135,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      until such a message is available.
      @see jade.lang.acl.ACLMessage
      @see jade.lang.acl.MessageTemplate
-     @see jade.core.ReceiverBehaviour
+     @see jade.core.behaviours.ReceiverBehaviour
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
     ACLMessage msg = null;
