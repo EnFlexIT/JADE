@@ -49,8 +49,8 @@ The following is an excerpt from the programmer's guide.
 The only software requirement to execute the system is the Java Run Time 
 Environment version 1.4
 Further to the Java Compiler version 1.4, to build the system, the JavaCC 
-parser generator (version 0.8pre or version 1.1; available from 
-http://www.metamata.com), the IDL to Java translator idltojava 
+parser generator (version 3.2 of JavaCC since JADE 3.2),
+the IDL to Java translator idltojava 
 (available from the Sun Developer Connection) are also needed. However, 
 pre-built IDL stubs and Java parser classes are included with the JADE 
 source distribution such that the Java compiler is sufficient to build 
