@@ -799,7 +799,7 @@ public class ams extends Agent implements AgentManager.Listener {
       }
     };
 
-  /** it is called also by Agent.java **/
+  /** Registration with the AMS. It is called also by Agent.java **/
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
     Object old = agentDescriptions.register(amsd.getName(), amsd);
@@ -807,7 +807,7 @@ public class ams extends Agent implements AgentManager.Listener {
       throw new AlreadyRegistered();
   }
 
-  /** it is called also by Agent.java **/
+  /** Deregistration with the AMS. It is called also by Agent.java **/
   public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
     Object old = agentDescriptions.deregister(amsd.getName());
