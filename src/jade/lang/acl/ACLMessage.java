@@ -35,6 +35,9 @@
 /*
  $Id$
  $Log$
+ Revision 1.4  1998/08/08 21:37:22  rimassa
+ Added a missing import clause: 'import java.ioSerializable'.
+
  Revision 1.3  1998/08/08 18:06:53  rimassa
  Used official FIPA version of Java class for ACL messages. Some minor changes:
 
@@ -45,6 +48,8 @@
 */
 
 package jade.lang.acl;
+
+import java.io.Serializable;
 
 /**
  * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
