@@ -83,7 +83,7 @@ public class ContractNetResponderAgent extends Agent {
 				}	
 			}
 			
-			protected void handleRejectProposal(ACLMessage reject) {
+			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
 				System.out.println("Agent "+getLocalName()+": Proposal rejected");
 			}
 		} );
