@@ -87,6 +87,7 @@ public class BEReplicationService extends BaseService {
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	super.init(ac, p);
 	myContainer = (BackEndContainer)ac;
+	myProfile = p;
 
 	myMediatorID = p.getParameter(Profile.BE_MEDIATOR_ID, null);
 	myReplicaIndex = Integer.parseInt(p.getParameter(Profile.BE_REPLICA_INDEX, "0"));
@@ -402,9 +403,8 @@ public class BEReplicationService extends BaseService {
 	    }
 
 	    // Set up a failure monitor on the target slice...
-	    nodeMonitor = new NodeFailureMonitor(slice.getNode(), this);
-	    Thread monitorThread = new Thread(nodeMonitor);
-	    monitorThread.start();
+      nodeMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, slice.getNode(), this);
+	    nodeMonitor.start();
 
 	}
 
@@ -779,6 +779,7 @@ public class BEReplicationService extends BaseService {
     } // End of ReplicaMonitor class
 
     private BackEndContainer myContainer;
+    private Profile myProfile; 
 
     private ServiceComponent localSlice;
 
