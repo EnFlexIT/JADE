@@ -280,7 +280,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				}
 				catch (Exception ex) {
 					// An agent with the same name has come up in the meanwhile.
-					// Notify a warning
+					// FIXME: Kill the agent or notify a warning
 		    }
 			}
 		}

@@ -47,6 +47,7 @@ import java.util.Enumeration;
 
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	
+    public static final String RESYNCH = "resynch";
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
     public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
 

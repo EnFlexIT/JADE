@@ -78,5 +78,10 @@ public interface FrontEnd {
 	   Request the FrontEnd container to exit.
 	 */
   void exit(boolean self) throws IMTPException;
+  
+  /**
+     Request the FrontEnd to synchronize i.e. to notify all its agents
+	 */
+  void synch() throws IMTPException;
 }
 

@@ -39,6 +39,7 @@ public class FrontEndSkel extends MicroSkeleton {
 	static final int RESUME_AGENT = 13;
 	static final int MESSAGE_IN = 14;
 	static final int EXIT = 15;
+	static final int SYNCH = 16;
 	
 	private FrontEnd myFrontEnd;
 	
@@ -50,76 +51,40 @@ public class FrontEndSkel extends MicroSkeleton {
 	   Call the method of the local FrontEnd corresponding to command <code>c</code>.
    */
   Command executeCommand(Command c) throws Throwable {
-  	switch (c.getCode()) {
-  	case MESSAGE_IN:
-  		try {
+  	try {
+	  	switch (c.getCode()) {
+	  	case MESSAGE_IN:
   			myFrontEnd.messageIn((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case CREATE_AGENT:
-  		try {
+	  		break;
+	  	case CREATE_AGENT:
   			myFrontEnd.createAgent((String) c.getParamAt(0), (String) c.getParamAt(1), (String[]) c.getParamAt(2));
-  			c.reset(Command.OK);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case KILL_AGENT:
-  		try {
+	  		break;
+	  	case KILL_AGENT:
   			myFrontEnd.killAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case SUSPEND_AGENT:
-  		try {
+	  		break;
+	  	case SUSPEND_AGENT:
   			myFrontEnd.suspendAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case RESUME_AGENT:
-  		try {
+	  		break;
+	  	case RESUME_AGENT:
   			myFrontEnd.resumeAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case EXIT:
-  		try {
+	  		break;
+	  	case EXIT:
   			myFrontEnd.exit(((Boolean) c.getParamAt(0)).booleanValue());
-  			c.reset(Command.OK);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	default:
-  		throw new IMTPException("Unsupported command "+c.getCode());
+	  		break;
+	  	case SYNCH:
+  			myFrontEnd.exit(((Boolean) c.getParamAt(0)).booleanValue());
+	  		break;
+	  	default:
+	  		throw new IMTPException("Unsupported command "+c.getCode());
+	  	}
+			c.reset(Command.OK);
   	}
+		catch (NotFoundException nfe) {
+			c = createErrorRsp(nfe, true);
+		}
+		catch (IMTPException imtpe) {
+			c = createErrorRsp(imtpe, true);
+		}
   	
   	return c;
   }

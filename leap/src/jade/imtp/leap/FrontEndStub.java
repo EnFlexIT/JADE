@@ -121,7 +121,15 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.EXIT);
   	c.addParam(new Boolean(self));
 		// The EXIT command must not be postponed
-		Command r = executeRemotely(c, 0);
+		executeRemotely(c, 0);
+  }
+  
+  /**
+	 */
+  public void synch() throws IMTPException {
+  	Command c = new Command(FrontEndSkel.SYNCH);
+		// The SYNCH command must not be postponed
+		executeRemotely(c, 0);
   }
   
   public List getPendingMessages(AID id) {
