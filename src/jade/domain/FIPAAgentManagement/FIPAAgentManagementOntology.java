@@ -189,12 +189,12 @@ public class FIPAAgentManagementOntology {
 
 	theInstance.addFrame(APDESCRIPTION, new TermDescriptor[] {
 	    new TermDescriptor("name", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.M),
-	    new TermDescriptor("dynamic", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O),
-	    new TermDescriptor("mobility", Ontology.CONSTANT_TERM, Ontology.STRING_TYPE, Ontology.O),
+	    new TermDescriptor("dynamic", Ontology.CONSTANT_TERM, Ontology.BOOLEAN_TYPE, Ontology.O),
+	    new TermDescriptor("mobility", Ontology.CONSTANT_TERM, Ontology.BOOLEAN_TYPE, Ontology.O),
             new TermDescriptor("transport-profile", Ontology.FRAME_TERM, APTRANSPORTDESCRIPTION, Ontology.O),
 	}, new RoleFactory() {
-	     public Object create(Frame f) { return new AgentPlatformDescription(); } 
-	     public Class getClassForRole() { return AgentPlatformDescription.class; }
+	     public Object create(Frame f) { return new APDescription(); } 
+	     public Class getClassForRole() { return APDescription.class; }
 	   });
 
 	theInstance.addFrame(APTRANSPORTDESCRIPTION, new TermDescriptor[] {
