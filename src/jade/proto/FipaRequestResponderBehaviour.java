@@ -32,6 +32,11 @@ import jade.core.*;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.domain.FIPAAgentManagement.UnsupportedFunction;
+import jade.domain.FIPAAgentManagement.UnrecognisedValue;
 
 import jade.onto.*;
 import jade.onto.basic.Action;
@@ -86,11 +91,12 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     /**
        Creates a new object, implementing the <code>Action</code>
        interface.
-       @param a An ontological object representing the action to perform.
+       @param request The REQUEST message received.
        @return A new <code>ActionHandler</code> object.
      */
-    ActionHandler create();
+    ActionHandler create(ACLMessage request);
   }
+
 
   /**
     This class must be extended by users to handle a specific request
@@ -101,34 +107,31 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   public static abstract class ActionHandler extends Behaviour {
 
-    /**
-    @serial
-    */
     private ACLMessage myRequest;
-
-    /**
-    @serial
-    */
-    private ACLMessage myReply;
+    private ACLMessage myReply; 
 
     /**
       Constructor for <code>ActionHandler</code>objects.
       @param a The agent this <code>ActionHandler</code> belongs to.
+      @param request is the REQUEST message that needs to be responded
      */
-    protected ActionHandler(Agent ag) {
+    protected ActionHandler(Agent ag, ACLMessage request) {
       super(ag);
-    }
-
-    final void setRequest(ACLMessage request) { 
+      if (request != null) {
 	myRequest = request;
+	myReply = request.createReply();
+      }
     }
 
-    final void setReply(ACLMessage reply) {
-      myReply = reply;
+    protected ACLMessage getReply() {
+      return myReply;
+    } 
+
+    protected void setReply (ACLMessage reply) {
+      myReply =reply;
     }
 
     /**
-       Reads <code>request</code> message slot.
        @return The <code>ACLMessage</code> that was received by the
        dispatcher and that this <code>Action</code> has to handle.
     */
@@ -136,96 +139,21 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       return myRequest;
     }
 
-    /**
-       Reads the reply message slot.
-       @return The <code>ACLMessage</code> that will be sent back to
-       peer agent. This ACL message can be modified by application
-       specific code, but should not change <code>:in-reply-to</code>,
-       <code>:conversation-id</code>, <code>:receiver</code> and all
-       the message slots that are automatically handled by
-       <code>FipaRequestResponderBehaviour</code>. For typical cases,
-       just the <code>:content</code> slot should be changed and
-       suitable methods should be called to send back the reply
-       message with an appropriate message type.
-       @see jade.proto.FipaRequestResponderBehaviour.Action#sendNotUnderstood()
-       @see jade.proto.FipaRequestResponderBehaviour.Action#sendRefuse(String reason)
-       @see jade.proto.FipaRequestResponderBehaviour.Action#sendFailure(String reason)
-       @see jade.proto.FipaRequestResponderBehaviour.Action#sendAgree()
-       @see jade.proto.FipaRequestResponderBehaviour.Action#sendInform()
-    */
-    protected final ACLMessage getReply() {
-      return myReply;
-    }
 
     /**
-      Send a <code>not-understood</code> message back to the
+      Send a <code>reply</code> message back to the
       requester. This method sends the ACL message object returned by
       <code>getReply()</code> method, after changing its message type
-      to <code>not-understood</code>.
+      to the passed parameter and after setting the content to the passed
+      parameter. 
       @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
     */
-    protected void sendNotUnderstood() {
-      myReply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+    protected void sendReply(int performative, String content) {
+      myReply.setPerformative(performative);
+      myReply.setContent(content);
       myAgent.send(myReply);
     }
 
-    /**
-      Send a <code>refuse</code> message back to the requester. This
-      method sends the ACL message object returned by
-      <code>getReply()</code> method, after changing its message type
-      to <code>refuse</code>.
-      @param reason A string containing the reason for this
-      <code>refuse</code> message. It will be put in
-      <code>:content</code> slot of the reply message.
-      @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
-    */
-    protected void sendRefuse(String reason) {
-      myReply.setPerformative(ACLMessage.REFUSE);
-      myReply.setContent("STUB");
-      myAgent.send(myReply);
-    }
-
-    /**
-      Send a <code>failure</code> message back to the requester. This
-      method sends the ACL message object returned by
-      <code>getReply()</code> method, after changing its message type
-      to <code>failure</code>.
-      @param reason A string containing the reason for this
-      <code>failure</code> message. It will be put in
-      <code>:content</code> slot of the reply message.
-      @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
-    */
-    protected void sendFailure(String reason) {
-        myReply.setPerformative(ACLMessage.FAILURE);
-	myReply.setContent("STUB");
-	myAgent.send(myReply);
-    }
-
-    /**
-      Send a <code>agree</code> message back to the requester. This
-      method sends the ACL message object returned by
-      <code>getReply()</code> method, after changing its message type
-      to <code>agree</code>.
-      @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
-    */
-    protected void sendAgree() {
-      myReply.setPerformative(ACLMessage.AGREE);
-      myReply.setContent("STUB");
-      myAgent.send(myReply);
-    }
-
-    /**
-      Send a <code>inform</code> message back to the requester. This
-      method sends the ACL message object returned by
-      <code>getReply()</code> method, after changing its message type
-      to <code>inform</code>.
-      @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
-    */
-    protected void sendInform() {
-      myReply.setPerformative(ACLMessage.INFORM);
-      myReply.setContent("STUB");
-      myAgent.send(myReply);
-    }
 
   } // End of ActionHandler class
 
@@ -265,56 +193,6 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     requestTemplate = MessageTemplate.and(requestTemplate, match);
   }
 
-  public void action() {
-    ACLMessage msg = myAgent.receive(requestTemplate);
-    if(msg != null) {
-      ACLMessage reply = msg.createReply();
-      reply.setPerformative(ACLMessage.INFORM);
-      reply.setSender(myAgent.getAID());
-
-      try {
-	List l = myAgent.extractContent(msg);
-	Action a = (Action)l.get(0);
-
-	// Use the ontology to discover the action name
-	Ontology o = myAgent.lookupOntology(msg.getOntology());
-
-	String actionName = getActionName(a, o);
-
-	Factory actionFactory = (Factory)actions.get(actionName);
-
-	if(actionFactory == null) {
-	  sendNotUnderstood(reply);
-	  return;
-	}
-	else {
-	  ActionHandler toDo = actionFactory.create();
-	  toDo.setRequest(msg);
-	  toDo.setReply(reply);
-	  myAgent.addBehaviour(toDo);
-	}
-      }
-      catch(FIPAException fe) {
-	fe.printStackTrace();
-	sendNotUnderstood(reply);
-	return;
-      }
-    }
-    else block();
-}
- /**
-    Associate a <code>Factory</code> object with an action name. This
-    method registers an object to be used to create behaviours to
-    handle the specified action when some <code>request</code> for it
-    is received.
-    @param actionName The name of the action the <code>Factory</code>
-    creates handlers for.
-    @param f The actual <code>Factory</code> object; it will be used
-    to create action handlers on demand.
-  */
-  public void registerFactory(String actionName, Factory f) {
-    actions.put(actionName, f);
-  }
 
   /**
     This method is used to get the right behaviour from the <code>Factory</code>.
@@ -330,24 +208,69 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     a null String.
     @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f)
   */
-  protected String getActionName(Action a, Ontology o) {
+  protected String getActionName(ACLMessage msg) throws NotUnderstoodException, RefuseException {
     try {
+      List l = myAgent.extractContent(msg);
+      Action a = (Action)l.get(0);
+      // Use the ontology to discover the action name
+      Ontology o = myAgent.lookupOntology(msg.getOntology());
       Object obj = a.get_1(); // get the ontological object for the actual action
-
       String roleName = o.getRoleName(obj.getClass());
       Frame f = o.createFrame(obj, roleName);
       return f.getName();
-
-    }
-    catch(OntologyException oe) {
+    } catch(OntologyException oe) {
       oe.printStackTrace();
-      return null; // So that the action lookup will fail and 'not-understood' will be sent back...
-    }
-    catch(ClassCastException cce) {
+      throw new UnsupportedFunction();
+    } catch(ClassCastException cce) {
       cce.printStackTrace();
-      return null; // So that the action lookup will fail and 'not-understood' will be sent back...
+      throw new UnrecognisedValue("content");
+    } catch(FIPAException e) {
+      throw new UnrecognisedValue("content");
     }
   }
+
+  public void action() {
+    ACLMessage msg = myAgent.receive(requestTemplate);
+    if(msg != null) {
+      ACLMessage reply = msg.createReply();
+      try {
+	String actionName = getActionName(msg);
+	Factory actionFactory = (Factory)actions.get(actionName);
+	if(actionFactory == null) {
+	  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+	  reply.setContent("FIXME");
+	  myAgent.send(reply);
+	  return;
+	} else {
+	  ActionHandler toDo = actionFactory.create(msg);
+	  toDo.setReply(reply);
+	  myAgent.addBehaviour(toDo);
+	}
+      } catch(FIPAException fe) {
+	fe.printStackTrace();
+	reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+	reply.setContent("FIXME");
+	myAgent.send(reply);
+	return;
+      }
+    }
+    else block();
+  }
+
+ /**
+    Associate a <code>Factory</code> object with an action name. This
+    method registers an object to be used to create behaviours to
+    handle the specified action when some <code>request</code> for it
+    is received.
+    @param actionName The name of the action the <code>Factory</code>
+    creates handlers for.
+    @param f The actual <code>Factory</code> object; it will be used
+    to create action handlers on demand.
+  */
+  public void registerFactory(String actionName, Factory f) {
+    actions.put(actionName, f);
+  }
+
 
   /**
     Remove a action name - <code>Factory</code> object
@@ -362,11 +285,9 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     actions.remove(actionName);
   }
 
-  // Send a 'not-understood' message back to the requester
 
-  void sendNotUnderstood(ACLMessage msg) {
-    msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-    myAgent.send(msg);
-  }
 
 } // End of FipaRequestResponderBehaviour class
+
+
+
