@@ -671,6 +671,7 @@ class MainContainerImpl implements Platform, AgentManager {
 			
 			AgentPrincipal from = ad.getPrincipal();
 			AgentPrincipal to = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
+			ad.setPrincipal(to);
 			ContainerID cid = ad.getContainerID();
 			
 			// Notify containers
