@@ -39,107 +39,204 @@ import jade.content.Concept;
   This class represents an unique identifier referring to a specific
   agent behaviour.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 
 */
 public class BehaviourID implements Concept {
 
-	private String name;
-	private String className;
-  private String kind; 
-  private List children = new ArrayList();
+    private String name;
+    private String className;
+    private String kind; 
+    private List children = new ArrayList();
 
-  public BehaviourID () {
-  }
-  
-  public BehaviourID (Behaviour b) {
+    /**
+       Default constructor. Builds an unspecified behaviour ID.
+    */
+    public BehaviourID () {
+    }
+
+    /**
+       This constructor builds a new behaviour ID, describing the
+       given behaviour object. The various attributes of the behaiour
+       ID (behaviour name, behaviour class, etc.) are set accordingly.
+
+       @param b The <code>Behaviour</code> object that is to be
+       described with this ID.
+    */
+    public BehaviourID (Behaviour b) {
       
-      name = b.getBehaviourName();
-      className = b.getClass().getName();      
-      kind = getClassKind(b.getClass());      
+	name = b.getBehaviourName();
+	className = b.getClass().getName();      
+	kind = getClassKind(b.getClass());      
 
-      // If we have a composite behaviour, add the
-      // children to this behaviour id.
-      if (b instanceof CompositeBehaviour) {
-          CompositeBehaviour c = (CompositeBehaviour)b;
-          Iterator iter = c.getChildren().iterator();
-          while (iter.hasNext()) {
-              addChildren(new BehaviourID((Behaviour)iter.next()));
-          }
-      }
-  }
+	// If we have a composite behaviour, add the
+	// children to this behaviour id.
+	if (b instanceof CompositeBehaviour) {
+	    CompositeBehaviour c = (CompositeBehaviour)b;
+	    Iterator iter = c.getChildren().iterator();
+	    while (iter.hasNext()) {
+		addChildren(new BehaviourID((Behaviour)iter.next()));
+	    }
+	}
+    }
 
-  private String getClassKind(Class c) {
+    private String getClassKind(Class c) {
   	if (c == null) {
-  		return null;
+	    return null;
   	}
   	
   	String className = c.getName();
-    // Remove the class name and the '$' characters from
-    // the class name for readability.
-    int dotIndex = className.lastIndexOf('.');
-    int dollarIndex = className.lastIndexOf('$');
+	// Remove the class name and the '$' characters from
+	// the class name for readability.
+	int dotIndex = className.lastIndexOf('.');
+	int dollarIndex = className.lastIndexOf('$');
   	int lastIndex = (dotIndex > dollarIndex ? dotIndex : dollarIndex);
-    if (lastIndex == -1) {
-    	return className;
+	if (lastIndex == -1) {
+	    return className;
+	}
+	else if (lastIndex == dotIndex) {
+	    return className.substring(lastIndex+1);
+	}
+	else {
+	    // This is an anonymous inner class (the name is not meaningful) --> 
+	    // Use the extended class 
+	    return getClassKind(c.getSuperclass());
+	}
     }
-    else if (lastIndex == dotIndex) {
-      return className.substring(lastIndex+1);
+
+    /**
+       Set the name of this behaviour ID
+       @param n The name to give to this behaviour ID.
+    */
+    public void setName(String n) {
+	name = n;
     }
-    else {
-    	// This is an anonymous inner class (the name is not meaningful) --> 
-    	// Use the extended class 
-    	return getClassKind(c.getSuperclass());
+
+    /**
+       Retrieve the name of this behaviour ID.
+       @return The given name, or <code>null</code> if no name was set.
+    */
+    public String getName() {
+	return name;
     }
-  }
-      
-  public void setName(String n) {
-    name = n;
-  }
 
-  public String getName() {
-    return name;
-  }
+    /**
+      Set the class name for this behaviour ID. This is the name of
+      the Java class implementing the described agent behaviour.
+      @param n The class name of the described behaviour.
+    */
+    public void setClassName(String n) {
+	className = n;
+    }
 
-  public void setClassName(String n) {
-    className = n;
-  }
+    /**
+      Retrieve the class name implementing the agent behaviour
+      described by this ID.
+      @return The class name, or <code>null</code> if no class name
+      was set.
+    */
+    public String getClassName() {
+	return className;
+    }
 
-  public String getClassName() {
-    return className;
-  }
+    /**
+       Set the kind of behaviour described by this behaviour ID.
+       @param k A string specifying the kind of the described
+       behaviour.
+    */
+    public void setKind(String k) {
+	kind = k;
+    }
 
-  public void setKind(String k) {
-    kind = k;
-  }
+    /**
+       Retrieve the kind of behaviour described by this behaviour ID.
+       @return A string describing the kind of behaviour, or
+       <code>null</code> if no kind was set.
+    */
+    public String getKind() {
+	return kind;
+    }
 
-  public String getKind() {
-    return kind;
-  }
+    /**
+       Adds a new behaviour ID as a child of this one. The
+       parent-child relationship between behaviour IDs reflects the
+       one between their described behaviours.
 
-  public void addChildren(BehaviourID bid) {
-      children.add(bid);
-  }
+       @param bid The behaviour ID object to add.
+    */
+    public void addChildren(BehaviourID bid) {
+	children.add(bid);
+    }
 
-  public Iterator getAllChildren() {
-      return children.iterator();
-  }
+    /**
+       Retrieve the list of all the children behaviour IDs, as an
+       iterator object.
+       @return An iterator over the children collection of this
+       behaviour ID.
+    */
+    public Iterator getAllChildren() {
+	return children.iterator();
+    }
   
-  public boolean isSimple() {
-      return (children.size() == 0);
-  }
+    /**
+       Tells whether this behaviour ID has children.
+       @return If the children collection is empty, <code>true</code>
+       is returned, and <code>false</code> otherwise.
+    */
+    public boolean isSimple() {
+	return (children.size() == 0);
+    }
+
+    /**
+       Equality test on two behaviour IDs. They are considered to be
+       equal if and only if their <i>name</i>, <i>className</i> and
+       <i>kind</i> attributed are the same.
+
+       @param o The right hand side of the equality test (the left
+       hand one being the current object).
+       @return If the <code>o</code> parameter is a behaviour ID with
+       the same name, class name and kind of the current object,
+       <code>true</code>. Otherwise, <code>false</code> is returned.
+    */
+    public boolean equals(Object o) {
+	boolean bEqual = false;
+	if (o != null && o instanceof BehaviourID) {
+	    BehaviourID b = (BehaviourID)o;
+	    bEqual = (b.hashCode() == hashCode());
+	}
+	return bEqual;
+    }
+
+    /**
+       Hash code operation, compliant with identity-by-name. This
+       method returns an hash code for a behaviour ID, so that two
+       behaviour IDs with the same name, class name and kind have the
+       same hash code.
+    */
+    public int hashCode() {
+	int result = 0;
+	if(name != null) {
+	    result = name.hashCode();
+	}
+	if(className != null) {
+	    result = result*2 + className.hashCode();
+	}
+	if(kind != null) {
+	    result = result*2 + kind.hashCode();
+	}
+
+  	return result;
+    }
   
-  public boolean equals(Object o) {
-      boolean bEqual = false;
-      if (o != null && o instanceof BehaviourID) {
-          BehaviourID b = (BehaviourID)o;
-          bEqual = b.name.equals(name) && b.className.equals(className) && b.kind.equals(kind);
-      }
-      return bEqual;
-  }
-  
-  public String toString() {
-      return name;
-  }
+    /**
+       Create a string representation for this behaviour ID. The
+       actual representation is simply the name of the behaviour ID.
+
+       @return The name of this behaviour ID.
+    */
+    public String toString() {
+	return name;
+    }
+
 }
