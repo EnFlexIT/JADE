@@ -1,0 +1,395 @@
+///////////////////////////////////////////////////////////////
+//   
+//   /     /  ___/  ___/   / /_   _/ 
+//  /  /--/___  /  ___/   /_/ / / /   
+// /_____/_____/_____/_____/_/_/_/
+// 
+// -----------------------------------------------------------
+// PROJECT:    DUMMY AGENT	
+// FILE NAME:  DummyAgentGui.java	
+// CONTENT:	   This file includes the definition of the DummyAgentGui class.
+// AUTHORS:	   Giovanni Caire	
+// RELEASE:	   4.0	
+// MODIFIED:   21/06/1999	
+// 
+//////////////////////////////////////////////////////////////
+
+package jade.tools.DummyAgent;
+
+// Import required Java classes 
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.*;
+
+import java.util.*;
+import java.io.*;
+
+// Import required Jade classes
+import jade.core.*;
+import jade.lang.acl.*;
+import jade.gui.*;
+
+
+class DummyAgentGui extends JFrame implements ActionListener
+{
+	DummyAgent        myAgent;
+	String            agentName;
+	AclGui            currentMsgGui;
+	DefaultListModel  queuedMsgListModel;
+	JList             queuedMsgList;
+	File              currentDir;
+
+	// Constructor
+	DummyAgentGui(DummyAgent a)
+	{
+		//////////////////////////
+		// Call JFrame constructor
+		super();
+
+		//////////////////////////////////////////////////////////
+		// Store pointer to the Dummy agent controlled by this GUI
+		myAgent = a;
+
+		/////////////////////////////////////////////////////////////////////
+		// Get agent name and initialize the saving/opening directory to null 
+		agentName = myAgent.getLocalName();
+		currentDir = null;
+
+		//////////////////////////
+		// Set title in GUI window
+		setTitle(agentName + ":DummyAgent");
+		
+		////////////////////////////////
+		// Set GUI window layout manager
+		getContentPane().setLayout(new BorderLayout());
+
+		//////////////////////////////////////////////////////////////////////////////////////
+		// Add the queued message scroll pane to the CENTER part of the border layout manager
+		queuedMsgListModel = new DefaultListModel();
+		queuedMsgList = new JList(queuedMsgListModel);
+        queuedMsgList.setCellRenderer(new ToFromCellRenderer());
+		JScrollPane pane = new JScrollPane();
+		pane.getViewport().setView(queuedMsgList);
+		getContentPane().add("Center", pane);
+
+		///////////////////////////////////////////////////////////////////////////////////////////////////
+		// Add the current message editing fields (an AclGui) to the WEST part of the border layout manager
+		currentMsgGui = new AclGui();
+		currentMsgGui.setBorder(new TitledBorder("Current message"));
+		ACLMessage msg = new ACLMessage("accept-proposal");
+		msg.setSource(agentName);
+		currentMsgGui.setMsg(msg);
+		getContentPane().add("West", currentMsgGui);
+
+		/////////////////////////////////////
+		// Add main menu to the GUI window
+		JMenuBar jmb = new JMenuBar();
+		JMenuItem item;
+
+		JMenu generalMenu = new JMenu ("General");
+		generalMenu.add (item = new JMenuItem ("Exit"));
+		item.addActionListener (this);
+		jmb.add (generalMenu);
+
+
+		JMenu currentMsgMenu = new JMenu ("Current message");
+		currentMsgMenu.add (item = new JMenuItem ("New"));
+		item.addActionListener (this);
+		currentMsgMenu.add (item = new JMenuItem ("Open"));
+		item.addActionListener (this);
+		currentMsgMenu.add (item = new JMenuItem ("Save"));
+		item.addActionListener (this);
+		currentMsgMenu.addSeparator();
+		currentMsgMenu.add (item = new JMenuItem ("Send"));
+		item.addActionListener (this);
+		jmb.add (currentMsgMenu);
+
+		JMenu queuedMsgMenu = new JMenu ("Queued message");
+		queuedMsgMenu.add (item = new JMenuItem ("View"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Open queue"));
+		item.addActionListener (this);
+		queuedMsgMenu.add (item = new JMenuItem ("Save queue"));
+		item.addActionListener (this);
+		jmb.add (queuedMsgMenu);
+
+		setJMenuBar(jmb);
+
+		/////////////////////////////////////////////////////
+		// Add Toolbar to the NORTH part of the border layout 
+		JToolBar bar = new JToolBar();
+
+		Icon newImg = GuiProperties.getIcon("new");
+		JButton newB = new JButton();
+		newB.setText("New");
+		newB.setIcon(newImg);
+		newB.setToolTipText("New the current ACL message");
+		newB.addActionListener(this);
+		bar.add(newB);
+											
+		Icon openImg = GuiProperties.getIcon("open");
+		JButton openB = new JButton();
+		openB.setText("Open");
+		openB.setIcon(openImg);
+		openB.setToolTipText("Read the current ACL message from file");
+		openB.addActionListener(this);
+		bar.add(openB);
+
+		Icon saveImg = GuiProperties.getIcon("save");
+		JButton saveB = new JButton();
+		saveB.setText("Save");
+		saveB.setIcon(saveImg);
+		saveB.setToolTipText("Save the current ACL message to file");
+		saveB.addActionListener(this);
+		bar.add(saveB);
+
+		Icon sendImg = GuiProperties.getIcon("send");
+		JButton sendB = new JButton();
+		sendB.setText("Send");
+		sendB.setIcon(sendImg);
+		sendB.setToolTipText("Send the current ACL message");
+		sendB.addActionListener(this);
+		bar.add(sendB);
+
+		bar.addSeparator();
+
+		Icon viewImg = GuiProperties.getIcon("view");
+		JButton viewB = new JButton();
+		viewB.setText("View");
+		viewB.setIcon(viewImg);
+		viewB.setToolTipText("View the selected ACL message");
+		viewB.addActionListener(this);
+		bar.add(viewB);
+
+		Icon deleteImg = GuiProperties.getIcon("delete");
+		JButton deleteB = new JButton();
+		deleteB.setText("Delete");
+		deleteB.setIcon(deleteImg);
+		deleteB.setToolTipText("Delete the selected ACL message");
+		deleteB.addActionListener(this);
+		bar.add(deleteB);
+
+		Icon setImg = GuiProperties.getIcon("set");
+		JButton setB = new JButton();
+		setB.setText("Set as current");
+		setB.setIcon(setImg);
+		setB.setToolTipText("Set the selected ACL message to be the current message");
+		setB.addActionListener(this);
+		bar.add(setB);
+
+		Icon openQImg = GuiProperties.getIcon("openq");
+		JButton openQB = new JButton();
+		openQB.setText("Open queue");
+		openQB.setIcon(openQImg);
+		openQB.setToolTipText("Read the queue of sent/received messages from file");
+		openQB.addActionListener(this);
+		bar.add(openQB);
+
+		Icon saveQImg = GuiProperties.getIcon("saveq");
+		JButton saveQB = new JButton();
+		saveQB.setText("Save queue");
+		saveQB.setIcon(saveQImg);
+		saveQB.setToolTipText("Save the queue of sent/received messages to file");
+		saveQB.addActionListener(this);
+		bar.add(saveQB);
+
+		getContentPane().add("North", bar);
+	}
+
+	void showCorrect()
+	{
+		///////////////////////////////////////////
+		// Arrange and display GUI window correctly
+		pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int centerX = (int)screenSize.getWidth() / 2;
+		int centerY = (int)screenSize.getHeight() / 2;
+		setLocation(centerX - getWidth() / 2, centerY - getHeight() / 2);
+		show();
+	}
+
+	///////////////////////////////////////////
+	// Handlers for menu and toolbar commands
+	public void actionPerformed(ActionEvent e)
+	{
+		String command = e.getActionCommand();
+
+		// NEW
+		if      (command.equals("New"))
+		{
+			ACLMessage m = new ACLMessage("accept-proposal");
+			m.setSource(agentName);
+			currentMsgGui.setMsg(m);
+		}
+		// OPEN
+		else if (command.equals("Open"))
+		{
+			JFileChooser chooser = new JFileChooser(); 
+			if (currentDir != null)
+				chooser.setCurrentDirectory(currentDir); 
+			int returnVal = chooser.showOpenDialog(null); 
+			if(returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				currentDir = chooser.getCurrentDirectory();
+				String fileName = chooser.getSelectedFile().getAbsolutePath();
+
+				try
+				{
+					BufferedReader inp = new BufferedReader(new FileReader(fileName));
+					ACLMessage ACLmsg = ACLMessage.fromText(inp);
+					currentMsgGui.setMsg(ACLmsg);
+				}
+				catch(FileNotFoundException e1) { System.out.println("File Not Found: " + fileName); }
+			} 
+		}
+		// SAVE
+		else if (command.equals("Save"))
+		{
+			JFileChooser chooser = new JFileChooser();
+			if (currentDir != null)
+				chooser.setCurrentDirectory(currentDir); 
+			int returnVal = chooser.showSaveDialog(null); 
+			if(returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				currentDir = chooser.getCurrentDirectory();
+				String fileName = chooser.getSelectedFile().getAbsolutePath();
+
+				try
+				{
+					BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+					ACLMessage ACLmsg = currentMsgGui.getMsg();
+					ACLmsg.toText(out);
+				}
+				catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
+				catch(IOException e4) { System.out.println("IO Exception"); }
+			} 
+		}
+		// SEND
+		else if (command.equals("Send"))
+		{
+			ACLMessage m = currentMsgGui.getMsg();
+			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
+			myAgent.send(m);
+		}
+		// VIEW
+		else if (command.equals("View"))
+		{
+			int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				AclGui.showMsgInDialog(m, this);
+			}
+		}
+		// DELETE
+		else if (command.equals("Delete"))
+		{
+			int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				queuedMsgListModel.removeElementAt(i);
+			}
+		}
+		// SET AS CURRENT
+		else if (command.equals("Set as current"))
+		{
+			int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				currentMsgGui.setMsg(m);
+			}
+		}
+		// OPEN QUEUE
+		else if (command.equals("Open queue"))
+		{
+			JFileChooser chooser = new JFileChooser(); 
+			if (currentDir != null)
+				chooser.setCurrentDirectory(currentDir); 
+			int returnVal = chooser.showOpenDialog(null); 
+			if(returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				// Flush current queue
+				for (int i = 0;i < queuedMsgListModel.getSize(); ++i)
+				{
+					queuedMsgListModel.removeElementAt(i);
+				}
+
+				currentDir = chooser.getCurrentDirectory();
+				String fileName = chooser.getSelectedFile().getAbsolutePath();
+
+				try
+				{
+					BufferedReader inp = new BufferedReader(new FileReader(fileName));
+					// Read the number of messages in the queue
+					int n = -1;
+					try
+					{
+						Integer nn = new Integer(inp.readLine());
+						n = nn.intValue();
+					}
+					catch(IOException ioEx) { System.out.println("IO Exception reading the number of messages in the queue"); }
+					
+					// Read the messages and insert them in the queue
+					MsgIndication mi; 
+					for (int i = 0;i < n; ++i)
+					{
+						mi = MsgIndication.fromText(inp);
+						queuedMsgListModel.add(i, (Object) mi);
+					}
+				}
+				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
+				catch(IOException e6) { System.out.println("IO Exception"); }
+			} 
+		}
+		// SAVE QUEUE
+		else if (command.equals("Save queue"))
+		{
+			JFileChooser chooser = new JFileChooser(); 
+			if (currentDir != null)
+				chooser.setCurrentDirectory(currentDir); 
+			int returnVal = chooser.showSaveDialog(null); 
+			if(returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				currentDir = chooser.getCurrentDirectory();
+				String fileName = chooser.getSelectedFile().getAbsolutePath();
+
+				try
+				{
+					BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+					// Write the number of messages in the queue
+					try
+					{
+						out.write(String.valueOf(queuedMsgListModel.getSize()));
+						out.newLine();
+					}
+					catch(IOException ioEx) { System.out.println("IO Exception writing the number of messages in the queue"); }
+
+					// Write the messages
+					MsgIndication mi;
+					for (int i = 0;i < queuedMsgListModel.getSize(); ++i)
+					{
+						mi = (MsgIndication) queuedMsgListModel.get(i);
+						mi.toText(out);
+					}
+				}
+				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
+				catch(IOException e6) { System.out.println("IO Exception"); }
+			} 
+		}
+		// EXIT
+		else if (command.equals("Exit"))
+		{
+			dispose();
+			myAgent.doDelete();
+		}
+	}
+
+}
