@@ -96,10 +96,10 @@ class Scheduler implements Serializable {
   public synchronized void block(Behaviour b) {
     if (removeFromReady(b)) {
 	    blockedBehaviours.add(b);
+    	//__CLDC_UNSUPPORTED__BEGIN
+    	owner.notifyChangeBehaviourState(b, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED);
+    	//__CLDC_UNSUPPORTED__END
     }
-    //__CLDC_UNSUPPORTED__BEGIN
-    owner.notifyChangeBehaviourState(b, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED);
-    //__CLDC_UNSUPPORTED__END
   }
 
   // Moves a behaviour from the sleeping queue to the ready queue.
@@ -107,10 +107,10 @@ class Scheduler implements Serializable {
     if (removeFromBlocked(b)) {
 	    readyBehaviours.add(b);
     	notify();
+    	//__CLDC_UNSUPPORTED__BEGIN
+    	owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_READY);
+    	//__CLDC_UNSUPPORTED__END
     }
-    //__CLDC_UNSUPPORTED__BEGIN
-    owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_READY);
-    //__CLDC_UNSUPPORTED__END
   }
 
   // Restarts all behaviours. This method simply calls
@@ -152,11 +152,13 @@ class Scheduler implements Serializable {
   public synchronized void remove(Behaviour b) {
     boolean found = removeFromBlocked(b);
     if(!found) {
-      removeFromReady(b);
+      found = removeFromReady(b);
     }
-    //__CLDC_UNSUPPORTED__BEGIN
-    owner.notifyRemoveBehaviour(b);    
-    //__CLDC_UNSUPPORTED__END
+    if (found) {
+	    //__CLDC_UNSUPPORTED__BEGIN
+  	  owner.notifyRemoveBehaviour(b);    
+    	//__CLDC_UNSUPPORTED__END
+    }
   }
 
   // Selects the appropriate behaviour for execution, with a trivial
