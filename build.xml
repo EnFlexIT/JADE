@@ -190,7 +190,7 @@ ant dist - to create the distribution files
                             doc
         __________________________________________________ -->
   <target name="doc" description="generate javadoc documentation">
-    <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" use="true" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap"/>
+    <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" use="true" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap, jade.mtp, jade.mtp.iiop jade.mtp.http jade.mtp.http.https"/>
     <javadoc destdir="${doc}/tools/sniffer/html/jdoc" author="true" windowtitle="JADE ${version} Sniffer Reference" sourcepath="${src}" packagenames="jade.tools.sniffer"/>
   </target>
   <!--     _______________________________________________
@@ -225,6 +225,7 @@ ant dist - to create the distribution files
   <!-- Make distribution zip file and put in ${dist} -->
   <target name="dist" depends="check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
   <target name="check_javacc_dist" unless="javacc.home.is.set">
+    <echo>The javadoc documentation for user should be generated through the ANT target apidoc of the leap distribution. That target filters out irrelevant files and packages.</echo>
     <echo>javacc task is being skipped and THE DISTRIBUTION FILES MIGHT NOT BE PROPERLY GENERATED. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
   <target name="dist_src" depends="init,parser">
