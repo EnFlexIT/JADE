@@ -67,7 +67,15 @@
 			    </UL>			
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>
+		
+		<Test name="Serializable property" skip="false">
+			<TestClassName>test.domain.df.tests.TestSerializableProperty</TestClassName>
+			<WhatTest> Test the registration and successive retrieval of a ServiceDescription including a Property whose value is a Serializable Java object.</WhatTest>
+			<HowWorkTest></HowWorkTest>
+			<WhenTestPass> The test passes if the Property value in the retrieved ServiceDescription is equals to that in the registered description</WhenTestPass>
 		</Test>		
+
 		<Test name="Fedaration" skip="false">
 			<TestClassName>test.domain.df.tests.TestFederation</TestClassName>
 			<WhatTest> Tests DF federation and recursive search on federated DF.</WhatTest>

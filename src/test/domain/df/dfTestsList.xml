@@ -37,7 +37,8 @@
 				The tester agent searches the DF after the registration and the de-registration
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if the 2 searches result in finding the remote agent and finding no agent respectively.</WhenTestPass>
-		</Test>		
+		</Test>
+		
 		<Test name="DF Lease Time" skip="false">
 			<TestClassName>test.domain.df.tests.TestDFLeaseTime</TestClassName>
 			<WhatTest> Tests lease time functionality of the DF agent.</WhatTest>
@@ -51,7 +52,8 @@
 				</UL>			
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
-		</Test>		
+		</Test>	
+		
 		<Test name="Registration renewal" skip="false">
 			<TestClassName>test.domain.df.tests.TestRegistrationRenewer</TestClassName>
 			<WhatTest> Tests the renewal of a registration by means of the keepRegistered() method.
@@ -62,6 +64,7 @@
 		  </HowWorkTest>
 			<WhenTestPass>The test passes if search 1, 2, 3 and 4 find 1 agent while search 5 finds no agent.</WhenTestPass>
 		</Test>		
+		
 		<Test name="FIPA Management Onto DF" skip="false">
 			<TestClassName>test.domain.df.tests.TestFIPAManagementOntology_DF</TestClassName>
 			<WhatTest> Tests actions in the FIPAManagementOntology related to the DF.</WhatTest>
@@ -76,6 +79,14 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
+		
+		<Test name="Serializable property" skip="false">
+			<TestClassName>test.domain.df.tests.TestSerializableProperty</TestClassName>
+			<WhatTest> Test the registration and successive retrieval of a ServiceDescription including a Property whose value is a Serializable Java object.</WhatTest>
+			<HowWorkTest></HowWorkTest>
+			<WhenTestPass> The test passes if the Property value in the retrieved ServiceDescription is equals to that in the registered description</WhenTestPass>
+		</Test>		
+
 		<Test name="Fedaration" skip="false">
 			<TestClassName>test.domain.df.tests.TestFederation</TestClassName>
 			<WhatTest> Tests DF federation and recursive search on federated DF.</WhatTest>
