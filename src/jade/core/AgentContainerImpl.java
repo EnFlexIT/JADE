@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.24  1999/02/03 10:03:17  rimassa
+  Added client-side CORBA support. Now every AgentContainer can call
+  another platform through IIOP directly, without intervention from
+  AgentPlatform or ACC.
+  Now an AgentContainer receives the IIOP address for the Agent Platform
+  at registration time.
+  Filled in 'postOtherPlatform()' method to resort to IIOP for
+  inter-platform communication.
+
   Revision 1.23  1998/12/07 23:48:56  rimassa
   Modified message dispatching methods to allow both a simple name
   (e.g. 'peter') and a complete name (e.g. 'peter@fipa.org:50/acc') to
@@ -75,6 +84,8 @@
 
 package jade.core;
 
+import java.io.StringWriter;
+
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 
@@ -85,7 +96,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.omg.CORBA.*;
+
 import jade.lang.acl.*;
+
+import FIPA_Agent_97;
 
 /***********************************************************************************
 
@@ -127,8 +142,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // IIOP address of the platform, will be used for inter-platform communications
   protected String platformAddress;
 
+  protected ORB myORB;
 
-  public AgentContainerImpl() throws RemoteException {
+  public AgentContainerImpl(String args[]) throws RemoteException {
 
     // Configure Java runtime system to put the whole host address in RMI messages
     try {
@@ -137,6 +153,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     catch(java.net.UnknownHostException jnue) {
       // Silently ignore it
     }
+
+    // Initialize CORBA runtime
+    myORB = ORB.init(args, null);
 
   }
 
@@ -225,14 +244,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     remoteAgentsCache.remove(key);
   }
 
-  public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
+  public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
 
-    platformAddress = platformIIOP;
-
-    // Retrieve agent platform from RMI registry and register as agent container
+     // Retrieve agent platform from RMI registry and register as agent container
     try {
       myPlatform = lookup3(platformRMI);
-      myPlatform.addContainer(this); // RMI call
+      platformAddress = myPlatform.addContainer(this); // RMI call
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
@@ -349,7 +366,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // Exception without a reason.
   private AgentPlatform lookup3(String URL)
     throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
-    Object o = null;
+    java.lang.Object o = null;
     try {
       o = Naming.lookup(URL);
     }
@@ -427,7 +444,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(NotFoundException nfe) {
       System.err.println("Agent was not found on agent platform");
-      nfe.printStackTrace();
+      // nfe.printStackTrace();
     }
     catch(RemoteException re) {
       System.out.println("Communication error while contacting agent platform");
@@ -436,7 +453,21 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   private void postOtherPlatform(ACLMessage msg, String receiverName, String receiverAddr) {
-    // Not implemented yet
+    try {
+      OutGoingIIOP outChannel = new OutGoingIIOP(myORB, receiverAddr);
+      FIPA_Agent_97 dest = outChannel.getObject();
+
+      String sender = msg.getSource();
+      if(sender.indexOf('@') == -1)
+        msg.setSource(sender + '@' + platformAddress);
+
+      StringWriter msgText = new StringWriter();
+      msg.toText(msgText);
+      dest.message(msgText.toString()); // CORBA call
+    }
+    catch(IIOPFormatException iiopfe) {
+      iiopfe.printStackTrace();
+    }
   }
 
 }
