@@ -72,8 +72,8 @@ public class StringACLCodec implements ACLCodec {
   private static final String PROTOCOL        = new String(" :protocol ");
   private static final String CONVERSATION_ID = new String(" :conversation-id ");
 
-  ACLParser parser;
-  Writer out;
+  ACLParser parser = null;
+  Writer out = null;
 
   /**
    * constructor for the codec.
@@ -81,8 +81,8 @@ public class StringACLCodec implements ACLCodec {
    * The standard output is used to write encoded ACL messages.
    */
   public StringACLCodec() {
-    parser = new ACLParser(System.in);
-    out = new OutputStreamWriter(System.out);
+    //parser = new ACLParser(System.in);
+    //out = new OutputStreamWriter(System.out);
   }
 
 
@@ -178,8 +178,8 @@ public class StringACLCodec implements ACLCodec {
   public void write(ACLMessage msg) {
       try {
 	  out.write(toString(msg));
-      } catch (IOException ioe) {
-	  ioe.printStackTrace();
+      } catch (Exception e) {
+	  e.printStackTrace();
       }
   }
 
