@@ -283,7 +283,8 @@ public class RMIIMTPManager implements IMTPManager {
   public List getLocalAddresses() throws IMTPException {
     try {
       List l = new ArrayList();
-      TransportAddress addr = new RMIAddress(InetAddress.getLocalHost().getHostName(), null, null, null);
+      // The port is meaningful only on the Main container
+      TransportAddress addr = new RMIAddress(InetAddress.getLocalHost().getHostName(), String.valueOf(mainPort), null, null);
       l.add(addr);
       return l;
     }
