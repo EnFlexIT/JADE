@@ -42,6 +42,7 @@ import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 import jade.imtp.leap.JICP.*;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
@@ -58,8 +59,6 @@ import java.util.*;
  */
 public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMediator {
 	
-	private int verbosity = 1;
-
   private JICPServer myJICPServer;
   private String myID;
 
@@ -71,6 +70,8 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	private InetAddress lastRspAddr;
 	private int lastRspPort;
   
+	private Logger myLogger;
+
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
@@ -82,13 +83,17 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     myID = id;
     
 		// Verbosity
+    int verbosity = 1;
   	try {
   		verbosity = Integer.parseInt(props.getProperty("verbosity"));
   	}
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
+  	/*#CUSTOMJ2SE_INCLUDE_BEGIN
   	verbosity = 3;
+  	#CUSTOMJ2SE_INCLUDE_END*/
+  	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
   	
   	// Max disconnection time
     long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -101,7 +106,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     
     myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime);
   	
-    log("Created HTTPBEDispatcher V2.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
+    myLogger.log("Created HTTPBEDispatcher V2.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
   	
     startBackEndContainer(props);
   }
@@ -131,7 +136,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	    myContainer.activateReplicas(props);
 	}
 
-    	log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
+    	myLogger.log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
     }
     catch (ProfileException pe) {
     	// should never happen
@@ -204,7 +209,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     		// PEER TERMINATION NOTIFICATION
     		// The remote FrontEnd has terminated spontaneously -->
     		// Terminate and notify up.
-    		log("Peer termination notification received", 2);
+    		myLogger.log("Peer termination notification received", 2);
     		handlePeerExited();
     		return null;
     	}
@@ -212,9 +217,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     		// NORMAL COMMAND
     		// Serve the incoming command and send back the response
     		byte sid = pkt.getSessionID();
-      	log("Incoming command received "+sid, 3);
+      	myLogger.log("Incoming command received "+sid, 3);
 		  	byte[] rspData = mySkel.handleCommand(pkt.getData());
-      	log("Incoming command served "+sid, 3);
+      	myLogger.log("Incoming command served "+sid, 3);
 		    pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
 		    pkt.setSessionID(sid);
 		    return pkt;
@@ -235,11 +240,13 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
      situation
    */
   public JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind) {
-      myOutgoingsHandler.setConnecting();
-
     // On reconnections, a back end container becomes the master node
     if(pktKind == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
 	myContainer.becomeMaster();
+    }
+
+    if (myContainer.isMaster()) {
+      myOutgoingsHandler.setConnecting();
     }
 
     // Return an OK response
@@ -250,7 +257,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	Thread t = new Thread() {
   		public void run() {
   			if (!myOutgoingsHandler.waitForInitialResponse()) {
-  				log("Missing initial dummy response after reconnection", 2);
+  				myLogger.log("Missing initial dummy response after reconnection", 2);
   				// Likely the HTTPFEDispatcher thread is hanging on an
   				// invalid connection --> try to unblock it sending a fake response
 			  	myJICPServer.fakeReply(lastRspAddr, lastRspPort);
@@ -310,7 +317,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
      called --> see case 1. 
    */
   public void shutdown() {
-    log("Initiate HTTPBEDispatcher shutdown", 2);
+    myLogger.log("Initiate HTTPBEDispatcher shutdown", 2);
 
     // Deregister from the JICPServer
     if (myID != null) {
@@ -404,7 +411,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   			// 1) Schedule the command for delivery
 			  int sid = outCnt;
 			  outCnt = (outCnt+1) & MAX_SID;
-			  log("Scheduling outgoing command for delivery "+sid, 3);
+			  myLogger.log("Scheduling outgoing command for delivery "+sid, 3);
 			  cmd.setSessionID((byte) sid);
   			currentCommand = cmd;
   			commandReady = true;
@@ -419,12 +426,12 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	  				if (!responseReady) {
 	  					if (frontEndStatus == CONNECTING) {
 	  						// The connection was reset
-			  				log("Response will never arrive "+sid, 2);
+			  				myLogger.log("Response will never arrive "+sid, 2);
 	  					}
 	  					else {
 	  						if (frontEndStatus != TERMINATED) {
 			  					// Response Timeout expired
-					  			log("Response timeout expired "+sid, 2);
+					  			myLogger.log("Response timeout expired "+sid, 2);
 					  			frontEndStatus = UNREACHABLE;
 					  			activateTimer();
 	  						}
@@ -436,7 +443,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	  			}
 	  			catch (InterruptedException ie) {}
   			}
-	  		log("Expected response arrived "+currentResponse.getSessionID(), 3);
+	  		myLogger.log("Expected response arrived "+currentResponse.getSessionID(), 3);
 	  		responseReady = false;
 	  		return currentResponse;
   		}
@@ -459,7 +466,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   		// 1) Handle the response
   		if (responseWaiter != null) {
   			// There was someone waiting for this response. Dispatch it
-	    	log("Response received "+rsp.getSessionID(), 3);
+	    	myLogger.log("Response received "+rsp.getSessionID(), 3);
 	    	responseReady = true;
 	    	currentResponse = rsp;
   			notifyAll();
@@ -469,11 +476,11 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     		// initial dummy response or a response that arrives after 
   			// the timeout has expired. 
   			if (frontEndStatus == CONNECTING) {
-		    	log("Initial dummy response received "+rsp.getSessionID(), 2);
+		    	myLogger.log("Initial dummy response received "+rsp.getSessionID(), 2);
 		    	notifyInitialResponseReceived();
   			}
   			else {
-  				log("Out of time respose received "+rsp.getSessionID(), 2);
+  				myLogger.log("Out of time respose received "+rsp.getSessionID(), 2);
   			}
   		}
   		if (frontEndStatus != REACHABLE) {
@@ -486,7 +493,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     	if ((rsp.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
     		// The FrontEnd has terminated as a consequence of a command issued 
     		// by the local BackEnd. Terminate
-    		log("Last response detected", 2);
+    		myLogger.log("Last response detected", 2);
     		shutdown();
     		return null;
     	}
@@ -499,13 +506,13 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   				commandWaiter = null;
   				if (!commandReady) {
   					// The connection was reset
-			  		log("Return with no command to deliver ", 2);
+			  		myLogger.log("Return with no command to deliver ", 2);
   					return null;
   				}
   			}
   			catch (InterruptedException ie) {}
 			}
-  		log("Delivering outgoing command "+currentCommand.getSessionID(), 3);
+  		myLogger.log("Delivering outgoing command "+currentCommand.getSessionID(), 3);
   		commandReady = false;
   		return currentCommand;
   	}
@@ -520,7 +527,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	   Called by HTTPBEDispatcher#handleIncomingConnection()
   	 */
   	public void setConnecting() {
-  		log("Resetting the connection ", 2);
+  		myLogger.log("Resetting the connection ", 2);
   		initialResponseReceived = false;
   		synchronized (this) {
 	  		frontEndStatus = CONNECTING;
@@ -552,7 +559,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   		long now = System.currentTimeMillis();
 			disconnectionTimer = new Timer(now+maxDisconnectionTime, this);
 			disconnectionTimer = Runtime.instance().getTimerDispatcher().add(disconnectionTimer);
-  		log("Disconnection timer activated.", 2); 
+  		myLogger.log("Disconnection timer activated.", 2); 
   	}
   	
   	private void resetTimer() {
@@ -564,7 +571,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	
   	public synchronized void doTimeOut(Timer t) {
 	  	if (frontEndStatus != REACHABLE) {
-		  	log("Max disconnection timeout expired.", 1);
+		  	myLogger.log("Max disconnection timeout expired.", 1);
 				// The remote FrontEnd is probably down --> notify up.
 				handleConnectionError();
 	  	}
@@ -589,16 +596,5 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   		}
   	}
   } // END of inner class OutgoingsHandler
-  	  	
-  
-  
-  /**
-   */
-  void log(String s, int level) {
-    if (verbosity >= level) {
-      String name = Thread.currentThread().toString();
-      jade.util.Logger.println(name+"[LVL-"+level+"]["+System.currentTimeMillis()+"]: "+s);
-    } 
-  }   
 }
 
