@@ -207,26 +207,30 @@ class RealMobilityManager implements MobilityManager {
      */
     public void handleTransferResult(AID agentID, boolean result, 
                                      List messages) throws NotFoundException {
-	Agent agent = localAgents.acquire(agentID);
+        try {
+	  Agent agent = localAgents.acquire(agentID);
 
-	if ((agent == null) || (agent.getState() != Agent.AP_TRANSIT)) {
-	    localAgents.release(agentID);
-	    throw new NotFoundException("handleTransferResult() unable to find a suitable agent.");
-	} 
+	  if ((agent == null) || (agent.getState() != Agent.AP_TRANSIT)) {
 
-	if (result == TRANSFER_ABORT) {
-	    localAgents.remove(agentID);
-	} 
-	else {
+	      throw new NotFoundException("handleTransferResult() unable to find a suitable agent.");
+	  } 
 
-	    // Insert received messages at the start of the queue
-	    for (int i = messages.size(); i > 0; i--) {
-		agent.putBack((ACLMessage) messages.get(i - 1));
-	    } 
+	  if (result == TRANSFER_ABORT) {
+	      localAgents.remove(agentID);
+	  } 
+	  else {
 
-	    agent.powerUp(agentID, myResourceManager);
-	    localAgents.release(agentID);
-	} 
+	      // Insert received messages at the start of the queue
+	      for (int i = messages.size(); i > 0; i--) {
+		  agent.putBack((ACLMessage) messages.get(i - 1));
+	      }
+
+	      agent.powerUp(agentID, myResourceManager);
+	  }
+        }
+        finally {
+            localAgents.release(agentID);   
+        }
     } 
 
     /**
@@ -250,7 +254,6 @@ class RealMobilityManager implements MobilityManager {
 	    // Handle special 'running to stand still' case
 	    if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
 		a.doExecute();
-		localAgents.release(agentID);
 		return;
 	    } 
 
@@ -291,16 +294,16 @@ class RealMobilityManager implements MobilityManager {
 
 		// From now on, messages will be routed to the new agent
 		a.doGone();
-		localAgents.release(agentID);
+
 
 		localAgents.remove(agentID);
 		sites.remove(a);
+
 	    } 
 	    else {
 		a.doExecute();
 		dest.postTransferResult(agentID, transferResult, messages);
-		localAgents.release(agentID);
-	    } 
+	    }
 	}
 	catch(IMTPException imtpe) {
 	    imtpe.printStackTrace();
@@ -308,7 +311,6 @@ class RealMobilityManager implements MobilityManager {
 	}
 	catch(NotFoundException nfe) {
 	    nfe.printStackTrace();
-	    System.exit(0);
 	    // FIXME: Complete undo on exception
 	}
 	catch(ProfileException pe) {
