@@ -257,7 +257,6 @@ public class FSMBehaviour extends SerialBehaviour {
   	}
   	current = getState(currentName);
   	// DEBUG
-  	//if (this instanceof SubscriptionResponder || this instanceof SubscriptionInitiator)
   	//System.out.println(myAgent.getLocalName()+" is Executing state "+currentName);
   }
   
@@ -297,7 +296,6 @@ public class FSMBehaviour extends SerialBehaviour {
   			throw new RuntimeException("Inconsistent FSM. State: "+previousName+" event: "+currentResult);
   		}
   		// DEBUG
-  		//if (this instanceof SubscriptionResponder || this instanceof SubscriptionInitiator)
   		//System.out.println(myAgent.getLocalName()+ " is Executing state "+currentName);
   	}
   }
