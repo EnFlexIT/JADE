@@ -50,6 +50,10 @@ public class TimerDispatcher implements Runnable {
   }
 
   public synchronized Timer add(Timer t) {
+  	if (myThread == null) {
+  		myThread = new Thread();
+  		start();
+  	}
   	while (!timers.add(t)) {
   		t.setExpirationTime(t.expirationTime()+1);
   	}
@@ -153,6 +157,9 @@ public class TimerDispatcher implements Runnable {
   }
 
   static TimerDispatcher getTimerDispatcher() {
+  	if (theDispatcher == null) {
+  		theDispatcher = new TimerDispatcher();
+  	}
   	return theDispatcher;
   }
   
