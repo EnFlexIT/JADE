@@ -21,6 +21,7 @@
 	<property name="j2se-root" value="${root}/j2se"/>
 	<property name="pjava-root" value="${root}/pjava"/>
 	<property name="midp-root" value="${root}/midp"/>	
+	<property name="dotnet-root" value="${root}/dotnet"/>	
 	<property name="tmp" value="${root}/tmp"/>	
 	<property name="dist" value="${jade-home}/.."/>	
 	<property name="version" value="3.0-beta1"/>	
@@ -253,5 +254,17 @@
 		
 	  <delete dir = "${tmp}/leapTools"/>
   </target>
+
+  
+	<!-- ******** JADE-LEAP for Microsoft .NET (experimental) ******** -->
+	<!-- The VJSHARPTOOLS environment variable must be set -->
+	<target name = "dotnet" depends = "init, dotnet-do, dotnet-dont" 
+	        description = "Compile Jade-leap for .NET by calling dotnet.xml (unless The VJSHARPTOOLS environment variable is not set)"/>
+	<target name = "dotnet-do" if = "env.VJSHARPTOOLS">
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-compile" dir="."/>
+	</target>
+	<target name = "dotnet-dont" unless = "env.VJSHARPTOOLS">
+		<echo> WARNING: 'VJSHARPTOOLS' environment variable not set. Skipping dotnet build.</echo>
+	</target>
 
 </project>

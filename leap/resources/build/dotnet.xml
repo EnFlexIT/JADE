@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="JADE-LEAP for Microsoft .NET" default="do-compile">
+	<!-- PROPERTIES specific for .NET -->
+	<property name="src" value="${dotnet-root}/src"/>
+	<property name="lib" value="${dotnet-root}/lib"/>
+
+	
+	<!-- INIT -->
+	<target name="do-init" 
+	        description="Create the appropriate directories">
+		<mkdir dir="${dotnet-root}"/>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${lib}"/>
+	</target>
+
+	
+	<!-- SETUP -->
+	<target name="do-setup" depends="do-init"
+	        description="Setup the build environment">
+	  <!-- 1) Copy JADE sources -->
+	  <copy todir="${src}">
+			<fileset dir="${jade-src}">
+				<include name="**/starlight/**"/>
+				<include name="**/jade/**"/>
+				<exclude name="**/jade/imtp/**"/>
+				<exclude name="**/jade/mtp/iiop/**"/>
+				<exclude name="**/jade/tools/**"/>
+			</fileset>
+		</copy>
+	  <!-- 2) Copy LEAP sources -->
+	  <copy todir="${src}" overwrite="yes">
+			<fileset dir="${leap-src}">
+				<exclude name="**/*.java@"/>
+				<exclude name="**/*.java#"/>
+				<exclude name="**/jade/core/MainContainerProxy.java"/>
+			</fileset>
+		</copy>
+	  <!-- 3) Preprocess the whole as if it were for PJAVA -->
+	  <pproc basedir="${src}" type="pjava"/>
+	</target>
+
+	
+	<!-- RESET -->
+	<target name="do-reset"
+	        description="Reset the build environment">
+		<delete dir = "${dotnet-root}"/>
+	</target>
+
+	
+	<!-- CLEAN -->
+	<target name="do-clean"
+	        description="Clean class files">
+		<delete dir = "${lib}"/>
+		<mkdir dir="${lib}"/>
+	</target>
+
+	
+	<!-- PARSERS -->
+	<target name="do-parsers" if="javacc-home"
+	        description="Generate ACL and SL parsers from .jj files">
+  	<!-- ACL Parser -->
+		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
+		        javacchome="${javacc-home}"/>
+  	<!-- SL Parser -->
+		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
+		        javacchome="${javacc-home}"/>
+	</target>
+
+
+	<!-- COMPILE -->
+	<target name="do-compile" depends="do-reset, do-setup, do-parsers"
+	  description="Compile sources">
+	  <exec executable="vjc.exe">
+	    <arg line="/recurse:${src}/*.java" /> <!--jade"
+	    <arg line="/recurse:${src}/starlight/util" /-->
+	    <arg line="/t:library" />
+	    <!-- arg line="/main:jade.Boot" /-->
+	    <arg line="/out:${lib}/JadeLeap.dll" />
+	  </exec>
+	</target>
+	
+</project>
