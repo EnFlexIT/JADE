@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/06/16 00:21:21  rimassa
+  Commented out a debugging printout.
+
   Revision 1.3  1999/06/09 13:01:56  rimassa
   Added support for dialog centering with respect to RMA main window.
 
@@ -50,7 +53,7 @@ public class CustomAction extends AMSAbstractAction
 	for (int i=0;i<listeners.size();i++) {
 	  TreeData current = (TreeData)listeners.elementAt(i);
 	  if (current.getLevel() == TreeData.AGENT) {
-	    System.err.println("AddDest "+ current.getName());
+	    // System.err.println("AddDest "+ current.getName());
 	    msg2.addDest(current.getName());
 	  }
 	}
