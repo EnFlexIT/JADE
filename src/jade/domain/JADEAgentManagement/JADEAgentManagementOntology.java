@@ -84,10 +84,8 @@ public class JADEAgentManagementOntology {
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
 
-  // Predicates
-  //public static final String DONE = "done";
-  //public static final String RESULT = "result";
-
+  // Exception Predicates
+  public static final String NOTREGISTERED = "not-registered";
 
   /**
      This method grants access to the unique instance of the
@@ -159,6 +157,9 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, ContainerID.class);
+
+	theInstance.addRole(NOTREGISTERED, new SlotDescriptor[] {
+	}, jade.domain.FIPAAgentManagement.NotRegistered.class); 
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
