@@ -39,34 +39,32 @@ import jade.core.AgentState;
    buttons and a right-side part containing some action buttons. It
    allows to manage the state of an agent.
 
-   @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
+   @author Giovanni Rimassa, Andrea Squeri, Corti Denis, Ballestracci
+   Paolo - Universita` di Parma
 
 */
-public class StatePanel extends JSplitPane {
+public class StatePanel extends JPanel {
+
   private int state;
-  private GridBagConstraints cons;
-  private JPanel viewPanel;
-  private JPanel setPanel;
-  private JScrollPane scrollPane1;
-  private JScrollPane scrollPane2;
+
+  private Box viewPanel;
   private ButtonGroup leds;
   private JRadioButton waitingLed;
   private JRadioButton activeLed;
   private JRadioButton suspendedLed;
   private JRadioButton deletedLed;
-  private JRadioButton moveLed;
-  private JRadioButton initiatedLed;
-  private JLabel waitingLabel;
-  private JLabel activeLabel;
-  private JLabel suspendedLabel;
-  private JLabel deletedLabel;
-  private JLabel moveLabel;
-  private JLabel initiatedLabel;
+  private JRadioButton movingLed;
+  private JRadioButton idleLed;
   private JButton suspendAction;
   private JButton waitAction;
   private JButton wakeUpAction;
   private JButton killAction;
-  private ImageIcon active;
+
+  private Icon ledOff = new ImageIcon(getClass().getResource("images/rbs.gif"));
+  private Icon ledOn = new ImageIcon(getClass().getResource("images/rbrs.gif"));
+  private Icon button = new ImageIcon(getClass().getResource("images/rb.gif"));
+  private Icon pressedButton = new ImageIcon(getClass().getResource("images/rbp.gif"));
+  private Font myFont = new Font("Monospaced", Font.BOLD, 10);
 
   private MainBarListener listener;
 
@@ -75,160 +73,127 @@ public class StatePanel extends JSplitPane {
   public StatePanel(MainBarListener list){
     super();
     leds = new ButtonGroup();
-    cons =new GridBagConstraints();
     listener = list;
     build();
   }
 
   public void build(){
-    viewPanel= new JPanel();
-    setPanel= new JPanel();
-    scrollPane1=new JScrollPane();
-    scrollPane2=new JScrollPane();
+    viewPanel = Box.createVerticalBox();
 
-    Icon ledOff = new ImageIcon(getClass().getResource("images/rbrs.gif"));
-    Icon ledOn = new ImageIcon(getClass().getResource("images/rbs.gif"));
-
-    waitingLed = new JRadioButton(ledOff);
-    waitingLed.setDisabledSelectedIcon(ledOn);
-    waitingLed.setDisabledIcon(ledOff);
-    waitingLed.setEnabled(false);
-    leds.add(waitingLed);
-    ledMap.put(new AgentState("Waiting"), waitingLed);
-
-    activeLed = new JRadioButton(ledOff);
+    activeLed = new JRadioButton("Active", ledOff);
+    activeLed.setFont(myFont);
+    activeLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
     activeLed.setDisabledSelectedIcon(ledOn);
     activeLed.setDisabledIcon(ledOff);
     activeLed.setEnabled(false);
     leds.add(activeLed);
     ledMap.put(new AgentState("Active"), activeLed);
+    viewPanel.add(activeLed);
 
-    suspendedLed = new JRadioButton(ledOff);
+    suspendedLed = new JRadioButton("Suspended", ledOff);
+    suspendedLed.setFont(myFont);
+    suspendedLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
     suspendedLed.setDisabledSelectedIcon(ledOn);
     suspendedLed.setDisabledIcon(ledOff);
     suspendedLed.setEnabled(false);
     leds.add(suspendedLed);
     ledMap.put(new AgentState("Suspended"), suspendedLed);
+    viewPanel.add(suspendedLed);
 
-    deletedLed = new JRadioButton(ledOff);
+    idleLed = new JRadioButton("Idle", ledOff);
+    idleLed.setFont(myFont);
+    idleLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
+    idleLed.setDisabledSelectedIcon(ledOn);
+    idleLed.setDisabledIcon(ledOff);
+    idleLed.setEnabled(false);
+    leds.add(idleLed);
+    ledMap.put(new AgentState("Idle"), idleLed);
+    viewPanel.add(idleLed);
+
+    waitingLed = new JRadioButton("Waiting", ledOff);
+    waitingLed.setFont(myFont);
+    waitingLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
+    waitingLed.setDisabledSelectedIcon(ledOn);
+    waitingLed.setDisabledIcon(ledOff);
+    waitingLed.setEnabled(false);
+    leds.add(waitingLed);
+    ledMap.put(new AgentState("Waiting"), waitingLed);
+    viewPanel.add(waitingLed);
+
+    movingLed = new JRadioButton("Moving", ledOff);
+    movingLed.setFont(myFont);
+    movingLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
+    movingLed.setDisabledSelectedIcon(ledOn);
+    movingLed.setDisabledIcon(ledOff);
+    movingLed.setEnabled(false);
+    leds.add(movingLed);
+    ledMap.put(new AgentState("Transit"), movingLed);
+    viewPanel.add(movingLed);
+
+    deletedLed = new JRadioButton("Dead", ledOff);
+    deletedLed.setFont(myFont);
+    deletedLed.setAlignmentX(JButton.LEFT_ALIGNMENT);
     deletedLed.setDisabledSelectedIcon(ledOn);
     deletedLed.setDisabledIcon(ledOff);
     deletedLed.setEnabled(false);
     leds.add(deletedLed);
     ledMap.put(new AgentState("Deleted"), deletedLed);
+    viewPanel.add(deletedLed);
 
-    initiatedLed = new JRadioButton(ledOff);
-    initiatedLed.setDisabledSelectedIcon(ledOn);
-    initiatedLed.setDisabledIcon(ledOff);
-    initiatedLed.setEnabled(false);
-    leds.add(initiatedLed);
-    ledMap.put(new AgentState("Initiated"), initiatedLed);
-
-    moveLed = new JRadioButton(ledOff);
-    moveLed.setDisabledSelectedIcon(ledOn);
-    moveLed.setDisabledIcon(ledOff);
-    moveLed.setEnabled(false);
-    leds.add(moveLed);
-    ledMap.put(new AgentState("Transit"), moveLed);
-
-    Font f = new Font("Monospaced",0,8);
-
-    waitingLabel=new JLabel("waiting");
-    waitingLabel.setFont(f);
-    activeLabel=new JLabel("active");
-    activeLabel.setFont(f);
-    suspendedLabel=new JLabel("suspended");
-    suspendedLabel.setFont(f);
-    deletedLabel=new JLabel("deleted");
-    deletedLabel.setFont(f);
-    initiatedLabel=new JLabel("initiated");
-    initiatedLabel.setFont(f);
-    moveLabel=new JLabel("move");
-    moveLabel.setFont(f);
-
-
-    suspendAction=new JButton("Suspend");
+    suspendAction = new JButton("Suspend", button);
+    configurePushButton(suspendAction);
+    /*
+    suspendAction.setPressedIcon(pressedButton);
+    suspendAction.setBorderPainted(false);
+    suspendAction.setFocusPainted(false);
     suspendAction.setFont(f);
+    suspendAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
     suspendAction.addActionListener(listener);
+    */
     suspendAction.setMnemonic(5);
 
-
-    waitAction=new JButton("Wait");
+    waitAction = new JButton("Wait", button);
+    configurePushButton(waitAction);
+    /*
+    waitAction.setPressedIcon(pressedButton);
+    waitAction.setBorderPainted(false);
+    waitAction.setFocusPainted(false);
     waitAction.setFont(f);
+    waitAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
     waitAction.addActionListener(listener);
     waitAction.setMnemonic(7);
+    */
 
-
-    wakeUpAction=new JButton("WakeUp");
+    wakeUpAction = new JButton("WakeUp", button);
+    configurePushButton(wakeUpAction);
+    /*
+    wakeUpAction.setPressedIcon(pressedButton);
+    wakeUpAction.setBorderPainted(false);
+    wakeUpAction.setFocusPainted(false);
     wakeUpAction.setFont(f);
+    wakeUpAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
     wakeUpAction.addActionListener(listener);
+    */
     wakeUpAction.setMnemonic(6);
 
-
-    killAction=new JButton("Kill");
+    killAction = new JButton("Kill", button);
+    configurePushButton(killAction);
+    /*
+    killAction.setPressedIcon(pressedButton);
+    killAction.setBorderPainted(false);
+    killAction.setFocusPainted(false);
+    killAction.setAlignmentX(JButton.LEFT_ALIGNMENT);
     killAction.setFont(f);
     killAction.addActionListener(listener);
+    */
     killAction.setMnemonic(4);
 
+    viewPanel.add(suspendAction);
+    viewPanel.add(waitAction);
+    viewPanel.add(wakeUpAction);
+    viewPanel.add(killAction);
 
-    viewPanel.setLayout(new GridBagLayout());
-
-    cons.gridx=0;
-    cons.gridy=0;
-    viewPanel.add(initiatedLed,cons);
-
-    cons.gridx=1;
-    viewPanel.add(initiatedLabel,cons);
-
-    cons.gridx=2;
-    viewPanel.add(activeLed,cons);
-    cons.gridx=3;
-    viewPanel.add(activeLabel,cons);
-
-    cons.gridy =1;
-    cons.gridx =0;
-
-    viewPanel.add(waitingLed,cons);
-
-    cons.gridx=1;
-    viewPanel.add(waitingLabel,cons);
-
-    cons.gridx=2;
-    viewPanel.add(suspendedLed,cons);
-
-    cons.gridx=3;
-    viewPanel.add(suspendedLabel,cons);
-
-    cons.gridy =2;
-    cons.gridx =0;
-
-
-    viewPanel.add(moveLed,cons);
-
-    cons.gridx=1;
-    viewPanel.add(moveLabel,cons);
-
-    cons.gridx=2;
-    viewPanel.add(deletedLed,cons);
-
-    cons.gridx=3;
-    viewPanel.add(deletedLabel,cons);
-
-    viewPanel.setMinimumSize(viewPanel.getPreferredSize());
-    viewPanel.setMaximumSize(viewPanel.getPreferredSize());
-
-    setPanel.setLayout(new GridLayout(2,2,3,3));
-    setPanel.add(suspendAction,null);
-    setPanel.add(waitAction,null);
-    setPanel.add(wakeUpAction,null);
-    setPanel.add(killAction,null);
-
-    scrollPane1.getViewport().add(viewPanel);
-    scrollPane2.getViewport().add(setPanel);
-
-    this.setContinuousLayout(true);
-    this.add(scrollPane1,JSplitPane.LEFT);
-    this.add(scrollPane2,JSplitPane.RIGHT);
+    add(viewPanel);
 
   }
 
@@ -236,6 +201,20 @@ public class StatePanel extends JSplitPane {
     JRadioButton led = (JRadioButton)ledMap.get(as);
     if(led != null)
       led.setSelected(true);
+  }
+
+  private void configureLED(JRadioButton led) {
+
+  }
+
+  private void configurePushButton(JButton but) {
+    but.setPressedIcon(pressedButton);
+    but.setBorderPainted(false);
+    but.setFocusPainted(false);
+    but.setBorder(BorderFactory.createEmptyBorder());
+    but.setAlignmentX(JButton.LEFT_ALIGNMENT);
+    but.setFont(myFont);
+    but.addActionListener(listener);    
   }
 
 }
