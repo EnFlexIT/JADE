@@ -1,6 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -21,33 +20,33 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package jade.tools.sniffer;
 
-import java.awt.Font;
-import javax.swing.JTextField;
+import jade.gui.AgentTree;
+
 
 /**
- * Is the field in the bottom of the main frame. Shows the type of message
- *
- * @see javax.swing.JTextField
- * @author Gianluca Tanca
- * @version $Date$ $Revision$
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
  */
+
+ /**
+ * This class is useful to represent the actions that must perform
+ * with the agents.
+ * @see    jade.tools.sniffer.FixedAction
+ * @see    jade.tools.sniffer.SnifferAction
+ */
+
+ abstract class AgentAction extends SnifferAction{
+
+  public AgentAction(String IconPath,String ActionName,ActionProcessor actPro) {
+   super(IconPath,ActionName,actPro);
+  }
+
+  public abstract void doAction(AgentTree.AgentNode node);
+  public abstract void sendAgentVector();
+
+}  // End of AgentAction
+
  
-public class MMTextMessage extends JTextField {
-	
-  /**
-  @serial
-  */
-	Font font = new Font("SanSerif",Font.PLAIN,14); 
-	
-	public MMTextMessage(){
-		super();
-		setDoubleBuffered(true);
-		setEditable(false);
-		setFont(font);
-		setText("No Info Message");
-	}
-}

@@ -1,6 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -21,30 +20,41 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
-
 package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
+import jade.gui.AclGui;
 
-/**
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
-/**
- * Clears the Message Canvas. This action cannot be undone 
- *
- * @see jade.tools.sniffer.MMAbstractAction
+   /**
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   <Br>
+   <a href="mailto:a_soracchi@libero.it"> Andrea Soracchi(e-mail) </a>
+   @version $Date$ $Revision$
  */
-public class ClearCanvasAction extends MMAbstractAction{
-	
-	public ClearCanvasAction(){
-		
-		super("ClearCanvasActionIcon","Clear Canvas");
-	}
 
-	public void actionPerformed (ActionEvent evt){
-		
-		canvasMess.removeAllMessages();
-	}
-}
+  /**
+   * This class includes the method ActionPerformed that is
+   * associated with the PopupMenu of the messages in the canvas.
+   */
+
+
+public class ViewMessage extends AbstractPopup{
+
+ private MainWindow mWnd;
+ private Message message;
+
+ public ViewMessage(MainWindow mWnd) {
+  super("View Message");
+  this.mWnd=mWnd;
+ }
+
+ public void actionPerformed(ActionEvent avt) {
+   AclGui.showMsgInDialog(message,mWnd);
+ }
+
+ protected void setMessage(Message mess) {
+  message=mess;
+ }
+
+ } //End of class ViewMessage
