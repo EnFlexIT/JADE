@@ -1,27 +1,35 @@
 # Makefile for Agent Development Kit project 
 
-ROOTDIR    = ADK
-VERSION    = 0.5
+VERSION    = 0.6
 ARCHIVE    = ADK
-SRCDIR     = src
-LIBDIR     = lib
-TESTDIR    = test
+
+
+export ROOTDIR = $(shell pwd)
+export SRCDIR  = $(ROOTDIR)/src
+export LIBDIR  = $(ROOTDIR)/lib
+export LIBNAME = ADK.zip
+
+export TESTDIR = $(ROOTDIR)/test
 
 export MAKE = make
 
 # The following targets are not file names
-.PHONY: all clean archive $(SRCDIR) $(BINDIR)
+.PHONY: all clean archive src lib test
 
-all: $(LIBDIR) $(TESTDIR) 
+all: lib test
 	@echo ACL parser built
 
-$(LIBDIR): $(SRCDIR)
+lib: src
 	cd $(LIBDIR); $(MAKE) all
 	@echo libraries built
 
-$(SRCDIR):
+src:
 	cd $(SRCDIR); $(MAKE) all
-	@echo sources built
+	@echo Sources built
+
+test:
+	cd $(TESTDIR); $(MAKE) all
+	@echo Test examples built
 
 clean:
 	rm -f *~ "#*#"
@@ -30,7 +38,6 @@ clean:
 	cd $(TESTDIR); $(MAKE) clean
 
 archive: clean
-	cd ..; \
+	cd $(ROOTDIR)/..; \
 	tar zcvf $(ARCHIVE)-$(VERSION).tgz $(ROOTDIR); \
-	cd $(ROOTDIR);
-
+	cd $(ROOTDIR)
