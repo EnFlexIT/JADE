@@ -833,10 +833,6 @@ public class ams extends Agent implements AgentManager.Listener {
 
     // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
     theProfile.setName(getHap());
-    theProfile.setDynamic(new Boolean(false));
-    theProfile.setMobility(new Boolean(false));
-    APTransportDescription mtps = new APTransportDescription();
-    theProfile.setTransportProfile(mtps);
 
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
