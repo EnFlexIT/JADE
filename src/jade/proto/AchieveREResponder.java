@@ -29,7 +29,7 @@ import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
-import jade.proto.states.MsgReceiver;
+import jade.proto.states.*;
 import jade.util.leap.Iterator;
 
 /**
@@ -118,14 +118,15 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 	registerDefaultTransition(RECEIVE_REQUEST, PREPARE_RESPONSE);
 	registerDefaultTransition(PREPARE_RESPONSE, SEND_RESPONSE);
 	registerTransition(SEND_RESPONSE, PREPARE_RESULT_NOTIFICATION, ACLMessage.AGREE);
+	registerTransition(SEND_RESPONSE, PREPARE_RESULT_NOTIFICATION, ReplySender.NO_REPLY_SENT);
 	registerDefaultTransition(SEND_RESPONSE, RECEIVE_REQUEST);
 	registerDefaultTransition(PREPARE_RESULT_NOTIFICATION, SEND_RESULT_NOTIFICATION);		
 	registerDefaultTransition(SEND_RESULT_NOTIFICATION, RECEIVE_REQUEST);
 	
 	// Create and register the states that make up the FSM
 	Behaviour b = null;
-	// RECEIVE_REQUEST
 	
+	// RECEIVE_REQUEST
 	rec = new MsgReceiver(myAgent, mt, -1, getDataStore(), REQUEST_KEY);
 	registerFirstState(rec, RECEIVE_REQUEST);
 	
@@ -153,34 +154,17 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 	registerState(b, PREPARE_RESPONSE);
 	
 	// SEND_RESPONSE
-	b = new OneShotBehaviour(myAgent) {
-		int ret = -1;
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage response = (ACLMessage)ds.get(RESPONSE_KEY);
-		    if (response != null) {
-			ACLMessage receivedMsg = (ACLMessage) ds.get(REQUEST_KEY);
-                        //set the conversationId
-			response.setConversationId(receivedMsg.getConversationId());
-			//set the inReplyTo
-			response.setInReplyTo(receivedMsg.getReplyWith());
-			//set the Protocol.
-			response.setProtocol(receivedMsg.getProtocol());
-			myAgent.send(response);
-			ret = response.getPerformative();
-		    }
-		}
-		
-		public int onEnd() {
-			if (ret != ACLMessage.AGREE) {
+  b = new ReplySender(myAgent,RESPONSE_KEY,REQUEST_KEY) {
+  	public int onEnd() {
+  		int ret = super.onEnd();
+  		if (ret != ACLMessage.AGREE && ret != ReplySender.NO_REPLY_SENT) {
 		    AchieveREResponder.this.reset();
 			}
 		  return ret;
-		}
-	};
+  	}
+  };  			
 	b.setDataStore(getDataStore());		
-	registerState(b, SEND_RESPONSE);
+	registerState(b, SEND_RESPONSE);	
 	
 	// PREPARE_RESULT_NOTIFICATION
 	b = new OneShotBehaviour(myAgent) {
@@ -203,41 +187,16 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 	registerState(b, PREPARE_RESULT_NOTIFICATION);
 	
 	// SEND_RESULT_NOTIFICATION
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage resNotification = (ACLMessage) ds.get(RESULT_NOTIFICATION_KEY);
-		    if (resNotification != null) {
-			ACLMessage receivedMsg = (ACLMessage) ds.get(REQUEST_KEY);
-			// Set the conversationId
-			resNotification.setConversationId(receivedMsg.getConversationId());
-			// Set the inReplyTo
-			resNotification.setInReplyTo(receivedMsg.getReplyWith());
-			// Set the protocol
-			resNotification.setProtocol(receivedMsg.getProtocol());
-			// Set the receivers if not yet set
-    	if (!resNotification.getAllReceiver().hasNext()) {
-	    	Iterator it = receivedMsg.getAllReplyTo();
-	    	int r = 0;
-  	  	while (it.hasNext()) {
-    	  	resNotification.addReceiver((AID)it.next());
-    	  	r++;
-    		}
-    		if (r == 0) {
-      		resNotification.addReceiver(receivedMsg.getSender());
-    		}
-    	}
-			myAgent.send(resNotification);
-		    }
-		    
-		    AchieveREResponder.this.reset();
-		}
-	    };
+  b = new ReplySender(myAgent, RESULT_NOTIFICATION_KEY, REQUEST_KEY) {
+  	public int onEnd() {
+		  AchieveREResponder.this.reset();
+		  return super.onEnd();
+  	}
+  };  			
 	b.setDataStore(getDataStore());		
 	registerState(b, SEND_RESULT_NOTIFICATION);
-	
-    }
+
+    } 
     
     /**
        This method allows to change the <code>MessageTemplate</code>
