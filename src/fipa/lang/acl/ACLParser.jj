@@ -1,7 +1,13 @@
 /* $Log$
- * Revision 1.1  1998/07/26 21:29:20  rimassa
- * JavaCC grammar file for ACL parser. First version, imported from VOD source code.
+ * Revision 1.2  1998/07/27 00:12:23  rimassa
+ * Minor changes to the source code imported from VOD. Added fipa.core
+ * package and changed a class name from aclMessage to ACLMessage.  This
+ * javacc grammar file has not been tested yet in this project; instead,
+ * a dummy ACLParser class has been added.
  *
+/* Revision 1.1  1998/07/26 21:29:20  rimassa
+/* JavaCC grammar file for ACL parser. First version, imported from VOD source code.
+/*
 /* Revision 1.1.1.1  1998/06/24 21:42:05  Giovanni
 /* Imported VoD source
 /*
@@ -65,13 +71,12 @@ options {
 
 PARSER_BEGIN(ACLParser)
 
-package Parser;
+package fipa.lang.acl;
 
 import java.io.*;
-import Bare.*;
 
 public class ACLParser {
-  aclMessage msg = new aclMessage();
+  ACLMessage msg = new ACLMessage();
 
   public static void main(String args[]) throws ParseError {
     ACLParser parser = new ACLParser(System.in);
@@ -87,9 +92,9 @@ public class ACLParser {
 
 PARSER_END(ACLParser)
 
-aclMessage Message() :
+ACLMessage Message() :
 {
-  //aclMessage msg = new aclMessage();
+  //ACLMessage msg = new ACLMessage();
 }
 {
   <START> MessageType() (MessageParameter())* <END>  
