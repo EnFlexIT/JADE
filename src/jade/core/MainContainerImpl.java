@@ -143,6 +143,18 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     myIMTPManager.unremotize(this);
   }
 
+  public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException {
+    // Directly use the GADT
+    AgentDescriptor ad = platformAgents.get(receiverID);
+    if(ad == null) {
+      throw new NotFoundException("Agent " + receiverID.getName() + " not found in GADT.");
+    }
+    ad.lock();
+    RemoteProxy rp = ad.getProxy();
+    ad.unlock();
+    rp.dispatch(msg);
+  }
+
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
@@ -346,8 +358,11 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     return ac;
   }
 
-  public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws IMTPException, NameClashException {
+  public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException  {
+
     AgentDescriptor desc = new AgentDescriptor();
+    AgentContainer ac = containers.getContainer(cid.getName());
+    RemoteProxy rp = myIMTPManager.createAgentProxy(ac, name);
     desc.setProxy(rp);
     desc.setContainerID(cid);
     AgentDescriptor old = platformAgents.put(name, desc);
