@@ -343,6 +343,12 @@ public class AgentContainer implements PlatformController {
   	public void resumedAgent(jade.core.event.PlatformEvent ev) {
  			System.out.println("Resumed agent");
   	} 
+        public void frozenAgent(jade.core.event.PlatformEvent ev) {
+	                System.out.println("Frozen agent");
+	}
+        public void thawedAgent(jade.core.event.PlatformEvent ev) {
+	                System.out.println("Thawed agent");
+	}
 //__SECURITY__BEGIN  
   	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
  			System.out.println("Changed agent principal");
