@@ -1,0 +1,11 @@
+(REQUEST
+ :sender  ( agent-identifier  :name da0@IBM10308:1099/JADE)
+ :receiver  (set ( agent-identifier  :name df@IBM10308:1099/JADE) )
+ :content  "((action (agent-identifier :name df@IBM10308:1099/JADE :addresses (sequence ) :resolvers (sequence ) ) (register (df-agent-description :name (agent-identifier :name pippo@IBM10308:1099/JADE :addresses (sequence ) :resolvers (sequence ) ) :services (set (service-description :name  :type  :ontologies (set fipa-agent-management ) :languages (set ) :protocols (set fipa-request ) :ownership JADE :properties (set ) :protocol (set fipa-request ) :ontology (set fipa-agent-management ) :language (set ) ) ) :protocols (set ) :ontologies (set ) :languages (set ) :protocol (set ) :ontology (set ) :language (set ) ) ) ) )" 
+ :reply-with  rwsub@IBM10308:1099/JADE1016025387888
+ :language  FIPA-SL0
+ :ontology  FIPA-Agent-Management
+ :protocol  fipa-request
+ :conversation-id  convsub@IBM10308:1099/JADE1016025387888
+:X-comment "this message REGISTER an agent without specifing the service name and type into the service description. The reply is a NOT UNDERSTOOD since the parse throws an exception. It should be a Missing Parameter exception instead"
+)

@@ -1,0 +1,13 @@
+(REQUEST
+ :sender  ( agent-identifier  :name da0@IBM10308:1099/JADE :addresses (sequence ))
+ :receiver  (set ( agent-identifier  :name df@IBM10308:1099/JADE :addresses (sequence )) )
+ :content  "((action (agent-identifier :name df@IBM10308:1099/JADE :addresses (sequence ) :resolvers (sequence ) ) (search (df-agent-description :services (set ) :protocols (set ) :ontologies (set ) :languages (set ) :protocol (set ) :ontology (set ) :language (set ) ) (search-constraints ) ) ) )" 
+ :reply-with  rwdf@IBM10308:2000/JADE1016096940500
+ :language  FIPA-SL0
+ :ontology  FIPA-Agent-Management
+ :reply-by  20020314T091400500Z
+ :protocol  fipa-request
+ :conversation-id  convdf@IBM10308:2000/JADE1016096940500
+ :X-comment "this message makes a search with the default df. The replies must be AGREE followed by INFORM (with the result of the search)"
+)
+
