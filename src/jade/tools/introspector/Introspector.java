@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -89,7 +89,7 @@ public class Introspector extends ToolAgent {
           super(Introspector.this, request);
 	  			actionName = an;
       }
-	
+
     protected void handleNotUnderstood(ACLMessage reply) {
       myGUI.showError("NOT-UNDERSTOOD received during " + actionName);
     }
@@ -117,29 +117,29 @@ public class Introspector extends ToolAgent {
   public static final int BREAK_EVENT = 2;
   public static final int SLOW_EVENT = 3;
   public static final int GO_EVENT = 4;
-	public static final int KILL_EVENT = 5;
-	public static final int SUSPEND_EVENT = 6;
+  public static final int KILL_EVENT = 5;
+  public static final int SUSPEND_EVENT = 6;
 
   private IntrospectorGUI myGUI;
   private Sensor guiSensor = new Sensor();
   private String myContainerName;
   private Map windowMap = Collections.synchronizedMap(new TreeMap());
-  
+
   // The set of agents that are observed in step-by-step mode
   private Set stepByStepAgents = new HashSet();
   // The set of agents that are observed in slow mode
   private Set slowAgents = new HashSet();
-  // Maps an observed agent with the String used as reply-with in the 
+  // Maps an observed agent with the String used as reply-with in the
   // message that notified about an event that had to be observed synchronously
   private Map pendingReplies = new HashMap();
-  // Maps an observed agent with the ToolNotifier that notifies events 
+  // Maps an observed agent with the ToolNotifier that notifies events
   // about that agent to this Introspector
   private Map notifiers = new HashMap();
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
   class IntrospectorAMSListenerBehaviour extends AMSListenerBehaviour {
-  	
+
       protected void installHandlers(Map handlersTable) {
 
 	handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
@@ -202,10 +202,10 @@ public class Introspector extends ToolAgent {
 	    myGUI.removeAgent(from.getName(), agent);
 	    ContainerID to = ma.getTo();
 	    myGUI.addAgent(to.getName(), agent);
-	    
+
 	    if (windowMap.containsKey(agent)) {
 	 			MainWindow m = (MainWindow)windowMap.get(agent);
-	    	// FIXME: We should clean behaviours and pending messages here 
+	    	// FIXME: We should clean behaviours and pending messages here
 	    	requestDebugOn(agent);
 	    }
 	  }
@@ -215,9 +215,6 @@ public class Introspector extends ToolAgent {
   }
 
   public void toolSetup() {
-	getContentManager().registerOntology(JADEManagementOntology.getInstance());
-	getContentManager().registerOntology(IntrospectionOntology.getInstance());
-	getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     ACLMessage msg = getRequest();
     msg.setOntology(JADEManagementOntology.NAME);
@@ -227,10 +224,10 @@ public class Introspector extends ToolAgent {
 
     // Handle incoming 'inform' messages about Platform events from the AMS
     AMSSubscribe.addSubBehaviour(new IntrospectorAMSListenerBehaviour());
-    
+
     addBehaviour(AMSSubscribe);
-    
-    // Handle incoming INFORM messages about Agent and Message events from the 
+
+    // Handle incoming INFORM messages about Agent and Message events from the
     // ToolNotifiers
     addBehaviour(new IntrospectionListenerBehaviour());
 
@@ -243,7 +240,7 @@ public class Introspector extends ToolAgent {
     	public void onEvent(jade.util.Event ev) {
   			AID id = ((MainWindow) ev.getSource()).getDebugged();
   			switch (ev.getType()) {
-  			case STEP_EVENT: 
+  			case STEP_EVENT:
   				proceed(id);
   				break;
   			case BREAK_EVENT:
@@ -262,7 +259,7 @@ public class Introspector extends ToolAgent {
   			}
     	}
     }	);
-      
+
     // Show Graphical User Interface
     myGUI = new IntrospectorGUI(this);
     myGUI.setVisible(true);
@@ -278,11 +275,11 @@ public class Introspector extends ToolAgent {
 			MainWindow m = new MainWindow(guiSensor, name);
 			myGUI.addWindow(m);
 			windowMap.put(name, m);
-		
-			// Enable the following instruction if you want STEP_BY_STEP to 
+
+			// Enable the following instruction if you want STEP_BY_STEP to
 			// be the default debug mode
 			//stepByStepAgents.add(name);
-			
+
 			requestDebugOn(name);
     }
   }
@@ -298,14 +295,14 @@ public class Introspector extends ToolAgent {
 			a.setAction(dbgOn);
 
 			getContentManager().fillContent(msg, a);
-			
+
 			addBehaviour(new AMSRequester("DebugOn", msg));
 		}
 		catch(Exception fe) {
 			fe.printStackTrace();
 		}
   }
-    
+
   /*
     Removes an agent from the debugged agents map, and closes its
     window. Moreover,it and asks the AMS to stop debugging mode on
@@ -329,7 +326,7 @@ public class Introspector extends ToolAgent {
 	Action a = new Action();
 	a.setActor(getAMS());
 	a.setAction(dbgOff);
-	
+
 	getContentManager().fillContent(msg, a);
 
 	addBehaviour(new AMSRequester("DebugOff", msg));
@@ -361,7 +358,7 @@ public class Introspector extends ToolAgent {
       Action a = new Action();
       a.setActor(getAMS());
       a.setAction(dbgOff);
-      
+
       try {
 		getContentManager().fillContent(msg, a);
 		FIPAServiceCommunicator.doFipaRequestClient(this, msg);
@@ -539,7 +536,7 @@ public class Introspector extends ToolAgent {
   /**
      Inner class ControlListenerBehaviour.
      This is a behaviour that listen for messages from ToolNotifiers
-     informing that they have started notifying events about a given 
+     informing that they have started notifying events about a given
      agent. These information are used to keep the map between observed
      agents and ToolNotifiers up to date.
    */
@@ -549,10 +546,10 @@ public class Introspector extends ToolAgent {
     ControlListenerBehaviour(Agent a) {
     	super(a);
       template = MessageTemplate.and(
-     		MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME),
+     		MessageTemplate.MatchOntology(IntrospectionOntology.NAME),
 				MessageTemplate.MatchConversationId(getName() + "-control"));
     }
-    
+
   	public void action() {
       ACLMessage message = receive(template);
       if(message != null) {
@@ -586,12 +583,12 @@ public class Introspector extends ToolAgent {
 			send(msg);
 		}
   }
-  
-  /** 
+
+  /**
  	   The doDelete() method is re-defined because if the Introspector is
- 	   killed while it is debugging the AMS a deadlock occurs. In fact, 
- 	   while exiting, the Introspector can't make the debugged agents 
- 	   proceed. At the same time however the Introspector can't proceed as it 
+ 	   killed while it is debugging the AMS a deadlock occurs. In fact,
+ 	   while exiting, the Introspector can't make the debugged agents
+ 	   proceed. At the same time however the Introspector can't proceed as it
  	   is waiting for the answer to its AMS deregistration
  	 */
   public void doDelete() {
@@ -601,11 +598,11 @@ public class Introspector extends ToolAgent {
 				final MainWindow m = (MainWindow)windowMap.get(amsId);
 				myGUI.closeInternal(m);
 				windowMap.remove(amsId);
-			
+
 				stepByStepAgents.remove(amsId);
 				slowAgents.remove(amsId);
 				proceed(amsId);
-			
+
 				ACLMessage msg = getRequest();
 				DebugOff dbgOff = new DebugOff();
 				dbgOff.setDebugger(getAID());
@@ -613,9 +610,9 @@ public class Introspector extends ToolAgent {
 				Action a = new Action();
 				a.setActor(getAMS());
 				a.setAction(dbgOff);
-				
+
 				getContentManager().fillContent(msg, a);
-			
+
 				addBehaviour(new AMSRequester("DebugOff", msg) {
 					public int onEnd() {
 						myAgent.doDelete();

@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -80,7 +80,7 @@ import java.io.*;
  * <li>preload - A list of preload descriptions seperated by a semi-colon. Each description
  * consists of an agent name match string and optional list of performatives each seperated by a space.
  * For details on the agent name match string, see the method isMatch().
- * If there is no @ in the agent name, it assumes the current HAP for it. 
+ * If there is no @ in the agent name, it assumes the current HAP for it.
  * If the performative list is not present, then the sniffer will display all messages;
  * otherwise, only those messages that have a matching performative mentioned will be displayed.
  * <br>
@@ -88,7 +88,7 @@ import java.io.*;
  * <pre>
  * preload=da0;da1 inform propose
  * preload=agent?? inform
- * preload=*   
+ * preload=*
  * </pre>
  * <li>clip - A list of agent name prefixes seperated by a semi-colon which will be removed when
  * showing the agent's name in the agent box. This is helpful to eliminate common agent prefixes.
@@ -104,7 +104,7 @@ import java.io.*;
  * <p>
  * The original implementation processed a .inf file. For backward compatability this has
  * been preserved but its usage should be converted to use the new .properties file. The format
- * of the .inf file is each line contains an agent name and optional list of performatives. 
+ * of the .inf file is each line contains an agent name and optional list of performatives.
  * <br>
  * Example:
  * <pre>
@@ -124,8 +124,8 @@ import java.io.*;
  *   consider that it clutters the display, it sure provides a lot of information with
  *   it.
  * </ol>
- * 
- * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement) 
+ *
+ * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement)
  * @author Gianluca Tanca (Concept & Early Version)
  * @author Robert Kessler University of Utah (preload configuration, don't scroll agent boxes)
  * @author Martin Griss HP Labs (display additional message information)
@@ -137,7 +137,7 @@ public class Sniffer extends ToolAgent {
 
   public static final boolean SNIFF_ON = true;
   public static final boolean SNIFF_OFF = false;
-  
+
   private Hashtable preload = null;
   private ExpandedProperties properties = null;
 
@@ -228,7 +228,7 @@ public class Sniffer extends ToolAgent {
           } else {
             myGUI.mainPanel.panelcan.canvMess.recMessage(msg);
           }
-	} 
+	}
 	catch(Throwable e) {
 	  //System.out.println("Serious problem Occurred");
 	  myGUI.showError("An error occurred parsing the incoming message.\n" +
@@ -257,9 +257,9 @@ public class Sniffer extends ToolAgent {
         }
         return null;
     }
-     
+
    /**
-    * Given two strings determine if they match. We iterate over the match expression 
+    * Given two strings determine if they match. We iterate over the match expression
     * string from left to right as follows:
     * <ol>
     * <li> If we encounter a '*' in the expression token they match.
@@ -306,7 +306,7 @@ public class Sniffer extends ToolAgent {
   private String myContainerName;
 
   class SnifferAMSListenerBehaviour extends AMSListenerBehaviour {
-  	
+
       protected void installHandlers(Map handlersTable) {
 
 
@@ -382,18 +382,14 @@ public class Sniffer extends ToolAgent {
 	  }
         });
 
-      } 
+      }
   }	// END of inner class SnifferAMSListenerBehaviour
-  
+
   /**
    * ACLMessages for subscription and unsubscription as <em>rma</em> are created and
    * corresponding behaviours are set up.
    */
   public void toolSetup() {
-	
-	getContentManager().registerOntology(IntrospectionOntology.getInstance());
-	getContentManager().registerOntology(JADEManagementOntology.getInstance());
-	getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     ExpandedProperties properties = new ExpandedProperties();
     String fileName = locateFile("sniffer.properties");
@@ -425,10 +421,10 @@ public class Sniffer extends ToolAgent {
 
     // Handle incoming 'inform' messages
     AMSSubscribe.addSubBehaviour(new SnifferAMSListenerBehaviour());
-    
+
     // Schedule Behaviours for execution
     addBehaviour(AMSSubscribe);
-    addBehaviour(new SniffListenerBehaviour()); 
+    addBehaviour(new SniffListenerBehaviour());
 
     // Show Graphical User Interface
     myGUI = new MainWindow(this, properties);
@@ -514,7 +510,7 @@ public class Sniffer extends ToolAgent {
             }
         }
 
-        int performativeCount = ACLMessage.getAllPerformativeNames().length;             
+        int performativeCount = ACLMessage.getAllPerformativeNames().length;
         boolean[] filter = new boolean[performativeCount];
         boolean initVal = (st.hasMoreTokens() ? false : true);
         for (int i=0; i<performativeCount; i++) {
@@ -573,7 +569,7 @@ public class Sniffer extends ToolAgent {
  }
   /**
    * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
-   * agent to be sniffed/unsniffed. The internal list of sniffed agents is also 
+   * agent to be sniffed/unsniffed. The internal list of sniffed agents is also
    * updated.
    *
    * @param agentVect vector containing TreeData item representing the agents
@@ -605,7 +601,7 @@ public class Sniffer extends ToolAgent {
 	  Action a = new Action();
 	  a.setActor(getAMS());
 	  a.setAction(so);
-	  
+
 	  ACLMessage requestMsg = getRequest();
 	  requestMsg.setOntology(JADEManagementOntology.NAME);
 	  getContentManager().fillContent(requestMsg, a);
@@ -636,7 +632,7 @@ public class Sniffer extends ToolAgent {
 	  		Action a = new Action();
 	  		a.setActor(getAMS());
 	  		a.setAction(so);
-	  
+
 	  		ACLMessage requestMsg = getRequest();
 	  		requestMsg.setOntology(JADEManagementOntology.NAME);
 	  		getContentManager().fillContent(requestMsg, a);
