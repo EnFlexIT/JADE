@@ -30,6 +30,7 @@ import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
+import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 
@@ -63,6 +64,20 @@ import jade.security.AuthException;
 */
 public class AgentManagementService extends BaseService {
 
+    static final String NAME = "jade.core.management.AgentManagement";
+
+
+
+    private static final String[] OWNED_COMMANDS = new String[] {
+        AgentManagementSlice.REQUEST_CREATE,
+	AgentManagementSlice.REQUEST_START,
+	AgentManagementSlice.REQUEST_KILL,
+	AgentManagementSlice.REQUEST_STATE_CHANGE,
+	AgentManagementSlice.INFORM_CREATED,
+	AgentManagementSlice.INFORM_KILLED,
+	AgentManagementSlice.INFORM_STATE_CHANGED,
+	AgentManagementSlice.KILL_CONTAINER
+    };
 
     public AgentManagementService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
@@ -71,6 +86,10 @@ public class AgentManagementService extends BaseService {
 
 	// Create a local slice
 	localSlice = new ServiceComponent();
+
+	// Create the two command sinks for this service
+	senderSink = new CommandSourceSink();
+	receiverSink = new CommandTargetSink();
 
     }
 
@@ -93,47 +112,55 @@ public class AgentManagementService extends BaseService {
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return localSlice;
+	return null;
     }
 
-    /**
-       Inner mix-in class for this service: this class receives
-       commands through its <code>Filter</code> interface and serves
-       them, coordinating with remote parts of this service through
-       the <code>Slice</code> interface (that extends the
-       <code>Service.Slice</code> interface).
-    */
-    private class ServiceComponent implements Filter, AgentManagementSlice {
+
+    public Sink getCommandSink(boolean side) {
+	if(side == Sink.COMMAND_SOURCE) {
+	    return senderSink;
+	}
+	else {
+	    return receiverSink;
+	}
+    }
+
+    public String[] getOwnedCommands() {
+	return OWNED_COMMANDS;
+    }
 
 
-	// Implementation of the Filter interface
+    // This inner class handles the messaging commands on the command
+    // issuer side, turning them into horizontal commands and
+    // forwarding them to remote slices when necessary.
+    private class CommandSourceSink implements Sink {
 
-	public void accept(VerticalCommand cmd) {
+	public void consume(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(REQUEST_CREATE)) {
+		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
 		    handleRequestCreate(cmd);
 		}
-		else if(name.equals(REQUEST_START)) {
+		else if(name.equals(AgentManagementSlice.REQUEST_START)) {
 		    handleRequestStart(cmd);
 		}
-		else if(name.equals(REQUEST_KILL)) {
+		else if(name.equals(AgentManagementSlice.REQUEST_KILL)) {
 		    handleRequestKill(cmd);
 		}
-		else if(name.equals(REQUEST_STATE_CHANGE)) {
+		else if(name.equals(AgentManagementSlice.REQUEST_STATE_CHANGE)) {
 		    handleRequestStateChange(cmd);
 		}
-		else if(name.equals(INFORM_KILLED)) {
+		else if(name.equals(AgentManagementSlice.INFORM_KILLED)) {
 		    handleInformKilled(cmd);
 		}
-		else if(name.equals(INFORM_STATE_CHANGED)) {
+		else if(name.equals(AgentManagementSlice.INFORM_STATE_CHANGED)) {
 		    handleInformStateChanged(cmd);
 		}
-		else if(name.equals(INFORM_CREATED)) {
+		else if(name.equals(AgentManagementSlice.INFORM_CREATED)) {
 		    handleInformCreated(cmd);
 		}
-		else if(name.equals(KILL_CONTAINER)) {
+		else if(name.equals(AgentManagementSlice.KILL_CONTAINER)) {
 		    handleKillContainer(cmd);
 		}
 	    }
@@ -154,108 +181,319 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	public void setBlocking(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
+
+	// Vertical command handler methods
+
+	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    String name = (String)params[0];
+	    String className = (String)params[1];
+	    String[]args = (String[])params[2];
+	    ContainerID cid = (ContainerID)params[3];
+	    String ownership = (String)params[4];
+	    CertificateFolder certs = (CertificateFolder)params[5];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		AID agentID = new AID(name, AID.ISLOCALNAME);
+		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+		targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
 	}
 
-    	public boolean isBlocking() {
-	    return false; // Blocking and Skipping not implemented
+	private void handleRequestStart(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID target = (AID)params[0];
+
+	    Agent instance = myContainer.acquireLocalAgent(target);
+
+	    if(instance == null)
+		throw new NotFoundException("Start-Agent failed to find " + target);
+
+
+	    //#MIDP_EXCLUDE_BEGIN
+	    CertificateFolder agentCerts = instance.getCertificateFolder();
+	    //#MIDP_EXCLUDE_END
+
+	    /*#MIDP_INCLUDE_BEGIN
+	      CertificateFolder agentCerts = new CertificateFolder();
+
+	      Authority authority = myContainer.getAuthority();
+
+	      if(agentCerts.getIdentityCertificate() == null) {
+	      AgentPrincipal principal = authority.createAgentPrincipal(target, AgentPrincipal.NONE);
+	      IdentityCertificate identity = authority.createIdentityCertificate();
+	      identity.setSubject(principal);
+	      authority.sign(identity, agentCerts);
+	      agentCerts.setIdentityCertificate(identity);
+	      }
+	      #MIDP_INCLUDE_END*/
+
+	    // Notify the main container through its slice
+	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+	    mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+
+	    // Actually start the agent thread
+	    myContainer.powerUpLocalAgent(target, instance);
+
+	    myContainer.releaseLocalAgent(target);
 	}
 
-	public void setSkipping(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
+	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		ContainerID cid = impl.getContainerID(agentID);
+		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+		targetSlice.killAgent(agentID);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
 	}
 
-	public boolean isSkipping() {
-	    return false; // Blocking and Skipping not implemented
+	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    AgentState as = (AgentState)params[1];
+
+	    int newState = Agent.AP_MIN;
+	    if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+		newState = Agent.AP_SUSPENDED;
+	    }
+	    else if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING)) {
+		newState = Agent.AP_WAITING;
+	    }
+	    else if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE)) {
+		newState = Agent.AP_ACTIVE;
+	    }
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		ContainerID cid = impl.getContainerID(agentID);
+		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+		targetSlice.changeAgentState(agentID, newState);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
 	}
 
+	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
 
-	// Implementation of the Service.Slice interface
+	    Object[] params = cmd.getParams();
+	    AID target = (AID)params[0];
+	    Agent instance = (Agent)params[1];
+	    boolean startIt = ((Boolean)params[2]).booleanValue();
 
-	public Service getService() {
-	    return AgentManagementService.this;
+	    initAgent(target, instance, startIt);
 	}
 
-	public Node getNode() throws ServiceException {
+	private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
+	    Object[] params = cmd.getParams();
+	    AID target = (AID)params[0];
+
+	    // Remove the dead agent from the LADT of the container
+	    myContainer.removeLocalAgent(target);
+
+	    // Notify the main container through its slice
+	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+	    mainSlice.deadAgent(target);
+	}
+
+	private void handleInformStateChanged(VerticalCommand cmd) {
+
+	    Object[] params = cmd.getParams();
+	    AID target = (AID)params[0];
+	    AgentState from = (AgentState)params[1];
+	    AgentState to = (AgentState)params[2];
+
+	    if (to.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+		try {
+		    // Notify the main container through its slice
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+		    mainSlice.suspendedAgent(target);
+		}
+		catch(IMTPException re) {
+		    re.printStackTrace();
+		}
+		catch(NotFoundException nfe) {
+		    nfe.printStackTrace();
+		}
+		catch(ServiceException se) {
+		    se.printStackTrace();
+		}
+	    }
+	    else if (from.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+		try {
+		    // Notify the main container through its slice
+		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
+		    mainSlice.resumedAgent(target);
+		}
+		catch(IMTPException re) {
+		    re.printStackTrace();
+		}
+		catch(NotFoundException nfe) {
+		    nfe.printStackTrace();
+		}
+		catch(ServiceException se) {
+		    se.printStackTrace();
+		}
+	    }
+	}
+
+	private void handleKillContainer(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+
+	    Object[] params = cmd.getParams();
+	    ContainerID cid = (ContainerID)params[0];
+
+	    // Forward to the correct slice
+	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+	    targetSlice.exitContainer();
+
+	}
+
+    } // End of CommandSourceSink class
+
+
+    private class CommandTargetSink implements Sink {
+
+	public void consume(VerticalCommand cmd) {
+
 	    try {
-		return AgentManagementService.this.getLocalNode();
+		String name = cmd.getName();
+		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
+		    handleRequestCreate(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.REQUEST_START)) {
+		    handleRequestStart(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.REQUEST_KILL)) {
+		    handleRequestKill(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.REQUEST_STATE_CHANGE)) {
+		    handleRequestStateChange(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.INFORM_KILLED)) {
+		    handleInformKilled(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.INFORM_STATE_CHANGED)) {
+		    handleInformStateChanged(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.INFORM_CREATED)) {
+		    handleInformCreated(cmd);
+		}
+		else if(name.equals(AgentManagementSlice.KILL_CONTAINER)) {
+		    handleKillContainer(cmd);
+		}
 	    }
 	    catch(IMTPException imtpe) {
-		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
 	    }
-	}
-
-	public VerticalCommand serve(HorizontalCommand cmd) {
-	    try {
-		String cmdName = cmd.getName();
-		Object[] params = cmd.getParams();
-
-		if(cmdName.equals(H_CREATEAGENT)) {
-		    AID agentID = (AID)params[0];
-		    String className = (String)params[1];
-		    Object[] arguments = (Object[])params[2];
-		    String ownership = (String)params[3];
-		    CertificateFolder certs = (CertificateFolder)params[4];
-		    boolean startIt = ((Boolean)params[5]).booleanValue();
-
-		    createAgent(agentID, className, arguments, ownership, certs, startIt);
-		}
-		else if(cmdName.equals(H_KILLAGENT)) {
-		    AID agentID = (AID)params[0];
-
-		    killAgent(agentID);
-		}
-		else if(cmdName.equals(H_CHANGEAGENTSTATE)) {
-		    AID agentID = (AID)params[0];
-		    int newState = ((Integer)params[1]).intValue();
-
-		    changeAgentState(agentID, newState);
-		}
-		else if(cmdName.equals(H_BORNAGENT)) {
-		    AID agentID = (AID)params[0];
-		    ContainerID cid = (ContainerID)params[1];
-		    CertificateFolder certs = (CertificateFolder)params[2];
-
-		    bornAgent(agentID, cid, certs);
-		}
-		else if(cmdName.equals(H_DEADAGENT)) {
-		    AID agentID = (AID)params[0];
-
-		    deadAgent(agentID);
-		}
-		else if(cmdName.equals(H_SUSPENDEDAGENT)) {
-		    AID agentID = (AID)params[0];
-
-		    suspendedAgent(agentID);
-		}
-		else if(cmdName.equals(H_RESUMEDAGENT)) {
-		    AID agentID = (AID)params[0];
-
-		    resumedAgent(agentID);
-		}
-		else if(cmdName.equals(H_EXITCONTAINER)) {
-		    exitContainer();
-		}
+	    catch(NotFoundException nfe) {
+		cmd.setReturnValue(nfe);
 	    }
-	    catch(Throwable t) {
-		cmd.setReturnValue(t);
+	    catch(NameClashException nce) {
+		cmd.setReturnValue(nce);
 	    }
-	    finally {
-		if(cmd instanceof VerticalCommand) {
-		    return (VerticalCommand)cmd;
-		}
-		else {
-		    return null;
-		}
+	    catch(AuthException ae) {
+		cmd.setReturnValue(ae);
 	    }
+	    catch(ServiceException se) {
+		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
+	    }
+
 	}
 
 
-	// Implementation of the service-specific horizontal interface AgentManagementSlice 
+	// Vertical command handler methods
+
+	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    String className = (String)params[1];
+	    Object[] arguments = (Object[])params[2];
+	    String ownership = (String)params[3];
+	    CertificateFolder certs = (CertificateFolder)params[4];
+	    boolean startIt = ((Boolean)params[5]).booleanValue();
+
+	    createAgent(agentID, className, arguments, ownership, certs, startIt);
+	}
+
+	private void handleRequestStart(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID target = (AID)params[0];
 
 
-	public void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
+	}
+
+	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+
+	    killAgent(agentID);
+	}
+
+	private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    int newState = ((Integer)params[1]).intValue();
+
+	    changeAgentState(agentID, newState);
+	}
+
+	private void handleInformCreated(VerticalCommand cmd) throws NotFoundException, NameClashException, AuthException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+
+	    AID agentID = (AID)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+	    CertificateFolder certs = (CertificateFolder)params[2];
+
+	    bornAgent(agentID, cid, certs);
+	}
+
+	private void handleInformKilled(VerticalCommand cmd) throws NotFoundException, ServiceException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+
+	    deadAgent(agentID);
+	}
+
+	private void handleInformStateChanged(VerticalCommand cmd) throws NotFoundException {
+
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    String newState = (String)params[1];
+
+	    if (newState.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+		suspendedAgent(agentID);
+	    }
+	    else if(newState.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE)) {
+		resumedAgent(agentID);
+	    }
+
+	}
+
+	private void handleKillContainer(VerticalCommand cmd) {
+	    exitContainer();
+	}
+
+	private void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
@@ -289,7 +527,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	public void killAgent(AID agentID) throws IMTPException, NotFoundException {
+	private void killAgent(AID agentID) throws IMTPException, NotFoundException {
 
 	    Agent a = myContainer.acquireLocalAgent(agentID);
 
@@ -300,7 +538,7 @@ public class AgentManagementService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	public void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException {
+	private void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException {
 	    Agent a = myContainer.acquireLocalAgent(agentID);
 
 	    if(a == null)
@@ -325,7 +563,7 @@ public class AgentManagementService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws NameClashException, NotFoundException, AuthException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
@@ -354,214 +592,148 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	public void deadAgent(AID name) throws IMTPException, NotFoundException {
+	private void deadAgent(AID name) throws NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.deadAgent(name);
 	    }
 	}
 
-	public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
+	private void suspendedAgent(AID name) throws NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.suspendedAgent(name);
 	    }
 	}
 
-	public void resumedAgent(AID name) throws IMTPException, NotFoundException {
+	private void resumedAgent(AID name) throws NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.resumedAgent(name);
 	    }
 	}
 
-	public void exitContainer() throws IMTPException, NotFoundException {
+	private void exitContainer() {
 	    myContainer.shutDown();
+	}
+
+
+    } // End of CommandTargetSink class
+
+
+
+    /**
+       Inner mix-in class for this service: this class receives
+       commands from the service <code>Sink</code> and serves them,
+       coordinating with remote parts of this service through the
+       <code>Service.Slice</code> interface.
+    */
+    private class ServiceComponent implements Service.Slice {
+
+	// Implementation of the Service.Slice interface
+
+	public Service getService() {
+	    return AgentManagementService.this;
+	}
+
+	public Node getNode() throws ServiceException {
+	    try {
+		return AgentManagementService.this.getLocalNode();
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+	public VerticalCommand serve(HorizontalCommand cmd) {
+	    VerticalCommand result = null;
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(AgentManagementSlice.H_CREATEAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.REQUEST_CREATE, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    String className = (String)params[1];
+		    Object[] arguments = (Object[])params[2];
+		    String ownership = (String)params[3];
+		    CertificateFolder certs = (CertificateFolder)params[4];
+		    Boolean startIt = (Boolean)params[5];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(className);
+		    gCmd.addParam(arguments);
+		    gCmd.addParam(ownership);
+		    gCmd.addParam(certs);
+		    gCmd.addParam(startIt);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_KILLAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.REQUEST_KILL, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    gCmd.addParam(agentID);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_CHANGEAGENTSTATE)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.REQUEST_STATE_CHANGE, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    Integer newState = (Integer)params[1];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(newState);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_BORNAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_CREATED, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+		    CertificateFolder certs = (CertificateFolder)params[2];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(cid);
+		    gCmd.addParam(certs);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_DEADAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_KILLED, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    gCmd.addParam(agentID);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_SUSPENDEDAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_STATE_CHANGED, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_RESUMEDAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_STATE_CHANGED, AgentManagementSlice.NAME, null);
+		    AID agentID = (AID)params[0];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE);
+
+		    result = gCmd;
+		}
+		else if(cmdName.equals(AgentManagementSlice.H_EXITCONTAINER)) {
+		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.KILL_CONTAINER, AgentManagementSlice.NAME, null);
+
+		    result = gCmd;
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
+	    }
+	    finally {
+		return result;
+	    }
 	}
 
     } // End of AgentManagementSlice class
 
-
-
-    // Vertical command handler methods
-
-    private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
-
-	Object[] params = cmd.getParams();
-	String name = (String)params[0];
-	String className = (String)params[1];
-	String[]args = (String[])params[2];
-	ContainerID cid = (ContainerID)params[3];
-	String ownership = (String)params[4];
-	CertificateFolder certs = (CertificateFolder)params[5];
-
-	MainContainer impl = myContainer.getMain();
-	if(impl != null) {
-	    AID agentID = new AID(name, AID.ISLOCALNAME);
-	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    targetSlice.createAgent(agentID, className, args, ownership, certs, AgentManagementSlice.CREATE_AND_START);
-	}
-	else {
-	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	}
-    }
-
-    private void handleRequestStart(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
-
-	Object[] params = cmd.getParams();
-	AID target = (AID)params[0];
-
-	Agent instance = myContainer.acquireLocalAgent(target);
-
-	if(instance == null)
-	    throw new NotFoundException("Start-Agent failed to find " + target);
-
-
-	//#MIDP_EXCLUDE_BEGIN
-	CertificateFolder agentCerts = instance.getCertificateFolder();
-	//#MIDP_EXCLUDE_END
-
-	/*#MIDP_INCLUDE_BEGIN
-	CertificateFolder agentCerts = new CertificateFolder();
-
-	Authority authority = myContainer.getAuthority();
-
-	if(agentCerts.getIdentityCertificate() == null) {
-	    AgentPrincipal principal = authority.createAgentPrincipal(target, AgentPrincipal.NONE);
-	    IdentityCertificate identity = authority.createIdentityCertificate();
-	    identity.setSubject(principal);
-	    authority.sign(identity, agentCerts);
-	    agentCerts.setIdentityCertificate(identity);
-	}
-	#MIDP_INCLUDE_END*/
-
-	// Notify the main container through its slice
-	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
-	mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
-
-	// Actually start the agent thread
-	myContainer.powerUpLocalAgent(target, instance);
-
-	myContainer.releaseLocalAgent(target);
-    }
-
-    private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
-
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-
-	MainContainer impl = myContainer.getMain();
-	if(impl != null) {
-	    ContainerID cid = impl.getContainerID(agentID);
-	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    targetSlice.killAgent(agentID);
-	}
-	else {
-	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	}
-    }
-
-    private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
-
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-	AgentState as = (AgentState)params[1];
-
-	int newState = Agent.AP_MIN;
-	if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
-	    newState = Agent.AP_SUSPENDED;
-	}
-	else if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING)) {
-	    newState = Agent.AP_WAITING;
-	}
-	else if(as.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE)) {
-	    newState = Agent.AP_ACTIVE;
-	}
-
-	MainContainer impl = myContainer.getMain();
-	if(impl != null) {
-	    ContainerID cid = impl.getContainerID(agentID);
-	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    targetSlice.changeAgentState(agentID, newState);
-	}
-	else {
-	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	}
-    }
-
-    private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException, ServiceException {
-
-	Object[] params = cmd.getParams();
-	AID target = (AID)params[0];
-	Agent instance = (Agent)params[1];
-	boolean startIt = ((Boolean)params[2]).booleanValue();
-
-	initAgent(target, instance, startIt);
-    }
-
-    private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
-	Object[] params = cmd.getParams();
-	AID target = (AID)params[0];
-
-	// Remove the dead agent from the LADT of the container
-	myContainer.removeLocalAgent(target);
-
-	// Notify the main container through its slice
-	AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
-	mainSlice.deadAgent(target);
-    }
-
-    private void handleInformStateChanged(VerticalCommand cmd) {
-
-	Object[] params = cmd.getParams();
-	AID target = (AID)params[0];
-	AgentState from = (AgentState)params[1];
-	AgentState to = (AgentState)params[2];
-
-	if (to.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
-	    try {
-		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
-		mainSlice.suspendedAgent(target);
-	    }
-	    catch(IMTPException re) {
-		re.printStackTrace();
-	    }
-	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
-	    }
-	    catch(ServiceException se) {
-		se.printStackTrace();
-	    }
-	}
-	else if (from.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
-	    try {
-		// Notify the main container through its slice
-		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(AgentManagementSlice.MAIN_SLICE);
-		mainSlice.resumedAgent(target);
-	    }
-	    catch(IMTPException re) {
-		re.printStackTrace();
-	    }
-	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
-	    }
-	    catch(ServiceException se) {
-		se.printStackTrace();
-	    }
-	}
-    }
-
-    private void handleKillContainer(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
-
-	Object[] params = cmd.getParams();
-	ContainerID cid = (ContainerID)params[0];
-
-	// Forward to the correct slice
-	AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	targetSlice.exitContainer();
-
-    }
 
 
     private void initAgent(AID target, Agent instance, boolean startIt) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
@@ -626,5 +798,11 @@ public class AgentManagementService extends BaseService {
     // The local slice for this service
     private ServiceComponent localSlice;
 
-}
+    // The command sink, source side
+    private final CommandSourceSink senderSink;
 
+    // The command sink, target side
+    private final CommandTargetSink receiverSink;
+
+
+}
