@@ -590,7 +590,8 @@ public class AgentManagementService extends BaseService {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
 		agent.setArguments(arguments);
 		//#MIDP_EXCLUDE_BEGIN
-		// Set agent principal and certificates
+		/*
+                // Set agent principal and certificates
 		if(certs != null) {
 		    agent.setPrincipal(certs);
 		}
@@ -599,7 +600,8 @@ public class AgentManagementService extends BaseService {
 		    agent.setOwnership(ownership);
 		else if(certs.getIdentityCertificate() != null)
 		    agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
-		//#MIDP_EXCLUDE_END
+		*/
+                //#MIDP_EXCLUDE_END
 
 		// Execute the second half of the creation process
 		initAgent(agentID, agent, startIt);
@@ -875,6 +877,7 @@ public class AgentManagementService extends BaseService {
 
 	try {
 
+          //TOFIX:  --- the following needs to be replaced ----
 	    //#MIDP_EXCLUDE_BEGIN
 	    CertificateFolder agentCerts = instance.getCertificateFolder();
 	    //#MIDP_EXCLUDE_END
