@@ -41,6 +41,7 @@ import jade.util.leap.HashMap;
 */
 public abstract class BaseService implements Service {
 
+    public static final String MAIN_SLICE = ServiceFinder.MAIN_SLICE;
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	myFinder = p.getServiceFinder();
@@ -81,7 +82,7 @@ public abstract class BaseService implements Service {
 	if(s == null) {
 	    try {
 		s = myFinder.findSlice(getName(), realName);
-		slices.put(realName, s);
+		//		slices.put(realName, s);
 	    }
 	    catch(IMTPException imtpe) {
 		throw new ServiceException("IMTP Error while using the Service Finder", imtpe);
@@ -133,7 +134,7 @@ public abstract class BaseService implements Service {
        @param name The real name this alias must be mapped to.
     */
     protected void addAlias(String alias, String name) {
-	aliases.put(name, alias);
+	aliases.put(alias, name);
     }
 
     /**
