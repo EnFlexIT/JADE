@@ -144,7 +144,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   private void createAgent(AID agentID, String className, Object[] args,
-                           JADEPrincipal creator, Credentials certs, boolean startIt) 
+                           JADEPrincipal creator, Credentials creds, boolean startIt) 
           throws AuthException {
 
       Agent agent = null;
@@ -163,7 +163,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 //              agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
           //#MIDP_EXCLUDE_END
 
-          initAgent(agentID, agent, startIt, (JADEPrincipal)null, (Credentials)null);
+          initAgent(agentID, agent, startIt, creator, creds);
 
 
       } 
@@ -193,7 +193,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       cmd.addParam(instance);
       cmd.addParam(new Boolean(startIt));
       cmd.setPrincipal( creator );
-      cmd.setCredentials( creds);
+      cmd.setCredentials( creds );
 
       Object ret = myCommandProcessor.processOutgoing(cmd);
       if (ret != null) {
