@@ -575,7 +575,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    proto.activate(dispatcher, ta, myProfile);
 		}
 		routes.addLocalMTP(address, proto);
-		MTPDescriptor result = new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
+		MTPDescriptor result = new MTPDescriptor(proto.getName(), className, new String[] {address}, proto.getSupportedProtocols());
 
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
 
@@ -607,7 +607,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    if(proto != null) {
 		TransportAddress ta = proto.strToAddr(address);
 		proto.deactivate(ta);
-		MTPDescriptor desc = new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
+		MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
 
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
 
