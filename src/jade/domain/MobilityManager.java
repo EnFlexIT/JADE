@@ -32,8 +32,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import jade.core.AID;
-import jade.core.behaviours.Behaviour;
+import jade.core.Location;
 import jade.core.CaseInsensitiveString;
+
+import jade.core.behaviours.Behaviour;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -152,7 +154,7 @@ class MobilityManager {
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
       AID agentName = desc.getName();
-      MobilityOntology.Location destination = desc.getDestination();
+      Location destination = desc.getDestination();
       theAMS.AMSMoveAgent(agentName, destination);
       sendReply(ACLMessage.INFORM,"FIXME");
     }
@@ -168,7 +170,7 @@ class MobilityManager {
       MobilityOntology.MobileAgentDescription desc = action.get_0();
 
       AID agentName = desc.getName();
-      MobilityOntology.Location destination = desc.getDestination();
+      Location destination = desc.getDestination();
       String newName = action.get_1();
       theAMS.AMSCloneAgent(agentName, destination, newName);
       sendReply(ACLMessage.INFORM,"FIXME");
@@ -184,7 +186,7 @@ class MobilityManager {
       MobilityOntology.WhereIsAgentAction action = (MobilityOntology.WhereIsAgentAction)a.get_1();
 
       AID agentName = action.get_0();
-      MobilityOntology.Location where = theAMS.AMSWhereIsAgent(agentName);
+      Location where = theAMS.AMSWhereIsAgent(agentName);
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
@@ -225,7 +227,7 @@ class MobilityManager {
 
   }
 
-  public void addLocation(String name, MobilityOntology.Location l) {
+  public void addLocation(String name, Location l) {
     locations.put(new CaseInsensitiveString(name), l);
   }
 
@@ -233,8 +235,8 @@ class MobilityManager {
     locations.remove(new CaseInsensitiveString(name));
   }
 
-  public MobilityOntology.Location getLocation(String containerName) {
-    return (MobilityOntology.Location)locations.get(new CaseInsensitiveString(containerName));
+  public Location getLocation(String containerName) {
+    return (Location)locations.get(new CaseInsensitiveString(containerName));
   }
 
   public Iterator getLocations() {
