@@ -25,9 +25,10 @@
 package jade.util;
 
 /*#MIDP_INCLUDE_BEGIN
+import java.io.IOException;
 import javax.microedition.rms.RecordStore;
 import jade.util.leap.Properties;
-
+import jade.core.Agent;
 #MIDP_INCLUDE_END*/
 
 //#MIDP_EXCLUDE_BEGIN
@@ -110,6 +111,7 @@ import jade.util.leap.Serializable;
  * MIDlet-LEAP-log_level:warning
  * 
  * @author Rosalba Bochicchio - TILAB
+ * @author Nicolas Lhuillier - Motorola (MIDP version)
  */
 public class Logger
 //#J2ME_EXCLUDE_BEGIN
@@ -198,10 +200,16 @@ public class Logger
 		java.util.logging.LogManager.getLogManager().addLogger(myLogger);
 		//#J2ME_EXCLUDE_END
 				
-		/*#J2ME_INCLUDE_BEGIN
+    /*#PJAVA_INCLUDE_BEGIN
 		Logger myLogger = new Logger(name);
-		#J2ME_INCLUDE_END*/
+		#PJAVA_INCLUDE_END*/
 		
+    /*#MIDP_INCLUDE_BEGIN
+		if (myLogger == null) {
+    myLogger = new Logger(name);
+    }
+		#MIDP_INCLUDE_END*/
+
 		return myLogger;
 	}
 
@@ -231,10 +239,12 @@ public class Logger
 	
 		//#J2ME_INCLUDE_END*/
 		
-		/*#MIDP_INCLUDE_BEGIN	
-		private static final String OUTPUT = "OUTPUT";
-				
-		static {
+  /*#MIDP_INCLUDE_BEGIN	
+    private static final String OUTPUT = "OUTPUT";
+		private static Logger myLogger;
+		private RecordStore rs;
+		
+    static {
 			try {
 				RecordStore.deleteRecordStore(OUTPUT);
 			}
@@ -243,13 +253,29 @@ public class Logger
 			}
 		}
 				
-		public Logger (String name){
-			theName= name;
-			try{
-				Properties props = new Properties();
-				props.load("jad");
+		private Logger(String name) {
+		// theName is not used in MIDP	
+    //theName= name;
+			try {
+        // The level is loaded from same properties as other parameter 
+        String src = null;
+        if (Agent.midlet != null) {
+          src = Agent.midlet.getAppProperty("MIDlet-LEAP-conf");
+        }
+        if (src == null) {
+          // Use the JAD by default 
+      	  src = "jad";
+        }
+        
+        Properties props = new Properties();
+				try {
+          props.load(src);
+        }
+        catch(IOException ioe) {
+          // Ignoring properties
+        }
 												
-				if(props.getProperty("log_level")!=null){		
+				if (props.getProperty("log_level")!=null) {		
 				 	String tmp = props.getProperty("log_level");
 				 	
 				 	if (tmp.equals("severe"))
@@ -275,6 +301,7 @@ public class Logger
 						//so to log nothing				 	
 				 		theLevel = 2147483647;
 					}
+          
 				}
 				catch (Exception e){
 					Logger.println(e.getMessage());
@@ -282,33 +309,38 @@ public class Logger
 			}	
 
 		// Log a message in MIDP environment.
-		// The message is written in the RecorStore of the MIDP device
-		public  synchronized  void log(int level, String msg) {		
+		// The message is written in the RecordStore of the MIDP device
+		public synchronized void log(int level, String msg) {		
 			if(level >= theLevel){
-			try{
-				RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
-				String log = theName+": "+msg;
-				byte[] bb = log.getBytes();
+			try {
+				//RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
+				if (rs == null) {
+          // Opens the RecordStore
+          rs =	RecordStore.openRecordStore(OUTPUT, true);
+        }
+        //String log = theName+": "+msg;
+				byte[] bb = msg.getBytes();
 				rs.addRecord(bb,0,bb.length);
-				rs.closeRecordStore();
 			}
 			catch (Throwable t){
-				t.printStackTrace();
-				}
+        t.printStackTrace();
+        //rs.closeRecordStore();
+        rs = null;
 			}
 		}
-	#MIDP_INCLUDE_END*/	
+	}
+  #MIDP_INCLUDE_END*/	
 	
-	 /*#PJAVA_INCLUDE_BEGIN
+  /*#PJAVA_INCLUDE_BEGIN
 	  
-	  		public Logger (String name){
-				theName= name;
-			}
-
+    private Logger(String name){
+    theName= name;
+    }
+    
 		public  synchronized  void log(int level, String msg) {		
-			if(level >= theLevel){
-				System.out.println(theName+": "+msg);
-			}
+    if(level >= theLevel){
+    System.out.println(theName+": "+msg);
+    }
 		}
 		#PJAVA_INCLUDE_END*/
 
@@ -336,16 +368,23 @@ public class Logger
 		System.out.println(s);
 		
 		/*#MIDP_INCLUDE_BEGIN
-		try{
+    if (myLogger == null) {
+      myLogger = new Logger(null);  
+    }
+    myLogger.log(SEVERE,s);
+
+    /*
+      try{
 			RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
 			byte[] bb = s.getBytes();
 			rs.addRecord(bb,0,bb.length);
 			rs.closeRecordStore();
-		}
-		catch (Throwable t){
+      }
+      catch (Throwable t){
 			t.printStackTrace();
-		}
-		#MIDP_INCLUDE_END*/
+      }
+    */
+		//#MIDP_INCLUDE_END*/
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
