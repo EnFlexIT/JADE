@@ -23,10 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
+import jade.util.Logger;
 
 /**
  * Class declaration
@@ -45,7 +48,7 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	c.addParam(name);
   	c.addParam(className);
   	c.addParam(args);
-  	// The CREATE_AGENT command must not be postponed
+  	// The CREATE_AGENT command must not be postponed  	
   	executeRemotely(c, 0);
   }
 
@@ -94,7 +97,9 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.MESSAGE_IN);
   	c.addParam(msg);
   	c.addParam(receiver);
+  	//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_IN");
 		Command r = executeRemotely(c, -1);
+  	//Logger.println(Thread.currentThread().getName()+": MESSAGE_IN executed");
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote FrontEnd
 			// --> It must be a NotFoundException --> throw it

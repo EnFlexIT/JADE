@@ -23,10 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
+import jade.util.Logger;
 
 /**
  * Class declaration
@@ -48,7 +51,9 @@ public class BackEndSkel extends MicroSkeleton {
   	switch (c.getCode()) {
   	case BackEndStub.MESSAGE_OUT:
   		try {
+  			//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_OUT");
   			myBackEnd.messageOut((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
+  			//Logger.println(Thread.currentThread().getName()+": MESSAGE_OUT executed");
       	r = new Command(Command.OK);
   		}
   		catch (NotFoundException nfe) {
