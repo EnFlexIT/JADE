@@ -23,19 +23,54 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
-import java.util.*;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+/**
+   Description of a message transport protocol.
+
+   @author Fabio Bellifemine - CSELT
+   @version $Date$ $Revision$
+
+ */
 public class MTPDescription {
-  private String profile, name;
+
+  private String profile;
+  private String name;
   private List addresses = new ArrayList();
 
-public void setProfile(String p) {profile = p;}
-public void setMtpName(String n) {name = n;}
-public String getProfile() {return profile;}
-public String getMtpName() {return name;}
+  public void setProfile(String p) {
+    profile = p;
+  }
 
-public void addAddresses(String a) {addresses.add(a);}
-public boolean removeAddresses(String a) {return addresses.remove(a);}
-public void clearAllAddresses() { addresses.clear();}
-public Iterator getAllAddresses() {return addresses.iterator();}
+  public void setMtpName(String n) {
+    name = n;
+  }
+
+  public String getProfile() {
+    return profile;
+  }
+
+  public String getMtpName() {
+    return name;
+  }
+
+  public void addAddresses(String a) {
+    addresses.add(a);
+  }
+
+  public boolean removeAddresses(String a) {
+    return addresses.remove(a);
+  }
+
+  public void clearAllAddresses() {
+    addresses.clear();
+  }
+
+  public Iterator getAllAddresses() {
+    return addresses.iterator();
+  }
+
 }
