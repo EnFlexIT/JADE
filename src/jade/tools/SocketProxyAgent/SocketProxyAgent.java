@@ -1,0 +1,192 @@
+package jade.tools.SocketProxyAgent;
+
+import jade.core.Agent;
+import jade.lang.acl.*;
+import jade.core.behaviours.SimpleBehaviour;
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+public class SocketProxyAgent extends Agent {
+
+BufferedWriter logFile;
+
+protected void setup() {
+  try {
+    BufferedReader in = new BufferedReader(new FileReader(getLocalName()+".inf"));
+    logFile = new BufferedWriter(new FileWriter(getLocalName()+".log"));
+    int portNumber = Integer.parseInt(in.readLine());
+    Vector agentNames = new Vector();
+    StringTokenizer st = new StringTokenizer(in.readLine());
+    while (st.hasMoreTokens()) agentNames.add(st.nextToken());
+    Server s = new Server(portNumber, this, agentNames);
+  } catch(Exception e) {
+    System.err.println(getLocalName()+" NEEDS THE FILE "+getLocalName()+".inf IN THE WORKING DIRECTORY WITH ITS PARAMETERS (port number and agent names)");
+    e.printStackTrace();
+    doDelete();
+  } 
+
+}
+
+public synchronized void log(String str) {
+  try {
+    logFile.write(str,0,str.length());
+  } catch (IOException e) {
+    e.printStackTrace();
+    doDelete();
+  }
+}
+}
+
+class Server extends Thread {
+  private final static int DEFAULT_PORT = 6789;
+  private ServerSocket listen_socket; 
+  private Agent myAgent;
+  private Vector myOnlyReceivers;
+
+  /**
+   * Constructor of the class.
+   * It creates a ServerSocket to listen for connections on.
+   * @param port is the port number to listen for. If 0, then it uses
+   * the default port number.
+   * @param a is the pointer to agent to be used to send messages.
+   * @param receiver is the vector with the names of all the agents that 
+   * wish to receive messages through this proxy.
+   */
+  Server(int port, Agent a, Vector receivers) {
+    if (port == 0) port = DEFAULT_PORT;
+    myAgent = a;
+    myOnlyReceivers = receivers;
+    try { listen_socket = new ServerSocket(port); }
+    catch (IOException e) {e.printStackTrace(); myAgent.doDelete(); return;}
+    String str = myAgent.getLocalName()+" is listening on port "+port+" to proxy messages to agents (";
+    for (int i=0; i<myOnlyReceivers.size(); i++)
+      str.concat((String)myOnlyReceivers.elementAt(i)+" ");
+    str.concat(")");
+    System.out.println(str);
+    ((SocketProxyAgent)myAgent).log(str);
+    start();
+  }
+
+  /**
+   * The body of the server thread. It is executed when the start() method
+   * of the server object is called.
+   * Loops forever, listening for and accepting connections from clients.
+   * For each connection, creates a Connection object to handle communication
+   * through the new Socket. Each Connection object is a new thread.
+   * The maximum queue length for incoming connection indications 
+   * (a request to connect) is set to 50 (that is the default for the
+   * ServerSocket constructor). If a connection indication
+   * arrives when the queue is full, the connection is refused. 
+   */
+  public void run() {
+    try {
+      while (true) {
+	Socket client_socket = listen_socket.accept();
+	((SocketProxyAgent)myAgent).log("New Connection with "+client_socket.getInetAddress().toString()+" on remote port "+client_socket.getPort());
+	Connection c = new Connection(client_socket,myAgent,myOnlyReceivers);
+      }
+    } catch (IOException e) {e.printStackTrace(); myAgent.doDelete();}
+  }
+}
+
+class Connection extends Thread {
+  private Agent myAgent;
+  private Socket client;
+  private DataInputStream in;
+  private PrintStream out;
+  /** Name of the agents who intend to receive any message from this agent */
+  private Vector myOnlyReceivers; 
+
+
+  Connection(Socket client_socket, Agent a, Vector receivers) {
+    myAgent = a;
+    client = client_socket;
+    myOnlyReceivers = receivers;
+    try {
+      in = new DataInputStream(client.getInputStream());
+      out = new PrintStream(client.getOutputStream(),true);
+    } catch (IOException e) {
+      try { client.close();} catch (IOException e2) {}
+      e.printStackTrace();
+      return;
+    }
+    start();
+  }
+
+  private boolean myOnlyReceiversContains(String aName) {
+    for (int i=0; i<myOnlyReceivers.size(); i++)
+      if ( ((String)myOnlyReceivers.elementAt(i)).equalsIgnoreCase(aName) )
+	return true;
+    return false;
+  }
+
+  public void run() {
+    String line;
+    try {
+      //ACLParser parser = new ACLParser(in);
+      ACLMessage msg;
+      while (true) {
+	msg = ACLMessage.fromText(new InputStreamReader(in)); // parser.Message();
+	if (myOnlyReceiversContains(msg.getDest())) {
+	  msg.setSource(myAgent.getLocalName());
+	  if ((msg.getReplyWith() == null) || (msg.getReplyWith().length()<1))
+	    msg.setReplyWith(myAgent.getLocalName()+"."+getName()+"."+java.lang.System.currentTimeMillis()); 
+	  myAgent.send(msg);
+	  myAgent.addBehaviour(new WaitAnswersBehaviour(myAgent,msg,out));
+	} else { 
+	  out.println("(refuse :content unauthorised)");
+	  close(null); 
+	  return; 
+	}
+      }
+    } catch(ParseException e) {
+      close(e); return;
+    }
+  }
+
+  void close(Exception e){
+    try { client.close(); } catch (IOException e2) {}
+    e.printStackTrace();
+  }
+
+}
+
+class WaitAnswersBehaviour extends SimpleBehaviour {
+
+  ACLMessage msg;
+  PrintStream out;
+  long timeout,blockTime,endingTime;
+  final static long DEFAULT_TIMEOUT = 600000; // 10 minutes
+  boolean finished;
+  MessageTemplate mt;
+
+  WaitAnswersBehaviour(Agent a, ACLMessage m, PrintStream o) {
+    super(a);
+    out = o;
+    mt = MessageTemplate.and(MessageTemplate.MatchSource(m.getDest()),MessageTemplate.MatchReplyTo(m.getReplyWith()));
+    timeout = m.getReplyByDate().getTime()-(new Date()).getTime();
+    if (timeout <= 1000) timeout = DEFAULT_TIMEOUT; 
+    endingTime = System.currentTimeMillis() + timeout;
+    finished = false;
+  }
+
+   public void action() {
+     msg = myAgent.receive(mt);
+     if (msg == null) {
+       blockTime = endingTime - System.currentTimeMillis();
+       if (blockTime <= 0) finished=true;
+       else	           block(blockTime);
+       return;
+     }
+     out.println(msg.toString());
+     //System.err.println(myAgent.getLocalName()+" sent "+msg.toString());
+   }
+
+   public boolean done() {
+     return finished;
+   }
+
+    
+}
