@@ -191,7 +191,8 @@ public class MicroRuntime {
 						current.join();
 					}
 					catch (InterruptedException ie) {
-						Logger.println("Interrupted in join");
+            Logger logger = Logger.getMyLogger(this.getClass().getName());
+						logger.log(Logger.SEVERE,"Interrupted in join");
 					}
 					terminator.run();
 				}

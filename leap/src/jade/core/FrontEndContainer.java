@@ -39,11 +39,14 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 /**
-@author Giovanni Caire - TILAB
+   @author Giovanni Caire - TILAB
+   @author Jerome Picault - Motorola Labs
 */
 
 class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.BIFEDispatcher";
+
+  Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	// The table of local agents
 	private Hashtable localAgents = new Hashtable(1);
@@ -102,13 +105,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
 		}
 		catch (IMTPException imtpe) {
-		  Logger.println("IMTP error "+imtpe);
+		  logger.log(Logger.SEVERE,"IMTP error "+imtpe);
 			imtpe.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
 		}
 		catch (Exception e) {
-		  Logger.println("Unexpected error "+e);
+		  logger.log(Logger.SEVERE,"Unexpected error "+e);
 			e.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
@@ -125,7 +128,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 					initAgent(s.getName(), s.getClassName(), s.getArgs());
 				}
 				catch (Exception e) {
-		  		Logger.println("Exception creating new agent "+e);
+		  		logger.log(Logger.SEVERE,"Exception creating new agent "+e);
 				}
 			}
 			
@@ -141,7 +144,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		catch (Exception e1) {
-		  Logger.println("Exception parsing agent specifiers "+e1);
+		  logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
 	}
@@ -169,7 +172,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	}
   	catch (Exception e) {
   		String msg = "Exception creating new agent. ";
-  		Logger.println(msg+e);
+  		logger.log(Logger.SEVERE,msg+e);
   		throw new IMTPException(msg, e);
   	}
   }
@@ -234,7 +237,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public final void exit(boolean self) throws IMTPException {
   	if (!exiting) {
   		exiting = true;
-	  	Logger.println("Container shut down activated");
+	  	logger.log(Logger.INFO,"Container shut down activated");
 	    
 	  	// Kill all agents 
 	  	synchronized (this) {
@@ -248,12 +251,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 	  		localAgents.clear();
 	  	}
-	  	Logger.println("Local agents terminated");
+	  	logger.log(Logger.INFO,"Local agents terminated");
 	  	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
-	  	Logger.println("Connection manager closed");
+	  	logger.log(Logger.INFO,"Connection manager closed");
 	  	
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
@@ -287,10 +290,15 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		}
   }
   	
-  
 	/////////////////////////////////////
 	// AgentToolkit interface implementation
 	/////////////////////////////////////
+  //#MIDP_EXCLUDE_BEGIN
+  public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials){
+    return null;
+  }
+  //#MIDP_EXCLUDE_END
+
   public final Location here() {
   	return myId;
   }
@@ -329,7 +337,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	  }
 	    }
 	    catch(IMTPException re) {
-			  Logger.println(re.toString());
+			  logger.log(Logger.SEVERE,re.toString());
 	    }
   	}
   }
@@ -409,7 +417,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
   }
   
-  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs) {
+  public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal oldPrincipal, Credentials creds) {
   }
   
   public Authority getAuthority() {
@@ -468,7 +476,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	pending.addElement(sender);
 			int size = pending.size();
 	  	if (size > 100 && size < 110) {
-	  		jade.util.Logger.println(size+" pending messages");
+	  		logger.log(Logger.INFO,size+" pending messages");
 	  	}
 	  	pending.notifyAll();
   	}
@@ -486,7 +494,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  			}
 	  			catch (InterruptedException ie) {
 	  				// Should never happen
-	  				Logger.println(ie.toString());
+	  				logger.log(Logger.SEVERE,ie.toString());
 	  			}
 	  		}
 	  		msg = (ACLMessage) pending.elementAt(0);
@@ -501,7 +509,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	catch (Exception e) {
 	  		// Should never happen. Note that "NotFound" here is referred 
 	  		// to the sender.
-	  		Logger.println(e.toString());
+	  		logger.log(Logger.SEVERE,e.toString());
 	  	}
 	  	// Notify terminating agents (if any) waiting for their messages to be delivered
 	  	synchronized (pending) {
