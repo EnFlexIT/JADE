@@ -14,7 +14,7 @@ export JFLAGS = -deprecation
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
-EXECS       = 	jade/core/StartPlatform.java jade/core/StartContainer.java
+EXECS       = 	jade/Boot.java
 ROOTCLASSES =	jade/core/ComplexBehaviour.java jade/core/SimpleBehaviour.java
 STUBDIR     =	.
 STUBS       = 	jade.core.AgentContainerImpl \
