@@ -297,8 +297,10 @@ public class rma extends ToolAgent {
   */
   protected void toolTakeDown() {
     send(getCancel());
-    myGUI.setVisible(false);
-    myGUI.disposeAsync();
+    if (myGUI != null) {
+	myGUI.setVisible(false);
+	myGUI.disposeAsync();
+    }
   }
 
   protected void beforeClone() {
