@@ -161,10 +161,13 @@ protected void afterClone() {
      System.out.println(getLocalName()+" is just arrived to this location.");
      // creates and shows the GUI
      gui = new MobileAgentGui(this);
-     
-     visitedLocations.addElement(nextSite);
-     for (int i=0; i<visitedLocations.size(); i++)
-       gui.addVisitedSite((Location)visitedLocations.elementAt(i));
+     //if the migration is via RMA the variable nextSite can be null.
+     if(nextSite != null)
+     {
+     	visitedLocations.addElement(nextSite);
+      for (int i=0; i<visitedLocations.size(); i++)
+        gui.addVisitedSite((Location)visitedLocations.elementAt(i));
+     }
      gui.setVisible(true); 	
 			
      // Register again SL0 content language and JADE mobility ontology,
