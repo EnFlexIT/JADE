@@ -80,8 +80,10 @@ class MessageQueue {
   }
 
   public void addLast(ACLMessage msg) {
-    if((maxSize != 0) && (list.size() >= maxSize))
+    if((maxSize != 0) && (list.size() >= maxSize)){
       list.removeFirst(); // FIFO replacement policy
+      System.err.println("WARNING: a message has been lost by an agent because of the FIFO replacement policy of its message queue.\n Notice that, under some circumstances, this might not be the proper expected behaviour and the size of the queue needs to be increased. Check the method Agent.setQueueSize()");
+      }
     list.addLast(msg);
   }
 
