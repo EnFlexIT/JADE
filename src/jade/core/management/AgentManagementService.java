@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.management;
 
 import jade.core.ServiceFinder;
+import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -91,7 +92,7 @@ public class AgentManagementService extends BaseService {
 	return localSlice;
     }
 
-    public Filter getCommandFilter() {
+    public Filter getCommandFilter(boolean direction) {
 	return localSlice;
     }
 
@@ -185,7 +186,7 @@ public class AgentManagementService extends BaseService {
 	    }
 	}
 
-	public void serve(VerticalCommand cmd) {
+	public VerticalCommand serve(HorizontalCommand cmd) {
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -239,6 +240,14 @@ public class AgentManagementService extends BaseService {
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+	    }
+	    finally {
+		if(cmd instanceof VerticalCommand) {
+		    return (VerticalCommand)cmd;
+		}
+		else {
+		    return null;
+		}
 	    }
 	}
 
