@@ -111,6 +111,18 @@ public class JICPProtocol extends TransportProtocol {
   public static final String KEEP_ALIVE_TIME_KEY = "keep-alive-time";
   public static final String MEDIATOR_CLASS_KEY = "mediator-class";
 	public static final String MEDIATOR_ID_KEY = "mediator-id";	
+	/**
+	   The key to retrieve the owner of the starting container.
+	   This information allows using a split container in a secure
+	   JADE platform as follows:
+	   Front-End: In the startup peroperties specify 
+	   - owner = <username>:<password>
+	   Back-End: In the leap property file of the JICPMediatorManager
+	   that will host the BackEnd specify
+	   - services = ....<security services>...
+	   - jade_security_authentication_logincallback = cmdline
+	 */
+	public static final String OWNER_KEY = "owner";	
 
   	
   private static JICPProtocol theInstance = new JICPProtocol();

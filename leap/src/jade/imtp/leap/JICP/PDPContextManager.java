@@ -23,16 +23,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap.JICP;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.util.leap.Properties;
 
 import java.net.InetAddress;
 
-//#J2ME_EXCLUDE_FILE
-
 public interface PDPContextManager {
 	public static final String MSISDN = "msisdn";
-	public static final String USERNAME = "username";
-	public static final String PASSWORD = "password";
+	public static final String USERNAME = "pdp-context-username";
+	public static final String PASSWORD = "pdp-context-password";
 	public static final String LOCATION = "location";
 	
 	public static interface Listener {
@@ -43,5 +43,5 @@ public interface PDPContextManager {
   
   void registerListener(Listener l);
   
-  Properties getPDPContextInfo(InetAddress addr);
+  Properties getPDPContextInfo(InetAddress addr, String owner);
 }

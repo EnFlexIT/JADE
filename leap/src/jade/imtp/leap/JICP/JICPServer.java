@@ -401,7 +401,8 @@ public class JICPServer extends Thread
 		          
 		          // If there is a PDPContextManager add the PDP context properties
 		          if (myPDPContextManager != null) {
-		          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr);
+		          	// FIXME: Get username and password specified among the CREATE_MEDIATOR properties
+		          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr, p.getProperty(JICPProtocol.OWNER_KEY));
 		          	if (pdpContextInfo != null) {
 									myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
 			          	mergeProperties(p, pdpContextInfo);

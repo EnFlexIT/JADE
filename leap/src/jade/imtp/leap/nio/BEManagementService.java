@@ -464,7 +464,7 @@ public class BEManagementService extends BaseService {
 				        
 				        // If there is a PDPContextManager add the PDP context properties
 				        if (myPDPContextManager != null) {
-				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address);
+				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, p.getProperty(JICPProtocol.OWNER_KEY));
 				        	if (pdpContextInfo != null) {
 				          	mergeProperties(p, pdpContextInfo);
 				        	}
@@ -538,9 +538,11 @@ public class BEManagementService extends BaseService {
 				        	myLogger.log(Logger.INFO, myLogPrefix+"CONNECT_MEDIATOR request received from "+address+":"+port+". ID="+recipientID);
 				        }
 				        
-				        // If there is a PDPContextManager  check that the recipientID is the MSISDN
-				        if (myPDPContextManager != null) {
-				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address);
+				        // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN.
+				        // Where should we get the owner from? It should likely be replicated in each 
+				        // CONNECT_MEDIATOR request.
+				        /*if (myPDPContextManager != null) {
+				        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, "OWNER???");
 				        	if (pdpContextInfo != null) {
 				        		String msisdn = pdpContextInfo.getProperty(PDPContextManager.MSISDN);
 				        		if (msisdn == null || !msisdn.equals(recipientID)) {
@@ -554,7 +556,7 @@ public class BEManagementService extends BaseService {
 				        		reply = new JICPPacket("Not authorized", null);
 				        		break;
 				        	}
-				        }
+				        }*/
 
 				        // Retrieve the mediator to connect to
 				        mediator = getFromID(recipientID);

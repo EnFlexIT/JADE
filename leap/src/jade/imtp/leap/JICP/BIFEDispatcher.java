@@ -53,7 +53,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	protected static final byte INP = (byte) 1;
 	protected static final byte OUT = (byte) 0;
 	
-	private static final String OWNER = "owner";
 	private static final String MSISDN = "msisdn";
 	
 	protected String myMediatorClass = "jade.imtp.leap.JICP.BIBEDispatcher";
@@ -229,7 +228,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    appendProp(sb, "lastsid", String.valueOf(lastSid));
     }
 	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
-	  appendProp(sb, OWNER, props.getProperty(OWNER));
+	  appendProp(sb, JICPProtocol.OWNER_KEY, props.getProperty(JICPProtocol.OWNER_KEY));
 	  appendProp(sb, MSISDN, props.getProperty(MSISDN));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
