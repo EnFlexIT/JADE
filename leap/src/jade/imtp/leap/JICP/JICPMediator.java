@@ -87,7 +87,9 @@ public interface JICPMediator {
    JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException;
    
    /**
-      This is called by the JICPPeer ticker at each tick.
+      This is periodically called by the JICPMediatorManager and should
+      be used by a JICPMediator to evaluate the elapsed time without
+      the need of a dedicated thread or timer.
     */
    void tick(long time);
 }
