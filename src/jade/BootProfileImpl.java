@@ -44,6 +44,8 @@ import jade.core.ProfileImpl;
 import jade.core.Profile;
 import jade.core.Specifier;
 
+import jade.domain.df;
+
 /**
  * A profile implementation enhanced to support boot's
  * argument parsing. This class serves as the bridge between
@@ -78,6 +80,12 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String PORT_KEY = "port";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";
+
+	// PROVA
+//    public static final String A_KEY = "jade.domain.df.dbdrv";
+//    public static final String B_KEY = "jade.domain.df.dburl";
+//    public static final String C_KEY = "jade.domain.df.kbmaxres";
+
 
     ExpandedProperties argProp = null;
     BootHelper helper = new BootHelper();
@@ -170,6 +178,20 @@ public class BootProfileImpl extends ProfileImpl {
             profileProp.setProperty(Profile.POLICY_FILE, value);
         }
 
+		/* PER IL DF
+        value = argProp.getProperty(df.KBDF_MAX_RESULTS);
+        if (value != null) {
+            profileProp.setProperty(df.KBDF_MAX_RESULTS, value);
+        }
+        value = argProp.getProperty(df.DBDF_DRIVER);
+        if (value != null) {
+            profileProp.setProperty(df.DBDF_DRIVER, value);
+        }
+        value = argProp.getProperty(df.DBDF_URL);
+        if (value != null) {
+            profileProp.setProperty(df.DBDF_URL, value);
+        }*/
+
         value = argProp.getProperty(PASSWD_KEY);
         if (value != null) {
             profileProp.setProperty(Profile.PASSWD_FILE, value);
@@ -201,6 +223,7 @@ public class BootProfileImpl extends ProfileImpl {
        }
 
         String port = argProp.getProperty(PORT_KEY);
+
         if (port != null) {
             profileProp.setProperty(Profile.MAIN_PORT, port);
         } else {

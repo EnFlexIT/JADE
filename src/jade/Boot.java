@@ -76,7 +76,7 @@ public class Boot {
      */
     public Boot(String[] args) {
         try {
-            profile = new BootProfileImpl(prepareArgs(args));
+            profile = new BootProfileImpl(prepareArgs(args)); // qui adesso gli passa anche dbconf
         } catch (PropertiesException pe) {
             System.out.println(pe);
             System.exit(-1);
@@ -182,7 +182,7 @@ public class Boot {
     /**
      * Transform original style boot arguments to new form.
      * <pre>
-     * In the following 'x' denotes an arbitrary string; 'n' an integer.
+     * In the following 'x' and 'y' denote arbitrary strings; 'n' an integer.
      * Transformation Rules:
      * Original       New
      * ------------------------------
@@ -202,6 +202,7 @@ public class Boot {
      * -h             -help
      * -nomtp         -nomtp
      * -nomobility    -nomobility
+     * -y x           y:x
      * agent list     agents:agent list
      * </pre>
      * If the arguments contain either import:x or agents:x
@@ -275,7 +276,7 @@ public class Boot {
                 } else {
                     results.add("host:" + args[n]);
                 }
-            } else if (theArg.equalsIgnoreCase("-owner")) {
+            }else if (theArg.equalsIgnoreCase("-owner")) {
                 if (++n == args.length) {
 
 					// "owner:password" not provided on command line
@@ -349,6 +350,9 @@ public class Boot {
                 } else {
                     results.add("aclcodec:" + args[n]);
                 }
+            } else if (theArg.startsWith("-") && n+1 < args.length) {
+            	// Generic option
+            	results.add(theArg.substring(1)+":"+args[++n]);
             } else {
                 endCommand = true;    //no more options on the command line
             }
@@ -418,6 +422,7 @@ public class Boot {
         out.println("  -owner <username:password>\tThe owner of a container or platform.");
 	out.println("  -nomobility\t\tIf specified, disables the mobility and cloning support for the container.");
         out.println("  -help\t\t\tPrints out usage informations.");
+        out.println("  -<key> <value>\t\tApplication specific options.");
         out.println("");
         out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");
         out.println(NAME2CLASS_SEPARATOR + "\"");
