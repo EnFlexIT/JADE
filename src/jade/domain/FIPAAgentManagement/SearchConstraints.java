@@ -38,6 +38,30 @@ private Long max_results = null;
 
     private String search_id = null;
 
+    /**
+     * Constructor. Creates a new SearchConstraints by setting default value, as defined
+     * by FIPA, for max_depth (i.e. 0 that corresponds to no propagation of the search
+     * to the federated DFs) and max_results (i.e. 1 result only to be returned).
+     * Furthermore, a new globally unique identifier is created for the value of
+     * search_id.
+     * WARNING: When the same object is reused for several searches, it is
+     * recommended to call the method <code>renewSearchId</code> in order
+     * to create a new globally unique identifier. Otherwise, the DF might reply
+     * with a FAILURE having received already the same search.
+     **/
+    public SearchConstraints () {
+        renewSearchId();
+    }
+    
+    /** Regenerate the value of search_id as a globally unique identifier.
+     * This call is recommended in order to reuse the same object for several
+     * searches. Otherwise, the DF might reply with a FAILURe having received
+     * already the same search.
+     **/
+    public void renewSearchId() {
+        search_id = "s" + hashCode() + "_" + System.currentTimeMillis();
+    }
+    
     public void setSearchId(String searchId) {
 	search_id = searchId;
     }
