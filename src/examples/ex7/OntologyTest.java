@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -59,7 +60,7 @@ public class OntologyTest {
 
     public static class Factory implements RoleFactory {
 
-      public Object create() {
+      public Object create(Frame f) {
 	return new Person();
       }
 
@@ -275,7 +276,7 @@ public class OntologyTest {
 	new TermDescriptor("CITY", Ontology.STRING_TYPE, Ontology.M)
 	    },
 			   new RoleFactory() { // In-line, anonymous factory
-				 public Object create() { return new PlainAddress(); }
+				 public Object create(Frame f) { return new PlainAddress(); }
 				 public Class getClassForRole() { return PlainAddress.class; }
 			       });
 
@@ -306,7 +307,7 @@ public class OntologyTest {
 	new TermDescriptor("EMAIL", Ontology.STRING_TYPE, Ontology.M)
 	    },
 			   new RoleFactory() { // In-line, anonymous factory
-				 public Object create() { return new FullAddress(); }
+				 public Object create(Frame f) { return new FullAddress(); }
 				 public Class getClassForRole() { return FullAddress.class; }
 			       });
 
