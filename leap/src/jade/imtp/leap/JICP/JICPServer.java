@@ -239,12 +239,9 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
       } 
     } // END of while(listen) 
 
-<<<<<<< JICPServer.java
 		if(myLogger.isLoggable(Logger.INFO))
 			myLogger.log(Logger.INFO,"JICPServer terminated");
-=======
-		myLogger.log(Logger.FINE,"JICPServer terminated");
->>>>>>> 1.35
+
 		
     // release socket
     try {
@@ -411,13 +408,9 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  if(id != null) {
 					  	if (msisdn != null && !msisdn.equals(id)) {
 					  		// Security attack: Someone is pretending to be someone other
-<<<<<<< JICPServer.java
 	          		if(myLogger.isLoggable(Logger.INFO))
 	          			myLogger.log(Logger.INFO,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
-=======
-	          		myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
->>>>>>> 1.35
-	          		reply = new JICPPacket("Not authorized", null);
+		reply = new JICPPacket("Not authorized", null);
 	          		break;
 					  	}	
 					  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
@@ -553,7 +546,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
           if (closeConnection) {
             // Close connection
 
-		        if (!addr.equals(localHost)) {
+		        if (!addr.equals(host)) {
 	          	if(myLogger.isLoggable(Logger.INFO))
 	          		myLogger.log(Logger.INFO,"Closing connection with "+addr+":"+port);
 		        }
