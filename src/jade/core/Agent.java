@@ -62,6 +62,8 @@ import jade.domain.FIPAException;
 import jade.content.ContentManager;
 
 import jade.security.AgentPrincipal;
+import jade.security.DelegationCertificate;
+import jade.security.IdentityCertificate;
 
 /**
    The <code>Agent</code> class is the common superclass for user
@@ -915,10 +917,10 @@ public class Agent implements Runnable, Serializable {
     return msgQueue.getMaxSize();
   }
 
-  public void setPrincipal(AgentPrincipal p) {
+  public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
     synchronized(principalLock) {
       AgentPrincipal old = principal;
-      principal = p;
+      principal = (AgentPrincipal)identity.getSubject();
       notifyChangedAgentPrincipal(old, principal);
     }
   }

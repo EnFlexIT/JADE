@@ -53,10 +53,14 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AgentPrincipal;
 //__JADE_ONLY__BEGIN
+import jade.security.AgentPrincipal;
 import jade.security.Authority;
-import jade.security.PlatformAuthority;
+import jade.security.AuthenticationException;
+import jade.security.AuthorizationException;
+import jade.security.DelegationCertificate;
+import jade.security.IdentityCertificate;
+import jade.security.UserPrincipal;
 //__JADE_ONLY__END
 
 
@@ -105,8 +109,16 @@ class MainContainerImpl implements Platform, AgentManager {
     	}
 	  }
 //__JADE_ONLY__BEGIN
-	  PlatformAuthority auth = new PlatformAuthority("main-auth", System.getProperty("jade.security.passwd"));
-	  Authority.setAuthority(auth);
+	  //PlatformAuthority auth = new PlatformAuthority("main-auth", System.getProperty("jade.security.passwd"));
+	  try {
+	    Authority auth = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
+	    auth.setName("main-auth");
+	    auth.readPasswdFile(System.getProperty("jade.security.passwd"));
+  	  Authority.setAuthority(auth);
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
 //__JADE_ONLY__END
   }
 
@@ -609,11 +621,15 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  public void changeAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) throws NotFoundException, UnreachableException {
+  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException {
 //__JADE_ONLY__BEGIN
     try {
+      Authority auth = Authority.getAuthority();
+      IdentityCertificate cert = auth.authenticateUser(user, passwd);
+      // ottenere IC e DC per agente !!!
+      cert.setSubject(new AgentPrincipal((UserPrincipal)cert.getSubject(), agentID));
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.changeAgentPrincipal(agentID, newPrincipal);
+      ac.changeAgentPrincipal(agentID, cert, null);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());

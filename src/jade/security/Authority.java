@@ -42,7 +42,7 @@ public abstract class Authority {
 		can be read with <code>getAuthority()</code>.
 		@param auth The default authority.
 	*/
-	public static void setAuthority(Authority auth) {
+	public static void setAuthority(Authority auth) throws AuthorizationException {
 		if (theAuthority != null) throw new AuthorizationException("Default authority is already defined");
 		theAuthority = auth;
 	}
@@ -57,9 +57,23 @@ public abstract class Authority {
 	
 	/**
 		Creates a new Authority.
+	*/
+	public Authority() {
+	}
+	
+	/**
+		Creates a new Authority.
 		@param name The name of the authority.
 	*/
 	public Authority(String name) {
+		this.name = name;
+	}
+	
+	/**
+		Set the name of the authority.
+		@param name The name of the authority.
+	*/
+	public void setName(String name) {
 		this.name = name;
 	}
 	
@@ -71,6 +85,9 @@ public abstract class Authority {
 		return name;
 	}
 	
+  public void readPasswdFile(String passwdFile) {
+  }
+  
 	/**
 		Checks the validity of a given certificate.
 		The period of validity is tested, as well as the integrity

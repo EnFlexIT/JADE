@@ -40,7 +40,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AgentPrincipal;
+import jade.security.DelegationCertificate;
+import jade.security.IdentityCertificate;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -183,9 +184,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
   
-  public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException {
+  public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
     try {
-      adaptee.changeAgentPrincipal(agentID, newPrincipal);
+      adaptee.changeAgentPrincipal(agentID, identity, delegation);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

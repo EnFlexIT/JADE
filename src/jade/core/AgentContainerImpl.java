@@ -43,6 +43,8 @@ import jade.mtp.TransportAddress;
 
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 //__JADE_ONLY__END
 
 
@@ -194,11 +196,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
 //__JADE_ONLY__BEGIN
-  public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException {
+  public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
     Agent agent = localAgents.get(agentID);
     if (agent == null)
       throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
-    agent.setPrincipal(newPrincipal);
+    agent.setPrincipal(identity, delegation);
   }
 //__JADE_ONLY__END
 

@@ -39,7 +39,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.AgentPrincipal;
+import jade.security.DelegationCertificate;
+import jade.security.IdentityCertificate;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -76,8 +77,8 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.uninstallMTP(address);
     }
     
-    public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws RemoteException, NotFoundException, IMTPException {
-      impl.changeAgentPrincipal(agentID, newPrincipal);
+    public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, NotFoundException, IMTPException {
+      impl.changeAgentPrincipal(agentID, identity, delegation);
     }
     
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {

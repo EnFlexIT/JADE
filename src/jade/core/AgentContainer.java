@@ -32,6 +32,8 @@ import jade.mtp.MTPException;
 
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.DelegationCertificate;
+import jade.security.IdentityCertificate;
 //__JADE_ONLY__END
 
 /**
@@ -61,7 +63,7 @@ public interface AgentContainer {
   void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
 
 //__JADE_ONLY__BEGIN
-  void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException;
+  void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException;
 //__JADE_ONLY__END
 
   void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;

@@ -43,35 +43,45 @@ public class PlatformAuthority extends Authority {
   }
   
   Vector users = null;
+  int serial = 1;
+  byte[] key = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 };
+  
+  public PlatformAuthority() {
+    super();
+  }
   
   public PlatformAuthority(String name, String passwdFile) {
     super(name);
-    if (passwdFile != null) {
-      users = new Vector();
-      try {
-        BufferedReader file = new BufferedReader(new FileReader(passwdFile));
-        String line = file.readLine();
-        while (line != null) {
-          line = line.trim();
-          if (line.length() > 0) {
-            UserEntry entry = new UserEntry();
-            int sep = line.indexOf(":");
-            if (sep != -1) {
-              entry.usr = line.substring(0, sep);
-              entry.key = line.substring(sep + 1, line.length());
-            }
-            else {
-              entry.usr = line;
-              entry.key = null;
-            }
-            System.out.println("usr = " + entry.usr + "; key = " + entry.key + ";");
-            users.addElement(entry);
+    if (passwdFile != null)
+      readPasswdFile(passwdFile);
+  }
+  
+  public void readPasswdFile(String passwdFile) {
+    if (passwdFile == null) return;
+    users = new Vector();
+    try {
+      BufferedReader file = new BufferedReader(new FileReader(passwdFile));
+      String line = file.readLine();
+      while (line != null) {
+        line = line.trim();
+        if (line.length() > 0) {
+          UserEntry entry = new UserEntry();
+          int sep = line.indexOf(":");
+          if (sep != -1) {
+            entry.usr = line.substring(0, sep);
+            entry.key = line.substring(sep + 1, line.length());
           }
-          line = file.readLine();
+          else {
+            entry.usr = line;
+            entry.key = null;
+          }
+          System.out.println("usr = " + entry.usr + "; key = " + entry.key + ";");
+          users.addElement(entry);
         }
+        line = file.readLine();
       }
-      catch(Exception e) { e.printStackTrace(); }
     }
+    catch(Exception e) { e.printStackTrace(); }
   }
   
 	/**
@@ -102,6 +112,31 @@ public class PlatformAuthority extends Authority {
 	}
 	
 	public IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException {
-	  return null;
+	  System.out.println(user.getName());
+	  System.out.println(new String(passwd));
+    IdentityCertificate cert = null;
+	  String name = user.getName();
+	  if (users == null) {
+	    return null;
+	  }
+	  else for (int i = 0; i < users.size() && cert == null; i++) {
+	    UserEntry entry = (UserEntry)users.elementAt(i);
+	    if (entry.usr.equals(name)) {
+	      if (passwd.length != entry.key.length())
+	        throw new AuthenticationException("Wrong password");
+	      for (int j = 0; j < entry.key.length(); j++) {
+	        if (entry.key.charAt(j) != passwd[j])
+  	        throw new AuthenticationException("Wrong password");
+	      }
+	      // ok: user found + exact password
+	      cert = new IdentityCertificate();
+	      cert.init(user, 0, 0);
+	      cert.issue(new JADEPrincipal(this.name), key, serial++);
+	      byte[] signature = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
+	      cert.sign(signature);
+	      return cert;
+	    }
+	  }
+	  throw new AuthenticationException("Unknown user");
 	}
 }

@@ -35,6 +35,9 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.AgentPrincipal;
+import jade.security.AuthenticationException;
+import jade.security.AuthorizationException;
+import jade.security.UserPrincipal;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -74,7 +77,7 @@ public interface AgentManager {
   void suspend(AID agentID, String password) throws NotFoundException, UnreachableException;
   void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
 
-  void changeAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) throws NotFoundException, UnreachableException;
+  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException;
 
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;
   void wake(AID agentID, String password) throws NotFoundException, UnreachableException;

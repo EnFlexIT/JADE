@@ -70,6 +70,9 @@ import jade.mtp.MTPException;
 import jade.proto.FipaRequestResponderBehaviour;
 
 import jade.security.AgentPrincipal;
+import jade.security.AuthenticationException;
+import jade.security.AuthorizationException;
+import jade.security.UserPrincipal;
 
 /**
   Standard <em>Agent Management System</em> agent. This class
@@ -152,20 +155,27 @@ public class ams extends Agent implements AgentManager.Listener {
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processAction(Action a) throws FIPAException;
+    protected abstract void processAction(Action a) throws FIPAException, AuthenticationException, AuthorizationException;
 
     public void action() {
-	Action a = null;
-	try {
-	ACLMessage msg = getRequest();
-	List l = myAgent.extractMsgContent(msg);
-	a = (Action)l.get(0);
-	// Do real action, deferred to subclasses
-	processAction(a);
-	} catch(FIPAException fe) {
-	    String ontoName = getRequest().getOntology();
-	    sendReply((fe instanceof FailureException?ACLMessage.FAILURE:ACLMessage.REFUSE),createExceptionalMsgContent(a, ontoName, fe));
-	}
+      Action a = null;
+      try {
+        ACLMessage msg = getRequest();
+        List l = myAgent.extractMsgContent(msg);
+        a = (Action)l.get(0);
+        // Do real action, deferred to subclasses
+        processAction(a);
+      }
+      catch (FIPAException fe) {
+        String ontoName = getRequest().getOntology();
+        sendReply((fe instanceof FailureException?ACLMessage.FAILURE:ACLMessage.REFUSE),createExceptionalMsgContent(a, ontoName, fe));
+	    }
+      catch (AuthenticationException e1) {
+        sendReply(ACLMessage.REFUSE, "("+e1.getMessage()+")");
+      }
+      catch (AuthorizationException e2) {
+        sendReply(ACLMessage.REFUSE, "("+e2.getMessage()+")");
+      } 
     }
 
     /**
@@ -288,7 +298,7 @@ public class ams extends Agent implements AgentManager.Listener {
       return new ModBehaviour(msg);
     }
 
-    protected void processAction(Action a) throws FIPAException {
+    protected void processAction(Action a) throws FIPAException, AuthenticationException, AuthorizationException {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
@@ -1085,22 +1095,29 @@ public class ams extends Agent implements AgentManager.Listener {
     // System.out.println(amsd.getName().getName()+ " deregistered from AMS" );
   }
 
-  private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
+  private void AMSModify(AMSAgentDescription amsd) throws FIPAException, AuthenticationException, AuthorizationException {
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
     AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
     if (old == null)
       throw new NotRegistered();
     agentDescriptions.register(amsd.getName(), amsd);
     try {
+      String ownership = amsd.getOwnership();
+      int dot2 = ownership.indexOf(':');
+      String username = dot2 != -1 ? ownership.substring(0, dot2) : ownership;
+      String password = dot2 != -1 ? ownership.substring(dot2 + 1, ownership.length()) : "";
       if (!old.getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
         myPlatform.suspend(amsd.getName(),  "");
       if (old.getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
         myPlatform.activate(amsd.getName(),  "");
       if (!old.getOwnership().equalsIgnoreCase(amsd.getOwnership()))
-        myPlatform.changeAgentPrincipal(amsd.getName(), new AgentPrincipal(old.getOwnership()), new AgentPrincipal(amsd.getOwnership()));
+        myPlatform.changeAgentPrincipal(amsd.getName(), new UserPrincipal(username), password.getBytes());
     }
-    catch (Exception e) {
-      e.printStackTrace();
+    catch (NotFoundException nfe) {
+      nfe.printStackTrace();
+    }
+    catch (UnreachableException ue) {
+      ue.printStackTrace();
     }
   }
 

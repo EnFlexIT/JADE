@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.security;
 
 
+import jade.core.AID;
+
 /**
 
   This class represents principals associated to agents.
@@ -37,8 +39,12 @@ public class AgentPrincipal extends JADEPrincipal implements java.io.Serializabl
     super();
   }
 
-  public AgentPrincipal(String n) {
-    super(n);
+  public AgentPrincipal(String name) {
+    super(name);
+  }
+
+  public AgentPrincipal(UserPrincipal user, AID agent) {
+    super(user.getName() + "." + agent.getName());
   }
 
 }

@@ -31,7 +31,7 @@ package jade.security;
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public class JADESecurityException extends java.lang.SecurityException {
+public class JADESecurityException extends Exception {
 
 	/**
 		Creates a new JADESecurityException.
