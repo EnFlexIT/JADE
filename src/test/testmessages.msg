@@ -1,3 +1,35 @@
+(REQUEST
+ :sender  ( agent-identifier  :name da0@FBELLIF:1099/JADE)
+ :receiver  (set ( agent-identifier  :name df@FBELLIF:1099/JADE) )
+ :content  "((action (Agent-Identifier :name DF@IOR:001122)
+            (REGISTER 
+             (Df-agent-description
+             :name (Agent-Identifier :name x2@ior:002233)
+             :services (set
+               (Service-Description
+                :name Service1
+                :type TestType
+                :ontology (set Os1 Os2 Os3)
+                :language (set l1 l2 l3)
+                :protocol (set Ps1 Ps2 Ps3)
+                :ownership CSELT
+                :properties (set (Property :name X1 :value V1) 
+          			 (Property :name X3 :value 12) 
+          			 (Property :name X4 :value -12.23) 
+          			 (Property :name X5 :value 20001211T100025100A)
+          			 (Property :name X6 :value (Agent-Identifier :name x))
+          			 (Property :name X7 :value (Dummy :name x))
+                                 (Property :name X2 :value V2) )))
+             :protocol (set FIPA-Request FIPA-Contract-Net)
+             :ontology (set FIPA-Agent-Management Trading)
+             :language (set FIPA-SL0)
+          ))))" 
+ :language  fipa-sl0
+ :ontology  fipa-agent-management
+ :protocol  fipa-request
+ :X-comment "This message uses singular names for protocol, ontology, language slots in order to test FIPA2000 compliance."
+)
+
 (INFORM
  :language FIPA-SL0
  :ontology fipa-agent-management
