@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.3  1999/08/10 15:36:11  rimassa
+  Added support for serialization with a Memento pattern in order to
+  tranfer just the size of the queue and not its content.
+
   Revision 1.2  1999/06/30 12:24:54  rimassa
   Fixed a bug dealing with unlimited message queues.
 
@@ -11,12 +15,29 @@
 
 package jade.core;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import jade.lang.acl.ACLMessage;
 
-class MessageQueue {
+class MessageQueue implements Serializable {
+
+  // This class is sent onto the stream in place of the MessageQueue;
+  // when read and resolved, it yields a new MessageQueue with the
+  // same maximum size as the original one.
+  private static class Memento implements Serializable {
+    private int size;
+
+    public Memento(int sz) {
+      size = sz;
+    }
+
+    private Object readResolve() throws java.io.ObjectStreamException {
+      return new MessageQueue(size);
+    }
+
+  }
 
   private LinkedList list;
   private int maxSize;
@@ -64,5 +85,9 @@ class MessageQueue {
     return list.iterator();
   }
 
+  // This class is serialized by sending only its current size
+  private Object writeReplace() throws java.io.ObjectStreamException {
+    return new Memento(maxSize);
+  }
 
 }
