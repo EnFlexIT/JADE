@@ -42,15 +42,18 @@ public class LoadableMsgSender extends WakerBehaviour {
 	}
 	
 	public void handleElapsedTimeout() {
-		AID receiver = (AID) getDataStore().get("receiver");
-		TestLoadBehaviour.TestParam tp = (TestLoadBehaviour.TestParam) getDataStore().get("test-param");
+		AID receiver = (AID) getDataStore().get(TestLoadBehaviour.TEST_PARAM0);
+		TestLoadBehaviour.TestParam tp = (TestLoadBehaviour.TestParam) getDataStore().get(TestLoadBehaviour.TEST_PARAM1);
 		// This is just to have an inner class in the jar file
 		DummyLogger myLogger = new DummyLogger();
 		myLogger.log(myAgent.getName()+": Receiver is "+receiver.getName()+". Message is "+tp.getMessage());
-		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
 		msg.addReceiver(receiver);
 		msg.setContent(tp.getMessage());
 		myAgent.send(msg);
+		
+		// Finally fill output parameter
+		getDataStore().put(TestLoadBehaviour.TEST_PARAM2, TestLoadBehaviour.EXPECTED_OUT_VAL);
 	}
 	
 	/**

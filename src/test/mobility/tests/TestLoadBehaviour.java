@@ -34,6 +34,8 @@ import jade.util.leap.ArrayList;
 import jade.domain.mobility.*;
 import jade.content.*;
 import jade.content.onto.Ontology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 import jade.content.lang.Codec;
 import jade.content.lang.leap.LEAPCodec;
 
@@ -47,8 +49,13 @@ import java.io.*;
    @author Giovanni Caire - TILAB
  */
 public class TestLoadBehaviour extends Test {
-	private static final String TEST_MESSAGE = "Test-message";
-	private static final String LOADER_AGENT_NAME = "loader";
+	public static final String TEST_PARAM0 = "receiver";
+	public static final String TEST_PARAM1 = "test-param1";
+	public static final String TEST_PARAM2 = "test-param2";
+	public static final String EXPECTED_OUT_VAL = "XXXXXX";
+	
+	public static final String TEST_MESSAGE = "Test-message";
+	public static final String LOADER_AGENT_NAME = "loader";
 	
 	private AID la;
 	private int cnt = 0;
@@ -76,9 +83,11 @@ public class TestLoadBehaviour extends Test {
   			request.setLanguage(codec.getName());
   			request.setOntology(onto.getName());
   			List params = new ArrayList(3);
-  			Parameter p = new Parameter("receiver", myAgent.getAID());
+  			Parameter p = new Parameter(TEST_PARAM0, myAgent.getAID());
   			params.add(p);
-  			p = new Parameter("test-param", new TestParam(TEST_MESSAGE));
+  			p = new Parameter(TEST_PARAM1, new TestParam(TEST_MESSAGE));
+  			params.add(p);
+  			p = new Parameter(TEST_PARAM2, null, Parameter.OUT_MODE);
   			params.add(p);
   			LoadBehaviour lb = new LoadBehaviour();
   			lb.setClassName("test.mobility.separate.behaviours.LoadableMsgSender");
@@ -88,8 +97,10 @@ public class TestLoadBehaviour extends Test {
   				int length = str.available();
   				byte[] zip = new byte[length];
   				str.read(zip, 0, length);
-	  			lb.setZip(zip);
-	  			myContentManager.fillContent(request, lb);	  			
+  				lb.setZip(zip);
+  				
+  				Action actionExpr = new Action(myAgent.getAID(), lb);
+	  			myContentManager.fillContent(request, actionExpr);	  			
 	  			log(myAgent.getName()+": Sending LoadBehaviour request to "+la.getName());
 	  			myAgent.send(request);
   			}
@@ -106,7 +117,7 @@ public class TestLoadBehaviour extends Test {
   			if (msg != null) {
   				switch(cnt) {
   				case 0: 
-  					if (msg.getPerformative() == ACLMessage.INFORM) {
+  					if (msg.getPerformative() == ACLMessage.AGREE) {
   						log(myAgent.getName()+": LoadBehaviour request served");
   						cnt++;
   					}
@@ -115,13 +126,37 @@ public class TestLoadBehaviour extends Test {
   					}
   					break;
   				case 1:
-  					if (msg.getPerformative() == ACLMessage.INFORM) {
-  						log(myAgent.getName()+": Message from dynamically loaded behaviour received");
+  					if (msg.getPerformative() == ACLMessage.CONFIRM) {
+  						log(myAgent.getName()+": Confirmation message from dynamically loaded behaviour received");
   						if (TEST_MESSAGE.equals(msg.getContent())) {
-  							passed(myAgent.getName()+": Serializable parameter OK. Test completed");
+  							log(myAgent.getName()+": Serializable parameter OK.");
   						}
   						else {
   							failed(myAgent.getName()+": Unexpected Serializable parameter value. "+msg.getContent());
+  						}
+  					}
+  					else {
+							failed(myAgent.getName()+": Unexpected message received. "+msg.getContent());
+  					}
+  					cnt++;
+  					break;
+  				case 2:
+  					if (msg.getPerformative() == ACLMessage.INFORM) {
+  						log(myAgent.getName()+": Notification received");
+  						try {
+				  			Result r = (Result) myContentManager.extractContent(msg);
+				  			List params = r.getItems();
+				  			// Check the output parameter
+				  			Parameter p = (Parameter) params.get(2);
+				  			if (EXPECTED_OUT_VAL.equals(p.getValue())) {
+				  				passed(myAgent.getName()+": Output parameter value OK.");
+				  			}
+				  			else {
+				  				failed(myAgent.getName()+": Unexpected output parameter value "+p.getValue());
+				  			}
+  						}
+  						catch (Exception e) {
+  							failed(myAgent.getName()+": Error extracting notification content. "+e);
   						}
   					}
   					else {
@@ -137,7 +172,7 @@ public class TestLoadBehaviour extends Test {
   		}
   		
   		public boolean done() {
-  			return cnt >= 2;
+  			return cnt >= 3;
   		}  		
   	};
   			
