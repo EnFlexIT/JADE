@@ -754,10 +754,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
    */
   private class DFSubscriptionResponder extends SubscriptionResponder {	
   	private static final String HANDLE_CANCEL = "Handle-cancel";
-
+      public SubscriptionManager mySubscriptionManager = null; // patch to allow compiling with JDK1.2
 		DFSubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm) {
 	    super(a, MessageTemplate.or(mt, MessageTemplate.MatchPerformative(ACLMessage.CANCEL)), sm);
-	    
+	    mySubscriptionManager = sm;
 	    registerTransition(RECEIVE_SUBSCRIPTION, HANDLE_CANCEL, ACLMessage.CANCEL);
 	    registerDefaultTransition(HANDLE_CANCEL, RECEIVE_SUBSCRIPTION);
 		    
@@ -770,7 +770,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					try {
 						Action act = (Action) getContentManager().extractContent(cancel);
 						ACLMessage subsMsg = (ACLMessage)act.getAction();
-			    	mySubscriptionManager.deregister(new SubscriptionResponder.Subscription(DFSubscriptionResponder.this, subsMsg));
+						mySubscriptionManager.deregister(new SubscriptionResponder.Subscription(DFSubscriptionResponder.this, subsMsg));
 					}
 					catch(Exception e) {
 						e.printStackTrace();
