@@ -131,7 +131,7 @@ class RealMobilityManager implements MobilityManager {
 	    	myPlatform = myProfile.getPlatform();
 	    	myResourceManager = myProfile.getResourceManager();
 		    try {
-		    	verbosity = Integer.parseInt(myProfile.getParameter(VERBOSITY_KEY, "0"));
+		    	verbosity = Integer.parseInt(myProfile.getParameter(VERBOSITY_KEY, null));
 		    }
 		    catch (Exception e) {
 		    	// Keep default (0)
@@ -406,8 +406,8 @@ class RealMobilityManager implements MobilityManager {
 			}
     	catch (IOException ioe) {
     		// Error in agent serialization
-    		System.out.println("Error in agent serialization. Abort transfer. "+ioe.getMessage());
-				a.doExecute();
+    		System.out.println("Error in agent serialization. Abort transfer. "+ioe);
+    		a.doExecute();
    	 	}
     	catch (AuthException ae) {
     		// Permission to move not owned
