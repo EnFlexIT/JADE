@@ -159,7 +159,7 @@
                      verbose="false"
                      windowtitle="${j2se-title}"
                      packagenames="jade.*, starlight.* "
-                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.imtp.*, jade.security.*, jade.tools.applet, jade.tools.dfgui, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer, jade.tools.testagent.*"/>
+                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.imtp.*, jade.security.*, jade.tools.applet, jade.tools.dfgui, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer, jade.tools.testagent.*"/>
 
             <!-- 5) Remove filtered src-->
             <delete dir="${filtered.src}"/>

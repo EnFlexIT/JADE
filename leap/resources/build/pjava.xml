@@ -140,7 +140,7 @@
                      verbose="false"
                      windowtitle="${pjava-title}"
 		     packagenames="jade.*, starlight.*"
-                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.imtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
+                     excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.imtp.*, jade.security.*, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.rma, jade.tools.sniffer"/>
 
             <!-- 5) Remove filtered src-->
             <delete dir="${filtered.src}"/>
