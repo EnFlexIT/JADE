@@ -306,7 +306,7 @@ public class ContentManager implements Serializable {
 					ontology = o;
 				}
 				else {
-					ontology = new Ontology(null, new Ontology[]{langOnto, o}, null);
+					ontology = new Ontology(null, new Ontology[]{o, langOnto}, null);
 				}
 				return ontology;
     }
