@@ -31,6 +31,7 @@ import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 
 //__SECURITY__BEGIN
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
 import jade.security.IdentityCertificate;
@@ -55,7 +56,7 @@ public interface AgentContainer {
   static final int DEL_RT = 2;
 
   void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException;
-  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException;
+  void createAgent(AID  agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException, AuthException;
   byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
   void suspendAgent(AID agentID) throws IMTPException, NotFoundException;
