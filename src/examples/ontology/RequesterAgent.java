@@ -81,7 +81,7 @@ public class RequesterAgent extends Agent {
 		}
 		
 		// This is executed at the beginning of the behaviour
-		protected void preAction(){
+		public void onStart(){
 			// Get detail of person to be engaged
 			try{
 				BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
@@ -142,20 +142,25 @@ public class RequesterAgent extends Agent {
 		}
 		
 		// This is executed at the end of the behaviour
-		protected void postAction(){
+		public int onEnd(){
 			// Check whether the user wants to continue
 			try{
 				BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
 				System.out.println("Would you like to continue?[y/n] ");
 				String stop = buff.readLine();
 				if (stop.equalsIgnoreCase("y"))
-					reset(); // This makes this behaviour be cyclically executed
+					{
+					    reset(); // This makes this behaviour be cyclically executed
+					    myAgent.addBehaviour(this);
+					}
 				else
-					myAgent.doDelete(); // Exit
+				
+				    myAgent.doDelete(); // Exit
 			}
 			catch (IOException ioe) { 
 				System.err.println("I/O error: " + ioe.getMessage()); 
 			}
+			return 0;
 		}
 		
 		// Extends the reset method in order to remove the sub-behaviours that
