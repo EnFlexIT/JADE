@@ -193,7 +193,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	 */
   public void shutdown() {
   	myInputManager.kill();
-  	
+  	System.out.println("Shutdown() called. Terminator thread set");
   	terminator = Thread.currentThread();
   	if (terminator != this) {
 	  	// This is a self-initiated shut down --> we must explicitly
@@ -257,6 +257,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		      myDisconnectionManager.setReachable();
+					myKeepAliveManager.update();
 				  return;
 	      }
 	  }
@@ -419,6 +420,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
    */
   private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
   	if (Thread.currentThread() == terminator) {
+  		System.out.println("SETTING terminated info");
   		pkt.setTerminatedInfo();
   	}
   	pkt.setRecipientID(mediatorTA.getFile());
@@ -531,7 +533,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	
   	/**
   	   Set the reachability state as "reachable" and notify
-  	   the InputManager thread in case it is waiting in waitUntilReachable()
+  	   the InputManager thread in case it is waiting in waitUntilReachable().
   	 */
   	private synchronized void setReachable() {
   		reachable = true;
@@ -539,7 +541,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 				myConnectionListener.handleReconnection();
 			}
   		notifyAll();
-			myKeepAliveManager.update();
   	}
   	
   	/**
@@ -586,6 +587,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  		synchronized (this) {
 	  			pingOK = true;
 	  			setReachable();
+					myKeepAliveManager.update();
 	  			// Activate postponed commands flushing
 	  			waitingForFlush = myStub.flush();
 	  		}
