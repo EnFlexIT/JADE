@@ -1,8 +1,102 @@
 /*
- * $Log$
- * Revision 1.15  1998/10/04 18:00:55  rimassa
- * Added a 'Log:' field to every source file.
- *
+  $Log$
+  Revision 1.16  1998/10/05 20:07:53  Giovanni
+  Removed System.exit() in parse() method. Now it simply prints
+  exception stack trace on failure.
+
+  Revision 1.15  1998/10/04 18:00:55  rimassa
+  Added a 'Log:' field to every source file.
+
+ revision 1.14
+ date: 1998/09/28 22:33:10;  author: Giovanni;  state: Exp;  lines: +154 -40
+ Changed registerWithAMS() method to take advantage of new
+ AgentManagementOntology class.
+ Added public methods to access ACC, AMS and DF agents without explicit
+ message passing.
+
+ revision 1.13
+ date: 1998/09/28 00:13:41;  author: rimassa;  state: Exp;  lines: +20 -16
+ Added a name for the embedded thread (same name as the agent).
+ Changed parameters ordering and ACL message format to comply with new
+ FIPA 98 AMS.
+
+ revision 1.12
+ date: 1998/09/23 22:59:47;  author: Giovanni;  state: Exp;  lines: +3 -1
+ *** empty log message ***
+
+ revision 1.11
+ date: 1998/09/16 20:05:20;  author: Giovanni;  state: Exp;  lines: +2 -2
+ Changed code to reflect a name change in Behaviour class from
+ execute() to action().
+
+ revision 1.10
+ date: 1998/09/09 01:37:04;  author: rimassa;  state: Exp;  lines: +30 -10
+ Added support for Behaviour blocking and restarting. Now when a
+ behaviour blocks it is removed from the Scheduler and put into a
+ blocked behaviour queue (actually a Vector). When a message arrives,
+ postMessage() method puts all blocked behaviours back in the Scheduler
+ and calls restart() on each one of them.
+ Since when the Scheduler is empty the agent thread is blocked, the
+ outcome is that an agent whose behaviours are all waiting for messages
+ (e.g. the AMS) does not waste CPU cycles.
+
+ revision 1.9
+ date: 1998/09/02 23:56:02;  author: rimassa;  state: Exp;  lines: +4 -1
+ Added a 'Thread.yield() call in Agent.mainLoop() to improve fairness
+ among different agents and thus application responsiveness.
+
+ revision 1.8
+ date: 1998/09/02 00:30:22;  author: rimassa;  state: Exp;  lines: +61 -38
+ Now using jade.domain.AgentManagementOntology class to map AP
+ Life-Cycle states to their names.
+
+ AP Life-Cycle states now made public. Changed protection level for
+ some instance variables. Better error handling during AMS registration.
+
+ revision 1.7
+ date: 1998/08/30 23:57:10;  author: rimassa;  state: Exp;  lines: +8 -1
+ Fixed a bug in Agent.registerWithAMS() method, where reply messages
+ from AMS were ignored. Now the agent receives the replies, but still
+ does not do a complete error checking.
+
+ revision 1.6
+ date: 1998/08/30 22:52:18;  author: rimassa;  state: Exp;  lines: +71 -9
+ Improved Agent Platform Life-Cycle management. Added constants for
+ Domain Life-Cycle. Added support for IIOP address. Added automatic
+ registration with platform AMS.
+
+ revision 1.5
+ date: 1998/08/25 18:08:43;  author: Giovanni;  state: Exp;  lines: +5 -1
+ Added Agent.putBack() method to insert a received message back in the
+ message queue.
+
+ revision 1.4
+ date: 1998/08/16 12:34:56;  author: rimassa;  state: Exp;  lines: +26 -7
+ Communication event broadcasting is now done in a separate
+ broadcastEvent() method. Added a multicast send() method using
+ AgentGroup class.
+
+ revision 1.3
+ date: 1998/08/16 10:30:15;  author: rimassa;  state: Exp;  lines: +48 -18
+ Added AP_DELETED state to Agent Platform life cycle, and made
+ Agent.mainLoop() exit only when the state is AP_DELETED.
+ Agent.doWake() is now synchronized, and so are all kinds of receive
+ operations.
+
+ Agent class now has two kinds of message receive operations: 'get
+ first available message' and 'get first message matching a particular
+ template'; both kinds come in blocking and nonblocking
+ flavour. Blocking receives mplementations rely on nonblocking
+ versions.
+
+ revision 1.2
+ date: 1998/08/08 17:23:31;  author: rimassa;  state: Exp;  lines: +3 -3
+ Changed 'fipa' to 'jade' in package and import directives.
+
+ revision 1.1
+ date: 1998/08/08 14:27:50;  author: rimassa;  state: Exp;
+ Renamed 'fipa' to 'jade'.
+
  */
 
 package jade.core;
@@ -267,7 +361,9 @@ public class Agent implements Runnable, CommBroadcaster {
     }
     catch(ParseException pe) {
       pe.printStackTrace();
-      System.exit(1);
+    }
+    catch(TokenMgrError tme) {
+      tme.printStackTrace();
     }
     return msg;
   }
