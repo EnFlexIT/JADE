@@ -256,7 +256,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * command processor.
    * @return A <code>Filter</code> object, used by this service to
    * intercept and process kernel-level commands.
-   * @see jade.core.CommandProcessor
    */
   public Filter getCommandFilter(boolean direction){
     if (direction == Filter.OUTGOING){
