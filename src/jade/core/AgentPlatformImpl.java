@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.46  2000/02/23 18:09:24  trucco
+  added log incoming and outgoing IIOP messages
+
   Revision 1.45  2000/01/21 14:39:23  rimassaJade
   Changed containerNames() and agentNames() signature and implementation
   to reflect changes made in AgentManager interface. This should have
@@ -246,7 +249,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   private class InComingIIOP extends _FIPA_Agent_97ImplBase {
     public void message(String acl_message) {
-
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" INCOMING IIOP MESSAGE: "+acl_message);
       try {
       // Recover ACL message object from String
       ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));

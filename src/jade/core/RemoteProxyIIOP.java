@@ -54,7 +54,7 @@ class RemoteProxyIIOP extends RemoteProxy {
       msg.toText(msgText);
 
       ref.message(msgText.toString()); // CORBA call
-
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" OUTGOING IIOP MESSAGE TO ADDRESS "+addr+". "+msg.toString());
     }
     catch(org.omg.CORBA.SystemException oocse) {
       oocse.printStackTrace();
