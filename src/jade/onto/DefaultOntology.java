@@ -25,10 +25,10 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 import java.lang.reflect.*;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
 import jade.util.leap.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
 import jade.util.leap.ArrayList;
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
@@ -101,9 +101,18 @@ public final class DefaultOntology implements Ontology {
   */  
   public void addRole(String roleName, SlotDescriptor[] slots, Class newClass) throws OntologyException {
     // Checks whether the user defined class representing the role already represents another role in the ontology
-    if (roleClasses.containsValue(newClass))
-      throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in this ontology");
-    // Adds the role to the ontology
+    Iterator it = roleClasses.keySet().iterator();
+    while (it.hasNext()) {
+    	Class c = (Class) roleClasses.get(it.next());
+    	if (newClass.equals(c)) {
+    		throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in this ontology");
+    	}
+    }
+  	// Modified for compatibility with CLDC
+  	//if (roleClasses.containsValue(newClass))
+    //  throw new OntologyException("The class \""+newClass.getName()+"\" already represents a role in this ontology");
+    
+  	// Adds the role to the ontology
     addRole(roleName, slots);
     // Registers the user defined class representing the role
     checkClass(roleName, newClass);
@@ -264,10 +273,15 @@ public final class DefaultOntology implements Ontology {
     @see jade.onto.Ontology#getRoleName(Class c)
   **/
   public String getRoleName(Class c) throws OntologyException{
-    for (Iterator i=roleClasses.entrySet().iterator(); i.hasNext(); ) {
-      Map.Entry elem = (Map.Entry)i.next();
-      if (c.equals((Class)elem.getValue())) 
-      	return ((CaseInsensitiveString)elem.getKey()).toString();
+    for (Iterator i=roleClasses.keySet().iterator(); i.hasNext(); ) {
+      Object key = i.next();
+      if (c.equals((Class) roleClasses.get(key))) {
+      	return ((CaseInsensitiveString) key).toString();
+      }
+  		// Modified for compatibility with CLDC
+    	//Map.Entry elem = (Map.Entry)i.next();
+      //if (c.equals((Class)elem.getValue())) 
+      //	return ((CaseInsensitiveString)elem.getKey()).toString();
     } 
     // if this instruction is executed, then no class has been found
     throw new OntologyException("No rolename registered in this ontology for class "+c.getName());
@@ -416,7 +430,7 @@ public final class DefaultOntology implements Ontology {
     // MODIFIED by GC
     // The return value of the getAllXXX() method of the user defined class 
     // must be a jade.util.leap.Iterator or a super-class/interface of it -->
-    // No problem if it is a jade.util.leap.Iterator.
+    // OK if it is a java.util.Iterator.
     if (!(getReturnType(getMethod)).isAssignableFrom(jade.util.leap.Iterator.class))
     //if (!getReturnType(getMethod).equals(jade.util.leap.Iterator.class))
       throw new OntologyException("Wrong class: method " +  getMethod.getName() + "() must return a jade.util.leap.Iterator." + getReturnType(getMethod).toString());
@@ -699,7 +713,15 @@ public final class DefaultOntology implements Ontology {
 	    else
 	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
 	    // MODIFIED by GC
+	    // If the getAllXXX() method of the user defined class returned a
+	    // java.util.Iterator --> OK. If it returned a jade.util.leap.Iterator 
+	    // the cast works in any case as jade.util.leap.Iterator extends java.util.Iterator
+  		//__BACKWARD_COMPATIBILITY__BEGIN
+	    java.util.Iterator i = (java.util.Iterator) value;
+  		//__BACKWARD_COMPATIBILITY__END
+  		/*__J2ME_COMPATIBILITY__BEGIN If we are on J2ME the getAllXXX method definitely returns a jade.util.leap.Iterator
 	    jade.util.leap.Iterator i = (jade.util.leap.Iterator) value;
+  		__J2ME_COMPATIBILITY__END*/
 	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
 	      while (i.hasNext()) {
 		Object elem = i.next();
