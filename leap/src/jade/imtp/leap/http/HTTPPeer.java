@@ -60,7 +60,7 @@ public class HTTPPeer extends JICPPeer {
   /**
      Re-define the getConnectionFactory
    */
-  protected ConnectionFactory getConnectionFactory() {
+  public ConnectionFactory getConnectionFactory() {
     return new ConnectionFactory() {
 			public Connection createConnection(Socket s) {
 				return new HTTPServerConnection(s);

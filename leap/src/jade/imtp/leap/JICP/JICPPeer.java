@@ -51,7 +51,7 @@ import java.net.*;
  * @author Ronnie Taib - Motorola
  * @author Nicolas Lhuillier - Motorola
  */
-public class JICPPeer implements ICP {
+public class JICPPeer implements ICP, ProtocolManager {
 	private static final int POOL_SIZE = 10;
 	
   private JICPClient   client;
@@ -148,7 +148,7 @@ public class JICPPeer implements ICP {
      Subclasses may re-define this method to return their own
      ConnectionFactory
    */
-  protected ConnectionFactory getConnectionFactory() {
+  public ConnectionFactory getConnectionFactory() {
     return new ConnectionFactory() {
 			public Connection createConnection(Socket s) {
 				return new JICPConnection(s);

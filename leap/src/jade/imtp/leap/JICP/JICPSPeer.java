@@ -59,7 +59,7 @@ public class JICPSPeer extends JICPPeer {
      Subclasses may re-define this method to return their own
      ConnectionFactory
    */
-  protected ConnectionFactory getConnectionFactory() {
+  public ConnectionFactory getConnectionFactory() {
     return new ConnectionFactory() {
 			public Connection createConnection(Socket s) {
 				return new JICPSConnection(s);
