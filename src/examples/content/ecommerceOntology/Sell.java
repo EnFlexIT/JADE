@@ -26,7 +26,6 @@ package examples.content.ecommerceOntology;
 
 import jade.content.*;
 import jade.core.AID;
-import examples.content.musicOntology.*;
 
 public class Sell implements AgentAction {
 	private AID buyer;
