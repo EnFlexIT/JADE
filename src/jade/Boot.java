@@ -608,13 +608,17 @@ public class Boot {
     while(cursor < argList.length()) {
       int commaPos = argList.indexOf(ARGUMENT_SEPARATOR, cursor);
       if(commaPos == -1)
-				commaPos = argList.length();
-      int openBracketPos = argList.indexOf('(', cursor);
-      int closedBracketPos = argList.indexOf(')', cursor);
+      	commaPos = argList.length();
+      	
+      String arg = argList.substring(cursor,commaPos);
+      System.out.println("Arg: " + arg + "Commapos: " + commaPos + "Cursor: " + cursor);
+      
+      int openBracketPos = arg.indexOf('(');
+      int closedBracketPos = arg.indexOf(')');
 
       // No brackets: use default address.
       if((openBracketPos == -1)&&(closedBracketPos == -1)) {
-      	String className = argList.substring(cursor, commaPos);
+      	String className = arg;
 				out.add(className); // Put MTP class name into the list
 				if (arguments)
 					out.add("");  // with an empty URL as the address
@@ -624,11 +628,12 @@ public class Boot {
         // the class name is before the open bracket, and the
         // address URL is between brackets.
 				if((openBracketPos != -1)&&(closedBracketPos != -1)&&(openBracketPos < closedBracketPos)) {
-	  				String className = argList.substring(cursor, openBracketPos);
-	  				String arg = argList.substring(openBracketPos + 1, closedBracketPos);
+	  				String className = arg.substring(0, openBracketPos);
+	  				String par = arg.substring(openBracketPos + 1, closedBracketPos);
 	  				out.add(className);
 	  				if (arguments)
-	  					out.add(arg);
+	  					out.add(par);
+	  				System.out.println("className: " + className + " par: " + par);	
 				}
 				else
 	  			throw new BootException("Ill-formed MTP specifier: mismatched parentheses.");
