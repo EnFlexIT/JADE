@@ -39,7 +39,6 @@ import java.util.Vector;
 import java.util.Enumeration;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
-import jade.util.Logger;
 
 /**
    This class is a Proxy class, allowing access to a JADE agent
@@ -64,8 +63,6 @@ public class ContainerController {
   private String myPlatformName;
   
   protected PlatformController myPlatformController; 
-	
-  private static Logger logger = Logger.getMyLogger(ContainerController.class.getName());	
 	
   /**
      This constructor requires a concrete
