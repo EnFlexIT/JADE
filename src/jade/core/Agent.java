@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.20  1998/10/18 15:50:08  rimassa
+  Method parse() is now deprecated, since ACLMessage class provides a
+  fromText() static method.
+  Removed any usage of deprecated ACLMessage default constructor.
+
   Revision 1.19  1998/10/11 19:11:13  rimassa
   Written methods to access Directory Facilitator and removed some dead
   code.
@@ -363,7 +368,13 @@ public class Agent implements Runnable, CommBroadcaster {
     msgQueue.insertElementAt(msg,0);
   }
 
-  // Build an ACL message from a character stream
+
+  /**
+     @deprecated Builds an ACL message from a character stream. Now
+     ACLMessage class has this capabilities itself, through fromText()
+     method.
+     @see ACLMessage
+  */
   public ACLMessage parse(Reader text) {
     ACLMessage msg = null;
     try {
@@ -379,9 +390,8 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   private ACLMessage FipaRequestMessage(String dest, String replyString) {
-    ACLMessage request = new ACLMessage();
+    ACLMessage request = new ACLMessage("request");
 
-    request.setType("request");
     request.setSource(myName);
     request.setDest(dest);
     request.setLanguage("SL0");
