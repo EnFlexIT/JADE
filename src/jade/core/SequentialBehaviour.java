@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/04/06 00:09:45  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.6  1998/12/07 23:54:37  rimassa
   Changed bodyAction() method to handle the case when a
   SequentialBehaviour has no children. Now an empty SequentialBehaviour
@@ -12,25 +15,37 @@
 
 package jade.core;
 
-/**************************************************************
+/**
+   Composite behaviour with sequential children scheduling. It is a
+   <code>ComplexBehaviour</code> that executes its children behaviours
+   in sequential order, and terminates when its last child has ended.
 
-  Name: SequentialBehaviour
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + It is a ComplexBehaviour that executes its sub-behaviours
-    sequentially, and it terminates when all sub-behaviours are done.
-
-****************************************************************/
+*/
 public class SequentialBehaviour extends ComplexBehaviour {
 
+  /**
+     Default constructor. It does not set the owner agent for this
+     behaviour.
+  */
   public SequentialBehaviour() {
   }
 
+  /**
+     This constructor sets the owner agent for this behaviour.
+     @param a The agent this behaviour belongs to.
+  */
   public SequentialBehaviour(Agent a) {
     super(a);
   }
 
+  /**
+     Sequential policy for children scheduling. This method executes
+     children behaviours one at a time, in a FIFO fashion.
+     @see jade.core.ComplexBehaviour#bodyAction()
+  */
   protected boolean bodyAction() {
     boolean result = false;
 
@@ -52,7 +67,14 @@ public class SequentialBehaviour extends ComplexBehaviour {
   }
 
 
-  // Handle notifications of runnable/not-runnable transitions
+  /**
+     Handle block/restart notifications. A
+     <code>SequentialBehaviour</code> is blocked <em>only</em> when
+     its currently active child is blocked, and becomes ready again
+     when its current child is ready. This method takes care of the
+     various possibilities.
+     @param rce The event to handle.
+  */
   protected void handle(RunnableChangedEvent rce) {
 
     // For upwards notification from the currently executing
@@ -78,5 +100,9 @@ public class SequentialBehaviour extends ComplexBehaviour {
 
   }
 
-
 }
+
+
+
+
+

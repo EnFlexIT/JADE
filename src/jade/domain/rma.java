@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.17  1999/04/06 00:09:57  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.16  1999/03/30 08:33:44  rimassa
   Added a new behaviour to correctly follow standard 'fipa-request'
   protocol when dealing with the AMS agent.
@@ -82,20 +85,17 @@ import jade.lang.acl.MessageTemplate;
 import jade.gui.*;
 import jade.proto.FipaRequestInitiatorBehaviour;
 
-/**************************************************************
+/**
+  <em>Remote Management Agent</em> agent. This class implements
+  <b>JADE</b> <em>RMA</em> agent. <b>JADE</b> applications cannot use
+  this class directly, but interact with it through <em>ACL</em>
+  message passing. Besides, this agent has a <em>GUI</em> through
+  which <b>JADE</b> Agent Platform can be administered.
 
-  Name: rma
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + Serves as Remote Management Agent for the Agent Platform,
-    according to our proposal to FIPA 97 specification.
-
-  + Relies on the AMS to perform Agent Management actions, talking
-    with it through simple ACL mesages.
-    (ams)
-
-****************************************************************/
+*/
 public class rma extends Agent {
 
   private ACLMessage AMSSubscription = new ACLMessage("subscribe");
@@ -220,6 +220,10 @@ public class rma extends Agent {
 
   private String myContainerName;
 
+  /**
+   This method starts the <em>RMA</em> behaviours to allow the agent
+   to carry on its duties within <em><b>JADE</b></em> agent platform.
+  */
   public void setup() {
 
     // Fill ACL messages fields
@@ -269,6 +273,11 @@ public class rma extends Agent {
 
   }
 
+  /**
+   Cleanup during agent shutdown. This method cleans things up when
+   <em>RMA</em> agent is destroyed, disconnecting from <em>AMS</em>
+   agent and closing down the platform administration <em>GUI</em>.
+  */
   public void takeDown() {
     send(AMSCancellation);
     myGUI.setVisible(false);
@@ -276,12 +285,16 @@ public class rma extends Agent {
   }
 
 
-  // Callback methods from GUI
-
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public AMSTreeModel getModel() {
     return myGUI.getModel();
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void newAgent(String agentName, String className, String containerName) {
 
     AgentManagementOntology.CreateAgentAction caa = new AgentManagementOntology.CreateAgentAction();
@@ -307,6 +320,9 @@ public class rma extends Agent {
 
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void suspendAgent(String name) {
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
@@ -328,10 +344,16 @@ public class rma extends Agent {
 
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void suspendContainer(String name) {
     // FIXME: Not implemented
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void resumeAgent(String name) {
     AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
@@ -352,10 +374,16 @@ public class rma extends Agent {
     addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void resumeContainer(String name) {
     // FIXME: Not implemented
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void killAgent(String name) {
     AgentManagementOntology.KillAgentAction kaa = new AgentManagementOntology.KillAgentAction();
     kaa.setAgentName(name);
@@ -369,6 +397,9 @@ public class rma extends Agent {
 
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void killContainer(String name) {
 
     AgentManagementOntology.KillContainerAction kca = new AgentManagementOntology.KillContainerAction();
@@ -383,14 +414,18 @@ public class rma extends Agent {
 
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void exit() {
     killContainer(myContainerName);
   }
 
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
   public void shutDownPlatform() {
-
     killContainer(AgentPlatform.MAIN_CONTAINER_NAME);
-
   }
 
 }

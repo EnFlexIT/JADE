@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.30  1999/04/06 00:09:55  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.29  1999/03/24 12:20:49  rimassa
   Ported most data structures to newer Java 2 Collection framework.
 
@@ -106,23 +109,16 @@ import jade.lang.acl.MessageTemplate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
-/**************************************************************
+/**
+  Standard <em>Agent Management System</em> agent. This class
+  implements <em><b>FIPA</b></em> <em>AMS</em> agent. <b>JADE</b>
+  applications cannot use this class directly, but interact with it
+  through <em>ACL</em> message passing.
 
-  Name: ams
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + Serves as Agent Management System for the Agent Platform,
-    according to FIPA 97 specification.
-
-  + Handles platform internal data to describe all the agents present
-    on the platform.
-    (AgentPlatformImpl)
-
-  + Manages AP Life-Cycle of Agent objects.
-    (Agent)
-
-****************************************************************/
+*/
 public class ams extends Agent {
 
   private abstract class AMSBehaviour
@@ -650,6 +646,13 @@ public class ams extends Agent {
   private Vector newAgentsBuffer = new Vector();
   private Vector deadAgentsBuffer = new Vector();
 
+  /**
+     This constructor creates a new <em>AMS</em> agent. Since a direct
+     reference to an Agent Platform implementation must be passed to
+     it, this constructor cannot be called from application
+     code. Therefore, no other <em>AMS</em> agent can be created
+     beyond the default one.
+  */
   public ams(AgentPlatformImpl ap) {
     myPlatform = ap;
 
@@ -682,6 +685,10 @@ public class ams extends Agent {
 
   }
 
+  /**
+   This method starts the <em>AMS</em> behaviours to allow the agent
+   to carry on its duties within <em><b>JADE</b></em> agent platform.
+  */
   protected void setup() {
 
     // Add a dispatcher Behaviour for all ams actions following from a
@@ -697,7 +704,9 @@ public class ams extends Agent {
   }
 
 
-  // The AMS must have a special version for this method, or a deadlock will occur...
+  /**
+   The AMS must have a special version for this method, or a deadlock will occur.
+  */
   public void registerWithAMS(String signature, int APState, String delegateAgentName,
 		       String forwardAddress, String ownership) {
 
@@ -717,28 +726,46 @@ public class ams extends Agent {
 
   }
 
-  // The AMS must have a special version for this method, or a deadlock will occur...
+  /** 
+    The AMS must have a special version for this method, or a deadlock will occur.
+  */
   public void deregisterWithAMS() throws FIPAException {
     myPlatform.AMSRemoveData(getName(), getAddress(), null, "active", null, null, null);
   }
 
   // Methods to be called from AgentPlatform to notify AMS of special events
 
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void postNewContainer(String name) {
     newContainersBuffer.addElement(new String(name));
     doWake();
   }
 
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void postDeadContainer(String name) {
     deadContainersBuffer.addElement(new String(name));
     doWake();
   }
 
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void postNewAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
     newAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();
   }
 
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void postDeadAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
     deadAgentsBuffer.addElement(new AgDesc(containerName, amsd));
     doWake();

@@ -25,7 +25,7 @@ import java.lang.InterruptedException;
  * <code>timeout</code> is the timeout to be waited.
  * </ul> 
  */
-public class Waker extends Thread {
+class Waker extends Thread {
     
     Agent myAgent;
     ACLMessage myMsg;

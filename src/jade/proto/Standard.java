@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/04/06 00:10:27  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.2  1998/10/04 18:02:19  rimassa
   Added a 'Log:' field to every source file.
 
@@ -20,7 +23,7 @@ import java.util.Hashtable;
     (Protocol)
 
 ****************************************************************/
-public class Standard {
+class Standard {
 
   // Private default constructor, since this is an utility class with
   // only static members and must not be instantiated.

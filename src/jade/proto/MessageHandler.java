@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/04/06 00:10:23  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.3  1998/10/04 18:02:15  rimassa
   Added a 'Log:' field to every source file.
 
@@ -23,7 +26,7 @@ import jade.lang.acl.ACLMessage;
 
 
 ****************************************************************/
-public interface MessageHandler {
+interface MessageHandler {
 
   public void handle(ACLMessage msg, Interaction i);
 }

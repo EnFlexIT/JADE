@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/04/06 00:09:41  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.7  1998/12/07 23:52:59  rimassa
   Changed bodyAction() method to return if this Behaviour has no
   children. Now an empty NonDeterministicBehaviour created with WHEN_ANY
@@ -21,20 +24,20 @@ package jade.core;
 
 import java.util.Hashtable;
 
-/**************************************************************
+/**
+   Composite behaviour with non deterministic children scheduling.
+   It is a <code>ComplexBehaviour</code> that executes its children
+   behaviours non deterministically, and it terminates when a
+   particular condition on its sub-behaviours is met. Static
+   <em><b>Factory Methods</b></em> are provided to get a
+   <code>NonDeterministicBehaviour</code> that ends when all its
+   sub-behaviours are done, when any sub-behaviour terminates or when
+   <em>N</em> sub-behaviours have finished.
 
-  Name: NonDeterministicBehaviour
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + It is a ComplexBehaviour that executes its sub-behaviours non
-    deterministically, and it terminates when a particular condition
-    on its sub-behaviours is met. Static Factory Methods are provided
-    to get a NonDeterministicBehaviour that ends when all its
-    sub-behaviours are done, when any sub-behaviour terminates or when
-    N sub-behaviours have finished.
-
-****************************************************************/
+*/
 public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   private static final int WHEN_ALL = 0;
@@ -64,17 +67,29 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
   }
     
 
-  // Protected constructor: use static Factory Methods instead.
+  /**
+     Protected constructor: use static <em>Factory Methods</em>
+     instead.
+  */
   protected NonDeterministicBehaviour(int endCondition) {
     whenToStop = endCondition;
   }
 
-  // Protected constructor: use static Factory Methods instead.
+  /**
+     Protected constructor: use static <em>Factory Methods</em>
+     instead.
+  */
   protected NonDeterministicBehaviour(Agent a, int endCondition) {
     super(a);
     whenToStop = endCondition;
   }
 
+  /**
+     Nondeterministic policy for children scheduling.  This method
+     executes children behaviours one at a time, in a round robin
+     fashion.
+     @see jade.core.ComplexBehaviour#bodyAction()
+  */
   protected boolean bodyAction() {
 
     if(!subBehaviours.isEmpty()) {
@@ -98,6 +113,12 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   }
 
+  /**
+     Resets this behaviour. This methods puts a
+     <code>NonDeterministicBehaviour</code> back in initial state,
+     besides calling <code>reset()</code> on each child behaviour
+     recursively.
+  */
   public void reset() {
     blockedChildren.clear();
 
@@ -115,7 +136,14 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   }
 
-  // Handle notifications of runnable/not-runnable transitions
+  /**
+     Handle block/restart notifications. A
+     <code>NonDeterministicBehaviour</code> object is blocked
+     <em>only</em> when all its children behaviours are blocked and
+     becomes ready to run as soon as any of its children is
+     runnable. This method takes care of the various possibilities.
+     @param rce The event to handle.
+  */
   protected void handle(RunnableChangedEvent rce) {
 
     // For upwards notification from sub-behaviours, copy the runnable
@@ -169,6 +197,10 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
   // An overridden version of block() is necessary to allow upwards
   // notification without introducing further branches in handle()
   // method code
+
+  /**
+     Blocks this behaviour.
+  */
   public void block() {
     myEvent.init(false, NOTIFY_UP);
     super.handle(myEvent);
@@ -178,26 +210,77 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
   // static Factory Methods to create NonDeterministicBehaviours with
   // various kinds of termination condition.
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>all</em></b> its children end. It does not set the owner
+     agent for this behaviour.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenAll() {
     return new NonDeterministicBehaviour(WHEN_ALL);
   }
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>all</em></b> its children end. It sets the owner agent for
+     this behaviour.
+     @param a The agent this behaviour belongs to.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenAll(Agent a) {
     return new NonDeterministicBehaviour(a, WHEN_ALL);
   }
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>any</em></b> among its children ends. It does not set the
+     owner agent for this behaviour.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenAny() {
     return new NonDeterministicBehaviour(WHEN_ANY);
   }
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>any</em></b> among its children ends. It sets the owner
+     agent for this behaviour.
+     @param a The agent this behaviour belongs to.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenAny(Agent a) {
     return new NonDeterministicBehaviour(a, WHEN_ANY);
   }
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>at least N</em></b> of its children end. It does not set
+     the owner agent for this behaviour.
+     @param howMany The number of children behaviour that must
+     terminate to make this <code>NonDeterministicBehaviour</code>
+     finish.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenN(int howMany) {
     return new NonDeterministicBehaviour(howMany);
   }
 
+  /**
+     Static <em>Factory Method</em>. This method creates a new
+     <code>NonDeterministicBehaviour</code> that terminates when
+     <b><em>at least N</em></b> of its children end. It sets the owner
+     agent for this behaviour.
+     @param a The agent this behaviour belongs to.
+     @param howMany The number of children behaviour that must
+     terminate to make this <code>NonDeterministicBehaviour</code>
+     finish.
+     @return A new <code>NonDeterministicBehaviour</code>.
+  */
   public static NonDeterministicBehaviour createWhenN(Agent a, int howMany) {
     return new NonDeterministicBehaviour(a, howMany);
   }

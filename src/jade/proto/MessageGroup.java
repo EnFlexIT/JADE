@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/04/06 00:10:22  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.3  1998/10/04 18:02:14  rimassa
   Added a 'Log:' field to every source file.
 
@@ -20,5 +23,5 @@ package jade.proto;
 
 ****************************************************************/
 
-public class MessageGroup {
+class MessageGroup {
 }

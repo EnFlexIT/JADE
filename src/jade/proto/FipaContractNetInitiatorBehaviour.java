@@ -11,40 +11,58 @@ import java.util.Enumeration;
 import java.io.*;
 
 /**
-* This abstract behaviour implements the Fipa Contract Net Interaction Protocol
-* from the point of view of the agent initiating the protocol, that is the
-* agent that sends the Call for Proposal to a set of agents.
-* In order to use correctly this behaviour, the programmer should do the following:
+* Behaviour class for <code>fipa-contract-net</code>
+* <em>Initiator</em> role.  This abstract behaviour implements the
+* <code>fipa-contract-net</code> interaction protocol from the point
+* of view of the agent initiating the protocol, that is the agent that
+* sends the <code>cfp</code> message (<em>Call for Proposal</em> to a
+* set of agents.  In order to use correctly this behaviour, the
+* programmer should do the following: <ul>
+
+* <li> Implement a class that extends
+* <code>FipaContractNetInitiatorBehaviour</code>.  This class must
+* implement three methods that are called by
+* <code>FipaContractNetInitiatorBehaviour</code>:
 * <ul>
-* <li> implements a class that extends FipaContractNetInitiatorBehaviour.
-* This class must implement 3 methods that are called by FipaContractNetInitiatorBehaviur:
-* <ul>
-* <li> <code> public Vector evaluateProposals(Vector proposals) </code>
-* to evaluate all the received proposals and to return a vector of ACLMessages
-* to be sent in response to the proposals (return null to terminate 
-* the protocol)
-* <li> <code> public void handleOtherMessages(ACLMessage msg) </code>
-* to handle all received messages different from "propose"
-* <li> <code> public Vector evaluateFinalMessages(Vector messages) </code>
-* to evaluate the messages received in the last state of the protocol, that is
-* "inform done" and "failure" messages, and to return a Vector of ACLMessages to
-* be sent before terminating the behaviour
-* </ul>* <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
+
+* <li> <code>public Vector evaluateProposals(Vector proposals)</code>
+* to evaluate all the received proposals and to return a vector of
+* <code>ACLMessage</code> objects to be sent in response to the
+* proposals (return <code>null</code> to terminate the protocol).
+
+* <li> <code>public void handleOtherMessages(ACLMessage msg)</code>
+* to handle all received messages different from <code>propose</code>
+
+* <li> <code>public Vector evaluateFinalMessages(Vector
+* messages)</code> to evaluate the messages received in the last state
+* of the protocol, that is <code>inform Done</code> and
+* <code>failure</code> messages, and to return a <code>Vector</code>
+* of <code>ACLMessages</code> to be sent before terminating the
+* behaviour
+* </ul>
+* <li> Create a new instance of this class and add it to the agent
+* with <code>Agent.addBehaviour()</code> method)
 * </ul>
 * <p>
-* <B>Important Note:</B> The FIPA semantics and the FIPA content language
-* do require that the actor name be a single name. When this protocol is
-* initiated with more than one agent (i.e. the cfp is sent to a group of agents
-* rather than a single agent), the content of the cfp message must be
-* changed for each receiver. This class supports this requirement by
-* replacing the first character '*' in the passed message content with
-* the name of the receiver. 
-* This feature may introduce errors in those contents whose ontology contains
-* the symbol '*'. Future releases will consider improving this
-* feature.
+* <em>
+* <b>Important Note:</b> The <b>FIPA</b> semantics and the <b>FIPA</b>
+* content language do require that the actor name be a single
+* name. When this protocol is initiated with more than one agent
+* (i.e. the <code>cfp</code> message is sent to a group of agents
+* rather than a single agent), the content of the <code>cfp</code>
+* message must be changed for each receiver. This class supports this
+* requirement by replacing the first character <code>'*'</code> in the
+* passed message content with the name of the receiver.
+* This feature may introduce errors in those contents whose ontology
+* contains the symbol <code>'*'</code>. Future releases will consider
+* improving this feature.
+* </em>
 * <p>
-* KNOWN BUGS: If the message content contains the character '*', it is
-* replaced with the name of the receiver.  
+* <b>KNOWN BUGS: If the message content contains the character
+* <code>'*'</code>, it is replaced with the name of the receiver.</b>
+* @see jade.proto.FipaContractNetResponderBehaviour
+* @author Fabio Bellifemine - CSELT
+* @version $Date$ $Revision$
 */
 public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour {
     
@@ -52,7 +70,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * A common usage of this variable is to cast it to the actual type of
    * Agent class and then use the methods of the extended class. 
    * For instance 
-   * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
+   * <code>appointments = (AppointmentAgent)myAgent.getAppointments()</code>
    */
   public Agent myAgent;
   
@@ -61,7 +79,7 @@ protected ACLMessage cfpMsg;
   private int state = 0;  // state of the protocol
   long timeout;
   MessageTemplate template;
-  Vector msgProposals = new Vector(); /* vector of ACLMessage with the proposals */
+    Vector msgProposals = new Vector(); // vector of ACLMessage with the proposals
   Vector msgAcceptReject = new Vector(); // vector with the ACLMessages to send (accept/reject proposal)
   Vector msgFinal = new Vector(); // vector with the ACLMessages received after accept/reject-proposal
   Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
@@ -72,9 +90,9 @@ protected ACLMessage cfpMsg;
    */
   public boolean finished; // true when done()
   /** 
-   * default timeout in milliseconds to wait for proposals. 
-   * This timeout is overriden by
-   * the reply-by parameter of the <code>cfp</code> message, if set.
+   * default timeout in milliseconds to wait for proposals.  This
+   * timeout is overriden by the <code>reply</code>-by parameter of
+   * the <code>cfp</code> message, if set.
    */
   public static final long DEFAULTTIMEOUT = 30000; 
   ACLMessage wakeMsg;
@@ -83,7 +101,7 @@ protected ACLMessage cfpMsg;
   /**
    * constructor of the behaviour.
    * @param a is the current agent. The public variable 
-   * <code> Agent myAgent </code> contains then the pointer to the agent class.
+   * <code>Agent myAgent</code> contains then the pointer to the agent class.
    * A common usage of this variable is to cast it to the actual type of
    * Agent class and use the methods of the extended class. 
    * For instance 
@@ -102,13 +120,14 @@ protected ACLMessage cfpMsg;
    * It should never be used, however.
    */
    public FipaContractNetInitiatorBehaviour(){ // default constructor
-     System.err.println("!! Called wrong constructor for FipaContractNetInitiatorBehaviur !!");
+     System.err.println("!! Called wrong constructor for FipaContractNetInitiatorBehaviour !!");
      finished = true;
    }
 
   /**
-   * action method of the behaviour. This method cannot be overriden by 
-   * subclasses because it implements the actual FipaContractNet protocol
+   * Action method of the behaviour. This method cannot be overriden
+   * by subclasses because it implements the actual FipaContractNet
+   * protocol
    */
   final public void action() {
     switch (state) {
@@ -267,20 +286,18 @@ protected ACLMessage cfpMsg;
 
 
   /**
-   * This method must be implemented by all subclasses.
-   * After having sent the <code> cfp </code> message, the base class calls
-   * this method everytime a new message arrives that is not a <code> propose
-   * </code> message.
-   * The method should react to this message in an 
-   * implementation-dependent way. The instruction
-   * <code> finished=true; </code> should be executed to finish the
-   * contract net protocol.
-   * The class variable <code>myAgent </code> can be used to send
-   * messages or, after casting, to execute other implementation-dependent
-   * methods that belongs to the actual Agent object.
-   * @param msg is the ACLMessage just arrived
-   */
-public abstract void handleOtherMessages(ACLMessage msg);  
+   * This method must be implemented by all subclasses.  After having
+   * sent the <code> cfp </code> message, the base class calls this
+   * method everytime a new message arrives that is not a <code>
+   * propose </code> message.  The method should react to this message
+   * in an implementation-dependent way. The instruction <code>
+   * finished=true; </code> should be executed to finish the contract
+   * net protocol.  The class variable <code>myAgent </code> can be
+   * used to send messages or, after casting, to execute other
+   * implementation-dependent methods that belongs to the actual Agent
+   * object.
+   * @param msg is the ACLMessage just arrived */
+    public abstract void handleOtherMessages(ACLMessage msg);  
 
   /**
    * This method is called after all the <code>propose</code> messages
@@ -290,22 +307,23 @@ public abstract void handleOtherMessages(ACLMessage msg);
    * This timeout is overriden by
    * the reply-by parameter of the <code>cfp</code> message, if set.
    * @param proposals is the Vector that contains the received
-   * <code>propose</code> ACLMessage 
-   * @return a Vector of ACLMessage to be sent in the next phase of the
-   * protocol. Usually, these messages should be of type 
-   * <code>accept-proposal   reject-proposal</code>. If <code>null</code>
-   * is returned, then the protocol is prematurely terminated.
-   * REMIND to set the value of <code>:in-reply-to</code> parameter
-   * in all the returned messages of this vector. This implementation of
-   * the protocol is not able to set that value on your behalf because
-   * it implements a one-to-many protocol and, unfortunatelly, 
-   * each of the many might
-   * use a different value of <code>:in-reply-to</code>. 
+   * <code>propose</code> ACL message.
+
+   * @return a <code>Vector</code> of ACLMessage to be sent in the
+   * next phase of the protocol. Usually, these messages should be of
+   * type <code>accept-proposal</code> or
+   * <code>reject-proposal</code>. If <code>null</code> is returned,
+   * then the protocol is prematurely terminated. <b>REMEMBER</b> to set the
+   * value of <code>:in-reply-to</code> parameter in all the returned
+   * messages of this vector. This implementation of the protocol is
+   * not able to set that value on your behalf because it implements a
+   * one-to-many protocol and, unfortunately, each of the many might
+   * use a different value of <code>:in-reply-to</code>.
    */
-public abstract Vector evaluateProposals(Vector proposals);
+    public abstract Vector evaluateProposals(Vector proposals);
 
   /**
-   * After having sent the messages returned by <code>evaluateProposals</code>,
+   * After having sent the messages returned by <code>evaluateProposals()</code>,
    * the protocol waits for the maximum timeout specified in those messages
    * (reply-by parameter), or until all the answers are received. 
    * If no reply-by parameter was set, <code>
@@ -313,13 +331,13 @@ public abstract Vector evaluateProposals(Vector proposals);
    * After this timeout, this method is called to react to all the received
    * messages. At the next state of the protocol, all the returned messages
    * are sent and then the protocol terminates.
-   * @param messages is the Vector of ACLMessage received so far
-   * @return a Vector of ACLMessage to be send in the next state of the 
+   * @param messages is the <code>Vector</code> of ACL messages received so far
+   * @return a <code>Vector</code> of ACL messages to be sent in the next state of the 
    * protocol. return null to terminate the protocol
-   * REMIND to set the value of <code>:in-reply-to</code> parameter
+   * <b>REMEMBER</b> to set the value of <code>:in-reply-to</code> parameter
    * in all the returned messages of this vector. This implementation of
    * the protocol is not able to set that value on your behalf because
-   * it implements a one-to-many protocol and, unfortunatelly, 
+   * it implements a one-to-many protocol and, unfortunately, 
    * each of the many might
    * use a different value of <code>:in-reply-to</code>. 
    */

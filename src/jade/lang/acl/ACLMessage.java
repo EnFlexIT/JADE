@@ -34,6 +34,9 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.15  1999/04/06 00:10:08  rimassa
+ Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
  Revision 1.14  1999/03/09 13:23:24  rimassa
  Added a 'getFirstDest()' method and made older, deprecated 'getDest()'
  method call it.
@@ -102,11 +105,15 @@ import java.util.Date;
 import jade.core.AgentGroup;
 
 /**
- * The class ACLMessage implements an ACL message compliant to the FIPA97 specs.
- * All parameters are couples <IT>keyword: value</IT>.
- * All keywords are private final String.
+ * The class ACLMessage implements an ACL message compliant to the <b>FIPA 97</b> specs.
+ * All parameters are couples <em>keyword: value</em>.
+ * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
  * the methods <em>get</em>.
+
+ @author Fabio Bellifemine - CSELT
+ @version $Date$ $Revision$
+
  */
 public class ACLMessage implements Cloneable, Serializable {
 
@@ -147,10 +154,24 @@ public class ACLMessage implements Cloneable, Serializable {
     msgType = "not-understood";
   }
 
+  /**
+     Ordinary <code>ACLMessage</code> constructor. This constructor
+     creates an ACL message object with the specified type.
+     @param type The type of the communicative act represented by this
+     message. 
+   */
   public ACLMessage(String type) {
     msgType = new String(type);
   }
 
+  /**
+     Parses an ACL message object from a text representation. Using
+     this static <em>Factory Method</em>, an <code>ACLMessage</code>
+     object can be built starting from a character stream.
+     @param r A redable stream containing a string representation of
+     an ACL message.
+     @see jade.lang.acl.ACLMessage#toText(Writer w)
+  */
   public static ACLMessage fromText(Reader r) {
     ACLMessage msg = null;
     try {
@@ -167,23 +188,25 @@ public class ACLMessage implements Cloneable, Serializable {
   }
 
   /**
- * <em>set</em> methods to set the actual values of parameters.
- * NOTICE: correctness of actual value of parameters is not checked
- */
+     Writes the <code>:sender</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param source The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getSource()
+  */
   public void setSource( String source ) {
     if (source != null)
       this.source = new String(source);
   }
 
   /**
-  @deprecated Now <code>ACLMessage</code> class supports multiple
-  receivers, so <code>addDest()</code>, <code>removeDest()</code> and
-  <code> getDests()</code> should be used. Currently, this
-  method removes all previous receivers and inserts the one
-  given.
-  @see jade.lang.acl.ACLMessage#addDest()
-  @see jade.lang.ACLMessage#removeDest()
-  @see jade.lang.acl.ACLMessage#getDests()
+     @deprecated Now <code>ACLMessage</code> class supports multiple
+     receivers, so <code>addDest()</code>, <code>removeDest()</code> and
+     <code> getDests()</code> should be used. Currently, this
+     method removes all previous receivers and inserts the one
+     given.
+     @see jade.lang.acl.ACLMessage#addDest(String dest)
+     @see jade.lang.acl.ACLMessage#removeDest(String dest)
+     @see jade.lang.acl.ACLMessage#getDests()
   */
   public void setDest( String dest ) {
     if (dest != null) {
@@ -192,53 +215,118 @@ public class ACLMessage implements Cloneable, Serializable {
     }
   }
 
+  /**
+     Adds a value to <code>:receiver</code> slot. <em><b>Warning:</b>
+     no checks are made to validate the slot value.</em>
+     @param dest The value to add to the slot value set.
+  */
   public void addDest(String dest) {
     dests.addMember(new String(dest));
   }
 
+  /**
+     Removes a value from <code>:receiver</code>
+     slot. <em><b>Warning:</b> no checks are made to validate the slot
+     value.</em>
+     @param dest The value to remove from the slot value set.
+  */
   public void removeDest(String dest) {
     dests.removeMember(new String(dest));
   }
 
+  /**
+     Removes all values from <code>:receiver</code>
+     slot. <em><b>Warning:</b> no checks are made to validate the slot
+     value.</em> 
+  */
   public void removeAllDests() {
     dests.reset();
   }
 
+
+  /**
+     Writes the message type. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param type The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getType()
+  */
   public void setType( String type ) {
     if (type != null)
       msgType = new String(type);
   }
 
+  /**
+     Writes the <code>:content</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param content The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getContent()
+  */
   public void setContent( String content ) {
     if (content != null)
       this.content = new String(content);
   }
 
+  /**
+     Writes the <code>:reply-with</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param reply The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getReplyWith()
+  */
   public void setReplyWith( String reply ) {
     if (reply != null)
       reply_with = new String(reply);
   }
 
+  /**
+     Writes the <code>:in-reply-to</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param reply The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getReplyTo()
+  */
   public void setReplyTo( String reply ) {
     if (reply != null)
       in_reply_to = new String(reply);
   }
   
+  /**
+     Writes the <code>:envelope</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getEnvelope()
+  */
   public void setEnvelope( String str ) {
     if (str != null)
       envelope = new String(str);
   }
 
+  /**
+     Writes the <code>:language</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getLanguage()
+  */
   public void setLanguage( String str ) {
     if (str != null)
       language = new String(str);
   }
 
+  /**
+     Writes the <code>:ontology</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getOntology()
+  */
   public void setOntology( String str ) {
     if (str != null)
       ontology = new String(str);
   }
 
+  /**
+     Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot, as ISO8601 time.
+     @see jade.lang.acl.ACLMessage#getReplyBy()
+  */
   public void setReplyBy( String str ) {
     if (str != null) {
       reply_by = new String(str);
@@ -250,19 +338,34 @@ public class ACLMessage implements Cloneable, Serializable {
     }
   }	
 
-
-
+  /**
+     Writes the <code>:reply-by</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param date The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getReplyByDate()
+  */
   public void setReplyByDate(Date date) {
    reply_byInMillisec = date.getTime();
-   reply_by=ISO8601.toString(date);
+   reply_by = ISO8601.toString(date);
   }
 
-
+  /**
+     Writes the <code>:protocol</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getProtocol()
+  */
   public void setProtocol( String str ) {
     if (str != null)
       protocol = new String(str);
   }
 
+  /**
+     Writes the <code>:conversation-id</code> slot. <em><b>Warning:</b> no
+     checks are made to validate the slot value.</em>
+     @param str The new value for the slot.
+     @see jade.lang.acl.ACLMessage#getConversationId()
+  */
   public void setConversationId( String str ) {
     if (str != null)
       conversation_id = new String(str);
@@ -271,19 +374,28 @@ public class ACLMessage implements Cloneable, Serializable {
  /**
   @deprecated Now <code>ACLMessage</code> class supports multiple
   receivers, so <code>addDest()</code>, <code>removeDest()</code> and
-  <code> getDests()</code> should be used.
-  @see jade.lang.acl.ACLMessage#addDest()
-  @see jade.lang.ACLMessage#removeDest()
+  <code>getDests()</code> should be used.
+  @see jade.lang.acl.ACLMessage#addDest(String dest)
+  @see jade.lang.ACLMessage#removeDest(String dest)
   @see jade.lang.acl.ACLMessage#getDests() 
  */
   public String getDest() {
     return getFirstDest();
   }
 
+  /**
+     Reads <code>:receiver</code> slot.
+     @return An <code>AgentGroup</code> containing the names of the
+     receiver agents for this message.
+  */
   public AgentGroup getDests() {
     return (AgentGroup)dests.clone();
   }
 
+  /**
+     Reads first value of <code>:receiver</code> slot.
+     @return The first receiver agent name.
+  */
   public String getFirstDest() {
     Enumeration e = dests.getMembers();
     if(e.hasMoreElements())
@@ -292,58 +404,119 @@ public class ACLMessage implements Cloneable, Serializable {
       return null;
   }
 
+  /**
+     Reads <code>:sender</code> slot.
+     @return The value of <code>:sender</code>slot.
+     @see jade.lang.acl.ACLMessage#setSource(String).
+  */
   public String getSource() {
     return source;
   }
 
+  /**
+     Reads message type.
+     @return The value of the message type..
+     @see jade.lang.acl.ACLMessage#setType(String).
+  */
   public String getType() {
     return msgType;
   }
 
+  /**
+     Reads <code>:content</code> slot.
+     @return The value of <code>:content</code>slot.
+     @see jade.lang.acl.ACLMessage#setContent(String).
+  */
   public String getContent() {
     return content;
   }
 
+  /**
+     Reads <code>:reply-with</code> slot.
+     @return The value of <code>:reply-with</code>slot.
+     @see jade.lang.acl.ACLMessage#setReplyWith(String).
+  */
   public String getReplyWith() {
     return reply_with;
   }
 
+  /**
+     Reads <code>:reply-to</code> slot.
+     @return The value of <code>:reply-to</code>slot.
+     @see jade.lang.acl.ACLMessage#setReplyTo(String).
+  */
   public String getReplyTo() {
     return in_reply_to;
   }
 
 
 
+  /**
+     Reads <code>:envelope</code> slot.
+     @return The value of <code>:envelope</code>slot.
+     @see jade.lang.acl.ACLMessage#setEnvelope(String).
+  */
   public String getEnvelope() {
     return envelope;
   }
 
+  /**
+     Reads <code>:language</code> slot.
+     @return The value of <code>:language</code>slot.
+     @see jade.lang.acl.ACLMessage#setLanguage(String).
+  */
   public String getLanguage() {
     return language;
   }
 
+  /**
+     Reads <code>:ontology</code> slot.
+     @return The value of <code>:ontology</code>slot.
+     @see jade.lang.acl.ACLMessage#setOntology(String).
+  */
   public String getOntology() {
     return ontology;
   }
 
+  /**
+     Reads <code>:reply-by</code> slot.
+     @return The value of <code>:reply-by</code>slot, as a string.
+     @see jade.lang.acl.ACLMessage#setReplyBy(String).
+  */
   public String getReplyBy() {
     return reply_by;
   }
 
+  /**
+     Reads <code>:reply-by</code> slot.
+     @return The value of <code>:reply-by</code>slot, as a
+     <code>Date</code> object.
+     @see jade.lang.acl.ACLMessage#setReplyByDate(Date).
+  */
   public Date getReplyByDate() {
    return new Date(reply_byInMillisec);
   }
 
+  /**
+     Reads <code>:protocol</code> slot.
+     @return The value of <code>:protocol</code>slot.
+     @see jade.lang.acl.ACLMessage#setProtocol(String).
+  */
   public String getProtocol() {
     return protocol;
   }
 
+  /**
+     Reads <code>:conversation-id</code> slot.
+     @return The value of <code>:conversation-id</code>slot.
+     @see jade.lang.acl.ACLMessage#setConversationId(String).
+  */
   public String getConversationId() {
     return conversation_id;
   }
  
  /**
- * @deprecated Users should never use this method and it will soon go away.
+  * @deprecated Users should never use this method and it will soon go away.
  */
  public byte[] getMessage() {
 
@@ -460,11 +633,12 @@ public class ACLMessage implements Cloneable, Serializable {
   private static int counter = 0; // This variable is only used as a counter in dump()
   /**
      @deprecated This method dumps the message on System.out, so it's
-     not suitable for use with GUIs or streams. Now fromText()/toText()
-     methods allow reading and writing an ACL message on any stream;
-     besides they are inverse of each other. Besides, this method will corrupt
-     the ACL message object when more than one receiver is present.
-     @see #toText(Writer w)
+     not suitable for use with GUIs or streams. Now
+     <code>fromText()</code>/<code>toText()</code> methods allow
+     reading and writing an ACL message on any stream; besides they
+     are inverse of each other. Besides, this method will corrupt the
+     ACL message object when more than one receiver is present.
+     @see jade.lang.acl.ACLMessage#toText(Writer w)
   */
   public void dump() {
     counter++;
@@ -484,6 +658,13 @@ public class ACLMessage implements Cloneable, Serializable {
     System.out.println();
   }
 
+  /**
+     Writes an ACL message object on a stream as a character
+     string. This method allows to write a string representation of an
+     <code>ACLMessage</code> object onto a character stream.
+     @param w A <code>Writer</code> object to write the message onto.
+     @see jade.lang.acl.ACLMessage#fromText(Reader r)
+  */
   public void toText(Writer w) {
     try {
       w.write("(");
@@ -521,6 +702,12 @@ public class ACLMessage implements Cloneable, Serializable {
     }
   }
 
+  /**
+     Clone an <code>ACLMessage</code> object.
+     @return A copy of this <code>ACLMessage</code> object. The copy
+     must be casted back to <code>ACLMessage</code> type before being
+     used.
+  */
   public synchronized Object clone() {
 
     Object result;
@@ -535,6 +722,13 @@ public class ACLMessage implements Cloneable, Serializable {
     return result;
   }
 
+  /**
+     Convert an ACL message to its string representation. This method
+     writes a representation of this <code>ACLMessage</code> into a
+     character string.
+     @return A <code>String</code> representing this message.
+     @see jade.lang.acl.ACLMessage#fromText(Reader r)
+  */
   public String toString(){
     StringWriter text = new StringWriter();
     toText(text);
@@ -542,7 +736,7 @@ public class ACLMessage implements Cloneable, Serializable {
   }
 
  /**
- * This method is used by ACLParser to reset the data structure
+  * Resets all the message slots.
  */
  public void reset() {
   source=null;

@@ -6,29 +6,31 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 /**
- * This abstract class implements the Fipa-Query interaction protocol.
- * The behaviour is cyclic so it remains active for ever.
- * Its usage is the following:
- * A class must be instantiated that extends this one. This new
- * class must implement the method <code>processQuery</code>. 
- * The instantiated class
- * must then be added to the Agent object by using the method 
- * <code>addBehaviour</code>
- */
+ * Behaviour class for <code>fipa-query</code> <em>Responder</em>
+ * role.  This abstract class implements the <code>fipa-query</code> interaction
+ * protocol.  The behaviour is cyclic so it remains active forever.
+ * Its usage is the following: A class must be instantiated that
+ * extends this one. This new class must implement the method
+ * <code>processQuery()</code>.  The instantiated class must then be
+ * added to the <code>Agent</code> object by using the method
+ * <code>Agent.addBehaviour()</code>
+ * @author Fabio Bellifemine - CSELT
+ * @version $Date$ $Revision$
+*/
 public abstract class FipaQueryResponderBehaviour extends SimpleBehaviour {
 
 private MessageTemplate template; 
 private ACLMessage msg,reply;
 private int state = 0;
   /**
-   * This variable must be set to <code>true</code> in order to
-   * finish the behaviour and remove it from the agent's behaviours.
+   * This variable must be set to <code>true</code> in order to finish
+   * the behaviour and remove it from the agent's behaviours.
    */
 public boolean finished=false;
 
   /** 
-   * Object Constructor.
-   * @param a is the Agent that runs the behaviour
+   * Constructor.
+   * @param a is the <code>Agent</code> that runs the behaviour.
    */
 public FipaQueryResponderBehaviour(Agent a){
   super(a);
@@ -36,10 +38,10 @@ public FipaQueryResponderBehaviour(Agent a){
 }
 
   /**
-   * Object Constructor.
-   * @param a is the Agent that runs the behaviour
-   * @param mt is the MessageTemplate to filter the messages to be consumed
-   * by this behaviour
+   * Constructor.
+   * @param a is the <code>Agent</code> that runs the behaviour.
+   * @param mt is the <code>MessageTemplate</code> to filter the messages to be consumed
+   * by this behaviour.
    */
 public  FipaQueryResponderBehaviour(Agent a, MessageTemplate mt){
   this(a);
@@ -54,13 +56,18 @@ public void reset() {
   state = 0;
 }
 
+  /**
+   * This method checks whether this behaviour has finished or not.
+   * @return <code>true</code> if this behaviour has completed its
+   * task, <code>false</code> otherwise.
+   */
 public boolean done() {
   return finished;
 }
 
   /**
-   * This final method actually implements the procotol. It cannot be
-   * re-implemented by sub-classes. 
+   * This <code>final</code> method actually implements the procotol. It cannot be
+   * overridden by subclasses. 
    */
   final public void action() {
     switch (state) {
@@ -100,13 +107,15 @@ public boolean done() {
   }
     /**
      * This abstract method must be implemented by all sub-classes.
-     * The method is called whenever a new query-if or query-ref message
-     * arrives.
-     * @param content is the String with the received message content
-     * @return the method must return the ACLMessage to be sent as a reply. 
-     * In particular, the ACLMessage must have valid type (i.e. it must be
-     * "failure" or "inform" or "refuse" or "not-understood") and valid
+     * The method is called whenever a new <code>query-if</code> or
+     * <code>query-ref</code> message arrives.
+     * @param content is the <code>String</code> with the received
      * message content.
+     * @return the method must return the <code>ACLMessage</code> to
+     * be sent as a reply.  In particular, the <code>ACLMessage</code>
+     * must have valid type (i.e. it must be <code>failure</code> or
+     * <code>inform</code> or <code>refuse</code> or
+     * <code>not-understood</code>) and valid message content.
      */
 public abstract ACLMessage processQuery(String content);
 

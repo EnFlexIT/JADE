@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/04/06 00:10:25  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.5  1998/10/04 18:02:17  rimassa
   Added a 'Log:' field to every source file.
 
@@ -24,7 +27,7 @@ import java.util.Hashtable;
     (Interaction)
 
 ****************************************************************/
-public class Protocol {
+class Protocol {
 
   // These two constants are used to distinguish between different
   // protocol roles. In particular, the initiator of an interaction is

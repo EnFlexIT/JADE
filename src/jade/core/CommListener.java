@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.5  1999/04/06 00:09:37  rimassa
+ * Documented public classes with Javadoc. Reduced access permissions wherever possible.
+ *
  * Revision 1.4  1998/10/31 16:36:13  rimassa
  * Added a new method endSource() to notify a CommListeners when its
  * CommBroadcaster dies.
@@ -22,7 +25,7 @@ import java.util.EventListener;
   + Exposes a method to handle incoming messages.
 
 ******************************************************************/
-public interface CommListener extends EventListener {
+interface CommListener extends EventListener {
   void CommHandle(CommEvent event);
   void endSource(String name);
 }

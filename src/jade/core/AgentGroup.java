@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/04/06 00:09:34  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.9  1999/03/09 12:57:44  rimassa
   Added 'implements Serializable' clause to AgentGroup class, since now
   it an AgentGroup is part of ACLMessage objects.
@@ -33,48 +36,70 @@ import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Vector;
 
-/**************************************************************
+/**
+   Represents a group of agent names.
+   This class allows to hold a set of agent names together, in order
+   to perform message multicasting.
+   @see jade.core.Agent#send(ACLMessage msg, AgentGroup g)
 
-  Name: AgentGroup
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + Holds a set of agent names, to see them as a single group.
-
-  + Provides means for iterating along the names, easing message
-    multicast.
-    (ACLMessage,CommEvent)
-
-****************************************************************/
+*/
 public class AgentGroup implements Cloneable, Serializable {
 
   private Vector memberNames = new Vector();
 
+  /**
+     Adds an agent to this AgentGroup.
+     @param name The agent name to add to this group.
+   */
   public void addMember(String name) {
     memberNames.addElement(name.toLowerCase());
   }
 
+  /**
+     Removes an agent from this group.
+     @param name The agent name to remove from this group.
+   */
   public void removeMember(String name) {
      memberNames.removeElement(name.toLowerCase());
   }
 
+  /**
+     Empties this agent group.
+     Calling this method removes all member agents from this group,
+     permitting to reuse this object for other tasks.
+  */
   public void reset() {
     memberNames.removeAllElements();
   }
 
+  /**
+     Provide access to group members as <code>Enumeration</code>.
+     @return An <code>Enumeration</code> allowing sequential iteration
+     across all member names.    
+     @see java.util.Enumeration
+  */
   public Enumeration getMembers(){
     return memberNames.elements();
   }
 
+  /**
+     Reads the size of this group.
+     @return A non negative <code>int</code> value, representing the
+     number of agent members within this agent group.
+  */
   public int size() {
     return memberNames.size();
   }
 
   /**
-   * public method to clone this object. 
-   * @return an istance of this object that is a field-by-field copy.
-   * This instance must be then cast to (AgentGroup) type.
-   */
+     Method to clone this object. 
+     @return an istance of <code>AgentGroup</code> that is a
+     field-by-field copy of this object.
+     This instance must then be cast to (AgentGroup) type.
+  */
   public synchronized Object clone() {
     Object result;
     try {
@@ -87,16 +112,17 @@ public class AgentGroup implements Cloneable, Serializable {
   }
 
   /**
-   * @return a String representing this AgentGroup
+     String conversion for this class.
+     @return A String representing this AgentGroup.
    */
 public String toString() {
-  if (memberNames.size() == 1)
+  if(memberNames.size() == 1)
     return (String)memberNames.elementAt(0);
   else {
-    String str="(";
-    for (int i=0; i<memberNames.size(); i++)
-      str = str + (String)memberNames.elementAt(i)+" ";
-    return str+")";
+    String str = "(";
+    for (int i = 0; i < memberNames.size(); i++)
+      str = str + (String)memberNames.elementAt(i) + " ";
+    return str + ")";
   }
 }
   

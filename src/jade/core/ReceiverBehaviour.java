@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/04/06 00:09:43  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.8  1999/03/09 13:02:41  rimassa
   Made a change to correctly receive ACL messages with more than a
   single receiver.
@@ -31,10 +34,24 @@ import jade.core.AgentGroup;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+/**
+   Behaviour for receiving an ACL message. This class encapsulates a
+   <code>receive()</code> as an atomic operation. This behaviour
+   terminates when an ACL message is received. If no suitable message
+   is present, <code>action()</code> calls <code>block()</code> and
+   returns.
+   @see jade.core.SenderBehaviour
+   @see jade.core.Agent#receive()
+   @see jade.lang.acl.ACLMessage
+
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
+ */
 public final class ReceiverBehaviour extends Behaviour {
 
   // The agent who wants to receive the ACL message
-  Agent myAgent;
+  private Agent myAgent;
 
   // This message will contain the result
   private ACLMessage result;
@@ -44,16 +61,41 @@ public final class ReceiverBehaviour extends Behaviour {
 
   private boolean finished;
 
+  /**
+     Receive a matching ACL message. This constructor creates a
+     <code>ReceiverBehaviour</code> object that ends as soon as an ACL
+     message matching a given <code>MessageTemplate</code> arrives.
+     @param a The agent this behaviour belongs to, and that will
+     <code>receive()</code> the message.
+     @param msg An ACL message where the received message will be
+     copied.
+     @param mt A Message template to match incoming messages against.
+  */
   public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
     myAgent = a;
     result = msg;
     template = mt;
   }
 
+  /**
+     Receive any ACL message. This constructor creates a
+     <code>ReceiverBehaviour</code> object that ends as soon as any
+     ACL message is received.
+     @param a The agent this behaviour belongs to, and that will
+     <code>receive()</code> the message.
+     @param msg An ACL message where the received message will be
+     copied.
+  */
   public ReceiverBehaviour(Agent a, ACLMessage msg) {
     this(a, msg, null);
   }
 
+  /**
+     Actual behaviour implementation. This method receives a suitable
+     ACL message and copies it into the message provided by the
+     behaviour creator. It blocks the current behaviour if no suitable
+     message is available.
+  */
   public void action() {
     ACLMessage msg = null;
     if(template == null)
@@ -110,10 +152,19 @@ public final class ReceiverBehaviour extends Behaviour {
     }
   }
 
+  /**
+     Checks whether this behaviour ended.
+     @return <code>true</code> when an ACL message has been received.
+  */
   public boolean done() {
     return finished;
   }
 
+  /**
+     Resets this behaviour. This method allows to receive another
+     <code>ACLMessage</code> with the same
+     <code>ReceiverBehaviour</code> without creating a new object.
+  */
   public void reset() {
     finished = false;
     result = null;

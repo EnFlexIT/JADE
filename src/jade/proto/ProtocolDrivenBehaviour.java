@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/04/06 00:10:26  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.8  1998/10/04 18:02:18  rimassa
   Added a 'Log:' field to every source file.
 
@@ -24,7 +27,7 @@ import jade.core.*;
     (Interaction)
 
 ****************************************************************/
-public class ProtocolDrivenBehaviour extends SimpleBehaviour {
+class ProtocolDrivenBehaviour extends SimpleBehaviour {
 
   private boolean starting = true;
   private boolean finished = false;

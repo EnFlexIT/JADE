@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/04/06 00:10:21  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.5  1998/10/04 18:02:13  rimassa
   Added a 'Log:' field to every source file.
 
@@ -32,7 +35,7 @@ import jade.core.AgentGroup;
     (MessageHandler, MessageSelector)
 
 ****************************************************************/
-public class Interaction {
+class Interaction {
 
   int myRole;
   Protocol myProtocol;

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/04/06 00:09:38  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.11  1999/02/15 11:44:19  rimassa
   Changed removeBehaviour() method name to removeSubBehaviour().
 
@@ -21,29 +24,31 @@
 
 */
 
-/***************************************************************
-
-  Name: ComplexBehaviour
-
-  Responsibilities and Collaborations:
-
-  + Allows agent programmers to structure agent behaviours in
-    recursive aggregations.
-
-  + Provides natural computation units for complex behaviours,
-    inserting suitable breakpoints automatically.
-
-****************************************************************/
-
 package jade.core;
 
 import java.util.Vector;
 import java.util.Stack;
 
+/**
+   An abstract superclass for behaviours composed by many parts. This
+   class holds inside a list of <b><em>children behaviours</em></b>,
+   to which elements can be aded or emoved dynamically.
+   When a <code>ComplexBehaviour</code> receives it execution quantum
+   from the agent scheduler, it executes one of its children according
+   to some policy. This class must be extended to provide the actual
+   scheduling policy to apply when running children behaviours.
+   @see jade.core.SequentialBehaviour
+   @see jade.core.NonDeterministicBehaviour
 
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
+ */
 public abstract class ComplexBehaviour extends Behaviour {
 
-  // Inner class to implement a singly linked list of behaviours
+  /**
+     Inner class to implement a list of behaviours.
+  */
   protected class BehaviourList {
 
     private class Node {
@@ -60,14 +65,22 @@ public abstract class ComplexBehaviour extends Behaviour {
     // Node counter
     int length = 0;
 
+    /**
+       Default constructor
+    */
     public BehaviourList() {
     }
 
+    /**
+       Tells whether this list is empty.
+    */
     public boolean isEmpty() {
       return first == null;
     }
 
-    // Add a new Node to the end of the list, with b in it.
+    /**
+       Add a new <code>Behaviour</code> to the end of the list.
+    */
     public void addElement(Behaviour b) {
       Node n = new Node();
       n.item = b;
@@ -80,6 +93,11 @@ public abstract class ComplexBehaviour extends Behaviour {
       ++length;
     }
 
+    /**
+       Remove a <code>Behaviour</code> from the list.
+       @return <code>true</code> if the element was present in the
+       list, <code>false</code> otherwise.
+    */
     public boolean removeElement(Behaviour b) {
       // Remove b from the list; if b was in the list, return true
       // otherwise return false
@@ -107,14 +125,23 @@ public abstract class ComplexBehaviour extends Behaviour {
       }
     }
 
+    /**
+       Save the list cursor on an internal stack.
+     */
     public void pushCurrent() {
       nodeStack.push(current);
     }
 
+    /**
+       Retrieves a previously saved list cursor.
+    */
     public void popCurrent() {
       current = (Node)nodeStack.pop();
     }
 
+    /**
+       Reads the <code>Behaviour</code> pointed to by the list cursor.
+    */
     public Behaviour getCurrent() {
       if(current != null)
 	return current.item;
@@ -122,14 +149,25 @@ public abstract class ComplexBehaviour extends Behaviour {
 	return null;
     }
 
+    /**
+       Moves the list cursor to the beginning.
+    */
     public void begin() {
       current = first;
     }
 
+    /**
+       Moves the list cursor to the end.
+    */
     public void end() {
       current = last;
     }
 
+    /**
+       Advances the list cursor by one.
+       @return <code>true</code> if the end of the list has been
+       reached.
+    */
     public boolean next() {
       if(current != null) {
 	current = current.next;
@@ -138,12 +176,19 @@ public abstract class ComplexBehaviour extends Behaviour {
       return current == null;
     }
 
+    /**
+       Reads the current size of the list.
+    */
     public int size() {
       return length;
     }
 
   }
 
+  /**
+     The children list for this behaviour. It can be accessed by
+     subclasses to implement their scheduling policies.
+  */
   protected BehaviourList subBehaviours = new BehaviourList();
 
   // This variables mark the states when no sub-behaviour has been run
@@ -151,23 +196,65 @@ public abstract class ComplexBehaviour extends Behaviour {
   private boolean starting = true;
   private boolean finished = false;
 
+  /**
+     Default constructor, does not set the owner agent.
+  */
   public ComplexBehaviour() {
     super();
   }
 
+  /**
+     This constructor sets the owner agent.
+     @param a The agent this behaviour belongs to.
+  */
   public ComplexBehaviour(Agent a) {
     super(a);
   } 
 
+  /**
+     This method is just an empty placeholders for subclasses. It is
+     executed just once before starting children
+     scheduling. Therefore, it acts as a prolog to the composite
+     action represented by this <code>ComplexBehaviour</code>.
+  */
   protected void preAction() {
   }
 
-  // Subclasses implementation must return true when done
+  /**
+     Abstract policy method for children execution. Different
+     subclasses will implement this method to run children according
+     to some policy (sequentially, round robin, priority based, ...).
+     @return <code>true</code> when done, <code>false</code> when
+     children behaviours still need to be run.
+     @see jade.core.SequentialBehaviour
+     @see jade.core.NonDeterministicBehaviour
+  */
   protected abstract boolean bodyAction();
 
+  /**
+     This method is just an empty placeholder for subclasses. It is
+     invoked just once after children scheduling has ended. Therefore,
+     it acts as an epilog for the composite task represented by this
+     <code>ComplexBehaviour</code>. Overriding this method,
+     application programmers can build <em>fork()/join()</em>
+     execution structures.
+     An useful idiom can be used to implement composite cyclic
+     behaviours (e.g. a behaviour that continuously follows a specific
+     interaction protocol): puttng a <code>reset()</code> call into
+     <code>postAction()</code> method makes a complex behaviour
+     restart as soon as it terminates, thereby turning it into a
+     cyclic composite behaviour.
+   */
   protected void postAction() {
   }
 
+  /**
+     Executes this <code>ComplexBehaviour</code>. This method starts
+     by executing <code>preAction()</code>; then
+     <code>bodyAction()</code> is called once per scheduling turn
+     until it returns <code>true</code>. Eventually,
+     <code>postAction()</code> is called.
+   */
   public final void action() {
     if(starting) {
       preAction();
@@ -182,10 +269,20 @@ public abstract class ComplexBehaviour extends Behaviour {
     }
   }
 
+  /**
+     Checks whether this behaviour has terminated.
+     @return <code>true</code> if this <code>ComplexBehaviour</code>
+     has finished executing, <code>false</code>otherwise.
+  */
   public boolean done() {
     return finished;
   }
 
+  /**
+     Puts a <code>ComplexBehaviour</code> back in initial state. The
+     internal state is cleaned up and <code>reset()</code> is
+     recursively called for each child behaviour. 
+  */
   public void reset() {
 
     subBehaviours.begin();
@@ -203,11 +300,24 @@ public abstract class ComplexBehaviour extends Behaviour {
 
   }
 
+  /**
+     Adds a behaviour to the children list. This method can be called
+     whenever deemed useful, so that dynamic activation of behaviours
+     is fully supported.
+     @param b The behaviour to add.
+  */
   public void addSubBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
     b.setParent(this);
   }
 
+  /**
+     Removes a behaviour from the children list. This method can be
+     called whenever deemed useful, so that dynamic removal of
+     behaviour is fully supported.
+     @param b The behaviour to remove. If it's not present in the
+     list, nothing happens.
+  */
   public void removeSubBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
     if(rc) {
@@ -218,8 +328,12 @@ public abstract class ComplexBehaviour extends Behaviour {
     }
   }
 
-  // This method handles notification by simply forwarding it
-  // according to its original direction
+  /**
+     Handle block/restart notifications. This method handles
+     notifications by simply forwarding them according to their
+     original direction.
+     @param rce The event to handle
+  */
   protected void handle(RunnableChangedEvent rce) {
 
     // Pass downwards events to children
@@ -245,11 +359,12 @@ public abstract class ComplexBehaviour extends Behaviour {
   }
 
 
-  // block()/restart() are the public interface to Behaviour
-  // scheduling subsystem. A ComplexBehaviour blocks just like its
-  // Behaviour superclass, but when restart() is called sub-behaviours
-  // are notified, too.
-
+  /**
+     Restarts this behaviour. A <code>ComplexBehaviour</code> blocks
+     just like its <code>Behaviour</code> superclass, but when
+     <code>restart()</code> is called all its children behaviours are
+     notified, too.
+  */
   public void restart() {
     // Notify upwards
     super.restart();

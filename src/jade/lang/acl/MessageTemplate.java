@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/04/06 00:10:10  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.11  1998/10/18 16:03:40  rimassa
   Modified code to avoid using deprecated ACLMessage constructor.
   Removed dump() method, now a toText() method is provided to print a
@@ -17,18 +20,16 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.Hashtable;
 
-/**************************************************************
+/**
+   A pattern for matching incoming ACL messages. This class allows to
+   build complex slot patterns to select ACL messages. These patterns
+   can then be used in <code>receive()</code> operations.
+   @see jade.core.Agent#receive(MessageTemplate mt)
 
-  Name: MessageTemplate
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + Represents set of ACL messages
-
-  + Performs a pattern matching against a given ACL message
-    (ACLMessage)
-
-****************************************************************/
+*/
 public class MessageTemplate {
 
   // Beware: '*' is used as a matches-all string. Maybe a different
@@ -121,101 +122,205 @@ public class MessageTemplate {
   }
 
 
-  // This Factory Method returns a message template that matches any
-  // message.
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message.
+     @return A new <code>MessageTemplate</code> matching any given
+     value.
+  */
   public static MessageTemplate MatchAll() {
     return new MessageTemplate();
   }
 
-
-  // All these Factory Methods return a message template that
-  // matches any message where a field has a particular value.
-
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:sender</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchSource(String value) {
     ACLMessage msg = allWildCard();
     msg.setSource(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:receiver</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchDest(String value) {
     ACLMessage msg = allWildCard();
     msg.setDest(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:content</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchContent(String value) {
     ACLMessage msg = allWildCard();
     msg.setContent(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:reply-with</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchReplyWith(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyWith(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:in-reply-to</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchReplyTo(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyTo(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:envelope</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchEnvelope(String value) {
     ACLMessage msg = allWildCard();
     msg.setEnvelope(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:language</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchLanguage(String value) {
     ACLMessage msg = allWildCard();
     msg.setLanguage(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:ontology</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchOntology(String value) {
     ACLMessage msg = allWildCard();
     msg.setOntology(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:reply-by</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchReplyBy(String value) {
     ACLMessage msg = allWildCard();
     msg.setReplyBy(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:protocol</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchProtocol(String value) {
     ACLMessage msg = allWildCard();
     msg.setProtocol(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given <code>:conversation-id</code> slot.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchConversationId(String value) {
     ACLMessage msg = allWildCard();
     msg.setConversationId(value);
     return new MessageTemplate(msg);
   }
 
+  /**
+     This <em>Factory Method</em> returns a message template that
+     matches any message with a given message type.
+     @param value The value the message slot will be matched against.
+     @return A new <code>MessageTemplate</code> matching the given
+     value.
+  */
   public static MessageTemplate MatchType(String value) {
     ACLMessage msg = allWildCard();
     msg.setType(value);
     return new MessageTemplate(msg);
   }
 
-  // Reads a MessageTemplate from a Reader
-  public static void fromText(Reader r) {
+  /**
+     Reads a <code>MessageTemplate</code> from a character stream.
+     @param r A readable character stream containing a string
+     representation of a message template.
+     @return A new <code>MessageTemplate</code> object.
+  */
+  public static MessageTemplate fromText(Reader r) {
     MessageTemplate mt = new MessageTemplate();
     mt.template = ACLMessage.fromText(r);
+    return mt;
   }
 
-  // Dumps a MessageTemplate to a Writer
+  /**
+     Dumps a <code>MessageTemplate</code> to a character stream.
+     @param w A writable character stream that will hold a string
+     representation of this <code>MessageTemplate</code> objects.
+  */
   public void toText(Writer w) {
     template.toText(w);
   }
 
-  // Boolean operation on message templates.
-
+  /**
+     Logical <b>and</b> between two <code>MessageTemplate</code>
+     objects. This method creates a new message template that is
+     matched by those ACL messages matching <b><em>both</b></em>
+     message templates given as operands.
+     @param op1 The first <em>and</em> operand.
+     @param op2 The second <em>and</em> operand.
+     @return A new <code>MessageTemplate</code> object.
+     @exception IllegalArgumentException When the two operands are
+     incompatible.
+     @see jade.lang.acl.MessageTemplate#or(MessageTemplate op1, MessageTemplate op2)
+  */
   public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
     MessageTemplate result = new MessageTemplate();
 
@@ -282,15 +387,21 @@ public class MessageTemplate {
     return result;
   }
 
-  // FIXME: Not implemented, and maybe it's even meaningless ...
+  /**
+     <b>NOT IMPLEMENTED.</b>
+   */
   public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
     MessageTemplate result = new MessageTemplate();
     return result;
   }
 
-
-  // Pattern matching with an ACL message -- now uses Reflection API
-  // to avoid code duplication.
+  /**
+     Matches an ACL message against this <code>MessageTemplate</code>
+     object.
+     @param msg The <code>ACLMessage</code> to check for matching.
+     @return <code>true</code> if the ACL message matches this
+     template, <code>false</code> otherwise.
+  */
   public boolean match(ACLMessage msg) {
 
     Class ACLMessageClass = msg.getClass();

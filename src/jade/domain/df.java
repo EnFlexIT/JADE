@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.22  1999/04/06 00:09:56  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.21  1999/03/29 10:42:30  rimassa
   Changed the handling of DF GUI events: now both registration and
   deregistration are handled as events.
@@ -87,16 +90,18 @@ import jade.lang.acl.MessageTemplate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
-/**************************************************************
+/**
+  Standard <em>Directory Facilitator</em> agent. This class implements
+  <em><b>FIPA</b></em> <em>DF</em> agent. <b>JADE</b> applications
+  cannot use this class directly, but interact with it through
+  <em>ACL</em> message passing. More <em>DF</em> agents can be created
+  by application programmers to divide a platform into many
+  <em><b>Agent Domains</b></em>.
 
-  Name: df
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
 
-  Responsibility and Collaborations:
-
-  + Serves as Directory Facilitator for the Agent Platform, according
-    to FIPA 98 specification.
-
-****************************************************************/
+*/
 public class df extends Agent {
 
   private abstract class DFBehaviour
@@ -538,10 +543,15 @@ public class df extends Agent {
   private DFGUI gui;
   private Vector eventQueue = new Vector();
 
-  protected Enumeration getDFAgentDescriptors() {
+  Enumeration getDFAgentDescriptors() {
     return descriptors.elements();
   }
 
+  /**
+    This constructor creates a new <em>DF</em> agent. This can be used
+    to create additional <em>DF</em> agents, beyond the default one
+    created by <em><b>JADE</b></em> on platform startup.
+  */
   public df() {
 
     myOntology = AgentManagementOntology.instance();
@@ -561,6 +571,10 @@ public class df extends Agent {
     dispatcher.registerFactory(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
   }
 
+  /**
+    This method starts all behaviours needed by <em>DF</em> agent to
+    perform its role within <em><b>JADE</b></em> agent platform.
+  */
   protected void setup() {
     // Show GUI
     gui = new DFGUI(this);
@@ -611,6 +625,10 @@ public class df extends Agent {
     });
   }
 
+  /**
+    Cleanup <em>DF</em> on exit. This method performs all necessary
+    cleanup operations during agent shutdown.
+  */
   protected void takeDown() {
     AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
     dfd.setName(getName());
@@ -626,17 +644,26 @@ public class df extends Agent {
     }
   }
 
+  /**
+    A <em>DF</em> agent has a special version of this method in order
+    to remember its parents.
+  */
   public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     super.registerWithDF(dfName, dfd);
     parents.addMember(dfName);
   }
 
+  /**
+    A <em>DF</em> agent has a special version of this method in order
+    to remember its parents.
+  */
   public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     super.deregisterWithDF(dfName, dfd);
     parents.removeMember(dfName);
   }
 
-  protected void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    // PP
+  private void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     if(descriptors.containsKey(dfd.getName()))
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
@@ -655,7 +682,8 @@ public class df extends Agent {
     }
   }
 
-  protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    // PP
+  private void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     Object o = descriptors.remove(dfd.getName());
     AgentManagementOntology.DFAgentDescriptor toRemove = (AgentManagementOntology.DFAgentDescriptor)o;
     if(toRemove == null)
@@ -665,7 +693,8 @@ public class df extends Agent {
     subDFs.remove(dfd.getName());
   }
 
-  protected void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    // PP
+  private void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     Object o = descriptors.get(dfd.getName());
     if(o == null)
       throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
@@ -902,12 +931,12 @@ public class df extends Agent {
 
   }
 
-  public void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
     eventQueue.addElement(new GUIEvent(GUIEvent.EV_REG, dfName, dfd));
     doWake();
   }
 
-  public void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  void postDeregisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
     eventQueue.addElement(new GUIEvent(GUIEvent.EV_DEREG, dfName, dfd));
     doWake();
   }

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/04/06 00:10:09  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.1  1999/02/22 09:29:38  rimassa
   This class handles FIPA-mandated ISO 8601 time format.
 
@@ -13,6 +16,10 @@ import java.text.SimpleDateFormat;
 /**
  * This class contains a set of static methods that allow to convert
  * to/from the Date Time format specified by ISO8601 and adopted by FIPA.
+
+ @author Fabio Bellifemine - CSELT
+ @version $Date$ $Revision$
+
  */
 public class ISO8601 {
 
@@ -51,7 +58,8 @@ public static Date toDate(String dateTimeToken) throws Exception {
 }
 
   /**
-   * This method converts a java.util.Date into a String in ISO8601 format.
+   * This method converts a <code>java.util.Date</code> into a String
+   * in ISO8601 format.
    * @return a String, e.g. "19640625T073000000" to represent the 7:30 of the
    * 25th of June of 1964.
    */
@@ -61,7 +69,7 @@ public static String toString(Date d){
 }
 
   /**
-   * this method converts into a String in ISO8601 format representing
+   * this method converts into a string in ISO8601 format representing
    * relative time from the current time
    * @param millisec is the number of milliseconds from now
    * @return a String, e.g. "+00000000T010000000" to represent one hour
@@ -118,7 +126,7 @@ private static String zeroPaddingNumber(long value, int digits) {
    * The main is here only for debugging.
    * You can test your conversion by executing the following command:
    * <p>
-   * <code> java Support.ISO8601 <yourtoken> </code>
+   * <code> java jade.lang.acl.ISO8601 <yourtoken> </code>
    */
 public static void main(String argv[]) {
   System.out.println(argv[0]);

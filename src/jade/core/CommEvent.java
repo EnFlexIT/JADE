@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.8  1999/04/06 00:09:36  rimassa
+ * Documented public classes with Javadoc. Reduced access permissions wherever possible.
+ *
  * Revision 1.7  1998/11/03 00:31:26  rimassa
  * A cosmetic change in a comment.
  *
@@ -30,7 +33,7 @@ import jade.lang.acl.*;
     (AgentGroup)
 
 ******************************************************************/
-public class CommEvent {
+class CommEvent {
 
   private ACLMessage  message;
   private AgentGroup recipients;

@@ -9,37 +9,53 @@ import java.util.Date;
 import java.io.*;
 
 /**
-* This abstract behaviour implements the Fipa Contract Net Interaction Protocol
-* from
-* the point of view of a responder to a call for proposal (CFP) message.
-* In order to use correctly this behaviour, the programmer should do the 
-* following:
+* Behaviour class for <code>fipa-contract-net</code>
+* <em>Responder</em> role.  This abstract behaviour implements the
+* <code>fipa-contract-net</code> interaction protocol from the point
+* of view of a responder to a call for proposal (<code>cfp</code>)
+* message.  In order to use correctly this behaviour, the programmer
+* should do the following:
+
+* <ul> <li> Implement a class that extends
+* <code>FipaContractNetResponderBehaviour</code>.  This class must
+* implement 3 methods that are called by
+* <code>FipaContractNetResponderBehaviour</code>:
+
 * <ul>
-* <li> implements a class that extends FipaContractNetResponderBehaviour.
-* This class must implement 3 methods that are called by 
-* FipaContractNetResponderBehaviour:
-* <ul>
-* <li> <code> public ACLMessage evaluateCfp(ACLMessage cfp) </code>
-* to evaluate the cfp message received and to return an ACLMessages to
-* be sent in response (propose or refuse or not-understood). 
-* If <code>null</code> is returned, then the cfp is ignored and the behaviour
-* is resetted and start again waiting for cfp messages.
-* <li> <code> public ACLMessage AcceptedProposal(ACLMessage msg) </code>
-* to evaluate the received accept-proposal and to return an ACLMessages to be sent back
-* ("inform done" or "failure")
-* <li> <code> public void RejectedProposal(ACLMessage msg) </code>
-* to evaluate the received reject-proposal. After this method, the protocol
-* is reset and it restarts again.
-* <li> Optionally, the programmer might override the reset() method that
-* is called to reset the behaviour and wait for a new <code>cfp</code>
-* message. In this case, remind to call also <code>super.reset()</code>!
+
+* <li> <code>public ACLMessage evaluateCfp(ACLMessage cfp)</code> to
+* evaluate the <code>cfp</code> message received and to return an
+* <code>ACLMessage</code> to be sent in response
+* (<code>propose</code>, <code>refuse</code> or
+* <code>not-understood</code>).  If <code>null</code> is returned,
+* then the <code>cfp</code> is ignored and the behaviour is reset and
+* start again waiting for <code>cfp</code> messages.
+
+* <li> <code>public ACLMessage AcceptedProposal(ACLMessage msg)</code>
+* to evaluate the received <code>accept-proposal</code> message and to
+* return an <code>ACLMessage</code> to be sent back (<code>inform
+* Done</code> or <code>failure</code>).
+
+* <li> <code>public void RejectedProposal(ACLMessage msg)</code> to
+* evaluate the received <code>reject-proposal</code>. After this
+* method, the protocol is reset and it restarts again.
+
+* <li> Optionally, the programmer might override the
+* <code>reset()</code> method that is called to reset the behaviour
+* and wait for a new <code>cfp</code> message. In this case, remind to
+* call also <code>super.reset()</code> from within overridden
+* <code>reset()</code> version!
+
 * </ul>
-* <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
+
+* <li> create a new instance of this class and add it to the agent
+* calling <code>Agent.addBehaviour()</code>)
+
 * </ul>
+* @see jade.proto.FipaContractNetInitiatorBehaviour
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
 */
-
 public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour {
     
   /** It is the pointer to the Agent class.
@@ -55,13 +71,14 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
  long timeout;
  ACLMessage cfpMsg, acceptMsg, informMsg, proposeMsg;
   /**
-   * this variable should be set to true when the behaviour should terminate
-   */
+   * this variable should be set to true when the behaviour should
+   * terminate
+ */
  public boolean finished = false;
   /** 
-   * default timeout in milliseconds to wait for proposals. 
-   * This timeout is overriden by
-   * the reply-by parameter of the <code>cfp</code> message, if set.
+   * default timeout in milliseconds to wait for proposals.  This
+   * timeout is overriden by the reply-by parameter of the
+   * <code>cfp</code> message, if set.
    */
   public static final long DEFAULTTIMEOUT = 90000; 
   ACLMessage wakeMsg;
@@ -69,9 +86,9 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
  
   /**
    * This method is called to restart the protocol and wait again for
-   * a new call for proposal message.
-   * The method can be overriden by subclasses, but <code>super.reset()</code>
-   * should always be called.
+   * a new call for proposal message.  The method can be overriden by
+   * subclasses, but <code>super.reset()</code> should always be
+   * called.
    */
  public void reset() {
     mt=MessageTemplate.MatchType("cfp");
@@ -86,7 +103,7 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
  
 
   /**
-   * constructor of the class
+   * Constructor of the class.
    * @param a is the pointer to the Agent class
    */ 
   FipaContractNetResponderBehaviour(Agent a) {
@@ -95,7 +112,9 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
  
   
   /**
-   * @return true if the behaviour must be terminated, false otherwise
+   * This method checks whether this behaviour has finished its task.
+   * @return <code>true</code> if the behaviour must be terminated,
+   * <code>false</code> otherwise.
    */
   public boolean done() {
     return finished;
@@ -103,7 +122,7 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
  
  
   /**
-   * actual method of the behaviour. It cannot be overriden
+   * Actual body of the behaviour. It cannot be overriden.
    */
   final public void action() {
     switch (state) {
@@ -198,21 +217,20 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
   /**
    * This method is called when the <code>accept-proposal</code>
    * message is received. 
-   * @param msg contains the received accept-proposal message
-   * @return the ACLMessage to be sent as a response at the next state of
-   * the protocol.
+   * @param msg contains the received <code>accept-proposal</code> message.
+   * @return the <code>ACLMessage</code> to be sent as a response at
+   * the next state of the protocol.
    */
-public abstract ACLMessage AcceptedProposal(ACLMessage msg);
+  public abstract ACLMessage AcceptedProposal(ACLMessage msg);
 
   /**
    * This method is called when the <code>reject-proposal</code>
-   * message is received. 
-   * The method is also called when the timeout is elapsed.
-   * The protocol uses a default timeout, that is the class variable
-   * DEFAULTTIMEOUT; the parameter <code>reply-by</code> of the "propose"
-   * message overrides the default timeout.
+   * message is received.  The method is also called when the timeout
+   * is elapsed.  The protocol uses a default timeout, that is the
+   * class variable DEFAULTTIMEOUT; the <code>:reply-by</code> slot of
+   * the <code>propose</code> message overrides the default timeout.
    * After the execution of this method the protocol is reset.
-   * @param msg contains the received reject-proposal message
+   * @param msg contains the received reject-proposal message.
    */
 public abstract void RejectedProposal(ACLMessage msg);
 
@@ -220,10 +238,10 @@ public abstract void RejectedProposal(ACLMessage msg);
   /**
    * This method is called when the <code>cfp</code>
    * message is received. 
-   * @param msg contains the received cfp message
-   * @return the ACLMessage to be sent as a response at the next state of
-   * the protocol. If null, or different from <code>propose</code>,
-   * then the protocol is reset.
+   * @param msg contains the received cfp message.
+   * @return the <code>ACLMessage</code> to be sent as a response at
+   * the next state of the protocol. If null, or different from
+   * <code>propose</code>, then the protocol is reset.
    */
 public abstract ACLMessage evaluateCfp(ACLMessage cfp);
 }

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/04/06 00:09:54  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.10  1999/03/14 17:49:33  rimassa
   Changed acc class to take advantage of new
   FipaRequestResponderBehaviour class.
@@ -34,6 +37,16 @@ import jade.lang.acl.MessageTemplate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
+/**
+  Standard <em>Agent Communication Channel</em> agent. This class
+  implements <em><b>FIPA</b></em> <em>ACC</em> agent. <b>JADE</b>
+  applications cannot use this class directly, but interact with it
+  through <em>ACL</em> message passing.
+
+  @author Giovanni Rimassa - Universita` di Parma
+  @version $Date$ $Revision$
+
+*/
 public class acc extends Agent {
 
   private class ACCBehaviour
@@ -101,6 +114,13 @@ public class acc extends Agent {
   private AgentManagementOntology myOntology;
   private FipaRequestResponderBehaviour dispatcher;
 
+  /**
+     This constructor creates a new <em>ACC</em> agent. Since a direct
+     reference to an Agent Platform implementation must be passed to
+     it, this constructor cannot be called from application
+     code. Therefore, no other <em>ACC</em> agent can be created
+     beyond the default one.
+  */
   public acc(AgentPlatformImpl ap) {
 
     myPlatform = ap;
@@ -118,7 +138,10 @@ public class acc extends Agent {
 
   }
 
-
+  /**
+   This method starts the <em>ACC</em> behaviours to allow the agent
+   to carry on its duties within <em><b>JADE</b></em> agent platform.
+  */
   protected void setup() {
     addBehaviour(dispatcher);
   }

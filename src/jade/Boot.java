@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.17  1999/04/06 00:09:19  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.16  1999/03/29 10:31:18  rimassa
   Maintained a singleton for the current AgentContainer, to allow
   calling createAgent() from Agent class (for agent factories).
@@ -64,7 +67,13 @@ import jade.core.AgentContainerImpl;
 import jade.core.AgentPlatform;
 import jade.core.AgentPlatformImpl;
 
+/**
+   Boots <B><em>JADE</em></b> system, parsing command line arguments.
 
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
+ */
 public class Boot {
 
 
@@ -82,6 +91,29 @@ public class Boot {
     return theContainer;
   }
 
+  /**
+   * Fires up <b><em>JADE</em></b> system.
+   * This method starts the bootstrap process for <B><em>JADE</em></b>
+   * agent platform. It parses command line arguments and acts
+   * accordingly.
+   * Valid command line arguments:
+   *
+   * <ul>
+   * <li>  <b>-host</b>     <em>Host name where the platform is.</em>
+   * <li>  <b>-port</b>     <em>Port number where the RMI registry for
+   *                            the platform is.</em>
+   * <li>  <b>-name</b>     <em>Name with which the Agent Platform is
+   *                            registered into RMI registry.</em>
+   * <li>  <b>-file</b>     <em>File name to retrieve agent names from.</em>
+   * <li>  <b>-gui</b>      <em>Starts the Remote Management Agent.</em>
+   * <li>  <b>-platform</b> <em>When specified, an Agent Platform is started.
+   *                            Otherwise, an Agent Container is added to an
+   *                            existing Agent Platform.</em>
+   * <li>  <b>-version</b>  <em>Prints out version information and exits.</em>
+   * <li>  <b>-help</b>     <em>Prints out usage informations.</em>
+   * </ul>
+   *
+   */
   public static void main(String args[]) {
 
     // Default values for looking RMI registry bind/lookup
@@ -103,27 +135,6 @@ public class Boot {
 
     Vector agents = new Vector();
 
-    /* Command line options for Boot:
-
-       -host     Host name where the platform is.
-       -port     Port number where the RMI registry for
-                 the platform is.
-       -name     Name with which the Agent Platform is
-                 registered into RMI registry.
-
-       -file     File name to retrieve agent names from.
-
-       -gui      Starts the Remote Management Agent.
-
-       -platform When specified, an Agent Platform is started.
-                 Otherwise, an Agent Container is added to an
-		 existing Agent Platform.
-
-       -version  Prints out version information and exits.
-
-       -help     Prints out usage informations.
-
-    */
     try{
 
       int n = 0;

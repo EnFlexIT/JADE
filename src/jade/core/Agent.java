@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.46  1999/04/06 00:09:33  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.45  1999/03/31 15:55:28  rimassa
   Fixed a problem with doActivate: now waiting agents are correctly
   waked up.
@@ -269,6 +272,10 @@ import jade.domain.FIPAException;
    Application programmers must write their own agents as
    <code>Agent</code> subclasses, adding specific behaviours as needed
    and exploiting <code>Agent</code> class capabilities.
+
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
  */
 public class Agent implements Runnable, Serializable, CommBroadcaster {
 
@@ -356,13 +363,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      Default value for message queue size. When the number of buffered
      messages exceeds this value, older messages are discarded
      according to a <b><em>FIFO</em></b> replacement policy.
-     @see jade.core.Agent#setQueueSize()
+     @see jade.core.Agent#setQueueSize(int newSize)
      @see jade.core.Agent#getQueueSize()
   */
   public static final int MSG_QUEUE_SIZE = 100;
 
-  protected MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
-  protected Vector listeners = new Vector();
+  private MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE); // PP
+  private Vector listeners = new Vector(); // PP
 
   private String myName = null;
   private String myAddress = null;
@@ -370,9 +377,19 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private Object waitLock = new Object(); // Used for agent waiting
   private Object suspendLock = new Object(); // Used for agent suspension
 
-  protected Thread myThread;
-  protected Scheduler myScheduler;
+  private Thread myThread; // PP
+  private Scheduler myScheduler; // PP
+
+  /**
+     The <code>Behaviour</code> that is currently executing.
+     @see jade.core.Behaviour
+  */
   protected Behaviour currentBehaviour;
+
+  /**
+     Last message received.
+     @see jade.lang.acl.ACLMessage
+  */
   protected ACLMessage currentMessage;
 
   // This variable is 'volatile' because is used as a latch to signal
@@ -385,7 +402,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private int myDomainState;
   private Vector blockedBehaviours = new Vector();
 
-  protected ACLParser myParser = ACLParser.create();
+  private ACLParser myParser = ACLParser.create();
 
   /**
      Default constructor.
@@ -442,7 +459,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      Set message queue size. This method allows to change the number
      of ACL messages that can be buffered before being actually read
      by the agent or discarded.
-
      @param newSize A non negative integer value to set message queue
      size to. Passing 0 means unlimited message queue.
      @throws IllegalArgumentException If <code>newSize</code> is negative.
@@ -457,7 +473,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      queue is unbounded (its size is limited only by amount of
      available memory).
      @return The actual size of the message queue.
-     @see jade.core.Agent#setQueueSize()
+     @see jade.core.Agent#setQueueSize(int newSize)
   */
   public int getQueueSize() {
     return msgQueue.getMaxSize();
@@ -1350,7 +1366,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      received from the DF to indicate some error condition.
      @see jade.domain.AgentManagementOntology.DFAgentDescriptor
      @see java.util.Vector
-     @see jade.domain.AgentManaementOntology.Constraint
+     @see jade.domain.AgentManagementOntology.Constraint
      @see jade.domain.AgentManagementOntology.DFSearchResult
   */
   public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {

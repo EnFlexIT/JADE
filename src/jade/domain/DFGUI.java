@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/04/06 00:09:52  rimassa
+  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+
   Revision 1.5  1999/03/29 10:43:40  rimassa
   Removed last blocking call from event listener, i.e. on
   DFAgentDescriptor deregistration.
@@ -32,7 +35,7 @@ import jade.core.Agent;
 import jade.domain.*; 
 import jade.lang.acl.*;
 
-public class DFGUI extends Frame {
+class DFGUI extends Frame {
 
   df agent;
 
