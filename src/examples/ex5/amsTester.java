@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/09/02 15:01:55  rimassa
+  Handled new ParseException exception of ACLMessage.fromText().
+
   Revision 1.11  1999/05/20 14:12:40  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -299,10 +302,16 @@ public class amsTester extends Agent {
       " :conversation-id " + convID +
       ")";
 
-    ACLMessage toSend = ACLMessage.fromText(new StringReader(text));
-    send(toSend);
+    try {
+      ACLMessage toSend = ACLMessage.fromText(new StringReader(text));
+      send(toSend);
 
-    System.out.println("[Agent.sendRequest()]\tRequest sent");
+      System.out.println("[Agent.sendRequest()]\tRequest sent");
+    }
+    catch(jade.lang.acl.ParseException jlape) {
+      jlape.printStackTrace();
+    }
+
 
   }
 

@@ -268,8 +268,10 @@ public class SentReceivedGUI extends Frame
           System.out.println("File Not Found:" + name);
         } catch(IOException e) {
           System.out.println("IO Exception");
-        }
-
+        } catch(jade.lang.acl.ParseException jlape) {
+	    jlape.printStackTrace();
+	}
+	 
 		//}}
 	}
 

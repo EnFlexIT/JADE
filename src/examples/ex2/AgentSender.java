@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.13  1999/09/02 15:01:45  rimassa
+  Handled new ParseException exception of ACLMessage.fromText().
+
   Revision 1.12  1999/05/20 14:12:39  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -67,7 +70,9 @@ public class AgentSender extends Agent {
         catch(IOException ioe) {
           ioe.printStackTrace();
         }
-
+	catch(jade.lang.acl.ParseException jlape) {
+	  jlape.printStackTrace();
+	}
       }
 
     });

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/09/02 15:01:48  rimassa
+  Handled new ParseException exception of ACLMessage.fromText().
+
   Revision 1.7  1999/05/20 14:12:39  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -67,6 +70,9 @@ public class AgentThread extends Agent {
 	  ACLMessage reply = blockingReceive(mt);
 	  System.out.println("Received from " + reply.getSource());
 	  System.out.println(reply.getContent());
+	}
+	catch(jade.lang.acl.ParseException jlape) {
+	  jlape.printStackTrace();
 	}
 	catch(IOException ioe) {
 	  ioe.printStackTrace();

@@ -274,6 +274,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 					currentMsgGui.setMsg(ACLmsg);
 				}
 				catch(FileNotFoundException e1) { System.out.println("File Not Found: " + fileName); }
+				catch (ParseException e2) { System.out.println("Bad ACL Message in file: " +fileName); }
 			} 
 		}
 		// SAVE

@@ -131,6 +131,7 @@ class MsgIndication
 		}
 		catch(IOException e) { System.out.println("IO Exception in MsgIndication.fromText()"); }
 		catch (java.text.ParseException e1) { System.out.println("ParseException in MsgIndication.fromText()"); }
+		catch (jade.lang.acl.ParseException e2) { System.out.println("ParseException in parsing the ACL message"); } //eccezione generate da ACLMessage.fromText()
 
 		return(mi);
 	}
