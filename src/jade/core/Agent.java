@@ -283,6 +283,18 @@ public class Agent implements Runnable, Serializable {
   */
   public static final int AP_MAX = 9;    // Hand-made type checking
 
+  private static final AgentState[] STATES = new AgentState[] { 
+    new AgentState("Illegal MIN state"),
+    new AgentState("Initiated"),
+    new AgentState("Active"),
+    new AgentState("Suspended"),
+    new AgentState("Waiting"),
+    new AgentState("Deleted"),
+    new AgentState("Transit"),
+    new AgentState("Copy"),
+    new AgentState("Gone"),
+    new AgentState("Illegal MAX state")
+  };
 
   /**
      These constants represent the various Domain Life Cycle states
@@ -726,7 +738,9 @@ public class Agent implements Runnable, Serializable {
 
   private void setState(int state) {
     synchronized(stateLock) {
+      int oldState = myAPState;
       myAPState = state;
+      notifyChangedAgentState(oldState, myAPState);
     }
   }
 
@@ -1635,6 +1649,14 @@ public class Agent implements Runnable, Serializable {
   // Notify toolkit of the need to copy the current agent
   private void notifyCopy() {
     myToolkit.handleClone(myAID, myDestination, myNewName);
+  }
+
+  // Notify toolkit that the current agent has changed its state
+  private void notifyChangedAgentState(int oldState, int newState) {
+    AgentState from = STATES[oldState];
+    AgentState to = STATES[newState];
+    if(myToolkit != null)
+      myToolkit.handleChangedAgentState(myAID, from, to);
   }
 
   private void activateAllBehaviours() {
