@@ -61,5 +61,22 @@ public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentE
     public AbsTerm getAbsTerm(String name) {
         return (AbsTerm) getAbsObject(name);
     } 
+    
+    // Easy way to access the Java class representing AbsPredicate.
+ 		// Useful in MIDP where XXX.class is not available
+		private static Class absPredicateClass = null;
+ 		public static Class getJavaClass() {
+ 			if (absPredicateClass == null) {
+ 				try {
+ 					absPredicateClass = Class.forName("jade.content.abs.AbsPredicate");
+ 				}
+ 				catch (Exception e) {
+ 					// Should never happen
+ 					e.printStackTrace();
+ 				}
+ 			}
+ 			return absPredicateClass;
+ 		}
+
 }
 

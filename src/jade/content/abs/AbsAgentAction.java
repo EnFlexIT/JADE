@@ -30,7 +30,7 @@ import jade.content.AgentAction;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsAgentAction extends AbsConcept implements AbsContentElement, AgentAction {
-
+		
     /**
      * Construct an Abstract descriptor to hold an agent action of
      * the proper type, e.g. SELL, BUY....
@@ -49,7 +49,23 @@ public class AbsAgentAction extends AbsConcept implements AbsContentElement, Age
      */
     public void set(String name, AbsPredicate value) {
         super.set(name, value);
-    } 
+ 		} 
+ 		
+    // Easy way to access the Java class representing AbsAgentAction.
+ 		// Useful in MIDP where XXX.class is not available
+		private static Class absAgentActionClass = null;
+ 		public static Class getJavaClass() {
+ 			if (absAgentActionClass == null) {
+ 				try {
+ 					absAgentActionClass = Class.forName("jade.content.abs.AbsAgentAction");
+ 				}
+ 				catch (Exception e) {
+ 					// Should never happen
+ 					e.printStackTrace();
+ 				}
+ 			}
+ 			return absAgentActionClass;
+ 		}
 
 }
 

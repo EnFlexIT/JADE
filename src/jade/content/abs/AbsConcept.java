@@ -61,5 +61,21 @@ public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm, Conc
         return (AbsTerm)getAbsObject(name);
     }
 
+    // Easy way to access the Java class representing AbsConcept.
+ 		// Useful in MIDP where XXX.class is not available
+		private static Class absConceptClass = null;
+ 		public static Class getJavaClass() {
+ 			if (absConceptClass == null) {
+ 				try {
+ 					absConceptClass = Class.forName("jade.content.abs.AbsConcept");
+ 				}
+ 				catch (Exception e) {
+ 					// Should never happen
+ 					e.printStackTrace();
+ 				}
+ 			}
+ 			return absConceptClass;
+ 		}
+
 }
 

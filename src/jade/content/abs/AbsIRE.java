@@ -89,5 +89,21 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
 			return false;
     } 
 
+    // Easy way to access the Java class representing AbsIRE.
+ 		// Useful in MIDP where XXX.class is not available
+		private static Class absIREClass = null;
+ 		public static Class getJavaClass() {
+ 			if (absIREClass == null) {
+ 				try {
+ 					absIREClass = Class.forName("jade.content.abs.AbsIRE");
+ 				}
+ 				catch (Exception e) {
+ 					// Should never happen
+ 					e.printStackTrace();
+ 				}
+ 			}
+ 			return absIREClass;
+ 		}
+
 }
 
