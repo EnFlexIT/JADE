@@ -37,7 +37,7 @@ public class Waker extends Thread {
     * @param msg is the message to be sent
     * @param timeout is the sleeping time before sending the message
     */
-    Waker(Agent a, ACLMessage msg, long timeout) {
+    public Waker(Agent a, ACLMessage msg, long timeout) {
         myAgent=a;
         myMsg = msg;
         myTimeout = timeout;
