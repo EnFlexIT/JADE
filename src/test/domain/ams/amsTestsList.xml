@@ -5,7 +5,7 @@
 	]>
 -->
 	<TestsList> 
-		<Test name="Create / Kill Agent" skip="false">
+		<Test name="Agent creation and destruction" skip="false">
 			<TestClassName>test.domain.ams.tests.TestCreateKillAgent</TestClassName>
 			<WhatTest>Tests creating and killing agents by requesting the AMS to perform the CreateAgent and KillAgent actions of the JADEManagementOntology.</WhatTest>
 			<HowWorkTest> 
@@ -19,7 +19,23 @@
 			    </UL>			
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
-		</Test>		
+		</Test>
+		
+		<Test name="Agent suspension and resumption" skip="false">
+			<TestClassName>test.domain.ams.tests.TestSuspendResumeAgent</TestClassName>
+			<WhatTest>Tests suspending and resuming agents by requesting the AMS to perform the Modify (with proper state values) action of the FIPAManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				In the load phase a peripheral container is created and a dummy replyer agent is started on it. 
+				Then the following steps are performed: 
+				1) Send a test message 1 to the target replyer agent (a reply should immediately be received).
+				2) Request the AMS to suspend the target replyer agent.
+				3) Send a test message 2 to the target replyer agent (no reply should be received since the agent is suspended).
+				4) Request the AMS to resume the target replyer agent.
+				5) Wait for the reply to test message 2 that should immediately be received since the agent was resumed.
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>	
+		
 		<Test name="Install / Uninstall MTP" skip="false">
 			<TestClassName>test.domain.ams.tests.TestInstallMTP</TestClassName>
 			<WhatTest>Tests installing and un-installing MTPs by requesting the AMS to perform the InstallMTP and UninstallMTP actions of the JADEManagementOntology.</WhatTest>
