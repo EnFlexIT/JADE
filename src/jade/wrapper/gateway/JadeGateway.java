@@ -1,4 +1,4 @@
-package jade.wrapper; 
+package jade.wrapper.gateway; 
 
 import jade.core.Runtime;
 import jade.core.ProfileImpl;
@@ -6,16 +6,20 @@ import jade.core.Profile;
 import jade.util.Event;
 import jade.util.leap.Properties;
 import jade.util.Logger;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.ControllerException;
+import jade.wrapper.StaleProxyException;
 
 /**
  * This class is the entry point for using the functionalities of
- * a simple gateway useful to send commands to a JADE Agent.
+ * a simple gateway useful to issue commands to a JADE Agent.
  * The class is responsible for creating, and keeping alive, a JADE Container
  * and a JADE Agent.
  * <p> The package must be used as follows:
  * <ul>
- * <li> create an application-specific class that extends <code>GatewayAgent</code>, implement its method <code>processCommand</code>
- * and is responsible for processing all command-requests
+ * <li> create an application-specific class that extends <code>GatewayAgent</code>, that implements its method <code>processCommand</code>
+ * and that is the agent responsible for processing all command-requests
  * <li> initialize this JadeGateway by calling its method <code>init</code> with the
  * name of the class of the application-specific agent 
  * <li> finally, in order to request the processing of a Command, you must call the method <code>JadeGateway.execute(Object command)<code>.
@@ -24,6 +28,10 @@ import jade.util.Logger;
  * The method <code>execute</code> will return only after the method <code>GatewayAgent.releaseCommand(command)</code> has been called
  * by your application-specific agent.
  * </ul>
+ * An alternative way of using this functionality is to extend the GatewayBehaviour instead
+ * of GatewayAgent; notice that that allows re-use at the behaviour level rather than at
+ * the agent level: it is really an implementation choice left to the programmer and both
+ * choices are equivalently good.
  * <b>NOT available in MIDP</b>
  * @author Fabio Bellifemine, Telecom Italia LAB
  * @version $Date$ $Revision$
