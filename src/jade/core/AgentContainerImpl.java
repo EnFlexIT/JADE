@@ -226,6 +226,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	public ContainerPrincipal getContainerPrincipal() {
 		ContainerPrincipal cp = null;
+                if (certs!=null) 
 		cp = (ContainerPrincipal) certs.getIdentityCertificate().getSubject();
 		return cp;
 	}
