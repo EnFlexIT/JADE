@@ -10,7 +10,7 @@ public class StartPlatform {
 
   public static void main(String args[]) {
     System.setSecurityManager(new RMISecurityManager());
-    AgentPlatform thePlatform = null;
+    AgentPlatformImpl thePlatform = null;
 
     // Default values for binding to the RMI registry
     String platformName = "JADE";
