@@ -79,6 +79,9 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    add(new AgentActionSchema(DELETEAGENT), DeleteAgent.class);
 	    add(new AgentActionSchema(FREEZEAGENT), FreezeAgent.class);
 	    add(new AgentActionSchema(THAWAGENT), ThawAgent.class);
+	    add(new AgentActionSchema(SAVECONTAINER), SaveContainer.class);
+	    add(new AgentActionSchema(LOADCONTAINER), LoadContainer.class);
+	    add(new AgentActionSchema(DELETECONTAINER), DeleteContainer.class);
 	    add(new AgentActionSchema(LOADAGENTGROUP), LoadAgentGroup.class);
 	    add(new AgentActionSchema(SAVEAGENTGROUP), SaveAgentGroup.class);
 	    add(new AgentActionSchema(DELETEAGENTGROUP), DeleteAgentGroup.class);
@@ -99,6 +102,9 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    add(new AgentActionSchema(DELETEAGENT));
 	    add(new AgentActionSchema(FREEZEAGENT));
 	    add(new AgentActionSchema(THAWAGENT));
+	    add(new AgentActionSchema(SAVECONTAINER));
+	    add(new AgentActionSchema(LOADCONTAINER));
+	    add(new AgentActionSchema(DELETECONTAINER));
 	    add(new AgentActionSchema(LOADAGENTGROUP));
 	    add(new AgentActionSchema(SAVEAGENTGROUP));
 	    add(new AgentActionSchema(DELETEAGENTGROUP));
@@ -147,6 +153,18 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    as.add(THAWAGENT_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 	    as.add(THAWAGENT_NEWCONTAINER, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
 
+	    as = (AgentActionSchema)getSchema(SAVECONTAINER);
+	    as.add(SAVECONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
+	    as.add(SAVECONTAINER_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+
+	    as = (AgentActionSchema)getSchema(LOADCONTAINER);
+	    as.add(LOADCONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
+	    as.add(LOADCONTAINER_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+
+	    as = (AgentActionSchema)getSchema(DELETECONTAINER);
+	    as.add(DELETECONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
+	    as.add(DELETECONTAINER_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+
 	    as = (AgentActionSchema) getSchema(SAVEAGENTGROUP);
 	    as.add(SAVEAGENTGROUP_GROUP, (ConceptSchema)getSchema(AGENTGROUP));
 	    as.add(SAVEAGENTGROUP_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
@@ -162,5 +180,5 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	catch(OntologyException oe) {
 	    oe.printStackTrace();
 	}
-    } 
+    }
 }
