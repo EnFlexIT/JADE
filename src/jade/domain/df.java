@@ -768,7 +768,8 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     	} catch (Exception ex) {}
     }
     try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-    		        gui.addAgentDesc(dfd.getName());	
+    		 gui.addAgentDesc(dfd.getName());
+    		 gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
     }catch(Exception ex){}
     
   }
@@ -789,7 +790,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
       // this refresh must be here, otherwise the GUI is not synchronized with 
       // registration/deregistration made without using the GUI
       gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-      gui.showStatusMsg("Deregistration of agent : " + dfd.getName().getName() +" done.");
+      gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
     }catch(Exception e1){}	
   }
     
@@ -800,7 +801,11 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     if(old == null)
       throw new NotRegistered();
     agentDescriptions.register(dfd.getName(), dfd);    
-    
+    try{
+    	gui.removeAgentDesc(dfd.getName(), df.this.getAID());
+    	gui.addAgentDesc(dfd.getName());
+    	gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
+    }catch(Exception e){}
 
   }
 
