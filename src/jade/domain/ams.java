@@ -54,15 +54,15 @@ import jade.domain.mobility.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.content.*;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;
 import jade.content.lang.Codec.*;
-
-import jade.onto.Ontology;
-import jade.onto.OntologyException;
-import jade.onto.Frame;
-
 import jade.content.onto.basic.Action;
+
+/*import jade.onto.Ontology;
+import jade.onto.OntologyException;
+import jade.onto.Frame;*/
 
 import jade.mtp.MTPException;
 
@@ -948,8 +948,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	mobilityMgr = new MobilityManager(this);
  
-    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(JADEManagementOntology.NAME));
-    mtJ = MessageTemplate.or(mtJ,MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
+    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.or(MessageTemplate.MatchOntology(JADEManagementOntology.NAME), MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME)));
+    //mtJ = MessageTemplate.or(mtJ,MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
     jadeResponderB = new AMSJadeAgentManagementBehaviour(this, mobilityMgr, mtJ);
     
     registerTool = new RegisterToolBehaviour();
@@ -1127,7 +1127,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old == null)
 			throw new NotRegistered();
-		agentDescriptions.register(old.getName(), old);
+		//agentDescriptions.register(old.getName(), old);
 		AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
 	}
 
@@ -1178,11 +1178,12 @@ public class ams extends Agent implements AgentManager.Listener {
 				}, actorCerts);
 				amsd.setOwnership(username);
 			}
-			agentDescriptions.register(amsd.getName(), amsd);
+			//agentDescriptions.register(amsd.getName(), amsd);
 			old.setOwnership(amsd.getOwnership());
 
 			// change agent state
 			if (! oldState.equals(AMSAgentDescription.SUSPENDED) && newState.equals(AMSAgentDescription.SUSPENDED)) {
+			    // if the agent must be suspended and was not suspended
 				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
 					public Object run() throws NotFoundException, UnreachableException, AuthException {
 						myPlatform.suspend(name);
@@ -1192,6 +1193,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				amsd.setState(newState);
 			}
 			else if (oldState.equals(AMSAgentDescription.SUSPENDED) && ! newState.equals(AMSAgentDescription.SUSPENDED)) {
+			    // if the agent was suspended and must change its state 
 				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
 					public Object run() throws NotFoundException, UnreachableException, AuthException {
 						myPlatform.activate(name);
@@ -1199,13 +1201,16 @@ public class ams extends Agent implements AgentManager.Listener {
 					}
 				}, actorCerts);
 				amsd.setState(newState);
-			}
+			} else //FIXME do we need to check for a permission to change the AgentState also in this situation?
+				amsd.setState(newState);
 			agentDescriptions.register(amsd.getName(), amsd);
 		}
 		catch (NotFoundException ne) {
+			agentDescriptions.register(old.getName(), old);
 			ne.printStackTrace();
 		}
 		catch (UnreachableException ue) {
+			agentDescriptions.register(old.getName(), old);
 			ue.printStackTrace();
 		}
 		catch (AuthException ae) {
@@ -1214,6 +1219,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		}
 		catch (Exception e) {
 			// Never thrown
+			agentDescriptions.register(old.getName(), old);
 			e.printStackTrace();
 		}
 	}
@@ -1239,7 +1245,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// This one is called in response to a 'clone-agent' action
 	void AMSCloneAgent(AID agent, Location where, String newName, AID sender) throws FIPAException, AuthException {
-		checkAction(Authority.AGENT_COPY, agent, sender);
+		checkAction(Authority.AGENT_CLONE, agent, sender);
 		try {
 			myPlatform.copy(agent, where, newName);
 		}
@@ -1617,7 +1623,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 	temp.setLanguage("FIPA-SL0");
 	temp.setOntology(ontoName);
-	List l = new ArrayList(2);
+	ContentElementList l = new ContentElementList();
 	if (a == null) {
 	    a = new Action();
 	    a.setActor(getAID());
@@ -1626,7 +1632,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	l.add(a);
 	l.add(e);
 	try {
-	    fillMsgContent(temp,l);
+	    getContentManager().fillContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return e.getMessage();
 	}
