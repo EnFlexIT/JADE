@@ -7,7 +7,11 @@ import jade.lang.acl.ACLMessage;
 
 public class MobileAgent extends Agent {
 
-  private ComplexBehaviour mainBehaviour = new SequentialBehaviour();
+  private ComplexBehaviour mainBehaviour = new SequentialBehaviour() {
+    protected void postAction() {
+      reset();
+    }
+  };
   private ACLMessage replyMsg = new ACLMessage("inform");
 
   public void setup() {
@@ -47,6 +51,7 @@ public class MobileAgent extends Agent {
       }
     });
 
+    /*
     mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
       public void action() {
 	System.out.println("Back home");
@@ -59,7 +64,7 @@ public class MobileAgent extends Agent {
 	doDelete();
       }
     });
-
+    */
     addBehaviour(mainBehaviour);
 
   }
