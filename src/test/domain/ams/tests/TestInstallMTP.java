@@ -41,7 +41,8 @@ import test.common.*;
 import test.domain.ams.*;
 
 /**
-   Performs the following steps:
+   Test the InstallMTP and UninstallMTP actions of the 
+   JADE management ontology.
    @author Giovanni Caire - TILAB
  */
 public class TestInstallMTP extends Test {
@@ -289,7 +290,7 @@ public class TestInstallMTP extends Test {
 						return;
   				}
   			}
-				l.log("Removed MTP address correctly removed from the local AID.");
+				l.log("Address of the removed MTP correctly removed from the local AID.");
   		}
   	};
   	sb.addSubBehaviour(b);
@@ -315,7 +316,7 @@ public class TestInstallMTP extends Test {
 							return;
 	  				}
 	  			}
-					l.log("Removed MTP address correctly removed from the AMS-Description.");
+					l.log("Address of the removed MTP correctly removed from the AMS-Description.");
   			}
   			catch (FIPAException fe) {
   				l.log("AMS-Search error.");
@@ -351,12 +352,12 @@ public class TestInstallMTP extends Test {
                                     APService s = (APService)is.next();
                                     Iterator addresses = s.getAllAddresses();
                                     if (address.equals(addresses.next())) {
-			  			l.log("The removed MTP address has NOT been removed from the AP-Description.");
+			  			l.log("The address of the removed MTP has NOT been removed from the AP-Description.");
 			  			((SequentialBehaviour) parent).skipNext();
   						return;
   					}     
                                 }
-				l.log("Removed MTP  address correctly removed from the AP-Description.");
+				l.log("Address of the removed MTP correctly removed from the AP-Description.");
   			}
   			catch (OntologyException oe) {
   				l.log("Error encoding/decoding GetDescription request/reply.");
