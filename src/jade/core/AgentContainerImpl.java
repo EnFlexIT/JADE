@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.13  1998/10/14 21:32:06  Giovanni
+  Moved a piece of code inside a try { ... } block; now when a new agent
+  has a name clashing with a previous one and a NameClashException is
+  thrown the agent is not started anymore and it is removed from the
+  local agents table.
+
   Revision 1.12  1998/10/11 19:20:14  rimassa
   Changed code to comply with new MessageDispatcher constructor.
   Implemented invalidateCacheEntry() remote method.
@@ -144,10 +150,20 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
       try {
 	myPlatform.bornAgent(agentName, desc); // RMI call
+
+	// Now activate all agents (this call starts their embedded threads)
+	Enumeration nameList = localAgents.keys();
+	String currentName = null;
+	while(nameList.hasMoreElements()) {
+	  currentName = (String)nameList.nextElement();
+	  agent = (Agent)localAgents.get(currentName.toLowerCase());
+	  agent.doStart(currentName, platformAddress);
+	}
       }
       catch(NameClashException nce) {
 	System.out.println("Agent name already in use");
 	nce.printStackTrace();
+	localAgents.remove(agentName.toLowerCase());
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
@@ -155,14 +171,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       }
     }
 
-    // Now activate all agents (this call starts their embedded threads)
-    Enumeration nameList = localAgents.keys();
-    String currentName = null;
-    while(nameList.hasMoreElements()) {
-      currentName = (String)nameList.nextElement();
-      agent = (Agent)localAgents.get(currentName.toLowerCase());
-      agent.doStart(currentName, platformAddress);
-    }
   }
 
   public void shutDown() {
