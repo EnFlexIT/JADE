@@ -80,7 +80,7 @@ public class DFAppletOntology extends Ontology implements DFAppletVocabulary {
 
 	  	AgentActionSchema as = (AgentActionSchema)getSchema(FEDERATEWITH);
 	  	as.add(FEDERATEWITH_PARENTDF, (TermSchema) getSchema(BasicOntology.AID));
-	  	as.add(FEDERATEWITH_CHILDRENDF, (TermSchema)getSchema(DFAGENTDESCRIPTION));
+	  	as.add(FEDERATEWITH_CHILDRENDF, (TermSchema)getSchema(DFAGENTDESCRIPTION), ObjectSchema.OPTIONAL);
 	  	
 	  	as = (AgentActionSchema)getSchema(REGISTERWITH);
 	  	as.add(REGISTERWITH_DF, (TermSchema) getSchema(BasicOntology.AID));

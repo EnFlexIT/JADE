@@ -416,6 +416,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      Federate f = (Federate)action.getAction(); 	
 	      AID parentDF = (AID)f.getParentDF();
 	      DFAgentDescription dfd = (DFAgentDescription)f.getChildrenDF();
+	      if (dfd == null)
+		  dfd = getDescriptionOfThisDF();
 	      //send request to parentDF
 	      GUIRequestDFServiceBehaviour secondStep = new GUIRequestDFServiceBehaviour(parentDF,FIPAManagementOntology.REGISTER,dfd,null,gui);
 	      addSubBehaviour(secondStep);
