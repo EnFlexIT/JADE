@@ -25,6 +25,7 @@ package demo.MeetingScheduler;
 import java.awt.*;
 // import symantec.itools.awt.util.dialog.ModalDialog;
 import jade.core.Agent;
+import jade.gui.GuiEvent;
 
 /**
 Javadoc documentation for the file
@@ -167,12 +168,10 @@ public PasswordDialog(MeetingSchedulerAgent a, String title) {
 
 	void okButton_MouseClicked(java.awt.event.MouseEvent event)
 	{
-		// to do: code goes here.			 
-		//FIXME check username and password
-		// after having checked the username and password, creates the mainFrame 
 		dispose();
-		myAgent.setUser(getUserName());
-    	
+		GuiEvent ev = new GuiEvent(this, myAgent.STARTTASKS);
+		ev.addParameter(getUserName());
+		myAgent.postGuiEvent(ev);
 	}
 
 	class SymAction implements java.awt.event.ActionListener
@@ -189,17 +188,12 @@ public PasswordDialog(MeetingSchedulerAgent a, String title) {
 
 	void userTextField_EnterHit(java.awt.event.ActionEvent event)
 	{
-		// to do: code goes here.
-			 
-		//{{CONNECTION
 		// Request the focus
 		passTextField.requestFocus();
-		//}}
 	}
 
 	void passTextField_EnterHit(java.awt.event.ActionEvent event)
 	{
-		// to do: code goes here.
-    okButton_MouseClicked(null);			 
+	  okButton_MouseClicked(null);			 
 	}
 }

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -23,17 +24,25 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 import jade.core.behaviours.CyclicBehaviour;
+
 import jade.core.Agent;
+import jade.core.AID;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import demo.MeetingScheduler.CLP.*;
-import jade.domain.FIPAAgentManagement.AID;
+
+import jade.domain.FIPAException;
+
+import jade.onto.basic.Action;
 
 import java.io.*;
 import java.util.Date;
+import java.util.List;
+
+import demo.MeetingScheduler.Ontology.*;
 
 /**
-Javadoc documentation for the file
+This behaviour serves all CANCEL messages received by the agent.
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -41,10 +50,6 @@ public class CancelAppointmentBehaviour extends CyclicBehaviour {
 
   MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
   ACLMessage cancel; 
-  SL0Parser parser;
-  MultiValue mv;
-  Action a;
-  Proposition app;
 
   CancelAppointmentBehaviour(Agent a) {
     super(a);
@@ -58,25 +63,14 @@ public class CancelAppointmentBehaviour extends CyclicBehaviour {
     }
     System.err.println("CancelAppointmentBehaviour: received "+cancel.toString());
     try {
-      parser = SL0Parser.create();
-      a = (Action)parser.parse(new StringReader(cancel.getContent()), ACLMessage.getPerformative(cancel.getPerformative()));
-      // a = (Action)mv.getValue(0);
-      app = (Proposition)a.getActionParameter("list");
-      for (int i=0; i<app.getNumberOfTerms(); i++) {
-	int dateNumber = Integer.parseInt(app.getTerm(i).toString());
-	Date d = new Date();
-	if ((dateNumber > 0) && (dateNumber < 32)) { // if is a valid day
-	  d.setDate(dateNumber);
-	  Appointment appointment = ((MeetingSchedulerAgent)myAgent).getAppointment(d);
-	  if (appointment != null) {
-	    if (appointment.getInvitingAgent().equalsIgnoreCase(myAgent.getName())) 
-	      // ho chiamato io l'appuntamento ed ora lo devo cancellare io
-	      ((MeetingSchedulerAgent)myAgent).cancelAppointment(d);
-	    ((MeetingSchedulerAgent)myAgent).removeAppointment(d);
-	  }
-	}
-      }  // end of for
-    }catch (demo.MeetingScheduler.CLP.ParseException e) {
+      List l = myAgent.extractContent(cancel);
+      Action a = (Action)l.get(0);
+      Appointment app = (Appointment)a.get_1(); 
+      if (app.getInviter().equals(myAgent.getAID())) 
+	// I called the appointment and I have to inform other agents of that
+	((MeetingSchedulerAgent)myAgent).cancelAppointment(app);
+      ((MeetingSchedulerAgent)myAgent).removeMyAppointment(app);
+    }catch (FIPAException e) {
       e.printStackTrace();
     }
   }

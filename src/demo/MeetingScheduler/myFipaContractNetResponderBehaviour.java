@@ -23,12 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 import java.util.Date;
-import java.io.*;
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.proto.FipaContractNetResponderBehaviour;
-import demo.MeetingScheduler.CLP.*;
 
 /**
 Javadoc documentation for the file

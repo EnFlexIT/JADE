@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -32,6 +33,9 @@ import symantec.itools.awt.util.Calendar;
 
 import java.util.Enumeration;
 import java.util.Date;
+
+import jade.gui.GuiEvent;
+import demo.MeetingScheduler.Ontology.*;
 
 /**
 Javadoc documentation for the file
@@ -130,6 +134,8 @@ public class FixApp extends Frame
 		buttonAddPerson.addMouseListener(aSymMouse);
 		buttonRemovePerson.addMouseListener(aSymMouse);
 		//}}
+
+		setLocation(50, 50);
 	}
 
 	public FixApp(String title)
@@ -142,22 +148,20 @@ public class FixApp extends Frame
     public FixApp(MeetingSchedulerAgent a, String selectedDate) {
         this();
         myAgent = a;
-		try {
-			calendar1.setDate(selectedDate);
-		}
-		catch(java.beans.PropertyVetoException e) { 
-		    System.err.println("Date not valid to set: "+selectedDate);
-		}
-		try {
-			calendar2.setDate(selectedDate);
-		}
-		catch(java.beans.PropertyVetoException e) { 
-		    System.err.println("Date not valid to set: "+selectedDate);
-		}
-		Enumeration e = myAgent.getKnownPersons();
+	try {
+	  calendar1.setDate(selectedDate);
+	} catch(java.beans.PropertyVetoException e) { 
+	  System.err.println("Date not valid to set: "+selectedDate);
+	}
+	try {
+	  calendar2.setDate(selectedDate);
+	} catch(java.beans.PropertyVetoException e) { 
+	  System.err.println("Date not valid to set: "+selectedDate);
+	}
+	Enumeration e = myAgent.getKnownPersons();
         listKnownPersons.clear();
         while (e.hasMoreElements()) {
-            listKnownPersons.addItem(((Person)e.nextElement()).getName());
+	  listKnownPersons.addItem(((Person)e.nextElement()).getName());
         }
     }
     
@@ -166,45 +170,44 @@ public class FixApp extends Frame
      * @param b  if true, show the component; otherwise, hide the component.
      * @see java.awt.Component#isVisible
      */
+  /**
     public void setVisible(boolean b)
 	{
-		if(b)
-		{
-			setLocation(50, 50);
-		}
-		super.setVisible(b);
+	  if(b)
+	      setLocation(50, 50);
+	  super.setVisible(b);
 	}
-
+	**/
 	static public void main(String args[])
 	{
 		(new FixApp()).setVisible(true);
 	}
 	
-	public void addNotify()
-	{
-	    // Record the size of the window prior to calling parents addNotify.
-	    Dimension d = getSize();
-	    
-		super.addNotify();
+  /**
+   public void addNotify() {
+     // Record the size of the window prior to calling parents addNotify.
+     Dimension d = getSize();
+     
+     super.addNotify();
 
-		if (fComponentsAdjusted)
-			return;
+     if (fComponentsAdjusted)
+       return;
 
-		// Adjust components according to the insets
-		setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
-		Component components[] = getComponents();
-		for (int i = 0; i < components.length; i++)
-		{
-			Point p = components[i].getLocation();
-			p.translate(insets().left, insets().top);
-			components[i].setLocation(p);
-		}
-		fComponentsAdjusted = true;
-	}
-
-    // Used for addNotify check.
-	boolean fComponentsAdjusted = false;
-
+     // Adjust components according to the insets
+     setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
+     Component components[] = getComponents();
+     for (int i = 0; i < components.length; i++)
+       {
+	 Point p = components[i].getLocation();
+	 p.translate(insets().left, insets().top);
+	 components[i].setLocation(p);
+       }
+     fComponentsAdjusted = true;
+   }
+   
+  // Used for addNotify check.
+  boolean fComponentsAdjusted = false;
+  **/
 	//{{DECLARE_CONTROLS
 	java.awt.TextArea textArea1;
 	symantec.itools.awt.util.Calendar calendar1;
@@ -259,12 +262,8 @@ public class FixApp extends Frame
 
 	void buttonExit_MouseClicked(java.awt.event.MouseEvent event)
 	{
-		// to do: code goes here.
-			 
-		//{{CONNECTION
 		// Invalidate the Frame
 		dispose();
-		//}}
 	}
 
 
@@ -273,45 +272,27 @@ public class FixApp extends Frame
 
 	void buttonOk_MouseClicked(java.awt.event.MouseEvent event)
 	{
-		// to do: code goes here.
-		
 	    textFieldErrMsg.setVisible(false);	
 	    		
-		//{{CONNECTION
-		Appointment a = new Appointment(myAgent.getName());
-		a.setDescription(textArea1.getText());
+	    //{{CONNECTION
+	    Appointment a = new Appointment();
+	    a.setInviter(myAgent.getAID());
+	    a.setDescription(textArea1.getText());
 				
-		a.setStartingOn(new Date(calendar1.getDate()));
-		a.setEndingWith(new Date(calendar2.getDate()));
+	    a.setStartingOn(new Date(calendar1.getDate()));
+	    a.setEndingWith(new Date(calendar2.getDate()));
 				
-		for (int i=0; i<listInvitedPersons.countItems(); i++) {
-		    a.addInvitedPerson(myAgent.getPerson(listInvitedPersons.getItem(i)));
-		}
-		
-		try {
-		    a.isValid();
-		    myAgent.fixAppointment(a);
-		    myAgent.doWake();
-		    dispose(); //FIXME 
-	    /* 5/8/99 Fabio Bellifemine (consultato anche Giovanni Caire).
-	       il metodo fixAppointmento esegue una addBehaviour.
-	       il costruttore del behaviour viene eseguito, ma il
-	       behaviour non va in esecuzione. Se si invia un
-	       messaggio (ad esempio Directory/UpdateKnownPersons),
-	       allora il behaviour viene eseguito. Il problema sembra 
-	       essere legato alla notify() eseguita dallo Scheduler
-	       che per qualche strano motivo fa conflitto con la 
-	       dispose(). Basta aggiungere qualche print prima della
-	       dispose e tutto funziona correttamente. 
-	       Io ho preferito aggiungere una doWake().
-	       I dubbi cadono sulla notify() di jade.core.Scheduler.add() che 
-	       parrebbe non svegliare il thread; come mai e' cosi' diversa
-	       da doWake()?*/
-		}
-		catch (Exception e) { 
-		    showErrorMessage(e.getMessage());
-		}
-		//}}
+	    for (int i=0; i<listInvitedPersons.countItems(); i++) 
+	      a.addInvitedPersons(myAgent.getPerson(listInvitedPersons.getItem(i)));
+	    try {
+	      a.isValid();
+	      GuiEvent ev = new GuiEvent(this, myAgent.FIXAPPOINTMENT);
+	      ev.addParameter(a);
+	      myAgent.postGuiEvent(ev); 
+	    }
+	    catch (Exception e) { 
+	      showErrorMessage(e.getMessage());
+	    }
 	}
 
     void showErrorMessage(String msg) {
@@ -321,23 +302,15 @@ public class FixApp extends Frame
     
 	void buttonAddPerson_MouseClicked(java.awt.event.MouseEvent event)
 	{
-		// to do: code goes here.
-	
-		//{{CONNECTION
-		// Add a string to the List... Get the current item text
-		if (listKnownPersons.getSelectedItem() != null)
-		    listInvitedPersons.addItem(listKnownPersons.getSelectedItem());
-		//}}
+	  // Add a string to the List... Get the current item text
+	  if (listKnownPersons.getSelectedItem() != null)
+	    listInvitedPersons.addItem(listKnownPersons.getSelectedItem());
 	}
 
 	void buttonRemovePerson_MouseClicked(java.awt.event.MouseEvent event)
 	{
-		// to do: code goes here.
-			 
-		//{{CONNECTION
-		// Delete an item from the List... Get the current item index
-		if (listInvitedPersons.getSelectedIndex() >= 0)
-    		listInvitedPersons.delItem(listInvitedPersons.getSelectedIndex());
-		//}}
+	  // Delete an item from the List... Get the current item index
+	  if (listInvitedPersons.getSelectedIndex() >= 0)
+	    listInvitedPersons.delItem(listInvitedPersons.getSelectedIndex());
 	}
 }
