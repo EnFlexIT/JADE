@@ -748,15 +748,17 @@ public class Agent implements Runnable, Serializable, TimerListener {
   //#MIDP_EXCLUDE_END
 
   private void setState(int state) {
-    synchronized (stateLock) {
-      int oldState = myAPState;
-      myAPState = state;
-  		//#MIDP_EXCLUDE_BEGIN
-      notifyChangedAgentState(oldState, myAPState);
-		  //#MIDP_EXCLUDE_END
-		  /*#MIDP_INCLUDE_BEGIN
-    	//myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
-		  #MIDP_INCLUDE_END*/
+  	synchronized (stateLock) {
+  		if (state != myAPState) {
+	      int oldState = myAPState;
+	      myAPState = state;
+	  		//#MIDP_EXCLUDE_BEGIN
+	      notifyChangedAgentState(oldState, myAPState);
+			  //#MIDP_EXCLUDE_END
+			  /*#MIDP_INCLUDE_BEGIN
+	    	//myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
+			  #MIDP_INCLUDE_END*/
+  		}
     }
   }
 
@@ -915,6 +917,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
       if(myThread.equals(Thread.currentThread())) {
 	waitUntilActivate();
       }
+      else {
+      	synchronized (stateLock) {
+      		if (myBufferedState == AP_IDLE) {
+      			// When we resume we must go to the ACTIVE state (not IDLE)
+      			myBufferedState = AP_ACTIVE;
+      			interruptThread();
+      		}
+      	}
+      }
     }
   }
 
@@ -1026,10 +1037,19 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   // This is to be called only by the scheduler
-  void doIdle() {
+  void idle() throws InterruptedException {
     synchronized(stateLock) {
-      if(myAPState != AP_IDLE)
-	setState(AP_IDLE);
+    	if (myAPState != AP_ACTIVE) {
+    		// We have been suspended from the outside just before entering this method
+    		throw new InterruptedException();
+    	}
+			setState(AP_IDLE);
+    }
+    // No need for synchronized block since this is only called by the 
+    // scheduler itself in the synchronized schedule() method
+    waitOn(myScheduler, 0);
+    synchronized(stateLock) {
+			setState(AP_ACTIVE);
     }
   }
 
@@ -1488,10 +1508,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	case AP_ACTIVE:
 	  try {
 	    // Select the next behaviour to execute
-	    int oldState = myAPState;
 	    currentBehaviour = myScheduler.schedule();
-	    if((myAPState != oldState) && (myAPState != AP_DELETED))
-	      setState(oldState);
 
 	    // Remember how many messages arrived
 	    int oldMsgCounter = messageCounter;
@@ -1529,8 +1546,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	      }
 	    }
 	  }
-	  // Someone interrupted the agent. It could be a kill or a
-	  // move/clone request...
+	  // Someone interrupted the agent. It could be a kill, a
+	  // move/clone or a suspend-while-idle request from the outside...
 	  catch(InterruptedException ie) {
 	    switch(myAPState) {
 	    case AP_DELETED:

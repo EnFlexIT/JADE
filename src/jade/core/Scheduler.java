@@ -169,8 +169,7 @@ class Scheduler implements Serializable {
    */
   public synchronized Behaviour schedule() throws InterruptedException {
     while(readyBehaviours.isEmpty()) {
-      owner.doIdle();
-  	  owner.waitOn(this, 0);    
+      owner.idle();
     }
 
     Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);
