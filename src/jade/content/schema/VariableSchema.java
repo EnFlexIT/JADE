@@ -72,7 +72,7 @@ public class VariableSchema extends TermSchema {
     /**
      * Creates an Abstract descriptor to hold a variable
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsVariable();
     } 
 

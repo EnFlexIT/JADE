@@ -73,7 +73,7 @@ public class IRESchema extends ContentElementSchema {
      * Creates an Abstract descriptor to hold a ire of
      * the proper type.
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsIRE(getTypeName());
     } 
 }

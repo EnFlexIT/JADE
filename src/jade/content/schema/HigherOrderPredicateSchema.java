@@ -25,8 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
-import java.util.Vector;
-import java.util.Enumeration;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -113,7 +112,7 @@ public class HigherOrderPredicateSchema extends PropositionSchema {
      * Creates an Abstract descriptor to hold a higher oredr predicate of
      * the proper type.
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsHigherOrderPredicate(getTypeName());
     } 
 }

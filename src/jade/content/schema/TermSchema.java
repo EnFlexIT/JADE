@@ -25,6 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -63,8 +64,8 @@ public class TermSchema extends ObjectSchema {
      * Creates an Abstract descriptor to hold a term of
      * the proper type.
      */
-    public AbsObject newInstance() {
-        return new AbsTerm(getTypeName());
+    public AbsObject newInstance() throws OntologyException {
+    	throw new OntologyException("AbsTerm cannot be instantiated");  
     } 
 
 }

@@ -25,6 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -56,7 +57,7 @@ public class ContentElementListSchema extends ContentElementSchema {
     /**
      * Creates an Abstract descriptor to hold a content element list 
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsContentElementList();
     } 
 }

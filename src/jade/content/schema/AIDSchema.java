@@ -67,7 +67,7 @@ public class AIDSchema extends ConceptSchema {
     /**
      * Creates an Abstract descriptor to hold an AID      
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsAID();
     } 
 

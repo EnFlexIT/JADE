@@ -25,6 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -63,8 +64,8 @@ public class PropositionSchema extends ContentElementSchema {
      * Creates an Abstract descriptor to hold a proposition of
      * the proper type.
      */
-    public AbsObject newInstance() {
-        return new AbsProposition(getTypeName());
+    public AbsObject newInstance() throws OntologyException {
+    	throw new OntologyException("AbsProposition cannot be instantiated"); 
     } 
 
 }

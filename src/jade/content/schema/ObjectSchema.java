@@ -213,7 +213,7 @@ public abstract class ObjectSchema {
      * Creates an Abstract descriptor to hold an object compliant to 
      * this <code>Schema</code>.
      */
-    public abstract AbsObject newInstance();
+    public abstract AbsObject newInstance() throws OntologyException;
 
     private void getAllSlotDescriptors(Vector v) {
     		// Get slot descriptors of super schemas

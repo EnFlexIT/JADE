@@ -103,7 +103,7 @@ public class CommunicativeActSchema extends GenericActionSchema {
      * Creates an Abstract descriptor to hold an agent action of
      * the proper type.
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsCommunicativeAct(getTypeName());
     } 
 }

@@ -25,6 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -111,7 +112,7 @@ public class ActionPredicateSchema extends PropositionSchema {
      * Creates an Abstract descriptor to hold an action predicate of
      * the proper type.
      */
-    public AbsObject newInstance() {
+    public AbsObject newInstance() throws OntologyException {
         return new AbsActionPredicate(getTypeName());
     } 
 }

@@ -25,6 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -63,7 +64,7 @@ public class GenericActionSchema extends ContentElementSchema {
      * Creates an Abstract descriptor to hold a generic action of
      * the proper type.
      */
-    public AbsObject newInstance() {
-        return new AbsGenericAction(getTypeName());
+    public AbsObject newInstance() throws OntologyException {
+    	throw new OntologyException("AbsGenericAction cannot be instantiated"); 
     } 
 }
