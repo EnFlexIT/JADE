@@ -14,7 +14,7 @@ TARGETS = ex1/Agent1.java ex1/Agent2.java ex1/Agent3.java ex1/Agent4.java \
 
 all: 
 	@echo Making test examples
-	export CLASSPATH=$(SRCDIR);  \
+	echo set CLASSPATH=$(CLASSPATH):$(SRCDIR); export CLASSPATH; \
 	$(JC) $(JFLAGS) $(TARGETS)
 
 clean:

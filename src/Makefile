@@ -54,7 +54,7 @@ classes:
 	$(JC) $(JFLAGS) $(ROOTCLASSES)
 
 stubs:
-	@export CLASSPATH=$(SRCDIR);       \
+	@set CLASSPATH=$(SRCDIR); export CLASSPATH; \
 	$(STUBGEN) -d $(STUBDIR) $(STUBS)
 
 clean:
