@@ -196,11 +196,13 @@ public class Logger
 	   @param name The name of the logger.
      @return myLogger the instance of the Logger.
 	 */
-	public static Logger getMyLogger(String name){
-		Logger lg = (Logger) java.util.logging.LogManager.getLogManager().getLogger(name);
+	public static Logger getMyLogger(String name) {
+		java.util.logging.LogManager mng = java.util.logging.LogManager.getLogManager(); 
+		Logger lg = (Logger) mng.getLogger(name);
 		if (lg == null) {
 			lg = new Logger(name, (String)null);
-			java.util.logging.LogManager.getLogManager().addLogger(lg);
+			mng.addLogger(lg);
+			lg = (Logger) mng.getLogger(name);
 		}
 		
 		return lg;
