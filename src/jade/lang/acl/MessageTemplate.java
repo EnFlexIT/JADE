@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.15  1999/07/11 20:27:08  rimassa
+  Reimplemented the whole class using Interpreter design pattern. Now
+  complete logical expressions with AND, OR and NOT operators are
+  supported.
+
   Revision 1.14  1999/06/08 00:02:26  rimassa
   Removed an useless comment.
   Put some dead code to start implementing complete Bool algebra for
@@ -26,6 +31,7 @@ package jade.lang.acl;
 
 import java.io.Reader;
 import java.io.Writer;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import java.util.List;
@@ -61,52 +67,171 @@ public class MessageTemplate {
 					       "Type"
   };
 
-  // This class represents an elementary template term, that is a term
-  // with a single non-null slot, which can be negated or not.
-  private class ProductTerm extends ACLMessage {
-    private boolean negated;
-
-    private String name;
-    private Class type;
-    private Object value;
-
-    public ProductTerm(String slotName, Class slotType, Object slotValue) {
-      negated = false;
-      name = slotName;
-      type = slotType;
-      value = slotValue;
-    }
-
-    public void not() {
-      negated = !negated;
-    }
-
-    public boolean match(Object aValue) {
-      return false;
-    }
-
+  private static interface MatchExpression {
+    boolean match(ACLMessage msg);
+    void toText(Writer w);
   }
 
+  private static class AndExpression implements MatchExpression {
 
-  // This class represent a logical AND of one or more elementary terms.
-  private class SumTerm extends ACLMessage {
+    private MatchExpression op1;
+    private MatchExpression op2;
 
-    private List slots = new LinkedList();
-
-    public SumTerm() {
+    public AndExpression(MatchExpression e1, MatchExpression e2) {
+      op1 = e1;
+      op2 = e2;
     }
 
     public boolean match(ACLMessage msg) {
-      return false;
+      return op1.match(msg) && op2.match(msg);
     }
 
-  }
+    public void toText(Writer w) {
+      try {
+	w.write("( ");
+	op1.toText(w);
+	w.write(" AND ");
+	op2.toText(w);
+	w.write(" )");
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
 
-  // A message template is a logical OR of logical ANDs of elementary
-  // terms, negated or not.
+  } // End of AndExpression class
+
+  private static class OrExpression implements MatchExpression {
+
+    private MatchExpression op1;
+    private MatchExpression op2;
+
+    public OrExpression(MatchExpression e1, MatchExpression e2) {
+      op1 = e1;
+      op2 = e2;
+    }
+
+    public boolean match(ACLMessage msg) {
+      return op1.match(msg) || op2.match(msg);
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( ");
+	op1.toText(w);
+	w.write(" OR ");
+	op2.toText(w);
+	w.write(" )");
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of OrExpression class
+
+  private static class NotExpression implements MatchExpression {
+    private MatchExpression op;
+
+    public NotExpression(MatchExpression e) {
+      op = e;
+    }
+
+    public boolean match(ACLMessage msg) {
+      return ! op.match(msg);
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write(" NOT ");
+	op.toText(w);
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+    }
+
+  } // End of NotExpression class
+
+  private static class Literal implements MatchExpression {
+
+    private ACLMessage template;
+
+    public Literal(ACLMessage msg) {
+      template = (ACLMessage)msg.clone();
+    }
+
+    public boolean match(ACLMessage msg) {
+      Class ACLMessageClass = msg.getClass();
+
+      // Used to hold the classes of the formal parameters of
+      // get<name>() methods.
+      Class[] noClass = new Class[0];
+
+      // Used to hold actual parameters of get<name>() methods.
+      Object[] noParams = new Object[0];
+
+      Method getValue = null;
+
+      String s1 = null;
+      String s2 = null;
+
+      boolean result = true;
+      for(int i = 0; i<fieldNames.length; i++) {
+	String name = fieldNames[i];
+
+	try {
+	  getValue = ACLMessageClass.getMethod("get"+name, noClass);
+
+	  // This means: s1 = template.get<value>();
+	  s1 = (String)getValue.invoke(template, noParams);
+
+	  // This means: s2 = msg.get<value>();
+	  s2 = (String)getValue.invoke(msg, noParams);
+
+	  if((!(s1.equalsIgnoreCase(wildCard))&&(!s1.equalsIgnoreCase(s2)))) {
+	    result = false;
+	    break; // Exit for loop
+	  }
+	}
+	catch(Exception e) {
+	  e.printStackTrace();
+	}
+      }
+
+      return result;
+
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("(\n");
+	for(int i = 0; i<fieldNames.length; i++) {
+	  String name = fieldNames[i];
+	  String value = null;
+	  try {
+	    Method getValue = ACLMessage.class.getMethod("get"+name, new Class[0]);
+	    // This means: s1 = template.get<value>();
+	    value = (String)getValue.invoke(template, new Object[0]);
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+	  if((value != null) && (!value.equals(wildCard)))
+	    w.write(" :" + name + " == " + value + "\n");
+	}
+	w.write(")\n");
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+      
+    }
+
+  } // End of Literal class
 
 
-  private ACLMessage template;
+  private MatchExpression toMatch;
 
   // Creates an ACL message with all fields set to the special,
   // out-of-band wildcard value.
@@ -129,13 +254,12 @@ public class MessageTemplate {
     
       try {
 	// This means: msg.set<name>(param)
-	setValue = ACLMessageClass.getMethod("set"+name, paramType);
+	setValue = ACLMessageClass.getMethod("set" + name, paramType);
 	setValue.invoke(msg, param);
       }
       catch(Exception e) {
 	e.printStackTrace();
       }
-
     }
 
     return msg;
@@ -144,14 +268,14 @@ public class MessageTemplate {
 
   // Private constructor: use static factory methods to create message
   // templates.
-  private MessageTemplate() {
-    template = allWildCard();
+  private MessageTemplate(MatchExpression e) {
+    toMatch = e;
   }
 
   // Private constructor: use static factory methods to create message
   // templates.
   private MessageTemplate(ACLMessage msg) {
-    template = msg;
+    toMatch = new Literal((ACLMessage)msg.clone());
   }
 
 
@@ -162,7 +286,7 @@ public class MessageTemplate {
      value.
   */
   public static MessageTemplate MatchAll() {
-    return new MessageTemplate();
+    return new MessageTemplate(allWildCard());
   }
 
   /**
@@ -187,7 +311,8 @@ public class MessageTemplate {
   */
   public static MessageTemplate MatchDest(String value) {
     ACLMessage msg = allWildCard();
-    msg.setDest(value);
+    msg.removeAllDests();
+    msg.addDest(value);
     return new MessageTemplate(msg);
   }
 
@@ -322,24 +447,91 @@ public class MessageTemplate {
   }
 
   /**
+     This <em>Factory Method</em> returns a message template that
+     matches ACL messages against a given one, passed as
+     parameter. The following algorithm is used:
+     When the given <code>ACLMessage</code> has a non
+     <code>null</code> slot, subsequent messages must have the same
+     slot value in that slot to have a match.
+     When the given <code>ACLMessage</code> has a <code>null</code>
+     slot, subsequent messages can have any value for that slot and
+     still match the template.
+     In short, a <code>null</code> value for a slot means <em>don't
+     care</em>.
+     @param msg The <code>ACLMessage</code> used to build a custom
+     message template.
+     @return A new <code>MessageTemplate</code>, matching the given
+     message according to the above algorithm.
+  */
+  public static MessageTemplate MatchCustom(ACLMessage msg) {
+    ACLMessage message = allWildCard();
+
+    Class ACLMessageClass = msg.getClass();
+
+    // Used to hold the classes of the formal parameters of
+    // get<name>() methods.
+    Class[] noClass = new Class[0];
+
+    // Used to hold actual parameters of get<name>() methods.
+    Object[] noParams = new Object[0];
+
+    // Used to hold the classes of the formal parameters of
+    // set<name>() methods.
+    Class[] stringClass = { String.class };
+
+    Method getValue = null;
+    Method setValue = null;
+
+    String s1 = null;
+    String s2 = null;
+
+    boolean result = true;
+    for(int i = 0; i<fieldNames.length; i++) {
+      String name = fieldNames[i];
+      try {
+	getValue = ACLMessageClass.getMethod("get" + name, noClass);
+	setValue = ACLMessageClass.getMethod("set" + name, stringClass);
+
+	// This means: s1 = msg.get<value>();
+	s1 = (String)getValue.invoke(msg, noParams);
+	if(s1 != null) {
+	  Object[] stringParams = { s1 };
+	  // This means: message.set<value>(s1);
+	  getValue.invoke(message, stringParams);
+	}
+      }
+      catch(Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return new MessageTemplate(message);
+  }
+
+  /**
      Reads a <code>MessageTemplate</code> from a character stream.
      @param r A readable character stream containing a string
      representation of a message template.
      @return A new <code>MessageTemplate</code> object.
   */
   public static MessageTemplate fromText(Reader r) {
-    MessageTemplate mt = new MessageTemplate();
-    mt.template = ACLMessage.fromText(r);
-    return mt;
+    Literal l  = new Literal(ACLMessage.fromText(r));
+    return new MessageTemplate(l);
   }
 
   /**
      Dumps a <code>MessageTemplate</code> to a character stream.
      @param w A writable character stream that will hold a string
-     representation of this <code>MessageTemplate</code> objects.
+     representation of this <code>MessageTemplate</code> object.
   */
   public void toText(Writer w) {
-    template.toText(w);
+    try {
+      toMatch.toText(w);
+      w.flush();
+    }
+    catch(IOException ioe) {
+      ioe.printStackTrace();
+    }
   }
 
   /**
@@ -350,81 +542,41 @@ public class MessageTemplate {
      @param op1 The first <em>and</em> operand.
      @param op2 The second <em>and</em> operand.
      @return A new <code>MessageTemplate</code> object.
-     @exception IllegalArgumentException When the two operands are
-     incompatible.
      @see jade.lang.acl.MessageTemplate#or(MessageTemplate op1, MessageTemplate op2)
   */
-  public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
-    MessageTemplate result = new MessageTemplate();
-
-    ACLMessage m1 = op1.template;
-    ACLMessage m2 = op2.template;
-    ACLMessage m3 = result.template;
-    String name = null;
-    String s1 = null;
-    String s2 = null;
-
-    Class ACLMessageClass = m1.getClass();
-
-    // Used to hold the classes of the formal parameters of
-    // get<name>() and set<name>() methods.
-    Class[] noClass = new Class[0];
-    Class[] stringClass = { new String().getClass() };
-
-    // Used to hold actual parameters of get<name>() and set<name>()
-    // methods.
-    Object[] noParams = new Object[0];
-    Object[] oneParam = new Object[1];
-
-    Method getValue = null;
-    Method setValue = null;
-
-    // Use Reflection API to scan all the fields of ACL message.
-
-    for(int i = 0; i<fieldNames.length;i++) {
-      name = fieldNames[i];
-      try {
-	// Process 'name' field of ACL message
-	getValue = ACLMessageClass.getMethod("get"+name, noClass);
-	setValue = ACLMessageClass.getMethod("set"+name, stringClass);
-
-	// Invokes get<name>() methods on m1 and m2, putting results in
-	// s1 and s2 respectively.
-	s1 = (String)getValue.invoke(m1, noParams);
-	s2 = (String)getValue.invoke(m2, noParams);
-
-	if(s1.equals(wildCard) && !s2.equals(wildCard)) {
-	  // This means: m3.set<value>(s2)
-	  oneParam[0] = s2;
-	  setValue.invoke(m3, oneParam);
-	}
-	if(!s1.equals(wildCard) && s2.equals(wildCard)) {
-	  // This means: m3.set<value>(s1);
-	  oneParam[0] = s1;
-	  setValue.invoke(m3, oneParam);
-	}
-	if(!s1.equals(wildCard) && !s2.equals(wildCard)) 
-	  if(s1.equalsIgnoreCase(s2)) {
-	    // This means:  m3.set<value>(s1);
-	    oneParam[0] = s1;
-	    setValue.invoke(m3, oneParam);
-	  }
-	  else
-	    throw new IllegalArgumentException("and: operands are in contradiction");
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-    }
-
+  public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) {
+    AndExpression e = new AndExpression(op1.toMatch, op2.toMatch);
+    MessageTemplate result = new MessageTemplate(e);
     return result;
   }
 
   /**
-     <b>NOT IMPLEMENTED.</b>
-   */
+     Logical <b>or</b> between two <code>MessageTemplate</code>
+     objects. This method creates a new message template that is
+     matched by those ACL messages matching <b><em>any</b></em> of the
+     two message templates given as operands.
+     @param op1 The first <em>or</em> operand.
+     @param op2 The second <em>or</em> operand.
+     @return A new <code>MessageTemplate</code> object.
+     @see jade.lang.acl.MessageTemplate#and(MessageTemplate op1, MessageTemplate op2)
+  */
   private static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
-    MessageTemplate result = new MessageTemplate();
+    OrExpression e = new OrExpression(op1.toMatch, op2.toMatch);
+    MessageTemplate result = new MessageTemplate(e);
+    return result;
+  }
+
+  /**
+     Logical <b>not</b> of a <code>MessageTemplate</code> object. This
+     method creates a new message template that is matched by those
+     ACL messages <b><em>not</em></b> matching the message template
+     given as operand.
+     @param op The <em>not</em> operand.
+     @return A new <code>MessageTemplate</code> object.
+  */
+  private static MessageTemplate not(MessageTemplate op) {
+    NotExpression e = new NotExpression(op.toMatch);
+    MessageTemplate result = new MessageTemplate(e);
     return result;
   }
 
@@ -436,47 +588,7 @@ public class MessageTemplate {
      template, <code>false</code> otherwise.
   */
   public boolean match(ACLMessage msg) {
-
-    Class ACLMessageClass = msg.getClass();
-
-    // Used to hold the classes of the formal parameters of
-    // get<name>() methods.
-    Class[] noClass = new Class[0];
-
-    // Used to hold actual parameters of get<name>() methods.
-    Object[] noParams = new Object[0];
-
-    Method getValue = null;
-
-    String s1 = null;
-    String s2 = null;
-
-    boolean result = true;
-    for(int i = 0; i<fieldNames.length; i++) {
-      String name = fieldNames[i];
-
-      try {
-	getValue = ACLMessageClass.getMethod("get"+name, noClass);
-
-	// This means: s1 = template.get<value>();
-	s1 = (String)getValue.invoke(template, noParams);
-
-	// This means: s2 = msg.get<value>();
-	s2 = (String)getValue.invoke(msg, noParams);
-
-	if((!(s1.equalsIgnoreCase(wildCard))&&(!s1.equalsIgnoreCase(s2)))) {
-	  result = false;
-	  break; // Exit for loop
-	}
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-    }
-
-    return result;
-
+    return toMatch.match(msg);
   }
-
 
 }
