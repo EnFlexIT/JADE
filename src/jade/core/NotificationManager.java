@@ -46,11 +46,11 @@ interface NotificationManager {
   void initialize(AgentContainerImpl ac, LADT ladt);
   
   // ACTIVATION/DEACTIVATION METHODS
-  void enableSniffer(AID snifferName, AID toBeSniffed);
-  void disableSniffer(AID snifferName, AID notToBeSniffed);
-  void enableDebugger(AID debuggerName, AID toBeDebugged);
-  void disableDebugger(AID debuggerName, AID notToBeDebugged);
-  
+  void enableSniffer(AID snifferName, AID toBeSniffed); // FIXME: This method should not exist...
+  void disableSniffer(AID snifferName, AID notToBeSniffed); // FIXME: This method should not exist...
+  void enableDebugger(AID debuggerName, AID toBeDebugged); // FIXME: This method should not exist...
+  void disableDebugger(AID debuggerName, AID notToBeDebugged); // FIXME: This method should not exist...
+
   // NOTIFICATION METHODS
   void fireEvent(int eventType, Object[] param);
   //void fireSentMessage(ACLMessage msg, AID sender);
