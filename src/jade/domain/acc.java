@@ -4,11 +4,13 @@
 
 package jade.domain;
 
+import jade.core.*;
+
 public class acc extends Agent {
 
-  private class ACCBehaviour implements Behaviour {
+  private class ACCBehaviour extends SimpleBehaviour {
 
-    public void execute() {
+    public void action() {
     }
 
     public boolean done() {
