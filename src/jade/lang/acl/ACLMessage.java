@@ -256,7 +256,7 @@ private int performative; // keeps the performative type of this object
      the message type to <code>not-understood</code>.
      @see jade.lang.acl.ACLMessage#ACLMessage(int)
   */
-  public ACLMessage() {
+  public ACLMessage() { // Used by persistence service: do not remove it, but make it private
     performative = NOT_UNDERSTOOD;
   }
 
@@ -946,13 +946,35 @@ private int performative; // keeps the performative type of this object
 
     try {
       result = (ACLMessage)super.clone();
-      result.dests = (ArrayList)dests.clone();       // Deep copy
-      if (reply_to != null)
-					result.reply_to = (ArrayList)reply_to.clone(); // Deep copy
-			if (userDefProps != null)
-					result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
+      result.persistentID = null;
+      if(source != null) {
+	  result.source = (AID)source.clone();
+      }
+
+      // Deep clone
+      if(dests != null) {
+	  result.dests = new ArrayList(dests.size());
+	  Iterator it = dests.iterator();
+	  while(it.hasNext()) {
+	      AID id = (AID)it.next();
+	      result.dests.add(id.clone());
+	  }
+      }
+
+      // Deep clone
+      if(reply_to != null) {
+	  result.reply_to = new ArrayList(reply_to.size());
+	  Iterator it = reply_to.iterator();
+	  while(it.hasNext()) {
+	      AID id = (AID)it.next();
+	      result.dests.add(id.clone());
+	  }
+      }
+
+      if (userDefProps != null)
+	  result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
       if(messageEnvelope != null)
-					result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
+	  result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen
@@ -1098,5 +1120,57 @@ private int performative; // keeps the performative type of this object
 		}
 		return it;
   }
+
+    //#MIDP_EXCLUDE_BEGIN
+
+
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
+
+
+    // For persistence service
+    private void setReceivers(ArrayList al) {
+	dests = al;
+    }
+
+    // For persistence service
+    private ArrayList getReceivers() {
+	return dests;
+    }
+
+    // For persistence service
+    private void setReplyTo(ArrayList al) {
+	reply_to = al;
+    }
+
+    // For persistence service
+    private ArrayList getReplyTo() {
+	return reply_to;
+    }
+
+    // For persistence service
+    private void setUserDefinedProperties(Serializable p) {
+	userDefProps = (Properties)p;
+    }
+
+    // For persistence service
+    private Serializable getUserDefinedProperties() {
+	return userDefProps;
+    }
+
+
+    //#MIDP_EXCLUDE_END
 
 }
