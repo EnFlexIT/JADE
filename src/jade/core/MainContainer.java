@@ -39,10 +39,11 @@ import jade.util.leap.List;
 
 public interface MainContainer {
 
-    void bornAgent(AID name, ContainerID cid, String ownership, JADEPrincipal principal, boolean forceReplacement) throws NameClashException, NotFoundException;
+    void bornAgent(AID name, ContainerID cid, JADEPrincipal principal, String ownership, boolean forceReplacement) throws NameClashException, NotFoundException;
     void deadAgent(AID name) throws NotFoundException;
     void suspendedAgent(AID name) throws NotFoundException;
     void resumedAgent(AID name) throws NotFoundException;
+  	void movedAgent(AID agentID, ContainerID from, ContainerID to) throws NotFoundException;
     void frozenAgent(AID name, ContainerID bufferContainer) throws NotFoundException;
     void thawedAgent(AID name, ContainerID bufferContainer) throws NotFoundException;
 
@@ -59,8 +60,7 @@ public interface MainContainer {
     ContainerID getContainerID(AID agentID) throws NotFoundException;
     Node getContainerNode(ContainerID cid) throws NotFoundException;
 
-    void lockEntryForAgent(AID agentID);
-    void updateEntryForAgent(AID agentID, Location srcID, Location destID) throws IMTPException, NotFoundException;
-    void unlockEntryForAgent(AID agentID);
+    AgentDescriptor acquireAgentDescriptor(AID agentID);
+    void releaseAgentDescriptor(AID agentID);
 
 }

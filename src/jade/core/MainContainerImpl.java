@@ -299,7 +299,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Notify the platform that an agent has just born on a container
    */
-  public void bornAgent(AID name, ContainerID cid, String ownership, JADEPrincipal principal, boolean forceReplacement) throws NameClashException, NotFoundException {
+  public void bornAgent(AID name, ContainerID cid, JADEPrincipal principal, String ownership, boolean forceReplacement) throws NameClashException, NotFoundException {
     AgentDescriptor ad = new AgentDescriptor(AgentDescriptor.NATIVE_AGENT);
     ad.setContainerID(cid);
     ad.setPrincipal(principal);
@@ -389,6 +389,20 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
   /**
+     Notify the platform that an agent has just moved
+   */
+    public void movedAgent(AID agentID, ContainerID srcID, ContainerID destID) throws NotFoundException {
+
+	AgentDescriptor ad = platformAgents.acquire(agentID);
+	if (ad == null) {
+		throw new NotFoundException("Agent "+agentID.getName()+" not found in GADT");
+	}
+	ad.setContainerID((ContainerID)destID);
+	fireMovedAgent((ContainerID)srcID, (ContainerID)destID, agentID);
+	platformAgents.release(agentID);
+    }
+
+  /**
      Notify the platform that an agent has just frozen
    */
   public void frozenAgent(AID name, ContainerID bufferContainer) throws NotFoundException {
@@ -425,58 +439,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
 
-  /**
-     Notify the platform that the principal of an agent has changed
-   */
-  //	public void changedAgentPrincipal(AID name, Credentials creds) throws IMTPException, NotFoundException {
-
-	    /***
-
-		// FIXME: Probably we should let the AuthException pass through as in bornAgent()
-		try {
-			authority.verify(certs.getIdentityCertificate());
-			
-			AgentDescriptor ad = platformAgents.acquire(name);
-			if (ad == null)
-				throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);			
-			AgentPrincipal from = ad.getPrincipal();
-			AgentPrincipal to = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
-			ad.setPrincipal(to);
-			AMSAgentDescription amsd = ad.getDescription();
-			if (amsd != null) {
-				amsd.setOwnership(to.getOwnership());
-			}
-			ad.setAMSDelegation(prepareAMSDelegation(certs));
-			ContainerID cid = ad.getContainerID();
-			platformAgents.release(name);
-			
-			// Add the new principal to the principals table of all the containers. 
-      // Synchronized to avoid additions/removals of containers during update
-      synchronized(containers) {
-				AgentContainer[] allContainers = containers.containers();
-				for (int i = 0; i < allContainers.length; i++) {
-					AgentContainer ac = allContainers[i];
-					// FIXME: If some container is temporarily disconnected it will not be
-					// notified. We should investigate the side-effects
-					try {
-						ac.changedAgentPrincipal(name, to);
-					}
-					catch (IMTPException imtpe) {
-						imtpe.printStackTrace();
-					}
-				}
-      }
-			
-			// Notify listeners
-			fireChangedAgentPrincipal(cid, name, from, to);    
-		}
-		catch (AuthException ae) {
-			System.err.println(ae.getMessage());
-		}
-	    ***/
-
-	//}
-	
   /**
      Notify the platform that a new MTP has become active on a given container
    */
@@ -1633,7 +1595,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   // Private methods to notify platform listeners of significant 
   // events.
   /////////////////////////////////////////////////////////////////
-
   private void fireAddedContainer(ContainerID cid) {
     PlatformEvent ev = new PlatformEvent(PlatformEvent.ADDED_CONTAINER, cid);
     for(int i = 0; i < platformListeners.size(); i++) {
@@ -1790,19 +1751,11 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
     }
 
-    public void lockEntryForAgent(AID agentID) {
-	platformAgents.acquire(agentID);
+    public AgentDescriptor acquireAgentDescriptor(AID agentID) {
+	return platformAgents.acquire(agentID);
     }
 
-    public void updateEntryForAgent(AID agentID, Location srcID, Location destID) throws IMTPException, NotFoundException {
-
-	AgentDescriptor ad = platformAgents.acquire(agentID);
-	ad.setContainerID((ContainerID)destID);
-	fireMovedAgent((ContainerID)srcID, (ContainerID)destID, agentID);
-	platformAgents.release(agentID);
-    }
-
-    public void unlockEntryForAgent(AID agentID) {
+    public void releaseAgentDescriptor(AID agentID) {
 	platformAgents.release(agentID);
     }
 

@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 //#MIDP_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.security.Credentials;
@@ -38,7 +39,7 @@ import jade.security.JADEPrincipal;
    @version $Date$ $Revision$
 */
 
-class AgentDescriptor {
+public class AgentDescriptor {
 
     public static final boolean NATIVE_AGENT = false;
     public static final boolean FOREIGN_AGENT = true;
