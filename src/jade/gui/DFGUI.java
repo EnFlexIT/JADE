@@ -43,9 +43,17 @@ import jade.domain.*;
 public class DFGUI extends JFrame
 {
 	GUI2DFCommunicatorInterface myAgent;
-	AgentNameTableModel         registeredModel, foundModel;
-	JTable                      registeredTable, foundTable;
+	AgentNameTableModel         registeredModel, foundModel,parentModel,childrenModel;
+	JTable                      registeredTable, foundTable,parentTable,childrenTable;
 	JSplitPane                  tablePane;
+	JTabbedPane                 tabbedPane;
+	JButton                     modifyB,deregB,regNewB,fedDFB,viewB,searchB;
+	DFGUIModifyAction           dfModifyAction;
+	DFGUIViewAction             dfViewAction;
+	DFGUISearchAction           dfSearchAction; 
+	DFGUIRegisterAction         dfRegAction;
+	DFGUIDeregisterAction       dfDeregAction;
+	DFGUIFederateAction         dfFedAction;
 
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a) 
@@ -68,15 +76,21 @@ public class DFGUI extends JFrame
 		jmb.add (generalMenu);
 
 		JMenu catalogueMenu = new JMenu ("Catalogue");
-		item = catalogueMenu.add(new DFGUIViewAction(this));
-		item = catalogueMenu.add(new DFGUIModifyAction(this));
-		item = catalogueMenu.add(new DFGUIDeregisterAction(this));
-		item = catalogueMenu.add(new DFGUIRegisterAction(this));
-		item = catalogueMenu.add(new DFGUISearchAction(this));
+		dfModifyAction = new DFGUIModifyAction(this);
+		dfViewAction =  new DFGUIViewAction(this);
+		dfDeregAction = new DFGUIDeregisterAction(this);
+		dfRegAction = new DFGUIRegisterAction(this);
+		dfSearchAction = new DFGUISearchAction(this); 
+		item = catalogueMenu.add(dfViewAction);
+		item = catalogueMenu.add(dfModifyAction);
+		item = catalogueMenu.add(dfDeregAction);
+		item = catalogueMenu.add(dfRegAction);
+		item = catalogueMenu.add(dfSearchAction);
 		jmb.add (catalogueMenu);
 		
 		JMenu superDFMenu = new JMenu ("Super DF");
-		item = superDFMenu.add(new DFGUIFederateAction(this));
+		dfFedAction = new DFGUIFederateAction(this);
+		item = superDFMenu.add(dfFedAction);
 		jmb.add (superDFMenu);
 
 		JMenu helpMenu = new JMenu ("Help");
@@ -107,31 +121,31 @@ public class DFGUI extends JFrame
 
 		// CATALOGUE
 		Icon viewImg = DFGuiProperties.getIcon("view");
-		JButton viewB  = bar.add(new DFGUIViewAction(this));
+		viewB  = bar.add(new DFGUIViewAction(this));
 		viewB.setText("");
 		viewB.setIcon(viewImg);
 		viewB.setToolTipText("View the services provided by the selected agent");
 											
 		Icon modifyImg = DFGuiProperties.getIcon("modify");
-		JButton modifyB = bar.add(new DFGUIModifyAction(this));
+		modifyB = bar.add(new DFGUIModifyAction(this));
 		modifyB.setText("");
 		modifyB.setIcon(modifyImg);
 		modifyB.setToolTipText("Modify the services provided by the selected agent");
 
 		Icon deregImg = DFGuiProperties.getIcon("deregister");
-		JButton deregB  = bar.add(new DFGUIDeregisterAction(this));
+		deregB  = bar.add(new DFGUIDeregisterAction(this));
 		deregB.setText("");
 		deregB.setIcon(deregImg);
 		deregB.setToolTipText("Deregister the selected agent");
 
 		Icon regNewImg = DFGuiProperties.getIcon("registeragent");
-		JButton regNewB  = bar.add(new DFGUIRegisterAction(this));
+		regNewB  = bar.add(new DFGUIRegisterAction(this));
 		regNewB.setText("");
 		regNewB.setIcon(regNewImg);
 		regNewB.setToolTipText("Register a new agent with this DF");
 
 		Icon searchImg = DFGuiProperties.getIcon("search");
-		JButton searchB  = bar.add(new DFGUISearchAction(this));
+		searchB  = bar.add(new DFGUISearchAction(this));
 		searchB.setText("");
 		searchB.setIcon(searchImg);
 		searchB.setToolTipText("Search for agents matching a given description");
@@ -140,7 +154,7 @@ public class DFGUI extends JFrame
 
 		// SUPER DF
 		Icon fedDFImg = DFGuiProperties.getIcon("federatedf");
-		JButton fedDFB  = bar.add(new DFGUIFederateAction(this));
+		fedDFB  = bar.add(new DFGUIFederateAction(this));
 		fedDFB.setText("");
 		fedDFB.setIcon(fedDFImg);
 		fedDFB.setToolTipText("Federate this DF with another DF");
@@ -158,13 +172,18 @@ public class DFGUI extends JFrame
 
 		////////////////////////////////////////////////////
 		// Table Pane to the Center part
-		tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		tablePane.setContinuousLayout(true);
+		// tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		// tablePane.setContinuousLayout(true);
 
+		////////////////////////////////////////////////////
+		// JTabbedPane
+		////////////////////////////////////////////////////
+		tabbedPane = new JTabbedPane();
+		
 		//////////////////////////////
 		// Registered agents table
-		JPanel p = new JPanel();
-		p.setLayout(new BorderLayout());
+		JPanel registerPanel = new JPanel();
+		registerPanel.setLayout(new BorderLayout());
 		registeredModel = new AgentNameTableModel();
 		registeredTable = new JTable(registeredModel); 
 		registeredTable.setRowHeight(20);
@@ -208,18 +227,19 @@ public class DFGUI extends JFrame
 		}; 
  		registeredTable.addKeyListener(keyListener);
 
-		p.setLayout(new BorderLayout());
+		registerPanel.setLayout(new BorderLayout());
 		JScrollPane pane = new JScrollPane();
 		pane.getViewport().setView(registeredTable); 
-		p.add(pane, BorderLayout.CENTER);
-		p.setBorder(BorderFactory.createTitledBorder("Agents registered with this DF"));
+		registerPanel.add(pane, BorderLayout.CENTER);
+		registerPanel.setBorder(BorderFactory.createEtchedBorder());
 		
-		tablePane.setTopComponent(p);
+		tabbedPane.addTab("Agent registered with the DF",registerPanel);
+		tabbedPane.setSelectedIndex(0);
 		
 		/////////////////////////
 		// Search result table
-		p = new JPanel();
-		p.setLayout(new BorderLayout());
+		JPanel lastSearchPanel = new JPanel();
+		lastSearchPanel.setLayout(new BorderLayout());
 		foundModel = new AgentNameTableModel();
 		foundTable = new JTable(foundModel); 
 		foundTable.setRowHeight(20);
@@ -240,42 +260,295 @@ public class DFGUI extends JFrame
 			{
 				if (e.getClickCount() == 2)
 				{
-					DFGUISearchViewAction ac = new DFGUISearchViewAction(DFGUI.this);
-					ac.actionPerformed(new ActionEvent((Object) this, 0, "SearchView"));
+					DFGUIViewAction ac = new DFGUIViewAction(DFGUI.this);
+					ac.actionPerformed(new ActionEvent((Object) this, 0, "View"));
 				}  
 			} 
  		};
  		foundTable.addMouseListener(mouseListener2); 
 
 
-		p.setLayout(new BorderLayout());
+		lastSearchPanel.setLayout(new BorderLayout());
 		pane = new JScrollPane();
 		pane.getViewport().setView(foundTable); 
-		p.add(pane, BorderLayout.CENTER);
-		p.setBorder(BorderFactory.createTitledBorder("Last search result"));
+		lastSearchPanel.add(pane, BorderLayout.CENTER);
+		lastSearchPanel.setBorder(BorderFactory.createEtchedBorder());
+			
+		tabbedPane.addTab("Last Search Result",lastSearchPanel);	
 		
-		tablePane.setBottomComponent(p);
-		tablePane.setDividerLocation(150);
-		getContentPane().add(tablePane, BorderLayout.CENTER); 
+		JSplitPane tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		tablePane.setContinuousLayout(true);
+		
+		//////////////////////////////
+		// Parent agents table
+		JPanel parentPanel = new JPanel();
+		parentPanel.setLayout(new BorderLayout());
+		parentModel = new AgentNameTableModel();
+		parentTable = new JTable(parentModel); 
+		parentTable.setRowHeight(20);
+		parentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		// Column names
+	
+		c = parentTable.getColumn((Object) parentTable.getColumnName(0));
+		c.setHeaderValue((Object) (new String("Agent name")));
+		c = parentTable.getColumn((Object) parentTable.getColumnName(1));
+		c.setHeaderValue((Object) (new String("Host:port")));
+		c = parentTable.getColumn((Object) parentTable.getColumnName(2));
+		c.setHeaderValue((Object) (new String("Agent address")));
+
+		MouseListener mouseListenerParent = new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() >= 1)
+					childrenTable.clearSelection();
+				if (e.getClickCount() == 2)
+				{
+					DFGUIViewAction ac = new DFGUIViewAction(DFGUI.this);
+					ac.actionPerformed(new ActionEvent((Object)this, 0, "View"));
+				
+				}
+			}
+		
+		};
+		
+		parentTable.addMouseListener(mouseListenerParent);
+		
+		parentPanel.setLayout(new BorderLayout());
+		JScrollPane pane1 = new JScrollPane();
+		pane1.getViewport().setView(parentTable);
+		parentPanel.add(pane1,BorderLayout.CENTER);
+		parentPanel.setBorder(BorderFactory.createTitledBorder("Parents"));
+		
+		tablePane.setTopComponent(parentPanel);
+		
+		JPanel childrenPanel = new JPanel();
+		childrenPanel.setLayout(new BorderLayout());
+		childrenModel = new AgentNameTableModel();
+		childrenTable = new JTable(childrenModel); 
+		childrenTable.setRowHeight(20);
+		childrenTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+	  // Column names
+		c = childrenTable.getColumn((Object) childrenTable.getColumnName(0));
+		c.setHeaderValue((Object) (new String("Agent name")));
+		c = childrenTable.getColumn((Object) childrenTable.getColumnName(1));
+		c.setHeaderValue((Object) (new String("Host:port")));
+		c = childrenTable.getColumn((Object) childrenTable.getColumnName(2));
+		c.setHeaderValue((Object) (new String("Agent address")));
+	
+		MouseListener mouseListenerChildren = new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() >= 1)
+					parentTable.clearSelection();
+				if (e.getClickCount() ==2)
+					{
+						DFGUIViewAction ac = new DFGUIViewAction(DFGUI.this);
+					  ac.actionPerformed(new ActionEvent((Object)this,0, "View"));
+					}
+			}
+		
+		};
+		
+		childrenTable.addMouseListener(mouseListenerChildren);
+
+    pane1 = new JScrollPane();
+    pane1.getViewport().setView(childrenTable);
+    childrenPanel.add(pane1,BorderLayout.CENTER);
+    childrenPanel.setBorder(BorderFactory.createTitledBorder("Children"));
+    
+    tablePane.setBottomComponent(childrenPanel);
+    tablePane.setDividerLocation(150);
+    
+    
+		tabbedPane.addTab("DF Federation",tablePane);
+    tabbedPane.addChangeListener(new tabListener());
+	
+		getContentPane().add(tabbedPane, BorderLayout.CENTER);
+		
 		
 		////////////////////////////////////////////////////////////////
 		// Execute the Close GUI action when the user attempts to close 
 		// the DF GUI window using the button on the upper right corner
-    		addWindowListener(new	WindowAdapter()
-		                      	{
-  							public void windowClosing(WindowEvent e) 
-							{
-								DFGUICloseGuiAction ac = new DFGUICloseGuiAction(DFGUI.this);
-								ac.actionPerformed(new ActionEvent((Object) this, 0, "Close GUI"));
-							}
-						} );
-	}
-
+    		
+		addWindowListener(new	WindowAdapter()
+		{
+			public void windowClosing(WindowEvent e) 
+			{
+				DFGUICloseGuiAction ac = new DFGUICloseGuiAction(DFGUI.this);
+				ac.actionPerformed(new ActionEvent((Object) this, 0, "Close GUI"));
+			}
+		} );
+}
+	
+  class tabListener implements ChangeListener
+  {
+  	public void stateChanged(ChangeEvent event)
+  	{
+  		Object object = event.getSource();
+  		if (object == tabbedPane)
+  			tabStateChanged(event);
+  	
+  	}
+  	
+  	public void tabStateChanged(ChangeEvent event)
+  	{
+  		int index = tabbedPane.getSelectedIndex();
+  		setButton(index);
+	  	
+  	}
+  
+  }
+  
   //FIXME. Dummy method. We should add a textfield to display error messages
   public void showErrorMsg(String msg) {
     System.err.println(msg);
   }
 
+	private void setButton(int tab)
+	{
+		switch (tab){
+		
+			case 0: setSearch(true);
+							setDeregister(true);
+							setRegister(true);
+							setModify(true);
+							setDFfed(true);
+							break;
+							
+			case 1: setSearch(true);
+						  setDeregister(false);
+						  setRegister(false);
+					    setModify(false);
+							setDFfed(false);
+							break;
+		
+		  case 2: setSearch(true);
+							setDeregister(true);
+							setRegister(false);
+							setModify(false);
+              setDFfed(true);
+							break;		
+		}
+	}
+	
+	private void setRegister(boolean value)
+	{
+	  regNewB.setEnabled(value);
+		dfRegAction.setEnabled(value);
+
+	}
+	
+	
+	private void setModify(boolean value)
+	{
+		modifyB.setEnabled(value);
+	  dfModifyAction.setEnabled(value);
+
+	}
+	
+	private void setDeregister(boolean value)
+	{	
+		deregB.setEnabled(value);
+	  dfDeregAction.setEnabled(value);
+
+	}
+		
+	private void setSearch(boolean value)
+	{
+		searchB.setEnabled(value);
+		dfSearchAction.setEnabled(value);
+
+	}
+
+	private void setDFfed(boolean value)
+	{
+	  fedDFB.setEnabled(value);
+	  dfFedAction.setEnabled(value);
+	}
+	
+	public void setTab (String tab) 
+	{
+		if (tab.equalsIgnoreCase("Search"))
+			tabbedPane.setSelectedIndex(1);
+			else
+			if (tab.equalsIgnoreCase("Federate"))
+				tabbedPane.setSelectedIndex(2);
+				else
+				 tabbedPane.setSelectedIndex(0);
+			
+	}
+	
+	public String getSelectedAgentInTable()
+	{
+		String out = null;
+		int tab = tabbedPane.getSelectedIndex();
+		int row;
+		if (tab == 0)
+		{
+			row = registeredTable.getSelectedRow();
+			if ( row != -1)
+				out = registeredModel.getElementAt(row);
+				else out = null;
+		}
+		else
+		if ( tab == 1)
+		{
+			row = foundTable.getSelectedRow();
+			if (row != -1)
+				out = foundModel.getElementAt(row);
+				else
+				out = null;
+		}
+		else 
+		if (tab == 2)
+		{
+		   row = parentTable.getSelectedRow();
+		   if (row != -1)
+		   	out = parentModel.getElementAt(row);
+		   	else
+		   	{
+		   		row = childrenTable.getSelectedRow();
+		   	  if (row != -1)
+		   	  	out = childrenModel.getElementAt(row);
+		   	  	else out = null;
+		   	}
+		   		
+		}
+	
+		return out;
+	}
+	
+	public int kindOfOperation()
+	{
+	
+		int out = -1;
+		int tab = tabbedPane.getSelectedIndex();
+
+		if (tab == 0)
+			out = 0; //deregister an agent from descriptor table
+			else if(tab == 1)
+				out = 1; // deregister from lastsearch view (NOW NOT Possible)
+				else if (tab == 2)
+				{
+					int rowSelected = parentTable.getSelectedRow();
+					if (rowSelected != -1)
+						out = 2; //deregister the df from a parent
+						else
+						{
+							rowSelected = childrenTable.getSelectedRow();
+						  if (rowSelected != -1) 
+							  out = 3; //deregister a children
+						}
+				}
+		System.out.println("out: "+ out);		
+		return out;
+						
+				}
+	
 	////////////////////////////////////
 	// Refresh the DF GUI 
 	public void refresh() 
@@ -287,7 +560,8 @@ public class DFGUI extends JFrame
 			AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) registered.nextElement();
 			registeredModel.add(dfd.getName());
 		}
-		registeredModel.fireTableDataChanged();		
+		registeredModel.fireTableDataChanged();
+		refreshFederation();
 	}
 
 	public void refreshLastSearch(Enumeration e){
@@ -298,6 +572,28 @@ public class DFGUI extends JFrame
 		}
 		foundModel.fireTableDataChanged();
 	}
+	
+	public void refreshFederation()
+	{
+		parentModel.clear();
+		Enumeration parent = myAgent.getParents();
+		while (parent.hasMoreElements())
+		{
+			parentModel.add((String)parent.nextElement());
+		}
+		parentModel.fireTableDataChanged();
+		
+		childrenModel.clear();
+		Enumeration children  = myAgent.getChildren();
+		while(children.hasMoreElements())
+		{
+			childrenModel.add((String)children.nextElement());
+		
+		}
+		childrenModel.fireTableDataChanged();
+		
+	}
+	
 	////////////////////////////////////
 	// Show DF GUI properly
 	public void setVisible(boolean b) 
@@ -336,4 +632,3 @@ public class DFGUI extends JFrame
 	}
 
 }
-
