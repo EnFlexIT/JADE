@@ -16,7 +16,7 @@ public class MobileAgent extends Agent {
 
   public void setup() {
 
-    replyMsg.setContent("Hello there, I'm moving");
+    replyMsg.setContent("\"Hello there, I'm moving\"");
 
     mainBehaviour.addSubBehaviour(new OneShotBehaviour(this) {
       public void action() {
