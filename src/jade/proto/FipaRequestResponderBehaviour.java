@@ -94,8 +94,17 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   public static abstract class Action extends Behaviour {
 
+  	/**
+  	@serial
+  	*/
     private String myActionName;
+    /**
+    @serial
+    */
     private ACLMessage myRequest;
+    /**
+    @serial
+    */
     private ACLMessage myReply;
 
     /**
@@ -229,8 +238,13 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
 
   } // End of Action class
 
-
+  /**
+  @serial
+  */
   private MessageTemplate requestTemplate;
+  /**
+  @serial
+  */
   private Hashtable actions;
 
   /**
@@ -300,6 +314,19 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     }
     else block();
 }
+ /**
+    Associate a <code>Factory</code> object with an action name. This
+    method registers an object to be used to create behaviours to
+    handle the specified action when some <code>request</code> for it
+    is received.
+    @param actionName The name of the action the <code>Factory</code>
+    creates handlers for.
+    @param f The actual <code>Factory</code> object; it will be used
+    to create action handlers on demand.
+  */
+  public void registerFactory(String actionName, Factory f) {
+    actions.put(actionName, f);
+  }
 
 /**
   This method is used to get the right behaviour from the <code>Factory</code>.
@@ -313,7 +340,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   @param msg  the received ACLMessage.
   @return the name of the action. If the content of the message is empty or its
   syntax does not comply with SL, it returns an empty String.
-  @see registerFactory(String actionName, Factory f) 
+  @see #registerFactory(String actionName, FipaRequestResponderBehaviour.Factory f) 
   */
 protected String getActionName(ACLMessage msg) {  
   try {  
@@ -331,20 +358,7 @@ protected String getActionName(ACLMessage msg) {
   }
 }
 
-  /**
-    Associate a <code>Factory</code> object with an action name. This
-    method registers an object to be used to create behaviours to
-    handle the specified action when some <code>request</code> for it
-    is received.
-    @param actionName The name of the action the <code>Factory</code>
-    creates handlers for.
-    @param f The actual <code>Factory</code> object; it will be used
-    to create action handlers on demand.
-  */
-  public void registerFactory(String actionName, Factory f) {
-    actions.put(actionName, f);
-  }
-
+ 
   /**
     Remove a action name - <code>Factory</code> object
     association. This method deregisters a <code>Factory</code> object

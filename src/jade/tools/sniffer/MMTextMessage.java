@@ -38,7 +38,10 @@ import javax.swing.JTextField;
  
 public class MMTextMessage extends JTextField {
 	
-  Font font = new Font("SanSerif",Font.PLAIN,14); 
+  /**
+  @serial
+  */
+	Font font = new Font("SanSerif",Font.PLAIN,14); 
 	
 	public MMTextMessage(){
 		super();

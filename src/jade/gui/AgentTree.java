@@ -41,8 +41,14 @@ import java.awt.event.*;
    @version $Date$ $Revision$
  */
 public class AgentTree extends JPanel {
+	/**
+	@serial
+	*/
   public JTree tree;
   static protected  Icon[] icons;
+  /**
+  @serial
+  */
   private DescriptionNode desNode;
 
   static {
@@ -58,8 +64,17 @@ public class AgentTree extends JPanel {
 
   public abstract class  Node extends DefaultMutableTreeNode {
 
+   /**
+   @serial
+   */
    protected Icon img;
+   /**
+   @serial
+   */
    protected String name;
+   /**
+   @serial
+   */
    protected int idIcon;
 
    public Node(int idIcon,String name) {
@@ -86,8 +101,17 @@ public class AgentTree extends JPanel {
 } // End of class Node
 
   public class AgentNode extends Node {
+   /**
+   @serial
+   */
    private String typeAgent;
+   /**
+   @serial
+   */
    private String stateAgent;
+   /**
+   @serial
+   */
    private String addressAgent;
 
    public AgentNode(int idIcon,String name) {
@@ -124,7 +148,13 @@ public class AgentTree extends JPanel {
   // class that represents the ContainerNode
 
  public class ContainerNode extends Node {
+ 	/**
+ 	@serial
+ 	*/
   InetAddress addressmachine;
+  /**
+  @serial
+  */
   String typeContainer;
 
   public ContainerNode(int idIcon,String name) {

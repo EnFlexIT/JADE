@@ -43,7 +43,9 @@ public interface Codec {
     which is then rethrown.
   */
   public static class CodecException extends Exception {
-
+    /**
+    @serial
+    */
     private Throwable nested;
 
     /**

@@ -101,29 +101,95 @@ import jade.lang.acl.*;
 public class AclGui extends JPanel
 {
 	// Controls for ACL message parameter editing
+	/**
+	@serial
+	*/
 	private boolean      guiEnabledFlag;
+	/**
+	@serial
+	*/
 	private JTextField   sender;
+	/**
+	@serial
+	*/
 	private boolean      senderEnabledFlag;
+	/**
+	@serial
+	*/
 	private JTextField   receiver;
+	/**
+	@serial
+	*/
 	private JComboBox    communicativeAct;
+	/**
+	@serial
+	*/
 	private JTextArea    content;
+	/**
+	@serial
+	*/
 	private JTextField   language;
+	/**
+	@serial
+	*/
 	private JTextField   ontology;
+	/**
+	@serial
+	*/
 	private JComboBox    protocol;
+	/**
+	@serial
+	*/
 	private JTextField   conversationId;
+	/**
+	@serial
+	*/
 	private JTextField   inReplyTo;
+	/**
+	@serial
+	*/
 	private JTextField   replyWith;
+	/**
+	@serial
+	*/
 	private JTextField   replyBy;
+	/**
+	@serial
+	*/
 	private JButton      replyBySet;
+	/**
+	@serial
+	*/
 	private Date         replyByDate;
+	/**
+	@serial
+	*/
 	private JTextArea    envelope;
 
 	// Data for panel layout definition
+	/**
+	@serial
+	*/
 	GridBagLayout lm = new GridBagLayout();
+	/**
+	@serial
+	*/
 	GridBagConstraints constraint = new GridBagConstraints();
+	/**
+	@serial
+	*/
 	private int leftBorder, rightBorder, topBorder, bottomBorder;
+	/**
+	@serial
+	*/
 	private int xSpacing, ySpacing;
+	/**
+	@serial
+	*/
 	private int gridNCol, gridNRow;
+	/**
+	@serial
+	*/
 	private int colWidth[];
 	private static final int TEXT_SIZE = 30;
 
@@ -148,6 +214,9 @@ public class AclGui extends JPanel
 	                                    "request-when",
 	                                    "request-whenever",
 	                                    "subscribe"};
+	/**
+	@serial
+	*/
 	private Vector fipaActVector;
 	private static int    N_FIPA_PROTOCOLS = 7;
 	private static String fipaProtocols[] = {"fipa-auction-english",
@@ -157,17 +226,36 @@ public class AclGui extends JPanel
                                              "fipa-query",
 	                                         "fipa-request",
                                              "fipa-request-when" };
+                                             
+  /**
+  @serial
+  */
 	private Vector fipaProtocolVector;
 
 
 	// Data for the editing of user defined iteration protocols
+	/**
+	@serial
+	*/
 	private int    lastSelectedIndex;
+	/**
+	@serial
+	*/
 	private String lastSelectedItem;
 	private static final String LABEL_TO_ADD_PROT = "ADD USER-DEF PROTOCOL";
  
 	// These data are used to correctly handle the resizing of the AclGui panel
+	/**
+	@serial
+	*/
 	private JPanel       aclPanel;
+	/**
+	@serial
+	*/
 	private Dimension    minDim;
+	/**
+	@serial
+	*/
 	private boolean      firstPaintFlag;
 
 	// Other data used
@@ -798,4 +886,3 @@ public class AclGui extends JPanel
 	}
 
 }
-

@@ -37,6 +37,9 @@ import java.io.Serializable;
 */
 public class Name implements Serializable {
 
+	/**
+	@serial
+	*/
   String s;
 
   /**
@@ -96,4 +99,3 @@ public class Name implements Serializable {
 
 
 }
-

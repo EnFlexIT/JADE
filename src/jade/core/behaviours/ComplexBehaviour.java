@@ -57,13 +57,27 @@ public abstract class ComplexBehaviour extends Behaviour {
       public Node next;
     }
 
+    /**
+    @serial
+    */
     Node first = null;
+    /**
+    @serial
+    */
     Node last = null;
+    /**
+    @serial
+    */
     Node current = null;
-
+    /**
+    @serial
+    */    
     Stack nodeStack = new Stack();
 
     // Node counter
+    /**
+    @serial
+    */
     int length = 0;
 
     /**
@@ -189,12 +203,19 @@ public abstract class ComplexBehaviour extends Behaviour {
   /**
      The children list for this behaviour. It can be accessed by
      subclasses to implement their scheduling policies.
+     @serial
   */
   protected BehaviourList subBehaviours = new BehaviourList();
 
   // This variables mark the states when no sub-behaviour has been run
   // yet and when all sub-behaviours have been run.
+  /**
+  @serial
+  */
   private boolean starting = true;
+  /**
+  @serial
+  */
   private boolean finished = false;
 
   /**
@@ -383,4 +404,3 @@ public abstract class ComplexBehaviour extends Behaviour {
   }
 
 }
-

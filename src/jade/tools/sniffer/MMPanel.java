@@ -42,7 +42,10 @@ import javax.swing.JScrollPane;
 
 public class MMPanel extends JPanel{
 	
-		private SnifferGUI myGui; 
+	/**
+	@serial
+	*/
+	private SnifferGUI myGui; 
 	
     public MMPanel(SnifferGUI snifferGui){ 
 		myGui = snifferGui;

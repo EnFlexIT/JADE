@@ -107,26 +107,59 @@ import java.io.*;
 public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour {
     
   /** 
-   * This is the cfpMsg sent in the first state of the protocol 
+   * This is the cfpMsg sent in the first state of the protocol
+   * @serial
    **/
   protected ACLMessage cfpMsg; 
-
+  /**
+  @serial
+  */
   private int state = 0;  // state of the protocol
+  /**
+  @serial
+  */
   private long timeout, blockTime, endingTime;
+  /**
+  @serial
+  */
   private MessageTemplate template;
+  /**
+  @serial
+  */
   private Vector msgProposals = new Vector(); // vector of ACLMessage with the proposals
+  /**
+  @serial
+  */
   private Vector msgAcceptReject = new Vector(); // vector with the ACLMessages to send (accept/reject proposal)
+  /**
+  @serial
+  */
   private Vector msgFinal = new Vector(); // vector with the ACLMessages received after accept/reject-proposal
+  /**
+  @serial
+  */
   private Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
+  
+  /**
+  @serial
+  */
   private AgentGroup proposerAgents;
+  
+  /**
+  @serial
+  */
   private AgentGroup waitedAgents;
 
   /**
    * This boolean should be set to true in order to finish abnormally
    * the protocol.
+   * @serial
    */
   protected boolean finished=false; // true when done()
 
+  /**
+  @serial
+  */
   private boolean hasBeenReset=false; // set to true in the method reset()
 
   /**
@@ -523,13 +556,3 @@ public void reset(ACLMessage msg, AgentGroup group) {
   proposerAgents = (AgentGroup)group.clone();
 }
 }
-
-
-
-
-
-
-
-
-
-

@@ -106,7 +106,10 @@ public class ACLMessage implements Cloneable, Serializable {
   public static final int SUBSCRIBE = 19;
   /** constant identifying an unknown performative **/
   public static final int UNKNOWN = -1;
- 
+  
+/**
+@serial
+*/
 private int performative; // keeps the performative type of this object
   private static Vector performatives = new Vector(20);
   static { // initialization of the Vector of performatives
@@ -143,18 +146,54 @@ private int performative; // keeps the performative type of this object
   private static final String REPLY_BY        = new String(" :reply-by ");
   private static final String PROTOCOL        = new String(" :protocol ");
   private static final String CONVERSATION_ID = new String(" :conversation-id ");
-
+ 
+  /**
+  @serial
+  */
   private StringBuffer source = new StringBuffer();
+  /**
+  @serial
+  */
   private AgentGroup dests = new AgentGroup();
+  /**
+  @serial
+  */
   private StringBuffer content = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer reply_with = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer in_reply_to = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer envelope = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer language = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer ontology = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer reply_by = new StringBuffer();
-  private long reply_byInMillisec;  
+  /**
+  @serial
+  */
+  private long reply_byInMillisec; 
+  /**
+  @serial
+  */
   private StringBuffer protocol = new StringBuffer();
+  /**
+  @serial
+  */
   private StringBuffer conversation_id = new StringBuffer();
 
   /**
@@ -667,9 +706,9 @@ private int performative; // keeps the performative type of this object
    * a Java <code>String</code>) over an ACL message. See
    * getContentObject(). 
    * @return The value of <code>:content</code> slot.
-   * @see jade.lang.acl.ACLMessage#setContent(String).
-   * @see jade.lang.acl.ACLMessage#getContentObject().
-   * @see java.io.ObjectInputStream.
+   * @see jade.lang.acl.ACLMessage#setContent(String)
+   * @see jade.lang.acl.ACLMessage#getContentObject()
+   * @see java.io.ObjectInputStream
   */
   public String getContent() {
     return new String(content);

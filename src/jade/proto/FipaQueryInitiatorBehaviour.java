@@ -63,16 +63,43 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
 
 
 
-  /* This is the query-refMsg sent in the first state of the protocol */
+  /** 
+  * This is the query-refMsg sent in the first state of the protocol 
+  * @serial
+  */
   protected ACLMessage queryMsg;
 
+  /**
+  @serial
+  */
   private int state = 0;  // state of the protocol
+  /**
+  @serial
+  */
   private long timeout, blockTime, endingTime;
+  /**
+  @serial
+  */
   private MessageTemplate template;
+  /**
+  @serial
+  */
   private Vector msgInforms = new Vector(); // vector of the inform ACLMessages received
+  /**
+  @serial
+  */
   private Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
+  /**
+  @serial
+  */
   private AgentGroup informerAgents;
+  /**
+  @serial
+  */
   private AgentGroup waitedAgents;
+  /**
+  @serial
+  */
   private boolean finished;
 
 
@@ -100,7 +127,7 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
     * constructor of the behaviour.
     * In this case the set of agents to which the message is sent is
     * exactly the receivers set in the passed ACLMessage.
-    * @see FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
+    * @see jade.proto.FipaQueryInitiatorBehaviour#FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
     */
 public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
   this(a,msg,msg.getDests());
@@ -219,5 +246,3 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
    */
    public abstract void handleInformMessages(Vector messages);
 }
-
-

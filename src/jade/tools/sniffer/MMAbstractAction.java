@@ -54,9 +54,14 @@ import java.util.Vector;
  *
  */
 public abstract class MMAbstractAction extends AbstractAction{
-	/** Handler to the action icon */
+	/** Handler to the action icon 
+	@serial
+	*/
 	protected Icon img;
-	/** Handler to the name of the action */
+	
+	/** Handler to the name of the action 
+	@serial
+	*/
 	protected String ActionName = "Action";
 	/** Handler to the listeners vector */
 	protected static Vector listeners;

@@ -39,7 +39,10 @@ import java.util.Enumeration;
  */
 public class MessageList implements Serializable{
 	
-  public Vector messageVector;
+  /**
+  @serial
+  */
+	public Vector messageVector;
 	
 	public MessageList(){
 		   

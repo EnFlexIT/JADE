@@ -47,18 +47,33 @@ import javax.swing.ImageIcon;
  * This class is invoked the the user selects the AboutBox item on the menu. A dialog
  * box appears providing informations about the authors and program version.
  *  
- * @see jade.Sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.MMAbstractAction
  * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>	
  * @version $Date$ $Revision$
  */
 
 public class AboutBoxAction extends MMAbstractAction{
 	
+	/**
+	@serial
+	*/
 	private SnifferGUI myGui; //by BENNY
+	/**
+	@serial
+	*/
 	private String labelText = "written by Alessandro Beneventi";
+	/**
+	@serial
+	*/
 	private JLabel label;
 	
-  String imageFile = "images/jadelogo.jpg";
+  /**
+  @serial
+  */
+	String imageFile = "images/jadelogo.jpg";
+	/**
+	@serial
+	*/
 	private JButton ok;
 	
 	public AboutBoxAction (SnifferGUI snifferGui){

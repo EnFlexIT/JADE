@@ -54,10 +54,24 @@ import java.util.Vector;
  */
 public class AgentFrame extends JFrame implements ActionListener {
 
-  private String newline = "\n";
+  /**
+  @serial
+  */
+	private String newline = "\n";
+	
+	/**
+	@serial
+	*/
 	private MMTree theMMTree = MMAbstractAction.selTree;
+	
+	/**
+	@serial
+	*/
 	private JPopupMenu popup;
 	
+	/**
+	@serial
+	*/
 	private MouseListener popupListener;
 
 

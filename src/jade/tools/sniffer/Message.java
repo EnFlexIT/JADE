@@ -44,8 +44,19 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable{
 	
   protected static MMCanvas canvMess = MMAbstractAction.getMMCanvasMess();
 	
-	private int x1,x2,y;
+  /**
+  @serial
+  */
+  private int x1,x2,y;
+  
+  /**
+  @serial
+  */
 	private int xCoords[] = new int[3];
+	
+	/**
+	@serial
+	*/
 	private int yCoords[] = new int[3];
 	// private int xCoords[] = new int[6];
 	// private int yCoords[] = new int[6];
@@ -53,8 +64,18 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable{
   public static final int step = 80;
 	public static final int offset = 45;
 	public static final int r = 8;
+	
+	/**
+	@serial
+	*/
 	private int yDim = 0;
+	/**
+	@serial
+	*/
 	private int xS = 0;
+	/**
+	@serial
+	*/
 	private int xD = 0;
 
 	

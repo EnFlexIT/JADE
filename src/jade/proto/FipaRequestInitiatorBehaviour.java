@@ -77,14 +77,27 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
 	private final static int FIRSTANSWER_STATE = 1;
 	private final static int SECONDANSWER_STATE = 2;
 	
+	/**
+	@serial
+	*/
 	private ACLMessage reqMsg, firstAnswerMsg, secondAnswerMsg;
+	/**
+	@serial
+	*/
 	private MessageTemplate reqTemplate, firstReqTemplate, secondReqTemplate;
+	/**
+	@serial
+	*/
 	private int state = INITIAL_STATE;
 	
+  /**
+  @serial
+  */
 	private long timeout,blockTime, endingTime;
 
 	/**
 	Use this protected variable to block the protocol in whatever state.
+	@serial
 	*/
 	protected boolean finished = false;
   

@@ -101,24 +101,71 @@ public class DFGUI extends JFrame
 	public static int PARENT_VIEW = 2;
 	public static int CHILDREN_VIEW = 3;
 	
+	/**
+	@serial
+	*/
 	GUI2DFCommunicatorInterface myAgent;
+	/**
+	@serial
+	*/
 	AgentNameTableModel         registeredModel, foundModel,parentModel,childrenModel;
+  /**
+  @serial
+  */
 	JTable                      registeredTable, foundTable,parentTable,childrenTable;
+	/**
+	@serial
+	*/
 	JSplitPane                  tablePane;
+	/**
+	@serial
+	*/
 	JTabbedPane                 tabbedPane;
+	/**
+	@serial
+	*/
 	JButton                     modifyB,deregB,regNewB,fedDFB,viewB,searchB,searchWithB;
+	/**
+	@serial
+	*/
 	JTextField                  statusField;
+	/**
+	@serial
+	*/
 	JScrollPane                 textScroll;
+	/**
+	@serial
+	*/
 	DFGUIModifyAction           dfModifyAction;
+	/**
+	@serial
+	*/
 	DFGUIViewAction             dfViewAction;
+	/**
+	@serial
+	*/
 	DFGUISearchAction           dfSearchAction; 
+	/**
+	@serial
+	*/
 	DFGUIRegisterAction         dfRegAction;
+	/**
+	@serial
+	*/
 	DFGUIDeregisterAction       dfDeregAction;
+	/**
+	@serial
+	*/
 	DFGUIFederateAction         dfFedAction;
+	/**
+	@serial
+	*/
   DFGUISearchWithConstraintAction   dfSearchConstraintAction; 
   
-  // this variable is used to discriminate if the gui is of an applet or not
-  boolean isGUIForApplet = false;
+  /**
+  @serial
+  */
+  boolean isGUIForApplet = false;  // this variable is used to discriminate if the gui is of an applet or not
   
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 

@@ -38,7 +38,13 @@ import jade.core.behaviours.*;
 
 public class GuiAgent extends Agent
 {
+	/**
+	@serial
+	*/
 	private Vector guiEventQueue;
+	/**
+	@serial
+	*/
 	private Boolean guiEventQueueLock;
 
 	////////////////////////

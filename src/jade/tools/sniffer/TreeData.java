@@ -65,12 +65,30 @@ public class TreeData extends DefaultMutableTreeNode implements Serializable{
 	protected static String[] LevelsNames;
 	protected static Icon[] icons;
 	
-  protected String name	   = "Name";
+	/**
+	@serial
+	*/
+	protected String name	   = "Name";
+	/**
+	@serial
+	*/
 	protected String type	   = "Type";
 	
+	/**
+	@serial
+	*/
 	protected int currentState = RUNNING;
+	/**
+	@serial
+	*/
 	protected int Level		   = AGENT; 
+	/**
+	@serial
+	*/
 	protected String[] addresses ;
+	/**
+	@serial
+	*/
 	protected boolean hasLoaded = false;	
 
 	static 

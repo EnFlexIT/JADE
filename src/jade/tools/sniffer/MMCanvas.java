@@ -76,14 +76,35 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
 
 
   // State varaiable: must be true for the canvasAgent, false for the canvasMess
+	/**
+	@serial
+	*/
 	private boolean typeCanv;
     
   //coordinate dei messaggi sul canvas
+	/**
+	@serial
+	*/
 	private int x1,x2,y;
-	private SnifferGUI myGui; 
+	/**
+	@serial
+	*/
+	private SnifferGUI myGui;
+	/**
+	@serial
+	*/
 	private MMCanvas thisCanvas = null;
+	/**
+	@serial
+	*/
 	private JPanel myPanel; /* To resize and modify the scroll bars */
+	/**
+	@serial
+	*/
 	private int horDim = 400;
+	/**
+	@serial
+	*/
 	private int vertDim = 200;
 	
 	/**

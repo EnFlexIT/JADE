@@ -151,23 +151,43 @@ public final class ReceiverBehaviour extends Behaviour {
   }
 
   // This message will contain the result
+  /**
+  @serial
+  */
   private ACLMessage result;
 
   // The pattern to match incoming messages against
+  /**
+  @serial
+  */
   private MessageTemplate template;
 
   // A future for the ACL message, used when a timeout was specified
+  /**
+  @serial
+  */
   private MessageFuture future;
 
   // A time out value, when present
+  /**
+  @serial
+  */
   private long timeOut;
 
   // A running counter for calling block(millis) until 'timeOut' milliseconds pass.
+  /**
+  @serial
+  */
   private long timeToWait;
 
   // Timestamp holder, used when calling block(millis) many times.
+  /**
+  @serial
+  */
   private long blockingTime = 0;
-
+  /**
+  @serial
+  */
   private boolean finished;
 
   /**
@@ -381,4 +401,3 @@ public final class ReceiverBehaviour extends Behaviour {
   }
 
 } // End of ReceiverBehaviour class
-

@@ -50,11 +50,29 @@ This class provide the About dialog for Jade.
 
 public class AboutJadeAction extends AbstractAction
 {
+	/**
+	@serial
+	*/
 	private JFrame gui;
+	
+	/**
+	@serial
+	*/
   private JLabel label;
 
+  /**
+  @serial
+  */
   Color dark_blue = new java.awt.Color(0,0,160);
+  
+  /**
+  @serial
+  */
  	String logojade = "images/jadelogo.jpg";
+ 	
+ 	/**
+ 	@serial
+ 	*/
 	String logocselt = "images/LogoCselt.gif";
 	
 	public AboutJadeAction(JFrame gui)

@@ -47,9 +47,17 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
   private static final int WHEN_ALL = 0;
   private static final int WHEN_ANY = 1;
 
+  /**
+  @serial
+  */
   private int whenToStop;
-
+  /**
+  @serial
+  */
   private Hashtable blockedChildren = new Hashtable(); 
+  /**
+  @serial
+  */
   private BehaviourList terminatedChildren = new BehaviourList();
 
   private boolean evalCondition() {

@@ -47,9 +47,15 @@ public final class SenderBehaviour extends OneShotBehaviour {
 
 
   // The ACL message to send
+	/**
+	@serial
+	*/
   private ACLMessage message;
 
   // An AgentGroup to perform multicasting
+  /**
+  @serial
+  */
   private AgentGroup receivers;
 
   /**

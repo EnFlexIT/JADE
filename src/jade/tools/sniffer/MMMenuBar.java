@@ -39,6 +39,9 @@ import jade.gui.AboutJadeAction;
  */
 public class MMMenuBar extends JMenuBar{
 	
+	/**
+	@serial
+	*/
 	private SnifferGUI myGui; 
 	
 	public MMMenuBar(SnifferGUI snifferGui){

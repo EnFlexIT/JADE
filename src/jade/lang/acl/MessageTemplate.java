@@ -256,7 +256,9 @@ public class MessageTemplate implements Serializable {
 
   } // End of Literal class
 
-
+  /**
+  @serial
+  */
   private MatchExpression toMatch;
 
   // Creates an ACL message with all fields set to the special,
@@ -646,4 +648,3 @@ public class MessageTemplate implements Serializable {
   }
 
 }
-

@@ -54,8 +54,18 @@ import java.util.*;
 public abstract class WakerBehaviour extends SimpleBehaviour {
 
 private static final long MINIMUM_TIMEOUT = 10000; // 1 second
+
+/**
+@serial
+*/
 private long wakeupTime, blockTime;
+/**
+@serial
+*/
 private int state;
+/**
+@serial
+*/
 private boolean finished;
 
   /**

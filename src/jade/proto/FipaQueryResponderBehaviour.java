@@ -44,13 +44,26 @@ import jade.lang.acl.MessageTemplate;
 */
 public abstract class FipaQueryResponderBehaviour extends SimpleBehaviour {
 
+/**
+@serial
+*/
 private MessageTemplate template; 
+
+/**
+@serial
+*/
 private ACLMessage msg,reply;
+
+/**
+@serial
+*/
 private int state = 0;
-  /**
-   * This variable must be set to <code>true</code> in order to finish
-   * the behaviour and remove it from the agent's behaviours.
-   */
+  
+/**
+* This variable must be set to <code>true</code> in order to finish
+* the behaviour and remove it from the agent's behaviours.
+* @serial
+*/
 public boolean finished=false;
 
   /** 

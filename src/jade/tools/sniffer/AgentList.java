@@ -38,6 +38,9 @@ import java.util.Enumeration;
  * data to the binary snapshot file.
  */
 public class AgentList implements Serializable{
+	/**
+	@serial
+	*/
 	public Vector agentVector;
 	
 	/**

@@ -53,9 +53,21 @@ public class SnifferNoGui extends jade.core.Agent {
 	public static final boolean SNIFF_ON = true;		//by BENNY
 	public static final boolean SNIFF_OFF = false;  //by BENNY
 
+	/**
+	@serial
+	*/
   private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
+  /**
+  @serial
+  */
   private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
+  /**
+  @serial
+  */
   private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
+  /**
+  @serial
+  */
   private Vector agentsUnderSniff = new Vector();
 
   // Sends requests to the AMS
@@ -225,12 +237,21 @@ public class SnifferNoGui extends jade.core.Agent {
 	}// End of SniffListenerBehaviour
 
 
-  private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
+  /**
+  @serial
+  */
+	private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
   // private SnifferGUI myGUI = new SnifferGUI(this);
 
-  private String myContainerName;
+  /**
+  @serial
+  */
+	private String myContainerName;
 
+	/**
+	@serial
+	*/
 	private SniffListenerBehaviour myBehav = new SniffListenerBehaviour(); //by BENNY
 
   /**

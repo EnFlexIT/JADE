@@ -50,14 +50,21 @@ public class Agent extends TreeData implements Serializable{
   public static final int hRet = 30;
 	public static final int bRet = 50;
 	public static final int yRet = 20;
+	/**
+	@serial
+	*/
 	private int pos = 0;
 	
 	/**
 	 * This flag is <em>true</em> for agents on canvas and <em>false</em> for agents
 	 * out of the canvas.
+	 * @serial
 	 */
 	public boolean onCanv;
 
+	/**
+	@serial
+	*/
 	private int x; 
 
   /** 

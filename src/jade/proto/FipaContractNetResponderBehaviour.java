@@ -87,15 +87,35 @@ import java.io.*;
 * @version $Date$ $Revision$
 */
 public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour {
-    
+   
+ /**
+ @serial
+ */
  private MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CFP);
+ 
+ /**
+ @serial
+ */
  private MessageTemplate template;
+ 
+ /**
+ @serial
+ */
  private int   state=0; // state of the protocol
-private long timeout, blockTime, endingTime;
+ 
+ /**
+ @serial
+ */
+ private long timeout, blockTime, endingTime;
+ 
+ /**
+ @serial
+ */
  private ACLMessage cfpMsg, acceptMsg, informMsg, proposeMsg;
   /**
    * this variable should be set to true when the behaviour should
    * terminate
+   * @serial
  */
  public boolean finished = false;
 
@@ -278,11 +298,6 @@ public abstract ACLMessage handleCfpMessage(ACLMessage cfp);
    */
 public abstract void handleOtherMessages(ACLMessage msg);
 }
-
-
-
-
-
 
 
 
