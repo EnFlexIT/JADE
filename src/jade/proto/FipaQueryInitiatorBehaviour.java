@@ -33,11 +33,8 @@ import java.util.Enumeration;
 
 import java.io.*;
 
-/**
-Javadoc documentation for the file
-@author Fabio Bellifemine - CSELT S.p.A
-@version $Date$ $Revision$
-*/
+
+
 
 /**
 * This abstract behaviour implements the Fipa Query Interaction Protocol
@@ -56,6 +53,8 @@ Javadoc documentation for the file
 * </ul>* <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
 * </ul>
 * <p>
+* @author Fabio Bellifemine - CSELT S.p.A
+* @version $Date$ $Revision$
 */
 
 

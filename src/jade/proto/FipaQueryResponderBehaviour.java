@@ -39,7 +39,6 @@ import jade.lang.acl.MessageTemplate;
  * added to the <code>Agent</code> object by using the method
  * <code>Agent.addBehaviour()</code>
  *
- * Javadoc documentation for the file
  * @author Fabio Bellifemine - CSELT
  * @version $Date$ $Revision$
 */
