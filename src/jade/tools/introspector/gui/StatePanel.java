@@ -58,7 +58,7 @@ public class StatePanel extends JPanel {
   private JRadioButton movingLed;
   private JRadioButton idleLed;
   private JButton suspendAction;
-  private JButton activateAction;
+  private JButton waitAction;
   private JButton wakeUpAction;
   private JButton killAction;
 
@@ -153,22 +153,22 @@ public class StatePanel extends JPanel {
 
     suspendAction = new JButton("Suspend", button);
     configurePushButton(suspendAction);
-    suspendAction.setMnemonic(1);
+    suspendAction.setMnemonic(5);
 
-    activateAction = new JButton("Activate", button);
-    configurePushButton(activateAction);
-    activateAction.setMnemonic(2);
+    waitAction = new JButton("Wait", button);
+    configurePushButton(waitAction);
+    waitAction.setMnemonic(7);
 
     wakeUpAction = new JButton("Wake Up", button);
     configurePushButton(wakeUpAction);
-    wakeUpAction.setMnemonic(3);
+    wakeUpAction.setMnemonic(6);
 
     killAction = new JButton("Kill", button);
     configurePushButton(killAction);
     killAction.setMnemonic(4);
 
     buttonPanel.add(suspendAction);
-    buttonPanel.add(activateAction);
+    buttonPanel.add(waitAction);
     buttonPanel.add(wakeUpAction);
     buttonPanel.add(killAction);
 
