@@ -77,7 +77,7 @@ public DFAppletCommunicator(Applet applet) {
 }
 
   /**
-   * This method allows this class to call the method showErrorMsg implemented
+   * This method allows this class to call the method showStatusMsg implemented
    * by DFGUI
    */
   void setGUI(DFGUI g){
@@ -96,7 +96,7 @@ public DFAppletCommunicator(Applet applet) {
    * and returns it.
    */
    private ACLMessage receiveMessage() throws ParseException {
-    gui.showErrorMsg("Receiving a message");
+    gui.showStatusMsg("Receiving a message");
     return parser.Message();
    }
 
@@ -104,7 +104,7 @@ public DFAppletCommunicator(Applet applet) {
    * shows the message not authorized and does nothing.
    */
    public void doDelete() {
-     gui.showErrorMsg("Operation not authorized");
+     gui.showStatusMsg("Operation not authorized");
    }
 
   /**
@@ -154,16 +154,16 @@ public void postRegisterEvent(Object source, String parentName, AgentManagementO
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage();
     System.err.println("Received the message"+msg.toString());
-    if ("agree".equalsIgnoreCase(msg.getType())) {
+    if (ACLMessage.AGREE ==(msg.getPerformative())) {
       msg=receiveMessage();
       System.err.println("Received the message"+msg.toString());
-      if (! "inform".equalsIgnoreCase(msg.getType())) 
-      	gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      if (! (ACLMessage.INFORM ==(msg.getPerformative()))) 
+      	gui.showStatusMsg("Register unsucceeded because received "+msg.toString());
 	
     gui.refresh();  	
-    } else gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    } else gui.showStatusMsg("Register unsucceeded because received "+msg.toString());
   } catch (ParseException e) {
-    gui.showErrorMsg("Register unsucceeded because "+e.getMessage());
+    gui.showStatusMsg("Register unsucceeded because "+e.getMessage());
   }
 }
 
@@ -181,15 +181,15 @@ public void postDeregisterEvent(Object source, String parentName, AgentManagemen
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage(); 
     
-    if ("agree".equalsIgnoreCase(msg.getType())) {
+    if (ACLMessage.AGREE == msg.getPerformative()) {
       msg=receiveMessage();
       
-      if (! "inform".equalsIgnoreCase(msg.getType())) 
-      	gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      if (! (ACLMessage.INFORM == msg.getPerformative())) 
+      	gui.showStatusMsg("Deregister unsucceeded because received "+msg.toString());
     gui.refresh();
-    } else gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    } else gui.showStatusMsg("Deregister unsucceeded because received "+msg.toString());
   } catch (ParseException e) {
-    gui.showErrorMsg("Deregister unsucceeded because "+e.getMessage());
+    gui.showStatusMsg("Deregister unsucceeded because "+e.getMessage());
   }
     
 }
@@ -207,18 +207,18 @@ Modify the descriptor of an agent
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage(); 
     //System.err.println("Received the message"+msg.toString());
-    if ("agree".equalsIgnoreCase(msg.getType())) {
+    if (ACLMessage.AGREE ==msg.getPerformative()) {
       msg=receiveMessage();
       //System.err.println("Received the message"+msg.toString());
-      if (! "inform".equalsIgnoreCase(msg.getType())) 
-      	gui.showErrorMsg("Modify unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      if (! (ACLMessage.INFORM ==msg.getPerformative())) 
+      	gui.showStatusMsg("Modify unsucceeded because received "+msg.toString());
     } else 
-    gui.showErrorMsg("Modify unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    gui.showStatusMsg("Modify unsucceeded because received "+msg.toString());
   } catch (ParseException e) {
-    gui.showErrorMsg("Modify unsucceeded because "+e.getMessage());
+    gui.showStatusMsg("Modify unsucceeded because "+e.getMessage());
   }	
   	
-  	//gui.showErrorMsg("Modify not yet implemented via applet");
+  	//gui.showStatusMsg("Modify not yet implemented via applet");
   }
 
   /**
@@ -234,23 +234,23 @@ public Enumeration getAllDFAgentDsc() {
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage(); 
     //System.err.println("Received the message"+msg.toString());
-    if ("agree".equalsIgnoreCase(msg.getType())) {
+    if (ACLMessage.AGREE ==(msg.getPerformative())) {
       msg=receiveMessage();
       //System.err.println("Received the message"+msg.toString());
-      if (! "inform".equalsIgnoreCase(msg.getType())) 
-	gui.showErrorMsg("Search unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      if (! (ACLMessage.INFORM == msg.getPerformative())) 
+	gui.showStatusMsg("Search unsucceeded because received "+msg.toString());
       else {
 	StringReader textIn = new StringReader(msg.getContent());
 	AgentManagementOntology.DFSearchResult found = AgentManagementOntology.DFSearchResult.fromText(textIn);
 	return found.elements();
       }
-    } else gui.showErrorMsg("Search with DF unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    } else gui.showStatusMsg("Search with DF unsucceeded because received "+msg.toString());
   } catch (ParseException e) { 
-    gui.showErrorMsg("Search unsucceeded because "+e.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+e.getMessage()); 
   } catch (FIPAException e1) { 
-    gui.showErrorMsg("Search unsucceeded because "+ e1.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+ e1.getMessage()); 
   } catch (jade.domain.ParseException e2) { 
-    gui.showErrorMsg("Search unsucceeded because "+e2.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+e2.getMessage()); 
   }
   return (new Hashtable()).elements();
 }
@@ -266,11 +266,11 @@ public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) thro
    	  w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (search (:df-description (:agent-name "+ name + " )) (:df-depth Max 1)))) ");
   		sendMessage(w.toString());
   		ACLMessage msg = receiveMessage();
-  		if("agree".equalsIgnoreCase(msg.getType()))
+  		if(ACLMessage.AGREE == (msg.getPerformative()))
   		{
   			msg = receiveMessage();
-  			if(! "inform".equalsIgnoreCase(msg.getType()))
-  				gui.showErrorMsg("Search unsucceeded because received "+ msg.getType() + " "+ msg.getContent());
+  			if(! (ACLMessage.INFORM ==(msg.getPerformative())))
+  				gui.showStatusMsg("Search unsucceeded because received "+ msg.toString());
   				else
   				{
   					StringReader textIn = new StringReader(msg.getContent());
@@ -284,14 +284,14 @@ public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) thro
   				}
   		
   		}
-  		else gui.showErrorMsg("Search unsucceeded because received "+ msg.getType() + " "+ msg.getContent());  		
+  		else gui.showStatusMsg("Search unsucceeded because received "+ msg.toString());  		
   			
   	}catch(ParseException e ){
-  		gui.showErrorMsg("Search unsucceeded because received "+ e. getMessage());
+  		gui.showStatusMsg("Search unsucceeded because received "+ e. getMessage());
   	}catch(FIPAException e1){
-  		gui.showErrorMsg("Search unsucceeded because received "+ e1. getMessage());
+  		gui.showStatusMsg("Search unsucceeded because received "+ e1. getMessage());
   	}catch(jade.domain.ParseException e2){
-  			gui.showErrorMsg("Search unsucceeded because received "+ e2. getMessage());
+  			gui.showStatusMsg("Search unsucceeded because received "+ e2. getMessage());
   	
   	}
   
@@ -318,11 +318,11 @@ public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) thro
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage(); 
     //System.err.println("Received the message"+msg.toString());
-    if ("agree".equalsIgnoreCase(msg.getType())) {
+    if (ACLMessage.AGREE == (msg.getPerformative())) {
       msg=receiveMessage();
       //System.err.println("Received the message"+msg.toString());
-      if (! "inform".equalsIgnoreCase(msg.getType())) 
-      	gui.showErrorMsg("Search unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      if (! (ACLMessage.INFORM == msg.getPerformative())) 
+      	gui.showStatusMsg("Search unsucceeded because received "+msg.toString());
       else {
       	StringReader textIn = new StringReader(msg.getContent());
       	AgentManagementOntology.DFSearchResult found = AgentManagementOntology.DFSearchResult.fromText(textIn);
@@ -330,13 +330,24 @@ public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) thro
       }
     } 
     else 
-    gui.showErrorMsg("Search with DF unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    gui.showStatusMsg("Search with DF unsucceeded because received "+msg.toString());
   	} catch (ParseException e) { 
-    gui.showErrorMsg("Search unsucceeded because "+e.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+e.getMessage()); 
   	} catch (FIPAException e1) { 
-    gui.showErrorMsg("Search unsucceeded because "+ e1.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+ e1.getMessage()); 
   	} catch (jade.domain.ParseException e2) { 
-    gui.showErrorMsg("Search unsucceeded because "+e2.getMessage()); 
+    gui.showStatusMsg("Search unsucceeded because "+e2.getMessage()); 
   	}
   }
+  
+  //FIXME these methods must be implemented
+  public AgentManagementOntology.DFAgentDescriptor getDFAgentSearchDsc(String value) {return null;}
+  
+  public void postFederateEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd){}
+  public Enumeration getChildren(){return null;}
+  public Vector getConstraints(){ return null;}
+  public Enumeration getParents(){return null;}
+  public void postSearchWithConstraintEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraint){}
+  public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF(){return null;}
+
 }
