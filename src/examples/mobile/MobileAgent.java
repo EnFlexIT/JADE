@@ -78,7 +78,7 @@ public class MobileAgent extends GuiAgent {
   public static final int REFRESH_EVENT = 1004;
 
   // this vector contains the list of visited locations
-  Vector visitedLocations = new Vector();;
+  Vector visitedLocations = new Vector();
 
 
 	public void setup() {
