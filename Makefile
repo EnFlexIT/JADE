@@ -3,8 +3,8 @@
 VERSION    = 1.4
 PACKAGE    = JADE
 
-ZIP = zip
-ZIPFLAGS = -9r
+ZIP = jar
+ZIPFLAGS = cMvf
 ZIPEXT = zip
 
 ROOTDIR = $(shell pwd)
