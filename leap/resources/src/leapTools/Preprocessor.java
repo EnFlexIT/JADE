@@ -116,7 +116,9 @@ public class Preprocessor extends Task {
 		}
 	}
 	
-	// The method executing the task
+	/**
+	   Preprocess a single file
+	 */
 	private void execute(String file) throws BuildException {
 		if (verbose) {
 			System.out.println("Preprocessing file "+file+" (type: "+type+")");
@@ -190,7 +192,16 @@ public class Preprocessor extends Task {
 					J2SE_EXCLUDE_FILE_MARKER};
 			}
 			else {
-				throw new BuildException("Unknown pre-processing type ("+type+") for file "+file);
+				//throw new BuildException("Unknown pre-processing type ("+type+") for file "+file);
+				// User defined preprocessing type
+				String upperCaseType = type.toUpperCase();
+				ebms = new String[] {"//#"+upperCaseType+"_EXCLUDE_BEGIN"};
+				eems = new String[] {"//#"+upperCaseType+"_EXCLUDE_END"};
+				ims = new String[] {
+					"/*#"+upperCaseType+"_INCLUDE_BEGIN",
+					"#"+upperCaseType+"_INCLUDE_END*/",
+				};
+				efms = new String[] {"//#"+upperCaseType+"_EXCLUDE_FILE"};
 			}
 
 			// Preprocess
