@@ -148,7 +148,7 @@ public class Runtime {
 
   // Called by jade.core.Starter to make the VM terminate when all the
   // containers are closed.
-  void setCloseVM(boolean flag) {
+  public void setCloseVM(boolean flag) {
     closeVM = flag;
   }
 
