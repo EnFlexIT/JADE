@@ -552,14 +552,15 @@ class DeliverableDataInputStream extends DataInputStream {
     private MTPDescriptor deserializeMTPDescriptor() throws LEAPSerializationException {
         try {
             String   name = readUTF();
+	    String   className = readUTF();
             String[] addresses = readStringArray();
             String[] protoNames = readStringArray();
-            return new MTPDescriptor(name, addresses, protoNames);
-        } 
+            return new MTPDescriptor(name, className, addresses, protoNames);
+        }
         catch (IOException ioe) {
             throw new LEAPSerializationException("Error deserializing MTPDescriptor");
-        } 
-    } 
+        }
+    }
  
     private NodeDescriptor deserializeNodeDescriptor() throws LEAPSerializationException {
 	try {
