@@ -28,11 +28,13 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import java.io.PrintStream;
+import jade.content.lang.Codec;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
+public class AbsAggregate extends AbsConcept {
+		private static final int UNNAMEDPREFIX_LENGTH = Codec.UNNAMEDPREFIX.length();
     private List elements = new ArrayList();
 
     /**
@@ -42,7 +44,8 @@ public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
      * this abstract descriptor.
      */
     public AbsAggregate(String typeName) {
-        super(typeName);
+      //this.typeName = typeName;
+    	super(typeName);
     }
 
     /**
@@ -139,6 +142,31 @@ public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
       return tmp;
     }
 
+    /**
+       Overrides this method to check that name is of the form
+       Codec.UNNAMEDPERFIX+index
+       @throws IllegalArgumentException if name is not of the form
+       Codec.UNNAMEDPERFIX+index
+     */
+    public void set(String name, AbsTerm value) {
+    	elements.add(toIndex(name), value);	
+    } 
+
+    private int toIndex(String name) { 
+    	try {
+	    	if (name.startsWith(Codec.UNNAMEDPREFIX) ) {
+  	  		String index = name.substring(UNNAMEDPREFIX_LENGTH);
+    			return Integer.parseInt(index);
+	    	}
+	    	else {
+	    		throw new IllegalArgumentException(name+" is not a valid index");
+	    	}
+    	}
+    	catch (Exception e) {
+	    	throw new IllegalArgumentException(name+" is not a valid index");
+    	}
+    }
+    			
     protected void dump(int indent, PrintStream ps) {
         for (int i = 0; i < indent; i++) {
             ps.print("  ");
@@ -156,5 +184,59 @@ public class AbsAggregate extends AbsObjectImpl implements AbsTerm {
 
         ps.println(")");
     } 
+    
+    
+    /**
+       Overrides this method to check that name is of the form
+       Codec.UNNAMEDPERFIX+index
+     */
+    public AbsObject getAbsObject(String name) {
+    	return (AbsObject) elements.get(toIndex(name));
+    }
+
+    /**
+       Overrides method in superclass
+     */
+    public String[] getNames() {
+    	String names[] = new String[elements.size()];
+    	for (int i = 0; i < names.length; ++i) {
+    		names[i] = Codec.UNNAMEDPREFIX+i;
+    	}
+    	return names;
+    }
+
+    /**
+     * Tests if this AbsAggregate is grounded, i.e., if no one of its elements 
+     * is associated with a variable
+     * @return <code>true</code> if the object is grounded.
+     */
+    public boolean isGrounded() {
+    	return true;
+    	//FIXME: Not yet implemented
+    }
+
+    /**
+       Overrides method in superclass
+     */
+    public int getCount() {
+    	return elements.size();
+    }
+
+    public void dump() {
+      dump(0, System.out);
+    }
+ 
+    public String toString() {
+    	StringBuffer sb = new StringBuffer("(");
+    	sb.append(getTypeName());
+    	Iterator it = elements.iterator();
+    	int i = 0;
+    	while (it.hasNext()) {
+    		sb.append(" #"+i+" "+it.next());
+    		++i;
+    	}
+    	sb.append(")");
+    	return sb.toString();
+    }
 }
 

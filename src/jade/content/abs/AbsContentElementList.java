@@ -33,14 +33,15 @@ import java.io.PrintStream;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsContentElementList extends AbsObjectImpl implements AbsContentElement {
+public class AbsContentElementList implements AbsContentElement {
   	private List elements = new ArrayList();
+    private String    typeName = null;
 	
   	/**
    	 * Construct an Abstract descriptor to hold a content element list      
    	 */
   	public AbsContentElementList() {
-    	super(ContentElementListSchema.BASE_NAME);
+    	typeName = ContentElementListSchema.BASE_NAME;
   	}
   
     /**
@@ -153,5 +154,53 @@ public class AbsContentElementList extends AbsObjectImpl implements AbsContentEl
 
         ps.println(")");
     } 
+    
+    /**
+     * @return The name of the type of the object held by this
+     * abstract descriptor.
+     * @see AbsObject#getTypeName()
+     */
+    public String getTypeName() {
+        return typeName;
+    } 
+
+    /**
+       Makes no sense in the case of an AbsContentElementList that has no attribute
+       --> Just return null
+     */
+    public AbsObject getAbsObject(String name) {
+    	return null;
+    }
+
+    /**
+       Makes no sense in the case of an AbsContentElementList that has no attribute
+       --> Just return null
+     */
+    public String[] getNames() {
+    	return null;
+    }
+
+    /**
+     * Tests if this AbsContentElementList is grounded, i.e., if no one of its elements 
+     * is associated with a variable
+     * @return <code>true</code> if the object is grounded.
+     */
+    public boolean isGrounded() {
+    	return true;
+    	//FIXME: Not yet implemented
+    }
+
+    /**
+       Makes no sense in the case of an AbsContentElementList that has no attribute
+       --> Just return 0
+     */
+    public int getCount() {
+    	return 0;
+    }
+
+    public void dump() {
+      dump(0, System.out);
+    }
+    	
 }
 

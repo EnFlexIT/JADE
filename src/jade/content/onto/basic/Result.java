@@ -30,8 +30,8 @@ import jade.content.onto.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
-public class Result implements HigherOrderPredicate {
-	private GenericAction action;
+public class Result implements Predicate {
+	private Concept action;
 	private List items;
 	
 	public Result() {
@@ -39,16 +39,16 @@ public class Result implements HigherOrderPredicate {
 		items = new ArrayList();
 	}
 	
-	public Result(GenericAction a, List l) {
+	public Result(Concept a, List l) {
 		setAction(a);
 		setItems(l);
 	}
 	
-	public GenericAction getAction() {
+	public Concept getAction() {
 		return action;
 	}
 	
-	public void setAction(GenericAction a) {
+	public void setAction(Concept a) {
 		action = a;
 	}	
 	

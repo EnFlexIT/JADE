@@ -55,21 +55,19 @@ public class IRESchema extends ContentElementSchema {
     /**
      * Creates a <code>IRESchema</code> with a given type-name.
      * All ire-s have a variable and a proposition.
-     *
      * @param typeName The name of this <code>IRESchema</code> 
      * (e.g. IOTA, ANY, ALL).
      */
     public IRESchema(String typeName) {
         super(typeName);
 
-        // FIXME It should be possible to specify a set of variables
+        // FIXME: It should be possible to specify a set of variables
         add(VARIABLE, VariableSchema.getBaseSchema()); 
-        add(PROPOSITION, PropositionSchema.getBaseSchema());
+        add(PROPOSITION, PredicateSchema.getBaseSchema());
     }
 
     /**
      * Retrieve the generic base schema for all ire-s.
-     *
      * @return the generic base schema for all ire-s.
      */
     public static ObjectSchema getBaseSchema() {

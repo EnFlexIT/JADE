@@ -154,7 +154,16 @@ public class AbsObjectImpl implements AbsObject {
     } 
 
     public String toString() {
-    	return getClass().getName()+"-"+getTypeName();
+    	StringBuffer sb = new StringBuffer("(");
+    	sb.append(getTypeName());
+    	
+      String[] names = getNames();
+      for (int i = 0; i < names.length; i++) {
+      	sb.append(" :"+names[i]+" "+getAbsObject(names[i]));
+      }
+      sb.append(")");
+      
+      return sb.toString();
     }
 }
 

@@ -31,7 +31,7 @@ import jade.content.onto.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class Request extends CommunicativeActBase {
-    private GenericAction action = null;
+    private AgentAction action = null;
 
     /**
      * Constructor
@@ -45,7 +45,7 @@ public class Request extends CommunicativeActBase {
      * @param action the action to set.
      *
      */
-    public void setAction(GenericAction action) {
+    public void setAction(AgentAction action) {
         this.action = action;
     } 
 
@@ -55,7 +55,7 @@ public class Request extends CommunicativeActBase {
      * @return the action.
      *
      */
-    public GenericAction getAction() {
+    public AgentAction getAction() {
         return action;
     } 
 

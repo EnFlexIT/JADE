@@ -36,14 +36,18 @@ import jade.content.schema.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ACLOntology extends Ontology {
+		public static final String       COMMUNICATIVE_ACT = "COMMUNICATIVEACT";
+		public static final String       COMMUNICATIVE_ACT_SENDER = "sender";
+		public static final String       COMMUNICATIVE_ACT_RECEIVERS = "receivers";
+		
     public static final String       INFORM = "INFORM";
-    public static final String       INFORM_PROPOSITION = "proposition";
+    public static final String       INFORM_PREDICATE = "predicate";
     
     public static final String       REQUEST = "REQUEST";
     public static final String       REQUEST_ACTION = "action";
     
-    public static final String       QUERYREF = "QUERYREF";
-    public static final String       QUERYREF_IRE = "ire";
+    public static final String       QUERY_REF = "QUERYREF";
+    public static final String       QUERY_REF_IRE = "ire";
     
     private static final ACLOntology theInstance = new ACLOntology();
 
@@ -54,17 +58,25 @@ public class ACLOntology extends Ontology {
         super("ACL_ONTOLOGY", BasicOntology.getInstance(), new ReflectiveIntrospector());
 
         try {
-            CommunicativeActSchema informSchema = new CommunicativeActSchema(INFORM);
-            informSchema.add(INFORM_PROPOSITION, (PropositionSchema) PropositionSchema.getBaseSchema());
+            AgentActionSchema baseSchema = new AgentActionSchema(COMMUNICATIVE_ACT);
+            baseSchema.add(COMMUNICATIVE_ACT_SENDER, (ConceptSchema) getSchema(BasicOntology.AID));
+            baseSchema.add(COMMUNICATIVE_ACT_RECEIVERS, (AggregateSchema) getSchema(BasicOntology.SEQUENCE));
+            add(baseSchema, CommunicativeActBase.class);
+
+            AgentActionSchema informSchema = new AgentActionSchema(INFORM);
+            informSchema.addSuperSchema(baseSchema);
+            informSchema.add(INFORM_PREDICATE, (PredicateSchema) PredicateSchema.getBaseSchema());
             add(informSchema, Inform.class);
 
-            CommunicativeActSchema requestSchema = new CommunicativeActSchema(REQUEST);
-            requestSchema.add(REQUEST_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
+            AgentActionSchema requestSchema = new AgentActionSchema(REQUEST);
+            requestSchema.addSuperSchema(baseSchema);
+            requestSchema.add(REQUEST_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
             add(requestSchema, Request.class);
-            
-            CommunicativeActSchema queryRefSchema = new CommunicativeActSchema(QUERYREF);
-            queryRefSchema.add(QUERYREF_IRE, (IRESchema) IRESchema.getBaseSchema());
-            add(queryRefSchema); // As the content of a QUERYREF is an IRE a concrete QueryRef class makes no sense
+
+            AgentActionSchema queryrefSchema = new AgentActionSchema(QUERY_REF);
+            queryrefSchema.addSuperSchema(baseSchema);
+            queryrefSchema.add(QUERY_REF_IRE, (IRESchema) IRESchema.getBaseSchema());
+            add(queryrefSchema); // As the content of a QUERYREF is an IRE a concrete QueryRef class makes no sense
 
         } 
         catch (OntologyException oe) {

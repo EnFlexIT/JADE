@@ -27,6 +27,8 @@ package jade.content;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.*;
 import jade.content.lang.Codec;
+import jade.content.lang.StringCodec;
+import jade.content.lang.ByteArrayCodec;
 import jade.content.lang.Codec.CodecException;
 import jade.content.abs.AbsContentElement;
 import jade.content.schema.ObjectSchema;
@@ -112,9 +114,17 @@ public class ContentManager implements Serializable {
         
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(content.getTypeName());
-        schema.validate(content, onto);
+  			if (schema == null) {
+  				throw new OntologyException("No schema found for type "+content.getTypeName());
+  			}
+    		schema.validate(content, onto);
         	
-        msg.setByteSequenceContent(codec.encode(onto, content));
+        if (codec instanceof ByteArrayCodec)
+					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, content));
+				else if (codec instanceof StringCodec)
+					msg.setContent(((StringCodec) codec).encode(onto, content));
+				else
+					throw new CodecException("UnsupportedTypeOfCodec");
     } 
 
     /**
@@ -130,7 +140,12 @@ public class ContentManager implements Serializable {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
-        return codec.decode(onto, msg.getByteSequenceContent());
+        if (codec instanceof ByteArrayCodec)
+					return ((ByteArrayCodec) codec).decode(onto, msg.getByteSequenceContent());
+				else if (codec instanceof StringCodec)
+					return ((StringCodec) codec).decode(onto, msg.getContent());
+				else
+					throw new CodecException("UnsupportedTypeOfCodec");
     } 
 
     /**
@@ -156,8 +171,13 @@ public class ContentManager implements Serializable {
         // Validate the content against the ontology
     		ObjectSchema schema = onto.getSchema(abs.getTypeName());
         schema.validate(abs, onto);
-        	        
-				msg.setByteSequenceContent(codec.encode(onto, abs));
+        
+        if (codec instanceof ByteArrayCodec)
+					msg.setByteSequenceContent(((ByteArrayCodec) codec).encode(onto, abs));
+				else if (codec instanceof StringCodec)
+					msg.setContent(((StringCodec) codec).encode(onto, abs));
+				else
+					throw new CodecException("UnsupportedTypeOfCodec");
     } 
 
     /**
@@ -172,9 +192,14 @@ public class ContentManager implements Serializable {
             throws CodecException, UngroundedException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
-				byte[] content = msg.getByteSequenceContent();
-				
-				AbsContentElement abs = codec.decode(onto, content);
+				AbsContentElement abs = null;
+        if (codec instanceof ByteArrayCodec)
+					abs=((ByteArrayCodec) codec).decode(onto, msg.getByteSequenceContent());
+				else if (codec instanceof StringCodec)
+					abs=((StringCodec) codec).decode(onto, msg.getContent());
+				else
+					throw new CodecException("UnsupportedTypeOfCodec");
+
 				return (ContentElement) onto.toObject(abs);
     } 
 

@@ -102,15 +102,15 @@ class BasicIntrospector implements Introspector {
 	    			}
 
 	    			if(obj instanceof Done) {
-	    				AbsHigherOrderPredicate absDone = new AbsHigherOrderPredicate(BasicOntology.DONE);
-  						absDone.set(BasicOntology.DONE_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Done) obj).getAction()));
+	    				AbsPredicate absDone = new AbsPredicate(BasicOntology.DONE);
+  						absDone.set(BasicOntology.DONE_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Done) obj).getAction()));
 							return absDone;
 	    			}
 
 	    			if(obj instanceof Result) {
-	    				AbsHigherOrderPredicate absResult = new AbsHigherOrderPredicate(BasicOntology.RESULT);
-  						absResult.set(BasicOntology.RESULT_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Result) obj).getAction()));
-  						absResult.set(BasicOntology.RESULT_ITEMS, (AbsTerm) referenceOnto.fromObject(((Result) obj).getItems()));
+	    				AbsPredicate absResult = new AbsPredicate(BasicOntology.RESULT);
+  						absResult.set(BasicOntology.RESULT_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Result) obj).getAction()));
+  						absResult.set(BasicOntology.RESULT_ITEMS, (AbsAggregate) referenceOnto.fromObject(((Result) obj).getItems()));
 							return absResult;
 	    			}
 
@@ -121,6 +121,12 @@ class BasicIntrospector implements Introspector {
 							return absEquals;
 	    			}
 
+	    			if (obj instanceof Action) {
+	    				AbsAgentAction absAction = new AbsAgentAction(BasicOntology.ACTION);
+	    				((Action) obj).externalise(absAction, referenceOnto);
+	    				return absAction;
+	    			}
+	    			
             throw new UnknownSchemaException();
         } 
         catch (OntologyException oe) {
@@ -153,46 +159,52 @@ class BasicIntrospector implements Introspector {
                 return null;
             } 
 
+            // PRIMITIVE
             if (abs instanceof AbsPrimitive) {
                 return ((AbsPrimitive) abs).getObject();
             } 
+            // AGGREGATES
             if (abs instanceof AbsAggregate) {
                 return AbsHelper.internaliseList((AbsAggregate) abs, referenceOnto);
             } 
-	    			if (abs instanceof AbsAID) {
-							return AbsHelper.internaliseAID((AbsAID) abs);
-	    			}
-
+						// CONTENT ELEMENT LIST
             if (abs instanceof AbsContentElementList) {
             	return AbsHelper.internaliseContentElementList((AbsContentElementList) abs, referenceOnto);
             } 
-
+						// AID
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.AID)) { 
+							return AbsHelper.internaliseAID((AbsConcept) abs);
+	    			}
+	    			// TRUE_PROPOSITION
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.TRUE_PROPOSITION)) { 
 							TrueProposition t = new TrueProposition();
 							return t;
 	    			}
-	    			
+	    			// DONE
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
 							Done d = new Done();
-  						AbsHigherOrderPredicate absDone = (AbsHigherOrderPredicate) abs;
-  						d.setAction((GenericAction) referenceOnto.toObject(absDone.getAbsObject(BasicOntology.DONE_ACTION))); 
+  						d.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.DONE_ACTION))); 
 							return d;
 	    			}
-	    			
+	    			// RESULT
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
 							Result r = new Result();
-  						AbsHigherOrderPredicate absResult = (AbsHigherOrderPredicate) abs;
-  						r.setAction((GenericAction) referenceOnto.toObject(absResult.getAbsObject(BasicOntology.RESULT_ACTION))); 
-  						r.setItems((List) referenceOnto.toObject(absResult.getAbsObject(BasicOntology.RESULT_ITEMS))); 
+  						r.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ACTION))); 
+  						r.setItems((List) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ITEMS))); 
 							return r;
 	    			}
-	    			
+	    			// EQUALS
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.EQUALS)) { 
 							Equals e = new Equals();
-  						AbsPredicate absEquals = (AbsPredicate) abs;
-  						e.setLeft(referenceOnto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_LEFT))); 
-  						e.setRight(referenceOnto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_RIGHT))); 
+  						e.setLeft(referenceOnto.toObject(abs.getAbsObject(BasicOntology.EQUALS_LEFT))); 
+  						e.setRight(referenceOnto.toObject(abs.getAbsObject(BasicOntology.EQUALS_RIGHT))); 
 							return e;
+	    			}
+	    			// ACTION
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.ACTION)) { 
+	    				Action a = new Action();
+	    				a.internalise(abs, referenceOnto);
+	    				return a;
 	    			}
 	    			
 	    			throw new UnknownSchemaException();

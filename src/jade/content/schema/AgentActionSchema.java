@@ -38,7 +38,7 @@ import jade.content.onto.*;
  * an agent-action is a concept and therefore a term.
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AgentActionSchema extends GenericActionSchema {
+public class AgentActionSchema extends ConceptSchema {
     public static final String         BASE_NAME = "AgentAction";
     private static AgentActionSchema baseSchema = new AgentActionSchema();
 
@@ -52,7 +52,6 @@ public class AgentActionSchema extends GenericActionSchema {
 
     /**
      * Creates an <code>AgentActionSchema</code> with a given type-name.
-     *
      * @param typeName The name of this <code>AgentActionSchema</code>.
      */
     public AgentActionSchema(String typeName) {
@@ -61,7 +60,6 @@ public class AgentActionSchema extends GenericActionSchema {
 
     /**
      * Retrieve the generic base schema for all agent actions.
-     *
      * @return the generic base schema for all agent actions.
      */
     public static ObjectSchema getBaseSchema() {
@@ -69,27 +67,24 @@ public class AgentActionSchema extends GenericActionSchema {
     } 
 
     /**
-     * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
+     * Add a mandatory slot to this schema. 
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
-    public void add(String name, TermSchema slotSchema) {
+    public void add(String name, ContentElementSchema slotSchema) {
         super.add(name, slotSchema);
     } 
 
     /**
-     * Add a slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
+     * Add a slot to this schema. 
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * @param optionality The optionality, i.e. <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, TermSchema slotSchema, int cardinality) {
-        super.add(name, slotSchema, cardinality);
+    public void add(String name, ContentElementSchema slotSchema, int optionality) {
+        super.add(name, slotSchema, optionality);
     } 
 
     /**
@@ -140,7 +135,7 @@ public class AgentActionSchema extends GenericActionSchema {
   			if (super.descendsFrom(s)) {
   				return true;
   			}
-  			return ConceptSchema.getBaseSchema().descendsFrom(s);
+  			return ContentElementSchema.getBaseSchema().descendsFrom(s);
 			}
 			else {
 				return false;

@@ -27,11 +27,11 @@ package jade.content.abs;
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPredicate extends AbsObjectImpl implements AbsProposition {
+public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement {
 
     /**
      * Construct an Abstract descriptor to hold a predicate of
-     * the proper type (e.g. FATHER_OF...).
+     * the proper type (e.g. FATHER_OF, WORKS_FOR...).
      * @param typeName The name of the type of the predicate held by 
      * this abstract descriptor.
      */
@@ -45,13 +45,14 @@ public class AbsPredicate extends AbsObjectImpl implements AbsProposition {
      * @param name The name of the attribute to be set.
      * @param value The new value of the attribute.
      */
-    public void set(String name, AbsTerm value) {
+    public void set(String name, AbsObject value) {
         super.set(name, value);
     } 
 
     /**
-     * Gets the value of an attribute of the predicate 
-     * held by this abstract descriptor.
+     * Gets the value (casted as an AbsTerm) of an attribute of 
+     * the predicate held by this abstract descriptor.
+     * This method is here mainly for backward compatibility.
      * @param name The name of the attribute.
      * @return value The value of the attribute.
      */

@@ -24,12 +24,14 @@
  */
 package jade.content.onto;
 
+import jade.util.WrapperException;
+
 /**
  * Generic exception of the content support.
  *
  * @author Federico Bergenti - Universita` di Parma
  */
-public class OntologyException extends Exception {
+public class OntologyException extends WrapperException {
 
     /**
      * Construct an <code>OntologyException</code> with a given message.
@@ -39,6 +41,11 @@ public class OntologyException extends Exception {
      */
     public OntologyException(String message) {
         super(message);
+    }
+    
+    
+    public OntologyException(String message, Throwable t) {
+        super(message, t);
     }
 }
 

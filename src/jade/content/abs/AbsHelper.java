@@ -85,32 +85,33 @@ public class AbsHelper {
     }
 
     /**
-     * Converts an <code>AID</code> into a <code>AbsAID</code> using
-     * the specified ontology.
+     * Converts an <code>AID</code> into an <code>AbsConcept</code> 
+     * representing an AID 
      * @param obj the <code>AID</code>
-     * @param onto the ontology.
      * @return the abstract descriptor.
-     * @throws OntologyException
      */
-    public static AbsAID externaliseAID(AID obj) {
+    public static AbsConcept externaliseAID(AID obj) {
+    	AbsConcept aid = new AbsConcept(BasicOntology.AID);
       // Name
-      String name = obj.getName();
+      aid.set(BasicOntology.AID_NAME, obj.getName());
       
       // Addresses
-			AbsAggregate addresses = new AbsAggregate(BasicOntology.SET);
+			AbsAggregate addresses = new AbsAggregate(BasicOntology.SEQUENCE);
 			for(Iterator i = obj.getAllAddresses(); i.hasNext(); ) {
 				String addr = (String) i.next();
 	    	addresses.add(AbsPrimitive.wrap(addr));
 			}
+			aid.set(BasicOntology.AID_ADDRESSES, addresses);
 
 			// Resolvers
-			AbsAggregate resolvers = new AbsAggregate(BasicOntology.SET);
+			AbsAggregate resolvers = new AbsAggregate(BasicOntology.SEQUENCE);
 			for(Iterator i = obj.getAllResolvers(); i.hasNext(); ) {
 				AID res = (AID) i.next();
 	    	resolvers.add(externaliseAID(res));
 			}
+			aid.set(BasicOntology.AID_RESOLVERS, resolvers);
 			
-      return new AbsAID(name, addresses, resolvers);
+      return aid;
     } 
 
     /**
@@ -139,7 +140,7 @@ public class AbsHelper {
 
             
     /**
-     * Converts to an <code>AbsAggregate</code> into a List using the 
+     * Converts an <code>AbsAggregate</code> into a List using the 
      * specified ontology.
      * @param onto the ontology
      * @return the List
@@ -159,34 +160,38 @@ public class AbsHelper {
     } 
 
     /**
-     * Converts to an <code>AbsAID</code> into an OntoAID using the 
-     * specified ontology.
-     * @param onto the ontology
+     * Converts an <code>AbsConcept</code> representing an AID 
+     * into an OntoAID 
      * @return the OntoAID
-     * @throws OntologyException
+     * @throws OntologyException if <code>aid</code> does not 
+     * represent a valid AID
      */
-    public static OntoAID internaliseAID(AbsAID aid) {
+    public static OntoAID internaliseAID(AbsConcept aid) throws OntologyException {
         OntoAID ret = new OntoAID();
 
-        // Name
-				String name = ((AbsPrimitive)(aid.getAbsObject(BasicOntology.AID_NAME))).getString();   
-				ret.setName(name);
+        try {
+	        // Name
+					ret.setName(aid.getString(BasicOntology.AID_NAME));
 
-        // Addresses
-				AbsAggregate addresses = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_ADDRESSES);
-				for (int i = 0; i < addresses.size(); ++i) {
-					String addr = ((AbsPrimitive) addresses.get(i)).getString();
-	    		ret.addAddresses(addr);
-				}
+      	  // Addresses
+					AbsAggregate addresses = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_ADDRESSES);
+					for (int i = 0; i < addresses.size(); ++i) {
+						String addr = ((AbsPrimitive) addresses.get(i)).getString();
+	    			ret.addAddresses(addr);
+					}
 				
-        // Resolvers
-				AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
-				for (int i = 0; i < resolvers.size(); ++i) {
-					OntoAID res = internaliseAID((AbsAID) resolvers.get(i));
-	    		ret.addResolvers(res);
-				}
+        	// Resolvers
+					AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
+					for (int i = 0; i < resolvers.size(); ++i) {
+						OntoAID res = internaliseAID((AbsConcept) resolvers.get(i));
+	    			ret.addResolvers(res);
+					}
 
-        return ret;
+        	return ret;
+        }
+        catch (Exception e) {
+        	throw new OntologyException(aid+" is not a valid AID");
+        }
     } 
 
     /**

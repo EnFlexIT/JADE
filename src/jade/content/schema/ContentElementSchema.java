@@ -44,7 +44,6 @@ public class ContentElementSchema extends ObjectSchema {
 
     /**
      * Creates a <code>ContentElementSchema</code> with a given type-name.
-     *
      * @param typeName The name of this <code>ContentElementSchema</code>.
      */
     protected ContentElementSchema(String typeName) {
@@ -53,7 +52,6 @@ public class ContentElementSchema extends ObjectSchema {
 
     /**
      * Retrieve the generic base schema for all content elements.
-     *
      * @return the generic base schema for all content elements.
      */
     public static ObjectSchema getBaseSchema() {

@@ -27,17 +27,29 @@ package jade.content.onto.basic;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
+import jade.core.AID;
 
-public class Done implements Predicate {
+public class Action implements AgentAction, Introspectable {
+	private AID actor;
 	private Concept action;
 	
-	public Done() {
+	public Action() {
+		actor = null;
 		action = null;
 	}
 	
-	public Done(Concept a) {
+	public Action(AID id, Concept a) {
+		setActor(id);
 		setAction(a);
 	}
+	
+	public AID getActor() {
+		return actor;
+	}
+	
+	public void setActor(AID id) {
+		actor = id;
+	}	
 	
 	public Concept getAction() {
 		return action;
@@ -45,6 +57,27 @@ public class Done implements Predicate {
 	
 	public void setAction(Concept a) {
 		action = a;
-	}	
+	}
 	
+  public void externalise(AbsObject abs, Ontology onto) throws OntologyException {
+  	try {
+  		AbsAgentAction absAction = (AbsAgentAction) abs;
+  		absAction.set(BasicOntology.ACTION_ACTOR, (AbsTerm) onto.fromObject(getActor()));
+  		absAction.set(BasicOntology.ACTION_ACTION, (AbsTerm) onto.fromObject(getAction()));
+  	}
+  	catch (ClassCastException cce) {
+  		throw new OntologyException("Error externalising Action");
+  	}
+  }
+
+  public void internalise(AbsObject abs, Ontology onto) throws UngroundedException, OntologyException {
+    try {
+  		AbsAgentAction absAction = (AbsAgentAction) abs;
+  		setActor((AID) onto.toObject(absAction.getAbsObject(BasicOntology.ACTION_ACTOR))); 
+  		setAction((Concept) onto.toObject(absAction.getAbsObject(BasicOntology.ACTION_ACTION))); 
+  	}
+  	catch (ClassCastException cce) {
+  		throw new OntologyException("Error internalising Action");
+  	}
+  }
 }

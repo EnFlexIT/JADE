@@ -37,22 +37,27 @@ public class ObjectSchema {
     private class SlotDescriptor {
         private String       name = null;
         private ObjectSchema schema = null;
-        private int          cardinality = 0;
+        private int          optionality = 0;
 
         /**
            Construct a SlotDescriptor
          */
         private SlotDescriptor(String name, ObjectSchema schema, 
-                                    int cardinality) {
+                                    int optionality) {
             this.name = name;
             this.schema = schema;
-            this.cardinality = cardinality;
+            this.optionality = optionality;
         }
 
     }
-
+    
+    // Optionality values
     public static final int MANDATORY = 0;
     public static final int OPTIONAL = 1;
+    
+    // Unlimited cardinality
+    public static final int UNLIMITED = -1;
+    
     private Hashtable       slots = new Hashtable();
     private Vector          superSchemas = new Vector();
     private String          typeName = null;
@@ -90,11 +95,11 @@ public class ObjectSchema {
      *
      * @param name The name of the slot.
      * @param slotSchema The schema defining the type of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * @param optionality The optionality, i.e., <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    protected void add(String name, ObjectSchema slotSchema, int cardinality) {
-        slots.put(name.toUpperCase(), new SlotDescriptor(name, slotSchema, cardinality));
+    protected void add(String name, ObjectSchema slotSchema, int optionality) {
+        slots.put(name.toUpperCase(), new SlotDescriptor(name, slotSchema, optionality));
     } 
 
   	/**
@@ -242,9 +247,13 @@ public class ObjectSchema {
             superSchema.getAllSlotDescriptors(v);
         } 
 
+        int position = v.size() + slots.size() - 1;
+        v.setSize(v.size() + slots.size());
         // Get slot descriptors directly defined in this schema
         for (Enumeration e = slots.keys(); e.hasMoreElements(); ) {
-            v.addElement(e.nextElement());
+            v.setElementAt(e.nextElement(), position);
+            position--;
+        	//v.addElement(e.nextElement());
         }
     } 
     
@@ -305,7 +314,7 @@ public class ObjectSchema {
   			//System.out.println("Slot "+slotName+" is defined in schema "+this); 
   			if (value == null) {
   				// Check optionality
-  				if (dsc.cardinality == MANDATORY) {
+  				if (dsc.optionality == MANDATORY) {
   					throw new OntologyException("Missing value for mandatory slot "+slotName);
   				}
   				// Don't need to check facets on a null value for an optional slot
@@ -320,8 +329,11 @@ public class ObjectSchema {
   				ObjectSchema s = onto.getSchema(value.getTypeName());
   				//DEBUG 
   				//System.out.println("Actual schema for "+value+" is "+s); 
+  				if (s == null) {
+  					throw new OntologyException("No schema found for type "+value.getTypeName());
+  				}
   				if (!s.isCompatibleWith(dsc.schema)) {
-  					throw new OntologyException("Schema "+s+" for type "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName); 
+  					throw new OntologyException("Schema "+s+" for element "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName); 
   				}
   				//DEBUG
   				//System.out.println("Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName); 

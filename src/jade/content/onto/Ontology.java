@@ -25,6 +25,8 @@
 package jade.content.onto;
 
 import java.util.Hashtable;
+import java.util.Date;
+
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
@@ -310,6 +312,7 @@ public class Ontology {
         ObjectSchema ret = (ObjectSchema) elements.get(name);
 
         if (ret == null) {
+        	//System.out.println("Schema for "+name+" not found in "+getName());
             if (searchInBase) {
             	for (int i = 0; i < base.length; ++i) {
             		try {
@@ -450,9 +453,12 @@ public class Ontology {
     	if (obj instanceof String ||
     		  obj instanceof Boolean ||
     		  obj instanceof Integer ||
+    		  obj instanceof Long ||
     		  //__CLDC_UNSUPPORTED__BEGIN
     		  obj instanceof Float ||
+    		  obj instanceof Double ||
     		  //__CLDC_UNSUPPORTED__END
+    		  obj instanceof Date ||
     		  obj instanceof Term) {
     		return;
     	}
@@ -474,44 +480,24 @@ public class Ontology {
      * @throws OntologyException if a type mismatch is detected
      */
     public static void setAttribute(AbsObject abs, String attrName, AbsObject attrValue) throws OntologyException { 
-			if (abs instanceof AbsConcept) {
+    	if (abs instanceof AbsAgentAction) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+				if (attrValue instanceof AbsContentElement) {
+					((AbsAgentAction) abs).set(attrName, (AbsContentElement) attrValue);
+					return;
+				}
+			}
+    	if (abs instanceof AbsConcept) {
 				if (attrValue instanceof AbsTerm) {
 					((AbsConcept) abs).set(attrName, (AbsTerm) attrValue);
 					return;
 				}
 			}
 			else if (abs instanceof AbsPredicate) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsPredicate) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-			}
-			else if (abs instanceof AbsAgentAction) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-			}
-			else if (abs instanceof AbsCommunicativeAct) {
-				if (attrValue instanceof AbsContentElement) {
-					((AbsCommunicativeAct) abs).set(attrName, (AbsContentElement) attrValue);
-					return;
-				}
-				else if (attrValue instanceof AbsAID && CaseInsensitiveString.equalsIgnoreCase(attrName, CommunicativeActSchema.SENDER)) {
-					((AbsCommunicativeAct) abs).setSender((AbsAID) attrValue);
-					return;
-				}
-				else if (attrValue instanceof AbsAggregate && CaseInsensitiveString.equalsIgnoreCase(attrName, CommunicativeActSchema.RECEIVERS)) {
-					((AbsCommunicativeAct) abs).setReceivers((AbsAggregate) attrValue);
-					return;
-				}
-			}
-			else if (abs instanceof AbsHigherOrderPredicate) {
-				((AbsHigherOrderPredicate) abs).set(attrName, attrValue);
-				return;
-			}
-			else if (abs instanceof AbsHigherOrderAction) {
-				((AbsHigherOrderAction) abs).set(attrName, attrValue);
+				((AbsPredicate) abs).set(attrName, attrValue);
 				return;
 			}
 			else if (abs instanceof AbsIRE) {
@@ -519,8 +505,8 @@ public class Ontology {
 					((AbsIRE) abs).setVariable((AbsVariable) attrValue);
 					return;
 				}
-				else if (attrValue instanceof AbsProposition && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.PROPOSITION)) {
-					((AbsIRE) abs).setProposition((AbsProposition) attrValue);
+				else if (attrValue instanceof AbsPredicate && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.PROPOSITION)) {
+					((AbsIRE) abs).setProposition((AbsPredicate) attrValue);
 					return;
 				}
 			}

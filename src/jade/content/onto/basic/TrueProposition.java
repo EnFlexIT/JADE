@@ -26,5 +26,5 @@ package jade.content.onto.basic;
 
 import jade.content.*;
 
-public class TrueProposition implements Proposition {
+public class TrueProposition implements Predicate {
 }

@@ -33,15 +33,16 @@ import java.util.Date;
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
+public class AbsPrimitive implements AbsTerm {
     private Object value = null;
+    private String    typeName = null;
 
     /**
      * Construct an Abstract descriptor to hold a primitive of
      * the proper type (e.g. String, int, boolean...) and set its value.
      */
     private AbsPrimitive(String typeName, Object value) {
-        super(typeName);
+        this.typeName = typeName;
         this.value = value;
     }
 
@@ -52,7 +53,7 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
      * this abstract descriptor.
      */
     public AbsPrimitive(String typeName) {
-        super(typeName);
+        this(typeName, null);
     }
 
     /**
@@ -290,5 +291,52 @@ public class AbsPrimitive extends AbsObjectImpl implements AbsTerm {
         ps.println(getObject());
     } 
 
-}
+    /**
+     * @return The name of the type of the object held by this
+     * abstract descriptor.
+     * @see AbsObject#getTypeName()
+     */
+    public String getTypeName() {
+        return typeName;
+    } 
+
+    /**
+       Makes no sense in the case of an AbsPrimitive that has no attribute
+       --> Just return null
+     */
+    public AbsObject getAbsObject(String name) {
+    	return null;
+    }
+
+    /**
+       Makes no sense in the case of an AbsPrimitive that has no attribute
+       --> Just return null
+     */
+    public String[] getNames() {
+    	return null;
+    }
+
+    /**
+     * Tests if this AbsPrimitive is grounded. It always returns true
+     */
+    public boolean isGrounded() {
+    	return true;
+    }
+
+    /**
+       Makes no sense in the case of an AbsAggregate that has no attribute
+       --> Just return 0
+     */
+    public int getCount() {
+    	return 0;
+    }
+
+    public void dump() {
+      dump(0, System.out);
+    }
+    
+    public String toString() {
+    	return value.toString();
+    }
+ }
 

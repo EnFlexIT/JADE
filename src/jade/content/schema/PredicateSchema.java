@@ -30,7 +30,7 @@ import jade.content.onto.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class PredicateSchema extends PropositionSchema {
+public class PredicateSchema extends ContentElementSchema {
     public static final String         BASE_NAME = "Predicate";
     private static PredicateSchema baseSchema = new PredicateSchema();
 
@@ -42,10 +42,9 @@ public class PredicateSchema extends PropositionSchema {
         super(BASE_NAME);
     }
 
-
     /**
-     * Creates a <code>PredicateSchema</code> with a given type-name.
-     *
+     * Creates a <code>PredicateSchema</code> with a given type-name,
+     * e.g. FATHER_OF, WORKS_FOR...
      * @param typeName The name of this <code>PredicateSchema</code>.
      */
     public PredicateSchema(String typeName) {
@@ -54,7 +53,6 @@ public class PredicateSchema extends PropositionSchema {
 
     /**
      * Retrieve the generic base schema for all predicates.
-     *
      * @return the generic base schema for all predicates.
      */
     public static ObjectSchema getBaseSchema() {
@@ -62,27 +60,53 @@ public class PredicateSchema extends PropositionSchema {
     } 
 
     /**
-     * Add a mandatory slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
-     *
+     * Add a mandatory slot to this schema. 
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
-    public void add(String name, TermSchema slotSchema) {
+    public void add(String name, ObjectSchema slotSchema) {
         super.add(name, slotSchema);
     } 
 
     /**
-     * Add a slot to the schema. The schema for this slot must 
-     * be a <code>TermSchema</code>.
+     * Add a slot to this schema. 
      *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * @param optionality The optionality, i.e. <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, TermSchema slotSchema, int cardinality) {
-        super.add(name, slotSchema, cardinality);
+    public void add(String name, ObjectSchema slotSchema, int optionality) {
+        super.add(name, slotSchema, optionality);
+    } 
+
+    /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema. 
+     * Adding such a slot is equivalent to add a slot
+     * of type Aggregate and then to add proper facets (constraints)
+     * to check that the type of the elements in the aggregate are
+     * compatible with <code>elementsSchema</code> and that the 
+     * aggregate contains at least <code>cardMin</code> elements and
+     * at most <code>cardMax</code> elements.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     */
+    public void add(String name, TermSchema elementsSchema, int cardMin, int cardMax) {
+      int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
+    	try {
+    		super.add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
+    	}
+    	catch (OntologyException oe) {
+    		// Should never happen
+    		oe.printStackTrace();
+    	}
+    	// Add proper facets
+    	// FIXME: to be done
     } 
 
     /**

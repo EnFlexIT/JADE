@@ -27,17 +27,27 @@ package jade.content.abs;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAgentAction extends AbsConcept implements AbsGenericAction {
+public class AbsAgentAction extends AbsConcept implements AbsContentElement {
 
     /**
      * Construct an Abstract descriptor to hold an agent action of
-     * the proper type.
+     * the proper type, e.g. SELL, BUY....
      * @param typeName The name of the type of the agent action held by 
      * this abstract descriptor.
      */
     public AbsAgentAction(String typeName) {
         super(typeName);
     }
+
+    /**
+     * Sets an attribute of the agent action held by this
+     * abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
+     */
+    public void set(String name, AbsContentElement value) {
+        super.set(name, value);
+    } 
 
 }
 

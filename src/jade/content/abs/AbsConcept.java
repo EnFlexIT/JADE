@@ -24,10 +24,12 @@
  */
 package jade.content.abs;
 
+import java.util.Date;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsConcept extends AbsObjectImpl implements AbsTerm {
+public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm {
 
     /**
      * Construct an Abstract descriptor to hold a concept of
@@ -50,52 +52,6 @@ public class AbsConcept extends AbsObjectImpl implements AbsTerm {
     } 
 
     /**
-     * Utility method that allows setting attributes of type
-     * <code>String</code> without the need of wrapping the new value
-     * into an <code>AbsTerm</code>.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, String value) {
-        set(name, AbsPrimitive.wrap(value));
-    } 
-
-    /**
-     * Utility method that allows setting attributes of type
-     * <code>boolean</code> without the need of wrapping the new value
-     * into an <code>AbsTerm</code>.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, boolean value) {
-        set(name, AbsPrimitive.wrap(value));
-    } 
-
-    /**
-     * Utility method that allows setting attributes of type
-     * <code>int</code> without the need of wrapping the new value
-     * into an <code>AbsTerm</code>.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, int value) {
-        set(name, AbsPrimitive.wrap(value));
-    } 
-
-    //__CLDC_UNSUPPORTED__BEGIN
-    /**
-     * Utility method that allows setting attributes of type
-     * <code>float</code> without the need of wrapping the new value
-     * into an <code>AbsTerm</code>.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, float value) {
-        set(name, AbsPrimitive.wrap(value));
-    } 
-    //__CLDC_UNSUPPORTED__END
-
-    /**
      * Gets the value of an attribute of the concept 
      * held by this abstract descriptor.
      * @param name The name of the attribute.
@@ -105,50 +61,5 @@ public class AbsConcept extends AbsObjectImpl implements AbsTerm {
         return (AbsTerm)getAbsObject(name);
     }
 
-   /**
-     * Utility method that allows getting the value of attributes 
-     * of type <code>String</code> directly as a <code>String</code>
-     * i.e. not wrapped into an <code>AbsTerm/code>.
-     * @param name The name of the attribute to be retrieved.
-     * @param value The value of the attribute.
-     */
-    public String getString(String name) {
-        return ((AbsPrimitive)getAbsTerm(name)).getString();
-    }
-
-    /**
-     * Utility method that allows getting the value of attributes 
-     * of type <code>boolean</code> directly as a <code>boolean</code>
-     * i.e. not wrapped into an <code>AbsTerm/code>.
-     * @param name The name of the attribute to be retrieved.
-     * @param value The value of the attribute.
-     */
-    public boolean getBoolean(String name) {
-      	return ((AbsPrimitive)getAbsTerm(name)).getBoolean();
-    }
-
-    /**
-     * Utility method that allows getting the value of attributes 
-     * of type <code>int</code> directly as an <code>int</code>
-     * i.e. not wrapped into an <code>AbsTerm/code>.
-     * @param name The name of the attribute to be retrieved.
-     * @param value The value of the attribute.
-     */
-    public int getInteger(String name) {
-    	return ((AbsPrimitive)getAbsTerm(name)).getInteger();
-    }
-
-    //__CLDC_UNSUPPORTED__BEGIN
-    /**
-     * Utility method that allows getting the value of attributes 
-     * of type <code>float</code> directly as a <code>float</code>
-     * i.e. not wrapped into an <code>AbsTerm/code>.
-     * @param name The name of the attribute to be retrieved.
-     * @param value The value of the attribute.
-     */
-    public float getFloat(String name) {
-    	return ((AbsPrimitive)getAbsTerm(name)).getFloat();
-    }
-    //__CLDC_UNSUPPORTED__END
 }
 

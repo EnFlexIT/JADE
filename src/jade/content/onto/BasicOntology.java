@@ -52,14 +52,14 @@ public class BasicOntology extends Ontology {
   public static final String         DATE = "BO_Date";
     
   // Aggregate types names
-  public static final String         SEQUENCE = "BO_Sequence";
-  public static final String         SET = "BO_Set";
+  public static final String         SEQUENCE = "sequence";
+  public static final String         SET = "set";
     
   // Content element list 
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
   
   // Generic concepts: AID 
-  public static final String         AID = AIDSchema.BASE_NAME;
+  public static final String         AID = "agent-identifier";
   public static final String         AID_NAME = "Name";
   public static final String         AID_ADDRESSES = "Addresses";
   public static final String         AID_RESOLVERS = "Resolvers";
@@ -67,7 +67,7 @@ public class BasicOntology extends Ontology {
   // Generic propositions: TRUE_PROP (i.e. the proposition that is true under whatever condition) 
   public static final String         TRUE_PROPOSITION = "TRUE";
   
-  // Always required operators propositions
+  // Useful operators 
   public static final String         DONE = "DONE";
   public static final String         DONE_ACTION = "action";
     
@@ -78,6 +78,10 @@ public class BasicOntology extends Ontology {
   public static final String         EQUALS = "EQUALS";
   public static final String         EQUALS_LEFT = "Left";
   public static final String         EQUALS_RIGHT = "Right";
+  
+  public static final String         ACTION = "ACTION";
+  public static final String         ACTION_ACTOR = "Actor";
+  public static final String         ACTION_ACTION = "Action";
   
   /**
    * Constructor
@@ -110,28 +114,38 @@ public class BasicOntology extends Ontology {
       add(ContentElementListSchema.getBaseSchema()); 
       
       // AID Schema
-      add(AIDSchema.getBaseSchema()); 
+      ConceptSchema aidSchema = new ConceptSchema(AID);
+      aidSchema.add(AID_NAME, (TermSchema) getSchema(STRING));
+      aidSchema.add(AID_ADDRESSES, (TermSchema) getSchema(STRING), 0, ObjectSchema.UNLIMITED);
+      aidSchema.add(AID_RESOLVERS, aidSchema, 0, ObjectSchema.UNLIMITED);
+      add(aidSchema); 
       
       // TRUE_PROPOSITION schema
       PredicateSchema truePropSchema = new PredicateSchema(TRUE_PROPOSITION);
       add(truePropSchema);
 
       // DONE Schema
-      HigherOrderPredicateSchema doneSchema = new HigherOrderPredicateSchema(DONE);
-      doneSchema.add(DONE_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
+      PredicateSchema doneSchema = new PredicateSchema(DONE);
+      doneSchema.add(DONE_ACTION, AgentActionSchema.getBaseSchema());
       add(doneSchema); 
       
       // EQUALS Schema
-      HigherOrderPredicateSchema resultSchema = new HigherOrderPredicateSchema(RESULT);
-      resultSchema.add(RESULT_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
+      PredicateSchema resultSchema = new PredicateSchema(RESULT);
+      resultSchema.add(RESULT_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
       resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
       add(resultSchema); 
       
       // EQUALS Schema
       PredicateSchema equalsSchema = new PredicateSchema(EQUALS);
-      equalsSchema.add(EQUALS_LEFT, (TermSchema) TermSchema.getBaseSchema());
-      equalsSchema.add(EQUALS_RIGHT, (TermSchema) TermSchema.getBaseSchema());
+      equalsSchema.add(EQUALS_LEFT, TermSchema.getBaseSchema());
+      equalsSchema.add(EQUALS_RIGHT, TermSchema.getBaseSchema());
       add(equalsSchema); 
+
+      // ACTION Schema
+      AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
+      actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
+      actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
+      add(actionSchema); 
     } 
     catch (OntologyException oe) {
       oe.printStackTrace();

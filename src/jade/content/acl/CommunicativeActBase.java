@@ -36,7 +36,7 @@ import jade.util.leap.Iterator;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class CommunicativeActBase implements CommunicativeAct {
+public class CommunicativeActBase implements AgentAction {
     private AID  sender = null;
     private List receivers = new ArrayList();
 

@@ -31,7 +31,7 @@ import jade.content.onto.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class Inform extends CommunicativeActBase {
-    private Proposition proposition = null;
+    private Predicate predicate = null;
 
     /**
      * Constructor
@@ -45,8 +45,8 @@ public class Inform extends CommunicativeActBase {
      * @param proposition the proposition.
      *
      */
-    public void setProposition(Proposition proposition) {
-        this.proposition = proposition;
+    public void setPredicate(Predicate predicate) {
+        this.predicate = predicate;
     } 
 
     /**
@@ -55,8 +55,8 @@ public class Inform extends CommunicativeActBase {
      * @return the proposition.
      *
      */
-    public Proposition getProposition() {
-        return proposition;
+    public Predicate getPredicate() {
+        return predicate;
     } 
 
 }

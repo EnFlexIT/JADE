@@ -60,7 +60,7 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
      * Sets the proposition of this IRE.
      * @param proposition The abstract descriptor holding the proposition.
      */
-    public void setProposition(AbsProposition proposition) {
+    public void setProposition(AbsPredicate proposition) {
         set(IRESchema.PROPOSITION, proposition);
     } 
 
@@ -76,8 +76,8 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
      * Gets the proposition of this IRE.
      * @return the abstract descriptor holding the proposition of this IRE.
      */
-    public AbsProposition getProposition() {
-        return (AbsProposition) getAbsObject(IRESchema.PROPOSITION);
+    public AbsPredicate getProposition() {
+        return (AbsPredicate) getAbsObject(IRESchema.PROPOSITION);
     } 
 
     /**

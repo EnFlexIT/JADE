@@ -43,8 +43,8 @@ public class ConceptSchema extends TermSchema {
     }
 
     /**
-     * Creates a <code>ConceptSchema</code> with a given type-name.
-     *
+     * Creates a <code>ConceptSchema</code> with a given type-name,
+     * e.g. PERSON, ADDRESS...
      * @param typeName The name of this <code>ConceptSchema</code>.
      */
     public ConceptSchema(String typeName) {
@@ -53,7 +53,6 @@ public class ConceptSchema extends TermSchema {
 
     /**
      * Retrieve the generic base schema for all concepts.
-     *
      * @return the generic base schema for all concepts.
      */
     public static ObjectSchema getBaseSchema() {
@@ -63,7 +62,6 @@ public class ConceptSchema extends TermSchema {
     /**
      * Add a mandatory slot to the schema. The schema for this slot must 
      * be a <code>TermSchema</code>.
-     *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
      */
@@ -74,21 +72,49 @@ public class ConceptSchema extends TermSchema {
     /**
      * Add a slot to the schema. The schema for this slot must 
      * be a <code>TermSchema</code>.
-     *
      * @param name The name of the slot.
      * @param slotSchema The schema of the slot.
-     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * @param optionality The optionality, i.e., <code>OPTIONAL</code> 
      * or <code>MANDATORY</code>
      */
-    public void add(String name, TermSchema slotSchema, int cardinality) {
-        super.add(name, slotSchema, cardinality);
+    public void add(String name, TermSchema slotSchema, int optionality) {
+        super.add(name, slotSchema, optionality);
+    } 
+
+    /**
+     * Add a slot with cardinality between <code>cardMin</code>
+     * and <code>cardMax</code> to this schema. 
+     * Adding such a slot is equivalent to add a slot
+     * of type Aggregate and then to add proper facets (constraints)
+     * to check that the type of the elements in the aggregate are
+     * compatible with <code>elementsSchema</code> and that the 
+     * aggregate contains at least <code>cardMin</code> elements and
+     * at most <code>cardMax</code> elements.
+     * @param name The name of the slot.
+     * @param elementsSchema The schema for the elements of this slot.
+     * @param cardMin This slot must get at least <code>cardMin</code>
+     * values
+     * @param cardMax This slot can get at most <code>cardMax</code>
+     * values
+     */
+    public void add(String name, TermSchema elementsSchema, int cardMin, int cardMax) {
+      int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
+    	try {
+	      super.add(name, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE), optionality);
+    	}
+    	catch (OntologyException oe) {
+    		// Should never happen
+    		oe.printStackTrace();
+    	}
+    	// Add proper facets
+    	// FIXME: to be done
     } 
 
     /**
      * Adds a super-schema to this schema. This allows defining 
      * inheritance relationships between ontological concepts.
      * It must be noted that a concept always inherits from another 
-     * concept --> A super-schemas of a <code>ConceptSchema</code>
+     * concept --> A super-schema of a <code>ConceptSchema</code>
      * must be a <code>ConceptSchema</code> too.
      *
      * @param superClassSchema The super-schema to be added.
