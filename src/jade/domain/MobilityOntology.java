@@ -35,6 +35,8 @@ import java.util.HashMap;
 import jade.lang.Codec;
 
 import jade.core.AID;
+import jade.core.Location;
+import jade.core.ContainerID;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
@@ -179,9 +181,9 @@ public class MobilityOntology {
 
 	theInstance.addRole(LOCATION, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	    new SlotDescriptor("transport-protocol", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	    new SlotDescriptor("transport-address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, Location.class);
+	    new SlotDescriptor("protocol", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	    new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, ContainerID.class);
 
 	theInstance.addRole(MOVE, new SlotDescriptor[] {
 	    new SlotDescriptor(Ontology.FRAME_SLOT, MOBILE_AGENT_DESCRIPTION, Ontology.M)
@@ -441,80 +443,6 @@ public class MobilityOntology {
     }
 
   } // End of MobileAgentOS class
-
-  /**
-    This class represent the ':location' concept in JADE
-    mobility ontology. It has various get- and set- methods, according to the
-    rules for ontological classes in JADE.
-    @see jade.onto.Ontology
-  */
-  public static class Location implements jade.core.Location {
-
-    public static final String DEFAULT_LOCATION_TP ="JADE-IPMT"; 
-  	/**
-    @serial
-    */
-  	private String name;
-  	/**
-  	@serial
-  	*/
-    private String protocol;
-    /**
-    @serial
-    */
-    private String address;
-
-    
-    public Location()
-    {}    
-    
-    /**
-    Create a location with default values for transport protocol and transport address.
-    */
-    public Location(String name, String hap)
-    {
-    	this.name = name;
-    	this.protocol = DEFAULT_LOCATION_TP;
-    	this.address = hap +"."+name;
-    }
-    
-    public void setName(String n) {
-      name = n;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public void setTransportProtocol(String tp) {
-      protocol = tp;
-    }
-
-    public String getTransportProtocol() {
-      return protocol;
-    }
-
-    public void setTransportAddress(String ta) {
-      address = ta;
-    }
-
-    public String getTransportAddress() {
-      return address;
-    }
-
-    public String getID() {
-      return name + '@' + protocol + "://" + address;
-    }
-
-    public String getProtocol() {
-      return getTransportProtocol();
-    }
-
-    public String getAddress() {
-      return getTransportAddress();
-    }
-
-  } // End of Location class
 
   /**
     This class represent the 'move-agent' action in JADE
