@@ -114,7 +114,8 @@ private void SendFailure(ACLMessage msg, String reason) {
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
   msg.setContent(content);
   msg.setType("failure");
-  msg.setDest(msg.getSource());
+  msg.removeAllDests();
+  msg.addDest(msg.getSource());
   msg.setSource(myAgent.getName());
   msg.setReplyTo(msg.getReplyWith());
   msg.setConversationId(msg.getConversationId());
@@ -122,7 +123,8 @@ private void SendFailure(ACLMessage msg, String reason) {
 }
 
 private void SendReply(ACLMessage msg, ACLMessage reply) {
-  reply.setDest(msg.getSource());
+  reply.removeAllDests();
+  reply.addDest(msg.getSource());
   reply.setSource(myAgent.getName());
   reply.setReplyTo(msg.getReplyWith());
   reply.setConversationId(msg.getConversationId());
@@ -138,7 +140,8 @@ private void SendNotUnderstood(ACLMessage msg, String reason) {
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
   msg.setContent(content);
   msg.setType("not-understood");
-  msg.setDest(msg.getSource());
+  msg.removeAllDests();
+  msg.addDest(msg.getSource());
   msg.setSource(myAgent.getName());
   msg.setReplyTo(msg.getReplyWith());
   msg.setConversationId(msg.getConversationId());
