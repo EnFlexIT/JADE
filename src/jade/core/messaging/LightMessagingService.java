@@ -28,6 +28,7 @@ import java.util.Date;
 
 
 import jade.core.ServiceFinder;
+import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -85,8 +86,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	// Initialize its own ID
 	// String platformID = myContainer.getPlatformID();
 
-	myMessageManager = new MessageManager();
-	myMessageManager.initialize(p, this);
+	myMessageManager = MessageManager.instance(p);
 
 	String helperSliceName = p.getParameter("accRouter", MAIN_SLICE);
 
@@ -112,7 +112,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	return localSlice;
     }
 
-    public Filter getCommandFilter() {
+    public Filter getCommandFilter(boolean direction) {
 	return localSlice;
     }
 
@@ -238,7 +238,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    }
 	}
 
-	public void serve(VerticalCommand cmd) {
+	public VerticalCommand serve(HorizontalCommand cmd) {
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -299,6 +299,14 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+	    }
+	    finally {
+		if(cmd instanceof VerticalCommand) {
+		    return (VerticalCommand)cmd;
+		}
+		else {
+		    return null;
+		}
 	    }
 	}
 
@@ -510,7 +518,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 
 		boolean found = myContainer.postMessageToLocalAgent(copy, dest);
 		if(!found) {
-		    myMessageManager.deliver(copy, dest);
+		    myMessageManager.deliver(copy, dest, this);
 		}
 	    }
 	    catch (AuthException ae) {
