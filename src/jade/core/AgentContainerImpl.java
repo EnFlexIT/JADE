@@ -686,17 +686,46 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_MOVED, jade.core.mobility.AgentMobilitySlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
-      myCommandProcessor.processOutgoing(cmd);
+      Object lastException = myCommandProcessor.processOutgoing(cmd);
+
+      if(lastException != null) {
+
+	  if(lastException instanceof AuthException) {
+	      throw (AuthException)lastException;
+	  }
+	  if(lastException instanceof NotFoundException) {
+	      throw (NotFoundException)lastException;
+	  }
+	  if(lastException instanceof IMTPException) {
+	      throw (IMTPException)lastException;
+	  }
+      }
   }
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
-  public void handleClone(AID agentID, Location where, String newName) throws AuthException {
+  public void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException, NameClashException {
       GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_CLONED, jade.core.mobility.AgentMobilitySlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(where);
       cmd.addParam(newName);
-      myCommandProcessor.processOutgoing(cmd);
+      Object lastException = myCommandProcessor.processOutgoing(cmd);
+
+      if(lastException != null) {
+
+	  if(lastException instanceof AuthException) {
+	      throw (AuthException)lastException;
+	  }
+	  if(lastException instanceof NotFoundException) {
+	      throw (NotFoundException)lastException;
+	  }
+	  if(lastException instanceof IMTPException) {
+	      throw (IMTPException)lastException;
+	  }
+	  if(lastException instanceof NameClashException) {
+	      throw (NameClashException)lastException;
+	  }
+      }
   }
   //#MIDP_EXCLUDE_END
 
