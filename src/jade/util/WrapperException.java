@@ -48,7 +48,7 @@ public abstract class WrapperException extends Exception {
 
   public String getMessage() {
     if((nested != null)) {
-      return super.getMessage()+" [nested message is: "+nested.getMessage()+"]";
+      return super.getMessage()+" [nested "+nested.getMessage()+"]";
     }
     return super.getMessage();
   }
@@ -56,7 +56,7 @@ public abstract class WrapperException extends Exception {
   public void printStackTrace() {
     super.printStackTrace();
     if(nested != null) {
-      System.err.println("Nested Exception is:");
+      System.err.println("Nested Exception:");
       nested.printStackTrace();
     }
   }
