@@ -48,6 +48,7 @@ import jade.mtp.TransportAddress;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
+import jade.domain.FIPAAgentManagement.InternalError;
 
 /**
   Standard <em>Agent Communication Channel</em>. This class implements
@@ -375,17 +376,19 @@ class FullAcc implements acc, InChannel.Dispatcher {
     // To avoid message loops, make sure that the ID of this ACC does
     // not appear in a previous 'received' stamp
   	
+    boolean loop = false;
   	
     ReceivedObject[] stamps = env.getStamps();
     for(int i = 0; i < stamps.length; i++) {
       String id = stamps[i].getBy();
       if(CaseInsensitiveString.equalsIgnoreCase(id, accID)) {
-	System.out.println("ERROR: Message loop detected !!!");
-	System.out.println("Route is: ");
-	for(int j = 0; j < stamps.length; j++)
-	  System.out.println("[" + j + "]" + stamps[j].getBy());
-	System.out.println("Message dispatch aborted.");
-	return;
+        System.out.println("ERROR: Message loop detected !!!");
+        System.out.println("Route is: ");
+        for(int j = 0; j < stamps.length; j++)
+          System.out.println("[" + j + "]" + stamps[j].getBy());
+        System.out.println("Message dispatch aborted.");
+        loop = true;
+        break;
       }
     }
 
@@ -431,10 +434,15 @@ class FullAcc implements acc, InChannel.Dispatcher {
       if(!it.hasNext())
   	    it = env.getAllTo();
       while(it.hasNext()) {
-	AID receiver = (AID)it.next();
-	myContainer.routeIn(msg, receiver);
+        AID receiver = (AID)it.next();
+        if (loop) {
+          myContainer.notifyFailureToSender(msg, receiver, new InternalError("Message loop detected"));
+        }
+        else {
+          myContainer.routeIn(msg, receiver);
+        }
       }
-
+      
     }
     catch(ACLCodec.CodecException ce) {
       ce.printStackTrace();
