@@ -1,6 +1,10 @@
 /*
 
   $Log$
+  Revision 1.11  1998/11/23 00:11:58  rimassa
+  Fixed a little bug: an instance variable vas not reset after each
+  message received.
+
   Revision 1.10  1998/11/18 22:56:49  Giovanni
   Reading input from the standard input has been moved from setup()
   method to an agent Behaviour. Besides, a suitable reset() method was
@@ -81,7 +85,7 @@ public class dfTester extends Agent {
   private boolean receivedAgree = false;
 
   // Holds a Java object representation of DF action to perform
-  private AgentManagementOntology.DFSearchAction myAction = new AgentManagementOntology.DFSearchAction();
+  private AgentManagementOntology.DFSearchAction myAction;
   private String constraints;
 
 
@@ -125,6 +129,7 @@ public class dfTester extends Agent {
 	try {
 	  System.out.println("Enter DF agent action to perform:");
 	  len = System.in.read(buffer);
+	  myAction = new AgentManagementOntology.DFSearchAction();
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
 	  myAction.setName(new String(buffer,0,len-1));
 	  myAction.setArg(dfd);
