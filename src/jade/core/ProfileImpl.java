@@ -257,11 +257,14 @@ public class ProfileImpl extends Profile {
    * properties in this way.
    * If no list of Specifiers corresponding to the specified key is found,
    * an empty list is returned.
-   * @param key The key identifying the list of Specifires to be retrieved
+   * @param key The key identifying the list of Specifiers to be retrieved
    * among the configuration properties.
    */
   public List getSpecifiers(String key) throws ProfileException {
-    return (List) props.get(key);
+    List l = (List)props.get(key);
+    if(l == null)
+      l = new ArrayList(0);
+    return l;
   } 
 
 }
