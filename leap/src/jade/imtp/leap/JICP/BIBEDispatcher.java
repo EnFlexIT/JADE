@@ -161,15 +161,23 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     }
   }
   
+  private Object shutdownLock = new Object();
+  
   /**
      Shutdown forced by the JICPServer this BackEndContainer is attached 
      to
    */
   public void kill() {
-    // Force the BackEndContainer to terminate. This will also
-    // cause this BIBEDispatcher to terminate and deregister 
-    // from the JICPServer
-    myContainer.shutDown();
+  	// Avoid killing two times
+  	synchronized (shutdownLock) {
+	  	if (active) {
+	  		active = false;
+		    // Force the BackEndContainer to terminate. This will also
+		    // cause this BIBEDispatcher to terminate and deregister 
+		    // from the JICPServer
+		    myContainer.shutDown();
+	  	}
+  	}
   }
   
   /**
@@ -301,7 +309,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		  	
 		  	// Create a watch-dog to avoid waiting forever
 		  	inpHolder.startWatchDog(RESPONSE_TIMEOUT);
-		  	pkt = inpConnection.readPacket();
+		  	pkt = readPacket(inpConnection);
 		  	// Reply received --> Remove the watch-dog
 		  	inpHolder.stopWatchDog();
 		  	status = 2;
@@ -310,6 +318,10 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		    	// Communication OK, but there was a JICP error on the peer
 		      throw new ICPException(new String(pkt.getData()));
+		    }
+		    if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+		    	// This is the response to an exit command --> Suicide
+		    	shutdown();
 		    }
 		  	inpCnt = (inpCnt+1) & 0x0f;
 		    return pkt.getData();
@@ -337,45 +349,50 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		myLogger.log("BIBEDispatcher thread started", 2);
   	while (active) {
   		try {
-				while (true) {
+				while (active) {
 					status = 0;
 					Connection outConnection = outHolder.getConnection();
-					JICPPacket pkt = outConnection.readPacket();
-					status = 1;
-					
-		    	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
-		    		// Keep-alive packet
-		    		myLogger.log("Keep-alive received", 4);
-					  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
-		    	}
-		    	else {
-		    		// Outgoing command
-			    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-			    		// PEER TERMINATION NOTIFICATION
-			    		// The remote FrontEnd has terminated spontaneously -->
-			    		// Terminate and notify up.
-			    		handlePeerExited();
-			    		break;
+					if (outConnection != null) {
+						JICPPacket pkt = readPacket(outConnection);
+						status = 1;
+						
+			    	if (pkt.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+			    		// Keep-alive packet
+			    		myLogger.log("Keep-alive received", 4);
+						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), null);
 			    	}
-	  				byte sid = pkt.getSessionID();
-	  				if (sid == lastSid) {
-	  					myLogger.log("Duplicated command from FE "+sid, 2);
-	  					pkt = lastResponse;
-	  				}
-	  				else {
-		      		myLogger.log("Command from FE received "+sid, 3);
-							byte[] rspData = mySkel.handleCommand(pkt.getData());
-		      		myLogger.log("Command from FE served "+ sid, 3);
-						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
-						  pkt.setSessionID(sid);
-						  lastSid = sid;
-						  lastResponse = pkt;
-	  				}
-		    	}
-  				status = 2;
-  				
-  				outConnection.writePacket(pkt);
-  				status = 3;
+			    	else {
+			    		// Outgoing command
+				    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+				    		// PEER TERMINATION NOTIFICATION
+				    		// The remote FrontEnd has terminated spontaneously -->
+				    		// Terminate and notify up.
+				    		handlePeerExited("Peer termination notification received");
+				    		break;
+				    	}
+		  				byte sid = pkt.getSessionID();
+		  				if (sid == lastSid) {
+		  					myLogger.log("Duplicated command from FE "+sid, 2);
+		  					pkt = lastResponse;
+		  				}
+		  				else {
+			      		myLogger.log("Command from FE received "+sid, 3);
+								byte[] rspData = mySkel.handleCommand(pkt.getData());
+			      		myLogger.log("Command from FE served "+ sid, 3);
+							  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
+							  pkt.setSessionID(sid);
+							  lastSid = sid;
+							  lastResponse = pkt;
+		  				}
+			    	}
+	  				status = 2;
+	  				
+	  				outConnection.writePacket(pkt);
+	  				status = 3;
+					}
+					else {
+				    handlePeerExited("Max disconnection timeout expired");
+					}
   			}
   		}
   		catch (IOException ioe) {
@@ -397,12 +414,17 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 		return info;
   }
   
-  private void handlePeerExited() {
-		myLogger.log("Peer termination notification received", 2);
-		active = false;
+  private void handlePeerExited(String msg) {
+		myLogger.log(msg, 2);
   	kill();
   }
   
+  private JICPPacket readPacket(Connection c) throws IOException {
+  	JICPPacket pkt = c.readPacket();
+  	// Update keep-alive info
+  	return pkt;
+  }
+  	
   /**
      Inner class InpConnectionHolder.
      Wrapper for the connection used to deliver commands to the FrontEnd
@@ -498,7 +520,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   			try {
   				wait(maxDisconnectionTime);
   				if (myConnection == null) {
-  					kill();
+  					return null;
   				}
   			}
   			catch (Exception e) {

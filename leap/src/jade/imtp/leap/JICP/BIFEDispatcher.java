@@ -101,7 +101,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (NumberFormatException nfe) {
 				// Use default (1)
 	    }
-	  	
+	  		    
 	    // Host
 	    String host = props.getProperty("host");
 	    if (host == null) {
@@ -180,7 +180,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	 */
   public void shutdown() {
   	active = false;
-  	myInputManager.close();
   	
   	terminator = Thread.currentThread();
   	if (terminator != myInputManager) {
@@ -585,7 +584,10 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	synchronized (c) {
 	  	c.writePacket(pkt);
   	}
-  	if (Thread.currentThread() != terminator) {
+  	if (Thread.currentThread() == terminator) {
+  		myInputManager.close();
+  	}
+  	else {
 	  	updateKeepAlive();
   	}
   }
