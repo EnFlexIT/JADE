@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/02/14 23:19:22  rimassa
+  Changed getName() calls to getLocalName() where appropriate.
+
   Revision 1.2  1999/02/04 13:25:02  rimassa
   Removed some debugging code.
 
@@ -119,7 +122,7 @@ public DFGUI() {
   }
 
   public DFGUI(df a) {
-    this("DF " + a.getName());
+    this("DF " + a.getLocalName());
     agent = a;
   }
 	
@@ -220,7 +223,7 @@ public DFGUI() {
   } 
 
   void miExit_Action(java.awt.event.ActionEvent event) {
-    // FIXME add a window to ask are you sure the defulat DF is mandatory!?
+    // FIXME: add a window to ask are you sure the defulat DF is mandatory!?
     dispose();
     agent.doDelete();
 
@@ -290,7 +293,7 @@ public DFGUI() {
 		// to do: code goes here.
 		// Registration of this DF with another DF
 		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-		dfd.setName(agent.getName()+"@"+agent.getAddress());
+		dfd.setName(agent.getName());
 		dfd.addAddress(agent.getAddress());
 		dfd.setType("DF");
 		dfd.addInteractionProtocol("fipa-request");
@@ -309,11 +312,11 @@ public DFGUI() {
 	    dfd.addAgentService(sd);
         
 	    try {
-	       agent.registerWithDF(textFieldDFname.getText(),dfd);
+	       String parentName = textFieldDFname.getText(); 
+	       agent.registerWithDF(parentName, dfd);
 	    } catch (jade.domain.FIPAException f) {
 	        showErrorMsg("registerWithDF Exception: "+f.getMessage());
-	    }  
-
+	    }
 
 	//{{CONNECTION
 	// Hide the TextField
@@ -1039,7 +1042,7 @@ void setAllEditable(boolean tf) {
       msg.setOntology("fipa-agent-management");
       msg.setLanguage("SL0");
       msg.setProtocol("fipa-request");
-      msg.setReplyWith(myAgent.getName()+"-dfgui"+(new Date()).getTime());
+      msg.setReplyWith(myAgent.getLocalName()+"-dfgui"+(new Date()).getTime());
       AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
       AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
       if (textField1.getText().length() > 0) dfd.setName(textField1.getText());
