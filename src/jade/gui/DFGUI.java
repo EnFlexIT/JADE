@@ -332,9 +332,9 @@ public class DFGUI extends JFrame
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(0));
 		c.setHeaderValue((Object) (new String("Agent name")));
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Host:port")));
+		c.setHeaderValue((Object) (new String("Addresses")));
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Agent address")));
+		c.setHeaderValue((Object) (new String("Resolvers")));
 
 		// Doubleclick = view
 		MouseListener mouseListener = new MouseAdapter() 
@@ -388,9 +388,9 @@ public class DFGUI extends JFrame
 		c = foundTable.getColumn((Object) foundTable.getColumnName(0));
 		c.setHeaderValue((Object) (new String("Agent name")));
 		c = foundTable.getColumn((Object) foundTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Host:port")));
+		c.setHeaderValue((Object) (new String("Addresses")));
 		c = foundTable.getColumn((Object) foundTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Agent address")));
+		c.setHeaderValue((Object) (new String("Resolvers")));
 	
 			// Doubleclick = view
 		MouseListener mouseListener2 = new MouseAdapter() 
@@ -432,9 +432,9 @@ public class DFGUI extends JFrame
 		c = parentTable.getColumn((Object) parentTable.getColumnName(0));
 		c.setHeaderValue((Object) (new String("Agent name")));
 		c = parentTable.getColumn((Object) parentTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Host:port")));
+		c.setHeaderValue((Object) (new String("Addresses")));
 		c = parentTable.getColumn((Object) parentTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Agent address")));
+		c.setHeaderValue((Object) (new String("Resolvers")));
 
 		MouseListener mouseListenerParent = new MouseAdapter()
 		{
@@ -473,9 +473,9 @@ public class DFGUI extends JFrame
 		c = childrenTable.getColumn((Object) childrenTable.getColumnName(0));
 		c.setHeaderValue((Object) (new String("Agent name")));
 		c = childrenTable.getColumn((Object) childrenTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Host:port")));
+		c.setHeaderValue((Object) (new String("Addresses")));
 		c = childrenTable.getColumn((Object) childrenTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Agent address")));
+		c.setHeaderValue((Object) (new String("Resolvers")));
 	
 		MouseListener mouseListenerChildren = new MouseAdapter()
 		{
