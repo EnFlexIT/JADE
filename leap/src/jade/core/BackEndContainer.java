@@ -370,9 +370,20 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	throw new IMTPException("Unsupported operation");
   }
 
+  // This flag is used only to prevent two successive shut-down processes. 
+  private boolean terminating = false;
   /**
    */
   public void shutDown() {
+  	synchronized(this) {
+  		if (terminating) {
+  			return;
+  		}
+  		else {
+  			terminating = true;
+  		}
+  	}
+  		
       // Stop monitoring replicas, if active
       stopReplicaMonitor();
 
@@ -396,9 +407,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       if (agentImages.size() > 0) {
       	System.out.println("WARNING: Zombie agent images found");
       }
-      //agentImages.clear();
+      agentImages.clear();
 		
-      myFrontEnd = null;
       super.shutDown();
   }
 
