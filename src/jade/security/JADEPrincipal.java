@@ -39,40 +39,37 @@ public interface JADEPrincipal
 		extends java.security.Principal
 //#ALL_EXCLUDE_END
 {
-
+  
 	/**
-		The name which marks an unidentified principal.
-	*/
+   * The name which marks an unidentified principal.
+   */
 	public static final String NONE = "none";
-
-
+  
 	/**
-		Returns the name of this principal as known to its platform.
-		@return The name.
-	*/
+   * Returns the name of this principal as known to its platform.
+   * @return The name.
+   */
 	public String getName();
 
 	/**
-		Returns the SDSI name of this principal (if any)
-		@return The SDSIName
-	*/
+   * Returns the SDSI name of this principal (if any)
+   * @return The SDSIName
+   */
 	public  SDSIName getSDSIName();
-
-
+  
+  
 	/**
-		Checks the hierarchical relationship between two principals, i.e.
-		tells if this principal belongs to group <code>p</code>.
-		If this holds, all permissions granted to <code>p</code> will be
-		automatically granted to this principal, too.
-		@param p The principal to check.
-		@return True if this principal is a member of group <code>p</code>.
-
-	public boolean implies(JADEPrincipal p);
-	*/
-
-       public byte[] getEncoded();
-       public String toString();
-       public int hashCode ();
-       public boolean equals(Object p);
-
+   *	Checks the hierarchical relationship between two principals, i.e.
+   *tells if this principal belongs to group <code>p</code>.
+   *If this holds, all permissions granted to <code>p</code> will be
+   *automatically granted to this principal, too.
+   *@param p The principal to check.
+   *@return True if this principal is a member of group <code>p</code>.
+   */
+  //public boolean implies(JADEPrincipal p);
+  
+  public byte[] getEncoded();
+  public String toString();
+  public int hashCode ();
+  public boolean equals(Object p);
 }
