@@ -290,7 +290,6 @@ public class BootProfileImpl extends ProfileImpl {
 
         value = argProp.getProperty(NAME_KEY);
         if (value != null) {
-	    System.out.println("WARNING: using user specified platform name. Please note that this option is stronlgy discouraged since uniqueness of the HAP is not enforced. This might result in non-unique agent names.");
             profileProp.setProperty(Profile.PLATFORM_ID, value);
         } else {
 	    updatePlatformID();
