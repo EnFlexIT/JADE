@@ -101,9 +101,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
-  	/*#CUSTOMJ2SE_INCLUDE_BEGIN
-  	verbosity = 4;
-  	#CUSTOMJ2SE_INCLUDE_END*/
+  	// Override FrontEnd verbosity
+  	verbosity = 2;
   	myLogger = new Logger(myID, verbosity);
 
   	// Max disconnection time
@@ -141,7 +140,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	myStub = new FrontEndStub(this);
 
     	props.setProperty(Profile.MAIN, "false");
-    	String nodeName = "Back-End[" + myID.replace(':', '_') + "]";
+    	String nodeName = myID.replace(':', '_');
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
 			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
 
@@ -208,6 +207,8 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
      CONNECT_MEDIATOR is received.
    */
   public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  	System.out.println("CAZZZZOZOOOOOOOOOOOO");
+  	
   	boolean inp = false;
   	byte[] data = pkt.getData();
   	if (data.length == 1) {

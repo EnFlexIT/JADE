@@ -110,6 +110,8 @@ public class JICPProtocol extends TransportProtocol {
   public static final String MAX_DISCONNECTION_TIME_KEY = "max-disconnection-time";
   public static final String KEEP_ALIVE_TIME_KEY = "keep-alive-time";
   public static final String MEDIATOR_CLASS_KEY = "mediator-class";
+	public static final String MEDIATOR_ID_KEY = "mediator-id";	
+
   	
   private static JICPProtocol theInstance = new JICPProtocol();
   

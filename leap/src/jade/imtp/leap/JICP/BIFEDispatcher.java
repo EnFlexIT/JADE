@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap.JICP;
 
+import jade.core.MicroRuntime;
 import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
 import jade.core.BackEnd;
@@ -103,14 +104,14 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    }
 	  		    
 	    // Host
-	    String host = props.getProperty("host");
+	    String host = props.getProperty(MicroRuntime.HOST_KEY);
 	    if (host == null) {
 				host = "localhost";
 	    }
 	    // Port
 	    int port = JICPProtocol.DEFAULT_PORT;
 	    try {
-				port = Integer.parseInt(props.getProperty("port"));
+				port = Integer.parseInt(props.getProperty(MicroRuntime.PORT_KEY));
 	    }
 	    catch (NumberFormatException nfe) {
 				// Use default
@@ -236,7 +237,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
-		      myMediatorID = new String(pkt.getData());
+		      String replyMsg = new String(pkt.getData());
+		      int index = replyMsg.indexOf('#');
+		      myMediatorID = replyMsg.substring(0, index);
+		      props.setProperty(JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
+		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 				  return;
@@ -471,6 +476,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      handleError();
 		      return;
 			  }
+			  // The local-host address may have changed
+			  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
 			  log("Connect OK",2);
 			  handleReconnection(c, type);
 			  return;

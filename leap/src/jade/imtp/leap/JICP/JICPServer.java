@@ -56,7 +56,10 @@ import java.util.StringTokenizer;
  * @author Nicolas Lhuillier - Motorola
  * @author Steffen Rusitschka - Siemens
  */
-public class JICPServer extends Thread {
+public class JICPServer extends Thread implements PDPContextManager.Listener {
+	private static final String LEAP_PROPERTIES_FILE = "leap.properties";
+	private static final String PDP_CONTEXT_MANAGER_CLASS = "pdp-context-manager";
+	
 	private static final int LISTENING = 0;
 	private static final int TERMINATING = 1;
  
@@ -67,6 +70,8 @@ public class JICPServer extends Thread {
   
   private int            mediatorCnt = 1;
   private Hashtable      mediators = new Hashtable();
+  private Properties     leapProps = new Properties();
+  private PDPContextManager  myPDPContextManager;
   
   private int handlersCnt = 0;
   private int maxHandlers;
@@ -84,7 +89,27 @@ public class JICPServer extends Thread {
     cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
-  	myLogger = new Logger("JICPServer", 1);
+  	myLogger = new Logger("JICPServer", 2);
+		
+		// Read the LEAP configuration properties
+		try {
+			leapProps.load(LEAP_PROPERTIES_FILE);
+		}
+		catch (Exception e) {
+			// Ignore: no back end properties specified
+		}
+		
+		// Initialize the PDPContextManager if specified
+		String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
+		if (pdpContextManagerClass != null) {
+			try {
+				myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
+				myPDPContextManager.registerListener(this);
+			}
+			catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
 		
     try {
     	localHost = InetAddress.getLocalHost(); 
@@ -106,7 +131,7 @@ public class JICPServer extends Thread {
     } 
 
     setDaemon(true);
-    setName("Main");
+    setName("JICPServer-"+getLocalPort());
   }
 
   public int getLocalPort() {
@@ -117,7 +142,7 @@ public class JICPServer extends Thread {
      Shut down this JICP server
    */
   public synchronized void shutdown() {
-	  myLogger.log("Shutting down JICPServer...", 2);
+	  myLogger.log("Shutting down JICPServer...", 3);
     state = TERMINATING;
 
     try {
@@ -148,7 +173,7 @@ public class JICPServer extends Thread {
         Socket s = server.accept();
         InetAddress addr = s.getInetAddress();
         int port = s.getPort();
-        myLogger.log("Incoming connection from "+addr+":"+port, 3);
+        myLogger.log("Incoming connection from "+addr+":"+port, 4);
         Connection c = connFactory.createConnection(s);
         new ConnectionHandler(c, addr, port).start();    // start a handler and go back to listening
       } 
@@ -210,7 +235,13 @@ public class JICPServer extends Thread {
 	    }
   	}
   }
-  		
+  
+  /**
+     Called by the PDPContextManager (if any)
+   */
+  public void handlePDPContextClosed(String id) {
+  	// FIXME: to be implemented
+  }
   	
   /**
      Inner class ConnectionHandler.
@@ -237,14 +268,14 @@ public class JICPServer extends Thread {
     public void run() {
     	handlersCnt++;
     	
-	    myLogger.log("CommandHandler started", 3);
+	    myLogger.log("CommandHandler started", 4);
       boolean closeConnection = true;
       int status = 0;
       byte type = (byte) 0;
       try {
 	      boolean loop = false;
       	do {
-	        // Read the input
+	        // Read the incoming JICPPacket
 	        JICPPacket pkt = c.readPacket();
 	        JICPPacket reply = null;
 	        status = 1;
@@ -257,12 +288,13 @@ public class JICPServer extends Thread {
 	          String recipientID = pkt.getRecipientID();
 	          if (recipientID != null) {
 	            // The recipient is one of the mediators
-	          	myLogger.log("Passing incoming COMMAND to mediator", 3);
 	            JICPMediator m = (JICPMediator) mediators.get(recipientID);
 	            if (m != null) {
+		          	myLogger.log("Passing incoming packet to mediator "+recipientID, 4);
 	              reply = m.handleJICPPacket(pkt, addr, port);
 	            } 
 	            else {
+	            	// If the packet is a response we don't need to reply
 	          		if (type == JICPProtocol.COMMAND_TYPE) { 
 	              	reply = new JICPPacket("Unknown recipient "+recipientID, null);
 	          		}
@@ -272,7 +304,7 @@ public class JICPServer extends Thread {
 	          	// The recipient is my ICP.Listener (the local CommandDispatcher)
 	          	loop = true;
 	          	if (type == JICPProtocol.COMMAND_TYPE) { 
-	          		myLogger.log("Passing incoming COMMAND to local listener", 3);
+	          		myLogger.log("Passing incoming COMMAND to local listener", 4);
 		            byte[] rsp = cmdListener.handleCommand(pkt.getData());
 		            byte dataInfo = JICPProtocol.DEFAULT_INFO;
 		            if (handlersCnt >= maxHandlers) {
@@ -299,35 +331,50 @@ public class JICPServer extends Thread {
 	          // Starts a new Mediator and sends back its ID
 	          String s = new String(pkt.getData());
 	          Properties p = parseProperties(s);
+	          
+	          // If there is a PDPContextManager add the PDP context properties
+	          if (myPDPContextManager != null) {
+	          	mergeProperties(p, myPDPContextManager.getPDPContextInfo(addr));
+	          }
 
-					  // Get mediator ID from the passed properties, if there is one
+					  // Get mediator ID from the passed properties (if present)
 					  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
 					  if(id == null) {
-				      // The string representation of the server's TCP endpoint is used to build an unique mediator ID
-				      id = localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+					  	// Use the MSISDN (if present) 
+					  	id = p.getProperty(PDPContextManager.MSISDN);
+					  	if (id == null) {
+					      // Construct a default id using the string representation of the server's TCP endpoint
+					      id = "BE-"+localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+					  	}
 					  }
 
 	          myLogger.log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
+	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, pkt, addr, port);
 	          mediators.put(id, m);
-	          // Create an ad-hoc reply including the assigned mediator-id
-	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
+	          
+	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
+	          String replyMsg = id+'#'+addr.getHostAddress();
+	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 	        	closeConnection = false;
 	        	break;
 	
 	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
 	          // A mediated container is (re)connecting to its mediator
 	          recipientID = pkt.getRecipientID();
+	          
+	          // FIXME: If there is a PDPContextManager  check that the recipientID is the MSISDN
+	          
 	          myLogger.log("Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID, 2);
 	          m = (JICPMediator) mediators.get(recipientID);
 	          if (m != null) {
 	          	// Don't close the connection, but pass it to the proper 
-	          	// mediator. Use the response (if any) prepared by the 
-	          	// Mediator itself
-	          	reply = m.handleIncomingConnection(c, pkt, addr, port);
+	          	// mediator. 
+	          	m.handleIncomingConnection(c, pkt, addr, port);
 	          	closeConnection = false;
+		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
 	          }
 	          else {
 	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
@@ -377,10 +424,10 @@ public class JICPServer extends Thread {
 	      case 3:
 	      	// This is a re-used connection waiting for the next incoming packet
 	      	if (e instanceof EOFException) {
-	      		myLogger.log("Client "+addr+":"+port+" has closed the connection.", 2);
+	      		myLogger.log("Client "+addr+":"+port+" has closed the connection.", 3);
 	      	}
 	      	else {
-	      		myLogger.log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 2);
+	      		myLogger.log("Unexpected client "+addr+":"+port+" termination. "+e.toString(), 3);
 	      	}
       	}
       } 
@@ -389,7 +436,7 @@ public class JICPServer extends Thread {
           if (closeConnection) {
             // Close connection
 		        if (!addr.equals(localHost)) {
-	          	myLogger.log("Closing connection with "+addr+":"+port, 3);
+	          	myLogger.log("Closing connection with "+addr+":"+port, 4);
 		        }
           	c.close();
           } 
@@ -416,10 +463,19 @@ public class JICPServer extends Thread {
   	return p;
   }
   
+  private void mergeProperties(Properties p1, Properties p2) {
+		Enumeration e = p2.propertyNames();
+		while (e.hasMoreElements()) {
+			String key = (String) e.nextElement();
+			p1.setProperty(key, p2.getProperty(key));
+		}
+  }
+  
   private JICPMediator startMediator(String id, Properties p) throws Exception {
 		String className = p.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
 		if (className != null) {
   		JICPMediator m = (JICPMediator) Class.forName(className).newInstance();
+  		mergeProperties(p, leapProps);
   		m.init(this, id, p);
   		return m;
 		}
