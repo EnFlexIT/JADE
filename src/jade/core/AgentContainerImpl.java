@@ -76,7 +76,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private LADT localAgents = new LADT();
 
   // The Profile defining the configuration of this Container
-  private Profile myProfile;
+  protected Profile myProfile;
 
   // The Command Processor through which all the vertical commands in this container will pass
   CommandProcessor myCommandProcessor;
