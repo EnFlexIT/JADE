@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.42  1999/10/06 08:48:25  rimassa
+  Added a printout message when the agent platform is ready to accept
+  containers.
+  Added the creation of a file containing the IIOP URL for the agent
+  platform.
+
   Revision 1.41  1999/09/02 14:59:01  rimassa
   Handled new ParseException exception from ACLMessage.fromText().
 
@@ -307,6 +313,10 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       	FileWriter f = new FileWriter("JADE.IOR");
       	f.write(platformAddress,0,platformAddress.length());
       	f.close();
+      	f = new FileWriter("JADE.URL");
+	String iiopAddress = dummyChannel.getURL();
+      	f.write(iiopAddress,0,iiopAddress.length());
+      	f.close();
       }
       catch (IOException io) {
       	io.printStackTrace();
@@ -373,6 +383,9 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       }
 
     }
+
+    System.out.println("Agent Platform ready to accept new containers...");
+
 
   }
 
