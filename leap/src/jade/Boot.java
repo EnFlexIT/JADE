@@ -44,9 +44,10 @@ import java.util.Enumeration;
 import java.io.*;
 
 /**
- * Boots <B><em>JADE</em></b> system, parsing command line arguments.
+ * Boots the <B><em>JADE</em></b> system, parsing command line arguments.
  *
  * @author Giovanni Rimassa - Universita' di Parma
+ * @author Giovanni Caire - TILAB
  * @version $Date$ $Revision$
  *
  */
