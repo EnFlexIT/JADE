@@ -32,19 +32,11 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Set;
 
-//import jade.core.event.MessageEvent;
-//import jade.core.event.MessageListener;
-//import jade.core.event.AgentEvent;
-//import jade.core.event.AgentListener;
-
 import jade.lang.acl.ACLMessage;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-//import jade.lang.acl.ACLCodec;
-
-//import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
@@ -66,14 +58,8 @@ import jade.mtp.TransportAddress;
 */
 public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
-  private static final int CACHE_SIZE = 10;
-
-
   // Local agents, indexed by agent name
   private LADT localAgents = new LADT();
-
-  // Agents cache, indexed by agent name
-  private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
 
   // The Profile defining the configuration of this Container
   private Profile myProfile;
@@ -165,8 +151,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent previous = localAgents.put(agentID, instance);
     if(startIt) {
       try {
-	RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
-	myMain.bornAgent(agentID, rp, myID); // RMI call
+	myMain.bornAgent(agentID, myID);
 	instance.powerUp(agentID, myResourceManager);
       }
       catch(NameClashException nce) {
@@ -179,6 +164,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch(IMTPException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
 	re.printStackTrace();
+	localAgents.remove(agentID);
+      }
+      catch(NotFoundException nfe) {
+	System.out.println("This container does not appear to be registered with the main container.");
 	localAgents.remove(agentID);
       }
     }
@@ -496,33 +485,36 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			List l = myProfile.getSpecifiers(Profile.AGENTS);
     	Iterator agentSpecifiers = l.iterator();
     	while(agentSpecifiers.hasNext()) {
-    		Specifier s = (Specifier) agentSpecifiers.next();
+	  Specifier s = (Specifier) agentSpecifiers.next();
       
-      	AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
-      	try {
-      		try {
-	  				createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
-      		}
-      		catch (IMTPException imtpe) {
-      			// The call to createAgent() in this case is local --> no need to
-      			// print the exception again. Just skip this agent
-      			continue;
-      		}
-	  			RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
-		  		myMain.bornAgent(agentID, rp, myID);
-      	}
-      	catch(IMTPException imtpe1) {
-      		imtpe1.printStackTrace();
-        	localAgents.remove(agentID);
-      	}
-      	catch(NameClashException nce) {
-        	System.out.println("Agent name already in use: " + nce.getMessage());
-        	// FIXME: If we have two agents with the same name among the initial 
-        	// agents, the second one replaces the first one, but then a 
-        	// NameClashException is thrown --> both agents are removed even if
-        	// the platform "believes" that the first on is alive.
-        	localAgents.remove(agentID);
-      	}
+	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+	  try {
+	    try {
+	      createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
+	    }
+	    catch (IMTPException imtpe) {
+	      // The call to createAgent() in this case is local --> no need to
+	      // print the exception again. Just skip this agent
+	      continue;
+	    }
+	    myMain.bornAgent(agentID, myID);
+	  }
+	  catch(IMTPException imtpe1) {
+	    imtpe1.printStackTrace();
+	    localAgents.remove(agentID);
+	  }
+	  catch(NameClashException nce) {
+	    System.out.println("Agent name already in use: " + nce.getMessage());
+	    // FIXME: If we have two agents with the same name among the initial 
+	    // agents, the second one replaces the first one, but then a 
+	    // NameClashException is thrown --> both agents are removed even if
+	    // the platform "believes" that the first on is alive.
+	    localAgents.remove(agentID);
+	  }
+	  catch(NotFoundException nfe) {
+	    System.out.println("This container does not appear to be registered with the main container.");
+	    localAgents.remove(agentID);
+	  }
     	}
 
     	// Now activate all agents (this call starts their embedded threads)
@@ -684,8 +676,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   public void handleEnd(AID agentID) {
     try {
       localAgents.remove(agentID);
-      myMain.deadAgent(agentID); // RMI call
-      cachedProxies.remove(agentID); // FIXME: It shouldn't be needed
+      myMain.deadAgent(agentID);
     }
     catch(IMTPException re) {
       re.printStackTrace();
@@ -717,18 +708,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
-    AgentProxy ap = cachedProxies.get(receiverID);
-    if(ap != null) { // Cache hit :-)
-      try {
-	ap.dispatch(msg);
+    try {
+      if(livesHere(receiverID)) {
+	// Dispatch it through the MainContainerProxy
+	myMain.dispatch(msg, receiverID);
       }
-      catch(NotFoundException nfe) { // Stale cache entry
-	cachedProxies.remove(receiverID);
-	dispatchUntilOK(msg, receiverID);
+      else {
+	// Dispatch it through the ACC
+	myACC.dispatch(msg, receiverID);
       }
     }
-    else { // Cache miss :-(
-      dispatchUntilOK(msg, receiverID);
+    catch(NotFoundException nfe) {
+      notifyFailureToSender(msg, new InternalError("Agent not found: " + nfe.getMessage()));
     }
 
   }
@@ -755,107 +746,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	handleSend(failure);
     }
 
-  private void dispatchUntilOK(ACLMessage msg, AID receiverID) {
-    boolean ok;
-    int i = 0;
-    do {
-      AgentProxy proxy;
-      try {
-	proxy = getFreshProxy(receiverID);
-      }
-      catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
-	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform.");
-	System.err.println("Message from platform was: " + nfe.getMessage());
-	notifyFailureToSender(msg, new InternalError("LocalAgentNotFound"));
-	return;
-      }
-      try {
-	proxy.dispatch(msg);
-	cachedProxies.put(receiverID, proxy);
-	ok = true;
-      }
-      catch(acc.NoMoreAddressesException nmae) { // The AID has no more valid addresses
-	System.err.println("Agent " + receiverID.getLocalName() + " has no valid addresses.");
-	notifyFailureToSender(msg, new InternalError("RemoteAgentNotFound"));
-	return;
-      }      
-      catch(acc.UnknownACLEncodingException uae) { // No ACLcodec available 
-	System.err.println(uae.getMessage()+" - message is undeliverable to " + receiverID.getLocalName());
-	notifyFailureToSender(msg, new InternalError("NoACLCodec_Available"));
-	return;
-      }
-
-      catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
-	ok = false;
-      }
-      /*
-      i++;
-      if(i > 100) { // Watchdog counter...
-	System.out.println("===================================================================");
-	System.out.println(" Possible livelock in message dispatching:");
-	System.out.println(" Receiver is:");
-	receiverID.toText(new java.io.OutputStreamWriter(System.out));
-	System.out.println();
-	System.out.println();
-	System.out.println(" Message is:");
-	msg.toText(new java.io.OutputStreamWriter(System.out));
-	System.out.println();
-	System.out.println();
-	System.out.println("===================================================================");
-	try {
-	  Thread.sleep(3000);
-	}
-	catch(InterruptedException ie) {
-	  System.out.println("Interrupted !!!");
-	}
-	return;
-      }
-      */
-    } while(!ok);
-  }
 
  // Tells whether the given AID refers to an agent of this platform
   // or not.
   private boolean livesHere(AID id) {
     String hap = id.getHap();
     return hap.equalsIgnoreCase(platformID);
-  }
-
-  private AgentProxy getFreshProxy(AID id) throws NotFoundException {
-    AgentProxy result = null;
-  if(livesHere(id)) { // the receiver agent lives in this platform...
-      // Look first in local agents
-      Agent a = localAgents.get(id);
-      if(a != null) {
-	result = new LocalProxy(localAgents, id);
-      }
-      else { // Agent is not local
-      
-	// Maybe it's registered with this AP on some other container...
-        try {
-	  result = myMain.getProxy(id); // RMI call
-	}
-	catch(IMTPException re) {
-	  System.out.println("Communication error while contacting agent platform");
-	  System.out.print("Trying to reconnect... ");
-	  try {
-	    // restoreMainContainer();
-	    result = myMain.getProxy(id); // RMI call
-	    System.out.println("OK.");
-	  }
-	  catch(IMTPException rex) {
-	    throw new NotFoundException("The Main Container is unreachable (again).");
-	  }
-	}
-
-      }
-    }
-    else { // It lives outside: then it's a job for the ACC...
-      result = myACC.getProxy(id);
-    }
-
-    return result;
-
   }
 
   /*
