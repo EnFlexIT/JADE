@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.10  1999/03/07 22:54:22  rimassa
+  Changed class name prefix string in setUI() method to enable multiple
+  Look & Feel.
+
   Revision 1.9  1999/03/03 16:00:51  rimassa
   Added a getModel() method to access underlying TreeModel for GUI
   updates.
@@ -50,6 +54,7 @@ import jade.domain.rma;
  *				<p>-mo			 Motif Look & Feel</P>
  *				<p>-me			 Metal Look & Feel</P>
  *				<p>-mu			 Multi Look & Feel</P>
+ *                              <p>-ba                   Basic Look & Feel</P>
  * <pre>
  *    java AMSMainFrame -mo
  * </pre>
@@ -177,7 +182,7 @@ public class AMSMainFrame extends JFrame {
 
   private void setUI(String ui) {
     try {
-      UIManager.setLookAndFeel("javax.swing.plaf."+ui);
+      UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
       SwingUtilities.updateComponentTreeUI(this);
       pack();
     }
