@@ -191,7 +191,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 		//#MIDP_EXCLUDE_BEGIN
 		// If this node was exporting a PlatformManager, unexport it
-		myIMTPManager.unexportPlatformManager(myPlatformManager);
+		if (desc.getNode().hasPlatformManager()) {
+			myIMTPManager.unexportPlatformManager(myPlatformManager);
+		}
 		//#MIDP_EXCLUDE_END
   }
 
