@@ -71,6 +71,10 @@ public class FIPANames {
      * </code>
      **/
     public static class ContentLanguage {
+	public static final String FIPA_SL0 = "FIPA-SL0";
+	public static final String FIPA_SL1 = "FIPA-SL1";
+	public static final String FIPA_SL2 = "FIPA-SL2";
+	public static final String FIPA_SL  = "FIPA-SL";
     }
 
     /**
