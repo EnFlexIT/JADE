@@ -109,6 +109,22 @@ each example program behaviour:
 NEW FEATURES
 ============
 
+Version 0.99b3:
+
+- Timeout support on message receive, both agent-level and
+  behaviour-level. Now a timeout version of blockingReceive() is
+  available, and a new constructor has been added to ReceiverBehaviour
+  class to support timeout. Moreover, a block() version with timeout
+  has been added to Behaviour class.
+
+- AgentReceiver example program in directory src/examples/ex2 was
+  modified and now times out every 10 seconds if no message is
+  received.
+
+- A new example program, AgentTimeout, was added to directory
+  src/examples/ex2 to show new ReceiverBehaviour support for timeouts.
+
+
 Version 0.99b2:
 
  - Moved all behaviours in a separate package. Now they are in
@@ -189,9 +205,15 @@ BUGS
      unavailable" appears during platform shutdown, but then the
      process completes without any problems.
 
+  7) When an agent or a container is killed, an exception can arise
+     when Swing tries to remove the item from the container/agent
+     tree.
+
 
 TODO
 ====
+
+ - Add support for agent mobility.
 
  - Add support for message content language parsing.
 
