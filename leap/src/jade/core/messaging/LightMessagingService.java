@@ -24,9 +24,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
-//#J2SE_EXCLUDE_FILE
-//#PJAVA_EXCLUDE_FILE
-
 import java.util.Date;
 
 import jade.core.ServiceFinder;
