@@ -549,7 +549,7 @@ public class AclGui extends JPanel
 	//////////////////
 	// STATIC METHODS
 	//////////////////
-	public static void showMsgInDialog(ACLMessage m, JFrame parent)
+	public static void showMsgInDialog(ACLMessage m, Frame parent)
 	{
 		AclGui aclPanel = new AclGui();
 		aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
@@ -562,7 +562,6 @@ public class AclGui extends JPanel
 		p.add(okButton);
 
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
-		tempAclDlg.setResizable(false);
 		tempAclDlg.getContentPane().setLayout(new BorderLayout());
 		tempAclDlg.getContentPane().add("Center", aclPanel);
 		tempAclDlg.getContentPane().add("South", p);
@@ -574,12 +573,14 @@ public class AclGui extends JPanel
 												tempAclDlg.dispose();
 											}
 									   } );
-		
+
 		tempAclDlg.pack();
+		tempAclDlg.setResizable(false);
+		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight() / 2));
 		tempAclDlg.show();
 	}
-		
-	public static ACLMessage editMsgInDialog(ACLMessage m, JFrame parent)
+
+	public static ACLMessage editMsgInDialog(ACLMessage m, Frame parent)
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
 		final AclGui  aclPanel = new AclGui();
@@ -594,7 +595,6 @@ public class AclGui extends JPanel
 		p.add(okButton);
 		p.add(cancelButton);  
 
-		tempAclDlg.setResizable(false);
 		tempAclDlg.getContentPane().setLayout(new BorderLayout());
 		tempAclDlg.getContentPane().add("Center", aclPanel);
 		tempAclDlg.getContentPane().add("South", p);
@@ -617,6 +617,8 @@ public class AclGui extends JPanel
 										   } );
 		
 		tempAclDlg.pack();
+		tempAclDlg.setResizable(false);
+		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight() / 2));
 		tempAclDlg.show();
 
 		return editedMsg;
