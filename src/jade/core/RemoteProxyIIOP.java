@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/11/04 09:59:47  rimassaJade
+  Removed TransientException specification from class declaration.
+
   Revision 1.3  1999/09/03 10:43:36  rimassa
   Changed CORBA exception handling.
 
@@ -31,7 +34,7 @@ class RemoteProxyIIOP extends RemoteProxy {
     addr = platformAddress;
   }
 
-  public void dispatch(ACLMessage msg) throws NotFoundException, TransientException {
+  public void dispatch(ACLMessage msg) throws NotFoundException {
     try {
 
       String sender = msg.getSource();

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/11/04 09:58:59  rimassaJade
+  Removed TransientException specification from class declaration.
+
   Revision 1.2  1999/08/27 15:47:19  rimassa
   Added support for TransientException in order to retry message
   dispatch when the receiver agent has moved.
@@ -23,7 +26,7 @@ class RemoteProxyRMI extends RemoteProxy {
     ref = ac;
   }
 
-  public void dispatch(ACLMessage msg) throws NotFoundException, TransientException {
+  public void dispatch(ACLMessage msg) throws NotFoundException {
     try {
 	ref.dispatch(msg); // RMI call
     }
