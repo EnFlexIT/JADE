@@ -775,7 +775,7 @@ public class MainContainerImpl implements Platform, AgentManager {
     /**
        Clone an agent to a given destination
     */
-    public void copy(AID agentID, Location where, String newName) throws NotFoundException, UnreachableException, AuthException {
+    public void copy(AID agentID, Location where, String newName) throws NotFoundException, NameClashException, UnreachableException, AuthException {
 	ContainerID from = getContainerID(agentID);
 	ContainerID to = (ContainerID)where;
 		
@@ -796,7 +796,22 @@ public class MainContainerImpl implements Platform, AgentManager {
 	cmd.addParam(where);
 	cmd.addParam(newName);
 
-	myCommandProcessor.process(cmd);
+	Object result = myCommandProcessor.process(cmd);
+      if(result != null) {
+	  if(result instanceof NotFoundException) {
+	      throw (NotFoundException)result;
+	  }
+	  if(result instanceof NameClashException) {
+	      throw (NameClashException)result;
+	  }
+	  if(result instanceof UnreachableException) {
+	      ((Throwable)result).printStackTrace();
+	      throw (UnreachableException)result;
+	  }
+	  if(result instanceof AuthException) {
+	      throw (AuthException)result;
+	  }
+      }
 
   }
 
