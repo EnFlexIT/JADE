@@ -69,6 +69,10 @@ public class FSMBehaviour extends CompositeBehaviour {
   private String previousName = null;
   private int lastExitValue;
   
+  // These variables are used to force a transition on a given state at runtime
+  private boolean transitionForced = false;
+  private String forcedTransitionDest = null;
+  
   private TransitionTable theTransitionTable = new TransitionTable();
   
   /**
@@ -200,7 +204,14 @@ public class FSMBehaviour extends CompositeBehaviour {
      @see jade.core.behaviours.CompositeBehaviour#scheduleFirst
   */
   protected void scheduleFirst() {
-  	currentName = firstName;
+  	if (transitionForced) {
+  		currentName = forcedTransitionDest;
+  		transitionForced = false;
+  	}
+  	else {
+  		// Normal case: go to the first state
+  		currentName = firstName;
+  	}
   	current = getState(currentName);
   	// DEBUG
   	//System.out.println(myAgent.getLocalName()+" is Executing state "+currentName);
@@ -223,11 +234,18 @@ public class FSMBehaviour extends CompositeBehaviour {
   	if (currentDone) {
   		try {
   			previousName = currentName;
-		 	Transition t = theTransitionTable.getTransition(currentName, currentResult);
-			currentName = t.dest;
-			current = getState(currentName);
-			if (current == null) {
-				throw new NullPointerException();
+  			if (transitionForced) {
+  				currentName = forcedTransitionDest;
+  				transitionForced = false;
+  			}
+  			else {
+  				// Normal case: use the TransitionTable to select the next state
+				 	Transition t = theTransitionTable.getTransition(currentName, currentResult);
+					currentName = t.dest;
+  			}
+				current = getState(currentName);
+				if (current == null) {
+					throw new NullPointerException();
   			}
   		}
   		catch (NullPointerException npe) {
@@ -269,6 +287,26 @@ public class FSMBehaviour extends CompositeBehaviour {
   	return states.values();
   }
   
+  /**
+   */
+  protected void forceTransitionTo(String next) {
+  	// Just check that the forced transition leads into a valid state
+  	Behaviour b = getState(next);
+  	if (b != null) {
+  		transitionForced = true;
+  		forcedTransitionDest = next;
+  	}
+  }
+  
+  /**
+     Put this FSMBehaviour back in the initial condition
+   */ 
+  public void reset() {
+  	super.reset();
+  	transitionForced = false;
+  	forcedTransitionDest = null;
+  }
+  	
   /**
      Reset the children behaviours registered in the states indicated in
      the <code>states</code> parameter
