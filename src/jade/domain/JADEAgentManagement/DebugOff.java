@@ -29,6 +29,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 import jade.core.AID;
+import jade.content.AgentAction;
 
 /**
    
@@ -36,7 +37,7 @@ import jade.core.AID;
    @version $Date$ $Revision$
 */
 
-public class DebugOff {
+public class DebugOff implements AgentAction {
 
   private AID debugger;
   private List debuggedAgents = new ArrayList();

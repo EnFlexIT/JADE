@@ -35,8 +35,9 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 import jade.core.ContainerID;
+import jade.content.AgentAction;
 
-public class CreateAgent {
+public class CreateAgent implements AgentAction {
 
   private String agentName;
   private String className;

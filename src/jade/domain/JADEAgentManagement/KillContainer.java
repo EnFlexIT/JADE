@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.JADEAgentManagement;
 
 import jade.core.ContainerID;
+import jade.content.AgentAction;
 
 /**
   
@@ -32,7 +33,7 @@ import jade.core.ContainerID;
    @version $Date$ $Revision$
 */
 
-public class KillContainer {
+public class KillContainer implements AgentAction {
 
   private ContainerID container;
   private String password;

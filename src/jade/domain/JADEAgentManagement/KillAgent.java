@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.JADEAgentManagement;
 
 import jade.core.AID;
+import jade.content.AgentAction;
 
 /**
 
@@ -32,7 +33,7 @@ import jade.core.AID;
    @version $Date$ $Revision$
 */
 
-public class KillAgent {
+public class KillAgent implements AgentAction {
 
   private AID agent;
   private String password;

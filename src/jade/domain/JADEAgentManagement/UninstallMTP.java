@@ -24,8 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.domain.JADEAgentManagement;
 
 import jade.core.ContainerID;
+import jade.content.AgentAction;
 
-public class UninstallMTP {
+public class UninstallMTP implements AgentAction {
 
   private String address;
   private ContainerID container;

@@ -24,13 +24,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.JADEAgentManagement;
 
+import jade.content.AgentAction;
+
 /**
    
    @author Tiziana Trucco -  CSELT s.p.a
    @version $Date$ $Revision$
 */
 
-public class ShowGui {
-
-  
+public class ShowGui implements AgentAction {
 }
