@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/11/03 00:40:56  rimassa
+  Changed a method name from resetCursor() to reset().
+
   Revision 1.3  1998/10/04 18:00:59  rimassa
   Added a 'Log:' field to every source file.
 
@@ -36,7 +39,7 @@ public class AgentGroup {
     memberNames.removeElement(name);
   }
 
-  public void resetCursor() {
+  public void reset() {
     iterator = memberNames.elements();
   }
 
