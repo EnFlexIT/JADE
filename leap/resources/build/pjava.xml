@@ -8,7 +8,9 @@
 	<property name="doc" value="${pjava-root}/doc"/>
 	<property name="pjava-title" value="${title} v${version} for PJAVA"/>
 
-	
+        <!--Filtered src directory property--> 
+        <property name="filtered.src" location="${pjava-root}/filtered/src"/>
+
 	<!-- INIT -->
 	<target name="do-init" 
 	        description="Create the appropriate directories">
@@ -114,6 +116,34 @@
 		         windowtitle="${pjava-title}"
 		         packagenames="jade.*, starlight.* "/>
 	</target>
+
+        <target name="do-apidoc" depends="do-init"
+            description="Generate filtered javadoc">
+            
+            <!-- 1) Create filtered src directory -->
+            <mkdir dir="${filtered.src}"/>
+            
+            <!-- 2) Copy JADE sources -->
+            <copy todir="${filtered.src}" overwrite="yes">
+                    <fileset dir="${src}"/>
+            </copy>
+            
+            <!-- 3) Preprocess-->
+            <pproc basedir="${filtered.src}" type="apidoc"/>
+        
+            <!-- 4) Generates javadoc-->
+            <javadoc sourcepath="${filtered.src}"
+                     destdir="${doc}"
+                     classpath="${classes};${boot-java-1.1-classes}"
+                     doctitle="&lt;h1>${pjava-title}&lt;/h1>"
+                     bottom="${javadoc-footer}"
+                     verbose="false"
+                     windowtitle="${pjava-title}"
+                     packagenames="jade.*, starlight.* "/>
+
+            <!-- 5) Remove filtered src-->
+            <delete dir="${filtered.src}"/>
+        </target>
 
 	
 	<!-- DEMO -->

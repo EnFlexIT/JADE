@@ -8,7 +8,9 @@
 	<property name="doc" value="${j2se-root}/doc"/>
 	<property name="j2se-title" value="${title} v${version} for J2SE"/>
 
-	
+        <!--Filtered src directory property--> 
+        <property name="filtered.src" location="${j2se-root}/filtered/src"/>
+
 	<!-- INIT -->
 	<target name="do-init"  
 	        description="Create the appropriate directories">
@@ -134,7 +136,35 @@
 		         packagenames="jade.*, FIPA, starlight.* "/>
 	</target>
 
-	
+        <target name="do-apidoc" depends="do-init"
+            description="Generate filtered javadoc">
+            
+            <!-- 1) Create filtered src directory -->
+            <mkdir dir="${filtered.src}"/>
+            
+            <!-- 2) Copy JADE sources -->
+            <copy todir="${filtered.src}" overwrite="yes">
+                    <fileset dir="${src}"/>
+            </copy>
+            
+            <!-- 3) Preprocess-->
+            <pproc basedir="${filtered.src}" type="apidoc"/>
+        
+            <!-- 4) Generates javadoc-->
+            <javadoc sourcepath="${filtered.src}"
+                     destdir="${doc}"
+                     classpath="${classes}"
+                     doctitle="&lt;h1>${j2se-title}&lt;/h1>"
+                     bottom="${javadoc-footer}"
+                     verbose="false"
+                     windowtitle="${j2se-title}"
+                     packagenames="jade.*, FIPA, starlight.* "/>
+
+            <!-- 5) Remove filtered src-->
+            <delete dir="${filtered.src}"/>
+        </target>
+
+
 	<!-- DEMO -->
 	<target name="do-demo" depends="do-init"
 	        description="Build the demo">
