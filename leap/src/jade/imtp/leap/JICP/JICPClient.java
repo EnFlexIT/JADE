@@ -98,10 +98,6 @@ class JICPClient {
           dataInfo |= JICPProtocol.BLOCKING_IMTP_PING_INFO;
           break;
         }
-
-        /*if ((commandType&Command.HAS_RESULT) != 0) {
-          dataInfo |= JICPProtocol.IMTP_COMMAND_WITH_RESULT_INFO;
-        }*/ 
       } 
 
       // Send the complete JICPPacket
