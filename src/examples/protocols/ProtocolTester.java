@@ -66,7 +66,7 @@ public class ProtocolTester {
       MainContainer mc = rt.createMainContainer(pMain);
 
       System.out.println("Launching the rma agent on the main container ...");
-      Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new Object[0]);
+      AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
       if( args.length > 0 ){
@@ -75,16 +75,16 @@ public class ProtocolTester {
 	  Object[] arguments = new Object[args.length];
 	  for(int i=0;i<args.length;i++){
 	      System.out.println( "Launching the Responder Agent: " + args[i]);
-	      Agent responder = mc.createAgent(args[i], "examples.protocols.Responder",new Object[0]);
+	      AgentController responder = mc.createNewAgent(args[i], "examples.protocols.Responder",new Object[0]);
 	      responder.start();
 	      arguments[i]=args[i];
 	  }
-	  Agent requester = mc.createAgent( "initiator", "examples.protocols.Initiator",arguments);
+	  AgentController requester = mc.createNewAgent( "initiator", "examples.protocols.Initiator",arguments);
 	  requester.start();
       }else{
 	  //start the initiator but then it will exit.
 	  System.out.println( "Launching the Initiator Agent" );
-	  Agent requester = mc.createAgent( "initiator", "examples.protocols.Initiator",new Object[0]);
+	  AgentController requester = mc.createNewAgent( "initiator", "examples.protocols.Initiator",new Object[0]);
 	  requester.start();
       }
       

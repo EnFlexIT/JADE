@@ -35,7 +35,7 @@ import jade.core.behaviours.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -72,7 +72,7 @@ public class SubDF extends jade.domain.df {
      //Show the default Gui of a df.
      super.showGui();
 
-     DFServiceCommunicator.register(this,parentName,getDescription());
+     DFService.register(this,parentName,getDescription());
      addParent(parentName,getDescription());
 		 System.out.println("Agent: " + getName() + " federated with default df.");
      
