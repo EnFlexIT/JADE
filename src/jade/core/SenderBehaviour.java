@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/02/25 08:31:06  rimassa
+  Changed a getName() to getLocalName() call.
+
   Revision 1.4  1998/10/10 19:17:13  rimassa
   Fixed some compilation errors.
 
@@ -31,7 +34,7 @@ public final class SenderBehaviour extends OneShotBehaviour {
     message = msg;
     receivers = ag;
 
-    message.setSource(myAgent.getName());
+    message.setSource(myAgent.getLocalName());
   }
 
   public SenderBehaviour(Agent a, ACLMessage msg) {
