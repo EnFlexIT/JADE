@@ -22,6 +22,7 @@
 package jade.domain;
 
 //#J2ME_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;

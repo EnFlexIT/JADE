@@ -27,6 +27,8 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.core.AID;
 
 import jade.content.AgentAction;

@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.core.AID;
 import jade.core.BehaviourID;
 

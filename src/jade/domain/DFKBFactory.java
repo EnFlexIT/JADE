@@ -23,6 +23,7 @@
 package jade.domain;
 
 //#J2ME_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import java.sql.SQLException;
 
