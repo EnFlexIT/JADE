@@ -37,8 +37,8 @@ import jade.core.Agent;
 import jade.core.AgentState;
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.AgentContainerImpl;
-import jade.core.MainContainerImpl;
+import jade.core.AgentContainer;
+import jade.core.MainContainer;
 
 import jade.core.ProfileException;
 import jade.core.IMTPException;
@@ -165,7 +165,7 @@ public class AgentManagementService extends BaseService {
     public static final boolean CREATE_AND_START = true;
     public static final boolean CREATE_ONLY = false;
 
-    public AgentManagementService(AgentContainerImpl ac, Profile p) throws ProfileException {
+    public AgentManagementService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
 
 	myContainer = ac;
@@ -414,7 +414,7 @@ public class AgentManagementService extends BaseService {
 	}
 
 	public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
@@ -443,21 +443,21 @@ public class AgentManagementService extends BaseService {
 	}
 
 	public void deadAgent(AID name) throws IMTPException, NotFoundException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.deadAgent(name);
 	    }
 	}
 
 	public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.suspendedAgent(name);
 	    }
 	}
 
 	public void resumedAgent(AID name) throws IMTPException, NotFoundException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		impl.resumedAgent(name);
 	    }
@@ -483,7 +483,7 @@ public class AgentManagementService extends BaseService {
 	String ownership = (String)params[4];
 	CertificateFolder certs = (CertificateFolder)params[5];
 
-	MainContainerImpl impl = myContainer.getMain();
+	MainContainer impl = myContainer.getMain();
 	if(impl != null) {
 	    AID agentID = new AID(name, AID.ISLOCALNAME);
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
@@ -528,7 +528,7 @@ public class AgentManagementService extends BaseService {
 	Object[] params = cmd.getParams();
 	AID agentID = (AID)params[0];
 
-	MainContainerImpl impl = myContainer.getMain();
+	MainContainer impl = myContainer.getMain();
 	if(impl != null) {
 	    ContainerID cid = impl.getContainerID(agentID);
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
@@ -556,7 +556,7 @@ public class AgentManagementService extends BaseService {
 	    newState = Agent.AP_ACTIVE;
 	}
 
-	MainContainerImpl impl = myContainer.getMain();
+	MainContainer impl = myContainer.getMain();
 	if(impl != null) {
 	    ContainerID cid = impl.getContainerID(agentID);
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
@@ -689,7 +689,7 @@ public class AgentManagementService extends BaseService {
     }
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainerImpl myContainer;
+    private AgentContainer myContainer;
 
     // The local slice for this service
     private ServiceComponent localSlice;

@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
+
 import jade.core.ServiceFinder;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
@@ -32,8 +33,8 @@ import jade.core.Filter;
 import jade.core.Node;
 
 import jade.core.Agent;
-import jade.core.AgentContainerImpl;
-import jade.core.MainContainerImpl;
+import jade.core.AgentContainer;
+import jade.core.MainContainer;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.BehaviourID;
@@ -149,7 +150,7 @@ public class NotificationService extends BaseService {
     // The special name of an auxiliary thread used to avoid deadlock when debugging the AMS
     private final static String AMS_DEBUG_HELPER = "AMS-debug-helper";
 
-    public NotificationService(AgentContainerImpl ac, Profile p) throws ProfileException {
+    public NotificationService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
 
 	myContainer = ac;
@@ -203,7 +204,7 @@ public class NotificationService extends BaseService {
 		else if(name.equals(DEBUG_OFF)) {
 		    handleDebugOff(cmd);
 		}
-		else if(name.equals(jade.core.messaging.MessagingService.SEND_MESSAGE)) {
+		else if(name.equals(jade.core.messaging.MessagingSlice.SEND_MESSAGE)) {
 		    handleSendMessage(cmd);
 		}
 		else if(name.equals(NOTIFY_POSTED)) {
@@ -315,7 +316,7 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(snifferName);
 		AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
+		    myContainer.initAgent(id, tn, AgentContainer.CREATE_AND_START);
 		    addMessageListener(tn);
 		}
 		catch (Exception e) {
@@ -366,7 +367,7 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(introspectorName);
 		AID id = new AID(introspectorName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, AgentContainerImpl.CREATE_AND_START);
+		    myContainer.initAgent(id, tn, AgentContainer.CREATE_AND_START);
 		    if (targetName.equals(myContainer.getAMS())) {
 			// If we are debugging the AMS, let's wait for the ToolNotifier 
 			// be ready to avoid deadlock problems. Note also that in 
@@ -543,7 +544,7 @@ public class NotificationService extends BaseService {
 	    AID sniffer = (AID)params[0];
 	    List targets = (List)params[1];
 
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 
 		// Activate sniffing each element of the list
@@ -568,7 +569,7 @@ public class NotificationService extends BaseService {
 	    AID sniffer = (AID)params[0];
 	    List targets = (List)params[1];
 
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 
 		// Deactivate sniffing each element of the list
@@ -593,7 +594,7 @@ public class NotificationService extends BaseService {
 	    AID introspector = (AID)params[0];
 	    List targets = (List)params[1];
 
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 
 		// Activate debugging each element of the list
@@ -618,7 +619,7 @@ public class NotificationService extends BaseService {
 	    AID introspector = (AID)params[0];
 	    List targets = (List)params[1];
 
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 
 		// Deactivate debugging each element of the list
@@ -921,7 +922,7 @@ public class NotificationService extends BaseService {
 
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainerImpl myContainer;
+    private AgentContainer myContainer;
 
     // The local slice for this service
     private ServiceComponent localSlice;
