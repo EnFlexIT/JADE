@@ -79,4 +79,7 @@ interface AgentContainer extends Remote {
   void enableSniffer(AID snifferName , AID toBeSniffed) throws RemoteException;
   void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException;
 
+  void enableDebugger(AID debuggerName , AID toBeDebugged) throws RemoteException;
+  void disableDebugger(AID debuggerName, AID notToBeDebugged) throws RemoteException;
+
 }
