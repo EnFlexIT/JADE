@@ -40,7 +40,7 @@ import jade.lang.sl.SL0Codec;
 This behaviour of the Agent serves all the received messages. In particular,
 the following expressions are accepted as content of "request" messages:
 - (move <destination>)  to move the Agent to another container. Example (move Front-End) or
-(move Container-1)
+(move (:location (:name Container-1) (:transport-protocol JADE-IPMT) (:transport-address IOR:0000...) ))
 - (exit) to request the agent to exit
 - (stop) to stop the counter
 - (continue) to continue counting
@@ -78,7 +78,8 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			String replySentence = new String("");
 
 			// Get action to perform
-			StringTokenizer st = new StringTokenizer(msg.getContent(), " ()");
+			//String s = msg.getContent().
+			StringTokenizer st = new StringTokenizer(msg.getContent(), " ()\t\n\r\f");
 			String action = (st.nextToken()).toLowerCase();
 			// EXIT
 			if      (action.equals("exit"))
@@ -131,6 +132,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 				// Set reply sentence
 				replySentence = new String("\"OK moving to " + dest+" \"");
 				// Prepare to move
+				((MobileAgent)myAgent).nextSite = dest;
 				myAgent.doMove(dest);
 			}
 
