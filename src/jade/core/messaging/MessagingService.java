@@ -720,7 +720,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	private void deliverUntilOK(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
-		System.out.println("deliverUntilOK() for "+receiverID.getLocalName());
 	    boolean ok = false;
 	    do {
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
@@ -1068,8 +1067,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	// FIXME: the content is not completely correct, but that should
 	// also avoid creating wrong content
-	// FIXME: the content should include the indication about the 
-      // receiver to wich dispatching failed.
 	String content = "( (action " + msg.getSender().toString();
 	content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
 	failure.setContent(content);

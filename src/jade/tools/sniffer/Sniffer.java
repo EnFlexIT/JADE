@@ -190,7 +190,7 @@ public class Sniffer extends ToolAgent {
 
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
-		System.out.println(current);
+		//System.out.println(current);
 
 	try {
 	  Occurred o = (Occurred)getContentManager().extractContent(current);
