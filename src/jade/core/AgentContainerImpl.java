@@ -1035,7 +1035,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		if ( (msg.getSender()==null) || ((msg.getSender().equals(getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
 	    return;
 		// else send back a failure message
-		ACLMessage failure = msg.createReply();
+		final ACLMessage failure = msg.createReply();
 		failure.setPerformative(ACLMessage.FAILURE);
 		//System.err.println(failure.toString());
 		failure.setSender(getAMS());
@@ -1044,11 +1044,25 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		String content = "( (action " + msg.getSender().toString();
 		content = content + " ACLMessage ) "+ie.getMessage()+")" ;
 		failure.setContent(content);
+
 		try {
-			handleSend(failure);
-		}
-		catch (AuthException ae) {
-		}
+		authority.doPrivileged(new PrivilegedExceptionAction() {
+		        public Object run() {
+					try {
+						handleSend(failure);
+					} catch (AuthException ae) {
+						// it does not have permission to notify the failure 
+						// it never happens if the policy file gives 
+						// enough permission to the jade.jar 
+						System.out.println( ae.getMessage() );
+					}
+		            return null; // nothing to return
+		        }
+		});
+		} catch(Exception e) {
+			// should be never thrown
+			e.printStackTrace();
+		}			
   }
 
 
