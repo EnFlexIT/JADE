@@ -68,12 +68,21 @@ import jade.mtp.TransportAddress;
 
 import jade.tools.ToolNotifier; // FIXME: This should not be imported
 
-/**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
-*/
 
-class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, AgentToolkit {
+/**
+   This class is a concrete implementation of the JADE agent
+   container, providing runtime support to JADE agents.
+
+   This class cannot be instantiated from applications. Instead, the
+   <code>Runtime.createAgentContainer(Profile p)</code> method must be called.
+
+   @see Runtime#createAgentContainer(Profile p);
+
+   @author Giovanni Rimassa - Universita` di Parma
+   @version $Date$ $Revision$
+
+*/
+public class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, AgentToolkit {
 
   private static final int CACHE_SIZE = 10;
 
@@ -113,7 +122,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
   private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
 
-  public AgentContainerImpl() throws RemoteException {
+  // Package scoped constructor, so that only the Runtime and Starter
+  // classes can actually create a new Agent Container.
+  AgentContainerImpl() throws RemoteException {
 
 
     // Set up attributes for agents thread group
@@ -210,7 +221,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  void initAgent(AID agentID, Agent instance, boolean startIt) {
+  public void initAgent(AID agentID, Agent instance, boolean startIt) {
 
     // Subscribe as a listener for the new agent
     instance.setToolkit(this);
@@ -476,7 +487,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     theACC.forwardMessage((jade.domain.FIPAAgentManagement.Envelope)env, payload, address);
   }
 
-  public void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
+  void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
 
     // This string will be used as the transport address for the main container
     platformRMI = pRMI;
