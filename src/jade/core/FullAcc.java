@@ -98,7 +98,8 @@ class FullAcc implements acc, InChannel.Dispatcher {
 
       // MTPs
       l = p.getSpecifiers(Profile.MTPS);
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myContainer.here().getName() + ".txt"));
+      String fileName = p.getParameter(Profile.FILE_DIR, "") + "MTPs-" + myContainer.here().getName() + ".txt";
+      PrintWriter f = new PrintWriter(new FileWriter(fileName));
 
       Iterator mtps = l.iterator();
       while (mtps.hasNext()) {
