@@ -57,6 +57,7 @@ public interface AgentContainer {
     AID getAMS();
     AID getDefaultDF();
 
+    void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException;
     void initAgent(AID agentID, Agent instance, boolean startIt, 
                    JADEPrincipal creator, Credentials creds                  
                    ) throws NameClashException, IMTPException, NotFoundException, AuthException;
