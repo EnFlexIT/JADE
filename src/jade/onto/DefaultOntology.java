@@ -382,13 +382,13 @@ public class DefaultOntology implements Ontology {
       try {
 
 	Object slotValue = f.getSlot(slotName);
-	// System.out.println("Name: " + slotName + " - Value: " + slotValue);
-
+	
 	// For complex slots, transform from sub-frame to sub-object.
 	// This is performed calling createObject() recursively.
 	if(desc.isComplex())
 	  slotValue = createObject((Frame)slotValue);
 
+	  
 	setMethod.invoke(concept, new Object[] { slotValue });
 
       }
@@ -407,7 +407,9 @@ public class DefaultOntology implements Ontology {
       catch(SecurityException se) {
 	throw new OntologyException("Wrong class: some required method is not accessible."); 
       }
-
+      catch(IllegalArgumentException iare){
+      throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]");	
+      }
     }
 
     return concept;
