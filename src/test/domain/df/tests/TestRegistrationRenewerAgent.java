@@ -28,8 +28,8 @@ public class TestRegistrationRenewerAgent extends Agent {
 
         try {
                 // register agent for 5 seconds
-                long exactLeaseTime = DFService.register(this,dfd);
-                System.out.println("lease time returned by the register:"+new Date(exactLeaseTime));
+                Date exactLeaseTime = DFService.register(this,dfd);
+                System.out.println("lease time returned by the register:"+exactLeaseTime);
                 // register the agent for other 10 seconds
                 dfd.setLeaseTime(new Date(dfd.getLeaseTime().getTime()+10000));
                 

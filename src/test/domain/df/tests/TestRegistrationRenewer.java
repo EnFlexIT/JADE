@@ -73,7 +73,7 @@ public class TestRegistrationRenewer extends Test {
                     e.printStackTrace();
                 }
             }
-            int ret;
+            int ret = Test.TEST_PASSED;
             
             public void action() {
                 Logger l = Logger.getLogger();
@@ -109,9 +109,9 @@ public class TestRegistrationRenewer extends Test {
                         }
                     else {
                         l.log("Error: agent found!");
-                        ret = TEST_FAILED;
+                        ret = Test.TEST_FAILED;
                     }
-                    ret = Test.TEST_PASSED;
+                   
                 }catch(Exception e) {
                     e.printStackTrace();
                 }
