@@ -28,9 +28,13 @@ import jade.security.*;
 import jade.util.leap.List;
 
 import java.util.Date;
+import java.util.Enumeration;
+import jade.security.JADEPrincipal;
+import java.util.Vector;
 
 
-public class DummyCertificate implements DelegationCertificate, jade.util.leap.Serializable {
+public class DummyCertificate implements Credentials, 
+         DelegationCertificate, jade.util.leap.Serializable {
 	
 	JADEPrincipal subject = new DummyPrincipal();
 	
@@ -69,5 +73,14 @@ public class DummyCertificate implements DelegationCertificate, jade.util.leap.S
         public jade.security.JADEPrincipal getIssuer() { return new DummyPrincipal(); }
         public void setIssuer(jade.security.JADEPrincipal p) { System.out.print(" "); }
 
-	
+
+
+        public Enumeration elements() {
+          return new Vector().elements(); // empty, but not null
+        }
+      
+        public JADEPrincipal getOwner() {
+          return null;
+        }
+      
 }

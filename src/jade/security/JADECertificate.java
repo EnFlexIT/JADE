@@ -34,7 +34,7 @@ import jade.util.leap.Serializable;
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public interface JADECertificate extends Serializable {
+public interface JADECertificate extends Credentials {
 
 	/**
 		Sets the issuer of this certificate, i.e. the principal which
