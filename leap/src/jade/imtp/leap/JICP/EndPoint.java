@@ -52,7 +52,7 @@ public abstract class EndPoint extends Thread {
   private DataInputStream  inp;
   private DataOutputStream out;
   
-
+	private int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
   private static int       verbosity = 1;
 
@@ -73,9 +73,29 @@ public abstract class EndPoint extends Thread {
     return rsp;
   }
   
-  public void shutdown() {
+  /**
+     @param self Indicate whether this shutdown was self-initiated or 
+     activated as a result of a command issued by the remote peer. 
+     In the first case we must send an explicit termination notification
+     to the remote EndPoint to let it know we are exiting,
+     In the latter case, on the other hand, the termination notification 
+     must be appended to the response (that otherwise would be lost) to
+     the command that activated the shutdown. It is the responsibility 
+     of this EndPoint implementation (that is in charge of preparing the
+     response) to do that.
+	 */     
+  public void shutdown(boolean self) {
   	active = false;
+  	// Note that waking up OutgoingHandlers waiting for a response
+  	// is necessary as the main thread can exit smoothly as soon as 
+  	// we set active to false.
   	wakeupOutgoings();
+  	if (self) {
+  		// Send a JICPPacket with the TERMINATED_INFO set
+  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), null);
+  		log("Pushing termination notification");
+  		push((byte) 0, pkt);
+  	} 		
   }
   
   public final boolean isConnected() {
@@ -103,7 +123,7 @@ public abstract class EndPoint extends Thread {
 	    	handleConnectionReady();
 	    }
 	    catch (ICPException icpe) {
-      	log("Connection cannot be (re)established. "+icpe.getMessage());
+      	log("Connection cannot be (re)established. "+icpe.getMessage(), 0);
 	    	handleConnectionError();
 	    	break;
 	    }
@@ -115,12 +135,23 @@ public abstract class EndPoint extends Thread {
           // Read session id and JICPPacket
           byte id = inp.readByte();
           JICPPacket pkt = JICPPacket.readFrom(inp);
+          pktCnt = (pktCnt+1) & 0x0fff;
         	if (pkt.getDataType() == JICPProtocol.COMMAND_TYPE) {
-          	log("Command received. INC-SID="+id);
-
-          	// Start a new IncomingHandler for the incoming connection
-          	IncomingHandler h = new IncomingHandler(id, pkt);
-          	h.start();
+          	if ((pkt.getDataInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+	          	log("Peer termination notification received");
+          		// The remote EndPoint has terminated spontaneously -->
+          		// close the connection, notify the local peer and exit
+          		shutdown(false);
+          		resetConnection();
+          		handlePeerExited();
+          	}
+          	else {
+	          	log("Command received. INC-SID="+id);
+	
+	          	// Start a new IncomingHandler for the incoming connection
+	          	IncomingHandler h = new IncomingHandler(id, pkt);
+	          	h.start();
+          	}
         	}
         	else {
           	log("Response received. OUT-SID="+id);
@@ -128,9 +159,13 @@ public abstract class EndPoint extends Thread {
           	// Dispatch the response  to the OutgoingHandler that is waiting for it
           	OutgoingHandler h = deregisterOutgoing(id);
           	h.setResponse(pkt);
-          	if ((pkt.getDataInfo() & JICPProtocol.LAST_RESPONSE_INFO) != 0) {
-          		shutdown();
-          		handlePeerExited();
+          	
+          	if ((pkt.getDataInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+          		// The remote EndPoint has terminated as a consequence
+          		// of a command issued by the local peer --> 
+          		// just close the connection and exit
+          		shutdown(false);
+          		resetConnection();
           	}
         	}	
         } 
@@ -139,9 +174,8 @@ public abstract class EndPoint extends Thread {
             // Error reading from socket. The connection is no longer valid.
             log("Exception reading from connection: "+e, 1);
           } 
-          resetConnection();
-          // Wake up OutgoingHandlers waiting for a response. They will return with an Exception
           wakeupOutgoings();
+          resetConnection();
         } 
       }    // End of loop on connected
     }     // End of loop on active
@@ -150,13 +184,15 @@ public abstract class EndPoint extends Thread {
   } 
   
   /**
-     Mutual exclusion with setupConnection() and resetConnection()
+     Mutual exclusion with setConnection() and resetConnection()
    */
   private boolean push(byte id, JICPPacket pkt) {
   	synchronized (connectionLock) {
   		if (connected) {
   			try {
-        	pushPacket(id, pkt, out);
+			    // Write the session id and the packet
+			    out.writeByte(id);
+				  pkt.writeTo(out);
         	return true;
 		    }
 		    catch (IOException ioe) {
@@ -169,19 +205,8 @@ public abstract class EndPoint extends Thread {
   	}
   } 
 
-  protected void pushPacket(byte sessionId, JICPPacket pkt, DataOutputStream out) throws IOException {
-    // Write the session id and the packet
-    out.writeByte(sessionId);
-	  pkt.writeTo(out);
-	  // If the packet was the last response, reset the connection 
-	  // so that the EndPoint main thread can terminate
-    if ((pkt.getDataInfo() & JICPProtocol.LAST_RESPONSE_INFO) != 0) {
-  		resetConnection();
-    }
-  }
-  
   /**
-     Mutual exclusion with setup() and pushCommand()
+     Mutual exclusion with setConnection() and push()
    */
   protected final void resetConnection() {
   	synchronized (connectionLock) {
@@ -200,6 +225,7 @@ public abstract class EndPoint extends Thread {
   }
     	
   /**
+     Mutual exclusion with resetConnection() and push()
    */
   protected final void setConnection(Connection c) throws IOException {
   	synchronized (connectionLock) {
@@ -312,9 +338,15 @@ public abstract class EndPoint extends Thread {
     private synchronized final void waitForResponse() throws ICPException {
       while (!rspReceived) {
         try {
-          wait(60000);
-          // If the timeout expired, rsp is null and an exception will be thrown
-          break;
+        	int oldCnt = pktCnt;
+          wait(20000);
+          if (pktCnt == oldCnt) {
+          	// Timeout expired and no packet (including the response we 
+          	// are waiting for) were received --> The connection is 
+          	// probably down
+          	resetConnection();
+          	break;
+          }
         } 
         catch (InterruptedException ie) {
           log("Interruption while waiting for response", 1);
@@ -372,8 +404,9 @@ public abstract class EndPoint extends Thread {
   }
   
   /**
-     This method is called by the EndPoint thread when it detects a 
-     disconnections. All OutgoingHandlers waiting for a response
+     This method is called by the EndPoint thread when it detects  
+     that the connection is no longer valid. 
+     All OutgoingHandlers waiting for a response
      will return an error to the command originator.
    */
   private final void wakeupOutgoings() {

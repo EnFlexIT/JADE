@@ -150,7 +150,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
    */
   public void deactivate() throws ICPException {
     terminator = Thread.currentThread();
-  	shutdown();
+  	shutdown(false);
     log("Shutdown initiated. Terminator thread is "+terminator);
   } 
 
@@ -265,7 +265,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     // --> notify the Mediator
     if (Thread.currentThread().equals(terminator)) {
       log("Activate Mediator shutdown (after the current command has been served)");
-    	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.LAST_RESPONSE_INFO), rspData);
+    	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), rspData);
     }
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
   }

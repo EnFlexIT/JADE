@@ -45,10 +45,6 @@ import java.net.Socket;
  * @author Giovanni Caire - Telecom Italia LAB S.p.A.
  */
 public interface JICPMediator {
-	// Mediator shut down modes
-	public static final int NORMAL = 1;
-	public static final int EXPIRED = 0;
-	public static final int KILLED = -1;
 	
   /**
      Initialize this JICPMediator
@@ -56,9 +52,9 @@ public interface JICPMediator {
   void init(JICPServer srv, String id, Properties props) throws ICPException;
   
   /**
-     Make this JICPMediator terminate
+     Kill this JICPMediator 
    */
-  void shutdown(int mode); 
+  void kill(); 
 
   /**
    * Sets the socket connected to the mediated entity.

@@ -95,22 +95,18 @@ public class Mediator extends EndPoint implements JICPMediator {
   }  
   
   /**
-   * Make this Mediator terminate
-   * This can be called:
-   * - By the embedded thread in the case the shutdown is initiated by a
-   * shutdown in the mediated container (NORMAL termination)
-   * - By the embedded thread in the case the
-   * maximum disconnection time has been reached (EXPIRED)
-   * - By the JICPServer this Mediator is attached to. This can only
-   * happen if the container holding the JICPServer this Mediator is
-   * attached to is shut down before the mediated container. This
-   * situation should be avoided! (KILLED).
+     Make this Mediator terminate.
+     In this implementation self is true only when the Mediator
+     is killed by the JICPServer it is attached to.
    */
-  public void shutdown(int mode) {
+  public void shutdown(boolean self) {
     log("Initiate Mediator shutdown");
 
     // Deregister from the JICPServer
-    myJICPServer.deregisterMediator(myID);
+    if (myID != null) {
+	    myJICPServer.deregisterMediator(myID);
+	    myID = null;
+    }
 
     // If shutdown mode is NORMAL, un-block threads hang in PING
     // FIXME: If shutdown mode is != NORMAL we should force the thread hanging
@@ -120,18 +116,19 @@ public class Mediator extends EndPoint implements JICPMediator {
   	  pingLock.notifyAll();
     }
 
-    // Wake up OutgoingHandler-s waiting for response
-    shutdown();
-
-    // If this shutdown was not initiated by the embedded thread
-    // then interrupt it
-    if (!this.equals(Thread.currentThread())) {
-      interrupt();
-    } 
-    
-    myID = null;
+    // Enable EndPoint shutdown
+    super.shutdown(self);
   } 
 
+  /**
+     Shutdown forced by the JICPServer this Mediator is attached 
+     to
+   */
+  public void kill() {
+  	// Self initiated shutdown
+  	super.shutdown(true);
+  }
+  
   ///////////////////////////////////////////////
   // COMMANDS TO THE MEDIATED CONTAINER
   ///////////////////////////////////////////////
@@ -267,12 +264,8 @@ public class Mediator extends EndPoint implements JICPMediator {
     }
   }
   
-	protected void handlePeerExited() {
-		shutdown(NORMAL);
-	}
-	
 	protected void handleConnectionError() {
-		shutdown(EXPIRED);
+		shutdown(false);
 	}	
 	
   /**

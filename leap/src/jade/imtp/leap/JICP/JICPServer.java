@@ -166,7 +166,7 @@ class JICPServer extends Thread {
     Enumeration e = mediators.elements();
     while (e.hasMoreElements()) {
       Mediator m = (Mediator) e.nextElement();
-      m.shutdown(Mediator.KILLED);
+      m.kill();
     } 
     mediators.clear();
   } 
