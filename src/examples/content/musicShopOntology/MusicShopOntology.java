@@ -60,7 +60,7 @@ public class MusicShopOntology extends Ontology {
    * Constructor
    */
   private MusicShopOntology(Ontology base) {
-  	super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
+  	super(ONTOLOGY_NAME, base);
 
     try {
     	add(new ConceptSchema(CD), CD.class);

@@ -62,7 +62,6 @@ public class ECommerceOntology extends Ontology {
   public static final String COSTS_PRICE = "price";
   
   // The singleton instance of this ontology
-	//private static Ontology theInstance = new ECommerceOntology(ACLOntology.getInstance());
 	private static Ontology theInstance = new ECommerceOntology(BasicOntology.getInstance());
 	
 	public static Ontology getInstance() {
@@ -73,7 +72,7 @@ public class ECommerceOntology extends Ontology {
    * Constructor
    */
   private ECommerceOntology(Ontology base) {
-  	super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
+  	super(ONTOLOGY_NAME, base);
 
     try {
     	add(new ConceptSchema(ITEM), Item.class);
