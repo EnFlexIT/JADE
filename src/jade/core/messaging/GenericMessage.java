@@ -50,6 +50,9 @@ public class GenericMessage implements Serializable {
   private Envelope env;
   private byte[] payload;
 
+  public GenericMessage(){
+  }
+  
   public GenericMessage(ACLMessage msg){
     this.msg = msg;
   }
