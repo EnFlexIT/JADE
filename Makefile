@@ -1,6 +1,6 @@
 # Makefile for JADE  project 
 
-VERSION    = 0.6
+VERSION    = 0.7
 ARCHIVE    = JADE
 
 
@@ -18,7 +18,7 @@ export MAKE = make
 .PHONY: all clean archive src lib test
 
 all: lib test
-	@echo ACL parser built
+	@echo JADE project built
 
 lib: src
 	cd $(LIBDIR); $(MAKE) all
