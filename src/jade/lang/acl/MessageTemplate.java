@@ -466,7 +466,8 @@ public class MessageTemplate implements Serializable {
      @param value The value the message slot will be matched against.
      @return A new <code>MessageTemplate</code> matching the given
      value.
-     @see jade.lang.acl.ACLMessage#MatchPerformative(String dest)
+     @see jade.lang.acl.MessageTemplate#MatchPerformative(int value)
+     @see jade.lang.acl.ACLMessage
 
   */
   public static MessageTemplate MatchType(String value) {
@@ -645,3 +646,4 @@ public class MessageTemplate implements Serializable {
   }
 
 }
+
