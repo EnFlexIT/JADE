@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.16  1999/09/01 00:16:23  rimassa
+ * Small changes to the interface to allow message queue transfer during
+ * agent migration.
+ *
  * Revision 1.15  1999/08/31 17:20:37  rimassa
  * Added a couple of constant definitions to support agent migration.
  *
@@ -44,6 +48,8 @@ package jade.core;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import java.util.Vector;
+
 import jade.lang.acl.ACLMessage;
 
 interface AgentContainer extends Remote {
@@ -69,7 +75,7 @@ interface AgentContainer extends Remote {
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
 
-  void postTransferResult(String agentName, boolean result) throws RemoteException, NotFoundException;
+  void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException;
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException;
   void ping() throws RemoteException;
 
