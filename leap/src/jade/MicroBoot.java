@@ -36,12 +36,19 @@ import javax.microedition.lcdui.*;
 #MIDP_INCLUDE_END*/
 
 /**
-   This class handles JADE start-up and shut-down according to 
-   the current type of environment (JVM) we are running in. 
+   This class handles JADE start-up and shut-down in split-container
+   mode, according to the current type of environment (JVM) we are
+   running in.
    @author Giovanni Caire - TILAB
  */
 //#MIDP_EXCLUDE_BEGIN
 public class MicroBoot {
+
+    /**
+       Default constructor.
+    */
+    public MicroBoot() {
+    }
 	
   /**
    * Fires up the <b><em>JADE</em></b> runtime.
@@ -63,8 +70,6 @@ public class MicroBoot {
 	  		PJAVA_INCLUDE_END*/
 	  	}
   	
-	  	customize(props);
-	  	
     	MicroRuntime.startJADE(props, new Runnable() {
 		    public void run() {
 		    	// Wait a bit before killing the JVM
@@ -143,9 +148,7 @@ public class MicroBoot {
   	Logger.println("     where agent-specifier = <agent-name>:<agent-class>[(comma separated args)]"); 
   	Logger.println();
   }
-  
-  protected static void customize(Properties props) {
-  }
+
 }
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
