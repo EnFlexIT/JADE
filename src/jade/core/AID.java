@@ -349,6 +349,8 @@ public class AID implements Comparable, Serializable {
   */
   public boolean equals(Object o) {
 
+      if (o == null)
+	  return false;
     if(o instanceof String) {
       return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
     }
