@@ -31,7 +31,6 @@ import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
-import jade.lang.acl.StringACLCodec;
 import jade.util.leap.Map;
 import jade.util.leap.Iterator;
 import jade.lang.acl.LEAPACLCodec;

@@ -46,7 +46,6 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
-import jade.core.UnreachableException;
 
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
