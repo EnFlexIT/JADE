@@ -530,17 +530,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
 
-	myServiceManager.removeNode(myNodeDescriptor);
-
 	myIMTPManager.unexportServiceManager(myServiceManager);
 	myIMTPManager.disconnect(myID);
 
     }
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();
-    }
-    catch(ServiceException se) {
-	se.printStackTrace();
     }
 
     // Releases Thread resources
