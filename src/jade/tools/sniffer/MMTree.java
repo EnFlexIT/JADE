@@ -46,15 +46,24 @@ import java.util.Enumeration;
  * to double clicks.
  * 
  * @see javax.swing.JPanel
- * @see javax.swing.tree.TreeSelectionListener
+ * @see javax.swing.event.TreeSelectionListener
  * @author Gianluca Tanca
  * @version $Date$ $Revision$
  *
  */
 public class MMTree extends JPanel implements TreeSelectionListener{
     
-  protected JTree tree; //was private
+  /**
+  @serial
+  */
+	protected JTree tree; //was private
+  /**
+  @serial
+  */
   private JScrollPane pane;	
+  /**
+  @serial
+  */
 	private DefaultMutableTreeNode MMFirstNode;  
 	private static int i = 1;
    
