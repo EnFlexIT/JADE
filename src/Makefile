@@ -1,7 +1,7 @@
 # Makefile for JADE project - src directory
 
 # The following targets are not file names
-.PHONY: all clean
+.PHONY: all clean idlclean
 
 export MAKE = make
 export IDLCC = idltojava -fno-cpp
@@ -52,13 +52,13 @@ STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.AgentPlatformImpl
 
 
-all: idl parsers classes stubs
+all: $(IDLSTUBS) parsers classes stubs
 	@echo
 	@echo Build complete.
 	@echo
 
-idl:
-	$(IDLCC) $(IDLSPEC)
+_%Stub.java %.java %Holder.java %Helper.java _%ImplBase.java: %.idl
+	$(IDLCC) $<
 
 parsers: ACLParser AgentManParser
 	@echo Parsers generated
@@ -77,16 +77,19 @@ stubs:
 	@set CLASSPATH=$(SRCDIR); export CLASSPATH; \
 	$(STUBGEN) -d $(STUBDIR) $(STUBS)
 
-clean:
-	rm -f `find . -name '*~' -print`
-	rm -f `find . -name '#*#' -print`
-	rm -f `find . -name '*.class' -print`
-
+idlclean:
 	rm -f _FIPA_Agent_97Stub.java
 	rm -f FIPA_Agent_97.java
 	rm -f FIPA_Agent_97Holder.java
 	rm -f FIPA_Agent_97Helper.java
 	rm -f _FIPA_Agent_97ImplBase.java
+
+
+
+clean:
+	rm -f `find . -name '*~' -print`
+	rm -f `find . -name '#*#' -print`
+	rm -f `find . -name '*.class' -print`
 
 	rm -f jade/lang/acl/ACLParser.java
 	rm -f jade/lang/acl/ACLParserConstants.java
