@@ -33,14 +33,27 @@ package jade.core;
 */
 public class AgentState {
 
-  private String name;
+  public static AgentState getInstance(int value) {
+      for(int i = 0; i < STATES.length; i++) {
+	  AgentState as = STATES[i];
+	  if(as.getValue() == value) {
+	      return as;
+	  }
+      }
 
+      return null;
+  }
+
+  public static AgentState[] getAllInstances() {
+      return STATES;
+  }
 
   public AgentState() {
   }
 
-  public AgentState(String n) {
+  private AgentState(String n, int v) {
     name = n;
+    value = v;
   }
 
   public void setName(String n) { 
@@ -51,6 +64,13 @@ public class AgentState {
     return name;
   }
 
+  public void setValue(int v) {
+      value = v;
+  }
+
+  public int getValue() {
+      return value;
+  }
 
   public boolean equals(Object o) {
 
@@ -79,5 +99,39 @@ public class AgentState {
   public int hashCode() {
     return name.toLowerCase().hashCode();
   }
+
+    private static final AgentState[] STATES = new AgentState[] { 
+	new AgentState("Illegal MIN state", Agent.AP_MIN),
+	new AgentState("Initiated", Agent.AP_INITIATED),
+	new AgentState("Active", Agent.AP_ACTIVE),
+	new AgentState("Idle", Agent.AP_IDLE),
+	new AgentState("Suspended", Agent.AP_SUSPENDED),
+	new AgentState("Waiting", Agent.AP_WAITING),
+	new AgentState("Deleted", Agent.AP_DELETED),
+	//#MIDP_EXCLUDE_BEGIN
+	new AgentState("Transit", Agent.AP_TRANSIT),
+	new AgentState("Copy", Agent.AP_COPY),
+	new AgentState("Gone", Agent.AP_GONE),
+	//#MIDP_EXCLUDE_END
+	new AgentState("Illegal MAX state", Agent.AP_MAX)
+    };
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
+    private String name;
+    private int value;
+
+
 
 }
