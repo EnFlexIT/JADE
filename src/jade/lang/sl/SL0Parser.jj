@@ -26,9 +26,9 @@ options {
 //  CHOICE_AMBIGUITY_CHECK = 2;
 //  OTHER_AMBIGUITY_CHECK = 1;
   STATIC = false;
-  DEBUG_PARSER = false;
-  DEBUG_LOOKAHEAD = false;
-  DEBUG_TOKEN_MANAGER = false;
+  DEBUG_PARSER = true;
+//  DEBUG_LOOKAHEAD = true;
+//  DEBUG_TOKEN_MANAGER = true;
   ERROR_REPORTING = true;
   JAVA_UNICODE_ESCAPE = true;
 //  UNICODE_INPUT = false;
@@ -47,138 +47,47 @@ package jade.lang.sl;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
-import jade.onto.TermDescriptor;
-import jade.onto.OntologyException;
 import jade.onto.DefaultOntology;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.StringReader;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
+import java.util.Vector;
 
 class SL0Parser {
 
-  public Frame parse(String s, Ontology o) throws ParseException, TokenMgrError {
+
+  /**
+  * @return a Vector of Frame, each Frame represents an element of a t-uple
+  */
+  public Vector parse(String s) throws ParseException, TokenMgrError {
     ReInit(new StringReader(s));
-    return SL0Content(o);
+    return SL0Content();
   }
 
-  private boolean isConcept(Ontology o, String roleName) {
-    try {
-      return o.isConcept(roleName);
-    }
-    catch(OntologyException oe) {
-      return false;
-    }
-  }
-
-  private boolean isAction(Ontology o, String roleName) {
-    try {
-      return o.isAction(roleName);
-    }
-    catch(OntologyException oe) {
-      return false;
-    }
-  }
-
-  private boolean isPredicate(Ontology o, String roleName) {
-    try {
-      return o.isPredicate(roleName);
-    }
-    catch(OntologyException oe) {
-      return false;
-    }
-  }
 
   public static void main(String[] args) {
-    System.out.println("SL0 Parser starting...");
+    System.out.println("SL0 Parser started...");
     SL0Parser theParser = new SL0Parser(new BufferedReader(new InputStreamReader(System.in)));
-    try {
-      Ontology o = new DefaultOntology();
+    SL0Codec codec = new SL0Codec();
+    Ontology o = new DefaultOntology();
 
-      // DF supported actions
-      o.addFrame("register", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
-      });
-
-      o.addFrame("deregister", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
-      });
-
-      o.addFrame("modify", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M)
-      });
-
-      o.addFrame("search", Ontology.ACTION_TYPE, new TermDescriptor[] { 
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":df-description", Ontology.M),
-	new TermDescriptor(Ontology.PREDICATE_TYPE, ":df-depth", Ontology.O),
-	new TermDescriptor(Ontology.PREDICATE_TYPE, ":resp-req", Ontology.O)
-      });
-
-      o.addFrame(":df-depth", Ontology.PREDICATE_TYPE, new TermDescriptor[] {
-	new TermDescriptor("Fn",Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor("arg", Ontology.LONG_TYPE, Ontology.M),
-      });
-
-      o.addFrame(":resp-req", Ontology.PREDICATE_TYPE, new TermDescriptor[] {
-	new TermDescriptor("Fn",Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor("arg", Ontology.LONG_TYPE, Ontology.M),
-      });
-
-      // AMS supported actions
-      o.addFrame("register-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
-      });
-
-      o.addFrame("deregister-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
-      });
-
-      o.addFrame("authenticate", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
-      });
-
-      o.addFrame("modify-agent", Ontology.ACTION_TYPE, new TermDescriptor[] {
-	new TermDescriptor(Ontology.CONCEPT_TYPE, ":ams-description", Ontology.M)
-      });
-
-
-      // Concepts
-
-      o.addFrame(":service-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	new TermDescriptor(":service-name", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":service-type", Ontology.STRING_TYPE, Ontology.M)
-      });
-
-      o.addFrame(":ams-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	new TermDescriptor(":agent-name", Ontology.STRING_TYPE, Ontology.O),
-	new TermDescriptor(":address", Ontology.STRING_TYPE, Ontology.O),
-	new TermDescriptor(":delegate-agent", Ontology.STRING_TYPE, Ontology.O),
-	new TermDescriptor(":forward-address", Ontology.STRING_TYPE, Ontology.O),
-	new TermDescriptor(":ap-state", Ontology.STRING_TYPE, Ontology.O),
-	new TermDescriptor(":ownership", Ontology.STRING_TYPE, Ontology.O),
-      });
-
-      o.addFrame(":df-description", Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	new TermDescriptor(":agent-name", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":agent-address", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":agent-services", Ontology.CONCEPT_TYPE,":service-description", Ontology.M),
-	new TermDescriptor(":agent-type", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":interaction-protocols", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":ontology", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":ownership", Ontology.STRING_TYPE, Ontology.M),
-	new TermDescriptor(":df-state", Ontology.STRING_TYPE, Ontology.M)
-      });
-
-      Frame result = theParser.SL0Content(o);
-    }
-    catch(OntologyException oe) {
-      oe.printStackTrace();
-    }
-    catch(ParseException pe) {
-      pe.printStackTrace();
-    }
-    catch(TokenMgrError tme) {
-      tme.printStackTrace();
+    while (true) {
+	System.out.println("insert an SL0 expression to parse: ");
+      try {
+	Vector result = theParser.SL0Content();
+	System.out.println("AFTER ENCODING: "+codec.encode(result,o));
+      }
+      catch(ParseException pe) {
+	pe.printStackTrace();
+	System.exit(1);
+      }
+      catch(TokenMgrError tme) {
+        tme.printStackTrace();
+      }
     }
   }
 
@@ -190,42 +99,23 @@ PARSER_END(SL0Parser)
 /* 
 
    The following grammar productions try to match as closely as
-   possible the SL0 grammar given in FIPA 97, Version 2.0 Part 2. The
-   differences are as follows:
+   possible the SL0 grammar given in FIPA 2000 (document no. 8) 
+   The differences are as follows:
 
    1) In order to keep single lookahead, braces have been factored out
       whenever possible. So, the parser methods corresponding to
-      SL0ActionExpression and to SL0FunctionalTerm don't expect
+      ActionExpression and to FunctionalTerm don't expect
       neither opening nor closing brace. Braces are explicitly
       indicated in the calling methods/productions.
 
-   2) In order to keep the single lookahead requirement, the
-      derivation chain
-      SL0ContentExpression --> SL0Wff --> SL0AtomicFormula --> SLPropositionSymbol --> <WORD>
-      has been shortened to SL0ContentExpression --> <WORD>. This
-      allows us to factor out the opening brace, which is common to
-      all the other branches of the parse tree.
+   2) Identical productions have been merged into one; these are:
+      - PropositionSymbol, "true" and "false", that all result in a single String.
 
-   3) Identical productions have been merged into one; these are:
-      - SLPropositionSymbol, "true" and "false", that all result in a single <WORD> token.
-      - SLFunctionalTerm and "(" SLPredicateSymbol SL0Term* ")", that are exactly the same.
-
-   4) Due to the production merging of the previous point, the
-      SL0AtomicFormula production is no more needed, so it has been
-      removed; now there's a rule SL0Wff --> SL0FunctionalTerm. The
+   3) Due to the production merging of the previous point, the
+      AtomicFormula production is no more needed. 
+      The
       only difference with the original grammar is that here "result"
-      is no more a reserved word; the section B.2.5 states that "a
-      standard predicate 'result', of arity two, is introduced to the
-      language". This does not seem to forbid having other, user
-      defined, predicates named 'result' but with different
-      arity. This is indeed possible with the current grammar, but can
-      be troublesome with the standard one.
-
-   5) A special JavaCC feature, namely "semantic lookahead", has been
-      exploited to support key/value pairs for concept slots, but
-      simple argument lists for actions and predicates. An ontology
-      lookup is performed in order to distinguish among the two cases.
-
+      is no more a reserved word.
 */
 
 
@@ -239,101 +129,94 @@ PARSER_END(SL0Parser)
 * <code>request</code>, predicate for <code>inform</code>, etc.), any
 * allowed SL content expression can be parsed from here.
 */
-Frame SL0Content(Ontology o) :
+Vector SL0Content() :
 { 
   Frame result;
-  Token t;
+  Vector tuple = new Vector();
 }
 {
-  ( t = <WORD> { result = new Frame(t.image); } | <LBRACE> ( result = ActionExpression(o) | result = Wff(o) ) <RBRACE> )
-  { return result; }
+ <LBRACE> (result = ContentExpression() {tuple.add(result);})+ <RBRACE>
+ {return tuple;}
+}
+
+Frame ContentExpression() :
+{ 
+  Frame result;
+  String s;
+}
+{
+ ( s = String() {result = new Frame(s);} 
+   | <LBRACE> ( result = ActionExpression() | result = Wff() ) <RBRACE> 
+ )
+ { return result; }
 }
 
 
-Frame Wff(Ontology o):
+Frame Wff():
 {
   Frame result;
+  String s;
+  Object obj;
 }
 {
-  ( result = SL0ActionOp(o) | result = FunctionalTerm(o) )
-  { return result; }
+ s = String() {result = new Frame(s);} 
+  (obj = Term() {result.putSlot(obj);} )+
+ { return result; }
+}
+
+Object Term():
+{
+ Object obj;
+ Token  t;
+ String s;
+}
+{
+ ( obj = String() 
+ | obj = Number() 
+ | t = <DATETIME> { obj=new String(t.image);}
+ | <LBRACE> s=String() {obj = new Frame(s);}
+            (FunctionalTermParams((Frame)obj))? <RBRACE>
+ )
+  { return obj; }
 }
 
 
-Frame ActionExpression(Ontology o):
+Frame ActionExpression():
 {
   Frame result;
   Object agentID;
+  Object action;
 }
 {
-  <ACTION> agentID = AID(o) <LBRACE> result = FunctionalTerm(o) { result.putSlot(":actor", agentID); } <RBRACE>
-  { return result; }
+  <ACTION> agentID = Term() action = Term()
+  { result = new Frame(SL0Codec.NAME_OF_ACTION_FRAME);
+    result.putSlot(SL0Codec.NAME_OF_ACTOR_SLOT, agentID); 
+    result.putSlot(SL0Codec.NAME_OF_ACTION_SLOT, action);
+    return result; }
 }
 
 
-Frame SL0ActionOp(Ontology o):
+void FunctionalTermParams(Frame result):
 {
-  Frame result;
-  Frame action;
-}
-{
-  <DONE> <LBRACE> action = ActionExpression(o) { result = new Frame("Done"); result.putSlot(action); } <RBRACE>
-  { return result; }
-}
-
-Frame FunctionalTerm(Ontology o):
-{
-  Frame result;
-  Token t;
+  Object obj;
 }
 {
-  t = <WORD> { result = new Frame(t.image); } // The function name becomes the frame name
-(
-  LOOKAHEAD({ isConcept(o, t.image)   }) Concept(o, result) // if it's a Concept, fill the Frame with key/value pairs
-
-| LOOKAHEAD({ isAction(o, t.image)    }) Action(o, result)  // if it's an Action, fill the Frame with unnamed arguments
-
-| LOOKAHEAD({ isPredicate(o, t.image) }) Predicate(o, result) // if it's a Predicate, fill the Frame with unnamed terms
-
-| { throw new ParseException("Ontological inconsistency: '" + t.image + "' must be a Concept, an Action or a Predicate"); }
-)
-  { return result; }
+    (obj=Term() {result.putSlot(obj);})+
+  | (Parameter(result))+
 }
 
-void Concept(Ontology o, Frame result):
+/**
+Notice that this production, as a side effect, also adds a slot to result
+**/
+void Parameter(Frame result):
 {
   Token name;
   Object value;
 }
 {
-  ( <LBRACE> name = <WORD> value = SL0Term(o) <RBRACE> { result.putSlot(name.image, value); } )+ // At least one slot
+  name = <PARAMETERNAME> value = Term() 
+  { result.putSlot(name.image, value); }
 }
-
-void Action(Ontology o, Frame result):
-{
-  Object arg;
-}
-{
-  ( arg = SL0Term(o) { result.putSlot(arg); } )* // Zero or more arguments
-}
-
-void Predicate(Ontology o, Frame result):
-{
-  Object arg;
-}
-{
-  ( arg = SL0Term(o) { result.putSlot(arg); } )* // Zero or more terms
-}
-
-Object SL0Term(Ontology o) :
-{
-  Object result;
-}
-{
-  ( result = String() | result = Number() | <LBRACE> result = FunctionalTerm(o) <RBRACE> )
-  { return result; }
-}
-
 
 /**
 * <p> <code> String = WORD | STRING_LITERAL  </code>
@@ -345,35 +228,13 @@ String String() :
 | t=<STRING_LITERAL>	{return t.image;}
 }
 
-/*
-* AID. 
-*/
-Object AID(Ontology o) :
-{String s; }
-{ 
-  s = String() { return s; } // FIPA97 agent name
-}
-
-
-/*
-* <code> ACLCommunicativeActWithoutBraces = String ( String SL0Term )* </code>
-*/
-
-/*
-void ACLCommunicativeActWithoutBraces(Ontology o) :
-{String s; }
-{
- s=String() (String() SL0Term(o))*
- {if (jade.lang.acl.ACLMessage.getPerformative(s)==jade.lang.acl.ACLMessage.UNKNOWN) throw new ParseException(s+" is not a performative symbol"); } 	
-}
-*/
-
 Object Number():
 { 
   Token t;
 }
 { 
   t = <INTEGER> { return new Long(t.image); }
+| t = <HEXINTEGER> { return new String(t.image); } 
 | t = <FLOATONE> { return new Double(t.image); }
 | t = <FLOATTWO> { return new Double(t.image); }
 }
@@ -401,13 +262,14 @@ TOKEN:
   < LBRACE     : "("       > 
 | < RBRACE     : ")"       >
 | < ACTION     : "action"  >
-| < DONE: "done">
-| < INTEGER :       (["+","-"])? (["0"-"9"])+ >
+| < INTEGER    : (["+","-"])? (["0"-"9"])+ >
+| < HEXINTEGER : (["+","-"])? "0" ["x","X"] (["0"-"9" , "a"-"f" , "A"-"F"])+ >
 | < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
                     (["e","E"] (["-","+"])? (["0"-"9"])+)? >
 | < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
-| < WORD: (~["\u0000"-"\u001F"," ","(",")","\""]) (~["\u0000"-"\u001F"," ","(",")"])* >
-|  < STRING_LITERAL:
+| < WORD: (~["\u0000"-"\u001F"," ","(",")","\"","#","0"-"9",":","-","?"]) 
+          (~["\u0000"-"\u001F"," ","(",")"])* >
+| < STRING_LITERAL:
       "\""
       (   (~["\"","\\","\n","\r"])
         | ("\\"
@@ -419,6 +281,11 @@ TOKEN:
       )*
       "\""
   >
+| < PARAMETERNAME : ":"<WORD> | ":"<STRING_LITERAL> >
+| < DATETIME :  (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["a"-"z","A"-"Z"])? > 
 }	
 
 

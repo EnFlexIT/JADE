@@ -25,6 +25,7 @@ package jade.lang;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
+import java.util.Vector;
 
 /**
    Interface for Content Language encoders/decoders. This interface
@@ -70,8 +71,8 @@ public interface Codec {
   }
 
   /**
-     Encodes a <code>Frame</code> object into a Jave
-     <code>String</code>, according to this Content Language and
+     Encodes a t-uple of <code>Frame</code> objects into a Java
+     <code>String</code>, according to this Content Language and Ontology by
      looking up the given ontology for the role played by symbols
      (i.e. whether they are concepts, actions or predicates).
      @param f The frame to encode.
@@ -80,20 +81,20 @@ public interface Codec {
      @return A Java string, representing the given frame according to
      this content language.
    */
-  String encode(Frame f, Ontology o);
+  String encode(Vector v, Ontology o);
 
   /**
      Decodes a given <code>String</code>, according to the given
-     Content Language and obtains a <code>Frame</code> object. This
-     method uses the given ontology to distinguish among the different
+     Content Language and obtains a t-uple of <code>Frame</code> objects.
+     This method can use the given ontology to distinguish among the different
      kinds of roles a symbol can play (i.e. Concept vs. Action
      vs. Predicate).
      @param s A string containing the representation of an ontological
      element, encoded according to this content language.
      @param o The ontology to use to lookup the roles for the various
      symbols.
-     @return A frame, representing the given ontological element.
+     @return A vector of frame, representing the given ontological elements.
   */
-  Frame decode(String s, Ontology o) throws CodecException;
+  Vector decode(String s, Ontology o) throws CodecException;
 
 }

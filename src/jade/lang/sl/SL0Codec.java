@@ -29,6 +29,9 @@ import jade.lang.Codec;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
+import jade.onto.DefaultOntology;
+
+import java.util.Vector;
 
 /**
 
@@ -46,6 +49,12 @@ import jade.onto.Ontology;
   respectively, <code>Ontology.LONG_TYPE</code> and 
   <code>Ontology.DOUBLE_TYPE</code>, otherwise you get an 
   <code>IllegalArgumentException</code>.
+  <p>
+  Notice also that the following convention is needed for all the frames representing actions:
+  the name of the frame must be <code>NAME_OF_ACTION_FRAME</code>,
+  and the name of the two slots representing actor and the action term
+  must be, respectively, <code>NAME_OF_ACTOR_SLOT</code> and 
+  <code>NAME_OF_ACTION_SLOT</code>.
 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
@@ -56,18 +65,28 @@ public class SL0Codec implements Codec {
   /**
    A symbolic constant, containing the name of this language.
    */
-  public static final String NAME = "SL0";
+  public static final String NAME = "FIPA-SL0";
+
+  /** Symbolic constant identifying a frame representing an action **/ 
+  public static String NAME_OF_ACTION_FRAME = DefaultOntology.NAME_OF_ACTION_FRAME;
+  /** Symbolic constant identifying a slot representing an actor **/ 
+  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
+  /** Symbolic constant identifying a slot representing an action **/ 
+  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
 
   private SL0Parser parser = new SL0Parser(new StringReader(""));
   private SL0Encoder encoder = new SL0Encoder();
 
-  public String encode(Frame f, Ontology o) {
-    return encoder.encode(f, o);
+  public String encode(Vector v, Ontology o) {
+    StringBuffer s = new StringBuffer("(");
+    for (int i=0; i<v.size(); i++)
+      s.append(encoder.encode((Frame)v.elementAt(i))+" ");
+   return s.append(")").toString();
   }
 
-  public Frame decode(String s, Ontology o) throws Codec.CodecException {
+  public Vector decode(String s, Ontology o) throws Codec.CodecException {
     try {
-     return parser.parse(s, o);
+     return parser.parse(s);
     }
     catch(ParseException pe) {
       throw new Codec.CodecException("Parse exception", pe);

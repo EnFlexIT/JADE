@@ -27,10 +27,10 @@ import java.io.Writer;
 import java.io.StringWriter;
 import java.io.IOException;
 
+import java.util.*;
+
 import jade.onto.Frame;
-import jade.onto.Ontology;
 import jade.onto.OntologyException;
-import jade.onto.TermDescriptor;
 
 /**
   
@@ -39,93 +39,53 @@ import jade.onto.TermDescriptor;
  */
 class SL0Encoder {
 
-  public String encode(Frame f, Ontology o) {
-
+  public String encode(Frame f) {
     StringWriter out = new StringWriter();
-
     try {
-      writeFrame(f, o, out);
+      if (f.size()<=0) //if is a PropositionSymbol,then just write the symbol
+	out.write(f.getName());
+      else // else write the frame
+	writeFrame(f, out);
       out.flush();
-    }
-    catch(OntologyException oe) {
-      oe.printStackTrace();
     }
     catch(IOException ioe) {
       ioe.printStackTrace();
     }
-
+    catch(OntologyException oe) {
+      oe.printStackTrace();
+    }
     return out.toString();
   }
 
-  private void writeFrame(Frame f, Ontology o, Writer w) throws OntologyException, IOException {
 
-    String name = f.getName();
-    TermDescriptor[] terms = o.getTerms(name);
-
-    if(o.isConcept(name))
-      writeConcept(name, f, o, terms, w);
-    if(o.isAction(name))
-      writeAction(name, f, o, terms, w);
-    if(o.isPredicate(name))
-      writePredicate(name, f, o, terms, w);
-  }
-
-  private void writeConcept(String name, Frame f, Ontology o, TermDescriptor[] terms, Writer w) throws OntologyException, IOException {
-    w.write("( " + name + " ");
-    for(int i = 0; i < terms.length; i++) {
-      TermDescriptor current = terms[i];
-      String slotName = current.getName();
-      Object slotValue = f.getSlot(slotName);
-      w.write("( ");
-      w.write(slotName + " ");
-      if(current.isComplex()) {
-	Frame complexSlot = (Frame)slotValue;
-	writeFrame(complexSlot, o, w);
+  private void writeFrame(Frame f, Writer w) throws IOException, OntologyException {
+      w.write("(" + f.getName() + " ");
+      for (int i=0; i<f.size(); i++ ) {
+	String slotName = f.getSlotName(i); 
+	Object slotValue = f.getSlot(i);
+	if (!slotName.startsWith(Frame.UNNAMEDPREFIX)) {
+	  // if the slotName does not start with ':' then add ':'
+	  if (!slotName.startsWith(":"))
+	    w.write(":");
+	  // if the slotName is a String of words then quote it
+	  if (slotName.indexOf(" ")>-1) 
+	    w.write("\""+slotName+"\"");
+	  else
+	    w.write(slotName);
+	  w.write(" ");
+	}
+	if (isFrame(slotValue))
+	  writeFrame((Frame)slotValue, w);
+	else
+	  w.write(slotValue.toString());
 	w.write(" ");
       }
-      else {
-	w.write(slotValue + " ");
-      }
-      w.write(" )");
-    }
-    w.write(" )");
+      w.write(")");
   }
 
-  private void writeAction(String name, Frame f, Ontology o, TermDescriptor[] terms, Writer w) throws OntologyException, IOException {
-    String actor = (String)f.getSlot(":actor");
-    w.write("( action " + actor + " ");
-    w.write("( " + name + " ");
-   
-    for(int i = 0; i < terms.length - 1; i++) {  
-      TermDescriptor current = terms[i];
-      Object slotValue = f.getSlot(i);
-      if(current.isComplex()) {
-	Frame complexSlot = (Frame)slotValue;
-	writeFrame(complexSlot, o, w);
-	w.write(" ");
-      }
-      else {
-	w.write(slotValue + " ");
-      }
-    }
-    w.write(" ) )");
-  }
 
-  private void writePredicate(String name, Frame f, Ontology o, TermDescriptor[] terms, Writer w) throws OntologyException, IOException {
-    w.write("( " + name + " ");
-    for(int i = 0; i < terms.length; i++) {
-      TermDescriptor current = terms[i];
-      Object slotValue = f.getSlot(i);
-      if(current.isComplex()) {
-	Frame complexSlot = (Frame)slotValue;
-	writeFrame(complexSlot, o, w);
-	w.write(" ");
-      }
-      else {
-	w.write(slotValue + " ");
-      }
-    }
-    w.write(" )");
-  }
-
+  //FIXME. There should be a better way to check if f is a Frame
+   private boolean isFrame(Object f) {
+     return (f.getClass().getName() == (new Frame("")).getClass().getName());
+   }
 }
