@@ -545,11 +545,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
         try {
           if (closeConnection) {
             // Close connection
-
-		        if (!addr.equals(host)) {
 	          	if(myLogger.isLoggable(Logger.INFO))
 	          		myLogger.log(Logger.INFO,"Closing connection with "+addr+":"+port);
-		        }
 
           	c.close();
           } 
