@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.19  1999/06/04 07:41:05  rimassa
+  Removed any direct relation with AgentContainer and AgentPLatform
+  classes. Now class jade.core.Starter is used instead.
+
   Revision 1.18  1999/05/20 15:41:41  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -56,19 +60,10 @@
 package jade;
 
 
-import java.rmi.*;
-import java.rmi.registry.*;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.util.Vector;
-
-
-import jade.core.AgentContainer;
-import jade.core.AgentContainerImpl;
-import jade.core.AgentPlatform;
-import jade.core.AgentPlatformImpl;
 
 /**
    Boots <B><em>JADE</em></b> system, parsing command line arguments.
@@ -83,16 +78,10 @@ public class Boot {
   // This separates agent name from agent class on the command line
   private static final String SEPARATOR = ":";
 
-  // The singleton Agent Container
-  private static AgentContainerImpl theContainer;
-
   // Private constructor to forbid instantiation
   private Boot() {
   }
 
-  public static AgentContainerImpl getContainer() {
-    return theContainer;
-  }
 
   /**
    * Fires up <b><em>JADE</em></b> system.
@@ -213,43 +202,21 @@ public class Boot {
       System.exit(1);
     }
 
-    try{
-
-      // If '-gui' option is given, add 'RMA:jade.domain.rma' to
-      // startup agents, making sure that the RMA starts before all
-      // other agents.
-      if(hasGUI) {
-	agents.insertElementAt(new String("RMA"), 0);
-	agents.insertElementAt(new String("jade.tools.rma.rma"), 1);
-      }
+    // If '-gui' option is given, add 'RMA:jade.domain.rma' to
+    // startup agents, making sure that the RMA starts before all
+    // other agents.
+    if(hasGUI) {
+      agents.insertElementAt(new String("RMA"), 0);
+      agents.insertElementAt(new String("jade.tools.rma.rma"), 1);
+    }
 
     // Build the complete URL of the agent platform from default
     // values and command line options, for use with RMI calls.
     String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
 
-      if(isPlatform) {
-	theContainer = new AgentPlatformImpl(args);
-
-	// Create an embedded RMI Registry within the platform and
-	// bind the Agent Platform to it
-	int port = Integer.parseInt(platformPort);
-	Registry theRegistry = LocateRegistry.createRegistry(port);
-	Naming.bind(platformRMI, theContainer);
-
-      }
-      else {
-	theContainer = new AgentContainerImpl(args);
-      }
-      theContainer.joinPlatform(platformRMI, agents);
-    }
-    catch(RemoteException re) {
-      System.err.println("Communication failure while starting Agent Container.");
-      re.printStackTrace();
-    }
-    catch(Exception e) {
-      System.err.println("Some other error while starting Agent Container");
-      e.printStackTrace();
-    }
+    // Start a new JADE runtime system, passing along suitable
+    // information axtracted from command line arguments.
+    jade.core.Starter.startUp(isPlatform, platformRMI, agents, args);
 
   }
 
