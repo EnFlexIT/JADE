@@ -348,14 +348,21 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          }
 
 					  // Get mediator ID from the passed properties (if present)
-					  String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+	          String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
+	          String msisdn = p.getProperty(PDPContextManager.MSISDN);
 					  if(id != null) {
-					  	// An existing front-end whose back-end was lost 
+					  	if (msisdn != null && !msisdn.equals(id)) {
+					  		// Security attack: Someone is pretending to be someone other
+	          		myLogger.log("CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr, 1);
+	          		reply = new JICPPacket("Not authorized", null);
+	          		break;
+					  	}	
+					  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
 					  	p.setProperty(jade.core.BackEndContainer.RESYNCH, "true");
 					  }
 					  else {
 					  	// Use the MSISDN (if present) 
-					  	id = p.getProperty(PDPContextManager.MSISDN);
+					  	id = msisdn;
 					  	if (id == null) {
 					      // Construct a default id using the string representation of the server's TCP endpoint
 					      id = "BE-"+localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
