@@ -43,8 +43,8 @@ public class TwoPhInitiator extends FSMBehaviour {
     private static final String DUMMY_FINAL = "Dummy-final";
     private static final String TEMP = "__temp";
 
-    private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
-    private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+    private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
+    private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
 
     /**
      * Constructs a <code>TwoPhInitiator</code> behaviour.
