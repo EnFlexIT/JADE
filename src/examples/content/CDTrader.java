@@ -36,41 +36,71 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
-import jade.content.acl.*;
+//import jade.content.acl.*;
 import jade.content.lang.*;
 import jade.content.lang.leap.*;
 
-import examples.content.musicOntology.*;
+import examples.content.musicShopOntology.*;
 import examples.content.ecommerceOntology.*;
 
-public class CDOwner extends Agent {
-    // We handle contents
+import java.util.Date;
+
+public class CDTrader extends Agent {
     private ContentManager manager  = (ContentManager)getContentManager();
-    // This agent speaks a language called "LEAP"
+    // This agent by default speaks a language called "LEAP"
     private Codec          codec    = new LEAPCodec();
-    // This agent complies with the People ontology
-    private Ontology   ontology = MusicOntology.getInstance();
+    // This agent complies with the MusicShop ontology
+    private Ontology   ontology = MusicShopOntology.getInstance();
 
     protected void setup() {
+    	// Get the codec for the language to speack (use LEAP codec by default)
+    	Object[] args = getArguments();
+    	if (args != null && args.length > 0) {
+    		String codecClassName = (String) args[0];
+    		try {
+    			codec = (Codec) Class.forName(codecClassName).newInstance();
+    		}
+    		catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    	System.out.println("Conversation based on the "+codec.getName()+" language\n");
 			manager.registerLanguage(codec);
 			manager.registerOntology(ontology);
 	
-			addBehaviour(new InformManager(this));      
-			addBehaviour(new QueryManager(this));      
-			addBehaviour(new RequestManager(this)); 
+			// BUYER PART
+			addBehaviour(new HandleInformBehaviour(this));
+			
+			// SELLER PART
+			addBehaviour(new HandleQueryBehaviour(this));      
+			addBehaviour(new HandleRequestBehaviour(this)); 
+			
+			/*AbsAgentAction aaa = new AbsAgentAction("TEST");
+			aaa.set("a1", (AbsTerm) new AbsAgentAction("TOST"));
+			try {
+			Ontology.setAttribute(aaa, "a2", new AbsIRE("IOTA"));
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println(aaa);
+			*/
+			
 			
 			CD myCd = new CD();
 			myCd.setSerialID(11111);
 			myCd.setTitle("Synchronicity");
 			List tracks = new ArrayList();
-			Track t1 = new Track();
-			t1.setName("Every breath you take");
-			tracks.add(t1);
-			Track t2 = new Track();
-			t2.setName("King-of-pain");
-			//t2.setDuration(new Integer(240000));
-			t2.setDuration(240000);
-			tracks.add(t2);
+			Track t = new Track();
+			t.setName("Synchronicity");
+			tracks.add(t);
+			t = new Track();
+			t.setName("Every breath you take");
+			tracks.add(t);
+			t = new Track();
+			t.setName("King of pain");
+			t.setDuration(240);
+			tracks.add(t);
 			
 			/*CD cd = new CD();
 			cd.setTitle("Pippo");
@@ -79,21 +109,25 @@ public class CDOwner extends Agent {
 			*/
 			myCd.setTracks(tracks);
 					
-			addBehaviour(new ItemInformSender(this, myCd));      
+			addBehaviour(new InformOwnsBehaviour(this, myCd));      
+    }
+    
+    protected void takeDown() {
+    	System.out.println(getName()+" exiting ...");
     }
     
     // SELLER informs BUYER that he owns a given Item
-    class ItemInformSender extends OneShotBehaviour {
+    class InformOwnsBehaviour extends OneShotBehaviour {
 			private Item it;
 			
-			public ItemInformSender(Agent a, Item it) { 
+			public InformOwnsBehaviour(Agent a, Item it) { 
 				super(a); 
 				this.it = it;
 			}
 	
 			public void action() {
 	    	try {
-					System.out.println(getLocalName()+": Send INFORM");
+					System.out.println("\nSELLER: Inform BUYER that I own "+it);
 
 					// Prepare the message
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -120,16 +154,18 @@ public class CDOwner extends Agent {
     }
      
     // BUYER handles informations received from the SELLER
-    class InformManager extends CyclicBehaviour {
+    class HandleInformBehaviour extends CyclicBehaviour {
     	
-			public InformManager(Agent a) { 
+			public HandleInformBehaviour(Agent a) { 
 				super(a); 
 			}
 	
 			public void action() {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 				if (msg != null) {
-					System.out.println(getLocalName()+": INFORM received");
+					System.out.println("\nBUYER: Information received from SELLER");
+					// DEBUG
+					//System.out.println(msg);
 	    		try {
 						ContentElement ce = manager.extractContent(msg);
 						if (ce instanceof Owns) {
@@ -137,10 +173,9 @@ public class CDOwner extends Agent {
 							AID owner = owns.getOwner();
 							System.out.println("Owner is: "+owner);
 							Item it = owns.getItem();
-							System.out.println("Item is:");
-							System.out.println(it);
+							System.out.println("Item is: "+it);
 							
-	    				addBehaviour(new QuerySender(myAgent, it));
+	    				addBehaviour(new QueryPriceBehaviour(myAgent, it));
 	    			}
 	    			else if (ce instanceof Costs) {
 	    				Costs c = (Costs) ce;
@@ -148,9 +183,23 @@ public class CDOwner extends Agent {
 	    				Price p = c.getPrice();
 	    				System.out.println("Item ");
 	    				System.out.println(it);
-	    				System.out.println("costs "+p.getValue());
+	    				System.out.println("costs "+p);
 	    				
-							addBehaviour(new RequestSender(myAgent, it));
+							addBehaviour(new RequestSellBehaviour(myAgent, it));
+	    			}
+	    			else if (ce instanceof Done) {
+	    				Done d = (Done) ce;
+	    				AgentAction aa = (AgentAction) d.getAction();
+	    				Sell s = null;
+	    				if (aa instanceof Sell) {
+	    					s = (Sell) aa;
+	    				}
+	    				else {
+	    					Action a = (Action) aa;
+	    					s = (Sell) a.getAction();
+	    				}
+							System.out.println("OK! Now I own Item "+s.getItem());
+							myAgent.doDelete();
 	    			}
 	    			else {
 	    				System.out.println("Unknown predicate "+ce.getClass().getName());
@@ -160,14 +209,15 @@ public class CDOwner extends Agent {
 	    			try {
 							AbsContentElement ce = manager.extractAbsContent(msg);
 							if (ce.getTypeName().equals(BasicOntology.EQUALS)) {
-								AbsConcept price = (AbsConcept) ce.getAbsObject(BasicOntology.EQUALS_RIGHT);
-								System.out.println("Price is "+price.getInteger(ECommerceOntology.PRICE_VALUE));
+								AbsConcept p = (AbsConcept) ce.getAbsObject(BasicOntology.EQUALS_RIGHT);
+								Price price = (Price) MusicShopOntology.getInstance().toObject(p);
+								System.out.println("Price is "+price);
 								
 								AbsIRE iota = (AbsIRE) ce.getAbsObject(BasicOntology.EQUALS_LEFT);
-								AbsProposition costs = iota.getProposition();
+								AbsPredicate costs = iota.getProposition();
 								AbsConcept i = (AbsConcept) costs.getAbsObject(ECommerceOntology.COSTS_ITEM);
-								Item item = (Item) MusicOntology.getInstance().toObject(i);
-								addBehaviour(new RequestSender(myAgent, item));
+								Item item = (Item) MusicShopOntology.getInstance().toObject(i);
+								addBehaviour(new RequestSellBehaviour(myAgent, item));
 							}
 							else {
 								System.out.println("Unknown predicate "+ce.getTypeName());
@@ -189,17 +239,17 @@ public class CDOwner extends Agent {
     }
     
     // BUYER queries the SELLER how much a given item costs 
-    class QuerySender extends OneShotBehaviour {
+    class QueryPriceBehaviour extends OneShotBehaviour {
 			Item it;
 			
-			public QuerySender(Agent a, Item it) { 
+			public QueryPriceBehaviour(Agent a, Item it) { 
 				super(a);
 				this.it = it;
 			}
 	
 			public void action() {
 	    	try {
-					System.out.println(getLocalName()+": Send QUERY_REF");
+					System.out.println("\nBUYER: Query price of "+it);
 
 					// Prepare the message
 					ACLMessage msg = new ACLMessage(ACLMessage.QUERY_REF);
@@ -211,7 +261,7 @@ public class CDOwner extends Agent {
 					msg.setOntology(ontology.getName());
 
 					// Fill the content
-					Ontology onto = MusicOntology.getInstance();
+					Ontology onto = MusicShopOntology.getInstance();
 					AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
 					
 					AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
@@ -234,9 +284,9 @@ public class CDOwner extends Agent {
     }
      
     // SELLER handles queries received from BUYER
-    class QueryManager extends CyclicBehaviour {
+    class HandleQueryBehaviour extends CyclicBehaviour {
     	
-			public QueryManager(Agent a) { 
+			public HandleQueryBehaviour(Agent a) { 
 				super(a); 
 			}
 	
@@ -244,8 +294,8 @@ public class CDOwner extends Agent {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.QUERY_REF));
 				if (msg != null) {
 	    		try {
-						System.out.println(getLocalName()+": QUERY_REF received");
-						// The content of a QUERY_REF is definitely an abstract descriptor
+						System.out.println("\nSELLER: Received query from BUYER");
+						// The content of a QUERY_REF is certainly an abstract descriptor
 						// representing an IRE
 						AbsIRE ire = (AbsIRE) manager.extractAbsContent(msg);
 						if (ire.getTypeName().equals(LEAPCodec.IOTA)) {
@@ -253,9 +303,9 @@ public class CDOwner extends Agent {
 							if (p.getTypeName().equals(ECommerceOntology.COSTS) &&
 								  p.getAbsTerm(ECommerceOntology.COSTS_PRICE) instanceof AbsVariable) { 
 	    					AbsConcept absItem = (AbsConcept) p.getAbsTerm(ECommerceOntology.COSTS_ITEM);
-	    					Item it = (Item) MusicOntology.getInstance().toObject(absItem);
+	    					Item it = (Item) MusicShopOntology.getInstance().toObject(absItem);
 	    					
-								addBehaviour(new PriceInformSender(myAgent, it));
+								addBehaviour(new InformCostsBehaviour(myAgent, it));
 							}
 							else {
 								System.out.println("Can't answer to query!!");
@@ -277,17 +327,17 @@ public class CDOwner extends Agent {
     }
     
     // SELLER informs BUYER about the cost of a given Item
-    class PriceInformSender extends OneShotBehaviour {
+    class InformCostsBehaviour extends OneShotBehaviour {
 			private Item it;
 			
-			public PriceInformSender(Agent a, Item it) { 
+			public InformCostsBehaviour(Agent a, Item it) { 
 				super(a); 
 				this.it = it;
 			}
 	
 			public void action() {
 	    	try {
-					System.out.println(getLocalName()+": Send INFORM");
+					System.out.println("\nSELLER: Inform Buyer about price of item "+it);
 
 					// Prepare the message
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -299,12 +349,7 @@ public class CDOwner extends Agent {
 					msg.setOntology(ontology.getName());
 
 					// Fill the content
-					/*Costs costs = new Costs();
-					costs.setItem(it);
-					costs.setPrice(new Price(new Integer(40000)));
-					
-					manager.fillContent(msg, costs);*/
-					Ontology onto = MusicOntology.getInstance();
+					Ontology onto = MusicShopOntology.getInstance();
 					AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
 					
 					AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
@@ -317,8 +362,7 @@ public class CDOwner extends Agent {
 					
 					AbsPredicate equals = new AbsPredicate(BasicOntology.EQUALS);
 					equals.set(BasicOntology.EQUALS_LEFT, iota);
-					AbsConcept price = new AbsConcept(ECommerceOntology.PRICE);
-					price.set(ECommerceOntology.PRICE_VALUE, 40000);
+					AbsConcept price = (AbsConcept) onto.fromObject(new Price(20.5F, "EURO"));
 					equals.set(BasicOntology.EQUALS_RIGHT, price);
 					
 					manager.fillContent(msg, equals);
@@ -332,18 +376,18 @@ public class CDOwner extends Agent {
     }
      
     // BUYER requests SELLER to sell a given Item
-    class RequestSender extends OneShotBehaviour {
+    class RequestSellBehaviour extends OneShotBehaviour {
 	
-    	private Item item = null;
+    	private Item it = null;
     	
-			public RequestSender(Agent a, Item item) { 
+			public RequestSellBehaviour(Agent a, Item it) { 
 				super(a);
-				this.item = item;
+				this.it = it;
 			}
 	
 			public void action() {
 	    	try {
-					System.out.println(getLocalName()+": Send REQUEST");
+					System.out.println("\nBUYER: Request seller to sell item "+it);
 
 					// Prepare the message
 					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
@@ -357,12 +401,18 @@ public class CDOwner extends Agent {
 					// Fill the content
 					Sell sell = new Sell();
 					sell.setBuyer(getAID());
-					sell.setItem(item);
-					sell.setCardNumber("3475660018");
+					sell.setItem(it);
+					sell.setCreditCard(new CreditCard("VISA", 3378892003L, new Date()));
 					
-					manager.fillContent(msg, sell);
+					// Some CLs (e.g. SL) require actions to be included into the
+					// ACTION construct --> Enable the following 2 lines when using such a CL 
+					Action a = new Action(getAID(), sell);
+					manager.fillContent(msg, a);
+					// Other CLs (e.g. LEAP) allows putting actions directly in the 
+					// content --> Enable the following line when using such a CL
+					//manager.fillContent(msg, sell);
+					
 					send(msg);
-					
 	    	} 
 	    	catch(Exception e) { 
 	    		e.printStackTrace(); 
@@ -372,9 +422,9 @@ public class CDOwner extends Agent {
     }
     
     // SELLER handles requests from BUYER
-    class RequestManager extends CyclicBehaviour {
+    class HandleRequestBehaviour extends CyclicBehaviour {
     	
-			public RequestManager(Agent a) { 
+			public HandleRequestBehaviour(Agent a) { 
 				super(a); 
 			}
 	
@@ -382,20 +432,29 @@ public class CDOwner extends Agent {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 				if (msg != null) {
 	    		try {
-						System.out.println(getLocalName()+": REQUEST received");
+						System.out.println("\nSELLER: Received request from BUYER");
 						ContentElement ce = manager.extractContent(msg);
+						Sell sell = null;
+						AgentAction toNotify = null;
 						if (ce instanceof Sell) {
-							Sell sell = (Sell) ce;
-							System.out.println("Buyer is:");
-							System.out.println(sell.getBuyer());
-							System.out.println("Item is:");
-							System.out.println(sell.getItem());
-							System.out.println("Card number is:");
-							System.out.println(sell.getCardNumber());
-	    			}
+							sell = (Sell) ce;
+							toNotify = sell;
+						}
+						else if (ce instanceof Action) {
+							Action a = (Action) ce;
+							sell = (Sell) a.getAction();
+							toNotify = a;
+						}
 	    			else {
 	    				System.out.println("Unknown action");
+	    				return;
 	    			}
+	    			
+						System.out.println("Buyer is: "+sell.getBuyer());
+						System.out.println("Item is: "+sell.getItem());
+						System.out.println("Credit Card is: "+sell.getCreditCard());
+							
+						addBehaviour(new InformDoneBehaviour(myAgent, toNotify));
 	    		}
 	    		catch(Exception e) { 
 	    			e.printStackTrace(); 
@@ -407,4 +466,38 @@ public class CDOwner extends Agent {
 			}
     }
         	
+    // SELLER informs BUYER that a given action has been completed
+    class InformDoneBehaviour extends OneShotBehaviour {
+			private AgentAction act;
+			
+			public InformDoneBehaviour(Agent a, AgentAction act) { 
+				super(a); 
+				this.act = act;
+			}
+	
+			public void action() {
+	    	try {
+					System.out.println("\nSELLER: Inform Buyer that the requested operation has been completed");
+
+					// Prepare the message
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					AID receiver = getAID(); // Send the message to myself
+			       				
+					msg.setSender(getAID());
+					msg.addReceiver(receiver);
+					msg.setLanguage(codec.getName());
+					msg.setOntology(ontology.getName());
+
+					// Fill the content
+					Done d = new Done(act);
+					manager.fillContent(msg, d);
+					send(msg);
+	    	} 
+	    	catch(Exception e) { 
+	    		e.printStackTrace(); 
+	    	}
+
+			}
+    }
+     
 }
