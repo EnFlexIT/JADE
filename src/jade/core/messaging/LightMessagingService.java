@@ -425,12 +425,12 @@ public class LightMessagingService extends BaseService implements MessageManager
 			System.out.println("Bad address [" + address + "]: trying the next one...");
 		    }
 		}
-		notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
+		notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()), false);
 	    }
 	}
 	catch(NotFoundException nfe) {
 	    // The receiver does not exist --> Send a FAILURE message
-	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()), false);
 	}
     }
 
@@ -451,7 +451,7 @@ public class LightMessagingService extends BaseService implements MessageManager
      * the Message Transport Service.
      * Package scoped as it can be called by the MessageManager
      */
-    public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
+    public void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie, boolean force) {
 
 	//if (the sender is not the AMS and the performative is not FAILURE)
 	if ( (msg.getSender()==null) || ((msg.getSender().equals(myContainer.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
@@ -551,7 +551,7 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    }
 	    catch (AuthException ae) {
 		lastException = ae;
-		notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()));
+		notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
 	    }
 	}
 
