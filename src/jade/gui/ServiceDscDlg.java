@@ -40,14 +40,35 @@ import jade.domain.FIPAAgentManagement.Property;
 @version $Date$ $Revision$
 */
 
-class ServiceDscDlg extends JDialog 
+public class ServiceDscDlg extends JDialog 
 {
+	/**
+  @serial
+	*/
 	JTextField txtName,txtType,txtOwner;
+	/**
+  @serial
+	*/
 	VisualStringList ontologiesListPanel,protocolsListPanel,languagesListPanel;
+	/**
+  @serial
+	*/
 	VisualPropertiesList propertiesListPanel;
+	/**
+  @serial
+	*/
 	ServiceDescription serviceDesc;
+	/**
+  @serial
+	*/
 	ServiceDescription out;
+	/**
+  @serial
+	*/
 	boolean editable;
+	/**
+  @serial
+	*/
 	boolean checkSlots;
 	
 	// CONSTRUCTORS
@@ -288,7 +309,7 @@ class ServiceDscDlg extends JDialog
 			
 	}
 
-	/*
+	/**
 	Return the string relative to service description fields if not empty, null otherwise
 	*/
 	private String getSaveText(JTextField field){

@@ -46,13 +46,26 @@ This class provide the help for the GUI of the DF
  */
 
 public class TreeHelp extends JDialog {
-    private JEditorPane htmlPane;
     
+	  /**
+    @serial
+	  */
+	  private JEditorPane htmlPane;
+    
+	  /**
+    @serial
+	  */
     private URL helpURL;
 
     //Optionally play with line styles.  Possible values are
     //"Angled", "Horizontal", and "None" (the default).
+    /**
+    @serial
+	  */
     private boolean playWithLineStyle = false;
+    /**
+    @serial
+	  */
     private String lineStyle = "Angled"; 
 
     public TreeHelp(String title, String url) {

@@ -39,7 +39,7 @@ import jade.domain.FIPAAgentManagement.*;
 
 /**
  This class provide a gui to show an AID of an agent.
- @see jade.domain.core.AID
+ @see jade.core.AID
  @author Tiziana Trucco - CSELT S.p.A.
  @version $Date$ $Revision$
  

@@ -85,6 +85,9 @@ import jade.domain.FIPAException;
 public class Agent implements Runnable, Serializable {
 
   private final static short UNPROTECTMYPOINTER = 0;
+  /**
+  @serial
+  */
   private SecurityManager mySecurityManager; // private pointer 
   //FIXME So far the SecurityManager is private, but it should become protected
   /** This private inner class stores all the permissions for this

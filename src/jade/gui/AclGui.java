@@ -206,7 +206,9 @@ public class AclGui extends JPanel
 	@serial
 	*/
   private Date    dateDate;
-
+  /**
+  @serial
+	*/
   private Date    dateRecDate;
 	// Data for panel layout definition
 	/**

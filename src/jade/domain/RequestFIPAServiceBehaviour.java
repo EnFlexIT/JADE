@@ -78,9 +78,19 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
 
+  /**
+  @serial
+	*/
   private ACLMessage lastMsg;
+  /**
+  @serial
+	*/
   private boolean notYetReady;
+  /**
+  @serial
+	*/
   private Codec c; 
+  
   private static Ontology o = FIPAAgentManagementOntology.instance();
 
     /**
@@ -207,6 +217,9 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 
     // This exception object records last outcome. When it is
     // 'null', all went OK.
+    /**
+    @serial
+	  */
     private FIPAException outcome = null;
 
   /**
@@ -248,4 +261,3 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   }
     
 }
-
