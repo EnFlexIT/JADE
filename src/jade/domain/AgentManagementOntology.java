@@ -29,6 +29,8 @@ import java.io.Serializable;
 import java.io.Reader;
 import java.io.Writer;
 
+import java.net.InetAddress;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
@@ -881,7 +883,7 @@ public class AgentManagementOntology extends DefaultOntology {
   public static class CreateAgentAction extends AMSAction implements PropertyContainer {
 
     public static final String AGENTCODE = ":agent-code";
-    public static final String AGENTPROPERTIES = ":agent-properties";
+    public static final String AGENTPROPERTIES = ":properties";
 
     public static final String CONTAINER = ":container";
 
@@ -1190,13 +1192,17 @@ public class AgentManagementOntology extends DefaultOntology {
 
   }
 
-  public static class AMSContainerEvent extends AMSEvent {
+  public static class AMSContainerEvent extends AMSEvent implements PropertyContainer {
 
     private String containerName;
+    private String containerAddr;
 
     public void toText(Writer w) {
       try {
-	w.write("(" + eventNames[getKind()] + " " + containerName + " )\n");
+	w.write("(" + eventNames[getKind()] + " " + containerName + " ( :properties ");
+	w.write("( :net-address " + getContainerAddr() + " )");
+	w.write(" )");
+	w.write(" )");
 	w.flush();
       }
       catch(IOException ioe) {
@@ -1212,6 +1218,32 @@ public class AgentManagementOntology extends DefaultOntology {
       return containerName;
     }
 
+    public void setContainerAddr(String ca) {
+      containerAddr = ca;
+    }
+
+    public String getContainerAddr() {
+      return containerAddr;
+    }
+
+    public void addProperty(String name, String value) {
+      if(name.equalsIgnoreCase(":net-address")) {
+	setContainerAddr(value);
+      }
+    }
+
+    public String getProperty(String name) {
+      if(name.equalsIgnoreCase(":net-address"))
+	return getContainerAddr();
+      else
+	return null;
+    }
+
+    public void removeProperty(String name) {
+      if(name.equalsIgnoreCase(":net-address"))
+	setContainerAddr(null);
+    }
+
   }
 
   public static class AMSAgentEvent extends AMSContainerEvent implements PropertyContainer {
@@ -1221,7 +1253,7 @@ public class AgentManagementOntology extends DefaultOntology {
     public void toText(Writer w) {
       try {
 	w.write("( ");
-	w.write(eventNames[getKind()] + " ( :agent-properties ");
+	w.write(eventNames[getKind()] + " ( :properties ");
 	w.write(" ( :container " + getContainerName() + " ) ");
 	w.write(" ) ");
 	w.write("( " + AMSAction.ARGNAME + " ");
@@ -1300,7 +1332,7 @@ public class AgentManagementOntology extends DefaultOntology {
     public void toText(Writer w) {
       try {
 	w.write("( ");
-	w.write(eventNames[getKind()] + " ( :agent-properties ");
+	w.write(eventNames[getKind()] + " ( :properties ");
 	w.write(" ( :from " + getSrc() + " ) ");
 	w.write(" ( :to " + getDest() + " ) ");
 	w.write(" ) ");
