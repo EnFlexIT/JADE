@@ -78,6 +78,8 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String PASSWD_KEY = "jade.security.passwd";
     public static final String POLICY_KEY = "java.security.policy";
     public static final String PORT_KEY = "port";
+    public static final String SMHOST_KEY = "smhost";
+    public static final String SMPORT_KEY = "smport";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";
 
@@ -139,9 +141,9 @@ public class BootProfileImpl extends ProfileImpl {
 
             if (isMain) { //this is a main, then set the RMI Server to the value passed in the -host option or to the IP no
                 value = argProp.getProperty(HOST_KEY);
-                if (value == null) { 
-		            value = InetAddress.getLocalHost().getHostAddress();
-		        }
+                if (value == null) {
+		    value = InetAddress.getLocalHost().getHostAddress();
+		}
             } else { // this is a container, then set the RMI Server to the IP no. of the container
                 value = InetAddress.getLocalHost().getHostAddress();
             }
@@ -154,14 +156,14 @@ public class BootProfileImpl extends ProfileImpl {
 
         BasicProperties profileProp = getProperties();
         
-        value = argProp.getProperty(CONTAINER_KEY);
-        if (value != null) { // There is a container attribute and its value was previously verified.
-            profileProp.setProperty(Profile.MAIN, value);
-            if (!isMain) {
-                // Since the value is false, we cancel the default done in ProfileImpl's constructor
-                setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
-            }
-        }
+	if (isMain) {
+	    profileProp.setProperty(Profile.MAIN, "true");
+	}
+	else {
+	    profileProp.setProperty(Profile.MAIN, "false");
+	    // Since the value is false, we cancel the default done in ProfileImpl's constructor
+	    setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
+	}
 
         value = argProp.getProperty(AUTHORITY_KEY);
         if (value != null) {
@@ -233,6 +235,16 @@ public class BootProfileImpl extends ProfileImpl {
                 profileProp.setProperty(Profile.MAIN_PORT, port);
             }
         }
+
+	String smHost = argProp.getProperty(SMHOST_KEY);
+	if(smHost != null) {
+	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER_HOST, smHost);
+	}
+
+	String smPort = argProp.getProperty(SMPORT_KEY);
+	if(smPort != null) {
+	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER_PORT, smPort);
+	}
         
         value = argProp.getProperty(NAME_KEY);
         if (value != null) {
