@@ -177,8 +177,10 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
     catch(MTPException mtpe) {
       mtpe.printStackTrace();
+      System.exit(0);
     }catch(jade.lang.acl.ACLCodec.CodecException ce){
     	ce.printStackTrace();
+    	System.exit(0);
     }
 
     // Notify platform listeners
