@@ -28,7 +28,7 @@ br-children-alist
 (("CommListener") . "EventListener")
 (("MessageDispatcherImpl") . "MessageDispatcher")
 (("AgentPlatform") . "AgentContainer")
-(("AgentGroup" "Behaviour" "Boot" "CommBroadcaster" "CommunicativeAction" "Interaction" "MessageHandler" "MessageSelector" "MessageTemplate" "Parser" "Protocol" "Scheduler" "Standard") . "Object")
+(("AgentGroup" "Behaviour" "Boot" "CommBroadcaster" "CommunicativeAction" "Interaction" "MessageGroup" "MessageHandler" "MessageSelector" "MessageTemplate" "Parser" "Protocol" "Scheduler" "Standard") . "Object")
 (("AgentContainerImpl") . "CommListener")
 (("AgentContainerImpl" "MessageDispatcherImpl") . "UnicastRemoteObject")
 (("Agent") . "CommBroadcaster")
@@ -71,6 +71,7 @@ br-sys-paths-alist
 (("SimpleBehaviour") . "/home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java")
 (("ProtocolDrivenBehaviour") . "/home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java")
 (("Standard") . "/home/rimassa/DEVEL/JADE/src/jade/proto/Standard.java")
+(("MessageGroup") . "/home/rimassa/DEVEL/JADE/src/jade/proto/MessageGroup.java")
 )
 
 br-lib-paths-alist
@@ -105,6 +106,7 @@ br-sys-parents-alist
 (("EventListener") . "CommListener")
 (("Object") . "CommBroadcaster")
 (("AgentContainerImpl" "AgentPlatform") . "AgentPlatformImpl")
+(("Object") . "MessageGroup")
 (("ThreadListener") . "ams")
 (("Behaviour") . "SimpleBehaviour")
 (("Object") . "Scheduler")

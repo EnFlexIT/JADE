@@ -520,10 +520,8 @@ MessageTemplate@= wildCard@private static final String wildCard =
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java
 Protocol@+ Protocol@public Protocol(CommunicativeAction start) {
-Protocol@= START_NAME@private static final int START_NAME =
+Protocol@= START_NAME@private static final String START_NAME =
 Protocol@- addCA@public void addCA(CommunicativeAction ca, String name) {
-Protocol@- getAnswers@public CAGroup getAnswers(String name) {
-Protocol@- getAnswers@public CAGroup getAnswers(CommunicativeAction ca) {
 Protocol@- getCA@public CommunicativeAction getCA(String name) {
 Protocol@- getStart@public CommunicativeAction getStart() {
 Protocol@= initiatorRole@static final int initiatorRole =
@@ -560,8 +558,10 @@ CommunicativeAction@- getRole@public int getRole() {
 CommunicativeAction@- makeInitiator@public void makeInitiator() {
 CommunicativeAction@- makeResponder@public void makeResponder() {
 CommunicativeAction@= myMessage@private ACLMessage myMessage;
+CommunicativeAction@= myName@private String myName;
 CommunicativeAction@= myProtocol@private Protocol myProtocol;
 CommunicativeAction@= myRole@private int myRole;
+CommunicativeAction@- setName@void setName(String name) {
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/Standard.java
 Standard@+ Standard@private Standard() {
@@ -575,3 +575,29 @@ MessageHandler@= handle@public void handle(ACLMessage msg, Interaction i);
 
 /home/rimassa/DEVEL/JADE/src/jade/proto/MessageSelector.java
 MessageSelector@= select@public void select(MessageGroup answers, Interaction i);
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/Interaction.java
+Interaction@+ Interaction@private Interaction(Protocol p, int role) {
+Interaction@- addPeer@public void addPeer(String name) {
+Interaction@- attachHandler@public void attachHandler(String CA, MessageHandler handler) {
+Interaction@- attachSelector@public void attachSelector(String CA, MessageSelector selector) {
+Interaction@= conversationId@String conversationId;
+Interaction@- createInitiator@public static Interaction createInitiator(Protocol p, AgentGroup peers, String convId) {
+Interaction@- createResponder@public static Interaction createResponder(Protocol p) {
+Interaction@= currentState@private Hashtable currentState =
+Interaction@= handlers@private Hashtable handlers =
+Interaction@= myPeers@AgentGroup myPeers;
+Interaction@= myProtocol@Protocol myProtocol;
+Interaction@= myRole@int myRole;
+Interaction@- removePeer@public void removePeer(String name) {
+Interaction@= selectors@private Hashtable selectors =
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
+ProtocolDrivenBehaviour@+ ProtocolDrivenBehaviour@public ProtocolDrivenBehaviour(Agent a, Interaction i) {
+ProtocolDrivenBehaviour@= currentBehaviours@private NonDeterministicBehaviour currentBehaviours;
+ProtocolDrivenBehaviour@- done@public boolean done() {
+ProtocolDrivenBehaviour@- execute@public void execute() {
+ProtocolDrivenBehaviour@= finished@private boolean finished =
+ProtocolDrivenBehaviour@= myAgent@private Agent myAgent;
+ProtocolDrivenBehaviour@= myInteraction@private Interaction myInteraction;
+ProtocolDrivenBehaviour@= starting@private boolean starting =
