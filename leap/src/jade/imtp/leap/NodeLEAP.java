@@ -23,58 +23,70 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
-
+import jade.core.BaseNode;
+import jade.core.Service;
 import jade.core.HorizontalCommand;
+import jade.core.VerticalCommand;
 import jade.core.IMTPException;
-
+import jade.core.ServiceException;
 
 
 /**
-
-  This interface allows to dispatch JADE kernel-level commands across
-  the network. It is implemented by the stub and skeleton classes to
-  allow transparent replacement of each other when moving
-  <code>NodeAdapter</code> instances across the network.
-
-  @author Giovanni Rimassa - FRAMeTech s.r.l.
+   This class implements a platform node accessible by means of the LEAP IMTP 
+   @author Giovanni Rimassa - FRAMeTech s.r.l
+   @author Giovanni Caire - TILAB
  */
-interface NodeLEAP {
+class NodeLEAP extends BaseNode {
+    // This monitor is used to hang a remote ping() call in order to
+    // detect node failures.
+    private Object terminationLock = new Object();
+    private boolean terminating = false;
 
-    /**
-       Accepts a command to be processed (from the implementor point
-       of view).
+    public NodeLEAP(String name, boolean hasSM) {
+			super(name, hasSM);
+    }
 
-       @param cmd The command to be processed.
-       @return The return value of the remote operation represented by
-       this horizontal command.
-       @throws IMTPException If a network problem occurs.
-    */
-    Object accept(HorizontalCommand cmd, String itfName, String[] formalParameterTypes) throws IMTPException;
+    public Object accept(HorizontalCommand cmd) throws IMTPException {
+			try {
+		    return serve(cmd);
+			}
+			catch(ServiceException se) {
+			  throw new IMTPException("Service Error", se);
+			}
+    }
 
-    /**
-       Check whether this node is reachable.
+    public boolean ping(boolean hang) throws IMTPException {
+      if(hang) {
+			  waitTermination();
+      }
+      return terminating;
+    }
 
-       @param hang A boolean flag. When <code>false</code>, the method
-       returns immediately; when <code>true</code>, the method blocks
-       and will return only when unblocked from the remote end
-       (through regular return or exception.
-       @return If the node is terminating, <code>true</code> is
-       returned, and <code>false</code> otherwise.
-       @throws IMTPException If a network problem occurs.
-    */
-    boolean ping(boolean hang) throws IMTPException;
+    public void exit() throws IMTPException {
+			// Unblock threads hung in ping() method (this will deregister the container)
+			terminating = true;
+			notifyTermination();
+    }
 
-    /**
-       Shut down this node.
+    public void interrupt() throws IMTPException {
+			notifyTermination();
+    }
 
-       @throws IMTPException If a network problem occurs.
-    */
-    void exit() throws IMTPException;
+    private void waitTermination() {
+			synchronized(terminationLock) {
+		    try {
+					terminationLock.wait();
+		    }
+		    catch(InterruptedException ie) {
+					System.out.println("PING wait interrupted");
+					// Do nothing
+		    }
+			}
+    }
 
-    /**
-       Release blocked ping() calls on this node.
-       @throws RemoteException If a network problem occurs.       
-    */
-    void interrupt() throws IMTPException;
-
+    private void notifyTermination() {
+      synchronized(terminationLock) {
+			  terminationLock.notifyAll();
+      }
+    }
 }

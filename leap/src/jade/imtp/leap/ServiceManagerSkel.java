@@ -211,7 +211,6 @@ class ServiceManagerSkel extends Skeleton {
 	String containerName = impl.addRemoteNode(desc, propagate);
 
 	String name = desc.getName();
-	NodeAdapter remoteNode = (NodeAdapter)desc.getNode();
 
 	System.out.println("Adding node <" + name + "> to the platform.");
 
@@ -283,7 +282,7 @@ class ServiceManagerSkel extends Skeleton {
 
     private Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, IMTPException {
 	try {
-	    return (NodeAdapter)impl.findSliceNode(serviceKey, sliceKey);
+	    return (Node) impl.findSliceNode(serviceKey, sliceKey);
 	}
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("IMTP Error during slice lookup", imtpe);

@@ -73,6 +73,8 @@ interface Serializer {
     static final byte NODESTUB_ID = 27;
     static final byte HORIZONTALCOMMAND_ID = 28;
     static final byte THROWABLE_ID = 29;
+    static final byte PROPERTY_ID = 30;
+    static final byte SERIALIZABLE_ID = 31;
 
     /**
      * This method serializes an object according to the LEAP

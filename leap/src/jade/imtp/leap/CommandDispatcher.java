@@ -38,6 +38,7 @@ package jade.imtp.leap;
 
 
 import jade.core.ServiceManager;
+import jade.core.Node;
 import jade.core.IMTPException;
 import jade.core.Profile;
 import jade.core.ProfileException;
@@ -306,20 +307,29 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
     // DEBUG
     //System.out.println("Dispatching command of type " + command.getCode());
-    try {
-      Command response = dispatchSerializedCommand(destTAs, serializeCommand(command), name);
-
-      // If the dispatched command was an ADD_CONTAINER --> get the
-      // name from the response and use it as the name of the CommandDispatcher
-      if (command.getCode() == Command.ADD_NODE && name.equals(DEFAULT_NAME)) {
-        name = (String) response.getParamAt(0);
-      }
-
-      return response;
-    } 
-    catch (LEAPSerializationException lse) {
-      throw new DispatcherException("Error serializing command "+command+" ["+lse.getMessage()+"]");
-    } 
+    Command response = null;                            	
+    /*
+    Integer id = new Integer(command.getObjectId());
+    Skeleton skel = (Skeleton) skeletons.get(id);
+    if (skel != null) {
+    	response = skel.processCommand(command);
+    }
+    else {
+    */
+	    try {
+	      response = dispatchSerializedCommand(destTAs, serializeCommand(command), name);
+	
+	      // If the dispatched command was an ADD_NODE --> get the
+	      // name from the response and use it as the name of the CommandDispatcher
+	      if (command.getCode() == Command.ADD_NODE && name.equals(DEFAULT_NAME)) {
+	        name = (String) response.getParamAt(0);
+	      }
+	    } 
+	    catch (LEAPSerializationException lse) {
+	      throw new DispatcherException("Error serializing command "+command+" ["+lse.getMessage()+"]");
+	    }
+    //}
+    return response;
   } 
 
   /**
@@ -535,7 +545,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	TransportAddress mainTA = null;
 
 	try {
-	    String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
+		String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
+		System.out.println("Main URL is "+mainURL);
 
 	    // Try to translate the mainURL into a TransportAddress
 	    // using a protocol supported by this CommandDispatcher
@@ -682,9 +693,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * @param remoteObject the remote object related to the specified
    * skeleton.
    */
-  public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
+  public void registerSkeleton(Skeleton skeleton, Object remotizedObject) {
   	Integer id = null;
-  	if(remoteObject instanceof ServiceManager) {
+  	if(remotizedObject instanceof ServiceManager) {
 	    synchronized(this) {
 		id = new Integer(0);
 		name = "Service-Manager";
@@ -705,7 +716,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	    id = new Integer(nextID++);
   	}
 	skeletons.put(id, skeleton);
-	ids.put(remoteObject, id);
+	ids.put(remotizedObject, id);
   }
 
   /**
@@ -727,29 +738,20 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     } 
   } 
 
-  public Stub buildLocalStub(Object remoteObject) throws IMTPException {
+  public Stub buildLocalStub(Object remotizedObject) throws IMTPException {
     Stub stub = null;
 
-    if(remoteObject instanceof NodeAdapter) {
-
-	NodeAdapter na = (NodeAdapter)remoteObject;
-	NodeLEAP nl = na.getAdaptee();
-	if(nl instanceof NodeStub) {
-	    stub = (NodeStub)nl;
-	}
-	else {
-	    stub = new NodeStub(getID(remoteObject));
+    if (remotizedObject instanceof Node) {
+	    stub = new NodeStub(getID(remotizedObject));
 
 	    // Add the local addresses.
 	    Iterator it = addresses.iterator();
-
 	    while (it.hasNext()) {
-		stub.addTA((TransportAddress) it.next());
+				stub.addTA((TransportAddress) it.next());
 	    }
-	}
     }
     else {
-      throw new IMTPException("can't create a stub for object "+remoteObject+".");
+      throw new IMTPException("can't create a stub for object "+remotizedObject+".");
     }
 
     return stub;

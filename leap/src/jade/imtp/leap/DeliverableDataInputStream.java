@@ -153,9 +153,18 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeDummyPrincipal();
                 case Serializer.CERTIFICATEFOLDER_ID:
                     return deserializeCertificateFolder();
-		case Serializer.THROWABLE_ID:
-		    return deserializeThrowable();
-                case Serializer.DEFAULT_ID:
+								case Serializer.THROWABLE_ID:
+								    return deserializeThrowable();
+								case Serializer.PROPERTY_ID:
+								    return deserializeProperty();
+								//#MIDP_EXCLUDE_BEGIN
+								case Serializer.SERIALIZABLE_ID:
+                    byte[] bytes = deserializeByteArray();
+										ByteArrayInputStream inp = new ByteArrayInputStream(bytes);
+										java.io.ObjectInputStream decoder = new java.io.ObjectInputStream(inp);
+								    return decoder.readObject();
+								//#MIDP_EXCLUDE_END
+								case Serializer.DEFAULT_ID:
                     String     serName = readUTF();
                     Serializer s = (Serializer) Class.forName(serName).newInstance();
                     Object     o = s.deserialize(this);
@@ -585,19 +594,11 @@ class DeliverableDataInputStream extends DataInputStream {
 
     private Node deserializeNode() throws LEAPSerializationException {
 
-	try {
 	    String name = readString();
 
-	    byte b = readByte();
-	    if(b != Serializer.NODESTUB_ID) {
-		throw new LEAPSerializationException("Node stub magic number not found");
-	    }
 	    NodeStub stub = deserializeNodeStub();
-	    return new NodeAdapter(name, stub);
-	}
-	catch(IOException ioe) {
-	    throw new LEAPSerializationException("Error deserializing Node");
-	}
+	    stub.setName(name);
+	    return stub;
     }
 
     private NodeStub deserializeNodeStub() throws LEAPSerializationException {
@@ -690,13 +691,10 @@ class DeliverableDataInputStream extends DataInputStream {
 
             e.setReceived((ReceivedObject) readObject());
             
-	    int size = readInt();
-	    int i = 0;
-	    while (i++ < size) {
-		e.addProperties(new Property(readString(), readObject()));
-	    } 
+            while (readBoolean()) {
+                e.addProperties(deserializeProperty());
+            } 
 
-            // e.setTransportBehaviour((Properties) readObject());
             return e;
         } 
         catch (IOException ioe) {
@@ -753,6 +751,15 @@ class DeliverableDataInputStream extends DataInputStream {
         return r;
     }    
 
+    /**
+     */  
+    private Property deserializeProperty() throws LEAPSerializationException {
+    	Property p = new Property();
+    	p.setName(readString());
+    	p.setValue(readObject());
+    	return p;
+    }
+    
     private JICPAddress deserializeJICPAddress() throws LEAPSerializationException {
         
         String protocol = readString();

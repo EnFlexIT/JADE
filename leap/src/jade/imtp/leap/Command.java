@@ -152,7 +152,6 @@ public class Command {
   Command() {
     commandCode = NO_OPERATION;
     objectID = DUMMY_ID;
-    commandParameters = new ArrayList();
   }
 
   /**
@@ -160,7 +159,6 @@ public class Command {
   Command(int code) {
     commandCode = code;
     objectID = DUMMY_ID;
-    commandParameters = new ArrayList();
   }
 
   /**
@@ -168,7 +166,6 @@ public class Command {
   Command(int code, int id) {
     commandCode = code;
     objectID = id;
-    commandParameters = new ArrayList();
   }
 
   /**
@@ -177,17 +174,6 @@ public class Command {
    */
   int getCode() {
     return commandCode;
-  } 
-
-  /**
-   * Set the command identifier code of this command and empty the mutated
-   * command's argument list.
-   * @param command_code the command identifier code this command object
-   * shall mutate to
-   */
-  void setCode(int command_code) {
-    commandCode = command_code;
-    commandParameters = new ArrayList();
   } 
 
   /**
@@ -202,17 +188,6 @@ public class Command {
   } 
 
   /**
-   * Method declaration
-   * 
-   * @param id
-   * 
-   * @see
-   */
-  void setObjectID(int id) {
-    objectID = id;
-  } 
-
-  /**
    * Add a deliverable parameter, i.e., an object implementing the
    * <code>Deliverable</code> interface or a <code>java.lang.String</code> or a
    * <code>java.lang.StringBuffer</code> object to the end of the
@@ -224,6 +199,9 @@ public class Command {
    * @see DeliverableDataOutputStream#writeObject( java.lang.Object )
    */
   void addParam(Object param) {
+  	if (commandParameters == null) {
+  		commandParameters = new ArrayList();
+  	}
     commandParameters.add(param);
   } 
 
@@ -231,7 +209,12 @@ public class Command {
    * Return the number of parameters in this command object.
    */
   int getParamCnt() {
-    return commandParameters.size();
+  	if (commandParameters == null) {
+  		return 0;
+  	}
+  	else {
+	    return commandParameters.size();
+  	}
   } 
 
   /**
@@ -240,55 +223,13 @@ public class Command {
    * @return the parameter at the specified index
    */
   Object getParamAt(int index) {
-    return commandParameters.get(index);
+  	if (commandParameters == null) {
+  		throw new IndexOutOfBoundsException(String.valueOf(index));
+  	}
+  	else {
+	    return commandParameters.get(index);
+  	}
   } 
-
-  // Since the Deliverable interface is obsolete, the following two
-  // methods are no more needed.
-
-  /**
-   * Serialize this command object to the given data output stream according
-   * to the LEAP surrogate serialization mechanism.
-   * @param ddout the data output stream this command object is serialized to
-   * @exception LEAPSerializationException if there occurs an error
-   * during the LEAP surrogate serialization
-   */
-  /*
-   * public void serialize(DeliverableDataOutputStream ddout)
-   * throws LEAPSerializationException {
-   * try {
-   * ddout.writeInt(commandCode);
-   * ddout.writeInt(objectID);
-   * ddout.writeDeliverable((Deliverable) commandParameters);
-   * }
-   * catch (IOException e) {
-   * throw new LEAPSerializationException("I/O error during serialization of Command",
-   * e);
-   * }
-   * }
-   */
-
-  /**
-   * Deserialize this command object from the given data input stream according
-   * to the LEAP surrogate serialization mechanism.
-   * @param ddin the data input stream this command object is deserialized from
-   * @exception LEAPSerializationException if there occurs an error
-   * during the LEAP surrogate serialization
-   */
-  /*
-   * public void deserialize(DeliverableDataInputStream ddin)
-   * throws LEAPSerializationException {
-   * try {
-   * commandCode = ddin.readInt();
-   * objectID = ddin.readInt();
-   * commandParameters = (ArrayList) ddin.readDeliverable();
-   * }
-   * catch (IOException e) {
-   * throw new LEAPSerializationException("I/O error during deserialization of Command",
-   * e);
-   * }
-   * }
-   */
 
   /**
    * attention: this is a hack! should be removed in the future

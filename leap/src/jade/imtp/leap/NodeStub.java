@@ -23,105 +23,144 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
-
-import jade.core.HorizontalCommand;
-import jade.core.IMTPException;
-import jade.core.UnreachableException;
-
+import jade.core.*;
 
 /**
+   This calss implements a stub to a remote LEAP Node.
+   @author Giovanni Caire - TILAB
+   @author Giovanni Rimassa - FRAMeTech s.r.l
+ */
+class NodeStub extends Stub implements Node {
+	private String name;
+	
+  public NodeStub() {
+		super();
+  }
 
-   The <code>NodeStub</code> class is the remote proxy of a JADE
-   platform <i>Node</i> component, running over LEAP transport layer.
+  public NodeStub(int id) {
+		super(id);
+  }
 
-   @author Giovanni Rimassa - FRAMeTech s.r.l.
-*/
-class NodeStub extends Stub implements NodeLEAP {
+  public void setName(String name) {
+  	this.name = name;
+  }
+  
+  public String getName() {
+  	return name;
+  }
+  
+  public boolean hasServiceManager() {
+  	return false;
+  }
 
-    public NodeStub() {
-	super();
-    }
+  public void exportSlice(String serviceName, Service.Slice localSlice) {
+  	throw new RuntimeException("Trying to export a slice on a node stub");
+  }
+  
+  public void unexportSlice(String serviceName) {
+  }
 
-    public NodeStub(int id) {
-	super(id);
-    }
-
-    public Object accept(HorizontalCommand cmd, String itf, String[] svcInterfaces) throws IMTPException {
-	try {
-
+  /**
+     Accepts a command to be forwarded to the remote node.
+     @param cmd The horizontal command to process.
+     @return The object that is the result of processing the command.
+     @throws IMTPException If a communication error occurs while
+     contacting the remote node.
+  */
+  public Object accept(HorizontalCommand cmd) throws IMTPException {
+		try {
 	    Command wrapperCmd = new Command(Command.ACCEPT_COMMAND, remoteID);
 	    wrapperCmd.addParam(cmd);
-	    wrapperCmd.addParam(itf);
-	    wrapperCmd.addParam(svcInterfaces);
-
 	    Command result = theDispatcher.dispatchCommand(remoteTAs, wrapperCmd);
 
 	    // Check whether an exception occurred in the remote container
 	    checkResult(result, new String[] { });
 
 	    return result.getParamAt(0);
-	}
-	catch (DispatcherException de) {
+		}
+		catch (DispatcherException de) {
 	    throw new IMTPException(DISP_ERROR_MSG, de);
-	} 
-	catch (UnreachableException ue) {
+		} 
+		catch (UnreachableException ue) {
 	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
-	}
-    }
+		}
+  }
 
-    public boolean ping(boolean hang) throws IMTPException {
-	Command cmd;
-	if(hang) {
-	    cmd = new Command(Command.PING_NODE_BLOCKING, remoteID);
-	}
-	else {
-	    cmd = new Command(Command.PING_NODE_NONBLOCKING, remoteID);
-	}
-	cmd.addParam(new Boolean(hang));
+  /**
+     Serves an incoming horizontal command. This should never
+     happen since this is a stub --> throw an exception.
+  */
+  public Object serve(HorizontalCommand cmd) throws ServiceException {
+  	throw new ServiceException("Trying to make a node stub serve an horizontal command");
+  }
+  
+  /**
+     Serves an incoming vertical command, locally. This should never
+     happen since this is a stub --> throw an exception.
+  */
+  public Object serve(VerticalCommand cmd) throws ServiceException {
+  	throw new ServiceException("Trying to make a node stub serve a vertical command");
+  }
 
-	try {
-	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
-	    checkResult(result, new String[] { });
+  /**
+     Performs a ping operation on the remote node.
+     @param hang If <code>true</code>, the call hangs until the node
+     exits or is interrupted.
+     @return If the node is currently terminating, <code>true</code>
+     is returned, else <code>false</code>
+  */
+  public boolean ping(boolean hang) throws IMTPException {
+		Command cmd;
+		if(hang) {
+		    cmd = new Command(Command.PING_NODE_BLOCKING, remoteID);
+		}
+		else {
+		    cmd = new Command(Command.PING_NODE_NONBLOCKING, remoteID);
+		}
+		cmd.addParam(new Boolean(hang));
+	
+		try {
+		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+		    checkResult(result, new String[] { });
+	
+		    Boolean b = (Boolean)result.getParamAt(0);
+		    return b.booleanValue();
+		}
+		catch (DispatcherException de) {
+		    throw new IMTPException(DISP_ERROR_MSG, de);
+		}
+		catch (UnreachableException ue) {
+		    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+		}
+  }
 
-	    Boolean b = (Boolean)result.getParamAt(0);
-	    return b.booleanValue();
-	}
-	catch (DispatcherException de) {
-	    throw new IMTPException(DISP_ERROR_MSG, de);
-	}
-	catch (UnreachableException ue) {
-	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
-	}
-    }
-
-    public void exit() throws IMTPException {
-	Command cmd = new Command(Command.EXIT_NODE, remoteID);
-
-	try {
-	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
-	    checkResult(result, new String[] { });
-	}
-	catch (DispatcherException de) {
-	    throw new IMTPException(DISP_ERROR_MSG, de);
-	}
-	catch (UnreachableException ue) {
-	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
-	}
-    }
-
-    public void interrupt() throws IMTPException {
-	Command cmd = new Command(Command.INTERRUPT_NODE, remoteID);
-
-	try {
-	    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
-	    checkResult(result, new String[] { });
-	}
-	catch (DispatcherException de) {
-	    throw new IMTPException(DISP_ERROR_MSG, de);
-	}
-	catch (UnreachableException ue) {
-	    throw new IMTPException(UNRCH_ERROR_MSG, ue);
-	}
-    }
-
+  public void interrupt() throws IMTPException {
+		Command cmd = new Command(Command.EXIT_NODE, remoteID);
+	
+		try {
+		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+		    checkResult(result, new String[] { });
+		}
+		catch (DispatcherException de) {
+		    throw new IMTPException(DISP_ERROR_MSG, de);
+		}
+		catch (UnreachableException ue) {
+		    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+		}
+  }
+  
+  public void exit() throws IMTPException {
+		Command cmd = new Command(Command.INTERRUPT_NODE, remoteID);
+	
+		try {
+		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+		    checkResult(result, new String[] { });
+		}
+		catch (DispatcherException de) {
+		    throw new IMTPException(DISP_ERROR_MSG, de);
+		}
+		catch (UnreachableException ue) {
+		    throw new IMTPException(UNRCH_ERROR_MSG, ue);
+		}
+  }
 }

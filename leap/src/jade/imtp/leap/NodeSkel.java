@@ -24,80 +24,63 @@ Boston, MA  02111-1307, USA.
 package jade.imtp.leap;
 
 
+import jade.core.Node;
 import jade.core.HorizontalCommand;
 import jade.core.Service;
 import jade.core.ServiceException;
 import jade.core.IMTPException;
 
-
 /**
-
-   The <code>NodeSkel</code> class is the remote adapter for JADE
-   platform <i>Node</i> components, running over LEAP transport layer.
-
+   This calss implements a skeleton to a local LEAP Node.
    @author Giovanni Rimassa - FRAMeTech s.r.l.
+   @author Giovanni Caire - TILAB
 */
-class NodeSkel extends Skeleton implements NodeLEAP {
+class NodeSkel extends Skeleton {
 
-    private NodeAdapter myNode;
+  private Node myNode;
 
-    public NodeSkel(NodeAdapter na) {
-	myNode = na;
-    }
+  public NodeSkel(Node n) {
+		myNode = n;
+  }
 
-    public Command executeCommand(Command command) throws Throwable {
-	Command resp = null;
+  public Command executeCommand(Command command) throws Throwable {
+		Command resp = null;
+	
+		switch (command.getCode()) {
+			case Command.ACCEPT_COMMAND: {
+		    HorizontalCommand cmd = (HorizontalCommand)command.getParamAt(0);
+		    Object result = myNode.accept(cmd);
+	
+		    resp = new Command(Command.OK);
+		    resp.addParam(result);
+		    break;
+			}
+			case Command.PING_NODE_BLOCKING:
+			case Command.PING_NODE_NONBLOCKING: {
+		    Boolean hang = (Boolean)command.getParamAt(0);
+		    Boolean result = new Boolean(myNode.ping(hang.booleanValue()));
+	
+		    resp = new Command(Command.OK);
+		    resp.addParam(result);
+		    break;
+			} 
+			case Command.EXIT_NODE: {
+		    myNode.exit();
+		    resp = new Command(Command.OK);
+		    break;
+			} 
+			case Command.INTERRUPT_NODE: {
+		    myNode.interrupt();
+		    resp = new Command(Command.OK);
+		    break;
+			}
+		}
 
-	switch (command.getCode()) {
-
-	case Command.ACCEPT_COMMAND: {
-	    HorizontalCommand cmd = (HorizontalCommand)command.getParamAt(0);
-	    String itfName = (String)command.getParamAt(1);
-	    String[] formalParameterTypes = (String[])command.getParamAt(2);
-	    Object result = accept(cmd, itfName, formalParameterTypes);
-
-	    resp = new Command(Command.OK);
-	    resp.addParam(result);
-
-	    break;
-	} 
-
-	case Command.PING_NODE_BLOCKING:
-	case Command.PING_NODE_NONBLOCKING: {
-	    Boolean hang = (Boolean)command.getParamAt(0);
-	    Boolean result = new Boolean(ping(hang.booleanValue()));
-
-	    resp = new Command(Command.OK);
-	    resp.addParam(result);
-
-	    break;
-	} 
-
-	case Command.EXIT_NODE: {
-
-	    exit();
-
-	    resp = new Command(Command.OK);
-
-	    break;
-	} 
-
-	case Command.INTERRUPT_NODE: {
-
-	    interrupt();
-
-	    resp = new Command(Command.OK);
-
-	    break;
-	} 
-
-	}
-
-	return resp;
-    }
+		return resp;
+  }
 
 
-    public Object accept(HorizontalCommand cmd, String itfName, String[] formalParameterTypes) throws IMTPException {
+    //public Object accept(HorizontalCommand cmd, String itfName, String[] formalParameterTypes) throws IMTPException {
 
 	/***
 	System.out.println("--- Command Received ---");
@@ -112,7 +95,7 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	System.out.println("--- ================ ---");
 
 	***/
-
+/*
 	try {
 	    return myNode.serve(cmd);
 	}
@@ -159,7 +142,7 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 
     // This monitor is used to hang a remote ping() call in order to
     // detect node failures.
-    private Object terminationLock = new Object();
-    private boolean terminating = false;
-
+    //private Object terminationLock = new Object();
+    //private boolean terminating = false;
+*/
 }

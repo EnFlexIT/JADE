@@ -72,7 +72,7 @@ public class LEAPIMTPManager implements IMTPManager {
   private String localSMAddr;
   private BaseServiceManagerProxy myServiceManagerProxy;
   private Map remoteServiceManagers;
-  private NodeAdapter localNode;
+  private NodeLEAP localNode;
 
   /**
    * Default constructor used to dynamically instantiate a new
@@ -143,8 +143,10 @@ public class LEAPIMTPManager implements IMTPManager {
       String mainProp = theProfile.getParameter(Profile.MAIN, null);
       boolean hasServiceManager = (mainProp == null || CaseInsensitiveString.equalsIgnoreCase(mainProp, "true"));
 
-      localNode = new NodeAdapter("No-Name", theDispatcher, hasServiceManager);
+      localNode = new NodeLEAP("No-Name", hasServiceManager);
       localNode.setCommandProcessor(cp);
+      Skeleton skel = new NodeSkel(localNode);
+      theDispatcher.registerSkeleton(skel, localNode);
     }
     catch (ProfileException pe) {
       // Just print a warning

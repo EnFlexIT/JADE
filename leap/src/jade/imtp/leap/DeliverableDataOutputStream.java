@@ -137,7 +137,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.CONTAINERID_ID);
                     serializeContainerID((ContainerID) o);
                 } 
-                else if (o instanceof ContainerID[]) {             // ContainerID
+                else if (o instanceof ContainerID[]) {             // ContainerID[]
                     writeByte(Serializer.CONTAINERIDARRAY_ID);
                     serializeContainerIDArray((ContainerID[]) o);
                 } 
@@ -213,10 +213,24 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.CERTIFICATEFOLDER_ID);
                     serializeCertificateFolder((CertificateFolder) o);
                 }
-		else if(o instanceof Throwable) {                   // Throwable
-		    writeByte(Serializer.THROWABLE_ID);
-		    serializeThrowable((Throwable) o);
-		}
+								else if(o instanceof Throwable) {                   // Throwable
+								    writeByte(Serializer.THROWABLE_ID);
+								    serializeThrowable((Throwable) o);
+								}
+								else if(o instanceof Property) {                   // Property
+								    writeByte(Serializer.PROPERTY_ID);
+								    serializeProperty((Property) o);
+								}
+								//#MIDP_EXCLUDE_BEGIN
+                else if (o instanceof java.io.Serializable) {       // Serializable 
+                    writeByte(Serializer.SERIALIZABLE_ID);
+										ByteArrayOutputStream out = new ByteArrayOutputStream();
+										java.io.ObjectOutputStream encoder = new java.io.ObjectOutputStream(out);
+										encoder.writeObject(o);
+										byte[] bytes = out.toByteArray();
+                    serializeByteArray(bytes);
+                }
+                //#MIDP_EXCLUDE_END
                 // Delegate serialization of other classes 
                 // to a proper Serializer object
                 else {
@@ -655,13 +669,17 @@ class DeliverableDataOutputStream extends DataOutputStream {
 	try {
 	    writeString(n.getName());
 
-	    // Get a remote stub for the node and write it down
-	    NodeStub stub = (NodeStub)myStubHelper.buildLocalStub(n);
-	    writeByte(Serializer.NODESTUB_ID);
+	    NodeStub stub = null;
+	    if (n instanceof NodeStub) {
+	    	// This is already a stub --> serialize it directly
+	    	stub = (NodeStub) n;
+	    }
+	    else {
+		    // This is a real node --> get a stub and serialize it
+	    	stub = (NodeStub) myStubHelper.buildLocalStub(n);
+	    }
+	    //writeByte(Serializer.NODESTUB_ID);
 	    serializeNodeStub(stub);
-	}
-	catch(IOException ioe) {
-	    throw new LEAPSerializationException("Error serializing Node");
 	}
 	catch(IMTPException imtpe) {
 	    throw new LEAPSerializationException("Error building a Node stub");
@@ -770,13 +788,12 @@ class DeliverableDataOutputStream extends DataOutputStream {
             
             // to
             Iterator it = e.getAllTo();
-            
             while (it.hasNext()) {
                 writeBoolean(true);
                 serializeAID((AID) it.next());
             } 
-            
             writeBoolean(false);
+            
             writeAID(e.getFrom());
             writeString(e.getComments());
             writeString(e.getAclRepresentation());
@@ -786,24 +803,21 @@ class DeliverableDataOutputStream extends DataOutputStream {
             
             // intended receivers
             it = e.getAllIntendedReceiver();
-            
             while (it.hasNext()) {
                 writeBoolean(true);
                 serializeAID((AID) it.next());
             } 
-            
             writeBoolean(false);
+            
             writeObject(e.getReceived());
             
-	    int numProps=0;
-	    for (Iterator i=e.getAllProperties(); i.hasNext(); ) numProps++;
-	    writeInt(numProps);
-	    for (Iterator i=e.getAllProperties(); i.hasNext(); ) {
-		Property p = (Property)i.next();
-		writeString(p.getName());
-		writeObject(p.getValue());
-	    }
-            // writeObject(e.getTransportBehaviour());
+            // properties
+            it = e.getAllProperties();
+            while (it.hasNext()) {
+                writeBoolean(true);
+                serializeProperty((Property) it.next());
+            } 
+            writeBoolean(false);
         } 
         catch (IOException ioe) {
             throw new LEAPSerializationException("IO error serializing Envelope "+e);
@@ -852,6 +866,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
         writeString(r.getVia());
     }
 
+    /**
+     */  
+    private void serializeProperty(Property p)
+        throws LEAPSerializationException {
+			writeString(p.getName());
+			writeObject(p.getValue());    
+    }
+    
     /**
      */   
     private void serializeDummyCertificate(DummyCertificate dc)
