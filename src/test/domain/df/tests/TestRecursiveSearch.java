@@ -51,44 +51,34 @@ import java.util.Vector;
  * @author Alessandro Chiarotto - TILAB
  */
 public class TestRecursiveSearch extends Test {
-    // DF agent forming a federation
-    // The graph is compose by the following vertex
-    // v1=(df1,df2)   "df1 is registered on df2"
-    // v2=(df2,df3)
-    // v3=(df2,df4)
-    // v4=(df4,df5)
-    // v5=(df3,df1)
     
-    
-    private jade.wrapper.AgentContainer mc = null;
     private String[] arrayAIDdf = {"df1","df2","df3","df4","df5","df6"};
-    //private AID df1,df2,df3,df4,df5,df6; // df AID
     private AID dfFederatorAID;
-    public String getName() {
-        return "Test RecursiveSearch";
-    }
+    private JadeController jc;
     
     public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
         final Agent finalA = a;
         final DataStore store = ds;
         final String key = resultKey;
         final Logger l = Logger.getLogger();
-        
-        
-        // Test initialisation
-        // create the DFs
+                
+        // Create the DFs
         for(int i = 0; i < arrayAIDdf.length; i++) {
             TestUtility.createAgent(a, arrayAIDdf[i], "jade.domain.df", null, a.getAMS(), null);
         }
         
+        // Start the DFFederator and let him federate the created DFs according
+        // to the feredration graph specified in the TestRecursiveSearch.properties
+        // file.
+        // We launch the DFFederator on a separated container running
+        // with the misc add-on in the classpath
+				jc = TestUtility.launchJadeInstance("Container-1", "+"+getTestArgument("federator-classpath"), new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
         String args[] = new String[1];
         // FIXME: lasciare solo il nome del file properties quando il DFFederator riesce a caricarlo...
         args[0] = "..\\..\\..\\jade\\src\\test\\domain\\df\\tests\\TestRecursiveSearch.properties";
-        
-        dfFederatorAID = TestUtility.createAgent(a, "DFFederator", "jade.misc.DFFederatorAgent", args, a.getAMS(), null);
+        dfFederatorAID = TestUtility.createAgent(a, "DFFederator", "jade.misc.DFFederatorAgent", args, a.getAMS(), jc.getContainerName());
  
-        // Register a set of agent to each df
-        // create different service type
+        // Register a set of DFDs with different service types to each df
         final ServiceDescription service1 = new ServiceDescription();
         service1.setName("SERVICENAME1");
         service1.setType("SERVICE1");
@@ -221,17 +211,13 @@ public class TestRecursiveSearch extends Test {
             }catch(Exception e) {
                 e.printStackTrace();
             }
-            
-            
-            
         }
         
-        //TestUtility.createAgent(a,"a" + iAgent.toString() , "test.domain.df.tests.TestRecursiveSearchAgent", agentArgs, a.getAMS(), null);
-        
-        
-        Behaviour b = new OneShotBehaviour() {
+        // Wait a bit before performing the test to be sure the DF federation
+        // graph has been created
+        Behaviour b = new WakerBehaviour(a, 5000) {
             private boolean testPassed = false;
-            public void action() {
+            public void handleElapsedTimeout() {
                 try {
                     
                     // Send queries to df6
@@ -347,12 +333,12 @@ public class TestRecursiveSearch extends Test {
     public void clean(Agent a) {
         try {
                 Logger l = Logger.getLogger();
+                l.log("Killing DFFederator container...");
+                jc.kill();
+                l.log("done.");
                 l.log("Killing dfs...");
                 for(int i=0; i<arrayAIDdf.length; i++)
                     TestUtility.killAgent(a,new AID(arrayAIDdf[i],AID.ISLOCALNAME));
-                l.log("done.");
-                l.log("Killing DFFederator...");
-                TestUtility.killAgent(a, new AID("DFFederator",AID.ISLOCALNAME));
                 l.log("done.");
             }catch(Exception e) {
                 e.printStackTrace();
