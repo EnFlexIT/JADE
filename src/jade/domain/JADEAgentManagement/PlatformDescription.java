@@ -26,7 +26,6 @@ package jade.domain.JADEAgentManagement;
 
 import jade.core.AID;
 
-import jade.domain.AMSEvent;
 import jade.domain.FIPAAgentManagement.APDescription;
 /**
    
@@ -34,7 +33,7 @@ import jade.domain.FIPAAgentManagement.APDescription;
    @version $Date$ $Revision$
 */
 
-public class PlatformDescription implements AMSEvent {
+public class PlatformDescription {
 
   public static final String NAME = JADEAgentManagementOntology.PLATFORMDESCRIPTION;
 
