@@ -158,8 +158,9 @@ public class JICPCompressor {
     public static byte[] compress(byte[] ba) {
         if (ba == null)
             return null;
-        else
-            return new JICPCompressor().compressHelper(ba);
+        else {
+          return new JICPCompressor().compressHelper(ba);
+    		}
     }
 
     private byte[] compressHelper(byte[] uba) {

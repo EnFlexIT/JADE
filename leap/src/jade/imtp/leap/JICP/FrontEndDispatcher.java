@@ -79,8 +79,17 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
    * Connect to a remote BackEnd and return a stub to communicate with it
    */
   public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {  	
-  	log("Connecting to the BackEnd");
   	try {
+  		// Verbosity
+	  	try {
+	  		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
+	  	}
+	  	catch (NumberFormatException nfe) {
+	      // Use default (1)
+	  	}
+	  	
+  		log("Connecting to the BackEnd", 2);
+  		
 	  	// Host
 	  	String host = props.getProperty("host");
 	  	if (host == null) {
@@ -97,7 +106,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	  	
 			// Compose URL 
 	  	mediatorServerTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	 		log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorServerTA));
+	 		log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorServerTA), 2);
 				
 			// Read (re)connection retry time
 			String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
@@ -107,7 +116,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    catch (Exception e) {
 	      // Use default
 	    } 
-			log("Reconnection retry time is "+retryTime);
+			log("Reconnection retry time is "+retryTime, 2);
 				
 			// Read Max disconnection time
 			tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
@@ -117,7 +126,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    catch (Exception e) {
 	      // Use default
 	    } 
-			log("Max disconnection time is "+maxDisconnectionTime);
+			log("Max disconnection time is "+maxDisconnectionTime, 2);
 			 	
 			// Create the BackEnd stub and the FrontEnd skeleton
 			myStub = new BackEndStub(this);
@@ -129,7 +138,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    // Start the embedded Thread and wait until it connects to the BackEnd
 	    start();
 	    waitUntilConnected();
-			log("Connection OK");
+			log("Connection OK", 2);
 	
 			return myStub;
   	}
@@ -147,7 +156,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     // If the termination is "self-initiated" the underlying EndPoint
     // must notify its peer
   	super.shutdown(self);
-    log("Shutdown initiated. Terminator thread is "+terminator);
+    log("Shutdown initiated. Terminator thread is "+terminator, 2);
   } 
 
   //////////////////////////////////////////////
@@ -210,6 +219,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
       		// Can't reconnect to the Mediator. Wait for a while before trying again
       		// or PANIC if the max-disconnection timeout expired
 	        if (totalDisconnectionTime < maxDisconnectionTime) {
+	        	log("Can't connect to the BackEnd. Wait a bit before retrying...", 2);
 	          try {
 	            Thread.sleep(retryTime);
 	          } 
@@ -233,10 +243,12 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
   private void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
+  	log("Opening connection to the BackEnd", 2);
     Connection c = new Connection(mediatorServerTA);
     DataOutputStream out = new DataOutputStream(c.getOutputStream());
     DataInputStream inp = new DataInputStream(c.getInputStream());
 
+    log("Sending CREATE/CONNECT_MEDIATOR packet", 2);
     JICPPacket pkt = null;
     if (mediatorAlive) {
     	// This is a reconnection --> Send a CONNECT_MEDIATOR request
@@ -251,12 +263,14 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	sb.append(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
     	sb.append('=');
     	sb.append(maxDisconnectionTime);
+    	sb.append(";verbosity=");
+    	sb.append(verbosity);
     	if (owner != null) {
     		sb.append(";owner=");
     		sb.append(owner);
     	}
     	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, sb.toString().getBytes());
-		}    	
+    }    	
     pkt.writeTo(out);
 
     // Read the response

@@ -54,7 +54,7 @@ public abstract class EndPoint extends Thread {
   
 	private int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
-  private static int       verbosity = 1;
+  protected int verbosity = 1;
 
   /**
    * Constructor declaration
@@ -116,10 +116,10 @@ public abstract class EndPoint extends Thread {
    */
   public final void run() {
     while (active) {
-      log("Connection setup...");
+      log("Connection setup...", 2);
     	try {
       	setup();
-      	log("Connection ready");
+      	log("Connection ready", 2);
 	    	handleConnectionReady();
 	    }
 	    catch (ICPException icpe) {
@@ -138,7 +138,7 @@ public abstract class EndPoint extends Thread {
           pktCnt = (pktCnt+1) & 0x0fff;
         	if (pkt.getDataType() == JICPProtocol.COMMAND_TYPE) {
           	if ((pkt.getDataInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-	          	log("Peer termination notification received");
+	          	log("Peer termination notification received", 2);
           		// The remote EndPoint has terminated spontaneously -->
           		// close the connection, notify the local peer and exit
           		shutdown(false);
@@ -180,7 +180,7 @@ public abstract class EndPoint extends Thread {
       }    // End of loop on connected
     }     // End of loop on active
  
-    log("EndPoint thread terminated");
+    log("EndPoint thread terminated", 2);
   } 
   
   /**
@@ -210,17 +210,19 @@ public abstract class EndPoint extends Thread {
    */
   protected final void resetConnection() {
   	synchronized (connectionLock) {
-		 	try {
-		    inp.close();
-		    out.close();
-		    theConnection.close();
-		  } 
-		  catch (Exception e) {
-		  }
-		  theConnection = null;
-	  	inp = null;
-	  	out = null;
-	  	connected = false;
+  		if (connected) {
+			 	try {
+			    inp.close();
+			    out.close();
+			    theConnection.close();
+			  } 
+			  catch (Exception e) {
+			  }
+			  theConnection = null;
+		  	inp = null;
+		  	out = null;
+		  	connected = false;
+  		}
   	}
   }
     	
@@ -344,6 +346,7 @@ public abstract class EndPoint extends Thread {
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down
+          	log("Response timeout expired. Reset the connection", 2);
           	resetConnection();
           	break;
           }
@@ -423,13 +426,13 @@ public abstract class EndPoint extends Thread {
 
   /**
    */
-  static void log(String s) {
-    log(s, 2);
+  void log(String s) {
+    log(s, 3);
   } 
 
   /**
    */
-  static void log(String s, int level) {
+  void log(String s, int level) {
     if (verbosity >= level) {
       String name = Thread.currentThread().toString();
       jade.util.Logger.println(name+": "+s);

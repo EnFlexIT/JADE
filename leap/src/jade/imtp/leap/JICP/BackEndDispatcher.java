@@ -85,6 +85,16 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   public void init(JICPServer srv, String id, Properties props) throws ICPException {
     myJICPServer = srv;
     myID = id;
+    
+		// Verbosity
+  	try {
+  		verbosity = Integer.parseInt(props.getProperty("verbosity"));
+  	}
+  	catch (NumberFormatException nfe) {
+      // Use default (1)
+  	}
+  	
+  	// Max disconnection time
     maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
     try {
     	maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
@@ -103,9 +113,6 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     try {
     	myStub = new FrontEndStub(this);
     	props.setProperty(Profile.MAIN, "false");
-    	// FIXME: Get main host and port from the command dispatcher
-    	//props.setProperty(Profile.MAIN_HOST, "localhost");
-    	//props.setProperty(Profile.MAIN_PORT, String.valueOf(JICPProtocol.DEFAULT_PORT));
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
     	myContainer = new BackEndContainer(new ProfileImpl(props), this);
 			// Check that the BackEndContainer has successfully joined the platform
@@ -114,7 +121,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
-    	log("BackEndContainer successfully joined the platform: name is "+cid.getName());
+    	log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
     }
     catch (ProfileException pe) {
     	// should never happen
@@ -168,7 +175,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
      In this implementation self is always false.
    */
   public void shutdown(boolean self) {
-    log("Initiate BackEndDispatcher shutdown");
+    log("Initiate BackEndDispatcher shutdown", 2);
 
     // Deregister from the JICPServer
     if (myID != null) {
@@ -227,6 +234,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     catch (IOException ioe) {
     	// The new connection is already down. Ignore it. The embedded thread
     	// will call setup() again.
+      log("New connection already down.", 1);
     }
   }
   
