@@ -122,6 +122,7 @@
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if the different queires obtain the expected results and no exception is thrown.
 			</WhenTestPass>
+			<Argument key="federator-classpath" value="c:\jade\add-ons\misc\classes"> The classpath where to find the DFFederator agent (included in the misc add-on) </Argument>
 		</Test>
 		<Test name="Search Until Found" skip="false">
 			<TestClassName>test.domain.df.tests.TestSearchUntilFound</TestClassName>

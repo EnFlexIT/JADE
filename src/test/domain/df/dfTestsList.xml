@@ -106,7 +106,6 @@
 				<br>arc5 = (df3,df1)</br>
 				<br>arc6 = (df1,df2)</br>
 				<br>arc7 = (df1,df)</br>
-				<br><b>Actual Test</b></br>
 				<br>After the federation has been created some agents are registered:</br>
 				<br>df6 = {a14}</br>
 				<br>df5 = {a13}</br>
@@ -116,13 +115,15 @@
 				<br>df1 = {a1}</br>
 				<br>df ={}</br>
 				<br>where each agent offers different services (use DF gui to have more details).
-				The test performs different queries changening the value of the parametes like
+				<br><b>Actual Test</b></br>
+				The test performs different queries changing the value of the parametes like
 				max-depth, max-results and serivce type.</br>
 				<br>See the log of the test for more details on query search and
 				its results.</br>
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if the different queires obtain the expected results and no exception is thrown.
 			</WhenTestPass>
+			<Argument key="federator-classpath" value="c:\jade\add-ons\misc\classes"> The classpath where to find the DFFederator agent (included in the misc add-on) </Argument>
 		</Test>
 		<Test name="Search Until Found" skip="false">
 			<TestClassName>test.domain.df.tests.TestSearchUntilFound</TestClassName>
