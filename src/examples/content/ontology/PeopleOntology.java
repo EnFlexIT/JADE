@@ -68,7 +68,6 @@ public class PeopleOntology extends Ontology {
 	public static final String HUSBAND = "HUSBAND";
 	public static final String WIFE    = "WIFE";
 
-	//private static PeopleOntology theInstance = new PeopleOntology(ACLOntology.getInstance());
 	private static PeopleOntology theInstance = new PeopleOntology(BasicOntology.getInstance());
 	
 	public static PeopleOntology getInstance() {
