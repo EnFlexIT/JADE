@@ -222,4 +222,9 @@ public Properties getAllUserDefinedSlot(){
   void setGUID(String n) {
     setName(n);
   }
+
+  int compareTo(AID to) {
+    return 0;
+  }
+
 }
