@@ -30,7 +30,7 @@ package jade.security;
    @version $Date$ $Revision$
  */
 
-public interface Credentials {
+public interface Credentials extends jade.util.leap.Serializable {
 
 
 }
