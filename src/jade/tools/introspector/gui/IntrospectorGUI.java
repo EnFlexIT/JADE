@@ -122,8 +122,9 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
     split.add(scroll,JSplitPane.RIGHT);
     split.setDividerLocation(250);
     this.addWindowListener(this);
-
+    this.pack();
     this.setSize(new Dimension(680, 435));
+    panel.adjustDividerLocation();
     setVisible(true);
   }
 
