@@ -38,14 +38,18 @@ import java.io.Serializable;
  * asks the user the name of the file.
  *
  * 
- * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>
+ * @author Alessandro Beneventi 
  * @version $Date$ $Revision$
  *
- * @see jade.Sniffer.MMAbstractAction
- * @see jade.Sniffer.AgentList
- * @see jade.Sniffer.MessageList
+ * @see jade.tools.sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.AgentList
+ * @see jade.tools.sniffer.MessageList
  */
 public class WriteMessageListAction extends MMAbstractAction implements Serializable {
+	
+	/**
+	@serial
+	*/
 	private PrintWriter out;
 	
   public WriteMessageListAction(){
