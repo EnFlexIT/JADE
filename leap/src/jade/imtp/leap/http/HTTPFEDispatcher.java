@@ -77,7 +77,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private String myMediatorID;
   
   private String owner;
-  private int verbosity = 1;
 
   private String beAddrsText;
   private String[] backEndAddresses;
@@ -86,6 +85,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
   private Object connectorLock = new Object();
   private boolean locked = false;
+
+  private int verbosity = 1;
+  private Logger myLogger = Logger.getMyLogger(getClass().getName());
   
   ////////////////////////////////////////////////
   // FEConnectionManager interface implementation
@@ -101,19 +103,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
       beAddrsText = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
       backEndAddresses = parseBackEndAddresses(beAddrsText);
 
-      // Verbosity
-  	try {
-	    String v = props.getProperty("jade_imtp_leap_http_HTTPFEDispatcher_verbosity");
-	    if(v != null) {
-  		verbosity = Integer.parseInt(v);
-	    }
-  	}
-  	catch (NumberFormatException nfe) {
-      // Use default
-  	}
-
-		log("Creating the BackEnd: ", 2);
-		
   	// Host
   	String host = props.getProperty("host");
   	if (host == null) {
@@ -131,7 +120,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		// Compose URL. Note that we build a JICPAddress just to avoid
   	// loading the HTTPAddress class.
   	mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
- 		log("Remote URL is http://"+host+":"+port, 2);
+  	if (myLogger.isLoggable(Logger.FINE)) {
+	 		myLogger.log(Logger.FINE, "Remote URL is http://"+host+":"+port);
+  	}
 			
 		// Read re-connection retry time
 	  long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
@@ -141,7 +132,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
     catch (Exception e) {
       // Use default
     } 
-		log("Reconnection retry time is "+retryTime, 2);
+  	if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Reconnection retry time is "+retryTime);
+  	}
 			
 		// Read Max disconnection time
 	  maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -151,7 +144,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
     catch (Exception e) {
       // Use default
     } 
-		log("Max disconnection time is "+maxDisconnectionTime, 2);
+  	if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Max disconnection time is "+maxDisconnectionTime);
+  	}
 
 		// Read Keep-alive time
 	  keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
@@ -161,7 +156,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
     catch (Exception e) {
       // Use default
     } 
-		log("Keep-alive time is "+keepAliveTime, 2);
+  	if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Keep-alive time is "+keepAliveTime);
+  	}
 
 		myDisconnectionManager = new DisconnectionManager(retryTime, maxDisconnectionTime);
 		myKeepAliveManager = new KeepAliveManager(keepAliveTime);
@@ -179,7 +176,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 				
 		// Create the remote BackEnd
 		createBackEnd();
-		log("BackEnd created successfully", 1);
 
 		return myStub;
   }
@@ -201,7 +197,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
 			// If we are disconnected don't even send the termination notification
 			if (myDisconnectionManager.isReachable()) {
-	  		log("Pushing termination notification", 2);
+	  		myLogger.log(Logger.FINE, "Pushing termination notification");
 	  		try {
 	  			deliver(pkt, null);
 	  		}
@@ -209,7 +205,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  			// When the BackEnd receives the termination notification,
 	  			// it just closes the connection --> we always have this
 	  			// exception
-	  			log("BackEnd closed", 2);
+	  			myLogger.log(Logger.FINE, "BackEnd closed");
 	  		}
 			}
   	} 		
@@ -221,7 +217,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      Executed at bootstrap time by the thread that creates the 
      FrontEndContainer.
    */
-  private void createBackEnd() throws IMTPException {
+  private synchronized void createBackEnd() throws IMTPException {
       StringBuffer sb = new StringBuffer();
       appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
       appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
@@ -247,7 +243,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  }
 
 	  try {
-	      log("Creating BackEnd on http://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	      myLogger.log(Logger.INFO, "Creating BackEnd on http://"+mediatorTA.getHost()+":"+mediatorTA.getPort());
 	      pkt = deliver(pkt, null);
 
 		    String replyMsg = new String(pkt.getData());
@@ -261,16 +257,16 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		      myDisconnectionManager.setReachable();
 					myKeepAliveManager.update();
-		      log("BackEnd OK. Mediator ID is "+myMediatorID, 1);
+		      myLogger.log(Logger.INFO, "BackEnd OK. Mediator ID is "+myMediatorID);
 				  return;
 	      }
 	      else {
-		      log("Mediator error: "+replyMsg, 1);
+		      myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
 	      }
 	  }
 	  catch (IOException ioe) {
 	      // Ignore it, and try the next address...
-	  	log("Connection error. "+ioe.toString(), 1);
+	  	myLogger.log(Logger.WARNING, "Connection error. "+ioe.toString());
 	  }
       }
 
