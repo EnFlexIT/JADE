@@ -158,7 +158,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    // Read the owner if any
 	    owner = props.getProperty("owner");
 
-	    createBackEnd();
+	    outConnection = createBackEnd();
 	    log("Connection OK", 1);
 
 	    // Start the InputManager dealing with incoming commands
@@ -200,15 +200,19 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   /**
      Send the CREATE_MEDIATOR command with the necessary parameter
      in order to create the BackEnd in the fixed network.
-     Executed at bootstrap time by the thread that creates the 
-     FrontEndContainer.
+     Executed 
+     - at bootstrap time by the thread that creates the FrontEndContainer. 
+     - To re-attach to the platform after a fault of the BackEnd
    */
-  private void createBackEnd() throws IMTPException {
+  private JICPConnection createBackEnd() throws IMTPException {
     StringBuffer sb = new StringBuffer();
     appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BIBEDispatcher");
     appendProp(sb, "verbosity", String.valueOf(verbosity));
     appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
     appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
+    if(myMediatorID != null) {
+		  appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
+    }
     if(beAddrsText != null) {
 		  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
     }
@@ -231,9 +235,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	
 		  try {
 	      log("Connecting to jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
-	      outConnection = new JICPConnection(mediatorTA);
-	      writePacket(pkt, outConnection);
-	      pkt = outConnection.readPacket();
+	      JICPConnection con = new JICPConnection(mediatorTA);
+	      writePacket(pkt, con);
+	      pkt = con.readPacket();
 
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
@@ -244,7 +248,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
-				  return;
+				  return con;
 	      }
 		  }
 		  catch (IOException ioe) {
@@ -472,14 +476,22 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	writePacket(pkt, c);
 		  	pkt = c.readPacket();
 			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-		      // The JICPServer didn't find my Mediator.  
-		      handleError();
-		      return;
+		      // The JICPServer didn't find my Mediator anymore. There was probably 
+			  	// a fault. Try to recreate the BackEnd
+			  	try {
+			  		c = createBackEnd();
+			  		handleReconnection(c, type);
+			  	}
+			  	catch (IMTPException imtpe) { 
+			      handleError();
+			  	}
 			  }
-			  // The local-host address may have changed
-			  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-			  log("Connect OK",2);
-			  handleReconnection(c, type);
+			  else {
+				  // The local-host address may have changed
+				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+				  log("Connect OK",2);
+				  handleReconnection(c, type);
+			  }
 			  return;
 	  	}
 	  	catch (IOException ioe) {

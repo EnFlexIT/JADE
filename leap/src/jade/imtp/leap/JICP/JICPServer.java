@@ -36,7 +36,7 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.core.Profile;
+import jade.core.BackEndContainer;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.util.Logger;
@@ -104,10 +104,12 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		if (pdpContextManagerClass != null) {
 			try {
 				myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
+				myPDPContextManager.init(leapProps); 
 				myPDPContextManager.registerListener(this);
 			}
 			catch (Throwable t) {
 				t.printStackTrace();
+				myPDPContextManager = null;
 			}
 		}
 		
@@ -334,12 +336,23 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          
 	          // If there is a PDPContextManager add the PDP context properties
 	          if (myPDPContextManager != null) {
-	          	mergeProperties(p, myPDPContextManager.getPDPContextInfo(addr));
+	          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr);
+	          	if (pdpContextInfo != null) {
+		          	mergeProperties(p, pdpContextInfo);
+	          	}
+	          	else {
+	          		reply = new JICPPacket("Not authorized", null);
+	          		break;
+	          	}
 	          }
 
 					  // Get mediator ID from the passed properties (if present)
-					  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
-					  if(id == null) {
+					  String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+					  if(id != null) {
+					  	// An existing front-end whose back-end was lost 
+					  	p.setProperty(BackEndContainer.RESYNCH, "true");
+					  }
+					  else {
 					  	// Use the MSISDN (if present) 
 					  	id = p.getProperty(PDPContextManager.MSISDN);
 					  	if (id == null) {
