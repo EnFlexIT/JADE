@@ -65,13 +65,16 @@ public class JADEAgentManagementOntology {
   public static final String AGENTDEAD = "agent-dead";
   public static final String AGENTMOVED = "agent-moved";
 
-  // Actions
+  // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
   public static final String CREATEAGENT = "create-agent";
   public static final String KILLAGENT = "kill-agent";
   public static final String SNIFFON = "sniff-on";
   public static final String SNIFFOFF = "sniff-off";
-
+  
+  //actions supported by the DF
+  public static final String SHOWGUI = "showgui";
+  
   // Predicates
   public static final String EVENTOCCURRED = "event-occurred";
   //public static final String DONE = "done";
@@ -141,6 +144,12 @@ public class JADEAgentManagementOntology {
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new SniffOff(); }
 	     public Class getClassForRole() { return SniffOff.class; }
+	   });
+	   
+  theInstance.addRole(SHOWGUI, new SlotDescriptor[] {
+	}, new RoleEntityFactory() {
+	     public Object create(Frame f) { return new ShowGui();}
+	     public Class getClassForRole() { return ShowGui.class; }
 	   });
 
 	theInstance.addRole(EVENTOCCURRED, new SlotDescriptor[] {

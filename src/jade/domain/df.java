@@ -21,6 +21,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
+
 package jade.domain;
 
 import java.lang.reflect.Method;
@@ -52,6 +54,7 @@ import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
+import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -154,8 +157,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       Register r = (Register)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)r.get_0();
       DFRegister(dfd);
-      sendReply(ACLMessage.AGREE,"FIXME");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.AGREE,"( true )");
+      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") register))");
     }
 
   } // End of RegBehaviour class
@@ -172,8 +175,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       Deregister d = (Deregister)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)d.get_0();
       DFDeregister(dfd);
-      sendReply(ACLMessage.AGREE,"FIXME");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.AGREE,"( true )");
+      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") deregister))");
     }
 
   } // End of DeregBehaviour class
@@ -190,8 +193,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       Modify m = (Modify)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)m.get_0();
       DFModify(dfd);
-      sendReply(ACLMessage.AGREE,"FIXME");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.AGREE,"( true )");
+      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") modify))");
     }
 
   } // End of ModBehaviour class
@@ -209,7 +212,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       DFAgentDescription dfd = (DFAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = DFSearch(dfd, constraints, getReply());
-      sendReply(ACLMessage.AGREE,"FIXME");
+      sendReply(ACLMessage.AGREE,"( true )");
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -241,14 +244,14 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
   	public void action () 
   	{ 
-	    sendReply(ACLMessage.AGREE,"FIXME");
+	    sendReply(ACLMessage.AGREE,"( true )");
 	    if (((df)myAgent).showGui())
-	      sendReply(ACLMessage.INFORM,"FIXME");
+	      sendReply(ACLMessage.INFORM,"( )");
 	    else
-	      sendReply(ACLMessage.FAILURE,"Gui_is_being_shown_already");
+	      sendReply(ACLMessage.FAILURE,"(Gui_is_being_shown_already)");
   	}
       
-      public boolean done() 
+     public boolean done() 
       {
 	  return true;
       }
@@ -259,7 +262,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   } // End of ShowGUIBehaviour class
 
   // This behaviour will be used to respond to request from the applet to know the parent with which this df is federated.
-  private class GetParentsBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
+  /*private class GetParentsBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
       protected GetParentsBehaviour(ACLMessage msg)
       {
@@ -295,11 +298,11 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
       }
   	
-  } // End of GetParentsBehaviour class
+  }*/ // End of GetParentsBehaviour class
   
   //This Behaviour returns the description of this df used to federate with another df 
   //It is used to reply to a request from the applet 
-  private class GetDescriptionOfThisDFBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
+  /*private class GetDescriptionOfThisDFBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
     protected GetDescriptionOfThisDFBehaviour(ACLMessage msg)
     {
@@ -329,10 +332,10 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
     }
 
-  } //  End of GetDescriptionOfThisDFBehaviour class
+  }*/ //  End of GetDescriptionOfThisDFBehaviour class
   
   // This behaviour allows the federation of this df with another df required by the APPLET
-  private class FederateWithBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
+  /*private class FederateWithBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
 
     protected FederateWithBehaviour(ACLMessage msg) {
       super(df.this,msg);
@@ -353,12 +356,12 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     public void reset(){}
 
 
-  } // End of FederateWithBehaviour
+  } */// End of FederateWithBehaviour
   
 
   
   //This behaviour allow the applet to required the df to deregister itself from a parent of the federation
-  private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
+  /*private class DeregisterFromBehaviour extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory
   {
 
   	protected DeregisterFromBehaviour(ACLMessage msg)
@@ -382,8 +385,11 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	}
   	public void reset(){}
   	
-  }//End DeregisterFromBehaviour
+  }*///End DeregisterFromBehaviour
   
+  /**
+  All the actions requested via the DFGUI to another df extends this behaviour
+  **/
   private class GUIRequestDFServiceBehaviour extends RequestFIPAServiceBehaviour
   {
     String actionName;
@@ -422,9 +428,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   				
   				if(dfd.getName().equals(df.this.getAID()))
   				{ //if what I register is  myself then I have federated with a parent
-  					parents.add(receiverDF);
-  				  gui.addParent(receiverDF);
-  				  //dscDFParentMap(receiverDF,)
+  					addParent(receiverDF,dfd);
   				}
   			}catch (Exception e){
   			e.printStackTrace();// should never happen
@@ -441,8 +445,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   			  if(dfd.getName().equals(df.this.getAID()))
 			    { 
 			      //I deregister myself from a parent
-			      parents.remove(receiverDF); 
-			      gui.removeParent(receiverDF);
+			      removeParent(receiverDF);
 			    }
   			  else
 			    {
@@ -454,6 +457,33 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		}
 
   	}
+  	
+  	protected void handleRefuse(ACLMessage msg)
+  	{
+  		super.handleRefuse(msg);
+  		try{
+  			gui.showStatusMsg("Request Refused: " + msg.getContent());
+  		}catch(Exception e)
+  		{}
+  	}
+  	
+  	protected void handleFailure(ACLMessage msg)
+  	{
+  		super.handleFailure(msg);
+  		try{
+  		gui.showStatusMsg("Request Failed: " + msg.getContent());
+  		}catch(Exception e){}
+  	}
+  	
+  	protected void handleNotUnderstood(ACLMessage msg)
+  	{
+  		super.handleNotUnderstood(msg);
+  		try{
+  			gui.showStatusMsg("Request not understood: " + msg.getContent());
+  		}catch(Exception e){}
+  	}
+
+
   }
   
   private static int NUMBER_OF_AGENT_FOUND = 1000;
@@ -477,7 +507,8 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   */
 
   private List parents = new ArrayList();
-  private HashMap dscDFParentMap = new HashMap(); //corrispondence parent --> dfd description of the df used to federate.
+  
+  private HashMap dscDFParentMap = new HashMap(); //corrispondence parent --> dfd description (of this df) used to federate.
   /**
 
   @serial
@@ -515,14 +546,16 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 
     // Behaviour to deal with the GUI
     
-    MessageTemplate mt1 = MessageTemplate.MatchOntology("jade-extensions");
+    MessageTemplate mt1 = MessageTemplate.and(
+                             MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
+    	                       MessageTemplate.MatchLanguage(SL0Codec.NAME));
     jadeExtensionDispatcher = new FipaRequestResponderBehaviour(this, mt1);
-    jadeExtensionDispatcher.registerFactory("SHOWGUI", new ShowGUIBehaviour(null));
+    jadeExtensionDispatcher.registerFactory(JADEAgentManagementOntology.SHOWGUI, new ShowGUIBehaviour(null));
     // The following three actions are used only by the DFApplet	
-    jadeExtensionDispatcher.registerFactory("GETPARENTS", new GetParentsBehaviour(null)); 
-    jadeExtensionDispatcher.registerFactory("FEDERATE_WITH", new FederateWithBehaviour(null));
-    jadeExtensionDispatcher.registerFactory("DEREGISTER_FROM", new DeregisterFromBehaviour(null));
-    jadeExtensionDispatcher.registerFactory("GETDEFAULTDESCRIPTION", new GetDescriptionOfThisDFBehaviour(null)); 
+    //jadeExtensionDispatcher.registerFactory("GETPARENTS", new GetParentsBehaviour(null)); 
+    //jadeExtensionDispatcher.registerFactory("FEDERATE_WITH", new FederateWithBehaviour(null));
+    //jadeExtensionDispatcher.registerFactory("DEREGISTER_FROM", new DeregisterFromBehaviour(null));
+    //jadeExtensionDispatcher.registerFactory("GETDEFAULTDESCRIPTION", new GetDescriptionOfThisDFBehaviour(null)); 
   }
 
   /**
@@ -535,14 +568,13 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 		
     // register the ontology used by application
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
+    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
 
     // Add a message dispatcher behaviour
     addBehaviour(dispatcher);
     addBehaviour(jadeExtensionDispatcher);
     setDescriptionOfThisDF(getDefaultDescription());
-    //FIXMe just for debugging
-    showGui();
-    //setConstraints();
+   
   }  // End of method setup()
 
 	/**
@@ -610,7 +642,6 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   	  if (dfd.getName().getName().length() == 0)
   		  throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
   	} catch (Exception e) {
-  		e.printStackTrace();
   		throw new MissingParameter(FIPAAgentManagementOntology.DFAGENTDESCRIPTION, "name");
   	}
   	if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
@@ -620,14 +651,12 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
   		  if (sd.getName().length() == 0)
   		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
   	  } catch (Exception e) {
-  	  	e.printStackTrace();
   		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "name");
   	  }
   	  try {
   		  if (sd.getType().length() == 0)
   		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
   	  } catch (Exception e) {
-  	  	e.printStackTrace();
   		   throw new MissingParameter(FIPAAgentManagementOntology.SERVICEDESCRIPTION, "type");
   	  }
   	 } //end of for
@@ -688,7 +717,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 
   private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
     System.out.println("df::DFSearch() called.");
-
+    //FIXME: now returns all the agent registered.
     return new ArrayList(PROVA.values());
     
   }
@@ -871,7 +900,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 		catch(FIPAException fe) 
 		{
 			fe.printStackTrace();
-			//FIXME showErrorMsg
+		
 		}
 	}
 
@@ -929,17 +958,37 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	    return thisDF;
 	}
 	
-	
 	/*
-	This method can be used to add a parent (a DF with which the this DF is federated). 
+	* This method returns the description of this df used to federate with the given parent
 	*/
-	public void addParent(AID dfName)
+	public DFAgentDescription getDescriptionOfThisDF(AID parent)
 	{
-	  parents.add(dfName);
+		return (DFAgentDescription)dscDFParentMap.get(parent);
 	}
 	
+	/*
+	* This method can be used to add a parent (a DF with which the this DF is federated). 
+	* @param dfName the parent df (the df with which this df has been registered)
+	* @param dfd the description used by this df to register with the parent.
+	*/
+	public void addParent(AID dfName, DFAgentDescription dfd)
+	{
+	  parents.add(dfName);
+	  gui.addParent(dfName);
+    dscDFParentMap.put(dfName,dfd); //update the table of corrispondence between parents and description of this df used to federate.
+
+	}
 	
-	
+	/**
+	this method can be used to remove a parent (a DF with which this DF is federated).
+	*/
+	public void removeParent(AID dfName)
+	{
+		parents.remove(dfName); 
+		gui.removeParent(dfName);
+		dscDFParentMap.remove(dfName);
+
+	}
 	
 	
 	
