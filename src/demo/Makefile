@@ -12,3 +12,10 @@ MeetingSchedulerAgent:
 clean:
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
+
+batch:
+	echo 'cd ..\demo' >> $(BATCH_EXAMPLES)
+	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -classpath %CLASSPATH%;..\..\src;..\..\classes;MeetingScheduler\components.jar MeetingScheduler\MeetingSchedulerAgent.java' >> $(BATCH_EXAMPLES)
+	echo >> $(BATCH_EXAMPLES)
+	echo 'cd ..\..' >> $(BATCH_EXAMPLES)
+

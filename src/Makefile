@@ -1,7 +1,7 @@
 # Makefile for JADE project - src directory
 
 # The following targets are not file names
-.PHONY: all parsers classes stubs images realclean idlclean jjclean batch
+.PHONY: all idl parsers classes stubs images realclean idlclean jjclean batch
 
 MAKE = make
 IDLCC = idltojava -fno-cpp
@@ -80,6 +80,9 @@ all: $(IDLSTUBS) parsers classes stubs images
 	@echo Build complete.
 	@echo
 
+idl: $(IDLSTUBS)
+	@echo IDL stubs and skeletons generated
+
 _%Stub.java %.java %Holder.java %Helper.java _%ImplBase.java: %.idl
 	$(IDLCC) $<
 
@@ -137,20 +140,22 @@ batch:
 	echo 'cd src' >> $(BATCH_ALL)
 	echo $(IDLCC) FIPA_Agent_97.idl >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
-	echo 'call $(PARSERGEN) $(subst /,\\,$(ACLFLAGS)) $(subst /,\\,$(ACLSPEC))' >> $(BATCH_ALL)
-	echo 'call $(PARSERGEN) $(subst /,\\,$(AGENTMANFLAGS)) $(subst /,\\,$(AGENTMANSPEC))' >> $(BATCH_ALL)
-	echo 'call $(PARSERGEN) $(subst /,\\,$(SL0FLAGS)) $(subst /,\\,$(SL0SPEC))' >> $(BATCH_ALL)
+	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
+	echo 'call $(PARSERGEN) $(subst /,\,$(AGENTMANFLAGS)) $(subst /,\,$(AGENTMANSPEC))' >> $(BATCH_ALL)
+	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
-	echo '$(JC) $(subst /,\\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\\,$(EXECS))' >> $(BATCH_ALL)
-	echo '$(JC) $(subst /,\\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\\,$(ROOTCLASSES))' >> $(BATCH_ALL)
+	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
+	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
-	echo 'xcopy /E /I jade\\tools\\DummyAgent\\images ..\\classes\\jade\\tools\\DummyAgent\\images' >> $(BATCH_ALL)
-	echo 'xcopy /E /I jade\\tools\\rma\\images ..\\classes\\jade\\tools\\rma\\images' >> $(BATCH_ALL)
-	echo 'xcopy /E /I jade\\tools\\sniffer\\images ..\\classes\\jade\\tools\\sniffer\\images' >> $(BATCH_ALL)
-	echo 'xcopy /E /I jade\\gui\\images ..\\classes\\jade\\gui\\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\rma\images ..\classes\jade\tools\rma\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
+
 	echo >> $(BATCH_ALL)
-	echo '$(STUBGEN) -d ..\\classes $(STUBS)' >> $(BATCH_ALL)
-	echo 'pause' >> $(BATCH_ALL)
+	echo '$(STUBGEN) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
+	echo 'cd ..' >> $(BATCH_ALL)
+
 
 
