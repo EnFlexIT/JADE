@@ -159,6 +159,7 @@ public class DFGUI extends JFrame
 		////////////////////////////////////////////////////
 		// Table Pane to the Center part
 		tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		tablePane.setContinuousLayout(true);
 
 		//////////////////////////////
 		// Registered agents table
