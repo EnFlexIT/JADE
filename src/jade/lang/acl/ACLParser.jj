@@ -30,9 +30,6 @@ Boston, MA  02111-1307, USA.
    Known bugs and/or limitations:
    - MIME Extension not supported
    - Content is parsed according to the ACL Grammar and not the Content Language Grammar
-   - The definition of the token <WORD> does not allow to distinguish between AgentName
-     and AgentAddress. This is because it includes the character "@".
-     Further processing should be included in order to make this differentiation
 */
 
 options {
@@ -60,6 +57,7 @@ PARSER_BEGIN(ACLParser)
 package jade.lang.acl;
 
 import java.io.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
 Javadoc documentation for the file
@@ -68,7 +66,7 @@ Javadoc documentation for the file
 */
 
 public class ACLParser {
-  ACLMessage msg = new ACLMessage("");
+  ACLMessage msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 
   public static void main(String args[]) throws ParseException {
     ACLParser parser = new ACLParser(System.in);
@@ -116,19 +114,45 @@ void MessageType() :
 
 
 void MessageParameter() :
-{ String s; }
+{ String s; Token t; AID aid;}
 {
-  <SENDER>          s=AgentName()			{ msg.setSource(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <RECEIVER>        ( RecipientExpr() | (s = AgentName() {msg.removeAllDests(); msg.addDest(s);}) ) { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+  <SENDER>          aid=AgentIdentifier()			{ msg.setSource(aid); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <RECEIVER>        {msg.removeAllDests();}
+        <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addDest(aid);})* <RBRACE2> 
+        { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONTENT>         s=Expression()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <REPLY_BY>        s=DateTimeToken()		{ msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <IN_REPLY_TO>     s=Expression()			{ msg.setReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
-| <ENVELOPE>        s=KeyValuePairList()		{ msg.setEnvelope(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <IN_REPLY_TO>     s=Expression()			{ msg.setInReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <REPLY_TO>       {msg.removeAllReplyTo();}
+      <LBRACE2> <SET> (aid=AgentIdentifier() {msg.addReplyTo(aid);})* <RBRACE2>
+      { token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <ENCODING>        s=Expression()		{ msg.setEncoding(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <LANGUAGE>        s=Expression()			{ msg.setLanguage(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <ONTOLOGY>        s=Expression()			{ msg.setOntology(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <PROTOCOL>        s=Word()				{ msg.setProtocol(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
 | <CONVERSATION_ID> s=Expression()			{ msg.setConversationId(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| t=<USERDEFINEDPARAM> s=Expression()			{ msg.addUserDefinedParameter(t.image,s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+}
+
+AID AgentIdentifier():
+{Token t; String s; AID aid; 
+ AID cur = new AID();}
+{
+<LBRACE2> <AID> 
+ (
+    (<NAME> t=<WORD> { cur.setName(t.image); token_source.SwitchTo(AIDSTATE);})
+  | (<ADDRESSES> <LBRACE2> <SEQUENCE> {token_source.SwitchTo(CONTENTSTATE);} 
+       (t=<WORD> {cur.addAddresses(t.image);} )* <RBRACE> 
+       {token_source.SwitchTo(AIDSTATE);})
+  | (<RESOLVERS> <LBRACE2> <SEQUENCE> 
+       (aid=AgentIdentifier() {cur.addResolvers(aid);})* <RBRACE2> 
+       {token_source.SwitchTo(AIDSTATE);})
+  | (t=<USERDEFINEDSLOT> s=Expression() 
+       {cur.addUserDefinedSlot(t.image,s); token_source.SwitchTo(AIDSTATE);})
+ )+
+<RBRACE2>
+{return cur;}
 }
 
 
@@ -138,38 +162,15 @@ String Expression():
   s=Word()						{return s;}
 | s=Stringa()					{return s;}
 | s=Number()					{return s;}
-| s=DateTimeToken()				{return s;}
+| s=DateTimeToken()	{return s;}
 | <LBRACE> ( s=Expression() {s1+=(s+" ");} )* <RBRACE>		{return "("+s1+")";}
 }
 
 
-String KeyValuePairList():
-{ String s; String s1=new String();}
-{ 
-  <LBRACE> (s=KeyValuePair() {s1+=(s+" ");} )* <RBRACE>		{return "("+s1+")";}
-}
 
 
-String KeyValuePair():
-{ String s1,s2;}
-{ 
-  <LBRACE> s1=Word() s2=Expression() <RBRACE> 		{return ("("+s1+" "+s2+")");}
-}
 
 
-void RecipientExpr():
-{ String s; }
-{ 
-<LBRACE> (s = AgentName() { msg.addDest(s); })+ <RBRACE>
-}
-
-
-String AgentName():
-{ String s; }
-{ 
-  s=Word()					{return s;}
-// the definition of the <WORD> Token includes also the production rule for AgentAddress
-}
 
 
 String Word():
@@ -279,6 +280,8 @@ TOKEN:
                 | "inform-ref"	
                 | "not-understood"	
                 | "propose"		
+                | "proxy"		
+                | "propagate"		
                 | "query-if"	
                 | "query-ref"	
                 | "refuse"		
@@ -301,17 +304,20 @@ SKIP :
 <MESSAGEPARAMETERSTATE>
 TOKEN:
 {
-  <SENDER :          ":sender" >          : CONTENTSTATE
-| <RECEIVER :        ":receiver" >        : CONTENTSTATE
+  <SENDER :          ":sender" >          : AIDSTATE
+| <RECEIVER :        ":receiver" >        : AIDSTATE
 | <CONTENT :         ":content" >         : CONTENTSTATE
 | <REPLY_WITH :      ":reply-with" >      : CONTENTSTATE
 | <REPLY_BY :        ":reply-by" >        : CONTENTSTATE
 | <IN_REPLY_TO:      ":in-reply-to" >     : CONTENTSTATE
-| <ENVELOPE :        ":envelope" >        : CONTENTSTATE
+| <REPLY_TO:         ":reply-to" >        : AIDSTATE
+| <ENCODING :        ":encoding" >        : CONTENTSTATE
 | <LANGUAGE :        ":language" >        : CONTENTSTATE
 | <ONTOLOGY :        ":ontology" >        : CONTENTSTATE
 | <PROTOCOL :        ":protocol" >        : CONTENTSTATE
 | <CONVERSATION_ID : ":conversation-id" > : CONTENTSTATE
+| <USERDEFINEDPARAM : ":" ["X","x"] "-" 
+                      (~["\u0000"-"\u001F"," ","(",")"])+ > : CONTENTSTATE
 | <END :             ")" >                : DEFAULT
 }
 
@@ -327,7 +333,7 @@ SKIP :
 <CONTENTSTATE>
 TOKEN:
 {
-  < DATETIME :      ("+")? (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+  < DATETIME :             (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
                            (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
                            (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
                            (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["a"-"z","A"-"Z"])? > 
@@ -360,6 +366,30 @@ TOKEN:
          }
  | <RBRACE : ")" >
  | <LBRACE : "(" >
+}
+
+<AIDSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<AIDSTATE>
+TOKEN:
+{
+  <SET:       "set"        >
+| <SEQUENCE:  "sequence"   >
+| <AID:       "AID"        >
+| <NAME:      ":name"      > : CONTENTSTATE 
+| <ADDRESSES: ":addresses" > 
+| <RESOLVERS: ":resolvers" > 
+| <USERDEFINEDSLOT : ":" ["X","x"] "-" 
+                      (~["\u0000"-"\u001F"," ","(",")"])+ >  : CONTENTSTATE
+| <RBRACE2 : ")" >
+| <LBRACE2 : "(" >
 }
 
 

@@ -38,8 +38,10 @@ import java.lang.ClassNotFoundException;
 import java.util.Enumeration;
 import java.util.Date;
 import java.util.Vector;
+import java.util.Properties;
 
 import jade.core.AgentGroup;
+import jade.domain.FIPAAgentManagement.AID;
 
 import starlight.util.Base64;
 
@@ -104,6 +106,10 @@ public class ACLMessage implements Cloneable, Serializable {
   public static final int REQUEST_WHENEVER = 18;
   /** constant identifying the FIPA performative **/
   public static final int SUBSCRIBE = 19;
+  /** constant identifying the FIPA performative **/
+  public static final int PROXY = 20;
+  /** constant identifying the FIPA performative **/
+  public static final int PROPAGATE = 21;
   /** constant identifying an unknown performative **/
   public static final int UNKNOWN = -1;
   
@@ -111,7 +117,7 @@ public class ACLMessage implements Cloneable, Serializable {
 @serial
 */
 private int performative; // keeps the performative type of this object
-  private static Vector performatives = new Vector(20);
+  private static Vector performatives = new Vector(22);
   static { // initialization of the Vector of performatives
     performatives.addElement("ACCEPT-PROPOSAL");
     performatives.addElement("AGREE");
@@ -133,6 +139,8 @@ private int performative; // keeps the performative type of this object
     performatives.addElement("REQUEST-WHEN");
     performatives.addElement("REQUEST-WHENEVER");
     performatives.addElement("SUBSCRIBE");
+    performatives.addElement("PROXY");
+    performatives.addElement("PROPAGATE");
   }
 
   private static final String SOURCE          = new String(" :sender ");
@@ -140,8 +148,9 @@ private int performative; // keeps the performative type of this object
   private static final String CONTENT         = new String(" :content ");
   private static final String REPLY_WITH      = new String(" :reply-with ");
   private static final String IN_REPLY_TO     = new String(" :in-reply-to ");
-  private static final String ENVELOPE        = new String(" :envelope ");
+  private static final String REPLY_TO        = new String(" :reply-to ");
   private static final String LANGUAGE        = new String(" :language ");
+  private static final String ENCODING        = new String(" :encoding ");
   private static final String ONTOLOGY        = new String(" :ontology ");
   private static final String REPLY_BY        = new String(" :reply-by ");
   private static final String PROTOCOL        = new String(" :protocol ");
@@ -150,11 +159,15 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer source = new StringBuffer();
+  private AID source = new AID();
   /**
   @serial
   */
   private AgentGroup dests = new AgentGroup();
+  /**
+  @serial
+  */
+  private AgentGroup reply_to = new AgentGroup();
   /**
   @serial
   */
@@ -170,7 +183,7 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer envelope = new StringBuffer();
+  private StringBuffer encoding = new StringBuffer();
   /**
   @serial
   */
@@ -195,6 +208,10 @@ private int performative; // keeps the performative type of this object
   @serial
   */
   private StringBuffer conversation_id = new StringBuffer();
+  /**
+  @serial
+  */
+  private Properties userDefProps = new Properties();
 
   /**
      @deprecated Since every ACL Message must have a message type, you
@@ -252,39 +269,23 @@ private int performative; // keeps the performative type of this object
      @param source The new value for the slot.
      @see jade.lang.acl.ACLMessage#getSource()
   */
-  public void setSource( String source ) {
+  public void setSource( AID source ) {
     if (source != null)
-      this.source = new StringBuffer(source);
+      this.source = (AID)source.clone();
     else
-      this.source = new StringBuffer();
+      this.source = new AID();
   }
 
-  /**
-     @deprecated Now <code>ACLMessage</code> class supports multiple
-     receivers, so <code>addDest()</code>, <code>removeDest()</code> and
-     <code> getDests()</code> should be used. Currently, this
-     method removes all previous receivers and inserts the one
-     given.
-     @see jade.lang.acl.ACLMessage#addDest(String dest)
-     @see jade.lang.acl.ACLMessage#removeDest(String dest)
-     @see jade.lang.acl.ACLMessage#getDests()
-  */
-  public void setDest( String dest ) {
-    if (dest != null) {
-      dests = new AgentGroup();
-      dests.addMember(new String(dest));
-    } else
-      removeAllDests();
-  }
+
 
   /**
      Adds a value to <code>:receiver</code> slot. <em><b>Warning:</b>
      no checks are made to validate the slot value.</em>
      @param dest The value to add to the slot value set.
   */
-  public void addDest(String dest) {
+  public void addDest(AID dest) {
     if (dest != null) 
-      dests.addMember(new String(dest));
+      dests.addMember((AID)dest.clone());
   }
 
   /**
@@ -293,9 +294,9 @@ private int performative; // keeps the performative type of this object
      value.</em>
      @param dest The value to remove from the slot value set.
   */
-  public void removeDest(String dest) {
+  public void removeDest(AID dest) {
     if (dest != null)
-      dests.removeMember(new String(dest));
+      dests.removeMember(dest);
   }
 
   /**
@@ -305,6 +306,38 @@ private int performative; // keeps the performative type of this object
   */
   public void removeAllDests() {
     dests.reset();
+  }
+
+
+
+  /**
+     Adds a value to <code>:reply-to</code> slot. <em><b>Warning:</b>
+     no checks are made to validate the slot value.</em>
+     @param dest The value to add to the slot value set.
+  */
+  public void addReplyTo(AID dest) {
+    if (dest != null) 
+      reply_to.addMember(dest);
+  }
+
+  /**
+     Removes a value from <code>:reply_to</code>
+     slot. <em><b>Warning:</b> no checks are made to validate the slot
+     value.</em>
+     @param dest The value to remove from the slot value set.
+  */
+  public void removeReplyTo(AID dest) {
+    if (dest != null)
+      reply_to.removeMember(dest);
+  }
+
+  /**
+     Removes all values from <code>:reply_to</code>
+     slot. <em><b>Warning:</b> no checks are made to validate the slot
+     value.</em> 
+  */
+  public void removeAllReplyTo() {
+    reply_to.reset();
   }
 
 
@@ -509,9 +542,9 @@ private int performative; // keeps the performative type of this object
      Writes the <code>:in-reply-to</code> slot. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
      @param reply The new value for the slot.
-     @see jade.lang.acl.ACLMessage#getReplyTo()
+     @see jade.lang.acl.ACLMessage#getInReplyTo()
   */
-  public void setReplyTo( String reply ) {
+  public void setInReplyTo( String reply ) {
     if (reply != null)
       in_reply_to = new StringBuffer(reply);
     else
@@ -519,16 +552,16 @@ private int performative; // keeps the performative type of this object
   }
   
   /**
-     Writes the <code>:envelope</code> slot. <em><b>Warning:</b> no
+     Writes the <code>:encoding</code> slot. <em><b>Warning:</b> no
      checks are made to validate the slot value.</em>
      @param str The new value for the slot.
-     @see jade.lang.acl.ACLMessage#getEnvelope()
+     @see jade.lang.acl.ACLMessage#getEncoding()
   */
-  public void setEnvelope( String str ) {
+  public void setEncoding( String str ) {
     if (str != null)
-      envelope = new StringBuffer(str);
+      encoding = new StringBuffer(str);
     else
-      envelope = new StringBuffer();
+      encoding = new StringBuffer();
   }
 
   /**
@@ -614,17 +647,7 @@ private int performative; // keeps the performative type of this object
       conversation_id = new StringBuffer();
   }
 
- /**
-  @deprecated Now <code>ACLMessage</code> class supports multiple
-  receivers, so <code>addDest()</code>, <code>removeDest()</code> and
-  <code>getDests()</code> should be used.
-  @see jade.lang.acl.ACLMessage#addDest(String dest)
-  @see jade.lang.acl.ACLMessage#removeDest(String dest)
-  @see jade.lang.acl.ACLMessage#getDests() 
- */
-  public String getDest() {
-    return getFirstDest();
-  }
+
 
   /**
      Reads <code>:receiver</code> slot.
@@ -639,21 +662,32 @@ private int performative; // keeps the performative type of this object
      Reads first value of <code>:receiver</code> slot.
      @return The first receiver agent name.
   */
-  public String getFirstDest() {
+  public AID getFirstDest() {
     Enumeration e = dests.getMembers();
     if(e.hasMoreElements())
-      return (String)e.nextElement();
+      return (AID)e.nextElement();
     else
       return null;
   }
+
+  /**
+     Reads <code>:reply_to</code> slot.
+     @return An <code>AgentGroup</code> containing the names of the
+     reply_to agents for this message.
+  */
+  public AgentGroup getReplyTo() {
+    return (AgentGroup)reply_to.clone();
+  }
+
+
 
   /**
      Reads <code>:sender</code> slot.
      @return The value of <code>:sender</code>slot.
      @see jade.lang.acl.ACLMessage#setSource(String).
   */
-  public String getSource() {
-    return new String(source);
+  public AID getSource() {
+    return (AID)source.clone();
   }
 
   /**
@@ -726,21 +760,21 @@ private int performative; // keeps the performative type of this object
   /**
      Reads <code>:reply-to</code> slot.
      @return The value of <code>:reply-to</code>slot.
-     @see jade.lang.acl.ACLMessage#setReplyTo(String).
+     @see jade.lang.acl.ACLMessage#setInReplyTo(String).
   */
-  public String getReplyTo() {
+  public String getInReplyTo() {
     return new String(in_reply_to);
   }
 
 
 
   /**
-     Reads <code>:envelope</code> slot.
-     @return The value of <code>:envelope</code>slot.
-     @see jade.lang.acl.ACLMessage#setEnvelope(String).
+     Reads <code>:encoding</code> slot.
+     @return The value of <code>:encoding</code>slot.
+     @see jade.lang.acl.ACLMessage#setEncoding(String).
   */
-  public String getEnvelope() {
-    return new String(envelope);
+  public String getEncoding() {
+    return new String(encoding);
   }
 
   /**
@@ -800,21 +834,42 @@ private int performative; // keeps the performative type of this object
  
 
 
-
-  private static int counter = 0; // This variable is only used as a counter in dump()
   /**
-     @deprecated This method dumps the message on System.out, so it's
-     not suitable for use with GUIs or streams. Now
-     <code>fromText()</code>/<code>toText()</code> methods allow
-     reading and writing an ACL message on any stream; besides they
-     are inverse of each other. Besides, this method will corrupt the
-     ACL message object when more than one receiver is present.
-     @see jade.lang.acl.ACLMessage#toText(Writer w)
-  */
-  public void dump() {
-    counter++;
-    System.out.println("\n"+counter+")"+toString()+"\n");
-  }
+   * Add a new user defined parameter to this ACLMessage.
+   * @param key the property key.
+   * @param value the property value
+  **/
+   public void addUserDefinedParameter(String key, String value) {
+     userDefProps.setProperty(key,value);
+   }
+
+    /**
+     * Searches for the user defined parameter with the specified key. 
+     * The method returns
+     * <code>null</code> if the parameter is not found.
+     *
+     * @param   key   the parameter key.
+     * @return  the value in this ACLMessage with the specified key value.
+     */
+   public String getUserDefinedParameter(String key){
+     return userDefProps.getProperty(key);
+   }
+
+  /**
+   * get a clone of the data structure with all the user defined parameters
+   **/
+   public Properties getAllUserDefinedParameters() {
+     return (Properties)userDefProps.clone();
+   }
+
+  /**
+   * Removes the key and its corresponding value from the list of user
+   * defined parameters in this ACLMessage.
+   * @ param key the key that needs to be removed
+   */
+   public void removeUserDefinedParameter(String key) {
+     userDefProps.remove(key);
+   }
 
   /**
      Writes an ACL message object on a stream as a character
@@ -827,25 +882,35 @@ private int performative; // keeps the performative type of this object
     try {
       w.write("(");
       w.write(getPerformative(getPerformative()) + "\n");
-      if(source.length() > 0)
-	w.write(SOURCE + " " + source + "\n");
-      Enumeration e = dests.getMembers();
-      if(e.hasMoreElements()) 
-	w.write(DEST + "\n");
-	  if (dests.size() > 1)
-		w.write("(");
-      while(e.hasMoreElements())
-	w.write((String)e.nextElement() + "\n");
-	  if (dests.size() > 1)
-		w.write(")");
+      w.write(SOURCE + " ");
+      source.toText(w);
+      w.write("\n");
+      if (dests.size() > 0) {
+	w.write(DEST + " (set ");
+	Enumeration e = dests.getMembers();
+	while(e.hasMoreElements()) {
+	  ((AID)e.nextElement()).toText(w);
+	  w.write(" ");
+	}
+	w.write(")\n");
+      }
+      if (reply_to.size() > 0) {
+	w.write(REPLY_TO + " (set \n");
+	Enumeration e = reply_to.getMembers();
+	while(e.hasMoreElements()) {
+	  ((AID)e.nextElement()).toText(w);
+	  w.write(" ");
+	}
+	w.write(")\n");
+      }
       if(content.length() > 0)
 	w.write(CONTENT + " " + content + "\n");
       if(reply_with.length() > 0)
 	w.write(REPLY_WITH + " " + reply_with + "\n");
       if(in_reply_to.length() > 0)
 	w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
-      if(envelope.length() > 0)
-	w.write(ENVELOPE + " " + envelope + "\n");
+      if(encoding.length() > 0)
+	w.write(ENCODING + " " + encoding + "\n");
       if(language.length() > 0)
 	w.write(LANGUAGE + " " + language + "\n");
       if(ontology.length() > 0)
@@ -856,6 +921,12 @@ private int performative; // keeps the performative type of this object
 	w.write(PROTOCOL + " " + protocol + "\n");
       if(conversation_id.length() > 0)
 	w.write(CONVERSATION_ID + " " + conversation_id + "\n");
+      Enumeration e = userDefProps.propertyNames();
+      String tmp;
+      while (e.hasMoreElements()) {
+	tmp = (String)e.nextElement();
+	w.write(" " + tmp + " " + userDefProps.getProperty(tmp) + "\n");
+      }
       w.write(")");
       w.flush();
     }
@@ -877,6 +948,7 @@ private int performative; // keeps the performative type of this object
     try {
       result = (ACLMessage)super.clone();
       result.dests = getDests(); // Deep copy
+      result.reply_to = getReplyTo(); // Deep copy
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen
@@ -902,22 +974,21 @@ private int performative; // keeps the performative type of this object
   * Resets all the message slots.
  */
  public void reset() {
-    /* Fabio, 26/8/99. Attenzione new StringBuffer(null) genera una
-       NullPointerException. Allo stesso modo new String(null).
-       Pertanto non inizializzare direttamente a null.*/
-  source=new StringBuffer();
+  source=new AID();
   dests=new AgentGroup();
+  reply_to=new AgentGroup();
   performative = NOT_UNDERSTOOD;
   content=new StringBuffer();
   reply_with=new StringBuffer();
   in_reply_to=new StringBuffer();
-  envelope=new StringBuffer();
+  encoding=new StringBuffer();
   language=new StringBuffer();
   ontology=new StringBuffer();
   reply_by=new StringBuffer();
   reply_byInMillisec = new Date().getTime();
   protocol=new StringBuffer();
   conversation_id=new StringBuffer();
+  userDefProps = new Properties();
  }
 
   /**
@@ -932,14 +1003,19 @@ private int performative; // keeps the performative type of this object
 public ACLMessage createReply() {
   ACLMessage m = (ACLMessage)clone();
   m.removeAllDests();
-  m.addDest(getSource());
+  if (reply_to.size()>0) {
+    Enumeration e = reply_to.getMembers();
+    while (e.hasMoreElements())
+      m.addDest((AID)e.nextElement());
+  } else
+    m.addDest(getSource());
+  m.removeAllReplyTo();
   m.setSource(null);
-  //m.setSource(getLocalName());
-  m.setReplyTo(getReplyWith());
-  m.setReplyWith(getSource()+java.lang.System.currentTimeMillis()); 
+  m.setInReplyTo(getReplyWith());
+  m.setReplyWith(source.getName()+java.lang.System.currentTimeMillis()); 
   m.setReplyBy(null);
   m.setContent(null);
-  m.setEnvelope(null);
+  m.setEncoding(null);
   return m;
 }
 
