@@ -25,11 +25,15 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import jade.lang.acl.ACLMessage;
-import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+
+import jade.domain.*;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShowGui;
-import jade.lang.sl.SL0Codec;
-import jade.onto.basic.Action;
-import jade.domain.FIPAException;
+
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.Action;
+
+
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
@@ -53,17 +57,16 @@ class ShowDFGuiAction extends FixedAction
      myRMA = anRMA;
      msg = new ACLMessage(ACLMessage.REQUEST);
      msg.addReceiver(myRMA.getDefaultDF());
-     msg.setOntology(JADEAgentManagementOntology.NAME);
-     msg.setLanguage(SL0Codec.NAME);
+     msg.setOntology(JADEManagementOntology.NAME);
+     msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
      msg.setProtocol("fipa-request");
      Action a = new Action();
-     a.set_0(myRMA.getDefaultDF());
-     a.set_1(new ShowGui());
-     List l = new ArrayList();
-     l.add(a);
+     a.setActor(myRMA.getDefaultDF());
+     a.setAction(new ShowGui());
+     
      try {
-     	myRMA.fillMsgContent(msg,l);
-     } catch (FIPAException e) {
+     	myRMA.getContentManager().fillContent(msg,a);
+     } catch (Exception e) {
      	e.printStackTrace();
      }
   }

@@ -38,7 +38,7 @@ import java.util.Hashtable;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
 import jade.domain.FIPAServiceCommunicator;
@@ -48,9 +48,9 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 
-import jade.lang.sl.SL0Codec;
+import jade.content.lang.sl.SLCodec;
 
-import jade.onto.basic.Action;
+import jade.content.onto.basic.Action;
 
 import jade.proto.SimpleAchieveREInitiator;
 
@@ -190,8 +190,7 @@ public class Sniffer extends ToolAgent {
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
 	try {
-	  List l = extractMsgContent(current);
-	  Occurred o = (Occurred)l.get(0);
+	  Occurred o = (Occurred)getContentManager().extractContent(current);
 	  EventRecord er = o.get_0();
 	  Event ev = er.getWhat();
 	  String content;
@@ -313,7 +312,7 @@ public class Sniffer extends ToolAgent {
 
         // Fill the event handler table.
 
-        handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedContainer ac = (AddedContainer)ev;
 	    ContainerID cid = ac.getContainer();
@@ -329,7 +328,7 @@ public class Sniffer extends ToolAgent {
 	  }
 	});
 
-	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.REMOVEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    RemovedContainer rc = (RemovedContainer)ev;
 	    ContainerID cid = rc.getContainer();
@@ -338,7 +337,7 @@ public class Sniffer extends ToolAgent {
 	  }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.BORNAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.BORNAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    BornAgent ba = (BornAgent)ev;
 	    ContainerID cid = ba.getWhere();
@@ -361,7 +360,7 @@ public class Sniffer extends ToolAgent {
 	  }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    DeadAgent da = (DeadAgent)ev;
 	    ContainerID cid = da.getWhere();
@@ -372,7 +371,7 @@ public class Sniffer extends ToolAgent {
 	  }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.MOVEDAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    MovedAgent ma = (MovedAgent)ev;
 	    AID agent = ma.getAgent();
@@ -391,6 +390,10 @@ public class Sniffer extends ToolAgent {
    * corresponding behaviours are set up.
    */
   public void toolSetup() {
+	
+	getContentManager().registerOntology(IntrospectionOntology.getInstance());
+	getContentManager().registerOntology(JADEManagementOntology.getInstance());
+	getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     ExpandedProperties properties = new ExpandedProperties();
     String fileName = locateFile("sniffer.properties");
@@ -600,17 +603,15 @@ public class Sniffer extends ToolAgent {
       if(!empty) {
 	try {
 	  Action a = new Action();
-	  a.set_0(getAMS());
-	  a.set_1(so);
-	  List l = new ArrayList(1);
-	  l.add(a);
-
+	  a.setActor(getAMS());
+	  a.setAction(so);
+	  
 	  ACLMessage requestMsg = getRequest();
-	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	  fillMsgContent(requestMsg, l);
-          return requestMsg;
+	  requestMsg.setOntology(JADEManagementOntology.NAME);
+	  getContentManager().fillContent(requestMsg, a);
+       return requestMsg;
 	}
-	catch(FIPAException fe) {
+	catch(Exception fe) {
 	  fe.printStackTrace();
 	}
       }
@@ -621,30 +622,28 @@ public class Sniffer extends ToolAgent {
       so.setSniffer(getAID());
       boolean empty = true;
       while(it.hasNext()) {
-	Agent a = (Agent)it.next();
-	AID agentID = new AID();
-	agentID.setName(a.agentName + '@' + getHap());
-	if(agentsUnderSniff.contains(a)) {
-	  agentsUnderSniff.remove(a);
-	  so.addSniffedAgents(agentID);
-	  empty = false;
-	}
+		Agent a = (Agent)it.next();
+		AID agentID = new AID();
+		agentID.setName(a.agentName + '@' + getHap());
+		if(agentsUnderSniff.contains(a)) {
+	  		agentsUnderSniff.remove(a);
+	  		so.addSniffedAgents(agentID);
+	  		empty = false;
+		}
       }
       if(!empty) {
-	try {
-	  Action a = new Action();
-	  a.set_0(getAMS());
-	  a.set_1(so);
-	  List l = new ArrayList(1);
-	  l.add(a);
-
-	  ACLMessage requestMsg = getRequest();
-	  requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	  fillMsgContent(requestMsg, l);
-          requestMsg.setReplyWith(getName()+ (new Date().getTime()));
-          return requestMsg;
+		try {
+	  		Action a = new Action();
+	  		a.setActor(getAMS());
+	  		a.setAction(so);
+	  
+	  		ACLMessage requestMsg = getRequest();
+	  		requestMsg.setOntology(JADEManagementOntology.NAME);
+	  		getContentManager().fillContent(requestMsg, a);
+          	requestMsg.setReplyWith(getName()+ (new Date().getTime()));
+          	return requestMsg;
 	}
-	catch(FIPAException fe) {
+	catch(Exception fe) {
 	  fe.printStackTrace();
 	}
       }

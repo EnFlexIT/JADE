@@ -40,20 +40,20 @@ import java.net.URL;
 import jade.core.*;
 import jade.core.behaviours.*;
 
-import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
-import jade.domain.MobilityOntology;
+import jade.domain.mobility.*;
 import jade.domain.FIPANames;
 import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.sl.SL0Codec;
 
-import jade.onto.basic.ResultPredicate;
-import jade.onto.basic.Action;
+import jade.content.lang.sl.SLCodec;
+
+import jade.content.onto.basic.Result;
+import jade.content.onto.basic.Action;
 
 import jade.proto.SimpleAchieveREInitiator;
 
@@ -121,15 +121,15 @@ public class rma extends ToolAgent {
     		//System.out.println("arrived a new APDescription");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r =(ResultPredicate) extractMsgContent(msg).get(0); 
+    			Result r =(Result)getContentManager().extractContent(msg); 
 
-    			Iterator i = r.getAll_1();
+    			Iterator i = r.getItems().iterator();
     			APDescription APDesc = (APDescription)i.next();
     			if(APDesc != null){
     			myGUI.addRemotePlatformFolder();
     			myGUI.addRemotePlatform(sender,APDesc);}
-    		}catch(jade.domain.FIPAException e){
-    		e.printStackTrace();
+    		}catch(Exception e){
+    			e.printStackTrace();
     		}
     	}
     
@@ -149,11 +149,11 @@ public class rma extends ToolAgent {
 	    //System.out.println("arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
-    			ResultPredicate r = (ResultPredicate)extractMsgContent(msg).get(0);
-    			Iterator i = r.getAll_1();
+    			Result r = (Result)getContentManager().extractContent(msg);
+    			Iterator i = r.getItems().iterator();
     			myGUI.addRemoteAgentsToRemotePlatform(platform,i);
-    		}catch(FIPAException e){
-    		e.printStackTrace();
+    		}catch(Exception e){
+    			e.printStackTrace();
     		}
     	}
     
@@ -170,7 +170,7 @@ public class rma extends ToolAgent {
       protected void installHandlers(Map handlersTable) {
 
 	// Fill the event handler table.
-	handlersTable.put(JADEIntrospectionOntology.ADDEDCONTAINER, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedContainer ac = (AddedContainer)ev;
 	    ContainerID cid = ac.getContainer();
@@ -187,7 +187,7 @@ public class rma extends ToolAgent {
 	});
 	
 	
-	handlersTable.put(JADEIntrospectionOntology.REMOVEDCONTAINER, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.REMOVEDCONTAINER, new EventHandler() {
 	  public void handle(Event ev) {
 	    RemovedContainer rc = (RemovedContainer)ev;
 	    ContainerID cid = rc.getContainer();
@@ -196,7 +196,7 @@ public class rma extends ToolAgent {
 	  }
 	});
 
-	handlersTable.put(JADEIntrospectionOntology.BORNAGENT, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.BORNAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    BornAgent ba = (BornAgent)ev;
 	    ContainerID cid = ba.getWhere();
@@ -209,7 +209,7 @@ public class rma extends ToolAgent {
 	  }
 	});
 
-        handlersTable.put(JADEIntrospectionOntology.DEADAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    DeadAgent da = (DeadAgent)ev;
 	    ContainerID cid = da.getWhere();
@@ -219,7 +219,7 @@ public class rma extends ToolAgent {
 	  }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.SUSPENDEDAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.SUSPENDEDAGENT, new EventHandler() {
           public void handle(Event ev) {
       	    SuspendedAgent sa = (SuspendedAgent)ev;
       	    ContainerID cid = sa.getWhere();
@@ -229,7 +229,7 @@ public class rma extends ToolAgent {
 	        }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.RESUMEDAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.RESUMEDAGENT, new EventHandler() {
           public void handle(Event ev) {
       	    ResumedAgent ra = (ResumedAgent)ev;
       	    ContainerID cid = ra.getWhere();
@@ -239,7 +239,7 @@ public class rma extends ToolAgent {
 	        }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.CHANGEDAGENTOWNERSHIP, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.CHANGEDAGENTOWNERSHIP, new EventHandler() {
           public void handle(Event ev) {
           	ChangedAgentOwnership cao = (ChangedAgentOwnership)ev;
       	    ContainerID cid = cao.getWhere();
@@ -249,7 +249,7 @@ public class rma extends ToolAgent {
 	        }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.MOVEDAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    MovedAgent ma = (MovedAgent)ev;
 	    AID agent = ma.getAgent();
@@ -260,7 +260,7 @@ public class rma extends ToolAgent {
 	  }
         });
 
-	handlersTable.put(JADEIntrospectionOntology.ADDEDMTP, new EventHandler() {
+	handlersTable.put(IntrospectionVocabulary.ADDEDMTP, new EventHandler() {
 	  public void handle(Event ev) {
 	    AddedMTP amtp = (AddedMTP)ev;
 	    String address = amtp.getAddress();
@@ -269,7 +269,7 @@ public class rma extends ToolAgent {
 	  }
         });
 
-        handlersTable.put(JADEIntrospectionOntology.REMOVEDMTP, new EventHandler() {
+        handlersTable.put(IntrospectionVocabulary.REMOVEDMTP, new EventHandler() {
 	  public void handle(Event ev) {
 	    RemovedMTP rmtp = (RemovedMTP)ev;
 	    String address = rmtp.getAddress();
@@ -279,7 +279,7 @@ public class rma extends ToolAgent {
 	});
 	
 	//handle the APDescription provided by the AMS 
-	handlersTable.put(JADEIntrospectionOntology.PLATFORMDESCRIPTION, new EventHandler(){
+	handlersTable.put(IntrospectionVocabulary.PLATFORMDESCRIPTION, new EventHandler(){
 	  public void handle(Event ev){
 	    PlatformDescription pd = (PlatformDescription)ev;
 	    APDescription APdesc = pd.getPlatform();
@@ -299,7 +299,11 @@ public class rma extends ToolAgent {
   protected void toolSetup() {
 
     // Register the supported ontologies 
-    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
+    getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+    getContentManager().registerOntology(MobilityOntology.getInstance());
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(IntrospectionOntology.getInstance());
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
@@ -369,17 +373,15 @@ public class rma extends ToolAgent {
     
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(ca);
-      List l = new ArrayList(1);
-      l.add(a);
+      a.setActor(getAMS());
+      a.setAction(ca);
 
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(JADEManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("CreateAgent", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
 
@@ -393,21 +395,19 @@ public class rma extends ToolAgent {
     amsd.setName(name);
     amsd.setState(AMSAgentDescription.SUSPENDED);
     Modify m = new Modify();
-    m.set_0(amsd);
+    m.setDescription(amsd);
 
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(m);
-      List l = new ArrayList(1);
-      l.add(a);
-
+      a.setActor(getAMS());
+      a.setAction(m);
+      
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(FIPAManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("SuspendAgent", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
   }
@@ -429,21 +429,19 @@ public class rma extends ToolAgent {
     amsd.setName(name);
     amsd.setState(AMSAgentDescription.ACTIVE);
     Modify m = new Modify();
-    m.set_0(amsd);
+    m.setDescription(amsd);
 
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(m);
-      List l = new ArrayList(1);
-      l.add(a);
-
+      a.setActor(getAMS());
+      a.setAction(m);
+      
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(FIPAManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
   }
@@ -457,21 +455,19 @@ public class rma extends ToolAgent {
     amsd.setState(AMSAgentDescription.ACTIVE);//SUSPENDED);
     amsd.setOwnership(ownership);
     Modify m = new Modify();
-    m.set_0(amsd);
+    m.setDescription(amsd);
 
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(m);
-      List l = new ArrayList(1);
-      l.add(a);
+      a.setActor(getAMS());
+      a.setAction(m);
 
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(FIPAManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("ChangeAgentOwnership", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
   }
@@ -494,17 +490,15 @@ public class rma extends ToolAgent {
 
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(ka);
-      List l = new ArrayList(1);
-      l.add(a);
-
+      a.setActor(getAMS());
+      a.setAction(ka);
+      
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(JADEManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("KillAgent", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
 
@@ -521,17 +515,15 @@ public class rma extends ToolAgent {
 
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(kc);
-      List l = new ArrayList(1);
-      l.add(a);
-
+      a.setActor(getAMS());
+      a.setAction(kc);
+      
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(JADEManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("KillContainer", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
 
@@ -543,26 +535,27 @@ public class rma extends ToolAgent {
 
   public void moveAgent(AID name, String container)
   {
-     MobilityOntology.MoveAction moveAct = new MobilityOntology.MoveAction();
-     MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
+     MoveAction moveAct = new MoveAction();
+     MobileAgentDescription desc = new MobileAgentDescription();
      desc.setName(name);
      ContainerID dest = new ContainerID(container, null);
 
      desc.setDestination(dest);
-     moveAct.set_0(desc);
+     moveAct.setMobileAgentDescription(desc);
          	
       try{
       	Action a = new Action();
-     	  a.set_0(getAMS());
-     	  a.set_1(moveAct);
-     	  List l = new ArrayList(1);
-     	  l.add(a);
-	  ACLMessage requestMsg = getRequest();
+     	  a.setActor(getAMS());
+     	  a.setAction(moveAct);
+     	  
+		  ACLMessage requestMsg = getRequest();
      	  requestMsg.setOntology(MobilityOntology.NAME);
-     	  fillMsgContent(requestMsg,l);
+     	  getContentManager().fillContent(requestMsg, a);
      	  addBehaviour(new AMSClientBehaviour("MoveAgent",requestMsg));
      	  
-      }catch(FIPAException fe){fe.printStackTrace();}
+      } catch(Exception fe) {
+      	  fe.printStackTrace();
+      }
   }
   
   /**
@@ -570,26 +563,28 @@ public class rma extends ToolAgent {
   */
   public void cloneAgent(AID name,String newName, String container)
   {
-  	MobilityOntology.CloneAction cloneAct = new MobilityOntology.CloneAction();
-  	MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
+  	CloneAction cloneAct = new CloneAction();
+  	MobileAgentDescription desc = new MobileAgentDescription();
   	desc.setName(name);
   	ContainerID dest = new ContainerID(container, null);
   	desc.setDestination(dest);
-  	cloneAct.set_0(desc);
-  	cloneAct.set_1(newName);
+  	cloneAct.setMobileAgentDescription(desc);
+  	cloneAct.setNewName(newName);
   	
   	try{
   		Action a = new Action();
-  		a.set_0(getAMS());
-  		a.set_1(cloneAct);
-  		List l = new ArrayList(1);
-  		l.add(a);
-		ACLMessage requestMsg = getRequest();
+  		a.setActor(getAMS());
+  		a.setAction(cloneAct);
+  		
+  		ACLMessage requestMsg = getRequest();
   		requestMsg.setOntology(MobilityOntology.NAME);
-  		fillMsgContent(requestMsg,l);
+  		getContentManager().fillContent(requestMsg,a);
+  		
   		addBehaviour(new AMSClientBehaviour("CloneAgent",requestMsg));
   		
-  	}catch(FIPAException fe){fe.printStackTrace();}
+  	} catch(Exception fe) {
+  		fe.printStackTrace();
+  	}
   }
 
   /**
@@ -613,19 +608,17 @@ public class rma extends ToolAgent {
     imtp.setContainer(new ContainerID(containerName, null));
     if(myGUI.showInstallMTPDialog(imtp)) {
       try {
-	Action a = new Action();
-	a.set_0(getAMS());
-	a.set_1(imtp);
-	List l = new ArrayList(1);
-	l.add(a);
-
-	ACLMessage requestMsg = getRequest();
-	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-	fillMsgContent(requestMsg, l);
-	addBehaviour(new AMSClientBehaviour("InstallMTP", requestMsg));
+		Action a = new Action();
+		a.setActor(getAMS());
+		a.setAction(imtp);
+	
+		ACLMessage requestMsg = getRequest();
+		requestMsg.setOntology(JADEManagementOntology.NAME);
+		getContentManager().fillContent(requestMsg, a);
+		addBehaviour(new AMSClientBehaviour("InstallMTP", requestMsg));
       }
-      catch(FIPAException fe) {
-	fe.printStackTrace();
+      catch(Exception fe) {
+		fe.printStackTrace();
       }
 
     }
@@ -645,47 +638,43 @@ public class rma extends ToolAgent {
     umtp.setAddress(address);
     try {
       Action a = new Action();
-      a.set_0(getAMS());
-      a.set_1(umtp);
-      List l = new ArrayList(1);
-      l.add(a);
-
+      a.setActor(getAMS());
+      a.setAction(umtp);
+      
       ACLMessage requestMsg = getRequest();
-      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
+      requestMsg.setOntology(JADEManagementOntology.NAME);
+      getContentManager().fillContent(requestMsg, a);
       addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
     }
-    catch(FIPAException fe) {
+    catch(Exception fe) {
       fe.printStackTrace();
     }
   }
 
   //this method sends a request to a remote AMS to know the APDescription of a remote Platform
   public void addRemotePlatform(AID remoteAMS){
-  
       //System.out.println("AddRemotePlatform"+remoteAMS.toString());
   	try{
 
   		ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
 		requestMsg.setSender(getAID());
-    		requestMsg.clearAllReceiver();
-    		requestMsg.addReceiver(remoteAMS);
-    		//requestMsg.setProtocol("fipa-request");
-    		requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-    		requestMsg.setLanguage(SL0Codec.NAME);
-		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+    	requestMsg.clearAllReceiver();
+    	requestMsg.addReceiver(remoteAMS);
+    	//requestMsg.setProtocol("fipa-request");
+    	requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+    	requestMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+		requestMsg.setOntology(FIPAManagementOntology.NAME);
     	
 		GetDescription action = new GetDescription();
-    		List l = new ArrayList(1);
-    		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-    		Action a = new Action();
-    		a.set_0(remoteAMS);
-    		a.set_1(action);
-    		l.add(a);
-    		fillMsgContent(requestMsg,l);
-    		addBehaviour(new handleAddRemotePlatformBehaviour("GetDescription",requestMsg));
-  		
-  	}catch(FIPAException e){
+   		List l = new ArrayList(1);
+   		Action a = new Action();
+   		a.setActor(remoteAMS);
+   		a.setAction(action);
+   		
+   		getContentManager().fillContent(requestMsg,a);
+   		addBehaviour(new handleAddRemotePlatformBehaviour("GetDescription",requestMsg));
+ 		
+  	}catch(Exception e){
   		e.printStackTrace();
   	}
   }
@@ -697,25 +686,25 @@ public class rma extends ToolAgent {
   		URL AP_URL = new URL(url);
     	BufferedReader in = new BufferedReader(new InputStreamReader(AP_URL.openStream()));
 
- 	StringBuffer buf=new StringBuffer();
+ 		StringBuffer buf=new StringBuffer();
      	String inputLine; 
- 	while( (inputLine = in.readLine()) != null ) {
- 	    if( ! inputLine.equals("") ) {
- 		buf.append(inputLine);
- 		buf.append(" ");
- 	    }
- 	}
+ 		while( (inputLine = in.readLine()) != null ) {
+ 	    	if( ! inputLine.equals("") ) {
+ 				buf.append(inputLine);
+ 				buf.append(" ");
+ 	    	}
+ 		}
 	//to parse the APDescription it is put in a Dummy ACLMessage 
      	ACLMessage dummyMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-     	dummyMsg.setOntology(FIPAAgentManagementOntology.NAME);
-     	dummyMsg.setLanguage(SL0Codec.NAME);
+     	dummyMsg.setOntology(FIPAManagementOntology.NAME);
+     	dummyMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
      	String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (set " + buf.toString() +" ) ) )";
      	dummyMsg.setContent(content);
      	try{
      	
-     	ResultPredicate r = (ResultPredicate)extractMsgContent(dummyMsg).get(0);
+     	Result r = (Result)getContentManager().extractContent(dummyMsg);
      	
-    	Iterator i = r.getAll_1();
+    	Iterator i = r.getItems().iterator();
     	
     	APDescription APDesc = null; 
    
@@ -745,16 +734,15 @@ public class rma extends ToolAgent {
     			}
     	}
      	
-     	}catch(jade.domain.FIPAException e){
+     	}catch(Exception e){
      	
-     	e.printStackTrace();}
-    
-    	in.close();
-  	}catch(java.net.MalformedURLException e){
-  		e.printStackTrace();
-  	}catch(java.io.IOException ioe){
-  	ioe.printStackTrace();
-  	}
+     		e.printStackTrace();}
+    		in.close();
+  		}catch(java.net.MalformedURLException e){
+  			e.printStackTrace();
+  		}catch(java.io.IOException ioe){
+  			ioe.printStackTrace();
+  		}
   }
   
   public void viewAPDescription(String title){
@@ -776,27 +764,25 @@ public class rma extends ToolAgent {
   		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
   		request.setSender(getAID());
   		request.addReceiver(ams);
-    		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-      request.setLanguage(SL0Codec.NAME);
-      request.setOntology(FIPAAgentManagementOntology.NAME);
+   		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+      	request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+      	request.setOntology(FIPAManagementOntology.NAME);
   		AMSAgentDescription amsd = new AMSAgentDescription();
   		SearchConstraints constraints = new SearchConstraints();
     	// Build a AMS action object for the request
     	Search s = new Search();
-    	s.set_0(amsd);
-    	s.set_1(constraints);
+    	s.setDescription(amsd);
+    	s.setConstraints(constraints);
 
     	Action act = new Action();
-    	act.set_0(ams);
-    	act.set_1(s);
+    	act.setActor(ams);
+    	act.setAction(s);
 
-    	List l = new ArrayList(1);
-			l.add(act);
-			fillMsgContent(request,l);
+		getContentManager().fillContent(request, act);
 			
-			addBehaviour(new handleRefreshRemoteAgentBehaviour ("search",request,platform));
+		addBehaviour(new handleRefreshRemoteAgentBehaviour ("search",request,platform));
 			
-  	}catch(jade.domain.FIPAException e){
+  	}catch(Exception e){
   		e.printStackTrace();
   	}
   }
@@ -805,19 +791,19 @@ public class rma extends ToolAgent {
   public void registerRemoteAgentWithAMS(AMSAgentDescription amsd){
  		
   	Register register_act = new Register();
-  	register_act.set_0(amsd);
+  	register_act.setDescription(amsd);
   	
   	try{
   		Action a = new Action();
-  		a.set_0(getAMS());
-  		a.set_1(register_act);
-  		List l = new ArrayList();
-  		l.add(a);
+  		a.setActor(getAMS());
+  		a.setAction(register_act);
+  		
 		ACLMessage requestMsg = getRequest();
-  		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
-      fillMsgContent(requestMsg, l);
-      addBehaviour(new AMSClientBehaviour("Register", requestMsg));
+  		requestMsg.setOntology(FIPAManagementOntology.NAME);
+      	getContentManager().fillContent(requestMsg, a);
+      	
+      	addBehaviour(new AMSClientBehaviour("Register", requestMsg));
 
-  	}catch(FIPAException e){e.printStackTrace();}
+  	}catch(Exception e){e.printStackTrace();}
  } 	
 }
