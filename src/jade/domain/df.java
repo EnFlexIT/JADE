@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.19  1999/03/14 17:51:15  rimassa
+  Changed df class to take advantage of new
+  FipaRequestResponderBehaviour class.
+
   Revision 1.18  1999/02/16 08:12:05  rimassa
   Removed some debugging printouts and fixed a bug in recursive search:
   a couple of addBehaviour() calls changed to addSubBehaviour() calls.
@@ -64,18 +68,17 @@ import java.lang.reflect.Method;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-// FIXME: Just for debug
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
-
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.NoSuchElementException;
 
 import jade.core.*;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import jade.proto.FipaRequestResponderBehaviour;
 
 /**************************************************************
 
@@ -89,27 +92,15 @@ import jade.lang.acl.MessageTemplate;
 ****************************************************************/
 public class df extends Agent {
 
-  private abstract class DFBehaviour extends OneShotBehaviour implements BehaviourPrototype {
+  private abstract class DFBehaviour
+    extends FipaRequestResponderBehaviour.Action 
+    implements FipaRequestResponderBehaviour.Factory {
 
-    // This String will be set by subclasses
+    // This will be set by subclasses
     private AgentManagementOntology.DFAction myAction;
 
-    private String myActionName;
-    protected ACLMessage myRequest;
-    protected ACLMessage myReply;
-
-    protected DFBehaviour(String name) {
+    protected DFBehaviour() {
       super(df.this);
-      myActionName = name;
-      myRequest = null;
-      myReply = null;
-    }
-
-    protected DFBehaviour(String name, ACLMessage request, ACLMessage reply) {
-      super(df.this);
-      myActionName = name;
-      myRequest = request;
-      myReply = reply;
     }
 
     // This method throws a FIPAException if the attribute is
@@ -130,7 +121,8 @@ public class df extends Agent {
     // variables. If some error is found a FIPA exception is thrown
     private void crackMessage() throws FIPAException, NoSuchElementException {
 
-      String content = myRequest.getContent();
+      ACLMessage msg = getRequest();
+      String content = msg.getContent();
 
       // Obtain a DF action from message content
       try {
@@ -179,146 +171,78 @@ public class df extends Agent {
 
       }
       catch(FIPAException fe) {
-	sendRefuse(myReply, fe.getMessage());
+	sendRefuse(fe.getMessage());
       }
       catch(NoSuchElementException nsee) {
-	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+	sendRefuse(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
     }
 
+      public boolean done() {
+	return true;
+      }
 
-    // The following methods handle the various possibilities arising in
-    // DF <-> Agent interaction. They all receive an ACL message as an
-    // argument, most of whose fields have already been set. Only the
-    // message type and message content have to be filled in.
-    
-    // Send a 'not-understood' message back to the requester
-    protected void sendNotUnderstood(ACLMessage msg) {
-      msg.setType("not-understood");
-      msg.setContent("(" + myRequest.getContent() + " (unknown reason))");
-      send(msg);
-    }
-    
-    // Send a 'refuse' message back to the requester
-    protected void sendRefuse(ACLMessage msg, String reason) {
-      msg.setType("refuse");
-      // FIXME. Fipa97 version 2 is different
-      msg.setContent("(" + myRequest.getContent() + " (:fipa-man-exception (" + reason + ")))");
-      send(msg);
-    }
-
-    // Send a 'failure' message back to the requester
-    protected void sendFailure(ACLMessage msg, String reason) {
-    msg.setType("failure");
-    msg.setContent("(" + myRequest.getContent() + " (:fipa-man-exception (" + reason + ")))");
-    send(msg);
-    }
-    
-    // Send an 'agree' message back to the requester
-    protected void sendAgree(ACLMessage msg) {
-      msg.setType("agree");
-      msg.setContent("(" + myRequest.getContent() + " (true))"); 
-      send(msg);
-    }
-
-    // Send an 'inform' message back to the requester
-    protected void sendInform(ACLMessage msg) {
-      msg.setType("inform");
-      msg.setContent("( done " + myRequest.getContent() + ")");
-      send(msg);
-    }
-
+      public void reset() {
+      }
 
   } // End of DFBehaviour class
 
 
-  // These four concrete classes serve both as a Prototype and as an
-  // Instance: when seen as BehaviourPrototype they can spawn a new
+  // These four concrete classes serve both as a Factory and as
+  // Action: when seen as Factory they can spawn a new
   // Behaviour to process a given request, and when seen as
-  // Behaviour they process their request and terminate.
+  // Action they process their request and terminate.
 
   private class RegBehaviour extends DFBehaviour {
 
-    public RegBehaviour() {
-      super(AgentManagementOntology.DFAction.REGISTER);
-    }
-
-    public RegBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.DFAction.REGISTER, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new RegBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new RegBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
       AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFRegister(dfd);
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
     }
 
   } // End of RegBehaviour class
 
   private class DeregBehaviour extends DFBehaviour {
 
-    public DeregBehaviour() {
-      super(AgentManagementOntology.DFAction.DEREGISTER);
-    }
-
-    public DeregBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.DFAction.DEREGISTER, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new DeregBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new DeregBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
       AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFDeregister(dfd);
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
     }
 
   } // End of DeregBehaviour class
 
   private class ModBehaviour extends DFBehaviour {
 
-    public ModBehaviour() {
-      super(AgentManagementOntology.DFAction.MODIFY);
-    }
-
-    public ModBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.DFAction.MODIFY, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new ModBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new ModBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
       AgentManagementOntology.DFAgentDescriptor dfd = dfa.getArg();
       DFModify(dfd);
-      sendAgree(myReply);
-      sendInform(myReply);
+      sendAgree();
+      sendInform();
     }
 
   } // End of ModBehaviour class
 
   private class SrchBehaviour extends DFBehaviour {
 
-    public SrchBehaviour() {
-      super(AgentManagementOntology.DFAction.SEARCH);
-    }
-
-    public SrchBehaviour(ACLMessage request, ACLMessage reply) {
-      super(AgentManagementOntology.DFAction.SEARCH, request, reply);
-    }
-
-    public Behaviour instance(ACLMessage request, ACLMessage reply) {
-      return new SrchBehaviour(request, reply);
+    public FipaRequestResponderBehaviour.Action create() {
+      return new SrchBehaviour();
     }
 
     protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
@@ -326,12 +250,12 @@ public class df extends Agent {
       AgentManagementOntology.DFSearchAction dfsa = (AgentManagementOntology.DFSearchAction)dfa;
 
       Enumeration constraints = dfsa.getConstraints();
-      DFSearch(dfd, constraints, myReply);
+      DFSearch(dfd, constraints, getReply());
 
     }
 
     private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd,
-			  Enumeration constraints, ACLMessage myReply) throws FIPAException {
+			  Enumeration constraints, ACLMessage reply) throws FIPAException {
 
       AgentManagementOntology.DFSearchResult matchesFound = new AgentManagementOntology.DFSearchResult();
 
@@ -509,23 +433,22 @@ public class df extends Agent {
 
       }
 
-      sendAgree(myReply);
+      sendAgree();
 
       if(dfDepth == 1) {
 
 	StringWriter text = new StringWriter();
 	matchesFound.toText(text);
 
-	String content = "(result " + myRequest.getContent() + text.toString() + ")";
-	// System.err.println("myRequest.getContent="+myRequest.getContent());
-	// System.err.println("text.toString()="+text.toString());
-	myReply.setContent(content);
-	myReply.setType("inform");
-	send(myReply);
+	ACLMessage req = getRequest();
+	String content = "(result " + req.getContent() + text.toString() + ")";
+	reply.setContent(content);
+	reply.setType("inform");
+	send(reply);
 
       }
       else {
-	addBehaviour(new RecursiveSearchBehaviour(dfd, myReply, matchesFound, dfDepth - 1, myRequest));
+	addBehaviour(new RecursiveSearchBehaviour(dfd, reply, matchesFound, dfDepth - 1, getRequest()));
       }
 
     }
@@ -599,13 +522,14 @@ public class df extends Agent {
 
 
   private AgentManagementOntology myOntology;
-  private FipaRequestServerBehaviour dispatcher;
+  private FipaRequestResponderBehaviour dispatcher;
   private Hashtable descriptors = new Hashtable();
   private Hashtable subDFs = new Hashtable();
 
   private AgentGroup parents = new AgentGroup();
 
   private DFGUI gui;
+  private Vector eventQueue = new Vector();
 
   protected Enumeration getDFAgentDescriptors() {
     return descriptors.elements();
@@ -618,23 +542,52 @@ public class df extends Agent {
     MessageTemplate mt = 
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
-    dispatcher = new FipaRequestServerBehaviour(this, mt);
+
+    dispatcher = new FipaRequestResponderBehaviour(this, mt);
 
     // Associate each DF action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
 
-    dispatcher.registerPrototype(AgentManagementOntology.DFAction.REGISTER, new RegBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFAction.DEREGISTER, new DeregBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFAction.MODIFY, new ModBehaviour());
-    dispatcher.registerPrototype(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.DFAction.REGISTER, new RegBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.DFAction.DEREGISTER, new DeregBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.DFAction.MODIFY, new ModBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
   }
 
   protected void setup() {
     // Show GUI
     gui = new DFGUI(this);
     gui.setVisible(true);
-    // add a message dispatcher behaviour
+    // Add a message dispatcher behaviour
     addBehaviour(dispatcher);
+
+    // Add an event listener behaviour
+    addBehaviour(new CyclicBehaviour() {
+      public void action() {
+        if(!eventQueue.isEmpty()) {
+	  try {
+	    RegEvent re = (RegEvent)eventQueue.remove(0);
+	    if(re.dfName.equalsIgnoreCase(getLocalName())) {
+	      // Register with yourself directly, avoiding deadlock
+	      DFRegister(re.dfd);
+	    }
+	    else {
+	      // Follow ordinary 'fipa-request' protocol
+	      registerWithDF(re.dfName, re.dfd);
+	    }
+	  }
+	  catch(ArrayIndexOutOfBoundsException aioobe) { // Cannot happen
+	    aioobe.printStackTrace();
+	  }
+	  catch(FIPAException fe) {
+	    fe.printStackTrace();
+	  }
+	}
+	else {
+	  block();
+	}
+      }
+    });
   }
 
   protected void takeDown() {
@@ -905,6 +858,23 @@ public class df extends Agent {
     }
 
     return true;
+  }
+
+  private class RegEvent {
+
+    public String dfName;
+    public AgentManagementOntology.DFAgentDescriptor dfd;
+
+    public RegEvent(String n, AgentManagementOntology.DFAgentDescriptor ad) {
+      dfName = n;
+      dfd = ad;
+    }
+
+  }
+
+  public void postRegisterEvent(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+    eventQueue.addElement(new RegEvent(dfName, dfd));
+    doWake();
   }
 
 }
