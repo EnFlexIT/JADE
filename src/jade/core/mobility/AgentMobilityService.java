@@ -572,13 +572,14 @@ public class AgentMobilityService extends BaseService {
 
 	    myContainer.releaseLocalAgent(agentID);
 	}
-
+	
+	// FIXME: adjust ownership, principal and credentials
 	private void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws AuthException, NotFoundException, NameClashException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(agentID, cid, creds, false); 
+		    impl.bornAgent(agentID, cid, null, null, false); 
 		}
 		catch(NameClashException nce) {
 		    try {
@@ -596,7 +597,7 @@ public class AgentMobilityService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(agentID, cid, creds, true);
+			impl.bornAgent(agentID, cid, null, null, true);
 		    }
 		}
 	    }

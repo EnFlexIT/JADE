@@ -290,12 +290,14 @@ public class MainReplicationService extends BaseService {
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    Credentials creds = (Credentials)params[2];
+	    String ownership = (String)params[2];
 
 	    GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
 	    hCmd.addParam(agentID);
 	    hCmd.addParam(cid);
-	    hCmd.addParam(creds);
+	    hCmd.addParam(ownership);
+	    hCmd.setPrincipal(cmd.getPrincipal());
+	    hCmd.setCredentials(cmd.getCredentials());
 
 	    broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
 	}
@@ -452,8 +454,8 @@ public class MainReplicationService extends BaseService {
 		else if(cmdName.equals(MainReplicationSlice.H_BORNAGENT)) {
 		    AID name = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    Credentials creds = (Credentials)params[2];
-		    bornAgent(name, cid, creds);
+		    String ownership = (String)params[2];
+		    bornAgent(name, cid, ownership);
 		}
 		else if(cmdName.equals(MainReplicationSlice.H_DEADAGENT)) {
 		    AID name = (AID)params[0];
@@ -527,6 +529,7 @@ public class MainReplicationService extends BaseService {
 		    }
 		}
 
+		// FIXME: What about principal and ownership?
 		slice.fillGADT(names, containers);
 
 		// Update the status of each suspended agent...
@@ -574,9 +577,9 @@ public class MainReplicationService extends BaseService {
 	private void fillGADT(AID[] agents, ContainerID[] containers) throws AuthException {
 	    for(int i = 0; i < agents.length; i++) {
 
-                Credentials creds = null;
 		try {
-		    myMain.bornAgent(agents[i], containers[i], creds, true);
+				// FIXME: What about principal and ownership?
+		    myMain.bornAgent(agents[i], containers[i], null, null, true);
 				log("Agent "+agents[i].getName()+" inserted into GADT", 2);		    
 		}
 		catch(NotFoundException nfe) {
@@ -591,10 +594,11 @@ public class MainReplicationService extends BaseService {
 
 	}
 
-	private void bornAgent(AID name, ContainerID cid, Credentials creds) throws NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, String ownership) throws NameClashException, NotFoundException, AuthException {
 	    try {
 		// If the name is already in the GADT, throws NameClashException
-		myMain.bornAgent(name, cid, creds, false);
+	  // FIXME: What about the principal?
+		myMain.bornAgent(name, cid, ownership, null, false);
 		log("Agent "+name.getName()+" inserted into GADT", 2);
 	    }
 	    catch(NameClashException nce) {
@@ -613,7 +617,7 @@ public class MainReplicationService extends BaseService {
 		}
 		catch(Exception e) {
 		    // Ping failed: forcibly replace the dead agent...
-		    myMain.bornAgent(name, cid, creds, true);
+		    myMain.bornAgent(name, cid, ownership, null, true);
 				log("Agent "+name.getName()+" inserted into GADT", 2);
 		}
 	    }
