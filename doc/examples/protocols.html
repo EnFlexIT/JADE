@@ -239,8 +239,7 @@ the support provided JADE to implement interaction protocols.
         a FIPA-contract-net interaction protocol. In this case in particular 
         we use a <code>ContractNetResponder</code>  
         to participate into a negotiation where an initiator needs to assign
-        a task to an agent among a set of candidates.<br>
-        
+        a task to an agent among a set of candidates.        
         <br><br>
         This example should be used together with the <a href="#target3"><font size="4">ContractNetInitiatorAgent</font></a>
         as described <a href="#target3">here.</a>
@@ -283,9 +282,10 @@ the support provided JADE to implement interaction protocols.
         and the <a href="#target4"><font size="4">FIPARequestResponderAgent</font></a>
         as described below.<br>
         Start the JADE runtime (with the management GUI) and launch one
-        FIPARequestResponderAgent and one BrokerAgent on it.<br>
-        java jade.Boot -gui r:examples.protocols.FIPARequestResponderAgent b:examples.protocols.BrokerAgent<br>
-        Then, from another window (or from the management GUI), launch an
+        FIPARequestResponderAgent and one BrokerAgent on it. Specify the name
+        of the responder as an argument to the broker.<br>
+        java jade.Boot -gui r:examples.protocols.FIPARequestResponderAgent b:examples.protocols.BrokerAgent(r)<br>
+        Then, from another window (or from the management GUI), launch a
         FIPARequestInitiatorAgent specifying the local name of the broker as argument.<br>
         java jade.Boot -container i:examples.protocols.FIPARequestInitiatorAgent(b)<br>
         </font> </td>
