@@ -31,6 +31,7 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 import java.util.*;
+import java.applet.*;
 
 // Import required Jade classes
 import jade.domain.*;
@@ -116,16 +117,20 @@ public class DFGUI extends JFrame
 	DFGUIFederateAction         dfFedAction;
   DFGUISearchWithConstraintAction   dfSearchConstraintAction; 
   
+  // this variable is used to discriminate if the gui is of an applet or not
+  boolean isGUIForApplet = false;
+  
 	// CONSTRUCTORS
-	public DFGUI(GUI2DFCommunicatorInterface a) 
+	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 
 	{
 		//////////////////////////
 		// Initialization
 		super();
-    setSize(505,405);
+		isGUIForApplet = isApplet;
+    setSize(550,450);
 		setTitle("DF: " + a.getLocalName());
 		myAgent = a;
-
+    
 		/////////////////////////////////////
 		// Add main menu to the GUI window
 		JMenuBar jmb = new JMenuBar();
@@ -134,6 +139,11 @@ public class DFGUI extends JFrame
 		JMenu generalMenu = new JMenu ("General");
 		item = generalMenu.add(new DFGUIExitDFAction(this));
 		item = generalMenu.add(new DFGUICloseGuiAction(this));
+		
+		// feature only for applet
+		if(isGUIForApplet)
+			item = generalMenu.add(new DFGUIRefreshAppletAction(this));
+			
 		jmb.add (generalMenu);
 
 		JMenu catalogueMenu = new JMenu ("Catalogue");
@@ -182,6 +192,15 @@ public class DFGUI extends JFrame
 		closeB.setIcon(closeImg);
 		closeB.setToolTipText("Close the DF GUI");
 
+		if(isGUIForApplet)
+		{
+			Icon refreshImg = DFGuiProperties.getIcon("refreshapplet");
+			JButton refreshB = bar.add(new DFGUIRefreshAppletAction(this));
+			refreshB.setText("");
+			refreshB.setIcon(refreshImg);
+			refreshB.setToolTipText("Refresh the GUI");
+		}
+		
 		bar.addSeparator();
 
 		// CATALOGUE
@@ -590,6 +609,7 @@ public class DFGUI extends JFrame
 		if (tab == 2)
 		{
 		   row = parentTable.getSelectedRow();
+		   
 		   if (row != -1)
 		   	out = parentModel.getElementAt(row);
 		   	else
@@ -657,6 +677,7 @@ public class DFGUI extends JFrame
 	
 	public void refreshFederation()
 	{
+	
 		parentModel.clear();
 		Enumeration parent = myAgent.getParents();
 		while (parent.hasMoreElements())
@@ -665,7 +686,7 @@ public class DFGUI extends JFrame
 		}
 		parentModel.fireTableDataChanged();
 		
-		childrenModel.clear();
+    childrenModel.clear();
 		Enumeration children  = myAgent.getChildren();
 		while(children.hasMoreElements())
 		{
@@ -674,6 +695,8 @@ public class DFGUI extends JFrame
 		}
 		childrenModel.fireTableDataChanged();
 		
+		
+
 	}
 	
 
@@ -719,5 +742,10 @@ public class DFGUI extends JFrame
 		// Make AWT Event Dispatcher thread dispose DF window for us.
 		EventQueue.invokeLater(new disposeIt(this));
 	}
+ 
+	public boolean isApplet()
+	{
+		return isGUIForApplet;
+	} 
 
 }
