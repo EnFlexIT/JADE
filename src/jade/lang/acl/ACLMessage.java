@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.19  1999/07/25 23:52:36  rimassa
+ Replaced String data members with StringBuffer, to overcome an UTF
+ data format limitation to 64 kB in size.
+
  Revision 1.18  1999/06/25 12:40:52  rimassa
  Fixed a bug in toText() method: missing parentheses when multiple
  receivers were present.
@@ -139,19 +143,19 @@ public class ACLMessage implements Cloneable, Serializable {
   private static final String PROTOCOL        = new String(" :protocol ");
   private static final String CONVERSATION_ID = new String(" :conversation-id ");
 
-  private String        source;
-  private AgentGroup    dests = new AgentGroup();
-  private String        msgType;
-  private String        content;
-  private String        reply_with;
-  private String        in_reply_to;
-  private String        envelope;
-  private String        language;
-  private String        ontology;
-  private String        reply_by;
-  private long          reply_byInMillisec;  
-  private String        protocol;
-  private String        conversation_id;
+  private StringBuffer source = new StringBuffer();
+  private AgentGroup dests = new AgentGroup();
+  private StringBuffer msgType = new StringBuffer();
+  private StringBuffer content = new StringBuffer();
+  private StringBuffer reply_with = new StringBuffer();
+  private StringBuffer in_reply_to = new StringBuffer();
+  private StringBuffer envelope = new StringBuffer();
+  private StringBuffer language = new StringBuffer();
+  private StringBuffer ontology = new StringBuffer();
+  private StringBuffer reply_by = new StringBuffer();
+  private long reply_byInMillisec;  
+  private StringBuffer protocol = new StringBuffer();
+  private StringBuffer conversation_id = new StringBuffer();
 
   /**
      @deprecated Since every ACL Message must have a message type, you
@@ -161,7 +165,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#ACLMessage(String type)
   */
   public ACLMessage() {
-    msgType = "not-understood";
+    msgType.replace(0, msgType.length(), "not-understood");
   }
 
   /**
@@ -171,7 +175,7 @@ public class ACLMessage implements Cloneable, Serializable {
      message. 
    */
   public ACLMessage(String type) {
-    msgType = new String(type);
+    msgType.replace(0, msgType.length(), type);
   }
 
   /**
@@ -205,7 +209,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setSource( String source ) {
     if (source != null)
-      this.source = new String(source);
+      this.source = new StringBuffer(source);
   }
 
   /**
@@ -262,7 +266,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setType( String type ) {
     if (type != null)
-      msgType = new String(type);
+      msgType = new StringBuffer(type);
   }
 
   /**
@@ -273,7 +277,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setContent( String content ) {
     if (content != null)
-      this.content = new String(content);
+      this.content = new StringBuffer(content);
   }
 
   /**
@@ -284,7 +288,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setReplyWith( String reply ) {
     if (reply != null)
-      reply_with = new String(reply);
+      reply_with = new StringBuffer(reply);
   }
 
   /**
@@ -295,7 +299,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setReplyTo( String reply ) {
     if (reply != null)
-      in_reply_to = new String(reply);
+      in_reply_to = new StringBuffer(reply);
   }
   
   /**
@@ -306,7 +310,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setEnvelope( String str ) {
     if (str != null)
-      envelope = new String(str);
+      envelope = new StringBuffer(str);
   }
 
   /**
@@ -317,7 +321,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setLanguage( String str ) {
     if (str != null)
-      language = new String(str);
+      language = new StringBuffer(str);
   }
 
   /**
@@ -328,7 +332,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setOntology( String str ) {
     if (str != null)
-      ontology = new String(str);
+      ontology = new StringBuffer(str);
   }
 
   /**
@@ -339,7 +343,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setReplyBy( String str ) {
     if (str != null) {
-      reply_by = new String(str);
+      reply_by = new StringBuffer(str);
       try {
 	reply_byInMillisec = ISO8601.toDate(str).getTime();
       } catch (Exception e) {
@@ -356,7 +360,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setReplyByDate(Date date) {
    reply_byInMillisec = date.getTime();
-   reply_by = ISO8601.toString(date);
+   reply_by = new StringBuffer(ISO8601.toString(date));
   }
 
   /**
@@ -367,7 +371,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setProtocol( String str ) {
     if (str != null)
-      protocol = new String(str);
+      protocol = new StringBuffer(str);
   }
 
   /**
@@ -378,7 +382,7 @@ public class ACLMessage implements Cloneable, Serializable {
   */
   public void setConversationId( String str ) {
     if (str != null)
-      conversation_id = new String(str);
+      conversation_id = new StringBuffer(str);
   }
 
  /**
@@ -420,7 +424,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setSource(String).
   */
   public String getSource() {
-    return source;
+    return new String(source);
   }
 
   /**
@@ -429,7 +433,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setType(String).
   */
   public String getType() {
-    return msgType;
+    return new String(msgType);
   }
 
   /**
@@ -438,7 +442,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setContent(String).
   */
   public String getContent() {
-    return content;
+    return new String(content);
   }
 
   /**
@@ -447,7 +451,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setReplyWith(String).
   */
   public String getReplyWith() {
-    return reply_with;
+    return new String(reply_with);
   }
 
   /**
@@ -456,7 +460,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setReplyTo(String).
   */
   public String getReplyTo() {
-    return in_reply_to;
+    return new String(in_reply_to);
   }
 
 
@@ -467,7 +471,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setEnvelope(String).
   */
   public String getEnvelope() {
-    return envelope;
+    return new String(envelope);
   }
 
   /**
@@ -476,7 +480,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setLanguage(String).
   */
   public String getLanguage() {
-    return language;
+    return new String(language);
   }
 
   /**
@@ -485,7 +489,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setOntology(String).
   */
   public String getOntology() {
-    return ontology;
+    return new String(ontology);
   }
 
   /**
@@ -494,7 +498,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setReplyBy(String).
   */
   public String getReplyBy() {
-    return reply_by;
+    return new String(reply_by);
   }
 
   /**
@@ -513,7 +517,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setProtocol(String).
   */
   public String getProtocol() {
-    return protocol;
+    return new String(protocol);
   }
 
   /**
@@ -522,7 +526,7 @@ public class ACLMessage implements Cloneable, Serializable {
      @see jade.lang.acl.ACLMessage#setConversationId(String).
   */
   public String getConversationId() {
-    return conversation_id;
+    return new String(conversation_id);
   }
  
  /**
@@ -653,7 +657,7 @@ public class ACLMessage implements Cloneable, Serializable {
   public void dump() {
     counter++;
     String dest = getDest();
-    System.out.println( counter + ") " + msgType.toUpperCase());
+    System.out.println( counter + ") " + new String(msgType).toUpperCase());
     if (source != null)          System.out.println("   " + SOURCE + source);
     if (dest != null)             System.out.println("   " + DEST + dest);
     if (content != null)         System.out.println("   " + CONTENT + content);
