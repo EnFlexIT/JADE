@@ -52,7 +52,8 @@ import java.net.*;
  * @author Nicolas Lhuillier - Motorola
  */
 public class JICPPeer implements ICP {
-
+	private static final int POOL_SIZE = 6;
+	
   /**
    * Default port for the local container JICP transport address
    */
@@ -63,7 +64,7 @@ public class JICPPeer implements ICP {
    * Start listening for internal platform messages on the specified port
    */
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
-    client = new JICPClient(getProtocol(), getConnectionFactory());
+    client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE);
   	
     String host = null;
     int    port = JICPProtocol.DEFAULT_PORT;
@@ -117,7 +118,7 @@ public class JICPPeer implements ICP {
     } 
 			
     // Start listening for connections
-    server = new JICPServer(port, changePortIfBusy, l, getConnectionFactory());
+    server = new JICPServer(port, changePortIfBusy, l, getConnectionFactory(), POOL_SIZE);
     server.start();
 
     // Creates the local transport address
@@ -130,7 +131,8 @@ public class JICPPeer implements ICP {
    * stop listening for internal platform messages
    */
   public void deactivate() throws ICPException {
-    if (server != null) {
+  	if (server != null) {
+  		client.shutdown();
       server.shutdown();
     } 
     else {

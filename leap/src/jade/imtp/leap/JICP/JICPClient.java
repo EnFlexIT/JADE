@@ -33,14 +33,14 @@
  * **************************************************************
  */
 
-
 package jade.imtp.leap.JICP;
+
+//#MIDP_EXCLUDE_FILE
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.core.CaseInsensitiveString;
 import java.io.*;
-// import java.net.*;
 
 /**
  * Class declaration
@@ -52,13 +52,15 @@ class JICPClient {
 
 	private TransportProtocol protocol;
 	private ConnectionFactory connFactory;
+	private ConnectionPool pool; 
 	
   /**
    * Constructor declaration
    */
-  public JICPClient(TransportProtocol tp, ConnectionFactory f) {
+  public JICPClient(TransportProtocol tp, ConnectionFactory f, int max) {
   	protocol = tp;
   	connFactory = f;
+  	pool = new ConnectionPool(protocol, connFactory, max);
   } 
 
   /**
@@ -71,26 +73,18 @@ class JICPClient {
    * @throws ICPException
    */
   public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICPException {
-    Connection       connection = null;
-    OutputStream out = null;
-    InputStream  inp = null;
-    JICPPacket       reply = null;
+    ConnectionWrapper cw = null;
+  	boolean done = false;
 
     try {
-      // Check the protocol indicated in the destination transport address
-      String proto = ta.getProto();
-      if (!CaseInsensitiveString.equalsIgnoreCase(proto, protocol.getName())) {
-        throw new ICPException("Incorrect protocol "+proto);
-      } 
+      // Acquire a connection wrapper from the pool
+      cw = pool.acquire(ta);
 
-      // Open the connection and gets the output and input streams
-      connection = connFactory.createConnection(ta);
-      out = connection.getOutputStream();
-      inp = connection.getInputStream();
-
+      // Prepare JICP information
       byte dataInfo = JICPProtocol.COMPRESSED_INFO;
-
-      // Set the JICP additional information
+			if (cw.isOneShot()) {
+				dataInfo |= JICPProtocol.TERMINATED_INFO;
+			}
       if (dataType == JICPProtocol.COMMAND_TYPE) {
         int commandType = Command.getCommandType(data);
         switch (commandType) {
@@ -104,50 +98,57 @@ class JICPClient {
         }
       } 
 
-      // Send the complete JICPPacket
+      // Get the actual connection
+      Connection connection = cw.getConnection();
+      
+      // Send the request
       JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
-      request.writeTo(out);
+      request.writeTo(connection.getOutputStream());
 
       // Read the reply
-      reply = JICPPacket.readFrom(inp);
+      JICPPacket reply = JICPPacket.readFrom(connection.getInputStream());
+	    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
+	      throw new ICPException(new String(reply.getData()));
+	    } 
+      if ((reply.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+      	// The server cannot keep the connection open --> set it as one-shot
+      	cw.setOneShot();
+      }
+      pool.release(cw);
+	
+    	done = true;
+	    return reply.getData();
     } 
     catch (EOFException eof) {
       throw new ICPException("EOF reached");
     } 
-    // catch (UnknownHostException uhe) {
-    // throw new ICPException("Cannot connect to "+ta.getHost()+":"+ta.getPort());
-    // }
     catch (IOException ioe) {
       throw new ICPException("I/O error sending/receiving data to "+ta.getHost()+":"+ta.getPort(), ioe);
+    } 
+    catch (ICPException icpe) {
+    	// Re-throw the exception
+      throw icpe;
     } 
     catch (Exception e) {
       throw new ICPException("Problems in communication with "+ta.getHost()+":"+ta.getPort(), e);
     } 
-    finally {
-      try {
-        // Close the connection
-        if (inp != null) {
-          inp.close();
-        } 
-
-        if (out != null) {
-          out.close();
-        } 
-
-        if (connection != null) {
-          connection.close();
-        } 
-      } 
-      catch (IOException ioe) {
-        throw new ICPException("I/O error while closing the connection", ioe);
-      } 
-    } 
-
-    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
-      throw new ICPException(new String(reply.getData()));
-    } 
-
-    return reply.getData();
+		finally {    
+			if (done) {
+				if (cw.isOneShot()) {
+		      pool.remove(ta, cw);
+				}
+	  	}
+	  	else {
+	  		// Some error occurred --> The connection (if any) is no longer valid
+		    if (cw != null) {
+		    	pool.remove(ta, cw);
+				}
+	  	}
+		}
   } 
+  
+  public void shutdown() {
+  	pool.shutdown();
+  }
 }
 

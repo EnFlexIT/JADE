@@ -60,6 +60,9 @@ public class JICPServer extends Thread {
   protected boolean      listen = true;
   private int            mediatorCnt = 1;
   private Hashtable      mediators = new Hashtable();
+  
+  private int handlersCnt = 0;
+  private int maxHandlers;
 
   private ConnectionFactory connFactory;
   
@@ -70,9 +73,10 @@ public class JICPServer extends Thread {
    * @param port
    * @param cmdHandler
    */
-  public JICPServer(int port, boolean changePortIfBusy, ICP.Listener l, ConnectionFactory f) throws ICPException {
+  public JICPServer(int port, boolean changePortIfBusy, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
     cmdListener = l;
 		connFactory = f;
+		maxHandlers = max;
 		
     try {
       server = new ServerSocket(port);
@@ -291,6 +295,8 @@ public class JICPServer extends Thread {
      * Thread entry point
      */
     public void run() {
+    	handlersCnt++;
+    	
       OutputStream out = null;
       InputStream  inp = null;
       boolean closeConnection = true;
@@ -300,91 +306,104 @@ public class JICPServer extends Thread {
         // Get input and output stream from the connection
         inp = c.getInputStream();
         out = c.getOutputStream();
-
-        // Read the input
-        JICPPacket request = JICPPacket.readFrom(inp);
-        status = 1;
-
-        // Reply packet
-        JICPPacket reply = null;
-
-        type = request.getType();
-        switch (type) {
-        case JICPProtocol.COMMAND_TYPE:
-        case JICPProtocol.RESPONSE_TYPE:
-          // Get the right recipient and let it process the command.
-          String recipientID = request.getRecipientID();
-          if (recipientID != null) {
-            // The recipient is one of the mediators
-            JICPMediator m = (JICPMediator) mediators.get(recipientID);
-            if (m != null) {
-              reply = m.handleJICPPacket(request, addr, port);
-            } 
-            else {
-          		if (type == JICPProtocol.COMMAND_TYPE) { 
-              	reply = new JICPPacket("Unknown recipient "+recipientID, null);
-          		}
-            } 
-          } 
-          else {
-          	// The recipient is my ICP.Listener (the local CommandDispatcher)
-          	// If the packet is not a command, just ignore it
-          	if (type == JICPProtocol.COMMAND_TYPE) { 
-	            byte[] rsp = cmdListener.handleCommand(request.getData());
-	            reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.COMPRESSED_INFO, rsp);
-          	}
-          } 
-          break;
-
-        case JICPProtocol.GET_ADDRESS_TYPE:
-          // Respond sending back the caller address
-          log("Received a GET_ADDRESS request from "+addr+":"+port, 2);
-          reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
-          break;
-
-        case JICPProtocol.CREATE_MEDIATOR_TYPE:
-
-          // Starts a new Mediator and sends back its ID
-          String   id = String.valueOf(mediatorCnt++);
-          log("Received a CREATE_MEDIATOR request from "+addr+":"+port+". New Mediator ID is "+id+".", 2);
-          String s = new String(request.getData());
-          Properties p = parseProperties(s);
-          JICPMediator m = startMediator(id, p);
-        	m.handleIncomingConnection(c, addr, port);
-          mediators.put(id, m);
-          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
-        	closeConnection = false;
-        	break;
-
-        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
-          // A mediated container is (re)connecting to its mediator
-          recipientID = request.getRecipientID();
-          log("Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID, 2);
-          m = (JICPMediator) mediators.get(recipientID);
-          if (m != null) {
-          	// Don't close the connection, but pass it to the proper 
-          	// mediator. Use the response (if any) prepared by the 
-          	// Mediator itself
-          	reply = m.handleIncomingConnection(c, addr, port);
-          	closeConnection = false;
-          }
-          else {
-          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
-          }	
-          break;
-
-        default:
-          // Send back an error response
-          log("Uncorrect JICP data type: "+request.getType(), 1);
-          reply = new JICPPacket("Uncorrect JICP data type: "+request.getType(), null);
-        }
-        status = 2;
-
-        // Send the actual response data
-        if (reply != null) {
-	        reply.writeTo(out);
-        }
-        status = 3;
+	
+	      boolean loop = true;
+      	while (loop) {
+	        // Read the input
+	        JICPPacket pkt = JICPPacket.readFrom(inp);
+	        status = 1;
+	        loop = false;
+	        
+	        // Reply packet
+	        JICPPacket reply = null;
+	
+	        type = pkt.getType();
+	        switch (type) {
+	        case JICPProtocol.COMMAND_TYPE:
+	        case JICPProtocol.RESPONSE_TYPE:
+	          // Get the right recipient and let it process the command.
+	          String recipientID = pkt.getRecipientID();
+	          if (recipientID != null) {
+	            // The recipient is one of the mediators
+	            JICPMediator m = (JICPMediator) mediators.get(recipientID);
+	            if (m != null) {
+	              reply = m.handleJICPPacket(pkt, addr, port);
+	            } 
+	            else {
+	          		if (type == JICPProtocol.COMMAND_TYPE) { 
+	              	reply = new JICPPacket("Unknown recipient "+recipientID, null);
+	          		}
+	            } 
+	          } 
+	          else {
+	          	loop = true;
+	          	// The recipient is my ICP.Listener (the local CommandDispatcher)
+	          	// If the packet is not a command, just ignore it
+	          	if (type == JICPProtocol.COMMAND_TYPE) { 
+		            byte[] rsp = cmdListener.handleCommand(pkt.getData());
+		            byte dataInfo = JICPProtocol.COMPRESSED_INFO;
+		            if (handlersCnt >= maxHandlers) {
+		            	dataInfo |= JICPProtocol.TERMINATED_INFO;
+		            	loop = false;
+		            }
+		            reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, dataInfo, rsp);
+	          	}
+	            if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+	            	loop = false;
+	            }
+	          } 
+	          break;
+	
+	        case JICPProtocol.GET_ADDRESS_TYPE:
+	          // Respond sending back the caller address
+	          log("Received a GET_ADDRESS request from "+addr+":"+port, 2);
+	          reply = new JICPPacket(JICPProtocol.GET_ADDRESS_TYPE, JICPProtocol.DEFAULT_INFO, addr.getHostAddress().getBytes());
+	          break;
+	
+	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
+	
+	          // Starts a new Mediator and sends back its ID
+	          String   id = String.valueOf(mediatorCnt++);
+	          log("Received a CREATE_MEDIATOR request from "+addr+":"+port+". New Mediator ID is "+id+".", 2);
+	          String s = new String(pkt.getData());
+	          Properties p = parseProperties(s);
+	          JICPMediator m = startMediator(id, p);
+	        	m.handleIncomingConnection(c, addr, port);
+	          mediators.put(id, m);
+	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
+	        	closeConnection = false;
+	        	break;
+	
+	        case JICPProtocol.CONNECT_MEDIATOR_TYPE:
+	          // A mediated container is (re)connecting to its mediator
+	          recipientID = pkt.getRecipientID();
+	          log("Received a CONNECT_MEDIATOR request from "+addr+":"+port+". Mediator ID is "+recipientID, 2);
+	          m = (JICPMediator) mediators.get(recipientID);
+	          if (m != null) {
+	          	// Don't close the connection, but pass it to the proper 
+	          	// mediator. Use the response (if any) prepared by the 
+	          	// Mediator itself
+	          	reply = m.handleIncomingConnection(c, addr, port);
+	          	closeConnection = false;
+	          }
+	          else {
+	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
+	          }	
+	          break;
+	
+	        default:
+	          // Send back an error response
+	          log("Uncorrect JICP data type: "+pkt.getType(), 1);
+	          reply = new JICPPacket("Uncorrect JICP data type: "+pkt.getType(), null);
+	        }
+	        status = 2;
+	
+	        // Send the actual response data
+	        if (reply != null) {
+		        reply.writeTo(out);
+	        }
+	        status = 3;
+      	}
       } 
       catch (Exception e) {
       	switch (status) {
@@ -411,11 +430,18 @@ public class JICPServer extends Thread {
 	      	log("Communication error writing return packet", 1);
         	e.printStackTrace();
 	      	break;
+	      case 3:
+	      	// This is a re-used connection waiting for the next incoming packet
+	      	if (e instanceof EOFException) {
+	      		log("Client has closed the connection.", 2);
+	      	}
+	      	else {
+	      		log("Unexpected client termination. "+e.toString(), 1);
+	      	}
       	}
       } 
       finally {
         try {
-
           if (closeConnection) {
             // Close connection
           	c.close();
@@ -425,6 +451,7 @@ public class JICPServer extends Thread {
           log("I/O error while closing the connection", 1);
           io.printStackTrace();
         } 
+      	handlersCnt--;
       } 
     } 
 

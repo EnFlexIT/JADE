@@ -74,7 +74,7 @@ public class Connection {
   	// For some reason the local address or port may be in use
   	while (true) {
   		try {  		
-    		sc = new Socket(ta.getHost(), Integer.parseInt(ta.getPort()));
+  			sc = new Socket(ta.getHost(), Integer.parseInt(ta.getPort()));
     		break;
   		}
   		catch (BindException be) {
