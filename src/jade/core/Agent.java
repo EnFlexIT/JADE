@@ -2083,6 +2083,42 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		}
 		return theContentManager;
 	} 
+
+	
+        // all the agent's service executors
+private Hashtable serviceExecutors = new Hashtable();
+
+        /**
+        * Retrieves the agent's service executor
+        * @return The service executor.
+        */
+        public ServiceExecutor getServiceExecutor( String serviceClassName ) {
+
+                ServiceExecutor se = null;
+                try {
+                if (serviceExecutors.get(serviceClassName)==null) {
+                        se = (ServiceExecutor) Class.forName(serviceClassName).newInstance();
+                        se.init(this);
+                        serviceExecutors.put(serviceClassName, se);
+                } else {
+                        se = (ServiceExecutor) serviceExecutors.get(serviceClassName);
+                }
+                } catch (ClassNotFoundException e) {
+                        //#MIDP_EXCLUDE_BEGIN
+                        System.out.println(" ServiceExecutor class not found:"+ serviceClassName);
+                        e.printStackTrace();
+                        //#MIDP_EXCLUDE_END
+                } catch(Exception e ) {
+                        //#MIDP_EXCLUDE_BEGIN
+                        System.out.println(" ServiceExecutor could not be created:"+ serviceClassName);
+                        e.printStackTrace();
+                        //#MIDP_EXCLUDE_END
+                }
+
+                return se;
+        }
+
+
 	//#CUSTOM_EXCLUDE_END
 	
 	/**
