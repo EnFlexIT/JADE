@@ -373,9 +373,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    #MIDP_INCLUDE_END*/
           myProfile.setParameter(Profile.OWNER, username);
 
-	  // FIXME: Temporary Hack
+	  // FIXME: Temporary Hack --- Start 
 	  certs = new CertificateFolder();
-
+	  IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
+	  identity.setSubject(new jade.security.dummy.DummyPrincipal(myID, username));
+	  certs.setIdentityCertificate(identity);
+	  // FIXME: Temporary Hack --- End 
 
 	  // Create the agent management service
 	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService(this, myProfile);
@@ -395,9 +398,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  myServiceManager.addNode(localDesc, baseServices);
 
 	  // FIXME: It should be already set in the profile as a boolean value
-	  boolean enableMobility = myProfile.getParameter("mobility", "").equals("jade.core.RealMobilityManager");
+	  boolean disableMobility = myProfile.getParameter("mobility", "").equals("jade.core.DummyMobilityManager");
 
-	  if(enableMobility) {
+	  if(!disableMobility) {
 
 	      // Separately create and activate the (optional) mobility service
 	      jade.core.mobility.AgentMobilityService agMob = new jade.core.mobility.AgentMobilityService(this, myProfile);
