@@ -21,7 +21,7 @@ package jade.core;
 import java.util.Vector;
 
 
-public class ComplexBehaviour implements Behaviour {
+public abstract class ComplexBehaviour implements Behaviour {
 
   // Inner class to implement a singly linked list of behaviours
   private class BehaviourList {
@@ -106,7 +106,7 @@ public class ComplexBehaviour implements Behaviour {
   }
 
   protected Agent myAgent;
-  private BehaviourList subBehaviours = new BehaviourList();
+  protected BehaviourList subBehaviours = new BehaviourList();
 
   // This variables mark the states when no sub-behaviour has been run
   // yet and when all sub-behaviours have been run.
@@ -124,6 +124,9 @@ public class ComplexBehaviour implements Behaviour {
   protected void preAction() {
   }
 
+  // Subclasses implementation must return true when done
+  protected abstract boolean action();
+
   protected void postAction() {
   }
 
@@ -133,11 +136,9 @@ public class ComplexBehaviour implements Behaviour {
       subBehaviours.begin();
       starting = false;
     }
-    Behaviour b = subBehaviours.getCurrent();
-    b.execute();
-    if (b.done()) {
-      finished = subBehaviours.next();
-    }
+
+    finished = action();
+
     if(finished) {
       postAction();
     }
