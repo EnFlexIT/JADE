@@ -42,9 +42,12 @@ import java.util.HashMap;
 import jade.core.*;
 import jade.core.behaviours.*;
 
+import jade.core.event.PlatformEvent;
+import jade.core.event.MTPEvent;
+
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
-
+import jade.domain.introspection.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -359,7 +362,7 @@ public class ams extends Agent implements AgentManager.Listener {
     RegisterToolBehaviour() {
 
       MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("tool-subscription");
@@ -382,30 +385,20 @@ public class ams extends Agent implements AgentManager.Listener {
 	try {
 
 	  // Send back the whole container list.
-	  String[] names = myPlatform.containerNames();
-	  for(int i = 0; i < names.length; i++) {
+	  ContainerID[] ids = myPlatform.containerIDs();
+	  for(int i = 0; i < ids.length; i++) {
 
-	    String containerName = names[i];
+	    ContainerID cid = ids[i];
 
-	    // FIXME: Need to retrieve the real host from the platform
-	    InetAddress addr = null;
-	    try {
-	      addr = InetAddress.getLocalHost();
-	    }
-	    catch(java.net.UnknownHostException jnuhe) {
-	      jnuhe.printStackTrace();
-	    }
+	    AddedContainer ac = new AddedContainer();
+	    ac.setContainer(cid);
 
-	    String containerHost = addr.getHostName();
-
-	    ContainerBorn cb = new ContainerBorn();
-	    cb.setName(containerName);
-	    cb.setHost(containerHost);
-	    EventOccurred eo = new EventOccurred();
-	    eo.setEvent(cb);
+	    EventRecord er = new EventRecord(ac, here());
+	    Occurred o = new Occurred();
+	    o.set_0(er);
 
 	    List l = new ArrayList(1);
-	    l.add(eo);
+	    l.add(o);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -420,16 +413,18 @@ public class ams extends Agent implements AgentManager.Listener {
 	  for(int i = 0; i < agents.length; i++) {
 
 	    AID agentName = agents[i];
-	    String containerName = myPlatform.getContainerName(agentName);
+	    ContainerID cid = myPlatform.getContainerID(agentName);
 
-	    AgentBorn ab = new AgentBorn();
-	    ab.setContainer(containerName);
-	    ab.setAgent(agentName);
-	    EventOccurred eo = new EventOccurred();
-	    eo.setEvent(ab);
+	    BornAgent ba = new BornAgent();
+	    ba.setAgent(agentName);
+	    ba.setWhere(cid);
+
+	    EventRecord er = new EventRecord(ba, here());
+	    Occurred o = new Occurred();
+	    o.set_0(er);
 
 	    List l = new ArrayList(1);
-	    l.add(eo);
+	    l.add(o);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -441,14 +436,16 @@ public class ams extends Agent implements AgentManager.Listener {
 	  // Send the list of the installed MTPs
 	  String[] addresses = myPlatform.platformAddresses();
 	  for(int i = 0; i < addresses.length; i++) {
-	    NewMTP nmtp = new NewMTP();
-	    nmtp.setAddress(addresses[i]);
-	    nmtp.setWhere(AgentManager.MAIN_CONTAINER_NAME);
-	    EventOccurred eo = new EventOccurred();
-	    eo.setEvent(nmtp);
+	    AddedMTP amtp = new AddedMTP();
+	    amtp.setAddress(addresses[i]);
+	    amtp.setWhere(new ContainerID(AgentManager.MAIN_CONTAINER_NAME, null)); // FIXME: should use AgentManager to know the container
+
+	    EventRecord er = new EventRecord(amtp, here());
+	    Occurred o = new Occurred();
+	    o.set_0(er);
 
 	    List l = new ArrayList(1);
-	    l.add(eo);
+	    l.add(o);
 
 	    toolNotification.clearAllReceiver();
 	    toolNotification.addReceiver(newTool);
@@ -456,7 +453,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    send(toolNotification);
 	  }
-
+	  /*
 	  //Notification to the RMA of the APDescription
 	   PlatformDescription ap = new PlatformDescription();
 	   ap.setPlatform(theProfile);
@@ -468,7 +465,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	   toolNotification.addReceiver(newTool);
 	   fillContent(toolNotification, l);
 	   send(toolNotification);
-  
+	  */
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
 
@@ -495,7 +492,7 @@ public class ams extends Agent implements AgentManager.Listener {
     DeregisterToolBehaviour() {
 
       MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
-      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
+      MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEIntrospectionOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("tool-cancellation");
@@ -532,15 +529,15 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// Look into the event buffer
 	Iterator it = eventQueue.iterator();
-	EventOccurred eo = new EventOccurred();
-
+	Occurred o = new Occurred();
 	while(it.hasNext()) {
 
 	  // Write the event into the notification message
-	  AMSEvent ev = (AMSEvent)it.next();
+	  EventRecord er = (EventRecord)it.next();
+	  o.set_0(er);
+
 	  List l = new ArrayList(1);
-	  eo.setEvent(ev);
-	  l.add(eo);
+	  l.add(o);
 	  try {
 	    fillContent(toolNotification, l);
 	  }
@@ -557,7 +554,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	    toolNotification.addReceiver(tool);
 	  }
 
-	  
+
 	  send(toolNotification);
 	  it.remove();
 	}
@@ -579,8 +576,8 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
 
       KillContainer kc = (KillContainer)a.get_1();
-      String containerName = kc.getName();
-      myPlatform.killContainer(containerName);
+      ContainerID cid = kc.getContainer();
+      myPlatform.killContainer(cid);
       //sendReply(ACLMessage.AGREE, " (true)");
       sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
 
@@ -601,7 +598,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       String agentName = ca.getAgentName();
       String className = ca.getClassName();
-      String containerName = ca.getContainerName();
+      ContainerID container = ca.getContainer();
       Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
       //create the array of string
       ArrayList listArg = new ArrayList();
@@ -614,7 +611,7 @@ public class ams extends Agent implements AgentManager.Listener {
       //sendReply(ACLMessage.AGREE, "(true)");
 
       try {
-	myPlatform.create(agentName, className, arguments, containerName);
+	myPlatform.create(agentName, className, arguments, container);
 	// An 'inform Done' message will be sent to the requester only
 	// when the newly created agent will register itself with the
 	// AMS. The new agent's name will be used as the key in the map.
@@ -870,7 +867,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     toolNotification.setSender(new AID());
     toolNotification.setLanguage(SL0Codec.NAME);
-    toolNotification.setOntology("jade-agent-management");
+    toolNotification.setOntology(JADEIntrospectionOntology.NAME);
     toolNotification.setInReplyTo("tool-subscription");
 
     // Associate each AMS action name with the behaviour to execute
@@ -906,8 +903,9 @@ public class ams extends Agent implements AgentManager.Listener {
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+    registerOntology(JADEIntrospectionOntology.NAME, JADEIntrospectionOntology.instance());
     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
-    
+
     // register the supported languages
     registerLanguage(SL0Codec.NAME, new SL0Codec());	
 
@@ -1060,9 +1058,10 @@ public class ams extends Agent implements AgentManager.Listener {
 
 
   // This one is called in response to a 'where-is-agent' action
-  MobilityOntology.Location AMSWhereIsAgent(AID agentID) throws FIPAException {
+  Location AMSWhereIsAgent(AID agentID) throws FIPAException {
     try {
-      String containerName = myPlatform.getContainerName(agentID);
+      ContainerID cid = myPlatform.getContainerID(agentID);
+      String containerName = cid.getName();
       return mobilityMgr.getLocation(containerName);
     }
     catch(NotFoundException nfe) {
@@ -1083,17 +1082,21 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleNewContainer(String name, InetAddress addr) {
+  public synchronized void addedContainer(PlatformEvent ev) {
+
+    ContainerID cid = ev.getContainer();
+    String name = cid.getName();
 
     // Add a new location to the locations list
-    MobilityOntology.Location loc = new MobilityOntology.Location(name,getHap());
-    mobilityMgr.addLocation(name, loc);
+    mobilityMgr.addLocation(name, cid);
 
-    // Fire a 'container is born' event
-    ContainerBorn cb = new ContainerBorn();
-    cb.setName(name);
-    cb.setHost(addr.getHostName());
-    eventQueue.add(cb);
+    // Fire an 'added container' event
+    AddedContainer ac = new AddedContainer();
+    ac.setContainer(cid);
+
+    EventRecord er = new EventRecord(ac, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
   }
 
@@ -1101,14 +1104,20 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleDeadContainer(String name) {
+  public synchronized void removedContainer(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    String name = cid.getName();
+
     // Remove the location from the location list
     mobilityMgr.removeLocation(name);
 
     // Fire a 'container is dead' event
-    ContainerDead cd = new ContainerDead();
-    cd.setName(name);
-    eventQueue.add(cd);
+    RemovedContainer rc = new RemovedContainer();
+    rc.setContainer(cid);
+
+    EventRecord er = new EventRecord(rc, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
   }
 
@@ -1116,11 +1125,17 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleNewAgent(String containerName, AID agentID) {
-    AgentBorn ab = new AgentBorn();
-    ab.setAgent(agentID);
-    ab.setContainer(containerName);
-    eventQueue.add(ab);
+  public synchronized void bornAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
+    BornAgent ba = new BornAgent();
+    ba.setAgent(agentID);
+    ba.setWhere(cid);
+
+    EventRecord er = new EventRecord(ba, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
   }
 
@@ -1128,7 +1143,10 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleDeadAgent(String containerName, AID agentID) {
+  public synchronized void deadAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
     // Deregister the agent, if it's still there.
     try {
       AMSAgentDescription amsd = new AMSAgentDescription();
@@ -1141,10 +1159,13 @@ public class ams extends Agent implements AgentManager.Listener {
       fe.printStackTrace();
     }
 
-    AgentDead ad = new AgentDead();
-    ad.setAgent(agentID);
-    ad.setContainer(containerName);
-    eventQueue.add(ad);
+    DeadAgent da = new DeadAgent();
+    da.setAgent(agentID);
+    da.setWhere(cid);
+
+    EventRecord er = new EventRecord(da, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
   }
 
@@ -1152,12 +1173,19 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleMovedAgent(String fromContainer, String toContainer, AID agentID) {
-    AgentMoved am = new AgentMoved();
-    am.setFrom(fromContainer);
-    am.setTo(toContainer);
-    am.setAgent(agentID);
-    eventQueue.add(am);
+  public synchronized void movedAgent(PlatformEvent ev) {
+    ContainerID from = ev.getContainer();
+    ContainerID to = ev.getNewContainer();
+    AID agentID = ev.getAgent();
+
+    MovedAgent ma = new MovedAgent();
+    ma.setAgent(agentID);
+    ma.setFrom(from);
+    ma.setTo(to);
+
+    EventRecord er = new EventRecord(ma, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
   }
 
@@ -1165,7 +1193,12 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleNewAddress(String address, String container) {
+  public synchronized void addedMTP(MTPEvent ev) {
+
+    Channel ch = ev.getChannel();
+    ContainerID cid = ev.getPlace();
+    String address = ch.getAddress();
+
     // Add the new address to the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
     MTPDescription desc = new MTPDescription();
@@ -1191,16 +1224,21 @@ public class ams extends Agent implements AgentManager.Listener {
       name.addAddresses(address);
     }
 
-    // Generate a suitable AMS event
-    NewMTP nmtp = new NewMTP();
-    nmtp.setAddress(address);
-    nmtp.setWhere(container);
-    eventQueue.add(nmtp);
+    /*
     //Notify the update of the APDescription...
     PlatformDescription ap = new PlatformDescription();
     ap.setPlatform(theProfile);
     eventQueue.add(ap);
+    */
 
+    // Generate a suitable AMS event
+    AddedMTP amtp = new AddedMTP();
+    amtp.setAddress(address);
+    amtp.setWhere(cid);
+
+    EventRecord er = new EventRecord(amtp, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
 
   }
@@ -1209,7 +1247,11 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void handleDeadAddress(String address, String container) {
+  public synchronized void removedMTP(MTPEvent ev) {
+
+    Channel ch = ev.getChannel();
+    ContainerID cid = ev.getPlace();
+    String address = ch.getAddress();
 
     // Remove the dead address from the platform profile
     APTransportDescription mtps = theProfile.getTransportProfile();
@@ -1240,20 +1282,33 @@ public class ams extends Agent implements AgentManager.Listener {
       name.removeAddresses(address);
     }
 
-    // Generate a suitable AMS event
-    DeadMTP dmtp = new DeadMTP();
-    dmtp.setAddress(address);
-    dmtp.setWhere(container);
-    eventQueue.add(dmtp);
+    /*
     //Notify the update of the APDescription...
     PlatformDescription ap = new PlatformDescription();
     ap.setPlatform(theProfile);
-    eventQueue.add(ap);
-    
+
+    EventRecord er = new EventRecord(ap, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+    */
+
+    // Generate a suitable AMS event
+    RemovedMTP rmtp = new RemovedMTP();
+    rmtp.setAddress(address);
+    rmtp.setWhere(cid);
+
+    EventRecord er = new EventRecord(rmtp, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
     doWake();
 
   }
-  
+
+  public void messageIn(MTPEvent ev) { System.out.println("Message In."); }
+  public void messageOut(MTPEvent ev) { System.out.println("Message Out."); }
+
+
+
  private void writeAPDescription()
   {
   	 //Write the APDescription file.
