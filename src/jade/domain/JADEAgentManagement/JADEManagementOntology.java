@@ -68,8 +68,9 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	// Concepts definitions
     	add(new ConceptSchema(CONTAINERID), ContainerID.class);
     	add(new ConceptSchema(LOCATION));
-    	
+
     	// AgentActions definitions
+	add(new AgentActionSchema(SHUTDOWNPLATFORM), ShutdownPlatform.class);
     	add(new AgentActionSchema(KILLCONTAINER), KillContainer.class);
     	add(new AgentActionSchema(CREATEAGENT), CreateAgent.class);
     	add(new AgentActionSchema(KILLAGENT), KillAgent.class);
@@ -93,6 +94,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new ConceptSchema(CONTAINERID));
     	
     	// AgentActions definitions
+	add(new AgentActionSchema(SHUTDOWNPLATFORM));
     	add(new AgentActionSchema(KILLCONTAINER));
     	add(new AgentActionSchema(CREATEAGENT));
     	add(new AgentActionSchema(KILLAGENT));
@@ -123,8 +125,10 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	
     	cs = (ConceptSchema) getSchema(CONTAINERID);
     	cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
-    	
-    	AgentActionSchema as = (AgentActionSchema) getSchema(KILLCONTAINER);
+
+    	AgentActionSchema as = (AgentActionSchema) getSchema(SHUTDOWNPLATFORM);
+
+    	as = (AgentActionSchema) getSchema(KILLCONTAINER);
     	as.add(KILLCONTAINER_CONTAINER, (ConceptSchema) getSchema(CONTAINERID)); 
     	as.add(KILLCONTAINER_PASSWORD, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
     	
