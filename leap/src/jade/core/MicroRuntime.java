@@ -27,10 +27,11 @@ import jade.util.leap.Properties;
 import jade.util.Logger;
 
 /**
-   This class is used to start up a JADE Front End container. Though
+   This class is used to start up the JADE runtime as a split (front-end) 
+   container. Though
    JADE supports split containers on all Java editions, the split
    container deployment is better suited for small, resource
-   constrained devices.
+   constrained devices (MIDP and PJava).
    @author Giovanni Caire - TILAB
 */
 public class MicroRuntime {
