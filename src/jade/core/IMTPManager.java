@@ -47,6 +47,23 @@ public interface IMTPManager {
     void remotize(MainContainer mc) throws IMTPException;
 
     /**
+       Disconnects the given Agent Container and hides it from remote
+       JVMs.
+     */
+    void unremotize(AgentContainer ac) throws IMTPException;
+
+    /**
+       Disconnects the given Main Container and hides it from remote
+       JVMs.
+     */
+    void unremotize(MainContainer mc) throws IMTPException;
+
+    /**
+       Creates a proxy for the given agent, on the given container.
+     */
+    RemoteProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException;
+
+    /**
        Return the MainContainer or a stub of it depending on whether
        we are in the Main Container or in a perfipheral container.
      */
