@@ -1724,6 +1724,7 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
 	*/
 	public DFAgentDescription getDescriptionOfThisDF()
 	{
+	    thisDF.setName(getAID());
 	    return thisDF;
 	}
 	
