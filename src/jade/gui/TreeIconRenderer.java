@@ -34,7 +34,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * when OS repaints the Tree. In this class we describe as
  * a node of the tree must appear
 
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
 

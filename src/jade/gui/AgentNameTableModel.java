@@ -36,7 +36,6 @@ import jade.core.IIOPAddress;
 import jade.core.IIOPFormatException;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire Adriana Quinto - CSELT S.p.A.
 @version $Date$ $Revision$
 */

@@ -30,7 +30,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -61,13 +60,16 @@ class StringDlg extends JDialog
 		setTitle("Edit");
 
 		JPanel p = new JPanel();
-		p.setLayout(new GridLayout(2, 1));
+		//p.setLayout(new GridLayout(2, 1));
+		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 		JLabel l = new JLabel(hint);
+		p.add(Box.createRigidArea(new Dimension(0,6)));
 		p.add(l);
 		txtString = new JTextField();
 		txtString.setText(value);
 		txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
 		p.add(txtString);
+		p.add(Box.createRigidArea(new Dimension(0,15)));
 		getContentPane().add(p, BorderLayout.CENTER);
 
 		p = new JPanel();

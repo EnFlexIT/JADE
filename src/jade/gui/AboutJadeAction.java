@@ -43,7 +43,6 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 
 /**
-Javadoc documentation for the file
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
 */
