@@ -309,6 +309,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     //TransportAddress ta = (TransportAddress) destTAs.get(0);
     //System.out.println("Dispatching command of type " + command.getCode() + " to "+ta.getHost()+":"+ta.getPort());
     Command response = null;
+    //#J2ME_EXCLUDE_BEGIN
     if (isLocal(destTAs)) {
     	Integer id = new Integer(command.getObjectID());
 	    Skeleton skel = (Skeleton) skeletons.get(id);
@@ -316,6 +317,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	    	response = skel.processCommand(command);
 	    }
     }
+    //#J2ME_EXCLUDE_END
     if (response == null) {
 	    try {
 	      response = dispatchSerializedCommand(destTAs, serializeCommand(command), name);
@@ -558,7 +560,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
 	try {
 		String mainURL = p.getParameter(LEAPIMTPManager.MAIN_URL, null);
-		System.out.println("Main URL is "+mainURL);
+		// DEBUG
+		//System.out.println("Main URL is "+mainURL);
 
 	    // Try to translate the mainURL into a TransportAddress
 	    // using a protocol supported by this CommandDispatcher
