@@ -177,8 +177,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   
   /**
      Dispatch a serialized command to the BackEnd.
-     Mutual exclusion with reconnect() to avoid using the outConnection
-     at the same time and preserve dispatching order
+     Mutual exclusion with itself and reconnect() to avoid using the 
+     outConnection at the same time and preserve dispatching order
    */
   public synchronized byte[] dispatch(byte[] payload) throws ICPException {
 	  log("Issuing outgoing command", 3); 
@@ -202,19 +202,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   } 
 
   private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
-  	//Connection c = new HTTPClientConnection(mediatorTA);
   	OutputStream os = c.getOutputStream();
   	if (Thread.currentThread() == terminator) {
   		pkt.setTerminatedInfo();
   	}
   	pkt.setRecipientID(mediatorTA.getFile());
   	pkt.writeTo(os);
-  	log("CREATE_MEDIATOR packet sent. Reading response", 2);
   	InputStream is = c.getInputStream();
   	pkt = JICPPacket.readFrom(is);
-  	//os.close();
-  	//is.close();
-  	//c.close();
   	return pkt;
   }
   
