@@ -37,7 +37,7 @@ import jade.gui.AgentTree;
  */
 class MainPanel extends JPanel implements TreeSelectionListener{
 
-  public JTextArea selArea;  // FIXME: It should be private
+  private JTextArea selArea;
   AgentTree treeAgent;       // FIXME: It should be private
   private TablePanel table;
   private JScrollPane scroll;
@@ -48,7 +48,7 @@ class MainPanel extends JPanel implements TreeSelectionListener{
 
   public MainPanel(rma anRMA, MainWindow mainWnd) {
     table = new TablePanel();
-    this.mainWnd=mainWnd;
+    this.mainWnd = mainWnd;
     Font f;
     f = new Font("SanSerif",Font.PLAIN,14);
     setFont(f);
@@ -103,11 +103,11 @@ class MainPanel extends JPanel implements TreeSelectionListener{
     add(pan);
   }
 
-  public void adjustDividerLocation() {
+  public void adjustDividersLocation() {
     int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
     pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
+    pan.setDividerLocation(300);
   }
-
 
   public Dimension getPreferredSize() {
     return new Dimension(200, 200);
