@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1998/11/15 23:17:48  rimassa
+  Some changes to the constructor and actionPerformed() method to
+  distinguish between Agent and AgentContainers.
+
   Revision 1.4  1998/11/05 23:41:41  rimassa
   Implemented KillAction, using RMA agent to send a 'kill-agent' request
   message to the AMS which will do the real work.
@@ -27,8 +31,8 @@ import jade.domain.rma;
  */
 public class KillAction extends AMSAbstractAction {
 
-  public KillAction() {
-    super ("KillActionIcon","Kill Selected Agents");
+  public KillAction(String label) {
+    super ("KillActionIcon", label);
   }
 
   public void actionPerformed(ActionEvent evt) {
@@ -36,7 +40,17 @@ public class KillAction extends AMSAbstractAction {
       TreeData current = (TreeData)listeners.elementAt(i);
       String toKill = current.getName();
       rma myRMA = AMSMainFrame.getRMA();
-      myRMA.killAgent(toKill);
+
+      int level = current.getLevel();
+
+      switch(level) {
+      case TreeData.AGENT:
+	myRMA.killAgent(toKill);
+	break;
+      case TreeData.CONTAINER:
+	myRMA.killContainer(toKill);
+	break;
+      }
     }
     listeners.removeAllElements();
   }
