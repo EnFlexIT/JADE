@@ -1225,19 +1225,19 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public final void run() {
 
     try {
-      AMSAgentDescription amsd = new AMSAgentDescription();
-      amsd.setName(myAID);
-      amsd.setOwnership(ownership);
-      amsd.setState(AMSAgentDescription.ACTIVE);
+      //AMSAgentDescription amsd = new AMSAgentDescription();
+      //amsd.setName(myAID);
+      //amsd.setOwnership(ownership);
+      //amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:
 	setState(AP_ACTIVE);
 	// No 'break' statement - fall through
       case AP_ACTIVE:
-	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
+	/*if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
 	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
 	else
-	  AMSService.register(this, amsd);
+	  AMSService.register(this, amsd);*/
         notifyStarted();
 	setup();
 	break;
@@ -1247,10 +1247,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	break;
       case AP_COPY:
 	doExecute();
-	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
+	/*if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
 	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
 	else
-	  AMSService.register(this, amsd);
+	  AMSService.register(this, amsd);*/
 	afterClone();
 	break;
       }
@@ -1263,11 +1263,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     catch(InterruptedIOException iioe) {
       // Do nothing, since this is a killAgent from outside
     }
-    catch(AuthException e) {
+    /*catch(AuthException e) {
 	  // FIXME:  Should a message be sent to the agent 
 	  //         to notify this ?
       System.err.println(" Authorization exception. Agent " + myName + " does not have the permission.");
-    }
+    }*/
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
@@ -1388,7 +1388,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     out.defaultWriteObject();
   }
 
-  protected void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
 
     // Restore transient fields (apart from myThread, which will be set by doStart())
@@ -1579,7 +1579,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 	private void destroy() { 
-		if (!(myToolkit instanceof DummyToolkit)) {
+		/*if (!(myToolkit instanceof DummyToolkit)) {
 		    try {
 			    if (myAID.equals(getAMS())) {
 				    //special version for the AMS to avoid deadlock 
@@ -1595,7 +1595,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				System.out.println("AuthException: "+e.getMessage() );;
 			    //e.printStackTrace();
 		    }
-		}
+		}*/
 
 		// Remove all pending timers
 		Iterator it = pendingTimers.timers();
