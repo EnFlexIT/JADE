@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 import jade.lang.acl.*;
-import jade.domain.acc;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -69,7 +68,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   private Map loaders = new HashMap();
 
   // The agent platform this container belongs to
-  protected AgentPlatform myPlatform;
+  protected MainContainer myPlatform;
 
   protected String myName;
 
@@ -443,7 +442,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
        The link chain is:
        a) Agent 1 -> AgentContainer1 -- Through CommEvent
-       b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from AgentPlatform)
+       b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from MainContainer)
        c) AgentContainer 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
 
        agentNamesAndClasses is a List of String containing, orderly, the name of an agent and the name of Agent
@@ -719,7 +718,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
     if(!agentName.endsWith('@' + platformID))
       agentName = agentName.concat('@' + platformID);
     AID id = new AID();
-    id.setGUID(agentName);
+    id.setName(agentName);
     id.clearAllAddresses();
     id.clearAllResolvers();
     return id;
@@ -743,7 +742,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
   // when an object reference is binded, unbinded and then rebinded
   // with the same URL, the next two lookup() calls will throw an
   // Exception without a reason.
-  private AgentPlatform lookup3(String URL)
+  private MainContainer lookup3(String URL)
     throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
     java.lang.Object o = null;
     try {
@@ -759,7 +758,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	o = Naming.lookup(URL);
       }
     }
-    return (AgentPlatform)o;
+    return (MainContainer)o;
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
@@ -791,7 +790,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	proxy = getFreshProxy(receiverID);
       }
       catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
-	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform");
+	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform.");
 	System.err.println("Message from platform was: " + nfe.getMessage());
 	System.out.println("------------------------------------------------");
 	msg.toText(new java.io.OutputStreamWriter(System.out));
@@ -802,6 +801,10 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	proxy.dispatch(msg);
 	cachedProxies.put(receiverID, proxy);
 	ok = true;
+      }
+      catch(acc.NoMoreAddressesException nmae) { // The AID has no more valid addresses
+	System.err.println("Agent " + receiverID.getLocalName() + " has no valid addresses.");
+	return;
       }
       catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
 	ok = false;
@@ -833,6 +836,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
     }
     else { // It lives outside: then it's a job for the ACC...
       System.out.println("Using the ACC...");
+      result = theACC.getProxy(id);
     }
 
     return result;
