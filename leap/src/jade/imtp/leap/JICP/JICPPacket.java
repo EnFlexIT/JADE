@@ -188,34 +188,31 @@ class JICPPacket {
    * <code>readFrom()</code> static method below. The output stream is flushed
    * but not opened nor closed by this method.
    * 
-   * @param out The  <code>DataOutputStream</code> to write the data in
+   * @param out The  <code>OutputStream</code> to write the data in
    * @exception May send a large bunch of exceptions, mainly in the IO
    * package.
    */
-  int writeTo(DataOutputStream out) throws IOException {
+  int writeTo(OutputStream out) throws IOException {
   	int cnt = 2;
     try {
       // Write the packet type
-      out.writeByte(type);
+      out.write(type);
 
       // Write the packet info
-      out.writeByte(info);
+      out.write(info);
 
       // Write recipient ID only if != null
       if (recipientID != null) {
-        out.writeUTF(recipientID);
-        cnt += (4+recipientID.length());
+      	out.write(recipientID.length());
+      	out.write(recipientID.getBytes());
       } 
 
       // Write data only if != null
       if (data != null) {
 	      // Size
       	int size = data.length;
-      	// Work-around to avoid bug in readInt() 
-      	out.writeByte((byte) (size & 0x000000ff));
-      	out.writeByte((byte) ((size >> 8) & 0x000000ff));
-      	//Logger.println("W Size is "+size+". MSB is "+(byte) ((size >> 8) & 0x000000ff)+". LSB is "+(byte) (size & 0x000000ff));
-      	//out.writeInt(size);
+      	out.write(size);
+      	out.write(size >> 8);
       	// Payload
       	if (size > 0) {
         	out.write(data, 0, size);
@@ -236,32 +233,32 @@ class JICPPacket {
    * <code>DataInputStream</code> and returns the JICPPacket that
    * it reads. The input stream is not opened nor closed by this method.
    * 
-   * @param in The <code>DataInputStream</code> to read from
+   * @param in The <code>InputStream</code> to read from
    * @exception May send a large bunch of exceptions, mainly in the IO
    * package.
    */
-  static JICPPacket readFrom(DataInputStream in) throws IOException {
+  static JICPPacket readFrom(InputStream in) throws IOException {
     JICPPacket p = new JICPPacket();
 
     // Read packet type
-    p.type = in.readByte();
+    p.type = (byte) in.read();
 
     // Read the packet info
-    p.info = in.readByte();
+    p.info = (byte) in.read();
 
     // Read recipient ID if present
     if ((p.info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
-      p.recipientID = in.readUTF();
+    	int size = (byte) (in.read() & 0x000000ff);
+    	byte[] bb = new byte[size];
+    	in.read(bb, 0, size);
+      p.recipientID = new String(bb);
     } 
 
     // Read data if present
     if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
-    	//int size = in.readInt();
-      // Work-around to avoid bug in readInt() 
-    	int b1 = in.readByte();
-    	int b2 = in.readByte();
+    	int b1 = in.read();
+    	int b2 = in.read();
     	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
-      //Logger.println("R Size is "+size+". MSB is "+(byte) b2+". LSB is "+(byte) b1);
     	if (size == 0) {
       	p.data = new byte[0];
     	} 
@@ -281,9 +278,10 @@ class JICPPacket {
       	while (cnt < size);
 
       	if (cnt < size) {
-        	System.out.println("WARNING: only "+cnt+" bytes received back, while "+size+" were expected");
+        	Logger.println("WARNING: only "+cnt+" bytes received back, while "+size+" were expected");
       	} 
     	}
+      //Logger.println("JICPPacket read. Type:"+p.type+" Info:"+p.info+" RID:"+p.recipientID+" Data-length:"+(p.data != null ? p.data.length : 0));
     } 
 
     // DEBUG
@@ -294,5 +292,6 @@ class JICPPacket {
   public int getLength() {      
   	return (2 + (recipientID != null ? recipientID.length()+4 : 0) + (data != null ? 4+data.length : 0));
   }
+  
 }
 
