@@ -352,8 +352,8 @@ public class PersistentDeliveryService extends BaseService {
     	ACLMessage acl = msg.getACLMessage();
 
 		  //log("Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName(), 2);
-                  if(logger.isLoggable(Logger.INFO))
-                    logger.log(Logger.INFO,"Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName());
+                  if(logger.isLoggable(Logger.FINE))
+                    logger.log(Logger.FINE,"Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName());
 
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
@@ -366,23 +366,14 @@ public class PersistentDeliveryService extends BaseService {
 		    boolean accepted = slice.storeMessage(null, msg, receiver);
 
 		    if(accepted) {
-
-		    	//log("Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
-                            if(logger.isLoggable(Logger.INFO))
-                              logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
-
+          logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
 
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
-
-			//log("Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
-                        if(logger.isLoggable(Logger.INFO))
-                          logger.log(Logger.INFO,"Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName());
-
-
+        logger.log(Logger.WARNING,"Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName());
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -597,10 +588,7 @@ public class PersistentDeliveryService extends BaseService {
 	private void flushMessages(AID receiver) {
 	    int cnt = myManager.flushMessages(receiver);
 	    if (cnt > 0) {
-	    	//log("Flushed "+cnt+" messages for agent "+receiver, 1);
-                    if(logger.isLoggable(Logger.INFO))
-                      logger.log(Logger.INFO,"Flushed "+cnt+" messages for agent "+receiver);
-
+        logger.log(Logger.INFO,"Delivered "+cnt+" messages to agent "+receiver);
 	    }
 	}
 
@@ -633,10 +621,7 @@ public class PersistentDeliveryService extends BaseService {
 	    else {
 		messageFilter = new DefaultMessageFilter();
 	    }
-	    //log("Using message filter of type "+messageFilter.getClass().getName(), 1);
-            if(logger.isLoggable(Logger.INFO))
-              logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
-
+      logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
 	}
 	catch(Exception e) {
 	    throw new ServiceException("Exception in message filter initialization", e);

@@ -482,8 +482,8 @@ public class AgentManagementService extends BaseService {
 	    boolean startIt = ((Boolean) params[5]).booleanValue();
 
 			//log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
-                        if(logger.isLoggable(Logger.INFO))
-                           logger.log(Logger.INFO,"Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName());
+                        if(logger.isLoggable(Logger.FINE))
+                           logger.log(Logger.FINE,"Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName());
 
 	    createAgent(agentID, className, arguments, owner, initialCredentials, startIt);
 	}
@@ -494,8 +494,8 @@ public class AgentManagementService extends BaseService {
 	    AID agentID = (AID)params[0];
 
 			//log("Target sink consuming command REQUEST_KILL: Name is "+agentID.getName(), 2);
-                        if(logger.isLoggable(Logger.INFO))
-                           logger.log(Logger.INFO,"Target sink consuming command REQUEST_KILL: Name is "+agentID.getName());
+                        if(logger.isLoggable(Logger.FINE))
+                           logger.log(Logger.FINE,"Target sink consuming command REQUEST_KILL: Name is "+agentID.getName());
 
 	    killAgent(agentID);
 	}
@@ -517,8 +517,8 @@ public class AgentManagementService extends BaseService {
 	    ContainerID cid = (ContainerID)params[1];
 
 			//log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
-                        if(logger.isLoggable(Logger.INFO))
-                           logger.log(Logger.INFO,"Target sink consuming command INFORM_CREATED: Name is "+agentID.getName());
+                        if(logger.isLoggable(Logger.FINE))
+                           logger.log(Logger.FINE,"Target sink consuming command INFORM_CREATED: Name is "+agentID.getName());
 
 	    bornAgent(agentID, cid, cmd.getPrincipal(), cmd.getCredentials());
 	}
@@ -529,8 +529,8 @@ public class AgentManagementService extends BaseService {
 	    AID agentID = (AID)params[0];
 
 			//log("Target sink consuming command INFORM_KILLED: Name is "+agentID.getName(), 2);
-                        if(logger.isLoggable(Logger.INFO))
-                           logger.log(Logger.INFO,"Target sink consuming command INFORM_KILLED: Name is "+agentID.getName());
+                        if(logger.isLoggable(Logger.FINE))
+                           logger.log(Logger.FINE,"Target sink consuming command INFORM_KILLED: Name is "+agentID.getName());
 
 	    deadAgent(agentID);
 	}
@@ -552,8 +552,8 @@ public class AgentManagementService extends BaseService {
 
 	private void handleKillContainer(VerticalCommand cmd) {
 			//log("Target sink consuming command KILL_CONTAINER", 2);
-                        if(logger.isLoggable(Logger.INFO))
-                           logger.log(Logger.INFO,"Target sink consuming command KILL_CONTAINER");
+                        if(logger.isLoggable(Logger.FINE))
+                           logger.log(Logger.FINE,"Target sink consuming command KILL_CONTAINER");
 
 	    exitContainer();
 	}
