@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
+import jade.core.CaseInsensitiveString;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -45,7 +46,6 @@ import jade.onto.basic.ResultPredicate;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
-import jade.onto.Name;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
@@ -226,15 +226,15 @@ class MobilityManager {
   }
 
   public void addLocation(String name, MobilityOntology.Location l) {
-    locations.put(new Name(name), l);
+    locations.put(new CaseInsensitiveString(name), l);
   }
 
   public void removeLocation(String name) {
-    locations.remove(new Name(name));
+    locations.remove(new CaseInsensitiveString(name));
   }
 
   public MobilityOntology.Location getLocation(String containerName) {
-    return (MobilityOntology.Location)locations.get(new Name(containerName));
+    return (MobilityOntology.Location)locations.get(new CaseInsensitiveString(containerName));
   }
 
   public Iterator getLocations() {

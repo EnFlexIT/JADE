@@ -31,7 +31,7 @@ import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
 import jade.onto.OntologyException;
-import jade.onto.Name;
+
 
 import java.util.Map;
 import java.util.HashMap;

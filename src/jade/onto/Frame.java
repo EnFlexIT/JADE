@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import jade.core.CaseInsensitiveString;
 
 /**
   Representation of an ontological entity as a set of untyped slots.
@@ -76,7 +77,7 @@ public class Frame {
     @param value A Java object that will be associated with the given name.
   */
   public void putSlot(String name, Object value) {
-    slotNames.add(new Name(name));
+    slotNames.add(new CaseInsensitiveString(name));
     slotValues.add(value);
   }
 
@@ -106,7 +107,7 @@ public class Frame {
     @exception OntologyException If no suitable slot exists.
   */
   public Object getSlot(String name) throws OntologyException {
-    int i = slotNames.indexOf(new Name(name));
+    int i = slotNames.indexOf(new CaseInsensitiveString(name));
     if (i<0)
       throw new NoSuchSlotException(myName, name);
     else
@@ -142,7 +143,7 @@ public class Frame {
   */
   public String getSlotName(int position) throws OntologyException { 
     try {
-      return ((Name)slotNames.get(position)).toString();
+      return ((CaseInsensitiveString)slotNames.get(position)).toString();
     }
     catch(Exception ioobe) {
       throw new NoSuchSlotException(myName, "at position" + position);

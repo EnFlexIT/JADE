@@ -48,7 +48,7 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.Codec;
 import jade.lang.acl.*;
 
-import jade.onto.Name;
+//import jade.onto.Name;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
@@ -511,7 +511,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.lang.Codec
   */
   public void registerLanguage(String languageName, Codec translator) {
-    languages.put(new Name(languageName), translator);
+    languages.put(new CaseInsensitiveString(languageName), translator);
   }
 
 
@@ -522,7 +522,7 @@ public class Agent implements Runnable, Serializable {
      <code>null</code> if no translator was found.
    */
   public Codec lookupLanguage(String languageName) {
-    Codec result = (Codec)languages.get(new Name(languageName));
+    Codec result = (Codec)languages.get(new CaseInsensitiveString(languageName));
     return result;
   }
 
@@ -532,7 +532,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
    */
   public void deregisterLanguage(String languageName) {
-    languages.remove(new Name(languageName));
+    languages.remove(new CaseInsensitiveString(languageName));
   }
 
   /**
@@ -549,7 +549,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.onto.Ontology
    */
   public void registerOntology(String ontologyName, Ontology o) {
-    ontologies.put(new Name(ontologyName), o);
+    ontologies.put(new CaseInsensitiveString(ontologyName), o);
   }
 
   /**
@@ -559,7 +559,7 @@ public class Agent implements Runnable, Serializable {
      ontology was found.
    */
   public Ontology lookupOntology(String ontologyName) {
-    Ontology result = (Ontology)ontologies.get(new Name(ontologyName));
+    Ontology result = (Ontology)ontologies.get(new CaseInsensitiveString(ontologyName));
     return result;
   }
 
@@ -569,7 +569,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
   public void deregisterOntology(String ontologyName) {
-    ontologies.remove(new Name(ontologyName));
+    ontologies.remove(new CaseInsensitiveString(ontologyName));
   }
 
   /**

@@ -36,7 +36,7 @@ import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
 import jade.onto.OntologyException;
-import jade.onto.Name;
+//import jade.onto.Name;
 
 import jade.onto.basic.*;
 import java.util.Iterator;

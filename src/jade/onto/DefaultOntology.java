@@ -35,7 +35,7 @@ import jade.onto.JadeMetaOntology.*;
 
 import jade.lang.sl.SL0Codec;
 import jade.lang.Codec.CodecException;
-
+import jade.core.CaseInsensitiveString;
 
 /**
   A simple implementation of the <code>Ontology</code> interface. Instances of
@@ -62,7 +62,7 @@ public final class DefaultOntology implements Ontology {
   // This is package scoped, not to be used by applications.
 
   FrameSchema lookupSchema(String name) {
-    return (FrameSchema)schemas.get(new Name(name));
+    return (FrameSchema)schemas.get(new CaseInsensitiveString(name));
   }
 
 
@@ -103,7 +103,7 @@ public final class DefaultOntology implements Ontology {
     addRole(roleName, slots);
     // Registers the user defined class representing the role
     checkClass(roleName, newClass);
-    roleClasses.put(new Name(roleName), newClass);
+    roleClasses.put(new CaseInsensitiveString(roleName), newClass);
   }
 
   /**
@@ -263,7 +263,7 @@ public final class DefaultOntology implements Ontology {
     for (Iterator i=roleClasses.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry elem = (Map.Entry)i.next();
       if (c.equals((Class)elem.getValue())) 
-      	return ((Name)elem.getKey()).toString();
+      	return ((CaseInsensitiveString)elem.getKey()).toString();
     } 
     // if this instruction is executed, then no class has been found
     throw new OntologyException("No rolename registered in this ontology for class "+c.getName());
@@ -280,7 +280,7 @@ public final class DefaultOntology implements Ontology {
   	List vocabulary = new ArrayList();
   	Iterator i = schemas.keySet().iterator();
   	while (i.hasNext()){
-  		String roleNameAsString = ((Name) (i.next())).toString();
+  		String roleNameAsString = ((CaseInsensitiveString) (i.next())).toString();
   		vocabulary.add(roleNameAsString);
   	}
   	return vocabulary;	
@@ -299,7 +299,7 @@ public final class DefaultOntology implements Ontology {
     @return the Java class that plays this ontological role (e.g. <code>DFAgentDescription.class</code>
   */
   public Class getClassForRole(String roleName) {
-    return (Class) roleClasses.get(new Name(roleName));
+    return (Class) roleClasses.get(new CaseInsensitiveString(roleName));
   }
   
 
@@ -727,7 +727,7 @@ public final class DefaultOntology implements Ontology {
 
 
   private void addSchemaToTable(String roleName, FrameSchema fs) {
-    schemas.put(new Name(roleName), fs);
+    schemas.put(new CaseInsensitiveString(roleName), fs);
   }
 
 

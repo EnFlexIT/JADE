@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 import java.util.*;
 
+import jade.core.CaseInsensitiveString;
+
 /**
   Descriptor class for the slots of ontological roles. Instances of this
   class are used to describe the characteristics of the slots of a 
@@ -35,7 +37,7 @@ import java.util.*;
 */
 public class SlotDescriptor {
 
-  private Name name;
+  private CaseInsensitiveString name;
   private int category; // indicates if the value of the slot is a primitive entity, and instance of a given role, a set or a sequence
   private String type; // indicates the type of the elements of a set/sequence
   private boolean optionality;
@@ -55,7 +57,7 @@ public class SlotDescriptor {
     <code>Ontology.O</code> (for optional slots).
   */
   public SlotDescriptor(String n, int c, String t, boolean o) {
-    name = new Name(n);
+    name = new CaseInsensitiveString(n);
     category = c;
     type = t;
     optionality = o;
@@ -167,7 +169,7 @@ public class SlotDescriptor {
 	}
 
   void setName(String n) {
-    name = new Name(n);
+    name = new CaseInsensitiveString(n);
   }
 
   /**

@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.Iterator;
 
+import jade.core.CaseInsensitiveString;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -49,13 +51,13 @@ class FrameSchema implements Cloneable, Serializable {
   }
 
   private Ontology myOntology;
-  private Name myName;
+  private CaseInsensitiveString myName;
   private List slots;
 
 
   public FrameSchema(Ontology o, String n) {
     myOntology = o;
-    myName = new Name(n);
+    myName = new CaseInsensitiveString(n);
     slots = new ArrayList();
   }
 
