@@ -34,10 +34,13 @@ import java.awt.event.ActionEvent;
 /** 
  * Invokes the agent Sniffer to delete itself, closing the Gui and unregistering. 
  *
- * @see jade.Sniffer.MMAbstractAction
+ * @see jade.tools.sniffer.MMAbstractAction
  */
 public class ExitAction extends MMAbstractAction{
 	
+	/**
+	@serial
+	*/
 	private SnifferGUI myGui; 
 	
 	public ExitAction(SnifferGUI snifferGui){
