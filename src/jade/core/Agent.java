@@ -1487,8 +1487,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  } catch (Exception e) {
 	  	// something went wrong
 	  	setState(myBufferedState);
-		myDestination = null;
-		throw e;
+			myDestination = null;
+			if (e instanceof AuthException) {
+				// Will be catched together with all other AuthException-s
+				throw (AuthException) e;
+	  	}
+	  	else {
+	  		e.printStackTrace();
+	  	}
 	  }  
 	  if(myAPState == AP_GONE) {
 	    beforeMove();
@@ -1502,8 +1508,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  } catch (Exception e) {
 	  	// something went wrong
 	  	setState(myBufferedState);
-		myDestination = null;
-		throw e;
+			myDestination = null;
+			if (e instanceof AuthException) {
+				// Will be catched together with all other AuthException-s
+				throw (AuthException) e;
+	  	}
+	  	else {
+	  		e.printStackTrace();
+	  	}
 	  }  
 	  doExecute();
 	  break;
@@ -1572,16 +1584,16 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	// Now give CPU control to other agents
 	Thread.yield();
 	//#MIDP_EXCLUDE_BEGIN
-      }
-      catch(AgentInMotionError aime) {
+    }
+    catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
-    } catch(AuthException e) {
+    } 
+    catch(AuthException e) {
+    	// If there is an AuthException we don't want the agent to be killed
+    	// as for other unexpected exceptions.
 		  // FIXME: maybe should send a message to the agent
 		  System.out.println("AuthException: "+e.getMessage() );
-	} catch(Exception ie) {
-		  // shouuld never happen
-		  ie.printStackTrace();
-	}
+		}
 	//#MIDP_EXCLUDE_END
     
     } // END of while
