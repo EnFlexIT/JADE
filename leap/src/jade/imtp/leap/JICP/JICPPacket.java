@@ -244,9 +244,14 @@ public class JICPPacket {
     	int size = data.length;
     	out.write(size);
     	out.write(size >> 8);      	
+    	cnt += 2;
+    	//#CUSTOM_EXCLUDE_BEGIN
+    	//#CUSTOMJ2SE_EXCLUDE_BEGIN
     	out.write(size >> 16);      	
     	out.write(size >> 24);      	
     	cnt += 2;
+    	//#CUSTOM_EXCLUDE_END
+    	//#CUSTOMJ2SE_EXCLUDE_END
     	// Payload
     	if (size > 0) {
       	out.write(data, 0, size);
@@ -293,9 +298,14 @@ public class JICPPacket {
     if ((p.info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
     	int b1 = read(in);
     	int b2 = read(in);
+    	int size = ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+    	//#CUSTOM_EXCLUDE_BEGIN
+    	//#CUSTOMJ2SE_EXCLUDE_BEGIN
     	int b3 = read(in);
     	int b4 = read(in);
-    	int size = ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000) | ((b2 << 8) & 0x0000ff00) | (b1 & 0x000000ff);
+    	size |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
+    	//#CUSTOM_EXCLUDE_END
+    	//#CUSTOMJ2SE_EXCLUDE_END
     	if (size == 0) {
       	p.data = new byte[0];
     	} 
