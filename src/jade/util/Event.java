@@ -63,16 +63,6 @@ import java.util.EventObject;
 	private Object processingResult = null;
 
 
-				/**
-				 * Construct an <code>Event</code> of undefined type.
-				 * This constructed object is useful for exploiting its
-				 * <code>waitUntilProcessed notifyProcessed </code> methods. 
-				 **/
-				public Event() {
-						//#MIDP_EXCLUDE_BEGIN
-						super(null);
-						//#MIDP_EXCLUDE_END    	
-				}
 	/**
 	   Construct an <code>Event</code> of a given type produced by
 	   the indicated source
