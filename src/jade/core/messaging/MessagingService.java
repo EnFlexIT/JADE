@@ -373,16 +373,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
+		cmd.setReturnValue(imtpe);
 	    }
 	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
+		cmd.setReturnValue(nfe);
 	    }
 	    catch(ServiceException se) {
-		se.printStackTrace();
+		cmd.setReturnValue(se);
 	    }
 	    catch(MTPException mtpe) {
-		mtpe.printStackTrace();
+		cmd.setReturnValue(mtpe);
 	    }
 	}
 
