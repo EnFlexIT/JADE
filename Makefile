@@ -1,6 +1,6 @@
 # Makefile for JADE  project 
 
-VERSION    = 0.7
+VERSION    = 0.71
 ARCHIVE    = JADE
 
 
@@ -15,14 +15,17 @@ export EXAMPLESDIR = $(SRCDIR)/examples
 export MAKE = make
 
 # The following targets are not file names
-.PHONY: all clean archive src lib examples
+.PHONY: all clean doc archive src lib examples
 
-all: lib examples
+all: doc lib examples
 	@echo JADE project built
+
+doc:
+	@echo HTML documentation built
 
 lib: src
 	cd $(LIBDIR); $(MAKE) all
-	@echo libraries built
+	@echo Libraries built
 
 src:
 	cd $(SRCDIR); $(MAKE) all
