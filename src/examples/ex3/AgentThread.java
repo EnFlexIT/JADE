@@ -32,7 +32,7 @@ import jade.lang.acl.*;
 
 /**
 Javadoc documentation for the file
-@author
+@author Giovanni Rimassa - Università di Parma
 @version $Date$ $Revision$
 */
 

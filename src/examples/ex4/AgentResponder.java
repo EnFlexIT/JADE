@@ -1,28 +1,24 @@
-/*
-  $Log$
-  Revision 1.8  1999/05/20 14:12:39  rimassa
-  Updated import clauses to reflect JADE package structure changes.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.7  1999/03/09 12:52:36  rimassa
-  Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
-  calls.
+GNU Lesser General Public License
 
-  Revision 1.6  1999/02/14 22:51:23  rimassa
-  Changed a getName() call to getLocalName().
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.5  1998/10/18 16:10:34  rimassa
-  Some code changes to avoid deprecated APIs.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
-   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
-     instead.
-   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
-     instead.
-
-  Revision 1.4  1998/10/04 18:00:28  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package examples.ex4;
 
@@ -33,6 +29,12 @@ import java.io.OutputStreamWriter;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
+
+/**
+Javadoc documentation for the file
+@author Giovanni Rimassa - Università di Parma
+@version $Date$ $Revision$
+*/
 
 // This agent plays the responder role in fipa-request protocol.
 public class AgentResponder extends Agent {
