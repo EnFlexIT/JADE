@@ -109,4 +109,10 @@
 			The execution of this group of tests requires the user to i) load the testleap.jar file on the MIDP device used for the tests and ii) manualy start JADE containers on it when requested. </Description>
 			<TestsListRif>test/leap/LEAPTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="UDP Monitoring" skip="false">
+			<ClassName>test.udpmonitor.UDPMonitorTesterAgent</ClassName>
+			<Description> This item includes tests for the UDP monitoring introduced in JADE 3.3 
+      </Description>
+			<TestsListRif>test/udpmonitor/UDPMonitorTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>
