@@ -79,66 +79,67 @@ class DFDBKB extends DBKB {
 	 */
 	private void createTables() {
 		Statement stmt = null;
+// dfagdescr war 64
 		try{
  		 	stmt = conn.createStatement();
  		 	// Tables for DF registrations      
   		stmt.executeUpdate( "CREATE TABLE dfagentdescr (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "lease   	 VARCHAR(20)  NOT NULL, "   +
          "PRIMARY KEY( aid )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidaddress (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "address    VARCHAR(255)  NOT NULL, "   +
          "PRIMARY KEY( aid, address )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidresolver (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
-         "resolver 	 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "resolver 	 VARCHAR(256)  NOT NULL, "   +
          "PRIMARY KEY( aid, resolver )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentprotocol (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "protocol   VARCHAR(32)	      NOT NULL, "   +
          "PRIMARY KEY( aid, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentontology (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "ontology 	 VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentlanguage (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "language   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservice (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
-         "sname   VARCHAR(32)  NOT NULL, "   +
-         "stype       VARCHAR(32)  NOT NULL, "   +
-         "sownership  VARCHAR(32)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "sname   VARCHAR(256)  NOT NULL, "   +
+         "stype       VARCHAR(64)  NOT NULL, "   +
+         "sownership  VARCHAR(64)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceprotocol (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
-         "sname   VARCHAR(32)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "sname   VARCHAR(256)  NOT NULL, "   +
          "protocol   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceontology (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
-         "sname   VARCHAR(32)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "sname   VARCHAR(256)  NOT NULL, "   +
          "ontology   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservicelanguage (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
-         "sname   VARCHAR(32)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "sname   VARCHAR(256)  NOT NULL, "   +
          "language   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceproperty (" +
-         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "aid		 VARCHAR(256)  NOT NULL, "   +
          "sname   VARCHAR(32)  NOT NULL, "   +
          "propkey  VARCHAR(32)  NOT NULL, "   +
          "propval  VARCHAR(255)  NOT NULL, "   +
@@ -146,7 +147,7 @@ class DFDBKB extends DBKB {
 
 			// Tables for subscriptions registrations
   		stmt.executeUpdate( "CREATE TABLE subscription (" +
-         "conversationid	 VARCHAR(64)  NOT NULL, "   +
+         "conversationid	 VARCHAR(256)  NOT NULL, "   +
          "aclm1	 	 VARCHAR(255)         NOT NULL, " +
          "aclm2	 	 VARCHAR(255), " +
          "aclm3	 	 VARCHAR(255), " +
@@ -197,6 +198,7 @@ class DFDBKB extends DBKB {
 			s = conn.createStatement();
 			for(int i = 0; i < l.size(); i++){
 				String queryInsert = (String)l.get(i);
+//				System.out.println(queryInsert);
 				s.addBatch(queryInsert);				
 			}
 			int [] updateCounts = s.executeBatch();
@@ -965,6 +967,7 @@ class DFDBKB extends DBKB {
 			s = conn.createStatement();
 			for(int i = 0; i<tableNemas.length; i++){
 				q = "DROP table "+tableNemas[i];
+				//System.out.println(q);
 				s.executeUpdate(q);
 			}
 			s.close();
