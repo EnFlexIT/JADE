@@ -32,12 +32,41 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 /** 
-  This behaviour plays the <em>Initiator</em> role in
-  <code>fipa-request</code> protocol. This is an abstract class,
-  defining an abstract method for each message type expected from a
-  <code>fipa-request</code> interaction.
-  @see jade.proto.FipaRequestResponderBehaviour
+  Behaviour class for <code>fipa-request</code><em> Initiator</em> role.This abstract 
+  behaviour implements the <code>fipa-request</code> interaction protocol from the point 
+  of view of the agent initiating the protocol, that is the agent that sends the
+  <code>request</code> message to an agent.
+  In order to use correctly this behaviour, the programmer shoud do the following:<ul>
   
+  <li> Implement a class that extends <code>FipaRequestInitiatorBehaviour</code>. This class
+  must implements five methods that are called by <code>FipaRequestInitiatorBehaviour</code>:<ul>
+  
+  <li> <code>protected handleAgree(ACLMessage msg)</code> to handle the <code>agree</code> reply. 
+  <li> <code>protected handleInform(ACLMessage msg)</code> to handle the <code>inform</code> message received from 
+  the peer agent.
+  <li> <code>protected handleNotUnderstood(ACLMessage msg)</code> to handle the <code>not-understood</code> reply.
+  <li> <code>protected handleFailure(ACLMessage msg))</code>to handle the <code>failure</code> reply.
+  <li> <code>protected handleRefuse(ACLMessage msg)</code> to handle the <code>refuse</code> reply. 
+  </ul>
+  <li> Create a new instance of this class and add it to the agent with <code>Agent.addBehaviour()</code>
+  method.
+  </ul>
+  <p>
+  The behaviour can be hot reset, calling one of the following method in one of the handle methods 
+  other than from <code>handleAgree</code>:
+  <ul>
+  <li> <code>reset()</code> to simply restart the protocol with the same ACLMessage and MessageTemplate.
+  <li> <code>reset(ACLMessage request)</code> to restart the protocol with a new ACLMessage;
+  <li> <code>reset(ACLMessage request, MessageTemplate template)</code> to restart the protocol 
+  with new ACLMessage and MessageTemplate. 
+  </ul>
+  The programmer can override the method <code> public handleOtherMessages(ACLMessage reply)</code> 
+  in order to handle replies different from those stated by the protocol.
+  
+  The method <code>public long handleTimeOut()</code> can be override to handle 
+  the  expiration of the timeout.
+  
+  @see jade.proto.FipaRequestResponderBehaviour
   
   @author Tiziana Trucco - CSELT S.p.A.
   @version $Date$ $Revision$
@@ -52,10 +81,10 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
 	private MessageTemplate reqTemplate, firstReqTemplate, secondReqTemplate;
 	private int state = INITIAL_STATE;
 	
+	private long timeout,blockTime, endingTime;
+
 	/**
-	I metodi handle  può cambiare per bloccare il protocolo in qualunque stato
-	
-	verificare che si parli dello stato aggiuntivo e handleothermessages
+	Use this protected variable to block the protocol in whatever state.
 	*/
 	protected boolean finished = false;
   
@@ -74,7 +103,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
    passed to this constructor, the message type is set to
    <code>request</code> and the <code>:protocol</code> slot is set to
    <code>fipa-request</code>, so there's no need to set them before
-   caling the constructor. If present, <code>:conversation-id</code>
+   calling the constructor. If present, <code>:conversation-id</code>
    and <code>:reply-with</code> slots are used for interaction
    labelling. Application programmer must ensure the following
    properties of <code>request</code> parameter when calling this
@@ -113,7 +142,8 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   }
   
   /**
-  
+  Constructor for this behaviour.
+  In this case the MessageTemplate is the default one.
   */
   public FipaRequestInitiatorBehaviour(Agent client, ACLMessage request){
   	this(client,request, null);
@@ -121,13 +151,19 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   }
   
   /**
-  
+  This method resets this behaviour so that it restarts from the initial 
+  state of the protocol with the same request message.   
   */
   public void reset(){
   	finished = false;
   	state = INITIAL_STATE; 
   }
     
+  /**
+  This method resets this behaviour so that it restarts the protocol with 
+  another request message.
+  @param request updates request message to be sent.
+  */
   public void reset(ACLMessage request){
   
   	// if request is null, clone throws an exception, we catch this exception
@@ -140,7 +176,12 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
     reset();
 
   }
-  
+  /**
+  This method resets this behaviour so that it restarts the protocol with
+  other request message and MessageTemplate
+  @param request update request message to be sent.
+  @param template a new MessageTemplate.  
+  */
   public void reset(ACLMessage request, MessageTemplate template){
   
   	reqTemplate = template;
@@ -153,7 +194,6 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   	return finished;
   }
   
-
   public void action(){
  
   switch(state){ 
@@ -168,8 +208,8 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   	}
   	case FIRSTANSWER_STATE:{
   		
-  		//FIXME: in next version take care also of the timeout expressed in the reply-by.
   		firstAnswerMsg = myAgent.receive(firstReqTemplate);
+  		
   		if (firstAnswerMsg != null){
   			switch (firstAnswerMsg.getPerformative()) {
   				case ACLMessage.AGREE:{
@@ -188,7 +228,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   					break;
   				}
   				case ACLMessage.INFORM:{
-  					// this new state has been added in Fipa99.
+  					// This new state has been added in Fipa99.
   				  finished = true;
   					handleAgree(firstAnswerMsg);
   					handleInform(firstAnswerMsg);
@@ -201,8 +241,27 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   			}
   		
   		}
-  		else
-  			block();
+  		else{
+  			if (timeout>0){
+  				blockTime = endingTime - System.currentTimeMillis();
+  				if (blockTime <=0)
+  				{// timeout expired
+  				
+  					timeout = handleTimeout(); //default: infinite timeout
+  					state = FIRSTANSWER_STATE;
+  					return;
+  				}
+  				else{
+  				
+  				  block(blockTime);
+  				  return;
+  				}
+  			}
+  			else{//request without timeout
+  				block();
+  				}
+  		
+  		}
   		break;
   	}
   	case SECONDANSWER_STATE:{
@@ -236,8 +295,12 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   }
   }
   
-  /*
-  poiche lavora su var private della classe no param. cosa fa....
+  /**
+  This private method works on private variables of the class so it has no parameters.
+  It intializes the ACLMessage, setting the performative field to "request", and the protocol field 
+  to "fipa-request",
+  If the ReplyWith and ConversationId fields have not been set, it initializes them.
+  If no timeout is specified it will be set to infinite.
   */
   private void arrangeReqMsg(){
   
@@ -248,12 +311,17 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
       	reqMsg.setReplyWith("Req"+(new Date()).getTime());
     if (reqMsg.getConversationId().length()<1)
 	      reqMsg.setConversationId("Req"+(new Date()).getTime());
-
+		
+	  timeout = reqMsg.getReplyByDate().getTime() - (new Date()).getTime();
+	  if (timeout<=1000)
+	  		timeout = -1;//infinite timeout
+	  endingTime = System.currentTimeMillis() + timeout;	
   }
   
   /**
-  poiche lavora su var private della classe no param. cosa fa....
-  must be called after arrangereqMsg() otherwise the generated template is uncorret
+  This  private method works on private variable of the class so it has no parameters.
+  It initializes the MessageTemplates used by the receive methods in the <code>action</code> method.
+  It must be called after arrangeReqMsg() otherwise the generated template is incorret.
   */
   private void arrangeReqTemplate(){
   	
@@ -263,9 +331,9 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
  			// converation-id and reply-with are forced to be present 
   		// by the method arrageReqMsg. 
       secondReqTemplate = MessageTemplate.and(MessageTemplate.MatchConversationId(reqMsg.getConversationId()),
-  																			secondReqTemplate);
+  	                                          secondReqTemplate);
 			firstReqTemplate = MessageTemplate.and(MessageTemplate.MatchReplyTo(reqMsg.getReplyWith()),
-  																			secondReqTemplate);
+				                                     secondReqTemplate);
 
   } 
   
@@ -326,11 +394,28 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   protected abstract void handleInform(ACLMessage reply);
   
   /**
-  di default manda solo un msg di warning su stderr ma specifiche implemtnazioni posso fare override
+  This method can be override to handle other received messages 
+  different from those stated by the protocol.
+  By default it prints a warning message. 
   */
   protected void handleOtherMessages(ACLMessage reply){
   	System.err.println(myAgent.getLocalName() + " WARNING: not expected message received during fipa-request protocol, initiator role"); 
   }
+  
+/**
+This method is called by the action method when the timeout set in the request message
+is expired. By default it returns -1 so that the agent will wait for an infinite timeout.
+It can be override by the programmer to:
+<li> update his own data base;
+<li> call the <code>reset</code> to restart the protocol with different message or template;
+<li> stop the protocol, setting <code>finished</code> = true;
+<li> return an additional timeout;
+*/
+
+public long handleTimeout(){
+
+	return -1;
+}
 
 
 }
