@@ -418,7 +418,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	ACLMessage req = getRequest();
 	String content = "(result " + req.getContent() + text.toString() + ")";
 	reply.setContent(content);
-	reply.setType("inform");
+	reply.setPerformative(ACLMessage.INFORM);
 	send(reply);
 
       }
@@ -491,7 +491,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       constraints.addElement(c);
 
       String convID = getName() + "-recursive-search-" + dfDepth;
-      ACLMessage request = new ACLMessage("request");
+      ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
       request.setConversationId(convID);
       request.setSource(getName());
 
@@ -520,7 +520,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	    String content = "(result " + 
 	      originalRequestToSearchMsg.getContent() + text.toString() + ")";
 	    reply.setContent(content);
-	    reply.setType("inform");
+	    reply.setPerformative(ACLMessage.INFORM);
 	    send(reply);
 	  }
 	  catch(FIPAException fe) {
