@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  2000/01/31 10:52:31  rimassaJade
+  Commented out a check for agent identity in action expressions.
+
   Revision 1.5  1999/06/22 13:15:11  rimassa
   Removed a redundant instance variable.
 
@@ -290,10 +293,14 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       String token = st.nextToken();
       if(token.equalsIgnoreCase("action")) {
 	token = st.nextToken(); // Now 'token' is the agent name
-	if(!(token.equalsIgnoreCase(myAgent.getName()) || token.equalsIgnoreCase(myAgent.getLocalName()))) {
+
+	// Commented out, since it is SL-specific...
+	/*
+	  if(!(token.equalsIgnoreCase(myAgent.getName()) || token.equalsIgnoreCase(myAgent.getLocalName()))) {
 	  sendNotUnderstood(reply);
 	  return;
 	}
+	*/ 
 
 	token = st.nextToken(); // Now 'token' is the action name
 
