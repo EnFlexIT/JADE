@@ -655,7 +655,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
-	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED));
+	cmd.addParam(AgentState.getInstance(Agent.AP_SUSPENDED));
 
 	myCommandProcessor.processOutgoing(cmd);
     }
@@ -674,7 +674,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
-	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
+	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
 
 	myCommandProcessor.processOutgoing(cmd);
     }
@@ -686,7 +686,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     public void wait(AID agentID, String password) throws NotFoundException, UnreachableException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
-	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.WAITING));
+	cmd.addParam(AgentState.getInstance(Agent.AP_WAITING));
 
 	myCommandProcessor.processOutgoing(cmd);
     }
@@ -697,7 +697,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     public void wake(AID agentID, String password) throws NotFoundException, UnreachableException {
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
-	cmd.addParam(new AgentState(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE));
+	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
 
 	myCommandProcessor.processOutgoing(cmd);
   }
