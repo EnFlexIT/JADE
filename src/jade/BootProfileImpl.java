@@ -232,7 +232,7 @@ public class BootProfileImpl extends ProfileImpl {
         
         //NOMOBILITY
         flag = fetchAndVerifyBoolean(NOMOBILITY_KEY);
-        if (!flag) {
+        if (flag) {
             setParameter(MOBILITYMGRCLASSNAME, "jade.core.DummyMobilityManager");
         } else {
             setParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
