@@ -98,6 +98,7 @@
 	<!-- COMPILE -->
 	<target name="do-compile" depends="do-setup"
 	        description="Compile sources">
+        <echo>MIDP version: ${midp-version}</echo>
 		<javac srcdir="${src}"
 		       destdir="${unverified}"
 		       debug="${debug-build}"
@@ -105,7 +106,6 @@
 		       deprecation="on"
 		       bootclasspath="${boot-midp-classes}"
 		       target="1.1"/>
-		       
 		<preverify unverified="${unverified}" verified="${classes}"/>
 	</target>
 
@@ -114,7 +114,17 @@
 	<target name="do-lib" depends="do-compile"
 	        description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
-		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}" manifest="resources/build/jade-leap.manifest"/>
+        <condition property="manifest-file" 
+                   value="resources/build/jade-leap.manifest">
+          <equals arg1="${midp-version}" arg2="1.0" trim="true" />
+        </condition>
+        <condition property="manifest-file" 
+                   value="resources/build/jade-leap-midp20.manifest">
+          <equals arg1="${midp-version}" arg2="2.0" trim="true" />
+        </condition>
+		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}" manifest="${manifest-file}"/>
+        <!-- Update jad file -->          
+        <updatejad jad="jade-leap.jad" />
 	</target>
 
 	
