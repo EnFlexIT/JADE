@@ -26,7 +26,6 @@ package jade.core;
 
 import java.util.List;
 import java.util.LinkedList;
-import java.util.Iterator;
 
 import java.io.Serializable;
 
@@ -91,24 +90,35 @@ class Scheduler implements Serializable {
 
   // Moves a behaviour from the ready queue to the sleeping queue.
   public synchronized void block(Behaviour b) {
-    removeFromReady(b);
-    blockedBehaviours.add(b);
+    if (removeFromReady(b)) {
+	    blockedBehaviours.add(b);
+    }
   }
 
   // Moves a behaviour from the sleeping queue to the ready queue.
   public synchronized void restart(Behaviour b) {
-    removeFromBlocked(b);
-    readyBehaviours.add(b);
-    notify();
+    if (removeFromBlocked(b)) {
+	    readyBehaviours.add(b);
+    	notify();
+    }
   }
 
-  // Restarts all blocked behaviours. This method simply calls
-  // Behaviour.restart() on every blocked behaviour. The
+  // Restarts all behaviours. This method simply calls
+  // Behaviour.restart() on every behaviour. The
   // Behaviour.restart() method then notifies the agent (with the
   // Agent.notifyRestarted() method), causing Scheduler.restart() to
   // be called.
+  // Why not restarting only blocked behaviours?
+  // Some ready behaviour can be a NDBehaviour with some of its
+  // children blocked. These children must be restarted too.
   public synchronized void restartAll() {
-    Behaviour[] behaviours = (Behaviour[])blockedBehaviours.toArray(new Behaviour[0]);
+    Behaviour[] behaviours = (Behaviour[])readyBehaviours.toArray(new Behaviour[0]);
+    for(int i = 0; i < behaviours.length; i++) {
+      Behaviour b = behaviours[i];
+      b.restart();
+    }
+    
+    behaviours = (Behaviour[])blockedBehaviours.toArray(new Behaviour[0]);
     for(int i = 0; i < behaviours.length; i++) {
       Behaviour b = behaviours[i];
       b.restart();
