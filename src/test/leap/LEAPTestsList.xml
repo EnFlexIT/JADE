@@ -29,8 +29,8 @@
 				The test passes if all conversations are carried out (including message order) successfully.
 			</WhenTestPass>
 			<Argument key="n-participants" value="10"> The number of participant agents in the fixed network </Argument>
-			<Argument key="n-messages" value="10"> The number of messages sent and received in each conversation </Argument>
-			<Argument key="period" value="5000"> The time interval (in ms) between sending two successive messages </Argument>
+			<Argument key="n-messages" value="100"> The number of messages sent and received in each conversation </Argument>
+			<Argument key="period" value="100000"> The time interval (in ms) between sending two successive messages </Argument>
 		</Test>	
 		
 		<Test name="Message transmission performances" skip="false">
