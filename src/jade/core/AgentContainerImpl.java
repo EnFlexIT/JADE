@@ -599,19 +599,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           myACC.initialize(this, myProfile);
       }
       catch (IMTPException imtpe) {
-          System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
+          Logger.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
           imtpe.printStackTrace();
           endContainer();
           return;
       }
       catch (AuthException ae) {
-          System.err.println("Authentication or authorization failure while contacting agent platform.");
+          Logger.println("Authentication or authorization failure while contacting agent platform.");
           ae.printStackTrace();
           endContainer();
           return;
       }
       catch (Exception e) {
-          System.err.println("Some problem occurred while contacting agent platform.");
+          Logger.println("Some problem occurred while contacting agent platform.");
           e.printStackTrace();
           endContainer();
           return;
