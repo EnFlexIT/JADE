@@ -325,7 +325,7 @@ API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FIL
 		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
 
 API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang jade.lang.acl jade.lang.sl jade.domain \
-		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic \
+		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.domain.mobility jade.proto jade.onto jade.onto.basic \
 		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
 		jade.domain.introspection jade.content jade.content.abs jade.content.acl jade.content.lang \
 		jade.content.lang.j jade.content.lang.leap jade.content.lang.sl jade.content.onto jade.content.onto.basic jade.content.schema jade.content.schema.facets jade.util jade.util.leap
