@@ -137,9 +137,9 @@ class acc implements InChannel.Dispatcher {
     if(aclRepresentation == null)
       env.setAclRepresentation("");
 
-    String payloadLength = env.getPayloadLength();
+    Long payloadLength = env.getPayloadLength();
     if(payloadLength == null)
-      env.setPayloadLength("-1");
+      env.setPayloadLength(new Long(-1));
 
     String payloadEncoding = env.getPayloadEncoding();
     if(payloadEncoding == null)

@@ -111,7 +111,7 @@ public class MessageTransportProtocol implements MTP {
 	if(IDLenv.aclRepresentation.length() > 0)
 	  env.setAclRepresentation(IDLenv.aclRepresentation);
 	if(IDLenv.payloadLength > 0)
-	  env.setPayloadLength(Integer.toString(IDLenv.payloadLength));
+	  env.setPayloadLength(new Long(IDLenv.payloadLength));
 	if(IDLenv.payloadEncoding.length() > 0)
 	  env.setPayloadEncoding(IDLenv.payloadEncoding);
 	if(IDLenv.date.length > 0) {
@@ -239,8 +239,8 @@ public class MessageTransportProtocol implements MTP {
       // Fill in the other fields of the IDL envelope ...
       String IDLcomments = env.getComments();
       String IDLaclRepresentation = env.getAclRepresentation();
-      String payloadLength = env.getPayloadLength();
-      int IDLpayloadLength = Integer.parseInt(payloadLength);
+      Long payloadLength = env.getPayloadLength();
+      int IDLpayloadLength = payloadLength.intValue();
       String IDLpayloadEncoding = env.getPayloadEncoding();
       FIPA.DateTime[] IDLdate = new FIPA.DateTime[] { marshalDateTime(env.getDate()) };
       FIPA.Property[][] IDLtransportBehaviour = new FIPA.Property[][] { };

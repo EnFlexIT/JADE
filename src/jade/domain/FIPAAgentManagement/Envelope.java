@@ -59,7 +59,7 @@ public class Envelope implements java.io.Serializable {
   /**
   @serial
   */
-  private String payloadLength;
+  private Long payloadLength;
   /**
   @serial
   */
@@ -86,6 +86,12 @@ public class Envelope implements java.io.Serializable {
   */
   private List stamps = new ArrayList();
 
+    /**
+     * Constructor. Initializes the payloadLength to -1.
+     **/
+    public Envelope () {
+	payloadLength = new Long(-1);
+    }
   public void addTo(AID id) {
     to.add(id);
   }
@@ -126,11 +132,11 @@ public class Envelope implements java.io.Serializable {
     return aclRepresentation;
   }
 
-  public void setPayloadLength(String l) {
+  public void setPayloadLength(Long l) {
     payloadLength = l;
   }
 
-  public String getPayloadLength() {
+  public Long getPayloadLength() {
     return payloadLength;
   }
 
