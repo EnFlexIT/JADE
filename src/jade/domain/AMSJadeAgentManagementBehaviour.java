@@ -29,6 +29,7 @@ import jade.core.CaseInsensitiveString;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.core.Location;
+import jade.core.ServiceException;
 import jade.content.Concept;
 import jade.content.Predicate;
 import jade.content.onto.basic.Action;
@@ -43,6 +44,9 @@ import jade.domain.FIPAAgentManagement.UnsupportedFunction;
 import jade.domain.mobility.*;
 import jade.mtp.MTPDescriptor;
 import jade.security.AuthException;
+import jade.security.CredentialsHelper;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 /**
    This behaviour serves the actions of the JADE management ontology 
@@ -76,10 +80,21 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	Object result = null;
   	boolean resultNeeded = false;
   	Object asynchNotificationKey = null;
+
+  	JADEPrincipal requesterPrincipal = null;
+  	Credentials requesterCredentials = null;
+  	try {
+	  	CredentialsHelper ch = (CredentialsHelper) myAgent.getHelper("jade.core.security.Security");
+	  	requesterPrincipal = ch.getPrincipal(request);
+	  	requesterCredentials = ch.getCredentials(request);
+  	}
+  	catch (ServiceException se) {
+  		// Security plug in not installed --> Ignore it
+  	}
   	
   	// CREATE AGENT
   	if (action instanceof CreateAgent) {
-  		theAMS.createAgentAction((CreateAgent) action, request.getSender());
+  		theAMS.createAgentAction((CreateAgent) action, request.getSender(), requesterPrincipal, requesterCredentials);
   		asynchNotificationKey = new AID(((CreateAgent) action).getAgentName(), AID.ISLOCALNAME);
   	}
   	// KILL AGENT (asynchronous notification to requester)

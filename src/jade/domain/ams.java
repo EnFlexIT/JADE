@@ -70,11 +70,9 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.Authority;
-import jade.security.JADEPrincipal;
-import jade.security.DelegationCertificate;
 import jade.security.AuthException;
-import jade.security.CertificateException;
-import jade.security.PrivilegedExceptionAction;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 /**
   Standard <em>Agent Management System</em> agent. This class
@@ -196,7 +194,7 @@ public class ams extends Agent implements AgentManager.Listener {
   //////////////////////////////////////////////////////////////////
   
 	// CREATE AGENT
-	void createAgentAction(final CreateAgent ca, final AID requester) throws FIPAException {
+	void createAgentAction(final CreateAgent ca, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
 		final String agentName = ca.getAgentName();
 		final AID agentID = new AID(agentName, AID.ISLOCALNAME);
 		final String className = ca.getClassName();
@@ -212,70 +210,39 @@ public class ams extends Agent implements AgentManager.Listener {
 		for (int n = 0; n < listArg.size(); n++) {
 			args[n] = (String)listArg.get(n);
 		}
-	
-
-			// IdentityCertificate: The new agent will have the same 
-			// ownership as the requester
-			//final String ownership = getAgentOwnership(requester);
-		
-			//Authority authority = getAuthority();
-                  /*
-			AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, ownership);
-		  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
-			IdentityCertificate identity = authority.createIdentityCertificate();
-			identity.setSubject(agentPrincipal);
-			authority.sign(identity, requesterCredentials);
-		
-			// DelegationCertificate: The new agent will have the same 
-			// permissions of the requester unless the requester specified 
-			// a restricted set of permissions 
-			DelegationCertificate delegation = null;
-			if (ca.getDelegation() != null) {
-				// Restricted set of permissions
-				delegation = authority.createDelegationCertificate(ca.getDelegation());
-			}
-			else {
-				// All requester permissions
-				delegation = authority.createDelegationCertificate();
-				delegation.setSubject(agentPrincipal);
-				DelegationCertificate requesterDelegation = (DelegationCertificate) requesterCredentials.getDelegationCertificates().get(0);
-				delegation.addPermissions(requesterDelegation.getPermissions());
-				authority.sign(delegation, requesterCredentials);
-			}
-
-			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
-	*/
-                      
-					Thread auxThread = new Thread() {
-				    public void run() {
-							try {
-								//myPlatform.create(agentName, className, args, container, ownership, agentCerts);
-                myPlatform.create(agentName, className, args, container, null, null);
-							}
-							catch (UnreachableException ue) {
-						    // Send failure notification to the requester if any
-	    					sendFailureNotification(ca, agentID, new InternalError("Destination container unreachable. "+ue.getMessage()));
-							}
-							catch (AuthException ae) {
-						    logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Create-agent: " + ae);
-						    // Send failure notification to the requester if any
-						    sendFailureNotification(ca, agentID, new Unauthorised());
-							}
-							catch (NotFoundException nfe) {
-						    // Send failure notification to the requester if any
-	    					sendFailureNotification(ca, agentID, new InternalError("Destination container not found. "+nfe.getMessage()));
-							}
-							catch (NameClashException nce) {
-						    // Send failure notification to the requester if any
-	    					sendFailureNotification(ca, agentID, new AlreadyRegistered());
-							}
-							catch (Throwable t) {
-						    // Send failure notification to the requester if any
-	    					sendFailureNotification(ca, agentID, new InternalError(t.getMessage()));
-							}
-				    }
-					};
-					auxThread.start();
+		final JADEPrincipal owner = ca.getOwner();
+		final Credentials initialCredentials = ca.getInitialCredentials();
+	                      
+		// Do the job in a separated thread to avoid deadlock
+		Thread auxThread = new Thread() {
+	    public void run() {
+				try {
+          myPlatform.create(agentName, className, args, container, owner, initialCredentials, requesterPrincipal, requesterCredentials);
+				}
+				catch (UnreachableException ue) {
+			    // Send failure notification to the requester if any
+					sendFailureNotification(ca, agentID, new InternalError("Destination container unreachable. "+ue.getMessage()));
+				}
+				catch (AuthException ae) {
+			    logger.log(Logger.SEVERE,"Agent "+requester.getName()+" does not have permission to perform action Create-agent: " + ae);
+			    // Send failure notification to the requester if any
+			    sendFailureNotification(ca, agentID, new Unauthorised());
+				}
+				catch (NotFoundException nfe) {
+			    // Send failure notification to the requester if any
+					sendFailureNotification(ca, agentID, new InternalError("Destination container not found. "+nfe.getMessage()));
+				}
+				catch (NameClashException nce) {
+			    // Send failure notification to the requester if any
+					sendFailureNotification(ca, agentID, new AlreadyRegistered());
+				}
+				catch (Throwable t) {
+			    // Send failure notification to the requester if any
+					sendFailureNotification(ca, agentID, new InternalError(t.getMessage()));
+				}
+	    }
+		};
+		auxThread.start();
 
 
 	}
@@ -752,8 +719,8 @@ public class ams extends Agent implements AgentManager.Listener {
   //////////////////////////////////////////////////////////////////
   /**
      Inner calss RegisterToolBehaviour.
-     This behaviour handles tools subscriptions to be notified
-     about platform events.
+     This behaviour handles subscriptions of tools i.e. agents 
+     to be notified about platform events.
    */
   private class RegisterToolBehaviour extends CyclicBehaviour {
 
