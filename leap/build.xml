@@ -23,7 +23,7 @@
 	<property name="midp-root" value="${root}/midp"/>	
 	<property name="dotnet-root" value="${root}/dotnet"/>	
 	<property name="tmp" value="${root}/tmp"/>	
-	<property name="dist" value="${jade-home}/.."/>	
+	<property name="dist" value="${jade-home}"/>	
 	<property name="version" value="3.0-beta1"/>	
 	
 	<!-- Javadoc Header and Footer -->
@@ -221,21 +221,20 @@
 	<!-- Create the JADE-LEAP distribution zip files -->
 	<target name="dist" depends="init"
 	        description="Create the LEAP distribution file">
-	  <echo>${dist}</echo>
-		<delete file="${dist}/leap.zip" quiet="true"/>
-    <jar jarfile="${dist}/leap.zip" basedir="${dist}">
-    	<include name="jade/add-ons/leap/License"/>
-    	<include name="jade/add-ons/leap/COPYING"/>
-    	<include name="jade/add-ons/leap/README.txt"/>
-    	<include name="jade/add-ons/leap/buildLEAP.properties"/>
-    	<include name="jade/add-ons/leap/build.xml"/>
-    	<include name="jade/add-ons/leap/LEAPUserGuide.pdf"/>
-    	<include name="jade/add-ons/leap/demo/*.bat"/>
-    	<include name="jade/add-ons/leap/demo/demo.jad"/>
-    	<include name="jade/add-ons/leap/demo/demo.manifest"/>
-    	<include name="jade/add-ons/leap/demo/src/**"/>
-    	<include name="jade/add-ons/leap/resources/**"/>
-    	<include name="jade/add-ons/leap/src/**"/>
+		<delete file="${dist}/LeapAddon.zip" quiet="true"/>
+    <jar jarfile="${dist}/LeapAddon.zip" basedir="${dist}">
+    	<include name="add-ons/leap/License"/>
+    	<include name="add-ons/leap/COPYING"/>
+    	<include name="add-ons/leap/README.txt"/>
+    	<include name="add-ons/leap/buildLEAP.properties"/>
+    	<include name="add-ons/leap/build.xml"/>
+    	<include name="add-ons/leap/LEAPUserGuide.pdf"/>
+    	<include name="add-ons/leap/demo/*.bat"/>
+    	<include name="add-ons/leap/demo/demo.jad"/>
+    	<include name="add-ons/leap/demo/demo.manifest"/>
+    	<include name="add-ons/leap/demo/src/**"/>
+    	<include name="add-ons/leap/resources/**"/>
+    	<include name="add-ons/leap/src/**"/>
     </jar>
 	</target>
 
