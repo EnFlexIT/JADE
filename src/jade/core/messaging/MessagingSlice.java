@@ -72,6 +72,18 @@ public interface MessagingSlice extends Service.Slice {
     static final String UNINSTALL_MTP = "Uninstall-MTP";
 
     /**
+       This command name represents the <code>new-mtp</code>
+       event.
+    */
+    static final String NEW_MTP = "New-MTP";
+
+    /**
+       This command name represents the <code>dead-mtp</code>
+       action.
+    */
+    static final String DEAD_MTP = "Dead-MTP";
+
+    /**
        This command name represents the <code>set-platform-addresses</code>
        action.
     */
