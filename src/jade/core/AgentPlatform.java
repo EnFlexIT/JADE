@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import java.net.InetAddress;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -35,7 +37,7 @@ interface AgentPlatform extends AgentContainer {
 
   String getAddress() throws RemoteException;
 
-  String addContainer(AgentContainer ac) throws RemoteException;
+  String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException;
   void removeContainer(String name) throws RemoteException;
 
   AgentContainer lookup(String name) throws RemoteException, NotFoundException;
