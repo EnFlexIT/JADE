@@ -289,6 +289,7 @@ The AID of the AMS is defaulted to the AMS of this platform.
     Iterator i = r.getAll_1(); //this is the set of AMSAgentDescription
     int j = 0;
     while (i.hasNext()) {
+    	i.next();
       ++j;
     }
     AMSAgentDescription[] result = new AMSAgentDescription[j];

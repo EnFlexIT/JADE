@@ -276,6 +276,7 @@ public class DFService extends FIPAServiceCommunicator {
     Iterator i = r.getAll_1(); //this is the set of DFAgentDescription
     int j = 0;
     while (i.hasNext()) {
+    	i.next();
       ++j;
     }
     DFAgentDescription[] result = new DFAgentDescription[j];

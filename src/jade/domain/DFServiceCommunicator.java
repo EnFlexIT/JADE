@@ -225,7 +225,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 @see #search(Agent a, AID dfName, DFAgentDescription dfd, SearchConstraints constraints) 
   **/
   public static java.util.List search(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
-		DFAgentDescription[] r = DFService.search(a, dfName, dfd);
+  	DFAgentDescription[] r = DFService.search(a, dfName, dfd);
 		java.util.List l = new java.util.ArrayList();
 		for (int i = 0; i < r.length; ++i) {
 			l.add(r[i]);

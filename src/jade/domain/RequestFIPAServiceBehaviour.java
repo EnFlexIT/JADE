@@ -257,7 +257,7 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 		}
 		return l;
   }
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__BACKWARD_COMPATIBILITY__END
     
   /**
     This public method allows to get the results of a search operation. 
