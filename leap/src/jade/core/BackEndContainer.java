@@ -165,7 +165,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
 
       return info;
-
   }
 
   /**
@@ -278,72 +277,74 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
    */
   public boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID) {
 
-      // Try first in the LADT
-      boolean found = super.postMessageToLocalAgent(msg, receiverID);
-      if(found) {
-	  return found;
-      }
-      else {
-	  // The receiver must be in the FrontEnd
-	  AgentImage image = (AgentImage) agentImages.get(receiverID);
-	  if(image != null) {
-
+    // Try first in the LADT
+    boolean found = super.postMessageToLocalAgent(msg, receiverID);
+    if(found) {
+		  return found;
+    }
+    else {
+		  // The receiver must be in the FrontEnd
+		  AgentImage image = (AgentImage) agentImages.get(receiverID);
+		  if(image != null) {
 	      if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
-		  // The message was sent by an agent living in the FrontEnd. The
-		  // receiverID (living in the FrontEnd too) has already received
-		  // the message.
-		  return true;
+				  // The message was sent by an agent living in the FrontEnd. The
+				  // receiverID (living in the FrontEnd too) has already received
+				  // the message.
+				  return true;
 	      }
 
 	      // FIXME: The right way to do things should be i) check permission
 	      // ii) call messageIn() iii) notify listeners. On the other hand 
 	      // handlePosted() currently does i) and iii). 
 	      try {
-		  final ACLMessage msgFinal = msg;
-		  final AID receiverIDFinal = receiverID;
-
-		  // An AuthException will be thrown if the receiver does not have
-		  // the permission to receive messages from the sender of this message
-		  getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-			  public Object run() throws AuthException {
-			      handlePosted(receiverIDFinal, msgFinal);
-			      return null;
-			  }
+				  final ACLMessage msgFinal = msg;
+				  final AID receiverIDFinal = receiverID;
+		
+				  // An AuthException will be thrown if the receiver does not have
+				  // the permission to receive messages from the sender of this message
+				  getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+					  public Object run() throws AuthException {
+					      handlePosted(receiverIDFinal, msgFinal);
+					      return null;
+					  }
 		      }, image.getCertificateFolder());
 	      }
 	      catch (AuthException ae) {
-		  String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
-		  System.out.println(errorMsg+". "+ae.getMessage());
-		  notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
+				  String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
+				  System.out.println(errorMsg+". "+ae.getMessage());
+				  notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
 	      }
 	      catch (Exception e) {
-		  // Should never happen
-		  e.printStackTrace();
+				  // Should never happen
+				  e.printStackTrace();
 	      }
 	      try {
-		  // Forward the message to the FrontEnd
-
-		  if(isMaster()) {
-		      myFrontEnd.messageIn(msg, receiverID.getLocalName());
-		      return true;
-		  }
-		  else {
-		      return false;
-		  }
+				  // Forward the message to the FrontEnd
+		
+				  if(isMaster()) {
+			      myFrontEnd.messageIn(msg, receiverID.getLocalName());
+			      return true;
+				  }
+				  else {
+				  	System.out.println("WARNING: Trying to deliver a message through a replica");
+			      return false;
+				  }
 	      }
 	      catch(NotFoundException nfe) {
-		  return false;
+			  	System.out.println("WARNING: Missing agent in FrontEnd");
+				  return false;
 	      }
 	      catch(IMTPException imtpe) {
-		  return false;
+			  	System.out.println("WARNING: Can't deliver message to FrontEnd");
+				  return false;
 	      }	      
-
-	  }
-	  else {
+		  }
+		  else {
 	      // Agent not found
+			  System.out.println("WARNING: Agent "+receiverID+" not found on BackEnd container");
 	      return false;
-	  }
-      }
+		  }
+    }
   }
 
   public void activateReplicas() {
