@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.15  1998/11/30 00:20:49  rimassa
+  Made the parser a case-insensitive one, through a JavaCC option.
+  Fixed an error in ':agent-type' clause.
+  Added grammar productions and lexical tokens to support DF 'search'
+  action result parsing.
+
   Revision 1.14  1998/11/15 23:07:10  rimassa
   Removed an obsolete grammar production 'DeadAgentEvent()'.
   Added a new grammar production to represent 'kill-container' AMS
@@ -45,6 +51,7 @@
 
 options {
 
+  IGNORE_CASE = true;
   STATIC = false;
 
 }
@@ -135,6 +142,19 @@ class AgentManagementParser {
     ReInit(r);
     return FIPA_Service_Desc();
   }
+
+  public AgentManagementOntology.DFSearchResult parseSearchResult(Reader r) throws ParseException {
+    myReader = r;
+    ReInit(r);
+    return Search_Result();
+  }
+
+  public FIPAException parseFIPAException(Reader r, AgentManagementOntology o) throws ParseException {
+    myReader = r;
+    ReInit(r);
+    return FIPA_Exception(o);
+  }
+
 
 }
 
@@ -521,8 +541,8 @@ void FIPA_DF_description(AgentManagementOntology.DFAgentDescriptor dfd) :
      else throw new ParseException();
    }
  | <AGENT_ADDRESS> ( s = CommAddress() { dfd.addAddress(s); } )+ // FIXME: Error when multiple adrresses are present
- | <AGENT_SERVICES> ( sd = FIPA_Service_Desc() { dfd.addService(sd); })+
- | <AGENT_TYPE> t = <WORD>
+ | <AGENT_SERVICES> ( sd = FIPA_Service_Desc() { dfd.addAgentService(sd); })+
+ | <AGENT_TYPE> ( t = <ServiceTypes> | t = <WORD> )
    {
      if(dfd.getType() == null) dfd.setType(t.image);
      else throw new ParseException();
@@ -685,6 +705,29 @@ String SL1Term() :
   }
 }
 
+AgentManagementOntology.DFSearchResult Search_Result() :
+{
+  AgentManagementOntology.DFSearchResult dfsa = new AgentManagementOntology.DFSearchResult();
+  AgentManagementOntology.DFAgentDescriptor dfd;
+}
+{
+  "(" <RESULT> "(" ( dfd = DF_description() { dfsa.put(dfd.getName(), dfd); } )* ")" ")"
+  { return dfsa; }
+}
+
+FIPAException FIPA_Exception(AgentManagementOntology o) :
+{
+  Token t;
+  String s;
+}
+{
+  "(" <ACTION> <WORD> <WORD> ")" t = <WORD>
+  {
+    s = t.image;
+    return o.getException(s);
+  }
+}
+
 
 // JavaCC lexical productions
 
@@ -741,6 +784,8 @@ TOKEN:
 | <ConstraintFn : "Max" | "Min" | "Exactly" >
 | <DFDEPTH : ":df-depth">
 | <RESPREQ : ":resp-req">
+| <ACTION : "action">
+| <RESULT : "result">
 | <PROPERTY_NAME : ":"["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <INTEGER : ["0"-"9"](["0"-"9"])*>
