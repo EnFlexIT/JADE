@@ -90,7 +90,11 @@ public abstract class Profile {
    * method.
    */
   public static final String MTPS = "mtps";
-
+    /**
+     * This constant is the key of the property whose value
+     * identifies the IMTP Manager to be created by ProfileImpl
+     **/
+    public static final String IMTP = "imtp";
   /**
    * This constant is the key of the property whose value contains the
    * list of ACLCODECSs that have to be launched at bootstrap time.
