@@ -47,13 +47,13 @@ public interface Location extends Serializable {
     @return A name for this location. The name has only a local meaning.
   */
   String getName();
-  
+
   /**
     Read the protocol for a location.
     @return The name of the protocol used to reach this location.
   */
   String getProtocol();
-  
+
   /**
     Read the address for a location.
     @return The transport address of this location (in the specified protocol).
