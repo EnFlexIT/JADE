@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.8  1998/11/18 22:53:42  Giovanni
+  Fixed a bug: receiveAfterAgree Behaviour was added directly to the
+  agent instead of being added to mainBehaviour.
+  This resulted in a missing reset().
+
   Revision 1.7  1998/10/31 12:57:09  rimassa
   Modified example to turn AgentRequester in an endless 'fipa-request'
   client; now the main behaviour (a SequentialBehaviour) calls its new
@@ -38,7 +43,7 @@ public class AgentRequester extends Agent {
     }
 
     public static final ACLMessage receive(AgentRequester a, String messageType) {
-    
+
       // Receive <messageType> message from peer
 
       MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
@@ -174,11 +179,11 @@ public class AgentRequester extends Agent {
     // If agree is received, also receive inform or failure messages.
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
-      ComplexBehaviour receiveAfterAgree;
+      private ComplexBehaviour receiveAfterAgree;
 
       public void action() {
 	if(agreed()) {
-	  
+
 	  receiveAfterAgree = NonDeterministicBehaviour.createWhenAny(AgentRequester.this);
 	  receiveAfterAgree.addBehaviour(new ReceiveBehaviour() {
 
@@ -205,7 +210,7 @@ public class AgentRequester extends Agent {
 	  });
 
 	  // Schedules next behaviour for execution
-	  addBehaviour(receiveAfterAgree);
+	  parent.addBehaviour(receiveAfterAgree);
 	}
 
 	else
@@ -214,8 +219,9 @@ public class AgentRequester extends Agent {
 
       public void reset() {
 	if(agreed()) {
-	  receiveAfterAgree.reset();
-	  removeBehaviour(receiveAfterAgree);
+	  receivedAgree = false;
+	  parent.removeBehaviour(receiveAfterAgree);
+	  receiveAfterAgree = null;
 	}
       }
 
