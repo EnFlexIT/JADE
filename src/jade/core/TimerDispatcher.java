@@ -69,10 +69,6 @@ public class TimerDispatcher implements Runnable {
     timers.removeElement(t);
   }
 
-  private synchronized boolean emptySet() {
-    return timers.isEmpty();
-  }
-
   public void run() {
     try {
     	while (active) {
