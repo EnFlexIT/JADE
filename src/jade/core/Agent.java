@@ -287,6 +287,13 @@ public class Agent implements Runnable, CommBroadcaster {
 
     ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
+    if(reply.getType().equalsIgnoreCase("agree"))
+      blockingReceive(MessageTemplate.MatchReplyTo(replyString)); // FIXME: Should check that it is an 'inform' message
+    else {
+      System.out.println("AMS registration failed !!!");
+      doDelete();
+    }
+
   }
 
 
