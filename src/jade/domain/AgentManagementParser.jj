@@ -187,7 +187,7 @@ AgentManagementOntology.AMSEvent AMSEvent() :
 
 AgentManagementOntology.AMSEvent ContainerEvent() :
 {
-  AgentManagementOntology.AMSContainerEvent amse = new AgentManagementOntology.AMSContainerEvent();;
+  AgentManagementOntology.AMSContainerEvent amse = new AgentManagementOntology.AMSContainerEvent();
   Token kind;
   Token name;
 }
@@ -195,8 +195,8 @@ AgentManagementOntology.AMSEvent ContainerEvent() :
   ( ( kind = "new-container" { amse.setKind(AgentManagementOntology.AMSAgentEvent.NEWCONTAINER); } )
   | ( kind = "dead-container" { amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADCONTAINER); } )
   )
-    name = <WORD>
-  { 
+    name = <WORD> "(" Properties(amse) ")"
+  {
     amse.setContainerName(name.image);
     return amse;
   }
@@ -347,7 +347,7 @@ void Properties(AgentManagementOntology.PropertyContainer pc) :
 {
 }
 {
- ( <AGENT_PROPERTIES> ( "(" Property(pc) ")" )+ )
+ ( <PROPERTIES> ( "(" Property(pc) ")" )+ )
 }
 
 void Property(AgentManagementOntology.PropertyContainer pc) :
@@ -952,7 +952,7 @@ TOKEN:
 | <MODIFY_AGENT : "modify-agent">
 | <CREATE_AGENT : "create-agent">
 | <AGENT_CODE : ":agent-code">
-| <AGENT_PROPERTIES : ":agent-properties">
+| <PROPERTIES : ":properties">
 | <KILL_AGENT : "kill-agent">
 | <KILL_CONTAINER : "kill-container">
 | <PASSWORD : ":password">
