@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/05/20 13:43:19  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.2  1999/04/06 00:10:19  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -12,6 +15,7 @@
 package jade.proto;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;

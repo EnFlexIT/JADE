@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:17  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.7  1999/04/06 00:09:45  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -13,7 +16,9 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
+
+import jade.core.Agent;
 
 /**
    Composite behaviour with sequential children scheduling. It is a
@@ -44,7 +49,7 @@ public class SequentialBehaviour extends ComplexBehaviour {
   /**
      Sequential policy for children scheduling. This method executes
      children behaviours one at a time, in a FIFO fashion.
-     @see jade.core.ComplexBehaviour#bodyAction()
+     @see jade.core.behaviours.ComplexBehaviour#bodyAction()
   */
   protected boolean bodyAction() {
     boolean result = false;

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:18  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.7  1999/04/06 00:09:46  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -11,7 +14,9 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
+
+import jade.core.Agent;
 
 
 /**

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/05/20 13:43:15  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.8  1999/03/15 15:22:22  rimassa
   Changed an 'if' clause to a 'while' clause.
 
@@ -18,6 +21,8 @@
 package jade.core;
 
 import java.util.Vector;
+
+import jade.core.behaviours.Behaviour;
 
 /**************************************************************
 

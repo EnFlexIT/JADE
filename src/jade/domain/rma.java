@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.21  1999/05/20 13:43:18  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.20  1999/04/13 16:00:25  rimassa
   Changed GUI destruction and made it occur asynchronously.
 
@@ -90,6 +93,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.gui.*;

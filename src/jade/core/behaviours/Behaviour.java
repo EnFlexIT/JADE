@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:16  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.8  1999/04/06 00:09:35  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -15,7 +18,9 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
+
+import jade.core.Agent;
 
 /**
    Abstract base class for <b><em>JADE</em></b> behaviours.  Extending
@@ -117,7 +122,7 @@ public abstract class Behaviour {
 
   /**
      Back pointer to the enclosing Behaviour (if present).
-     @see jade.core.ComplexBehaviour
+     @see jade.core.behaviours.ComplexBehaviour
   */
   protected ComplexBehaviour parent;
 
@@ -150,7 +155,7 @@ public abstract class Behaviour {
      soon as possible to preserve agent responsiveness. To split a
      long and slow task into smaller section, recursive behaviour
      aggregation may be used.
-     @see jade.core.ComplexBehaviour
+     @see jade.core.behaviours.ComplexBehaviour
   */
   public abstract void action();
 
@@ -197,8 +202,13 @@ public abstract class Behaviour {
     runnableState = runnable;
   }
 
-  // Returns runnable/not-runnable state
-  boolean isRunnable() {
+  /**
+     Returns whether this <code>Behaviour</code> object is blocked or
+     not.
+     @return <code>true</code> when this behaviour is not blocked,
+     <code>false</code> when it is.
+   */
+  public boolean isRunnable() {
     return runnableState;
   }
 

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:16  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.12  1999/04/06 00:09:38  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -24,10 +27,12 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
 
 import java.util.Vector;
 import java.util.Stack;
+
+import jade.core.Agent;
 
 /**
    An abstract superclass for behaviours composed by many parts. This
@@ -37,8 +42,8 @@ import java.util.Stack;
    from the agent scheduler, it executes one of its children according
    to some policy. This class must be extended to provide the actual
    scheduling policy to apply when running children behaviours.
-   @see jade.core.SequentialBehaviour
-   @see jade.core.NonDeterministicBehaviour
+   @see jade.core.behaviours.SequentialBehaviour
+   @see jade.core.behaviours.NonDeterministicBehaviour
 
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -226,8 +231,8 @@ public abstract class ComplexBehaviour extends Behaviour {
      to some policy (sequentially, round robin, priority based, ...).
      @return <code>true</code> when done, <code>false</code> when
      children behaviours still need to be run.
-     @see jade.core.SequentialBehaviour
-     @see jade.core.NonDeterministicBehaviour
+     @see jade.core.behaviours.SequentialBehaviour
+     @see jade.core.behaviours.NonDeterministicBehaviour
   */
   protected abstract boolean bodyAction();
 

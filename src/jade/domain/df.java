@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  1999/05/20 13:43:18  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.22  1999/04/06 00:09:56  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -84,6 +87,7 @@ import java.util.Vector;
 import java.util.NoSuchElementException;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;

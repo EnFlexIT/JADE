@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.48  1999/05/20 13:43:13  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.47  1999/04/13 15:58:05  rimassa
   Added a fix for GUI deadlock problem during platform startup: a global
   lock is acquired to force mutual exclusion among all setup() methods.
@@ -255,6 +258,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import jade.core.behaviours.Behaviour;
 import jade.lang.acl.*;
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;

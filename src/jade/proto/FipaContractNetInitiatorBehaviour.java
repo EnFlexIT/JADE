@@ -1,6 +1,7 @@
 package jade.proto;
 
 import jade.core.*;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 

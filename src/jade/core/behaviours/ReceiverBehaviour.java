@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:17  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.9  1999/04/06 00:09:43  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -25,10 +28,11 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
 
 import java.util.Enumeration;
 
+import jade.core.Agent;
 import jade.core.AgentGroup;
 
 import jade.lang.acl.ACLMessage;
@@ -40,7 +44,7 @@ import jade.lang.acl.MessageTemplate;
    terminates when an ACL message is received. If no suitable message
    is present, <code>action()</code> calls <code>block()</code> and
    returns.
-   @see jade.core.SenderBehaviour
+   @see jade.core.behaviours.SenderBehaviour
    @see jade.core.Agent#receive()
    @see jade.lang.acl.ACLMessage
 

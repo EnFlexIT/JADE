@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:17  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.6  1999/04/06 00:09:44  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -17,7 +20,10 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
+
+import jade.core.Agent;
+import jade.core.AgentGroup;
 
 import jade.lang.acl.ACLMessage;
 
@@ -25,7 +31,7 @@ import jade.lang.acl.ACLMessage;
    Behaviour for sending an ACL message. This class encapsulates a
    <code>send()</code> as an atomic operation. This behaviour sends a
    given ACL message and terminates.
-   @see jade.core.ReceiverBehaviour
+   @see jade.core.behaviours.ReceiverBehaviour
    @see jade.core.Agent#send(ACLMessage msg)
    @see jade.lang.acl.ACLMessage
 

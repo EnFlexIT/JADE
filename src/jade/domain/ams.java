@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.32  1999/05/20 13:43:18  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.31  1999/05/19 18:20:44  rimassa
   Removed fake RMA authentication. Now every agent can ask the AMS to
   perform Life Cycle Management tasks.
@@ -107,6 +110,7 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;

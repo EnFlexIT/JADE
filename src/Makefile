@@ -20,12 +20,12 @@ AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
 
 EXECS       = 	jade/Boot.java
 IDLSPEC     =   FIPA_Agent_97.idl
-ROOTCLASSES =	jade/core/ComplexBehaviour.java \
-		jade/core/NonDeterministicBehaviour.java \
-		jade/core/SequentialBehaviour.java \
-		jade/core/SimpleBehaviour.java \
-		jade/core/SenderBehaviour.java \
-		jade/core/ReceiverBehaviour.java \
+ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
+		jade/core/behaviours/NonDeterministicBehaviour.java \
+		jade/core/behaviours/SequentialBehaviour.java \
+		jade/core/behaviours/SimpleBehaviour.java \
+		jade/core/behaviours/SenderBehaviour.java \
+		jade/core/behaviours/ReceiverBehaviour.java \
 		jade/domain/rma.java \
 		jade/domain/SearchDFBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \

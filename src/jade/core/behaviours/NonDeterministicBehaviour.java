@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.1  1999/05/20 13:43:16  rimassa
+  Moved all behaviour classes in their own subpackage.
+
   Revision 1.8  1999/04/06 00:09:41  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -20,9 +23,11 @@
 
 */
 
-package jade.core;
+package jade.core.behaviours;
 
 import java.util.Hashtable;
+
+import jade.core.Agent;
 
 /**
    Composite behaviour with non deterministic children scheduling.
@@ -88,7 +93,7 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
      Nondeterministic policy for children scheduling.  This method
      executes children behaviours one at a time, in a round robin
      fashion.
-     @see jade.core.ComplexBehaviour#bodyAction()
+     @see jade.core.behaviours.ComplexBehaviour#bodyAction()
   */
   protected boolean bodyAction() {
 
