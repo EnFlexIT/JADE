@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!DOCTYPE TestsList SYSTEM "test//common//xml//listTests.dtd" [
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
 	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
 	]>
 	<TestsList> 
