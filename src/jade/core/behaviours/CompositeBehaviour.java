@@ -198,12 +198,11 @@ public abstract class CompositeBehaviour extends Behaviour {
      all its children are notified too.
   */
   public void restart() {
-    // Notify upwards
-    super.restart();
-
     // Then notify downwards
     myEvent.init(true, NOTIFY_DOWN);
     handle(myEvent);
+    // Notify upwards
+    super.restart();
   }
   
   /**
