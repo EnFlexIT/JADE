@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1998/11/03 00:39:52  rimassa
+  Added processing of 'inform' messages received from AMS in response to
+  AgentPlatform events.
+
   Revision 1.3  1998/11/02 02:06:23  rimassa
   Started to add a Behaviour to handle 'inform' messages the AMS sends
   when some AgentPlatform event occurs that can be of interest of Remote
@@ -17,10 +21,6 @@
 
 
 package jade.domain;
-
-// FIXME: For debug only
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 
 import java.io.StringReader;
 
@@ -70,20 +70,48 @@ public class rma extends Agent {
       ACLMessage current = receive(listenTemplate);
       if(current != null) {
 	// Handle inform messages from AMS
-	current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	StringReader text = new StringReader(current.getContent());
 	try {
+
 	  AgentManagementOntology.AMSEvent amse = AgentManagementOntology.AMSEvent.fromText(text);
+	  int k = amse.getKind();
+
+	  String container = null;
+	  AgentManagementOntology.AMSAgentDescriptor amsd = null;
+
+	  switch(k) {
+	  case AgentManagementOntology.AMSEvent.NEWCONTAINER:
+	    AgentManagementOntology.AMSContainerEvent ev1 = (AgentManagementOntology.AMSContainerEvent)amse;
+	    container = ev1.getContainerName();
+	    myGUI.addContainer(container);
+	    break;
+	  case AgentManagementOntology.AMSEvent.DEADCONTAINER:
+	    AgentManagementOntology.AMSContainerEvent ev2 = (AgentManagementOntology.AMSContainerEvent)amse;
+	    container = ev2.getContainerName();
+	    myGUI.removeContainer(container);
+	    break;
+	  case AgentManagementOntology.AMSEvent.NEWAGENT:
+	    AgentManagementOntology.AMSAgentEvent ev3 = (AgentManagementOntology.AMSAgentEvent)amse;
+	    container = ev3.getContainerName();
+	    amsd = ev3.getAgentDescriptor();
+	    myGUI.addAgent(container, amsd.getName(), amsd.getAddress(), "fipa-agent");
+	    break;
+	  case AgentManagementOntology.AMSEvent.DEADAGENT:
+	    AgentManagementOntology.AMSAgentEvent ev4 = (AgentManagementOntology.AMSAgentEvent)amse;
+	    container = ev4.getContainerName();
+	    amsd = ev4.getAgentDescriptor();
+	    myGUI.removeAgent(container, amsd.getName());
+	    break;
+	  }
+
 	}
 	catch(ParseException pe) {
 	  pe.printStackTrace();
-	  return;
 	}
 	catch(TokenMgrError tme) {
 	  tme.printStackTrace();
-	  return;
 	}
-	current = null;
+
       }
       else
 	block();
