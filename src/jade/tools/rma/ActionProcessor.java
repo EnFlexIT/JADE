@@ -59,6 +59,10 @@ class ActionProcessor {
      public static final String  SHOWDF_ACTION="ShowDfGui Action";
      public static final String  MOVEAGENT_ACTION="Migrate Agent";
      public static final String  CLONEAGENT_ACTION="Clone Agent";
+     public static final String  SAVEAGENT_ACTION="Save Agent";
+     public static final String  LOADAGENT_ACTION="Load Agent";
+     public static final String  FREEZEAGENT_ACTION="Freeze Agent";
+     public static final String  THAWAGENT_ACTION="Thaw Agent";
      public static final String  ADDREMOTEPLATFORM_ACTION ="Add Platform via AMS AID";
      public static final String  ADDREMOTEPLATFORMFROMURL_ACTION = "Add Platform via URL"; 
      public static final String  VIEWPLATFORM_ACTION ="View AP Description";
@@ -89,6 +93,10 @@ class ActionProcessor {
       actions.put(SHOWDF_ACTION,new ShowDFGuiAction(anRma,this));
       actions.put(MOVEAGENT_ACTION, new MoveAgentAction(anRma,this,mWnd));
       actions.put(CLONEAGENT_ACTION, new CloneAgentAction(anRma, this,mWnd));
+      actions.put(SAVEAGENT_ACTION, new SaveAgentAction(anRma, this));
+      actions.put(LOADAGENT_ACTION, new LoadAgentAction(anRma, this, mWnd));
+      actions.put(FREEZEAGENT_ACTION, new FreezeAgentAction(anRma, this));
+      actions.put(THAWAGENT_ACTION, new ThawAgentAction(anRma, this, mWnd));
       actions.put(ADDREMOTEPLATFORM_ACTION, new AddRemotePlatformAction(anRma,this,mWnd));
       actions.put(VIEWPLATFORM_ACTION, new ViewAPDescriptionAction(anRma,this));
       actions.put(REFRESHAPDESCRIPTION_ACTION, new RefreshAPDescriptionAction(anRma,this));
