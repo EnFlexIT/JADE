@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1998/10/26 00:02:21  rimassa
+  Added new inner classes and string constant to represent
+  'create-agent' and 'kill-agent' new AMS actions.
+
   Revision 1.7  1998/10/18 17:35:36  rimassa
   Added some static final String varibles to Constraint class to
   represent various keywords.
@@ -537,10 +541,12 @@ public class AgentManagementOntology {
     public static final String REGISTERAGENT = "register-agent";
     public static final String DEREGISTERAGENT = "deregister-agent";
     public static final String MODIFYAGENT = "modify-agent";
+    public static final String CREATEAGENT = "create-agent";
+    public static final String KILLAGENT = "kill-agent";
 
     static final String ARGNAME = ":ams-description";
 
-    private static Hashtable actions = new Hashtable(4, 1.0f);
+    private static Hashtable actions = new Hashtable(6, 1.0f);
     private String name;
     private AMSAgentDescriptor arg;
 
@@ -580,6 +586,32 @@ public class AgentManagementOntology {
     }
 
   } // End of AMSAction class
+
+  public static class CreateAgentAction extends AMSAction {
+
+    private String className = "jade.core.Agent";
+    private int containerID = 0;
+
+    public void setClassName(String cn) {
+      className = cn;
+    }
+
+    public String getClassName() {
+      return className;
+    }
+
+    public void setContainerID(int id) {
+      containerID = id;
+    }
+
+    public int getContainerID() {
+      return containerID;
+    }
+
+  }
+
+  public static class KillAgentAction extends AMSAction {
+  }
 
   public static class DFAction implements Action {
 
@@ -891,6 +923,8 @@ public class AgentManagementOntology {
     AMSAction.actions.put(AMSAction.REGISTERAGENT, new Integer(1));
     AMSAction.actions.put(AMSAction.DEREGISTERAGENT, new Integer(2));
     AMSAction.actions.put(AMSAction.MODIFYAGENT, new Integer(3));
+    AMSAction.actions.put(AMSAction.CREATEAGENT, new Integer(4));
+    AMSAction.actions.put(AMSAction.KILLAGENT, new Integer(5));
 
     DFAction.actions.put(DFAction.REGISTER, new Integer(0));
     DFAction.actions.put(DFAction.DEREGISTER, new Integer(1));
