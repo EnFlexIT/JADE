@@ -120,6 +120,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     // this platform.
     platformID = pID;
 
+    translator = new AIDTranslator(platformID);
+
     String platformRMI = "rmi://" + platformID;
 
     // Build the Agent IDs for the AMS and for the Default DF.

@@ -92,6 +92,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // agents.
   protected String platformID;
 
+  // An object used to manage Agent IDs using nicknames
+  protected AIDTranslator translator;
+
   private Map SniffedAgents = new HashMap();
   private String theSniffer;           
 
@@ -410,6 +413,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     // This string will be used to build the GUID for every agent on this platform.
     platformID = pID;
 
+    translator = new AIDTranslator(platformID);
+
     // Build the Agent IDs for the AMS and for the Default DF.
     Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
 
@@ -604,15 +609,10 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
     boolean sniffedSource = false;
 
-    // The AID of the message sender must have the complete GUID
-    AID msgSource = msg.getSender();
-    if(!livesHere(msgSource)) {
-      String guid = msgSource.getName();
-      guid = guid.concat("@" + platformID);
-      msgSource.setName(guid);
-    }
+    translator.translateOutgoing(msg);
 
     ArrayList sniffersToNotify = new ArrayList(SniffedAgents.size());
+    AID msgSource = msg.getSender();
     currentSnifferVector = getSniffer(msgSource, SniffedAgents);
     if (currentSnifferVector != null) {
     	for (Iterator i=currentSnifferVector.iterator(); i.hasNext(); ) {
@@ -633,16 +633,6 @@ private List getSniffer(AID id, java.util.Map theMap) {
     			sniffersToNotify.add(aSniffer);
     	 }
     	//System.out.println("Sniffer to Notify- in while: "+ sniffersToNotify.size() + dest.toString());
-      }
-
-      // If this AID has no explicit addresses, but it does not seem
-      // to live here, then the platform ID is appended to the AID
-      // name
-      Iterator addresses = dest.getAllAddresses();
-      if(!addresses.hasNext() && !livesHere(dest)) {
-	      String guid = dest.getName();
-	      guid = guid.concat("@" + platformID);
-	      dest.setName(guid);
       }
 
       ACLMessage copy = (ACLMessage)msg.clone();
@@ -785,32 +775,14 @@ private List getSniffer(AID id, java.util.Map theMap) {
     }
   }
 
-  protected AID localAID(String agentName) {
-    if(!agentName.endsWith('@' + platformID))
-      agentName = agentName.concat('@' + platformID);
-    AID id = new AID();
-    id.setName(agentName);
-    id.clearAllAddresses();
-    id.clearAllResolvers();
-    return id;
-  }
-
-  protected AID globalAID(String agentName) {
-    AID id = localAID(agentName);
-    // FIXME: Add all platform addresses to this AID
-    return id;
-  }
-
-
   // Private methods
 
-  private boolean livesHere(AID id) {
-    String hap = id.getHap();
-    return hap.equalsIgnoreCase(platformID);
+  protected AID globalAID(String nickName) {
+    return translator.globalAID(nickName);
   }
 
   // This hack is needed to overcome a bug in java.rmi.Naming class:
-  // when an object reference is binded, unbinded and then rebinded
+  // when an object reference is bound, unbound and then rebound
   // with the same URL, the next two lookup() calls will throw an
   // Exception without a reason.
   private MainContainer lookup3(String URL)
@@ -936,7 +908,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
   private AgentProxy getFreshProxy(AID id) throws NotFoundException {
     AgentProxy result = null;
-  if(livesHere(id)) { // the receiver agent lives in this platform...
+  if(translator.livesHere(id)) { // the receiver agent lives in this platform...
       // Look first in local agents
       Agent a = localAgents.get(id);
       if(a != null) {
