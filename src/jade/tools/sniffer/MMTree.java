@@ -38,6 +38,7 @@ import java.awt.event.InputEvent;
 import java.awt.Font;
 import java.awt.BorderLayout;
 import java.util.Enumeration;
+import java.util.Vector;
 
 
 /** 
@@ -363,6 +364,9 @@ public class DoubleClicker extends MouseAdapter{
 							else
 								agent = new Agent(node.name.substring(0,atPos));							
 							MMAbstractAction.canvasAgent.addAgent(agent);
+							Vector v = new Vector(1); //just one element in the vector. sniffMsg method requires a Vector as a parameter
+							v.add(node);
+							SnifferGUI.sniffHandler.sniffMsg(v,Sniffer.SNIFF_ON);        	
 					}
 					else
 					{ 
@@ -370,6 +374,9 @@ public class DoubleClicker extends MouseAdapter{
 								MMAbstractAction.canvasAgent.removeAgent(node.getName());
 							else
 								MMAbstractAction.canvasAgent.removeAgent(node.getName().substring(0,atPos));
+							Vector v = new Vector(1); //just one element in the vector. sniffMsg method requires a Vector as a parameter
+							v.add(node);
+							SnifferGUI.sniffHandler.sniffMsg(v,Sniffer.SNIFF_OFF);        	
 					}
 				}
 			}

@@ -175,6 +175,35 @@ public class AgentFrame extends JFrame implements ActionListener {
 	
 	}
 
+
+  /*
+   * This method is invoked everytime the user wants to remove an agent from the Agent
+   * Canvas. At first, it checks if the agent is already on canvas: if not so, it
+   * removes its address and put it on canvas
+   */
+	private void removeAgentFromCanvas(TreeData treeAgent){
+		
+	  Agent agent;
+	  
+	  if(treeAgent.isLeaf()==true) 
+	    {   
+	      int atPos = treeAgent.getName().indexOf("@"); 
+	      if ((atPos == -1)&&(MMAbstractAction.canvasAgent.isPresent(treeAgent.getName())==false)
+		  ||
+		  (atPos != -1)&&(MMAbstractAction.canvasAgent.isPresent(treeAgent.getName().substring(0,atPos))==false))
+		{ 
+		} else {
+		  if ( atPos == -1 )
+		    MMAbstractAction.canvasAgent.removeAgent(treeAgent.getName());
+		  else
+		    MMAbstractAction.canvasAgent.removeAgent(treeAgent.getName().substring(0,atPos));
+		}
+	    }
+	  //tree.scrollPathToVisible(path);
+	
+	}
+
+
   public void actionPerformed(ActionEvent e) {
         JMenuItem source = (JMenuItem)(e.getSource());
         String act = source.getAccessibleContext().getAccessibleDescription();
@@ -191,7 +220,11 @@ public class AgentFrame extends JFrame implements ActionListener {
         }
         if (act.equals("off")) {
         	/* We have been told to disable sniffer for some agents */
-						SnifferGUI.sniffHandler.sniffMsg(listeners,Sniffer.SNIFF_OFF);       	        	
+        	for (int i = 0; i < listeners.size(); i++){
+		  TreeData cur = (TreeData)listeners.elementAt(i);
+		  removeAgentFromCanvas(cur);
+		}
+		SnifferGUI.sniffHandler.sniffMsg(listeners,Sniffer.SNIFF_OFF);       	        	
         }
         if (act.equals("close")) {
      			/* this is to close the Selection Agents window */
