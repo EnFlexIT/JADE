@@ -46,13 +46,13 @@ public abstract class Behaviour implements Serializable {
      A constant for child-to-parent notifications.
      @serial
    */
-  protected final int NOTIFY_UP = -1;
+  protected static final int NOTIFY_UP = -1;
 
   /**
      A constant for parent-to-child notifications.
      @serial
    */
-  protected final int NOTIFY_DOWN = 1;
+  protected static final int NOTIFY_DOWN = 1;
 
   /**
      A constant identifying the runnable state.
