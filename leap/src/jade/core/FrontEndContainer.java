@@ -303,10 +303,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	return myId;
   }
   
-  public final void handleStart(String localName, Agent instance) {
-  	// Will never be called --> just do nothing
-  }
-  
   public final void handleEnd(AID agentID) {
   	String name = agentID.getLocalName();
   	// Wait for messages (if any) sent by this agent to be transmitted
@@ -415,9 +411,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
   
   public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
-  }
-  
-  public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal oldPrincipal, Credentials creds) {
   }
   
   public Authority getAuthority() {
