@@ -30,8 +30,6 @@ package jade.core;
 import jade.core.behaviours.Behaviour;
 
 import jade.security.JADESecurityException;
-import jade.security.JADEPrincipal;
-import jade.security.Credentials;
 import jade.mtp.TransportAddress;
 
 import jade.util.leap.Map;
@@ -79,7 +77,8 @@ public class PlatformManagerImpl implements PlatformManager {
     private int nodeNo = 1;
 
     private Logger myLogger = Logger.getMyLogger(getClass().getName());
-
+    private Profile myProfile;
+    
 		/**
 		   Private class ServiceEntry.
 		 */
@@ -202,12 +201,15 @@ public class PlatformManagerImpl implements PlatformManager {
 			myCommandProcessor = p.getCommandProcessor();
 			myIMTPManager = p.getIMTPManager();
 			myMain = new MainContainerImpl(p, this);
-			
+			myProfile = p;
+      
 			nodes = new HashMap();
 			services = new HashMap();
 			replicas = new HashMap();
 			monitors = new HashMap();
 
+      //UDPMonitorServer.init(myProfile);
+      
 			platformID = p.getParameter(Profile.PLATFORM_ID, null);
 			if (platformID == null || platformID.equals("")) {
 			    try {
@@ -868,41 +870,38 @@ public class PlatformManagerImpl implements PlatformManager {
 
     private NodeFailureMonitor monitor(Node target) {
 
-	// Set up a failure monitor using the blocking ping...
-	NodeFailureMonitor failureMonitor = new NodeFailureMonitor(target, new NodeEventListener() {
+      NodeFailureMonitor failureMonitor;
+      NodeEventListener listener = new NodeEventListener() {
 
-		public void nodeAdded(Node n) {
-	    if (myLogger.isLoggable(Logger.INFO)) {
-        myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> ALIVE ---");
-	    }
-		}
+        public void nodeAdded(Node n) {
+          if (myLogger.isLoggable(Logger.INFO)) {
+            myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> ALIVE ---");
+          }
+        }
 
-		public void nodeRemoved(Node n) {
-			removeTerminatedNode(n);
-		}
+        public void nodeRemoved(Node n) {
+          removeTerminatedNode(n);
+        }
 
-		public void nodeUnreachable(Node n) {
-		  if (myLogger.isLoggable(Logger.WARNING)) {
-	      myLogger.log(Logger.WARNING,"--- Node <" + n.getName() + "> UNREACHABLE ---");
-		  }
-		}
+        public void nodeUnreachable(Node n) {
+          if (myLogger.isLoggable(Logger.WARNING)) {
+            myLogger.log(Logger.WARNING,"--- Node <" + n.getName() + "> UNREACHABLE ---");
+          }
+        }
 
-		public void nodeReachable(Node n) {
-		  if (myLogger.isLoggable(Logger.INFO)) {
-	      myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> REACHABLE ---");
-		  }
-		}
+        public void nodeReachable(Node n) {
+          if (myLogger.isLoggable(Logger.INFO)) {
+            myLogger.log(Logger.INFO,"--- Node <" + n.getName() + "> REACHABLE ---");
+          }
+        }
 
-	    });
-
-	    monitors.put(target.getName(), failureMonitor);
-	    
-	// Start a new node failure monitor
-	Thread t = new Thread(failureMonitor);
-	t.setName(target.getName()+"-failure-monitor");
-	t.start();
+      };
+      
+	    // Start the new node failure monitor
+      failureMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, target, listener);
+	    failureMonitor.start();
 	
-	return failureMonitor;
+	    return failureMonitor;
     }
 
 

@@ -25,8 +25,6 @@ package jade.core;
 
 
 import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
 
 /**
  * This class allows retrieving configuration-dependent classes.
@@ -128,6 +126,48 @@ public abstract class Profile {
   */
   public static final String PERSISTENT_DELIVERY_BASEDIR = "persistent-delivery-basedir";
 
+  /**
+   * This constant is the name of the property which, when it is set,
+   * tells the system to use UDP based failure monitoring 
+   * instead of the default monitoring.
+   */
+  public static final String UDP_MONITORING = "udpmonitoring";
+  
+  /**
+   * This constant is the name of the property whose value contains an
+   * integer representing the time interval (in milliseconds) in which a simple
+   * container sends UDP ping messages to the Main Container 
+   * (This property is only used in combination with
+   * <code>UDP_MONITORING</code> for a simple container)
+   */
+  public static final String UDP_MONITORING_PING_DELAY = "udpmonitoring_ping_delay";
+ 
+  /**
+   * This constant is the name of the property whose value contains an
+   * integer representing the port number where the Main Container is
+   * listening for UDP pings. (This property is only used in combination with
+   * <code>UDP_MONITORING</code> for a main container)
+   */
+  public static final String UDP_MONITORING_PORT = "udpmonitoring_port"; 
+  
+  /**
+   * This constant is the name of the property whose value contains an
+   * integer representing the maximum time (in milliseconds) the main container 
+   * waits for a ping message.
+   * (This property is only used in combination with
+   * <code>UDP_MONITORING</code> for a main container)
+   */
+  public static final String UDP_MONITORING_PING_DELAY_LIMIT = "udpmonitoring_ping_delay_limit";
+
+  /**
+   * This constant is the name of the property whose value contains an
+   * integer representing the maximum time a node can stay unreachable after it gets removed
+   * from the platform.
+   * (This property is only used in combination with
+   * <code>UDP_MONITORING</code> for a main container)
+   */
+  public static final String UDP_MONITORING_UNREACHABLE_LIMIT = "udpmonitoring_unreachable_limit";
+  
   //#APIDOC_EXCLUDE_BEGIN
   public static final String MASTER_NODE_NAME = "master-node-name";
   public static final String BE_BASE_NAME = "be-base-name";
@@ -292,6 +332,7 @@ public abstract class Profile {
      */
     public abstract ResourceManager getResourceManager() throws ProfileException;
 
+    
     //#APIDOC_EXCLUDE_END
 
 

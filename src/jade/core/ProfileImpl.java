@@ -29,7 +29,6 @@ package jade.core;
 import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
 
 //#MIDP_EXCLUDE_BEGIN
 import java.net.*;
@@ -37,7 +36,6 @@ import java.net.*;
 
 
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -88,6 +86,11 @@ public class ProfileImpl extends Profile {
   private CommandProcessor myCommandProcessor = null;
   private IMTPManager     myIMTPManager = null;
   private ResourceManager myResourceManager = null;
+  
+  private boolean udpMonitoring;
+  private int udpMonitoringPort;
+  private int udpMonitoringPingDelay;
+  private int udpMonitoringTimeLimit;
 
   /**
      Creates a Profile implementation using the given properties to
@@ -626,7 +629,8 @@ public class ProfileImpl extends Profile {
     protected boolean isFirstMain() {
 			return isMain() && !getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
     }
-
+   
+    
     //#APIDOC_EXCLUDE_END
 
 }
