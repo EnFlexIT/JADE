@@ -39,8 +39,8 @@ public class EnumIterator implements Iterator {
      * Constructor declaration
      * 
      */
-    public EnumIterator(Enumeration enum) {
-				e = enum;
+    public EnumIterator(Enumeration enumeration) {
+				e = enumeration;
     } 
 
     /**

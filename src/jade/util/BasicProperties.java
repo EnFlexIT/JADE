@@ -167,7 +167,7 @@ public class BasicProperties extends Properties {
             String key = (String) e.nextElement();
             int i = 0;
             while (i < sortVector.size()) {
-                if (key.compareTo(sortVector.elementAt(i)) < 0) {
+                if (key.compareTo((String)sortVector.elementAt(i)) < 0) {
                     break;
                 }
                 i++;
@@ -175,14 +175,14 @@ public class BasicProperties extends Properties {
             sortVector.insertElementAt(key, i);
         }
         return new Enumeration() {
-            Enumeration enum = BasicProperties.this.sortVector.elements();
+            Enumeration en = BasicProperties.this.sortVector.elements();
 
             public boolean hasMoreElements() {
-                return enum.hasMoreElements();
+                return en.hasMoreElements();
             } 
 
             public Object nextElement() {
-                return enum.nextElement();
+                return en.nextElement();
             } 
 
         };
