@@ -3,7 +3,6 @@ package jade.wrapper.gateway;
 import jade.core.Agent;
 import jade.core.behaviours.*;
 import java.util.HashMap;
-import java.util.Iterator;
 import jade.util.Event;
 import jade.util.Logger;
 
@@ -22,7 +21,7 @@ import jade.util.Logger;
  **/
 public abstract class GatewayAgent extends Agent {
 
-	private final GatewayBehaviour myB = null; 
+	private  GatewayBehaviour myB = null; 
 		private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
 		/** subclasses must implement this method.
@@ -67,7 +66,7 @@ else if (c instanceof Command2)
 		protected void setup() {
 				if (myLogger.isLoggable(Logger.INFO)) 
 						myLogger.log(Logger.INFO, "Started GatewayAgent "+getLocalName());			
-				Behaviour myB = new GatewayBehaviour() {
+				myB = new GatewayBehaviour() {
 					protected void processCommand(Object command){
 						((GatewayAgent)myAgent).processCommand(command);
 					}

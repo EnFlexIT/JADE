@@ -1,7 +1,6 @@
 package jade.wrapper.gateway;
 
-import java.util.Iterator;
-
+import jade.util.leap.Iterator;
 import jade.util.leap.HashMap;
 
 import jade.core.behaviours.CyclicBehaviour;
