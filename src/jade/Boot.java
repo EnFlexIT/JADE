@@ -98,7 +98,7 @@ public class Boot {
    * <li>  <b>-container</b> <em>If specified, a new Agent Container is added to an existing platform</em>
    *                         <em>Otherwise a new Agent Platform is created.</em>
    * <li>  <b>-conf</b>     <em>Shows the gui to set the configuration properties to start JADE.</em>
-   * <li>  <b>-conf <filename></b> <em>To start JADE using the configuration properties read in the specified file.</em>
+   * <li>  <b>-conf <code>filename</code></b> <em>To start JADE using the configuration properties read in the specified file.</em>
    * <li>  <b>-version</b>  <em>Prints out version information and exits.</em>
    * <li>  <b>-help</b>     <em>Prints out usage informations.</em>
    *   
