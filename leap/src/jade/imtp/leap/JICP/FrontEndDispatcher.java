@@ -82,7 +82,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {  	
   	try {
 
-	    beAddrsText = (String)props.get(FrontEnd.REMOTE_BACK_END_ADDRESSES);
+	    beAddrsText = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
 	    backEndAddresses = parseBackEndAddresses(beAddrsText);
 
 	    // Verbosity
