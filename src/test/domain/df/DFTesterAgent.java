@@ -68,7 +68,7 @@ public class DFTesterAgent extends TesterAgent {
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
-      AgentController tester = mc.createNewAgent("tester", "test.domain.DFTesterAgent", args);
+      AgentController tester = mc.createNewAgent("tester", "test.domain.df.DFTesterAgent", args);
       tester.start();
 		}
 		catch (Exception e) {
