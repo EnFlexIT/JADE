@@ -12,7 +12,6 @@ package jade.util.leap;
 import java.io.*;
 import java.util.Vector;
 import java.util.Enumeration;
-import jade.imtp.leap.*;
 
 /**
  * This class represents the J2SE version of a &quot;ArrayList&quot;
@@ -23,7 +22,7 @@ import jade.imtp.leap.*;
  * 
  * @see java.util.ArrayList
  */
-public class ArrayList implements List, Deliverable, LEAPSerializable {
+public class ArrayList implements List, LEAPSerializable {
     private transient java.util.ArrayList realHiddenList = null;
     private Vector                        hiddenList;
     private static final long             serialVersionUID = 
@@ -170,61 +169,6 @@ public class ArrayList implements List, Deliverable, LEAPSerializable {
      */
     public Object clone() {
         return (new ArrayList((java.util.ArrayList) realHiddenList.clone()));    // FIXME: To be checked if this is a real cloning
-    } 
-
-    /**
-     * Serialize this <code>ArrayList</code> object to the given data
-     * output stream according to the LEAP surrogate serialization mechanism.
-     * @param ddout the data output stream this object is serialized to
-     * @exception LEAPSerializationException if there occurs an error
-     * during the LEAP surrogate serialization
-     */
-    public void serialize(DeliverableDataOutputStream ddout) 
-            throws LEAPSerializationException {
-
-        // System.out.println("serialize");
-        try {
-
-            // For compatibility with J2ME
-            ddout.writeBoolean(true);
-            ddout.writeInt(realHiddenList.size());
-
-            // System.out.println(realHiddenList.size());
-            for (int i = 0; i < realHiddenList.size(); i++) {
-                ddout.writeObject(realHiddenList.get(i));
-            } 
-        } 
-        catch (IOException e) {
-            throw new LEAPSerializationException("I/O error during serialization of LEAPArrayList", 
-                                                 e);
-        } 
-    } 
-
-    /**
-     * Deserialize this <code>ArrayList</code> object from the given data
-     * input stream according to the LEAP surrogate serialization mechanism.
-     * @param ddin the data input stream this object is deserialized from
-     * @exception LEAPSerializationException if there occurs an error
-     * during the LEAP surrogate serialization
-     */
-    public void deserialize(DeliverableDataInputStream ddin) 
-            throws LEAPSerializationException {
-
-        // System.out.println("deserialize");
-        try {
-
-            // For compatibility with J2ME
-            boolean presenceFlag = ddin.readBoolean();
-            int     size = ddin.readInt();
-
-            for (int i = 0; i < size; i++) {
-                realHiddenList.add(i, ddin.readObject());
-            } 
-        } 
-        catch (IOException e) {
-            throw new LEAPSerializationException("I/O error during deserialization of LEAPArrayList", 
-                                                 e);
-        } 
     } 
 
     /**
