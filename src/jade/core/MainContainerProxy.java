@@ -24,7 +24,11 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
+
+import jade.mtp.MTPDescriptor;
+
 import jade.util.leap.List;
+import jade.util.leap.LinkedList;
 
 /**
  
@@ -45,6 +49,9 @@ class MainContainerProxy implements Platform {
 
     // Agents cache, indexed by agent name
     private AgentCache cachedProxies = new AgentCache(CACHE_SIZE);
+
+    // Local MTPs cache
+    private List localMTPs = new LinkedList();
 
     public MainContainerProxy(Profile p) throws ProfileException, IMTPException {
       myProfile = p;
@@ -96,8 +103,9 @@ class MainContainerProxy implements Platform {
       }
     }
 
-    public void newMTP(String mtpAddress, ContainerID cid) throws IMTPException {
-      adaptee.newMTP(mtpAddress, cid);
+    public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
+      localMTPs.add(mtp);
+      adaptee.newMTP(mtp, cid);
     }
 
     public AgentProxy getProxy(AID id) throws IMTPException, NotFoundException {
@@ -125,8 +133,9 @@ class MainContainerProxy implements Platform {
       return adaptee.addContainer(ac, cid);
     }
 
-    public void deadMTP(String mtpAddress, ContainerID cid) throws IMTPException {
-      adaptee.deadMTP(mtpAddress, cid);
+    public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
+      localMTPs.remove(mtp);
+      adaptee.deadMTP(mtp, cid);
     }
 
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws IMTPException, NotFoundException {
@@ -253,9 +262,8 @@ class MainContainerProxy implements Platform {
       }
 
       // Restore the registration of local MTPs 
-      List localAddresses = myProfile.getAcc().getLocalAddresses();
-      for(int i = 0; i < localAddresses.size(); i++) {
-				adaptee.newMTP((String)localAddresses.get(i), myID); // Remote call
+      for(int i = 0; i < localMTPs.size(); i++) {
+	adaptee.newMTP((MTPDescriptor)localMTPs.get(i), myID); // Remote call
       }
 
     }
