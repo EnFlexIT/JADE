@@ -43,6 +43,7 @@
 				<exclude name="**/jade/domain/DFGUIManagement/**"/>
 				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
+				<exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/jade/tools/**"/>
 				<exclude name="**/jade/wrapper/**"/>
 				<!-- The following files cannot include preprocessor directives. They must be excluded manually -->
