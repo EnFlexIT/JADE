@@ -234,9 +234,6 @@ public class BEAgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 
-	    // Remove the dead agent from the agent images
-	    BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) myContainer.removeAgentImage(target);
-
 	    // Notify the main container through its slice
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
@@ -249,6 +246,8 @@ public class BEAgentManagementService extends BaseService {
 		mainSlice.deadAgent(target);
 	    }
 
+	    // Remove the dead agent from the agent images
+	    BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) myContainer.removeAgentImage(target);
 	}
 
 	private void handleInformStateChanged(VerticalCommand cmd) {
