@@ -42,6 +42,7 @@ import jade.core.MainContainerImpl;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
+import jade.core.UnreachableException;
 
 import jade.security.Authority;
 import jade.security.CertificateFolder;
@@ -201,7 +202,7 @@ public class AgentManagementService extends BaseService {
 
 	// Implementation of the Filter interface
 
-	public void accept(VerticalCommand cmd) { // FIXME: Should set the exception somehow...
+	public void accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
@@ -231,19 +232,19 @@ public class AgentManagementService extends BaseService {
 		}
 	    }
 	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
+		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
 	    }
 	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
+		cmd.setReturnValue(nfe);
 	    }
 	    catch(NameClashException nce) {
-		nce.printStackTrace();
+		cmd.setReturnValue(nce);
 	    }
 	    catch(AuthException ae) {
-		ae.printStackTrace();
+		cmd.setReturnValue(ae);
 	    }
 	    catch(ServiceException se) {
-		se.printStackTrace();
+		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
 	    }
 	}
 
