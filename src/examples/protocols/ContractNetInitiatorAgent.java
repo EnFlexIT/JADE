@@ -46,7 +46,7 @@ import java.util.Enumeration;
 public class ContractNetInitiatorAgent extends Agent {
 	private int nResponders;
 	
-  protected void setup() {
+	protected void setup() { 
   	// Read names of responders as arguments
   	Object[] args = getArguments();
   	if (args != null && args.length > 0) {
