@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/07/11 20:27:44  rimassa
+  Fixed two wrong printouts.
+
   Revision 1.8  1999/05/20 14:12:32  rimassa
   Updated import clauses to reflect JADE package structure changes.
 
@@ -49,10 +52,10 @@ public class Agent2 extends Agent {
       mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
       System.out.println("Message Template 2:");
-      mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+      mt2.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
       System.out.println("Message Template 1 AND Message Template 2:");
-      mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+      mtAnd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
       ACLMessage msg = new ACLMessage("inform");
 
