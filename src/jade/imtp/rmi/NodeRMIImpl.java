@@ -45,7 +45,8 @@ import jade.util.leap.HashMap;
  */
 public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
-    public NodeRMIImpl(NodeAdapter impl) throws RemoteException {
+    public NodeRMIImpl(NodeAdapter impl, int port) throws RemoteException {
+	super(port);
 	myNode = impl;
     }
 
