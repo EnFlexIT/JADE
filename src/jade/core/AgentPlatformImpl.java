@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.38  1999/08/10 15:32:56  rimassa
+  Added implementation for lookup() method, and changed some method names.
+
   Revision 1.37  1999/07/19 00:04:42  rimassa
   Added an empty moveAgent() method.
 
@@ -336,11 +339,11 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     theAMS.postNewContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
 
     Agent a = theAMS;
-    a.doStart(AMS_NAME, platformAddress, systemAgentsThreads);
+    a.powerUp(AMS_NAME, platformAddress, systemAgentsThreads);
     a = theACC;
-    a.doStart(ACC_NAME, platformAddress, systemAgentsThreads);
+    a.powerUp(ACC_NAME, platformAddress, systemAgentsThreads);
     a = defaultDF;
-    a.doStart(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
+    a.powerUp(DEFAULT_DF_NAME, platformAddress, systemAgentsThreads);
 
     for(int i = 0; i < agentNamesAndClasses.size(); i += 2) {
       String agentName = (String)agentNamesAndClasses.elementAt(i);
@@ -389,6 +392,13 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
     // Notify AMS
     theAMS.postDeadContainer(name);
+  }
+
+  public AgentContainer lookup(String name) throws RemoteException, NotFoundException {
+    AgentContainer ac = (AgentContainer)containers.get(name);
+    if(ac == null)
+      throw new NotFoundException("Name Lookup failed: no such container");
+    return ac;
   }
 
   public void bornAgent(String name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException {
@@ -570,6 +580,28 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
+  public void move(String agentName, String containerName, String password ) throws NotFoundException, UnreachableException {
+    // FIXME: Not implemented
+    // Lookup the container for 'agentName', throwing NotFoundException on failure
+    // Tell the src container to send the agent code and data to the dest container
+    // Update GADT to reflect new agent location
+  }
+
+  public void copy(String agentName, String containerName, String newAgentName, String password) throws NotFoundException, UnreachableException {
+    // Retrieve the container for the original agent
+    AgentContainer src = getContainerFromAgent(agentName);
+    try {
+      int atPos = agentName.indexOf('@');
+      if(atPos != -1)
+	agentName = agentName.substring(0,atPos);
+
+      src.copyAgent(agentName, containerName, newAgentName); // RMI call
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
   // These methods are to be used only by AMS agent.
 
 
@@ -599,7 +631,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   }
 
   // This is called in response to a 'create-agent' action
-  public void createAgent(String agentName, String className, String containerName) throws UnreachableException {
+  public void create(String agentName, String className, String containerName) throws UnreachableException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
       AgentContainer ac;
@@ -619,7 +651,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public void createAgent(String agentName, Agent instance, String containerName) throws UnreachableException {
+  public void create(String agentName, Agent instance, String containerName) throws UnreachableException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
     try {
       AgentContainer ac = (AgentContainer)containers.get(containerName);
@@ -631,12 +663,6 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
-  }
-
-  public void moveAgent(String agentName, String containerName) throws NotFoundException, UnreachableException {
-    // Lookup the container for 'agentName', throwing NotFoundException on failure
-    // Tell the src container to send the agent code and data to the dest container
-    // Update GADT to reflect new agent location
   }
 
   public void killContainer(String containerName) {
