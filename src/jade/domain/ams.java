@@ -251,7 +251,12 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       }
       catch(FIPAException fe) {
 	sendRefuse(myReply, "deregister-agent", fe.getMessage());
+	return;
       }
+
+      sendAgree(myReply, "deregister-agent");
+      sendInform(myReply, "deregister-agent");
+
     }
 
   } // End of DeregBehaviour class
@@ -306,7 +311,11 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       }
       catch(FIPAException fe) {
 	sendRefuse(myReply, "modify-agent", fe.getMessage());
+	return;
       }
+
+      sendAgree(myReply, "modify-agent");
+      sendInform(myReply, "modify-agent");
 
     }
 
