@@ -394,7 +394,7 @@ public class LEAPCodec extends ByteArrayCodec {
                 AbsObject attributeValue = read(stream, ontology);
 
                 if (attributeValue != null) {
-                    Ontology.setAttribute(abs, attributeName, attributeValue);
+                    AbsHelper.setAttribute(abs, attributeName, attributeValue);
                 } 
 
                 marker = stream.readByte();
