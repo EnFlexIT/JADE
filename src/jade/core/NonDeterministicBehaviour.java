@@ -60,10 +60,10 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
     whenToStop = endCondition;
   }
 
-  protected boolean action() {
+  protected boolean bodyAction() {
 
     Behaviour b = subBehaviours.getCurrent();
-    b.execute();
+    b.action();
 
     boolean partialResult = b.done();
     if(partialResult == true) {
