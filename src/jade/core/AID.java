@@ -68,7 +68,7 @@ public class AID implements Cloneable, Comparable, Serializable {
     this("");
   }
 
-  /** constructor for an Agent-identifier
+  /** Constructor for an Agent-identifier
    * @param guid is the Globally Unique identifer for the agent. The slot name
    * assumes that value in the constructed object. 
    */
@@ -76,51 +76,98 @@ public class AID implements Cloneable, Comparable, Serializable {
     name = guid;
   }
 
+  /**
+  * This method permits to set the symbolic name of an agent. 
+  * This must be unique within the HAP of the agent.
+  */
   public void setName(String n){
     name = n;
   }
 
+  /**
+  * This method returns the name of the agent.
+  */
   public String getName(){
     return name;
   }
 
+  /**
+  * This method permits to add a transport address where 
+  * the agent can be contacted.
+  */
   public void addAddresses(String url) {
     addresses.add(url);
   }
 
+  /**
+  * To remove a transport address.
+  * @param url the address to remove
+  * @return true if the addres has been found and removed, false otherwise.
+  */
   public boolean removeAddresses(String url) {
     return addresses.remove(url);
   }
-
+  
+  /**
+  * To remove alla addresses of the agent
+  */
   public void clearAllAddresses(){
     addresses.clear();
   }
 
+  /**
+  * Returns an iterator of all the addresses of the agent.
+  * @see java.util.Iterator
+  */
   public Iterator getAllAddresses(){
     return addresses.iterator();
   }
 
+  /**
+  * This method permits to add the AID of a resolver (an agent where name 
+  * resolution services for the agent can be contacted) 
+  */
   public void addResolvers(AID aid){
     resolvers.add(aid);
   }
 
+  /**
+  * To remove a resolver.
+  * @param aid the AID of the resolver to remove
+  * @return true if the resolver has been found and removed, false otherwise.
+  */
   public boolean removeResolvers(AID aid){
     return resolvers.remove(aid);
   }
 
+  /**
+  * To remove all resolvers.
+  */
   public void clearAllResolvers(){
     resolvers.clear();
   }
 
+  /**
+  * Returns an iterator of all the resolvers.
+  * @see java.util.Iterator
+  */
   public Iterator getAllResolvers() {
     return resolvers.iterator();
   }
 
+  /**
+  * To add a user defined slot (a pair key, value).
+  * @param key the name of the property
+  * @param value the corresponding value of the property
+  */
   public void addUserDefinedSlot(String key, String value){
     userDefSlots.setProperty(key, value);
   }
 
-
+  
+  /**
+  * Returns an array of string containing all the addresses of the agent
+  */
   public String[] getAddressesArray() {
     Object[] objs = addresses.toArray();
     String[] result = new String[objs.length];
@@ -128,6 +175,9 @@ public class AID implements Cloneable, Comparable, Serializable {
     return result;
   }
 
+  /**
+  * Returns an array containing all the AIDs of the resolvers.
+  */
   public AID[] getResolversArray() {
     Object[] objs = resolvers.toArray();
     AID[] result = new AID[objs.length];
@@ -136,8 +186,10 @@ public class AID implements Cloneable, Comparable, Serializable {
   }
 
   /**
-   * @return all the user-defined slots as a <code>java.util.Properties</code> java Object.
-   */
+  * Returns the user-defined slots as properties. 
+  * @return all the user-defined slots as a <code>java.util.Properties</code> java Object.
+  * @see java.util.Properties
+  */
   public Properties getAllUserDefinedSlot(){
     return userDefSlots;
   }
@@ -182,10 +234,16 @@ public class AID implements Cloneable, Comparable, Serializable {
   }
 }
 
+  /**
+  * Returns the symbolic name of the agent.
+  */
   public String toString() {
     return name;
   }
 
+  /**
+  * Clone the AID object.
+  */
   public synchronized Object clone() {
     AID result;
     try {
@@ -254,6 +312,9 @@ public class AID implements Cloneable, Comparable, Serializable {
     return name.toLowerCase().hashCode();
   }
 
+  /**
+  * Returns the local name of the agent (without the HAP)
+  */
   String getLocalName() {
     int atPos = name.lastIndexOf('@');
     if(atPos == -1)
@@ -262,6 +323,9 @@ public class AID implements Cloneable, Comparable, Serializable {
       return name.substring(0, atPos);
   }
 
+  /**
+  * Returns the HAP of the agent.
+  */
   String getHap() {
     int atPos = name.lastIndexOf('@');
     if(atPos == -1)
