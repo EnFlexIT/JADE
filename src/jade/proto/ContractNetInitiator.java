@@ -608,7 +608,7 @@ public class ContractNetInitiator extends Initiator {
        @param b the Behaviour that will handle this state
     */
     public void registerHandleAllResultNotifications(Behaviour b) {
-	registerState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
+	registerLastState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);
 	b.setDataStore(getDataStore());
     }
     
