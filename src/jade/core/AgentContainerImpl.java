@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.51  1999/11/04 09:54:56  rimassaJade
+  Removed flawed retry scheme. Now a fully synchronized solution is
+  used, with a retry on a LADT miss and an error on GADT miss.
+
   Revision 1.50  1999/11/03 07:52:55  rimassaJade
   Changed an older, check-and-wait code to adhere to new try-and-see
   approach.
@@ -362,21 +366,23 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException {
-    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
-    if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
-      throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
-    }
-    if(result == TRANSFER_ABORT)
-      localAgents.remove(agentName.toLowerCase());
-    else {
-      Iterator i = messages.iterator();
-      while(i.hasNext())
-	agent.postMessage((ACLMessage)i.next());
-      agent.powerUp(agentName, platformAddress, agentThreads);
+    synchronized(localAgents) {
+      Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+      if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
+	throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
+      }
+      if(result == TRANSFER_ABORT)
+	localAgents.remove(agentName.toLowerCase());
+      else {
+	// Insert received messages at the start of the queue
+	for(int i = messages.size(); i > 0; i--)
+	  agent.putBack((ACLMessage)messages.elementAt(i - 1));
+	agent.powerUp(agentName, platformAddress, agentThreads);
+      }
     }
   }
 
-  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException {
+  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
     String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
     int atPos = completeName.indexOf('@');
@@ -385,21 +391,17 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     else
       receiverName = completeName.substring(0,atPos);
 
-    Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
+    // Mutual exclusion with moveSource() method
+    synchronized(localAgents) {
+      Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
 
-    if(receiver == null) 
-      throw new NotFoundException("DispatchMessage failed to find " + receiverName);
+      if(receiver == null) {
+	throw new NotFoundException("DispatchMessage failed to find " + receiverName);
+      }
 
-    // If this is a mobile agent, Wait until the end of the transaction.
-    if(receiver.getState() == Agent.AP_TRANSIT) {
-      System.out.println("AP_TRANSIT in AgentContainerImpl.dispatch()");
-      throw new TransientException("Agent " + receiverName + " is moving...");
+      receiver.postMessage(msg);
     }
-    if(receiver.getState() == Agent.AP_GONE) {
-      System.out.println("AP_GONE in AgentContainerImpl.dispatch()");
-      throw new TransientException("Agent " + receiverName + " is dead.");
-    }
-    receiver.postMessage(msg);
+
   }
 
   public void ping() throws RemoteException {
@@ -508,19 +510,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
-	// Follow a retry scheme to handle transient failures when
-	// addressing mobile agents.
-	boolean retryNeeded = true;
-	while(retryNeeded) {
-	  try {	      
-	    unicastPostMessage(copy, dest);
-	    retryNeeded = false;
-	  }
-	  catch(TransientException te) {
-	    System.out.println("Retrying for " + dest);
-	    retryNeeded = true;
-	  }
-	}
+	unicastPostMessage(copy, dest);
       }
     }
     else {  // FIXME: This is probably not compliant
@@ -531,19 +521,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
-	// Follow a retry scheme to handle transient failures when
-	// addressing mobile agents.
-	boolean retryNeeded = true;
-	while(retryNeeded) {
-	  try {	      
-	    unicastPostMessage(copy, dest);
-	    retryNeeded = false;
-	  }
-	  catch(TransientException te) {
-	    System.out.println("Retrying for " + dest);
-	    retryNeeded = true;
-	  }
-	}
+	unicastPostMessage(copy, dest);
       }
     }
   }
@@ -570,36 +548,41 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public void moveSource(String name, String where) {
     try {
-      AgentContainer ac = myPlatform.lookup(where);
-      Agent a = (Agent)localAgents.get(name.toLowerCase());
-      if(a == null)
-	throw new NotFoundException("Internal error: moveSource() called with a wrong name !!!");
+      synchronized(localAgents) {
+	AgentContainer ac = myPlatform.lookup(where);
+	Agent a = (Agent)localAgents.get(name.toLowerCase());
+	if(a == null)
+	  throw new NotFoundException("Internal error: moveSource() called with a wrong name !!!");
 
-      // Handle special 'running to stand still' case
-      if(where.equalsIgnoreCase(myName)) {
-	a.doExecute();
-	return;
+	// Handle special 'running to stand still' case
+	if(where.equalsIgnoreCase(myName)) {
+	  a.doExecute();
+	  return;
+	}
+
+	ac.createAgent(name, a, NOSTART);
+
+	// Perform an atomic transaction for agent identity transfer
+	boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
+	Vector messages = new Vector();
+	if(transferResult == TRANSFER_COMMIT) {
+
+	  // Send received messages to the destination container
+	  Iterator i = a.messages();
+	  while(i.hasNext())
+	    messages.add(i.next());
+	  ac.postTransferResult(name, transferResult, messages);
+
+	  // From now on, messages will be routed to the new agent
+	  a.doGone();
+	  localAgents.remove(name.toLowerCase());
+	  cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
+	}
+	else {
+	  a.doExecute();
+	  ac.postTransferResult(name, transferResult, messages);
+	}
       }
-
-      ac.createAgent(name, a, NOSTART);
-
-      // Start an atomic transaction for agent identity transfer
-      boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
-      Vector messages = new Vector();;
-      if(transferResult == TRANSFER_COMMIT) {
-
-	Iterator i = a.messages();
-	while(i.hasNext())
-	  messages.add(i.next());
-
-	localAgents.remove(name.toLowerCase());
-	cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
-	a.doGone();
-      }
-      else
-	a.doExecute();
-
-      ac.postTransferResult(name, transferResult, messages);
     }
     catch(RemoteException re) {
       re.printStackTrace();
@@ -654,7 +637,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     return (AgentPlatform)o;
   }
 
-  private void unicastPostMessage(ACLMessage msg, String completeName) throws TransientException {
+  private void unicastPostMessage(ACLMessage msg, String completeName) {
     String receiverName = null;
     String receiverAddr = null;
 
@@ -674,33 +657,39 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       try {
 	ap.dispatch(msg);
       }
-      catch(NotFoundException nfe1) { // Stale cache entry
+      catch(NotFoundException nfe) { // Stale cache entry
 	cachedProxies.remove(completeName);
-	try {
-          AgentProxy freshOne = getFreshProxy(receiverName, receiverAddr);
-	  freshOne.dispatch(msg);
-	  cachedProxies.put(completeName, freshOne);
-	}
-	catch(NotFoundException nfe2) { // Some serious problem
-	  System.err.println("Agent " + receiverName + " was not found on agent platform");
-	  System.err.println("Message from platform was: " + nfe2.getMessage());
-	}
+	dispatchUntilOK(msg, completeName, receiverName, receiverAddr);
       }
     }
-
     else { // Cache miss :-(
-      try {
-	AgentProxy newOne = getFreshProxy(receiverName, receiverAddr);
-	newOne.dispatch(msg);
-	cachedProxies.put(completeName, newOne);
-      }
-      catch(NotFoundException nfe) { // Some serious problem
-	System.err.println("Agent " + receiverName + " was not found on agent platform");
-        System.err.println("Message from platform was: " + nfe.getMessage());
-      }
-
+      dispatchUntilOK(msg, completeName, receiverName, receiverAddr);
     }
 
+  }
+
+  private void dispatchUntilOK(ACLMessage msg, String completeName, String name, String addr) {
+    boolean ok;
+    int i = 0;
+    do {
+      AgentProxy proxy;
+      try {
+	proxy = getFreshProxy(name, addr);
+      }
+      catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
+	System.err.println("Agent " + name + " was not found on agent platform");
+	System.err.println("Message from platform was: " + nfe.getMessage());
+	return;
+      }
+      try {
+	proxy.dispatch(msg);
+	cachedProxies.put(completeName, proxy);
+	ok = true;
+      }
+      catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
+	ok = false;
+      }
+    } while(!ok);
   }
 
   private AgentProxy getFreshProxy(String name, String addr) throws NotFoundException {
