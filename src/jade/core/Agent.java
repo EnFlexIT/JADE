@@ -1318,7 +1318,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   private ACLMessage FipaRequestMessage(String dest, String replyString) {
-    ACLMessage request = new ACLMessage("request");
+    ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 
     request.setSource(myName);
     request.removeAllDests();
