@@ -650,16 +650,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
             writeString(e.getPayloadEncoding());
             writeDate(e.getDate());
             
-            // encrypted
-            it = e.getAllEncrypted();
-            
-            while (it.hasNext()) {
-                writeBoolean(true);
-                writeUTF((String) it.next());
-            } 
-            
-            writeBoolean(false);
-
             // intended receivers
             it = e.getAllIntendedReceiver();
             

@@ -530,10 +530,6 @@ class DeliverableDataInputStream extends DataInputStream {
             e.setDate(readDate());
             
             while (readBoolean()) {
-                e.addEncrypted(readUTF());
-            } 
-            
-            while (readBoolean()) {
                 e.addIntendedReceiver(deserializeAID());
             } 
 
