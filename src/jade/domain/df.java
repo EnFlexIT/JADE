@@ -53,6 +53,8 @@ import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 
+import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
@@ -774,14 +776,13 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     		gui.removeChildren(dfd.getName());
     	} catch (Exception e) {}
     try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-    	// this refresh must be here, otherwise the GUI is not synchornized with 
-    	// registration/deregistration made without using the GUI
-    		        gui.removeAgentDesc(dfd.getName());		
-						}catch(Exception e1){}	
-    
-
+      // this refresh must be here, otherwise the GUI is not synchronized with 
+      // registration/deregistration made without using the GUI
+      gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+      gui.showStatusMsg("Deregistration of agent : " + dfd.getName().getName() +" done.");
+    }catch(Exception e1){}	
   }
-
+    
   private void DFModify(DFAgentDescription dfd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
 
