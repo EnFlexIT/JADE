@@ -524,7 +524,7 @@ public class RMIIMTPManager implements IMTPManager {
 	      }
 
 	      // Scan the address list and try to connect once again
-	      private boolean reconnect() {
+	      private boolean reconnect() throws IMTPException {
 		  String[] addrs = getAddresses();
 		  for(int i = 0; i < addrs.length; i++) {
 		      try {
