@@ -62,6 +62,10 @@ public class LEAPCodec extends Codec {
     public static final String INSTANCEOF_ENTITY = "entity";
     public static final String INSTANCEOF_TYPE = "type";
 
+    public static final String SLACTION = "SLACTION";
+    public static final String SLACTION_ACTOR = "actor";
+    public static final String SLACTION_ACTION = "action";
+    
     public static final String IOTA = "IOTA";
     
     /**
@@ -191,12 +195,12 @@ public class LEAPCodec extends Codec {
                 stream.writeByte(BOOLEAN);
             } 
 
-            if (obj instanceof Integer) {
+            if (obj instanceof Long) {
                 stream.writeByte(INTEGER);
             } 
 
             //__CLDC_UNSUPPORTED__BEGIN
-            if (obj instanceof Float) {
+            if (obj instanceof Double) {
                 stream.writeByte(FLOAT);
             } 
             //__CLDC_UNSUPPORTED__END

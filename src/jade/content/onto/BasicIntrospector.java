@@ -31,6 +31,7 @@ import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.content.onto.basic.*;
 import jade.core.CaseInsensitiveString;
+import java.util.Date;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -63,11 +64,20 @@ class BasicIntrospector implements Introspector {
             if (obj instanceof Integer) {
                 return AbsPrimitive.wrap(((Integer) obj).intValue());
             } 
+            if (obj instanceof Long) {
+                return AbsPrimitive.wrap(((Long) obj).longValue());
+            } 
             //__CLDC_UNSUPPORTED__BEGIN
             if (obj instanceof Float) {
                 return AbsPrimitive.wrap(((Float) obj).floatValue());
             } 
+            if (obj instanceof Double) {
+                return AbsPrimitive.wrap(((Double) obj).doubleValue());
+            } 
             //__CLDC_UNSUPPORTED__END
+            if (obj instanceof Date) {
+                return AbsPrimitive.wrap((Date) obj);
+            } 
 
 
             if (obj instanceof List) {

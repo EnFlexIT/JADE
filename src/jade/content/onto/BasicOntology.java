@@ -49,6 +49,7 @@ public class BasicOntology extends Ontology {
   public static final String         FLOAT = "Float";
   public static final String         INTEGER = "Integer";
   public static final String         BOOLEAN = "Boolean";
+  public static final String         DATE = "Date";
     
   // Aggregate types names
   public static final String         SEQUENCE = "Sequence";
@@ -64,7 +65,7 @@ public class BasicOntology extends Ontology {
   public static final String         AID_RESOLVERS = "Resolvers";
 
   // Generic propositions: TRUE_PROP (i.e. the proposition that is true under whatever condition) 
-  public static final String         TRUE_PROPOSITION = "TRUEPROPOSITION";
+  public static final String         TRUE_PROPOSITION = "TRUE";
   
   // Always required operators propositions
   public static final String         DONE = "DONE";
@@ -92,6 +93,7 @@ public class BasicOntology extends Ontology {
       add(new PrimitiveSchema(FLOAT));
       add(new PrimitiveSchema(INTEGER));
       add(new PrimitiveSchema(BOOLEAN));
+      add(new PrimitiveSchema(DATE));
             
     	// Schemas for aggregates
       add(new AggregateSchema(SEQUENCE));

@@ -72,7 +72,7 @@ public class ReflectiveIntrospector implements Introspector {
               if (methodName.startsWith("get")) {
                 String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
-                if (schema.isSlot(attributeName)) {
+                if (schema.containsSlot(attributeName)) {
             			//DEBUG System.out.println("Handling attribute "+attributeName);
                   AbsObject attributeValue = invokeGetMethod(referenceOnto, m, obj);
             			//DEBUG System.out.println("Attribute value is: "+attributeValue);
@@ -165,10 +165,12 @@ public class ReflectiveIntrospector implements Introspector {
               if (methodName.startsWith("set")) {
                 String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
-                if (schema.isSlot(attributeName)) {
-            			//DEBUG System.out.println("Handling attribute "+attributeName);
+                if (schema.containsSlot(attributeName)) {
+            			//DEBUG 
+                	System.out.println("Handling attribute "+attributeName);
                 	AbsObject attributeValue = abs.getAbsObject(attributeName);
-            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
+            			//DEBUG 
+                	System.out.println("Attribute value is: "+attributeValue);
 
                   if (attributeValue != null) {
                   	invokeSetMethod(referenceOnto, m, obj, attributeValue);
@@ -199,8 +201,26 @@ public class ReflectiveIntrospector implements Introspector {
             Object[] params = new Object[] {
                 objValue
             };
-
-            method.invoke(obj, params);
+						
+            try {
+	            method.invoke(obj, params);
+            }
+        		catch (IllegalArgumentException iae) {
+        			// Maybe the method required an int argument and we supplied 
+        			// a Long. Similarly maybe the the method required a float and 
+        			// we supplied a Double. Try these possibilities
+        			if (objValue instanceof Long) {
+        				Integer i = new Integer((int) ((Long) objValue).longValue());
+        				params[0] = i;
+        			}
+        			//__CLDC_UNSUPPORTED__BEGIN
+        			else if (objValue instanceof Double) {
+        				Float f = new Float((float) ((Double) objValue).doubleValue());
+        				params[0] = f;
+        			}
+        			//__CLDC_UNSUPPORTED__END
+        			method.invoke(obj, params);
+        		}
         } 
         catch (OntologyException oe) {
         		// Forward the exception
