@@ -59,6 +59,7 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
 
+import jade.domain.AMSServiceCommunicator;
 // Concepts from fipa-agent-management ontology
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -1013,7 +1014,10 @@ public class Agent implements Runnable, Serializable {
 	myAPState = AP_ACTIVE;
 	// No 'break' statement - fall through
       case AP_ACTIVE:
-	registerWithAMS(amsd);
+	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
+	  ((jade.domain.ams)this).AMSRegister(amsd);
+	else
+	  AMSServiceCommunicator.register(this,amsd);
 	setup();
 	break;
       case AP_TRANSIT:
@@ -1022,7 +1026,10 @@ public class Agent implements Runnable, Serializable {
 	break;
       case AP_COPY:
 	doExecute();
-	registerWithAMS(amsd);
+	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
+	  ((jade.domain.ams)this).AMSRegister(amsd);
+	else
+	  AMSServiceCommunicator.register(this,amsd);
 	afterClone();
 	break;
       }
@@ -1297,7 +1304,12 @@ public class Agent implements Runnable, Serializable {
   private void destroy() { 
 
     try {
-      deregisterWithAMS();
+      if (myAID.equals(getAMS())) { //special version for the AMS to avoid deadlock 
+	AMSAgentDescription amsd = new AMSAgentDescription();
+	amsd.setName(getAID());
+	((jade.domain.ams)this).AMSDeregister(amsd);
+      } else
+	AMSServiceCommunicator.deregister(this);
     }
     catch(FIPAException fe) {
       fe.printStackTrace();
@@ -1516,351 +1528,11 @@ public class Agent implements Runnable, Serializable {
     }
   }
 
-  private ACLMessage FipaRequestMessage(AID dest, String replyString) {
-    ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 
-    request.setSender(myAID);
-    request.clearAllReceiver();
-    request.addReceiver(dest);
-    request.setLanguage(SL0Codec.NAME);
-    request.setOntology(FIPAAgentManagementOntology.NAME);
-    request.setProtocol("fipa-request");
-    request.setReplyWith(replyString);
 
-    return request;
-  }
 
-  private String doFipaRequestClient(ACLMessage request, String replyString) throws FIPAException {
 
-    send(request);
-    ACLMessage reply = blockingReceive(MessageTemplate.MatchInReplyTo(replyString));
-    if(reply.getPerformative() == ACLMessage.AGREE) {
-      reply =  blockingReceive(MessageTemplate.MatchInReplyTo(replyString));
-      if(reply.getPerformative() != ACLMessage.INFORM) {
-	String content = reply.getContent();
-	throw new FIPAException(content);
-      }
-      else {
-	String content = reply.getContent();
-	return content;
-      }
-    }
-    else {
-      String content = reply.getContent();
-      throw new FIPAException(content);
-    }
 
-  }
-
-
-  /**
-     Register this agent with Agent Platform <b>AMS</b>. While this
-     task can be accomplished with regular message passing according
-     to <b>FIPA</b> protocols, this method is meant to ease this
-     common duty. However, since <b>AMS</b> registration and
-     deregistration are automatic in JADE, this method should not be
-     used by application programmers.
-     Some parameters here are optional, and <code>null</code> can
-     safely be passed for them.
-     @param signature An optional signature string, used for security reasons.
-     @param APState The Agent Platform state of the agent; must be a
-     valid state value (typically, <code>Agent.AP_ACTIVE</code>
-     constant is passed).
-     @param delegateAgent An optional delegate agent name.
-     @param forwardAddress An optional forward address.
-     @param ownership An optional ownership string.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the AMS to indicate some error condition.
-  */
-  public void registerWithAMS(AMSAgentDescription amsd) throws FIPAException {
-
-    String replyString = myName + "-ams-registration-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(AMS, replyString);
-
-    // Build an AMS action object for the request
-    Register r = new Register();
-    r.set_0(amsd);
-
-    Action a = new Action();
-    a.set_0(AMS);
-    a.set_1(r);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Deregister this agent with Agent Platform <b>AMS</b>. While this
-     task can be accomplished with regular message passing according
-     to <b>FIPA</b> protocols, this method is meant to ease this
-     common duty. However, since <b>AMS</b> registration and
-     deregistration are automatic in JADE, this method should not be
-     used by application programmers.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the AMS to indicate some error condition.
-  */
-  public void deregisterWithAMS() throws FIPAException {
-
-    String replyString = myName + "-ams-deregistration-" + (new Date()).getTime();
-
-    // Get a semi-complete request message
-    ACLMessage request = FipaRequestMessage(AMS, replyString);
-
-    // Build an AMS action object for the request
-    Deregister d = new Deregister();
-
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    amsd.setName(myAID);
-    amsd.setState(AMSAgentDescription.ACTIVE); //mandatory slot
-    d.set_0(amsd);
-
-    Action a = new Action();
-    a.set_0(AMS);
-    a.set_1(d);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Modifies the data about this agent kept by Agent Platform
-     <b>AMS</b>. While this task can be accomplished with regular
-     message passing according to <b>FIPA</b> protocols, this method
-     is meant to ease this common duty. Some parameters here are
-     optional, and <code>null</code> can safely be passed for them.
-     When a non null parameter is passed, it replaces the value
-     currently stored inside <b>AMS</b> agent.
-     @param signature An optional signature string, used for security reasons.
-     @param APState The Agent Platform state of the agent; must be a
-     valid state value (typically, <code>Agent.AP_ACTIVE</code>
-     constant is passed).
-     @param delegateAgent An optional delegate agent name.
-     @param forwardAddress An optional forward address.
-     @param ownership An optional ownership string.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the AMS to indicate some error condition.
-  */
-  public void modifyAMSData(AMSAgentDescription amsd) throws FIPAException {
-
-    String replyString = myName + "-ams-modify-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(AMS, replyString);
-
-    // Build an AMS action object for the request
-    Modify m = new Modify();
-    m.set_0(amsd);
-
-    Action a = new Action();
-    a.set_0(AMS);
-    a.set_1(m);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Searches the AMS for data.
-   */
-  public void searchAMS(AMSAgentDescription amsd, SearchConstraints constraints) throws FIPAException {
-
-    String replyString = myName + "-ams-search-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(AMS, replyString);
-
-    // Build an AMS action object for the request
-    Search s = new Search();
-    s.set_0(amsd);
-    s.set_1(constraints);
-
-    Action a = new Action();
-    a.set_0(AMS);
-    a.set_1(s);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Register this agent with a <b>DF</b> agent. While this task can
-     be accomplished with regular message passing according to
-     <b>FIPA</b> protocols, this method is meant to ease this common
-     duty.
-     @param dfName The GUID of the <b>DF</b> agent to register with.
-     @param dfd A <code>DFAgentDescriptor</code> object containing all
-     data necessary to the registration.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the DF to indicate some error condition.
-   */
-  public void registerWithDF(AID dfName, DFAgentDescription dfd) throws FIPAException {
-
-    String replyString = myName + "-df-register-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(dfName, replyString);
-
-    // Build a DF action object for the request
-    Register r = new Register();
-    r.set_0(dfd);
-
-    Action a = new Action();
-    a.set_0(dfName);
-    a.set_1(r);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Deregister this agent from a <b>DF</b> agent. While this task can
-     be accomplished with regular message passing according to
-     <b>FIPA</b> protocols, this method is meant to ease this common
-     duty.
-     @param dfName The GUID of the <b>DF</b> agent to deregister from.
-     @param dfd A <code>DFAgentDescriptor</code> object containing all
-     data necessary to the deregistration.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the DF to indicate some error condition.
-  */
-  public void deregisterWithDF(AID dfName, DFAgentDescription dfd) throws FIPAException {
-
-    String replyString = myName + "-df-deregister-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(dfName, replyString);
-
-    // Build a DF action object for the request
-    Deregister d = new Deregister();
-    d.set_0(dfd);
-
-    Action a = new Action();
-    a.set_0(dfName);
-    a.set_1(d);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Modifies data about this agent contained within a <b>DF</b>
-     agent. While this task can be accomplished with regular message
-     passing according to <b>FIPA</b> protocols, this method is
-     meant to ease this common duty.
-     @param dfName The GUID of the <b>DF</b> agent holding the data
-     to be changed.
-     @param dfd A <code>DFAgentDescriptor</code> object containing all
-     new data values; every non null slot value replaces the
-     corresponding value held inside the <b>DF</b> agent.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the DF to indicate some error condition.
-  */
-  public void modifyDFData(AID dfName, DFAgentDescription dfd) throws FIPAException {
-
-    String replyString = myName + "-df-modify-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(dfName, replyString);
-
-    // Build a DF action object for the request
-    Modify m = new Modify();
-    m.set_0(dfd);
-
-    Action a = new Action();
-    a.set_0(dfName);
-    a.set_1(m);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
-
-  /**
-     Searches for data contained within a <b>DF</b> agent. While
-     this task can be accomplished with regular message passing
-     according to <b>FIPA</b> protocols, this method is meant to
-     ease this common duty. Nevertheless, a complete, powerful search
-     interface is provided; search constraints can be given and
-     recursive searches are possible. The only shortcoming is that
-     this method blocks the whole agent until the search terminates. A
-     special <code>SearchDFBehaviour</code> can be used to perform
-     <b>DF</b> searches without blocking.
-     @param dfName The GUID of the <b>DF</b> agent to start search from.
-     @param dfd A <code>DFAgentDescriptor</code> object containing
-     data to search for; this parameter is used as a template to match
-     data against.
-     @param constraints A <code>List</code> that must be filled with
-     all <code>Constraint</code> objects to apply to the current
-     search. This can be <code>null</code> if no search constraints
-     are required.
-     @return A <code>DFSearchResult</code> object containing all found
-     <code>DFAgentDescriptor</code> objects matching the given
-     descriptor, subject to given search constraints for search depth
-     and result size.
-     @exception FIPAException A suitable exception can be thrown when
-     a <code>refuse</code> or <code>failure</code> messages are
-     received from the DF to indicate some error condition.
-  */
-  public void searchDF(AID dfName, DFAgentDescription dfd, SearchConstraints constraints) throws FIPAException {
-
-    String replyString = myName + "-df-search-" + (new Date()).getTime();
-    ACLMessage request = FipaRequestMessage(dfName, replyString);
-
-    // Build a DF action object for the request
-    Search s = new Search();
-    s.set_0(dfd);
-    s.set_1(constraints);
-
-    Action a = new Action();
-    a.set_0(dfName);
-    a.set_1(s);
-
-    // Write the action in the :content slot of the request
-    List l = new ArrayList(1);
-    l.add(a);
-    fillContent(request, l);
-
-    // Send message and collect reply
-    doFipaRequestClient(request, replyString);
-
-  }
 
 
   final void setToolkit(AgentToolkit at) {

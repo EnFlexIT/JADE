@@ -697,11 +697,13 @@ public class ams extends Agent implements AgentManager.Listener {
 
   }
 
-  private void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
+  /** it is called also by Agent.java **/
+  public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSRegister() called");
   }
 
-  private void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
+  /** it is called also by Agent.java **/
+  public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
     System.out.println("ams::AMSDeregister() called");
   }
 
@@ -759,7 +761,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
   /**
    The AMS must have a special version for this method, or a deadlock will occur.
-  */
+  
   public void registerWithAMS(AMSAgentDescription amsd) {
 
     // Skip all fipa-request protocol and go straight to the target
@@ -773,16 +775,16 @@ public class ams extends Agent implements AgentManager.Listener {
     }
 
   }
-
+  */
   /** 
     The AMS must have a special version for this method, or a deadlock will occur.
-  */
+  
   public void deregisterWithAMS() throws FIPAException {
     AMSAgentDescription amsd = new AMSAgentDescription(); // Get the standard AMS AID.
     amsd.setName(getAID());
     AMSDeregister(amsd);
   }
-
+  */
   // Methods to be called from AgentPlatform to notify AMS of special events
 
   /**

@@ -29,7 +29,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 import java.util.Vector;
-
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -47,6 +47,7 @@ import jade.domain.FIPAAgentManagement.Modify;
 import jade.domain.FIPAAgentManagement.Search;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 
 import jade.lang.acl.ACLMessage;
@@ -55,6 +56,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.sl.SL0Codec;
 
 import jade.onto.basic.Action;
+import jade.onto.basic.ResultPredicate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
@@ -202,9 +204,20 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
       Search s = (Search)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
-      DFSearch(dfd, constraints, getReply());
-
+      List l = DFSearch(dfd, constraints, getReply());
+      sendAgree();
+      ACLMessage msg = getRequest().createReply();
+      msg.setPerformative(ACLMessage.INFORM);
+      ResultPredicate r = new ResultPredicate();
+      r.set_0(a);
+      for (int i=0; i<l.size(); i++)
+	r.add_1(l.get(i));
+      l.clear();
+      l.add(r);
+      fillContent(msg,l); 
+      send(msg);
     }
+     
 
   } // End of SrchBehaviour class
 
@@ -467,7 +480,12 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     perform its role within <em><b>JADE</b></em> agent platform.
   */
   protected void setup() {
-    
+    // register the codec of the language
+    registerLanguage(SL0Codec.NAME,new SL0Codec());	
+		
+    // register the ontology used by application
+    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
+
     // Add a message dispatcher behaviour
     addBehaviour(dispatcher);
     addBehaviour(jadeExtensionDispatcher);
@@ -509,7 +527,7 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     while(it.hasNext()) {
       AID parentName = (AID)it.next();
       try {
-        deregisterWithDF(parentName, dfd);
+        DFServiceCommunicator.deregister(this, parentName, dfd);
       }
       catch(FIPAException fe) {
         fe.printStackTrace();
@@ -517,21 +535,26 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
     }
   }
 
+private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFRegister() called.");
+    PROVA.put(dfd.getName(),dfd);
   }
 
 
   private void DFDeregister(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFDeregister() called.");
+    PROVA.remove(dfd.getName());
   }
 
   private void DFModify(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFModify() called.");
+    PROVA.put(dfd.getName(),dfd);
   }
 
-  private void DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
+  private List DFSearch(DFAgentDescription dfd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
     System.out.println("df::DFSearch() called.");
+    return new ArrayList(PROVA.values());
   }
 
   

@@ -27,6 +27,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
 
+import jade.lang.acl.ACLMessage;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -35,8 +36,20 @@ import java.io.IOException;
 
 public class FIPAException extends Exception {
 
-  public FIPAException(String msg) {
-    super(msg);
+  private ACLMessage msg;
+
+  public FIPAException(String message) {
+    super(message);
+    msg=new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+    msg.setContent(message);
   }
 
+  public FIPAException(ACLMessage message) {
+    super(message.getContent());
+    msg=(ACLMessage)message.clone();
+  }
+
+  public ACLMessage getACLMessage() {
+    return msg;
+  }
 }
