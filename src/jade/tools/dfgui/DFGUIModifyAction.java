@@ -76,7 +76,6 @@ class DFGUIModifyAction extends AbstractAction
     		else
     		if(kind == DFGUI.LASTSEARCH_VIEW)
     		{
-    			System.out.println("Modify on search");
     			dfd = gui.getDFAgentSearchDsc(name); // the dsc is maintained in a variable of the gui
     			df = gui.getLastDF();
     		}

@@ -61,14 +61,16 @@ class DFGUIRegisterAction extends AbstractAction
 	
 		if (editedDfd != null)
 		{
-			int kind = gui.kindOfOperation();;
+			int kind = gui.kindOfOperation();
+		
 			if ((kind == DFGUI.PARENT_VIEW) || (kind == DFGUI.CHILDREN_VIEW)) // selected a df from the the federation
 			{
-				AID name = gui.getSelectedAgentInTable();
-		    if (name != null)
-		    	df = name; 
-		    else	
-			    df = gui.myAgent.getDescriptionOfThisDF().getName();
+				  AID name = gui.getSelectedAgentInTable();
+		      if (name != null)
+		    	  df = name; 
+		      else	
+			      df = gui.myAgent.getDescriptionOfThisDF().getName();
+			  
 			}
 			else
 			df = gui.myAgent.getDescriptionOfThisDF().getName();

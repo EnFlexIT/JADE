@@ -61,11 +61,13 @@ class DFGUISearchAction extends AbstractAction
 		
 		if ((kind == DFGUI.PARENT_VIEW) || (kind == DFGUI.CHILDREN_VIEW))// search on parent
 		   {
-		    AID name = gui.getSelectedAgentInTable();
-		    if (name != null)
-		    	df = name; //find the address of the parent-df
-		    else	
-			    df = gui.myAgent.getDescriptionOfThisDF().getName();
+		    
+		   	  AID name = gui.getSelectedAgentInTable();
+		      if (name != null)
+		    	  df = name; //find the address of the parent-df
+		      else	
+			      df = gui.myAgent.getDescriptionOfThisDF().getName();
+		   	
 		   }	
 		else 
 		 	df = gui.myAgent.getDescriptionOfThisDF().getName();

@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -21,33 +21,37 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.dfgui;
 
-// Import required Java classes 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+package jade.tools.dfgui.onto;
 
-import jade.gui.GuiEvent;
-import jade.domain.DFGUIAdapter;
 /**
- @author Tiziana Trucco - CSELT S.p.A
- @version $Date$ $Revision$
+   This class implements the DeregisterFrom action.
+   @author Tiziana Trucco -  CSELT S.p.A.
+   @version $Date$ $Revision$
 */
 
-class DFGUIRefreshAppletAction extends AbstractAction
-{
-	private DFGUI gui;
-
-	public DFGUIRefreshAppletAction(DFGUI gui)
-	{
-		super ("Refresh GUI");
-		this.gui = gui;
-	}
+public class DeregisterFrom {
 	
-	public void actionPerformed(ActionEvent e) 
+	private Object parentDF;
+	private Object childrenDF;
+	
+	public void setParentDF(Object parent)
 	{
-		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.REFRESHAPPLET);
-	  gui.myAgent.postGuiEvent(ev);
+		parentDF = parent;
+	}
+	 
+	public Object getParentDF()
+	{
+		return parentDF;
+	} 
+	
+	public void setChildrenDF(Object desc)
+	{
+		childrenDF = desc;
+	}
+  
+	public Object getChildrenDF()
+	{
+		return childrenDF;
 	}
 }

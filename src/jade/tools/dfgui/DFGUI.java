@@ -180,8 +180,10 @@ public class DFGUI extends JFrame
 		lastSearchResults = new HashMap();
 		isGUIForApplet = isApplet;
     setSize(550,450);
-		//setTitle("DF: " + a.getLocalName());
-		setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
+	
+		try{
+			setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
+		}catch(NullPointerException e){setTitle("DF:Unknown");}
     myAgent = a;
     
 		/////////////////////////////////////
@@ -648,10 +650,11 @@ public class DFGUI extends JFrame
 	{
 		AID out = null;
 		int tab = tabbedPane.getSelectedIndex();
-		int row;
+		int row = -1;
 		if (tab == 0)
 		{
-			row = registeredTable.getSelectedRow();
+			//row = registeredTable.getSelectedRow();
+			row = registeredTable.getSelectionModel().getMinSelectionIndex();
 		
 			if ( row != -1)
 				out = registeredModel.getElementAt(row);
@@ -660,7 +663,9 @@ public class DFGUI extends JFrame
 		else
 		if ( tab == 1)
 		{
-			row = foundTable.getSelectedRow();
+			//row = foundTable.getSelectedRow();
+			row = foundTable.getSelectionModel().getMinSelectionIndex();
+		
 			if (row != -1)
 				out = foundModel.getElementAt(row);
 				else
@@ -669,19 +674,23 @@ public class DFGUI extends JFrame
 		else 
 		if (tab == 2)
 		{
-		   row = parentTable.getSelectedRow();
-		   
+		   //row = parentTable.getSelectedRow();
+		   row = parentTable.getSelectionModel().getMinSelectionIndex(); 
+		
 		   if (row != -1)
 		   	out = parentModel.getElementAt(row);
 		   	else
 		   	{
-		   		row = childrenTable.getSelectedRow();
+		   		//row = childrenTable.getSelectedRow();
+		   		row = childrenTable.getSelectionModel().getMinSelectionIndex();
+		   
 		   	  if (row != -1)
 		   	  	out = childrenModel.getElementAt(row);
 		   	  	else out = null;
 		   	}
 		   		
 		}
+	
 	
 		return out;
 	}
@@ -701,13 +710,16 @@ public class DFGUI extends JFrame
 				out = LASTSEARCH_VIEW; // operation from lastsearch view 
 				else if (tab == 2)
 				{
-					int rowSelected = parentTable.getSelectedRow();
+					//int rowSelected = parentTable.getSelectedRow();
+					int rowSelected = parentTable.getSelectionModel().getMinSelectionIndex(); 
+
 					if (rowSelected != -1)
 						out = PARENT_VIEW; //OPERATION  from  parent table
 						else
 						{
-							rowSelected = childrenTable.getSelectedRow();
-						  if (rowSelected != -1) 
+							//rowSelected = childrenTable.getSelectedRow();
+						  rowSelected = childrenTable.getSelectionModel().getMinSelectionIndex();
+							if (rowSelected != -1) 
 							  out = CHILDREN_VIEW; //OPERATION from children table
 						}
 				}
@@ -724,7 +736,7 @@ public class DFGUI extends JFrame
 		for (; AIDOfAllAgentRegistered.hasNext(); )
 		    registeredModel.add((AID)AIDOfAllAgentRegistered.next());
 		registeredModel.fireTableDataChanged();
-	
+		
 		parentModel.clear();
 		for (; parents.hasNext(); )
 			parentModel.add((AID)parents.next());
@@ -734,6 +746,12 @@ public class DFGUI extends JFrame
 		for (; children.hasNext(); )
 			childrenModel.add((AID)children.next());
 		childrenModel.fireTableDataChanged();
+		
+	  registeredTable.getSelectionModel().clearSelection();
+		parentTable.getSelectionModel().clearSelection(); 
+		childrenTable.getSelectionModel().clearSelection();
+	
+		
 	}
 	
 /**
@@ -753,6 +771,8 @@ Refresh the search result.
 		  lastSearchResults.put(dfd.getName(),dfd);
 		}
 		foundModel.fireTableDataChanged();
+		foundTable.clearSelection();
+		
 	}
 	
 	/**

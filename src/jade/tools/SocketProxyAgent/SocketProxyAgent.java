@@ -52,9 +52,19 @@ protected void setup() {
     int portNumber = Integer.parseInt(in.readLine());
     Vector agentNames = new Vector();
     StringTokenizer st = new StringTokenizer(in.readLine());
-    while (st.hasMoreTokens()) 
-    		agentNames.add(st.nextToken());
-    
+        
+    //verify if the name of the agents have the hap or not. 
+    //If not add the local hap (of the dfproxy agent).
+    while (st.hasMoreTokens())
+    { 
+      String name = st.nextToken();
+    	int atPos = name.lastIndexOf('@');
+    	if(atPos == -1)
+    		name = name + "@" + getHap();
+   	
+    	agentNames.add(name);
+    }
+		
     s = new Server(portNumber, this, agentNames);
   } catch(Exception e) {
     System.err.println(getLocalName()+" NEEDS THE FILE "+getLocalName()+".inf IN THE WORKING DIRECTORY WITH ITS PARAMETERS (port number and agent names)");
@@ -121,14 +131,10 @@ class Server extends Thread {
     for (int i=0; i<myOnlyReceivers.size(); i++)
     {
       st.append((String)myOnlyReceivers.elementAt(i));
-      st.append(" ");
-      //str.concat((String)myOnlyReceivers.elementAt(i)+" ");
+      st.append(" "); 
     }
-    //str.concat(")");
     st.append(")");
-    //System.out.println(str);
     System.out.println(st.toString());
-    //((SocketProxyAgent)myAgent).log(str);
     ((SocketProxyAgent)myAgent).log(st.toString());
     start();
   }
@@ -200,11 +206,20 @@ class Connection extends Thread {
 
   private boolean myOnlyReceiversContains(Iterator aids) {
     List l = new ArrayList();
-    while (aids.hasNext()) 
-      l.add(aids.next());
+    while (aids.hasNext()){
+    	//if the name of the receiver has not the hap, it's local and the hap is added.
+      String name = ((AID)aids.next()).getName();
+      
+      int atPos = name.lastIndexOf('@');
+    	if(atPos == -1)
+    		name = name + "@" + myAgent.getHap();
+
+    	l.add(name);  
+    
+    }
     for (int i=0; i<myOnlyReceivers.size(); i++)
       if (l.contains(myOnlyReceivers.elementAt(i)))
-	return true;
+	      return true;  
     return false;
   }
 
@@ -237,7 +252,7 @@ class Connection extends Thread {
   }
 
   void close(Exception e){
-    try { client.close(); } catch (IOException e2) {}
+  try { client.close(); } catch (IOException e2) {}
     e.printStackTrace();
   }
 
@@ -274,8 +289,12 @@ class WaitAnswersBehaviour extends SimpleBehaviour {
     } catch (Exception e) {
       mt = MessageTemplate.MatchInReplyTo(m.getReplyWith());
     }
-    timeout = m.getReplyByDate().getTime()-(new Date()).getTime();
-    if (timeout <= 1000) timeout = DEFAULT_TIMEOUT; 
+    Date d = m.getReplyByDate();
+    if(d != null)
+      timeout = d.getTime() - (new Date()).getTime();
+    
+    if (timeout <= 1000) 
+    	timeout = DEFAULT_TIMEOUT; 
     endingTime = System.currentTimeMillis() + timeout;
     finished = false;
   }
