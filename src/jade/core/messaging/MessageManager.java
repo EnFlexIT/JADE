@@ -82,7 +82,7 @@ class MessageManager {
 		// POOL_SIZE
 		int poolSize = POOL_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_MessageManager_poolsize", null);
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_poolsize", null);
 			poolSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
@@ -92,7 +92,7 @@ class MessageManager {
 		// OUT_BOX_MAX_SIZE
 		int maxQueueSize = MAX_QUEUE_SIZE_DEFAULT;
 		try {
-			String tmp = p.getParameter("jade_core_MessageManager_maxqueuesize", null);
+			String tmp = p.getParameter("jade_core_messaging_MessageManager_maxqueuesize", null);
 			maxQueueSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
@@ -160,8 +160,8 @@ class MessageManager {
     		outBox.handleServed(receiverID);
 	 		}
  		}
- 	
- 	} 	
+ 	} // END of inner class Deliverer	
+
  	
 	/**
 	   Inner class PendingMsg
@@ -198,7 +198,7 @@ class MessageManager {
 	    public void setDeadline(long deadline) {
 		this.deadline = deadline;
 	    }
-	}
+	} // END of inner class PendingMsg
 	
   
   /**
