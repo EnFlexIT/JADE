@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.21  1999/09/03 10:44:07  rimassa
+  Removed obsolete '-name' option.
+
   Revision 1.20  1999/07/02 12:02:53  rimassa
   Touched this file fot release 1.0
 
@@ -98,8 +101,6 @@ public class Boot {
    * <li>  <b>-host</b>     <em>Host name where the platform is.</em>
    * <li>  <b>-port</b>     <em>Port number where the RMI registry for
    *                            the platform is.</em>
-   * <li>  <b>-name</b>     <em>Name with which the Agent Platform is
-   *                            registered into RMI registry.</em>
    * <li>  <b>-file</b>     <em>File name to retrieve agent names from.</em>
    * <li>  <b>-gui</b>      <em>Starts the Remote Management Agent.</em>
    * <li>  <b>-platform</b> <em>When specified, an Agent Platform is started.
@@ -142,10 +143,6 @@ public class Boot {
 	else if(args[n].equals("-port")) {
 	  if(++n  == args.length) usage();
 	  platformPort = args[n];
-	}
-	else if(args[n].equals("-name")) {
-	  if(++n  == args.length) usage();
-	  platformName = args[n];
 	}
 	else if(args[n].equals("-file")) {
 	  if(++n  == args.length) usage();
@@ -230,7 +227,6 @@ public class Boot {
     System.out.println("where options are:");
     System.out.println("  -host\t\tHost where RMI registry for the platform is located");
     System.out.println("  -port\t\tThe port where RMI registry for the platform resides");
-    System.out.println("  -name\t\tThe name with which the platform is bound in RMI registry");
     System.out.println("  -file\t\tA file name containing tne agent specifiers");
     System.out.println("  -gui\tIf specified, a new Remote Management Agent is created.");
     System.out.println("  -platform\tIf specified, a new Agent Platform is created.");
@@ -246,8 +242,8 @@ public class Boot {
     System.out.println("  \tjava jade.Boot peter:myAgent");
     System.out.println("");
     System.out.println("  Connect to a platform on host zork.zot.za, on port 1100,");
-    System.out.println("  with name 'Platform', starting two agents");
-    System.out.println("  java jade.Boot -host zork.zot.za -port 1100 -name Platform peter:heAgent paula:sheAgent");
+    System.out.println("  starting two agents");
+    System.out.println("  java jade.Boot -host zork.zot.za -port 1100 peter:heAgent paula:sheAgent");
     System.out.println("");
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
     System.out.println("  \tjava jade.Boot -platform Willy:searchAgent");
