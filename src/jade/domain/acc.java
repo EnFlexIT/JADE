@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/06/04 07:49:47  rimassa
+  Changed class code to avoid any relation with jade.core package.
+
   Revision 1.11  1999/04/06 00:09:54  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -110,7 +113,6 @@ public class acc extends Agent {
   } // End of ACCBehaviour class
 
 
-  private AgentPlatformImpl myPlatform;
   private AgentManagementOntology myOntology;
   private FipaRequestResponderBehaviour dispatcher;
 
@@ -121,9 +123,8 @@ public class acc extends Agent {
      code. Therefore, no other <em>ACC</em> agent can be created
      beyond the default one.
   */
-  public acc(AgentPlatformImpl ap) {
+  public acc() {
 
-    myPlatform = ap;
     myOntology = AgentManagementOntology.instance();
 
     MessageTemplate mt = 
