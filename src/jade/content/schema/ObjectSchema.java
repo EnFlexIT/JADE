@@ -229,6 +229,8 @@ public abstract class ObjectSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected abstract boolean descendsFrom(ObjectSchema s);
+  	
+  	public abstract Facet[] getFacets(String slotName);
   			  	
 }
 

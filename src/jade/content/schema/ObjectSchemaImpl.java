@@ -486,5 +486,16 @@ class ObjectSchemaImpl extends ObjectSchema {
     		return false;
     	}
     }
+    
+    public Facet[] getFacets(String slotName) {
+    	Vector v = (Vector)facets.get(slotName);
+    	
+    	Facet temp[] = new Facet[v.size()];
+    	for (int i=0; i<v.size()-1; i++) 
+    		temp[i] = (Facet)v.elementAt(i);
+    	
+    	return temp;
+	}    	
+
 }
 
