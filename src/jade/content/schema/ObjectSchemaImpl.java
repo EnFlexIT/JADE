@@ -523,17 +523,25 @@ class ObjectSchemaImpl extends ObjectSchema {
     */
     public Facet[] getFacets(String slotName) {
     	Facet[] temp = null;
-    	if (facets != null) {
-    		Vector v = (Vector)facets.get(new CaseInsensitiveString(slotName));
-    	
-	    	if (v!=null) {
-	    		temp = new Facet[v.size()];
-	    		for (int i=0; i<v.size()-1; i++) 
-	    		temp[i] = (Facet)v.elementAt(i);
+    	CaseInsensitiveString caseInsensitiveSlotName = new CaseInsensitiveString(slotName);
+    	if (getOwnSlot(caseInsensitiveSlotName)!=null) {
+    		if (facets != null) {
+    			Vector v = (Vector)facets.get(caseInsensitiveSlotName);
+	    		if (v!=null) {
+	    			temp = new Facet[v.size()];
+	    			for (int i=0; i<v.size()-1; i++) 
+	    				temp[i] = (Facet)v.elementAt(i);
 				}
+			}
+		} else {
+				if (superSchemas!=null) {
+    				for (int i = 0; i < superSchemas.size() && temp==null; i++) {
+    					temp = ((ObjectSchema)superSchemas.get(i)).getFacets(slotName);
+    				}
+    			}
     	}
     	return temp;
-		}
+	}
 	
 	private final SlotDescriptor getOwnSlot(CaseInsensitiveString ciName) {
 		return (slots != null ? (SlotDescriptor) slots.get(ciName) : null);
