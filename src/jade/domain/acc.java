@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/10/23 21:43:26  Giovanni
+  Activated some instrumentation code. Now both ParseException and
+  TokenMgrError are dumped when catched.
+
   Revision 1.5  1998/10/04 18:01:35  rimassa
   Added a 'Log:' field to every source file.
 
@@ -50,11 +54,11 @@ public class acc extends Agent {
 	  myAction = AgentManagementOntology.ACCAction.fromText(new StringReader(content));
 	}
 	catch(ParseException pe) {
-	  //      pe.printStackTrace();
+	  pe.printStackTrace();
 	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
 	}
 	catch(TokenMgrError tme) {
-	  //      tme.printStackTrace();
+	  tme.printStackTrace();
 	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
 	}
 
