@@ -26,6 +26,8 @@ ant dist - to create the distribution files
   <property name="dist" location=".."/>
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
+  <property name="demo" location="demo"/>
+  
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -199,6 +201,10 @@ ant dist - to create the distribution files
          _______________________________________________ -->
   <target name="demo" depends="lib" description="compile the demo">
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="off" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
+		<delete file="${demo}/MeetingScheduler.jar" quiet="true"/>
+    <jar jarfile="${demo}/MeetingScheduler.jar" manifest="${demo}/demo.mf">
+      <fileset dir="${build}" includes="**/demo/**"/>
+    </jar>
   </target>
   <!--     _______________________________________________
                                dist
