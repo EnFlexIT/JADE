@@ -72,11 +72,11 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
 			String addClasspath2 = (String) getGroupArgument(RoundTripTimeTesterAgent.BENCHMARK_CLASSPATH2_KEY);
 
 			// Launch a peripheral container with the proper classpath for the senders
-			// on the local host. Activate an IIOP MTP on it.
+			// on the local host. Activate an MTP on it.
 			if (addClasspath1 != null) {
 				addClasspath1 = new String("+"+addClasspath1);
 			}
-	    jc1 = TestUtility.launchJadeInstance("C-senders", addClasspath1, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp jade.mtp.iiop.MessageTransportProtocol", new String[] {});
+	    jc1 = TestUtility.launchJadeInstance("C-senders", addClasspath1, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+Test.DEFAULT_MTP, new String[] {});
     	String containerName = jc1.getContainerName();
   
     	// Launch a new platform with the proper classpath for the receivers
@@ -85,18 +85,18 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
 				addClasspath2 = new String("+"+addClasspath2);
 			}
 			RemoteManager rm = TestUtility.createRemoteManager(remoteHost, TSDaemon.DEFAULT_PORT, TSDaemon.DEFAULT_NAME);
-			jc2 = TestUtility.launchJadeInstance(rm, REMOTE_PLATFORM_NAME, addClasspath2, "-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT, new String[]{"IOR"}); 
+			jc2 = TestUtility.launchJadeInstance(rm, REMOTE_PLATFORM_NAME, addClasspath2, "-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP, new String[]{Test.DEFAULT_PROTO}); 
 
 			// Construct the AID of the AMS of the remote platform 
-			String ior = null;
+			String address = null;
 			AID remoteAMS = new AID("ams@"+REMOTE_PLATFORM_NAME, AID.ISGUID);
 			Iterator it = jc2.getAddresses().iterator();
 			if (it.hasNext()) {
-				ior = (String) it.next();
-				remoteAMS.addAddresses(ior);
+				address = (String) it.next();
+				remoteAMS.addAddresses(address);
 			}
 			else {
-				throw new TestException("Remote platform does not have any IOR");
+				throw new TestException("Remote platform does not have any address");
 			}
 			System.out.println("Remote AMS is "+remoteAMS);
 			  	
@@ -111,7 +111,7 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
   	  for (int i = 0; i < nCouples; ++i) {
   	  	String senderName = new String("s"+i);
   	  	String receiverName = new String("r"+i+"@"+REMOTE_PLATFORM_NAME);
-    		String[] args = new String[] {receiverName, String.valueOf(nIterations), ior, String.valueOf(nCouples), a.getLocalName()}; 
+    		String[] args = new String[] {receiverName, String.valueOf(nIterations), address, String.valueOf(nCouples), a.getLocalName()}; 
     		TestUtility.createAgent(a, senderName, RoundTripTimeTesterAgent.ROUNDTRIPPER_CLASS, args, null, containerName); 
   	  }
 			System.out.println("Senders created");
