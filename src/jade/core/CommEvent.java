@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.6  1998/10/31 16:34:51  rimassa
+ * Removed useless inheritance from AWTEvent class.
+ *
  * Revision 1.5  1998/10/04 18:01:04  rimassa
  * Added a 'Log:' field to every source file.
  *
@@ -7,7 +10,6 @@
 
 package jade.core;
 
-import java.awt.AWTEvent;
 import jade.lang.acl.*;
 
 /***************************************************************
@@ -25,13 +27,12 @@ import jade.lang.acl.*;
     (AgentGroup)
 
 ******************************************************************/
-public class CommEvent extends AWTEvent {
+public class CommEvent {
 
   private ACLMessage  message;
   private AgentGroup recipients;
 
   public CommEvent(CommBroadcaster source, ACLMessage message) {
-    super(source, -1);
     // Message cloning is Necessary for intra-VM messaging, since no
     // message serialization is carried out in that case
     this.message = (ACLMessage)message.clone();
