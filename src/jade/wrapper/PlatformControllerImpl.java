@@ -241,7 +241,7 @@ class PlatformControllerImpl implements PlatformController {
 	  	myListener.bornAgent(ev);
 	  }
 	  public void deadAgent(jade.core.event.PlatformEvent ev) {
-	  	myListener.bornAgent(ev);
+	  	myListener.deadAgent(ev);
 	  }
   } // END of inner class ListenerWrapper
 }
