@@ -26,6 +26,10 @@ package jade.core.event;
 
 public interface PlatformListener {
 
-  void handle(PlatformEvent ev);
+  void addedContainer(PlatformEvent ev);
+  void removedContainer(PlatformEvent ev);
+  void bornAgent(PlatformEvent ev);
+  void deadAgent(PlatformEvent ev);
+  void movedAgent(PlatformEvent ev);
 
 }

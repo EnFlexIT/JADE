@@ -24,11 +24,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
-public interface MessageListener {
+public interface MTPListener {
 
-  void sentMessage(MessageEvent ev);
-  void postedMessage(MessageEvent ev);
-  void receivedMessage(MessageEvent ev);
-  void routedMessage(MessageEvent ev);
+  void addedMTP(MTPEvent ev);
+  void removedMTP(MTPEvent ev);
+  void messageIn(MTPEvent ev);
+  void messageOut(MTPEvent ev);
 
 }
