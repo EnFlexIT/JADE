@@ -227,7 +227,7 @@ public class Logger
 		public static final int OFF		=	2147483647;
 	
 		private static int theLevel = 800;	
-		private static String theName;
+		private String theName;
 	
 		//#J2ME_INCLUDE_END*/
 		
