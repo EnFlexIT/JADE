@@ -1442,6 +1442,7 @@ public class Agent implements Runnable, Serializable {
       }
       else {
 	currentMessage = msgQueue.removeFirst();
+	notifyReceived(currentMessage);
 	return currentMessage;
       }
     }
@@ -1470,6 +1471,7 @@ public class Agent implements Runnable, Serializable {
 	  msg = cursor;
 	  msgQueue.remove(cursor);
 	  currentMessage = cursor;
+	  notifyReceived(msg);
 	  break; // Exit while loop
 	}
       }
@@ -1604,6 +1606,17 @@ public class Agent implements Runnable, Serializable {
   // Event firing methods
 
 
+  // Notify toolkit that a message was posted in the message queue
+  private void notifyPosted(ACLMessage msg) {
+    myToolkit.handlePosted(myAID, msg);
+  }
+
+  // Notify toolkit that a message was extracted from the message
+  // queue
+  private void notifyReceived(ACLMessage msg) {
+    myToolkit.handleReceived(myAID, msg);
+  }
+
   // Notify toolkit of the need to send a message
   private void notifySend(ACLMessage msg) {
     myToolkit.handleSend(msg);
@@ -1652,7 +1665,10 @@ public class Agent implements Runnable, Serializable {
       }
       */
 
-      if(msg != null) msgQueue.addLast(msg);
+      if(msg != null) {
+	msgQueue.addLast(msg);
+	notifyPosted(msg);
+      }
       doWake();
       messageCounter++;
     }
