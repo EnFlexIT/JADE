@@ -1820,3 +1820,51 @@ SearchDFBehaviour@= result@private AgentManagementOntology.DFSearchResult result
 
 /home/rimassa/DEVEL/JADE/src/examples/ex5/SubDF.java
 SubDF@- setup@public void setup() {
+
+/home/rimassa/DEVEL/JADE/src/examples/ex2/AboutDialog.java
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, String title, boolean modal) {
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, boolean modal) {
+AboutDialog@- AboutDialog_WindowClosing@void AboutDialog_WindowClosing(java.awt.event.WindowEvent event) {
+AboutDialog@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+AboutDialog@- addNotify@public void addNotify() {
+AboutDialog@= fComponentsAdjusted@boolean fComponentsAdjusted =
+AboutDialog@= okButton@java.awt.Button okButton;
+AboutDialog@- okButton_Clicked@void okButton_Clicked(java.awt.event.ActionEvent event) {
+AboutDialog@- setVisible@public void setVisible(boolean b) {
+AboutDialog@= textArea1@java.awt.TextArea textArea1;
+AboutDialog@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/rimassa/DEVEL/JADE/src/examples/ex2/FilebasedSenderAgent.java
+FilebasedSenderAgent@= myGui@private Frame1 myGui=
+FilebasedSenderAgent@- setup@protected void setup() {
+FilebasedSenderAgent@- takeDown@protected void takeDown() {
+
+/home/rimassa/DEVEL/JADE/src/examples/ex2/Frame1.java
+Frame1@+ Frame1@public Frame1(Agent a) {
+Frame1@+ Frame1@public Frame1(String title) {
+Frame1@+ Frame1@public Frame1() {
+Frame1@- Frame1_WindowClosing@void Frame1_WindowClosing(java.awt.event.WindowEvent event) {
+Frame1@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+Frame1@- addNotify@public void addNotify() {
+Frame1@= agent@private Agent agent;
+Frame1@= fComponentsAdjusted@boolean fComponentsAdjusted =
+Frame1@= label1@java.awt.Label label1;
+Frame1@= label2@java.awt.Label label2;
+Frame1@= m@private int m=
+Frame1@- main@static public void main(String args[]) {
+Frame1@= mainMenuBar@java.awt.MenuBar mainMenuBar;
+Frame1@= menu1@java.awt.Menu menu1;
+Frame1@= menu3@java.awt.Menu menu3;
+Frame1@= miAbout@java.awt.MenuItem miAbout;
+Frame1@- miAbout_Action@void miAbout_Action(java.awt.event.ActionEvent event) {
+Frame1@= miExit@java.awt.MenuItem miExit;
+Frame1@- miExit_Action@void miExit_Action(java.awt.event.ActionEvent event) {
+Frame1@= miOpen@java.awt.MenuItem miOpen;
+Frame1@- miOpen_Action@void miOpen_Action(java.awt.event.ActionEvent event) {
+Frame1@= n@private int n=
+Frame1@= openFileDialog1@java.awt.FileDialog openFileDialog1;
+Frame1@- receivedMessage@public void receivedMessage(String msg) {
+Frame1@- setVisible@public void setVisible(boolean b) {
+Frame1@= textArea1@java.awt.TextArea textArea1;
+Frame1@= textArea2@java.awt.TextArea textArea2;
+Frame1@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
