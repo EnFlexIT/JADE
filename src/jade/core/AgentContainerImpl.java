@@ -298,6 +298,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       //#MIDP_EXCLUDE_END
 
+      /*  -- this is old security code
       // Create and init container-authority
       try {
 	  if (myProfile.getParameter(Profile.OWNER, null) != null) {
@@ -320,7 +321,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  authority = null;
 	  //e1.printStackTrace();
       }
-
+      */
       try {
 	  if (authority == null) {
 	      authority = new jade.security.dummy.DummyAuthority();
@@ -901,6 +902,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     public Agent addLocalAgent(AID id, Agent a) throws AuthException {
 
+      /*
 	// --- This code could go into a Security Service, intercepting the agent creation...
 
 	//#MIDP_EXCLUDE_BEGIN
@@ -917,6 +919,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	// --- End of security code
 
 	//#MIDP_EXCLUDE_END
+       */
 
 	a.setToolkit(this);
 	return localAgents.put(id, a);
