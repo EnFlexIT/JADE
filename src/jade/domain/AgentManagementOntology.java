@@ -1,98 +1,5 @@
 /*
-  $Log$
-  Revision 1.28  1999/11/08 15:22:20  rimassaJade
-  Added ontological classes to support message sniffing.
-
-  Revision 1.27  1999/08/31 17:25:55  rimassa
-  Added AMSMotionEvent inner class to represent AMS notifications of
-  moved agents.
-
-  Revision 1.26  1999/07/19 00:08:45  rimassa
-  Added support for a Java representation of a FIPA 98 compliant
-  platform profile ontology object.
-
-  Revision 1.25  1999/06/09 12:54:46  rimassa
-  Added missing synchronization on parsing methods.
-
-  Revision 1.24  1999/06/04 07:48:52  rimassa
-  Added two String constants to PlatformProfile inner class.
-
-  Revision 1.23  1999/05/20 15:41:41  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
-
-  Revision 1.22  1999/04/06 14:05:57  rimassa
-  Added Javadoc comments and made package scoped all unnecessarily
-  public classes.
-
-  Revision 1.21  1999/02/04 12:13:47  rimassa
-  Fixed a bug in the String representation of the search result of the DF.
-
-  Revision 1.20  1999/02/03 10:29:08  rimassa
-  Made 'protected' some former 'private' variables to allow compilation
-  with jdk 1.2. Used correct accessor methods in subclasses and
-  performed some minor changes.
-  Added a new 'missing-attribute' exception.
-
-  Revision 1.19  1998/12/07 23:57:31  rimassa
-  Changed toText() method of all the inner classes representing Actions;
-  now the complete action representation is written, included the prefix
-  "( action <AGENT_NAME> <ACTION_NAME>". So no more handcrafted parsing
-  is needed.
-
-  Revision 1.18  1998/12/01 23:40:04  rimassa
-  Modified DFSearchResult class to hold a FIPAException object when a
-  search goes wrong and throw it when someone tries to read the result.
-  Added a constructor to DFSearchAction class to set its action name at
-  construction time.
-
-  Revision 1.17  1998/11/30 00:17:58  rimassa
-  Added a DFSearchResult inner class to model the result of a 'search' DF action.
-  Changed some badly named DFAgentDescriptor methods.
-  Added a new getException() method.
-
-  Revision 1.16  1998/11/23 00:15:26  rimassa
-  Fixed a small bug: a method was missing the 'public' modifier.
-
-  Revision 1.15  1998/11/15 23:04:59  rimassa
-  Added a new AMS action 'kill-container', as an inner class of the
-  ontology.
-
-  Revision 1.14  1998/11/09 00:16:22  rimassa
-  Uniformed syntax for different kinds of AMS related ontology objects:
-  now a property list is used both in AMSAgentEvent class and in
-  CreateAgentAction class.
-
-  Revision 1.13  1998/11/05 23:33:22  rimassa
-  Added some String constants and toText() method for CreateAgentAction
-  and KillAgentAction inner classes.
-
-  Revision 1.12  1998/11/03 00:33:43  rimassa
-  Complete implementation of a class hierarchy for AMS events; now each
-  AMS event has set()/get() methods for all its fields and a couple of
-  fromText()/toText() methods to convert it to and from strings.
-
-  Revision 1.11  1998/11/02 01:59:41  rimassa
-  Added inner classes to represent AMS notifications of various events
-  (container creation and deletion, new agents, ecc.).
-
-  Revision 1.10  1998/10/31 16:39:37  rimassa
-  Completed the definition of KillAgentAction inner class, to represent
-  'kill-agent' AMS action instances.
-
-  Revision 1.9  1998/10/26 22:39:48  Giovanni
-  Added a list of properties to CreateAgentAction class.
-
-  Revision 1.8  1998/10/26 00:02:21  rimassa
-  Added new inner classes and string constant to represent
-  'create-agent' and 'kill-agent' new AMS actions.
-
-  Revision 1.7  1998/10/18 17:35:36  rimassa
-  Added some static final String varibles to Constraint class to
-  represent various keywords.
-
-  Revision 1.6  1998/10/04 18:01:21  rimassa
-  Added a 'Log:' field to every source file.
-
+  $Id$
 */
 
 package jade.domain;
@@ -113,7 +20,7 @@ import java.util.Iterator;
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
-
+import jade.onto.DefaultOntology;
 
 /**
    Holds an OO model of standard <code>fipa-agent-management</code>
@@ -156,7 +63,7 @@ import jade.lang.acl.ACLMessage;
   @version $Date$ $Revision$
 
  */
-public class AgentManagementOntology {
+public class AgentManagementOntology extends DefaultOntology {
 
   /**
      Models service descriptors for DF data base.
@@ -1919,9 +1826,8 @@ public class AgentManagementOntology {
   private static AgentManagementParser parser = AgentManagementParser.create();
   private static Object parserLock = new Object(); 
 
-  // Private constructor: instantiate only through instance() method.
-  private AgentManagementOntology() {
 
+  static {
     // Fill in keyword tables -- When key == value an Hashtable is used as a Set
 
     PlatformProfile.keywords.put(PlatformProfile.NAME, PlatformProfile.NAME);
@@ -1955,7 +1861,6 @@ public class AgentManagementOntology {
     DFAgentDescriptor.keywords.put(DFAgentDescriptor.ONTOLOGY, new Integer(5));
     DFAgentDescriptor.keywords.put(DFAgentDescriptor.OWNERSHIP, new Integer(6));
     DFAgentDescriptor.keywords.put(DFAgentDescriptor.DFSTATE, new Integer(7));
-
 
 
     // Fill in exception message -> Java Exception mapping
@@ -2064,34 +1969,34 @@ public class AgentManagementOntology {
   // content
 
   // Check that 'keyword' is a valid 'FIPA-DF-description' keyword
-  boolean isValidDFADKeyword(String keyword) {
+  static boolean isValidDFADKeyword(String keyword) {
     return DFAgentDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-AP-description' keyword
-  boolean isValidPPKeyword(String keyword) {
+  static boolean isValidPPKeyword(String keyword) {
     return PlatformProfile.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-Service-Desc-Item' keyword
-  boolean isValidSDKeyword(String keyword) {
+  static boolean isValidSDKeyword(String keyword) {
     return ServiceDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'keyword' is a valid 'FIPA-AMS-description' keyword
-  boolean isValidAMSADKeyword(String keyword) {
+  static boolean isValidAMSADKeyword(String keyword) {
     return AMSAgentDescriptor.keywords.containsKey(keyword);
   }
 
   // Check that 'message' is a valid 'AgentManagementException' error
   // message
-  boolean isValidException(String message) {
+  static boolean isValidException(String message) {
     return Exception.JavaExceptions.containsKey(message);
   }
 
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' AMS action
-  boolean isMandatoryForAMS(String actionName, String attributeName) {
+  static boolean isMandatoryForAMS(String actionName, String attributeName) {
     Integer actionIndex = (Integer)AMSAction.actions.get(actionName);
     Integer attributeIndex = (Integer)AMSAgentDescriptor.keywords.get(attributeName);
     return AMSMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
@@ -2099,7 +2004,7 @@ public class AgentManagementOntology {
 
   // Tell whether 'attributeName' is a mandatory attribute for
   // 'actionName' DF action
-  boolean isMandatoryForDF(String actionName, String attributeName) {
+  static boolean isMandatoryForDF(String actionName, String attributeName) {
     Integer actionIndex = (Integer)DFAction.actions.get(actionName);
     Integer attributeIndex = (Integer)DFAgentDescriptor.keywords.get(attributeName);
     return DFMandatoryAttributes[actionIndex.intValue()][attributeIndex.intValue()];
@@ -2113,7 +2018,7 @@ public class AgentManagementOntology {
       @param message The name of the exception.
       @return the Java exception corresponding to a given message.
    */
-  public FIPAException getException(String message) {
+  public static FIPAException getException(String message) {
     FIPAException fe = (FIPAException)Exception.JavaExceptions.get(message);
     if(fe == null)
       fe = new FIPAException(message);
@@ -2129,11 +2034,11 @@ public class AgentManagementOntology {
      @return A <code>FIPAException</code> object, whose string
      representation was contained in the given stream.
   */
-  public FIPAException getException(Reader r) {
+  public static FIPAException getException(Reader r) {
       synchronized(parserLock) {
     FIPAException fe = null;
     try {
-      fe = parser.parseFIPAException(r, this);
+      fe = parser.parseFIPAException(r);
     }
     catch(ParseException pe) {
       // pe.printStackTrace();
@@ -2154,7 +2059,7 @@ public class AgentManagementOntology {
      @return The number code of a given Agent Platform Life-Cycle
      state.
   */
-  public int getAPStateByName(String name) throws FIPAException {
+  public static int getAPStateByName(String name) throws FIPAException {
     Integer i = (Integer)APLifeCycle.states.get(name);
     if(i == null) throw getException(Exception.UNRECOGNIZEDVALUE);
     return i.intValue();
@@ -2166,7 +2071,7 @@ public class AgentManagementOntology {
      @param code The code of a state.
      @return The standard name for that state.
   */
-  public String getAPStateByCode(int code) throws FIPAException {
+  public static String getAPStateByCode(int code) throws FIPAException {
     switch(code) {
     case Agent.AP_INITIATED:
       return APLifeCycle.INITIATED;
@@ -2189,7 +2094,7 @@ public class AgentManagementOntology {
      @param name The state name.
      @return The number code of a given Domain Life-Cycle state.
   */
-  public int getDomainStateByName(String name) throws FIPAException {
+  public static int getDomainStateByName(String name) throws FIPAException {
     Integer i = (Integer)DomainLifeCycle.states.get(name);
     if(i == null) throw getException(Exception.UNRECOGNIZEDVALUE);
     return i.intValue();
@@ -2201,7 +2106,7 @@ public class AgentManagementOntology {
      @param code The code of a state.
      @return The standard name for that state.
   */
-  public String getDomainStatebyCode(int code) throws FIPAException {
+  public static String getDomainStatebyCode(int code) throws FIPAException {
     switch(code) {
     case Agent.D_ACTIVE:
       return DomainLifeCycle.ACTIVE;
@@ -2214,6 +2119,11 @@ public class AgentManagementOntology {
     default:
       throw getException(Exception.UNRECOGNIZEDVALUE);
     }
+  }
+
+  // Private constructor: instantiate only through instance() method.
+  private AgentManagementOntology() {
+      //    addFrame();
   }
 
 
