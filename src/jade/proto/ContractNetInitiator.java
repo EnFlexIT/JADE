@@ -670,6 +670,7 @@ public class ContractNetInitiator extends Initiator {
 					case ACLMessage.PROPOSE:
 					case ACLMessage.REFUSE:
 					case ACLMessage.NOT_UNDERSTOOD:
+					case ACLMessage.FAILURE:
 		    		state = REPLY_RECEIVED;
 		    		return true;
 					default:
@@ -679,6 +680,7 @@ public class ContractNetInitiator extends Initiator {
 				else {
 					switch (perf) {
 					case ACLMessage.INFORM:
+					case ACLMessage.NOT_UNDERSTOOD:
 					case ACLMessage.FAILURE:
 		    		state = REPLY_RECEIVED;
 		    		return true;
