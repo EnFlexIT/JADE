@@ -4,7 +4,7 @@ echo modify the following lines to set your JESS classpath
 set JESS51=c:\myprograms\jess51
 set JESS60=c:\myprograms\jess60a6\jess.jar
 set ORBACUSJIDLPATH=C:\ORBacus\bin
-set LOCALHOST=IBM10308
+set LOCALHOST=fbellif
 
 java -version
 pause check now that the JVM is actually 1.2. Otherwise abort the testing
@@ -23,8 +23,9 @@ set JADECLASSES=..\..\classes
 set JAVA=java -Djava.compiler=""
 echo 
 
-set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%
+set CLASSPATH=%JADECLASSES%;%ALLJADEJARS%
 
+goto :STARTHERE
 goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
@@ -52,13 +53,21 @@ pause
 cd ..\xmlacl
 CALL make
 CALL makelib
-echo start compiling the ORBacusMTP add-ons remember to copy the OB.jar into jade\lib
+pause
+echo start compiling the RDFCodec add-on. Remember to copy rdf-api-2001-01-19.jar into jade\add-ons\RDFCodec\lib
+pause
+cd ..\RDFCodec
+CALL makeRDF
+CALL makelib
+echo start compiling the ORBacusMTP add-ons remember to copy the OB.jar and OBNaming.jar into jade\lib
 pause
 cd ..\ORBAcusMTP
 set PATH=%PATH%;%ORBACUSJIDLPATH%
 CALL makeORBacusMTP
 pause
+
 :SKIPADDONS
+
 set CLASSPATH=%ALLJADEJARS%;%JADECLASSES%;%JESS51%
 CALL makejessexample
 pause
@@ -67,20 +76,20 @@ CALL makejadejessprotegeexample
 pause
 echo compile the Test code
 cd src\test
-javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java wrapper\*.java
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java wrapper\*.java proto\*.java MessageTemplate\*.java
 pause
 :SKIPCOMPILATION
 
 echo Starting the Agent Platform
-START %JAVA% -cp %CLASSPATH% jade.Boot -gui -nomtp
+START %JAVA% -cp %CLASSPATH% jade.Boot -gui 
 echo Press a key when the platform is ready
 pause
 
-goto :STARTHERE 
+REM goto :STARTHERE 
 
 echo Each example will be executed into a remote container. To pass to the
 echo next example, just kill the container (NOT the platform) from the RMA GUI
-
+echo
 echo Running the Party example. Select 1000 agents and check everything is ok
 %JAVA% -cp %CLASSPATH% jade.Boot -container host:examples.party.HostAgent
 
@@ -89,8 +98,9 @@ echo with the DF where the writer is running.
 echo Test: DFFederation, DFSearch and registration, inter-platform IIOP Sun
 echo communication, XML,bit-efficient,and String ACLCodecs, ACLMessage.content
 echo both for setContentObject and setContent
-%JAVA% -cp %CLASSPATH% jade.Boot -container reader:examples.Base64.ObjectReaderAgent 
-START %JAVA% -cp %CLASSPATH% jade.Boot -gui -port 1200 writer:examples.Base64.ObjectWriterAgent
+START %JAVA% -cp %CLASSPATH%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -gui -port 1200 -aclcodec jamr.jadeacl.xml.XMLACLCodec;sonera.fipa.acl.BitEffACLCodec writer:examples.Base64.ObjectWriterAgent
+%JAVA% -cp %CLASSPATH%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -aclcodec jamr.jadeacl.xml.XMLACLCodec;sonera.fipa.acl.BitEffACLCodec -container reader:examples.Base64.ObjectReaderAgent 
+
 
 echo Running behaviours example
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.behaviours.ComplexBehaviourAgent
@@ -108,7 +118,7 @@ echo Running jess example
 echo Use a DummyAgent to send a CFP message and you should receive a PROPOSE
 echo message back
 cd ..
-%JAVA% -cp %CLASSPATH%;%JESS51% jade.Boot -container jess:examples.jess.JessAgent
+REM FIXME %JAVA% -cp %CLASSPATH%;%JESS51% jade.Boot -container jess:examples.jess.JessAgent
 cd test
 
 echo Running jsp example. The test works is a message arrives to buffer
@@ -126,9 +136,11 @@ echo by using the RMA GUI. Try also to create new agents from that RMA GUI.
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.mobile.MobileAgent
 
 echo Running the Ontoloogy example
+echo remind to enter 'a', i.e. the local name of the EngagerAgent
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.ontology.EngagerAgent b:examples.ontology.RequesterAgent
 
 echo Running the PingAgent example
+echo Start a DummyAgent and send Ping messages
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.PingAgent.PingAgent
 
 echo Running the protocols example
@@ -140,7 +152,7 @@ echo press a key and the responder will unblock the initiator.
 %JAVA% -cp %CLASSPATH% examples.protocols.ProtocolTester r1 r2 r3
 %JAVA% -Djava.compiler="" -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.InitiatorHandler(r1 r2) r1:examples.protocols.ResponderHandler  r2:examples.protocols.ResponderHandler
 
-echo Running the receivers example
+echo Running the receivers example. a is the responder and b is the sender
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.receivers.AgentReceiver b:examples.receivers.AgentSender
 
 echo Running the subdf example
@@ -154,10 +166,10 @@ echo Running the content example
 
 echo Running the demo
 pause shutdown the current Agent Platform before continuing
-cd ..\demo\MeetingScheduler
-CALL run
+cd ..\..\..\demo
+CALL runDemo
 
-:STARTHERE
+REM :STARTHERE
 echo Running the TestAgent (testing the messages)
 echo type as input file testmessages.msg
 cd test
@@ -176,19 +188,20 @@ pause
 echo Running the tests on fipa-contract-net protocol
 %JAVA% -cp %CLASSPATH% test.proto.ContractNetTesterAgent 
 pause
-	
+
 echo Running the LEAP Testsuite 
 cd ..\..\..\leapTestSuite
 CALL makeTestSuite.bat
 cd ..\jade\src\test
-REM :STARTHERE
+
+:STARTHERE	
 
 echo Running the behaviours test FIXME (per Giovanni Caire)
 
 echo Running the content test 
 pause Please SHUTDOWN any platform running
 echo starting one sender and one receiver.
-%JAVA% -cp %CLASSPATH% jade.Boot sender:Sender receiver:Receiver
+REM FIXME %JAVA% -cp %CLASSPATH% jade.Boot sender:Sender receiver:Receiver
 
 echo Running the MessageTemplate test
 pause Please SHUTDOWN any platform running
@@ -209,20 +222,9 @@ START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\
 START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar jade.Boot -gui -port 1300 -mtp jamr.jademtp.http.MessageTransportProtocol(http://%LOCALHOST%:7779/acc) da0:jade.tools.DummyAgent.DummyAgent
 pause
 
-echo Testing the XML ACLCodec add-on AND IIOP inter platform communication 
-pause Please SHUTDOWN any platform running and verify to have the crimson.jar into the jade\lib directory.
-echo starting two platform using XMLACLCODEC. Try to send messages between the two dummyagent using the xml codec.
-echo Remember to set the envelope field AclRepresentation to the value: "fipa.acl.rep.xml.std" 
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%JADEIIOP%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar jade.Boot -gui -port 1300 -aclcodec jamr.jadeacl.xml.XMLACLCodec da0:jade.tools.DummyAgent.DummyAgent
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%JADEIIOP%;..\..\lib\crimson.jar;..\..\add-ons\xmlacl\lib\xmlacl.jar jade.Boot -gui -port 1200 -aclcodec jamr.jadeacl.xml.XMLACLCodec da0:jade.tools.DummyAgent.DummyAgent
+echo FIXME RDFCodec Test
 pause 
 
-echo Testing the bit-efficient ACLCodec add-on and IIOP inter platform communication
-pause Please SHUTDOWN any platform running.
-echo starting two platform using BE ACLCodec. Try to send message between the two platforms using the DummyAgents.
-echo remember to set the envelope field AclRepresentation to the value:  fipa.acl.rep.bitefficient.std 
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%JADEIIOP%;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -gui -port 1300 -aclcodec sonera.fipa.acl.BitEffACLCodec da0:jade.tools.DummyAgent.DummyAgent
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%JADEIIOP%;..\..\add-ons\BEFipaMessage\lib\BEFipaMessage.jar jade.Boot -gui -port 1200 -aclcodec sonera.fipa.acl.BitEffACLCodec da0:jade.tools.DummyAgent.DummyAgent
 pause
 
 echo Test if calling jade.jar works. Just the RMA GUI must appear properly
