@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#MIDP_EXCLUDE_FILE
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -54,7 +56,7 @@ class JADEClassLoader extends ClassLoader {
       throw new ClassNotFoundException();
   }
   
-  /*__PJAVA_COMPATIBILITY__BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
+  /*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
   protected Class loadClass(String name,	
     	                    boolean resolve) throws ClassNotFoundException {
   	// 1) Try to see if the class has already been loaded
@@ -79,5 +81,5 @@ class JADEClassLoader extends ClassLoader {
   	}
   	return c;
 	}  	
-	__PJAVA_COMPATIBILITY__END*/
+	#PJAVA_INCLUDE_END*/
 }

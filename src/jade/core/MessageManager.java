@@ -50,16 +50,16 @@ class MessageManager implements TimerListener{
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 	private long retryMaximum = DEFAULT_RETRY_MAXIMUM;
 	
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 	private static final int  DEFAULT_POOL_SIZE = 5;
 	private static final int  MAX_POOL_SIZE = 100;
 	private int poolSize = DEFAULT_POOL_SIZE;
 	
 	private OutBox outBox = new OutBox();
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 	private List         outBox = new LinkedList();
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	private List   errBox = new ArrayList();
 	
 	private AgentContainerImpl myContainer;
@@ -91,7 +91,7 @@ __J2ME_COMPATIBILITY__END*/
 			// Do nothing and keep default value
 		}
 		
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 		// POOL_SIZE
 		try {
 			tmp = p.getParameter("jade.core.MessageManager.pool-size", null);
@@ -112,9 +112,9 @@ __J2ME_COMPATIBILITY__END*/
 		catch (ProfileException pe) {
 			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
 		}
-//__CLDC_UNSUPPORTED__END
+//#MIDP_EXCLUDE_END
 		
-/*__J2ME_COMPATIBILITY__BEGIN
+/*#MIDP_INCLUDE_BEGIN
 		try {
 			ResourceManager rm = p.getResourceManager();
 			Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer", new Deliverer());
@@ -123,23 +123,23 @@ __J2ME_COMPATIBILITY__END*/
 		catch (ProfileException pe) {
 			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
 		}
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	}
 			
 	/**
 	   Activate the asynchronuos delivery of an ACLMessage
    */
 	public void deliver(ACLMessage msg, AID receiverID) {
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 		outBox.addLast(receiverID, msg);
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 		putInOutBox(new PendingMsg(msg, receiverID, -1));
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	}
 	
 
-/*__J2ME_COMPATIBILITY__BEGIN
+/*#MIDP_INCLUDE_BEGIN
 	private void putInOutBox(PendingMsg pm) {
 		synchronized (outBox) {
 			outBox.add(pm);
@@ -159,7 +159,7 @@ __J2ME_COMPATIBILITY__END*/
 			return (PendingMsg) outBox.remove(0);
 		}
 	}
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	
  	/**
  	   Inner class Deliverer
@@ -169,7 +169,7 @@ __J2ME_COMPATIBILITY__END*/
  		public void run() {
  			while (true) {
  				// Get a message from the OutBox
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
  				PendingMsg pm = outBox.get();
  				ACLMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
@@ -185,8 +185,8 @@ __J2ME_COMPATIBILITY__END*/
 	    		// be delivered at a later time.
 	    		deliverLater(pm);
 	    	}
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
  				// Get the next message to be delivered
  				PendingMsg pm = getFromOutBox();
  				ACLMessage msg = pm.getMessage();
@@ -206,7 +206,7 @@ __J2ME_COMPATIBILITY__END*/
     				deliverLater(pm);
     			}
  				}
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	 		}
  		}
  	
@@ -247,7 +247,7 @@ __J2ME_COMPATIBILITY__END*/
  	// Methods dealing with buffering and retransmission when
 	// the destination is temporarily unreachable
  	/////////////////////////////////////////////////////////
-/*__J2ME_COMPATIBILITY__BEGIN
+/*#MIDP_INCLUDE_BEGIN
 	private boolean checkPostpone(AID receiverID, AID senderID) {
 		synchronized (errBox) {
 			Iterator it = errBox.iterator();
@@ -262,7 +262,7 @@ __J2ME_COMPATIBILITY__END*/
 			return false;
 		}
 	}
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 	
 	private void deliverLater(PendingMsg pm) {
 		// Mutual exclusion with doTimeOut()
@@ -309,12 +309,12 @@ __J2ME_COMPATIBILITY__END*/
 				}
 				else {
 					// Otherwise schedule again the message for delivery
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 					outBox.addFirst(pm.getReceiver(), pm.getMessage());
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 					putInOutBox(pm);
-__J2ME_COMPATIBILITY__END*/    
+#MIDP_INCLUDE_END*/    
 				}
 			}
 			errBox.clear();

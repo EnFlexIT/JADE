@@ -68,7 +68,6 @@ import jade.security.PrivilegedExceptionAction;
 
 */
 public class AgentContainerImpl implements AgentContainer, AgentToolkit {
-
   // Local agents, indexed by agent name
   private LADT localAgents = new LADT();
 
@@ -99,9 +98,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // in this container
   private NotificationManager myNotificationManager;
   
-  // Unique ID of the platform, used to build the GUID of resident
-  // agents.
-  private static String platformID;
   private ContainerID myID;
 
   private String username = null;
@@ -124,7 +120,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     myProfile = p;
   }
 
-  //__CLDC_UNSUPPORTED__BEGIN
+  //#MIDP_EXCLUDE_BEGIN
   /**
    * Get the agentcontroller for a local agent given its AID.
    * @param agentID The agentID of the desired agent.
@@ -141,7 +137,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       else
 	  return null;
   }
-  //__CLDC_UNSUPPORTED__END
+  //#MIDP_EXCLUDE_END
 
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
@@ -540,7 +536,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           
           // This string will be used to build the GUID for every agent on
           // this platform.
-          platformID = myPlatform.getPlatformName();
+          AID.setPlatformID(myPlatform.getPlatformName());
           
           // Build the Agent IDs for the AMS and for the Default DF.
           theAMS = new AID("ams", AID.ISLOCALNAME);
@@ -956,9 +952,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   /**
    * This method is used by the class AID in order to get the HAP.
    */
-  static String getPlatformID()
-  {
-  	return platformID;
+  String getPlatformID() {
+  	return AID.getPlatformID();
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
@@ -1044,14 +1039,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // or not.
   private boolean livesHere(AID id) {
     String hap = id.getHap();
-    return CaseInsensitiveString.equalsIgnoreCase(hap, platformID);
+    return CaseInsensitiveString.equalsIgnoreCase(hap, AID.getPlatformID());
   }
   
   LADT getLocalAgents() {
   	return localAgents;
   }
   
-//__JADE_ONLY__BEGIN  
+//#ALL_EXCLUDE_BEGIN  
   //FIXME: These methods have been added to support 
   // PlatformListener registration from the In-process-interface
   // with minimum effort. They will possibly be removed in a 
@@ -1065,7 +1060,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	AgentManager m = (AgentManager) myPlatform;
   	m.removeListener(l);
   }
-//__JADE_ONLY__END  
+//#ALL_EXCLUDE_END  
 }
 
 

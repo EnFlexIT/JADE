@@ -21,7 +21,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-//__JADE_ONLY__BEGIN
+//#MIDP_EXCLUDE_FILE
+//#PJAVA_EXCLUDE_BEGIN
 package jade.core;
 
 import java.util.Comparator;
@@ -170,9 +171,9 @@ class AgentCache {
   }
 
 }
-//__JADE_ONLY__END
+//#PJAVA_EXCLUDE_END
 
-/*__PJAVA_COMPATIBILITY__BEGIN
+/*#PJAVA_INCLUDE_BEGIN
 package jade.core;
 
 
@@ -314,5 +315,5 @@ class AgentCache {
   }
 
 }
-__PJAVA_COMPATIBILITY__END*/
+#PJAVA_INCLUDE_END*/
 

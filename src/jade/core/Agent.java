@@ -387,7 +387,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private String myHap = null;
 
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
-  //private transient Object waitLock = new Object();  // Used for agent waiting
   private transient Object suspendLock = new Object(); // Used for agent suspension
   private transient Object principalLock = new Object(); // Used to make principal transitions atomic
 
@@ -403,9 +402,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // Free running counter that increments by one for each message
   // received.
-  /**
-  @serial
-  */
   private int messageCounter = 0 ;
 
 
@@ -472,9 +468,18 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public Agent() {
     setState(AP_INITIATED);
     myScheduler = new Scheduler(this);
-    Runtime rt = Runtime.instance();
-    theDispatcher = rt.getTimerDispatcher();
+    theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
+  
+  /**
+     Constructor to be used by special "agents" that will never powerUp.
+   */
+ 	Agent(AID id) {
+    myName = id.getLocalName();
+    myHap = id.getHap();
+    myAID = id;
+ 	}
+ 		
     
     
     /** Declared transient because the container changes in case
@@ -1398,7 +1403,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     //waitLock = new Object();
     principalLock = new Object();
     pendingTimers = new AssociationTB();
-    theDispatcher = Runtime.instance().getTimerDispatcher();
+    theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {

@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#J2ME_EXCLUDE_FILE
+
 class FullResourceManager implements ResourceManager {
 	private static final String USER_AGENTS_GROUP_NAME = "JADE User Agents";
 	private static final String SYSTEM_AGENTS_GROUP_NAME = "JADE System Agents";

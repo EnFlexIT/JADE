@@ -41,6 +41,8 @@ import java.util.Enumeration;
  tables use this class to record agent names and addresses.
  */
 public class AID implements Comparable, Serializable {
+  // Unique ID of the platform, used to build the GUID of resident agents.
+  private static String platformID;
   
   /**
   @serial
@@ -100,13 +102,21 @@ public class AID implements Comparable, Serializable {
     public AID(String name, boolean isGUID) {
 	// initialize the static variable atHAP, if not yet initialized
 	if (atHAP == null)
-	    atHAP = "@"+AgentContainerImpl.getPlatformID();
+	    atHAP = "@"+getPlatformID();
 	if (isGUID)
 	    setName(name);
 	else
 	    setLocalName(name);
     }
 
+    static final String getPlatformID() {
+    	return platformID;
+    }
+    
+    static final void setPlatformID(String id) {
+    	platformID = id;
+    }
+    
     /** constant to be used in the constructor of the AID **/
     public static final boolean ISGUID = true;
     /** constant to be used in the constructor of the AID **/

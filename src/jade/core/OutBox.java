@@ -1,5 +1,6 @@
 package jade.core;
 
+//#MIDP_EXCLUDE_FILE
 
 import java.util.Hashtable;
 

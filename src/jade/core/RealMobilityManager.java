@@ -20,6 +20,8 @@
  */
 package jade.core;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;

@@ -87,18 +87,18 @@ class Scheduler implements Serializable {
   public synchronized void add(Behaviour b) {
     readyBehaviours.add(b);
     notify();
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     owner.notifyAddBehaviour(b);
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
   }
 
   // Moves a behaviour from the ready queue to the sleeping queue.
   public synchronized void block(Behaviour b) {
     if (removeFromReady(b)) {
 	    blockedBehaviours.add(b);
-    	//__CLDC_UNSUPPORTED__BEGIN
+    	//#MIDP_EXCLUDE_BEGIN
     	owner.notifyChangeBehaviourState(b, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED);
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
     }
   }
 
@@ -107,25 +107,25 @@ class Scheduler implements Serializable {
     if (removeFromBlocked(b)) {
 	    readyBehaviours.add(b);
     	notify();
-    	//__CLDC_UNSUPPORTED__BEGIN
+    	//#MIDP_EXCLUDE_BEGIN
     	owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_READY);
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
     }
   }
 
-  // Restarts all behaviours. This method simply calls
-  // Behaviour.restart() on every behaviour. The
-  // Behaviour.restart() method then notifies the agent (with the
-  // Agent.notifyRestarted() method), causing Scheduler.restart() to
-  // be called (this also moves behaviours from the blocked queue to 
-  // the ready queue --> we must copy all behaviours into a temporary
-  // buffer to avoid concurrent modification exceptions).
-  // Why not restarting only blocked behaviours?
-  // Some ready behaviour can be a NDBehaviour with some of its
-  // children blocked. These children must be restarted too.
+  /**
+     Restarts all behaviours. This method simply calls
+     Behaviour.restart() on every behaviour. The
+     Behaviour.restart() method then notifies the agent (with the
+     Agent.notifyRestarted() method), causing Scheduler.restart() to
+     be called (this also moves behaviours from the blocked queue to 
+     the ready queue --> we must copy all behaviours into a temporary
+     buffer to avoid concurrent modification exceptions).
+     Why not restarting only blocked behaviours?
+     Some ready behaviour can be a NDBehaviour with some of its
+     children blocked. These children must be restarted too.
+   */
   public synchronized void restartAll() {
-    //Object[] dummy = readyBehaviours.toArray();
-
 
     Behaviour[] behaviours = new Behaviour[readyBehaviours.size()];
     int counter = 0;
@@ -148,21 +148,25 @@ class Scheduler implements Serializable {
     }
   }
 
-  // Removes a specified behaviour from the scheduler
+  /**
+     Removes a specified behaviour from the scheduler
+   */
   public synchronized void remove(Behaviour b) {
     boolean found = removeFromBlocked(b);
     if(!found) {
       found = removeFromReady(b);
     }
     if (found) {
-	    //__CLDC_UNSUPPORTED__BEGIN
+	    //#MIDP_EXCLUDE_BEGIN
   	  owner.notifyRemoveBehaviour(b);    
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
     }
   }
 
-  // Selects the appropriate behaviour for execution, with a trivial
-  // round-robin algorithm.
+  /**
+     Selects the appropriate behaviour for execution, with a trivial
+     round-robin algorithm.
+   */
   public synchronized Behaviour schedule() throws InterruptedException {
     while(readyBehaviours.isEmpty()) {
       owner.doIdle();

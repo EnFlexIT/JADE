@@ -32,7 +32,9 @@ import jade.util.leap.SortedSetImpl;
 */
 
 public class TimerDispatcher implements Runnable {
-
+	// The singleton TimerDispatcher
+	private static TimerDispatcher theDispatcher;
+	
   private Thread myThread;
   private SortedSet timers = new SortedSetImpl();
   private boolean active;
@@ -124,13 +126,13 @@ public class TimerDispatcher implements Runnable {
     // System.out.println("Timer Dispatcher shutting down ...");
   }
 
-  public void start() {
+  void start() {
     synchronized(myThread) {
       myThread.start();
     }
   }
 
-  public void stop() {
+  void stop() {
     synchronized(myThread) {
       if(Thread.currentThread().equals(myThread)) {
 				System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
@@ -150,4 +152,11 @@ public class TimerDispatcher implements Runnable {
     }
   }
 
+  static TimerDispatcher getTimerDispatcher() {
+  	return theDispatcher;
+  }
+  
+  static void setTimerDispatcher(TimerDispatcher td) {
+  	theDispatcher = td;
+  }
 }

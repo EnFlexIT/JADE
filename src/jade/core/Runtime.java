@@ -45,7 +45,6 @@ public class Runtime {
   }
 
   private ThreadGroup criticalThreads;
-  private TimerDispatcher theDispatcher;
   private int activeContainers = 0;
   private Object lock = new Object();
   private LinkedList terminators = new LinkedList();
@@ -106,18 +105,17 @@ public class Runtime {
      @see jade.core.Runtime#createAgentContainer(Profile p)
    */
   public void startUp(Profile p) {    
-        // Set Runtime so that this JVM exits 
-        // when there are no more containers around
-        Runtime.instance().setCloseVM(true);
-        
-      	// Start the platform
-	String isMain = p.getParameter(Profile.MAIN, null);
-      	if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
-        	createMainContainer(p);
-      	}
-      	else {
-        	createAgentContainer(p);
-      	}
+	  // Set Runtime so that this JVM exits 
+	  // when there are no more containers around
+	  Runtime.instance().setCloseVM(true);
+	  
+		// Start the platform
+		if ("true".equalsIgnoreCase(p.getParameter(Profile.MAIN, "true"))) {
+			createMainContainer(p);
+		}
+		else {
+	  	createAgentContainer(p);
+		}
   }
 
 
@@ -152,12 +150,13 @@ public class Runtime {
       criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
 
       // Initialize and start up the timer dispatcher
-      theDispatcher = new TimerDispatcher();
+      TimerDispatcher theDispatcher = new TimerDispatcher();
       Thread t = new Thread(criticalThreads, theDispatcher);
       t.setPriority(criticalThreads.getMaxPriority());
       t.setName("JADE Timer dispatcher");
       //Thread t = ResourceManager.getThread(ResourceManager.CRITICAL, theDispatcher);
       theDispatcher.setThread(t);
+      TimerDispatcher.setTimerDispatcher(theDispatcher);
       theDispatcher.start();
 
     }
@@ -183,7 +182,7 @@ public class Runtime {
       t.start();
       
       // Terminate the TimerDispatcher and release its resources
-    	theDispatcher.stop();
+    	TimerDispatcher.getTimerDispatcher().stop();
       
       try {
 				criticalThreads.destroy();
@@ -199,7 +198,7 @@ public class Runtime {
   }
 
   public TimerDispatcher getTimerDispatcher() {
-    return theDispatcher;
+    return TimerDispatcher.getTimerDispatcher();
   }
 
 
@@ -230,4 +229,3 @@ public class Runtime {
   /************************************************************************/
 }
    
- 
