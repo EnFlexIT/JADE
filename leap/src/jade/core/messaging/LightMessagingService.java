@@ -546,65 +546,11 @@ public class LightMessagingService extends BaseService implements MessageManager
     AID sender = (AID)params[0];
     GenericMessage msg = (GenericMessage)params[1];
     AID dest = (AID)params[2];
-
-    // --- This code could go into a Security Service, intercepting the message sending...
-
-    //    AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
-    //    Authority authority = myContainer.getAuthority();
-    //    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
-
-    // --- End of security code		
-
-
-    AuthException lastException = null;
-
-    /*
-    // 26-Mar-2001. The receivers set into the Envelope of the message, 
-    // if present, must have precedence over those set into the ACLMessage.
-    // If no :intended-receiver parameter is present in the Envelope, 
-    // then the :to parameter
-    // is used to generate :intended-receiver field. 
-    //
-    // create an Iterator with all the receivers to which the message must be 
-    // delivered
-    Iterator it = msg.getAllIntendedReceiver();
-
-    while (it.hasNext()) {
-    AID dest = (AID)it.next();
-    try {
-		AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-		authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
-		ACLMessage copy = (ACLMessage)msg.clone();
-
-		boolean found = myContainer.postMessageToLocalAgent(copy, dest);
-		if(!found) {
-    myMessageManager.deliver(copy, dest, this);
-		}
-    }
-    catch (AuthException ae) {
-		lastException = ae;
-		notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-    }
-    }
-    */
-
-    // FIXME: Now there is only one receiver / command
-    // try {
-      // AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-      // authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
-		
-    boolean found = myContainer.postMessageToLocalAgent(msg.getACLMessage(), dest);
-    if(!found) {
-      myMessageManager.deliver(msg, dest, this);
-    }
-    //}
-    //catch (Exception ae) {
-    //lastException = ae;
-    //notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-    //    }
-
-    if(lastException != null)
-	    throw lastException;
+    // Since message delivery is asynchronous we use the GenericMessage
+    // as a temporary holder for the sender principal and credentials to the 
+    msg.setSenderPrincipal(cmd.getPrincipal());
+    msg.setSenderCredentials(cmd.getCredentials());
+    myMessageManager.deliver(msg, dest, this);
   }
 
   private void handleNotifyFailure(VerticalCommand cmd) throws AuthException {
@@ -633,29 +579,18 @@ public class LightMessagingService extends BaseService implements MessageManager
     content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
     failure.setContent(content);
 
-    /*
-      try {
-	    Authority authority = myContainer.getAuthority();
-	    authority.doPrivileged(new PrivilegedExceptionAction() {
-      public Object run() {
-      try {
-      GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-      command.addParam(theAMS);
-      command.addParam(failure);
-      submit(command);
-      }
-      catch(ServiceException se) {
+    try {
+        GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+        command.addParam(theAMS);
+        command.addParam(new GenericMessage(failure));
+        command.addParam((AID)(failure.getAllReceiver().next()));
+        // FIXME: We should set the AMS principal and credentials
+        submit(command);
+    }
+    catch(ServiceException se) {
       // It should never happen
       se.printStackTrace();
-      }
-      return null; // nothing to return
-      }
-      });
-      } catch(Exception e) {
-	    // should be never thrown
-	    e.printStackTrace();
-      }
-    */
+    }
   }
 
   private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
