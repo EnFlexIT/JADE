@@ -111,7 +111,11 @@ public class HTTPClientConnection extends Connection {
 		    return JICPPacket.readFrom(is);
     	}
     	finally {
-    		close();
+    		try {
+	    		close();
+    		}
+    		catch (Exception e) {
+    		}
     	}
     }
     else {
