@@ -5,14 +5,14 @@
 
 TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  protocols/AgRequestInitiator.java protocols/AgRequestResponder.java \
-	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java behaviours\TestReceiverBehaviourAgent.java \
+	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java behaviours/TestReceiverBehaviourAgent.java \
 	  subdf/SubDF.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
 	  ontology/EngagerAgent.java ontology/RequesterAgent.java \
 	  mobile/MobileAgent.java \
 	  inprocess/InProcessTest.java \
           jsp/Snooper.java jsp/Client.java jsp/Buffer.java PingAgent/PingAgent.java MessageTemplate/WaitAgent.java \
-	  thanksAgent\ThanksAgent.java
+	  thanksAgent/ThanksAgent.java
 
 all: 
 	@echo Making test examples
