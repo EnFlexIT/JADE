@@ -44,6 +44,15 @@ public class DummyAgent extends Agent
 	
 	}
 
+        protected void takeDown() {
+	    SwingUtilities.invokeLater(new Runnable() {
+	      public void run() {
+		myGui.setVisible(false);
+		myGui.dispose();
+	      }
+	    });
+	}
+
 	public DummyAgentGui getGui()
 	{
 		return myGui;
