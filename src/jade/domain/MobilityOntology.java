@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.TermDescriptor;
@@ -48,6 +49,11 @@ public class MobilityOntology {
   private static final String MOBILE_AGENT_SYSTEM = ":mobile-agent-system";
   private static final String MOBILE_AGENT_LANGUAGE = ":mobile-agent-language";
   private static final String MOBILE_AGENT_OS = ":mobile-agent-os";
+  private static final String LOCATION = ":location";
+
+  private static final String MOVE = "move-agent";
+  private static final String CLONE = "clone-agent";
+
 
   private static Ontology theInstance = new DefaultOntology();
 
@@ -68,7 +74,7 @@ public class MobilityOntology {
   private MobilityOntology() {
   }
 
-  private void initInstance() {
+  private static void initInstance() {
     try {
 	theInstance.addFrame(MOBILE_AGENT_DESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(":name", Ontology.STRING_TYPE, Ontology.M),
@@ -126,9 +132,25 @@ public class MobilityOntology {
 	    new TermDescriptor(":transport-protocol", Ontology.STRING_TYPE, Ontology.M),
 	    new TermDescriptor(":transport-address", Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
-	     public Object create(Frame f) { // Use Indexed Creation }
+	     public Object create(Frame f) { return null; } // Use Indexed Creation
 	     public Class getClassForRole() { return Location.class; }
 	   });
+
+	theInstance.addFrame(MOVE, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	    new TermDescriptor(":agent-to-move", Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new MoveAction(); }
+	     public Class getClassForRole() { return MoveAction.class; }
+	   });
+
+	theInstance.addFrame(CLONE, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	    new TermDescriptor(":agent-to-move", Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M),
+	    new TermDescriptor(":new-name", Ontology.STRING_TYPE, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new CloneAction(); }
+	     public Class getClassForRole() { return CloneAction.class; }
+	   });
+
 
     }
     catch(OntologyException oe) {
@@ -187,12 +209,12 @@ public class MobilityOntology {
 
     public void setSignature(byte[] s) {
       signature = new byte[s.length];
-      System.arraycopy(s, 0, signature, s.length);
+      System.arraycopy(s, 0, signature, 0, s.length);
     }
 
     public byte[] getSignature() {
-      byte[] result = new byte[s.length];
-      System.arraycopy(signature, 0, result, signature.length);
+      byte[] result = new byte[signature.length];
+      System.arraycopy(signature, 0, result, 0, signature.length);
       return result;
     }
 
@@ -204,10 +226,6 @@ public class MobilityOntology {
     private MobileAgentSystem system;
     private MobileAgentLanguage language;
     private MobileAgentOS os;
-
-    public MobileAgentProfile(Frame f) {
-
-    }
 
     public void setSystem(MobileAgentSystem s) {
       system = s;
@@ -234,6 +252,7 @@ public class MobilityOntology {
     }
 
   } // End of MobileAgentProfile class
+
 
   public static class MobileAgentSystem {
 
@@ -358,5 +377,69 @@ public class MobilityOntology {
 
   } // End of MobileAgentOS class
 
+  public static class Location implements jade.core.Location {
+
+    private String name;
+    private String protocol;
+    private String address;
+
+    public void setName(String n) {
+      name = n;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setTransportProtocol(String tp) {
+      protocol = tp;
+    }
+
+    public String getTransportProtocol() {
+      return protocol;
+    }
+
+    public void setTransportAddress(String ta) {
+      address = ta;
+    }
+
+    public String getTransportAddress() {
+      return address;
+    }
+
+    public String getID() {
+      return name + '@' + protocol + "://" + address;
+    }
+
+  } // End of Location class
+
+
+  public static class MoveAction {
+
+    private MobileAgentDescription agentToMove;
+
+    public void setAgentToMove(MobileAgentDescription desc) {
+      agentToMove = desc;
+    }
+
+    public MobileAgentDescription getAgentToMove() {
+      return agentToMove;
+    }
+
+  } // End of MoveAction class
+
+  public static class CloneAction extends MoveAction {
+
+    private String newName;
+
+    public void setNewName(String nn) {
+      newName = nn;
+    }
+
+    public String getNewName() {
+      return newName;
+    }
+
+  } // End of CloneAction class
 
 }
