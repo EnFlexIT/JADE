@@ -303,7 +303,7 @@ public class AchieveREInitiator extends Initiator {
     protected int checkSessions(ACLMessage reply) {
 			int ret = -1;
 		  if (reply == null) {
-		    // Timeout has just expired 
+		    // CASE 1: Timeout has just expired 
 				// No further responses will be accepted
 				allResponsesReceived = true;
 				ret = ALL_RESPONSES_RECEIVED;
@@ -327,7 +327,7 @@ public class AchieveREInitiator extends Initiator {
 		  else {
 				int perf = reply.getPerformative();
 				if (Session.isResponse(perf)) {
-			    // The current reply is a response.
+			    // CASE 2: The current reply was a response.
 			    // Check if all responses have been received (this is the 
 			    // case when no active session is still in the INIT state).
 			    allResponsesReceived = true;
@@ -341,12 +341,12 @@ public class AchieveREInitiator extends Initiator {
 			    }
 			    if (allResponsesReceived) {
 						//set an infite timeout to the replyReceiver.
-		        replyReceiver.set(replyTemplate, -1, getDataStore(), REPLY_KEY);
+		        replyReceiver.setDeadline(-1);
 				  	ret = ALL_RESPONSES_RECEIVED;
 			    }
 				}
 				else {
-			    // The current reply is a result notification
+			    // CASE 3: The current reply was a result notification
 			    // Check if all result notifications have
 			    // been received (this is the case when there are no active
 			    // sessions).

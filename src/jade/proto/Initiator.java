@@ -124,7 +124,7 @@ abstract class Initiator extends FSMBehaviour {
 	registerDefaultTransition(HANDLE_INFORM, CHECK_SESSIONS);
 	registerDefaultTransition(HANDLE_FAILURE, CHECK_SESSIONS);
 	registerDefaultTransition(HANDLE_OUT_OF_SEQ, RECEIVE_REPLY);
-	registerDefaultTransition(CHECK_SESSIONS, RECEIVE_REPLY);
+	registerDefaultTransition(CHECK_SESSIONS, RECEIVE_REPLY, toBeReset);
 			
 	// Create and register the states that make up the FSM
 	Behaviour b = null;
@@ -144,7 +144,9 @@ abstract class Initiator extends FSMBehaviour {
 	b = new OneShotBehaviour(myAgent) {
 		public void action() {
 		  Vector allInitiations = (Vector) getDataStore().get(ALL_INITIATIONS_K);
-			sendInitiations(allInitiations);
+		  if (allInitiations != null) {
+			  sendInitiations(allInitiations);
+		  }
 		}	
 		public int onEnd() {
 			return sessions.size();

@@ -35,6 +35,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Serializable;
 
 /**
  * This class implements the Fipa-Contract-Net interaction protocol
@@ -196,20 +197,29 @@ public class ContractNetInitiator extends FSMBehaviour {
   // When step == 1 we deal with CFP and responses
   // When step == 2 we deal with ACCEPT/REJECT_PROPOSAL and result notifications
 	private int step;
-	
-  // The MsgReceiver behaviour used to receive replies 
-  private MsgReceiver rec;
-  
-  // The states that can be visited more than once (need to be reset)
-  private String[] toBeReset;
-  
   // If set to true all responses not yet received are skipped
   private boolean skipNextRespFlag;
-  
-  private ACLMessage cfp;
 	
-	String conversationID = null; 
-	MessageTemplate mt = null; 
+	// These states must be reset before they are visited again.
+	// Note that resetting a state before visiting it again is required
+	// only if
+	// - The onStart() method is redefined
+	// - The state has an "internal memory"
+	// The states below must be reset as the user can redefine them -->
+	// They can fall in one of the above categories.
+	private String[] toBeReset = new String[] {
+		HANDLE_PROPOSE, 
+		HANDLE_REFUSE,
+		HANDLE_NOT_UNDERSTOOD,
+		HANDLE_INFORM,
+		HANDLE_FAILURE,
+		HANDLE_OUT_OF_SEQ
+	};
+    
+  private MsgReceiver rec;
+  private ACLMessage cfp;
+	private String conversationID = null; 
+	private MessageTemplate mt = null; 
     
   /**
    * Constructor for the class that creates a new empty DataStore
@@ -236,14 +246,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 		setDataStore(store);
 		this.cfp = cfp;
 		sessions = new HashMap();
-		toBeReset = new String[] {
-			HANDLE_PROPOSE, 
-			HANDLE_REFUSE,
-			HANDLE_NOT_UNDERSTOOD,
-			HANDLE_INFORM,
-			HANDLE_FAILURE,
-			HANDLE_OUT_OF_SEQ
-		};
 		step = 1;
 		skipNextRespFlag = false;
 		
@@ -892,7 +894,7 @@ public class ContractNetInitiator extends FSMBehaviour {
   /**
      Inner class Session
    */
-  class Session {
+  class Session implements Serializable {
 		private int state = INIT;
 		private int step;
 		
