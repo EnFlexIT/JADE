@@ -103,8 +103,8 @@ public class JICPPeer implements ICP {
   		}
 		}
 			
-		// Local port
-		boolean changePortIfBusy = true;
+		// Local port: a peripheral container can change it if busy...
+		boolean changePortIfBusy = !p.getParameter(Profile.MAIN, true);
 		sb.setLength(idLength);
 		sb.append(JICPProtocol.LOCAL_PORT_KEY);
 		String strPort = p.getParameter(sb.toString(), null);
