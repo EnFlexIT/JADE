@@ -32,7 +32,7 @@ import jade.util.leap.Comparable;
 This class is used by the JADE internal timing system to schedule 
 actions after a given amount of time. It should not
 be used by application developers. 
-@author Giovanni Rimassa - Universita` di Parma
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 public class Timer /*implements Comparable*/ {
