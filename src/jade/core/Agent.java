@@ -997,19 +997,19 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	
     //FIXME Removed synchornized because of a deadlock creation.
     //maybe we should have a delegationsLock object
-	public void setDelegations(DelegationCertificate[] delegations) {
+	private void setDelegations(DelegationCertificate[] delegations) {
 		this.delegations = delegations;
 	}
 	
     //FIXME Removed synchornized because of a deadlock creation.
     //maybe we should have a delegationsLock object
-	public DelegationCertificate[] getDelegations() {
+	private DelegationCertificate[] getDelegations() {
 		if (delegations == null && delegation != null)
 			delegations = new DelegationCertificate[] {delegation};
 		return delegations;
 	}
 	
-	public void doPrivileged(PrivilegedExceptionAction action) throws Exception {
+	private void doPrivileged(PrivilegedExceptionAction action) throws Exception {
 		getAuthority().doAsPrivileged(action, getIdentity(), getDelegations());
 	}
 	//__SECURITY__END
@@ -1956,13 +1956,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		catch (NullPointerException e) {
 			msg.setSender(myAID);
 		}
-		//notifySend(msg);
 		try {
-			doPrivileged(new SendAction(msg));
+		    //notifySend(msg);
+		    doPrivileged(new SendAction(msg));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	/**
@@ -1981,11 +1981,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			}
 			else {
 				currentMessage = msgQueue.removeFirst();
-				//notifyReceived(currentMessage);
 				try {
-					doPrivileged(new ReceiveAction(currentMessage));
+				    //notifyReceived(currentMessage);
+				    doPrivileged(new ReceiveAction(currentMessage));
 				}
 				catch (Exception e) {
+				    e.printStackTrace();
 					//!!! discard the message
 					return receive();
 				}
@@ -2014,9 +2015,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			while (messages.hasNext()) {
 				ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern.match(cursor)) {
-					//notifyReceived(msg);
 					try {
-						doPrivileged(new ReceiveAction(cursor));
+						doPrivileged(new ReceiveAction(cursor)); 
+					        //notifyReceived(cursor);
 						msgQueue.remove(cursor);
 						currentMessage = cursor;
 						msg = cursor;
