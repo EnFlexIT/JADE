@@ -529,6 +529,9 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     // Close down the ACC
     theACC.shutdown();
 
+    // Shuts down the Timer Dispatcher
+    Agent.stopDispatcher();
+
     // Deregister yourself as a container
     containers.removeContainer(MAIN_CONTAINER_NAME);
 
