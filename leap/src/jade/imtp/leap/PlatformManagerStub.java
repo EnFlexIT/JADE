@@ -223,10 +223,11 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 			}
     }
 
-    public void adopt(Node n) throws IMTPException {
+    public void adopt(Node n, Node[] children) throws IMTPException {
 			try {
 			    Command cmd = new Command(ADOPT, remoteID);
 			    cmd.addParam(n);
+			    cmd.addParam(children);
 		
 			    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 		

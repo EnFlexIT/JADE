@@ -598,6 +598,7 @@ class DeliverableDataInputStream extends DataInputStream {
 	    	dsc = new NodeDescriptor(node);
 	    }
 	    
+	    dsc.setParentNode(readNode());
 	    dsc.setUsername(readString());
 	    if (readBoolean()) {
 	    	dsc.setPassword(deserializeByteArray());

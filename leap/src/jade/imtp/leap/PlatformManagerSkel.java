@@ -135,10 +135,11 @@ class PlatformManagerSkel extends Skeleton {
 			} 
 		
 			case PlatformManagerStub.ADOPT: {
-			    Node node = (Node)command.getParamAt(0);
+				Node node = (Node)command.getParamAt(0);
+				Node[] children = (Node[]) command.getParamAt(1);
 		
 			    // Execute command...
-			    impl.adopt(node);
+			    impl.adopt(node, children);
 		
 			    command.reset(Command.OK);
 			    break;

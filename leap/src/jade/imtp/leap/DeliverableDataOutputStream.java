@@ -458,6 +458,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
   private void serializeNodeDescriptor(NodeDescriptor desc) throws IOException, LEAPSerializationException {
     serializeNode(desc.getNode());
     writeContainerID(desc.getContainer());
+    writeNode(desc.getParentNode());
 		writeString(desc.getUsername());
     writeObject(desc.getPassword());
     writeObject(desc.getPrincipal());
