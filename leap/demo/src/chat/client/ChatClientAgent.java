@@ -66,6 +66,7 @@ public class ChatClientAgent extends Agent {
 	private Codec codec = new SLCodec();
 	private Ontology onto = ChatOntology.getInstance();
 	private ACLMessage spokenMsg; 
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	protected void setup() {
 		// Register language and ontology
@@ -251,7 +252,7 @@ public class ChatClientAgent extends Agent {
 	}	
 	
 	private void handleUnexpected(ACLMessage msg) {
-		Logger.println("Unexpected message received from "+msg.getSender().getName());
-		Logger.println("Content is: "+msg.getContent());
+		logger.log(Logger.WARNING,"Unexpected message received from "+msg.getSender().getName());
+		logger.log(Logger.WARNING,"Content is: "+msg.getContent());
 	}
 }
