@@ -58,7 +58,8 @@ public class BehaviourLoadingOntology  extends Ontology implements BehaviourLoad
 	  	
 	  	ConceptSchema cs = (ConceptSchema)getSchema(PARAMETER);
 	  	cs.add(PARAMETER_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(PARAMETER_VALUE, (TermSchema)TermSchema.getBaseSchema());
+	  	cs.add(PARAMETER_VALUE, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL);
+	  	cs.add(PARAMETER_MODE, (PrimitiveSchema)getSchema(BasicOntology.INTEGER));
   	
 	  	AgentActionSchema as = (AgentActionSchema)getSchema(LOAD_BEHAVIOUR);
 	  	as.add(LOAD_BEHAVIOUR_CLASS_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));

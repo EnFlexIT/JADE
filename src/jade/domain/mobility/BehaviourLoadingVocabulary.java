@@ -41,6 +41,7 @@ public interface BehaviourLoadingVocabulary extends ExceptionVocabulary {
   public static final String PARAMETER = "parameter";
   public static final String PARAMETER_NAME	= "name";
   public static final String PARAMETER_VALUE	= "value";
+  public static final String PARAMETER_MODE	= "mode";
   
   // Actions
   public static final String LOAD_BEHAVIOUR = "load-behaviour";

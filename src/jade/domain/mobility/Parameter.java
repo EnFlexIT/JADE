@@ -36,8 +36,14 @@ import jade.util.leap.List;
    @author Giovanni Caire - TILAB
  */
 public class Parameter implements Concept {
+  // Parameter mode values
+  public static final int IN_MODE = 0;
+  public static final int OUT_MODE = 1;
+  public static final int INOUT_MODE = 2;
+  
 	private String name;
 	private Object value;
+	private int mode = IN_MODE;
 	
 	public Parameter() {
 	}
@@ -45,6 +51,12 @@ public class Parameter implements Concept {
 	public Parameter(String name, Object value) {
 		this.name = name;
 		this.value = value;
+	}
+	
+	public Parameter(String name, Object value, int mode) {
+		this.name = name;
+		this.value = value;
+		this.mode = mode;
 	}
 	
 	/**
@@ -77,5 +89,21 @@ public class Parameter implements Concept {
 	 */
 	public Object getValue() {
 		return value;
+	}
+	
+	/**
+	   Sets the IO mode of this parameter. 
+	   This must be one of <code>IN_MODE</code>, <code>OUT_MODE</code>,
+	   <code>INOUT_MODE</code>.
+	 */
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
+	
+	/**
+	   @return the IO mode of this parameter.
+	 */
+	public int getMode() {
+		return mode;
 	}
 }
