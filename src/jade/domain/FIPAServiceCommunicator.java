@@ -42,7 +42,7 @@ import jade.onto.OntologyException;
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
 
-public class FIPAServiceCommunicator {
+class FIPAServiceCommunicator {
 
   /**
    * create a REQUEST message with the following slots:
