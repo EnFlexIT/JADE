@@ -570,7 +570,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public void doStart(String name) {
     AgentContainerImpl thisContainer = Starter.getContainer();
     try {
-      thisContainer.createAgent(name, this, AgentContainer.START);
+      thisContainer.initAgent(name, this, AgentContainer.START);
     }
     catch(java.rmi.RemoteException jrre) {
       jrre.printStackTrace();
