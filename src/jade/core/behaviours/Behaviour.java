@@ -63,6 +63,12 @@ public abstract class Behaviour implements Serializable {
      A constant identifying the runnable state.
      @serial
    */
+  public static final String STATE_READY = "Ready";
+  
+  /**
+     A constant identifying the running state.
+     @serial
+   */
   public static final String STATE_RUNNING = "Running";
   
   /**
@@ -133,7 +139,7 @@ public abstract class Behaviour implements Serializable {
 
   } // End of RunnableChangedEvent class
 
-  private boolean runnableState = true;
+  private String myName;
   
   private boolean startFlag = true;
 
@@ -150,6 +156,11 @@ public abstract class Behaviour implements Serializable {
   */
   protected Agent myAgent;
 
+  /**
+     Flag indicating whether this Behaviour is runnable or not
+   */
+  private boolean runnableState = true;
+  
   /**
      This event object will be re-used for every state change
      notification.
@@ -180,6 +191,17 @@ public abstract class Behaviour implements Serializable {
      behaviour object.
   */
   public Behaviour() {
+  	// Construct a default name
+    myName = getClass().getName();
+    // Remove the class name and the '$' characters from
+    // the class name for readability.
+    int dotIndex = myName.lastIndexOf('.');
+    int dollarIndex = myName.lastIndexOf('$');
+    int lastIndex = (dotIndex > dollarIndex ? dotIndex : dollarIndex);
+      
+    if (lastIndex != -1) {
+      myName = myName.substring(lastIndex+1);
+    }
   }
 
   /**
@@ -187,9 +209,18 @@ public abstract class Behaviour implements Serializable {
      @param a The agent owning this behaviour.
    */
   public Behaviour(Agent a) {
+  	this();
     myAgent = a;
   }
 
+  public final void setBehaviourName(String name) {
+  	myName = name;
+  }
+  
+  public final String getBehaviourName() {
+  	return myName;
+  }
+  
   /**
      Runs the behaviour. This abstract method must be implemented by
      <code>Behaviour</code>subclasses to perform ordinary behaviour
@@ -255,7 +286,9 @@ public abstract class Behaviour implements Serializable {
   		onStart();
   		startFlag = false;
   	}
+  	myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_READY, Behaviour.STATE_RUNNING);
   	action();
+    myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_RUNNING, Behaviour.STATE_READY);
   }
   
   /**
