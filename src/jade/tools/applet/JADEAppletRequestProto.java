@@ -113,36 +113,36 @@ public class JADEAppletRequestProto extends AppletRequestProto
 
     Action act = new Action();
     act.setActor(receiver);
-    if(actionName.equalsIgnoreCase(DFAppletVocabulary.FEDERATEWITH))
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.FEDERATE))
     {
 
     	Federate action = new Federate();
-    	action.setParentDF(parentDF);
-      action.setChildrenDF(description);
+    	action.setDf((AID) parentDF);
+      action.setDescription((DFAgentDescription) description);
 
     	act.setAction(action);
 
     }
     else
-    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETDEFAULTDESCRIPTION))
-    	act.setAction(new GetDefaultDescription());
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETDESCRIPTION))
+    	act.setAction(new GetDescription());
 
     else
-    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETPARENT))
-    	act.setAction(new GetParent());
+    if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETPARENTS))
+    	act.setAction(new GetParents());
     else
     if(actionName.equalsIgnoreCase(DFAppletVocabulary.GETDESCRIPTIONUSED))
     {
       GetDescriptionUsed action = new GetDescriptionUsed();
-      action.setParentDF(parentDF);
+      action.setParentDF((AID) parentDF);
       act.setAction(action);
     }
     else
     if(actionName.equalsIgnoreCase(DFAppletVocabulary.DEREGISTERFROM))
     {
     	DeregisterFrom action = new DeregisterFrom();
-    	action.setParentDF(parentDF);
-    	action.setChildrenDF(description);
+    	action.setDf((AID) parentDF);
+    	action.setDescription((DFAgentDescription) description);
 
     	act.setAction(action);
     }
@@ -238,13 +238,13 @@ public class JADEAppletRequestProto extends AppletRequestProto
    		try{
    	      notYetReady = false;
    				lastMsg = (ACLMessage)msg.clone();
-   				if(this.action.equalsIgnoreCase(DFAppletVocabulary.FEDERATEWITH))
+   				if(this.action.equalsIgnoreCase(DFAppletVocabulary.FEDERATE))
    				   {
    				   	  gui.showStatusMsg("Request processed. Ready for new  request.");
    				   	  gui.addParent(this.parent);
    				   }
    				 else
-   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETDEFAULTDESCRIPTION))
+   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETDESCRIPTION))
    				 {
    				 	//UPDATE the thisDf variable.
    				  try{
@@ -256,7 +256,7 @@ public class JADEAppletRequestProto extends AppletRequestProto
    				  }
    				 }
    				 else
-   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETPARENT))
+   				 if(this.action.equalsIgnoreCase(DFAppletVocabulary.GETPARENTS))
              	gui.showStatusMsg("Request processed. Ready for new Request.");
            else
            if(this.action.equalsIgnoreCase(DFAppletVocabulary.DEREGISTERFROM))

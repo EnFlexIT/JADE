@@ -192,7 +192,7 @@ public void refreshDFGUI()
     	}
   
     //second request the df the parent
-    JADEAppletRequestProto getParent = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.GETPARENT,null,null);
+    JADEAppletRequestProto getParent = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.GETPARENTS,null,null);
     getParent.doProto();
     Iterator parents = getParent.getResult().iterator();
   
@@ -327,7 +327,7 @@ private void Federate(GuiEvent event)
 		DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
 	  try
 	  {
-		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.FEDERATEWITH,dfd,parentDF);
+		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletVocabulary.FEDERATE,dfd,parentDF);
       rf.doProto();
 	  }catch(FIPAException e){
 	  e.printStackTrace();
@@ -378,7 +378,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
 	    System.out.println(df.getName());
 	    try
  	    {
-		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletVocabulary.GETDEFAULTDESCRIPTION,null,null);
+		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletVocabulary.GETDESCRIPTION,null,null);
         rf.doProto();
 	    }catch(FIPAException e){
 	    e.printStackTrace();
