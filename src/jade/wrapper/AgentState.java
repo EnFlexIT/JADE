@@ -41,38 +41,24 @@ public class AgentState extends StateBase {
         "Suspended",    // 4
         "Waiting",      // 5
         "Deleted",      // 6
-        "Transit",      // 7
-        "Copy",         // 8
-        "Gone"          // 9
+        "Transit"       // 7
     };
 
     public static final int cAGENT_STATE_INITIATED = 1;
-    public static final State AGENT_STATE_INITIATED =
-        new AgentState(cAGENT_STATE_INITIATED);
-        
-    public static final int cAGENT_STATE_ACTIVE = 2;
-    public static final State AGENT_STATE_ACTIVE =
-        new AgentState(cAGENT_STATE_ACTIVE);
-        
-    public static final int cAGENT_STATE_IDLE = 3;
-    public static final State AGENT_STATE_IDLE =
-        new AgentState(cAGENT_STATE_IDLE);
-        
+    public static final int cAGENT_STATE_ACTIVE    = 2;
+    public static final int cAGENT_STATE_IDLE      = 3;
     public static final int cAGENT_STATE_SUSPENDED = 4;
-    public static final State AGENT_STATE_SUSPENDED =
-        new AgentState(cAGENT_STATE_SUSPENDED);
-        
-    public static final int cAGENT_STATE_WAITING = 5;
-    public static final State AGENT_STATE_WAITING =
-        new AgentState(cAGENT_STATE_WAITING);
-        
-    public static final int cAGENT_STATE_DELETED = 6;
-    public static final State AGENT_STATE_DELETED =
-        new AgentState(cAGENT_STATE_DELETED);
+    public static final int cAGENT_STATE_WAITING   = 5;
+    public static final int cAGENT_STATE_DELETED   = 6;
+    public static final int cAGENT_STATE_TRANSIT   = 7;
 
-    public static final int cAGENT_STATE_TRANSIT = 7;
-    public static final State AGENT_STATE_INTRANSIT =
-        new AgentState(cAGENT_STATE_TRANSIT);
+    static final State AGENT_STATE_INITIATED = new AgentState(cAGENT_STATE_INITIATED);
+    static final State AGENT_STATE_ACTIVE = new AgentState(cAGENT_STATE_ACTIVE);
+    static final State AGENT_STATE_IDLE = new AgentState(cAGENT_STATE_IDLE);
+    static final State AGENT_STATE_SUSPENDED = new AgentState(cAGENT_STATE_SUSPENDED);
+    static final State AGENT_STATE_WAITING = new AgentState(cAGENT_STATE_WAITING);
+    static final State AGENT_STATE_DELETED = new AgentState(cAGENT_STATE_DELETED);
+    static final State AGENT_STATE_INTRANSIT = new AgentState(cAGENT_STATE_TRANSIT);
 
     /**
      * Creates a state object for a given code.  To avoid coding errors,
@@ -85,7 +71,7 @@ public class AgentState extends StateBase {
      *
      * @param code The integer code identifier for a particular state.
      */
-    public AgentState(int code) {
+    AgentState(int code) {
         super(code, LOWEST_STATE, stateNames);
     }
 
@@ -94,7 +80,7 @@ public class AgentState extends StateBase {
      * @param args Command line arguments, currently not used.
      */
     public static void main(String[] args) {
-        State aState = new AgentState(LOWEST_STATE);
+        AgentState aState = new AgentState(LOWEST_STATE);
 
         System.out.println(aState.legalRange());
     }

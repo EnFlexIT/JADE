@@ -61,7 +61,7 @@ public abstract class StateBase implements State, Comparable, Serializable {
      * @param aBaseCode Value corresponding to first entry in names. Typically 0 or 1.
      * @param names Names of the states.
      */
-    public StateBase(int code, int aBaseCode, String[] names) {
+    StateBase(int code, int aBaseCode, String[] names) {
         baseCode = aBaseCode;
 
         if (names == null) {
@@ -114,7 +114,7 @@ public abstract class StateBase implements State, Comparable, Serializable {
      * @return The integer state code corresponding to the provided state
      * name.
      */
-    public int getCode(String name) {
+    int getCode(String name) {
         if (name == null) {
             throw new IllegalArgumentException("null argument not allowed");
         }
@@ -141,7 +141,7 @@ public abstract class StateBase implements State, Comparable, Serializable {
      * @return The descriptive name of the state or null if the state
      * code is "out of range" (i.e. invalid).
      */
-    public String getName(int code) {
+    String getName(int code) {
         if ((code >= baseCode)
                 && (code <= (baseCode + stateNames.length - 1))) {
             return stateNames[code - baseCode];
@@ -253,7 +253,7 @@ public abstract class StateBase implements State, Comparable, Serializable {
      * Usefull for debugging.
      * @return String Is of the form StateName(StateCode), StateName(StateCode), ....
      */
-    public String legalRange() {
+    String legalRange() {
         StringBuffer buf = new StringBuffer();
 
         for (int i = 0; i < stateNames.length; i++) {

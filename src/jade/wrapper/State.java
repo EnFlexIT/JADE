@@ -45,10 +45,4 @@ public interface State {
      */
     public String toString();
 
-    /**
-     * Return a string containing all descriptions and their codes.
-     * Usefull for debugging.
-     * @return String Is of the form StateName(StateCode), StateName(StateCode), ....
-     */
-    public String legalRange();
 }
