@@ -30,7 +30,7 @@ import jade.util.leap.HashMap;
 // Class for the Local Agent Descriptor Table.
 
 /**
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 class LADT {

@@ -358,8 +358,9 @@ public class AID implements Comparable, Serializable {
   public Properties getAllUserDefinedSlot(){
     return userDefSlots;
   }
-		
+
     /**
+     * Converts this agent identifier into a readable string.
      * @return the String full representation of this AID
      **/
     public String toString() {

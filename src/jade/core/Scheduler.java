@@ -35,7 +35,7 @@ import jade.util.leap.Serializable;
 import jade.core.behaviours.Behaviour;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 

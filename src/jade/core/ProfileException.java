@@ -23,6 +23,9 @@
 package jade.core;
 
 /**
+ * This class represents an exception related to JADE profile creation
+ * or management.
+ *
  * @author Giovanni Caire - TILAB
  */
 public class ProfileException extends Exception {

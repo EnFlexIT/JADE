@@ -29,7 +29,7 @@ import jade.util.leap.Serializable;
  * This class holds a <code>String</code> inside, preserving the case; however,
  * all the equality and comparision operations are performed in a case
  * insensitive fashion.
- * @author Giovanni Rimassa - Universita` di Parma
+ * @author Giovanni Rimassa - Universita' di Parma
  * @version $Date$ $Revision$
  * 
  * Updated 1/06/2001 12:50 by Dmitri Toropov - Siemens AG
@@ -42,7 +42,7 @@ public class CaseInsensitiveString implements Serializable {
     String s;
 
     /**
-     * Create a new <code>Name</code> object.
+     * Create a new <code>CaseInsensitiveString</code> object.
      * @param name The string that will be kept inside this object.
      */
     public CaseInsensitiveString(String name) {
@@ -50,7 +50,8 @@ public class CaseInsensitiveString implements Serializable {
     }
 
     /**
-     * Converts the <code>Name</code> object into a string.
+     * Converts the <code>CaseInsensitiveString</code> object into a
+     * string.
      * @return The string stored inside by the constructor.
      */
     public String toString() {
@@ -58,10 +59,11 @@ public class CaseInsensitiveString implements Serializable {
     } 
 
     /**
-     * Equality operation. This method compares a <code>Name</code> object with
-     * another or with a Java <code>String</code>. The comparison is case
-     * insensitive.
-     * @param o The Java object to compare this <code>Name</code> to.
+     * Equality operation. This method compares a
+     * <code>CaseInsensitiveString</code> object with another or with
+     * a Java <code>String</code>. The comparison is case insensitive.
+     * @param o The Java object to compare this
+     * <code>CaseInsensitiveString</code> to.
      * @return <code>true</code> if the strings contained within the two objects
      * are equal, apart from case.
      */
@@ -81,9 +83,11 @@ public class CaseInsensitiveString implements Serializable {
     } 
 
     /**
-     * Hash code. This method returns an hash code in such a way that two
-     * <code>Name</code> objects differing only in case have the same hash code.
-     * @return The hash code for this <code>Name</code> object.
+     * Hash code. This method returns an hash code in such a way that
+     * two <code>CaseInsensitiveString</code> objects differing only
+     * in case have the same hash code.
+     * @return The hash code for this
+     * <code>CaseInsensitiveString</code> object.
      */
     public int hashCode() {
         return s.toLowerCase().hashCode();

@@ -25,70 +25,159 @@ package jade.core;
 
 import jade.mtp.TransportAddress;
 
+/**
+   A class identifying an aget container in the JADE platform. This
+   class is a simple descriptor of JADE containers, holding their name
+   and a few other data about them.
+
+   @author Giovanni Rimassa - Universita' di Parma
+*/
 public class ContainerID implements Location {
 
-  public static final String DEFAULT_IMTP ="JADE-IMTP"; 
+    /**
+       String constant identifying the JADE default Internal Message
+       Transport Protocol, connecting different containers within the
+       same JADE platform.
+     */
+    public static final String DEFAULT_IMTP ="JADE-IMTP"; 
 
-  private String name;
-  private String address;
+    private String name;
+    private String address;
 
 
-  // Default constructor, used by the ontology engine
-  public ContainerID() {
-  }
+    /**
+       The default costructor builds an uninitialized container ID.
+    */
+    public ContainerID() {
+    }
 
-  public ContainerID(String n, TransportAddress a) {
-    name = n;
-    if(a != null)
-      address = a.getHost();
-    else
-      address = "<Unknown Host>";
-  }
+    /**
+       Build a container ID with the given container name and
+       transport address.
+       @param n The name of the described container.
+       @param a The network address of the node where the described
+       container is deployed.
+    */
+    public ContainerID(String n, TransportAddress a) {
+	name = n;
+	if(a != null)
+	    address = a.getHost();
+	else
+	    address = "<Unknown Host>";
+    }
 
-  public void setName(String n) {
-    name = n;
-  }
+    /**
+       Set the name of the described container.
+       @param n The name to give to the described container.
+    */
+    public void setName(String n) {
+	name = n;
+    }
 
-  public String getName() {
-    return name;
-  }
+    /**
+       Retrieve the name of the described container.
+       @return The container name if one is set, or <code>null</code>
+       otherwise.
+    */
+    public String getName() {
+	return name;
+    }
 
-  public void setProtocol(String p) {
-    // Ignore it
-  }
+    /**
+       Set the IMTP type used to reach the described
+       container.
+       <i>Notice that presently this method does nothing, because only
+       the default JADE IMTP is supported.</i>
 
-  public String getProtocol() {
-    return DEFAULT_IMTP;
-  }
+       @param p The name of the chosen IMTP.
+    */
+    public void setProtocol(String p) {
+	// Ignore it
+    }
 
-  public void setAddress(String a) {
-    address = a;
-  }
+    /**
+       Retrieves the IMTP type used to reach the described container.
+       <i>Notice that, since only the default JADE IMTP is supported,
+       this method presently returns the</i> <code>DEFAULT_IMTP</code>
+       <i>constant</i>.
 
-  public String getAddress() {
-    return address;
-  }
+       @return The name of the IMTP used in the described container.
+    */
+    public String getProtocol() {
+	return DEFAULT_IMTP;
+    }
 
-  public String getID() {
-    return name + '@' + DEFAULT_IMTP + "://" + address;
-  }
+    /**
+       Set the transport address string.
+       @param a The string representation of the URL for the IMTP
+       transport endpoint of the described container.
+    */
+    public void setAddress(String a) {
+	address = a;
+    }
 
-  public String toString() {
-    return getID();
-  }
-  
-  public boolean equals(Object obj) {
+    /**
+       Retrieve the transport address string.
+       @return The string representation of the URL for the IMTP
+       transport endpoint of the described container. If no address
+       string was set, <code>null</code> is returned.
+    */
+    public String getAddress() {
+	return address;
+    }
+
+    /**
+       Retrieve a string identifying the described container. The
+       string is composed by the container name, the <i>@</i> symbol
+       and the transport URL string.
+
+       @return The ID string for the described container.
+    */
+    public String getID() {
+	return name + '@' + DEFAULT_IMTP + "://" + address;
+    }
+
+    /**
+       Retrieve a string representation for this container ID. The
+       string returned is the ID string of the described container.
+
+       @return The string representation of this container ID.
+    */
+    public String toString() {
+	return getID();
+    }
+
+    /**
+       Equality operation over container IDs. Two
+       <code>ContainerID</code> objects are considered equal if and
+       only if their name is the same (a case insensitive string
+       comparison is used.
+
+       @param obje The right hand side of the equality operation, the
+       left hand side being the current object.
+       @return If the <code>obj</code> parameter is an instance of
+       <code>ContainerID</code> class and has the same name (case
+       insensitively) as the current object, then <code>true</code> is
+       returned. Otherwise, this method returns <code>false</code>.
+    */
+    public boolean equals(Object obj) {
   	try {
-  		ContainerID cid = (ContainerID) obj;
-  		return CaseInsensitiveString.equalsIgnoreCase(name, cid.getName());
+	    ContainerID cid = (ContainerID) obj;
+	    return CaseInsensitiveString.equalsIgnoreCase(name, cid.getName());
   	}
   	catch (ClassCastException cce) {
-  		return false;
+	    return false;
   	}
-  }
-  
-  public int hashCode() {
+    }
+
+    /**
+       Hash code operation, compliant with identity-by-name. This
+       method returns an hash code for a container ID, so that two
+       container IDs with the same name (case insensitively) have the
+       same hash code.
+    */
+    public int hashCode() {
   	return name.toLowerCase().hashCode();
-  }
-  		
+    }
+	
 }
