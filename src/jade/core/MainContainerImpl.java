@@ -1572,12 +1572,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	    Object[] objs = l.toArray();
 	    for(int i = 0; i < objs.length; i++) {
 		MTPDescriptor mtp = (MTPDescriptor)objs[i];
-		try {
-		    deadMTP(mtp, cid);
-		}
-		catch(IMTPException imtpe) {
-		    imtpe.printStackTrace();
-		}
+
+		GenericCommand gCmd = new GenericCommand(jade.core.messaging.MessagingSlice.DEAD_MTP, jade.core.messaging.MessagingSlice.NAME, null);
+		gCmd.addParam(mtp);
+		gCmd.addParam(cid);
+		myCommandProcessor.processOutgoing(gCmd);
+
 	    }
 	}
 	catch(NotFoundException nfe) {
