@@ -61,6 +61,7 @@ import jade.core.ContainerID;
 import jade.core.Location;
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
+import jade.core.AgentDescriptor;
 
 import jade.core.ProfileException;
 import jade.core.IMTPException;
@@ -573,13 +574,21 @@ public class AgentMobilityService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 	
-	// FIXME: adjust ownership, principal and credentials
-	private void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws AuthException, NotFoundException, NameClashException {
+	// FIXME: adjust principal 
+	private void clonedAgent(AID agentID, ContainerID cid, Credentials credentials) throws AuthException, NotFoundException, NameClashException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
+	  // Retrieve the ownership from the credentials
+    String ownership = "NONE";
+    if (credentials != null) {
+    	JADEPrincipal ownerPr = credentials.getOwner();
+    	if (ownerPr != null) {
+    		ownership = ownerPr.getName();
+    	}
+    }
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(agentID, cid, null, null, false); 
+		    impl.bornAgent(agentID, cid, null, ownership, false); 
 		}
 		catch(NameClashException nce) {
 		    try {
@@ -597,7 +606,7 @@ public class AgentMobilityService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(agentID, cid, null, null, true);
+			impl.bornAgent(agentID, cid, null, ownership, true);
 		    }
 		}
 	    }
@@ -903,59 +912,62 @@ public class AgentMobilityService extends BaseService {
 	private boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
 		log("Transferring identity of agent "+agentID+" from "+src.getName()+" to "+dest.getName(), 2);
 
-	    MainContainer impl = myContainer.getMain();
-	    if(impl != null) {
-
-		impl.lockEntryForAgent(agentID);
-
-		try {
-		    AgentMobilitySlice srcSlice = (AgentMobilitySlice)getSlice(src.getName());
-		    AgentMobilitySlice destSlice = (AgentMobilitySlice)getSlice(dest.getName());
-		    boolean srcReady = false;
-		    boolean destReady = false;
-
-		    try {
-			srcReady = srcSlice.prepare();
-		    }
-		    catch(IMTPException imtpe) {
-			srcSlice = (AgentMobilitySlice)getFreshSlice(src.getName());
-			srcReady = srcSlice.prepare();
-		    }
-				log("Source "+src.getName()+" "+srcReady, 2);
-
-		    try {
-			destReady = destSlice.prepare();
-		    }
-		    catch(IMTPException imtpe) {
-			destSlice = (AgentMobilitySlice)getFreshSlice(dest.getName());
-			destReady = destSlice.prepare();
-		    }
-				log("Destination "+dest.getName()+" "+destReady, 2);
-
-		    if(!srcReady || !destReady) {
-			// Problems on a participant slice: abort transaction
+    MainContainer impl = myContainer.getMain();
+    if(impl != null) {
+			AgentDescriptor ad = impl.acquireAgentDescriptor(agentID);
+			if (ad != null) {
+				try {
+			    AgentMobilitySlice srcSlice = (AgentMobilitySlice)getSlice(src.getName());
+			    AgentMobilitySlice destSlice = (AgentMobilitySlice)getSlice(dest.getName());
+			    boolean srcReady = false;
+			    boolean destReady = false;
+	
+			    try {
+						srcReady = srcSlice.prepare();
+			    }
+			    catch(IMTPException imtpe) {
+						srcSlice = (AgentMobilitySlice)getFreshSlice(src.getName());
+						srcReady = srcSlice.prepare();
+			    }
+					log("Source "+src.getName()+" "+srcReady, 2);
+	
+			    try {
+						destReady = destSlice.prepare();
+			    }
+			    catch(IMTPException imtpe) {
+						destSlice = (AgentMobilitySlice)getFreshSlice(dest.getName());
+						destReady = destSlice.prepare();
+			    }
+					log("Destination "+dest.getName()+" "+destReady, 2);
+	
+			    if(srcReady && destReady) {
+						// Commit transaction
+						impl.movedAgent(agentID, (ContainerID)src, (ContainerID)dest);
+						return true;
+			    }
+			    else {
+						// Problems on a participant slice: abort transaction
+						return false;
+			    }
+				}
+				catch(Exception e) {
+			    // Link failure: abort transaction
+					log("Link failure!", 2);
+			    return false;
+				}
+				finally {
+			    impl.releaseAgentDescriptor(agentID);
+				}
+			}
+			else {
+				throw new NotFoundException("Agent agentID not found");
+			}	
+    }
+    else {
+			// Do nothing for now, but could also use another slice as transaction coordinator...
+			log("Not a main!", 2);
 			return false;
-		    }
-		}
-		catch(Exception e) {
-		    // Link failure: abort transaction
-				log("Link failure!", 2);
-		    return false;
-		}
-		finally {
-		    impl.unlockEntryForAgent(agentID);
-		}
-
-		// Commit transaction
-		impl.updateEntryForAgent(agentID, src, dest);
-		impl.unlockEntryForAgent(agentID);
-		return true;
-	    }
-	    else {
-		// Do nothing for now, but could also use another slice as transaction coordinator...
-		log("Not a main!", 2);
-		return false;
-	    }
+    }
 	}
 
     } // End of ServiceComponent class
