@@ -28,6 +28,7 @@ import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.util.leap.*;
+import java.io.*;
 
 /**
 * This agent acts as a  responder for the FIPARequest and FIPAQuery protocol
@@ -66,29 +67,31 @@ using the <code>AchiveREResponder<code> behaviour.
 
 public class Responder extends Agent {
     
-    boolean sendingAgree = false;
-	
     public void setup() {
 	
 	Behaviour requestB = new MyRequestResponder(this, AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
 	addBehaviour(requestB);
 	
-	Behaviour queryB = new MyQueryResponder(this,AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_QUERY));
+	Behaviour queryB = new MyRequestResponder(this,AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_QUERY));
 	addBehaviour(queryB);
 	
     }
+
+
+
     
     /**
        Inner class MyRequestResponder
     */
     class MyRequestResponder extends AchieveREResponder {
+	boolean sentAgree = false;
 	
 	public MyRequestResponder(Agent a, MessageTemplate mt) {
 	    super(a, mt, null);
 	}
 	
 	protected ACLMessage prepareResponse(ACLMessage request) throws RefuseException, NotUnderstoodException {
-	    
+	    sentAgree=false;
 	    double chance = Math.random();
 	    
 	    double range = 1.0 / 6.0;
@@ -96,30 +99,25 @@ public class Responder extends Agent {
 	    
 	    if(chance < range ){
 		//send a NOT UNDERSTOOD
-		System.out.println( myAgent.getLocalName() + " --> is  sending a NOT_UNDERSTOOD response in RequestProtocol" );
 		response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 	    }else if(chance <(range * 2.0)){
 		//send a REFUSE	   
-		System.out.println( myAgent.getLocalName() +  " --> is sending a REFUSE response in RequestProtocol" );
 		response.setPerformative(ACLMessage.REFUSE);
 	    }else if (chance < (range * 3.0)){
 		//send an AGREE
-		System.out.println( myAgent.getLocalName() +  " --> is sending an AGREE response in RequestProtocol" );
 		response.setPerformative(ACLMessage.AGREE);
-		sendingAgree = true;
+		sentAgree = true;
 	    }else if (chance < (range * 4.0)){
 		//send an out of sequence Message
-		System.out.println( myAgent.getLocalName() +  " --> is sending an out of sequence response in RequestProtocol" );
 		response.setPerformative(ACLMessage.SUBSCRIBE);
 	    }else if(chance <(range * 5.0)){
 		//send an INFORM
-		System.out.println( myAgent.getLocalName() +  " --> is sending an INFORM response in RequestProtocol" );
 		response.setPerformative(ACLMessage.INFORM);
 	    }else{
 		//check the time out expiration in initiator. 
-		System.out.println( myAgent.getLocalName() +  " --> is sending NO response in RequestProtocol" );
 		response = null;
 	    }
+	    System.out.println( myAgent.getLocalName() +  " --> is sending "+(response==null?"no":(response.getPerformative()==ACLMessage.SUBSCRIBE?"an out-of-sequence":ACLMessage.getPerformative(response.getPerformative())))+ " response to the protocol initiator." );
 	    return response;	
 	}
 	
@@ -129,77 +127,55 @@ public class Responder extends Agent {
 	    
 	    ACLMessage resNot = request.createReply();
 	    
-	    if(sendingAgree){
+	    if(sentAgree){
 		if(chance < 0.25){
 		    //SENDING INFORM
-		    System.out.println( myAgent.getLocalName() +  " --> is sending INFORM result in RequestProtocol");
 		    resNot.setPerformative(ACLMessage.INFORM);
 		}else if(chance < 0.50){
 		    // sending FAILURE
-		    System.out.println( myAgent.getLocalName() +  " --> is sending FAILURE result in RequestProtocol" );
 		    resNot.setPerformative(ACLMessage.FAILURE);
 		}else if(chance < 0.75){
 		    //sending out of sequence message
-		    System.out.println(  myAgent.getLocalName()+  " --> is sending out of sequence result in RequestProtocol" );
 		    resNot.setPerformative(ACLMessage.SUBSCRIBE);
+		    myAgent.addBehaviour(new unblockInitiator(myAgent,resNot));
 		}else{
-		    // checking TIMEOUT into Initiator.
-		    System.out.println(getLocalName() + " No result sent in ResultProtocol");
+		    // sending no message checking TIMEOUT of Initiator.
+		    myAgent.addBehaviour(new unblockInitiator(myAgent,resNot));
 		    resNot = null;
 		}
 	    }else {
 		// the inform message has been already sent.
-		System.out.println(myAgent.getLocalName() + " The inform message has been already sent in RequestProtocol");
 		resNot = null;
 	    }
+	    System.out.println( myAgent.getLocalName() +  " --> is sending "+(resNot==null?"no":(resNot.getPerformative()==ACLMessage.SUBSCRIBE?"an out-of-sequence":ACLMessage.getPerformative(resNot.getPerformative())))+ " result notification to the protocol initiator." );
 	    return resNot;
 	}
     } // End of inner class MyRequestResponder
     
     
+
+
     /**
-       Inner class MyQueryResponder
-    */
-    class MyQueryResponder extends AchieveREResponder {
-	public MyQueryResponder(Agent a, MessageTemplate mt) {
-	    super(a, mt, null);
+     * This inner class is a behaviour that waits until the user presses a
+     * key and then sends a message
+     **/
+    class unblockInitiator extends OneShotBehaviour {
+	ACLMessage msg;
+	unblockInitiator(Agent a, ACLMessage msg) {
+	    super(a);
+	    this.msg=msg;
 	}
-	
-	protected ACLMessage prepareResponse(ACLMessage query) throws RefuseException, NotUnderstoodException {
-	    
-	    double chance = Math.random();
-	    
-	    double range = 1.0 / 6.0;
-	    ACLMessage response = query.createReply();
-	    
-	    if(chance < range ){
-		//send a NOT UNDERSTOOD
-		System.out.println( myAgent.getLocalName() + " --> is  sending a NOT_UNDERSTOOD response in QueryProtocol" );
-		response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-	    }else if(chance <(range * 2.0)){
-		//send a REFUSE
-		System.out.println( myAgent.getLocalName() +  " --> is sending a REFUSE response in QueryProtocol" );
-		response.setPerformative(ACLMessage.REFUSE);
-	    }else if (chance < (range * 3.0)){
-		//send an FAILURE
-		System.out.println( myAgent.getLocalName() +  " --> is sending an FAILURE response in QueryProtocol" );
-		response.setPerformative(ACLMessage.FAILURE);
-	    }else if (chance < (range * 4.0)){
-		//send an out of sequence Message
-		System.out.println( myAgent.getLocalName() +  " --> is sending an out of sequence response in QueryProtocol" );
-		response.setPerformative(ACLMessage.SUBSCRIBE);
-	    }else if(chance <(range * 5.0)){
-		//send an INFORM
-		System.out.println( myAgent.getLocalName() +  " --> is sending an INFORM response in QueryProtocol" );
-		response.setPerformative(ACLMessage.INFORM);
-	    }else{
-		//check the time out expiration in initiator. 
-		System.out.println( myAgent.getLocalName() +  " --> is sending NO response in QueryProtocol" );
-		response = null;
+	public void action() {
+	    System.out.println(myAgent.getLocalName() + ": This situation causes the initiator to block forever; when you are tired of waiting, press a key and a FAILURE message will be sent to unblock the initiator ...");
+	    try {
+		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+		String reply = buff.readLine();
+	    } catch (IOException e) {
+		e.printStackTrace();
 	    }
-	    return response;	
+	    msg.setPerformative(ACLMessage.FAILURE);
+	    myAgent.send(msg);
 	}
-	
-    } // End of inner class MyQueryResponder
-    
+    }
+
 }//end of class Responder 

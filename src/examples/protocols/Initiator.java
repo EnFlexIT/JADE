@@ -81,7 +81,6 @@ public class Initiator extends Agent {
 	    {//sending a REQUEST
 		messageToSend.setPerformative(ACLMessage.REQUEST);
 		messageToSend.setProtocol(jade.proto.FIPAProtocolNames.FIPA_REQUEST);
-		System.out.println("Initiator is sending a Request message");
 	    }else if(chance < (range * 2)){
 		//sending a QUERY_REF
 		messageToSend.setPerformative(ACLMessage.QUERY_REF);
@@ -94,7 +93,7 @@ public class Initiator extends Agent {
 		System.out.println("Initiator is sending a Query-If message");
 	    }
 	
-	
+	System.out.println(getLocalName()+" is sending a "+ACLMessage.getPerformative(messageToSend.getPerformative())+" message to initiate the protocol");
 	return messageToSend;
     }
     
@@ -116,41 +115,43 @@ public class Initiator extends Agent {
 	}
 	
 	protected void handleAgree(ACLMessage agree) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleAgree: " + agree);
+	    System.out.println(myAgent.getLocalName()+ " in handleAgree: " + agree);
 	}
 	
 	protected void handleRefuse(ACLMessage refuse) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleRefuse: " + refuse);
+	    System.out.println(myAgent.getLocalName()+ " in handleRefuse: " + refuse);
 	}
 	protected void handleFailure(ACLMessage failure) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleFailure: " + failure);
+	    System.out.println(myAgent.getLocalName()+ " in handleFailure: " + failure);
 	}
 	protected void handleNotUnderstood(ACLMessage notUnderstood) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleNotUnderstood: " + notUnderstood);
+	    System.out.println(myAgent.getLocalName()+ " in handleNotUnderstood: " + notUnderstood);
 	}
 	protected void handleInform(ACLMessage inform) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleInform: " + inform);
+	    System.out.println(myAgent.getLocalName()+ " in handleInform: " + inform);
 	}
 	protected void handleAllResponses(List allResponses) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleAllResponses");
-	    System.out.println("handleAllResponses - List of responses:");
+	    System.out.print(myAgent.getLocalName()+ " in handleAllResponses: ");
 	    Iterator it = allResponses.iterator();
 	    while(it.hasNext()) {
 		ACLMessage rsp = (ACLMessage) it.next();
-		System.out.println(ACLMessage.getPerformative(rsp.getPerformative()));
+		System.out.print(ACLMessage.getPerformative(rsp.getPerformative())+" ");
 	    }
+	    System.out.println();
 	}
+
 	protected void handleAllResultNotifications(List allResultNotifications) {
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleAllResultNotification");
-	    System.out.println("handle All Result Notification - List of result notifications:");
+	    System.out.println(myAgent.getLocalName()+ " in handleAllResultNotifications: ");
 	    Iterator it = allResultNotifications.iterator();
 	    while(it.hasNext()) {
 		ACLMessage rsp = (ACLMessage) it.next();
-		System.out.println(ACLMessage.getPerformative(rsp.getPerformative()));
+		System.out.print(ACLMessage.getPerformative(rsp.getPerformative())+" ");
 	    }
+	    System.out.println();
 	}
+
 	protected void handleOutOfSequence(ACLMessage msg){
-	    System.out.println("Agent: " + myAgent.getLocalName()+ " in handleOutOfSequence: " + msg);
+	    System.out.println(myAgent.getLocalName()+ " in handleOutOfSequence: " + msg);
 	}
 	
 	public int onEnd(){
