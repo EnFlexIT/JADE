@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/10/10 19:17:13  rimassa
+  Fixed some compilation errors.
+
   Revision 1.3  1998/10/05 20:15:02  Giovanni
   Made 'final' SenderBehaviour class.
 
@@ -9,6 +12,8 @@
 */
 
 package jade.core;
+
+import jade.lang.acl.ACLMessage;
 
 public final class SenderBehaviour extends OneShotBehaviour {
 
@@ -26,7 +31,7 @@ public final class SenderBehaviour extends OneShotBehaviour {
     message = msg;
     receivers = ag;
 
-    message.setSource(myAgent);
+    message.setSource(myAgent.getName());
   }
 
   public SenderBehaviour(Agent a, ACLMessage msg) {
