@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/11/09 00:27:11  rimassa
+  Added 'RMA' as sender name in ACL messages to the AMS.
+  Closing GUI on RMA agent exit.
+
   Revision 1.5  1998/11/05 23:38:06  rimassa
   Added GUI callback methods to create new agents and to kill them.
 
@@ -138,6 +142,7 @@ public class rma extends Agent {
 
     // Fill ACL messages fields
 
+    AMSSubscription.setSource(myName);
     AMSSubscription.setDest("AMS");
     AMSSubscription.setLanguage("SL");
     AMSSubscription.setOntology("jade-agent-management");
@@ -150,6 +155,7 @@ public class rma extends Agent {
     String content = "iota ?x ( :container-list-delta ?x )";
     AMSSubscription.setContent(content);
 
+    AMSCancellation.setSource(myName);
     AMSCancellation.setDest("AMS");
     AMSCancellation.setLanguage("SL");
     AMSCancellation.setOntology("jade-agent-management");
@@ -187,29 +193,38 @@ public class rma extends Agent {
 
   public void takeDown() {
     send(AMSCancellation);
+    myGUI.setVisible(false);
+    myGUI.dispose();
   }
 
 
   // Callback methods from GUI
 
-  public void newAgent(String agentName, String className, int containerID) {
+  public void newAgent(String agentName, String className, String containerName) {
 
     AgentManagementOntology.CreateAgentAction caa = new AgentManagementOntology.CreateAgentAction();
     AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    if(agentName.indexOf('@') < 0)
+      agentName = agentName.concat('@' + myAddress);
+
+    if(containerName.equals(""))
+      containerName = "MainContainer";
 
     amsd.setName(agentName);
 
     caa.setArg(amsd);
     caa.setClassName(className);
-    caa.addProperty(AgentManagementOntology.CreateAgentAction.CONTAINER, new Integer(containerID).toString());
+    caa.addProperty(AgentManagementOntology.CreateAgentAction.CONTAINER, containerName);
 
     StringWriter createText = new StringWriter();
     caa.toText(createText);
     newAgentMsg.setContent("( action ams " + createText + " )");
 
-    newAgentMsg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-
     send(newAgentMsg);
+
+    // FIXME: Should do a complete 'fipa-request' protocol
+
   }
 
   public void killAgent(String name) {
