@@ -49,11 +49,13 @@ class ConnectionWrapper {
 	private boolean oneShot;
 	private boolean locked;
 	private boolean closed;
+	private boolean reused;
 	private long lastUsage;
 	
 	ConnectionWrapper(Connection c) {
 		myConnection = c;
 		oneShot = false;
+		reused = false;
 		locked = true;
 		closed = false;
 	}
@@ -68,6 +70,14 @@ class ConnectionWrapper {
 	
 	final boolean isOneShot() {
 		return oneShot;
+	}
+	
+	final void setReused() {
+		reused = true;
+	}
+	
+	final boolean isReused() {
+		return reused;
 	}
 	
 	synchronized boolean lock() {

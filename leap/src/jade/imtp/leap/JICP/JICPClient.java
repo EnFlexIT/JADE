@@ -75,76 +75,82 @@ class JICPClient {
   public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICPException {
     ConnectionWrapper cw = null;
   	boolean done = false;
-
-    try {
-      // Acquire a connection wrapper from the pool
-      cw = pool.acquire(ta);
-
-      // Prepare JICP information
-      byte dataInfo = JICPProtocol.COMPRESSED_INFO;
-			if (cw.isOneShot()) {
-				dataInfo |= JICPProtocol.TERMINATED_INFO;
-			}
-      if (dataType == JICPProtocol.COMMAND_TYPE) {
-        int commandType = Command.getCommandType(data);
-        switch (commandType) {
-        case Command.PING_NODE_NONBLOCKING:
-          dataInfo |= JICPProtocol.NON_BLOCKING_IMTP_PING_INFO;
-          break;
-
-        case Command.PING_NODE_BLOCKING:
-          dataInfo |= JICPProtocol.BLOCKING_IMTP_PING_INFO;
-          break;
-        }
-      } 
-
-      // Get the actual connection
-      Connection connection = cw.getConnection();
-      
-      // Send the request
-      JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
-      connection.writePacket(request);
-
-      // Read the reply
-      JICPPacket reply = connection.readPacket();
-	    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
-	      throw new ICPException(new String(reply.getData()));
-	    } 
-      if ((reply.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-      	// The server cannot keep the connection open --> set it as one-shot
-      	cw.setOneShot();
-      }
-      pool.release(cw);
+  	
+  	while (true) {
+	    try {
+	      // Acquire a connection wrapper from the pool
+	      cw = pool.acquire(ta);
 	
-    	done = true;
-	    return reply.getData();
-    } 
-    catch (EOFException eof) {
-      throw new ICPException("EOF reached");
-    } 
-    catch (IOException ioe) {
-      throw new ICPException("I/O error sending/receiving data to "+ta.getHost()+":"+ta.getPort(), ioe);
-    } 
-    catch (ICPException icpe) {
-    	// Re-throw the exception
-      throw icpe;
-    } 
-    catch (Exception e) {
-      throw new ICPException("Problems in communication with "+ta.getHost()+":"+ta.getPort(), e);
-    } 
-		finally {    
-			if (done) {
+	      // Prepare JICP information
+	      byte dataInfo = JICPProtocol.DEFAULT_INFO;
 				if (cw.isOneShot()) {
-		      pool.remove(ta, cw);
+					dataInfo |= JICPProtocol.TERMINATED_INFO;
 				}
-	  	}
-	  	else {
-	  		// Some error occurred --> The connection (if any) is no longer valid
-		    if (cw != null) {
-		    	pool.remove(ta, cw);
-				}
-	  	}
-		}
+	      /*if (dataType == JICPProtocol.COMMAND_TYPE) {
+	        int commandType = Command.getCommandType(data);
+	        switch (commandType) {
+	        case Command.PING_NODE_NONBLOCKING:
+	          dataInfo |= JICPProtocol.NON_BLOCKING_IMTP_PING_INFO;
+	          break;
+	
+	        case Command.PING_NODE_BLOCKING:
+	          dataInfo |= JICPProtocol.BLOCKING_IMTP_PING_INFO;
+	          break;
+	        }
+	      }*/ 
+	
+	      // Get the actual connection
+	      Connection connection = cw.getConnection();
+	      
+	      // Send the request
+	      JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
+	      connection.writePacket(request);
+	
+	      // Read the reply
+	      JICPPacket reply = connection.readPacket();
+		    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
+		      throw new ICPException(new String(reply.getData()));
+		    } 
+	      if ((reply.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+	      	// The server cannot keep the connection open --> set it as one-shot
+	      	cw.setOneShot();
+	      }
+	      pool.release(cw);
+		
+	    	done = true;
+		    return reply.getData();
+	    } 
+	    catch (EOFException eof) {
+	    	if (!cw.isReused()) {
+	      	throw new ICPException("EOF reached");
+	    	}
+	    } 
+	    catch (IOException ioe) {
+	    	if (!cw.isReused()) {
+	      	throw new ICPException("I/O error sending/receiving data to "+ta.getHost()+":"+ta.getPort(), ioe);
+	    	}
+	    } 
+	    catch (ICPException icpe) {
+	    	// Re-throw the exception
+	      throw icpe;
+	    } 
+	    catch (Exception e) {
+	      throw new ICPException("Problems in communication with "+ta.getHost()+":"+ta.getPort(), e);
+	    } 
+			finally {    
+				if (done) {
+					if (cw.isOneShot()) {
+			      pool.remove(ta, cw);
+					}
+		  	}
+		  	else {
+		  		// Some error occurred --> The connection (if any) is no longer valid
+			    if (cw != null) {
+			    	pool.remove(ta, cw);
+					}
+		  	}
+			}
+  	}
   } 
   
   public void shutdown() {

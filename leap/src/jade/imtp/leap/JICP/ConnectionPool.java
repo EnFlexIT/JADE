@@ -80,6 +80,7 @@ class ConnectionPool {
 			while (it.hasNext()) {
 				cw = (ConnectionWrapper) it.next();
 				if (cw.lock()) {
+					cw.setReused();
 					return cw;
 				}
 			}
