@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.36  1999/07/19 00:05:34  rimassa
+  Added support for storing and querying a FIPA 98 compliant platform profile.
+
   Revision 1.35  1999/07/13 19:54:23  rimassa
   Changed AMS implementation to hold inside all the AMS Agent
   Descriptors for the agents of the platform.
@@ -356,6 +359,25 @@ public class ams extends Agent {
 
   } // End of ModBehaviour class
 
+  private class QueryPPBehaviour extends AMSBehaviour {
+
+    public FipaRequestResponderBehaviour.Action create() {
+      return new QueryPPBehaviour();
+    }
+
+    protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      sendAgree();
+
+      StringWriter profile = new StringWriter();
+      theProfile.toText(profile);
+
+      ACLMessage reply = getReply();
+      reply.setType("inform");
+      reply.setContent(profile.toString());
+      send(reply);
+    }
+
+  } // End of QueryPPBehaviour class
 
   // These Behaviours handle interactions with Remote Management Agent.
 
@@ -696,6 +718,8 @@ public class ams extends Agent {
 
   private Map pendingInforms = new HashMap();
 
+  private AgentManagementOntology.PlatformProfile theProfile = new AgentManagementOntology.PlatformProfile();
+
   /**
      This constructor creates a new <em>AMS</em> agent. Since a direct
      reference to an Agent Platform implementation must be passed to
@@ -729,6 +753,7 @@ public class ams extends Agent {
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.REGISTERAGENT, new RegBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.DEREGISTERAGENT, new DeregBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.MODIFYAGENT, new ModBehaviour());
+    dispatcher.registerFactory(AgentManagementOntology.AMSAction.QUERYPLATFORMPROFILE, new QueryPPBehaviour());
 
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.CREATEAGENT, new CreateBehaviour());
     dispatcher.registerFactory(AgentManagementOntology.AMSAction.KILLAGENT, new KillBehaviour());
@@ -741,6 +766,15 @@ public class ams extends Agent {
    to carry on its duties within <em><b>JADE</b></em> agent platform.
   */
   protected void setup() {
+
+    // Fill Agent Platform Profile with data.
+    theProfile.setPlatformName("cselt.UniPR.JADE");
+    theProfile.setIiopURL(getAddress());
+    theProfile.setDynReg("false");
+    theProfile.setMobility("false");
+    theProfile.setOwnership("CSELT.it");
+    theProfile.setCertificationAuthority("None");
+    theProfile.setFipaVersion("fipa97-part1-v2");
 
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction
