@@ -74,6 +74,17 @@ class NodeAdapter implements Node, Serializable {
 	return myName;
     }
 
+    /***
+    void changeNodePrincipal(CertificateFolders certs) throws IMTPException {
+	try {
+	    adaptee.changeNodePrincipal(certs);
+	}
+	catch(RemoteException re) {
+	    throw new IMTPException("RMI exception", re);
+	}
+    }
+    ***/
+
     public void ping(boolean hang) throws IMTPException {
 	try {
 	    adaptee.ping(hang);
