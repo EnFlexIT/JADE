@@ -55,7 +55,7 @@ import jade.onto.DefaultOntology;
    <code>AgentManagementOntology</code> inner classes hava a pair of
    methods to perform bidirectional conversions to/from character
    stream objects: a <code>fromText(Reader r)</code> static
-   <em>Factory Method</code> builds a new ontology object out of a
+   <em>Factory Method</em></code> builds a new ontology object out of a
    <code>java.io.Reader</code> object, whereas <code>toText(Writer
    w)</code> method writes an existing object onto a suitable
    <code>java.io.Writer</code> object. These two methods work just
@@ -375,7 +375,7 @@ public class AgentManagementOntology extends DefaultOntology {
     <code>DF-agent-description</code> objects in
     <code>fipa-agent-management</code> ontology.
   */
-  public static class DFAgentDescriptor {
+  public static class DFAgentDescriptor implements Cloneable {
 
     // These String constants are the keywords in
     // 'FIPA-DF-description' objects
@@ -548,6 +548,18 @@ public class AgentManagementOntology extends DefaultOntology {
       }
 
     }
+    
+  public Object clone()
+  {
+  	Object o = null;
+  	try{
+  		o = super.clone();
+  	}catch(CloneNotSupportedException e){
+  		System.out.println("DFAgentDescriptor not support clone");
+  	}
+  	return o;
+  
+  }  
 
   } // End of DFAgentDescriptor class
 
@@ -690,6 +702,14 @@ public class AgentManagementOntology extends DefaultOntology {
       if(searchOutcome != null)
 	throw searchOutcome;
       return results.elements();
+    }
+    
+    /**
+    * This method return the size of the hashtable containing the DF-search-results
+    */
+    public int size() 
+    {
+			return results.size();    
     }
 
   } // End of DFSearchResult class

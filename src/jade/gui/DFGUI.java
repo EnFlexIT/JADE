@@ -36,25 +36,86 @@ import java.util.*;
 import jade.domain.*;
 
 /**
-@author Giovanni Caire - CSELT S.p.A.
-@version $Date$ $Revision$
+* This class implements the GUI of the Directory Facilitator.
+* The gui shows a tabbed pane with three different views of the functions  
+* provided by a Directory Facilitator.
+* The three views are: <ul>
+* <li><b>Agents registered with the DF</b> shows a table with all the agents 
+* registered with the DF.
+* <li><b>Last Search Result</b> shows a table with the list of agent descriptions that
+* were returned as a result of the last search operation.
+* <li><b>DF Federation</b> shows the DF federation. The Parents table shows the list of DF's 
+* with which this
+* DF is federated, while the Children table shows the list of DF's 
+* that are registered with this DF.</ul>
+* According to the tab selected, only some actions are allowed:
+* <ol><b>Agents registered with the df</b>.
+* <ul>
+* <li><b>View</b> the description of the selected  agent from the table.
+* <li><b>Modify</b> the description of the selected agent.
+* <li><b>Register</b> an agent with the DF. The user is then requested to fill in 
+* an agent description, notice that  
+* some values are mandatory for registration,
+* <li><b>Deregister</b> an agent selected in the table.
+* <li><b>Search</b> for agent descriptions with this DF. 
+* If no value is inserted in the agent description, the search action returns 
+* all the active agents currently registered with this DF.
+* <li><b>Search with constraints</b> allows to make a search with this DF 
+* by adding further constraints, as specified by the FIPA specifications. 
+* The constraints inserted are stored to avoid inserting them again for the next operation.
+* Two kinds of constraints are permitted <code>df-depth</code>: 
+* the depth of propagation of the search operation to the federated DF's,
+* and the <code>resp-req</code>: the number of returned agent descriptions. 
+* <li><b>Federate</b> allow to federate this DF with another DF. First of all, 
+* the user must provide the full name of the DF with 
+* which to federate and then the description of this DF that must be registered with the
+* specified DF. </ul>
+* <b>Last Search Result</b>
+* <ul>
+* <li><b>View</b> the description of a selected agent on the table of the results.
+* <li><b>Search</b> for agent descriptions with this DF. (see above)
+* <li><b>Search with Constraints</b> (see above).</ul>
+* <b>DF Federation</b>
+* <ul>
+* <li><b>View</b> the description of an agent selected in one of the two tables.
+* If the agent selected is a parent, then the default description 
+* of this DF is shown. Otherwise if the selected agent is a child,
+* then the description of this child DF is shown.
+* <li><b>Deregister</b> If the selected agent is a parent then this DF is 
+* deregistered from the selected one, 
+* otherwise, if the agent selected is a child, this child is deregistered from this DF.
+* <li><b>Search</b> permits to make a search with default constraint with the DF selected in one of the tables. 
+* <li><b>Search with constraints</b> permits to make a search with constraints with the DF selected in one of the tables.
+* <li><b>Federate</b> allows to federate this DF with the selected one.
+*</ol>
+* @author Giovanni Caire - Tiziana Trucco - CSELT S.p.A.
+* @version $Date$ $Revision$
 */
 
 public class DFGUI extends JFrame
 {
+	// class variables used to discriminate between the view of the dfgui.
+	public static int AGENT_VIEW = 0;
+	public static int LASTSEARCH_VIEW = 1;
+	public static int PARENT_VIEW = 2;
+	public static int CHILDREN_VIEW = 3;
+	
 	GUI2DFCommunicatorInterface myAgent;
 	AgentNameTableModel         registeredModel, foundModel,parentModel,childrenModel;
 	JTable                      registeredTable, foundTable,parentTable,childrenTable;
 	JSplitPane                  tablePane;
 	JTabbedPane                 tabbedPane;
-	JButton                     modifyB,deregB,regNewB,fedDFB,viewB,searchB;
+	JButton                     modifyB,deregB,regNewB,fedDFB,viewB,searchB,searchWithB;
+	JTextField                  statusField;
+	JScrollPane                 textScroll;
 	DFGUIModifyAction           dfModifyAction;
 	DFGUIViewAction             dfViewAction;
 	DFGUISearchAction           dfSearchAction; 
 	DFGUIRegisterAction         dfRegAction;
 	DFGUIDeregisterAction       dfDeregAction;
 	DFGUIFederateAction         dfFedAction;
-
+  DFGUISearchWithConstraintAction   dfSearchConstraintAction; 
+  
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a) 
 	{
@@ -81,11 +142,15 @@ public class DFGUI extends JFrame
 		dfDeregAction = new DFGUIDeregisterAction(this);
 		dfRegAction = new DFGUIRegisterAction(this);
 		dfSearchAction = new DFGUISearchAction(this); 
+		dfSearchConstraintAction = new DFGUISearchWithConstraintAction(this);
+		
 		item = catalogueMenu.add(dfViewAction);
 		item = catalogueMenu.add(dfModifyAction);
 		item = catalogueMenu.add(dfDeregAction);
 		item = catalogueMenu.add(dfRegAction);
 		item = catalogueMenu.add(dfSearchAction);
+		item = catalogueMenu.add(dfSearchConstraintAction);
+		
 		jmb.add (catalogueMenu);
 		
 		JMenu superDFMenu = new JMenu ("Super DF");
@@ -150,6 +215,12 @@ public class DFGUI extends JFrame
 		searchB.setIcon(searchImg);
 		searchB.setToolTipText("Search for agents matching a given description");
 
+		Icon searchWithImg = DFGuiProperties.getIcon("searchwithconstraints");
+		searchWithB = bar.add(new DFGUISearchWithConstraintAction(this));
+		searchWithB.setText("");
+		searchWithB.setIcon(searchWithImg);
+		searchWithB.setToolTipText("Search for agent using constraints");
+		
 		bar.addSeparator();
 
 		// SUPER DF
@@ -233,11 +304,12 @@ public class DFGUI extends JFrame
 		registerPanel.add(pane, BorderLayout.CENTER);
 		registerPanel.setBorder(BorderFactory.createEtchedBorder());
 		
-		tabbedPane.addTab("Agent registered with the DF",registerPanel);
+		tabbedPane.addTab("Agents registered with the DF",registerPanel);
 		tabbedPane.setSelectedIndex(0);
 		
 		/////////////////////////
 		// Search result table
+
 		JPanel lastSearchPanel = new JPanel();
 		lastSearchPanel.setLayout(new BorderLayout());
 		foundModel = new AgentNameTableModel();
@@ -273,7 +345,7 @@ public class DFGUI extends JFrame
 		pane.getViewport().setView(foundTable); 
 		lastSearchPanel.add(pane, BorderLayout.CENTER);
 		lastSearchPanel.setBorder(BorderFactory.createEtchedBorder());
-			
+	
 		tabbedPane.addTab("Last Search Result",lastSearchPanel);	
 		
 		JSplitPane tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -369,6 +441,17 @@ public class DFGUI extends JFrame
 	
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		
+		////////////////////////
+		// Status message
+		////////////////////////
+		JPanel statusPanel = new JPanel();
+		statusPanel.setLayout(new BorderLayout());
+		statusPanel.setBorder(BorderFactory.createTitledBorder("Status"));
+		statusField= new JTextField();
+		statusField.setEditable(false);
+		statusPanel.add(statusField, BorderLayout.CENTER);
+		getContentPane().add(statusPanel, BorderLayout.SOUTH);
+		
 		
 		////////////////////////////////////////////////////////////////
 		// Execute the Close GUI action when the user attempts to close 
@@ -403,30 +486,30 @@ public class DFGUI extends JFrame
   
   }
   
-  //FIXME. Dummy method. We should add a textfield to display error messages
-  public void showErrorMsg(String msg) {
-    System.err.println(msg);
+  //Use this method to show a message on the DF GUI
+  public void showStatusMsg(String msg) {
+    statusField.setText(msg);
   }
 
 	private void setButton(int tab)
 	{
 		switch (tab){
 		
-			case 0: setSearch(true);
+			case 0: //setSearch(true);
 							setDeregister(true);
 							setRegister(true);
 							setModify(true);
 							setDFfed(true);
 							break;
 							
-			case 1: setSearch(true);
+			case 1: //setSearch(true);
 						  setDeregister(false);
 						  setRegister(false);
 					    setModify(false);
 							setDFfed(false);
 							break;
 		
-		  case 2: setSearch(true);
+		  case 2: //setSearch(true);
 							setDeregister(true);
 							setRegister(false);
 							setModify(false);
@@ -457,12 +540,12 @@ public class DFGUI extends JFrame
 
 	}
 		
-	private void setSearch(boolean value)
+	/*private void setSearch(boolean value)
 	{
 		searchB.setEnabled(value);
 		dfSearchAction.setEnabled(value);
 
-	}
+	}*/
 
 	private void setDFfed(boolean value)
 	{
@@ -529,22 +612,21 @@ public class DFGUI extends JFrame
 		int tab = tabbedPane.getSelectedIndex();
 
 		if (tab == 0)
-			out = 0; //deregister an agent from descriptor table
+			out = AGENT_VIEW; //operation from descriptor table
 			else if(tab == 1)
-				out = 1; // deregister from lastsearch view (NOW NOT Possible)
+				out = LASTSEARCH_VIEW; // operation from lastsearch view 
 				else if (tab == 2)
 				{
 					int rowSelected = parentTable.getSelectedRow();
 					if (rowSelected != -1)
-						out = 2; //deregister the df from a parent
+						out = PARENT_VIEW; //OPERATION  from  parent table
 						else
 						{
 							rowSelected = childrenTable.getSelectedRow();
 						  if (rowSelected != -1) 
-							  out = 3; //deregister a children
+							  out = CHILDREN_VIEW; //OPERATION from children table
 						}
 				}
-		System.out.println("out: "+ out);		
 		return out;
 						
 				}
@@ -593,6 +675,7 @@ public class DFGUI extends JFrame
 		childrenModel.fireTableDataChanged();
 		
 	}
+	
 	
 	////////////////////////////////////
 	// Show DF GUI properly

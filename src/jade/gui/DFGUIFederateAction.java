@@ -57,7 +57,7 @@ class DFGUIFederateAction extends AbstractAction
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
 		
 		dfd = gui.myAgent.getDescriptionOfThisDF();
-		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the name of the DF with which federate");
+		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the full name of the DF with which federate");
 		String parent = insertDlg.editString("");
 		if ( parent != null)
 		{
@@ -70,7 +70,7 @@ class DFGUIFederateAction extends AbstractAction
 		}
 		else 
 		System.out.println("Please enter the name of the DF  with which to federate");
-		// FIXME To be done
+	
 	}
 }
 	

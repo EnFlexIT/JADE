@@ -34,7 +34,7 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 /**
-@author Giovanni Caire - CSELT S.p.A.
+@author Tiziana Trucco - CSELT S.p.A.
 @version $Date$ $Revision$
 */
 
@@ -52,12 +52,30 @@ class DFGUISearchAction extends AbstractAction
 	{
 		//System.out.println("SEARCH");
 		//System.out.println("Not yet implemented!");
-		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+		int kind = gui.kindOfOperation();
+		String df = gui.myAgent.getName();
 		
+		if (kind == DFGUI.PARENT_VIEW) // search on parent
+		   {
+		    String name = gui.getSelectedAgentInTable();
+		    if (name != null)
+		    	df = name; //find the address of the parent-df
+		    	
+		   }	
+		else if (kind == DFGUI.CHILDREN_VIEW)
+			{
+				String name = gui.getSelectedAgentInTable();
+				if(name != null)
+					df = name;//find the adress of the child-df
+			}
+		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+	
+		AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(null);
+
+		//If no df is selected, the df of the platform is used. 
 		if (editedDfd != null)
 		{	
-			gui.myAgent.postSearchEvent((Object) gui, gui.myAgent.getName(), editedDfd);
+			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd);
 			gui.setTab("Search");
 		}
 	}

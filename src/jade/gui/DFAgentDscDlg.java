@@ -216,7 +216,7 @@ class DFAgentDscDlg extends JDialog
 					if (i != -1)
 					{
 						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i));
+						dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),false);
 					} 
 				}  
 			} 
@@ -234,7 +234,7 @@ class DFAgentDscDlg extends JDialog
 									if (i != -1)
 									{
 										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i));
+										dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),false);
 									} 
 								}
 							} 
@@ -646,7 +646,9 @@ class DFAgentDscDlg extends JDialog
 					if (i != -1)
 					{
 						ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-						AgentManagementOntology.ServiceDescriptor dsc = dlg.editSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i));
+						AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),true);
+					
+
 						if (dsc != null)
 						{	
 							servicesListModel.setElementAt((Object) dsc, i);
@@ -683,7 +685,7 @@ class DFAgentDscDlg extends JDialog
 								if (param.equals("Add"))
 								{
 									ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-									AgentManagementOntology.ServiceDescriptor dsc = dlg.editSD(null);
+									AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD(null,true);
 									if (dsc != null)
 										servicesListModel.add(0, (Object) dsc);
 								}
@@ -700,7 +702,7 @@ class DFAgentDscDlg extends JDialog
 									if (i != -1)
 									{
 										ServiceDscDlg dlg = new ServiceDscDlg(dlgParent);
-										AgentManagementOntology.ServiceDescriptor dsc = dlg.editSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i));
+										AgentManagementOntology.ServiceDescriptor dsc = dlg.viewSD((AgentManagementOntology.ServiceDescriptor) servicesListModel.getElementAt(i),true);
 										if (dsc != null)
 											servicesListModel.setElementAt((Object) dsc, i);
 									} 

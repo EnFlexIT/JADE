@@ -42,13 +42,17 @@ class DFGUIAboutAction extends AbstractAction
 	{
 		super ("About");
 		this.gui = gui;
-		setEnabled(false);
+		setEnabled(true);
 	}
 	
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("ABOUT");
-		System.out.println("Not yet implemented");
+	  TreeHelp help = new TreeHelp();
+	  // must insert the listener for the close action
+	  help.pack();
+	  help.setSize(500,500);
+	  help.setVisible(true);
 	}
 }
 	

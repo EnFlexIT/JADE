@@ -56,7 +56,7 @@ class DFGUIDeregisterAction extends AbstractAction
 	  String name;
 		int kind = gui.kindOfOperation();
 	 
-	  if ( kind == 0 || kind == 3)
+	  if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW)
 		{
       // Deregister an agent from the descriptor table		
 			name = gui.getSelectedAgentInTable();
@@ -72,9 +72,11 @@ class DFGUIDeregisterAction extends AbstractAction
 					return;}
 			
 			}
+			else
+			return;
 		}
 		else
-		if (kind == 2)
+		if (kind == DFGUI.PARENT_VIEW)
 		{
 			//Deregister the df from a selected parent 
 

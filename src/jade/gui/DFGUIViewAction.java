@@ -55,29 +55,36 @@ class DFGUIViewAction extends AbstractAction
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
 		int kind = gui.kindOfOperation();
 		
-		if ( kind == 0 || kind == 3 || kind == 1)
+		if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW || kind == DFGUI.LASTSEARCH_VIEW)
 	  {
 	  	String name = gui.getSelectedAgentInTable();
 	  	if (name != null)
-	  		try
-	  		{
-	  			dfd = gui.myAgent.getDFAgentDsc(name);
+	      try{
+	      	if(kind == DFGUI.LASTSEARCH_VIEW)
+	      	  dfd = gui.myAgent.getDFAgentSearchDsc(name);
+	        else
+	  			  dfd = gui.myAgent.getDFAgentDsc(name);
 	  		}catch (FIPAException fe){
-	  			System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+	  			//System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+	  			gui.showStatusMsg("WARNING! No description for agent called " + name + " is found");
 	  			return;}
+	  	else dfd = null;
 	  	
 	  	}
 	  	else
-	  	if (kind == 2)
+	  	if (kind == DFGUI.PARENT_VIEW)
 	  	{
 	  	  // In this case the description that will be shown will be the standard description used to federate the df 
 	  		dfd = gui.myAgent.getDescriptionOfThisDF();
 	  	
-	  	}
+	  	}		
 	  	
-	    DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-		
-			dlg.viewDFD(dfd);
+	    if(dfd != null && kind != -1)
+	    {
+	    	DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+	    	dlg.viewDFD(dfd);
+	    }
+	    
 		
 		
 	}
