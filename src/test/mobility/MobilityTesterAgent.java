@@ -48,6 +48,8 @@ import test.common.*;
 public class MobilityTesterAgent extends TesterAgent {
 	public static final String CONTAINER1_KEY = "C1";
 	public static final String CONTAINER2_KEY = "C2";
+	public static final String ADDITIONAL_CLASSPATH_KEY = "classpath";
+	public static final String ADDITIONAL_CLASSPATH_DEFAULT = "c:/jade/src/test/separate.jar";
 	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/mobility/mobilityTestsList.xml"){		
@@ -62,12 +64,14 @@ public class MobilityTesterAgent extends TesterAgent {
 				jc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
 				setArgument(CONTAINER2_KEY, jc2.getContainerName());
 			}
+			
 			protected void shutdown(Agent a) {
 				jc1.kill();
 				jc2.kill();
 			}
 		};
-		
+		tg.specifyArgument(ADDITIONAL_CLASSPATH_KEY, "Additional classpath", ADDITIONAL_CLASSPATH_DEFAULT);
+
 		return tg;
 	}
 				
