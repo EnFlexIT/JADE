@@ -115,8 +115,10 @@ public class FIPAServiceCommunicator {
       tuple = o.createObject(tuple);
       return (ResultPredicate)tuple.get(0);
     } catch (Codec.CodecException e1) {
+      e1.printStackTrace();
       throw new FIPAException(e1.getMessage());
     } catch (OntologyException e2) {
+      e2.printStackTrace();
       throw new FIPAException(e2.getMessage());
     }
   }
