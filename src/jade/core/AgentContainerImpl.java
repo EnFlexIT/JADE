@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.35  1999/04/07 11:39:00  rimassa
+  Fixed a shutdown problem: a ConcurrentModificationException was thrown
+  during local agents destruction.
+  Removed calls to ACLMessage.getDest() method.
+
   Revision 1.34  1999/03/30 06:49:44  rimassa
   Fixed a bug: when an agent on another platform had the same local name
   of a local agent, it was not contacted with IIOP.
@@ -278,7 +283,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
-    String completeName = msg.getDest();
+		String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
     int atPos = completeName.indexOf('@');
     if(atPos == -1)
@@ -348,22 +353,21 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void shutDown() {
+    // Remove all agents
+    Set s = localAgents.keySet();
+		java.lang.Object[] allLocalAgents = s.toArray();
+    for(int i = 0; i < allLocalAgents.length; i++) {
+      String name = (String)allLocalAgents[i];
 
-    Set names = localAgents.keySet();
-    Iterator nameList = names.iterator();
+			// Kill agent and wait for its termination
+			Agent a = (Agent)localAgents.get(name);
+			a.doDelete();
+			a.join();
+		}
+
     try {
-      // Remove all agents
-      while(nameList.hasNext()) {
-	String name = (String)nameList.next();
-	// Kill agent and wait for its termination
-	Agent a = (Agent)localAgents.get(name);
-	a.doDelete();
-	a.join();
-      }
-
-      // Deregister itself as a container
+			// Deregister itself as a container
       myPlatform.removeContainer(myName); // RMI call
-
     }
     catch(RemoteException re) {
       re.printStackTrace();
@@ -383,18 +387,18 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       group = event.getRecipients();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();
-	msg.removeAllDests();
-	msg.addDest(dest);
-	unicastPostMessage(msg, dest);
+				String dest = (String)e.nextElement();
+				msg.removeAllDests();
+				msg.addDest(dest);
+				unicastPostMessage(msg, dest);
       }
     }
     else {
       group = msg.getDests();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();
-	unicastPostMessage(msg, dest);
+				String dest = (String)e.nextElement();
+				unicastPostMessage(msg, dest);
       }
     }
   }
