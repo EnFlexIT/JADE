@@ -44,6 +44,7 @@ import jade.proto.SubscriptionResponder.SubscriptionManager;
 import jade.proto.SubscriptionResponder.Subscription;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.FailureException;
 
 import jade.tools.ToolAgent;
 
@@ -132,7 +133,7 @@ public class ChatManagerAgent extends ToolAgent implements SubscriptionManager {
 	  }		
 	}
 	
-	public void deregister(Subscription s) throws RefuseException, NotUnderstoodException {
+	public boolean deregister(Subscription s) throws FailureException {
 		AID oldId = s.getMessage().getSender();
 		// Remove the subscription
 		if (participants.remove(oldId) != null) {
@@ -159,6 +160,7 @@ public class ChatManagerAgent extends ToolAgent implements SubscriptionManager {
 				}
 			}
 		}
+		return false;
 	}
 	
   /**
