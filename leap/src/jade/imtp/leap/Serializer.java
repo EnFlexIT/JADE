@@ -41,6 +41,7 @@ package jade.imtp.leap;
  * to be automatically serialized by LEAP IMTP.
  * 
  * @author Giovanni Caire (TILAB)
+ * @author Jerome Picault (Motorola Labs)
  */
 interface Serializer {
     static final byte ACL_ID = 0;
@@ -69,7 +70,7 @@ interface Serializer {
     static final byte HTTPADDRESS_ID = 23;
     static final byte DUMMYCERTIFICATE_ID = 24;
     static final byte DUMMYPRINCIPAL_ID = 25;
-    static final byte CERTIFICATEFOLDER_ID = 26;
+    static final byte DUMMYCREDENTIALS_ID = 26;
     static final byte NODESTUB_ID = 27;
     static final byte HORIZONTALCOMMAND_ID = 28;
     static final byte THROWABLE_ID = 29;

@@ -66,7 +66,7 @@ import jade.imtp.leap.http.HTTPProtocol;
  * @author Michael Watzke
  * @author Giovanni Caire
  * @author Nicolas Lhuillier
- * @version 2.0, 13/05/2002
+ * @author Jerome Picault
  */
 class DeliverableDataInputStream extends DataInputStream {
     private StubHelper myStubHelper;
@@ -157,8 +157,8 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeDummyCertificate();
                 case Serializer.DUMMYPRINCIPAL_ID:
                     return deserializeDummyPrincipal();
-                case Serializer.CERTIFICATEFOLDER_ID:
-                    return deserializeCertificateFolder();
+                case Serializer.DUMMYCREDENTIALS_ID:
+                    return deserializeDummyCredentials();
 								case Serializer.THROWABLE_ID:
 								    return deserializeThrowable();
 								case Serializer.PROPERTY_ID:
@@ -598,6 +598,8 @@ class DeliverableDataInputStream extends DataInputStream {
 
 	    String name = readUTF();
 	    Node node = deserializeNode();
+      JADEPrincipal principal = (JADEPrincipal) readObject();
+      Credentials creds = (Credentials) readObject();
 
 	    ContainerID cid = null;
 	    boolean present = readBoolean();
@@ -605,16 +607,8 @@ class DeliverableDataInputStream extends DataInputStream {
 		cid = deserializeContainerID();
 	    }
 
-	    String principalName = readString();
-
-	    byte[] principalPwd = null;
-	    present = readBoolean();
-	    if(present) {
-		principalPwd = deserializeByteArray();
-	    }
-
 	    if(cid != null) {
-		return new NodeDescriptor(cid, node, principalName, principalPwd);
+		return new NodeDescriptor(cid, node, principal, creds);
 	    }
 	    else {
 		return new NodeDescriptor(name, node);
@@ -851,18 +845,9 @@ class DeliverableDataInputStream extends DataInputStream {
         return new DummyPrincipal(name);  
     }
 
-    private CertificateFolder deserializeCertificateFolder() throws LEAPSerializationException {
-        CertificateFolder cf = new CertificateFolder();
-        cf.setIdentityCertificate((IdentityCertificate) readObject());
-    
-        // Read the delegation certificates as a Vector and add them one by one
-        Vector v = readVector();
-        Enumeration e = v.elements();
-        while (e.hasMoreElements()) {
-            cf.addDelegationCertificate((DelegationCertificate) e.nextElement());
-        }
-        
-        return cf;
+    private DummyCredentials deserializeDummyCredentials() throws LEAPSerializationException {
+      // FIXME: DO NOTHING
+      return new DummyCredentials();
     }
 
     private Throwable deserializeThrowable() throws LEAPSerializationException {
