@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.13  1999/05/19 18:23:10  rimassa
+  Changed static or() method access from public to private, since it
+  isn't implemented yet.
+
   Revision 1.12  1999/04/06 00:10:10  rimassa
   Documented public classes with Javadoc. Reduced access permissions wherever possible.
 
@@ -390,7 +394,7 @@ public class MessageTemplate {
   /**
      <b>NOT IMPLEMENTED.</b>
    */
-  public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
+  private static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
     MessageTemplate result = new MessageTemplate();
     return result;
   }
