@@ -169,6 +169,12 @@ public abstract class BaseService implements Service {
 	}
     }
 
+    // this should be properly implemented 
+    // by the services that have helpers
+    public ServiceHelper getHelper(Agent a) {
+         return null;
+    }
+    
     public void boot(Profile p) throws ServiceException {
 	// Empty placeholder method
     }

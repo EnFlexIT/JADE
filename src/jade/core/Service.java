@@ -83,6 +83,9 @@ public interface Service {
 	*/
 	VerticalCommand serve(HorizontalCommand cmd);
 
+
+
+
     }
 
     /**
@@ -265,6 +268,16 @@ public interface Service {
        @see jade.core.Service#getCommandSink()
     */
     String[] getOwnedCommands();
+
+    /**
+       Get the helper for accessing this service.
+
+       @param a The agent which the helper is requested for.
+       @return The ServiceHelper to be used by the agent.
+       @see AgentToolkit#getHelper
+       @see Agent#getHelper
+    */
+    ServiceHelper getHelper(Agent a) throws ServiceException;
 
     /**
        Performs the passive initialization step of the service. This
