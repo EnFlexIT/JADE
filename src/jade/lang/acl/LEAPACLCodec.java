@@ -114,9 +114,9 @@ public class LEAPACLCodec implements ACLCodec {
     String inReplyTo = msg.getInReplyTo();
     String replyWith = msg.getReplyWith();
     Date replyBy = msg.getReplyByDate();
-    Envelope envelope = null;
 		//#CUSTOM_EXCLUDE_BEGIN
 		//#CUSTOMJ2SE_EXCLUDE_BEGIN
+    Envelope envelope = null;
 		envelope = msg.getEnvelope();
     Properties props = msg.getAllUserDefinedParameters();
     if (props.size() > 63) {
@@ -134,9 +134,9 @@ public class LEAPACLCodec implements ACLCodec {
     if (inReplyTo != null) { presence1 |= 0x02; }
     if (replyWith != null) { presence1 |= 0x01; }
     if (replyBy != null) { presence2 |= 0x80; }
-    if (envelope != null) { presence2 |= 0x40; }
 		//#CUSTOM_EXCLUDE_BEGIN
 		//#CUSTOMJ2SE_EXCLUDE_BEGIN
+    if (envelope != null) { presence2 |= 0x40; }
     presence2 |= (props.size() & 0x3F);
 		//#CUSTOMJ2SE_EXCLUDE_END
 		//#CUSTOM_EXCLUDE_END
