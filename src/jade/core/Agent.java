@@ -2196,42 +2196,42 @@ public class Agent implements Runnable, Serializable
 	} 
 
 	
-        // all the agent's service executors
-private Hashtable serviceExecutors = new Hashtable();
 
-    //#APIDOC_EXCLUDE_BEGIN
+  // all the agent's service helper
+private Hashtable helpersTable = new Hashtable();
 
-        /**
-        * Retrieves the agent's service executor
-        * @return The service executor.
-        */
-        public ServiceExecutor getServiceExecutor( String serviceClassName ) {
+//#APIDOC_EXCLUDE_BEGIN
 
-                ServiceExecutor se = null;
-                try {
-                if (serviceExecutors.get(serviceClassName)==null) {
-                        se = (ServiceExecutor) Class.forName(serviceClassName).newInstance();
-                        se.init(this);
-                        serviceExecutors.put(serviceClassName, se);
-                } else {
-                        se = (ServiceExecutor) serviceExecutors.get(serviceClassName);
-                }
-                } catch (ClassNotFoundException e) {
-                        //#MIDP_EXCLUDE_BEGIN
-                        System.out.println(" ServiceExecutor class not found:"+ serviceClassName);
-                        e.printStackTrace();
-                        //#MIDP_EXCLUDE_END
-                } catch(Exception e ) {
-                        //#MIDP_EXCLUDE_BEGIN
-                        System.out.println(" ServiceExecutor could not be created:"+ serviceClassName);
-                        e.printStackTrace();
-                        //#MIDP_EXCLUDE_END
-                }
+  /**
+  * Retrieves the agent's service helper
+  * @return The service helper.
+  */
+  public ServiceHelper getHelper( String serviceName ) throws ServiceException {
 
-                return se;
-        }
+          ServiceHelper se = null;
+          try {
+          // is the helper already into the agent's helpersTable ?
+          if (helpersTable.get(serviceName)!=null) {
+                  // there is already one into the helpersTable
+                  se = (ServiceHelper) helpersTable.get(serviceName);
+          } else {
+                  // there isn't, request its creation
+                  se = myToolkit.getHelper(this, serviceName);
+                  se.init(this);
+                  helpersTable.put(serviceName, se);
 
-    //#APIDOC_EXCLUDE_END
+          }
+          } catch(Exception e ) {
+                  //#MIDP_EXCLUDE_BEGIN
+                  System.out.println(" ServiceHelper could not be created:"+ serviceName);
+                  e.printStackTrace();
+                  //#MIDP_EXCLUDE_END
+          }
+
+          return se;
+  }
+
+//#APIDOC_EXCLUDE_END
 
 	//#CUSTOM_EXCLUDE_END
 	

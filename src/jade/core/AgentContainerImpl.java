@@ -789,6 +789,27 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return myProfile.getParameter(key, aDefault);
   }
 
+
+  public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
+        ServiceHelper se = null;
+        Service s = null;
+    try {
+        // retrieve the service
+        s = myServiceFinder.findService(serviceName);
+
+        // get the helper
+        se = s.getHelper( a );
+    } catch (Exception e) {
+          //#MIDP_EXCLUDE_BEGIN
+          System.out.println(" ServiceHelper could not be created for: "+ serviceName);
+          e.printStackTrace();
+          throw new ServiceException(" ServiceHelper could not be created for: "+ serviceName);
+          //#MIDP_EXCLUDE_END
+    }
+    return se;
+  }
+
+
   // Private and package scoped methods
 
 

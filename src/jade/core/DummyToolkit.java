@@ -94,4 +94,9 @@ final class DummyToolkit implements AgentToolkit {
 	public String getProperty(String key, String aDefault) {
 		return null;
 	}
+
+    public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
+        return null;
+    }
+
 }

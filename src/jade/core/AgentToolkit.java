@@ -63,4 +63,5 @@ interface AgentToolkit {
   AID getAMS();
   AID getDefaultDF();
   String getProperty(String key, String aDefault);
+  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
 }
