@@ -1,4 +1,4 @@
-README file for JADE, Version 0.71
+README file for JADE, Version 0.76
 
 INTRODUCTION
 ============
@@ -19,7 +19,7 @@ SYSTEM REQUIREMENTS
 
 To build the framework a complete Java programming environment is
 needed. At least a Java Development Kit version 1.1 is required, due
-to Remote Method Invocation (RMI) API usage. Besides, JavaCC 0.8pre is
+to Remote Method Invocation (RMI) API usage. Besides, JavaCC 0.8pre1 is
 needed to generate Java code from grammar description files.
 
 
