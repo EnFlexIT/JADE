@@ -118,7 +118,7 @@ public class Runtime {
   		throw new IllegalStateException("Single-container modality already activated");
   	}
   }
-
+ 
   /**
      Creates a new main container in the current JVM, providing
      access through a proxy object.
