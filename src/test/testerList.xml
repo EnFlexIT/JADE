@@ -71,6 +71,11 @@
 			<Description> This item includes tests related to the support for "FIPA-request like" interaction protocols </Description>
 			<TestsListRif>test/proto/achieveRETestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="Two-Phase-Commit Protocol" skip="true">
+			<ClassName>test.proto.TwoPhTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for the Two-phase-commit interaction protocols </Description>
+			<TestsListRif>test/proto/twoPhTestsList.xml</TestsListRif>
+		</Tester>
 		<Tester name="Communication performance and scalability" skip="true">
 			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
 			<Description> This item includes tests that measure the performances of the message transport mechanism for different types of communication (intra-container, inter-container, inter-platform...) </Description>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Success with 2 responders" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestSuccessWithTwoResponders
+			</TestClassName>
+			<WhatTest>Test the Two phase commit protocol support in the case that all responders reply successfully in all steps.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>		
+	</TestsList>
