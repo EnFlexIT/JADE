@@ -9,6 +9,8 @@ ARFLAGS = c0vf
 all:
 	@echo Making library ...
 	cd $(CLSDIR); \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade\applet\*.class jade\gui\*.class jade\core\IIOPFormatException*.class jade\lang\acl\ACLParser.class jade\lang\acl\ACLMessage.class jade\lang\acl\ACLParserConstants.class jade\lang\acl\ACLParserTokenManager.class jade\lang\acl\ASCII_CharStream.class jade\lang\acl\ISO8601.class jade\lang\acl\ParseException.class jade\lang\acl\Token.class jade\lang\acl\TokenMgrError.class jade\core\AgentGroup.class jade\domain\AgentManagementOntology*.class jade\domain\FIPAException.class jade\domain\AgentManagementParser.class jade\domain\AgentManagementParserConstants.class jade\domain\AgentManagementParserTokenManager.class jade\domain\ASCII_CharStream.class jade\domain\ParseException.class jade\domain\Token.class jade\domain\TokenMgrError.class jade\domain\*Exception.class \
+	rm -rf jade/applet; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
 	rm -rf jade/tools; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) *.class jade; \
