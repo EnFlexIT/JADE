@@ -1,5 +1,0 @@
-interface FIPA_Agent_97 {
-
-  oneway void message(in string acl_message);
-
-};
