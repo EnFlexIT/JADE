@@ -19,6 +19,20 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
+		<Test name="DF Lease Time" skip="false">
+			<TestClassName>test.domain.df.tests.TestDFLeaseTime</TestClassName>
+			<WhatTest> Tests lease time functionality of the DF agent.</WhatTest>
+			<HowWorkTest> 
+				The test uses the DFService class to:
+				<UL>
+	   			<LI>register with the DF with lease time with current time + 1 minute;</LI>
+	   			<LI>search the DF (he should find itself);</LI>
+	   			<LI>block itself for 1 minute;</LI>
+			    <LI>search again the DF (he shouldn't find any agent);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
 		<Test name="Light DF Service" skip="true">
 			<TestClassName>test.domain.df.tests.TestLightDFService</TestClassName>
 			<WhatTest> Tests accessing the DF agent by means of the LightDFService utility class.</WhatTest>
@@ -99,7 +113,6 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 			</Test>		
-			
 		<Test name="Multiple Subscriptions" skip="false">
 			<TestClassName>test.domain.df.tests.TestMultipleSubscriptions</TestClassName>
 			<WhatTest> Tests the case in which 2 or more agents subscribed to the DF.</WhatTest>
