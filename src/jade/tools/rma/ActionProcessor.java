@@ -48,7 +48,7 @@ class ActionProcessor {
      public static final String  SUSPEND_ACTION="Suspend Agent";
      public static final String  RESUME_ACTION="Resume Agent";
      public static final String  CUSTOM_ACTION="Custom Agent";
-     public static final String  SNIFFER_ACTION="Start Sniffer";
+     public static final String  SNIFFER_ACTION="Start Sniffer";     
      public static final String  DUMMYAG_ACTION="Start DummyAgent";
      public static final String  CLOSE_ACTION="Close RMA";
      public static final String  EXIT_ACTION="Exit RMA";
@@ -56,7 +56,12 @@ class ActionProcessor {
      public static final String  SHOWDF_ACTION="ShowDfGui Action";
      public static final String  MOVEAGENT_ACTION="Migrate Agent";
      public static final String  CLONEAGENT_ACTION="Clone Agent";
-     public static final Map actions=new HashMap(13);
+     public static final String  ADDREMOTEPLATFORM_ACTION ="Add Remote Platform";
+     public static final String  VIEWPLATFORM_ACTION ="View AP Description";
+     public static final String  REFRESHAPDESCRIPTION_ACTION = "Refresh AP Description";
+     public static final String  REMOVEREMOTEAMS_ACTION = "Remove Remote Platform";
+     public static final String  REFRESHAMSAGENT_ACTION = "Refresh Agent List";
+     public static final Map actions=new HashMap();
 
  public ActionProcessor(rma anRma,MainWindow mWnd,MainPanel panel) {
       this.panel=panel;
@@ -75,6 +80,11 @@ class ActionProcessor {
       actions.put(SHOWDF_ACTION,new ShowDFGuiAction(anRma,this));
       actions.put(MOVEAGENT_ACTION, new MoveAgentAction(anRma,this,mWnd));
       actions.put(CLONEAGENT_ACTION, new CloneAgentAction(anRma, this,mWnd));
+      actions.put(ADDREMOTEPLATFORM_ACTION, new AddRemotePlatformAction(anRma,this,mWnd));
+      actions.put(VIEWPLATFORM_ACTION, new ViewAPDescriptionAction(anRma,this));
+      actions.put(REFRESHAPDESCRIPTION_ACTION, new RefreshAPDescriptionAction(anRma,this));
+      actions.put(REMOVEREMOTEAMS_ACTION,new RemoveRemoteAMSAction(anRma,this));
+      actions.put(REFRESHAMSAGENT_ACTION, new RefreshAMSAgentAction(anRma,this));
       
 } // End builder
 
@@ -103,6 +113,8 @@ class ActionProcessor {
          if (action instanceof AgentAction) agentAct(now);
          else if (action instanceof ContainerAction) containerAct(now);
            else if (action instanceof GenericAction) genericAct(now);
+           else if(action instanceof PlatformAction) platformAct(now);
+           
        }
        
      }
@@ -166,6 +178,14 @@ class ActionProcessor {
        nod1=(AgentTree.AgentNode)node;
        ga.doAction(nod1);
     }
+ }
+ 
+ private void platformAct(AgentTree.Node node){
+
+  PlatformAction ac = (PlatformAction) action; 
+ 	if((node instanceof AgentTree.SuperContainer) || (node instanceof AgentTree.RemoteAMSNode))
+ 		ac.doAction(node);
+ 	
  }
 
 } // End of ActionProcessor

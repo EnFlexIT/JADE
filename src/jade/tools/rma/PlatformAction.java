@@ -22,26 +22,22 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-package jade.gui;
+package jade.tools.rma;
 
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import jade.gui.AgentTree;
+
 
 /**
-   
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-public class AgentTreeModel extends DefaultTreeModel {
+ 
+abstract class PlatformAction extends RMAAction{
 
-
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
-  
+  public PlatformAction(String IconPath,String ActionName,ActionProcessor actPro) {
+   super(IconPath,ActionName,actPro);
   }
 
-  public Object getRoot() {
-    return root;
-  }
+  public abstract void doAction(AgentTree.Node node);
 
-} // End of AgentTreeModel
+} // End of PlatformAction

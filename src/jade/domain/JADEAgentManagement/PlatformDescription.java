@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -22,26 +22,37 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-package jade.gui;
+package jade.domain.JADEAgentManagement;
 
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import jade.core.AID;
 
+import jade.domain.AMSEvent;
+import jade.domain.FIPAAgentManagement.APDescription;
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Tiziana Trucco -  CSELT S.p.A.
    @version $Date$ $Revision$
- */
-public class AgentTreeModel extends DefaultTreeModel {
+*/
 
+public class PlatformDescription implements AMSEvent {
 
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
+  public static final String NAME = JADEAgentManagementOntology.PLATFORMDESCRIPTION;
+
+  private APDescription platform;
   
+
+  public String getEventName() {
+    return NAME;
   }
 
-  public Object getRoot() {
-    return root;
+  public void setPlatform(APDescription p) {
+    platform = p;
   }
 
-} // End of AgentTreeModel
+  public APDescription getPlatform() {
+    return platform;
+  }
+
+ 
+
+}

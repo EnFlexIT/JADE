@@ -29,8 +29,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import java.awt.*;
 import jade.gui.AgentTree;
-	
-
+import jade.gui.APDescriptionPanel;	
+import jade.domain.FIPAAgentManagement.APDescription;
 
 /**
    
@@ -40,7 +40,7 @@ import jade.gui.AgentTree;
 class MainPanel extends JPanel implements  TreeSelectionListener
 {
 
-  private JTextArea selArea;
+  private APDescriptionPanel APDescription_panel;
   AgentTree treeAgent;       // FIXME: It should be private
   private TablePanel table;
   private JScrollPane scroll;
@@ -52,9 +52,7 @@ class MainPanel extends JPanel implements  TreeSelectionListener
   
   	
   public MainPanel(rma anRMA, MainWindow mainWnd) {
-    
-  
-  	
+   
   	table = new TablePanel();
     this.mainWnd = mainWnd;
     Font f;
@@ -63,12 +61,14 @@ class MainPanel extends JPanel implements  TreeSelectionListener
     setLayout(new BorderLayout(10,10));
 
     treeAgent = new AgentTree(f);
-    selArea = new JTextArea(5,20);
-    selArea.setEditable(true);
-    pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,new JScrollPane(treeAgent.tree),new JScrollPane(selArea));
-    pane.setContinuousLayout(true);
-    createSplit(table.createTable());
-
+    
+    //To allow single selection on the tree.
+    //  treeAgent.tree.getSelectionModel().setSelectionMode
+    //  (javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION);
+   
+    pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,treeAgent.tree,table.createTable());
+    add(pan);
+   
     treeAgent.listenerTree(this);
     popM=new PopupMouser(treeAgent.tree,treeAgent);
     treeAgent.tree.addMouseListener(popM);
@@ -86,37 +86,59 @@ class MainPanel extends JPanel implements  TreeSelectionListener
    if (paths!=null) {
     current=(AgentTree.Node)paths[0].getLastPathComponent();
      int numPaths=paths.length;
-     selArea.setText(" ");
-      for(int i=0;i<numPaths;i++) {
+     //selArea.setText(" ");
+      
+     /*OLd version to show the path of the agent.
+     for(int i=0;i<numPaths;i++) {
        relCur= paths[i].getPath();
         wholePath="";
         for (int j=0;j<relCur.length;j++) {
          if (relCur[j] instanceof AgentTree.Node) {
            current=(AgentTree.Node)relCur[j];
            wholePath=wholePath.concat(current.getName()+".");
-          }
+         }
         }
        selArea.append(wholePath+" \n");
+     }*/ 	
+     
+     java.util.ArrayList agentPaths = new java.util.ArrayList();
+     for(int i=0; i<numPaths;i++)
+     {
+     	relCur = paths[i].getPath();
+     	for(int j=0;j<relCur.length;j++)
+     	{
+     		if (relCur[j] instanceof AgentTree.AgentNode)
+     	  	//to display in the table only the agent.
+     			agentPaths.add(paths[i]);	
+     	  else
+     	  if (relCur[j] instanceof AgentTree.SuperContainer)
+     	  	{//show the APDescription in the TextArea
+     	  	}
+     	}
      }
-     table.setData(paths);
+     
+     //table.setData(paths);
+     TreePath[] agents = new TreePath [agentPaths.size()];
+     for(int i= 0;i<agentPaths.size(); i++)
+     	agents[i]=(TreePath)agentPaths.get(i);
+     table.setData(agents);
    }
  }
 
 
-  private void createSplit (JScrollPane scroll) {
-    pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,pane,scroll);
-    pan.setContinuousLayout(true);
-    add(pan);
-  }
-
   public void adjustDividersLocation() {
-    int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
-    pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
+    //int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
+    //pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
     pan.setDividerLocation(300);
+   
+    
   }
 
   public Dimension getPreferredSize() {
     return new Dimension(200, 200);
   }
-
+  
+  
+  
+  
 } 

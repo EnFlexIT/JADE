@@ -78,7 +78,7 @@ public class MainWindow extends JFrame {
 
      addWindowListener(new ProgramCloser());
      mainPanel.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-     mainPanel.treeAgent.register("FIPACONTAINER",null,"images/TreeClosed.gif");
+     mainPanel.treeAgent.register("FIPACONTAINER",null,"images/foldergreen.gif");
      getContentPane().add(new ToolBar(actPro),"North");
      getContentPane().add(mainPanel,"Center");
  }

@@ -115,6 +115,7 @@ class TablePanel extends JPanel {
     tableView.setRowHeight(20);
 
     scrollpane = new JScrollPane(tableView);
+    tableView.setPreferredScrollableViewportSize(new Dimension(200, 70));
     return scrollpane;
   }
 
@@ -135,7 +136,9 @@ class TablePanel extends JPanel {
             }
          }
       }
-    tableView.repaint();
+      
+      //tableView.repaint();
+      ((AbstractTableModel)dataModel).fireTableDataChanged();
  }
 
 } // End of TablePanel

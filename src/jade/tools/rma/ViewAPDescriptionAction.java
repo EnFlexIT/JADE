@@ -21,27 +21,33 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.tools.rma;
 
-package jade.gui;
-
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import jade.gui.AgentTree;
 
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-public class AgentTreeModel extends DefaultTreeModel {
+class ViewAPDescriptionAction extends PlatformAction {
 
+  private rma myRMA;
 
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
-  
+  public ViewAPDescriptionAction(rma anRMA, ActionProcessor actPro) {
+    super ("ViewAPDescriptionIcon", "View AP Description", actPro);
+    myRMA = anRMA;
   }
 
-  public Object getRoot() {
-    return root;
+  public void doAction(AgentTree.Node node ) {
+    //String containerName = node.getName();
+  	if(node instanceof AgentTree.SuperContainer)
+    	myRMA.viewAPDescription("Local Agent Platform Description");
+    	else
+    	if(node instanceof AgentTree.RemoteAMSNode){
+    		AgentTree.RemoteAMSNode ams = (AgentTree.RemoteAMSNode)node;
+    		myRMA.viewAPDescription(ams.getAPDescription(),"Remote Agent Platform Description");
+    	}
   }
 
-} // End of AgentTreeModel
+} // End of ViewAPDescriptionAction

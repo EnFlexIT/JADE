@@ -68,6 +68,8 @@ public class JADEAgentManagementOntology {
   public static final String AGENTMOVED = "agent-moved";
   public static final String NEWMTP = "new-mtp";
   public static final String DEADMTP = "dead-mtp";
+  public static final String PLATFORMDESCRIPTION = "platform-description";
+  public static final String APDESCRIPTION = "ap-description";
   
   // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
@@ -77,7 +79,7 @@ public class JADEAgentManagementOntology {
   public static final String UNINSTALLMTP = "uninstall-mtp";
   public static final String SNIFFON = "sniff-on";
   public static final String SNIFFOFF = "sniff-off";
-
+ 
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
 
@@ -195,6 +197,9 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("where", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 	}, DeadMTP.class);
 
+	theInstance.addRole(PLATFORMDESCRIPTION, new SlotDescriptor[]{
+	   new SlotDescriptor("platform", Ontology.FRAME_SLOT,APDESCRIPTION,Ontology.M)
+	}, PlatformDescription.class);
     }
     catch(OntologyException oe) {
       oe.printStackTrace();

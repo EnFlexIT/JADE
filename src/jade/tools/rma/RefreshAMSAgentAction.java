@@ -21,27 +21,31 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.tools.rma;
 
-package jade.gui;
-
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import jade.gui.AgentTree;
 
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-public class AgentTreeModel extends DefaultTreeModel {
+class RefreshAMSAgentAction extends PlatformAction {
 
+  private rma myRMA;
 
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
-  
+  public RefreshAMSAgentAction(rma anRMA, ActionProcessor actPro) {
+    super ("RefreshAMSAgentIcon", "Refresh Agent List", actPro);
+    myRMA = anRMA;
   }
 
-  public Object getRoot() {
-    return root;
+  public void doAction(AgentTree.Node node ) {
+
+    	if(node instanceof AgentTree.RemoteAMSNode){
+    		System.out.println("Refresh AMS Agent");
+    	  myRMA.refreshAMSAgent(((AgentTree.RemoteAMSNode)node).getAmsAID());
+    		
+    	}
   }
 
-} // End of AgentTreeModel
+} // End of RefreshAMSAgentAction

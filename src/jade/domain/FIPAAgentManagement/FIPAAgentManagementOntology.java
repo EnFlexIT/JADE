@@ -92,9 +92,9 @@ public class FIPAAgentManagementOntology {
   public static final String SERVICEDESCRIPTION = "service-description";
   public static final String SEARCHCONSTRAINTS = "search-constraints";
   public static final String AMSAGENTDESCRIPTION = "ams-agent-description";
-  public static final String APDESCRIPTION = "ap-description";
-  public static final String APTRANSPORTDESCRIPTION = "ap-transport-description";
-  public static final String MTPDESCRIPTION = "mtp-description";
+  //public static final String APDESCRIPTION = "ap-description";
+  //public static final String APTRANSPORTDESCRIPTION = "ap-transport-description";
+  //public static final String MTPDESCRIPTION = "mtp-description";
   public static final String PROPERTY = "property";
 
   // Actions
@@ -180,7 +180,7 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
 	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	}, AMSAgentDescription.class); 
 
-      theInstance.addRole(APDESCRIPTION, new SlotDescriptor[] {
+     /* theInstance.addRole(APDESCRIPTION, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("dynamic", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
 	    new SlotDescriptor("mobility", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
@@ -195,7 +195,7 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
 	    new SlotDescriptor("profile", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	    new SlotDescriptor("mtp-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	    new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, MTPDescription.class); 
+	}, MTPDescription.class); */
 
       theInstance.addRole(PROPERTY, new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),

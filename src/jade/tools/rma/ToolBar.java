@@ -49,12 +49,13 @@ final class ToolBar  extends JToolBar  implements ActionListener {
     super();
     tree = treeP;
     setBorderPainted(true);
+    setFloatable(false);
     this.mainWnd=mainWnd;
     this.actPro=actPro;
     addSeparator();
     addAction();
     
-    addSeparator(new java.awt.Dimension(185,30));
+    addSeparator(new java.awt.Dimension(174,30));
     
 	  JadeLogoButton logo = new JadeLogoButton();	
     add(logo);
@@ -104,6 +105,10 @@ final class ToolBar  extends JToolBar  implements ActionListener {
 
     obj=(RMAAction)actPro.actions.get(actPro.DUMMYAG_ACTION);
     setButton(add(obj));
+    
+    obj =(RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION);
+    setButton(add(obj));
+    
 
 }
 

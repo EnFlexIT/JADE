@@ -21,27 +21,45 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-
 package jade.gui;
 
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.Component;
+import java.util.Iterator;
+import jade.domain.FIPAAgentManagement.APTransportDescription;
+import jade.domain.FIPAAgentManagement.MTPDescription;
+import javax.swing.JDialog;
+import java.awt.Dialog;
 
 /**
-   
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
-   @version $Date$ $Revision$
- */
-public class AgentTreeModel extends DefaultTreeModel {
+* This class extends the VisualStringList in order to show a list of APTransportProfile
+* @see jade.gui.VisualStringList
+* @see jade.domain.FIPAAgentManagement.ServiceDescription
+* @author Tiziana Trucco - CSELT S.p.A
+* @version $Date$ $Revision$
+*/
 
+public class VisualAPTransportProfileList extends VisualStringList
+{
+	
+	VisualAPTransportProfileList(Iterator content, Component owner)
+	{
+		super(content,owner);
+	}
+	
+	protected String getElementName(Object el)
+	{
+		return (((MTPDescription)el).getMtpName());
+	}
+	
+	protected Object editElement(Object el, boolean isEditable)
+	{
+		
+		MTPDescriptionPanel.viewMTPDescriptionDialog((MTPDescription)el,(Dialog)owner,"MTP Description");
+ 		return null;
+	}
+	
+	
+}
 
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
-  
-  }
-
-  public Object getRoot() {
-    return root;
-  }
-
-} // End of AgentTreeModel
+	
+	

@@ -49,10 +49,11 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.lang.sl.SL0Codec;
-
+import jade.onto.basic.ResultPredicate;
 import jade.onto.basic.Action;
-
+import jade.domain.FIPAServiceCommunicator;
 import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.domain.AMSServiceCommunicator;
 
 
 /**
@@ -72,7 +73,8 @@ public class rma extends Agent {
   private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
   private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
   private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
-
+  private APDescription myPlatformProfile;
+  
   // Sends requests to the AMS
   private class AMSClientBehaviour extends FipaRequestInitiatorBehaviour {
 
@@ -108,6 +110,55 @@ public class rma extends Agent {
     }
 
   } // End of AMSClientBehaviour class
+
+
+  private class handleAddRemotePlatformBehaviour extends AMSClientBehaviour{
+     
+    	public handleAddRemotePlatformBehaviour(String an, ACLMessage request){
+    		super(an,request);
+    	}
+    	
+    	protected void handleInform(ACLMessage msg){
+    		//System.out.println("arrived a new APDescription");
+    		try{
+    			AID sender = msg.getSender();
+    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),new SL0Codec(),FIPAAgentManagementOntology.instance()); 
+    			Iterator i = r.getAll_1();
+    			APDescription APDesc = (APDescription)i.next();
+    			if(APDesc != null){
+    			myGUI.addRemotePlatform();
+    			myGUI.addRemoteAMS(sender,APDesc);}
+    		}catch(FIPAException e){
+    		e.printStackTrace();
+    		}
+    	}
+    
+    }//end handleAddRemotePlatformBehaviour
+    
+    private class handleRefreshAMSAgentBehaviour extends AMSClientBehaviour{
+     
+    	public handleRefreshAMSAgentBehaviour(String an, ACLMessage request){
+    		super(an,request);
+    	}
+    	
+    	protected void handleInform(ACLMessage msg){
+    		System.out.println("arrived a new agents from a remote platform");
+    		try{
+    			AID sender = msg.getSender();
+    			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),new SL0Codec(),FIPAAgentManagementOntology.instance()); 
+    			Iterator i = r.getAll_1();
+    			myGUI.addRemoteAgentsToRemoteAMS(sender,i);
+    		  /*while(i.hasNext()){	
+    			 jade.domain.FIPAAgentManagement.AMSAgentDescription agent = (AMSAgentDescription)i.next();
+    			 System.out.println("Name: " + agent.getName().getName()+ "\n");
+    		  }*/
+    			
+    		}catch(FIPAException e){
+    		e.printStackTrace();
+    		}
+    	}
+    
+    }//end handleAddRemotePlatformBehaviour
 
 
   // Used by AMSListenerBehaviour
@@ -208,9 +259,22 @@ public class rma extends Agent {
 	  myGUI.removeAddress(address, where);
 	}
       });
+    
+    //handle the APDescription provided by the AMS 
+    handlers.put(JADEAgentManagementOntology.PLATFORMDESCRIPTION, new EventHandler(){
+    public void handle(AMSEvent ev){
+    
+    	PlatformDescription pd = (PlatformDescription)ev;
+    	APDescription APdesc = pd.getPlatform();
+      myPlatformProfile = APdesc;
+    }
+    
+    });
 
     }
 
+    
+    
     public void action() {
       ACLMessage current = receive(listenTemplate);
       if(current != null) {
@@ -599,4 +663,80 @@ public class rma extends Agent {
     }
   }
 
+  //this method sends a request to a remote AMS to know the APDescription of a remote Platform
+  public void addRemotePlatform(AID remoteAMS){
+  
+  	//System.out.println("AddRemotePlatform");
+  	try{
+  		if(remoteAMS.getName().equalsIgnoreCase(getAMS().getName()))
+  		{
+  			System.out.println("ERROR: Action not allowed on local AMS.");
+  			return;
+  		}
+  		else{
+  			ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
+  			requestMsg.setSender(getAID());
+    		requestMsg.clearAllReceiver();
+    		requestMsg.addReceiver(remoteAMS);
+    		requestMsg.setProtocol("fipa-request");
+    		requestMsg.setLanguage(SL0Codec.NAME);
+      	requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+    	
+      	GetDescription action = new GetDescription();
+    		List l = new ArrayList(1);
+    		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+    		Action a = new Action();
+    		a.set_0(remoteAMS);
+    		a.set_1(action);
+    		l.add(a);
+    		fillContent(requestMsg,l);
+    		addBehaviour(new handleAddRemotePlatformBehaviour("GetDescription",requestMsg));
+  		}
+  	}catch(FIPAException e){
+  		e.printStackTrace();
+  	}
+  }
+  
+  public void viewAPDescription(String title){
+  	myGUI.viewAPDescriptionDialog(myPlatformProfile,title);
+  }
+  
+  public void viewAPDescription(APDescription remoteAP, String title){
+  	myGUI.viewAPDescriptionDialog(remoteAP,title);
+  }
+  
+  public void removeRemotePlatform(AID ams){
+  	myGUI.removeRemoteAMS(ams);
+  }
+  
+  //make a search on a specified ams in order to return 
+  //all the agents registered with that ams.
+  public void refreshAMSAgent(AID ams){
+  	try{
+  		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+  		request.setSender(getAID());
+  		request.addReceiver(ams);
+      request.setLanguage(SL0Codec.NAME);
+      request.setOntology(FIPAAgentManagementOntology.NAME);
+  		AMSAgentDescription amsd = new AMSAgentDescription();
+  		SearchConstraints constraints = new SearchConstraints();
+    	// Build a AMS action object for the request
+    	Search s = new Search();
+    	s.set_0(amsd);
+    	s.set_1(constraints);
+
+    	Action act = new Action();
+    	act.set_0(ams);
+    	act.set_1(s);
+
+    	List l = new ArrayList(1);
+			l.add(act);
+			fillContent(request,l);
+			
+			addBehaviour(new handleRefreshAMSAgentBehaviour ("search",request));
+			
+  	}catch(jade.domain.FIPAException e){
+  		e.printStackTrace();
+  	}
+  }
 }

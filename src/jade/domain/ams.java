@@ -29,7 +29,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
-
+import java.io.FileWriter;
 import java.net.InetAddress;
 
 import java.util.Iterator;
@@ -287,8 +287,12 @@ public class ams extends Agent implements AgentManager.Listener {
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
       List l = new ArrayList(1);
-      l.add(theProfile);
-      fillContent(reply, l);
+      ResultPredicate rp = new ResultPredicate();
+      rp.set_0(a);
+      rp.add_1(theProfile);
+      ArrayList list = new ArrayList(1);
+      list.add(rp);
+      fillContent(reply,list);
       send(reply);
     }
 
@@ -401,6 +405,25 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    send(toolNotification);
 	  }
+
+	  //Notification to the RMA of the APDescription
+	  //must be notified to all the the tools ? 
+	   if(newTool.getName().toUpperCase().startsWith("RMA@"))
+	   {
+	   	
+	   	PlatformDescription ap = new PlatformDescription();
+	   	ap.setPlatform(theProfile);
+	   	EventOccurred eo = new EventOccurred();
+		eo.setEvent(ap);
+	   	List l = new ArrayList(1);
+		l.add(eo);
+		toolNotification.clearAllReceiver();
+		toolNotification.addReceiver(newTool);
+		fillContent(toolNotification, l);
+		send(toolNotification);
+  
+	   }
+	   
 
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
@@ -833,6 +856,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
     theProfile.setName(getHap());
+    writeAPDescription();
 
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
@@ -1105,6 +1129,10 @@ public class ams extends Agent implements AgentManager.Listener {
       desc.setMtpName(address.substring(0, colonPos));
     desc.addAddresses(address);
     mtps.addAvailableMtps(desc);
+ 
+    //Update the APDescription file.
+    if(getState() != AP_INITIATED)
+    	writeAPDescription();
 
     // Retrieve all agent descriptors
     AMSAgentDescription amsd = new AMSAgentDescription();
@@ -1123,6 +1151,11 @@ public class ams extends Agent implements AgentManager.Listener {
     nmtp.setAddress(address);
     nmtp.setWhere(container);
     eventQueue.add(nmtp);
+    //Notify the update of the APDescription...
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(theProfile);
+    eventQueue.add(ap);
+
     doWake();
 
   }
@@ -1147,6 +1180,9 @@ public class ams extends Agent implements AgentManager.Listener {
 	  it.remove();
       }
     }
+    
+    //update the APDescription file
+    writeAPDescription();
 
     // Remove the dead address from all the registered agents
     AID[] agents = myPlatform.agentNames();
@@ -1164,7 +1200,27 @@ public class ams extends Agent implements AgentManager.Listener {
     dmtp.setAddress(address);
     dmtp.setWhere(container);
     eventQueue.add(dmtp);
+    //Notify the update of the APDescription...
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(theProfile);
+    eventQueue.add(ap);
+    
     doWake();
+
+  }
+  
+ private void writeAPDescription()
+  {
+  	 //Write the APDescription file.
+    try{
+    	FileWriter f = new FileWriter("APDescription.txt");
+    
+    	theProfile.toText(f);
+	  	//f.write(s, 0, s.length());
+	  	f.write('\n');
+    	f.close();
+    }catch(java.io.IOException ioe){ioe.printStackTrace();}
+    
 
   }
 

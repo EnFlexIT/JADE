@@ -45,6 +45,10 @@ import jade.gui.AgentTree;
 
 import jade.lang.acl.ACLMessage;
 import jade.gui.GuiProperties;
+import jade.gui.APDescriptionPanel;
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -56,23 +60,31 @@ class MainWindow extends JFrame {
   private ActionProcessor actPro;
   private PopupMenuAgent popA;
   private PopupMenuContainer popC;
+  private PopupMenuPlatform popP;
+  private PopupMenuRemotePlatform popRP;
   private InstallMTPDialog installDlg = new InstallMTPDialog(this, true);
   private String logojade = "images/logosmall.jpg";
 
   private List containerNames = new LinkedList();
   private List addresses = new LinkedList();
- 	
+
+  
   public MainWindow (rma anRMA) {
     super(anRMA.getName() +" - JADE Remote Agent Management GUI");
+    
     tree = new MainPanel(anRMA, this);
     actPro = new ActionProcessor(anRMA, this, tree);
     setJMenuBar(new MainMenu(this,actPro));
     popA = new PopupMenuAgent(actPro);
     popC = new PopupMenuContainer(actPro);
-
+    popP = new PopupMenuPlatform(actPro);
+    popRP = new PopupMenuRemotePlatform(actPro);
     tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-    tree.treeAgent.register("FIPACONTAINER",popC,"images/TreeClosed.gif");
-
+    tree.treeAgent.register("FIPACONTAINER",popC,"images/foldergreen.gif");
+    tree.treeAgent.register("REMOTEAMS",popRP ,"images/runtree.gif");
+    tree.treeAgent.register("REMOTEAGENT", new JPopupMenu(), "images/runtree.gif");
+    tree.treeAgent.setNewPopupMenu("SUPERCONTAINER",popP);
+    
     setForeground(Color.black);
     setBackground(Color.lightGray);
     Image image = getToolkit().getImage(getClass().getResource(logojade));
@@ -183,8 +195,70 @@ class MainWindow extends JFrame {
       }
     };
     SwingUtilities.invokeLater(addIt);
+   
+    
   }
 
+  public void addRemotePlatform(){
+  	Runnable addIt = new Runnable(){
+  	public void run(){
+  		JPopupMenu menu = new JPopupMenu();
+  		JMenuItem tmp = menu.add((RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION));
+  		tmp.setIcon(null);
+  		tree.treeAgent.register("REMOTEPLATFORMS",menu, "images/folderblue.gif");
+  		tree.treeAgent.addRemotePlatformsFolderNode();
+  		
+  	}
+  	};
+  	SwingUtilities.invokeLater(addIt);
+  }
+  
+  
+  public void addRemoteAMS(AID name,APDescription profile){
+  
+  	final APDescription desc = profile;
+  	final AID ams = name;
+  	Runnable addIt = new Runnable(){
+  	
+  	public void run(){
+  		tree.treeAgent.addRemoteAMSNode(ams,desc);
+  		
+  	}
+  	};
+  	SwingUtilities.invokeLater(addIt);
+  }
+  
+  
+  public void addRemoteAgentsToRemoteAMS(final AID ams,final Iterator i){
+ 	
+    // Add an agent to a specified AMS
+    Runnable addIt = new Runnable() {
+      public void run() {
+      	
+      	while(i.hasNext()){
+      		AMSAgentDescription agent = (AMSAgentDescription)i.next();
+	    
+          tree.treeAgent.addRemoteAgentNode(agent,ams.getName());
+      		}
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
+
+  }
+  
+  public void removeRemoteAMS(AID ams){
+  
+  	final String name = ams.getName();
+  	Runnable addIt = new Runnable(){
+  	
+  	public void run(){
+  		tree.treeAgent.removeRemoteAMSNode(name);
+  		
+  	}
+  	};
+  	SwingUtilities.invokeLater(addIt);
+  }
+  
   public void removeAddress(final String address, final String where) {
     Runnable removeIt = new Runnable() {
       public void run() {
@@ -194,7 +268,10 @@ class MainWindow extends JFrame {
     SwingUtilities.invokeLater(removeIt);
   }
 
-
+  
+  
+ 
+  
   public void showErrorDialog(String text, ACLMessage msg) {
     String messages[] = new String[3];
     messages[0] = text;
@@ -248,6 +325,19 @@ class MainWindow extends JFrame {
       return false;
   }
 
+  
+  public void viewAPDescriptionDialog(APDescription ap, String title){
+  	
+  	if (ap != null)
+  	{
+  			APDescriptionPanel.showAPDescriptionInDialog(ap,this,title);
+  	}
+  
+  }
+  
+  
+  
+  	
   private void setUI(String ui) {
     try {
       UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
@@ -259,6 +349,7 @@ class MainWindow extends JFrame {
 	e.printStackTrace(System.out);
     }
   }
+  
   /**
      enables Motif L&F
   */

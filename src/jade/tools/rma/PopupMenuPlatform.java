@@ -21,27 +21,25 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.tools.rma;
 
-package jade.gui;
-
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 
 /**
    
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-public class AgentTreeModel extends DefaultTreeModel {
+class PopupMenuPlatform extends JPopupMenu{
+ public PopupMenuPlatform(ActionProcessor actPro) {
+  super();
+   JMenuItem tmp;
 
+   tmp=add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
+   tmp.setIcon(null);
+   
+   
+     }
 
-  public AgentTreeModel (AgentTree.Node cNode) {
-    super(cNode);
-  
-  }
-
-  public Object getRoot() {
-    return root;
-  }
-
-} // End of AgentTreeModel
+} // End of PopupMenuPlatform

@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
-import  javax.swing.*;
+import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.event.TreeSelectionListener;
 import java.awt.Font;
@@ -40,7 +40,9 @@ import java.awt.image.ImageFilter;
 import java.awt.Image;
 import java.util.Map;
 import java.util.HashMap;
-
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -143,7 +145,8 @@ public class AgentTree extends JPanel {
     }
 
     public String getToolTipText() {
-     return stateAgent;
+     //return stateAgent;
+    	return ("Local Agent");
     }
 
 }  // End of AgentNode
@@ -190,7 +193,7 @@ public class AgentTree extends JPanel {
 
   public SuperContainer(String name) {
    super(name);
-   register("SUPERCONTAINER",new JPopupMenu(),"images/TreeRoot.gif");
+   register("SUPERCONTAINER",new JPopupMenu(),"images/folderyellow.gif");
   }
 
   public String getToolTipText() {
@@ -204,11 +207,101 @@ public class AgentTree extends JPanel {
   public void setType(String noType) {}
 }
 
+public class RemotePlatformsNode extends Node{
+	
+	public RemotePlatformsNode(String name){
+		super(name);
+		
+	}
+	
+	public String getToolTipText(){
+		return ("List of RemotePlatforms");
+	}
+	
+	public void setType(String noType){
+	
+	}
+	
+	public String getType(){
+		return("REMOTEPLATFORMS");
+	}
+	
+}
+
+
+//remote AMS
+public class RemoteAMSNode extends Node{
+	
+	private APDescription AP_Profile;
+	private AID amsAID;
+	
+	public RemoteAMSNode(String name){
+		super(name);
+	}
+	
+	public String getToolTipText(){
+		return ("Remote Platform");
+	}
+	
+	public void setType(String noType){
+	
+	}
+	
+	public String getType(){
+		return("REMOTEAMS");
+	}
+	
+	public void setAPDescription(APDescription desc){
+	
+		AP_Profile = desc;
+	}
+	
+	public APDescription getAPDescription(){
+	 return AP_Profile;
+	}
+
+	public void setAmsAID(AID id){
+		amsAID = id;
+	}
+	
+	public AID getAmsAID(){
+		return amsAID;
+	}
+}
+
+public class RemoteAgentNode extends Node{
+
+	private AMSAgentDescription amsd;
+	
+	public RemoteAgentNode(String name){
+		super(name);
+	}
+	
+	public String getToolTipText(){
+		return ("Remote Agent");
+	}
+	
+	public void setType(String noType){
+	
+	}
+	
+	public String getType(){
+		return("REMOTEAGENT");
+	}
+	
+	public void setAMSDescription(AMSAgentDescription id){
+	amsd = id;
+	}
+	
+	public AMSAgentDescription getAMSDescription(){
+		return amsd;
+	}
+}
+
  public AgentTree(Font f) {
 
   TreeSelectionModel selModel;
   TreeIconRenderer treeR;
-
   mapDescriptor=new HashMap();
   tree=new JTree();
   tree.setFont(f);
@@ -230,7 +323,7 @@ public class AgentTree extends JPanel {
 
   public AgentTree.Node createNewNode(String name,int i) {
     switch(i) {
-     case 0: return new AgentTree.ContainerNode(name);
+     case 0: return new AgentTree.ContainerNode(name);    
      case 1: return new AgentTree.AgentNode(name);
     }
    return null;
@@ -259,6 +352,29 @@ public class AgentTree extends JPanel {
     }
   }
 
+  public void addRemotePlatformsFolderNode(){
+  	AgentTreeModel model = getModel();
+  	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+  	Enumeration children = root.children();
+  	
+  	boolean existing = false;
+  	
+  	while(children.hasMoreElements() & (!existing)){
+  		AgentTree.Node node = (AgentTree.Node)children.nextElement();
+  	  String nodeName = node.getName();
+  		if(nodeName.equalsIgnoreCase("REMOTEPLATFORMS"))
+  			existing = true;
+  	}
+  	
+  	if (!existing)
+  		 {
+  		 	RemotePlatformsNode rpn = new RemotePlatformsNode("RemotePlatforms");
+   		  model.insertNodeInto(rpn, root, root.getChildCount());
+  		 }
+  	
+  	return;
+  }
+  
   public void addAgentNode(AgentNode node,String containerName,String agentName,String agentAddress,String agentType) {
       AgentTreeModel model = getModel();
       MutableTreeNode root = (MutableTreeNode)model.getRoot();
@@ -302,7 +418,116 @@ public class AgentTree extends JPanel {
       }
     }
   }
+  
+  public void addRemoteAMSNode(AID ams,APDescription desc){
+  
+  	AgentTreeModel model = getModel();
+    MutableTreeNode root = (MutableTreeNode)model.getRoot();
+    
+     // Search for the agent container 'containerName'
+	   Enumeration containers = root.children();
+	   while(containers.hasMoreElements()) {//1
+	   	AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+	    String contName = container.getName();
+	    if(contName.equalsIgnoreCase("REMOTEPLATFORMS")) {//2
+	    	boolean found = false;
+	    	Enumeration agents = container.children();
+	    	while(agents.hasMoreElements() && !found){//3
+	    		AgentTree.RemoteAMSNode agent = (AgentTree.RemoteAMSNode)agents.nextElement();
+	    		String agName = agent.getName();
+	    		if(agName.equalsIgnoreCase(ams.getName()))
+	    			{//update the APDescription of this node
+	    				agent.setAPDescription(desc);
+	    				found = true;
+	    			}
+	    	}//3
+	    	if(!found)
+        {
+         	// Add this new agent to this container and return
+	       	RemoteAMSNode node = new RemoteAMSNode(ams.getName());
+			    node.setAPDescription(desc);
+    			node.setAmsAID(ams);
+         	model.insertNodeInto(node, container, container.getChildCount());}
+         return;
+	    }//2
+	   }//1
+  }
 
+  
+  public void removeRemoteAMSNode(String name){
+  	AgentTreeModel model = getModel();
+	  MutableTreeNode root = (MutableTreeNode)model.getRoot();
+
+     // Search for the  RemotePlatforms node
+    Enumeration containers = root.children();
+    while(containers.hasMoreElements()) {
+	    AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+	    String contName = container.getName();
+	     if(contName.equalsIgnoreCase("REMOTEPLATFORMS")) {
+        // Search for the ams  
+	      Enumeration agents = container.children();
+	      while(agents.hasMoreElements()) {
+	        AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
+	        String agName = agent.getName();
+	         if(agName.equalsIgnoreCase(name)){
+             model.removeNodeFromParent(agent);
+             //if it's the last child remove the folder REMOTEPLATFORMS
+             if(container.getChildCount() == 0)
+             	model.removeNodeFromParent(container);
+             return;
+           }
+        }
+      }
+    }
+  }
+  public void addRemoteAgentNode(AMSAgentDescription agent, String ams){//0
+  	
+  	AgentTreeModel model = getModel();
+  	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+  	
+  	//Search for the REMOTEPLATFORMS node
+    Enumeration containers = root.children();
+    
+    while(containers.hasMoreElements()) { //1
+	    
+    	AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+	    String contName = container.getName();
+	    
+	    if(contName.equalsIgnoreCase("REMOTEPLATFORMS")) { //2
+				 //search the remoteAMS
+	     	 Enumeration ams_Enum = container.children();
+	     	 
+	     	 while(ams_Enum.hasMoreElements()){//3
+	     	 	AgentTree.Node amsNode = (AgentTree.Node)ams_Enum.nextElement();
+	     	 	String amsNodeName = amsNode.getName();
+	     	 	if(amsNodeName.equalsIgnoreCase(ams)){//4
+	     	 		if(amsNodeName.equalsIgnoreCase(agent.getName().getName())) //the ams is not register two times
+	     	 			((AgentTree.RemoteAMSNode)amsNode).setAmsAID(agent.getName()); //update the AID of the AMS
+	     	 		else{//4bis
+	     	 			//found the ams now add remote agent registered with that ams...
+	     	 			Enumeration remote_agents = amsNode.children();
+	     	 			boolean found = false;
+	     	 			while(remote_agents.hasMoreElements() && ! found){ //5
+	     	 
+	     	 				AgentTree.RemoteAgentNode node = (AgentTree.RemoteAgentNode)remote_agents.nextElement();
+	     	 				String remoteName = node.getName();
+	     	 				if(remoteName.equalsIgnoreCase(agent.getName().getName())){//6
+	     	 					node.setAMSDescription(agent); //update the AMSDescription
+	     	 					found = true;
+	     	 				}//6
+	     	 			}//5
+	     	 			if(!found){//7
+	     	 				AgentTree.RemoteAgentNode newNode = new AgentTree.RemoteAgentNode(agent.getName().getName());
+	     	 				newNode.setAMSDescription(agent);
+	     	 				model.insertNodeInto(newNode,amsNode,amsNode.getChildCount());
+	     	 			}//7
+	     	 		}//4bis
+	     	 	}//4
+	     	 }//3
+	     }//2
+    }//1
+  }//0
+  
   public AgentTreeModel getModel()
   {
       if (tree.getModel() instanceof AgentTreeModel)
@@ -325,6 +550,12 @@ public class AgentTree extends JPanel {
    return nDescriptor.getPopupMenu();
    }
 
+ public void setNewPopupMenu(String key,JPopupMenu pop){
+ 	if (mapDescriptor.containsKey(key)){
+ 	 	NodeDescriptor nDescriptor = (NodeDescriptor)mapDescriptor.get(key);
+ 	  nDescriptor.setNewPopupMenu(pop);
+ 	}
+ } 
  protected String getIconAgent(String key) {
    NodeDescriptor nDescriptor=(NodeDescriptor) mapDescriptor.get(key);
    return nDescriptor.getPathImage();

@@ -27,6 +27,10 @@ Boston, MA  02111-1307, USA.
 package jade.onto.basic;
 
 import jade.core.AID;
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.domain.FIPAAgentManagement.MTPDescription;
+import jade.domain.FIPAAgentManagement.APTransportDescription;
+
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
@@ -63,6 +67,10 @@ public class BasicOntology {
    // Concepts
   public static final String ACTION = "action";
   public static final String AGENTIDENTIFIER = "agent-identifier";
+  
+  public static final String APDESCRIPTION = "ap-description";
+  public static final String APTRANSPORTDESCRIPTION = "ap-transport-description";
+  public static final String MTPDESCRIPTION = "mtp-description";
 
   // Propositions
   public static final String TRUE = "true";
@@ -110,7 +118,22 @@ public class BasicOntology {
 	  			new SlotDescriptor("resolvers", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.O)
 				}, AID.class);
 
-	
+			theInstance.addRole(APDESCRIPTION, new SlotDescriptor[] {
+	    	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	    	new SlotDescriptor("dynamic", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
+	    	new SlotDescriptor("mobility", Ontology.PRIMITIVE_SLOT, Ontology.BOOLEAN_TYPE, Ontology.O),
+            new SlotDescriptor("transport-profile", Ontology.FRAME_SLOT, APTRANSPORTDESCRIPTION, Ontology.O),
+				}, APDescription.class); 
+
+      theInstance.addRole(APTRANSPORTDESCRIPTION, new SlotDescriptor[] {
+	    	new SlotDescriptor("available-mtps", Ontology.SET_SLOT, MTPDESCRIPTION, Ontology.O)
+			}, APTransportDescription.class); 
+
+      theInstance.addRole(MTPDESCRIPTION, new SlotDescriptor[] {
+	    new SlotDescriptor("profile", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	    new SlotDescriptor("mtp-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	    new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, MTPDescription.class);
 			// Adds TRUE role
 			theInstance.addRole(
 				TRUE, 

@@ -55,11 +55,12 @@ import java.util.Properties;
       "RMAAction.CloneAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/clone.gif"),	
       "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
       "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/runtree.gif"),
-      "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),
-      "TreeData.FolderIcon1",LookAndFeel.makeIcon(foo.getClass(),"images/TreeRoot.gif"),
+      "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/foldergreen.gif"),
+      "TreeData.FolderIcon1",LookAndFeel.makeIcon(foo.getClass(),"images/folderyellow.gif"),
       "RMAAction.DummyAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/dummyagent.gif"),
 	    "RMAAction.DGGUIActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/dfsmall.gif"), 
-      };
+      "RMAAction.AddRemotePlatformActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/connect.gif"), 
+    };
 
     MyDefaults = new UIDefaults (icons);     // (My)Create a defaults table initialized with the specified key/value pairs.
   }
