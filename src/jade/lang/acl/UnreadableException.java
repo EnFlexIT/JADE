@@ -25,12 +25,19 @@ Boston, MA  02111-1307, USA.
 package jade.lang.acl;
 
 /**
-@author Tiziana Trucco - CSELT S.p.A.
-@version $Date$ $Revision$
+* Signals that an error occured during the decoding of the content 
+* of an ACLMessage using Base64. 
+*
+* @author Tiziana Trucco - CSELT S.p.A.
+* @version $Date$ $Revision$
 */
 
 public class UnreadableException extends Exception {
-
+/**
+* Constructs an <code>UnreadableException</code> with the specified detail
+* message.
+* @param the detail message.
+*/
   UnreadableException(String msg) {
     super(msg);
   }
