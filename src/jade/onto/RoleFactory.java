@@ -25,7 +25,7 @@ package jade.onto;
 
 public interface RoleFactory {
 
-  public Object create();
+  public Object create(Frame f);
 
   public Class getClassForRole();
 
