@@ -10,6 +10,8 @@ del jade\*.class
 del jade\*~
 del jade\core\*.class
 del jade\core\*~
+del jade\core\behaviours\*.class
+del jade\core\behaviours\*~
 del jade\domain\*.class
 del jade\domain\*~
 del jade\gui\*.class
@@ -18,6 +20,11 @@ del jade\lang\acl\*.class
 del jade\lang\acl\*~
 del jade\proto\*.class
 del jade\proto\*~
+del jade\tools\DummyAgent\*.class
+del jade\tools\DummyAgent\*~
+del jade\tools\rma\*.class
+del jade\tools\rma\*~
+
 del jade\lang\acl\ACLParser.java
 del jade\lang\acl\ACLParserConstants.java
 del jade\lang\acl\ACLParserTokenManager.java
