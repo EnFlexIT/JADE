@@ -185,7 +185,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
   /**
    * This method is redefined as BasicOntology does not use an
    * Introspector for performance reason
-   * @see Ontology#toObject(AbsObject, Ontology)
+   * @see Ontology#toObject(AbsObject)
    */
   protected Object toObject(AbsObject abs, String lcType, Ontology referenceOnto) throws UngroundedException, OntologyException {
     try {
@@ -259,7 +259,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
   /**
    * This method is redefined as BasicOntology does not use an
    * Introspector for performance reason
-   * @see Ontology#toObject(AbsObject, Ontology)
+   * @see Ontology#toObject(AbsObject)
    */
   protected AbsObject fromObject(Object obj, Ontology referenceOnto) throws OntologyException{
     try {
