@@ -27,6 +27,8 @@ import jade.mtp.MTP;
 import jade.mtp.TransportAddress;
 import jade.domain.FIPAAgentManagement.Envelope;
 
+import org.omg.CORBA.*;
+
 import FIPA.*; // OMG IDL Stubs
 
 /**
@@ -40,21 +42,87 @@ import FIPA.*; // OMG IDL Stubs
  */
 public class MessageTransportProtocol implements MTP {
 
+
   private static class MTSImpl extends _MTSImplBase {
 
-    public void message(FIPA.FipaMessage aFipaMessage) {
-      byte[] payload = aFipaMessage.payload;
+    public void message(FipaMessage aFipaMessage) {
+      byte[] payload = aFipaMessage.messageBody;
       Envelope env = new Envelope();
       // Read in the envelope
+
       String s = new String(payload);
-      System.out.println("|||||||||||||||||||||||||||||||||||||||);
+      System.out.println("|||||||||||||||||||||||||||||||||||||||");
       System.out.println(s);
-      System.out.println("|||||||||||||||||||||||||||||||||||||||);
+      System.out.println("|||||||||||||||||||||||||||||||||||||||");
     }
 
   } // End of MTSImpl class
 
-  private static class IIOPAddress implements TransportAddress {
+
+  private ORB myORB;
+  private MTSImpl server;
+
+  public MessageTransportProtocol() {
+    myORB = ORB.init(new String[0], null);
+  }
+
+  public TransportAddress activate() throws MTP.MTPException {
+    server = new MTSImpl();
+    myORB.connect(server);
+    return new IIOPAddress(myORB, server);
+  }
+
+  public void activate(TransportAddress ta) throws MTP.MTPException {
+    throw new MTP.MTPException("User supplied transport address not supported.");
+  }
+
+  public void deactivate(TransportAddress ta) throws MTP.MTPException {
+    throw new MTP.MTPException("Individual deactivation not supported.");
+  }
+
+  public void deactivate() throws MTP.MTPException {
+    myORB.disconnect(server);
+  }
+
+  public void deliver(TransportAddress ta, Envelope env, byte[] payload) throws MTP.MTPException {
+    try {
+      IIOPAddress addr = (IIOPAddress)ta;
+      MTS objRef = addr.getObject();
+      FipaMessage msg = new FipaMessage();
+      FIPA.Envelope IDLenv = new FIPA.Envelope();
+
+      // Fill in the IDL envelope...
+
+      msg.messageEnvelopes = new FIPA.Envelope[] { IDLenv };
+      msg.messageBody = payload;
+      objRef.message(msg); 
+    }
+    catch(ClassCastException cce) {
+      throw new MTP.MTPException("Address mismatch: this is not a valid IIOP address.");
+    }
+  }
+
+  public TransportAddress strToAddr(String rep) throws MTP.MTPException {
+    return new IIOPAddress(myORB, rep);
+  }
+
+  public String addrToStr(TransportAddress ta) throws MTP.MTPException {
+    try {
+      IIOPAddress addr = (IIOPAddress)ta;
+      return addr.getIOR();
+    }
+    catch(ClassCastException cce) {
+      throw new MTP.MTPException("Address mismatch: this is not a valid IIOP address.");
+    }
+  }
+
+  public String getName() {
+    return "iiop";
+  }
+
+}
+
+  class IIOPAddress implements TransportAddress {
 
     public static final byte BIG_ENDIAN = 0;
     public static final byte LITTLE_ENDIAN = 1;
@@ -73,7 +141,7 @@ public class MessageTransportProtocol implements MTP {
 
     private CDRCodec codecStrategy;
 
-    public IIOPAddress(ORB anOrb, MTS objRef) throws MTPException {
+    public IIOPAddress(ORB anOrb, MTS objRef) throws MTP.MTPException {
       orb = anOrb;
       String s = orb.object_to_string(objRef);
       if(s.toUpperCase().startsWith("IOR:"))
@@ -81,20 +149,20 @@ public class MessageTransportProtocol implements MTP {
       else if(s.toLowerCase().startsWith("iiop://"))
 	initFromURL(s, LITTLE_ENDIAN);
       else
-	throw new MTPException("Invalid string prefix");
+	throw new MTP.MTPException("Invalid string prefix");
     }
 
-    public IIOPAddress(ORB anOrb, String s) throws MTPException {
+    public IIOPAddress(ORB anOrb, String s) throws MTP.MTPException {
       orb = anOrb;
       if(s.toUpperCase().startsWith("IOR:"))
 	initFromIOR(s);
       else if(s.toLowerCase().startsWith("iiop://"))
 	initFromURL(s, LITTLE_ENDIAN);
       else
-	throw new MTPException("Invalid string prefix");
+	throw new MTP.MTPException("Invalid string prefix");
     }
 
-    private void initFromIOR(String s) throws MTPException {
+    private void initFromIOR(String s) throws MTP.MTPException {
 
       // Store stringified IOR
       ior = new String(s.toUpperCase());
@@ -112,12 +180,12 @@ public class MessageTransportProtocol implements MTP {
 	codecStrategy = new LittleEndianCodec(hexString);
 	break;
       default:
-	throw new MTPException("Invalid endianness specifier");
+	throw new MTP.MTPException("Invalid endianness specifier");
       }
       // Read 'string type_id' field
       String typeID = codecStrategy.readString();
       if(!typeID.equalsIgnoreCase(TYPE_ID))
-	throw new MTPException("Invalid type ID" + typeID);
+	throw new MTP.MTPException("Invalid type ID" + typeID);
 
       // Read 'sequence<TaggedProfile> profiles' field
       // Read sequence length
@@ -137,14 +205,14 @@ public class MessageTransportProtocol implements MTP {
 	    profileBodyCodec = new LittleEndianCodec(profile);
 	    break;
 	  default:
-	    throw new IIOPFormatException("Invalid endianness specifier");
+	    throw new MTP.MTPException("Invalid endianness specifier");
 	  }
 
 	  // Read IIOP version
 	  byte versionMajor = profileBodyCodec.readOctet();
 	  byte versionMinor = profileBodyCodec.readOctet();
 	  if(versionMajor != 1)
-	    throw new MTPException("IIOP version not supported");
+	    throw new MTP.MTPException("IIOP version not supported");
 
 	  // Read 'string host' field
 	  host = profileBodyCodec.readString();
@@ -163,14 +231,14 @@ public class MessageTransportProtocol implements MTP {
       }
     }
 
-    private void initFromURL(String s, short endianness) throws MTPException {
+    private void initFromURL(String s, short endianness) throws MTP.MTPException {
 
       // Remove 'iiop://' prefix to get URL host, port and file
       s = s.substring(7);
       int colonPos = s.indexOf(':');
       int slashPos = s.indexOf('/');
       if((colonPos == -1) || (slashPos == -1))
-	throw new MTPException("Invalid URL string");
+	throw new MTP.MTPException("Invalid URL string");
 
       host = new String(s.substring(0, colonPos));
       port = Short.parseShort(s.substring(colonPos + 1, slashPos));
@@ -184,7 +252,7 @@ public class MessageTransportProtocol implements MTP {
 	codecStrategy = new LittleEndianCodec(new byte[0]);
 	break;
       default:
-	throw new MTPException("Invalid endianness specifier");
+	throw new MTP.MTPException("Invalid endianness specifier");
       }
 
       codecStrategy.writeString(TYPE_ID);
@@ -202,7 +270,7 @@ public class MessageTransportProtocol implements MTP {
 	profileBodyCodec = new LittleEndianCodec(new byte[0]);
 	break;
       default:
-	throw new MTPException("Invalid endianness specifier");
+	throw new MTP.MTPException("Invalid endianness specifier");
       }
 
       // Write IIOP 1.0 profile to auxiliary CDR codec
@@ -354,7 +422,7 @@ public class MessageTransportProtocol implements MTP {
 
     } // End of CDRCodec class
 
-    private class BigEndianCodec extends CDRCodec {
+    private static class BigEndianCodec extends CDRCodec {
 
       public BigEndianCodec(String ior) {
 	super(ior);
@@ -416,7 +484,7 @@ public class MessageTransportProtocol implements MTP {
 
     } // End of BigEndianCodec class
 
-    private class LittleEndianCodec extends CDRCodec {
+    private static class LittleEndianCodec extends CDRCodec {
 
       public LittleEndianCodec(String ior) {
 	super(ior);
@@ -475,12 +543,10 @@ public class MessageTransportProtocol implements MTP {
 	writeOctet((byte)((l & 0xFF00000000000000L) >> 56));
       }
 
-
-    } // End of LittleEndianCodec class
-
+    }  // End of LittleEndianCodec class
 
     public String getProto() {
-      return "IOR";
+      return "iiop";
     }
 
     public String getHost() {
@@ -488,9 +554,8 @@ public class MessageTransportProtocol implements MTP {
     }
 
     public String getPort() {
-      return port;
+      return Short.toString(port);
     }
-
 
     public String getFile() {
       return objectKey;
@@ -502,54 +567,3 @@ public class MessageTransportProtocol implements MTP {
 
   } // End of IIOPAddress class
 
-  private ORB myORB;
-  private MTSImpl server;
-
-  public MessageTransportProtocol() {
-    myORB = ORB.init(new String[0], null);
-  }
-
-  public TransportAddress activate() throws MTPException {
-    server = new MTSImpl();
-    myORB.connect(server);
-    return new IIOPAddress(server);
-  }
-
-  void activate(TransportAddress ta) throws MTPException {
-    throw new MTPException("User supplied transport address not supported");
-  }
-
-  public void deactivate() {
-    myORB.disconnect(server);
-  }
-
-  public void deliver(TransportAddress ta, Envelope env, byte[] payload) throws MTPException {
-    try {
-      IIOPAddress addr = (IIOPAddress)ta;
-      MTS objRef = addr.getObject();
-      objRef.message(null, 
-    }
-    catch(ClassCastException cce) {
-      throw new MTPException("Address mismatch: this is not a valid IIOP address.");
-    }
-  }
-
-  public TransportAddress strToAddr(String rep) throws MTPException {
-    return new IIOPAddress(myORB, rep);
-  }
-
-  public String addrToStr(TransportAddress ta) throws MTPException {
-    try {
-      IIOPAddress addr = (IIOPAddress)ta;
-      return addr.getIOR();
-    }
-    catch(ClassCastException cce) {
-      throw new MTPException("Address mismatch: this is not a valid IIOP address.");
-    }
-  }
-
-  String getName() {
-    return "IOR";
-  }
-
-}
