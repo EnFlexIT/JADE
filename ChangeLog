@@ -1,3 +1,34 @@
+MAJOR CHANGES in JADE Snapshot (11 April 2003) since JADE3.0b1
+==========================================================================
+BUG FIXES:
+- jade.domain.ams. (bug reported by Vardan Gyurjyan):
+  if the AMS was requested to create an agent on a not-existing container, 
+  then it created the agent on the main-container.
+- jade.domain.df. when the DF had a max-lease-time policy and an agent requested 
+  an infinite lease time, the infinite lease time was granted.
+- jade.core.TimerDispatcher: fixed deadlock between the TimerDispatcher and Scheduler
+  monitors
+- jade.core.Agent: 
+  No O2A operations were possible after clone or move operations 
+  (bug reported by Christian Loos)
+- jade.proto.SubscriptionResponder: 
+  - Fixed bug in cancellation mechanism
+  - Added utility methods to help managing Subscription objects
+- jade.util.leap.Properties: 
+  correctly handled a NullPointerException in method load()
+- jade.wrapper.Agentcontainer:
+  Added 2 new methods: getContainerName() and getPlatformName(). (based on a
+  report of Christian Loos)
+- jade.tools.Sniffer:
+  Fixed a nullpointer exception when no arguments were passed via the in-process     interface.
+- MIDP add-on: 
+  - FrontEndContainer: 
+    - set the message sender also in local dispatching
+    - modified to deliver messages asynchronously
+  - added AsymFEDispatcher.java
+  - big improvement of performance in read/write operations on the sockets
+
+
 MAJOR CHANGES in JADE 3.0b1 (19 March 2003)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
