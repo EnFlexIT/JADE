@@ -40,11 +40,7 @@ public class GuiEvent
   protected int type;
   private List parameters;
 
-  // Predefined GUI event types
-  public static final int EXIT = 0;
-  public static final int CLOSEGUI = 1;
-
-
+ 
   public GuiEvent(Object eventSource, int eventType)
   {
     source = eventSource;
