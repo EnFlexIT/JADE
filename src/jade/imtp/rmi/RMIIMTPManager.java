@@ -1,5 +1,4 @@
-/**
- * ***************************************************************
+/****************************************************************
  * JADE - Java Agent DEvelopment Framework is a framework to develop
  * multi-agent systems in compliance with the FIPA specifications.
  * Copyright (C) 2000 CSELT S.p.A.
@@ -16,15 +15,17 @@
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA  02111-1307, USA.
- * **************************************************************
- */
+ ******************************************************************/
+
 package jade.imtp.rmi;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.net.Socket;
-import java.net.ServerSocket;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,12 +34,13 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 
-import java.util.Iterator;
+import jade.util.leap.Iterator;
 import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import jade.util.leap.LinkedList;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
+import jade.security.AuthException;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -47,73 +49,257 @@ import jade.mtp.TransportAddress;
 
 /**
  * @author Giovanni Caire - Telecom Italia Lab
+ * @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
 public class RMIIMTPManager implements IMTPManager {
 
-  private static class RemoteProxyRMI implements AgentProxy {
-    private AgentContainerRMI ref;
-    private AID               receiver;
+  // A smart proxy class for the real Service Manager and Service Finder implementation
+  private class ServiceManagerProxy implements ServiceManager, ServiceFinder {
 
-    // This needs to be restored whenever a RemoteProxyRMI object is
-    // serialized.
-    private transient RMIIMTPManager manager;
-
-    public RemoteProxyRMI(AgentContainerRMI ac, AID recv) {
-        ref = ac;
-        receiver = recv;
-    }
-
-    public AID getReceiver() {
-      return receiver;
-    } 
-
-    public AgentContainer getRef() {
-      return manager.getAdapter(ref);
-    } 
-
-    public void dispatch(ACLMessage msg) throws NotFoundException, UnreachableException {
-      try {
-        ref.dispatch(msg, receiver);
-      } 
-      catch (RemoteException re) {
-				throw new UnreachableException("IMTP failure: [" + re.getMessage() + "]");
+      public ServiceManagerProxy(ServiceManagerRMI sm, CommandProcessor proc) {
+	  myRemoteImpl = sm;
+	  myCommandProcessor = proc;
+	  services = new HashMap();
       }
-      catch (IMTPException imtpe) {
-				throw new UnreachableException("IMTP failure: [" + imtpe.getMessage() + "]");
+
+      public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
+
+	  try {
+	      String name = desc.getName();
+	      NodeAdapter localNode = (NodeAdapter)desc.getNode();
+	      ContainerID cid = desc.getContainer();
+	      String[] svcNames = new String[services.length];
+	      Class[] svcInterfaces = new Class[services.length];
+
+	      // Fill the parameter arrays
+	      for(int i = 0; i < services.length; i++) {
+		  svcNames[i] = services[i].getName();
+		  svcInterfaces[i] = services[i].getService().getHorizontalInterface();
+	      }
+
+	      // Now register this node and all its services with the Service Manager
+	      String containerName = myRemoteImpl.addNode(desc, svcNames, svcInterfaces);
+
+	      if(cid != null) {
+		  cid.setName(containerName);
+		  connect(cid);
+	      }
+
+	      List failedServices = new LinkedList();
+	      for(int i = 0; i < services.length; i++) {
+		  // Install the local component of the new service
+		  ServiceDescriptor svcDesc = services[i];
+		  String svcName = svcDesc.getName();
+		  Class svcInterface = svcDesc.getService().getHorizontalInterface();
+		  try {
+		      installServiceLocally(svcName, svcDesc.getService());
+		  }
+		  catch(IMTPException imtpe) {
+		      // Undo the local service installation
+		      failedServices.add(desc.getName());
+		      uninstallServiceLocally(desc.getName());
+		  }
+	      }
+
+	      // Throw a failure exception, if needed
+	      if(!failedServices.isEmpty()) {
+
+		  // All service activations failed: throw a single exception 
+		  if(failedServices.size() == services.length) {
+		      throw new ServiceException("Total failure in locally installing the services");
+		  }
+		  else {
+
+		      // Only some service activations failed: throw a single exception with the list of the failed services
+		      Iterator it = failedServices.iterator();
+		      String names = "[ ";
+		      while(it.hasNext()) {
+			  names = names.concat((String)it.next() + " ");		
+		      }
+		      names = names.concat("]");
+		      throw new ServiceException("Partial failure in locally installing the services " + names);
+		  }
+	      }
+
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception was thrown", re);
+	  }
       }
-    }
 
-    public void ping() throws UnreachableException {
-      try {
-	ref.ping(false);
-      } 
-      catch (RemoteException re) {
-	throw new UnreachableException("Unreachable remote object: [" + re.getMessage() + "]");
+      public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
+	  String name = desc.getName();
+	  NodeAdapter localNode = (NodeAdapter)desc.getNode();
+
+	  try {
+	      // First, deregister this node with the service manager
+	      myRemoteImpl.removeNode(desc);
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("RMI exception", re);
+	  }
+
+	  // Then, locally deactivate all the services
+	  Object[] names = services.keySet().toArray();
+	      for(int i = 0; i < names.length; i++) {
+		  try {
+		      String svcName = (String)names[i];
+		      uninstallServiceLocally(svcName);
+		  }
+		  catch(IMTPException imtpe) {
+		      // This should never happen, because it's a local call...
+		      imtpe.printStackTrace();
+		  }
+	      }
+
+
       }
-      catch (IMTPException imtpe) {
-	throw new UnreachableException("Unreachable remote object: [" + imtpe.getMessage() + "]");
+
+      public void activateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
+	  try {
+
+	      String name = desc.getName();
+	      Service svc = desc.getService();
+
+	      // Install the local component of the new service
+	      try {
+		  installServiceLocally(name, svc);
+	      }
+	      catch(IMTPException imtpe) {
+		  // Undo the local service installation
+		  uninstallServiceLocally(name);
+	      }
+
+	      myRemoteImpl.activateService(name, svc.getHorizontalInterface(), localNode.getName(), localNode.getRMIStub());
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception was thrown", re);
+	  }
       }
-    }
 
-    public void setMgr(RMIIMTPManager mgr) {
-      manager = mgr;
-    }
+      public void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
+	  try {
 
-  } // End of RemoteProxyRMI class
+	      String name = desc.getName();
 
-	private static final int DEFAULT_RMI_PORT = 1099;
-	
+	      myRemoteImpl.deactivateService(name, localNode.getRMIStub());
+
+	      // Uninstall the local component of the service
+	      uninstallServiceLocally(name);
+
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception was thrown", re);
+	  }
+      }
+
+      public Service findService(String key) throws IMTPException, ServiceException {
+	  return (Service)services.get(key);
+      }
+
+      public Service.Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
+	  try {
+
+	      // FIXME: It should not be needed, and the horizontal interface should be returned from the remote end
+	      Service localService = findService(serviceKey);
+	      if(localService == null) {
+		  // FIXME: Should install a DummyService...
+		  throw new ServiceException("The service <" + serviceKey + "> is not available on node <" + localNode.getName() + ">");
+	      }
+
+	      NodeAdapter node = myRemoteImpl.findSliceNode(serviceKey, sliceKey);
+	      return createSliceProxy(serviceKey, localService.getHorizontalInterface(), node);
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception was thrown", re);
+	  }
+      }
+
+      public Service.Slice[] findAllSlices(String serviceKey) throws IMTPException, ServiceException {
+	  try {
+
+	      // FIXME: It should not be needed, and the horizontal interface should be returned from the remote end
+	      Service localService = findService(serviceKey);
+	      if(localService == null) {
+		  // FIXME: Should install a DummyService...
+		  throw new ServiceException("The service <" + serviceKey + "> is not available on node <" + localNode.getName() + ">");
+	      }
+
+	      NodeAdapter[] nodes = myRemoteImpl.findAllNodes(serviceKey);
+	      Class itf = localService.getHorizontalInterface();
+	      Service.Slice[] result = new Service.Slice[nodes.length];
+	      for(int i = 0; i < nodes.length; i++) {
+		  result[i] = createSliceProxy(serviceKey, itf, nodes[i]);
+	      }
+
+	      return result;
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception was thrown", re);
+	  }
+      }
+
+
+      // Private helper method, common to one-shot and batch service activation
+      private void installServiceLocally(String name, Service svc) throws IMTPException {
+	  // Install the service filter
+	  Filter f = svc.getCommandFilter();
+	  myCommandProcessor.addFilter(f);
+
+	  // Export the local slice so that it can be reached through the network
+	  Service.Slice localSlice = svc.getLocalSlice();
+	  if(localSlice != null) {
+	      exportSlice(name, localSlice);
+	  }
+
+	  // Add the service to the local service finder so that it can be found
+	  services.put(svc.getName(), svc);
+      }
+
+      // Private helper method, common to one-shot and batch service deactivation
+      private void uninstallServiceLocally(String name) throws IMTPException {
+	  // FIXME: It should remove the service only if there are no more active slices in the whole platform.
+	  Service svc = (Service)services.get(name); // Find the local copy of the service
+	  services.remove(name);
+	  unexportSlice(name, svc.getLocalSlice());
+
+	  // Uninstall the service filter
+	  Filter f = svc.getCommandFilter();
+	  myCommandProcessor.removeFilter(f);
+      }
+
+
+      private Map services;
+      private ServiceManagerRMI myRemoteImpl;
+      private CommandProcessor myCommandProcessor;
+
+  } // End of ServiceManagerProxy class
+
+
+
+
+  private static final int DEFAULT_RMI_PORT = 1099;
+
+
   private Profile myProfile;
   private String mainHost;
   private int mainPort;
+  private String baseRMI;
   private String platformRMI;
-  private MainContainer remoteMC;
+  private NodeAdapter localNode;
+  private ServiceManagerProxy myServiceManagerProxy;
 
   // Maps agent containers into their stubs
   private Map stubs;
 
   public RMIIMTPManager() {
-    stubs = new HashMap();
+      try {
+	  localNode = new NodeAdapter("No-Name");
+	  stubs = new HashMap();
+      }
+      catch(RemoteException re) {
+	  re.printStackTrace();
+      }
   }
 
   /**
@@ -141,22 +327,11 @@ public class RMIIMTPManager implements IMTPManager {
       		// Do nothing. The DEFAULT_RMI_PORT is used 
       	}
       }
-      
-      platformRMI = "rmi://" + mainHost + ":" + mainPort + "/JADE";
-  }
 
-  /**
-   */
-  public void remotize(AgentContainer ac) throws IMTPException {
-    try {
-      AgentContainerRMI acRMI = new AgentContainerRMIImpl(ac, this);
-      stubs.put(ac, acRMI);
-    }
-    catch(RemoteException re) {
-      throw new IMTPException("Failed to create the RMI container", re);
-    }
-  }
+      baseRMI = "rmi://" + mainHost + ":" + mainPort + "/";
+      platformRMI = baseRMI + "JADE";
 
+  }
 
 
     /**
@@ -189,18 +364,16 @@ public class RMIIMTPManager implements IMTPManager {
 
 	return rmiRegistry;
 	
-    } // END getRmiRegitstry()
+    } // END getRmiRegistry()
 
 
-
-
-  /**
-   */
-  public void remotize(MainContainer mc) throws IMTPException {
+  public void exportServiceManager(ServiceManager sm) throws IMTPException {
     try {
-      MainContainerRMI mcRMI = new MainContainerRMIImpl(mc, this);
-      Registry theRegistry = getRmiRegistry(null,mainPort);
-      Naming.bind(platformRMI, mcRMI);
+
+      String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
+      ServiceManagerRMI smRMI = new ServiceManagerRMIImpl((ServiceManagerImpl)sm, this);
+      Registry theRegistry = getRmiRegistry(null, mainPort);
+      Naming.bind(svcMgrName, smRMI);
     }
     catch(ConnectException ce) {
       // This one is thrown when trying to bind in an RMIRegistry that
@@ -222,61 +395,123 @@ public class RMIIMTPManager implements IMTPManager {
     }
   }
 
-  /**
-     Disconnects the given Agent Container and hides it from remote
-     JVMs.
-  */
-  public void unremotize(AgentContainer ac) throws IMTPException {
-    try {
-      AgentContainerRMIImpl impl = (AgentContainerRMIImpl)getRMIStub(ac);    
-      if(impl == null)
-	throw new IMTPException("No RMI object for this agent container");
-      impl.unexportObject(impl, true);
-    }
-    catch(RemoteException re) {
-      throw new IMTPException("RMI error during shutdown", re);
-    }
-    catch(ClassCastException cce) {
-      throw new IMTPException("The RMI implementation is not locally available", cce);
-    }
-  }
 
-  /**
-     Disconnects the given Main Container and hides it from remote
-     JVMs.
-  */
-  public void unremotize(MainContainer mc) throws IMTPException {
-    // Unbind the main container from RMI Registry
-    // Unexport the RMI object
-    try {
-      Naming.unbind(platformRMI);
-    } catch (Exception any) {
-      // ignore
-    }
-  }
+  public ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException {
+      try {
+	  String svcMgrName = baseRMI + SERVICE_MANAGER_NAME;
 
-  public AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException {
-    AgentContainerRMI acRMI = getRMIStub(ac);
-    RemoteProxyRMI rp = new RemoteProxyRMI(acRMI, id);
-    rp.setMgr(this);
-    return rp;
-  }
+	  // Look up the actual remote object in the RMI Registry
+	  final ServiceManagerRMI remoteSvcMgr = (ServiceManagerRMI)Naming.lookup(svcMgrName);
 
-  /**
-   */
-  public synchronized MainContainer getMain(boolean reconnect) throws IMTPException {
-    // Look the remote Main Container up into the
-    // RMI Registry.
-    try {
-      if(remoteMC == null || reconnect) {
-	MainContainerRMI remoteMCRMI = (MainContainerRMI)Naming.lookup(platformRMI);
-	remoteMC = new MainContainerAdapter(remoteMCRMI, this);
+	  final CommandProcessor myCommandProcessor = proc;
+
+	  myServiceManagerProxy = new ServiceManagerProxy(remoteSvcMgr, proc);
+	  return myServiceManagerProxy;
       }
-      return remoteMC;
-    }
-    catch (Exception e) {
-      throw new IMTPException("Exception in RMI Registry lookup", e);
-    }
+      catch (Exception e) {
+	  throw new IMTPException("Exception while looking up the Service Manager in the RMI Registry", e);
+      }
+  }
+
+  public ServiceFinder createServiceFinderProxy() throws IMTPException {
+      return myServiceManagerProxy;
+  }
+
+
+  public void exportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
+      localNode.exportSlice(serviceName, localSlice);
+  }
+
+  public void unexportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
+      localNode.unexportSlice(serviceName);
+  }
+
+  public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
+
+	  ClassLoader myCL = getClass().getClassLoader();
+
+	  if(itf == null) {
+	      throw new IMTPException("No proxy interface specified");
+	  }
+
+	  // Make sure that the first element of the array is a sub-interface of Service.Slice
+	  if(!itf.isInterface() || !Service.Slice.class.isAssignableFrom(itf)) {
+	      throw new IMTPException("The first proxy interface must extend Service.Slice [" + itf.getName() + "]");
+	  }
+
+	  // Recover the RMI stub from the node where the slice represented by this proxy resides.
+	  NodeAdapter adapter = (NodeAdapter)where;
+	  final NodeRMI target = adapter.getRMIStub();
+	  final String svcName = serviceName;
+	  final Class intface = itf;
+
+	  // Build and return a Dynamic Proxy for the remote Slice
+	  return (Service.Slice)Proxy.newProxyInstance(myCL, new Class[] {itf}, new InvocationHandler() {
+
+	      // Reflective invocation handler, creating a
+	      // GenericCommand object from the method name and
+	      // parameters, and then dispatching it to the remote
+	      // slice over the NodeRMI remote interface, wrapping any
+	      // thrown RemoteException into an IMTPException.
+	      //
+	      // Notice: For this proxy to work, every parameter must be Serializable.
+	      //
+	      public Object invoke(Object proxy, Method meth, Object[] args) throws Throwable {
+
+		  try {
+		      GenericCommand cmd = new GenericCommand(meth.getName(), svcName, "");
+		      if(args != null) {
+			  for(int i = 0; i < args.length; i++) {
+			      cmd.addParam(args[i]);
+			  }
+		      }
+
+		      Class[] classes = meth.getParameterTypes();
+		      Class retType = meth.getReturnType();
+		      Object result = target.accept(cmd, intface, classes);
+
+		      if(result == null) {
+			  return result;
+		      }
+
+		      // Check for:
+		      // a. A legitimate result, instance of the declared return type
+		      // b. A thrown exception of a declared type
+		      // c. A thrown exception of an unknown type
+		      // The 'isPrimitive()' clause is needed to cope with wrapper types (e.g. boolean vs. java.lang.Boolean)
+		      if(retType.isInstance(result) || (retType.isPrimitive() && !(result instanceof Throwable))) {
+			  return result;
+		      }
+		      else if(result instanceof Throwable) {
+			  throw (Throwable)result;
+		      }
+		      else {
+			  throw new IMTPException("Incorrect type returned from a remote call: " + result.getClass().getName() + " [expected " + retType.getName() + " ]");
+		      }
+
+		  }
+		  catch(RemoteException re) {
+		      // Convert a RemoteException into an IMTPException, and let all other exceptions through
+		      throw new IMTPException("An RMI Exception was thrown", re);
+		  }
+	      }
+	  });
+
+  }
+
+  public void connect(ContainerID id) throws IMTPException {
+      // Create and export the RMI endpoint for this container
+      String containerName = id.getName();
+      localNode.setName(containerName);
+  }
+
+  public void disconnect(ContainerID id) throws IMTPException {
+      // Simply exit the local node...
+      localNode.exit();
+  }
+
+  public Node getLocalNode() throws IMTPException {
+      return localNode;
   }
 
   /**
@@ -288,7 +523,7 @@ public class RMIIMTPManager implements IMTPManager {
    */
   public List getLocalAddresses() throws IMTPException {
     try {
-      List l = new ArrayList();
+      List l = new LinkedList();
       // The port is meaningful only on the Main container
       TransportAddress addr = new RMIAddress(InetAddress.getLocalHost().getHostName(), String.valueOf(mainPort), null, null);
       l.add(addr);
@@ -299,49 +534,23 @@ public class RMIIMTPManager implements IMTPManager {
     }
   }
 
-  AgentContainerRMI getRMIStub(AgentContainer ac) {
-    return (AgentContainerRMI)stubs.get(ac);
-  }
-
-  AgentContainer getAdapter(AgentContainerRMI acRMI) {
-    Iterator it = stubs.entrySet().iterator();
-    while(it.hasNext()) {
-      Map.Entry e = (Map.Entry)it.next();
-      if(acRMI.equals(e.getValue()))
-	return (AgentContainer)e.getKey();
+    /**
+       Creates the client socket factory, which will be used
+       to instantiate a <code>UnicastRemoteObject</code>.
+       @return The client socket factory.
+    */
+    public RMIClientSocketFactory getClientSocketFactory() {
+	return null;
     }
-    AgentContainer ac = new AgentContainerAdapter(acRMI, this);
-    stubs.put(ac, acRMI);
-    return ac;
-  }
 
-  void adopt(AgentProxy ap) throws IMTPException {
-    try {
-      RemoteProxyRMI rpRMI = (RemoteProxyRMI)ap;
-      rpRMI.setMgr(this);
+    /**
+       Creates the server socket factory, which will be used
+       to instantiate a <code>UnicastRemoteObject</code>.
+       @return The server socket factory.
+    */
+    public RMIServerSocketFactory getServerSocketFactory() { 
+	return null;
     }
-    catch(ClassCastException cce) {
-      throw new IMTPException("Cannot adopt this Remote Proxy", cce);
-    }
-  }
 
-
-	/**
-		Creates the client socket factory, which will be used
-		to instantiate a <code>UnicastRemoteObject</code>.
-		@return The client socket factory.
-	*/
-	public RMIClientSocketFactory getClientSocketFactory() {
-		return null;
-	}
-
-	/**
-		Creates the server socket factory, which will be used
-		to instantiate a <code>UnicastRemoteObject</code>.
-		@return The server socket factory.
-	*/
-	public RMIServerSocketFactory getServerSocketFactory() { 
-		return null;
-	}
 
 }
