@@ -225,12 +225,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	   JICPMediatorManager always does that).
 	 */
 	public JICPPacket handleJICPPacket(Connection c, JICPPacket pkt, InetAddress addr, int port) throws ICPException {
-		if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-			peerActive = false;
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, myID+": Peer termination notification received");
-			}
-		}
+		checkTerminatedInfo(pkt);
 		
   	// Update keep-alive info
   	lastReceivedTime = System.currentTimeMillis();
@@ -425,7 +420,8 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 		  		if ((!active) || (myConnection == null) || (waitingForFlush && (!flush))) {
 			  		// If we are waiting for flushed packets and the current packet
 			  		// is a normal (i.e. non-flushed) one, then throw an exception -->
-			  		// The packet will be put in the queue of packets to be flushed
+		  			// The packet will be put in the queue of packets to be flushed
+		  			System.out.println("###### Dispatching in disconnected state.");
 			  		throw new ICPException("Unreachable");
 		  		}
 		  		
@@ -445,6 +441,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				  readStartTime = System.currentTimeMillis();
 					JICPPacket reply = myConnection.readPacket();
 				  readStartTime = -1;
+				  checkTerminatedInfo(reply);
 				  lastReceivedTime = System.currentTimeMillis();
 				  long end = lastReceivedTime;
 				  if ((end - start) > 100) {
@@ -636,6 +633,15 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	  }
   } // END of inner class OutputManager
   
+
+  private final void checkTerminatedInfo(JICPPacket pkt) {
+		if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+			peerActive = false;
+			if (myLogger.isLoggable(Logger.INFO)) {
+				myLogger.log(Logger.INFO, myID+": Peer termination notification received");
+			}
+		}
+  }
   
   private void close(Connection c) {
   	try {
