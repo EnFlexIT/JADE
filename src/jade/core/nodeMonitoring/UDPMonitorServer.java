@@ -381,36 +381,6 @@ class UDPMonitorServer {
       deadlines.put(nodeID, deadline);
       timer.schedule(deadline, delay);
     }
-  }
-  
-  /**
-   * Initializes the server by overwriting default settings
-   * @param p Profile including the setting
-   *
-  public static void init(Profile p) {
-    port = getPosIntValue(p, UDPNodeFailureMonitor.UDP_MONITORING_PORT, DEFAULT_PORT);
-    pingDelayLimit = getPosIntValue(p, UDPNodeFailureMonitor.UDP_MONITORING_PING_DELAY_LIMIT, DEFAULT_PING_DELAY_LIMIT);
-    unreachLimit= getPosIntValue(p, UDPNodeFailureMonitor.UDP_MONITORING_UNREACHABLE_LIMIT, DEFAULT_UNREACHABLE_LIMIT);
-  }*/
-  
-  ///////////////////////////////////////////////////
-  // Helper methods                                //
-  ///////////////////////////////////////////////////
-  
-  /**
-   * Extracts an integer value from a given profile. If the value
-   * is less than zero it returns the specified default value
-   * @param p profile
-   * @param paramName name of the parameter in the profile
-   * @param defaultValue default value
-   *
-  private static int getPosIntValue(Profile p, String paramName, int defaultValue) {
-    int value = Integer.valueOf(p.getParameter(paramName, "-1")).intValue();
-    if (value >= 0) {
-      return value;   
-    } else {
-     return defaultValue; 
-    }
-  }*/
+  }  
 }
 
