@@ -40,8 +40,8 @@ public class TreePopupMenu extends JPopupMenu{
   public TreePopupMenu(JTree tree){
     super();
     listener = new TreePopupMenuListener(tree);
-    addBehaviour= new JMenuItem("ADD BEHAVIOUR");
-    removeBehaviour= new JMenuItem("REMOVE BEHAVIOUR");
+    addBehaviour= new JMenuItem("Add Behaviour");
+    removeBehaviour= new JMenuItem("Remove Behaviour");
     addBehaviour.setName("add");
     removeBehaviour.setName("remove");
     addBehaviour.addActionListener(listener);

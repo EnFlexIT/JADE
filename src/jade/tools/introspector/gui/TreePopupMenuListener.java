@@ -65,41 +65,48 @@ public class TreePopupMenuListener implements ActionListener {
       }
     }
   }
-
-  public void run(){
+  */
+/*
+  public void run()
+  {
     if(!addBehaviour){
       TreePath path=myTree.getSelectionPath();
-      DefaultMutableTreeNode t=
-            (DefaultMutableTreeNode) path.getLastPathComponent();
+          DefaultMutableTreeNode t=(DefaultMutableTreeNode) path.getLastPathComponent();
       if(!t.isRoot()){
         DefaultMutableTreeNode parent=(DefaultMutableTreeNode)t.getParent();
-        EventQueue.invokeLater(new TreeModifier(myTree,t,false));
+              SwingUtilities.invokeLater(new TreeModifier(myTree,t,false));
       }
     }
-    else{
-      MyDialog dialog=new MyDialog(new Frame(),"new behaviour",true);
-
+      else
+      {
+          MyDialog dialog=new MyDialog(new Frame(),"New Behaviour",true);
       dialog.showCorrect() ;
       String classs=dialog.text;
-      if (classs!= null){
+          if (classs!= null)
+          {
         Class c=null;
         Object o=null;
-        try{
+              try
+              {
           c=Class.forName(classs);
           o=(Object)c.newInstance();
-        }catch(Exception e){e.printStackTrace() ;}
-        if(o!=null){
+              }
+              catch(Exception e)
+              {
+                  e.printStackTrace();
+              }
+              
+              if(o!=null)
+              {
           Behaviour b = (Behaviour)o;
-          BehaviourRapp rapp=new BehaviourRapp(b);
-          DefaultMutableTreeNode node=new DefaultMutableTreeNode(rapp);
+                  DefaultMutableTreeNode node=new DefaultMutableTreeNode(b);
           if(!rapp.getSimple().booleanValue()){
             createTree(node,rapp.getAllChildren());
           }
-          EventQueue.invokeLater(new TreeModifier(myTree,node,true));
+                  SwingUtilities.invokeLater(new TreeModifier(myTree,node,true));
         }
       }
     }
   }
     */
-
 }

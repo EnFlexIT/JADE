@@ -178,6 +178,21 @@ public IntrospectorGUI(Introspector i) {
     SwingUtilities.invokeLater(new StateUpdater(sp, cas));
   }
 
+  public void behaviourAdded(MainWindow f, AddedBehaviour e) {
+      BehaviourPanel bp = f.getBehaviourPanel();
+      SwingUtilities.invokeLater(new TreeUpdater(e,bp));
+  }
+  
+  public void behaviourRemoved(MainWindow f, RemovedBehaviour e) {
+      BehaviourPanel bp = f.getBehaviourPanel();
+      SwingUtilities.invokeLater(new TreeUpdater(e,bp));
+  }      
+  
+  public void behaviourChangeState(MainWindow f, ChangedBehaviourState e) {
+      BehaviourPanel bp = f.getBehaviourPanel();
+      SwingUtilities.invokeLater(new TreeUpdater(e,bp));
+  }
+
     /*
   public void messageEvent(MessageEvent e, MainWindow f){
     MessagePanel mp=f.getMessagePanel();
@@ -186,10 +201,6 @@ public IntrospectorGUI(Introspector i) {
   public void stateEvent(StateEvent e,MainWindow f){
     StatePanel sp=f.getStatePanel();
     EventQueue.invokeLater(new StateUpdater(e,sp));
-  }
-  public void behaviourEvent(BehaviourEvent e,MainWindow f){
-    BehaviourPanel bp=f.getBehaviourPanel();
-     EventQueue.invokeLater(new TreeUpdater(e,bp));
   }
 
 

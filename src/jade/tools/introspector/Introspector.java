@@ -36,6 +36,8 @@ import java.util.Iterator;
 import jade.core.*;
 import jade.core.behaviours.*;
 
+import jade.tools.introspector.gui.IntrospectorGUI;
+
 import jade.domain.FIPAException;
 import jade.domain.FIPAServiceCommunicator;
 import jade.domain.introspection.*;
@@ -79,7 +81,12 @@ public class Introspector extends ToolAgent {
     private String actionName;
 
       public AMSRequester(String an, ACLMessage request) {
-	  super(Introspector.this, request);
+          super(Introspector.this, request);
+//      super(Introspector.this, request,
+//	    MessageTemplate.and(MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
+//				MessageTemplate.MatchLanguage(SL0Codec.NAME)
+//				)
+//	    );
 	  actionName = an;
       }
 	
@@ -332,21 +339,33 @@ public class Introspector extends ToolAgent {
 
       handlers.put(JADEIntrospectionOntology.ADDEDBEHAVIOUR, new EventHandler() {
 	public void handle(Event ev) {
-
+                AddedBehaviour ab = (AddedBehaviour)ev;
+                AID agent = ab.getAgent();
+                MainWindow wnd = (MainWindow)windowMap.get(agent);
+                if(wnd != null)
+                    myGUI.behaviourAdded(wnd, ab);
 	}
 
       });
 
       handlers.put(JADEIntrospectionOntology.REMOVEDBEHAVIOUR, new EventHandler() {
 	public void handle(Event ev) {
-
+                RemovedBehaviour rb = (RemovedBehaviour)ev;
+                AID agent = rb.getAgent();
+                MainWindow wnd = (MainWindow)windowMap.get(agent);
+                if(wnd != null)
+                    myGUI.behaviourRemoved(wnd, rb);
 	}
 
       });
 
       handlers.put(JADEIntrospectionOntology.CHANGEDBEHAVIOURSTATE, new EventHandler() {
 	public void handle(Event ev) {
-
+                ChangedBehaviourState cs = (ChangedBehaviourState)ev;
+                AID agent = cs.getAgent();
+                MainWindow wnd = (MainWindow)windowMap.get(agent);
+                if(wnd != null)
+                    myGUI.behaviourChangeState(wnd, cs);                
 	}
 
       });

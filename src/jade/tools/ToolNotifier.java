@@ -52,10 +52,15 @@ import jade.domain.introspection.SentMessage;
 import jade.domain.introspection.PostedMessage;
 import jade.domain.introspection.ReceivedMessage;
 import jade.domain.introspection.ChangedAgentState;
+import jade.domain.introspection.AddedBehaviour;
+import jade.domain.introspection.RemovedBehaviour;
+import jade.domain.introspection.ChangedBehaviourState;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.StringACLCodec;
 import jade.lang.sl.SL0Codec;
+
+import jade.util.leap.Iterator;
 
 import jade.tools.ToolAgent;
 
@@ -293,27 +298,81 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
     }
   }
 
+  public void addedBehaviour(AgentEvent ev) 
+  {
+    if(closingDown)
+      return;
+    
+    AID id = ev.getAgent();
+    if(observedAgents.contains(id)) 
+    {
+        AddedBehaviour ab = new AddedBehaviour();
+        ab.setAgent(id);
+        ab.setBehaviour(ev.getBehaviour());
+        
+        EventRecord er = new EventRecord(ab, here());
+        Occurred o = new Occurred();
+        o.set_0(er);
+
+        List l = new ArrayList(1);
+        l.add(o);
+
+        informObserver(l);
+    }
+  }
+
+  public void removedBehaviour(AgentEvent ev)
+  {
+    if(closingDown)
+      return;
+    
+    AID id = ev.getAgent();
+    if(observedAgents.contains(id)) 
+    {
+        RemovedBehaviour rb = new RemovedBehaviour();
+        rb.setAgent(id);
+        rb.setBehaviour(ev.getBehaviour());
+        
+        EventRecord er = new EventRecord(rb, here());
+        Occurred o = new Occurred();
+        o.set_0(er);
+
+        List l = new ArrayList(1);
+        l.add(o);
+
+        informObserver(l);
+    }
+  }
+
+  public void changedBehaviourState(AgentEvent ev) 
+  {
+    if(closingDown)
+      return;
+    
+    AID id = ev.getAgent();
+    if(observedAgents.contains(id)) 
+    {
+        ChangedBehaviourState cs = new ChangedBehaviourState();
+        cs.setAgent(id);
+        cs.setBehaviour(ev.getBehaviour());
+        cs.setFrom(ev.getBehaviourFrom());
+        cs.setTo(ev.getBehaviourTo());
+        
+        EventRecord er = new EventRecord(cs, here());
+        Occurred o = new Occurred();
+        o.set_0(er);
+
+        List l = new ArrayList(1);
+        l.add(o);
+
+        informObserver(l);
+    }
+  }
+
+
   public void changedAgentPrincipal(AgentEvent ev) {
     // Do nothing
     if (closingDown)
-      return;
-  }
-
-  public void addedBehaviour(AgentEvent ev) {
-    // Do nothing
-    if(closingDown)
-      return;
-  }
-
-  public void removedBehaviour(AgentEvent ev) {
-    // Do nothing
-    if(closingDown)
-      return;
-  }
-
-  public void changedBehaviourState(AgentEvent ev) {
-    // Do nothing
-    if(closingDown)
       return;
   }
 
@@ -328,6 +387,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 
     final ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
     msg.clearAllReceiver();
+    msg.setSender(getAID());
     msg.addReceiver(observerAgent);
     msg.setConversationId(observerAgent.getName() + "-event");
     msg.setOntology(JADEIntrospectionOntology.NAME);
