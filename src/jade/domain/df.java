@@ -98,12 +98,12 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	pe.printStackTrace();
+	// pe.printStackTrace();
 	// System.out.println("DF ParseException with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
       catch(TokenMgrError tme) {
-	tme.printStackTrace();
+	// tme.printStackTrace();
 	// System.out.println("DF TokenMgrError with: " + content);
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE+" :content");
       }
