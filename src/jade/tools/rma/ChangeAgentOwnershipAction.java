@@ -48,40 +48,12 @@ class ChangeAgentOwnershipAction extends AgentAction {
   }
 
   public void doAction(AgentTree.AgentNode node) {
-    //String owner = JOptionPane.showInputDialog("Please input a ownership");
+      PwdDialog pd = new PwdDialog();
 
-  	JTextField usr = new JTextField("", 15);
-  	usr.setMaximumSize(usr.getPreferredSize());
-  	usr.setMinimumSize(usr.getPreferredSize());
-
-		JPanel usrPanel = new JPanel();
-  	usrPanel.setLayout(new BoxLayout(usrPanel, BoxLayout.X_AXIS));
-		usrPanel.add(new JLabel("Username"));
-		usrPanel.add(Box.createHorizontalGlue());
-		usrPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-		usrPanel.add(usr);
-
-  	JPasswordField key = new JPasswordField("", 15);
-  	key.setPreferredSize(usr.getPreferredSize());
-  	key.setMaximumSize(key.getPreferredSize());
-  	key.setMinimumSize(key.getPreferredSize());
-  	
-		JPanel keyPanel = new JPanel();
-  	keyPanel.setLayout(new BoxLayout(keyPanel, BoxLayout.X_AXIS));
-		keyPanel.add(new JLabel("Password"));
-		keyPanel.add(Box.createHorizontalGlue());
-		keyPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-		keyPanel.add(key);
-
-  	JPanel panel = new JPanel();
-  	panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-  	panel.add(usrPanel);
-  	panel.add(keyPanel);
-
-    int result = JOptionPane.showConfirmDialog(null, panel, "Change agent ownership", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    int result = JOptionPane.showConfirmDialog(null, pd, "Change agent ownership", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
     String owner = null;
     if (result == JOptionPane.OK_OPTION)
-    	owner = usr.getText() + ':' + new String(key.getPassword());
+    	owner = pd.getUserName() + ':' + new String(pd.getPassword());
   	
     if (owner !=  null) {
       String toChange = node.getName();
