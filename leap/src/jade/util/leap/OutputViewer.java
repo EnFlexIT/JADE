@@ -106,21 +106,25 @@ public class OutputViewer extends MIDlet implements CommandListener {
   
   private void readAll() {
 		RecordStore rs = null;
-    RecordEnumeration rse = null;
+    //RecordEnumeration rse = null;
   	try {
   		rs = RecordStore.openRecordStore(OUTPUT, true);
-			for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
-				byte[] bb = rse.nextRecord();
+  		int size = rs.getNumRecords();
+			//for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
+  		for (int i = 0; i < size; ++i) {
+				//byte[] bb = rse.nextRecord();
+  			byte[] bb = rs.getRecord(i+1);
    			StringItem line = new StringItem(null, new String(bb));
    			myForm.append(line);
    		}
   	}
   	catch (Exception e) {
+  		e.printStackTrace();
   		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
   	} 
   	finally {
 				try {
-            if (rse != null) rse.destroy();
+            //if (rse != null) rse.destroy();
 						if (rs != null)  rs.closeRecordStore();
 				} catch (Exception any) {
 				}
@@ -129,25 +133,27 @@ public class OutputViewer extends MIDlet implements CommandListener {
   
   private void readTail() {
 		RecordStore rs = null;
-    RecordEnumeration rse = null;
-    Vector v = new Vector();
+    //RecordEnumeration rse = null;
   	try {
   		rs = RecordStore.openRecordStore(OUTPUT, true);
-			for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
-				byte[] bb = rse.nextRecord();
+  		int size = rs.getNumRecords();
+			//for (rse=rs.enumerateRecords(null, null, false); rse.hasNextElement(); ) {
+  		for (int i = 0; i < 10; ++i) {
+  			if ((size - i) <= 0) {
+  				break;
+  			}
+  			byte[] bb = rs.getRecord(size - i);
    			StringItem line = new StringItem(null, new String(bb));
-   			v.addElement(line);
-   		}
-   		for (int i = v.size();i > (v.size() - 10) && i > 0; --i) {
-   			myForm.append((StringItem) v.elementAt(i-1));
+   			myForm.append(line);
    		}
   	}
   	catch (Exception e) {
+  		e.printStackTrace();
   		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
   	} 
   	finally {
 				try {
-            if (rse != null) rse.destroy();
+            //if (rse != null) rse.destroy();
 						if (rs != null)  rs.closeRecordStore();
 				} catch (Exception any) {
 				}
