@@ -151,6 +151,7 @@ public class SLCodec extends StringCodec {
   }
 
 
+private static String illegalFirstChar = new String("#0123456789:-?");
 
     /**
      * Test if the given string is a legal SL0 word using the FIPA XC00008D spec.
@@ -163,15 +164,15 @@ public class SLCodec extends StringCodec {
 	if( s==null || s.length()==0 )
 	    return false; // words must have at least one character
 
-	String illegalFirstChar = new String("#0123456789:-?");
-     
 	if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 )
 	    return false;
       
-	for( int i=0; i< s.length(); i++)
-	    if( s.charAt(i) == '"' || s.charAt(i) == '(' || 
-		s.charAt(i) == ')' || s.charAt(i) <= 0x20 )
+	for( int i=0; i< s.length(); i++) {
+	    char c = s.charAt(i);
+	    if( c == '"' || c == '(' || 
+		c == ')' || c <= 0x20 )
 		return false;
+	}
 	return true;
     }
 
