@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.9  1999/03/17 12:58:01  rimassa
+  Changed AgentDescriptor responsibilities: now the class is not
+  Serializable any more, so that AMS descriptors are not uselessly
+  transferred across the network.
+  RemoteProxy objects carry this duty now.
+
   Revision 1.8  1999/03/09 12:56:18  rimassa
   Added code to hold container name inside an AgentDescriptor object.
 
@@ -19,37 +25,30 @@ import java.io.Serializable;
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
-/************************************************************************
-
-  Name: AgentDescriptor
-
-  Responsibilities and Collaborations:
-
-  + Gather in a single object all the informations needed to find its
-  Agent Container and its AMS description.
-
-************************************************************************/
-class AgentDescriptor implements Serializable {
+class AgentDescriptor {
 
   private AgentManagementOntology.AMSAgentDescriptor desc;
-  private AgentContainer container;
+  private RemoteProxy proxy;
   private String containerName;
 
-  public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
+  public void setAMSDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
     desc = amsd;
   }
 
-  public void setContainer(AgentContainer ac, String cn) {
-    container = ac;
-    containerName = cn;
+  public void setProxy(RemoteProxy rp) {
+    proxy = rp;
   }
 
-  public AgentManagementOntology.AMSAgentDescriptor getDesc() {
+  public AgentManagementOntology.AMSAgentDescriptor getAMSDesc() {
     return desc;
   }
 
-  public AgentContainer getContainer() {
-    return container;
+  public RemoteProxy getProxy() {
+    return proxy;
+  }
+
+  public void setContainerName(String name) {
+    containerName = name;
   }
 
   public String getContainerName() {
