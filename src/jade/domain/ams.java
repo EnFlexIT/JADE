@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.24  1999/02/15 11:45:56  rimassa
+  Removed a fixed FIXME.
+
   Revision 1.23  1999/02/04 12:53:37  rimassa
   Modified some error messages for 'fipa-man-exeption' objects.
 
@@ -185,7 +188,7 @@ public class ams extends Agent {
 	processAction(myAction);
 
       }
-      catch(FIPAException fe) { // FIXME: Sometimes 'unable-to-deregister' in response to deregisterWithAMS() happens
+      catch(FIPAException fe) {
 	// fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
       }
