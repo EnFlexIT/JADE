@@ -21,54 +21,58 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
 package jade.gui;
+
+// Import required Java classes 
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+// Import required Jade classes
+import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAException;
 
 /**
 Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */
-class StringParser
+
+class DFGUIModifyAction extends AbstractAction
 {
-	// Returns the index of the first occurrence of one among nMatch characters
-	// (specified in match[]) in the string s starting at position startAt
-	// Returns -1 if does not find any matching character
-	static int firstOccurrence(String s, int startAt, char[] match, int nMatch)
+	private DFGUI gui;
+
+	public DFGUIModifyAction(DFGUI gui)
 	{
-		for (int i = startAt;i < s.length(); ++i)
-		{
-			char c = s.charAt(i);
-			for (int j = 0;j < nMatch; ++j)
-			{
-				if (c == match[j])
-					return (i);
-			}
-		}
-		
-		return (-1);
+		super ("Modify");
+		this.gui = gui;
 	}
 	
-	// Skips all consecutive occurrences of characters specified in skip[]
-	// in the string s starting at position startAt.
-	// Returns the number of sipped characters.
-	static int skip(String s, int startAt, char[] skip, int nSkip)
+	public void actionPerformed(ActionEvent e) 
 	{
-		for (int i = startAt;i < s.length(); ++i)
+		//System.out.println("MODIFY");
+		int i = gui.registeredTable.getSelectedRow();
+		if (i != -1)
 		{
-			char c = s.charAt(i);
-			boolean skipFlag = false;
-			for (int j = 0;j < nSkip; ++j)
+			AgentManagementOntology.DFAgentDescriptor dfd;
+			String name = gui.registeredModel.getElementAt(i);
+			try
 			{
-				if (c == skip[j])
-				{
-					skipFlag = true;
-					break;
-				}
+				dfd = gui.myAgent.getDFAgentDsc(name);
 			}
-			if (!skipFlag)
-				return(i - startAt);
+			catch (FIPAException fe)
+			{
+				System.out.println("WARNING! No agent called " + name + " is currently resistered with this DF");
+				return;
+			}
+			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
+			AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(dfd);
+			if (editedDfd != null)
+			{
+				gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getName(), editedDfd);
+			}
 		}
-		return(s.length() - startAt);
 	}
-
 }
+	

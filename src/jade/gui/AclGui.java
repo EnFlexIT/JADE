@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -34,12 +35,6 @@ import java.util.*;
 // Import required Jade classes
 import jade.core.*;
 import jade.lang.acl.*;
-
-/**
-Javadoc documentation for the file
-@author Giovanni Caire - CSELT S.p.A
-@version $Date$ $Revision$
-*/
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 
@@ -99,6 +94,7 @@ Javadoc documentation for the file
  * </ul>
 
  @author Giovanni Caire - CSELT
+ @version $Date$ $Revision$
  @see jade.lang.acl.ACLMessage
 
  */
@@ -307,11 +303,16 @@ public class AclGui extends JPanel
 													}	
 													// The user added a new protocol
 													else if (lastSelectedItem.equals(LABEL_TO_ADD_PROT))
-													{
-														if (!param.equals("")) // The new protocol is actually added only if it is != ""
+													{     
+														// The new protocol is actually added only if it is != "" and is not already present  
+														if (!param.equals("")) 
 														{
 															protocol.addItem(param);
+															int cnt = protocol.getItemCount();
 															protocol.setSelectedItem(param);
+															int n = protocol.getSelectedIndex();
+															if (n != cnt-1)
+																protocol.removeItemAt(cnt-1);
 														}
 														else 
 														{
@@ -540,13 +541,23 @@ public class AclGui extends JPanel
 		replyBy.setText(param);
 		if ((param = msg.getEnvelope()) == null) param = "";
 		envelope.setText(param);
-		if ((param = msg.getProtocol()) == null)
+		if      ((param = msg.getProtocol()) == null)
+			protocol.setSelectedItem("Null");
+		else if (param.equals("") || param.equalsIgnoreCase("Null"))
 			protocol.setSelectedItem("Null");
 		else
 		{
 			lowerCase = param.toLowerCase();
 			if ((i = fipaProtocolVector.indexOf((Object) lowerCase)) < 0)
-				protocol.setSelectedItem("user-defined");
+			{
+				// This is done to avoid inserting the same user-defined protocol more than once
+				protocol.addItem(param);
+				int cnt = protocol.getItemCount();
+				protocol.setSelectedItem(param);
+				int n = protocol.getSelectedIndex();
+				if (n != cnt-1)
+					protocol.removeItemAt(cnt-1);
+			}
 			else
 				protocol.setSelectedIndex(i);
 		}
