@@ -34,6 +34,11 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.21  1999/09/02 15:02:50  rimassa
+ Removed obsolete getMessage() method.
+ Avoided null values for message slots.
+ Added a 'throws ParseException' specification to fromText() method.
+
  Revision 1.20  1999/09/01 13:40:54  rimassa
  Added a createReply() method to handle automatically
  ':conversation-id' and ':reply-with' slots.
@@ -127,7 +132,8 @@ import jade.core.AgentGroup;
  * All parameters are couples <em>keyword: value</em>.
  * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
- * the methods <em>get</em>.
+ * the methods <em>get</em>. Notice that the <em>get</em> methods never
+ * return null, rather they return an empty String.
 
  @author Fabio Bellifemine - CSELT
  @version $Date$ $Revision$
@@ -190,20 +196,11 @@ public class ACLMessage implements Cloneable, Serializable {
      an ACL message.
      @see jade.lang.acl.ACLMessage#toText(Writer w)
   */
-  public static ACLMessage fromText(Reader r) {
-    ACLMessage msg = null;
-    try {
+    public static ACLMessage fromText(Reader r) throws ParseException {
+      ACLMessage msg = null;
       msg = ACLParser.create().parse(r);
+      return msg;
     }
-    catch(ParseException pe) {
-      pe.printStackTrace();
-    }
-    catch(TokenMgrError tme) {
-      tme.printStackTrace();
-    }
-
-    return msg;
-  }
 
   /**
      Writes the <code>:sender</code> slot. <em><b>Warning:</b> no
@@ -214,6 +211,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setSource( String source ) {
     if (source != null)
       this.source = new StringBuffer(source);
+    else
+      this.source = new StringBuffer();
   }
 
   /**
@@ -230,7 +229,8 @@ public class ACLMessage implements Cloneable, Serializable {
     if (dest != null) {
       dests = new AgentGroup();
       dests.addMember(new String(dest));
-    }
+    } else
+      removeAllDests();
   }
 
   /**
@@ -239,7 +239,8 @@ public class ACLMessage implements Cloneable, Serializable {
      @param dest The value to add to the slot value set.
   */
   public void addDest(String dest) {
-    dests.addMember(new String(dest));
+    if (dest != null) 
+      dests.addMember(new String(dest));
   }
 
   /**
@@ -249,7 +250,8 @@ public class ACLMessage implements Cloneable, Serializable {
      @param dest The value to remove from the slot value set.
   */
   public void removeDest(String dest) {
-    dests.removeMember(new String(dest));
+    if (dest != null)
+      dests.removeMember(new String(dest));
   }
 
   /**
@@ -271,6 +273,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setType( String type ) {
     if (type != null)
       msgType = new StringBuffer(type);
+    else
+      msgType = new StringBuffer();
   }
 
   /**
@@ -282,6 +286,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setContent( String content ) {
     if (content != null)
       this.content = new StringBuffer(content);
+    else
+      this.content = new StringBuffer();
   }
 
   /**
@@ -293,6 +299,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setReplyWith( String reply ) {
     if (reply != null)
       reply_with = new StringBuffer(reply);
+    else
+      reply_with = new StringBuffer();
   }
 
   /**
@@ -304,6 +312,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setReplyTo( String reply ) {
     if (reply != null)
       in_reply_to = new StringBuffer(reply);
+    else
+      in_reply_to = new StringBuffer();
   }
   
   /**
@@ -315,6 +325,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setEnvelope( String str ) {
     if (str != null)
       envelope = new StringBuffer(str);
+    else
+      envelope = new StringBuffer();
   }
 
   /**
@@ -326,6 +338,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setLanguage( String str ) {
     if (str != null)
       language = new StringBuffer(str);
+    else
+      language = new StringBuffer();
   }
 
   /**
@@ -337,6 +351,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setOntology( String str ) {
     if (str != null)
       ontology = new StringBuffer(str);
+    else
+      ontology = new StringBuffer();
   }
 
   /**
@@ -353,6 +369,9 @@ public class ACLMessage implements Cloneable, Serializable {
       } catch (Exception e) {
 	reply_byInMillisec = new Date().getTime(); // now
       }
+    } else {
+      reply_by = new StringBuffer();
+      reply_byInMillisec = new Date().getTime();
     }
   }	
 
@@ -376,6 +395,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setProtocol( String str ) {
     if (str != null)
       protocol = new StringBuffer(str);
+    else
+      protocol = new StringBuffer();
   }
 
   /**
@@ -387,6 +408,8 @@ public class ACLMessage implements Cloneable, Serializable {
   public void setConversationId( String str ) {
     if (str != null)
       conversation_id = new StringBuffer(str);
+    else
+      conversation_id = new StringBuffer();
   }
 
  /**
@@ -533,118 +556,6 @@ public class ACLMessage implements Cloneable, Serializable {
     return new String(conversation_id);
   }
  
- /**
-  * @deprecated Users should never use this method and it will soon go away.
- */
- public byte[] getMessage() {
-
-    byte message[];
-    int  msgLength=0;
-    String dest = getDest();
-    if (this.source != null) 
-       msgLength = msgLength + this.SOURCE.length() + this.source.length();
-    if (dest != null) 
-       msgLength = msgLength + this.DEST.length() + dest.length();
-    if (this.content != null) 
-       msgLength = msgLength + this.CONTENT.length() + this.content.length();
-    if (this.reply_with != null) 
-       msgLength = msgLength + this.REPLY_WITH.length() + this.reply_with.length();
-    if (this.in_reply_to != null) 
-       msgLength = msgLength + this.IN_REPLY_TO.length() + this.in_reply_to.length();
-    if (this.envelope != null) 
-       msgLength = msgLength + this.ENVELOPE.length() + this.envelope.length();
-    if (this.language != null) 
-       msgLength = msgLength + this.LANGUAGE.length() + this.language.length();
-    if (this.ontology != null) 
-       msgLength = msgLength + this.ONTOLOGY.length() + this.ontology.length();
-    if (this.reply_by != null) 
-       msgLength = msgLength + this.REPLY_BY.length() + this.reply_by.length();
-    if (this.protocol != null) 
-       msgLength = msgLength + this.PROTOCOL.length() + this.protocol.length();
-    if (this.conversation_id != null) 
-       msgLength = msgLength + this.CONVERSATION_ID.length() + this.conversation_id.length();
-   
-    msgLength = msgLength + 3 + this.msgType.length();
-
-    message = new byte[msgLength];
-
-    int pos = 0; 
-    int i = 0;
-    message[pos++] = (byte)'(';
-    for (i=0; i<this.msgType.length(); i++) 
-       message[pos++] = (byte)this.msgType.charAt(i);
-    if (this.source != null) { 
-       for (i=0; i<this.SOURCE.length(); i++) 
-          message[pos++] = (byte)this.SOURCE.charAt(i);
-       for (i=0; i<this.source.length(); i++) 
-          message[pos++] = (byte)this.source.charAt(i);
-    }
-    if (dest != null) { 
-       for (i=0; i<this.DEST.length(); i++) 
-          message[pos++] = (byte)this.DEST.charAt(i);
-       for (i=0; i<dest.length(); i++) 
-          message[pos++] = (byte)dest.charAt(i);
-    }
-    if (this.content != null) { 
-       for (i=0; i<this.CONTENT.length(); i++) 
-          message[pos++] = (byte)this.CONTENT.charAt(i);
-       for (i=0; i<this.content.length(); i++) 
-          message[pos++] = (byte)this.content.charAt(i);
-    }
-    if (this.reply_with != null) { 
-       for (i=0; i<this.REPLY_WITH.length(); i++) 
-          message[pos++] = (byte)this.REPLY_WITH.charAt(i);
-       for (i=0; i<this.reply_with.length(); i++) 
-          message[pos++] = (byte)this.reply_with.charAt(i);
-    }
-    if (this.in_reply_to != null) { 
-       for (i=0; i<this.IN_REPLY_TO.length(); i++) 
-          message[pos++] = (byte)this.IN_REPLY_TO.charAt(i);
-       for (i=0; i<this.in_reply_to.length(); i++) 
-          message[pos++] = (byte)this.in_reply_to.charAt(i);
-    }
-    if (this.envelope != null) { 
-       for (i=0; i<this.ENVELOPE.length(); i++) 
-          message[pos++] = (byte)this.ENVELOPE.charAt(i);
-       for (i=0; i<this.envelope.length(); i++) 
-          message[pos++] = (byte)this.envelope.charAt(i);
-    }
-    if (this.language != null) { 
-       for (i=0; i<this.LANGUAGE.length(); i++) 
-          message[pos++] = (byte)this.LANGUAGE.charAt(i);
-       for (i=0; i<this.language.length(); i++) 
-          message[pos++] = (byte)this.language.charAt(i);
-    }
-    if (this.ontology != null) { 
-       for (i=0; i<this.ONTOLOGY.length(); i++) 
-          message[pos++] = (byte)this.ONTOLOGY.charAt(i);
-       for (i=0; i<this.ontology.length(); i++) 
-          message[pos++] = (byte)this.ontology.charAt(i);
-    }
-    if (this.reply_by != null) { 
-       for (i=0; i<this.REPLY_BY.length(); i++) 
-          message[pos++] = (byte)this.REPLY_BY.charAt(i);
-       for (i=0; i<this.reply_by.length(); i++) 
-          message[pos++] = (byte)this.reply_by.charAt(i);
-    }
-    if (this.protocol != null) { 
-       for (i=0; i<this.PROTOCOL.length(); i++) 
-          message[pos++] = (byte)this.PROTOCOL.charAt(i);
-       for (i=0; i<this.protocol.length(); i++) 
-          message[pos++] = (byte)this.protocol.charAt(i);
-    }
-    if (this.conversation_id != null) { 
-       for (i=0; i<this.CONVERSATION_ID.length(); i++) 
-          message[pos++] = (byte)this.CONVERSATION_ID.charAt(i);
-       for (i=0; i<this.conversation_id.length(); i++) 
-          message[pos++] = (byte)this.conversation_id.charAt(i);
-    }
-    message[pos++] = (byte)')';
-    message[pos] = (byte)'\n';
-    // String s = new String( message, 0x00, 0, pos );
-    // System.out.println(s);
-    return message;
-  }
 
 
 
@@ -662,17 +573,17 @@ public class ACLMessage implements Cloneable, Serializable {
     counter++;
     String dest = getDest();
     System.out.println( counter + ") " + new String(msgType).toUpperCase());
-    if (source != null)          System.out.println("   " + SOURCE + source);
-    if (dest != null)             System.out.println("   " + DEST + dest);
-    if (content != null)         System.out.println("   " + CONTENT + content);
-    if (reply_with != null)      System.out.println("   " + REPLY_WITH + reply_with);
-    if (in_reply_to != null)     System.out.println("   " + IN_REPLY_TO + in_reply_to);
-    if (envelope != null)        System.out.println("   " + ENVELOPE + envelope);
-    if (language != null)        System.out.println("   " + LANGUAGE + language);
-    if (ontology != null)        System.out.println("   " + ONTOLOGY + ontology);
-    if (reply_by != null)        System.out.println("   " + REPLY_BY + reply_by);
-    if (protocol != null)        System.out.println("   " + PROTOCOL + protocol);
-    if (conversation_id != null) System.out.println("   " + CONVERSATION_ID + conversation_id);
+    if (source.length() > 0)          System.out.println("   " + SOURCE + source);
+    if (dest.length() > 0)            System.out.println("   " + DEST + dest);
+    if (content.length() > 0)         System.out.println("   " + CONTENT + content);
+    if (reply_with.length() > 0)      System.out.println("   " + REPLY_WITH + reply_with);
+    if (in_reply_to.length() > 0)     System.out.println("   " + IN_REPLY_TO + in_reply_to);
+    if (envelope.length() > 0)        System.out.println("   " + ENVELOPE + envelope);
+    if (language.length() > 0)        System.out.println("   " + LANGUAGE + language);
+    if (ontology.length() > 0)        System.out.println("   " + ONTOLOGY + ontology);
+    if (reply_by.length() > 0)        System.out.println("   " + REPLY_BY + reply_by);
+    if (protocol.length() > 0)        System.out.println("   " + PROTOCOL + protocol);
+    if (conversation_id.length() > 0) System.out.println("   " + CONVERSATION_ID + conversation_id);
     System.out.println();
   }
 
@@ -687,7 +598,7 @@ public class ACLMessage implements Cloneable, Serializable {
     try {
       w.write("(");
       w.write(msgType + "\n");
-      if(source != null)
+      if(source.length() > 0)
 	w.write(SOURCE + " " + source + "\n");
       Enumeration e = dests.getMembers();
       if(e.hasMoreElements()) 
@@ -698,23 +609,23 @@ public class ACLMessage implements Cloneable, Serializable {
 	w.write((String)e.nextElement() + "\n");
 	  if (dests.size() > 1)
 		w.write(")");
-      if(content != null)
+      if(content.length() > 0)
 	w.write(CONTENT + " " + content + "\n");
-      if(reply_with != null)
+      if(reply_with.length() > 0)
 	w.write(REPLY_WITH + " " + reply_with + "\n");
-      if(in_reply_to != null)
+      if(in_reply_to.length() > 0)
 	w.write(IN_REPLY_TO + " " + in_reply_to + "\n");
-      if(envelope != null)
+      if(envelope.length() > 0)
 	w.write(ENVELOPE + " " + envelope + "\n");
-      if(language != null)
+      if(language.length() > 0)
 	w.write(LANGUAGE + " " + language + "\n");
-      if(ontology != null)
+      if(ontology.length() > 0)
 	w.write(ONTOLOGY + " " + ontology + "\n");
-      if(reply_by != null)
+      if(reply_by.length() > 0)
        w.write(REPLY_BY + " " + reply_by + "\n");
-      if(protocol != null)
+      if(protocol.length() > 0)
 	w.write(PROTOCOL + " " + protocol + "\n");
-      if(conversation_id != null)
+      if(conversation_id.length() > 0)
 	w.write(CONVERSATION_ID + " " + conversation_id + "\n");
       w.write(")");
       w.flush();
@@ -762,19 +673,22 @@ public class ACLMessage implements Cloneable, Serializable {
   * Resets all the message slots.
  */
  public void reset() {
-  source=null;
+    /* Fabio, 26/8/99. Attenzione new StringBuffer(null) genera una
+       NullPointerException. Allo stesso modo new String(null).
+       Pertanto non inizializzare direttamente a null.*/
+  source=new StringBuffer();
   dests=new AgentGroup();
-  msgType=null;
-  content=null;
-  reply_with=null;
-  in_reply_to=null;
-  envelope=null;
-  language=null;
-  ontology=null;
-  reply_by=null;
+  msgType=new StringBuffer("not-understood");
+  content=new StringBuffer();
+  reply_with=new StringBuffer();
+  in_reply_to=new StringBuffer();
+  envelope=new StringBuffer();
+  language=new StringBuffer();
+  ontology=new StringBuffer();
+  reply_by=new StringBuffer();
   reply_byInMillisec = new Date().getTime();
-  protocol=null;
-  conversation_id=null;
+  protocol=new StringBuffer();
+  conversation_id=new StringBuffer();
  }
 
   /**
@@ -790,9 +704,10 @@ public ACLMessage createReply() {
   ACLMessage m = (ACLMessage)clone();
   m.removeAllDests();
   m.addDest(getSource());
+  m.setSource(null);
   //m.setSource(getLocalName());
   m.setReplyTo(getReplyWith());
-  m.setReplyWith(getSource()+(new Date()).getTime());
+  m.setReplyWith(getSource()+java.lang.System.currentTimeMillis()); 
   m.setReplyBy(null);
   m.setContent(null);
   m.setEnvelope(null);
