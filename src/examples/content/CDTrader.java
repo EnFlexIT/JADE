@@ -75,18 +75,6 @@ public class CDTrader extends Agent {
 			addBehaviour(new HandleQueryBehaviour(this));      
 			addBehaviour(new HandleRequestBehaviour(this)); 
 			
-			/*AbsAgentAction aaa = new AbsAgentAction("TEST");
-			aaa.set("a1", (AbsTerm) new AbsAgentAction("TOST"));
-			try {
-			Ontology.setAttribute(aaa, "a2", new AbsIRE("IOTA"));
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			System.out.println(aaa);
-			*/
-			
-			
 			CD myCd = new CD();
 			myCd.setSerialID(11111);
 			myCd.setTitle("Synchronicity");
@@ -99,14 +87,9 @@ public class CDTrader extends Agent {
 			tracks.add(t);
 			t = new Track();
 			t.setName("King of pain");
-			t.setDuration(240);
+			t.setDuration(new Integer(240));
 			tracks.add(t);
 			
-			/*CD cd = new CD();
-			cd.setTitle("Pippo");
-			cd.setTracks(new ArrayList());
-			tracks.add(cd);
-			*/
 			myCd.setTracks(tracks);
 					
 			addBehaviour(new InformOwnsBehaviour(this, myCd));      

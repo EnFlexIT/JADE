@@ -45,6 +45,7 @@ public class MusicShopOntology extends Ontology {
   public static final String TRACK = "TRACK";
   public static final String TRACK_NAME = "name";
   public static final String TRACK_DURATION = "duration";
+  public static final String TRACK_PCM = "pcm";
   
   public static final String SINGLE = "SINGLE";
   
@@ -74,6 +75,7 @@ public class MusicShopOntology extends Ontology {
     	cs = (ConceptSchema) getSchema(TRACK);
     	cs.add(TRACK_NAME, (TermSchema) getSchema(BasicOntology.STRING));
     	cs.add(TRACK_DURATION, (TermSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+    	cs.add(TRACK_PCM, (TermSchema) getSchema(BasicOntology.BYTE_SEQUENCE), ObjectSchema.OPTIONAL);
     	
     	cs = (ConceptSchema) getSchema(SINGLE);
     	cs.addSuperSchema((ConceptSchema) getSchema(CD));
