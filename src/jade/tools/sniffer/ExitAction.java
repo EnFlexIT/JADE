@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -27,26 +27,31 @@ package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
 
-/**
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
-/** 
- * Invokes the agent Sniffer to delete itself, closing the Gui and unregistering. 
- *
- * @see jade.Sniffer.MMAbstractAction
+  /**
+   Javadoc documentation for the file
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   <Br>
+   <a href="mailto:a_soracchi@libero.it"> Andrea Soracchi(e-mail) </a>
+   @version $Date$ $Revision$
  */
-public class ExitAction extends MMAbstractAction{
-	
-	private SnifferGUI myGui; 
-	
-	public ExitAction(SnifferGUI snifferGui){
-		
-		super ("ExitActionIcon","Exit");
-		myGui = snifferGui; 
-	}
 
-	public void actionPerformed(ActionEvent evt) {
-  	myGui.sniffHandler.doDelete(); 
+
+/**
+   Invokes the agent Sniffer to delete itself, closing the Gui and unregistering.
+ * @see jade.tools.sniffer.FixedAction
+ */
+
+public class ExitAction extends FixedAction{
+
+ private Sniffer mySniffer; // is the handle to SnifferAgent
+
+public ExitAction(ActionProcessor actpro,Sniffer mySniffer) {
+   super ("ExitActionIcon","Exit",actpro);
+   this.mySniffer = mySniffer;
   }
-}
+
+ public void doAction() {
+  mySniffer.doDelete();
+ }
+
+} // End of class ExitAction

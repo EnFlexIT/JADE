@@ -1,14 +1,13 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,120 +19,188 @@ License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
-
-package jade.tools.sniffer;
-
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.Window;
-import java.awt.EventQueue;
-import java.awt.Color;
-import java.awt.Point;
-import java.awt.Dimension;
-import java.awt.Container;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-
-/** 
+    /**
  * This class is invoked the the user selects the AboutBox item on the menu. A dialog
  * box appears providing informations about the authors and program version.
- *  
- * @see jade.Sniffer.MMAbstractAction
- * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>	
+ * Javadoc documentation for the file
+ * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>
  * @version $Date$ $Revision$
  */
 
-public class AboutBoxAction extends MMAbstractAction{
-	
-	private SnifferGUI myGui; //by BENNY
-	private String labelText = "written by Alessandro Beneventi";
-	private JLabel label;
-	
-  String imageFile = "images/jadelogo.jpg";
-	private JButton ok;
-	
-	public AboutBoxAction (SnifferGUI snifferGui){
-       super ("About...");
-       myGui = snifferGui;
+package jade.tools.sniffer;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Container;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Window;
+import java.awt.EventQueue;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.*;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+
+public class AboutBoxAction extends AbstractAction{
+
+  private JFrame gui;
+  private JLabel label;
+  private String imageFile = "images/jadelogo.jpg";
+
+
+  Color dark_blue = new java.awt.Color(0,0,160);
+
+	public AboutBoxAction(JFrame gui)
+	{
+		super ("About SNIFFER");
+		this.gui = gui;
+		setEnabled(true);
 	}
 
-  /**
-   * A dialog box appears with the logo, informations about the authors of the sniffed
-   * and program version.
-   */
-  public void actionPerformed (ActionEvent evt){   
-        
-        final AboutFrame f = new AboutFrame(myGui,"About...");
-        f.addWindowListener(new WindowAdapter() {
+	public void actionPerformed(ActionEvent e)
+	{
+
+    final AboutFrame f = new AboutFrame(gui,"About SNIFFER");
+
+    f.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 f.disposeAsync();
             }
         });
 
-        Container theCont = f.getContentPane();
-        
-				theCont.setLayout(new BoxLayout(theCont,BoxLayout.Y_AXIS)); //simply remove
-           
-        
-        label = new JLabel("The Sniffer for");
-        //label.setForeground(Color.blue);
-        theCont.add(label);
-        theCont.setBackground(Color.black);
-        
-        ImageIcon jadelogo = new ImageIcon(getClass().getResource(imageFile));
-        label = new JLabel(jadelogo);
-        theCont.add(label);
-        label = new JLabel("Concept & Early Version by Gianluca Tanca");
-        // label.setForeground(Color.blue);
-        theCont.add(label);
-        label = new JLabel(" ");
-        theCont.add(label);                
-        label = new JLabel("Developed by Alessandro Beneventi");
-        theCont.add(label);
-        label = new JLabel("Universita' degli Studi di Parma");
-        theCont.add(label);
-        label = new JLabel("http://ce.unipr.it");
-        theCont.add(label);
-        label = new JLabel(" ");
-        theCont.add(label);                
-        ok = new JButton("Ok");
-        ok.addActionListener(new ButtonListener(f));
-        // theCont.add(ok, BorderLayout.SOUTH);
-        theCont.add(ok);
-        f.setModal(true);
-        f.setLocation(new Point(100,100));
-        f.setSize(new Dimension(310,280));
-        f.setVisible(true);
-   	}
+		f.addMouseListener(new MouseClick());
+
+		Container theCont = f.getContentPane();
+	  			GridBagLayout gridbag = new GridBagLayout();
+	        GridBagConstraints c = new GridBagConstraints();
+	        theCont.setLayout(gridbag);
+
+	        theCont.setBackground(Color.white);
+	        c.fill = GridBagConstraints.HORIZONTAL;
+
+	        label = new JLabel("The Sniffer for:");
+                label.setForeground(dark_blue);
+	        c.weightx = 0.5;
+					c.gridwidth = 3;
+					c.gridx =0;
+					c.gridy=0;
+					gridbag.setConstraints(label,c);
+	        theCont.add(label);
+	        
+	        ImageIcon jadeicon = new ImageIcon(getClass().getResource(imageFile));
+					
+					label = new JLabel(jadeicon);
+				  c.weightx = 0.5;
+					c.gridwidth = 3;
+					c.gridx =0;
+					c.gridy=1;
+					gridbag.setConstraints(label,c);
+	        theCont.add(label);
+	        
+	        String CVSname = "$Name$";
+					int colonPos = CVSname.indexOf(":");
+	    		int dollarPos = CVSname.lastIndexOf('$');
+	    		String name = CVSname.substring(colonPos + 1, dollarPos);
+	    		
+	    		if(name.indexOf("JADE") == -1)
+							name = "JADE snapshot";
+	    		else {
+	        			name = name.replace('-', ' ');
+								name = name.replace('_', '.');
+								name = name.trim();
+	    		}
+	
+	    		label = new JLabel(name);
+	        label.setForeground(dark_blue);
+					c.ipady = 1;
+					c.gridwidth = 1;
+					c.gridx = 1;
+					c.gridy = 2;
+					gridbag.setConstraints(label,c);
+					theCont.add(label);
+					
+	        label = new JLabel(" ");
+	       	c.gridwidth = 1;
+					c.gridx = 0;
+					c.gridy = 3;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+                label = new JLabel("Concept & Early Version by Gianluca Tanca");
+	        label.setForeground(dark_blue);
+					c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 4;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+					label = new JLabel("Developed by Alessandro Beneventi");
+	        label.setForeground(dark_blue);
+                                        c.weightx = 0.1;
+					c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 5;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+				        label = new JLabel("                          Andrea Soracchi");
+	        label.setForeground(dark_blue);
+                                        c.weightx= 0.1;
+					c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 6;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+                                        label = new JLabel("                          Francisco Regi");
+	        label.setForeground(dark_blue);
+                                        c.weightx = 0.1;
+					c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 7;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+				        label = new JLabel("                          Matteo Cremasco");
+	        label.setForeground(dark_blue);
+                                        c.weightx = 0.1;
+                                        c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 8;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
+
+	        label = new JLabel("Universita' degli Studi di Parma");
+	        label.setForeground(dark_blue);
+                                        c.weighty = 0.5;
+					c.gridwidth = 3;
+					c.gridx = 0;
+					c.gridy = 9;
+	        gridbag.setConstraints(label,c);
+					theCont.add(label);
 
 
-private class ButtonListener implements ActionListener {
-	
-	private AboutFrame owner;
-	
-	public ButtonListener(AboutFrame dialog){
-		owner = dialog;	
+	        f.setModal(true);
+	        f.setSize(360,300);
+	        f.setLocation(gui.getX()+(gui.getWidth()- f.getWidth())/2, gui.getY()+
+	        (gui.getHeight() - f.getHeight())/ 2);
+	        f.setVisible(true);
 	}
 	
-	public void actionPerformed(ActionEvent e) {	
-		owner.disposeAsync();
-	}
-} //End of ButtonListener inner-class
+	
 
 private class AboutFrame extends JDialog {
 	
 	public AboutFrame(JFrame owner, String name){
 		super(owner, name);
-		// setModal(true);
+		//setModal(true);
+		
+	
 	}
 	
   public void disposeAsync() {
@@ -154,6 +221,24 @@ private class AboutFrame extends JDialog {
     EventQueue.invokeLater(new disposeIt(this));
 
   }
-}
+  
+  }
+	
+private class MouseClick implements MouseListener
+{
+	public void mouseClicked(MouseEvent event)
+	{
+		((AboutFrame)(event.getSource())).disposeAsync();	
+	
+	}
+	public void mouseReleased(MouseEvent event){}
+	public void mouseEntered(MouseEvent event){}
+	public void mouseExited(MouseEvent event){}
+	public void mousePressed(MouseEvent event){}
+	
+}	
+
 
 } //End of AboutBoxAction class
+
+ 

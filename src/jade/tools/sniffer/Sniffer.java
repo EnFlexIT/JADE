@@ -26,27 +26,43 @@ package jade.tools.sniffer;
 
 import java.io.StringReader;
 
-import java.util.Vector;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 import jade.core.*;
 import jade.core.behaviours.*;
-import jade.domain.JADEAgentManagement.*;
+
 import jade.domain.AMSEvent;
 import jade.domain.FIPAException;
-import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.domain.JADEAgentManagement.*;
+
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.ACLCodec;
+import jade.lang.acl.StringACLCodec;
+
 import jade.lang.sl.SL0Codec;
-import java.util.*;
-import jade.lang.acl.*;
+
 import jade.onto.basic.Action;
 
+import jade.proto.FipaRequestInitiatorBehaviour;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+
 /**
- *  This is the <em>Sniffer</em> agent.<br> 
- *  This class implements the low level part of the Sniffer, interacting with Jade 
+ *  This is the <em>Sniffer</em> agent.<br>
+ *  This class implements the low level part of the Sniffer, interacting with Jade
  *  environment and with the sniffer GUI.<br>
- *  At startup, the sniffer subscribes itself as an rma to be informed every time 
+ *  At startup, the sniffer subscribes itself as an rma to be informed every time
  *  an agent is born or dead, a container is created or deleted.<br>
  *  For more information see <a href="../../../../intro.htm" target="_top">Introduction to the Sniffer</a>
- * 
+ * Javadoc documentation for the file
  * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement) 
  * @author Gianluca Tanca (Concept & Early Version)
  * @version $Date$ $Revision$
@@ -54,25 +70,14 @@ import jade.onto.basic.Action;
  */
 public class Sniffer extends jade.core.Agent {
 
-  public static final boolean SNIFF_ON = true;		//by BENNY
-  public static final boolean SNIFF_OFF = false;  //by BENNY
+  public static final boolean SNIFF_ON = true;
+  public static final boolean SNIFF_OFF = false;
 
-  /**
-  @serial
-  */
-	private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
-  /**
-  @serial
-  */
+  private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
   private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
-  /**
-  @serial
-  */
   private ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
-  /**
-  @serial
-  */
-  private Vector agentsUnderSniff = new Vector();
+  private LinkedList agentsUnderSniff = new LinkedList();
+
 
   // Sends requests to the AMS
   private class AMSClientBehaviour extends FipaRequestInitiatorBehaviour {
@@ -81,7 +86,7 @@ public class Sniffer extends jade.core.Agent {
 
     public AMSClientBehaviour(String an, ACLMessage request) {
       super(Sniffer.this, request,
-	    MessageTemplate.and(MessageTemplate.MatchOntology("fipa-agent-management"),
+	    MessageTemplate.and(MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
 				MessageTemplate.MatchLanguage(SL0Codec.NAME)
 				)
 	    );
@@ -89,11 +94,11 @@ public class Sniffer extends jade.core.Agent {
     }
 
     protected void handleNotUnderstood(ACLMessage reply) {
-      // myGUI.showErrorDialog("NOT-UNDERSTOOD received by RMA during " + actionName, reply);
+      myGUI.showError("NOT-UNDERSTOOD received by RMA during " + actionName);
     }
 
     protected void handleRefuse(ACLMessage reply) {
-      myGUI.showError("Could not register with the AMS");
+      myGUI.showError("REFUSE received during " + actionName);
     }
 
     protected void handleAgree(ACLMessage reply) {
@@ -101,131 +106,167 @@ public class Sniffer extends jade.core.Agent {
     }
 
     protected void handleFailure(ACLMessage reply) {
-      // myGUI.showErrorDialog("FAILURE received during " + actionName, reply);
+      myGUI.showError("FAILURE received during " + actionName);
     }
 
     protected void handleInform(ACLMessage reply) {
       // System.out.println("INFORM received");
     }
 
+  } // End of AMSClientBehaviour class
+
+
+  // Used by AMSListenerBehaviour
+  private interface EventHandler {
+    void handle(AMSEvent ev);
   }
 
   // Receives notifications by AMS
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
     private MessageTemplate listenTemplate;
-		private MessageTemplate listenSniffTemplate;
 
-    AMSListenerBehaviour(jade.core.Agent a) {
-      super(a);
+    // Ignore case for event names
+    private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+
+    AMSListenerBehaviour() {
+
       MessageTemplate mt1 = MessageTemplate.MatchLanguage(SL0Codec.NAME);
       MessageTemplate mt2 = MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME);
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+
       mt1 = MessageTemplate.MatchInReplyTo("tool-subscription");
       mt2 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
       listenTemplate = MessageTemplate.and(mt1, mt2);
       listenTemplate = MessageTemplate.and(listenTemplate, mt12);
-      listenSniffTemplate = MessageTemplate.MatchOntology("sniffed-message");
+
+
+      // Fill the event handler table.
+
+      handlers.put(JADEAgentManagementOntology.CONTAINERBORN, new EventHandler() {
+	public void handle(AMSEvent ev) {
+	  ContainerBorn cb = (ContainerBorn)ev;
+	  String container = cb.getName();
+	  String host = cb.getHost();
+	  try {
+	    InetAddress addr = InetAddress.getByName(host);
+	    myGUI.addContainer(container, addr);
+	  }
+	  catch(UnknownHostException uhe) {
+	    myGUI.addContainer(container, null);
+	  }
+	}
+      });
+
+      handlers.put(JADEAgentManagementOntology.CONTAINERDEAD, new EventHandler() {
+        public void handle(AMSEvent ev) {
+	  ContainerDead cd = (ContainerDead)ev;
+	  String container = cd.getName();
+	  myGUI.removeContainer(container);
+	}
+      });
+
+      handlers.put(JADEAgentManagementOntology.AGENTBORN, new EventHandler() {
+        public void handle(AMSEvent ev) {
+	  AgentBorn ab = (AgentBorn)ev;
+	  String container = ab.getContainer();
+	  AID agent = ab.getAgent();
+	  myGUI.addAgent(container, agent);
+	  if(agent.equals(getAID()))
+	    myContainerName = container;
+	}
+      });
+
+      handlers.put(JADEAgentManagementOntology.AGENTDEAD, new EventHandler() {
+        public void handle(AMSEvent ev) {
+	  AgentDead ad = (AgentDead)ev;
+	  String container = ad.getContainer();
+	  AID agent = ad.getAgent();
+	  myGUI.removeAgent(container, agent);
+	}
+      });
+
+      handlers.put(JADEAgentManagementOntology.AGENTMOVED, new EventHandler() {
+        public void handle(AMSEvent ev) {
+	  AgentMoved am = (AgentMoved)ev;
+	  AID agent = am.getAgent();
+	  String from = am.getFrom();
+	  myGUI.removeAgent(from, agent);
+	  String to = am.getTo();
+	  myGUI.addAgent(to, agent);
+	}
+      });
     }
 
     public void action() {
       ACLMessage current = receive(listenTemplate);
       if(current != null) {
-	// Handle inform messages from AMS
-	//System.err.println("ListenBehaviour: "+current.toString());
-      	try {
-	  List l = myAgent.extractContent(current);
-	  AMSEvent amse = ((EventOccurred)l.get(0)).getEvent();
-	  
-	  String evName = amse.getEventName();
-	  
-	  String container = null;
-	  AID    aid = null;
-	  
-	  if (evName.equals(JADEAgentManagementOntology.CONTAINERBORN)) {
-	    container = ((ContainerBorn)amse).getName();
-	    // System.out.println("SNIFFER: Aggiungere un container con nome "+container);
-	    myGUI.addContainer(container.toLowerCase());
-	  } else if (evName.equals(JADEAgentManagementOntology.CONTAINERDEAD)) {
-	    container = ((ContainerDead)amse).getName();
-	    // System.out.println("SNIFFER: Eliminare il container con nome "+container);
-	    myGUI.removeContainer(container.toLowerCase());
-	  } else if (evName.equals(JADEAgentManagementOntology.AGENTBORN)) {
-	    container = ((AgentBorn)amse).getContainer();
-	    aid = ((AgentBorn)amse).getAgent();
-	    String address = "";
-	    for (Iterator i=aid.getAllAddresses(); i.hasNext(); )
-	      address = address.concat((String)i.next()+" ");
-	    myGUI.addAgent(container.toLowerCase(), aid.getName().toLowerCase(), address, "fipa-agent");
-	    /*  Si può leggere lo stato dell'agente con amsd.getAPState() ma questo non serve a 
-		molto perche' se dalla rma sospendo un agente questa operazione non viene notificata
-		all'agente sniffer che non può quindi cambiare stato .*/
-	    // System.out.println("SNIFFR: Aggiungere un nuovo agente:");
-	    // System.out.println("Nome: "+amsd.getName());
-	    if (aid.equals(getName()))
-	      myContainerName = new String(container.toLowerCase());
-	  } else if (evName.equals(JADEAgentManagementOntology.AGENTDEAD)) {
-	    container = ((AgentDead)amse).getContainer();
-	    aid = ((AgentDead)amse).getAgent();
-	    // System.out.println("SNIFFER: Rimuovere un agente:");
-	    // System.out.println("Nome: "+amsd.getName());
-	    myGUI.removeAgent(container.toLowerCase(), aid.getName().toLowerCase());
-	  }
-      	} catch(FIPAException e) {
-	  e.printStackTrace();
+	// Handle 'inform' messages from the AMS
+	try {
+	  List l = extractContent(current);
+	  EventOccurred eo = (EventOccurred)l.get(0);
+	  AMSEvent ev = eo.getEvent();
+	  String eventName = ev.getEventName();
+	  EventHandler h = (EventHandler)handlers.get(eventName);
+	  h.handle(ev);
 	}
-	
-      } // end of current != null
+	catch(FIPAException fe) {
+	  fe.printStackTrace();
+	}
+	catch(ClassCastException cce) {
+	  cce.printStackTrace();
+	}
+      }
       else
 	block();
-    } // end of action
+    }
 
   } // End of AMSListenerBehaviour
 
-	
-    private class SniffListenerBehaviour extends CyclicBehaviour { // by BENNY
+
+  private class SniffListenerBehaviour extends CyclicBehaviour {
 
     private MessageTemplate listenSniffTemplate;
 
-    SniffListenerBehaviour(jade.core.Agent a) {
-      super(a);
+    SniffListenerBehaviour() {
       listenSniffTemplate = MessageTemplate.MatchOntology("sniffed-message");
     }
-	
-      public void action(){
-		
-	ACLMessage current = receive(listenSniffTemplate);
-	if(current != null) {
-	  StringACLCodec codec = new StringACLCodec();
-	  try {
-	    // extract the content of this message. 
-	    // where the content is an ACLMessage
-	    //
-	    ACLMessage acl = codec.decode(current.getContent().getBytes());
-	    Message msg = new Message(acl); 
-	    MMAbstractAction.canvasMess.recMessage(msg);
-	  } catch (ACLCodec.CodecException ce) {
-	    myGUI.showError("An error occurred parsing the incoming message.\n"+
-			    "          The message was lost.");
-	    System.out.println("Received a wrong ACL Message");
-	    ce.printStackTrace();
-	  }
-      }else
-      	block();		
-	
-      } // end of action
-		
-    }// End of SniffListenerBehaviour
+
+    public void action() {
+
+      ACLMessage current = receive(listenSniffTemplate);
+      if(current != null) {
+
+	try {
+	  ACLCodec codec = new StringACLCodec();
+	  String content = current.getContent();
+	  ACLMessage tmp = codec.decode(content.getBytes());
+	  Message msg = new Message(tmp);
+	  myGUI.mainPanel.panelcan.canvMess.recMessage(msg);
+	} 
+	catch(Throwable e) {
+	  //System.out.println("Serious problem Occurred");
+	  myGUI.showError("An error occurred parsing the incoming message.\n" +
+			  "          The message was lost.");
+	  e.printStackTrace();
+	}
+      }
+      else
+      	block();
+    }
+
+  } // End of SniffListenerBehaviour
 
 
+  private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
   /**
-  @serial
+    @serial
   */
-	private SnifferGUI myGUI = new SnifferGUI(this);
+  private MainWindow myGUI;
 
   /**
-  @serial
+    @serial
   */
   private String myContainerName;
 
@@ -234,13 +275,16 @@ public class Sniffer extends jade.core.Agent {
    * corresponding behaviours are set up.
    */
   public void setup() {
-	   // register content language and ontology
-  	registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());    
+
+    // Register the supported ontology 
+    registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
+
+    // register the supported languages
     registerLanguage(SL0Codec.NAME, new SL0Codec());	
 
     // Fill ACL messages fields
 
-    
+    AMSSubscription.setSender(getAID());
     AMSSubscription.clearAllReceiver();
     AMSSubscription.addReceiver(getAMS());
     AMSSubscription.setLanguage(SL0Codec.NAME);
@@ -251,36 +295,37 @@ public class Sniffer extends jade.core.Agent {
     // Please inform me whenever container list changes and send me
     // the difference between old and new container lists, complete
     // with every AMS agent descriptor
-    String content = "iota ?x ( :container-list-delta ?x )";
+    String content = "platform-events";
     AMSSubscription.setContent(content);
 
-    //AMSCancellation.setSource(getLocalName());
+    AMSCancellation.setSender(getAID());
     AMSCancellation.clearAllReceiver();
     AMSCancellation.addReceiver(getAMS());
     AMSCancellation.setLanguage(SL0Codec.NAME);
     AMSCancellation.setOntology(JADEAgentManagementOntology.NAME);
     AMSCancellation.setReplyWith("tool-cancellation");
     AMSCancellation.setConversationId(getLocalName());
-
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
-    //requestMsg.set(getLocalName());
+    requestMsg.setSender(getAID());
     requestMsg.clearAllReceiver();
     requestMsg.addReceiver(getAMS());
     requestMsg.setProtocol("fipa-request");
-    requestMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
+    requestMsg.setOntology(JADEAgentManagementOntology.NAME);
     requestMsg.setLanguage(SL0Codec.NAME);
 
     // Send 'subscribe' message to the AMS
-    send(AMSSubscription);
-    //System.err.println(AMSSubscription.toString());
+    AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, AMSSubscription));
 
     // Handle incoming 'inform' messages
-    addBehaviour(new AMSListenerBehaviour(this));
+    AMSSubscribe.addSubBehaviour(new AMSListenerBehaviour());
 
-    addBehaviour(new SniffListenerBehaviour(this)); 
+    // Schedule Behaviours for execution
+    addBehaviour(AMSSubscribe);
+    addBehaviour(new SniffListenerBehaviour()); 
 
     // Show Graphical User Interface
+    myGUI = new MainWindow(this);
     myGUI.ShowCorrect();
 
   }
@@ -292,83 +337,97 @@ public class Sniffer extends jade.core.Agent {
    * Currently sniffed agents are also unsniffed to avoid errors.
    */
   public void takeDown() {
-    /* tell the ams not to sniff them anymore */
-    if (agentsUnderSniff.size() > 0)
-      sendSniffMessage(agentsUnderSniff,SNIFF_OFF);
-  	
-    MMCanvas.ml.removeAllMessages();
-  	
-    /* Now we unsubscribe from the rma list */	
+
+    List l = (List)(agentsUnderSniff.clone());
+    sniffMsg(l, SNIFF_OFF);
+
+    myGUI.mainPanel.panelcan.canvMess.ml.removeAllMessages();
+
+    // Now we unsubscribe from the rma list
     send(AMSCancellation);
     myGUI.setVisible(false);
     myGUI.disposeAsync();
+
   }
 
 
-	/**
-	 * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
-	 * agent to be sniffed/unsniffed. The internal list of sniffed agents is also 
-	 * updated.
-	 *
-	 * @param agentVect vector containing TreeData item representing the agents
-	 * @param onFlag can be:<ul>
-	 *											<li> Sniffer.SNIFF_ON  to activate sniffer on an agent/group
-	 *											<li> Sniffer.SNIFF_OFF to deactivate sniffer on an agent/group
-	 *											</ul>
-	 */
-	public void sniffMsg(Vector agentVect, boolean onFlag) { //by BENNY
-
-	  for (int i = 0; i < agentVect.size(); i++) {
-	    TreeData alextree = (TreeData)agentVect.elementAt(i);
-	    if (onFlag){
-	      if (!agentsUnderSniff.contains(alextree))
-		agentsUnderSniff.add(alextree);		
-	    } else {
-	      if (agentsUnderSniff.contains(alextree)) 
-		agentsUnderSniff.remove(alextree); 
-	    }
-	  }
-	  sendSniffMessage(agentVect,onFlag);
-	}
-
-
-  /*
-   * This method sends a sniffer activate/disable message to the ams according to the 
-   * list of agents and status flag
+  /**
+   * Creates the ACLMessage to be sent to the <em>Ams</em> with the list of the
+   * agent to be sniffed/unsniffed. The internal list of sniffed agents is also 
+   * updated.
+   *
+   * @param agentVect vector containing TreeData item representing the agents
+   * @param onFlag can be:<ul>
+   *			  <li> Sniffer.SNIFF_ON  to activate sniffer on an agent/group
+   *			  <li> Sniffer.SNIFF_OFF to deactivate sniffer on an agent/group
+   *		         </ul>
    */
-  private void sendSniffMessage(Vector agents, boolean onFlag) { //by BENNY
+  public void sniffMsg(List agents, boolean onFlag) {
 
-    ACLMessage SniffV = new ACLMessage(ACLMessage.REQUEST);
-    SniffV.addReceiver(getAMS());
-    SniffV.setLanguage(SL0Codec.NAME);
-    SniffV.setOntology(JADEAgentManagementOntology.NAME);
-    SniffV.setProtocol("fipa-request");
+    Iterator it = agents.iterator();
 
-    Action act = new Action();
-    act.setActor(getAMS());
-    if (onFlag) {
-      SniffOn s = new SniffOn();
-      s.setSniffer(getAID());
-      for (int i=0; i<agents.size(); i++)
-	s.addSniffedAgents(new AID(((TreeData)agents.get(i)).getName()));
-      act.setAction(s);
-    } else {
-      SniffOff s = new SniffOff();
-      s.setSniffer(getAID());
-      for (int i=0; i<agents.size(); i++)
-	s.addSniffedAgents(new AID(((TreeData)agents.get(i)).getName()));
-      act.setAction(s);
+    if(onFlag) {
+      SniffOn so = new SniffOn();
+      so.setSniffer(getAID());
+      boolean empty = true;
+      while(it.hasNext()) {
+	Agent a = (Agent)it.next();
+	AID agentID = new AID();
+	agentID.setName(a.agentName + '@' + getHap());
+	if(!agentsUnderSniff.contains(a)) {
+	  agentsUnderSniff.add(a);
+	  so.addSniffedAgents(agentID);
+	  empty = false;
+	}
+      }
+      if(!empty) {
+	try {
+	  Action a = new Action();
+	  a.set_0(getAMS());
+	  a.set_1(so);
+	  List l = new ArrayList(1);
+	  l.add(a);
+
+	  fillContent(requestMsg, l);
+	  addBehaviour(new AMSClientBehaviour("SniffAgentOn", requestMsg));
+	}
+	catch(FIPAException fe) {
+	  fe.printStackTrace();
+	}
+      }
     }
-    List l = new ArrayList(1);
-    l.add(act);
-    try { 
-      fillContent(SniffV,l);
-      send(SniffV);
-    } catch (FIPAException e) {
-      e.printStackTrace();  // it should never happen
+
+    else {
+      SniffOff so = new SniffOff();
+      so.setSniffer(getAID());
+      boolean empty = true;
+      while(it.hasNext()) {
+	Agent a = (Agent)it.next();
+	AID agentID = new AID();
+	agentID.setName(a.agentName + '@' + getHap());
+	if(agentsUnderSniff.contains(a)) {
+	  agentsUnderSniff.remove(a);
+	  so.addSniffedAgents(agentID);
+	  empty = false;
+	}
+      }
+      if(!empty) {
+	try {
+	  Action a = new Action();
+	  a.set_0(getAMS());
+	  a.set_1(so);
+	  List l = new ArrayList(1);
+	  l.add(a);
+
+	  fillContent(requestMsg, l);
+	  addBehaviour(new AMSClientBehaviour("SniffAgentOff", requestMsg));
+	}
+	catch(FIPAException fe) {
+	  fe.printStackTrace();
+	}
+      }
     }
+
   }
 
-
-
-}
+}  // End of class Sniffer

@@ -1,7 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -25,19 +25,24 @@ package jade.tools.sniffer;
 
 import java.awt.Window;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowAdapter;
 
- /** 
+/**
+Javadoc documentation for the file
+@author Gianluca Tanca
+@version $Date$ $Revision$
+*/
+/**
  * Catch event for closing the main frame window
  *
  * @see jade.Sniffer.WindowCloser
- * @author Gianluca Tanca
- * @version $Date$ $Revision$
  */
-final class ProgramCloser extends WindowCloser{
-        
+
+final class ProgramCloser extends WindowAdapter{
+
 	public void windowClosing(WindowEvent e){
-		Window win = e.getWindow();
+		MainWindow win = (MainWindow) e.getWindow();
 		win.setVisible(false);
-		win.dispose();
+		win.disposeAsync();
 	}
-}
+} // end of class ProgramCloser
