@@ -49,8 +49,8 @@ public class FSMBehaviour extends CompositeBehaviour {
   
   private Map states = new HashMap();
   private Behaviour current = null;
+  private List lastStates = new ArrayList();
   private String firstName = null;
-  private String lastName = null;
   private String currentName = null;
   private String previousName = null;
   
@@ -83,7 +83,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   
   public void registerLastState(Behaviour state, String name) {
   	registerState(state, name);
-  	lastName = name;
+  	lastStates.add(name);
   }
 
   public void registerTransition(String s1, String s2, int event) {
@@ -137,7 +137,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   }
   
   protected boolean checkTermination(boolean currentDone, int currentResult) { 
-  	return (currentDone && (current == getState(lastName)));
+  	return (currentDone && lastStates.contains(currentName));
   }  		
   
   protected Behaviour getCurrent() {
