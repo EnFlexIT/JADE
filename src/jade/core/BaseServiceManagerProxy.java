@@ -177,7 +177,7 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	addresses.remove(addr);
     }
 
-    public String[] getAddresses() {
+    public String[] getAddresses() throws IMTPException {
 	Object[] objs = addresses.toArray();
 	String[] addrs = new String[objs.length];
 
