@@ -143,7 +143,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
 
     public synchronized Enumeration timers() {
-      //return TtoB.keySet().iterator();
       return TtoB.keys();
     }
 
