@@ -30,6 +30,8 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Collection;
 
+import jade.content.Concept;
+
 /**
 
   This class represents an unique identifier referring to a specific
@@ -39,7 +41,7 @@ import jade.util.leap.Collection;
   @version $Date$ $Revision$
 
 */
-public class BehaviourID {
+public class BehaviourID implements Concept {
 
 	private String name;
 	private String className;
