@@ -50,6 +50,10 @@ public class MessageTableModel extends AbstractTableModel {
     return 1;
   }
 
+  public Class getColumnClass(int columnIndex) {
+    return items.get(0).getClass();
+  }
+
   public Object getValueAt(int r, int c) {
     return items.get(r);
   }
@@ -63,7 +67,7 @@ public class MessageTableModel extends AbstractTableModel {
     fireTableRowsInserted(index, index);
   }
 
-  public void addRow(Object o){
+  public void addRow(Object o) {
     items.add(o);
     int index = items.size();
     this.fireTableRowsInserted(index, index);
