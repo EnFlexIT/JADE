@@ -159,7 +159,7 @@ class acc implements InChannel.Dispatcher {
   public byte[] encodeMessage(ACLMessage msg) throws NotFoundException {
     Envelope env = msg.getEnvelope();
     String enc = env.getAclRepresentation();
-    System.out.println("Using coding: " + enc);
+    //System.out.println("Using coding: " + enc);
  		/*ACLCodec codec = (ACLCodec)messageEncodings.get(enc.toLowerCase());
     if(codec == null) 
       throw new UnknownACLEncodingException("Unknown ACL encoding: " + enc + ".");

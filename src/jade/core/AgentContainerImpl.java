@@ -57,6 +57,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
+import jade.lang.acl.ACLCodec;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -368,6 +369,23 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
+  protected void installACLCodec(String className) throws jade.lang.acl.ACLCodec.CodecException{
+  
+  	try{
+  			Class c = Class.forName(className);
+  			ACLCodec codec = (ACLCodec)c.newInstance(); 
+  			theACC.addACLCodec(codec);
+  			//FIXME: notify the AMS of the new Codec to update the APDescritption.
+  		}catch(ClassNotFoundException cnfe){
+  			throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class" +className +" for the ACLCodec not found",cnfe);
+  		}catch(InstantiationException ie){
+  			throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)",ie);
+  		}catch(IllegalAccessException iae){
+  			throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
+  		}
+ 		
+  }
+  
   public String installMTP(String address, String className) throws RemoteException, MTPException {
     try {
       Class c = Class.forName(className);
@@ -409,7 +427,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     theACC.forwardMessage((jade.domain.FIPAAgentManagement.Envelope)env, payload, address);
   }
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
 
     // This string will be used to build the GUID for every agent on this platform.
     platformID = pID;
@@ -426,6 +444,12 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       theACC = new acc(this, platformID);
 
+      //Install the ACLCodecs inserted by command line.
+      for(int i =0; i<ACLCodecs.length;i++){
+      	String className = ACLCodecs[i];
+      	installACLCodec(className);
+      }
+      
       InetAddress netAddr = InetAddress.getLocalHost();
       myName = myPlatform.addContainer(this, netAddr); // RMI call
 
@@ -434,27 +458,28 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       for(int i = 0; i < MTPs.length; i += 2) {
 
-	String className = MTPs[i];
-	String addressURL = MTPs[i+1];
-	if(addressURL.equals(""))
-	  addressURL = null;
-	String s = installMTP(addressURL, className);
+				String className = MTPs[i];
+				String addressURL = MTPs[i+1];
+				if(addressURL.equals(""))
+	  			addressURL = null;
+				String s = installMTP(addressURL, className);
 
-	f.write(s, 0, s.length());
-	f.write('\n');
-	System.out.println(s);
+				f.write(s, 0, s.length());
+				f.write('\n');
+				System.out.println(s);
       }
 
       f.close();
-
     }
     catch(RemoteException re) {
       System.err.println("Communication failure while contacting agent platform.");
       re.printStackTrace();
+      System.exit(0);
     }
     catch(Exception e) {
       System.err.println("Some problem occurred while contacting agent platform.");
       e.printStackTrace();
+      System.exit(0);
     }
 
 

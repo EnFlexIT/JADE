@@ -114,7 +114,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
-  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs) {
+  public void joinPlatform(String pID, Iterator agentSpecifiers, String[] MTPs, String[] ACLCodecs) {
 
     // This string will be used to build the GUID for every agent on
     // this platform.
@@ -139,9 +139,13 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
 
     theACC = new acc(this, platformID);
-
-    try {
-
+		try{
+    
+			for(int i =0; i<ACLCodecs.length;i++){
+				String className = ACLCodecs[i];
+				installACLCodec(className);
+			}
+			
       containers.addContainer(MAIN_CONTAINER_NAME, this);
       containersProgNo++;
 
@@ -149,15 +153,15 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
       for(int i = 0; i < MTPs.length; i += 2) {
 
-	String className = MTPs[i];
-	String addressURL = MTPs[i+1];
-	if(addressURL.equals(""))
-	  addressURL = null;
-	String s = installMTP(addressURL, className);
+				String className = MTPs[i];
+				String addressURL = MTPs[i+1];
+				if(addressURL.equals(""))
+	  			addressURL = null;
+				String s = installMTP(addressURL, className);
 
-	f.write(s, 0, s.length());
-	f.write('\n');
-	System.out.println(s);
+				f.write(s, 0, s.length());
+				f.write('\n');
+				System.out.println(s);
       }
 
       f.close();
@@ -173,6 +177,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
     catch(MTPException mtpe) {
       mtpe.printStackTrace();
+    }catch(jade.lang.acl.ACLCodec.CodecException ce){
+    	ce.printStackTrace();
     }
 
     // Notify platform listeners
