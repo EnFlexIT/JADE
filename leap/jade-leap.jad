@@ -6,6 +6,6 @@ MIDlet-Description: Sample suite from MIDP early access workspace.
 MIDlet-Jar-Size: 431366
 MIDlet-Jar-URL: midp/lib/JadeLeap.jar
 MIDlet-LEAP-conf: config
-MIDlet-Name: Test
-MIDlet-Vendor: Tilab.
-MIDlet-Version: 1.0
+MIDlet-Name: JADE-LEAP
+MIDlet-Vendor: TILAB.
+MIDlet-Version: 3.0
