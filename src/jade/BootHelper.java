@@ -93,7 +93,7 @@ public class BootHelper {
                         state = WORDTOKEN;
                     }
                 } else if (token.length() > 0) {
-                    l.add(token.toString());
+                    l.addElement(token.toString());
 
                     token = new StringBuffer();
                 }
@@ -103,7 +103,7 @@ public class BootHelper {
                 if (ch == ' ') {
                     state = BETWEENTOKENS;
 
-                    l.add(token.toString());
+                    l.addElement(token.toString());
 
                     token = new StringBuffer();
                 } else if (ch == '"') {
@@ -152,7 +152,7 @@ public class BootHelper {
         }
 
         if (token.length() > 0) {
-            l.add(token.toString());
+            l.addElement(token.toString());
         }
 
         return l;
@@ -172,7 +172,7 @@ public class BootHelper {
         int i = 0;
 
         while (i < args.size()) {    //1
-            String cur = (String) args.get(i);
+            String cur = (String) args.elementAt(i);
 
             // search for the agent name
             int index1 = cur.indexOf(':');
@@ -211,7 +211,7 @@ public class BootHelper {
                             //FIXME printUsageInfo = true;
                         }    //5
 
-                        nextArg = (String) args.get(i);
+                        nextArg = (String) args.elementAt(i);
                     }    // 4 
 
                     Object agentArgs[] = new Object[asArgs.size()];
@@ -223,7 +223,7 @@ public class BootHelper {
                     as.setArgs(agentArgs);
                 }    // 3
 
-                all.add(as);
+                all.addElement(as);
             }    //2 
 
             i++;
