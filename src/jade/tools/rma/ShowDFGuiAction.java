@@ -47,8 +47,8 @@ class ShowDFGuiAction extends FixedAction
 
    public void doAction() {
 
-     ACLMessage msg = new ACLMessage("request");
-     msg.setDest("df");
+     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+     msg.addDest("df");
      msg.setOntology("jade-extensions");
      msg.setProtocol("fipa-request");
      msg.setContent("(action df (SHOWGUI))");

@@ -47,7 +47,7 @@ public class CustomAction extends AgentAction {
   public void doAction(AgentTree.AgentNode nod) {
 
     AgentTree.Node node=(AgentTree.Node) nod;
-    ACLMessage msg2 = new ACLMessage("not-understood");
+    ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
     msg2.addDest(node.getName());
     ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
       if (msg != null)
