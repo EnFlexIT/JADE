@@ -24,10 +24,13 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 /**
-   The <code>Sink</code> interface has to be implemented by all
-   the components that process JADE kernel-level commands. Some of
-   these components are pass-trough filters, whereas others may be the
-   final destination for a command.
+   The <code>Sink</code> interface has to be implemented by all the
+   components that process JADE kernel-level commands in an exclusive
+   and terminal way.
+
+   For each kind of vertical command, there must be at most one sink
+   that is registered for that command.  Instead, many command filters
+   can be applied to a single command.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 
@@ -36,12 +39,15 @@ package jade.core;
 public interface Sink {
 
     /**
-       Receive a command object for processing.
+       Definitely consume a command object. This method is invoked by
+       the kernel when all incoming filters have been applied to the
+       incoming vertical command.
 
-       @param cmd A <code>Command</code> describing what operation has
-       been requested from previous layers (that can be the actual
-       prime source of the command or previous filters in the chain.
+       @param cmd A <code>VerticalCommand</code> describing what
+       operation has been requested from previous layers (that can be
+       the actual prime source of the command or members of the filter
+       chain).
     */
-    void accept(VerticalCommand cmd);
+    void consume(VerticalCommand cmd);
 
 }
