@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.12  1999/03/03 16:02:58  rimassa
+  Added methods to suspend and resume agents on demand.
+  Added a getModel() method to access GUI TreeModel.
+  Removed duplicate ACL message objects.
+
   Revision 1.11  1999/02/25 08:41:36  rimassa
   Added code to remember RMA's container name and an exit() method to
   close 'this' container.
@@ -79,9 +84,7 @@ public class rma extends Agent {
 
   private ACLMessage AMSSubscription = new ACLMessage("subscribe");
   private ACLMessage AMSCancellation = new ACLMessage("cancel");
-  private ACLMessage newAgentMsg = new ACLMessage("request");
-  private ACLMessage killAgentMsg = new ACLMessage("request");
-  private ACLMessage killContainerMsg = new ACLMessage("request");
+  private ACLMessage requestMsg = new ACLMessage("request");
 
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
@@ -191,23 +194,11 @@ public class rma extends Agent {
 
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
-    killContainerMsg.setSource(getLocalName());
-    killContainerMsg.setDest("AMS");
-    killContainerMsg.setProtocol("fipa-request");
-    killContainerMsg.setOntology("fipa-agent-management");
-    killContainerMsg.setLanguage("SL0");
-
-    killAgentMsg.setSource(getLocalName());
-    killAgentMsg.setDest("AMS");
-    killAgentMsg.setProtocol("fipa-request");
-    killAgentMsg.setOntology("fipa-agent-management");
-    killAgentMsg.setLanguage("SL0");
-
-    newAgentMsg.setSource(getLocalName());
-    newAgentMsg.setDest("AMS");
-    newAgentMsg.setProtocol("fipa-request");
-    newAgentMsg.setOntology("fipa-agent-management");
-    newAgentMsg.setLanguage("SL0");
+    requestMsg.setSource(getLocalName());
+    requestMsg.setDest("AMS");
+    requestMsg.setProtocol("fipa-request");
+    requestMsg.setOntology("fipa-agent-management");
+    requestMsg.setLanguage("SL0");
 
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, AMSSubscription));
@@ -232,6 +223,10 @@ public class rma extends Agent {
 
   // Callback methods from GUI
 
+  public AMSTreeModel getModel() {
+    return myGUI.getModel();
+  }
+
   public void newAgent(String agentName, String className, String containerName) {
 
     AgentManagementOntology.CreateAgentAction caa = new AgentManagementOntology.CreateAgentAction();
@@ -251,12 +246,62 @@ public class rma extends Agent {
 
     StringWriter createText = new StringWriter();
     caa.toText(createText);
-    newAgentMsg.setContent(createText.toString());
+    requestMsg.setContent(createText.toString());
 
-    send(newAgentMsg);
+    send(requestMsg);
 
     // FIXME: Should do a complete 'fipa-request' protocol
 
+  }
+
+  public void suspendAgent(String name) {
+    AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    if(name.indexOf('@') < 0)
+      name = name.concat('@' + getAddress());
+      
+    amsd.setName(name);
+    amsd.setAPState(AP_SUSPENDED);
+    a.setName(AgentManagementOntology.AMSAction.MODIFYAGENT);
+    a.setArg(amsd);
+
+    StringWriter suspendText = new StringWriter();
+    a.toText(suspendText);
+    requestMsg.setContent(suspendText.toString());
+    send(requestMsg);
+
+    // FIXME: Should do a complete 'fipa-request' protocol
+
+  }
+
+  public void suspendContainer(String name) {
+    System.out.println("Suspending container " + name);
+  }
+
+  public void resumeAgent(String name) {
+    AgentManagementOntology.AMSAction a = new AgentManagementOntology.AMSAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    if(name.indexOf('@') < 0)
+      name = name.concat('@' + getAddress());
+
+    amsd.setName(name);
+    amsd.setAPState(AP_ACTIVE);
+    a.setName(AgentManagementOntology.AMSAction.MODIFYAGENT);
+    a.setArg(amsd);
+
+    StringWriter resumeText = new StringWriter();
+    a.toText(resumeText);
+    requestMsg.setContent(resumeText.toString());
+    send(requestMsg);
+
+    // FIXME: Should do a complete 'fipa-request' protocol
+
+  }
+
+  public void resumeContainer(String name) {
+    System.out.println("Resuming container " + name);
   }
 
   public void killAgent(String name) {
@@ -264,9 +309,9 @@ public class rma extends Agent {
     kaa.setAgentName(name);
     StringWriter killText = new StringWriter();
     kaa.toText(killText);
-    killAgentMsg.setContent(killText.toString());
+    requestMsg.setContent(killText.toString());
 
-    send(killAgentMsg);
+    send(requestMsg);
 
     // FIXME: Should do a complete 'fipa-request' protocol
 
@@ -278,9 +323,9 @@ public class rma extends Agent {
     kca.setContainerName(name);
     StringWriter killText = new StringWriter();
     kca.toText(killText);
-    killContainerMsg.setContent(killText.toString());
+    requestMsg.setContent(killText.toString());
 
-    send(killContainerMsg);
+    send(requestMsg);
 
     // FIXME: Should do a complete 'fipa-request' protocol
 
