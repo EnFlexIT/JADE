@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.37  1999/07/19 00:04:42  rimassa
+  Added an empty moveAgent() method.
+
   Revision 1.36  1999/07/13 19:23:52  rimassa
   Implemented the revised AgentManager interface.
   Separated Platform Agent Descriptors from AMS Agent Descriptors. Now
@@ -628,6 +631,12 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     catch(RemoteException re) {
       throw new UnreachableException(re.getMessage());
     }
+  }
+
+  public void moveAgent(String agentName, String containerName) throws NotFoundException, UnreachableException {
+    // Lookup the container for 'agentName', throwing NotFoundException on failure
+    // Tell the src container to send the agent code and data to the dest container
+    // Update GADT to reflect new agent location
   }
 
   public void killContainer(String containerName) {
