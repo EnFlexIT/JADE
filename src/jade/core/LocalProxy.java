@@ -1,4 +1,3 @@
-
 /*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
@@ -25,7 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.lang.ref.WeakReference;
+import java.util.Map;
 
 import jade.lang.acl.ACLMessage;
 
@@ -36,20 +35,25 @@ import jade.lang.acl.ACLMessage;
 
 class LocalProxy implements AgentProxy {
 
-  // A weak reference to the local agent.
-  private WeakReference ref;
+  private Map agents;
+  private String receiverName;
 
-  public LocalProxy(Agent a) {
-    ref = new WeakReference(a);
+  public LocalProxy(Map a, String rn) {
+    agents = a;
+    receiverName = rn;
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
 
-    Agent receiver = (Agent)ref.get();
-    // If the agent has been collected, throw an exception
-    if(receiver == null)
-      throw new NotFoundException("Stale local proxy");
-    receiver.postMessage(msg);
+    synchronized(agents) {
+      Agent receiver = (Agent)agents.get(receiverName.toLowerCase());
+
+      if(receiver == null) {
+	throw new NotFoundException("DispatchMessage failed to find " + receiverName);
+      }
+
+      receiver.postMessage(msg);
+    }
 
   }
 
