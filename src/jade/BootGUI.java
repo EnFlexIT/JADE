@@ -577,9 +577,9 @@ public class BootGUI extends JDialog {
                                 "User Authentication context",
                                 false));
 
-        pv.add(new PropertyType(BootProfileImpl.HOST_KEY,
+        pv.add(new PropertyType(BootProfileImpl.MAIN_HOST,
                                 PropertyType.STRING_TYPE,
-                                theProperties.getProperty(BootProfileImpl.HOST_KEY),
+                                theProperties.getProperty(BootProfileImpl.MAIN_HOST),
                                 "Host Name of the main-container",
                                 false));
                                         
@@ -589,9 +589,9 @@ public class BootGUI extends JDialog {
                                 "Select to launch the RMA Gui",
                                 false));
                              
-        pv.add(new PropertyType(BootProfileImpl.PORT_KEY,
+        pv.add(new PropertyType(BootProfileImpl.MAIN_PORT,
                                 PropertyType.STRING_TYPE,
-                                new Integer(theProperties.getIntProperty(BootProfileImpl.PORT_KEY,
+                                new Integer(theProperties.getIntProperty(BootProfileImpl.MAIN_PORT,
                                             BootProfileImpl.DEFAULT_PORT)).toString(),
                                 "Port Number of the main-container",
                                 false));
@@ -626,9 +626,9 @@ public class BootGUI extends JDialog {
                                 "List of ACLCodec to install",
                                 false));
                                             
-        pv.add(new PropertyType(BootProfileImpl.AGENTS_KEY,
+        pv.add(new PropertyType(BootProfileImpl.AGENTS,
                                 PropertyType.STRING_TYPE,
-                                theProperties.getProperty(BootProfileImpl.AGENTS_KEY),
+                                theProperties.getProperty(BootProfileImpl.AGENTS),
                                 "Agents to launch",
                                 false));
         pv.add(new PropertyType(BootProfileImpl.NOMOBILITY_KEY,

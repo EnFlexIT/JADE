@@ -61,34 +61,20 @@ import jade.domain.df;
 public class BootProfileImpl extends ProfileImpl {
 
     public static final String ACLCODEC_KEY = "aclcodec";
-    public static final String AGENTS_KEY = "agents";
-    public static final String SERVICES_KEY = "services";
     public static final String CONF_KEY = "conf";
     public static final String CONTAINER_KEY = "container";
     public static final String DUMP_KEY = "dump";
     public static final String GUI_KEY = "gui";
     public static final String HELP_KEY = "help";
-    public static final String HOST_KEY = "host";
-    public static final String LOCALHOST_KEY = "local-host";
-    public static final String LOCALPORT_KEY = "local-port";
     public static final String MTP_KEY = "mtp";
     public static final String NOMTP_KEY = "nomtp";
-    public static final String IMTP_KEY = "imtp";
     public static final String NAME_KEY = "name";
     public static final String LOGIN_KEY = "auth";
-    public static final String PORT_KEY = "port";
-    public static final String SM_KEY = "backupmain";
     public static final String SMHOST_KEY = "smhost";
     public static final String SMPORT_KEY = "smport";
-    public static final String SMADDRS_KEY = "smaddrs";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";
 
-
-	// PROVA
-//    public static final String A_KEY = "jade.domain.df.dbdrv";
-//    public static final String B_KEY = "jade.domain.df.dburl";
-//    public static final String C_KEY = "jade.domain.df.kbmaxres";
 
 
     ExpandedProperties argProp = null;
@@ -143,7 +129,7 @@ public class BootProfileImpl extends ProfileImpl {
         try {
 
             if (isMain) { //this is a main, then set the RMI Server to the value passed in the -host option or to the IP no
-                value = argProp.getProperty(HOST_KEY);
+                value = argProp.getProperty(MAIN_HOST);
                 if (value == null) {
 		    value = InetAddress.getLocalHost().getHostAddress();
 		}
@@ -168,7 +154,7 @@ public class BootProfileImpl extends ProfileImpl {
 	    setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
 	}
 
-	String sm = argProp.getProperty(SM_KEY);
+	String sm = argProp.getProperty(LOCAL_SERVICE_MANAGER);
 	if(sm != null) {
 	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER, sm);
 	}
@@ -194,12 +180,12 @@ public class BootProfileImpl extends ProfileImpl {
         }
 */
 
-        value = argProp.getProperty(IMTP_KEY);
+        value = argProp.getProperty(IMTP);
         if (value != null) {
             profileProp.setProperty(Profile.IMTP, value);
         }
 
-        String host = argProp.getProperty(HOST_KEY);
+        String host = argProp.getProperty(MAIN_HOST);
         if (host != null) {
             profileProp.setProperty(Profile.MAIN_HOST, host);
         } else {
@@ -210,12 +196,12 @@ public class BootProfileImpl extends ProfileImpl {
             }
        }
 
-        String port = argProp.getProperty(PORT_KEY);
+        String port = argProp.getProperty(MAIN_PORT);
         if (port == null) {
 	    // Default for a sole main container: use the local port, or
 	    // the default port if also the local port is null.
 	    if(isFirstMain()) {
-		port = argProp.getProperty(LOCALPORT_KEY);
+		port = argProp.getProperty(LOCAL_PORT);
 	    }
 	    if(port == null) {
 		// All other cases: use the default port.
@@ -224,7 +210,7 @@ public class BootProfileImpl extends ProfileImpl {
         }
 	profileProp.setProperty(Profile.MAIN_PORT, port);
 
-	String localHost = argProp.getProperty(LOCALHOST_KEY);
+	String localHost = argProp.getProperty(LOCAL_HOST);
 	if(localHost == null) {
 	    // Default for a sole main container: use the MAIN_HOST property
 	    if(isFirstMain()) {
@@ -237,7 +223,7 @@ public class BootProfileImpl extends ProfileImpl {
 	}
 	profileProp.setProperty(Profile.LOCAL_HOST, localHost);
 
-	String localPort = argProp.getProperty(LOCALPORT_KEY);
+	String localPort = argProp.getProperty(LOCAL_PORT);
 	if(localPort == null) {
 	    // Default for a sole main container: use the MAIN_PORT property
 	    if(isFirstMain()) {
@@ -250,7 +236,7 @@ public class BootProfileImpl extends ProfileImpl {
 	}
 	profileProp.setProperty(Profile.LOCAL_PORT, localPort);
 
-        value = argProp.getProperty(SMADDRS_KEY);
+        value = argProp.getProperty(REMOTE_SERVICE_MANAGER_ADDRESSES);
         if (value != null) {
       	try {
     Vector v = Specifier.parseSpecifierList(value);
@@ -295,7 +281,7 @@ public class BootProfileImpl extends ProfileImpl {
         }
 
         // Get agent list (if any)
-        value = argProp.getProperty(AGENTS_KEY);
+        value = argProp.getProperty(AGENTS);
 
 
         flag = fetchAndVerifyBoolean(GUI_KEY);
@@ -321,7 +307,7 @@ public class BootProfileImpl extends ProfileImpl {
         }
 
 	// Get service list (if any)
-	value = argProp.getProperty(SERVICES_KEY);
+	value = argProp.getProperty(SERVICES);
 	if(value == null) {
 	    // Remove mobility service from the list if '-nomobility' was specified
 	    flag = fetchAndVerifyBoolean(NOMOBILITY_KEY);

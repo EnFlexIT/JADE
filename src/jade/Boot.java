@@ -81,7 +81,7 @@ public class Boot {
         } catch (PropertiesException pe) {
             System.out.println(pe);
             System.exit(-1);
-        }
+        } 
         properties = profile.getArgProperties();
 
         if (properties.getBooleanProperty(profile.DUMP_KEY, false)) {
@@ -98,21 +98,14 @@ public class Boot {
             return;
         }
 
-        if (properties.getProperty(profile.HOST_KEY) == null) {
+        if (properties.getProperty(profile.MAIN_HOST) == null) {
             try {
-                properties.setProperty(profile.HOST_KEY, InetAddress.getLocalHost().getHostName());
+                properties.setProperty(profile.MAIN_HOST, InetAddress.getLocalHost().getHostName());
             } catch (UnknownHostException uhe) {
                 System.out.print("Unknown host exception in getLocalHost(): ");
                 System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
                 System.exit(1);
             }
-        }
-
-        try {
-            check();
-        } catch (BootException be) {
-            System.err.println(be);
-            return;
         }
 
         if (properties.getBooleanProperty(profile.CONF_KEY, false)) {
@@ -130,14 +123,19 @@ public class Boot {
         //SecurityFactory sf = SecurityFactory.getSecurityFactory(profile);
 
 
-        // Exit the JVM when there are no more containers around
-        Runtime.instance().setCloseVM(true);
-
-        // Check whether this is the Main Container or a peripheral container
-        if (!properties.getBooleanProperty(profile.CONTAINER_KEY, false)) {
-            Runtime.instance().createMainContainer(profile);
-        } else {
-            Runtime.instance().createAgentContainer(profile);
+        try {
+					check();
+					// Exit the JVM when there are no more containers around
+					Runtime.instance().setCloseVM(true);
+					if (profile.getBooleanProperty(Profile.MAIN, true)) {
+						Runtime.instance().createMainContainer(profile);
+					}
+					else {
+						Runtime.instance().createAgentContainer(profile);
+					}
+        } catch (BootException be) {
+            System.err.println(be);
+            return;
         }
     }
 
@@ -438,7 +436,6 @@ public class Boot {
      */
     public void setProperties(BasicProperties updates) throws BootException {
         properties.copyProperties(updates);
-        check();
         profile.setArgProperties(properties);
     }
 
@@ -453,64 +450,52 @@ public class Boot {
      */
     protected void check() throws BootException {
         try {
-            Integer.parseInt(properties.getProperty(profile.PORT_KEY, Integer.toString(profile.DEFAULT_PORT)));
+            Integer.parseInt(profile.getParameter(profile.MAIN_PORT, Integer.toString(profile.DEFAULT_PORT)));
         } catch (NumberFormatException nfe) {
             throw new BootException("Malformed port number");
         }
 
         // Remove the MTP list if '-nomtp' is specified
-        if (properties.getBooleanProperty(profile.NOMTP_KEY, false)) {
-            if (properties.getProperty(profile.MTP_KEY, null) != null) {
+        if (profile.getBooleanProperty(profile.NOMTP_KEY, false)) {
+            if (profile.getParameter(profile.MTP_KEY, null) != null) {
                 throw new BootException("Error: If noMTP is set, you can't specify MTPs.");
             }
         }
 
-        if (!properties.getBooleanProperty(profile.CONTAINER_KEY, false)) {    // then it is a platform
-            try {
-                InetAddress myPlatformAddrs[] = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
-                InetAddress hostAddrs[] = InetAddress.getAllByName(properties.getProperty(profile.HOST_KEY));
+        // Check that the local-host is actually local
+        try {
+            InetAddress myPlatformAddrs[] = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
+            InetAddress hostAddrs[] = InetAddress.getAllByName(profile.getParameter(profile.LOCAL_HOST, null));
 
-                // If the platform address equals the host address, then
-                // the user is starting the main container (platform) on
-                // the local host.  The trick here is to compare the InetAddress
-                // objects, not the strings since the one string might be a
-                // fully qualified Internet domain name for the host and the 
-                // other might be a simple name.  
-                // Example: myHost.hpl.hp.com and myHost might
-                // acutally be the same host even though the hostname strings do
-                // not match.  When the InetAddress objects are compared, the IP
-                // addresses will be compared.
-                int i = 0;
-                boolean isLocal = false;
+            // The trick here is to compare the InetAddress
+            // objects, not the strings since the one string might be a
+            // fully qualified Internet domain name for the host and the 
+            // other might be a simple name.  
+            // Example: myHost.hpl.hp.com and myHost might
+            // acutally be the same host even though the hostname strings do
+            // not match.  When the InetAddress objects are compared, the IP
+            // addresses will be compared.
+            int i = 0;
+            boolean isLocal = false;
 
-                while ((!isLocal) && (i < myPlatformAddrs.length)) {
-                    int j = 0;
+            while ((!isLocal) && (i < myPlatformAddrs.length)) {
+                int j = 0;
 
-                    while ((!isLocal) && (j < hostAddrs.length)) {
-                        isLocal = myPlatformAddrs[i].equals(hostAddrs[j]);
+                while ((!isLocal) && (j < hostAddrs.length)) {
+                    isLocal = myPlatformAddrs[i].equals(hostAddrs[j]);
 
-                        j++;
-                    }
-
-                    i++;
+                    j++;
                 }
 
-                if (!isLocal) {
-                    //properties.setProperty(profile.HOST_KEY, myPlatformAddrs[0].getHostName());
-
-                    throw new BootException(
-                        "Error: Not possible to launch a platform on a different host." + "\n"
-                        + "A platform must be launched on local host.");
-                }
-            } catch (UnknownHostException uhe) {
-
-                // uhe.printStackTrace();
-                //properties.setProperty(profile.HOST_KEY, myPlatformAddrs[0].getHostName());
-                throw new BootException(
-                    "Error: Not possible to launch a platform on a different host." + "\n"
-                    + "A platform must be launched on local host.");
+                i++;
             }
-        }    //END if not container -- i.e. (this is a platform)
+
+            if (!isLocal) {
+                throw new BootException("Error: Not possible to launch JADE a remote host ("+properties.getProperty(profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
+            }
+        } catch (UnknownHostException uhe) {
+            throw new BootException("Error: Not possible to launch JADE an unknown host ("+properties.getProperty(profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
+        }
     }
 
 
