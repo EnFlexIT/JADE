@@ -219,7 +219,7 @@ public class rma extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-    private transient MainWindow myGUI; 
+  private transient MainWindow myGUI = new MainWindow(this);
 
   private String myContainerName;
 
@@ -230,10 +230,11 @@ public class rma extends Agent {
   public void setup() {
 
     // Register the supported ontologies 
+    registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
 
     // register the supported languages
-    registerLanguage(SL0Codec.NAME,new SL0Codec());	
+    registerLanguage(SL0Codec.NAME, new SL0Codec());	
 
     // Fill ACL messages fields
 
@@ -276,7 +277,6 @@ public class rma extends Agent {
     addBehaviour(AMSSubscribe);
 
     // Show Graphical User Interface
-    myGUI = new MainWindow(this);
     myGUI.ShowCorrect();
 
   }
@@ -391,7 +391,7 @@ public class rma extends Agent {
       List l = new ArrayList(1);
       l.add(a);
 
-      requestMsg.setOntology(JADEAgentManagementOntology.NAME);
+      requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
     }
