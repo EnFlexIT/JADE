@@ -33,6 +33,7 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.DFServiceCommunicator;
 import jade.proto.FipaRequestInitiatorBehaviour;
 
 /**
@@ -66,7 +67,7 @@ public class AgRequestInitiator extends Agent{
     try {
       while (true) {
       	System.out.println(getLocalName()+ " waiting for an RequestResponderAgent registering with the DF");
-      	List result = searchDF(getDefaultDF(),dfd,c);
+      	List result = DFServiceCommunicator.search(this,getDefaultDF(),dfd,c);
 	if (result.size() > 0) {
 	  dfd = (DFAgentDescription)result.get(0); 
 	  responder = dfd.getName();

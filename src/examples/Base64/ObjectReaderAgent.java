@@ -28,6 +28,7 @@ import jade.lang.acl.UnreadableException;
 import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
+import jade.domain.DFServiceCommunicator;
 
 import java.util.*;
 import java.io.*;
@@ -58,7 +59,7 @@ protected void setup() {
   dfd.setName(getAID());
   dfd.addOntologies("Test_Example");
   try {
-    registerWithDF(getDefaultDF(),dfd);
+    DFServiceCommunicator.register(this,dfd);
   } catch (FIPAException e) {
     System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
     doDelete();
@@ -82,7 +83,7 @@ protected void setup() {
 
   public void takeDown() {
     try {
-      deregisterWithDF(getDefaultDF(), dfd);
+      DFServiceCommunicator.deregister(this, dfd);
     }
     catch (FIPAException e) {
       System.err.println(getLocalName()+" deregistration with DF unsucceeded. Reason: "+e.getMessage());

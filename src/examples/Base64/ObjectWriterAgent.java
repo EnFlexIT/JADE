@@ -27,6 +27,8 @@ import jade.lang.acl.ACLMessage;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.DFServiceCommunicator;
+
 
 import java.util.*;
 import java.io.*;
@@ -57,7 +59,7 @@ protected void setup() {
     while (true) {
       System.out.println(getLocalName()+ " waiting for an ObjectReaderAgent registering with the DF");
       SearchConstraints c = new SearchConstraints();
-      List result = searchDF(getDefaultDF(),dfd,c);
+      List result = DFServiceCommunicator.search(this,dfd,c);
       if (result.size() > 0) {
 	dfd = (DFAgentDescription)result.get(0);
 	reader = dfd.getName();
@@ -66,6 +68,7 @@ protected void setup() {
       Thread.sleep(10000);
     }
   } catch (Exception fe) {
+    fe.printStackTrace();
     System.err.println(getLocalName()+" search with DF is not succeeded because of " + fe.getMessage());
     doDelete();
     }

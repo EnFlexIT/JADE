@@ -33,6 +33,7 @@ import jade.lang.acl.ACLMessage;
 import jade.proto.FipaRequestResponderBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
+import jade.domain.DFServiceCommunicator;
 
 /**
 This example shows how to use the class FipaRequestResponderBehaviour 
@@ -100,7 +101,7 @@ public class AgRequestResponder extends Agent {
     dfd.setName(getAID());
     dfd.addServices(sd);
     try {
-      registerWithDF(getDefaultDF(),dfd);
+      DFServiceCommunicator.register(this,dfd);
     } catch (FIPAException e) {
       System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
       doDelete();
