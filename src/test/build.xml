@@ -230,7 +230,7 @@
    <mkdir dir="doc"/>
    <mkdir dir="doc/tutorials"/>
    <copy file="src/test/JADE_TestSuite.pdf" todir="doc/tutorials"/>
-   <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml"/>
+   <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml" overwrite="true"/>
    <jar jarfile="../JADE-testSuite-${version}.zip">
       <fileset dir=".." includes="jade/src/test/COPYING"/>
       <fileset dir=".." includes="jade/src/test/ChangeLog"/>
