@@ -106,22 +106,22 @@ public class TimeChooser implements ActionListener
 		
 		year = new JTextField(4);
 		year.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.YEAR), year, "Year:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.YEAR), year, "Year:",Integer.MAX_VALUE);
 		month = new JTextField(4);
 		month.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.MONTH)+1, month, "Month:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.MONTH)+1, month, "Month:",12);
 		day = new JTextField(4);
 		day.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.DATE), day, "Day:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.DATE), day, "Day:",31);
 		hour = new JTextField(4);
 		hour.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.HOUR_OF_DAY), hour, "Hour:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.HOUR_OF_DAY), hour, "Hour:",23);
 		min = new JTextField(4);
 		min.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.MINUTE), min, "Min:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.MINUTE), min, "Min:",59);
 		sec = new JTextField(4);
 		sec.setEditable(false);
-		addTimeUnitLine(timePanel, cal.get(Calendar.SECOND), sec, "Sec:");
+		addTimeUnitLine(timePanel, cal.get(Calendar.SECOND), sec, "Sec:",59);
 
 		timePanel.setBorder(new TitledBorder("Time"));
 		dlg.getContentPane().add(timePanel, BorderLayout.CENTER);
@@ -278,7 +278,7 @@ public class TimeChooser implements ActionListener
 		date = d;
 	}
 
-	private void addTimeUnitLine(JPanel tp, int timeUnit, final JTextField timeUnitEdit, String timeUnitLabel)
+	private void addTimeUnitLine(JPanel tp, int timeUnit, final JTextField timeUnitEdit, final String timeUnitLabel, final int limit)
 	{
 		JPanel up = new JPanel();
 		((FlowLayout) (up.getLayout())).setHgap(0);
@@ -294,7 +294,8 @@ public class TimeChooser implements ActionListener
 										{
 											Integer i = new Integer(timeUnitEdit.getText());
 											int ii = i.intValue() + 1;
-											timeUnitEdit.setText(String.valueOf(ii));
+											if(ii <= limit)
+											  timeUnitEdit.setText(String.valueOf(ii));
 										}
 									} );
 		JButton B2 = new JButton("-");
@@ -304,7 +305,9 @@ public class TimeChooser implements ActionListener
 										{
 											Integer i = new Integer(timeUnitEdit.getText());
 											int ii = i.intValue() - 1;
-											timeUnitEdit.setText(String.valueOf(ii));
+											int inf_limit = (timeUnitLabel.equalsIgnoreCase("Hour:") || timeUnitLabel.equalsIgnoreCase("Min:") || timeUnitLabel.equalsIgnoreCase("Sec:")? 0 : 1);
+											if(ii >= inf_limit)
+											  timeUnitEdit.setText(String.valueOf(ii));
 										}
 									} );
 
