@@ -23,11 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
-
 /**
 
   ...
@@ -35,15 +30,17 @@ import java.security.ProtectionDomain;
   @author Michele Tomaiuolo - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class JADESubject implements java.security.Principal, java.io.Serializable {
+public class JADESubject extends Principal implements java.io.Serializable {
   
   IdentityCertificate identity;
   DelegationCertificate[] delegations;
 
   public JADESubject() {
+    super();
   }
 
   public JADESubject(IdentityCertificate identity, DelegationCertificate[] delegations) {
+    super(identity.getSubject().getName());
     this.identity = identity;
     this.delegations = delegations;
   }
@@ -87,21 +84,4 @@ public class JADESubject implements java.security.Principal, java.io.Serializabl
       return false;
     }
   }
-
-	/**
-		Performs a privileged action with the permissions owned by this subject.
-		@param action The action to perform.
-		@throws AuthorizationException if the action requires not owned permissions.
-	*/
-	public void doPrivileged(PrivilegedAction action) throws AuthorizationException {
-	  /*DomainCombiner combiner = new jade.security.SubjectDomainCombiner(this);
-		AccessControlContext acc = new AccessControlContext(AccessController.getContext(), combiner);
-  	try {
-	  	AccessController.doPrivileged(action, acc);
-	  }
-	  catch (java.security.AccessControlException e) {
-	  	throw new AuthorizationException(e.getMessage());
-  	}*/
-	}
-
 }

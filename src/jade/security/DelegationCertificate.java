@@ -23,14 +23,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.security.Permission;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 public class DelegationCertificate extends JADECertificate implements java.io.Serializable {
-  List permissions = new ArrayList();
+  ArrayList permissions = new ArrayList();
   
   public DelegationCertificate() {
   }
@@ -41,40 +38,18 @@ public class DelegationCertificate extends JADECertificate implements java.io.Se
       permissions.add(delegation.permissions.get(i));
   }
 
-	public void addPermissionHolders(Object o) {
-    PermissionHolder perm = (PermissionHolder)o;
-		permissions.add(perm.getPermission());
-	}
-	
-	public Iterator getAllPermissionHolders() {
-		ArrayList list = new ArrayList();
-		for (int i = 0; i < permissions.size(); i++) {
-			Permission p = (Permission) permissions.get(i);
-			list.add(new PermissionHolder(p));
-		}
-		return list.iterator();
-	}
-
-  public void addPermission(Permission p) {
+  public void addPermissionHolder(PermissionHolder p) {
 		permissions.add(p);
   }
 
-	public Iterator getAllPermissions() {
+	public Iterator getAllPermissionHolders() {
 		return permissions.iterator();
 	}
 
-	public byte[] getEncoded() {
-		StringBuffer str = new StringBuffer(new String(super.getEncoded()));
-		for (int i = 0; i < permissions.size(); i++)
-		  str.append(permissions.get(i).toString()).append("\n");
-		return str.toString().getBytes();
-	}
-	
 	public String toString() {
 		StringBuffer str = new StringBuffer(super.toString());
 		for (int i = 0; i < permissions.size(); i++)
 		  str.append(permissions.get(i).toString()).append("\n");
 		return str.toString();
 	}
-	
 }

@@ -61,8 +61,8 @@ import jade.security.JADESubject;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.UserPrincipal;
-//__JADE_ONLY__END
 import jade.security.JADESecurityException;
+//__JADE_ONLY__END
 
 
 /**
@@ -116,7 +116,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	  try {
 	    authority = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
 	    authority.setName("main-authority");
-	    authority.readPasswdFile(System.getProperty("jade.security.passwd"));
+	    //authority.readPasswdFile(System.getProperty("jade.security.passwd"));
   	  Authority.setAuthority(authority);
 	  }
 	  catch (Exception e) {
@@ -623,11 +623,11 @@ class MainContainerImpl implements Platform, AgentManager {
   public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException {
     try {
       Authority auth = Authority.getAuthority();
-      IdentityCertificate cert = auth.authenticateUser(user, passwd);
+      JADESubject subject = auth.authenticateUser(user, passwd);
       // ottenere IC e DC per agente !!!
-      cert.init(new AgentPrincipal((UserPrincipal)cert.getSubject(), agentID), 0, 0);
+      subject.getIdentity().init(new AgentPrincipal((UserPrincipal)subject.getIdentity().getSubject(), agentID), 0, 0);
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.changeAgentPrincipal(agentID, cert, null);
+      ac.changeAgentPrincipal(agentID, subject.getIdentity(), subject.getDelegations()[0]);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());

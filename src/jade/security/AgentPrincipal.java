@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-
 import jade.core.AID;
 
 /**
@@ -33,7 +32,7 @@ import jade.core.AID;
   @author Michele Tomaiuolo - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class AgentPrincipal extends JADEPrincipal implements java.io.Serializable {
+public class AgentPrincipal extends Principal implements java.io.Serializable {
 
   public AgentPrincipal() {
     super();

@@ -44,9 +44,6 @@ public class ContainerAuthority extends Authority {
     super(name);
   }
   
-  public void readPasswdFile(String passwdFile) {
-  }
-  
 	/**
 		Checks the validity of a given certificate.
 		The period of validity is tested, as well as the integrity
@@ -71,12 +68,10 @@ public class ContainerAuthority extends Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(JADECertificate certificate, JADESubject subject) throws AuthorizationException, AuthenticationException {
+	public void sign(JADECertificate certificate, JADESubject subject) throws JADESecurityException {
 	}
 	
-	public IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException {
-	  IdentityCertificate identity = new IdentityCertificate();
-	  identity.init(user, 0, 0);
-	  return identity;
+	public JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException {
+	  return null;
 	}
 }

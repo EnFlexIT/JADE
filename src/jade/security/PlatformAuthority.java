@@ -42,21 +42,19 @@ public class PlatformAuthority extends Authority {
     String key;
   }
   
+  String passwdFile;
   Vector users = null;
   int serial = 1;
   byte[] key = new byte[] { 10, 11, 12, 13, 14, 15, 16, 17 };
   
-  public PlatformAuthority() {
-    super();
+  public void init (Object[] args) {
+    if (args != null && args.length > 0 && args[0] instanceof String) {
+      passwdFile = (String)args[0];
+      readPasswdFile();
+    }
   }
   
-  public PlatformAuthority(String name, String passwdFile) {
-    super(name);
-    if (passwdFile != null)
-      readPasswdFile(passwdFile);
-  }
-  
-  public void readPasswdFile(String passwdFile) {
+  public void readPasswdFile() {
     if (passwdFile == null) return;
     users = new Vector();
     try {
@@ -108,10 +106,10 @@ public class PlatformAuthority extends Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(JADECertificate certificate, JADESubject subject) throws AuthorizationException, AuthenticationException {
+	public void sign(JADECertificate certificate, JADESubject subject) throws JADESecurityException {
 	}
 	
-	public IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException {
+	public JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException {
 	  System.out.println(user.getName());
 	  System.out.println(new String(passwd));
     IdentityCertificate cert = null;
@@ -131,10 +129,10 @@ public class PlatformAuthority extends Authority {
 	      // ok: user found + exact password
 	      cert = new IdentityCertificate();
 	      cert.init(user, 0, 0);
-	      cert.issue(new JADEPrincipal(this.name), key, serial++);
+	      cert.issue(new Principal(this.name), key, serial++);
 	      byte[] signature = new byte[] { 20, 21, 22, 23, 24, 25, 26, 27 };
 	      cert.sign(signature);
-	      return cert;
+	      return new JADESubject(cert, new DelegationCertificate[] {});
 	    }
 	  }
 	  throw new AuthenticationException("Unknown user");

@@ -85,9 +85,8 @@ public abstract class Authority {
 		return name;
 	}
 	
-  public void readPasswdFile(String passwdFile) {
-  }
-  
+	public abstract void init(Object[] args) throws JADESecurityException;
+	
 	/**
 		Checks the validity of a given certificate.
 		The period of validity is tested, as well as the integrity
@@ -96,7 +95,7 @@ public abstract class Authority {
 		@throws AuthenticationException if the certificate is not
 			integer or is out of its validity period.
 	*/
-	public abstract void verify(JADECertificate cert) throws AuthenticationException;
+	public abstract void verify(JADECertificate cert) throws JADESecurityException;
 	
 	/**
 		Signs a new certificate. The certificates presented with the
@@ -111,7 +110,7 @@ public abstract class Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public abstract void sign(JADECertificate cert, JADESubject subject) throws AuthorizationException, AuthenticationException;
+	public abstract void sign(JADECertificate cert, JADESubject subject) throws JADESecurityException;
 
-	public abstract IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException;
+	public abstract JADESubject authenticateUser(UserPrincipal user, byte[] passwd) throws JADESecurityException;
 }

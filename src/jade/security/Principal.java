@@ -31,51 +31,22 @@ package jade.security;
   @author Michele Tomaiuolo - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class JADEPrincipal implements java.security.Principal, java.io.Serializable {
+public class Principal implements java.io.Serializable {
 
   public static final String NONE = "none";
   protected String name;
 
 
-  public JADEPrincipal() {
+  public Principal() {
     this(NONE);
   }
 
-  public JADEPrincipal(String name) {
-    this.name = name;
-  }
-
-  public void setName(String name) { 
+  public Principal(String name) {
     this.name = name;
   }
 
   public String getName() {
     return name;
-  }
-
-
-  public boolean equals(Object o) {
-
-    if (o instanceof String) {
-      return name.equalsIgnoreCase((String)o);
-    }
-    try {
-      JADEPrincipal p = (JADEPrincipal)o;
-      return name.equalsIgnoreCase(p.name);
-    }
-    catch(ClassCastException cce) {
-      return false;
-    }
-
-  }
-
-  public int compareTo(Object o) {
-    JADEPrincipal p = (JADEPrincipal)o;
-		return name.toLowerCase().compareTo(p.name.toLowerCase());
-  }
-
-  public int hashCode() {
-    return name.toLowerCase().hashCode();
   }
 
 }

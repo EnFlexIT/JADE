@@ -119,16 +119,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     // Set up attributes for agents thread group
     //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
-
-	  /*try {
-	    Authority authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
-	    authority.setName("container-authority");
-	    //authority.setSigner(...); //!!!
-  	  Authority.setAuthority(authority);
-	  }
-	  catch (Exception e) {
-	    //e.printStackTrace();
-	  }*/
   }
 
 
@@ -544,18 +534,28 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	while(agentSpecifiers.hasNext()) {
 	  Specifier s = (Specifier) agentSpecifiers.next();
       
+	  try {
+	    Authority authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
+	    authority.setName("container-authority");
+	    authority.init(new Object[] {myPlatform});
+  	  Authority.setAuthority(authority);
+	  }
+	  catch (Exception e) {
+	    //e.printStackTrace();
+	  }
+
 	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
 	  Authority authority = Authority.getAuthority();
 
 	  try {
-	    /*IdentityCertificate identity = new IdentityCertificate();
+	    IdentityCertificate identity = new IdentityCertificate();
 	    identity.init(new AgentPrincipal(user, agentID), 0, 0);
 	    authority.sign(identity, subject);
 	    
 	    DelegationCertificate delegation = new DelegationCertificate();
 	    delegation.init(new AgentPrincipal(user, agentID), 0, 0);
 	    //delegation.addPermission(...);
-	    authority.sign(delegation, subject);*/
+	    authority.sign(delegation, subject);
 	    
 	    try {
 	      createAgent(agentID, s.getClassName(), s.getArgs(), null, null, NOSTART); //!!!
@@ -583,10 +583,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    System.out.println("This container does not appear to be registered with the main container.");
 	    localAgents.remove(agentID);
 	  }
-	  /*catch(JADESecurityException se) {
+	  catch(JADESecurityException se) {
 	    se.printStackTrace();
 	    localAgents.remove(agentID);
-	  }*/
+	  }
     	}
 
     	// Now activate all agents (this call starts their embedded threads)

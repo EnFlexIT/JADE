@@ -23,21 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.*;
-import java.security.spec.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Set;
-
 import starlight.util.Base64;
 
 public class JADECertificate implements java.io.Serializable {
 	
-	JADEPrincipal subject;
-	JADEPrincipal issuer;
+	Principal subject;
+	Principal issuer;
 	
 	long serial;
 	long notBefore;
@@ -61,16 +52,16 @@ public class JADECertificate implements java.io.Serializable {
 	
   //methods to (un)marshall
 
-	public JADEPrincipal getSubject() { return subject; }
-	public JADEPrincipal getIssuer() { return issuer; }
+	public Principal getSubject() { return subject; }
+	public Principal getIssuer() { return issuer; }
 	public Long getSerialAsLong() { return new Long(serial); }
 	public Long getNotBeforeAsLong() { return new Long(notBefore); }
 	public Long getNotAfterAsLong() { return new Long(notAfter); }
 	public String getPublicKeyAsString() { return new String(Base64.encode(key)); }
 	public String getSignatureAsString() { return new String(Base64.encode(signature)); }
 	
-	public void setSubject(JADEPrincipal subject) { this.subject = subject; }
-	public void setIssuer(JADEPrincipal issuer) { this.issuer = issuer; }
+	public void setSubject(Principal subject) { this.subject = subject; }
+	public void setIssuer(Principal issuer) { this.issuer = issuer; }
 	public void setSerialAsLong(Long serial) { this.serial = serial.longValue(); }
 	public void setNotBeforeAsLong(Long nb) { this.notBefore = nb.longValue(); }
 	public void setNotAfterAsLong(Long na) { this.notAfter = na.longValue(); }
@@ -81,13 +72,13 @@ public class JADECertificate implements java.io.Serializable {
 	
 	public byte[] getSignature() { return signature; }
 
-	public void init(JADEPrincipal subject, long notBefore, long notAfter) {
+	public void init(Principal subject, long notBefore, long notAfter) {
 		this.subject = subject;
 		this.notBefore = notBefore;
 		this.notAfter = notAfter;
 	}
 	
-	public void issue(JADEPrincipal issuer, byte[] key, long serial) {
+	public void issue(Principal issuer, byte[] key, long serial) {
 		this.issuer = issuer;
 		this.serial = serial;
   	this.key = key;
@@ -101,26 +92,12 @@ public class JADECertificate implements java.io.Serializable {
 		return serial;
 	}
 	
-	public BigInteger getSerialNumber() {
-		return BigInteger.valueOf(serial);
+	public long getNotBefore() {
+		return notBefore;
 	}
 	
-	public Date getNotBefore() {
-		return new Date(notBefore);
-	}
-	
-	public Date getNotAfter() {
-		return new Date(notAfter);
-	}
-	
-	public byte[] getEncoded() {
-		StringBuffer str = new StringBuffer();
-		str.append(subject.getName()).append('\n');
-		str.append(issuer.getName()).append('\n');
-		str.append(notBefore).append('\n');
-		str.append(notAfter).append('\n');
-		str.append(serial).append('\n');
-		return str.toString().getBytes();
+	public long getNotAfter() {
+		return notAfter;
 	}
 	
 	/*
@@ -154,16 +131,4 @@ public class JADECertificate implements java.io.Serializable {
 	public Object clone() {
 		return new JADECertificate(this);
 	}
-	
-	/*public void checkValidity() throws CertificateExpiredException, CertificateNotYetValidException {
-		checkValidity(new Date());
-	}
-	
-	public void checkValidity(Date date) throws CertificateExpiredException, CertificateNotYetValidException {
-		if (notAfter != 0 && date.compareTo(getNotAfter())>=0)
-			throw new CertificateExpiredException();
-		if (notBefore != 0 && date.compareTo(getNotBefore())<=0)
-			throw new CertificateNotYetValidException();
-	}
-	*/
 }

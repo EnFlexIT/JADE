@@ -24,11 +24,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.security.Permission;
-
 /**
 	A simple class to transmit permissions in ACL messages.
 	Methods respect conventions defined for objects corresponding
@@ -42,7 +37,7 @@ public class PermissionHolder {
 	/**
 		The name of the Permission subclass.
 	*/
-	private String className;
+	private String type;
 	
 	/**
 		The name of the Permission.
@@ -62,51 +57,57 @@ public class PermissionHolder {
 	}
 	
 	/**
-		Creates a new PermissionHolder.
-		@param p The permission to transmit.
+		Creates a new empty PermissionHolder.
+		@param type The class name.
+		@param name The permission name.
+		@param actions The permission actions.
 	*/
-	public PermissionHolder(Permission p) {
+	public PermissionHolder(String type, String name, String actions) {
+	  this.type = type;
+	  this.name = name;
+	  this.actions = actions;
+	}
+	
+	/*
+	public PermissionHolder(java.security.Permission p) {
 		className = p.getClass().getName();
 		if (p.getName() != null)
 			name = p.getName();
 		if (p.getActions() != null)
 			actions = p.getActions();
 	}
-	
-	/**
-		Restores the permission encapsulated in this object.
-		@return The transmitted permission.
-	*/
+
 	public Permission getPermission() {
 		Permission perm = null;
 		try {
   	  if (actions != null)
-	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[]{String.class, String.class}).newInstance(new Object[]{name, actions}));
+	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[] {String.class, String.class}).newInstance(new Object[] {name, actions}));
 		  else if (name != null)
-	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[]{String.class}).newInstance(new Object[]{name}));
+	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[] {String.class}).newInstance(new Object[] {name}));
 		  else
-	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[]{}).newInstance(new Object[]{}));
+	  		perm = (java.security.Permission)(Class.forName(getClassName()).getConstructor(new Class[] {}).newInstance(new Object[] {}));
 		}
 		catch (Exception cnfe) {
 			cnfe.printStackTrace();
 		}
 		return perm;
 	}
+	*/
 	
 	/**
 		Sets the class name.
-		@param cn The class name.
+		@param type The class name.
 	*/
-	public void setClassName(String cn) {
-		className = cn;
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	/**
 		Gets the class name.
 		@return The class name.
 	*/
-	public String getClassName() {
-		return className;
+	public String getType() {
+		return this.type;
 	}
 
 	/**
@@ -143,7 +144,7 @@ public class PermissionHolder {
 
 	public String toString() {
 		StringBuffer str = new StringBuffer();
-		str.append("PermissionHolder: ").append(className);
+		str.append("PermissionHolder: ").append(type);
 		if (name != null)
   		str.append(", ").append(name);
 		if (actions != null)
@@ -151,5 +152,4 @@ public class PermissionHolder {
   	str.append(";");
  		return str.toString();
   }
-	
 }

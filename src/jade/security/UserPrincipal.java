@@ -30,7 +30,7 @@ package jade.security;
   @author Michele Tomaiuolo - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class UserPrincipal extends JADEPrincipal implements java.io.Serializable {
+public class UserPrincipal extends Principal implements java.io.Serializable {
 
   public UserPrincipal() {
     super();
