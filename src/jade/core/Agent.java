@@ -60,6 +60,8 @@ import jade.domain.FIPAException;
 
 import jade.content.ContentManager;
 
+import jade.security.AgentPrincipal;
+
 /**
    The <code>Agent</code> class is the common superclass for user
    defined software agents. It provides methods to perform basic agent
@@ -353,6 +355,7 @@ public class Agent implements Runnable, Serializable {
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object waitLock = new Object();  // Used for agent waiting
   private transient Object suspendLock = new Object(); // Used for agent suspension
+  private transient Object principalLock = new Object(); // Used to make principal transitions atomic
 
   private transient Thread myThread;
   private transient TimerDispatcher theDispatcher;
@@ -396,6 +399,8 @@ public class Agent implements Runnable, Serializable {
   @serial
   */
   private volatile int myAPState;
+  
+  private AgentPrincipal principal = new AgentPrincipal();
   
   /**
      This flag is used to distinguish the normal AP_ACTIVE state from
@@ -884,6 +889,22 @@ public class Agent implements Runnable, Serializable {
   */
   public int getQueueSize() {
     return msgQueue.getMaxSize();
+  }
+
+  public void setPrincipal(AgentPrincipal p) {
+    synchronized(principalLock) {
+      AgentPrincipal old = principal;
+      principal = p;
+      notifyChangedAgentPrincipal(old, principal);
+    }
+  }
+
+  public AgentPrincipal getPrincipal() {
+    AgentPrincipal p;
+    synchronized(principalLock) {
+      p = new AgentPrincipal(principal.getName());
+    }
+    return p;
   }
 
   private void setState(int state) {
@@ -1870,6 +1891,12 @@ public class Agent implements Runnable, Serializable {
     AgentState to = STATES[newState];
     if(myToolkit != null)
       myToolkit.handleChangedAgentState(myAID, from, to);
+  }
+
+  // Notify toolkit that the current agent has changed its principal
+  private void notifyChangedAgentPrincipal(AgentPrincipal from, AgentPrincipal to) {
+    if (myToolkit != null)
+      myToolkit.handleChangedAgentPrincipal(myAID, from, to);
   }
 
   private void activateAllBehaviours() {
