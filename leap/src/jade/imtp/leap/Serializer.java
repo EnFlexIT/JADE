@@ -70,6 +70,7 @@ interface Serializer {
     static final byte CERTIFICATEFOLDER_ID = 23;
     static final byte NODESTUB_ID = 24;
     static final byte HORIZONTALCOMMAND_ID = 25;
+    static final byte THROWABLE_ID = 26;
 
     /**
      * This method serializes an object according to the LEAP
