@@ -1,8 +1,10 @@
 /*
   $Log$
-  Revision 1.2  1998/10/04 18:01:46  rimassa
-  Added a 'Log:' field to every source file.
+  Revision 1.3  1998/10/10 19:37:10  rimassa
+  Imported a newer version of JADE GUI from Fabio.
 
+  Revision 1.2  1998/10/04 18:01:41  rimassa
+  Added a 'Log:' field to every source file.
 */
 
 package jade.gui;
@@ -90,7 +92,8 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
         int j,numPaths;
         String formattedPath = "";
         AMSAbstractAction.removeAllListeners();
-        numPaths = paths.length;
+        if (paths != null) numPaths = paths.length;
+        else               numPaths = 0;
         TreeData current;
 
 		for(j=0;j<numPaths;j++)
