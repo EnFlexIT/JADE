@@ -403,7 +403,7 @@ public class Sniffer extends ToolAgent {
      * sniffer.properties file.
      */
     Object[] arguments = getArguments();
-    if( arguments.length > 0 )
+    if ( (arguments != null) && ( arguments.length > 0 ))
     {
         String  s = "";
         for( int i=0; i < arguments.length; ++i )
