@@ -392,15 +392,15 @@ public class Boot {
       // information extracted from command line arguments.
       // initialize the profile
       ProfileImpl p = new ProfileImpl(); 
-      p.putProperty(p.MAIN, (new Boolean(!b.isContainer)).toString());
-      p.putProperty(p.MAIN_PROTO, "rmi");
-      p.putProperty(p.MAIN_HOST, b.hostName);
-      p.putProperty(p.MAIN_PORT, Integer.toString(b.portNo));
-      p.putProperty(p.PLATFORM_ID, platformID);
-      //p.putProperty(p.GUI, (new Boolean(b.startRMAGUI)).toString());
-      p.putSpecifierList(p.AGENTS, b.agents);
-      p.putSpecifierList(p.MTPS, b.MTPs);
-      p.putSpecifierList(p.ACLCODECS, b.aclCodecs);
+      p.setParameter(p.MAIN, (new Boolean(!b.isContainer)).toString());
+      p.setParameter(p.MAIN_PROTO, "rmi");
+      p.setParameter(p.MAIN_HOST, b.hostName);
+      p.setParameter(p.MAIN_PORT, Integer.toString(b.portNo));
+      p.setParameter(p.PLATFORM_ID, platformID);
+      //p.setParameter(p.GUI, (new Boolean(b.startRMAGUI)).toString());
+      p.setSpecifiers(p.AGENTS, b.agents);
+      p.setSpecifiers(p.MTPS, b.MTPs);
+      p.setSpecifiers(p.ACLCODECS, b.aclCodecs);
 
       boolean isMain = !b.isContainer;
       b = null; // frees memory
