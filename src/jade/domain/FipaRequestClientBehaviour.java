@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.2  1999/02/03 10:38:42  rimassa
+  Made class constructor public, since this class is to be used from
+  application code.
+
   Revision 1.1  1998/12/01 23:44:26  rimassa
   A generic Behaviour subclass to perform 'fipa-request' interaction as client.
 
@@ -21,7 +25,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
   private ComplexBehaviour firstReceive;
   private ComplexBehaviour secondReceive;
 
-  FipaRequestClientBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
+  public FipaRequestClientBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
     super(client);
 
     // Set type and protocol for request
