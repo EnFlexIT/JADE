@@ -46,6 +46,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
 		jade/proto/states/HandlerSelector.java \
+		jade/security/DummyAuthority.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
