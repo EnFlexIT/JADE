@@ -710,19 +710,14 @@ public class rma extends ToolAgent {
     			}
     				else
     			{
+                                // create the proper AID for AMS by adding all available addresses
     				AID ams = new AID(amsName, AID.ISGUID);
-    				Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
-
-    				while(TP.hasNext())
-    				{
-    					MTPDescription mtp = (MTPDescription)TP.next();
-    					Iterator add = mtp.getAllAddresses();
-    					while(add.hasNext())
-    					{
-    						String address = (String)add.next();
-    						ams.addAddresses(address);
-    					}
-    				}
+                                for (Iterator is = APDesc.getAllAPServices(); is.hasNext(); ) {
+                                    APService s = (APService)is.next();
+                                    for (Iterator js = s.getAllAddresses(); js.hasNext(); ) 
+                                        ams.addAddresses(js.next().toString());
+                                }
+                                
     				myGUI.addRemotePlatformFolder();
     				myGUI.addRemotePlatform(ams,APDesc);
     			}
@@ -751,27 +746,34 @@ public class rma extends ToolAgent {
   	myGUI.removeRemotePlatform(platform.getName());
   }
 
+  
+      
   //make a search on a specified ams in order to return
   //all the agents registered with that ams.
   public void refreshRemoteAgent(APDescription platform,AID ams){
   	try{
-  		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-  		request.setSender(getAID());
-  		request.addReceiver(ams);
-   		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-                request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-                request.setOntology(FIPAManagementOntology.NAME);
-  		AMSAgentDescription amsd = new AMSAgentDescription();
-  		SearchConstraints constraints = new SearchConstraints();
-    	// Build a AMS action object for the request
-    	Search s = new Search();
-    	s.setDescription(amsd);
-    	s.setConstraints(constraints);
+            // FIXME. Move all this block into the constructor for better performance
+            // because it is invariant to the method parameters
+            ACLMessage request; // variable that keeps the request search message
+            Action act;  // variable that keeps the search action
+            request = new ACLMessage(ACLMessage.REQUEST);
+            request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+            request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+            request.setOntology(FIPAManagementOntology.NAME);
+            AMSAgentDescription amsd = new AMSAgentDescription();
+            SearchConstraints constraints = new SearchConstraints();
+            constraints.setMaxResults(new Long(-1)); // all results back
+            // Build a AMS action object for the request
+            Search s = new Search();
+            s.setDescription(amsd);
+            s.setConstraints(constraints);
+            act = new Action();
+            act.setAction(s);
 
-    	Action act = new Action();
-    	act.setActor(ams);
-    	act.setAction(s);
-
+                // request has been already initialized in the constructor
+                request.clearAllReceiver();
+  		request.addReceiver(ams);  	
+                act.setActor(ams); // set the actor of this search action
 		getContentManager().fillContent(request, act);
 
 		addBehaviour(new handleRefreshRemoteAgentBehaviour ("search",request,platform));

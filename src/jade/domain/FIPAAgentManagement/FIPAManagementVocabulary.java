@@ -61,18 +61,13 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
 
   public static final String APDESCRIPTION					= "ap-description";
   public static final String APDESCRIPTION_NAME				= "name";
-  public static final String APDESCRIPTION_DYNAMIC			= "dynamic";
-  public static final String APDESCRIPTION_MOBILITY			= "mobility";
-  public static final String APDESCRIPTION_TRANSPORTPROFILE = "transport-profile";
-
-  public static final String APTRANSPORTDESCRIPTION 			= "ap-transport-description";
-  public static final String APTRANSPORTDESCRIPTION_AVAILABLEMTPS	= "available-mtps";
-
-  public static final String MTPDESCRIPTION					= "mtp-description";
-  public static final String MTPDESCRIPTION_PROFILE			= "profile";
-  public static final String MTPDESCRIPTION_NAME			= "mtp-name";
-  public static final String MTPDESCRIPTION_ADDRESSES	    = "addresses"; 
- 
+  public static final String APDESCRIPTION_SERVICES			= "ap-services";
+  
+  public static final String APSERVICE          			= "ap-service";
+  public static final String APSERVICE_NAME          			= "name";
+  public static final String APSERVICE_TYPE          			= "type";
+  public static final String APSERVICE_ADDRESSES      			= "addresses";
+  
   // Actions
   public static final String REGISTER = "register";
   public static final String REGISTER_DESCRIPTION = "description";

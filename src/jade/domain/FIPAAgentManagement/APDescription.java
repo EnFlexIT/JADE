@@ -23,23 +23,23 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import java.io.Writer;
-import java.io.IOException;
 import jade.content.Concept;
+import jade.util.leap.List;
+import jade.util.leap.Iterator;
+import jade.util.leap.ArrayList;
  
 /**
    Agent platform description.
    @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
    @author Giovanni Rimassa - Universita` di Parma
+   @author Alessandro Chiarotto - TILAB
    @version $Date$ $Revision$
  */
  
 public class APDescription implements Concept {
 
   private String name;
-  private boolean dynamic;
-  private boolean mobility;
-  private APTransportDescription transportProfile;
+  private List services = new ArrayList(1); 
 
   public void setName(String n) {
     name = n;
@@ -49,29 +49,22 @@ public class APDescription implements Concept {
       return name;
   }
 
-  public void setDynamic(Boolean d) {
-    dynamic = d.booleanValue();
-  }
+  
+   public void addAPServices(APService a) {
+      services.add(a);
+    }
 
-  public Boolean getDynamic() {
-    return new Boolean(dynamic);
-  }
+    public boolean removeAPServices(APService a) {
+      return services.remove(a);
+    }
 
-  public void setMobility(Boolean m) {
-    mobility = m.booleanValue();
-  }
-
-  public Boolean getMobility() {
-    return new Boolean(mobility);
-  }
-
-  public void setTransportProfile(APTransportDescription aptd) {
-    transportProfile = aptd;
-  }
-
-  public APTransportDescription getTransportProfile() {
-    return transportProfile;
-  }
+	public void clearAllAPServices(){
+	  services.clear();
+	}
+	
+	public Iterator getAllAPServices(){
+	  return services.iterator();
+	}
 
     /**
      * @return an SL0-like String representation of this object 
@@ -80,27 +73,15 @@ public class APDescription implements Concept {
 	StringBuffer str = new StringBuffer("( ap-description ");
 	if ((name!=null)&&(name.length()>0))
 	    str.append(" :name " + name);
-	str.append(" :dynamic "+ dynamic);
-	str.append(" :mobility " + mobility);
-        if(transportProfile != null) {
-	    str.append(" :transport-profile ");
-	    str.append(transportProfile.toString());
-    	}
-	str.append(")");
+        APService s=null;
+        str.append(" :ap-services (set");
+        for (Iterator i=services.iterator(); i.hasNext(); ) {
+            s=(APService)(i.next());
+            str.append(" "+s.toString());
+        }
+	str.append("))");
     	return str.toString();
     }
 
-    /**
-     * @deprecated the <code>toString</code> method should be used instead
-     * of this method.
-     **/  
-  public void toText(Writer w) {
-      try {
-	  w.write(toString());
-	  w.flush();
-      } catch(IOException ioe) {
-	  ioe.printStackTrace();
-      }
-  }
-
+    
 }

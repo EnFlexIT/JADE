@@ -27,46 +27,57 @@ package jade.domain.FIPAAgentManagement;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
-import java.io.Writer;
-import java.io.IOException;
 
-import jade.content.*;
+import jade.content.Concept;
 
 /**
-   Description of a message transport protocol.
-   @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
+   Description of the  services available on an agent
+   platform.
+
    @author Fabio Bellifemine - CSELT
    @version $Date$ $Revision$
 
  */
-public class MTPDescription implements Concept {
+public class APService implements Concept {
 
-  private String profile;
+  private List addresses = new ArrayList(); 
   private String name;
-  private List addresses = new ArrayList();
+  private String type;
 
-  public void setProfile(String p) {
-    profile = p;
+  public APService() {
   }
-
-  public void setMtpName(String n) {
+  
+  /**
+   * Constructor. Create a new APService where name and type get the same value (i.e.
+   * the passed type parameter).
+   **/
+  public APService(String type, String[] addresses) {
+      name=type;
+      this.type=type;
+      for (int i=0; i<addresses.length; i++)
+          this.addresses.add(addresses[i]);
+  }
+  
+  public void setName(String n) {
     name = n;
   }
-
-  public String getProfile() {
-    return profile;
+  public String getName() {
+      return name;
   }
 
-  public String getMtpName() {
-    return name;
+  public void setType(String t) {
+    type = t;
+  }
+  public String getType() {
+      return type;
   }
 
-  public void addAddresses(String a) {
-    addresses.add(a);
+  public void addAddresses(String address) {
+    addresses.add(address);
   }
 
-  public boolean removeAddresses(String a) {
-    return addresses.remove(a);
+  public boolean removeAddresses(String address) {
+    return addresses.remove(address);
   }
 
   public void clearAllAddresses() {
@@ -75,39 +86,24 @@ public class MTPDescription implements Concept {
 
   public Iterator getAllAddresses() {
     return addresses.iterator();
+  
   }
- 
-
 
     public String toString() {
-	StringBuffer str = new StringBuffer("( mtp-description ");
-        if((profile != null) && (profile.length()>0))
-	    str.append(" :profile "+ profile);
-	if ((name!=null)&&(name.length()>0))
-	    str.append(" :mtp-name " + name);
-	if (addresses.size()>0) {
-	    str.append(" :addresses (sequence ");
-	    for (int i=0; i<addresses.size(); i++)
-		try {
-		    str.append((String)addresses.get(i) + " ");
-		} catch (IndexOutOfBoundsException e) {e.printStackTrace();}
-	    str.append(")");
-	}
-	str.append(")");
+	StringBuffer str = new StringBuffer("( ap-service ");
+        if ((name!=null)&&(name.length()>0))
+	    str.append(" :name " + name);
+        if ((type!=null)&&(type.length()>0))
+	    str.append(" :type " + type);
+        String s;
+        str.append(" :addresses (sequence");
+        for (Iterator i=addresses.iterator(); i.hasNext(); ) {
+            s=(String)(i.next());
+            str.append(" "+s.toString());
+        }
+	str.append("))");
 	return str.toString();
     }
-    
-	/**
-     * @deprecated the <code>toString</code> method should be used instead
-     * of this method.
-     **/  
-  	public void toText(Writer w) {
-      try {
-		  w.write(toString());
-	  	w.flush();
-      } catch(IOException ioe) {
-	  	ioe.printStackTrace();
-      }
-	}
+
 
 }

@@ -191,15 +191,14 @@ public class TestInstallMTP extends Test {
   				Result r = (Result) cm.extractContent(inform);
   				List items = r.getItems();
   				APDescription dsc = (APDescription) items.get(0);
-  				Iterator mtps = dsc.getTransportProfile().getAllAvailableMtps();
-  				while (mtps.hasNext()) {
-  					MTPDescription mtpd = (MTPDescription) mtps.next();
-  					Iterator addresses = mtpd.getAllAddresses();
-  					if (address.equals(addresses.next())) {
-  						l.log("New address correctly added to the AP-Description.");
+                                for (Iterator is = dsc.getAllAPServices(); is.hasNext(); ) {
+                                    APService s = (APService)is.next();
+                                    Iterator addresses = s.getAllAddresses();
+                                    if (address.equals(addresses.next())) {
+			  			l.log("New address correctly added to the AP-Description.");
   						return;
-  					}
-  				}
+  					}     
+                                }  				
 	  			l.log("The new address has NOT been added to the AP-Description.");
 	  			((SequentialBehaviour) parent).skipNext();
   			}
@@ -348,17 +347,16 @@ public class TestInstallMTP extends Test {
   				Result r = (Result) cm.extractContent(inform);
   				List items = r.getItems();
   				APDescription dsc = (APDescription) items.get(0);
-  				Iterator mtps = dsc.getTransportProfile().getAllAvailableMtps();
-  				while (mtps.hasNext()) {
-  					MTPDescription mtpd = (MTPDescription) mtps.next();
-  					Iterator addresses = mtpd.getAllAddresses();
-  					if (address.equals(addresses.next())) {
+                                for (Iterator is = dsc.getAllAPServices(); is.hasNext(); ) {
+                                    APService s = (APService)is.next();
+                                    Iterator addresses = s.getAllAddresses();
+                                    if (address.equals(addresses.next())) {
 			  			l.log("The removed MTP address has NOT been removed from the AP-Description.");
 			  			((SequentialBehaviour) parent).skipNext();
   						return;
-  					}
-  				}
-					l.log("Removed MTP  address correctly removed from the AP-Description.");
+  					}     
+                                }
+				l.log("Removed MTP  address correctly removed from the AP-Description.");
   			}
   			catch (OntologyException oe) {
   				l.log("Error encoding/decoding GetDescription request/reply.");

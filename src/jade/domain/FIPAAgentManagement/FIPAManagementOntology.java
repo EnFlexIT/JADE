@@ -102,8 +102,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new ConceptSchema(ENVELOPE), Envelope.class);
 	  	add(new ConceptSchema(RECEIVEDOBJECT), ReceivedObject.class);
 	  	add(new ConceptSchema(APDESCRIPTION), APDescription.class);
-	  	add(new ConceptSchema(APTRANSPORTDESCRIPTION), APTransportDescription.class);
-	  	add(new ConceptSchema(MTPDESCRIPTION), MTPDescription.class);
+	  	add(new ConceptSchema(APSERVICE), APService.class);
 	 	 	
 	  	add(new AgentActionSchema(REGISTER), Register.class);
 	  	add(new AgentActionSchema(DEREGISTER), Deregister.class);
@@ -195,20 +194,15 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	
 	  	cs = (ConceptSchema)getSchema(APDESCRIPTION);
 	  	cs.add(APDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(APDESCRIPTION_DYNAMIC, (PrimitiveSchema)getSchema(BasicOntology.BOOLEAN));
-	  	cs.add(APDESCRIPTION_MOBILITY, (PrimitiveSchema)getSchema(BasicOntology.BOOLEAN));
-	  	cs.add(APDESCRIPTION_TRANSPORTPROFILE, (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION));
+	  	cs.add(APDESCRIPTION_SERVICES, (ConceptSchema)getSchema(APSERVICE), 0, ObjectSchema.UNLIMITED);
 
-	  	cs = (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION);
-	  	cs.add(APTRANSPORTDESCRIPTION_AVAILABLEMTPS, (ConceptSchema)getSchema(MTPDESCRIPTION), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
-	  	
-	  	cs = (ConceptSchema)getSchema(MTPDESCRIPTION);
-	  	cs.add(MTPDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(MTPDESCRIPTION_PROFILE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
-	  	cs.add(MTPDESCRIPTION_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 1, ObjectSchema.UNLIMITED);
+	  	cs = (ConceptSchema)getSchema(APSERVICE);
+                cs.add(APSERVICE_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+                cs.add(APSERVICE_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+                cs.add(APSERVICE_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
 	  	
   	
-  		// FIXME: Configurare gli schemi per Envelope, ReceivedObject, APDescription, APTransportDescription, MTPDescription
+  		// FIXME: Configurare gli schemi per Envelope, ReceivedObject, APDescription, APService
 
 	  	AgentActionSchema as = (AgentActionSchema)getSchema(REGISTER);
 	  	as.add(REGISTER_DESCRIPTION, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.MANDATORY);

@@ -42,8 +42,7 @@ import jade.content.schema.*;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.domain.FIPAAgentManagement.APDescription;
-import jade.domain.FIPAAgentManagement.APTransportDescription;
-import jade.domain.FIPAAgentManagement.MTPDescription;
+import jade.domain.FIPAAgentManagement.APService;
 
 
 /**
@@ -95,9 +94,8 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		
 		add(new ConceptSchema(APDESCRIPTION), APDescription.class);
 		add(new ConceptSchema(PLATFORMDESCRIPTION), PlatformDescription.class);
-		add(new ConceptSchema(APTRANSPORTDESCRIPTION), APTransportDescription.class);
-	  	add(new ConceptSchema(MTPDESCRIPTION), MTPDescription.class);
-						
+		add(new ConceptSchema(APSERVICE), APService.class);
+	  							
 		add(new PredicateSchema(OCCURRED), Occurred.class);  	
 		add(new ConceptSchema(ADDEDCONTAINER), AddedContainer.class);  	
   		add(new ConceptSchema(REMOVEDCONTAINER), RemovedContainer.class);
@@ -240,20 +238,15 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		cs.add(RECEIVEDMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(RECEIVEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
 		
-		cs = (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION);
-	  	cs.add(APTRANSPORTDESCRIPTION_AVAILABLEMTPS, (ConceptSchema)getSchema(MTPDESCRIPTION), 0, ObjectSchema.UNLIMITED);
-		
 		cs = (ConceptSchema)getSchema(APDESCRIPTION);
 	  	cs.add(APDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(APDESCRIPTION_DYNAMIC, (PrimitiveSchema)getSchema(BasicOntology.BOOLEAN));
-	  	cs.add(APDESCRIPTION_MOBILITY, (PrimitiveSchema)getSchema(BasicOntology.BOOLEAN));
-	  	cs.add(APDESCRIPTION_TRANSPORTPROFILE, (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION));
+	  	cs.add(APDESCRIPTION_SERVICES, (ConceptSchema)getSchema(APSERVICE), 0, ObjectSchema.UNLIMITED);
 
-		cs = (ConceptSchema)getSchema(MTPDESCRIPTION);
-	  	cs.add(MTPDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(MTPDESCRIPTION_PROFILE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
-	  	cs.add(MTPDESCRIPTION_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 1, ObjectSchema.UNLIMITED);
-		
+	  	cs = (ConceptSchema)getSchema(APSERVICE);
+                cs.add(APSERVICE_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+                cs.add(APSERVICE_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+                cs.add(APSERVICE_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+	  	
 		cs = (ConceptSchema)getSchema(POSTEDMESSAGE);
 		cs.add(POSTEDMESSAGE_RECEIVER, (ConceptSchema)getSchema(BasicOntology.AID));
 		cs.add(POSTEDMESSAGE_MESSAGE, (ConceptSchema)getSchema(ACLMESSAGE));
