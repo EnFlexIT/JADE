@@ -239,7 +239,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(root.isRunnable())
     {
       myScheduler.restart(root);
-      //notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_RUNNING);
     }
   }
 
@@ -454,6 +453,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
      should have no effect.
   */
   private boolean terminating = false;
+  
+  /** 
+     When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
+     or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
+     These events in facts are very frequent.
+     @See setGenerateBehaviourEvents()
+   */
+  private boolean generateBehaviourEvents = false;
 
   // These two variables are used as temporary buffers for
   // mobility-related parameters
@@ -1702,7 +1709,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    int oldMsgCounter = messageCounter;
 
 	    // Just do it!
-	    currentBehaviour.actionWrapper();
+    	currentBehaviour.actionWrapper();
 
 	    // If the current Behaviour is blocked and more messages
 	    // arrived, restart the behaviour to give it another chance
@@ -1730,7 +1737,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		  			// Remove blocked behaviour from ready behaviours queue
 		  			// and put it in blocked behaviours queue
 		  			myScheduler.block(currentBehaviour);
-      			//notifyChangeBehaviourState(currentBehaviour, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED);
 		  			currentBehaviour = null;
 					}
 	      }
@@ -2192,19 +2198,30 @@ public class Agent implements Runnable, Serializable, TimerListener {
   // Notify toolkit of the added behaviour
   // Package scooped as it is called by the Scheduler
   void notifyAddBehaviour(Behaviour b) {
-    myToolkit.handleBehaviourAdded(myAID, b);
+  	if (generateBehaviourEvents) {
+	    myToolkit.handleBehaviourAdded(myAID, b);
+  	}
   }
   
   // Notify the toolkit of the removed behaviour
   // Package scooped as it is called by the Scheduler
  	void notifyRemoveBehaviour(Behaviour b) {
-    myToolkit.handleBehaviourRemoved(myAID, b);
+  	if (generateBehaviourEvents) {
+    	myToolkit.handleBehaviourRemoved(myAID, b);
+  	}
   }
   
   // Notify the toolkit of the change in behaviour state
-  // Package scooped as it is called by the Scheduler
-  void notifyChangeBehaviourState(Behaviour b, String from, String to) {
-    myToolkit.handleChangeBehaviourState(myAID, b, from, to);
+  // Public as it is called by the Scheduler and by the Behaviour class 
+  public void notifyChangeBehaviourState(Behaviour b, String from, String to) {
+  	if (generateBehaviourEvents) {
+    	myToolkit.handleChangeBehaviourState(myAID, b, from, to);
+  	}
+  }
+  
+  // Package scooped as it is called by the RealNotificationManager
+  void setGenerateBehaviourEvents(boolean b) {
+  	generateBehaviourEvents = b;
   }
   
   // Notify toolkit that the current agent has changed its state
