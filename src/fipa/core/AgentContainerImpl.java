@@ -116,8 +116,8 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     while(nameList.hasMoreElements()) {
       currentName = (String)nameList.nextElement();
       agent = (Agent)localAgents.get(currentName);
-      agent.activate(currentName); // FIXME: Check with FIPA specs for agent lifecycle
-    } 
+      agent.doStart(currentName);
+    }
   }
 
   protected void finalize() {
