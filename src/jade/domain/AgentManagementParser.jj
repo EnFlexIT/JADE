@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.13  1998/11/09 00:19:20  rimassa
+  Modified some grammar productions to support both 'create-agent' AMS
+  action and 'new-agent' AMS notification event, avoiding also name
+  clashes between container events and agents events.
+
   Revision 1.12  1998/11/03 00:35:02  rimassa
   Completed grammar productions for AMS events.
 
@@ -183,7 +188,6 @@ AgentManagementOntology.AMSEvent AgentEvent() :
 {
   AgentManagementOntology.AMSAgentEvent amse = new AgentManagementOntology.AMSAgentEvent();
   Token kind;
-  Token name;
   AgentManagementOntology.AMSAgentDescriptor amsd;
 }
 {
@@ -191,12 +195,11 @@ AgentManagementOntology.AMSEvent AgentEvent() :
   | ( kind = "dead-agent" { amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADAGENT); } )
   )
   "("
-  ( ( ":container" name = <WORD> ")" "(" amsd = AMSDescriptionBody() )
-  | ( amsd = AMSDescriptionBody() ")" "(" ":container" name = <WORD> )
+  ( ( Properties(amse) ")" "(" amsd = AMSDescriptionBody() )
+  | ( amsd = AMSDescriptionBody() ")" "(" Properties(amse) )
   )
   ")"
   {
-    amse.setContainerName(name.image);
     amse.setAgentDescriptor(amsd);
     return amse;
   }
@@ -270,17 +273,25 @@ void CreateAgentArg(AgentManagementOntology.CreateAgentAction caa) :
 {
    ( amsd = AMSDescriptionBody() { caa.setArg(amsd); } )
  | ( <AGENT_CODE> t = <WORD> { caa.setClassName(t.image); } )
- | ( <AGENT_PROPERTIES> ( "(" Property(caa) ")" )+ )
+ | Properties(caa)
 }
 
-void Property(AgentManagementOntology.CreateAgentAction caa) :
+void Properties(AgentManagementOntology.PropertyContainer pc) :
+{
+}
+{
+ ( <AGENT_PROPERTIES> ( "(" Property(pc) ")" )+ )
+}
+
+void Property(AgentManagementOntology.PropertyContainer pc) :
 {
   Token name;
   Token value;
 }
 {
-  ":" name = <WORD> ( value = <WORD> | value = <INTEGER> )
-  { caa.addProperty(":" + name.image, value.image); }
+  name = <PROPERTY_NAME>
+  ( value = <WORD> | value = <INTEGER> )
+  { pc.addProperty(name.image, value.image); }
 }
 
 AgentManagementOntology.KillAgentAction KillAgentBody() :
@@ -715,8 +726,10 @@ TOKEN:
 | <ConstraintFn : "Max" | "Min" | "Exactly" >
 | <DFDEPTH : ":df-depth">
 | <RESPREQ : ":resp-req">
+| <PROPERTY_NAME : ":"["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <INTEGER : ["0"-"9"](["0"-"9"])*>
+
 }
 
 <COMM_PROTOCOLSTATE>
@@ -746,7 +759,7 @@ SKIP :
 <APStateSTATE>
 TOKEN:
 {
-  <APState : "initiated" | "active" | "suspended" | "waiting"> : DEFAULT
+  <APState : "initiated" | "active" | "suspended" | "waiting" | "deleted" > : DEFAULT
 }
 
 <DfLifeCycleState>
