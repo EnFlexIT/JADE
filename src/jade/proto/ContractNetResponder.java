@@ -103,7 +103,7 @@ private MsgReceiver cfp_rec,accept_rec;
 
 /**
 * Constructor of the behaviour that creates a new empty DataStore
-* @see #VontractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
+* @see #ContractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
 **/
 public ContractNetResponder(Agent a,MessageTemplate mt){
 	 this(a,mt, new DataStore());

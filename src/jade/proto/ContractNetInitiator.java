@@ -37,50 +37,6 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 /**
- * This is a single homogeneous and effective implementation of
- * all the FIPA-Request-like interaction protocols defined by FIPA,
- * that is all those protocols where the initiator sends a single message
- * (i.e. it performs a single communicative act) within the scope
- * of an interaction protocol in order to verify if the RE (Rational
- * Effect) of the communicative act has been achieved or not.
- * This implementation works both for 1:1 and 1:N conversation.
- * <p>
- * FIPA has already specified a number of these interaction protocols, like 
- * FIPA-Request, FIPA-query, FIPA-propose, FIPA-Request-When, FIPA-recruiting,
- * FIPA-brokering, FIPA-subscribe, that allows the initiator to verify if the 
- * expected rational effect of a single communicative act has been achieved. 
- * <p>
- * The structure of these protocols is equal.
- * The initiator sends a message (in general it performs a communicative act).
- * <p>
- * The responder can then reply by sending a <code>not-understood</code>, or a
- * <code>refuse</code> to 
- * achieve the rational effect of the communicative act, or also 
- * an <code>agree</code> message to communicate the agreement to perform 
- * (possibly in the future) the communicative act.  This first category
- * of reply messages has been here identified as a response.
- * <p> The responder performs the action and, finally, must respond with an 
- * <code>inform</code> of the result of the action (eventually just that the 
- * action has been done) or with a <code>failure</code> if anything went wrong.
- * This second category of reply messages has been here identified as a
- * result notification.
- * <p> Notice that we have extended the protocol to make optional the 
- * transmission of the agree message. Infact, in most cases performing the 
- * action takes so short time that sending the agree message is just an 
- * useless and uneffective overhead; in such cases, the agree to perform the 
- * communicative act is subsumed by the reception of the following message in 
- * the protocol.
- * <p>
- * Read carefully the section of the 
- * <a href="..\..\..\programmersguide.pdf"> JADE programmer's guide </a>
- * that describes
- * the usage of this class.
- * <p> <b>Known bugs:</b>
- * <i> The handler <code>handleAllResponses</code> is not called if the <code>
- * agree</code> message is skipped and the <code>inform</code> message
- * is received instead.
- * <br> One message for every receiver is sent instead of a single
- * message for all the receivers. </i>
  * @author Giovanni Caire - TILab
  * @author Fabio Bellifemine - TILab
  * @author Tiziana Trucco - TILab
@@ -170,22 +126,22 @@ public class ContractNetInitiator extends FSMBehaviour {
     
   /**
    * Construct for the class by creating a new empty DataStore
-   * @see #AchieveREInitiator(Agent, ACLMessage, DataStore)
+   * @see #ContractNetInitiator(Agent, ACLMessage, DataStore)
    **/
   public ContractNetInitiator(Agent a, ACLMessage msg){
 		this(a,msg,new DataStore());
   }
 
 	/**
-   * Constructs a <code>AchieveREInitiator</code> behaviour
+   * Constructs a <code>ContractNetInitiator</code> behaviour
    * @param a The agent performing the protocol
    * @param msg The message that must be used to initiate the protocol.
    * Notice that the default implementation of the 
-   * <code>prepareMessage</code>
+   * <code>prepareCfps</code>
    * method returns
    * an array including that message only.
    * @param s The <code>DataStore</code> that will be used by this 
-   * <code>AchieveREInitiator</code>
+   * <code>ContractNetInitiator</code>
    */
   public ContractNetInitiator(Agent a, ACLMessage msg, DataStore store) {
 		super(a);
@@ -203,8 +159,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 		};
 		step = 1;
 		skipNextRespFlag = false;
-		
-		System.out.println("Parent DS is "+store);
 		
 		// Register the FSM transitions
 		registerDefaultTransition(PREPARE_CFPS, SEND_ALL);
@@ -271,7 +225,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 			    	for (Iterator receivers = msg.getAllReceiver(); receivers.hasNext(); ) {
 							toSend.clearAllReceiver();
 							toSend.addReceiver((AID)receivers.next());
-							System.out.println("SEND_ALL: step is "+step);
 							if (step == 1 || toSend.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
 								String sessionKey = "R"+Integer.toString(step)+hashCode()+"_"+ Integer.toString(cnt);
 								toSend.setReplyWith(sessionKey);
@@ -322,7 +275,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 			public void action() {
 		    ret = -1;
 		    DataStore ds = getDataStore();
-							System.out.println("CHECK_REPLY: step is "+step);
 		    ACLMessage reply = (ACLMessage) ds.get(REPLY_KEY);
 		    String inReplyTo = reply.getInReplyTo();
 		    Session s = (Session) sessions.get(inReplyTo);
@@ -440,7 +392,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 		
 			public int onEnd() {
 		  	if (ret == ALL_RESPONSES_RECEIVED) {
-		  		System.out.println("Step incremented");
 		  		step = 2;
 		  	}
 		  	else if (ret == -1) {
@@ -824,24 +775,11 @@ public class ContractNetInitiator extends FSMBehaviour {
    */
   private void initializeDataStore(ACLMessage msg){
 		DataStore ds = getDataStore();
-		System.out.println("Parent DS is "+ds);
 		Vector l = new Vector();
 		ds.put(ALL_RESPONSES_KEY, l);
 		l = new Vector();
 		ds.put(ALL_RESULT_NOTIFICATIONS_KEY, l);
 		l = new Vector();
-		if (ds.get(ALL_RESPONSES_KEY) == null) {
-			System.out.println("Responses Vector null");
-		}
-		else {
-			System.out.println("Responses Vector NOT null");
-		}
-		if (ds.get(ALL_RESULT_NOTIFICATIONS_KEY) == null) {
-			System.out.println("Res. not. Vector null");
-		}
-		else {
-			System.out.println("Res. not. Vector NOT null");
-		}
 		ds.put(ALL_ACCEPTANCES_KEY, l);
 		ds.put(CFP_KEY, msg);
   }
@@ -863,7 +801,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 			if (state == INIT) {
 		    state = REPLY_RECEIVED;
 	    	if (step == 1) {
-					System.out.println("MINCCCCHIA");
 					switch (perf) {
 					case ACLMessage.PROPOSE:
 					case ACLMessage.REFUSE:
@@ -874,7 +811,6 @@ public class ContractNetInitiator extends FSMBehaviour {
 					}
 				}
 				else {
-					System.out.println("CAZZZZZZO");
 					switch (perf) {
 					case ACLMessage.INFORM:
 					case ACLMessage.FAILURE:
