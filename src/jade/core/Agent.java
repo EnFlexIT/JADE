@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  1998/11/01 19:11:19  rimassa
+  Made doWake() activate all blocked behaviours.
+
   Revision 1.22  1998/10/31 16:27:36  rimassa
   Completed doDelete() method: now an Agent can be explicitly terminated
   from outside or end implicitly when one of its Behaviours calls
@@ -242,6 +245,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   public synchronized void doWake() { // Transition from Waiting to Active
     myAPState = AP_ACTIVE;
+    activateAllBehaviours();
     notify(); // Wakes up the embedded thread
   }
 
@@ -689,7 +693,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // blocking behaviours waiting for a message
   public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
-    activateAllBehaviours();
     doWake();
   }
 
