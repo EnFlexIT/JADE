@@ -31,8 +31,8 @@ SYSTEM REQUIREMENTS
 ===================
 
 To build the framework a complete Java programming environment is
-needed. At least a Java Development Kit version 1.1 is required, due
-to Remote Method Invocation (RMI) API usage. Besides, JavaCC 0.8pre1 is
+needed. At least a Java Development Kit version 1.2 is required. 
+Besides, JavaCC 0.8pre1 is
 needed to generate Java code from grammar description files.
 
 
@@ -114,12 +114,6 @@ BUGS
 TODO
 ====
 
- - Add system-level agents to fully support FIPA 97 specification:
-   Agent Communication Channel, Agent Management System and Directory
-   Facilitator.
-
- - Add support for standard and user defined interaction protocols.
-
  - Add support for message content language parsing.
 
  - Add support for message ontology checking.
@@ -127,7 +121,6 @@ TODO
  - Add support for platform administration and direct agent
    manipulation through a GUI.
 
- - Add support for IIOP-based inter-platform communication
 
 CONTACT
 =======
@@ -152,3 +145,5 @@ java jade.Boot -name facts -host kim.cselt.it receiver2:examples.ex2.AgentReceiv
         # start two agents. The name of these agents are "sender2" (and 
         # examples.ex2.AgentSender is the code that implements the agent) and
         # receiver2 and examples.ex2.AgentReceiver is the code that implements the agent.
+
+
