@@ -25,14 +25,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp.iiop;
 
+
+import java.io.*;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.Calendar;
-import java.io.*;
+import java.util.StringTokenizer;
+import java.util.NoSuchElementException;
 
 import org.omg.CORBA.*;
+import org.omg.CosNaming.*;
 
 import FIPA.*; // OMG IDL Stubs
 
@@ -169,6 +174,8 @@ public class MessageTransportProtocol implements MTP {
   } // End of MTSImpl class
 
 
+  private static final String[] PROTOCOLS = new String[] { "IOR", "corbaloc", "corbaname" };
+
   private ORB myORB;
   private MTSImpl server;
   private static PrintWriter logFile;
@@ -194,7 +201,8 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public void activate(InChannel.Dispatcher disp, TransportAddress ta) throws MTPException {
-    throw new MTPException("User supplied transport address not supported.");
+    // throw new MTPException("User supplied transport address not supported.");
+    activate(disp); // FIXME: Temporary Hack
   }
 
   public void deactivate(TransportAddress ta) throws MTPException {
@@ -321,7 +329,7 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public TransportAddress strToAddr(String rep) throws MTPException {
-    return new IIOPAddress(myORB, rep);
+    return new IIOPAddress(myORB, rep); // FIXME: Should cache object references
   }
 
   public String addrToStr(TransportAddress ta) throws MTPException {
@@ -335,7 +343,11 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public String getName() {
-    return "iiop";
+    return "fipa.mts.mtp.iiop.std";
+  }
+
+  public String[] getSupportedProtocols() {
+    return PROTOCOLS;
   }
 
   private FIPA.AgentID marshalAID(AID id) {
@@ -399,18 +411,18 @@ This class represents an IIOP address.
 Three syntaxes are allowed for an IIOP address (all case-insensitive):
 <code>
 IIOPAddress ::= "ior:" (HexDigit HexDigit+)
-              | "iiop://" "ior:" (HexDigit HexDigit)+
-              | "iiop://" HostName ":" portNumber "/" objectKey
-ObjectKey = WORD 
+              | "corbaname://" NSHost ":" NSPort "/" NSObjectID "#" objectName
+              | "corbaloc:" HostName ":" portNumber "/" objectID
 </code>
-Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first and second case, instead, the indianess information is contained within the IOR definition. 
+Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first and second case, instead, the endianess information is contained within the IOR definition.
 **/
   class IIOPAddress implements TransportAddress {
 
     public static final byte BIG_ENDIAN = 0;
     public static final byte LITTLE_ENDIAN = 1;
 
-    private static final String TYPE_ID = "IDL:FIPA/MTS:1.0";
+    private static final String FIPA_2000_TYPE_ID = "IDL:FIPA/MTS:1.0";
+    private static final String NS_TYPE_ID = "IDL:omg.org/CosNaming/NamingContext";
     private static final int TAG_INTERNET_IOP = 0;
     private static final byte IIOP_MAJOR = 1;
     private static final byte IIOP_MINOR = 0;
@@ -421,128 +433,205 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     private String host;
     private short port;
     private String objectKey;
+    private String anchor;
 
     private CDRCodec codecStrategy;
 
     public IIOPAddress(ORB anOrb, FIPA.MTS objRef) throws MTPException {
-      orb = anOrb;
-      String s = orb.object_to_string(objRef);
-      if(s.toLowerCase().startsWith("ior:"))
-	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop:"))
-	initFromURL(s, BIG_ENDIAN);
-      else if(s.toLowerCase().startsWith("corbaloc:"))
-	initFromURL(s, BIG_ENDIAN);
-      else
-	throw new MTPException("Invalid string prefix");
+      this(anOrb, anOrb.object_to_string(objRef));
     }
 
     public IIOPAddress(ORB anOrb, String s) throws MTPException {
       orb = anOrb;
       if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop:"))
-	initFromURL(s, BIG_ENDIAN);
       else if(s.toLowerCase().startsWith("corbaloc:"))
 	initFromURL(s, BIG_ENDIAN);
+      else if(s.toLowerCase().startsWith("corbaname:"))
+	initFromNS(s);
       else
 	throw new MTPException("Invalid string prefix");
     }
 
-    
     private void initFromIOR(String s) throws MTPException {
-     try {
-      // Store stringified IOR
-      ior = new String(s.toUpperCase());
-
-      // Remove 'IOR:' prefix to get Hex digits
-      String hexString = ior.substring(4);
-
-      short endianness = Short.parseShort(hexString.substring(0, 2), 16);
-
-      switch(endianness) {
-      case BIG_ENDIAN:
-	codecStrategy = new BigEndianCodec(hexString);
-	break;
-      case LITTLE_ENDIAN:
-	codecStrategy = new LittleEndianCodec(hexString);
-	break;
-      default:
-	throw new MTPException("Invalid endianness specifier");
-      }
-
-      try {
-	  // Read 'string type_id' field
-	  String typeID = codecStrategy.readString();
-	  if(!typeID.equalsIgnoreCase(TYPE_ID))
-	      throw new MTPException("Invalid type ID" + typeID);
-      } catch (Exception e) { // all exceptions are converted into MTPException
-	  throw new MTPException("Invalid type ID");
-      }
-
-      // Read 'sequence<TaggedProfile> profiles' field
-      // Read sequence length
-      int seqLen = codecStrategy.readLong();
-      for(int i = 0; i < seqLen; i++) {
-	// Read 'ProfileId tag' field
-	int tag = codecStrategy.readLong();
-	byte[] profile = codecStrategy.readOctetSequence();
-	if(tag == TAG_INTERNET_IOP) {
-	  // Process IIOP profile
-	  CDRCodec profileBodyCodec;
-	  switch(profile[0]) {
-	  case BIG_ENDIAN:
-	    profileBodyCodec = new BigEndianCodec(profile);
-	    break;
-	  case LITTLE_ENDIAN:
-	    profileBodyCodec = new LittleEndianCodec(profile);
-	    break;
-	  default:
-	    throw new MTPException("Invalid endianness specifier");
-	  }
-
-	  // Read IIOP version
-	  byte versionMajor = profileBodyCodec.readOctet();
-	  byte versionMinor = profileBodyCodec.readOctet();
-	  if(versionMajor != 1)
-	    throw new MTPException("IIOP version not supported");
-
-	  try {
-	      // Read 'string host' field
-	      host = profileBodyCodec.readString();
-	  } catch (Exception e) {
-	      throw new MTPException("Invalid host string");
-	  }
-
-	  // Read 'unsigned short port' field
-	  port = profileBodyCodec.readShort();
-
-	  // Read 'sequence<octet> object_key' field and convert it
-	  // into a String object
-	  byte[] keyBuffer = profileBodyCodec.readOctetSequence();
-	  objectKey = new String(keyBuffer);
-
-	  codecStrategy = null;
-
-	}
-      }
-      } catch (Exception e) { // all exceptions are converted into MTPException
-	  throw new MTPException(e.getMessage());
-      }
+      parseIOR(s, FIPA_2000_TYPE_ID);
+      anchor = "";
     }
 
     private void initFromURL(String s, short endianness) throws MTPException {
 
-      // Remove 'iiop://' prefix to get URL host, port and file
-      s = s.substring(7);
+      // Remove 'corbaloc:' prefix to get URL host, port and file
+      s = s.substring(9);
+
+      if(s.toLowerCase().startsWith("iiop:")) {
+	// Remove an explicit IIOP specification
+	s = s.substring(5);
+      }
+      else if(s.startsWith(":")) {
+	// Remove implicit IIOP specification
+	s = s.substring(1);
+      }
+      else
+	throw new MTPException("Invalid 'corbaloc' URL: neither 'iiop:' nor ':' was specified.");
+
+      buildIOR(s, FIPA_2000_TYPE_ID, endianness);
+
+    }
+
+    private void initFromNS(String s) throws MTPException {
+      // First perform a 'corbaloc::' resolution to get the IOR of the Naming Service.
+      // Replace 'corbaname:' with 'corbaloc::'
+      StringBuffer buf = new StringBuffer(s);
+
+      // Use 'corbaloc' support to build a reference on the NamingContext
+      // where the real object reference will be looked up.
+      buf.replace(0, 11, "corbaloc::");
+      buildIOR(s.substring(11), NS_TYPE_ID, BIG_ENDIAN);
+      org.omg.CORBA.Object o = orb.string_to_object(ior);
+      NamingContext ctx = NamingContextHelper.narrow(o);
+
+      try {
+
+	// Transform the string after the '#' sign into a COSNaming::Name.
+	StringTokenizer lexer = new StringTokenizer(anchor, "/.", true);
+	List name = new ArrayList();
+	while(lexer.hasMoreTokens()) {
+	  String tok = lexer.nextToken();
+	  NameComponent nc = new NameComponent();
+	  nc.id = tok;
+	  name.add(nc);
+	  if(!lexer.hasMoreTokens())
+	    break; // Out of the while loop
+
+	  tok = lexer.nextToken();
+	  if(tok.equals(".")) { // An (id, kind) pair
+	    tok = lexer.nextToken();
+	    nc.kind = tok;
+	  }
+	  else if(!tok.equals("/")) // No separator other than '.' or '/' is allowed
+	    throw new MTPException("Ill-formed path into the Naming Service: Unknown separator.");
+	}
+
+	// Get the object reference stored into the naming service...
+	NameComponent[] path = (NameComponent[])name.toArray(new NameComponent[name.size()]);
+	o = ctx.resolve(path);
+
+	// Stringify it and use the resulting IOR to initialize yourself
+      	String realIOR = orb.object_to_string(o);
+	initFromIOR(realIOR);
+
+      }
+      catch(NoSuchElementException nsee) {
+	throw new MTPException("Ill-formed path into the Naming Service.", nsee);
+      }
+      catch(UserException ue) {
+	throw new MTPException("CORBA Naming Service exception.", ue);
+      }
+      
+
+    }
+
+    private void parseIOR(String s, String typeName) throws MTPException {
+      try {
+	// Store stringified IOR
+	ior = new String(s.toUpperCase());
+
+	// Remove 'IOR:' prefix to get Hex digits
+	String hexString = ior.substring(4);
+
+	short endianness = Short.parseShort(hexString.substring(0, 2), 16);
+
+	switch(endianness) {
+	case BIG_ENDIAN:
+	  codecStrategy = new BigEndianCodec(hexString);
+	  break;
+	case LITTLE_ENDIAN:
+	  codecStrategy = new LittleEndianCodec(hexString);
+	  break;
+	default:
+	  throw new MTPException("Invalid endianness specifier");
+	}
+
+	try {
+	  // Read 'string type_id' field
+	  String typeID = codecStrategy.readString();
+	  if(!typeID.equalsIgnoreCase(typeName))
+	    throw new MTPException("Invalid type ID" + typeID);
+	}
+	catch (Exception e) { // all exceptions are converted into MTPException
+	  throw new MTPException("Invalid type ID");
+	}
+
+	// Read 'sequence<TaggedProfile> profiles' field
+	// Read sequence length
+	int seqLen = codecStrategy.readLong();
+	for(int i = 0; i < seqLen; i++) {
+	  // Read 'ProfileId tag' field
+	  int tag = codecStrategy.readLong();
+	  byte[] profile = codecStrategy.readOctetSequence();
+	  if(tag == TAG_INTERNET_IOP) {
+	    // Process IIOP profile
+	    CDRCodec profileBodyCodec;
+	    switch(profile[0]) {
+	    case BIG_ENDIAN:
+	      profileBodyCodec = new BigEndianCodec(profile);
+	      break;
+	    case LITTLE_ENDIAN:
+	      profileBodyCodec = new LittleEndianCodec(profile);
+	      break;
+	    default:
+	      throw new MTPException("Invalid endianness specifier");
+	    }
+
+	    // Read IIOP version
+	    byte versionMajor = profileBodyCodec.readOctet();
+	    byte versionMinor = profileBodyCodec.readOctet();
+	    if(versionMajor != 1)
+	      throw new MTPException("IIOP version not supported");
+
+	    try {
+	      // Read 'string host' field
+	      host = profileBodyCodec.readString();
+	    }
+	    catch (Exception e) {
+	      throw new MTPException("Invalid host string");
+	    }
+
+	    // Read 'unsigned short port' field
+	    port = profileBodyCodec.readShort();
+
+	    // Read 'sequence<octet> object_key' field and convert it
+	    // into a String object
+	    byte[] keyBuffer = profileBodyCodec.readOctetSequence();
+	    objectKey = new String(keyBuffer);
+
+	    codecStrategy = null;
+
+	  }
+	}
+      }
+      catch (Exception e) { // all exceptions are converted into MTPException
+	throw new MTPException(e.getMessage());
+      }
+    }
+
+    private void buildIOR(String s, String typeName, short endianness) throws MTPException {
       int colonPos = s.indexOf(':');
       int slashPos = s.indexOf('/');
+      int poundPos = s.indexOf('#');
       if((colonPos == -1) || (slashPos == -1))
 	throw new MTPException("Invalid URL string");
 
       host = new String(s.substring(0, colonPos));
       port = Short.parseShort(s.substring(colonPos + 1, slashPos));
-      objectKey = new String(s.substring(slashPos + 1, s.length()));
+      if(poundPos == -1) {
+	objectKey = new String(s.substring(slashPos + 1, s.length()));
+	anchor = "";
+      }
+      else {
+	objectKey = new String(s.substring(slashPos + 1, poundPos));
+	anchor = new String(s.substring(poundPos + 1, s.length()));
+      }
 
       switch(endianness) {
       case BIG_ENDIAN:
@@ -555,7 +644,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	throw new MTPException("Invalid endianness specifier");
       }
 
-      codecStrategy.writeString(TYPE_ID);
+      codecStrategy.writeString(typeName);
 
       // Write '1' as profiles sequence length
       codecStrategy.writeLong(1);
@@ -590,13 +679,14 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       ior = "IOR:" + hexString;
 
       codecStrategy = null;
+
     }
 
     public String getURL() {
       int portNum = port;
       if(portNum < 0)
 	portNum += 65536;
-      return "iiop://" + host + ":" + portNum + "/" + objectKey;
+      return "corbaloc::" + host + ":" + portNum + "/" + objectKey;
     }
 
     public String getIOR() {
@@ -862,7 +952,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     }
 
     public String getAnchor() {
-      return "";
+      return anchor;
     }
     
     
