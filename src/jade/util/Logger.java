@@ -68,18 +68,34 @@ public class Logger {
      Print a String in a device dependent way. 
    */
 	public synchronized static void println(String s) {
+		//#MIDP_EXCLUDE_BEGIN
+			// This System.out.println has been excluded in MIDP becuase it is unknown, 
+			// and therefore potentially dangerous, what a mobile phone does with this instruction.
 		System.out.println(s);
+		//#MIDP_EXCLUDE_END
 		
 		/*#MIDP_INCLUDE_BEGIN
+    RecordStore rs = null;
 		try{
-			RecordStore rs =	RecordStore.openRecordStore(OUTPUT, true);
+			rs =	RecordStore.openRecordStore(OUTPUT, true);
 			byte[] bb = s.getBytes();
+			if (rs.getSizeAvailable() <= bb.length) {
+          // if there is no room available, delete and reopen the Record Store
+			    rs.closeRecordStore();
+          RecordStore.deleteRecordStore(OUTPUT);
+			    rs =	RecordStore.openRecordStore(OUTPUT, true);
+      }
 			rs.addRecord(bb,0,bb.length);
-			rs.closeRecordStore();
 		}
 		catch (Exception e){
-			e.printStackTrace();
-		}
+			// Nothing can be done here because the stackTrace is not printed on phone devices
+			// e.printStackTrace();
+		} finally {
+      try {
+         rs.closeRecordStore();
+      } catch (Exception any) {
+      }
+    } 
 		#MIDP_INCLUDE_END*/
 	}
 	
