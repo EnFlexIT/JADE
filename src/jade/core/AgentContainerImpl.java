@@ -180,6 +180,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		
 		// put the agent in the local table and get the previous one, if any
 		Agent previous = localAgents.put(agentID, instance);
+                if(previous != null) System.out.println("Name clash for " + agentID + "!!!");
 		if (startIt) {
 			try {
 				CertificateFolder agentCerts = instance.getCertificateFolder();
@@ -218,24 +219,28 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 
   public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+    Agent agent = localAgents.acquire(agentID);
     if(agent == null)
       throw new NotFoundException("SuspendAgent failed to find " + agentID);
     agent.doSuspend();
+    localAgents.release(agentID);
   }
 
   public void resumeAgent(AID agentID) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+    Agent agent = localAgents.acquire(agentID);
     if(agent == null)
       throw new NotFoundException("ResumeAgent failed to find " + agentID);
     agent.doActivate();
+    localAgents.release(agentID);
   }
 
 //__SECURITY__BEGIN
+  
 	public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
-		Agent agent = localAgents.get(agentID);
+		Agent agent = localAgents.acquire(agentID);
 		if (agent != null)
 			agent.setPrincipal(certs);
+		localAgents.release(agentID);
 	}
 
 	public void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException {
@@ -275,17 +280,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 //__SECURITY__END
 
   public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+    Agent agent = localAgents.acquire(agentID);
     if(agent==null)
       throw new NotFoundException("WaitAgent failed to find " + agentID);
     agent.doWait();
+    localAgents.release(agentID);
   }
 
   public void wakeAgent(AID agentID) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+    Agent agent = localAgents.acquire(agentID);
     if(agent==null)
       throw new NotFoundException("WakeAgent failed to find " + agentID);
     agent.doWake();
+    localAgents.release(agentID);
   }
 
   public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
@@ -299,10 +306,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void killAgent(AID agentID) throws IMTPException, NotFoundException {
-    Agent agent = localAgents.get(agentID);
+    Agent agent = localAgents.acquire(agentID);
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentID);
     agent.doDelete();
+    localAgents.release(agentID);
   }
 
   public void exit() throws IMTPException {
@@ -354,16 +362,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 
-    // Mutual exclusion with handleMove() method
-    synchronized(localAgents) {
-      Agent receiver = localAgents.get(receiverID);
-
-      if(receiver == null) {
-				throw new NotFoundException("DispatchMessage failed to find " + receiverID);
-      }
-
-      receiver.postMessage(msg);
+    Agent receiver = localAgents.acquire(receiverID);
+    if(receiver == null) {
+	throw new NotFoundException("DispatchMessage failed to find " + receiverID);
     }
+    receiver.postMessage(msg);
+
+    localAgents.release(receiverID);
 
   }
 
@@ -608,8 +613,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			AID[] allLocalNames = localAgents.keys();
 			for (int i = 0; i < allLocalNames.length; i++) {
 				AID id = allLocalNames[i];
-				Agent agent = localAgents.get(id);
+				Agent agent = localAgents.acquire(id);
 				agent.powerUp(id, myResourceManager);
+				localAgents.release(id);
 			}
 		}
 		catch (ProfileException pe) {
