@@ -133,10 +133,11 @@ First of all set the CLASSPATH to include the JAR files in the lib
 subdirectory and the current directory. For instance, for Windows 9x/NT use 
 the following command:
 set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar;
-                c:\jade\lib\jadeTools.jar; c:\jade\lib\Base64.jar
+                c:\jade\lib\jadeTools.jar; c:\jade\lib\Base64.jar;
+		c:\jade\lib\iiop.jar
 Execute the following command to start the main-container of the platform. 
 Let's suppose that the hostname of this machine is "kim.cselt.it"
-prompt> java jade.Boot -platform -gui 
+prompt> java jade.Boot -gui 
 Execute the following command to start an agent container on another machine,
 by telling it to join the AgentPlatform, called "facts" running on the host 
 "kim.cselt.it", and start one agent (you must download and compile the 
