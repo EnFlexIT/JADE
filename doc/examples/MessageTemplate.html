@@ -1,76 +1,122 @@
-<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
+
 <head>
-   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.76 [en] (Windows NT 5.0; U) [Netscape]">
-   <meta name="ProgId" content="FrontPage.Editor.Document">
-   <title>Introduction</title>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>MessageTemplate</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css"
+title="Style">
 <!-- created by Alessandro Beneventi, Universita' degli Studi di Parma -->
 <!--            alessandro.beneventi@re.nettuno.it                     -->
-<link REL ="stylesheet" TYPE="text/css" HREF="stylesheet.css" TITLE="Style">
 </head>
-<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#0000FF" alink="#0000FF">
-&nbsp;
-<table BORDER=0 CELLSPACING=0 WIDTH="100%" >
-<tr>
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><a NAME="navbar_top_firstrow"></a>
-<table BORDER=0 CELLSPACING=3 CELLPADDING=0 >
-<tr ALIGN=CENTER VALIGN=TOP>
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1">Sections:</td>
 
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../index.html">Index</a></b></td>
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF"
+vlink="#0000FF" alink="#0000FF">
 
-<td BGCOLOR="#FFFFFF" ID="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
-
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>More Info.</b></td>
-
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b>Visual Index</b></td>
-
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../api/index.html">Class
-by Class</a></b></td>
-
-<td BGCOLOR="#EEEEFF" ID="NavBarCell1"><b><a href="../links.htm">Links</a></b></td>
-</tr>
+<table border="0" cellspacing="0" width="100%">
+    <tr>
+        <td bgcolor="#EEEEFF" id="NavBarCell1"><a
+        name="navbar_top_firstrow"></a> <table border="0"
+        cellpadding="0" cellspacing="3">
+            <tr>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1">Sections:</td>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1"><a href="../index.html"><b>Index</b></a></td>
+                <td align="center" valign="top" bgcolor="#FFFFFF"
+                id="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1"><b>More Info.</b></td>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1"><b>Visual Index</b></td>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1"><a href="../api/index.html"><b>Class
+                by Class</b></a></td>
+                <td align="center" valign="top" bgcolor="#EEEEFF"
+                id="NavBarCell1"><a href="../links.htm"><b>Links</b></a></td>
+            </tr>
+        </table>
+        </td>
+        <td align="right" valign="top" rowspan="2">&nbsp;</td>
+    </tr>
 </table>
-</td>
 
-<td ALIGN=RIGHT VALIGN=TOP ROWSPAN="2"></td>
-</tr>
+<p><font size="6" face="Arial"><b>MessageTemplate</b></font> </p>
+
+<p>Author: Tiziana Trucco (TILab S.p.a)<br>
+Date: 17/09/2001</p>
+
+<p><span lang="EN-GB"> </p>
+
+<p><font face="Arial,Helvetica">This example shows the way to use
+the MessageTemplate.MatchExpression Interface to define an
+application specific MessageTemplate.</font><font face="Arial">
+In particular in the method match() the programmer should realize
+the necessary checks on the ACLMessage in order to return true if
+the message match with the application specific requirement</font><br>
+<br>
+<font face="Arial,Helvetica">To try the example, the user can
+start the WaitAgent (from command line when launching the
+platform or via RMA gui ) and&nbsp; then enters the name of the
+agents that will send messages to this agent (for example start a
+DummyAgent from the RMA gui and use it as sender).</font> <br>
+<br>
+&nbsp; <br>
+&nbsp; </p>
+
+<table border="1" cellpadding="3" cellspacing="0" width="100%">
+    <tr>
+        <td colspan="2" bgcolor="#CCCCFF"><font size="5"><b>WaitAgent</b></font></td>
+    </tr>
+    <tr>
+        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
+    </tr>
+    <tr>
+        <td><font face="Arial,Helvetica">The WaitAgent agent
+        waits for a REQUEST message from a set of agents the user
+        must provide.If a REQUEST message will be sent (from one
+        of the expected agent) than the WaitAgent will reply with
+        a INFORM message otherwise no reply</font>. <font
+        face="Arial,Helvetica">Since the default method in class
+        MessageTemplate does not provide a way to define such a
+        pattern, the example shows how to create this application
+        specific pattern.</font> </td>
+    </tr>
+    <tr>
+        <td><strong>Jade classes used: </strong></td>
+    </tr>
+    <tr>
+        <td>SimpleBehaviour,MessageTemplate.MatchExpression</td>
+    </tr>
+    <tr>
+        <td><strong>Source</strong></td>
+    </tr>
+    <tr>
+        <td>\src\examples\MessageTemplate\WaitAgent.java</td>
+    </tr>
 </table>
 
-<p><b><font face="Arial"><font size=+3>MessageTemplate</font></font></b>
-<p><span lang="EN-GB">
-<ul><font face="Arial,Helvetica">This example shows the user the way to
-define an application specific MessageTemplate.</font>
-<br><font face="Arial,Helvetica">The WaitAgent agent waits for a REQUEST
-message from a set of agents the user must provide.Since the default method
-in class MessageTemplate does not provide a way to define such a pattern,
-the example shows how to create this application specific pattern.</font>
-<br><font face="Arial,Helvetica">To try the example, the user can start
-the WaitAgent (from command line when launching the platform or via RMA
-gui ) and&nbsp; then enters the name of the agents that will send messages
-to this agent (for example start a DummyAgent from the RMA gui and use
-it as sender).</font>
-<br><font face="Arial,Helvetica">If an REQUEST message will be sent (from
-one of the expected agent) than the WaitAgent will reply with a INFORM
-message otherwise no reply</font>
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;</ul>
-<font face="Arial,Helvetica">.</font></span>
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<ol>&nbsp;</ol>
+<p>&nbsp;</p>
+
+<p></span> &nbsp; <br>
+&nbsp;</p>
 
 <hr>
-<center>
-<p><font face="Arial"><font size=-1><a href="http://jade.cselt.it/">JADE</a>
-is a trademark of
-<a href="http://www.cselt.it">CSELT</a>. <a href="http://jade.cselt.it/">JADE</a>
-has been developed jointly by <a href="http://www.cselt.it">CSELT</a> and
-the <a href="http://www.ce.unipr.it">Computer Engineering Group</a> of
-the <a href="http://www.unipr.it">University of Parma</a></font></font></center>
+
+<p align="center"><a href="http://jade.cselt.it/"><font size="2"
+face="Arial">JADE</font></a><font size="2" face="Arial"> is a
+trademark of </font><a href="http://www.cselt.it"><font size="2"
+face="Arial">CSELT</font></a><font size="2" face="Arial">. </font><a
+href="http://jade.cselt.it/"><font size="2" face="Arial">JADE</font></a><font
+size="2" face="Arial"> has been developed jointly by </font><a
+href="http://www.cselt.it"><font size="2" face="Arial">CSELT</font></a><font
+size="2" face="Arial"> and the </font><a
+href="http://www.ce.unipr.it"><font size="2" face="Arial">Computer
+Engineering Group</font></a><font size="2" face="Arial"> of the </font><a
+href="http://www.unipr.it"><font size="2" face="Arial">University
+of Parma</font></a> </p>
 
 <p><br>
 <br>
@@ -80,5 +126,6 @@ the <a href="http://www.unipr.it">University of Parma</a></font></font></center>
 <br>
 <br>
 <br>
+</p>
 </body>
 </html>
