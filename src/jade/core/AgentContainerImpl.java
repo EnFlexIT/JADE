@@ -353,19 +353,30 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   protected void startBasicServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
-	  // Create the agent management service
+	  // Register with the platform 
+	  // This call can modify the name of this container
+	  myServiceManager.addNode(myNodeDescriptor, new ServiceDescriptor[0]);
+
+	  // Activate all the container fundamental services
+	  startService("jade.core.management.AgentManagementService");
+	  //#MIDP_EXCLUDE_BEGIN
+	  startService("jade.core.messaging.MessagingService");
+	  //#MIDP_EXCLUDE_END
+	  /*#MIDP_INCLUDE_BEGIN
+	  startService("jade.core.messaging.LightMessagingService");
+	  #MIDP_INCLUDE_END*/
+	  
+	  /* AgentManagement Service
 	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService();
 	  agentManagement.init(this, myProfile);
 
+	  // Messaging Service
 	  //#MIDP_EXCLUDE_BEGIN
-	  // Create the messaging service
 	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
 	  //#MIDP_EXCLUDE_END
-
-	  /*#MIDP_INCLUDE_BEGIN
+	  /#MIDP_INCLUDE_BEGIN
 	    jade.core.messaging.LightMessagingService messaging = new jade.core.messaging.LightMessagingService();
-	  #MIDP_INCLUDE_END*/
-
+	  #MIDP_INCLUDE_END/
 	  messaging.init(this, myProfile);
 
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
@@ -377,14 +388,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // This call can modify the name of this container
 	  myServiceManager.addNode(myNodeDescriptor, baseServices);
 
-	  // Install all ACL Codecs and MTPs specified in the Profile
-	  messaging.boot(myProfile);
-
 	  // Attach all base services to the container Command Processor
 	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
 	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
 
+	  // Install all ACL Codecs and MTPs specified in the Profile
+	  messaging.boot(myProfile);*/
+
 	  //#MIDP_EXCLUDE_BEGIN
+	  // If we are the master main container --> start the AMS and DF
 	  if(myMainContainer != null) {
 	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
 	      myMainContainer.initSystemAgents(this, startThem);
