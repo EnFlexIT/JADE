@@ -4,7 +4,7 @@ br-env-version
 "02.10"
 
 br-sys-search-dirs
-'("/home/rimassa/DEVEL/JADE/src/")
+'("/home/Giovanni/DEVEL/JADE/src/")
 
 br-lib-search-dirs
 'nil
@@ -37,33 +37,33 @@ br-children-alist
 
 br-sys-paths-alist
 '(
-(("Scheduler") . "/home/rimassa/DEVEL/JADE/src/jade/core/Scheduler.java")
-(("SimpleBehaviour") . "/home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java")
-(("MessageDispatcherImpl") . "/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java")
-(("ams") . "/home/rimassa/DEVEL/JADE/src/jade/domain/ams.java")
-(("CommListener") . "/home/rimassa/DEVEL/JADE/src/jade/core/CommListener.java")
-(("ProtocolDrivenBehaviour") . "/home/rimassa/DEVEL/JADE/src/jade/core/ProtocolDrivenBehaviour.java")
-(("Boot") . "/home/rimassa/DEVEL/JADE/src/jade/Boot.java")
-(("ComplexBehaviour") . "/home/rimassa/DEVEL/JADE/src/jade/core/ComplexBehaviour.java")
-(("AgentContainerImpl") . "/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainerImpl.java")
-(("Parser") . "/home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java")
-(("ProtocolMessageHandler") . "/home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolMessageHandler.java")
-(("ACLMessage") . "/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java")
-(("AgentContainer") . "/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainer.java")
-(("AgentDescriptor") . "/home/rimassa/DEVEL/JADE/src/jade/core/AgentDescriptor.java")
-(("Protocol") . "/home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java")
-(("AgentPlatformImpl") . "/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java")
-(("CommEvent") . "/home/rimassa/DEVEL/JADE/src/jade/core/CommEvent.java")
-(("MessageDispatcher") . "/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcher.java")
-(("CommunicativeAction") . "/home/rimassa/DEVEL/JADE/src/jade/proto/CommunicativeAction.java")
-(("Interaction") . "/home/rimassa/DEVEL/JADE/src/jade/proto/Interaction.java")
-(("AgentPlatform") . "/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java")
-(("CommBroadcaster") . "/home/rimassa/DEVEL/JADE/src/jade/core/CommBroadcaster.java")
-(("Agent") . "/home/rimassa/DEVEL/JADE/src/jade/core/Agent.java")
-(("NotFoundException") . "/home/rimassa/DEVEL/JADE/src/jade/core/NotFoundException.java")
-(("df") . "/home/rimassa/DEVEL/JADE/src/jade/domain/df.java")
+(("Scheduler") . "/home/Giovanni/DEVEL/JADE/src/jade/core/Scheduler.java")
+(("SimpleBehaviour") . "/home/Giovanni/DEVEL/JADE/src/jade/core/SimpleBehaviour.java")
+(("MessageDispatcherImpl") . "/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java")
+(("ams") . "/home/Giovanni/DEVEL/JADE/src/jade/domain/ams.java")
+(("CommListener") . "/home/Giovanni/DEVEL/JADE/src/jade/core/CommListener.java")
+(("ProtocolDrivenBehaviour") . "/home/Giovanni/DEVEL/JADE/src/jade/core/ProtocolDrivenBehaviour.java")
+(("Boot") . "/home/Giovanni/DEVEL/JADE/src/jade/Boot.java")
+(("ComplexBehaviour") . "/home/Giovanni/DEVEL/JADE/src/jade/core/ComplexBehaviour.java")
+(("AgentContainerImpl") . "/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainerImpl.java")
+(("Parser") . "/home/Giovanni/DEVEL/JADE/src/jade/lang/Parser.java")
+(("ProtocolMessageHandler") . "/home/Giovanni/DEVEL/JADE/src/jade/proto/ProtocolMessageHandler.java")
+(("ACLMessage") . "/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java")
+(("AgentContainer") . "/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainer.java")
+(("AgentDescriptor") . "/home/Giovanni/DEVEL/JADE/src/jade/core/AgentDescriptor.java")
+(("Protocol") . "/home/Giovanni/DEVEL/JADE/src/jade/proto/Protocol.java")
+(("AgentPlatformImpl") . "/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java")
+(("CommEvent") . "/home/Giovanni/DEVEL/JADE/src/jade/core/CommEvent.java")
+(("MessageDispatcher") . "/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcher.java")
+(("CommunicativeAction") . "/home/Giovanni/DEVEL/JADE/src/jade/proto/CommunicativeAction.java")
+(("Interaction") . "/home/Giovanni/DEVEL/JADE/src/jade/proto/Interaction.java")
+(("AgentPlatform") . "/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatform.java")
+(("CommBroadcaster") . "/home/Giovanni/DEVEL/JADE/src/jade/core/CommBroadcaster.java")
+(("Agent") . "/home/Giovanni/DEVEL/JADE/src/jade/core/Agent.java")
+(("NotFoundException") . "/home/Giovanni/DEVEL/JADE/src/jade/core/NotFoundException.java")
+(("df") . "/home/Giovanni/DEVEL/JADE/src/jade/domain/df.java")
 (("AWTEvent" "EventListener" "Object" "Remote" "RemoteException" "Serializable" "ThreadListener" "UnicastRemoteObject") . "<none>")
-(("Behaviour") . "/home/rimassa/DEVEL/JADE/src/jade/core/Behaviour.java")
+(("Behaviour") . "/home/Giovanni/DEVEL/JADE/src/jade/core/Behaviour.java")
 )
 
 br-lib-paths-alist
