@@ -564,13 +564,22 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   /**
      Issue a SEND_MESSAGE VerticalCommand for each receiver
    */
-  public void handleSend(ACLMessage msg, AID sender) {
+  public void handleSend(ACLMessage msg, AID sender, boolean cloneFirst) {
     Iterator it = msg.getAllIntendedReceiver();
     while (it.hasNext()){
       AID receiver = (AID)it.next();
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(sender);
-      cmd.addParam(new GenericMessage((ACLMessage)msg.clone()));
+      ACLMessage toBeSent = null;
+      if (cloneFirst) {
+      	toBeSent = (ACLMessage) msg.clone();
+      }
+      else {
+      	toBeSent = msg;
+      	// The following copies must always be cloned!
+      	cloneFirst = false;
+      }
+      cmd.addParam(new GenericMessage(toBeSent));
       cmd.addParam(receiver);
       // Set the credentials of the sender
       initCredentials(cmd, sender);

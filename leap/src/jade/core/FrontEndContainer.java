@@ -345,23 +345,26 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public final void handleChangedAgentState(AID agentID, int from, int to) {
   	// FIXME: This should call myBackEnd.suspendedAgent()/resumedAgent()
   }
-  
-  public final void handleSend(ACLMessage msg, AID sender) {
+
+  // Note that the cloneFirst argument is ignored since the
+  // FrontEnd must always clone
+  public final void handleSend(ACLMessage msg, AID sender, boolean cloneFirst) {
 		Iterator it = msg.getAllIntendedReceiver();
 		// If some receiver is local --> directly post the message
-		int remoteCnt = 0;
+		boolean hasRemoteReceivers = false;
 		while (it.hasNext()) {
-			remoteCnt++;
 			AID id = (AID) it.next();
 			Agent a = (Agent) localAgents.get(id.getLocalName());
 			if (a != null) {
 				ACLMessage m = (ACLMessage) msg.clone();
 				a.postMessage(m);
-				remoteCnt--;
+			}
+			else {
+				hasRemoteReceivers = true;
 			}
 		}
 		// If some receiver is remote --> pass the message to the BackEnd		
-		if (remoteCnt > 0) {
+		if (hasRemoteReceivers) {
 			post(msg, sender.getLocalName());
 		}
   }

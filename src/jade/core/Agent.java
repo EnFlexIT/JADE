@@ -1752,7 +1752,7 @@ public class Agent implements Runnable, Serializable
 		catch (Exception e) {
 			msg.setSender(myAID);
 		}
-		myToolkit.handleSend(msg, myAID);
+		myToolkit.handleSend(msg, myAID, true);
 	}
 	
 	/**

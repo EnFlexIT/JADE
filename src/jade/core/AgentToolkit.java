@@ -40,7 +40,7 @@ interface AgentToolkit {
   Location here();
   void handleEnd(AID agentID);
   void handleChangedAgentState(AID agentID, int from, int to);
-  void handleSend(ACLMessage msg, AID sender);
+  void handleSend(ACLMessage msg, AID sender, boolean cloneFirst);
 
   //#MIDP_EXCLUDE_BEGIN
   void handlePosted(AID agentID, ACLMessage msg);

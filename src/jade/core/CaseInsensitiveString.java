@@ -41,7 +41,8 @@ public class CaseInsensitiveString implements Serializable {
     /**
      * @serial
      */
-    String s;
+    private final String s;
+    private final int hashCode;
 
     /**
      * Create a new <code>CaseInsensitiveString</code> object.
@@ -49,6 +50,7 @@ public class CaseInsensitiveString implements Serializable {
      */
     public CaseInsensitiveString(String name) {
         s = name;
+        hashCode = s.toLowerCase().hashCode();
     }
 
     /**
@@ -56,8 +58,8 @@ public class CaseInsensitiveString implements Serializable {
      * string.
      * @return The string stored inside by the constructor.
      */
-    public String toString() {
-        return s.toString();
+    public final String toString() {
+        return s;
     } 
 
     /**
@@ -69,20 +71,18 @@ public class CaseInsensitiveString implements Serializable {
      * @return <code>true</code> if the strings contained within the two objects
      * are equal, apart from case.
      */
-    public boolean equals(Object o) {
-        if (o instanceof String) {
-            return equalsIgnoreCase(s, (String) o);
-        } 
-
-        try {
-            CaseInsensitiveString sn = (CaseInsensitiveString) o;
-
-            return equalsIgnoreCase(s, sn.s);
-        } 
-        catch (ClassCastException cce) {
-            return false;
-        } 
-    } 
+    public final boolean equals(Object o) {
+			if (o == null) {
+				return false;
+			}
+			if (o instanceof String) {
+			  return equalsIgnoreCase(s, (String) o);
+			}
+			if(o instanceof CaseInsensitiveString) {
+			  return equalsIgnoreCase(s, ((CaseInsensitiveString)o).s);
+			}
+			return false;
+    }
 
     /**
      * Hash code. This method returns an hash code in such a way that
@@ -91,8 +91,8 @@ public class CaseInsensitiveString implements Serializable {
      * @return The hash code for this
      * <code>CaseInsensitiveString</code> object.
      */
-    public int hashCode() {
-        return s.toLowerCase().hashCode();
+    public final int hashCode() {
+        return hashCode;
     } 
 
     /**
@@ -102,7 +102,7 @@ public class CaseInsensitiveString implements Serializable {
      * @param s1, s2 The <code>String</code> objects to compare
      * @return <code>true</code> if the strings are equal, apart from case.
      */
-    public static boolean equalsIgnoreCase(String s1, String s2) {
+    public static final boolean equalsIgnoreCase(String s1, String s2) {
      	if (s1 == null || s2 == null) {
      		return false;
      	}

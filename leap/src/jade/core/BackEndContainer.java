@@ -275,7 +275,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  	}
   	}
   	
-		handleSend(msg, id);
+		handleSend(msg, id, false);
   }
 
   

@@ -51,6 +51,7 @@ public class AID implements Comparable, Serializable {
   @serial
   */
   private String name; 
+  private int hashCode;
   
     private static final int EXPECTED_ADDRESSES_SIZE = 0;
     //#CUSTOM_EXCLUDE_BEGIN
@@ -132,6 +133,7 @@ public class AID implements Comparable, Serializable {
   */
   public void setName(String n){
     name = n.trim();
+    hashCode = name.toLowerCase().hashCode();
   }
 
   /**
@@ -143,12 +145,14 @@ public class AID implements Comparable, Serializable {
 			if (hap == null) {
 				throw new RuntimeException("Unknown Platform Name");
 			}
-			setName(n); 
+			name = n.trim(); 
 			// Concatenates the HAP only if the passed name 
 			// does not ends already with HAP (case-insensitive)
 			if (! ( (name.length() > hap.length()) && 
-							name.regionMatches(true, name.length() - hap.length(), hap, 0, hap.length())))
-					name = name.concat("@"+hap); 
+							name.regionMatches(true, name.length() - hap.length(), hap, 0, hap.length()))) {
+					name = name.concat("@"+hap);
+			}
+			hashCode = name.toLowerCase().hashCode();			
   }
 
   /**
@@ -470,20 +474,16 @@ public class AID implements Comparable, Serializable {
     </ul>
   */
   public boolean equals(Object o) {
-
-      if (o == null)
-	  return false;
+      if (o == null) {
+      	return false;
+      }
+    if (o instanceof AID) {
+      return CaseInsensitiveString.equalsIgnoreCase(name, ((AID) o).name);
+    }
     if(o instanceof String) {
       return CaseInsensitiveString.equalsIgnoreCase(name, (String)o);
     }
-    try {
-      AID id = (AID)o;
-      return CaseInsensitiveString.equalsIgnoreCase(name, id.name);
-    }
-    catch(ClassCastException cce) {
-      return false;
-    }
-
+    return false;
   }
 
 
@@ -509,7 +509,7 @@ public class AID implements Comparable, Serializable {
     @return The hash code for this <code>AID</code> object.
   */
   public int hashCode() {
-    return name.toLowerCase().hashCode();
+    return hashCode;
   }
 
   /**
