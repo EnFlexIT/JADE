@@ -26,5 +26,12 @@ package jade.domain.FIPAAgentManagement;
 
 public class InternalError extends FailureException {
 
+  public InternalError(String msg) {
+    super(msg);
+  }
+
+  public InternalError() {
+    this("Internal Error");
+  }
 
 }
