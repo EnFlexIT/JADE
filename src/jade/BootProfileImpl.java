@@ -293,14 +293,6 @@ public class BootProfileImpl extends ProfileImpl {
             setSpecifiers(Profile.MTPS, new ArrayList(0));
         }
         
-        //NOMOBILITY
-        flag = fetchAndVerifyBoolean(NOMOBILITY_KEY);
-        if (flag) {
-            setParameter(MOBILITYMGRCLASSNAME, "jade.core.DummyMobilityManager");
-        } else {
-            setParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
-        }
-        
         value = argProp.getProperty(ACLCODEC_KEY);
         if (value != null) {
             setSpecifiers(Profile.ACLCODECS, parseSpecifiers(value));
@@ -335,7 +327,14 @@ public class BootProfileImpl extends ProfileImpl {
 	// Get service list (if any)
 	value = argProp.getProperty(SERVICES_KEY);
 	if(value == null) {
-	    value = DEFAULT_SERVICES;
+	    // Remove mobility service from the list if '-nomobility' was specified
+	    flag = fetchAndVerifyBoolean(NOMOBILITY_KEY);
+	    if (flag) {
+		value = DEFAULT_SERVICES_NOMOBILITY;
+	    }
+	    else {
+		value = DEFAULT_SERVICES;
+	    }
 	}
 
 	setSpecifiers(Profile.SERVICES, parseSpecifiers(value));
