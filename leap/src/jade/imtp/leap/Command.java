@@ -57,30 +57,24 @@ public class Command {
   static final int        DUMMY_ID = -1;
 
   /**
-   * bit encoded info, if the command returns a result
-   * is public for getCommandType()
-   */
-  public static final int HAS_RESULT = 0x8000;
-
-  /**
    * Command identifier code for response command.
    */
   static final int        NO_OPERATION = 0;
   static final int        OK = 1;
   static final int        ERROR = 2;
-  static final int        GET_PLATFORM_NAME = 3|HAS_RESULT;
-  static final int        ADD_CONTAINER = 4|HAS_RESULT;
+  static final int        GET_PLATFORM_NAME = 3;
+  static final int        ADD_CONTAINER = 4;
   static final int        REMOVE_CONTAINER = 5;
-  static final int        LOOKUP = 6|HAS_RESULT;
+  static final int        LOOKUP = 6;
   static final int        BORN_AGENT = 7;
   static final int        DEAD_AGENT = 8;
   static final int        NEW_MTP = 9;
   static final int        DEAD_MTP = 10;
-  static final int        TRANSFER_IDENTITY = 11|HAS_RESULT;
-  static final int        GET_PROXY = 12|HAS_RESULT;
+  static final int        TRANSFER_IDENTITY = 11;
+  static final int        GET_PROXY = 12;
   static final int        CREATE_AGENT_FROM_NAME = 13;
   static final int        CREATE_AGENT_FROM_DATA = 14;
-  static final int        FETCH_CLASS_FILE = 15|HAS_RESULT;
+  static final int        FETCH_CLASS_FILE = 15;
   static final int        SUSPEND_AGENT = 16;
   static final int        RESUME_AGENT = 17;
   static final int        WAIT_AGENT = 18;
@@ -92,7 +86,7 @@ public class Command {
   static final int        POST_TRANSFER_RESULT = 24;
   static final int        DISPATCH = 25;
   public static final int PING = 26;             // see 38, blocking ping!
-  static final int        INSTALL_MTP = 27|HAS_RESULT;
+  static final int        INSTALL_MTP = 27;
   static final int        UNINSTALL_MTP = 28;
   static final int        UPDATE_ROUTING_TABLE = 29;
   static final int        ROUTE_OUT = 30;
@@ -105,11 +99,11 @@ public class Command {
   static final int        FORWARD = 37;
   public static final int BLOCKING_PING = 38;    // make public for getCommandType()
   static final int        CHANGED_AGENT_PRINCIPAL = 39;
-  static final int        SIGN = 40|HAS_RESULT;
+  static final int        SIGN = 40;
   static final int        CHANGE_AGENT_PRINCIPAL = 41;
   static final int        CHANGE_CONTAINER_PRINCIPAL = 42;
-  static final int        GET_PUBLIC_KEY = 43|HAS_RESULT;
-  static final int        GET_AGENT_PRINCIPAL = 44|HAS_RESULT;
+  static final int        GET_PUBLIC_KEY = 43;
+  static final int        GET_AGENT_PRINCIPAL = 44;
 
 
   /**
@@ -278,8 +272,6 @@ public class Command {
    * @return PING:            if it is a non blocking ping command
    * BLOCKING_PING:   if it is a blocking ping command
    * any other value: some other command
-   * the bit "HAS_RESULT" is set, if the command returns a
-   * result.
    */
   public static int getCommandType(byte[] serializedCommand) {
     // the command code is an int at the beginning of the
