@@ -43,6 +43,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 import jade.core.behaviours.Behaviour;
 
@@ -56,6 +58,8 @@ import jade.onto.OntologyException;
 
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
+
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
    The <code>Agent</code> class is the common superclass for user
@@ -299,6 +303,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   private String myName = null;
   
+  private AID myAID = null;
+
   /**
   @serial
   */
@@ -489,7 +495,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      language and ontology, to build an object of a user defined class.
      @param msg The ACL message from which a suitable Java object will
      be built.
-     @return A new Java object representing the message content in the
+     @return A new list of Java objects, each object representing an element
+     of the t-uple of the the message content in the
      given content language and ontology.
      @exception jade.domain.FIPAException If some problem related to
      the content language or to the ontology is detected.
@@ -497,7 +504,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
      @see jade.core.Agent#fillContent(ACLMessage msg, Object content, String roleName)
    */
-  public Object extractContent(ACLMessage msg) throws FIPAException {
+  public List extractContent(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
     if(c == null)
       throw new FIPAException("Unknown Content Language");
@@ -505,8 +512,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     if(o == null)
       throw new FIPAException("Unknown Ontology");
     try {
-      Frame f = c.decode(msg.getContent(), o);
-      return o.createObject(f);
+      List tuple = c.decode(msg.getContent(), o);
+      return o.createObject(tuple);
     }
     catch(Codec.CodecException cce) {
       // cce.printStackTrace();
@@ -521,14 +528,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   /**
     Fills the <code>:content</code> slot of an ACL message with the string
-    representation of a user defined ontological object. The given Java object
+    representation of a t-uple of user defined ontological objects. Each 
+    Java object in the given list
     is first converted into a <code>Frame</code> object according to the
     ontology present in the <code>:ontology</code> message slot, then the
     <code>Frame</code> is translated into a <code>String</code> using the codec
     for the content language indicated by the <code>:language</code> message
     slot.
     @param msg The ACL message whose content will be filled.
-    @param content A Java object that will be converted into a string and
+    @param content A list of Java objects that will be converted into a string and
     written inti the <code>:content</code> slot. This object must be an instance
     of a class registered into the ontology named in the <code>:ontology</code>
     message slot.
@@ -542,7 +550,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
-  public void fillContent(ACLMessage msg, Object content, String roleName) throws FIPAException {
+  public void fillContent(ACLMessage msg, List content, String roleName) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
     if(c == null)
       throw new FIPAException("Unknown Content Language");
@@ -550,8 +558,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     if(o == null)
       throw new FIPAException("Unknown Ontology");
     try {
-      Frame f = o.createFrame(content, roleName);
-      String s = c.encode(f, o);
+      List l = new ArrayList();
+      Frame f;
+      for (int i=0; i<content.size(); i++) {
+	f = o.createFrame(content.get(i), roleName);
+	l.add(f);
+      }
+      String s = c.encode(l, o);
       msg.setContent(s);
     }
     catch(OntologyException oe) {
@@ -1056,6 +1069,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     if((myAPState == AP_INITIATED)||(myAPState == AP_TRANSIT)||(myAPState == AP_COPY)) {
       myName = new String(name);
       myAddress = new String(platformAddress);
+      myAID = new AID();
+      myAID.setName(myName);
+      myAID.addAddresses(myAddress);
       myThread = new Thread(myGroup, this);    
       myThread.setName(myName);
       myThread.setPriority(myGroup.getMaxPriority());
@@ -1262,8 +1278,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.lang.acl.ACLMessage
   */
   public final void send(ACLMessage msg) {
-    if(msg.getSource().length() < 1)
-      msg.setSource(myName);
+    try {
+      if(msg.getSource().getName().length() < 1)
+	msg.setSource(myAID);
+    } catch (NullPointerException e) {
+	msg.setSource(myAID);
+    }
     CommEvent event = new CommEvent(this, msg);
     broadcastEvent(event);
   }
@@ -1283,8 +1303,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.AgentGroup
   */
   public final void send(ACLMessage msg, AgentGroup g) {
-    if(msg.getSource().length() < 1)
-      msg.setSource(myName);
+    try {
+      if(msg.getSource().getName().length() < 1)
+	msg.setSource(myAID);
+    } catch (NullPointerException e) {
+	msg.setSource(myAID);
+    }
     CommEvent event = new CommEvent(this, msg, g);
     broadcastEvent(event);
   }
@@ -1457,9 +1481,11 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private ACLMessage FipaRequestMessage(String dest, String replyString) {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 
-    request.setSource(myName);
+    request.setSource(myAID);
     request.removeAllDests();
-    request.addDest(dest);
+    AID d = new AID();
+    d.setName(dest);
+    request.addDest(d);
     request.setLanguage("SL0");
     request.setOntology("fipa-agent-management");
     request.setProtocol("fipa-request");
