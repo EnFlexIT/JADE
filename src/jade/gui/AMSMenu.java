@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1998/11/15 23:12:56  rimassa
+  Minor changes to comply with KillAction() new constructor.
+
   Revision 1.4  1998/11/09 22:17:28  Giovanni
   Added two items to 'File' JADE menu; one shuts down the Remote
   Management Agent, whereas the othe closes the whole Agent Platform.
@@ -68,7 +71,7 @@ public class AMSMenu extends JMenuBar {
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new KillAction();
+    act = new KillAction("Kill Selected Items");
     tmp = menu.add(act);
     tmp.setIcon(null);
 
