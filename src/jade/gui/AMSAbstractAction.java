@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/10/26 00:09:50  rimassa
+  Removed a message printed on standard output.
+
   Revision 1.3  1998/10/10 19:37:02  rimassa
   Imported a newer version of JADE GUI from Fabio.
 
@@ -72,7 +75,6 @@ public abstract class AMSAbstractAction extends AbstractAction
 	public AMSAbstractAction(String IconKey,String ActionName, Vector listeners)
     {
 		this.img = GuiProperties.getIcon("AMSAbstractAction."+IconKey);
-		System.out.println(img);
 		this.ActionName = ActionName;
 		this.listeners = listeners;
 
