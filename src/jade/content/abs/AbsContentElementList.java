@@ -204,5 +204,9 @@ public class AbsContentElementList implements AbsContentElement {
     	sb.append(")");
     	return sb.toString();
     }
+
+    public int hashCode() {
+    	return toString().hashCode();
+    }
 }
 

@@ -380,5 +380,16 @@ public class AbsPrimitive implements AbsTerm {
     public String toString() {
     	return value.toString();
     }
- }
+
+    public boolean equals(Object obj) {
+			if (obj instanceof AbsPrimitive)
+ 	 			return getObject().equals(((AbsPrimitive) obj).getObject());
+  		else
+  			return false;
+    }
+    
+    public int hashCode() {
+    	return getObject().hashCode();
+    }
+}
 
