@@ -35,6 +35,14 @@ import jade.domain.FIPAAgentManagement.Envelope;
 public interface MTP {
 
   /**
+     Callback interface to be notified of message arrivals over this
+     Message Transport Protocol.
+   */
+  public static interface Dispatcher {
+    void dispatchMessage(Envelope env, byte[] payload);
+  }
+
+  /**
      Generic exception class for MTP errors.
    */
   public static class MTPException extends Exception {
@@ -82,7 +90,7 @@ public interface MTP {
      @exception MTPException Thrown if some MTP initialization error
      occurs.
   */
-  TransportAddress activate() throws MTPException;
+  TransportAddress activate(Dispatcher disp) throws MTPException;
 
   /**
      Activates an MTP handler for incoming messages on a specific
@@ -92,7 +100,7 @@ public interface MTP {
      @exception MTPException Thrown if some MTP initialization error
      occurs.
    */
-  void activate(TransportAddress ta) throws MTPException;
+  void activate(Dispatcher disp, TransportAddress ta) throws MTPException;
 
   /**
      Deactivates the MTP handler listening at a given transport
