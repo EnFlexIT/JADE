@@ -34,15 +34,15 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.lang.*;
-import jade.content.lang.leap.*;
+import jade.content.lang.sl.*;
 
 import examples.content.ontology.*;
 
 public class Sender extends Agent {
     // We handle contents
     private ContentManager manager  = (ContentManager)getContentManager();
-    // This agent speaks a language called "LEAP"
-    private Codec          codec    = new LEAPCodec();
+    // This agent speaks the SL language
+    private Codec          codec    = new SLCodec();
     // This agent complies with the People ontology
     private Ontology   ontology = PeopleOntology.getInstance();
 
@@ -120,7 +120,7 @@ public class Sender extends Agent {
 		absFatherOf.set(PeopleOntology.FATHER, absX);
 		absFatherOf.set(PeopleOntology.CHILDREN, absChildren);
 
-		AbsIRE absIRE = new AbsIRE(LEAPCodec.IOTA);
+		AbsIRE absIRE = new AbsIRE(SLVocabulary.IOTA);
 		absIRE.setVariable(absX);
 		absIRE.setProposition(absFatherOf);
 
