@@ -51,31 +51,31 @@ public class AgRequestResponder extends Agent {
   
   private class responderBehav extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
     
-    responderBehav(Agent a){
-      super(a);
+    responderBehav(Agent a, ACLMessage msg){
+      super(a,msg);
     }
 
     /** 
       this is the factory method
       **/
-   public FipaRequestResponderBehaviour.ActionHandler create(){
-     return new responderBehav(myAgent);
+   public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg){
+     return new responderBehav(myAgent, msg);
    }
 			
    public void action(){
      double chance = Math.random();
      System.out.println("\n Chance: "+chance);
      if (chance <0.2)
-       sendNotUnderstood();
+       sendReply(ACLMessage.NOT_UNDERSTOOD,"(chance < 0.2)");
      else if (chance < 0.5)
-       sendRefuse("\"I.m too busy at the moment. Retry later\"");
+       sendReply(ACLMessage.REFUSE,"((chance < 0.5) \"I.m too busy at the moment. Retry later\")");
      else {
-       sendAgree();
+       sendReply(ACLMessage.AGREE,"(true)");
        chance = Math.random();
        if (chance<0.4)
-	 sendFailure("\"Something went wrong with the teleport\"");
+	 sendReply(ACLMessage.FAILURE,"((chance < 0.4) \"Something went wrong with the teleport\" )");
        else
-	 sendInform();
+	 sendReply(ACLMessage.INFORM, "");
      }
    }
 			
@@ -89,6 +89,15 @@ public class AgRequestResponder extends Agent {
    }
   }//End of class responderBehav
 		
+
+  class myFipaRequestResponderBehaviour extends FipaRequestResponderBehaviour {
+    myFipaRequestResponderBehaviour(Agent a) {
+      super(a);
+    }
+    protected String getActionName(ACLMessage msg) throws NotUnderstoodException, RefuseException {
+      return "ExampleRequest";
+    }
+  }
 		
   protected void setup(){
 
@@ -109,12 +118,14 @@ public class AgRequestResponder extends Agent {
     /** End registration with the DF **/
     System.out.println(getLocalName()+ " succeeded in registration with DF");
 
-    FipaRequestResponderBehaviour requester = new FipaRequestResponderBehaviour(this);
-    requester.registerFactory("ExampleRequest",new responderBehav(this));
+    FipaRequestResponderBehaviour requester = new myFipaRequestResponderBehaviour(this);
+    requester.registerFactory("ExampleRequest",new responderBehav(this,null));
     addBehaviour(requester);
   }
 	
 } // End of class AgentResponder
+
+
 
 
 

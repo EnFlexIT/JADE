@@ -82,13 +82,6 @@ public class AgRequestInitiator extends Agent{
     
     String convID = newConvID();
 		
-    //Use this version to reproduce the bug
-    /*	try{	
-	System.out.println("Enter the name of the agent responder:");
-	BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-	responder = buff.readLine();
-	}catch(IOException e){}*/
-			
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
     request.addReceiver(responder);
     request.setLanguage("Plain-Text");
