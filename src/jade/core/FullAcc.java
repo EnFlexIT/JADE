@@ -76,11 +76,15 @@ class FullAcc implements acc, InChannel.Dispatcher {
   public void initialize(AgentContainerImpl ac, Profile p) {
   	// Initialize its own ID
   	try {
-      String platformID = p.getParameter(Profile.PLATFORM_ID);
+      //String platformID = p.getParameter(Profile.PLATFORM_ID);
+      String platformID = p.getPlatform().getPlatformName();
       myContainer = ac;
       accID = "fipa-mts://" + platformID + "/acc";
   	}
     catch(ProfileException pe) {
+      accID = "fipa-mts://" + "localhost:0/JADE";
+    }
+    catch(IMTPException imtpe) {
       accID = "fipa-mts://" + "localhost:0/JADE";
     }
       	
