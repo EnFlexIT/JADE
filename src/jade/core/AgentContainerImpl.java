@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.25  1999/02/14 23:08:16  rimassa
+  Changed AgentGroup handling to comply with new version of that class.
+
   Revision 1.24  1999/02/03 10:03:17  rimassa
   Added client-side CORBA support. Now every AgentContainer can call
   another platform through IIOP directly, without intervention from
@@ -197,7 +200,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     }
     catch(NameClashException nce) {
       System.out.println("Agent name already in use");
-      nce.printStackTrace();
+      // nce.printStackTrace();
       localAgents.remove(agentName.toLowerCase());
     }
     catch(RemoteException re) {
@@ -213,6 +216,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentName);
+    // FIXME: When an Agent is about to die and it is
+    // still deregistering with the AMS, avoid killing him again
     agent.doDelete();
   }
 
@@ -331,9 +336,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // present in ':receiver' field.
     if(event.isMulticast()) {
       AgentGroup group = event.getRecipients();
-      group.reset();
-      while(group.hasMoreMembers()) {
-	msg.setDest(group.getNextMember());
+      Enumeration e = group.getMembers();
+      while(e.hasMoreElements()) {
+	msg.setDest((String)e.nextElement());
 	unicastPostMessage(msg);
       }
     }
@@ -443,7 +448,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     }
     catch(NotFoundException nfe) {
-      System.err.println("Agent was not found on agent platform");
+      System.err.println("Agent " + receiverName + " was not found on agent platform");
       // nfe.printStackTrace();
     }
     catch(RemoteException re) {
