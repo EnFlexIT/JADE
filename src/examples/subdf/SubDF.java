@@ -37,6 +37,7 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.domain.DFServiceCommunicator;
 import jade.lang.acl.ACLMessage;
+import jade.gui.AIDGui;
 
 /**
 This is an example of an agent that plays the role of a sub-df by 
@@ -61,19 +62,21 @@ public class SubDF extends jade.domain.df {
    try {
 
      AID parentName;
-     String insertedparentName = null;
-     BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
-     System.out.print("Example SUBDF -- Enter parent DF name (ENTER uses platform default DF): ");
-     insertedparentName = buff.readLine();
-    
-     if (insertedparentName.length() != 0)
-       parentName=new AID(insertedparentName);
-     else
-       parentName=getDefaultDF();
-      
-      //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
-      //(i.e. register, unregister,modify, and search).
+     
+     AIDGui gui = new AIDGui();
+     gui.setTitle("SubDF - Insert Parent AID");
+     parentName = gui.ShowAIDGui(getDefaultDF(),true,true);
+     
+     //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
+     //(i.e. register, unregister,modify, and search).
      super.setup();
+     
+     //If pressed the cancel button the agent distroy itself and exit.
+     if (parentName == null)
+     	{
+     		doDelete();
+     		return;
+     	}
      
      //Use this method to modify the current description of this df. 
      setDescriptionOfThisDF(getDescription());
@@ -84,13 +87,7 @@ public class SubDF extends jade.domain.df {
      DFServiceCommunicator.register(this,parentName,getDescription());
      addParent(parentName,getDescription());
 		
-    }catch(InterruptedIOException iioe) {
-      doDelete();
-    }
-    catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-    catch(FIPAException fe){fe.printStackTrace();}
+    }catch(FIPAException fe){fe.printStackTrace();}
   }
   
   private DFAgentDescription getDescription()
