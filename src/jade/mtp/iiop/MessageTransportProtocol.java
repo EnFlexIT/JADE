@@ -371,9 +371,17 @@ public class MessageTransportProtocol implements MTP {
     return PROTOCOLS;
   }
 
-  private FIPA.Property marshalProperty(Property p) {
-    org.omg.CORBA.Any value = myORB.create_any();
-    value.insert_Value((Serializable)p.getValue());
+  private FIPA.Property marshalProperty(jade.domain.FIPAAgentManagement.Property p) {
+  	org.omg.CORBA.Any value = myORB.create_any();
+  	java.lang.Object v = p.getValue();
+  	if (v instanceof java.io.Serializable) {
+    	value.insert_Value((Serializable) v);
+  	}
+  	else {
+  		if (v != null) {
+	  		value.insert_Value(v.toString());
+  		}
+  	}
     return new FIPA.Property(p.getName(), value);
   }
 
