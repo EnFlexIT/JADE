@@ -57,6 +57,8 @@ public abstract class ObjectSchema {
     public static final String         BASE_NAME = "Object";
     //private static ObjectSchema baseSchema = new ObjectSchema();
     protected static ObjectSchema baseSchema = null;
+    
+    private boolean encodingByOrder = false;
 
     /**
      * Construct a schema that vinculates an entity to be a generic
@@ -168,6 +170,25 @@ public abstract class ObjectSchema {
 				throw new OntologyException(slotName+" is not a valid slot in this schema");
 			}
 		}*/
+		
+		/**
+		 * Sets an indication about whether the preferred encoding for the 
+		 * slots of concepts compliants to this schema is by oredr or by name. 
+		 * It should be noted however that the Content Language encoder is 
+		 * free to use or ignore this indication depending on the CL grammar 
+		 * and actual implementation.
+		 */
+		public void setEncodingByOrder(boolean b) {
+			encodingByOrder = b;
+		}
+		
+		/**
+		 * Get the indication whether the preferred encoding for the slots 
+		 * of concepts compliant to this schema is by order or by name.
+		 */
+		public boolean getEncodingByOrder() {
+			return encodingByOrder;
+		}
 		
     /**
      * Retrieves the name of the type of this schema.

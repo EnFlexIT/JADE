@@ -125,7 +125,7 @@ public class ConceptSchema extends TermSchema {
 		public void addFacet(String slotName, Facet f) throws OntologyException {
 			super.addFacet(slotName, f);
 		}
-
+		
     /**
      * Creates an Abstract descriptor to hold a concept of
      * the proper type.
