@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.53  1999/11/09 14:46:27  rimassaJade
+  Added a getCorrectName() call to perform case-insensitive agent name
+  lookup.
+
   Revision 1.52  1999/11/08 15:18:15  rimassaJade
   Added support for the message sniffer.
 
@@ -600,9 +604,10 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
  * theAgent
  */
 private Vector getSniffer(String theAgent, java.util.Map theMap) {
-	
+
   Vector theSniffer = null;
 
+  theAgent = getCorrectName(theAgent);
   int atPos = theAgent.indexOf('@');
   if ( atPos == -1 ) {
     // theAgent is a local name
@@ -712,7 +717,7 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
 	sniffedSource = true;
 	sendMsgToSniffers(msg,currentSnifferVector);		
       }
-            	
+
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
 	String dest = (String)e.nextElement();		
