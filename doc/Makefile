@@ -196,20 +196,17 @@ API_FILES5 =	jade/gui/package.html \
 		jade/onto/Ontology.java \
 		jade/onto/OntologyException.java \
 		jade/onto/SlotDescriptor.java \
-		jade/onto/basic/Action.java \
-		jade/onto/basic/BasicOntology.java \
-		jade/onto/basic/DonePredicate.java \
-		jade/onto/basic/FalseProposition.java \
-		jade/onto/basic/Not.java \
-		jade/onto/basic/ResultPredicate.java \
-		jade/onto/basic/TrueProposition.java
+		jade/onto/basic/*.java 
 
 API_FILES6 =	jade/proto/package.html \
 		jade/proto/states/package.html \
-		jade/proto/states/HandlerSelector.java \
+		jade/proto/states/*.java \
 		jade/proto/states/MsgReceiver.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
+		jade/proto/SimpleAchieveREInitiator.java \
+		jade/proto/SimpleAchieveREResponder.java \
+		jade/proto/Initiator.java \
 		jade/proto/ContractNetInitiator.java \
 		jade/proto/ContractNetResponder.java \
 		jade/proto/Initiator.java \
@@ -360,18 +357,7 @@ API_FILES9 =	jade/tools/sniffer/PanelCanvas.java \
 		jade/util/leap/*.java \
 		jade/wrapper/package.html \
 		jade/wrapper/*.java \
-		jade/content/abs/AbsAgentAction.java \
-		jade/content/abs/AbsAggregate.java \
-		jade/content/abs/AbsConcept.java \
-		jade/content/abs/AbsContentElement.java \
-		jade/content/abs/AbsContentElementList.java \
-		jade/content/abs/AbsIRE.java \
-		jade/content/abs/AbsObject.java \
-		jade/content/abs/AbsPredicate.java \
-		jade/content/abs/AbsPrimitive.java \
-		jade/content/abs/AbsTerm.java \
-		jade/content/abs/AbsVariable.java \
-		jade/content/abs/AbsHelper.java
+		jade/content/abs/*.java 
 
 API_FILES10 =	jade/content/acl/Inform.java \
 		jade/content/acl/Request.java \
@@ -388,30 +374,11 @@ API_FILES10 =	jade/content/acl/Inform.java \
 		jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
 		jade/content/lang/*.java \
-		jade/content/lang/sl/SLCodec.java \
-		jade/content/onto/ACLOntology.java \
-		jade/content/onto/BasicIntrospector.java \
-		jade/content/onto/BasicOntology.java \
-		jade/content/onto/Introspectable.java \
-		jade/content/onto/Introspector.java \
-		jade/content/onto/MicroIntrospector.java \
-		jade/content/onto/Ontology.java \
-		jade/content/onto/OntologyException.java \
-		jade/content/onto/ReflectiveIntrospector.java \
-		jade/content/onto/UngroundedException.java \
-		jade/content/onto/UnknownSchemaException.java \
-		jade/content/schema/AgentActionSchema.java \
-		jade/content/schema/AggregateSchema.java \
-		jade/content/schema/ConceptSchema.java \
-		jade/content/schema/ContentElementListSchema.java \
-		jade/content/schema/ContentElementSchema.java \
-		jade/content/schema/Facet.java \
-		jade/content/schema/IRESchema.java \
-		jade/content/schema/ObjectSchema.java \
-		jade/content/schema/PredicateSchema.java \
-		jade/content/schema/PrimitiveSchema.java \
-		jade/content/schema/TermSchema.java \
-		jade/content/schema/VariableSchema.java \
+		jade/content/lang/sl/*.java \
+		jade/content/onto/*.java \
+		jade/content/onto/basic/*.java \
+		jade/content/schema/*.java \
+		jade/content/schema/facets/*.java 
 
 API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FILES5) \
 		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
@@ -420,7 +387,7 @@ API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang ja
 		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic \
 		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
 		jade.domain.introspection jade.content jade.content.abs jade.content.acl jade.content.lang \
-		jade.content.lang.j jade.content.lang.leap jade.content.lang.sl jade.content.onto jade.content.schema jade.util jade.util.leap
+		jade.content.lang.j jade.content.lang.leap jade.content.lang.sl jade.content.onto jade.content.onto.basic jade.content.schema jade.content.schema.facets jade.util jade.util.leap
 
 API_FLAGS = -d $(DOC_OUTDIR) -overview $(DOC_MAIN) -author -windowtitle $(DOC_WINTITLE)
 

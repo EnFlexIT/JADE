@@ -14,7 +14,7 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
           PingAgent/PingAgent.java MessageTemplate/WaitAgent.java \
 	  thanksAgent/ThanksAgent.java \
 	  content/Sender.java content/Receiver.java \
-          party/HostAgent.java
+          party/HostAgent.java party/GuestAgent.java
 
 all: 
 	@echo Making test examples

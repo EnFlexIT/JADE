@@ -31,6 +31,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/core/behaviours/SimpleBehaviour.java \
 		jade/core/behaviours/SenderBehaviour.java \
 		jade/core/behaviours/ReceiverBehaviour.java \
+		jade/core/behaviours/TickerBehaviour.java \
 		jade/core/behaviours/WakerBehaviour.java \
 		jade/core/behaviours/FSMBehaviour.java \
 		jade/domain/MobilityOntology.java \
@@ -58,6 +59,7 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 		jade/tools/applet/DFApplet.java \
 		jade/tools/sl/SLFormatter.java \
+		jade/tools/testagent/TestAgent.java \
 		starlight/util/Base64.java \
 		jade/imtp/rmi/MainContainerRMIImpl.java \
 		jade/imtp/rmi/RMIIMTPManager.java \
@@ -237,6 +239,8 @@ images:
 	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
 	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
 	cp -R $(SRCDIR)/jade/tools/introspector/gui/images $(CLSDIR)/jade/tools/introspector/gui/images
+	cp -R $(SRCDIR)/jade/tools/testagent/images $(CLSDIR)/jade/tools/testagent/images
+	cp -R $(SRCDIR)/jade/tools/gui/images $(CLSDIR)/jade/tools/gui/images
 	mkdir -p $(CLSDIR)/jade/gui/help
 
 idlclean:
@@ -271,6 +275,8 @@ batch:
 	echo 'xcopy /E /I jade\tools\rma\images ..\classes\jade\tools\rma\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\introspector\gui\images ..\classes\jade\tools\introspector\gui\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\testagent\images ..\classes\jade\tools\testagent\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\gui\images ..\classes\jade\tools\gui\images' >> $(BATCH_ALL)
 
 	echo >> $(BATCH_ALL)
 
