@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.12  1998/12/20 02:03:49  rimassa
+  Modified '-version' command line option handling. Now some better
+  formatting is used on CVS strings before printing them.
+
   Revision 1.11  1998/12/08 00:27:44  rimassa
   Updated version number.
 
@@ -128,7 +132,24 @@ public class Boot {
 	  hasGUI = true;
 	}
 	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	  System.out.println("JADE Version 0.91 $Name$ - $Date$");
+	  String CVSname = "$Name$";
+	  String CVSdate = "$Date$";
+	  int colonPos = CVSname.indexOf(":");
+	  int dollarPos = CVSname.lastIndexOf('$');
+	  String name = CVSname.substring(colonPos + 1, dollarPos);
+	  if(name.indexOf("JADE") == -1)
+	    name = "JADE snapshot";
+	  else {
+	    name = name.replace('-', ' ');
+	    name = name.replace('_', '.');
+	    name = name.trim();
+	  }
+
+	  colonPos = CVSdate.indexOf(':');
+	  dollarPos = CVSdate.lastIndexOf('$');
+	  String date = CVSdate.substring(colonPos + 1, dollarPos);
+	  date = date.trim();
+	  System.out.println(name + " - " + date);
 	  System.exit(0);
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
