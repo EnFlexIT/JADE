@@ -203,7 +203,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   	currentName = firstName;
   	current = getState(currentName);
   	// DEBUG
-  	System.out.println("Executing state "+currentName);
+  	System.out.println(myAgent.getLocalName()+" is Executing state "+currentName);
   }
   
   /**
@@ -234,7 +234,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   			throw new RuntimeException("Inconsistent FSM. State: "+previousName+" event: "+currentResult);
   		}
   		// DEBUG
-  		System.out.println("Executing state "+currentName);
+  		System.out.println(myAgent.getLocalName()+ " is Executing state "+currentName);
   	}
   }
   
