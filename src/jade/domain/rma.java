@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.15  1999/03/10 06:58:13  rimassa
+  Removed some debugging printouts.
+
   Revision 1.14  1999/03/09 13:21:14  rimassa
   Removed calls to deprecated ACLMessage methods getDest() and
   setDest().
@@ -156,7 +159,6 @@ public class rma extends Agent {
 	}
 	catch(ParseException pe) {
 	  pe.printStackTrace();
-	  System.out.println(current.getContent());
 	}
 	catch(TokenMgrError tme) {
 	  tme.printStackTrace();
@@ -287,7 +289,7 @@ public class rma extends Agent {
   }
 
   public void suspendContainer(String name) {
-    System.out.println("Suspending container " + name);
+
   }
 
   public void resumeAgent(String name) {
@@ -312,7 +314,7 @@ public class rma extends Agent {
   }
 
   public void resumeContainer(String name) {
-    System.out.println("Resuming container " + name);
+    // FIXME: Not implemented
   }
 
   public void killAgent(String name) {
