@@ -24,8 +24,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import jade.lang.Codec;
 
@@ -83,6 +84,11 @@ public class MobilityOntology {
     A symbolic constant, containing the name of the concept.
   */  
   public static final String LOCATION = ":location";
+
+  /**
+    A symbolic constant, containing the name of the concept.
+  */  
+  public static final String PLATFORMLOCATIONS = ":platform-locations";
 
   /**
     A symbolic constant, containing the name of the action.
@@ -185,14 +191,21 @@ public class MobilityOntology {
 	     public Class getClassForRole() { return Location.class; }
 	   });
 
-	theInstance.addFrame(MOVE, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(PLATFORMLOCATIONS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	    new TermDescriptor(":locations", Ontology.SET_TYPE, LOCATION, Ontology.M),
+	}, new RoleFactory() {
+	     public Object create(Frame f) { return new PlatformLocations(); }
+	     public Class getClassForRole() { return PlatformLocations.class; }
+	   });
+
+	theInstance.addFrame(MOVE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	    new TermDescriptor(Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new MoveAction(); }
 	     public Class getClassForRole() { return MoveAction.class; }
 	   });
 
-	theInstance.addFrame(CLONE, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(CLONE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	    new TermDescriptor(Ontology.CONCEPT_TYPE, MOBILE_AGENT_DESCRIPTION, Ontology.M),
 	    new TermDescriptor(Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
@@ -200,14 +213,14 @@ public class MobilityOntology {
 	     public Class getClassForRole() { return CloneAction.class; }
 	   });
 
-	theInstance.addFrame(WHERE_IS, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(WHERE_IS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	    new TermDescriptor(Ontology.STRING_TYPE, Ontology.M)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new WhereIsAgentAction(); }
 	     public Class getClassForRole() { return WhereIsAgentAction.class; }
 	   });
 
-	theInstance.addFrame(QUERY_PLATFORM_LOCATIONS, Ontology.ACTION_TYPE, new TermDescriptor[] {
+	theInstance.addFrame(QUERY_PLATFORM_LOCATIONS, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new QueryPlatformLocationsAction(); }
 	     public Class getClassForRole() { return QueryPlatformLocationsAction.class; }
@@ -524,6 +537,34 @@ public class MobilityOntology {
   } // End of Location class
 
   /**
+    This class represent the ':platform-locations' concept in JADE
+    mobility ontology. It has various get- and set- methods, according to the
+    rules for ontological classes in JADE.
+    @see jade.onto.Ontology
+  */
+  public static class PlatformLocations {
+
+    private List locations = new ArrayList();
+
+    public void clearAllLocations() {
+      locations.clear();
+    }
+
+    public void addLocations(Location l) {
+      locations.add(l);
+    }
+
+    public Boolean removeLocations(Location l) {
+      return new Boolean(locations.remove(l));
+    }
+
+    public Iterator getAllLocations() {
+      return locations.iterator();
+    }
+
+  }
+
+  /**
     This class represent the 'move-agent' action in JADE
     mobility ontology. It has various get- and set- methods, according to the
     rules for ontological classes in JADE.
@@ -620,58 +661,5 @@ public class MobilityOntology {
     }
 
   } // End of QueryPlatformLocationsAction
-
-  /**
-    This method parses the <code>:content</code> slot of the <code>inform</code>
-    message sent by the AMS when a <code>query-platform-locations</code> request
-    succeeds.
-    <i>This method is a temporary workaround and will go away as soon as JADE
-    supports the newest FIPA specifications.</i>
-    @param c The <code>Codec</code> for the content language to use. At present,
-    the JADE AMS uses the <i>SL0</i> language, so an <code>SL0Codec</code> must
-    be used.
-    @param list The string containing the list of the locations. This string
-    must be the <code>:content</code> slot of the <code>inform</code> message
-    for a <code>:query-platform-locations</code> action.
-    @return An array of <code>Location</code> objects, representing all the
-    available locations of the current JADE platform.
-    @exception Codec.CodecException Thrown if some parsing error occurs.
-    @exception OntologyException Thrown if an inconsistency in the JADE mobility
-    ontology is detected.
-   */
-  public static Location[] parseLocationsList(Codec c, String list) throws Codec.CodecException, OntologyException {
-
-    if(list.startsWith("#")) { // Handle ByteLenghtEncoded content
-      int prefixEnd = list.indexOf('"');
-      list = list.substring(prefixEnd + 1); // Remove '#<len>"' prefix
-    }
-
-    List locations = new LinkedList();
-    int from = 0;                      // From the beginning of the string ...
-    do {
-      int to = list.indexOf("||", from); // ... until the first occurrence of the separator.
-      if(to == -1)
-	to = list.length(); // ...until the end if there's no separator.
-
-      String item = list.substring(from, to);
-
-      // Convert the string in a Location object with the given codec.
-      Frame f = c.decode(item, theInstance);
-      Location l = (Location)theInstance.createObject(f);
-
-      // Put the Location object at the end of the list
-      locations.add(l);
-
-      from = to + 2; // Next item starts after the separator.
-    }
-    while(from < list.length());
-
-    Location[] result = new Location[locations.size()];
-
-    for(int i = 0; i < result.length; i++)
-      result[i] = (Location)locations.get(i);
-
-    return result;
-  }
 
 }
