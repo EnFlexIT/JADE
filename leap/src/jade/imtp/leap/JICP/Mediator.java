@@ -34,7 +34,7 @@
  */
 package jade.imtp.leap.JICP;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import java.io.*;
 import java.net.*;
