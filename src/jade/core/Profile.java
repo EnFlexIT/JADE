@@ -82,6 +82,22 @@ public abstract class Profile {
      list of agents that have to be launched at bootstrap time
    */
   public static final String AGENTS = "agents";
+
+  /**
+   * This constant is the key of the property whose value contains the
+   * list of MTPs that have to be launched at bootstrap time.
+   * This list must be retrieved via the <code>getSpecifiers(MTPS)<code>
+   * method.
+   */
+  public static final String MTPS = "mtps";
+
+  /**
+   * This constant is the key of the property whose value contains the
+   * list of ACLCODECSs that have to be launched at bootstrap time.
+   * This list must be retrieved via the <code>getSpecifiers(ACLCODECS)<code>
+   * method.
+   */
+  public static final String ACLCODECS = "aclcodecs";
   
     /**
      */
