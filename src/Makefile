@@ -40,7 +40,7 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/tools/sniffer/Sniffer.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
-		jade/applet/DFApplet.java
+		jade/tools/applet/DFApplet.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/ACLParserConstants.java \
