@@ -31,7 +31,7 @@ import examples.content.musicOntology.*;
 public class Sell implements AgentAction {
 	private AID buyer;
 	private Item item;
-	private String cardNumber;
+	private CreditCard creditCard;
 	
 	public AID getBuyer() {
 		return buyer;
@@ -49,11 +49,11 @@ public class Sell implements AgentAction {
 		item = i;
 	}
 	
-	public String getCardNumber() {
-		return cardNumber;
+	public CreditCard getCreditCard() {
+		return creditCard;
 	}
 
-	public void setCardNumber(String n) {
-		cardNumber = n;
+	public void setCreditCard(CreditCard creditCard) {
+		this.creditCard = creditCard;
 	}
 }

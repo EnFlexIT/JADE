@@ -39,6 +39,15 @@ public class ECommerceOntology extends Ontology {
   public static final String ITEM = "ITEM";
   public static final String ITEM_SERIALID = "serialID";
   
+  public static final String PRICE = "PRICE";
+  public static final String PRICE_VALUE = "value";
+  public static final String PRICE_CURRENCY = "currency";
+  
+  public static final String CREDIT_CARD = "CREDITCARD";
+  public static final String CREDIT_CARD_TYPE = "type";
+  public static final String CREDIT_CARD_NUMBER = "number";
+  public static final String CREDIT_CARD_EXPIRATION_DATE = "expirationdate";
+  
   public static final String OWNS = "OWNS";
   public static final String OWNS_OWNER = "owner";
   public static final String OWNS_ITEM = "item";
@@ -46,17 +55,15 @@ public class ECommerceOntology extends Ontology {
   public static final String SELL = "SELL";
   public static final String SELL_BUYER = "buyer";
   public static final String SELL_ITEM = "item";
-  public static final String SELL_CARDNUMBER = "cardnumber";
-  
-  public static final String PRICE = "PRICE";
-  public static final String PRICE_VALUE = "value";
+  public static final String SELL_CREDIT_CARD = "creditcard";
   
   public static final String COSTS = "COSTS";
   public static final String COSTS_ITEM = "item";
   public static final String COSTS_PRICE = "price";
   
   // The singleton instance of this ontology
-	private static Ontology theInstance = new ECommerceOntology(ACLOntology.getInstance());
+	//private static Ontology theInstance = new ECommerceOntology(ACLOntology.getInstance());
+	private static Ontology theInstance = new ECommerceOntology(BasicOntology.getInstance());
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -69,29 +76,38 @@ public class ECommerceOntology extends Ontology {
   	super(ONTOLOGY_NAME, base, new ReflectiveIntrospector());
 
     try {
-    	ConceptSchema itemSchema = new ConceptSchema(ITEM);
-    	itemSchema.add(ITEM_SERIALID, (PrimitiveSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL); 
-    	add(itemSchema, Item.class);
+    	add(new ConceptSchema(ITEM), Item.class);
+    	add(new ConceptSchema(CREDIT_CARD), CreditCard.class);
+    	add(new ConceptSchema(PRICE), Price.class);
+    	add(new AgentActionSchema(SELL), Sell.class);
+    	add(new PredicateSchema(OWNS), Owns.class);
+    	add(new PredicateSchema(COSTS), Costs.class);
     	
-    	PredicateSchema ownsSchema = new PredicateSchema(OWNS);
-    	ownsSchema.add(OWNS_OWNER, (TermSchema) getSchema(BasicOntology.AID));
-    	ownsSchema.add(OWNS_ITEM, itemSchema);
-    	add(ownsSchema, Owns.class);
     	
-    	AgentActionSchema sellSchema = new AgentActionSchema(SELL);
-    	sellSchema.add(SELL_BUYER, (TermSchema) getSchema(BasicOntology.AID));
-    	sellSchema.add(SELL_ITEM, itemSchema); 
-    	sellSchema.add(SELL_CARDNUMBER, (TermSchema) getSchema(BasicOntology.STRING)); 
-    	add(sellSchema, Sell.class);
+    	ConceptSchema cs = (ConceptSchema) getSchema(ITEM);
+    	cs.add(ITEM_SERIALID, (PrimitiveSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL); 
     	
-    	ConceptSchema priceSchema = new ConceptSchema(PRICE);
-    	priceSchema.add(PRICE_VALUE, (TermSchema) getSchema(BasicOntology.INTEGER));
-    	add(priceSchema, Price.class);
+    	cs = (ConceptSchema) getSchema(PRICE);
+    	cs.add(PRICE_VALUE, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
+    	cs.add(PRICE_CURRENCY, (PrimitiveSchema) getSchema(BasicOntology.STRING));
     	
-    	PredicateSchema costsSchema = new PredicateSchema(COSTS);
-    	costsSchema.add(COSTS_ITEM, itemSchema);
-    	costsSchema.add(COSTS_PRICE, priceSchema);
-    	add(costsSchema, Costs.class);
+    	cs = (ConceptSchema) getSchema(CREDIT_CARD);
+    	cs.add(CREDIT_CARD_TYPE, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
+    	cs.add(CREDIT_CARD_NUMBER, (PrimitiveSchema) getSchema(BasicOntology.INTEGER)); 
+    	cs.add(CREDIT_CARD_EXPIRATION_DATE, (PrimitiveSchema) getSchema(BasicOntology.DATE)); 
+    	
+    	AgentActionSchema as = (AgentActionSchema) getSchema(SELL);
+    	as.add(SELL_BUYER, (ConceptSchema) getSchema(BasicOntology.AID));
+    	as.add(SELL_ITEM, (ConceptSchema) getSchema(ITEM)); 
+    	as.add(SELL_CREDIT_CARD, (ConceptSchema) getSchema(CREDIT_CARD)); 
+    	
+    	PredicateSchema ps = (PredicateSchema) getSchema(OWNS);
+    	ps.add(OWNS_OWNER, (ConceptSchema) getSchema(BasicOntology.AID));
+    	ps.add(OWNS_ITEM, (ConceptSchema) getSchema(ITEM));
+    	
+    	ps = (PredicateSchema) getSchema(COSTS);
+    	ps.add(COSTS_ITEM, (ConceptSchema) getSchema(ITEM));
+    	ps.add(COSTS_PRICE, (ConceptSchema) getSchema(PRICE));
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();

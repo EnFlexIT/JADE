@@ -25,39 +25,51 @@
 package examples.content.ecommerceOntology;
 
 import jade.content.*;
+import java.util.Date;
 
-public class Price implements Concept {
-	private float value;
-	private String currency;
+public class CreditCard implements Concept {
+	private String type = null;
+	private long number;
+	private Date expirationDate = null;
 	
-	public Price() {
+	public CreditCard() {
 	}
 	
-	public Price(float value, String currency) {
-		setValue(value);
-		setCurrency(currency);
+	public CreditCard(String type, long number, Date expirationDate) {
+		setType(type);
+		setNumber(number);
+		setExpirationDate(expirationDate);
 	}
 	
-	// VALUE
-	public float getValue() {
-		return value;
+	// TYPE
+	public String getType() {
+		return type;
 	}
 	
-	public void setValue(float value) {
-		this.value = value;
-	}
-
-	// CURRENCY
-	public String getCurrency() {
-		return currency;
+	public void setType(String type) {
+		this.type = type;
 	}
 	
-	public void setCurrency(String currency) {
-		this.currency = currency;
+	// NUMBER
+	public long getNumber() {
+		return number;
+	}
+	
+	public void setNumber(long number) {
+		this.number = number;
+	}
+	
+	// EXPIRATIONDATE
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+	
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 	
 	public String toString() {
-		return value+"-"+currency;
+		return type+" N. "+number+" Exp. "+expirationDate;
 	}
 }
 
