@@ -70,25 +70,32 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
       // Loop on slots
       for (int i = 0; i < names.length; ++i) {
       	String slotName = names[i];
-      	ObjectSchema slotSchema = schema.getSchema(slotName);
       	
-      	String methodName;
+      	// Retrieve the accessor method from the class and call it
+      	// Agregate slots require a special handling 
+      	ObjectSchema slotSchema = schema.getSchema(slotName);
       	if (slotSchema instanceof AggregateSchema) {
-					methodName = "getAll" + translateName(slotName);
+					String methodName = "getAll" + translateName(slotName);
+      		Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
+        	Object slotValue = invokeAccessorMethod(getMethod, obj);
+        	if (slotValue != null) {
+        		// Directly call AbsHelper.externaliseIterator() to properly handle different types of aggregate
+        		Iterator it = (Iterator) slotValue;
+        		if (it.hasNext()) {
+	        		AbsObject absSlotValue = AbsHelper.externaliseIterator(it, referenceOnto, slotSchema.getTypeName());
+          		AbsHelper.setAttribute(abs, slotName, absSlotValue);
+        		}
+        	} 
       	}
       	else {
-					methodName = "get" + translateName(slotName);
+					String methodName = "get" + translateName(slotName);
+      		Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
+        	Object slotValue = invokeAccessorMethod(getMethod, obj);
+        	if (slotValue != null) {
+        		AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
+          	AbsHelper.setAttribute(abs, slotName, absSlotValue);
+        	} 
       	}
-
-      	// Retrieve the accessor method from the class and call it
-      	Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-        AbsObject value = invokeGetMethod(referenceOnto, getMethod, obj);
-        //DEBUG 
-        //System.out.println("Attribute value is: "+value);
-
-        if (value != null) {
-          AbsHelper.setAttribute(abs, slotName, value);
-        } 
       }
     	return abs;
   	}
@@ -124,21 +131,22 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
     	// LOOP on slots 
     	for (int i = 0; i < names.length; ++i) {
       	String slotName = names[i];
-      	AbsObject value = abs.getAbsObject(slotName);
-      	if (value != null) {
+      	AbsObject absSlotValue = abs.getAbsObject(slotName);
+      	if (absSlotValue != null) {
+      		Object slotValue = referenceOnto.toObject(absSlotValue);
+      		
+      		// Retrieve the modifier method from the class and call it
 	      	ObjectSchema slotSchema = schema.getSchema(slotName);
-      	
   	    	String methodName;
     	  	if (slotSchema instanceof AggregateSchema) {
 						methodName = "add" + translateName(slotName);
       			Method addMethod = findMethodCaseInsensitive(methodName, javaClass);
-      			invokeAddMethod(referenceOnto, addMethod, obj, (AbsAggregate) value);
+      			invokeAddMethod(addMethod, obj, slotValue);
       		}
       		else {
  						methodName = "set" + translateName(slotName);
-      			// Retrieve the modifier method from the class and call it
       			Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
-          	invokeSetMethod(referenceOnto, setMethod, obj, value);
+          	invokeSetterMethod(setMethod, obj, slotValue);
       		}
         } 
     	}
@@ -158,44 +166,19 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
     } 
   } 
 
-  private void invokeAddMethod(Ontology onto, Method method, Object obj, 
-                                 AbsAggregate value) throws OntologyException {
+  private void invokeAddMethod(Method method, Object obj, 
+                                 Object value) throws OntologyException {
   	try {
-      List l = (List) onto.toObject(value);
-
-      if (l == null) {
-        return;
-      } 
+      List l = (List) value;
 
       Iterator it = l.iterator();
       while (it.hasNext()) {
-      	Object objValue = it.next();
-	      Object[] params = new Object[] {objValue};
-      	try {
-	      	method.invoke(obj, params);
-      	}
-      	catch (IllegalArgumentException iae) {
-      		// Maybe the method required an Integer argument and we supplied 
-        	// a Long. Similarly maybe the the method required a Float and 
-        	// we supplied a Double. Try these possibilities
-        	if (objValue instanceof Long) {
-        		Integer i = new Integer((int) ((Long) objValue).longValue());
-        		params[0] = i;
-        	}
-        	else if (objValue instanceof Double) {
-        		Float f = new Float((float) ((Double) objValue).doubleValue());
-        		params[0] = f;
-        	}
-        	method.invoke(obj, params);
-      	}
+      	Object ithValue = it.next();
+      	invokeSetterMethod(method, obj, ithValue);
       }
     } 
-    catch (OntologyException oe) {
-      // Forward the exception
-      throw oe;
-    } 
-    catch (Exception e) {
-      throw new OntologyException("Error invoking add method", e);
+    catch (ClassCastException cce) {
+      throw new OntologyException("Can't apply recursively method "+method.getName()+" to object "+obj+" as value "+value+" is not a List", cce);
     } 
   } 
 

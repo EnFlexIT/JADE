@@ -320,10 +320,6 @@ public class Ontology {
 				return null;
 			}
 			
-			/*if (!abs.isGrounded()) {
-				throw new UngroundedException();
-			}*/
-			
   		try {
   			return toObject(abs, abs.getTypeName().toLowerCase(), this);
   		}
@@ -581,59 +577,7 @@ public class Ontology {
     	}
     	
     	// If we reach this point the object is not a term
-    	throw new OntologyException("Object "+obj+" is not a term");
+    	throw new OntologyException("Object "+obj+" of class "+obj.getClass().getName()+" is not a term");
     }
  
-    /**
-     * Set an attribute in an abstract descriptor performing all 
-     * necessary type checks.
-     * @throws OntologyException if a type mismatch is detected
-     *
-    public static void setAttribute(AbsObject abs, String attrName, AbsObject attrValue) throws OntologyException { 
-    	if (abs instanceof AbsAgentAction) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-				if (attrValue instanceof AbsPredicate) {
-					((AbsAgentAction) abs).set(attrName, (AbsPredicate) attrValue);
-					return;
-				}
-			}
-    	if (abs instanceof AbsConcept) {
-				if (attrValue instanceof AbsTerm) {
-					((AbsConcept) abs).set(attrName, (AbsTerm) attrValue);
-					return;
-				}
-			}
-			else if (abs instanceof AbsPredicate) {
-				((AbsPredicate) abs).set(attrName, attrValue);
-				return;
-			}
-			else if (abs instanceof AbsIRE) {
-				if (attrValue instanceof AbsVariable && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.VARIABLE)) {
-					((AbsIRE) abs).setVariable((AbsVariable) attrValue);
-					return;
-				}
-				else if (attrValue instanceof AbsPredicate && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.PROPOSITION)) {
-					((AbsIRE) abs).setProposition((AbsPredicate) attrValue);
-					return;
-				}
-			}
-			else if (abs instanceof AbsVariable) {
-				if (attrValue instanceof AbsPrimitive && CaseInsensitiveString.equalsIgnoreCase(attrName, VariableSchema.NAME)) {
-					((AbsVariable) abs).setName(((AbsPrimitive) attrValue).getString());
-					return;
-				}
-				else if (attrValue instanceof AbsPrimitive && CaseInsensitiveString.equalsIgnoreCase(attrName, VariableSchema.VALUE_TYPE)) {
-					((AbsVariable) abs).setType(((AbsPrimitive) attrValue).getString());
-					return;
-				}
-			}
-									
-			// If we reach this point there is a type incompatibility
-			throw new OntologyException("Type incompatibility: attribute "+attrName+" of "+abs+" is of type "+attrValue); 
-    }
-		*/	
-    
 }

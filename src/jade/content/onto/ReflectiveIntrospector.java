@@ -59,15 +59,25 @@ public class ReflectiveIntrospector implements Introspector {
             // Loop on slots
       			for (int i = 0; i < names.length; ++i) {
       				String slotName = names[i];
-      				ObjectSchema slotSchema = schema.getSchema(slotName);
-      	
-      				String methodName = "get" + translateName(slotName);
+      				
       				// Retrieve the accessor method from the class and call it
+      				String methodName = "get" + translateName(slotName);
       				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-        			AbsObject value = invokeGetMethod(referenceOnto, getMethod, obj);
-
-        			if (value != null) {
-          			AbsHelper.setAttribute(abs, slotName, value);
+        			Object slotValue = invokeAccessorMethod(getMethod, obj);
+        			if (slotValue != null) {
+      					// Agregate slots require a special handling 
+      					ObjectSchema slotSchema = schema.getSchema(slotName);
+      					if (slotSchema instanceof AggregateSchema) {
+      						List l = (List) slotValue;
+      						if (!l.isEmpty()) {
+        						AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
+          					AbsHelper.setAttribute(abs, slotName, absSlotValue);
+      						}
+      					}
+      					else {
+        					AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
+          				AbsHelper.setAttribute(abs, slotName, absSlotValue);
+      					}
         			}             	
             } 
 
@@ -81,24 +91,12 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    protected AbsObject invokeGetMethod(Ontology onto, Method method, 
-                                      Object obj) throws OntologyException {
-        Object result = null;
+    protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
         try {
-            result = method.invoke(obj, null);
-
-            if (result == null) {
-                return null;
-            } 
-
-            return onto.fromObject(result);
-        } 
-        catch (OntologyException oe) {
-        		// Forward the exception
-            throw oe;
+            return method.invoke(obj, null);
         } 
         catch (Exception e) {
-            throw new OntologyException("Error invoking get method", e);
+            throw new OntologyException("Error invoking accessor method "+method.getName()+" on object "+obj, e);
         } 
     } 
 
@@ -126,14 +124,14 @@ public class ReflectiveIntrospector implements Introspector {
     				// LOOP on slots 
     				for (int i = 0; i < names.length; ++i) {
       				String slotName = names[i];
-      				AbsObject value = abs.getAbsObject(slotName);
-      				if (value != null) {
-	      				ObjectSchema slotSchema = schema.getSchema(slotName);
-      	
-  	    				String methodName = "set" + translateName(slotName);
+      				AbsObject absSlotValue = abs.getAbsObject(slotName);
+      				if (absSlotValue != null) {
+      					Object slotValue = referenceOnto.toObject(absSlotValue);
+      					
       					// Retrieve the modifier method from the class and call it
+  	    				String methodName = "set" + translateName(slotName);
       					Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
-          			invokeSetMethod(referenceOnto, setMethod, obj, value);
+          			invokeSetterMethod(setMethod, obj, slotValue);
         			}             	
             } 
 
@@ -153,44 +151,31 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
-    protected void invokeSetMethod(Ontology onto, Method method, Object obj, 
-                                 AbsObject value) throws OntologyException {
+    protected void invokeSetterMethod(Method method, Object obj, 
+                                 Object value) throws OntologyException {
+    	try {
+        Object[] params = new Object[] {value};
         try {
-            Object objValue = onto.toObject(value);
-
-            if (objValue == null) {
-                return;
-            } 
-
-            Object[] params = new Object[] {
-                objValue
-            };
-						
-            try {
-	            method.invoke(obj, params);
-            }
-        		catch (IllegalArgumentException iae) {
-        			// Maybe the method required an int argument and we supplied 
-        			// a Long. Similarly maybe the the method required a float and 
-        			// we supplied a Double. Try these possibilities
-        			if (objValue instanceof Long) {
-        				Integer i = new Integer((int) ((Long) objValue).longValue());
-        				params[0] = i;
-        			}
-        			else if (objValue instanceof Double) {
-        				Float f = new Float((float) ((Double) objValue).doubleValue());
-        				params[0] = f;
-        			}
-        			method.invoke(obj, params);
-        		}
-        } 
-        catch (OntologyException oe) {
-        		// Forward the exception
-            throw oe;
-        } 
-        catch (Exception e) {
-            throw new OntologyException("Error invoking set method", e);
-        } 
+          method.invoke(obj, params);
+        }
+    		catch (IllegalArgumentException iae) {
+    			// Maybe the method required an int argument and we supplied 
+    			// a Long. Similarly maybe the method required a float and 
+    			// we supplied a Double. Try these possibilities
+    			if (value instanceof Long) {
+    				Integer i = new Integer((int) ((Long) value).longValue());
+    				params[0] = i;
+    			}
+    			else if (value instanceof Double) {
+    				Float f = new Float((float) ((Double) value).doubleValue());
+    				params[0] = f;
+    			}
+    			method.invoke(obj, params);
+    		}
+      } 
+      catch (Exception e) {
+          throw new OntologyException("Error invoking setter method "+method.getName()+" on object "+obj+" with parameter "+value, e);
+      }
     } 
 
     /**

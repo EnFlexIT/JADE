@@ -50,8 +50,8 @@ public class AbsHelper {
      * @return the abstract descriptor.
      * @throws OntologyException
      */
-    public static AbsAggregate externaliseList(List obj, Ontology onto) throws OntologyException {
-        AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
+    public static AbsAggregate externaliseList(List obj, Ontology onto, String AggregateType) throws OntologyException {
+        AbsAggregate ret = new AbsAggregate(AggregateType);
 
         try {
         	for (int i = 0; i < obj.size(); i++) {
@@ -73,8 +73,8 @@ public class AbsHelper {
      * @return the abstract descriptor.
      * @throws OntologyException
      */
-    public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto) throws OntologyException {
-        AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
+    public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto, String AggregateType) throws OntologyException {
+        AbsAggregate ret = new AbsAggregate(AggregateType);
 
         try {
         	while(obj.hasNext())
@@ -98,20 +98,26 @@ public class AbsHelper {
       aid.set(BasicOntology.AID_NAME, obj.getName());
       
       // Addresses
-			AbsAggregate addresses = new AbsAggregate(BasicOntology.SEQUENCE);
-			for(Iterator i = obj.getAllAddresses(); i.hasNext(); ) {
-				String addr = (String) i.next();
-	    	addresses.add(AbsPrimitive.wrap(addr));
+      Iterator i = obj.getAllAddresses();
+      if (i.hasNext()) {
+				AbsAggregate addresses = new AbsAggregate(BasicOntology.SEQUENCE);
+				while (i.hasNext()) {
+					String addr = (String) i.next();
+	    		addresses.add(AbsPrimitive.wrap(addr));
+				}
+				aid.set(BasicOntology.AID_ADDRESSES, addresses);
 			}
-			aid.set(BasicOntology.AID_ADDRESSES, addresses);
 
 			// Resolvers
-			AbsAggregate resolvers = new AbsAggregate(BasicOntology.SEQUENCE);
-			for(Iterator i = obj.getAllResolvers(); i.hasNext(); ) {
-				AID res = (AID) i.next();
-	    	resolvers.add(externaliseAID(res));
+      i = obj.getAllResolvers();
+      if (i.hasNext()) {
+				AbsAggregate resolvers = new AbsAggregate(BasicOntology.SEQUENCE);
+				while (i.hasNext()) {
+					AID res = (AID) i.next();
+	    		resolvers.add(externaliseAID(res));
+				}
+				aid.set(BasicOntology.AID_RESOLVERS, resolvers);
 			}
-			aid.set(BasicOntology.AID_RESOLVERS, resolvers);
 			
       return aid;
     } 
