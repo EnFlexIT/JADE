@@ -75,7 +75,7 @@ class MessageManager implements TimerListener{
 		String tmp = null;
 		// RETRY_INTERVAL
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.retry-interval", null);
+			tmp = p.getParameter("jade_core_MessageManager_retry-interval", null);
 			retryInterval = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
@@ -84,7 +84,7 @@ class MessageManager implements TimerListener{
 			
 		// RETRY_MAXIMUM
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.retry-maximum", null);
+			tmp = p.getParameter("jade_core_MessageManager_retry-maximum", null);
 			retryMaximum = Long.parseLong(tmp);
 		}
 		catch (Exception e) {
@@ -94,7 +94,7 @@ class MessageManager implements TimerListener{
 //#MIDP_EXCLUDE_BEGIN
 		// POOL_SIZE
 		try {
-			tmp = p.getParameter("jade.core.MessageManager.pool-size", null);
+			tmp = p.getParameter("jade_core_MessageManager_pool-size", null);
 			poolSize = Integer.parseInt(tmp);
 		}
 		catch (Exception e) {
