@@ -168,7 +168,8 @@ public class DFGUI extends JFrame
   */
   boolean isGUIForApplet = false;  // this variable is used to discriminate if the gui is of an applet or not
   
-  HashMap lastSearchResults;
+  HashMap lastSearchResults; // this HashMap mantains the result of the last search made on a df.
+  AID lastDF;                // this AID is the AID of the DF on which the last search was made. 
   
 	// CONSTRUCTORS
 	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 
@@ -193,8 +194,8 @@ public class DFGUI extends JFrame
 		item = generalMenu.add(new DFGUICloseGuiAction(this));
 		
 		// feature only for applet
-		/*		if(isGUIForApplet)
-			item = generalMenu.add(new DFGUIRefreshAppletAction(this));*/
+		if(isGUIForApplet)
+			item = generalMenu.add(new DFGUIRefreshAppletAction(this));
 			
 		jmb.add (generalMenu);
 
@@ -243,7 +244,7 @@ public class DFGUI extends JFrame
 		closeB.setText("");
 		closeB.setIcon(closeImg);
 		closeB.setToolTipText("Close the DF GUI");
-		/*
+
 		if(isGUIForApplet)
 		{
 			Icon refreshImg = DFGuiProperties.getIcon("refreshapplet");
@@ -251,7 +252,7 @@ public class DFGUI extends JFrame
 			refreshB.setText("");
 			refreshB.setIcon(refreshImg);
 			refreshB.setToolTipText("Refresh the GUI");
-		}*/
+		}
 		
 		bar.addSeparator();
 
@@ -286,12 +287,7 @@ public class DFGUI extends JFrame
 		searchB.setIcon(searchImg);
 		searchB.setToolTipText("Search for agents matching a given description");
 
-		/*		Icon searchWithImg = DFGuiProperties.getIcon("searchwithconstraints");
-		searchWithB = bar.add(new DFGUISearchWithConstraintAction(this));
-		searchWithB.setText("");
-		searchWithB.setIcon(searchWithImg);
-		searchWithB.setToolTipText("Search for agent using constraints");
-		*/
+		
 		bar.addSeparator();
 
 		// SUPER DF
@@ -375,7 +371,7 @@ public class DFGUI extends JFrame
 		registerPanel.add(pane, BorderLayout.CENTER);
 		registerPanel.setBorder(BorderFactory.createEtchedBorder());
 		
-		tabbedPane.addTab("Agents registered with the DF",registerPanel);
+		tabbedPane.addTab("Registrations with this DF",registerPanel);
 		tabbedPane.setSelectedIndex(0);
 		
 		/////////////////////////
@@ -417,7 +413,7 @@ public class DFGUI extends JFrame
 		lastSearchPanel.add(pane, BorderLayout.CENTER);
 		lastSearchPanel.setBorder(BorderFactory.createEtchedBorder());
 	
-		tabbedPane.addTab("Last Search Result",lastSearchPanel);	
+		tabbedPane.addTab("Search Result",lastSearchPanel);	
 		
 		JSplitPane tablePane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		tablePane.setContinuousLayout(true);
@@ -624,10 +620,13 @@ public class DFGUI extends JFrame
 	  dfFedAction.setEnabled(value);
 	}
 	
-	public void setTab (String tab) 
+	public void setTab (String tab, AID df) 
 	{
 		if (tab.equalsIgnoreCase("Search"))
-			tabbedPane.setSelectedIndex(1);
+			{
+				tabbedPane.setSelectedIndex(1);
+				tabbedPane.setTitleAt(1,"Last Search on "+ df.getName());
+			}
 			else
 			if (tab.equalsIgnoreCase("Federate"))
 				tabbedPane.setSelectedIndex(2);
@@ -644,6 +643,7 @@ public class DFGUI extends JFrame
 		if (tab == 0)
 		{
 			row = registeredTable.getSelectedRow();
+		
 			if ( row != -1)
 				out = registeredModel.getElementAt(row);
 				else out = null;
@@ -677,6 +677,9 @@ public class DFGUI extends JFrame
 		return out;
 	}
 	
+	/**
+	@return A integer according to the tab selected. 
+	*/
 	public int kindOfOperation()
 	{
 	
@@ -724,7 +727,9 @@ public class DFGUI extends JFrame
 	}
 	
 
-	public void refreshLastSearchResults(List l){
+	public void refreshLastSearchResults(List l, AID df){
+		
+		this.lastDF = df; // the last df used
 		
 		foundModel.clear();
 		lastSearchResults.clear();
@@ -739,6 +744,25 @@ public class DFGUI extends JFrame
 	}
 	
 	/**
+	remove an agent from the foundModel and lastSearchResult
+	*/
+	public void removeSearchResult(AID name)
+	{
+		foundModel.remove(name);
+		foundModel.fireTableDataChanged();
+		lastSearchResults.remove(name);
+	  foundTable.clearSelection();
+	}
+	
+	/**
+	Returns the AID of the last df on which a search operation was made. 
+	*/
+	
+	public AID getLastDF()
+	{
+		return this.lastDF;
+	}
+	/**
 	* adds a new parent to parentModel
 	**/
 	public void addParent(AID parentName)
@@ -747,31 +771,44 @@ public class DFGUI extends JFrame
 		parentModel.add(parentName);
 		parentModel.fireTableDataChanged();
 	
-
 	}
+	
+	/**
+	* adds a new child to parentModel
+	**/
 	
 	public void addChildren(AID childrenName)
 	{
 		childrenModel.add(childrenName);
 		childrenModel.fireTableDataChanged();
 	}
-	
+	/**
+	add a new agent desc to registeredModel
+	*/
 	public void addAgentDesc(AID name)
 	{
 		registeredModel.add(name);
 		registeredModel.fireTableDataChanged();
 	}
-	
-	public void removeAgentDesc(AID name)
+	/**
+	remove an agent descr form registeredModel
+	*/
+	public void removeAgentDesc(AID name, AID df)
 	{
 		registeredModel.remove(name);
 		registeredModel.fireTableDataChanged();
+		registeredTable.clearSelection();
+		//update the foundModel is
+		if(df.equals(lastDF))
+				removeSearchResult(name);
+		
 	}
 
  public void removeChildren(AID childrenName)
 	{
 		childrenModel.remove(childrenName);
 		childrenModel.fireTableDataChanged();
+		childrenTable.clearSelection();
 	}
 	
 	public void removeParent(AID parentName)
@@ -779,13 +816,10 @@ public class DFGUI extends JFrame
 	
 		parentModel.remove(parentName);
 		parentModel.fireTableDataChanged();
-	
-
+	  parentTable.clearSelection();
 	}
 	
 
-
-	
 	////////////////////////////////////
 	// Show DF GUI properly
 	public void setVisible(boolean b) 

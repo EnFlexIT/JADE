@@ -50,7 +50,7 @@ class DFGUIFederateAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 	
-		gui.setTab("Federate");
+		gui.setTab("Federate",null);
 	
 		DFAgentDescription editedDfd ;
 		DFAgentDescription dfd = gui.myAgent.getDescriptionOfThisDF();
@@ -72,7 +72,7 @@ class DFGUIFederateAction extends AbstractAction
 		
 		  if (editedDfd != null)
 			  gui.myAgent.postFederateEvent((Object)gui, parent, editedDfd);
-	   	  gui.setTab("Federate");
+	   	  gui.setTab("Federate",null);
 		}
 	
 	}
