@@ -29,9 +29,10 @@ package jade.domain.FIPAAgentManagement;
 * @version $Date$ $Revision$
 */
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class ReceivedObject {
+public class ReceivedObject implements Serializable {
 
   private String by;
   private String from;
