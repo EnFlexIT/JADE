@@ -220,6 +220,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	myIMTPManager.removeServiceManagerAddress(addr);
     }
 
+    public String[] getAddresses() throws IMTPException {
+	return myIMTPManager.getServiceManagerAddresses();
+    }
+
     public String getLocalAddress() throws IMTPException {
 	return localAddress;
     }
@@ -317,7 +321,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	// Remove the node as a local agent container
 	myMain.removeLocalContainer(desc.getContainer());
 
-	// Tell all the other service managers about the new node
+	// Tell all the other service managers about the removed node
 	myIMTPManager.nodeRemoved(desc);
 
     }
