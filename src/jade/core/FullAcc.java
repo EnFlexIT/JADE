@@ -159,7 +159,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
   }
 
   /*
-  * This method is called by ACCProxy before preparing the Envelope of an outgoing message.
+  * This method is called before preparing the Envelope of an outgoing message.
   * It checks for all the AIDs present in the message and adds the addresses, if not present
   **/
   public void addPlatformAddresses(AID id) {
@@ -253,6 +253,22 @@ class FullAcc implements acc, InChannel.Dispatcher {
     }
   }
 
+  public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException {
+
+    Iterator addresses = receiverID.getAllAddresses();
+    while(addresses.hasNext()) {
+      String address = (String)addresses.next();
+      try {
+	forwardMessage(msg, receiverID, address);
+	return;
+      }
+      catch(MTPException mtpe) {
+	System.out.println("Bad address [" + address + "]: trying the next one...");
+      }
+    }
+    throw new NotFoundException("No valid address contained within the AID.");
+  }
+
   public void forwardMessage(ACLMessage msg, AID receiver, String address) throws MTPException {
 
     AID aid = msg.getSender();
@@ -284,10 +300,6 @@ class FullAcc implements acc, InChannel.Dispatcher {
       out.route(msg, receiver, address);
     else
       throw new MTPException("No suitable route found for address " + address + ".");
-  }
-
-  public AgentProxy getProxy(AID agentID) throws NotFoundException {
-    return new ACCProxy(agentID, this);
   }
 
   public String addMTP(String mtpClassName, String address) throws MTPException { 
