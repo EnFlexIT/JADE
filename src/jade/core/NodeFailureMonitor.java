@@ -25,98 +25,87 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-import jade.util.leap.List;
+import jade.util.Logger;
 import jade.util.leap.LinkedList;
-import jade.util.leap.Iterator;
+import jade.util.leap.List;
 
 /**
+ * The abstract class <code>NodeFailureMonitor</code> provides a basic implementation
+ * for all classes that supervise nodes and detect node failures.
+ * 
+ * The monitor can only supervise a single node. If there are additional nodes in <br />
+ * the same JVM, you can add these as child nodes. A child node is not supervised <br />
+ * directly. Instead it has always the same state than its parent node. 
+ * So if the parent node gets unreachable automatically all its child nodes will 
+ * turn to the state unreachable.
+ * 
+ * @author Roland Mungenast - Profactor
+ * @see jade.core.BlockingNodeFailureMonitor
+ * @see jade.core.UDPNodeFailureMonitor
+ * @see jade.core.NodeEventListener
+ */
+public abstract class NodeFailureMonitor {
 
-   The <code>NodeFailureMonitor</code> class detects node failures and
-   notifies its registered listener.
+  protected Node target;
+  protected NodeEventListener listener;
+  protected List childNodes = new LinkedList();
+  protected Logger logger = Logger.getMyLogger(this.getClass().getName());
 
-   @author Giovanni Rimassa - FRAMeTech s.r.l.
-
-   @see jade.core.NodeEventListener
-*/
-public class NodeFailureMonitor implements Runnable {
-
-    private Node target;
-    private NodeEventListener listener;
-    private boolean nodeExited = false;
-    private boolean stopped = false;
-    
-    private List childNodes = new LinkedList();
-
-    public NodeFailureMonitor(Node n, NodeEventListener nel) {
-      target = n;
-      listener = nel;
-    }
-
-    public void run() {
-			listener.nodeAdded(target);
-			while(!nodeExited && !stopped) {
-		    try {
-					nodeExited = target.ping(true); // Hang on this call
-					System.out.println("PING from node " + target.getName() + " returned [" + (nodeExited ? "EXIT]" : "GO ON]"));
-		    }
-		    catch(IMTPException imtpe1) { // Connection down
-					System.out.println("PING from node " + target.getName() + " exited with exception");
-					if(!stopped) {
-				    listener.nodeUnreachable(target);
-					}
-					try {
-				    target.ping(false); // Try a non blocking ping to check
-		
-				    System.out.println("PING from node " + target.getName() + " returned OK");
-				    if(!stopped) {
-							listener.nodeReachable(target);
-				    }
-					}
-					catch(IMTPException imtpe2) { // Object down
-				    nodeExited = true;
-					}
-		    }
-		    catch(Throwable t) {
-					t.printStackTrace();
-		    }
-			} // END of while
-      
-			// If we reach this point without being explicitly stopped the node is no longer active
-			if(!stopped) {
-		    listener.nodeRemoved(target);
-		    synchronized (this) {
-		    	Iterator it = childNodes.iterator();
-		    	while (it.hasNext()) {
-		    		Node n = (Node) it.next();
-		    		listener.nodeRemoved(n);
-		    	}
-		    	childNodes.clear();
-		    }
-			}
-    }
-
-    public void stop() {
-	try {
-	    stopped = true;
-	    target.interrupt();
-	}
-	catch(IMTPException imtpe) {
-	    System.out.println("-- The node <" + target.getName() + "> is already dead --" );
-	    // Ignore it: the node must be dead already...
-	}
-
-    }
-    
-    public Node getNode() {
-    	return target;
-    }
-    
-    public synchronized void addChild(Node n) {
-    	childNodes.add(n);
-			listener.nodeAdded(n);
-    }
-    
-    public synchronized void removeChild(Node n) {
-    	childNodes.remove(n);
-    }
+  public static NodeFailureMonitor getFailureMonitor(Profile p, Node n, NodeEventListener listener) {
+  	try {
+  		String className = (p.getBooleanProperty(Profile.UDP_MONITORING, false) ? "jade.core.UDPNodeFailureMonitor" : "jade.core.BlockingNodeFailureMonitor");
+  		NodeFailureMonitor monitor = (NodeFailureMonitor) Class.forName(className).newInstance();
+			monitor.init(p, n, listener);
+			return monitor;
+  	}
+  	catch (Throwable t) {
+  		// FIXME: Properly hand;le the exception
+  		t.printStackTrace();
+  		return null;
+  	}
+  }
+  
+  /**
+   * Constructor
+   * @param n target node to monitor
+   * @param nel listener to inform about new events
+   */
+  public void init(Profile p, Node n, NodeEventListener nel) {
+    target = n;
+    listener = nel;
+  }
+  
+  /**
+   * Adds a child node for monitoring. 
+   * @param n child node
+   */
+  public synchronized void addChild(Node n) {
+    childNodes.add(n);
+  }
+  
+  /**
+   * Removes a child node from monitoring
+   * @param n child node
+   */
+  public synchronized void removeChild(Node n) {
+    childNodes.remove(n);
+  }
+  
+  /**
+   * Returns the monitored target node
+   */
+  public Node getNode() {
+    return target;
+  }
+  
+  /**
+   * Starts the monitoring
+   */
+  public abstract void start();
+ 
+  /**
+   * Stops the monitoring
+   */
+  public abstract void stop();
+  
 }
