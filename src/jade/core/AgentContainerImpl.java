@@ -362,11 +362,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     // Add the address of the new MTP to the AIDs of all local agents
     Agent[] allLocalAgents = localAgents.values();
   	for(int i = 0; i < allLocalAgents.length; i++) {
-	  	allLocalAgents[i].addPlatformAddress(result.getAddress());
+	  String[] addrs = result.getAddresses();
+	  allLocalAgents[i].addPlatformAddress(addrs[0]);
   	}
-  	
+
   	myPlatform.newMTP(result, myID);
-  	
   	return result;
   }
 
@@ -375,10 +375,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     
     // Remove the address of the old MTP to the AIDs of all local agents
     Agent[] allLocalAgents = localAgents.values();
-  	for(int i = 0; i < allLocalAgents.length; i++) {
-	  	allLocalAgents[i].removePlatformAddress(address);
-  	}
-  	
+    for(int i = 0; i < allLocalAgents.length; i++) {
+      allLocalAgents[i].removePlatformAddress(address);
+    }
+
     myPlatform.deadMTP(mtp, myID);
   }
 
@@ -387,15 +387,19 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     switch(op) {
     case ADD_RT:
       myACC.addRoute(mtp, ac);
-    	// Add the address of the new MTP to the AIDs of all local agents
-      for(int i = 0; i < allLocalAgents.length; i++) 
-	  		allLocalAgents[i].addPlatformAddress(mtp.getAddress());
+      // Add the address of the new MTP to the AIDs of all local agents
+      for(int i = 0; i < allLocalAgents.length; i++) {
+	String[] addrs = mtp.getAddresses();
+	allLocalAgents[i].addPlatformAddress(addrs[0]);	
+      }
       break;
     case DEL_RT:
       myACC.removeRoute(mtp, ac);
-    	// Remove the address of the old MTP to the AIDs of all local agents
-      for(int i = 0; i < allLocalAgents.length; i++) 
-	  		allLocalAgents[i].removePlatformAddress(mtp.getAddress());
+      // Remove the address of the old MTP to the AIDs of all local agents
+      for(int i = 0; i < allLocalAgents.length; i++) {
+	String[] addrs = mtp.getAddresses();
+	allLocalAgents[i].removePlatformAddress(addrs[0]);
+      }
       break;
     }
 

@@ -285,7 +285,7 @@ class MainContainerImpl implements Platform, AgentManager {
   		Iterator it = mtps.iterator();
   		while (it.hasNext()) {
   			MTPDescriptor dsc = (MTPDescriptor) it.next();
-  			fireRemovedMTP(dsc.getAddress(), crashedID);
+  			fireRemovedMTP(dsc, crashedID);
   			for (int i = 0; i < names.length; ++i) {
   				if (!CaseInsensitiveString.equalsIgnoreCase(names[i], crashedName)) {
   					AgentContainer ac = containers.getContainer(names[i]);
@@ -364,8 +364,10 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
-  private void fireAddedMTP(String address, ContainerID cid) {
-    Channel ch = new Channel("FIXME: missing channel name", "FIXME: missing channel protocol", address);
+  private void fireAddedMTP(MTPDescriptor mtp, ContainerID cid) {
+    String name = mtp.getName();
+    String[] addrs = mtp.getAddresses();
+    Channel ch = new Channel("FIXME: missing channel name", name, addrs[0]);
     MTPEvent ev = new MTPEvent(MTPEvent.ADDED_MTP, cid, ch);
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
@@ -373,10 +375,11 @@ class MainContainerImpl implements Platform, AgentManager {
    } 
   }
 
-  private void fireRemovedMTP(String address, ContainerID cid) {
-    Channel ch = new Channel("FIXME: missing channel name", "FIXME: missing channel protocol", address);
+  private void fireRemovedMTP(MTPDescriptor mtp, ContainerID cid) {
+    String name = mtp.getName();
+    String[] addrs = mtp.getAddresses();
+    Channel ch = new Channel("FIXME: missing channel name", name, addrs[0]);
     MTPEvent ev = new MTPEvent(MTPEvent.REMOVED_MTP, cid, ch);
-
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.removedMTP(ev);
@@ -624,7 +627,8 @@ class MainContainerImpl implements Platform, AgentManager {
   public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
       String containerName = cid.getName();
-      String mtpAddress = mtp.getAddress();
+      String[] mtpAddrs = mtp.getAddresses();
+      String mtpAddress = mtpAddrs[0];
       platformAddresses.add(mtpAddress);
       containers.addMTP(containerName, mtp);
       AgentContainer target = containers.getContainer(containerName);
@@ -644,7 +648,7 @@ class MainContainerImpl implements Platform, AgentManager {
       }
 
       // Notify listeners (typically the AMS)
-      fireAddedMTP(mtpAddress, cid);
+      fireAddedMTP(mtp, cid);
     }
     catch(NotFoundException nfe) {
       System.out.println("Error: the container " + cid.getName() + " was not found.");
@@ -654,7 +658,8 @@ class MainContainerImpl implements Platform, AgentManager {
   public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
     try {
       String containerName = cid.getName();
-      String mtpAddress = mtp.getAddress();
+      String[] mtpAddrs = mtp.getAddresses();
+      String mtpAddress = mtpAddrs[0];
       platformAddresses.remove(mtpAddress);
       containers.removeMTP(containerName, mtp);
       AgentContainer target = containers.getContainer(containerName);
@@ -674,7 +679,7 @@ class MainContainerImpl implements Platform, AgentManager {
       }
 
       // Notify listeners (typically the AMS)
-      fireRemovedMTP(mtpAddress, cid);
+      fireRemovedMTP(mtp, cid);
 
     }
     catch(NotFoundException nfe) {

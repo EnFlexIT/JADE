@@ -113,8 +113,9 @@ class FullAcc implements acc, InChannel.Dispatcher {
 					}
 				}
 				MTPDescriptor mtp = myContainer.installMTP(addressURL, className);
-				f.println(mtp.getAddress());
-				System.out.println(mtp.getAddress());
+				String[] mtpAddrs = mtp.getAddresses();
+				f.println(mtpAddrs[0]);
+				System.out.println(mtpAddrs[0]);
       }
 
       f.close();      
@@ -322,7 +323,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
 	proto.activate(this, ta);
       }
       routes.addLocalMTP(address, proto);
-      return new MTPDescriptor(proto.getName(), address, proto.getSupportedProtocols());
+      return new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
     }
     catch(ClassNotFoundException cnfe) {
       throw new MTPException("ERROR: The class " + mtpClassName + " for the " + address  + " MTP was not found");
@@ -340,7 +341,7 @@ class FullAcc implements acc, InChannel.Dispatcher {
     if(proto != null) {
       TransportAddress ta = proto.strToAddr(address);
       proto.deactivate(ta);
-      return new MTPDescriptor(proto.getName(), address, proto.getSupportedProtocols());
+      return new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
     }
     else
       throw new MTPException("No such address was found on this container: " + address);

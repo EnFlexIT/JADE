@@ -116,7 +116,8 @@ class LightAcc implements acc {
     public void addRoute(MTPDescriptor mtp, AgentContainer ac) {
       // Just update the list of platform addresses
     	synchronized (this) { // Mutual exclusion with addPlatformAddresses()
-    		platformAddresses.add(mtp.getAddress());
+	  String[] mtpAddrs = mtp.getAddresses();
+	  platformAddresses.add(mtpAddrs[0]);
     	}
     } 
 
@@ -126,7 +127,8 @@ class LightAcc implements acc {
     public void removeRoute(MTPDescriptor mtp, AgentContainer ac) {
       // Just update the list of platform addresses
     	synchronized (this) { // Mutual exclusion with addPlatformAddresses()
-    		platformAddresses.remove(mtp.getAddress());
+	  String[] mtpAddrs = mtp.getAddresses();
+	  platformAddresses.remove(mtpAddrs);
     	}
     } 
 

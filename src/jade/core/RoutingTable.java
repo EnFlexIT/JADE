@@ -242,7 +242,8 @@ class RoutingTable {
     }
 
     // Remote MTPs are valid platform addresses
-    platformAddresses.add(mtp.getAddress());
+    String[] mtpAddrs = mtp.getAddresses();
+    platformAddresses.add(mtpAddrs[0]);
   }
 
   /**
@@ -256,7 +257,8 @@ class RoutingTable {
     }
 
     // Remote MTPs are valid platform addresses
-    platformAddresses.remove(mtp.getAddress());
+    String[] mtpAddrs = mtp.getAddresses();
+    platformAddresses.remove(mtpAddrs[0]);
   }
 
   /**
