@@ -68,12 +68,14 @@ class acc implements InChannel.Dispatcher {
   private List localAddresses = new LinkedList();
   private AgentContainerImpl myContainer;
   private String accID;
+  private AIDTranslator translator;
 
   public acc(AgentContainerImpl ac, String platformID) {
     ACLCodec stringCodec = new StringACLCodec();
     messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
     myContainer = ac;
     accID = "fipa-mts://" + platformID + "/acc";
+    translator = new AIDTranslator(platformID);
   }
 
   /*
@@ -313,6 +315,9 @@ class acc implements InChannel.Dispatcher {
     try {
       ACLMessage msg = codec.decode(payload);
       msg.setEnvelope(env);
+
+      // Perform AID translations in ':sender' and ':receiver' slots.
+      translator.translateRouted(msg);
 
       // If the 'sender' AID has no addresses, replace it with the
       // 'from' envelope slot
