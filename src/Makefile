@@ -23,6 +23,7 @@ ROOTCLASSES =	jade/core/behaviours/CompositeBehaviour.java \
 		jade/core/behaviours/SenderBehaviour.java \
 		jade/core/behaviours/ReceiverBehaviour.java \
 		jade/core/behaviours/WakerBehaviour.java \
+		jade/core/behaviours/FSMBehaviour.java \
 		jade/domain/MobilityOntology.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
