@@ -31,8 +31,10 @@ import jade.core.ContainerID;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
+import jade.core.Command;
 
 import jade.security.Credentials;
+import jade.security.JADEPrincipal;
 import jade.security.AuthException;
 
 
@@ -151,8 +153,8 @@ public interface AgentManagementSlice extends Service.Slice {
 
 
 
-    static final boolean CREATE_AND_START = true;
-    static final boolean CREATE_ONLY = false;
+    //static final boolean CREATE_AND_START = true;
+    //static final boolean CREATE_ONLY = false;
 
 
     // Constants for the names of horizontal commands associated to methods
@@ -165,7 +167,7 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String H_RESUMEDAGENT = "7";
     static final String H_EXITCONTAINER = "8";
 
-    void createAgent(AID agentID, String className, Object arguments[], String ownership, Credentials creds, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException;
+    void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException;
     void killAgent(AID agentID) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
