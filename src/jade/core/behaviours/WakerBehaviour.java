@@ -58,7 +58,7 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 /**
 @serial
 */
-private long wakeupTime, blockTime;
+private long wakeupTime, blockTime, timeout;
 /**
 @serial
 */
@@ -88,15 +88,19 @@ public WakerBehaviour(Agent a, Date wakeupDate) {
    */
 public WakerBehaviour(Agent a, long timeout) {
   super(a);
-  wakeupTime = System.currentTimeMillis() + timeout;
+  wakeupTime = -1;
+  this.timeout = timeout;
   state = 0;
   finished = false;
 }
 
-
 public void action() {
   switch (state) {
   case 0: {
+  	// Adjust wakeupTime in case the user set a relative time
+		if (wakeupTime == -1) {
+			wakeupTime = System.currentTimeMillis()+timeout;
+		}
     // in this state the behaviour blocks itself
     blockTime = wakeupTime - System.currentTimeMillis();
     if (blockTime > 0) // MINIMUM_TIMEOUT)
@@ -153,7 +157,10 @@ public void reset(Date wakeupDate) {
    * must be waken up again. 
    */
 public void reset(long timeout) {
-  reset(new Date(System.currentTimeMillis() + timeout));
+	wakeupTime = -1;
+	this.timeout = timeout;
+  state = 0;
+  finished = false;
 }
 
 public boolean done() {
