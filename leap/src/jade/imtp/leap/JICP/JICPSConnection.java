@@ -39,6 +39,7 @@ package jade.imtp.leap.JICP;
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
+import jade.util.Logger;
 import java.io.*;
 import java.net.*;
 import javax.net.ssl.*;
@@ -46,10 +47,13 @@ import javax.net.ssl.*;
 /**
  * Class declaration
  * @author Steffen Rusitschka - Siemens
+ * @author Giosue Vitaglione - TILAB
  */
 public class JICPSConnection extends JICPConnection {
 	private static SSLSocketFactory scsf = null;
 	
+  protected static Logger myLogger = Logger.getMyLogger( JICPSConnection.class.getName() );
+
   protected JICPSConnection() {
   	super();
   }
@@ -58,6 +62,22 @@ public class JICPSConnection extends JICPConnection {
    * Constructor declaration
    */
   public JICPSConnection(TransportAddress ta) throws IOException {
+  	constructJICPSConnectionNoAuth( ta );
+  }
+  public JICPSConnection(TransportAddress ta, boolean useSSLAuth) throws IOException {
+  	if (useSSLAuth){
+  		constructJICPSConnectionWithAuth( ta );
+  	} else {
+		constructJICPSConnectionNoAuth( ta );
+  	}
+  } // end constructor
+
+  private void constructJICPSConnectionNoAuth(TransportAddress ta) throws IOException {
+	if (myLogger.isLoggable(Logger.WARNING)) {
+		myLogger.log(Logger.WARNING, 
+          "Creating JICPSConnection with NO-AUTHENTICATION (only confidentiality)." );
+    }
+
   	if (scsf == null) {
 	  	try {
 					SSLContext ctx = SSLContext.getInstance("TLS");
@@ -84,6 +104,37 @@ public class JICPSConnection extends JICPConnection {
   		}
   	}
   }
+
+  private void constructJICPSConnectionWithAuth(TransportAddress ta) throws IOException {
+	if (myLogger.isLoggable(Logger.FINE)) {
+		myLogger.log(Logger.FINE, 
+          "Creating JICPSConnection with MUTUAL AUTHENTICATION." );
+    }
+  	if (scsf == null) {
+	  	try {
+			// create and init new SSL context appropriate for mutual Auth
+			SSLContext ctx = JICPSPeer.createContextWithAuth();
+			scsf = (SSLSocketFactory) ctx.getSocketFactory();
+	  	} catch (Exception e) {
+	  		throw new IOException("Error creating SSLSocketFactory. "+e.toString());
+	  	}
+  	}
+
+  	// For some reason the local address or port may be
+  	// in use
+  	while (true) {
+  	  try {  		
+        sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
+	    is = sc.getInputStream();
+  	    os = getOutputStream();
+        break;
+  	  }
+  		catch (BindException be) {
+  		// Do nothing and try again
+  	  }
+  	}// end while
+  }
+
 
   /**
    * Constructor declaration
