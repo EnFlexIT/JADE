@@ -172,7 +172,12 @@ Object Term():
  String s;
 }
 {
- ( obj = String() 
+ ( obj = String() { 
+	// if it is true or false, then converts the String into a Boolean
+	          if (obj.toString().equalsIgnoreCase("true") ||  
+	              obj.toString().equalsIgnoreCase("false") )  
+	            obj = new Boolean(obj.toString());
+                  }
  | obj = Number() 
  | t = <DATETIME> { try { obj=jade.lang.acl.ISO8601.toDate(t.image);}
                     catch (Exception e) { obj = new String(t.image); } }
