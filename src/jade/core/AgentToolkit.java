@@ -27,7 +27,6 @@ import jade.lang.acl.ACLMessage;
 import jade.security.AuthException;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
-import jade.security.Authority;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 //#MIDP_EXCLUDE_END
@@ -49,8 +48,6 @@ interface AgentToolkit {
   void handleBehaviourAdded(AID agentID, Behaviour b);
   void handleBehaviourRemoved(AID agentID, Behaviour b);
   void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
-
-  Authority getAuthority();
 
   // FIXME: Needed due to the Persistence Service being an add-on
   void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;

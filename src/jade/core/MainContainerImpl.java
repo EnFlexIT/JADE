@@ -63,7 +63,6 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.JADECertificate;
 import jade.security.DelegationCertificate;
@@ -107,7 +106,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private ContainerTable containers = new ContainerTable();
     private GADT platformAgents = new GADT();
   
-    private Authority authority;
     private Profile myProfile;
 
     public MainContainerImpl(Profile p, PlatformManager pm) throws ProfileException {
@@ -115,41 +113,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	myIMTPManager = p.getIMTPManager();
 	myCommandProcessor = p.getCommandProcessor();
 	myPlatformManager = pm;
-
-	
-/*
-	try {
-	    if (p.getParameter(Profile.OWNER, null) != null) {
-		// if there is an owner for this container
-		// then try to use the full implementation of security
-		p.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
-		p.setParameter(Profile.AUTHORITY_CLASS,"jade.security.impl.ContainerAuthority");
-	    }
-	    String type = p.getParameter(Profile.MAINAUTH_CLASS, null);
-	    if (type != null) {
-		authority = (Authority)Class.forName(type).newInstance();
-		authority.setName("main-authority");
-		authority.init(p, this);
-	    }
-	}
-	catch (Exception e1) {
-	    System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
-	    authority = null;
-	    //			e1.printStackTrace();
-	}
-*/
-	try {
-	    if (authority == null) {
-		authority = new jade.security.dummy.DummyAuthority();
-		authority.setName("main-authority");
-		authority.init(p, this);
-	    }
-	}
-	catch (Exception e2) {
-	    System.err.println("Could not init dummy platform authority");
-	    //e2.printStackTrace();
-	}
-	
     }
 	
     public PlatformManager getPlatformManager() {
@@ -160,7 +123,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	Node node = desc.getNode();
 	ContainerID cid = desc.getContainer();
-	containers.addContainer(cid, node, null, null); // GVFIXME
+	containers.addContainer(cid, node, desc.getOwnerPrincipal(), desc.getOwnerCredentials()); // GVFIXME
  	localContainerID = cid;
 
     }
@@ -231,29 +194,17 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, AuthException {
 	ContainerID cid = ac.getID();
-	JADEPrincipal cp = containers.getPrincipal(cid);
-	//String agentOwnership = cp.getOwnership();
-
+	
 	// Start the AMS
 	theAMS = new ams(this);
-	//theAMS.setOwnership(agentOwnership);
-	//AgentPrincipal amsPrincipal = authority.createAgentPrincipal(ac.getAMS(), agentOwnership);
-	//	CertificateFolder amsCerts = authority.authenticate(amsPrincipal, password);
-	//CertificateFolder amsCerts = authority.authenticate(amsPrincipal, new byte[] {}); // FIXME: Temporary Hack 
-	//theAMS.setPrincipal(amsCerts);
 
 	// Notify the AMS about the main container existence
 	fireAddedContainer(cid);
-	// FIXME: where do we get the container ownership?
+	// FIXME: To be removed
 	fireChangedContainerPrincipal(cid, null, null);
 
 	// Start the Default DF
 	defaultDF = new df();
-	//defaultDF.setOwnership(agentOwnership);
-	//AgentPrincipal dfPrincipal = authority.createAgentPrincipal(ac.getDefaultDF(), agentOwnership);
-	//	CertificateFolder dfCerts = authority.authenticate(dfPrincipal, password);
-	//CertificateFolder dfCerts = authority.authenticate(dfPrincipal, new byte[] {}); // FIXME: Temporary Hack
-	//defaultDF.setPrincipal(dfCerts);
 
 	if(startThem) {
 	    startSystemAgents(ac);
@@ -263,11 +214,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     // Start the AMS and the Default DF
     void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
+	ContainerID cid = ac.getID();
+	JADEPrincipal cp = containers.getPrincipal(cid);
+	Credentials cr = containers.getCredentials(cid);
 
 	try {
 	    theAMS.resetEvents(true);
 	    AID amsId = ac.getAMS();
-	    ((AgentContainerImpl)ac).initAgent(amsId, theAMS); 
+	    ac.initAgent(amsId, theAMS, cp, cr); 
 	    ac.powerUpLocalAgent(amsId);
 	    theAMS.waitUntilStarted();
 	}
@@ -278,7 +232,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
  
 	try {
 	    AID dfId = ac.getDefaultDF();
-	    ((AgentContainerImpl)ac).initAgent(dfId, defaultDF);
+	    ac.initAgent(dfId, defaultDF, cp, cr);
 	    ac.powerUpLocalAgent(dfId);
 	    defaultDF.waitUntilStarted();
 	}
@@ -504,25 +458,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
   /**
      Return the principal of an agent
-   */
+   *
     public JADEPrincipal getAgentPrincipal(AID agentID) throws IMTPException, NotFoundException {
 	return new DummyPrincipal(agentID, JADEPrincipal.NONE ); //getPrincipal(agentID);
-    }
-
-    /**
-       Make the platform authority sign a certificate
-    */
-  public JADECertificate sign(JADECertificate certificate, Credentials creds) throws IMTPException, AuthException {
-    //authority.sign(certificate, certs);
-    return certificate;
-  }
-  
-  /**
-     Return the public key of the platform
-   */
-  public byte[] getPublicKey() throws IMTPException {
-  	return authority.getPublicKey();
-  }
+    }*/
 
   //////////////////////////////////////////////////////////////////////
   // AgentManager interface implementation.
@@ -636,14 +575,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
        Suspend an agent wherever it is
     */
     public void suspend(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-
-	// --- This code should go into the Security Service ---
-
-	// Check permissions
-	//authority.checkAction(Authority.AGENT_SUSPEND, getPrincipal(agentID), null);
-
-	// --- End of code that should go into the Security Service ---
-
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_SUSPENDED));
@@ -672,14 +603,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
        Resume an agent wherever it is
     */
     public void activate(final AID agentID) throws NotFoundException, UnreachableException, AuthException {
-
-	// --- This code should go into the Security Service ---
-
-	// Check permissions
-	//authority.checkAction(Authority.AGENT_RESUME, getPrincipal(agentID), null);
-
-	// --- End of code that should go into the Security Service ---
-
 	GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.REQUEST_STATE_CHANGE, jade.core.management.AgentManagementSlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(AgentState.getInstance(Agent.AP_ACTIVE));
@@ -766,16 +689,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	// Check whether the destination exists
 	containers.getContainerNode(to);
 
-
-	// --- This code should go into the Security Service ---
-		
-	// Check permissions
-	//authority.checkAction(Authority.CONTAINER_MOVE_FROM, getPrincipal(from), null);
-	//authority.checkAction(Authority.CONTAINER_MOVE_TO, getPrincipal(to), null);
-	//authority.checkAction(Authority.AGENT_MOVE, getPrincipal(agentID), null);
-
-	// --- End of code that should go into the Security Service ---
-
 	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_MOVE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
@@ -812,15 +725,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	// Check whether the destination exists
 	containers.getContainerNode(to);
 
-	// --- This code should go into the Security Service ---
-
-	// Check permissions
-	//authority.checkAction(Authority.AGENT_CLONE, getPrincipal(agentID), null);
-	//authority.checkAction(Authority.CONTAINER_CLONE_FROM, getPrincipal(from), null);
-	//authority.checkAction(Authority.CONTAINER_CLONE_TO, getPrincipal(to), null);
-
-	// --- End of code that should go into the Security Service ---
-
 	GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilityHelper.REQUEST_CLONE, jade.core.mobility.AgentMobilitySlice.NAME, null);
 	cmd.addParam(agentID);
 	cmd.addParam(where);
@@ -854,14 +758,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	Kill a given container
     */
     public void killContainer(ContainerID cid) throws NotFoundException, AuthException {
-
-			// --- This code should go into the Security Service ---
-		
-			// Check permissions
-			//authority.checkAction(Authority.CONTAINER_KILL, getPrincipal(cid), null);
-		
-			// --- End of code that should go into the Security Service ---
-
 			GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.KILL_CONTAINER, jade.core.management.AgentManagementSlice.NAME, null);
 			cmd.addParam(cid);
 			Object ret = myCommandProcessor.processOutgoing(cmd);
@@ -1019,33 +915,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
   /**
-     Change the principal of an agent
+     Change the ownership of an agent
+     // FIXME: implement or remove
    */
 	public void take(final AID agentID, final String username, final byte[] password) throws NotFoundException, UnreachableException, AuthException {
-		/*
-		// Check permissions	
-		authority.checkAction(Authority.AGENT_TAKE, getPrincipal(agentID), null);
-
-		// Create the certificate folder for the new principal
-		final AgentPrincipal principal = authority.createAgentPrincipal(agentID, username);
-		final CertificateFolder certs = authority.authenticate(principal, password);
-		
-		// Do the action (we need again full permissions to execute a remote call)
-		try {	
-			authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-		  	public Object run() throws IMTPException, NotFoundException {
-			    //	  			getContainerFromAgent(agentID).changeAgentPrincipal(agentID, certs);
-	  			return null;
-				}
-			});
-		}
-		catch (IMTPException re) {
-			throw new UnreachableException(re.getMessage());
-		}
-		catch (Exception e) {
-			// Should never happen
-			e.printStackTrace();
-		}*/
 	}
 
 
@@ -1157,9 +1030,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	
-		// Check permissions	
-		//authority.checkAction(Authority.AMS_REGISTER, getPrincipal(agentID), null);
-
   	AgentDescriptor ad = platformAgents.acquire(agentID);
   	if (ad == null) {
   		System.out.println("No descriptor found for agent "+agentID);
@@ -1191,9 +1061,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	
-		// Check permissions	
-		//authority.checkAction(Authority.AMS_DEREGISTER, getPrincipal(agentID), null);
-  	
 		AgentDescriptor ad = platformAgents.acquire(agentID);
   	if (ad != null) {
   		if (ad.getDescription() != null) {
@@ -1217,17 +1084,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Modify the registration of an agent to the White Pages service of 
      this platform.
      If the modification implies a change in the agent state (and the agent
-     lives in the platform) --> force that chage 
+     lives in the platform) --> force that change 
      If the modification implies a change in the agent ownership (and the agent
-     lives in the platform) --> force that chage 
+     lives in the platform) --> force that change 
    */
   public void amsModify(AMSAgentDescription dsc) throws NotRegistered, NotFoundException, UnreachableException, AuthException {
   	// Mandatory slots have already been checked
   	AID agentID = dsc.getName();
   	
-		// Check permissions	
-		//authority.checkAction(Authority.AMS_MODIFY, getPrincipal(agentID), null);
-
   	AgentDescriptor ad = platformAgents.acquire(agentID);
   	if (ad != null) {
   		AMSAgentDescription oldDsc = ad.getDescription();
@@ -1385,64 +1249,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
   
   /**
-     Return the delegation certificate to be used by the AMS to executed
-     actions on behalf of (requested by) a given agent
-   */
-  /*public CertificateFolder getAMSDelegation(AID agentID) {
-    AgentDescriptor ad = platformAgents.acquire(agentID);
-    if (ad == null) {
-    	// Create a CertificateFolder with no delegated permissions
-    	// FIXME: With should give the permissions of the AgentPrincipal.NONE user
-	    try {
-	    	AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-		    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-		    amsDelegation.setSubject(amsPrincipal);
-		    authority.sign(amsDelegation, theAMS.getCertificateFolder());
-		    return new CertificateFolder(theAMS.getCertificateFolder().getIdentityCertificate(), amsDelegation);
-	    }
-	    catch (AuthException ae) {
-	    	// Should never happen
-	    	ae.printStackTrace();
-	    }
-    }
-    CertificateFolder cf = ad.getAMSDelegation();
-    platformAgents.release(agentID);
-    return cf;
-  }*/
-
-  /*public void addServiceManagerAddress(String smAddr) {
-      GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_ADDED, jade.core.replication.AddressNotificationSlice.NAME, null);
-      cmd.addParam(smAddr);
-
-      Object ret = myCommandProcessor.processOutgoing(cmd);
-      if (ret != null) {
-      	if (ret instanceof Throwable) {
-      		((Throwable) ret).printStackTrace();
-      	}
-      }
-  }
-
-  public void removeServiceManagerAddress(String smAddr) {
-      GenericCommand cmd = new GenericCommand(jade.core.replication.AddressNotificationSlice.SM_ADDRESS_REMOVED, jade.core.replication.AddressNotificationSlice.NAME, null);
-      cmd.addParam(smAddr);
-
-      Object ret = myCommandProcessor.processOutgoing(cmd);
-      if (ret != null) {
-      	if (ret instanceof Throwable) {
-      		((Throwable) ret).printStackTrace();
-      	}
-      }
-  }*/
-
-
-  /**
-     Return the platform main authority
-   */
-	public Authority getAuthority() {
-		return authority;
-	}
-  
-  /**
      Add a listener of platform events
    */
   public void addListener(AgentManager.Listener l) {
@@ -1456,40 +1262,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     platformListeners.remove(l);
   }
 
-    /***
-  ////////////////////////////////////////////////
-  // Private utility methods
-  ////////////////////////////////////////////////
-  private AgentContainer getContainerFromAgent(AID agentID) throws NotFoundException {
-    return containers.getContainer(getContainerID(agentID));
-  }
-    ***/
-
-  /*private CertificateFolder prepareAMSDelegation(CertificateFolder certs) throws AuthException {
-    AgentPrincipal amsPrincipal = theAMS.getPrincipal();
-    DelegationCertificate amsDelegation = authority.createDelegationCertificate();
-    amsDelegation.setSubject(amsPrincipal);
-    for (int c = 0; c < certs.getDelegationCertificates().size(); c++) {
-      amsDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-    }
-    authority.sign(amsDelegation, certs);
-    return new CertificateFolder(theAMS.getCertificateFolder().getIdentityCertificate(), amsDelegation);
-  }*/
-
-
-	/*public JADEPrincipal getPrincipal(AID agentID) {
-		JADEPrincipal ap;
-		AgentDescriptor ad = platformAgents.acquire(agentID);
-
-		if (ad == null) {
-			return authority.createAgentPrincipal(agentID, JADEPrincipal.NONE);
-		}
-		else {
-			ap = ad.getPrincipal();
-			platformAgents.release(agentID);
-			return ap;
-		}
-	}*/
 	
   JADEPrincipal getPrincipal(ContainerID cid) {
 	 	JADEPrincipal cp = null;

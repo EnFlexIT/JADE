@@ -47,14 +47,10 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
-//__SECURITY__BEGIN
-import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.CredentialsHelper;
-import jade.security.PrivilegedExceptionAction;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
-//__SECURITY__END
 
 
 /**
@@ -85,10 +81,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private CommandProcessor myCommandProcessor;
 
   //#MIDP_EXCLUDE_BEGIN
-
   // The agent platform this container belongs to
   protected MainContainerImpl myMainContainer; // FIXME: It should go away
-
   //#MIDP_EXCLUDE_END
 
   // The IMTP manager, used to access IMTP-dependent functionalities
@@ -111,9 +105,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   protected JADEPrincipal ownerPrincipal;
   protected Credentials ownerCredentials;
   
-  private Authority authority = new jade.security.dummy.DummyAuthority();
-  private Map principals = new HashMap();
-
   private AID theAMS;
   private AID theDefaultDF;
 
@@ -232,17 +223,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //////////////////////////////////////////////////////// 
   //#MIDP_EXCLUDE_END
 
-
-  /**
-     called from MainContainerImpl when creating AMS and DF
-   */
-  void initAgent( AID agentID, Agent instance )
-     throws NameClashException, IMTPException, NotFoundException, AuthException {
-   // the action is requester on behalf of the container's owner
-   initAgent (agentID, instance, myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials());
-   }
-
-
   /**
      Issue an INFORM_CREATED vertical command.
      Note that the Principal and Credentials if any are those of the
@@ -288,14 +268,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	ownerCredentials = c;
   }
   
-	public void changedAgentPrincipal(AID agentID, JADEPrincipal principal) throws IMTPException {
-		principals.put(agentID, principal);
-	}
-
-  public Authority getAuthority() {
-    return authority;
-  }
-
   protected NodeDescriptor getNodeDescriptor() {
       return myNodeDescriptor;
   }
@@ -360,7 +332,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  String serviceClass = s.getClassName();
 		  if (serviceClass.equals("jade.core.security.SecurityService")) {
 		  	l.remove(s);
-		  	dsc = startService("jade.core.security.SecurityService", false);
+		  	dsc = startService(serviceClass, false);
 			  basicServices.add(dsc);
 			  break;
 		  }
@@ -460,15 +432,15 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	startAdditionalServices();
     
     // Create and activate agents that must be launched at bootstrap
-  	//#J2ME_EXCLUDE_BEGIN
+  	//#MIDP_EXCLUDE_BEGIN
   	startBootstrapAgents();
-  	//#J2ME_EXCLUDE_END
+  	//#MIDP_EXCLUDE_END
 
     System.out.println("Agent container " + myID + " is ready.");
     return true;
   }
 
-  //#J2ME_EXCLUDE_BEGIN
+  //#MIDP_EXCLUDE_BEGIN
   private void startBootstrapAgents() {
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -506,7 +478,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
           System.out.println("Warning: error reading initial agents");
       }
   }
-  //#J2ME_EXCLUDE_END  
+  //#MIDP_EXCLUDE_END  
 
   public void shutDown() {
     // Remove all non-system agents 
@@ -683,6 +655,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   //#MIDP_EXCLUDE_BEGIN
+  // FIXME: to be removed
   public void handleChangedAgentPrincipal(AID agentID, JADEPrincipal oldPrincipal, Credentials creds) {
 
       /***
@@ -856,7 +829,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 
     /**
-     * This method is used by the class AID in order to get the HAP.
      */
     public String getPlatformID() {
   	return AID.getPlatformID();

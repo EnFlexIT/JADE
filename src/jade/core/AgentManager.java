@@ -37,7 +37,6 @@ import jade.core.event.MTPListener;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
-import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
@@ -81,10 +80,7 @@ public interface AgentManager {
   
   ContainerID getContainerID(AID agentID) throws NotFoundException;
   AMSAgentDescription getAMSDescription(AID agentID) throws NotFoundException;
-  //CertificateFolder getAMSDelegation(AID agentID);
-  
-  Authority getAuthority();
-  
+    
   // JADE actions method
     /**
      * Create an agent on the given container. If the container-name is null

@@ -27,10 +27,9 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 
-import jade.security.Authority;
-import jade.security.AuthException;
-
 import jade.util.leap.List;
+
+import jade.security.AuthException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
@@ -46,9 +45,6 @@ public interface AgentContainer {
   static final String UNNAMED_CONTAINER_NAME = "No-Name";
 
 
-    //static final boolean CREATE_AND_START = true;
-    //static final boolean CREATE_ONLY = false;
-
 
     ContainerID getID();
     String getPlatformID();
@@ -62,8 +58,8 @@ public interface AgentContainer {
     void initAgent(AID agentID, Agent instance,  
                    JADEPrincipal creator, Credentials creds                  
                    ) throws NameClashException, IMTPException, NotFoundException, AuthException;
-    Agent addLocalAgent(AID id, Agent a) throws AuthException;
     void powerUpLocalAgent(AID agentID) throws NotFoundException;
+    Agent addLocalAgent(AID id, Agent a) throws AuthException;
     void removeLocalAgent(AID id);
     Agent acquireLocalAgent(AID id);
     void releaseLocalAgent(AID id);
@@ -83,9 +79,6 @@ public interface AgentContainer {
     boolean livesHere(AID id);
     Location here();
 
-    Authority getAuthority();
-    //AgentPrincipal getAgentPrincipal(final AID agentID);
-    //ContainerPrincipal getContainerPrincipal();
     void setOwnerPrincipal(JADEPrincipal p);
     void setOwnerCredentials(Credentials c);
 

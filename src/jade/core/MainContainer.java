@@ -59,8 +59,10 @@ public interface MainContainer {
     List containerAgents(ContainerID cid) throws NotFoundException;
     ContainerID getContainerID(AID agentID) throws NotFoundException;
     Node getContainerNode(ContainerID cid) throws NotFoundException;
-
+    
+    //#MIDP_EXCLUDE_BEGIN
     AgentDescriptor acquireAgentDescriptor(AID agentID);
     void releaseAgentDescriptor(AID agentID);
+    //#MIDP_EXCLUDE_END
 
 }

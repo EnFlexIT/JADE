@@ -54,13 +54,6 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
 import java.util.Vector;
-
-import jade.security.Authority;
-/*import jade.security.AgentPrincipal;
-import jade.security.DelegationCertificate;
-import jade.security.IdentityCertificate;
-import jade.security.CertificateFolder;
-import jade.security.PrivilegedExceptionAction;*/
 //#MIDP_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -584,12 +577,6 @@ public class Agent implements Runnable, Serializable
   // agent suspension and termination from outside world.
   private volatile int myAPState;
 
-  //#MIDP_EXCLUDE_BEGIN
-  //private Authority authority;
-  //private String ownership = jade.security.JADEPrincipal.NONE;
-  //private AgentPrincipal principal = null;
-  //private CertificateFolder certs = new CertificateFolder();
-  //#MIDP_EXCLUDE_END
   
   /**
      This flag is used to distinguish the normal AP_ACTIVE state from
@@ -827,16 +814,6 @@ public class Agent implements Runnable, Serializable
     return myToolkit.here();
   }
   
-    //#APIDOC_EXCLUDE_BEGIN
-
-	//#MIDP_EXCLUDE_BEGIN
-  /*public Authority getAuthority() {
-    return myToolkit.getAuthority();
-  }*/
-	//#MIDP_EXCLUDE_END
-
-    //#APIDOC_EXCLUDE_END
-
   /**
    * This is used by the agent container to wait for agent termination.
    * We have alreader called doDelete on the thread which would have
@@ -921,62 +898,6 @@ public class Agent implements Runnable, Serializable
   }
 //#CUSTOM_EXCLUDE_END
 
-
-  /*
-  //#MIDP_EXCLUDE_BEGIN
-  //#APIDOC_EXCLUDE_BEGIN
-	public void setOwnership(String ownership) {
-	  this.ownership = ownership;
-	}
-
-	public static String extractUsername(String ownership) {
-		int dot2 = ownership.indexOf(':');
-		return (dot2 != -1) ?
-				ownership.substring(0, dot2) : ownership;
-	}
-
-	public static byte[] extractPassword(String ownership) {
-		int dot2 = ownership.indexOf(':');
-		return (dot2 != -1 && dot2 < ownership.length() - 1) ?
-				ownership.substring(dot2 + 1, ownership.length()).getBytes() : new byte[] {};
-	}
-
-	public void setPrincipal(CertificateFolder certs) {
-		AgentPrincipal old = getPrincipal();
-		synchronized (principalLock) {
-			this.certs = certs;
-			this.principal = (AgentPrincipal)certs.getIdentityCertificate().getSubject();
-			notifyChangedAgentPrincipal(old, certs);
-		}
-	}
-
-	public AgentPrincipal getPrincipal() {
-		AgentPrincipal p = null;
-		if (!(myToolkit instanceof DummyToolkit)) {
-			synchronized (principalLock) {
-				Authority authority = getAuthority();
-				if (principal == null) {
-					String user = extractUsername(ownership);
-					principal = authority.createAgentPrincipal(myAID, user);
-				}
-				p = principal;
-			}
-		}
-		return p;
-	}
-	
-	public CertificateFolder getCertificateFolder() {
-		return certs;
-	}
-
-    //#APIDOC_EXCLUDE_END
-	
-	private void doPrivileged(PrivilegedExceptionAction action) throws Exception {
-		getAuthority().doAsPrivileged(action, getCertificateFolder());
-	}
-  //#MIDP_EXCLUDE_END
-  */
-
   private void changeStateTo(int state) {
       synchronized (stateLock) {
 	  if (state != myAPState) {
@@ -1042,24 +963,6 @@ public class Agent implements Runnable, Serializable
   }
 
   // State transition methods for Agent Platform Life-Cycle
-
-  //#APIDOC_EXCLUDE_BEGIN
-  /**
-     Make a state transition from <em>initiated</em> to
-     <em>active</em> within Agent Platform Life Cycle. Agents are
-     started automatically by JADE on agent creation and 
-     this method should not be
-     used by application developers, unless creating some kind of
-     agent factory. This method starts the embedded thread of the agent.
-     <b> It is highly descouraged the usage of this method </b> because it
-     does not guarantee agent autonomy. It is expected that in the
-     next releases this method might be removed or its scope restricted.
-     @param name The local name of the agent.
-  *
-  public void doStart(String name) {
-    myToolkit.handleStart(name, this);
-  }*/
-  //#APIDOC_EXCLUDE_END
 
   /**
      Make a state transition from <em>active</em> to
@@ -1132,7 +1035,6 @@ public class Agent implements Runnable, Serializable
   }
 
   //#APIDOC_EXCLUDE_BEGIN
-
   // External method, is to be called from other threads
   public void requestSave(String repository) {
       // Do nothing if the persistence service is not installed
@@ -1207,10 +1109,6 @@ public class Agent implements Runnable, Serializable
 	  }
       }      
   }
-
-
-
-
   //#APIDOC_EXCLUDE_END
   
   /**
@@ -2121,23 +2019,10 @@ public class Agent implements Runnable, Serializable
 
   private void waitUntilWake(long millis) {
     synchronized(msgQueue) {
-      //long timeToWait = millis;
-      //while(myAPState == AP_WAITING) {
 			try {
-			  //long startTime = System.currentTimeMillis();
 			  // Blocks on msgQueue monitor for a while
-			  waitOn(msgQueue, /*timeToWait*/ millis);
+			  waitOn(msgQueue, millis);
 		    changeStateTo(AP_ACTIVE);
-			  //long elapsedTime = System.currentTimeMillis() - startTime;
-
-			  // If this was a timed wait, update time to wait; if the
-			  // total time has passed, wake up.
-			  /*if(millis != 0) {
-			    timeToWait -= elapsedTime;
-		
-			    if(timeToWait <= 0)
-			    changeStateTo(AP_ACTIVE);
-			  }*/
 			}
 			catch(InterruptedException ie) {
 			  switch(myAPState) {
@@ -2236,30 +2121,12 @@ public class Agent implements Runnable, Serializable
 			}
 		//#MIDP_EXCLUDE_BEGIN
 		notifySend(msg);
-		/*try {
-			doPrivileged(new jade.security.PrivilegedExceptionAction() {
-				public Object run() throws AuthException {
-					notifySend(msg);
-					return null;
-				}
-			});
-		}
-		catch (AuthException e) {
-			System.out.println("AuthException: "+e.getMessage() );;
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-		}*/ 
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
 		myToolkit.handleSend(msg, myAID);
-    //try {
-    //  myToolkit.handleSend(msg, myAID);
-    //} 
-    //catch (AuthException ae) {
-    //} 
 		#MIDP_INCLUDE_END*/
 	}
+	
 	/**
 		Receives an <b>ACL</b> message from the agent message
 		queue. This method is non-blocking and returns the first message
@@ -2272,6 +2139,7 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage receive() {
 		return receive(null);
 	}
+	
 	/**
 		Receives an <b>ACL</b> message matching a given template. This
 		method is non-blocking and returns the first matching message in
@@ -2290,25 +2158,19 @@ public class Agent implements Runnable, Serializable
 			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
 				final ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
-					//try {
-						//messages.remove(); 
-						msgQueue.remove(cursor);
-						//#MIDP_EXCLUDE_BEGIN
-						notifyReceived(cursor);
-						//#MIDP_EXCLUDE_END
-						currentMessage = cursor;
-						msg = cursor;
-						break; // Exit while loop
-					//}
-					//catch (Exception e) {
-					//		e.printStackTrace();
-						// Continue loop, discard message
-					//}
+					msgQueue.remove(cursor);
+					//#MIDP_EXCLUDE_BEGIN
+					notifyReceived(cursor);
+					//#MIDP_EXCLUDE_END
+					currentMessage = cursor;
+					msg = cursor;
+					break; // Exit while loop
 				}
 			}
 		}
 		return msg;
 	}
+	
   /**
      Receives an <b>ACL</b> message from the agent message
      queue. This method is blocking and suspends the whole agent until
@@ -2319,11 +2181,7 @@ public class Agent implements Runnable, Serializable
      @see jade.lang.acl.ACLMessage
   */
   public final ACLMessage blockingReceive() {
-    //ACLMessage msg = null;
-    //while(msg == null) {
       return blockingReceive(null, 0);
-    //}
-    //return msg;
   }
 
   /**
@@ -2334,14 +2192,6 @@ public class Agent implements Runnable, Serializable
      amount of time passes without any message reception.
    */
   public final ACLMessage blockingReceive(long millis) {
-    /*synchronized(msgQueue) {
-      ACLMessage msg = receive();
-      if(msg == null) {
-	doWait(millis);
-	msg = receive();
-      }
-      return msg;
-    }*/
     return blockingReceive(null, millis);
   }
 
@@ -2358,11 +2208,7 @@ public class Agent implements Runnable, Serializable
      @see jade.lang.acl.MessageTemplate
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern) {
-    //ACLMessage msg = null;
-    //while(msg == null) {
     	return blockingReceive(pattern, 0);
-    //}
-    //return msg;
   }
 
 
@@ -2424,11 +2270,11 @@ public class Agent implements Runnable, Serializable
 				  if(timeToWait <= 0)
 				    break;
 				}
-
       }
     }
     return msg;
   }
+  
   /**
      Puts a received <b>ACL</b> message back into the message
      queue. This method can be used from an agent behaviour when it
@@ -2442,8 +2288,6 @@ public class Agent implements Runnable, Serializable
       msgQueue.addFirst(msg);
     }
   }
-
-
 
   final void setToolkit(AgentToolkit at) {
     myToolkit = at;
@@ -2628,10 +2472,6 @@ public class Agent implements Runnable, Serializable
     myToolkit.handleChangedAgentState(myAID, from, to);
   }
   
-  // Notify toolkit that the current agent has changed its principal
-  /*private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
-    myToolkit.handleChangedAgentPrincipal(myAID, from, certs);
-  }*/
   //#MIDP_EXCLUDE_END
 
   private void activateAllBehaviours() {
@@ -2652,24 +2492,6 @@ public class Agent implements Runnable, Serializable
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN
 				notifyPosted(msg);
-				/*try {
-					doPrivileged(new PrivilegedExceptionAction() {
-						public Object run() throws AuthException {
-							// notification appens first so, if an exception
-							// is thrown, then message isn't appended to queue
-							notifyPosted(msg);
-							msgQueue.addLast(msg);
-							return null;
-						}
-					});
-				}
-				catch (AuthException e) {
-		  			System.out.println("AuthException: "+e.getMessage() );
-					//e.printStackTrace();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}*/
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
 				doWake();
