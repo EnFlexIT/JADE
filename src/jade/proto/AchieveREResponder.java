@@ -81,7 +81,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPANames.Intera
        to set the proper message Template (based on the interaction protocol 
        and the performative)
        into the constructor of this behaviour.
-       @see FIPAProtocolNames
+       @see FIPANames.InteractionProtocol
     **/
     public static MessageTemplate createMessageTemplate(String iprotocol){
 	
