@@ -28,7 +28,7 @@ package jade.tools.dfgui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
+import jade.gui.TreeHelp;
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -48,7 +48,7 @@ class DFGUIAboutAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("ABOUT");
-	  TreeHelp help = new TreeHelp();
+	  TreeHelp help = new TreeHelp("DF Help", "help/DFGUI.html");
 	  // must insert the listener for the close action
 	  help.pack();
 	  help.setSize(500,500);
