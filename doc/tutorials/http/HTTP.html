@@ -74,7 +74,7 @@ on the command line ) . </p>
 <p> If you want to use another parser suplementary you have to specify in the command line the system property <em>org.xml.sax.parser</em> as in the following example ( also assuming
 that you have copied xerces.jar from the initial distribution to the jade/lib directory ) :</p>
 
-    <code>java  -Dorg.xml.sax.parser=org.apache.xerces.parsers.SAXParser -classpath ./lib/jade.jar:./lib/jadeTools.jar:./lib/crimson.jar:./http/lib/http.jar jade.Boot </code> ( for Unix )  <br>or<br>
+    <code>java  -Dorg.xml.sax.parser=org.apache.xerces.parsers.SAXParser -classpath ./lib/jade.jar:./lib/jadeTools.jar:./lib/xerces.jar:./http/lib/http.jar jade.Boot </code> ( for Unix )  <br>or<br>
 
         <code>java  -Dorg.xml.sax.parser=org.apache.xerces.parsers.SAXParser  -classpath .\lib\jade.jar;.\lib\jadeTools.jar;.\lib\xerces.jar;.\http\lib\http.jar jade.Boot</code>  ( for Windows )<br>
 
