@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/10/26 00:10:31  rimassa
+  Fixed a wrong indentation.
+
   Revision 1.3  1998/10/10 19:37:09  rimassa
   Imported a newer version of JADE GUI from Fabio.
 
@@ -50,8 +53,8 @@ public final class AMSToolBar extends JToolBar implements ActionListener
 		addSeparator();
 
 		ShowChoice.setToolTipText("Show Agent as...");
-        ShowChoice.addItem("White Pages");
-       	ShowChoice.addItem("Yellow Pages");
+		ShowChoice.addItem("White Pages");
+		ShowChoice.addItem("Yellow Pages");
 		ShowChoice.addActionListener(this);
 		add(ShowChoice);
 	}
