@@ -544,6 +544,15 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    return svcInterfaces;
 	}
 
+	public String[] getServiceInterfacesNames() {
+	    String[] names = new String[svcInterfaces.length];
+	    for(int i = 0; i < names.length; i++) {
+		names[i] = svcInterfaces[i].getName();
+	    }
+
+	    return names;
+	}
+
 	private NodeDescriptor nodeDesc;
 	private String[] svcNames;
 	private Class[] svcInterfaces;
