@@ -156,6 +156,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 		String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
 		if (pdpContextManagerClass != null) {
 			try {
+				myLogger.log(Logger.INFO, "Loading PDPContextManager of class "+pdpContextManagerClass);
 				myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
 				myPDPContextManager.init(leapProps); 
 				myPDPContextManager.registerListener(this);
@@ -386,6 +387,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 
             //#PJAVA_EXCLUDE_BEGIN
 	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
+	          if(myLogger.isLoggable(Logger.INFO))
+	          	myLogger.log(Logger.INFO,"Received a CREATE_MEDIATOR request from "+ addr + ":" + port);
 
 	          // Starts a new Mediator and sends back its ID
 	          String s = new String(pkt.getData());
@@ -395,6 +398,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          if (myPDPContextManager != null) {
 	          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr);
 	          	if (pdpContextInfo != null) {
+								myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
 		          	mergeProperties(p, pdpContextInfo);
 	          	}
 	          	else {
@@ -443,9 +447,6 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  	}
 					  }
 
-	          if(myLogger.isLoggable(Logger.INFO))
-	          	myLogger.log(Logger.INFO,"Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]");
-
 	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, pkt, addr, port);
@@ -457,6 +458,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
 	          String replyMsg = id+'#'+addr.getHostAddress();
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
+	          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 	          closeConnection = false;
 	        	break;
 	
