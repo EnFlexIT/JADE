@@ -2,13 +2,13 @@
  * $Id$
  */
 
-package fipa.core;
+package jade.core;
 
 import java.io.Reader;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import fipa.lang.acl.*;
+import jade.lang.acl.*;
 
 /**************************************************************
 

@@ -2,7 +2,7 @@
   $Id$
   */
 
-package fipa.core;
+package jade.core;
 
 public abstract class SimpleBehaviour implements Behaviour {
 

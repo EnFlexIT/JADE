@@ -1,4 +1,4 @@
-# Makefile for Agent Development Kit project - src directory
+# Makefile for JADE project - src directory
 
 # The following targets are not file names
 .PHONY: all clean
@@ -11,15 +11,15 @@ export JC = javac
 export JFLAGS = -deprecation
 
 
-ACLFLAGS    =   -OUTPUT_DIRECTORY:fipa/lang/acl
-ACLSPEC     = 	fipa/lang/acl/ACLParser.jj
+ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
+ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
-EXECS       = 	fipa/core/StartPlatform.java fipa/core/StartContainer.java
-ROOTCLASSES =	fipa/core/ComplexBehaviour.java fipa/core/SimpleBehaviour.java
+EXECS       = 	jade/core/StartPlatform.java jade/core/StartContainer.java
+ROOTCLASSES =	jade/core/ComplexBehaviour.java jade/core/SimpleBehaviour.java
 STUBDIR     =	.
-STUBS       = 	fipa.core.AgentContainerImpl \
-		fipa.core.MessageDispatcherImpl \
-		fipa.core.AgentPlatformImpl
+STUBS       = 	jade.core.AgentContainerImpl \
+		jade.core.MessageDispatcherImpl \
+		jade.core.AgentPlatformImpl
 
 
 all: parsers classes stubs 
@@ -45,12 +45,12 @@ clean:
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
-	rm -f fipa/lang/acl/ACLParser.java
-	rm -f fipa/lang/acl/ACLParserConstants.java
-	rm -f fipa/lang/acl/ACLParserTokenManager.java
-	rm -f fipa/lang/acl/ASCII_CharStream.java
-	rm -f fipa/lang/acl/ParseException.java
-	rm -f fipa/lang/acl/Token.java
-	rm -f fipa/lang/acl/TokenMgrError.java
+	rm -f jade/lang/acl/ACLParser.java
+	rm -f jade/lang/acl/ACLParserConstants.java
+	rm -f jade/lang/acl/ACLParserTokenManager.java
+	rm -f jade/lang/acl/ASCII_CharStream.java
+	rm -f jade/lang/acl/ParseException.java
+	rm -f jade/lang/acl/Token.java
+	rm -f jade/lang/acl/TokenMgrError.java
 
 

@@ -2,10 +2,10 @@
  * $Id$
  */
 
-package fipa.core;
+package jade.core;
 
 import java.awt.AWTEvent;
-import fipa.lang.acl.*;
+import jade.lang.acl.*;
 
 /***************************************************************
 

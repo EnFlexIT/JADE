@@ -1,4 +1,4 @@
-package fipa.core;
+package jade.core;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

@@ -1,4 +1,4 @@
-# Makefile for Agent Development Kit project - lib directory
+# Makefile for JADE project - lib directory
 
 # The following targets are not file names
 .PHONY: all clean

@@ -2,7 +2,7 @@
  * $Id$
  */
 
-package fipa.lang.acl;
+package jade.lang.acl;
 
 import java.net.*;
 import java.io.*;

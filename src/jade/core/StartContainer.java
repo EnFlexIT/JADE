@@ -1,4 +1,4 @@
-package fipa.core;
+package jade.core;
 
 import java.rmi.RemoteException;
 import java.util.Vector;

@@ -16,7 +16,7 @@
 
 ****************************************************************/
 
-package fipa.core;
+package jade.core;
 
 import java.util.Vector;
 

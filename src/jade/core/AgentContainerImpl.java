@@ -1,4 +1,4 @@
-package fipa.core;
+package jade.core;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -7,7 +7,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import fipa.lang.acl.*;
+import jade.lang.acl.*;
 
 /***********************************************************************************
 

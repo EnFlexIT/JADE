@@ -2,13 +2,13 @@
   $Id$
 */
 
-package fipa.core;
+package jade.core;
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
 
-import fipa.lang.acl.*;
+import jade.lang.acl.*;
 
 class MessageDispatcherImpl extends UnicastRemoteObject implements MessageDispatcher {
 

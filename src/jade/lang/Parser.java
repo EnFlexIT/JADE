@@ -1,4 +1,4 @@
-package fipa.lang;
+package jade.lang;
 
 // for StreamTokenizer and various Reader classes
 import java.io.*;

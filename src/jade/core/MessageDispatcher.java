@@ -2,12 +2,12 @@
  * $Id$
  */
 
-package fipa.core;
+package jade.core;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import fipa.lang.acl.ACLMessage;
+import jade.lang.acl.ACLMessage;
 
 /***********************************************************************
 

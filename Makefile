@@ -1,13 +1,14 @@
-# Makefile for Agent Development Kit project 
+# Makefile for JADE  project 
 
 VERSION    = 0.6
-ARCHIVE    = ADK
+ARCHIVE    = JADE
 
 
 export ROOTDIR = $(shell pwd)
+export ROOTNAME = $(shell basename $(ROOTDIR))
 export SRCDIR  = $(ROOTDIR)/src
 export LIBDIR  = $(ROOTDIR)/lib
-export LIBNAME = ADK.zip
+export LIBNAME = JADE.zip
 
 export TESTDIR = $(ROOTDIR)/test
 
@@ -39,5 +40,5 @@ clean:
 
 archive: clean
 	cd $(ROOTDIR)/..; \
-	tar zcvf $(ARCHIVE)-$(VERSION).tgz $(ROOTDIR); \
+	tar zcvf $(ARCHIVE)-$(VERSION).tgz $(ROOTNAME); \
 	cd $(ROOTDIR)

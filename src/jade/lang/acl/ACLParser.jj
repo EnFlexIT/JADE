@@ -38,7 +38,7 @@ options {
 
 PARSER_BEGIN(ACLParser)
 
-package fipa.lang.acl;
+package jade.lang.acl;
 
 import java.io.*;
 

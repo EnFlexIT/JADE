@@ -1,4 +1,4 @@
-package fipa.core;
+package jade.core;
 
 import java.util.Hashtable;
 import java.util.Vector;

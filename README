@@ -1,4 +1,4 @@
-README file for ???, Version 0.6
+README file for JADE, Version 0.6
 
 INTRODUCTION
 ============
@@ -26,7 +26,7 @@ INSTALLATION AND TEST
 ==============================
 
 After uncompressing the archive, you will have a directory tree
-starting with ???; from that directory, you can type
+starting with JADE; from that directory, you can type
 
 - make clean 		To remove compiled classes, HTML docs and the like.
 
@@ -50,7 +50,7 @@ on the same host the Agent Platform will run on.
 
 To run the Agent Platform, one must issue the command:
 
-	java fipa.core.StartPlatform
+	java jade.core.StartPlatform
 
 Use -h option to get a list of command line arguments.
 
@@ -61,7 +61,7 @@ Agent Platform from outside.
 
 An Agent Container can be started using the command:
 
-	java fipa.core.StartContainer [options] [agent list]
+	java jade.core.StartContainer [options] [agent list]
 
 Again, using -h command-line option explains program usage.
 
@@ -89,19 +89,19 @@ gives some explanations:
 				a message once in a second. This shows
 				how an agent behaviour can be defined
 				in a class implementing
-				fipa.core.Behaviour interface.
+				jade.core.Behaviour interface.
 
  - Agent2.class			An agent which executes three times and then
 				stops. This example shows how a
 				behaviour can be defined extending
-				fipa.core.SimpleBehaviour class. It
+				jade.core.SimpleBehaviour class. It
 				also shows how an agent without active
 				behaviours is blocked.
 
  - Agent3.class			An agent with a behaviour made of many steps,
 				with some steps that have sub-steps
 				themselves. This examples shows how
-				fipa.core.ComplexBehaviour class
+				jade.core.ComplexBehaviour class
 				allows the construction of aggregate
 				behaviours starting from simpler ones,
 				even with recursive aggregations.
