@@ -773,15 +773,15 @@ public class ams extends Agent implements AgentManager.Listener {
      beyond the default one.
   */
   public ams(AgentManager ap) {
-    myPlatform = ap;
-    myPlatform.addListener(this);
 
     // Fill Agent Platform Profile with data.
-    theProfile.setName("JADE");
     theProfile.setDynamic(new Boolean(false));
     theProfile.setMobility(new Boolean(false));
     APTransportDescription mtps = new APTransportDescription();
     theProfile.setTransportProfile(mtps);
+
+    myPlatform = ap;
+    myPlatform.addListener(this);
 
     MessageTemplate mtFIPA = 
       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
@@ -830,6 +830,13 @@ public class ams extends Agent implements AgentManager.Listener {
    to carry on its duties within <em><b>JADE</b></em> agent platform.
   */
   protected void setup() {
+
+    // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
+    theProfile.setName(getHap());
+    theProfile.setDynamic(new Boolean(false));
+    theProfile.setMobility(new Boolean(false));
+    APTransportDescription mtps = new APTransportDescription();
+    theProfile.setTransportProfile(mtps);
 
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
