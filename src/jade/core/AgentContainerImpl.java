@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.46  1999/09/01 00:15:17  rimassa
+  Added support for message queue transfer during agent migration.
+
   Revision 1.45  1999/08/31 17:21:43  rimassa
   Added complete support for agent migration.
 
@@ -345,15 +348,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     System.exit(0);
   }
 
-  public void postTransferResult(String agentName, boolean result) throws RemoteException, NotFoundException {
+  public void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException {
     Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
     if((agent == null)||(agent.getState() != Agent.AP_TRANSIT)) {
       throw new NotFoundException("postTransferResult() unable to find a suitable agent.");
     }
     if(result == TRANSFER_ABORT)
       localAgents.remove(agentName.toLowerCase());
-    else
+    else {
+      Iterator i = messages.iterator();
+      while(i.hasNext())
+	agent.postMessage((ACLMessage)i.next());
       agent.powerUp(agentName, platformAddress, agentThreads);
+    }
   }
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException, TransientException {
@@ -493,6 +500,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	    retryNeeded = false;
 	  }
 	  catch(TransientException te) {
+	    System.out.println("Retrying for " + dest);
 	    retryNeeded = true;
 	  }
 	}
@@ -515,6 +523,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	    retryNeeded = false;
 	  }
 	  catch(TransientException te) {
+	    System.out.println("Retrying for " + dest);
 	    retryNeeded = true;
 	  }
 	}
@@ -559,7 +568,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       // Start an atomic transaction for agent identity transfer
       boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
+      Vector messages = new Vector();;
       if(transferResult == TRANSFER_COMMIT) {
+
+	Iterator i = a.messages();
+	while(i.hasNext())
+	  messages.add(i.next());
+
 	localAgents.remove(name.toLowerCase());
 	cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
 	a.doGone();
@@ -567,7 +582,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       else
 	a.doExecute();
 
-      ac.postTransferResult(name, transferResult);
+      ac.postTransferResult(name, transferResult, messages);
     }
     catch(RemoteException re) {
       re.printStackTrace();
