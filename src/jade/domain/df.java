@@ -54,7 +54,7 @@ import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.tools.dfgui.DFGUI;
 import jade.proto.FipaRequestInitiatorBehaviour;
-
+import jade.onto.basic.DonePredicate;
 
 /**
   Standard <em>Directory Facilitator</em> agent. This class implements
@@ -140,7 +140,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
       DFAgentDescription dfd = (DFAgentDescription)r.get_0();
       DFRegister(dfd);
       //sendReply(ACLMessage.AGREE,"( true )");
-      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") register))");
+      //ACLMessage reply = getReply();
+      //reply.setSender(getDescriptionOfThisDF().getName());
+      //setReply(reply);
+      DonePredicate d = new DonePredicate();
+      d.set_0(a);
+      ArrayList tupla = new ArrayList(1);
+      tupla.add(d);
+      myAgent.fillContent(getReply(),tupla);
+      getReply().setPerformative(ACLMessage.INFORM);
+      myAgent.send(getReply());
+      //sendReply(ACLMessage.INFORM,"( (done (action ( Agent-Identifier :name "+getAID().getName()+") register)))");
     }
 
   } // End of RegBehaviour class
@@ -154,11 +164,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
 
     protected void processAction(Action a) throws FIPAException {
-      Deregister d = (Deregister)a.getAction();
-      DFAgentDescription dfd = (DFAgentDescription)d.get_0();
+      Deregister dereg = (Deregister)a.getAction();
+      DFAgentDescription dfd = (DFAgentDescription)dereg.get_0();
       DFDeregister(dfd);
       //sendReply(ACLMessage.AGREE,"( true )");
-      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") deregister))");
+      DonePredicate d = new DonePredicate();
+      d.set_0(a);
+      ArrayList tupla = new ArrayList(1);
+      tupla.add(d);
+      myAgent.fillContent(getReply(),tupla);
+      getReply().setPerformative(ACLMessage.INFORM);
+      myAgent.send(getReply());
+
+      //sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") deregister))");
     }
 
   } // End of DeregBehaviour class
@@ -176,7 +194,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
       DFAgentDescription dfd = (DFAgentDescription)m.get_0();
       DFModify(dfd);
       //sendReply(ACLMessage.AGREE,"( true )");
-      sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") modify))");
+      DonePredicate d = new DonePredicate();
+      d.set_0(a);
+      ArrayList tupla = new ArrayList(1);
+      tupla.add(d);
+      myAgent.fillContent(getReply(),tupla);
+      getReply().setPerformative(ACLMessage.INFORM);
+      myAgent.send(getReply());
+
+      //sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") modify))");
     }
 
   } // End of ModBehaviour class
@@ -195,18 +221,33 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		super.handleInform(reply);
   		try{
   			rsh.addResults(this,getSearchResult());
-  		}catch (FIPAException e){
-  		}catch(NotYetReady nyr){}
+  		}catch (FIPAException e){ e.printStackTrace();
+  		}catch(NotYetReady nyr){ nyr.printStackTrace();}
   	}
   	
   	protected void handleRefuse(ACLMessage reply)
   	{
   		super.handleRefuse(reply);
+  		try{
+  			rsh.addResults(this,new ArrayList(0));
+  		}catch(FIPAException e){e.printStackTrace();}
   	}
   	
   	protected void handleFailure(ACLMessage reply)
   	{
   		super.handleFailure(reply);
+  		try{
+  			rsh.addResults(this,new ArrayList(0));
+  		}catch(FIPAException e){e.printStackTrace();}
+
+  	}
+  	protected void hnadleNotUnderstood(ACLMessage reply)
+  	{
+  		super.handleNotUnderstood(reply);
+  		try{
+  			rsh.addResults(this,new ArrayList(0));
+  		}catch(FIPAException e){e.printStackTrace();}
+
   	}
   }//End class RecursiveSearchBehaviour
   
@@ -325,7 +366,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		this.children.remove(b);
   	}
   	
-   	void addResults(Behaviour b, List localResults) throws FIPAException, jade.domain.RequestFIPAServiceBehaviour.NotYetReady {
+   	void addResults(Behaviour b, List localResults) throws FIPAException {
   		this.children.remove(b);
   	// add local results to the full list of results
   		for (Iterator i=localResults.iterator(); i.hasNext(); )
