@@ -61,7 +61,8 @@ class DFGuiProperties
 		MyDefaults = new UIDefaults (icons);
 	}
 
-	public static final Icon getIcon(String key) 
+	// synchronized to allows several df to use the same gui code. 
+	synchronized public static final Icon getIcon(String key) 
 	{
 		Icon i = MyDefaults.getIcon(key);
 		if (i == null) 
