@@ -120,11 +120,11 @@ public class HashMap implements Map, Serializable {
     }
 	
 	/**
-	* @see java.util.Map interface
-	**/
-	//public void clear(){
-	//	realHiddenMap.clear();
-	//} 
+	 * @see java.util.Map interface
+	 */
+	public void clear(){
+		realHiddenMap.clear();
+	} 
 
     /**
      * @see jade.util.leap.Map interface
