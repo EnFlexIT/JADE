@@ -25,6 +25,7 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/core/behaviours/SimpleBehaviour.java \
 		jade/core/behaviours/SenderBehaviour.java \
 		jade/core/behaviours/ReceiverBehaviour.java \
+		jade/core/behaviours/WakerBehaviour.java \
 		jade/domain/SearchDFBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
 		jade/proto/Standard.java \
@@ -38,7 +39,8 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/tools/rma/rma.java \
 		jade/tools/sniffer/Sniffer.java \
 		jade/tools/DummyAgent/DummyAgent.java \
-		jade/tools/SocketProxyAgent/SocketProxyAgent.java
+		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
+		jade/applet/DFApplet.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/ACLParserConstants.java \
@@ -116,6 +118,7 @@ images:
 	cp -R $(SRCDIR)/jade/tools/DummyAgent/images $(CLSDIR)/jade/tools/DummyAgent
 	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
 	cp -R $(SRCDIR)/jade/tools/sniffer/images $(CLSDIR)/jade/tools/sniffer
+	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 
 idlclean:
 	rm -f $(IDLSTUBS)
@@ -144,8 +147,10 @@ batch:
 	echo 'xcopy /E /I jade\\tools\\DummyAgent\\images ..\\classes\\jade\\tools\\DummyAgent\\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\\tools\\rma\\images ..\\classes\\jade\\tools\\rma\\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\\tools\\sniffer\\images ..\\classes\\jade\\tools\\sniffer\\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\\gui\\images ..\\classes\\jade\\gui\\images' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo '$(STUBGEN) -d ..\\classes $(STUBS)' >> $(BATCH_ALL)
+	echo 'pause' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 
 
