@@ -205,7 +205,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
     if(startIt) {
       try {
-	RemoteProxyRMI rp = new RemoteProxyRMI(this);
+	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentName);
 	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName); // RMI call
       }
       catch(NameClashException nce) {
@@ -386,14 +386,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
 
 
-  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
-    String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
-    String receiverName = null;
-    int atPos = completeName.indexOf('@');
-    if(atPos == -1)
-      receiverName = completeName;
-    else
-      receiverName = completeName.substring(0,atPos);
+  public void dispatch(ACLMessage msg, String receiverName) throws RemoteException, NotFoundException {
 
     // Mutual exclusion with moveSource() method
     synchronized(localAgents) {
@@ -419,6 +412,14 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	}
       }
     }
+  }
+
+  public void setDelegation(String delegatingName, String delegateName) throws RemoteException {
+
+  }
+
+  public void dispatchToDelegate(ACLMessage msg, String delegatingName, String delegateName) throws RemoteException, NotFoundException {
+
   }
 
   public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
@@ -454,7 +455,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       String agentClass = (String)agentNamesAndClasses.elementAt(i+1);
       try {
 	createAgent(agentName, agentClass, NOSTART);
-	RemoteProxyRMI rp = new RemoteProxyRMI(this);
+	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentName);
 	myPlatform.bornAgent(agentName + '@' + platformAddress, rp, myName);
       }
       catch(RemoteException re) { // It should never happen
@@ -849,7 +850,7 @@ private Vector getSniffer(String theAgent, java.util.Map theMap) {
     // Look first in local agents
     Agent a = (Agent)localAgents.get(name.toLowerCase());
     if((a != null)&&(addr.equalsIgnoreCase(platformAddress))) {
-      result = new LocalProxy(a);
+      result = new LocalProxy(localAgents, name);
     }
     else { // Agent is not local
 
