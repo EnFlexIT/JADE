@@ -100,7 +100,7 @@ public class GetAvailableLocationsBehaviour extends FipaRequestInitiatorBehaviou
 
    protected void handleInform(ACLMessage inform) {
      String content = inform.getContent();
-     System.out.println(inform.toString());
+     //System.out.println(inform.toString());
      try {
        List tuple = myAgent.extractContent(inform);
        ResultPredicate r = (ResultPredicate)tuple.get(0);

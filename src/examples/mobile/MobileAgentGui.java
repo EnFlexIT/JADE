@@ -54,6 +54,7 @@ public class MobileAgentGui extends JFrame implements ActionListener
   private JTextField counterText; 
 
   private static String MOVELABEL = "MOVE";
+  private static String CLONELABEL = "CLONE";
   private static String EXITLABEL = "EXIT";
   private static String PAUSELABEL = "Stop Counter";
   private static String CONTINUELABEL = "Continue Counter";
@@ -153,6 +154,9 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		b = new JButton(MOVELABEL);
 		b.addActionListener(this);
 		p.add(b);
+		b = new JButton(CLONELABEL);
+		b.addActionListener(this);
+		p.add(b);
 		// Exit button
 		b = new JButton(EXITLABEL);
 		b.addActionListener(this);
@@ -187,6 +191,16 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		  else
 		    dest = availableSiteListModel.getElementAt(0);
 		  myAgent.postMoveEvent((Object) this, dest);
+		}
+		// CLONE
+		else if      (command.equalsIgnoreCase(CLONELABEL)) {
+		  Location dest;
+		  int sel = availableSiteList.getSelectedRow();
+		  if (sel >= 0)
+		    dest = availableSiteListModel.getElementAt(sel);
+		  else
+		    dest = availableSiteListModel.getElementAt(0);
+		  myAgent.postCloneEvent((Object) this, dest);
 		}
 		// EXIT
 		else if (command.equalsIgnoreCase(EXITLABEL)) {

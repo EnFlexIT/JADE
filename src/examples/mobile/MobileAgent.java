@@ -77,6 +77,8 @@ public class MobileAgent extends GuiAgent {
   public static final int STOP_EVENT = 1002;
   public static final int CONTINUE_EVENT = 1003;
   public static final int REFRESH_EVENT = 1004;
+  public static final int EXIT = 1000;
+  public static final int CLONE_EVENT = 1005;
 
   // this vector contains the list of visited locations
   Vector visitedLocations = new Vector();
@@ -130,6 +132,14 @@ public class MobileAgent extends GuiAgent {
    }
   
    
+protected void beforeClone() {
+  System.out.println(getLocalName()+" is now cloning itself.");
+}
+
+protected void afterClone() {
+  System.out.println(getLocalName()+" has cloned itself.");
+  afterMove();
+}
   /**
    * This method is executed just before moving the agent to another
    * location. It is automatically called by the JADE framework.
@@ -191,6 +201,12 @@ public class MobileAgent extends GuiAgent {
 		postGuiEvent(ev);
 	}
 
+	public void postCloneEvent(Object source, Location dest)
+	{
+		MobGuiEvent ev = new MobGuiEvent(source, CLONE_EVENT, dest);
+		postGuiEvent(ev);
+	}
+
         public void postSimpleEvent(int eventType) {
 	  MobGuiEvent ev = new MobGuiEvent(null, eventType, null);
 	  postGuiEvent(ev);
@@ -209,6 +225,10 @@ public class MobileAgent extends GuiAgent {
 		case MOVE_EVENT:
 			nextSite = (Location)(((MobGuiEvent)ev).destination);
 			doMove(nextSite);
+			break;
+		case CLONE_EVENT:
+			nextSite = (Location)(((MobGuiEvent)ev).destination);
+			doClone(nextSite,"clone"+cnt+"of"+getName());
 			break;
    	        case STOP_EVENT:
 		  stopCounter();
