@@ -1,39 +1,55 @@
 # Makefile for JADE project
 
-VERSION    = 1.25
-ARCHIVE    = JADE
+VERSION    = 1.3
+PACKAGE    = JADE
+
+ZIP = tar
+ZIPFLAGS = zcvf
+ZIPEXT = tgz
 
 ROOTDIR = $(shell pwd)
 ROOTNAME = $(shell basename $(ROOTDIR))
 DOCDIR  = $(ROOTDIR)/doc
 SRCDIR  = $(ROOTDIR)/src
+CLSDIR  = $(ROOTDIR)/classes
 LIBDIR  = $(ROOTDIR)/lib
 LIBNAME = JADE.jar
+LIBTOOLSNAME = JADE-tools.jar
 EXAMPLESDIR = $(SRCDIR)/examples
 DEMODIR = $(SRCDIR)/demo
 MAKE = make
 
+JC = javac
+JFLAGS = -deprecation -d $(CLSDIR)
+
+export VERSION
+export PACKAGE
 export ROOTDIR
 export ROOTNAME
-export SRCDIR
 export DOCDIR
+export SRCDIR
+export CLSDIR
 export LIBDIR
 export LIBNAME
+export LIBTOOLSNAME
 export EXAMPLESDIR
 export DEMODIR
 export MAKE
 
-# The following targets are not file names
-.PHONY: all clean doc archive src lib examples
+export JC
+export JFLAGS
 
-all: lib examples demo
+# The following targets are not file names
+.PHONY: all clean doc archive binarchive src lib examples
+
+all: src examples demo
 	@echo JADE project built
 
 doc: clean
 	cd $(DOCDIR); $(MAKE) all
 	@echo HTML documentation built
 
-lib: src
+lib:
 	cd $(LIBDIR); $(MAKE) all
 	@echo Libraries built
 
@@ -50,8 +66,11 @@ demo:
 	@echo Demo applications built.
 
 clean:
-	rm -f *~ "#*#" JADE.IOR JADE.URL
-	cd $(SRCDIR); $(MAKE) clean
+	rm -f `find . -name '*~'`
+	rm -f `find . -name '#*#'`
+	rm -f `find . -name JADE.IOR`
+	rm -f `find . -name JADE.URL`
+	rm -fr $(CLSDIR)/*
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
 	cd $(EXAMPLESDIR); $(MAKE) clean
@@ -59,8 +78,26 @@ clean:
 
 realclean: clean
 	cd $(SRCDIR); $(MAKE) idlclean
+	cd $(SRCDIR); $(MAKE) jjclean
 
-archive: clean
+idlclean: clean
+	cd $(SRCDIR); $(MAKE) idlclean
+
+jjclean: clean
+	cd $(SRCDIR); $(MAKE) jjclean
+
+archive: $(CLSDIR) $(DOCDIR) doc 
 	cd $(ROOTDIR)/..; \
-	tar zcvf $(ARCHIVE)-$(VERSION).tgz $(ROOTNAME); \
+	$(ZIP) $(ZIPFLAGS) $(PACKAGE)-$(VERSION)-src.tgz $(ROOTNAME); \
 	cd $(ROOTDIR)
+
+binarchive: $(CLSDIR) $(DOCDIR) doc all lib
+	cd $(ROOTDIR)/..; \
+	$(ZIP) $(ZIPFLAGS) $(PACKAGE)-$(VERSION)-bin.$(ZIPEXT) $(ROOTNAME); \
+	cd $(ROOTDIR)
+
+$(CLSDIR):
+	mkdir $(CLSDIR)
+
+$(DOCDIR):
+	mkdir $(DOCDIR)
