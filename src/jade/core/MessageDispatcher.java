@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.5  1998/10/11 19:35:12  rimassa
+ * Added ping() and getContainer() methods to support agent platform
+ * error recovery.
+ *
  * Revision 1.4  1998/10/04 18:01:08  rimassa
  * Added a 'Log:' field to every source file.
  *
@@ -34,7 +38,9 @@ import jade.lang.acl.ACLMessage;
 ************************************************************************/
 interface MessageDispatcher extends Remote {
 
-  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+  void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+  void ping() throws RemoteException;
+  AgentContainer getContainer() throws RemoteException;
 
 }
 
