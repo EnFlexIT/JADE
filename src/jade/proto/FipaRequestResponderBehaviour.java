@@ -231,6 +231,9 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       throw new UnrecognisedValue("content");
     } catch(FIPAException e) {
       throw new UnrecognisedValue("content");
+    } catch (Exception ee) { // any other exception is catch as UnsupportedFunction
+      ee.printStackTrace();
+      throw new UnsupportedFunction();
     }
   }
 
