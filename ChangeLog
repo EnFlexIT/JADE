@@ -1,3 +1,45 @@
+MAJOR CHANGES in the snapshot of 23 March 2004
+==========================================================================
+GENERAL IMPROVEMENTS:
+- Added a new generic ontology, called SerializableOntology, that allows to manage
+  generic serializable objects. As a consequence, the DF is now able to deal with
+  generic serializable properties.
+- Improved the fault-tolerance of a split container
+- Added ThreadedBehaviour, a behaviour that is executed in itw own thread of execution
+- FSMBehaviour: Added method to handle FSM inconsistecies
+- Added support for different payload encodings according to the charset passed in the 
+  "PayloadEncoding" slot of the envelope (Bug 109)
+- Added support for byte[ ] in SL codec
+- Improved the build process of LEAP
+ 
+BUG FIXES:
+- Contract-net example: fixed bug on handleRejectProposal()
+- Fixed a bug related to envelopes in inter-container communication.
+- fix to blockingReceive() when executed from a separate Thread
+- Fixed bug #122 reported by Carl Timmer: bad dealing of numerical ServiceDescription 
+  properties.
+- Fixed bug #108 reported by Ian Dickinson: bad dealing of numerical expressions in
+  ACLParser.
+- Fixed bug: messages sent in the takeDown() method were not delivered.
+- Some bug fixing in the Persistence Services, 
+  also added management of the 'owned' flag within SavedAgent entities.
+- SL: managed the cases When 'true' or 'false' are the values of an AbsPrimitive that 
+  wraps a String, 
+
+ADD-ONS:
+- Released the Test Suite Framework as a new add-on
+- HTTP MTP: Various bug fixing
+- Improved the JADE-Servlet tutorial (Fabien Gandon)
+
+OTHERS:
+- SLParser made transient since it is not serializable
+- Filter base class modified to support pre and post processing of Commands. 
+  Added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
+- Added -use option to the javadoc
+- Number of improvements to the MessagingService
+- Moved MAIN_CONTAINER_NAME constant in AgentContainer interface
+
+
 MAJOR CHANGES in this snapshot (2 February 2004)
 ==========================================================================
 GENERAL IMPROVEMENTS:
@@ -14,7 +56,6 @@ GENERAL IMPROVEMENTS:
 	- Added persistence ontology
 - Added LEAP BackEnd configuration support through property file.	
 
- 	
 BUG FIXES:
 - Added AlreadyRegistered predicate in JADEManagementOntology.
 - Added sanity check when delivering a message to an agent whose 
@@ -22,8 +63,6 @@ BUG FIXES:
 - New containers were not notified about currently installed MTPs: fixed.
 - Modified SLCodec to correctly handle boolean values
 - PersistentDelivery Service didn't handle message expiration correctly: fixed	
-
-	
 OTHERS:
 - Added Credentials interface
 - Added SDSIName interface
