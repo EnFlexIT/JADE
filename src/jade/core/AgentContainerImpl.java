@@ -51,7 +51,6 @@ import java.util.Set;
 
 import jade.lang.acl.ACLMessage;
 
-import jade.domain.MobilityOntology;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -86,14 +85,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // The agent platform this container belongs to
   protected MainContainer myPlatform;
 
-  protected String myName;
-
   // The Agent Communication Channel, managing the external MTPs.
   protected acc theACC;
 
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
   protected String platformID;
+  protected ContainerID myID;
 
   // An object used to manage Agent IDs using nicknames
   protected AIDTranslator translator;
@@ -109,6 +107,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
 
   public AgentContainerImpl() throws RemoteException {
+
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
@@ -214,7 +213,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     if(startIt) {
       try {
 	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
-	myPlatform.bornAgent(agentID, rp, myName); // RMI call
+	myPlatform.bornAgent(agentID, rp, myID); // RMI call
 	instance.powerUp(agentID, agentThreads);
       }
       catch(NameClashException nce) {
@@ -394,7 +393,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       MTP proto = (MTP)c.newInstance();
       TransportAddress ta = theACC.addMTP(proto, address);
       String result = proto.addrToStr(ta);
-      myPlatform.newMTP(result, myName);
+      myPlatform.newMTP(result, myID);
       return result;
     }
     catch(ClassNotFoundException cnfe) {
@@ -410,7 +409,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException {
     theACC.removeMTP(address);
-    myPlatform.deadMTP(address, myName);
+    myPlatform.deadMTP(address, myID);
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException {
@@ -453,7 +452,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       }
       
       InetAddress netAddr = InetAddress.getLocalHost();
-      myName = myPlatform.addContainer(this, netAddr); // RMI call
+      // Initialize the Container ID
+      myID = new ContainerID("No-Name", netAddr);
+
+      String myName = myPlatform.addContainer(this, myID); // RMI call
+      myID.setName(myName);
 
       // Install required MTPs
       PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myName + ".txt"));
@@ -514,7 +517,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       try {
 	      createAgent(agentID, agentClass, arguments, NOSTART);
 	      RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
-	      myPlatform.bornAgent(agentID, rp, myName);
+	      myPlatform.bornAgent(agentID, rp, myID);
       }
       catch(RemoteException re) { // It should never happen
 	      re.printStackTrace();
@@ -534,7 +537,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       agent.powerUp(id, agentThreads);
     }
 
-    System.out.println("Agent container " + myName + " is ready.");
+    System.out.println("Agent container " + myID + " is ready.");
 
   }
 
@@ -622,12 +625,16 @@ private List getSniffer(AID id, java.util.Map theMap) {
       SniffedMessage.setContent(theMsg.toString());
       SniffedMessage.setOntology("sniffed-message");
       unicastPostMessage(SniffedMessage,currentSniffer);
-    
+
     }
   }
 
 
   // Implementation of AgentToolkit interface
+
+  public Location here() {
+    return myID;
+  }
 
   public void handleSend(ACLMessage msg) {
 
@@ -725,17 +732,16 @@ private List getSniffer(AID id, java.util.Map theMap) {
     synchronized(localAgents) {
       try {
         String proto = where.getProtocol();
-	if(!proto.equalsIgnoreCase(MobilityOntology.Location.DEFAULT_LOCATION_TP))
+	if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
 	  throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
 
-	String destName = where.getName();
-	AgentContainer ac = myPlatform.lookup(destName);
+	AgentContainer ac = myPlatform.lookup((ContainerID)where);
 	Agent a = localAgents.get(agentID);
 	if(a == null)
 	  throw new NotFoundException("Internal error: handleMove() called with a wrong name !!!");
 
 	// Handle special 'running to stand still' case
-	if(where.getName().equalsIgnoreCase(myName)) {
+	if(where.getName().equalsIgnoreCase(myID.getName())) {
 	  a.doExecute();
 	  return;
 	}
@@ -758,7 +764,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	ac.createAgent(agentID, bytes, classSite, NOSTART);
 
 	// Perform an atomic transaction for agent identity transfer
-	boolean transferResult = myPlatform.transferIdentity(agentID, myName, destName);
+	boolean transferResult = myPlatform.transferIdentity(agentID, myID, (ContainerID)where);
 	List messages = new ArrayList();
 	if(transferResult == TRANSFER_COMMIT) {
 
@@ -799,9 +805,9 @@ private List getSniffer(AID id, java.util.Map theMap) {
   public void handleClone(AID agentID, Location where, String newName) {
     try {
       String proto = where.getProtocol();
-      if(!proto.equalsIgnoreCase(MobilityOntology.Location.DEFAULT_LOCATION_TP))
+      if(!proto.equalsIgnoreCase(ContainerID.DEFAULT_IMTP))
 	throw new NotFoundException("Internal error: Mobility protocol not supported !!!");
-      AgentContainer ac = myPlatform.lookup(where.getName());
+      AgentContainer ac = myPlatform.lookup((ContainerID)where);
       Agent a = localAgents.get(agentID);
       if(a == null)
 	throw new NotFoundException("Internal error: handleCopy() called with a wrong name !!!");
@@ -1012,8 +1018,8 @@ private List getSniffer(AID id, java.util.Map theMap) {
       myPlatform = lookup3("rmi://" + platformID);
 
       // Register again with the Main Container.
-      InetAddress netAddr = InetAddress.getLocalHost();
-      myName = myPlatform.addContainer(this, netAddr); // RMI call
+      String myName = myPlatform.addContainer(this, myID); // RMI call
+      myID.setName(myName);
 
       ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
       regMsg.setSender(Agent.getAMS());
@@ -1031,7 +1037,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	// Register again the agent with the Main Container.
 	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
 	try {
-	  myPlatform.bornAgent(agentID, rp, myName); // RMI call
+	  myPlatform.bornAgent(agentID, rp, myID); // RMI call
 	}
 	catch(NameClashException nce) {
 	  throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
@@ -1047,7 +1053,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
       // Register again all MTPs with the Main Container
       List localAddresses = theACC.getLocalAddresses();
       for(int i = 0; i < localAddresses.size(); i++) {
-	myPlatform.newMTP((String)localAddresses.get(i), myName);
+	myPlatform.newMTP((String)localAddresses.get(i), myID);
       }
 
     }
@@ -1062,9 +1068,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
     catch(MalformedURLException murle) {
       murle.printStackTrace();
     }
-    catch(java.net.UnknownHostException jnue) {
-      jnue.printStackTrace();
-    }
+
   }
 
 }
