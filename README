@@ -93,7 +93,7 @@ An Agent Container can be started using the command:
         java jade.Boot -container [options] [Agent list]
 
 An alternative way of launching JADE is the following command:
-        java -jar lib\jade.jar [options] [Agent list]
+        java -jar lib\jade.jar -nomtp [options] [Agent list]
 
 5.3.1 Options available from the command line
 =============================================
