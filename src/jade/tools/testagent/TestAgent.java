@@ -42,6 +42,7 @@ import jade.content.lang.Codec;
 
 import jade.lang.acl.*;
 import jade.content.lang.sl.*;
+import jade.util.Logger;
 
 
 /**
@@ -54,6 +55,8 @@ import jade.content.lang.sl.*;
  */
 
 public class TestAgent extends Agent {
+  
+  private static Logger logger = Logger.getMyLogger(TestAgent.class.getName());
   /**
    *  Constructor for the TestAgent
    */
@@ -317,7 +320,7 @@ public class TestAgent extends Agent {
     splash = new SplashScreen();
     splash.show();
     splash.setProgress(25);
-    System.out.println("starting up: " + this.getAID().toString());
+    logger.log(Logger.FINE,"starting up: " + this.getAID().toString());
 
     try {
       getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);

@@ -31,6 +31,7 @@ import java.util.TreeMap;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.Logger;
 
 import java.util.LinkedList;
 import java.util.Hashtable;
@@ -142,6 +143,7 @@ public class Sniffer extends ToolAgent {
   private Hashtable preload = null;
   private ExpandedProperties properties = null;
 
+  private static Logger logger = Logger.getMyLogger(Sniffer.class.getName());
   private ArrayList agentsUnderSniff = new ArrayList();
 
 
@@ -164,7 +166,7 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      // System.out.println("AGREE received");
+      logger.log(Logger.FINE,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -172,7 +174,7 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      // System.out.println("INFORM received");
+      logger.log(Logger.FINE,"INFORM received");
     }
 
   } // End of AMSClientBehaviour class
@@ -190,7 +192,6 @@ public class Sniffer extends ToolAgent {
 
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
-		//System.out.println(current);
 
 	try {
 	  Occurred o = (Occurred)getContentManager().extractContent(current);
@@ -246,7 +247,7 @@ public class Sniffer extends ToolAgent {
 	  //System.out.println("Serious problem Occurred");
 	  myGUI.showError("An error occurred parsing the incoming message.\n" +
 			  "          The message was lost.");
-		System.out.println("The sniffer lost the following message because of a parsing error:"+current);
+	  logger.log(Logger.WARNING,"The sniffer lost the following message because of a parsing error:"+current);
 	  e.printStackTrace();
 	}
       }
@@ -371,12 +372,10 @@ public class Sniffer extends ToolAgent {
 	    // start sniffing.  If so, we invoke DoSnifferAction's doSniff and start
 	    // the sniffing process.
 	    if (preloadContains(agent.getName()) != null) {
-	      // System.out.println("Found one: " + agent.getName());
 	      ActionProcessor ap = myGUI.actPro;
           DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
           sa.doSniff(agent.getName());
 	    } else {
-           // System.out.println("Agent not in .inf: " + agent.getName());
 	    }
 	  }
         });

@@ -372,7 +372,6 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 		getContentManager().fillContent(msg, d);
     		msg.setConversationId(observerAgent.getName() + "-control");
 	  	send(msg);
-	  	// System.out.println(msg);
             } catch(Exception fe) {
 		fe.printStackTrace();
             }
@@ -400,8 +399,6 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
               getContentManager().fillContent(msg, o);
               msg.setConversationId(observerAgent.getName() + "-event");
               send(msg);
-              // DEBUG
-	      //System.out.println("Sent event "+ev);
               msg.setReplyWith(null);
 	    } catch(Exception fe) {
               fe.printStackTrace();

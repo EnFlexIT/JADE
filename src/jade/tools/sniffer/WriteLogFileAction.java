@@ -29,6 +29,7 @@ import java.util.Vector;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import jade.util.Logger;
 
   /**
    Javadoc documentation for the file
@@ -50,6 +51,7 @@ import java.io.Serializable;
 public class WriteLogFileAction extends FixedAction implements Serializable{
 
  private MainPanel mainPanel;
+ private static Logger logger = Logger.getMyLogger(WriteLogFileAction.class.getName());
 
   public WriteLogFileAction(ActionProcessor actPro,MainPanel mainPanel){
    super ("WriteLogFileActionIcon","Save Snapshot File",actPro);
@@ -67,10 +69,10 @@ public class WriteLogFileAction extends FixedAction implements Serializable{
        p.writeObject(mainPanel.panelcan.canvAgent.getAgentList());
        p.writeObject(mainPanel.panelcan.canvMess.getMessageList());
        p.close();
-       System.out.println("Serialized Snapshot File Written.");
+       logger.log(Logger.INFO,"Serialized Snapshot File Written.");
      }
    } catch (Exception e){
-       System.out.println("Error Writing Snapshot File:" + e);
+       logger.log(Logger.WARNING,"Error Writing Snapshot File:" + e);
      }
   }
 

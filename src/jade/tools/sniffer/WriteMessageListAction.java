@@ -30,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.Serializable;
+import jade.util.Logger;
 
    /**
    Javadoc documentation for the file
@@ -51,6 +52,8 @@ import java.io.Serializable;
 
 private PrintWriter out;
 private MainPanel mainPanel;
+ private static Logger logger = Logger.getMyLogger(WriteMessageListAction.class.getName());
+
 
  public WriteMessageListAction(ActionProcessor actPro,MainPanel mainPanel){
   	super ("MessageFileActionIcon","Write Message List File",actPro);
@@ -71,10 +74,10 @@ private MainPanel mainPanel;
 	 out.println(curMsg.toString());
        }
       out.close();
-      System.out.println("Message List File Written.");
+      logger.log(Logger.INFO,"Message List File Written.");
    }
    } catch (Exception e){
-        System.out.println("Error Writing List File:" + e);
+        logger.log(Logger.WARNING,"Error Writing List File:" + e);
      }
  }
 
