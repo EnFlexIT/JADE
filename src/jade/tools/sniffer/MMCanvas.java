@@ -697,12 +697,13 @@ public class MMCanvas extends JPanel implements MouseListener, MouseMotionListen
   }
 
   private String tail(int n, String s) {
-   if (s == null)  {
-    return " ";
-   } else {
-    return s.substring(s.length()-n,s.length());
-   }
+      try {
+	  return s.substring(s.length()-n,s.length());
+      } catch (Exception any) {
+	  return " ";
+      }
   }
+
 
   /**
    * Trim off known prefixes.
