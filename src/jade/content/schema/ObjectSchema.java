@@ -104,7 +104,7 @@ public abstract class ObjectSchema {
      *
      */
     protected void addBaseSchema(ObjectSchema base) {
-        baseSchemas.add(base);
+        baseSchemas.addElement(base);
     } 
 
     private void getAttributeDescriptorNames(Vector v) {
@@ -116,7 +116,7 @@ public abstract class ObjectSchema {
 
         for (Enumeration e = attributeDescriptors.keys(); 
                 e.hasMoreElements(); ) {
-            v.add(e.nextElement());
+            v.addElement(e.nextElement());
         }
     } 
 
