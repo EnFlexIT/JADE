@@ -1,3 +1,33 @@
+MAJOR CHANGES in JADE Snapshot (22 September 2003)
+==========================================================================
+GENERAL IMPROVEMENTS:
+- Added JADEX add-on (version 0.9 - 19th September 2003, Lars Braubach, Alexander Pokahr)
+- Added 2phase-commit interaction protocol
+- Added option for redirecting output to "per-day-files"
+- Added -services command-line option and management of configurable
+  service startup.
+- LEAP add-on:
+  - Added code to manage a set of replicas of a back end container.
+  - Optimized the creation of Command objects.
+  - new ant tool capable of handling user-defined directives
+  - Added classes for producing logs
+- misc add-on:
+  - JADEPlatformTest: Modified to probe for the new ServiceManagerRMI 
+    interface in the RMI Registry.
+
+BUG FIXES:
+- LEAP add-on:
+  - Fixed a number of problems with back end startup and shutdown. 
+  - Added code to manage a set of replicas of a back end container.
+  - Fixed bug reading long packets
+  - Added synchronization while writing on the record store
+- Fixed bug on usage of a single MessageManager shared among multiple 
+  Messaging Services
+- Corrected synchronization bug on localAgents
+
+DOCUMENTATION:
+- Added a link to JADE Primer
+
 MAJOR CHANGES in JADE Snapshot (4 September 2003)
 ==========================================================================
 GENERAL IMPROVEMENTS:
