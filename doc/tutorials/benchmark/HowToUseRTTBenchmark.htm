@@ -54,4 +54,24 @@ directories. </P>
 <H2>Getting started</H2>
 <P>In conf directory you'll find some configuration file to run the test, go to 
 classes/benchmark/roundTripTime/ and digit: <BR>java jade.Boot -conf file.conf 
+
+
+<H2>Tests in "Parallel Mode"</H2>
+In the previous tests each sender sends a message and wait for a reply before sending 
+the next one, in a "serial" fashion.<br>
+It is also possible to run a set of tests into "parallel" mode, where each sender sends in sequence all the messages without 
+waiting for the replies.<br><br>
+Some configuration files for the parallel tests are available:<br>
+<ul>
+ <li> ParalleTestSingleContainer.conf, for intra-container measurements
+ <li> ParalleTest2Containers_TX.conf, ParalleTest2Containers_RX.conf, for inter-container measurements
+</ul>
+
+<p>
+ For intra-container, just run:<br>
+   <code>java jade.Boot -conf ParalleTestSingleContainer.conf</code><br>
+  or, for inter-container:
+   <code>java jade.Boot -conf ParalleTest2Containers_RX.conf</code><br>
+   <code>java jade.Boot -conf ParalleTest2Containers_TX.conf</code><br>
+<br><br><br>
 </P></BODY></HTML>
