@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1998/11/09 00:28:25  rimassa
+  Some minor stylistic changes.
+
   Revision 1.5  1998/11/01 14:57:25  rimassa
   Changed code indentation to comply with JADE style.
 
@@ -54,14 +57,14 @@ public abstract class AMSAbstractAction extends AbstractAction {
      The Icon representing the action in the Toolbar 
   */
   protected Icon img;
-	
+
   /**
      The Action Name is also the ToolTip of the button in the AMSToolBar
   */
-	
+
   protected String ActionName = "Action";
   protected Component parent;
-	
+
   /**
      Listeners of this action. Listeners are ALL the items selected by the user 
      in the AMSTree. When an action is fired from the GUI it is notified
@@ -88,7 +91,7 @@ public abstract class AMSAbstractAction extends AbstractAction {
     this(IconPath,ActionName,new Vector());
   }
 
-  public String getActionName () {
+  public String getActionName() {
     return ActionName;
   }
 
@@ -144,7 +147,7 @@ public abstract class AMSAbstractAction extends AbstractAction {
      @param treeP the AMSTree 
   */
   public static void setTree (AMSTree treeP) {	
-    tree =treeP;
+    tree = treeP;
   }
 
 }
