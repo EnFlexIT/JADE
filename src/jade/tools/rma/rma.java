@@ -190,6 +190,25 @@ public class rma extends Agent {
 	  myGUI.addAgent(to, agent);
 	}
       });
+
+      handlers.put(JADEAgentManagementOntology.NEWMTP, new EventHandler() {
+	public void handle(AMSEvent ev) {
+	  NewMTP nmtp = (NewMTP)ev;
+	  String address = nmtp.getAddress();
+	  String where = nmtp.getWhere();
+	  myGUI.addAddress(address, where);
+	}
+      });
+
+      handlers.put(JADEAgentManagementOntology.DEADMTP, new EventHandler() {
+	public void handle(AMSEvent ev) {
+	  DeadMTP dmtp = (DeadMTP)ev;
+	  String address = dmtp.getAddress();
+	  String where = dmtp.getWhere();
+	  myGUI.removeAddress(address, where);
+	}
+      });
+
     }
 
     public void action() {
@@ -202,7 +221,8 @@ public class rma extends Agent {
 	  AMSEvent ev = eo.getEvent();
 	  String eventName = ev.getEventName();
 	  EventHandler h = (EventHandler)handlers.get(eventName);
-	  h.handle(ev);
+	  if(h != null)
+	    h.handle(ev);
 	}
 	catch(FIPAException fe) {
 	  fe.printStackTrace();
@@ -536,20 +556,47 @@ public class rma extends Agent {
   }
 
   public void installMTP(String containerName) {
-    System.out.println("Installing MTP on container " + containerName);
-      /*
-    int result = Dialog.showDialog(containerName, mainWnd);
-    if(myGUI.showInstallMTPDialog(containerName)) {
-      String className = StartDialog.getClassName();
-      String container = StartDialog.getContainer();
-      String arguments = StartDialog.getArguments();
-      
+    InstallMTP imtp = new InstallMTP();
+    imtp.setContainer(containerName);
+    if(myGUI.showInstallMTPDialog(imtp)) {
+      try {
+	Action a = new Action();
+	a.set_0(getAMS());
+	a.set_1(imtp);
+	List l = new ArrayList(1);
+	l.add(a);
+
+	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
+	fillContent(requestMsg, l);
+	addBehaviour(new AMSClientBehaviour("InstallMTP", requestMsg));
+      }
+      catch(FIPAException fe) {
+	fe.printStackTrace();
+      }
+
     }
-      */
   }
 
   public void uninstallMTP(String containerName) {
-    System.out.println("Uninstalling MTP on container " + containerName);
+    UninstallMTP umtp = new UninstallMTP();
+    umtp.setContainer(containerName);
+    if(myGUI.showUninstallMTPDialog(umtp)) {
+      try {
+	Action a = new Action();
+	a.set_0(getAMS());
+	a.set_1(umtp);
+	List l = new ArrayList(1);
+	l.add(a);
+
+	requestMsg.setOntology(JADEAgentManagementOntology.NAME);
+	fillContent(requestMsg, l);
+	addBehaviour(new AMSClientBehaviour("UninstallMTP", requestMsg));
+      }
+      catch(FIPAException fe) {
+	fe.printStackTrace();
+      }
+
+    }
   }
 
 }
