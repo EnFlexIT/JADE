@@ -53,6 +53,28 @@ public interface ServiceManager {
     String getPlatformName() throws IMTPException;
 
     /**
+       Adds an address to the address list of this <i>Service Manager</i>.
+       @param addr The address to add, as a stringified URL.
+       @throws IMTPException If an underlying network error occurs.
+    */
+    void addAddress(String addr) throws IMTPException;
+
+    /**
+       Removes an address to the address list of this <i>Service Manager</i>.
+       @param addr The address to remove, as a stringified URL.
+       @throws IMTPException If an underlying network error occurs.
+    */
+    void removeAddress(String addr) throws IMTPException;
+
+    /**
+       Access the address exported by this copy of the <i>Service
+       Manager</i>.
+       @return The locally exported address.
+       @throws IMTPException If an underlying network error occurs.
+    */
+    String getLocalAddress() throws IMTPException;
+
+    /**
        Adds a new node to the distributed platform. The node
        abstraction can correspond to an agent container, but also to a
        different kind of networked component (command proxy server,
@@ -135,5 +157,6 @@ public interface ServiceManager {
        @see jade.core.ServiceFinder
     */
     void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException;
+
 
 }
