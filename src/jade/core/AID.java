@@ -120,6 +120,21 @@ public class AID implements Cloneable, Comparable, Serializable {
     userDefSlots.setProperty(key, value);
   }
 
+
+  public String[] getAddressesArray() {
+    Object[] objs = addresses.toArray();
+    String[] result = new String[objs.length];
+    System.arraycopy(objs, 0, result, 0, objs.length);
+    return result;
+  }
+
+  public AID[] getResolversArray() {
+    Object[] objs = resolvers.toArray();
+    AID[] result = new AID[objs.length];
+    System.arraycopy(objs, 0, result, 0, objs.length);
+    return result;
+  }
+
   /**
    * @return all the user-defined slots as a <code>java.util.Properties</code> java Object.
    */
