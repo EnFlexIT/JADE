@@ -357,6 +357,8 @@ class Connection extends Thread {
             done = false;
             while (!done)
             {
+				if (parser.token.kind==ACLParserConstants.EOF)
+					break;
                 msg = parser.Message();
                 ((SocketProxyAgent) myAgent).log(getName() + ": Received message:" + msg);
 
