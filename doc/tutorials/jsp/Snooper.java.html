@@ -16,9 +16,6 @@
     <font color=#0000FF>public</font> Snooper() {
 	<font color=#9A1900>// Create the message to send to the client
 </font>	msg = <font color=#0000FF>new</font> ACLMessage(ACLMessage.INFORM);
-	<font color=#9A1900>// JADE 1.4:
-</font>	<font color=#9A1900>//msg.addDest("buffer");
-</font>
     }
 
     <font color=#9A1900>/**
@@ -27,14 +24,23 @@
      */</font>
     <font color=#0000FF>public</font> <font color=#009900>void</font> snoop(String str) {
 	<font color=#9A1900>// JADE 2.0: 
-</font>	<font color=#9A1900>// getHap() cannot be moved in the constructor because 
-</font>	<font color=#9A1900>// it would not work!
-</font>	<font color=#9A1900>// We need to remove each time the previous entry.
+</font>	<font color=#9A1900>// getHap() cannot be moved in the constructor because it would not 
+</font>	<font color=#9A1900>// work! each time the previous entry must be removed.
 </font>	msg.clearAllReceiver();
-	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer"</font>, AID.ISLOCALNAME));
-	msg.setContent(str);
+	<font color=#9A1900>// JADE 2.3	
+</font>	msg.addReceiver(<font color=#0000FF>new</font> AID(<font color=#FF0000>"buffer"</font>,AID.ISLOCALNAME));
+        <font color=#9A1900>// JADE 2.0: 
+</font>	<font color=#9A1900>// msg.addReceiver(new AID("buffer@"+getHap()));
+</font>	<font color=#9A1900>// JADE 1.4:
+</font>	<font color=#9A1900>// msg.removeAllDests();
+</font>	<font color=#9A1900>//msg.addDest("buffer");
+</font>	msg.setContent(str);
 	send(msg);
     }
 }
+
+
+
+
 </tt>
 </pre>
