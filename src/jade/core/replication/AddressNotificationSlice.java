@@ -60,8 +60,11 @@ public interface AddressNotificationSlice extends Service.Slice {
     // Constants for the names of horizontal commands associated to methods
     static final String H_ADDSERVICEMANAGERADDRESS = "1";
     static final String H_REMOVESERVICEMANAGERADDRESS = "2";
+    static final String H_GETSERVICEMANAGERADDRESSES = "3";
 
     void addServiceManagerAddress(String addr) throws IMTPException;
     void removeServiceManagerAddress(String addr) throws IMTPException;
+    String[] getServiceManagerAddresses() throws IMTPException;
+
 
 }
