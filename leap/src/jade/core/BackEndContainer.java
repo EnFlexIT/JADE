@@ -117,12 +117,18 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
+
+	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
+	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
+
       }
+
 
       protected void startAdditionalServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  startService("jade.core.event.NotificationService");
 	  // Start the Back-End replication service
 	  startService("jade.core.replication.BEReplicationService");
+
 		/*#CUSTOMJ2SE_INCLUDE_BEGIN
 	  startService("ePresence.log.EPresenceLogService");
 		#CUSTOMJ2SE_INCLUDE_END*/
