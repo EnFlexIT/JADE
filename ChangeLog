@@ -23,6 +23,15 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 - (see also the HTML page news.html)
 - Tiny fix to the SL0Encoder in order to permit encoding of strings of length 0
   [Craig Sayers - HP] 
+- HTTP-MTP (Ion Constantinescu)
+  - Using base classes from jamr version 0.72 which:
+    - fixes server socket listen bug
+    - fixes thread interrupt bug
+    - updates jamr.jms.basic classes
+    - automates the process of creating the jade http mtp plugin
+  - Also we changed the names of the make commands and batch files
+    from make http, make httplib, httpclean to plain 	
+
 	
 	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
