@@ -46,7 +46,7 @@ import java.io.*;
 /**
  * Boots <B><em>JADE</em></b> system, parsing command line arguments.
  *
- * @author Giovanni Rimassa - Universita` di Parma
+ * @author Giovanni Rimassa - Universita' di Parma
  * @version $Date$ $Revision$
  *
  */
