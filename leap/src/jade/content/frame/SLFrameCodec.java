@@ -30,6 +30,7 @@ import java.util.Date;
 import java.io.*;
 
 import jade.core.AID;
+import jade.core.CaseInsensitiveString;
 import jade.content.lang.sl.SL0Vocabulary;
 import jade.content.lang.sl.SimpleSLTokenizer;
 import jade.util.leap.Iterator;
@@ -37,6 +38,7 @@ import jade.lang.acl.ISO8601;
 
 /**
    @author Giovanni Caire - TILAB
+   @version $Date$ $Revision$
  */
 public class SLFrameCodec implements jade.util.leap.Serializable {
   public static final String NAME = "FIPA-SL";
@@ -105,10 +107,13 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
     	sb.append(obj);
     }
     else if (obj instanceof String) {
-    	if (!SimpleSLTokenizer.isAWord((String) obj)) {
-    		obj = SimpleSLTokenizer.quoteString((String) obj);
+			String s = (String)obj;
+			if (CaseInsensitiveString.equalsIgnoreCase("true",s) || CaseInsensitiveString.equalsIgnoreCase("false",s)) {
+					s = '"'+s+'"'; // quote it to avoid confusion with the boolean primitives
+			} else if (!SimpleSLTokenizer.isAWord(s)) {
+    		s = SimpleSLTokenizer.quoteString(s);
     	}
-    	sb.append(obj);
+    	sb.append(s);
     }
     else {
     	throw new FrameException("Can't encode "+obj);

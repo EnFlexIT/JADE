@@ -1,5 +1,30 @@
+/**
+ * ***************************************************************
+ * JADE - Java Agent DEvelopment Framework is a framework to develop
+ * multi-agent systems in compliance with the FIPA specifications.
+ * Copyright (C) 2000 CSELT S.p.A.
+ * 
+ * GNU Lesser General Public License
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation,
+ * version 2.1 of the License.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA  02111-1307, USA.
+ * **************************************************************
+ */
 package jade.content.lang.sl;
 
+import jade.core.CaseInsensitiveString;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.ObjectSchema;
@@ -11,7 +36,9 @@ import jade.content.lang.sl.SLVocabulary;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.Iterator;
 import java.util.Date;
-
+/**
+ * @version $Date$ $Revision$
+ **/
 class SimpleSLCodec extends StringCodec {
 	private int indent = 0;
 	
@@ -131,7 +158,9 @@ class SimpleSLCodec extends StringCodec {
 		String type = val.getTypeName();
   	if (type.equals(BasicOntology.STRING)) {	
 	   	String s = val.getString();
-    	if (!SimpleSLTokenizer.isAWord(s)) {
+			if (CaseInsensitiveString.equalsIgnoreCase("true",s) || CaseInsensitiveString.equalsIgnoreCase("false",s)) {
+					s = '"'+s+'"'; // quote it to avoid confusion with the boolean primitives
+			} else if (!SimpleSLTokenizer.isAWord(s)) {
     		s = SimpleSLTokenizer.quoteString(s);
     	}
     	str.append(s);
