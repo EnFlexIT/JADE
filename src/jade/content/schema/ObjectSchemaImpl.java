@@ -493,7 +493,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     * Return null if there aren't facets on the specified slot.
     */
     public Facet[] getFacets(String slotName) {
-    	Vector v = (Vector)facets.get(slotName);
+    	Vector v = (Vector)facets.get(new CaseInsensitiveString(slotName));
     	
     	if (v!=null) {
     		Facet temp[] = new Facet[v.size()];
