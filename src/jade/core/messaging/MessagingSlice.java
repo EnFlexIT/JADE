@@ -31,6 +31,7 @@ import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
+import jade.security.JADESecurityException;
 
 import jade.lang.acl.ACLMessage;
 
@@ -110,7 +111,7 @@ public interface MessagingSlice extends Service.Slice {
   static final String H_ADDROUTE = "8";
   static final String H_REMOVEROUTE = "9";
 
-  void dispatchLocally(AID senderAID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException;
+  void dispatchLocally(AID senderAID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, JADESecurityException;
   void routeOut(Envelope env, byte[] payload, AID receiverID, String address) throws IMTPException, MTPException;
   ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException;
 

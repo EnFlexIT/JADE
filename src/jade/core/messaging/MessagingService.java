@@ -96,6 +96,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   public static final String CACHE_SIZE = "jade_core_messaging_MessagingService_cachesize";
   public static final int CACHE_SIZE_DEFAULT = 100;
   
+  public static final String ATTACH_PLATFORM_INFO = "jade_core_messaging_MessagingService_attachplatforminfo";
+  public static final String PLATFORM_IDENTIFIER = "x-sender-platform-identifer";
+  public static final String MTP_IDENTIFIER = "x-sender-mtp-identifer";
+  
 	// The profile passed to this object
   private Profile myProfile;
 
@@ -133,7 +137,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   private Map cachedSlices; 
 
   // The routing table mapping MTP addresses to their hosting slice
-  private RoutingTable routes = new RoutingTable();
+  private RoutingTable routes;
 
   private final static int EXPECTED_ACLENCODINGS_SIZE = 3;
   // The table of the locally installed ACL message encodings
@@ -194,6 +198,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
     cachedSlices = new HashCache(size);
 
+    routes = new RoutingTable(myProfile.getBooleanProperty(ATTACH_PLATFORM_INFO, false));
+    
     // Look in the profile and check whether we must accept foreign agents
     acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
 
@@ -810,7 +816,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     // Entry point for the ACL message dispatching process
-    public void deliverNow(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException {
+    public void deliverNow(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException, JADESecurityException {
       //log("Delivering message for "+receiverID.getName(), 4);
         if (logger.isLoggable(Logger.FINE))
           logger.log(Logger.FINE,"Delivering message for "+receiverID.getName());
@@ -873,7 +879,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         }
     }
 
-    private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException {
+    private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException, JADESecurityException {
 	    boolean ok = false;
 	    do {
         MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
@@ -1250,6 +1256,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    // Service error during delivery --> Send a FAILURE message
 	    notifyFailureToSender(msg, receiverID, new InternalError("Service error: " + se.getMessage()));
     }
+    catch(JADESecurityException jse) {
+	    // Delivery not authorized--> Send a FAILURE message
+	    notifyFailureToSender(msg, receiverID, new InternalError("Not authorized: " + jse.getMessage()));
+    }
   }
 
 
@@ -1305,7 +1315,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * the Message Transport Service.
    */
   public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
-    if (receiver.equals(myContainer.getAMS()) && msg.getAttemptCnt() < 3) {
+    if (receiver.equals(myContainer.getAMS()) && msg.getAttemptCnt() < 3 && !ie.getErrorMessage().startsWith("Not authorized")) {
     	// The receiver of the message was the AMS. The AMS must always be
     	// there --> It is probably due to a fault of the main container.
     	// Print a warning then wait a bit then try again: if there is a 

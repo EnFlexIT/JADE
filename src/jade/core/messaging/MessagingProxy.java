@@ -33,6 +33,7 @@ import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
+import jade.security.JADESecurityException;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -49,7 +50,7 @@ import jade.mtp.MTPException;
 public class MessagingProxy extends Service.SliceProxy implements MessagingSlice {
 
 
-    public void dispatchLocally(AID senderID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException {
+    public void dispatchLocally(AID senderID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, JADESecurityException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_DISPATCHLOCALLY, NAME, null);
       cmd.addParam(senderID);
@@ -66,6 +67,9 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 		}
 		else if(result instanceof NotFoundException) {
 		    throw (NotFoundException)result;
+		}
+		else if(result instanceof JADESecurityException) {
+		    throw (JADESecurityException)result;
 		}
 		else {
 		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
