@@ -299,6 +299,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private transient AssociationTB pendingTimers = new AssociationTB();
 
+  // Free running counter that increments by one for each message
+  // received.
+  private int messageCounter = 0 ;
+
   private Map languages = new HashMap();
   private Map ontologies = new HashMap();
 
@@ -965,8 +969,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	    }
 	  }
 
+
+	  // Remember how many messages arrived
+	  int oldMsgCounter = messageCounter;
+
 	  // Just do it!
 	  currentBehaviour.action();
+
+	  // If the current Behaviour is blocked and more messages
+	  // arrived, restart the behaviour to give it another chance
+	  if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
+	    currentBehaviour.restart();
+
 
 	  // When it is needed no more, delete it from the behaviours queue
 	  if(currentBehaviour.done()) {
@@ -1790,7 +1804,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
 
   /**
-     Put a received message into the agent message queue. The mesage
+     Put a received message into the agent message queue. The message
      is put at the back end of the queue. This method is called by
      JADE runtime system when a message arrives, but can also be used
      by an agent, and is just the same as sending a message to oneself
@@ -1802,6 +1816,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     synchronized(waitLock) {
       if(msg != null) msgQueue.addLast(msg);
       doWake();
+      messageCounter++;
     }
   }
 
