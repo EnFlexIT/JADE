@@ -8,97 +8,119 @@
 <P><I>Email: <A 
 href="mailto:rm.cowan@verizon.net">rm.cowan@verizon.net</A></I></P>
 <P><I>Date: February 22, 2003</I></P>
-<P><I><FONT size=2>Java platform: J2SE</FONT></I></P><FONT size=2>
-<P><I><FONT size=2><A href="http://jade.cselt.it/">JADE</A> version 2.5 and 
-above</FONT></I></P><FONT face=Arial,Helvetica size=3>
-<P>JADE provides a simple mechanism to pass arguments to agents via the 
-command-line or via the in-process interface. 
-<P>For instance, the following <U>command line</U> passes 3 arguments to the 
-agent FooAgent: <PRE>	java jade.Boot foo:FooAgent(1 arg2 "This is argument 3")
+<P><I><FONT size=2>Java platform: J2SE</FONT></I></P>
+<FONT size=2> 
+<P><I><A href="http://jade.cselt.it/">JADE</A> version 2.5 and above</I></P>
+<FONT face=Arial,Helvetica size=3> 
+<P>JADE provides a simple mechanism to pass arguments to agents via the command-line 
+  or via the in-process interface. 
+<P>For instance, the following <U>command line</U> passes 3 arguments to the agent 
+  FooAgent: 
+<PRE>	java jade.Boot foo:FooAgent(1 arg2 "This is argument 3")
 </PRE>
 <P>the 3 arguments can then be extracted by the FooAgent code via a simple call 
-to the method <CODE>getArguments()</CODE> that returns an array of java 
-<CODE>Object</CODE>: <PRE>  public void setup() {
+  to the method <CODE>getArguments()</CODE> that returns an array of java <CODE>Object</CODE>: 
+<PRE>  public void setup() {
    Object[] args = getArguments();
    String arg1 = (String)args[0]; // this returns the String 1
    String arg2 = (String)args[1]; // this returns the String arg2
    String arg3 = (String)args[2]; // this returns the String This is argument 3
   }
   </PRE>
-<P>The same arguments can be passed <U>via the in-process</U> interface as 
-follows: <PRE> Object args = new Object[3];
+<P>The same arguments can be passed <U>via the in-process</U> interface as follows: 
+<PRE> Object args = new Object[3];
  args[0] = "1";
  args[1] = "arg2";
  args[3] = "This is argument 3";
  AgentController dummy = ac.createNewAgent("foo", "FooAgent", args);
 </PRE>
 <P>Because of the usage of an array of <CODE>Object</CODE> rather than an array 
-of <CODE>String</CODE>, the in-process interface can also pass complex arguments 
-to an agent, such as the reference to another Java object. 
+  of <CODE>String</CODE>, the in-process interface can also pass complex arguments 
+  to an agent, such as the reference to another Java object. 
+<P> The command line can also be effectively used in order to pass general properties 
+  to all the agents in the system. For instance, the following command line sets 
+  to 3 the value of the property named verbosity:
+</FONT></FONT> 
+<pre><font face="Arial,Helvetica" size="2">	java jade.Boot -verbosity 3 foo:FooAgent(1 arg2 "This is argument 3")</font></pre>
+<p><FONT size=2><font size=2><font face=Arial,Helvetica size=3>The same property 
+  can be set also via the in-process interface, in particular by setting that 
+  value in the Profile object:</font></font></FONT></p>
+<p><font face="Arial,Helvetica" size="2"> Profile p = new ProfileImpl();<br>
+  p.setParameter(&quot;verbosity&quot;,&quot;3&quot;);<br>
+  </font><font face="Arial,Helvetica" size="2">AgentContainer ac = rt.createAgentContainer(p);</font></p>
+<p><font size="3" face="Arial,Helvetica">In both cases, all agents can then get 
+  that value via the <code><a href="../api/jade/core/Agent.html#getProperty(java.lang.String, java.lang.String)">getProperty</a></code> 
+  method call provided by the <code>jade.core.Agent </code> class: </font></p>
+<pre><font face="Arial,Helvetica" size="2">	String verbosity = getProperty(&quot;verbosity&quot;, &quot;0&quot;); </font></pre>
+<FONT size=2><FONT face=Arial,Helvetica size=3>
 <P>However, attempting to pass other than a few simple arguments via the command 
-line is difficult. Particularly trying to do so in a platform neutral manner. 
-LEAP also makes use of properties in lieu of passing arguments directly to the 
-agent. 
+  line is difficult. Particularly trying to do so in a platform neutral manner. 
+  LEAP also makes use of properties in lieu of passing arguments directly to the 
+  agent. 
 <P>While working with the Agents for Mobility group at HP Labs, we recognized 
-the need to provide agents with a richer and more flexible method of passing 
-arguments to our agents than could be done from the command line. The classes we 
-created became part of the JADE 2.5 release. 
+  the need to provide agents with a richer and more flexible method of passing 
+  arguments to our agents than could be done from the command line. The classes 
+  we created became part of the JADE 2.5 release. 
 <P>The classes of interest are <A 
-href="file:///C:/Documents%20and%20Settings/bellifemine/Local%20Settings/api/jade/util/BasicProperties.html">BasicProperties</A>, 
-<A 
-href="file:///C:/Documents%20and%20Settings/bellifemine/Local%20Settings/api/jade/util/EnhancedProperties.html">EnhancedProperties</A>, 
-and <A 
-href="file:///C:/Documents%20and%20Settings/bellifemine/Local%20Settings/api/jade/util/ExpandedProperties.html">ExpandedProperties</A>. 
-The preceding links should take you to the API documentation for these classes. 
-Briefly they are: 
+href="../api/jade/util/BasicProperties.html">BasicProperties</A>, <A 
+href="../api/jade/util/EnhancedProperties.html">EnhancedProperties</A>, and <A 
+href="../api/jade/util/ExpandedProperties.html">ExpandedProperties</A>. The preceding 
+  links should take you to the API documentation for these classes. Briefly they 
+  are: 
 <OL>
   <LI><TT><B>jade.util.BasicProperties</B></TT> - Provides the foundation class 
-  for property management. It is designed to be usable in the restrictive J2ME 
-  CLDC environment. It provides enhanced property management as well as 
-  providing support for values containing strings of the form 
-  <TT><B>${key}</B></TT>. 
-  <LI><TT><B>jade.util.EnhancedProperties</B></TT> - Provides a concrete 
-  implementation of ImportableProperties useable in the J2SE (desktop) world. 
+    for property management. It is designed to be usable in the restrictive J2ME 
+    CLDC environment. It provides enhanced property management as well as providing 
+    support for values containing strings of the form <TT><B>${key}</B></TT>. 
+  <LI><TT><B>jade.util.EnhancedProperties</B></TT> - Provides a concrete implementation 
+    of ImportableProperties useable in the J2SE (desktop) world. 
   <LI><TT><B>jade.util.ExpandedProperties</B></TT> - Extends EnhancedProperties 
-  and adds support for fetching system environment variables (those usable from 
-  the OS shell). This class would need to be carefully considered in other than 
-  Windows or Unix/Linux environments. </LI></OL>By using property files you can 
-include all the arguments you wish. From the command line to initialize an 
-agents properties from a file named "myprop.properties", you would use: <PRE>	java jade.Boot foo:DemoAgent(import:myprop.properties)
-</PRE>One property file may import from another, so inside myprop.properties you 
-could include an import to another file. You can get at your environment 
-variables using a key like <TT><B>${CLASSPATH}</B></TT>. There are many 
-convenient getter methods provided in <A 
-href="file:///C:/Documents%20and%20Settings/bellifemine/Local%20Settings/api/jade/util/BasicProperties.html">BasicProperties</A>. 
-
+    and adds support for fetching system environment variables (those usable from 
+    the OS shell). This class would need to be carefully considered in other than 
+    Windows or Unix/Linux environments. </LI>
+</OL>
+By using property files you can include all the arguments you wish. From the command 
+line to initialize an agents properties from a file named "myprop.properties", 
+you would use: 
+<PRE>	java jade.Boot foo:DemoAgent(import:myprop.properties)
+</PRE>
+One property file may import from another, so inside myprop.properties you could 
+include an import to another file. You can get at your environment variables using 
+a key like <TT><B>${CLASSPATH}</B></TT>. There are many convenient getter methods 
+provided in <A 
+href="../api/jade/util/BasicProperties.html">BasicProperties</A>. 
 <P>Shown below are: 
 <OL>
-  <LI><TT><B>BasicAgent.java</B></TT> - Intended to provide basic property 
-  support for all agents. You could extend this class rather than jade.Agent for 
-  your custom agents. Of particular interest in this class is the method 
-  <TT><B>getProperties()</B></TT> as it attempts to initialize the starting 
-  property collection by having the class loader load properties from a file 
-  called "setup.properties". This initial collection may then be altered by any 
-  properties supplied at run time. Loading the initial collection using the 
-  class loader is important as this permits you to place the property file in 
-  the same jar as your class files - simplifying installation and usage by 
-  others. This could be where you provide all the default values for 
-  infrequently modified things such as class names or GUI settings. 
-  <LI><TT><B>DemoAgent.java</B></TT> - Provides a simple example agent which 
-  uses BasicAgent. You can run this agent. 
-  <LI><TT><B>setup.properties</B></TT> - An example property file. </LI></OL>
+  <LI><TT><B>BasicAgent.java</B></TT> - Intended to provide basic property support 
+    for all agents. You could extend this class rather than jade.Agent for your 
+    custom agents. Of particular interest in this class is the method <TT><B>getProperties()</B></TT> 
+    as it attempts to initialize the starting property collection by having the 
+    class loader load properties from a file called "setup.properties". This initial 
+    collection may then be altered by any properties supplied at run time. Loading 
+    the initial collection using the class loader is important as this permits 
+    you to place the property file in the same jar as your class files - simplifying 
+    installation and usage by others. This could be where you provide all the 
+    default values for infrequently modified things such as class names or GUI 
+    settings. 
+  <LI><TT><B>DemoAgent.java</B></TT> - Provides a simple example agent which uses 
+    BasicAgent. You can run this agent. 
+  <LI><TT><B>setup.properties</B></TT> - An example property file. </LI>
+</OL>
 <P>The two java files contain additional comments on implementation and usage. 
 <P>Testing: 
 <OL>
   <LI>Copy the text in each section below and save to a file whose name is the 
-  same as the header. Place these three files in the same directory. 
+    same as the header. Place these three files in the same directory. 
   <LI>Change to the directory where you saved the files. 
   <LI>Compile the two Java files. 
   <LI>With jade.jar as well the current directory on your classpath run the demo 
-  with: <BR><TT>java jade.Boot demo:DemoAgent</TT> 
-  <LI>DemoAgent simply displays its properties every N seconds, where N is 
-  specifed by the property "delay.seconds". </LI></OL>
-<H2>BasicAgent.java</H2><PRE>import java.io.InputStream;
+    with: <BR>
+    <TT>java jade.Boot demo:DemoAgent</TT> 
+  <LI>DemoAgent simply displays its properties every N seconds, where N is specifed 
+    by the property "delay.seconds". </LI>
+</OL>
+<H2>BasicAgent.java</H2>
+<PRE>import java.io.InputStream;
 import java.io.IOException;
 
 import jade.core.Agent;
@@ -214,7 +236,8 @@ public class BasicAgent extends Agent {
      }
 }
 </PRE>
-<H2>DemoAgent.java</H2><PRE>
+<H2>DemoAgent.java</H2>
+<PRE>
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 
@@ -255,7 +278,8 @@ public class DemoAgent extends BasicAgent {
      }
 }
 </PRE>
-<H2>setup.properties</H2><PRE>
+<H2>setup.properties</H2>
+<PRE>
 # Used by DemoAgent as its delay between displays
 delay.seconds=10
 
@@ -282,15 +306,17 @@ weather.zonecode=HIZ002
 
 class.path=${CLASSPATH}
 
-</PRE></FONT>
+</PRE>
+</FONT> 
 <HR>
-
-<P>
-<CENTER><FONT face=Arial><FONT size=-1><A href="http://jade.cselt.it/">JADE</A> 
-is a trademark of <A href="http://www.cselt.it/">CSELT</A>. <A 
-href="http://jade.cselt.it/">JADE</A> has been developed jointly by <A 
-href="http://www.cselt.it/">CSELT</A> and the <A 
-href="http://www.ce.unipr.it/">Computer Engineering Group</A> of the <A 
-href="http://www.unipr.it/">University of Parma</A></FONT></FONT> 
-</CENTER><BR>&nbsp; 
-<P><BR></FONT></P></BODY></HTML>
+<P> 
+  <CENTER>
+    <FONT face=Arial size="-1"><A href="http://jade.cselt.it/">JADE</A> is a trademark 
+    of <A href="http://www.cselt.it/">CSELT</A>. </FONT> 
+  </CENTER>
+  <BR>
+  &nbsp; 
+<P><BR>
+</P>
+</FONT> 
+</BODY></HTML>
