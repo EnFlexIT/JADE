@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/11/01 14:54:21  rimassa
+  Added a 'doDelete()' call to make the Agent terminate at the end of
+  its Behaviour.
+
   Revision 1.6  1998/10/18 16:10:16  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -66,6 +70,7 @@ public class Agent2 extends Agent {
       else
 	System.out.println("Doesn't match 'mt1 AND mt2' template.");
 
+      doDelete();
     }
 
   }
