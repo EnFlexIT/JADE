@@ -103,14 +103,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   public AgentContainerImpl() throws RemoteException {
 
-    // Configure Java runtime system to put the whole host address in RMI messages
-    try {
-      System.getProperties().put("java.rmi.server.hostname", InetAddress.getLocalHost().getHostAddress());
-    }
-    catch(java.net.UnknownHostException jnue) {
-      jnue.printStackTrace();
-    }
-
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
 
