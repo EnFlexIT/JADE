@@ -1,0 +1,207 @@
+/*
+  $Id$
+*/
+
+// This file defines a class to parse a 'fipa-df-agent-descriptor'
+// into a DFAgentDescriptor object
+
+options {
+
+  STATIC = false;
+
+}
+
+
+PARSER_BEGIN(DFDescriptionParser)
+
+package jade.domain;
+
+import java.io.Reader;
+import java.io.StringReader;
+
+class DFDescriptionParser {
+
+  // Temporary reference for result during construction
+  private DFAgentDescriptor desc;
+  private ServiceDescriptor sd;
+
+  public static void main(String args[]) throws ParseException {
+    DFDescriptionParser parser = new DFDescriptionParser(System.in);
+    
+    while (true) {
+      try {
+	DFAgentDescriptor result = parser.FIPA_DF_description();
+	result.dump(); 
+      }
+      catch(ParseException pe) {
+	pe.printStackTrace();
+	System.exit(1);
+      }
+    }
+  }
+
+  public static DFDescriptionParser create() {
+    return new DFDescriptionParser(new StringReader(""));
+  }
+
+  public DFAgentDescriptor parse(Reader r) throws ParseException {
+    ReInit(r);
+    return FIPA_DF_description();
+  }
+
+}
+
+PARSER_END(DFDescriptionParser)
+
+
+
+// JavaCC grammar productions
+
+
+DFAgentDescriptor FIPA_DF_description() :
+{
+  desc = new DFAgentDescriptor();
+}
+{
+ "(" DescBody() ")"
+ {
+   DFAgentDescriptor result = desc;
+   desc = null;
+   return result;
+ }
+
+}
+
+
+void DescBody() :
+{
+  String s;
+  Token t;
+}
+{
+   <AGENT_NAME> AgentName()
+ | <AGENT_ADDRESS> CommAddress()
+ | <AGENT_SERVICES> "(" FIPA_SerDesc() ")"
+ | <AGENT_TYPE> t = <WORD>
+   {
+     desc.setType(t.image);
+   }
+ | <INTERACTION_PROTOCOLS> "(" t = <WORD> ")"
+   {
+     desc.setInteractionProtocols(t.image);
+   }
+ | <ONTOLOGY> s = SLTerm()
+   {
+     desc.setOntology(s);
+   }
+ | <OWNERSHIP> s = SLTerm()
+   {
+     desc.setOwnership(s);
+   }
+ | <DF_STATE> t = <STATES>
+   {
+     desc.setDFState(t.image);
+   }
+}
+
+void AgentName() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    desc.setName(t.image);
+  }
+}
+
+void CommAddress() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    desc.setAddress(t.image);
+  }
+}
+
+void FIPA_SerDesc() :
+{
+  sd = new ServiceDescriptor();
+}
+{
+  "(" SDBody() ")"
+  {
+    desc.setServices(sd);
+  }
+}
+
+void SDBody() :
+{
+  String s;
+  Token t;
+}
+{
+   <SERVICE_TYPE> ( t = <SERVICES> | t = <WORD> )
+    {
+      sd.setType(t.image);
+    }
+ | <SERVICE_ONTOLOGY> s = SLTerm() ")"
+    {
+      sd.setOntology(s);
+    }
+ | <SERVICE_DESCRIPTION> s = SLTerm()
+    {
+      sd.setDescription(s);
+    }
+ | <SERVICE_CONDITIONS> s = SLTerm()
+    {
+      sd.setConditions(s);
+    }
+}
+
+String SLTerm() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    return t.image;
+  }
+}
+
+
+// JavaCC lexical productions
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+
+TOKEN: 
+{
+
+  <AGENT_NAME : ":agent-name">
+| <AGENT_ADDRESS : ":agent-address">
+| <AGENT_SERVICES : ":agent-services">
+| <AGENT_TYPE : ":agent-type">
+| <INTERACTION_PROTOCOLS : ":interaction-protocols">
+| <ONTOLOGY : ":ontology">
+| <OWNERSHIP : ":ownership">
+| <DF_STATE : ":df-state">
+| <SERVICE_TYPE : ":service-type">
+| <SERVICE_ONTOLOGY : ":service-ontology"> 
+| <SERVICE_DESCRIPTION : ":service-description">
+| <SERVICE_CONDITIONS : ":service-conditions">
+| <STATES : "active" | "suspended" | "retired">
+| <SERVICES : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
+| < WORD :   ["!", "\"", "$"-"'", "*", "+", ",", ".", "/", ":"-"~"] (["*"-"~","!"-"'"])* >
+
+}
+
