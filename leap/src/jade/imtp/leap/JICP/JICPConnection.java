@@ -165,18 +165,11 @@ public class JICPConnection extends Connection {
   /**
    */
   public void close() throws IOException {
-    if (sc == null) {
-      throw new IOException("connection not open");
-    } 
-    if (is != null) {
-      is.close();
-      is = null;
-    } 
-    if (os != null) {
-      os.close();
-      os = null;
-    } 
-    sc.close();
+  	try {is.close();} catch(Exception e) {}
+    is = null;
+  	try {os.close();} catch(Exception e) {}
+    os = null;
+    try {sc.close();} catch(Exception e) {}
     sc = null;
   } 
 
