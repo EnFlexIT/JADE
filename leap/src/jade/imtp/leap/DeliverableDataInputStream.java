@@ -107,10 +107,14 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeACL();
                 case Serializer.AID_ID:
                     return deserializeAID();
+		case Serializer.AIDARRAY_ID:
+		    return deserializeAIDArray();
                 case Serializer.STRING_ID:
                     return readUTF();
                 case Serializer.CONTAINERID_ID:
                     return deserializeContainerID();
+		case Serializer.CONTAINERIDARRAY_ID:
+		    return deserializeContainerIDArray();
                 case Serializer.BOOLEAN_ID:
                     return new Boolean(readBoolean());
                 case Serializer.INTEGER_ID:
@@ -462,6 +466,16 @@ class DeliverableDataInputStream extends DataInputStream {
         return id;
     } 
 
+    public AID[] deserializeAIDArray() throws IOException, LEAPSerializationException {
+        AID[] aida = new AID[readInt()];
+
+        for (int i = 0; i < aida.length; i++) {
+            aida[i] = readAID();
+        } 
+
+        return aida;
+    } 
+
     /**
      * Package scoped as it is called by the CommandDispatcher
      */
@@ -494,6 +508,32 @@ class DeliverableDataInputStream extends DataInputStream {
         catch (IOException ioe) {
             throw new LEAPSerializationException("Error deserializing ContainerID");
         } 
+    } 
+
+    public ContainerID readContainerID() throws LEAPSerializationException {
+        try {
+            boolean presenceFlag = readBoolean();
+
+            if (presenceFlag) {
+                return deserializeContainerID();
+            } 
+            else {
+                return null;
+            } 
+        } 
+        catch (IOException e) {
+            throw new LEAPSerializationException("Error deserializing AID");
+        } 
+    } 
+
+    public ContainerID[] deserializeContainerIDArray() throws IOException, LEAPSerializationException {
+        ContainerID[] cida = new ContainerID[readInt()];
+
+        for (int i = 0; i < cida.length; i++) {
+            cida[i] = readContainerID();
+        } 
+
+        return cida;
     } 
 
     /**
