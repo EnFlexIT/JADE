@@ -39,7 +39,7 @@ public class Waker extends Thread {
     */
     public Waker(Agent a, ACLMessage msg, long timeout) {
         myAgent=a;
-        myMsg = msg;
+        myMsg = (ACLMessage)msg.clone();
         myTimeout = timeout;
     }
     

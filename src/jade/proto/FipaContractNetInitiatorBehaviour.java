@@ -93,7 +93,7 @@ protected ACLMessage cfpMsg;
    */
     public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
       myAgent = a;
-      cfpMsg = msg;
+      cfpMsg = (ACLMessage)msg.clone();
       proposerAgents = (AgentGroup)group.clone();
     }
     
