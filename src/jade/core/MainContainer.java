@@ -29,7 +29,7 @@ package jade.core;
 @version $Date$ $Revision$
 */
 
-interface MainContainer {
+public interface MainContainer {
 
     void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException;
 

@@ -30,7 +30,7 @@ import java.io.Serializable;
 @version $Date$ $Revision$
 */
 
-interface RemoteProxy extends AgentProxy, Serializable {
+public interface RemoteProxy extends AgentProxy, Serializable {
 
   void ping() throws UnreachableException;
 
