@@ -23,13 +23,22 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp.iiop;
 
-import jade.mtp.MTP;
-import jade.mtp.TransportAddress;
-import jade.domain.FIPAAgentManagement.Envelope;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Date;
+import java.util.Calendar;
 
 import org.omg.CORBA.*;
 
 import FIPA.*; // OMG IDL Stubs
+
+import jade.core.AID;
+
+import jade.mtp.MTP;
+import jade.mtp.TransportAddress;
+import jade.domain.FIPAAgentManagement.Envelope;
+
 
 /**
    Implementation of <code><b>fipa.mts.mtp.iiop.std</b></code>
@@ -38,22 +47,96 @@ import FIPA.*; // OMG IDL Stubs
 
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
-
  */
 public class MessageTransportProtocol implements MTP {
 
+  private static class MTSImpl extends FIPA._MTSImplBase {
 
-  private static class MTSImpl extends _MTSImplBase {
+    private MTP.Dispatcher dispatcher;
+
+    public MTSImpl(MTP.Dispatcher disp) {
+      dispatcher = disp;
+    }
 
     public void message(FipaMessage aFipaMessage) {
+      FIPA.Envelope[] envelopes = aFipaMessage.messageEnvelopes;
       byte[] payload = aFipaMessage.messageBody;
-      Envelope env = new Envelope();
-      // Read in the envelope
 
-      String s = new String(payload);
-      System.out.println("|||||||||||||||||||||||||||||||||||||||");
-      System.out.println(s);
-      System.out.println("|||||||||||||||||||||||||||||||||||||||");
+      Envelope env = new Envelope();
+
+      // Read all the envelopes sequentially, so that later slots
+      // overwrite earlier ones.
+      for(int e = 0; e < envelopes.length; e++) {
+	FIPA.Envelope IDLenv = envelopes[e];
+
+	// Read in the 'to' slot
+	if(IDLenv.to.length > 0)
+	  env.clearAllTo();
+	for(int i = 0; i < IDLenv.to.length; i++) {
+	  AID id = unmarshalAID(IDLenv.to[i]);
+	  env.addTo(id);
+	}
+
+	// Read in the 'from' slot
+	if(IDLenv.to.length > 0) {
+	  AID id = unmarshalAID(IDLenv.from[0]);
+	  env.setFrom(id);
+	}
+
+	// Read in the 'intended-receiver' slot
+	if(IDLenv.intendedReceiver.length > 0)
+	  env.clearAllIntendedReceiver();
+	for(int i = 0; i < IDLenv.intendedReceiver.length; i++) {
+	  AID id = unmarshalAID(IDLenv.intendedReceiver[i]);
+	  env.addIntendedReceiver(id);
+	}
+
+	// Read in the 'encrypted' slot
+	if(IDLenv.encrypted.length > 0)
+	  env.clearAllEncrypted();
+	for(int i = 0; i < IDLenv.encrypted.length; i++) {
+	  String word = IDLenv.encrypted[i];
+	  env.addEncrypted(word);
+	}
+
+	// Read in the other slots
+	if(IDLenv.comments.length() > 0)
+	  env.setComments(IDLenv.comments);
+	if(IDLenv.aclRepresentation.length() > 0)
+	  env.setAclRepresentation(IDLenv.aclRepresentation);
+	if(IDLenv.payloadLength > 0)
+	  env.setPayloadLength(Integer.toString(IDLenv.payloadLength));
+	if(IDLenv.payloadEncoding.length() > 0)
+	  env.setPayloadEncoding(IDLenv.payloadEncoding);
+	if(IDLenv.date.length > 0) {
+	  Date d = unmarshalDateTime(IDLenv.date[0]);
+	  env.setDate(d);
+	}
+	// FIXME: need to unmarshal 'received' slot
+	// FIXME: need to unmarshal user properties
+
+      }
+
+
+      // Dispatch the message
+      dispatcher.dispatchMessage(env, payload);
+
+    }
+
+
+    private AID unmarshalAID(FIPA.AgentID id) {
+      AID result = new AID();
+      result.setName(id.name);
+      for(int i = 0; i < id.addresses.length; i++)
+	result.addAddresses(id.addresses[i]);
+      for(int i = 0; i < id.resolvers.length; i++)
+	result.addResolvers(unmarshalAID(id.resolvers[i]));
+      return result;
+    }
+
+    private Date unmarshalDateTime(FIPA.DateTime d) {
+      Date result = new Date();
+      return result;
     }
 
   } // End of MTSImpl class
@@ -66,13 +149,13 @@ public class MessageTransportProtocol implements MTP {
     myORB = ORB.init(new String[0], null);
   }
 
-  public TransportAddress activate() throws MTP.MTPException {
-    server = new MTSImpl();
+  public TransportAddress activate(MTP.Dispatcher disp) throws MTP.MTPException {
+    server = new MTSImpl(disp);
     myORB.connect(server);
     return new IIOPAddress(myORB, server);
   }
 
-  public void activate(TransportAddress ta) throws MTP.MTPException {
+  public void activate(MTP.Dispatcher disp, TransportAddress ta) throws MTP.MTPException {
     throw new MTP.MTPException("User supplied transport address not supported.");
   }
 
@@ -87,19 +170,89 @@ public class MessageTransportProtocol implements MTP {
   public void deliver(TransportAddress ta, Envelope env, byte[] payload) throws MTP.MTPException {
     try {
       IIOPAddress addr = (IIOPAddress)ta;
-      MTS objRef = addr.getObject();
-      FipaMessage msg = new FipaMessage();
-      FIPA.Envelope IDLenv = new FIPA.Envelope();
+      FIPA.MTS objRef = addr.getObject();
 
-      // Fill in the IDL envelope...
+      // Fill in the 'to' field of the IDL envelope
+      Iterator itTo = env.getAllTo();
+      List to = new ArrayList();
+      while(itTo.hasNext()) {
+	AID id = (AID)itTo.next();
+	to.add(marshalAID(id));
+      }
 
-      msg.messageEnvelopes = new FIPA.Envelope[] { IDLenv };
-      msg.messageBody = payload;
+      FIPA.AgentID[] IDLto = new FIPA.AgentID[to.size()];
+      for(int i = 0; i < to.size(); i++)
+	IDLto[i] = (FIPA.AgentID)to.get(i);
+
+
+      // Fill in the 'from' field of the IDL envelope
+      AID from = env.getFrom();
+      Iterator itFrom = from.getAllAddresses();
+      if(!itFrom.hasNext())
+	from.addAddresses("iiop://" + addrToStr(ta));
+
+      FIPA.AgentID[] IDLfrom = new FIPA.AgentID[] { marshalAID(from) };
+
+
+
+      // Fill in the 'intended-receiver' field of the IDL envelope
+      Iterator itIntendedReceiver = env.getAllIntendedReceiver();
+      List intendedReceiver = new ArrayList();
+      while(itIntendedReceiver.hasNext()) {
+	AID id = (AID)itIntendedReceiver.next();
+	intendedReceiver.add(marshalAID(id));
+      }
+
+      FIPA.AgentID[] IDLintendedReceiver = new FIPA.AgentID[intendedReceiver.size()];
+      for(int i = 0; i < intendedReceiver.size(); i++)
+	IDLintendedReceiver[i] = (FIPA.AgentID)intendedReceiver.get(i);
+
+
+      // Fill in the 'encrypted' field of the IDL envelope
+      Iterator itEncrypted = env.getAllEncrypted();
+      List encrypted = new ArrayList();
+      while(itEncrypted.hasNext()) {
+	String word = (String)itEncrypted.next();
+	encrypted.add(word);
+      }
+
+      String[] IDLencrypted = new String[encrypted.size()];
+      for(int i = 0; i < encrypted.size(); i++)
+	IDLencrypted[i] = (String)encrypted.get(i);
+
+
+      // Fill in the other fields of the IDL envelope ...
+      String IDLcomments = env.getComments();
+      String IDLaclRepresentation = env.getAclRepresentation();
+      String payloadLength = env.getPayloadLength();
+      int IDLpayloadLength = Integer.parseInt(payloadLength);
+      String IDLpayloadEncoding = env.getPayloadEncoding();
+      FIPA.DateTime[] IDLdate = new FIPA.DateTime[] { marshalDateTime(env.getDate()) };
+      FIPA.ReceivedObject[] IDLreceived = new FIPA.ReceivedObject[] { }; // FIXME: need to marshal 'received' slot
+      FIPA.Property[][] IDLtransportBehaviour = new FIPA.Property[][] { };
+      FIPA.Property[] IDLuserDefinedProperties = new FIPA.Property[] { }; // FIXME: need to marshal user properties
+
+      FIPA.Envelope IDLenv = new FIPA.Envelope(IDLto,
+					       IDLfrom,
+					       IDLcomments,
+					       IDLaclRepresentation,
+					       IDLpayloadLength,
+					       IDLpayloadEncoding,
+					       IDLdate,
+					       IDLencrypted,
+					       IDLintendedReceiver,
+					       IDLreceived,
+					       IDLtransportBehaviour,
+					       IDLuserDefinedProperties);
+
+      FipaMessage msg = new FipaMessage(new FIPA.Envelope[] { IDLenv }, payload);
       objRef.message(msg); 
     }
     catch(ClassCastException cce) {
+      cce.printStackTrace();
       throw new MTP.MTPException("Address mismatch: this is not a valid IIOP address.");
     }
+
   }
 
   public TransportAddress strToAddr(String rep) throws MTP.MTPException {
@@ -120,14 +273,51 @@ public class MessageTransportProtocol implements MTP {
     return "iiop";
   }
 
-}
+  private FIPA.AgentID marshalAID(AID id) {
+    String name = id.getName();
+    String[] addresses = id.getAddressesArray();
+    AID[] resolvers = id.getResolversArray();
+    FIPA.Property[] userDefinedProperties = new FIPA.Property[] { };
+    int numOfResolvers = resolvers.length;
+    FIPA.AgentID result = new FIPA.AgentID(name, addresses, new AgentID[numOfResolvers], userDefinedProperties);
+    for(int i = 0; i < numOfResolvers; i++) {
+      result.resolvers[i] = marshalAID(resolvers[i]); // Recursively marshal all resolvers, which are, in turn, AIDs.
+    }
+
+    return result;
+
+  }
+
+  private FIPA.DateTime marshalDateTime(Date d) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(d);
+    short year = (short)cal.get(Calendar.YEAR);
+    short month = (short)cal.get(Calendar.MONTH);
+    short day = (short)cal.get(Calendar.DAY_OF_MONTH);
+    short hour = (short)cal.get(Calendar.HOUR_OF_DAY);
+    short minutes = (short)cal.get(Calendar.MINUTE);
+    short seconds = (short)cal.get(Calendar.SECOND);
+    short milliseconds = 0; // FIXME: This is truncated to the second
+    char typeDesignator = ' '; // FIXME: Uses local timezone ?
+    FIPA.DateTime result = new FIPA.DateTime(year,
+					     month,
+					     day,
+					     hour,
+					     minutes,
+					     seconds,
+					     milliseconds,
+					     typeDesignator);
+    return result;
+  }
+
+} // End of class MessageTransportProtocol
 
   class IIOPAddress implements TransportAddress {
 
     public static final byte BIG_ENDIAN = 0;
     public static final byte LITTLE_ENDIAN = 1;
 
-    private static final String TYPE_ID = "IDL:FIPA_Agent_97:1.0";
+    private static final String TYPE_ID = "IDL:FIPA/MTS:1.0";
     private static final int TAG_INTERNET_IOP = 0;
     private static final byte IIOP_MAJOR = 1;
     private static final byte IIOP_MINOR = 0;
@@ -141,13 +331,13 @@ public class MessageTransportProtocol implements MTP {
 
     private CDRCodec codecStrategy;
 
-    public IIOPAddress(ORB anOrb, MTS objRef) throws MTP.MTPException {
+    public IIOPAddress(ORB anOrb, FIPA.MTS objRef) throws MTP.MTPException {
       orb = anOrb;
       String s = orb.object_to_string(objRef);
       if(s.toUpperCase().startsWith("IOR:"))
 	initFromIOR(s);
       else if(s.toLowerCase().startsWith("iiop://"))
-	initFromURL(s, LITTLE_ENDIAN);
+	initFromIOR(s.substring(7));
       else
 	throw new MTP.MTPException("Invalid string prefix");
     }
@@ -157,7 +347,7 @@ public class MessageTransportProtocol implements MTP {
       if(s.toUpperCase().startsWith("IOR:"))
 	initFromIOR(s);
       else if(s.toLowerCase().startsWith("iiop://"))
-	initFromURL(s, LITTLE_ENDIAN);
+	initFromIOR(s.substring(7));
       else
 	throw new MTP.MTPException("Invalid string prefix");
     }
@@ -303,8 +493,8 @@ public class MessageTransportProtocol implements MTP {
       return ior;
     }
 
-    public MTS getObject() {
-      return MTSHelper.narrow(orb.string_to_object(ior));
+    public FIPA.MTS getObject() {
+      return FIPA.MTSHelper.narrow(orb.string_to_object(ior));
     }
 
     private static abstract class CDRCodec {
