@@ -37,8 +37,8 @@ public void setMaxDepth(Long l){
   /**
    * return null if it has not been set
    */
-public long getMaxDepth() {
-  return null; //max_depth;
+public Long getMaxDepth() {
+  return max_depth;
 }
 
 public void setMaxResults(Long l) {
