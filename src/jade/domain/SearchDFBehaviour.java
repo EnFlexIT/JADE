@@ -1,29 +1,24 @@
-/*
-  $Log$
-  Revision 1.6  1999/04/06 00:09:53  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.5  1999/03/14 17:47:21  rimassa
-  Fixed a bug: a getName() call should have been getLocalName() instead.
+GNU Lesser General Public License
 
-  Revision 1.4  1999/03/10 06:56:20  rimassa
-  Changed superclass name from 'FipaRequestClientBehaviour' to
-  'FipaRequestInitiatorBehaviour'.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.3  1999/03/09 13:05:06  rimassa
-  A minor change to avoid using deprecated 'ACLMessage.getDest()' calls.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.2  1998/12/08 00:07:17  rimassa
-  Removed handcrafted content generation for request message; now using
-  updated DFSearchBehaviour.toText() method.
-  Removed debugging printouts.
-
-  Revision 1.1  1998/12/01 23:45:51  rimassa
-  A Behaviour to search a DF for information. Will be used by a DF itself to
-  perform recursive searches concurrently when a :df-depth greater than 1 is
-  given.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.domain;
 
@@ -46,7 +41,8 @@ import jade.proto.FipaRequestInitiatorBehaviour;
   passing and reply content parsing. The full <em><b>FIPA</b></em>
   capabilities are supported, such as search constraints and recursive
   searches through <em>DF</em> federations.
-
+  
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */

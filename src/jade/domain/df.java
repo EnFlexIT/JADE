@@ -1,88 +1,25 @@
-/*
-  $Log$
-  Revision 1.26  2000/01/31 09:18:52  rimassaJade
-  Commented out two stack trace printouts.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.25  1999/09/02 14:59:57  rimassa
-  Separated DF GUI from DF agent. Now the DF GUI lives in jade.gui
-  package.
+GNU Lesser General Public License
 
-  Revision 1.24  1999/06/22 13:17:22  rimassa
-  Added support for showing the GUI on demand.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.23  1999/05/20 13:43:18  rimassa
-  Moved all behaviour classes in their own subpackage.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.22  1999/04/06 00:09:56  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.21  1999/03/29 10:42:30  rimassa
-  Changed the handling of DF GUI events: now both registration and
-  deregistration are handled as events.
-
-  Revision 1.20  1999/03/15 15:24:26  rimassa
-  Removed call to deprecated ACLMessage.setDest() method.
-
-  Revision 1.19  1999/03/14 17:51:15  rimassa
-  Changed df class to take advantage of new
-  FipaRequestResponderBehaviour class.
-
-  Revision 1.18  1999/02/16 08:12:05  rimassa
-  Removed some debugging printouts and fixed a bug in recursive search:
-  a couple of addBehaviour() calls changed to addSubBehaviour() calls.
-
-  Revision 1.17  1999/02/14 23:24:20  rimassa
-  Changed addBehaviour() calls to addSubBehaviour() where appropriate.
-  Added an automatic management of DF federeation: now a DF agent
-  informs deregisters itself from parent DFs when it terminates
-  Removed some debug printouts.
-
-  Revision 1.16  1999/02/04 13:19:14  rimassa
-  Fixed a bug in the content of the search result.
-  The FIPA-request protocol now complies with the FIPA specs. Also the
-  requested action is returned in the content of the agree and inform
-  done messages.
-
-  Revision 1.15  1999/02/03 11:50:18  rimassa
-  Some 'private' instance variables made 'protected', to allow code
-  compilation under jdk 1.2.
-  Changed some FIPA exceptions thrown by DF agent.
-  Added some missing parentheses and modified message content of several
-  DF response messages.
-
-  Revision 1.14  1998/12/08 00:21:09  rimassa
-  Removed handmade parsing of message content. Now updated fromText()
-  method from DFAction and DFSearchAction classes is used.
-  Moved DFSearch() method from df class to SrchBehaviour inner
-  class. Now DFSearch() performs a complete pattern matching among
-  DFAgentDescriptor objects, ensures search constraints feasibility and
-  can even spawn other behaviours for recursive searches.
-  Added RecursiveSearchBehaviour inner class to support concurrently
-  active recursive searches (when ':df-depth' search constraint is given
-  and it is greater than 1).
-
-  Revision 1.13  1998/11/30 00:24:34  rimassa
-  Finished basic support for 'search' action: still missing search
-  constraint management.
-
-  Revision 1.12  1998/11/23 00:14:17  rimassa
-  Added a match() method to aid in 'search' DF action. Now a complete
-  match is performed on every attribute of a 'df-agent-descriptor'
-  ontology object.
-
-  Revision 1.11  1998/11/18 23:00:52  Giovanni
-  Written 'search' action implementation; now a simple linear scan of DF
-  agent descriptor table is used. Still missing is a non trivial match
-  function, support for action constraints and result packaging as an
-  'inform' message.
-
-  Revision 1.10  1998/10/18 17:37:34  rimassa
-  Minor changes towards 'search' action implementation.
-
-  Revision 1.9  1998/10/04 18:01:37  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
 
 package jade.domain;
 
@@ -121,7 +58,8 @@ import jade.gui.GUI2DFCommunicatorInterface;
   In order to show the GUI, you should simply send the following message
   to each DF agent: <code>(request :content (action DFName (SHOWGUI))
   :ontology jade-extensions :protocol fipa-request)</code>
- 
+  
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

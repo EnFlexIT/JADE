@@ -1,33 +1,25 @@
-/*
-  $Log$
-  Revision 1.12  1999/06/04 07:49:47  rimassa
-  Changed class code to avoid any relation with jade.core package.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.11  1999/04/06 00:09:54  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+GNU Lesser General Public License
 
-  Revision 1.10  1999/03/14 17:49:33  rimassa
-  Changed acc class to take advantage of new
-  FipaRequestResponderBehaviour class.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.9  1999/02/16 08:09:34  rimassa
-  Removed a fixed FIXME.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.8  1999/02/03 10:54:28  rimassa
-  Added some missing parentheses to ACC reply messages.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
-  Revision 1.7  1998/12/08 00:08:41  rimassa
-  Removed handmade content message parsing. Now updated
-  ACCAction.fromText() method is used.
-
-  Revision 1.6  1998/10/23 21:43:26  Giovanni
-  Activated some instrumentation code. Now both ParseException and
-  TokenMgrError are dumped when catched.
-
-  Revision 1.5  1998/10/04 18:01:35  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
 
 package jade.domain;
 
@@ -45,7 +37,8 @@ import jade.proto.FipaRequestResponderBehaviour;
   implements <em><b>FIPA</b></em> <em>ACC</em> agent. <b>JADE</b>
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
-
+  
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

@@ -1,135 +1,24 @@
-/*
-  $Log$
-  Revision 1.41  2000/01/21 14:36:00  rimassaJade
-  Removed a race condition on Agent Platform data structures (GADT and
-  container list); now iterators aren't used anymore.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.40  1999/11/09 16:48:38  rimassaJade
-  Fixed a protocol problem with action 'sniff-on' and 'sniff-off'.
+GNU Lesser General Public License
 
-  Revision 1.39  1999/11/08 15:26:16  rimassaJade
-  Added AMS support for the message sniffer.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.38  1999/08/31 17:28:55  rimassa
-  Added automatic notification to registered RMAs whenever an agent
-  moves across containers.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.37  1999/08/10 15:39:00  rimassa
-  Changed method name in an invocation to the agent platform to reflect
-  AgentManager changes.
-
-  Revision 1.36  1999/07/19 00:05:34  rimassa
-  Added support for storing and querying a FIPA 98 compliant platform profile.
-
-  Revision 1.35  1999/07/13 19:54:23  rimassa
-  Changed AMS implementation to hold inside all the AMS Agent
-  Descriptors for the agents of the platform.
-
-  Revision 1.34  1999/06/06 21:52:28  rimassa
-  Modified 'create-agent' action to notify an agent's creator when a
-  subsequent AMS registration fails.
-
-  Revision 1.33  1999/06/04 07:58:23  rimassa
-  Replaced direct AgentPlatformImpl usage with a more restricted
-  AgentManager interface, to tighten jade.core encapsulation.
-
-  Revision 1.32  1999/05/20 13:43:18  rimassa
-  Moved all behaviour classes in their own subpackage.
-
-  Revision 1.31  1999/05/19 18:20:44  rimassa
-  Removed fake RMA authentication. Now every agent can ask the AMS to
-  perform Life Cycle Management tasks.
-
-  Revision 1.30  1999/04/06 00:09:55  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.29  1999/03/24 12:20:49  rimassa
-  Ported most data structures to newer Java 2 Collection framework.
-
-  Revision 1.28  1999/03/17 13:06:12  rimassa
-  A small change to use complete agent GUID in addressing the platform
-  Global Descriptor Table.
-
-  Revision 1.27  1999/03/14 17:50:27  rimassa
-  Changed acc class to take advantage of new
-  FipaRequestResponderBehaviour class.
-
-  Revision 1.26  1999/03/09 13:18:32  rimassa
-  Minor changes.
-
-  Revision 1.25  1999/02/25 08:34:57  rimassa
-  Changed direct access to 'myName' and 'myAddress' instance variables
-  to accessor methods call.
-  Changed ams constructor not to require a name anymore.
-  Added a customized 'deregisterWithAMS() method to avoid deadlocking on
-  agent shutdown.
-
-  Revision 1.24  1999/02/15 11:45:56  rimassa
-  Removed a fixed FIXME.
-
-  Revision 1.23  1999/02/04 12:53:37  rimassa
-  Modified some error messages for 'fipa-man-exeption' objects.
-
-  Revision 1.22  1999/02/03 10:56:31  rimassa
-  Some 'private' instance variables made 'protected', to allow code
-  compilation under jdk 1.2.
-  Added some missing parentheses to AMS reply messages.
-
-  Revision 1.21  1998/12/08 00:10:20  rimassa
-  Removed handmade parsing of message content; now updated
-  AMSAction.fromText() method is used.
-
-  Revision 1.20  1998/11/15 23:08:24  rimassa
-  Added a new KillContainerBehaviour to support 'kill-container' AMS
-  action.
-
-  Revision 1.19  1998/11/09 00:24:29  rimassa
-  Replaced older container ID with newer container name.
-  Added code to send a snapshot of Agent Platform state (active agent
-  containers and agent list on every container) to each newly registered
-  Remote Management Agent.
-
-  Revision 1.18  1998/11/05 23:36:31  rimassa
-  Added a deregisterRMABehaviour to listen to 'cancel' messages from
-  registered Remote Management Agents.
-
-  Revision 1.17  1998/11/03 00:37:33  rimassa
-  Added AMS event notification to the Remote Management Agent. Now the
-  AMS picks up AgentPlatform events from synchronized buffers and
-  forwards them to RMA agent for GUI update.
-
-  Revision 1.16  1998/11/02 02:04:29  rimassa
-  Added two new Behaviours to support AMS <-> RMA interactions. The
-  first Behaviour listens for incoming 'subscribe' messages from RMA
-  agents and adds them to a sequence of listeners. The second one
-  forwards to registered listeners each notification the AgentPlatforrm
-  sends to the AMS (for example, the AgentPlatform informs AMS whenever
-  a new agent container is added or removed to tha AgentPlatform).
-
-  Revision 1.15  1998/11/01 14:59:56  rimassa
-  Added a new Behaviour to support Remote Management Agent registration.
-
-  Revision 1.14  1998/10/31 16:43:10  rimassa
-  Implemented 'kill-agent' action through a suitable Behaviour; now both
-  an agent name and a password are recognized in action
-  content. Currently the password is ignored.
-
-  Revision 1.13  1998/10/26 22:38:44  Giovanni
-  Modified AMS Behaviour for action 'create-agent': now the syntax of
-  the "Proposal for an extension of the Agent Management specifications"
-  is used in 'create-agent' action content.
-
-  Revision 1.12  1998/10/26 00:08:47  rimassa
-  Added two new Behaviours to support new 'create-agent' and
-  'kill-agent' actions. Some modifications to AMSBehaviour abstract base
-  class to use it with the two new subclasses, which have different
-  parameters. Now the AMS is just like the DF, which has 'search' action
-  with different parameters.
-
-  Revision 1.11  1998/10/04 18:01:36  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.domain;
 
@@ -160,6 +49,7 @@ import jade.proto.FipaRequestResponderBehaviour;
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
 
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
