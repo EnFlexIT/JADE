@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.6  1999/08/10 15:34:41  rimassa
+ * Added copySource() and moveSource() methods.
+ *
  * Revision 1.5  1999/04/06 00:09:37  rimassa
  * Documented public classes with Javadoc. Reduced access permissions wherever possible.
  *
@@ -22,10 +25,14 @@ import java.util.EventListener;
 
   Responsibilities and Collaborations:
 
-  + Exposes a method to handle incoming messages.
+  + Exposes a method to handle outgoing messages.
+  + Offers a restricted interface to agent life cycle.
 
 ******************************************************************/
 interface CommListener extends EventListener {
   void CommHandle(CommEvent event);
   void endSource(String name);
+  void moveSource(String name, String where);
+  void copySource(String name, String where, String newName);
+
 }
