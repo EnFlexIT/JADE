@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.7  1998/11/15 23:11:52  rimassa
+  Added two public methods killContainer() and shutDownPlatform(), used
+  as GUI callbacks.
+  Added new ACLMessage object to hold requests to AMS for
+  'kill-container' action.
+
   Revision 1.6  1998/11/09 00:27:11  rimassa
   Added 'RMA' as sender name in ACL messages to the AMS.
   Closing GUI on RMA agent exit.
@@ -29,9 +35,6 @@
 
 package jade.domain;
 
-// FIXME: Only for debug
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -61,6 +64,7 @@ public class rma extends Agent {
   private ACLMessage AMSCancellation = new ACLMessage("cancel");
   private ACLMessage newAgentMsg = new ACLMessage("request");
   private ACLMessage killAgentMsg = new ACLMessage("request");
+  private ACLMessage killContainerMsg = new ACLMessage("request");
 
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
@@ -164,6 +168,11 @@ public class rma extends Agent {
 
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
+    killContainerMsg.setSource(myName);
+    killContainerMsg.setDest("AMS");
+    killContainerMsg.setProtocol("fipa-request");
+    killContainerMsg.setOntology("fipa-agent-management");
+    killContainerMsg.setLanguage("SL0");
 
     killAgentMsg.setSource(myName);
     killAgentMsg.setDest("AMS");
@@ -237,6 +246,26 @@ public class rma extends Agent {
     send(killAgentMsg);
 
     // FIXME: Should do a complete 'fipa-request' protocol
+
+  }
+
+  public void killContainer(String name) {
+
+    AgentManagementOntology.KillContainerAction kca = new AgentManagementOntology.KillContainerAction();
+    kca.setContainerName(name);
+    StringWriter killText = new StringWriter();
+    kca.toText(killText);
+    killContainerMsg.setContent("( action ams " + killText + " )");
+
+    send(killContainerMsg);
+
+    // FIXME: Should do a complete 'fipa-request' protocol
+
+  }
+
+  public void shutDownPlatform() {
+
+    killContainer("Container-0"); // FIXME: Container name is hardwired within RMA
 
   }
 
