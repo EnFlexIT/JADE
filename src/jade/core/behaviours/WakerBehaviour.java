@@ -94,7 +94,7 @@ public WakerBehaviour(Agent a, long timeout) {
   finished = false;
 }
 
-public void action() {
+public final void action() {
   switch (state) {
   case 0: {
   	// Adjust wakeupTime in case the user set a relative time
@@ -163,7 +163,7 @@ public void reset(long timeout) {
   finished = false;
 }
 
-public boolean done() {
+public final boolean done() {
   return finished;
 }
 }

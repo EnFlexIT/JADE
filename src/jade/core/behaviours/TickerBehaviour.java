@@ -61,7 +61,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 		wakeupTime = System.currentTimeMillis() + period;
 	}
 	
-	public void action() {
+	public final void action() {
     long blockTime = wakeupTime - System.currentTimeMillis();
     if (blockTime <= 0) {
       // Timeout is expired --> execute the user defined action and
@@ -77,7 +77,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
     }
 	} 
 
-	public boolean done() {
+	public final boolean done() {
   	return finished;
 	}
 	
@@ -125,7 +125,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	 * behaviour was executed) since the last reset.
 	 * @return The number of ticks since the last reset
 	 */
-	public int getTickCount() {
+	public final int getTickCount() {
 		return tickCount;
 	}
 }
