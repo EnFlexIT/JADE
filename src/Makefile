@@ -4,7 +4,7 @@
 .PHONY: all clean
 
 export MAKE = make
-export IDLCC = idltojava
+export IDLCC = idltojava -fno-cpp
 export STUBGEN = rmic
 export PARSERGEN = javacc
 
