@@ -30,6 +30,10 @@ import javax.swing.table.*;
 import java.util.logging.*;
 import java.util.Enumeration;
 import java.util.Vector;
+import jade.gui.JadeLogoButton;
+
+
+import jade.core.*;
 
 /**
  * Utility class used to handle logging service.
@@ -50,11 +54,17 @@ public class LogManagerGui extends javax.swing.JFrame {
 	private static int HANDLER_COLUMN 		= 2;		
 	private static int FILE_HANDLER_COLUMN 	= 3;
 	
+	private String 	logo = "images/logger.gif";
+	private String 	jadeLogo = "images/jadelogo.jpg";
+	private AID     agentName;
+
+	
 	LogManager logManager = LogManager.getLogManager();
 	JComboBox levelCombo;
 
 	public LogManagerGui(LogManagerAgent agent){
 		this.myAgent = agent;
+		agentName = myAgent.getAID();
 		init();
 		}
 
@@ -89,6 +99,13 @@ public class LogManagerGui extends javax.swing.JFrame {
 		
 		setLevelColumn.setCellEditor(levelEditor);
 
+		try{
+			setTitle(agentName.getName() + " - LogManagerAgent");
+		}catch(Exception e){setTitle("LogManagerAgent");}
+		
+	    Image image = getToolkit().getImage(getClass().getResource(logo));
+	    setIconImage(image);
+
 		addWindowListener(new WindowAdapter() {
 						public void windowClosing(WindowEvent e) {
 								System.out.println("closing");
@@ -96,6 +113,16 @@ public class LogManagerGui extends javax.swing.JFrame {
 								myAgent.doDelete();
 	     }
      });
+     
+		/////////////////////////////////////////////////////
+		// Add Toolbar to the NORTH part of the border layout 
+		JToolBar bar = new JToolBar();
+		
+		bar.add(Box.createHorizontalGlue());
+		JadeLogoButton logo = new JadeLogoButton();
+		bar.add(logo);
+		getContentPane().add("North", bar);
+     
 		}
 		
 	private int getLoggers(){
@@ -243,6 +270,15 @@ public class LogManagerGui extends javax.swing.JFrame {
 				case 1:{
 					Level level = Level.parse(value.toString());
 					logger.setLevel(level);
+					//Set level for handlers associated to logger
+					Handler[] pHandlers = logger.getParent().getHandlers();
+					Handler[] handlers = logger.getHandlers();
+					for (int i=0; i<pHandlers.length; i++){
+						pHandlers[i].setLevel(level);
+						}
+					for (int j=0; j<handlers.length; j++){
+						handlers[j].setLevel(level);
+						}
 					((LogElem)loggers.elementAt(row)).setLevel(value.toString());
 					//Updates the value in the table			
 					getValueAt(row,column);
@@ -275,5 +311,5 @@ public class LogManagerGui extends javax.swing.JFrame {
 			}
 
 		}
-		
+
 	}
