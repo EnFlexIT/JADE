@@ -763,6 +763,10 @@ public class Agent implements Runnable, Serializable {
     return state;
   }
 
+  AgentState getAgentState() {
+    return STATES[getState()];
+  }
+
   // State transition methods for Agent Platform Life-Cycle
 
   /**
