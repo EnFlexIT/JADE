@@ -374,6 +374,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
   //#MIDP_EXCLUDE_END
   
+  public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
+	return null;
+  }
+
   
   ///////////////////////////////
   // Private methods
