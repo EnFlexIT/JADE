@@ -62,6 +62,7 @@ class acc implements MTP.Dispatcher {
   private Map localMTPs = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private RoutingTable routes = new RoutingTable();
   private List addresses = new LinkedList();
+  private List localAddresses = new LinkedList();
   private AgentContainerImpl myContainer;
 
   public acc(AgentContainerImpl ac) {
@@ -225,6 +226,7 @@ class acc implements MTP.Dispatcher {
 	localMTPs.put("corbaloc", proto);
       }
       TransportAddress ta = proto.activate(this);
+      localAddresses.add(proto.addrToStr(ta));
       return ta;
     }
     else { // Convert the given string into a TransportAddress object and use it
@@ -254,6 +256,10 @@ class acc implements MTP.Dispatcher {
       return ta;
     }
 
+  }
+
+  public List getLocalAddresses() {
+    return localAddresses;
   }
 
   public void addRoute(String address, AgentContainer ac) {
