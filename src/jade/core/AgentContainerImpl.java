@@ -251,10 +251,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 //__SECURITY__END
 
-  public void exit() throws IMTPException {
-    shutDown();
-  }
-
   /**
     @param snifferName The Agent ID of the sniffer to send messages to.
     @param toBeSniffed The <code>AID</code> of the agent to be sniffed
@@ -344,8 +340,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           
           // This string will be used to build the GUID for every agent on
           // this platform.
-          AID.setPlatformID("myPlatform.getPlatformName()");
-          
+          AID.setPlatformID(myServiceManager.getPlatformName());
+
           // Build the Agent IDs for the AMS and for the Default DF.
           theAMS = new AID("ams", AID.ISLOCALNAME);
           theDefaultDF = new AID("df", AID.ISLOCALNAME);
@@ -409,7 +405,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  }
 
           // If myPlatform is the real MainContainerImpl this call starts the AMS and DF, otherwise it does nothing
-	  System.out.println("--- Container ID: " + myID.getName() + " ---");
 	  myPlatform.startSystemAgents(this);
 
 	  // Install all ACL Codecs and MTPs specified in the Profile
@@ -498,7 +493,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  
 	  DelegationCertificate agentDelegation = authority.createDelegationCertificate();
 	  agentDelegation.setSubject(agentPrincipal);
-	  System.out.println("--- Certs: <" + certs + "> ---");
 	  for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
 	      agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
 	  authority.sign(agentDelegation, certs);
