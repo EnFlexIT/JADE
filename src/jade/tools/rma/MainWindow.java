@@ -87,8 +87,8 @@ class MainWindow extends JFrame {
     popP = new PopupMenuPlatform(actPro);
     popRP = new PopupMenuRemotePlatform(actPro);
     tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-    tree.treeAgent.register("FROZENAGENT",popFA,"images/freezeagent.png");
-    tree.treeAgent.register("FROZENCONTAINER", null, "images/frozenagents.png");
+    tree.treeAgent.register("FROZENAGENT",popFA,"images/freezeagent.gif");
+    tree.treeAgent.register("FROZENCONTAINER", null, "images/frozenagents.gif");
     tree.treeAgent.register("FIPACONTAINER",popC,"images/foldergreen.gif");
     tree.treeAgent.register("REMOTEPLATFORM",popRP ,"images/folderlightblue.gif");
     JPopupMenu popupRemote = new JPopupMenu();
