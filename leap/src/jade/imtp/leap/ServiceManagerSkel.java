@@ -65,7 +65,6 @@ class ServiceManagerSkel extends Skeleton {
 	case Command.GET_PLATFORM_NAME: {
 
 	    // Execute command...
-	    System.out.println("-- GET_PLATFORM_NAME --");
 	    String name = impl.getPlatformName();
 
 	    resp = new Command(Command.OK);
