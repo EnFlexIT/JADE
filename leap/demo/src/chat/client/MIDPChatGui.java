@@ -141,8 +141,9 @@ class MIDPChatGui implements ChatGui, CommandListener {
   private synchronized void clearMain() {
   	int size = main.size();
 		for (int i = 0; i < size; ++i) {
-			main.delete(i);
+			main.delete(0);
 		}
+    Display.getDisplay(Agent.midlet).setCurrent(main); 
   }
 }
 
