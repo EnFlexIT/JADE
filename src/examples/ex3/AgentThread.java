@@ -17,7 +17,7 @@ public class AgentThread extends Agent {
 
     addBehaviour(new OneShotBehaviour(this) {
 
-      protected void action() {
+      public void action() {
 	try {
 	  byte[] buffer = new byte[1024];
 	  System.out.println("Enter a message:");

@@ -14,7 +14,7 @@ public class AgentReceiver extends Agent {
 
     addBehaviour(new CyclicBehaviour(this) {
 
-      protected void action() {
+      public void action() {
         System.out.println("Now receiving (blocking style)...");
         ACLMessage msg = myAgent.blockingReceive();
         msg.dump();

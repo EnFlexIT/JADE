@@ -151,7 +151,7 @@ public class AgentRequester extends Agent {
     // If agree is received, also receive inform or failure messages.
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
-      protected void action() {
+      public void action() {
 	AgentRequester a = (AgentRequester)myAgent;
 	if(a.agreed()) {
 	  

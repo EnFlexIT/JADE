@@ -18,7 +18,7 @@ public class AgentSender extends Agent {
 
     addBehaviour(new CyclicBehaviour(this) {
 
-      protected void action() {
+      public void action() {
         try {
           byte[] buffer = new byte[1024];
           System.out.println("Enter a message:");
