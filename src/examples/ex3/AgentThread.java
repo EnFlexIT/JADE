@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.6  1998/10/18 16:10:29  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.5  1998/10/04 18:00:24  rimassa
   Added a 'Log:' field to every source file.
 
@@ -37,7 +46,7 @@ public class AgentThread extends Agent {
 	  String text = new String("( request :sender " + getName());
 	  text = text + " :receiver " + dest + " :content ( " + content + " ) )";
 	  System.out.println(text);
-	  ACLMessage msg = parse(new StringReader(text));
+	  ACLMessage msg = ACLMessage.fromText(new StringReader(text));
 
 
 	  send(msg);

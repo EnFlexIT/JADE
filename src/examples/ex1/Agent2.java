@@ -1,11 +1,22 @@
 /*
   $Log$
+  Revision 1.6  1998/10/18 16:10:16  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.5  1998/10/04 18:00:11  rimassa
   Added a 'Log:' field to every source file.
 
 */
 
 package examples.ex1;
+
+import java.io.*;
 
 import jade.core.*;
 import jade.lang.acl.*;
@@ -27,21 +38,21 @@ public class Agent2 extends Agent {
       MessageTemplate mtAnd = MessageTemplate.and(mt1, mt2);
 
       System.out.println("Message Template 1:");
-      mt1.dump();
+      mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
       System.out.println("Message Template 2:");
-      mt2.dump();
+      mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
       System.out.println("Message Template 1 AND Message Template 2:");
-      mtAnd.dump();
+      mt1.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
-      ACLMessage msg = new ACLMessage();
-      msg.setType("inform");
+      ACLMessage msg = new ACLMessage("inform");
+
       msg.setProtocol("fipa-request");
       msg.setOntology("pifa-chicken-management");
 
       System.out.println("Message :");
-      msg.dump();
+      msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       if(mt1.match(msg))
 	System.out.println("Matches 'mt1' template.");
       else

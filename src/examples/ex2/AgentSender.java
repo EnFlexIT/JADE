@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.9  1998/10/18 16:10:24  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.8  1998/10/04 18:00:19  rimassa
   Added a 'Log:' field to every source file.
 
@@ -30,12 +39,12 @@ public class AgentSender extends Agent {
           int len = System.in.read(buffer);
           String content = new String(buffer,0,len-1);
 
-          ACLMessage msg = parse(new StringReader(content));
+          ACLMessage msg = ACLMessage.fromText(new StringReader(content));
 	  msg.setSource(getName());
 
           send(msg);
 
-          System.out.println(getName()+" is waiting for reply..");
+          System.out.println(getName() + " is waiting for reply..");
 
           ACLMessage reply = blockingReceive();
 	  System.out.println(getName()+ " received the following ACLMessage: " );

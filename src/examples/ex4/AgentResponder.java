@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.5  1998/10/18 16:10:34  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.4  1998/10/04 18:00:28  rimassa
   Added a 'Log:' field to every source file.
 
@@ -7,11 +16,14 @@
 
 package examples.ex4;
 
-// This agent plays the responder role in fipa-request protocol.
+
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 
 import jade.core.*;
 import jade.lang.acl.*;
 
+// This agent plays the responder role in fipa-request protocol.
 public class AgentResponder extends Agent {
 
 
@@ -29,7 +41,7 @@ public class AgentResponder extends Agent {
 
       public void action() {
 	send(message);
-	message.dump();
+	message.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
       }
 
     } // End of SendBehaviour
@@ -52,7 +64,7 @@ public class AgentResponder extends Agent {
       // probability. If a request is agreed, there is still a 40%
       // failure probability.
 
-      ACLMessage reply = new ACLMessage();
+      ACLMessage reply = new ACLMessage("not-understood");
       reply.setSource(getName());
       reply.setDest(myPeer);
       reply.setProtocol("fipa-request");
@@ -62,8 +74,7 @@ public class AgentResponder extends Agent {
 
       if(chance < 0.2) {
 	// Reply with 'not-understood'
-	reply.setType("not-understood");
-	reply.dump();
+	reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	send(reply);
       }
       else if(chance < 0.5) {
@@ -71,13 +82,13 @@ public class AgentResponder extends Agent {
 	reply.setType("refuse");
 	reply.setLanguage("\"Plain Text\"");
 	reply.setContent("I'm too busy at the moment. Retry later.");
-	reply.dump();
+	reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	send(reply);
       }
       else {
 	// Reply with 'agree' and schedule next message
 	reply.setType("agree");
-	reply.dump();
+	reply.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	send(reply);
 
 	chance = Math.random();
@@ -91,7 +102,7 @@ public class AgentResponder extends Agent {
 	  // Select an 'inform' message
 	  reply.setType("inform");
 	  reply.setLanguage("\"Plain Text\"");
-	  reply.setContent("I hereby imform you that the action has been done.");
+	  reply.setContent("I hereby inform you that the action has been done.");
 	}
 
 
@@ -135,7 +146,7 @@ public class AgentResponder extends Agent {
 
       if(request != null) {
 	System.out.println("Received: ");
-	request.dump();
+	request.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 	addBehaviour(new ResponderBehaviour(request));
       }
 

@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.5  1998/10/18 16:10:22  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.4  1998/10/04 18:00:17  rimassa
   Added a 'Log:' field to every source file.
 
@@ -28,8 +37,7 @@ public class AgentBroadcaster extends Agent {
 
 
     public BehaviourElement(String source, String dest, String content) {
-      myMessage = new ACLMessage();
-      myMessage.setType("request");
+      myMessage = new ACLMessage("request");
       myMessage.setSource(source);
       myMessage.setContent(content);
       myMessage.setDest(dest);
@@ -76,7 +84,6 @@ public class AgentBroadcaster extends Agent {
 	  len = System.in.read(buffer);
 	  String dest3 = new String(buffer,0,len-1);
 
-	  ACLMessage msg = new ACLMessage();
 	  String source = getName();
 
 	  addBehaviour(new BehaviourElement(source,dest1,content));

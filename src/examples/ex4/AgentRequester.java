@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.6  1998/10/18 16:10:33  rimassa
+  Some code changes to avoid deprecated APIs.
+
+   - Agent.parse() is now deprecated. Use ACLMessage.fromText(Reader r) instead.
+   - ACLMessage() constructor is now deprecated. Use ACLMessage(String type)
+     instead.
+   - ACLMessage.dump() is now deprecated. Use ACLMessage.toText(Writer w)
+     instead.
+
   Revision 1.5  1998/10/04 18:00:27  rimassa
   Added a 'Log:' field to every source file.
 
@@ -225,7 +234,7 @@ public class AgentRequester extends Agent {
       "    :conversation-id " + convID +
       ")";
 
-    ACLMessage toSend = parse(new StringReader(text));
+    ACLMessage toSend = ACLMessage.fromText(new StringReader(text));
     send(toSend);
 
     System.out.println("[Agent.sendRequest()]\tRequest sent");
@@ -234,24 +243,24 @@ public class AgentRequester extends Agent {
 
   public void dumpMessage(ACLMessage msg) {
     System.out.println("[Agent.dumpMessage]\tReceived message:");
-    msg.dump();
+    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
  
   public void receiveAgree(ACLMessage msg) {
     System.out.println("[Agent.receiveAgree]\tSuccess!!! Responder agreed to do action !");
-    msg.dump();
+    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     receivedAgree = true;
   }
 
   public void handleFailure(ACLMessage msg) {
     System.out.println("Responder failed to process the request. Reason was:");
     System.out.println(msg.getContent());
-    msg.dump();
+    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
   public void handleInform(ACLMessage msg) {
     System.out.println("Responder has just informed me that the action has been carried out.");
-    msg.dump();
+    msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   }
 
 }
