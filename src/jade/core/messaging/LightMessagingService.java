@@ -571,10 +571,10 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    authority.doPrivileged(new PrivilegedExceptionAction() {
 		    public Object run() {
 			try {
-			    GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-			    cmd.addParam(failure);
-			    cmd.addParam(theAMS);
-			    submit(cmd);
+			    GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+			    command.addParam(failure);
+			    command.addParam(theAMS);
+			    submit(command);
 			}
 			catch(ServiceException se) {
 			    // It should never happen
@@ -622,4 +622,8 @@ public class LightMessagingService extends BaseService implements MessageManager
     // The component managing asynchronous message delivery and retries
     private MessageManager myMessageManager;
 
+    // Work-around for PJAVA compilation
+    protected Service.Slice getFreshSlice(String name) throws ServiceException {
+    	return super.getFreshSlice(name);
+    }
 }

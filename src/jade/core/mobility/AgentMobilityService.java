@@ -1020,5 +1020,9 @@ public class AgentMobilityService extends BaseService {
     // The command sink, target side
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
+    // Work-around for PJAVA compilation
+    protected Service.Slice getFreshSlice(String name) throws ServiceException {
+    	return super.getFreshSlice(name);
+    }
 }
 

@@ -112,13 +112,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     };
 
     public MessagingService() {
-	//#MIDP_EXCLUDE_BEGIN
-	cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
-	//#MIDP_EXCLUDE_END
-
-	/*#MIDP_INCLUDE_BEGIN
-	cachedSlices = new HashMap();
-	#MIDP_INCLUDE_END*/
     }
 
 
@@ -307,10 +300,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		authority.doPrivileged(new PrivilegedExceptionAction() {
 			public Object run() {
 			    try {
-				GenericCommand cmd = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-				cmd.addParam(failure);
-				cmd.addParam(theAMS);
-				submit(cmd);
+				GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+				command.addParam(failure);
+				command.addParam(theAMS);
+				submit(command);
 			    }
 			    catch(ServiceException se) {
 				// It should never happen
@@ -1242,7 +1235,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     // The cached AID -> MessagingSlice associations
-    private final Map cachedSlices;
+		//#MIDP_EXCLUDE_BEGIN
+		private final Map cachedSlices = new jade.util.HashCache(100); // FIXME: Cache size should be taken from the profile
+		//#MIDP_EXCLUDE_END
+	
+		/*#MIDP_INCLUDE_BEGIN
+		private final Map cachedSlices = new HashMap();
+		#MIDP_INCLUDE_END*/
 
     // The routing table mapping MTP addresses to their hosting slice
     private RoutingTable routes = new RoutingTable(MessagingService.this);
@@ -1257,5 +1256,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     // The component managing asynchronous message delivery and retries
     private MessageManager myMessageManager;
 
-
+    // Work-around for PJAVA compilation
+    protected Service.Slice getFreshSlice(String name) throws ServiceException {
+    	return super.getFreshSlice(name);
+    }
 }
