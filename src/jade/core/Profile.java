@@ -43,7 +43,7 @@ public abstract class Profile {
      container.
    */
   public static final String MAIN = "main";
-  
+
   /**
      This constant is the name of the property whose value is a String
      indicating the protocol to use to connect to the Main Container.
@@ -64,20 +64,28 @@ public abstract class Profile {
    */
   public static final String MAIN_PORT = "port";
 
+  /**
+     This constant is the name of the property whise value contains
+     the host name the container must bind on. The host name must
+     refer to the local machine, and is generally needed only when
+     multiple network interfaces are present or a non-default name is
+     desired.
+  */
+  public static final String LOCAL_HOST = "local-host";
 
   /**
-     This constant is the name of the property whose value contains
-     the name of the host where a local Service Manager is to be
-     exported (when using JADE fault-tolerant deployment).
+     This constant is the name of the TCP port the container node must
+     listen to for incoming IMTP messages.
   */
-  public static final String LOCAL_SERVICE_MANAGER_HOST = "smhost";
+  public static final String LOCAL_PORT = "local-port";
 
   /**
-     This constant is the name of the property whose value contains
-     the TCP port where a local Service Manager is to be exported
-     (when using JADE fault-tolerant deployment).
+     This constant is the name of the property whose Boolean value
+     tells whether a local Service Manager is exported by this
+     container (only when using JADE support for fault-tolerant
+     platform configurations).
   */
-  public static final String LOCAL_SERVICE_MANAGER_PORT = "smport";
+  public static final String LOCAL_SERVICE_MANAGER = "backupmain";
 
   /**
      This constant is the name of the property whose value contains
@@ -276,8 +284,22 @@ public abstract class Profile {
      * return the provided default.
      * @param key The key identifying the parameter to be retrieved
      * among the configuration properties.
+     * @param aDefault The value to return when there is no property
+     * set for the given key.
      */
     public abstract String getParameter(String key, String aDefault);
+
+    /**
+     * Retrieve a boolean value for a configuration property.  If no
+     * corresponding property is found or if its string value cannot
+     * be converted to a boolean one, a default value is returned.
+     * @param key The key identifying the parameter to be retrieved
+     * among the configuration properties.
+     * @param aDefault The value to return when there is no property
+     * set for the given key, or its value cannot be converted to a
+     * boolean value.
+     */
+    public abstract boolean getParameter(String key, boolean aDefault);
 
     /**
      * Retrieve a list of Specifiers from the configuration properties.
