@@ -52,6 +52,4 @@ String s1;
 public void setArgumentName(String a){s1=a; setMessage("(missing-argument "+s1+")");}
 public String getArgumentName() {return s1;}
 
-public void set_0(String a){setArgumentName(a);}
-public String get_0() {return getArgumentName();}
 }

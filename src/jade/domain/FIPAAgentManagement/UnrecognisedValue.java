@@ -49,7 +49,4 @@ String s;
 public void setValue(String a){s=a; setMessage("(unrecognised-value \""+s+"\")");}
 public String getValue() {return s;}
 
-public void set_0(String a){setValue(a);}
-public String get_0() {return getValue();}
-
 }

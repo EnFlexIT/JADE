@@ -50,6 +50,4 @@ String s;
 public void setAct(String a){s=a;setMessage("(Unexpected-act "+a+")");}
 public String getAct() {return s;}
 
-public void set_0(String a){setAct(a);}
-public String get_0() {return getAct();}
 }

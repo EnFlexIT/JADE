@@ -52,9 +52,6 @@ public String getParameterName() {return s1;}
 public void setParameterValue(String a){s2=a;setMessage("(unrecognised-parameter-value "+s1+" \""+s2+"\")");}
 public String getParameterValue() {return s2;}
 
-public void set_0(String a){setParameterName(a);}
-public String get_0() {return getParameterName();}
-public void set_1(String a){setParameterValue(a);}
-public String get_1() {return getParameterValue();}
+
 
 }

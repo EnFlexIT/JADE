@@ -37,12 +37,6 @@ public class Search implements AgentAction {
 	Object description;
 	SearchConstraints constraints;
 
-	public void set_0(Object desc) { setDescription(desc); }
-	public Object get_0() {return getDescription();}
-
-	public void set_1(SearchConstraints s) { setConstraints(s); }
-	public SearchConstraints get_1() {return getConstraints();}
-
 	// Added for new ontology support compatibility
 
 	public void setDescription(Object desc) { description = desc; }

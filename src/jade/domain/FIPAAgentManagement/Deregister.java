@@ -37,9 +37,6 @@ public class Deregister implements AgentAction {
 
 
 	Object description;
-
-	public void set_0(Object desc) {  setDescription(desc);}
-	public Object get_0() {return getDescription();}
 	
 	// Added for new ontology support compatibility
 	

@@ -50,6 +50,4 @@ String s;
 public void setFunction(String a){s=a; setMessage("(unsupported-function "+s+")");}
 public String getFunction() {return s;}
 
-public void set_0(String a){setFunction(a);}
-public String get_0() {return getFunction();}
 }

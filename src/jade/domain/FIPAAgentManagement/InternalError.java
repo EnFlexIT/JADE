@@ -51,6 +51,4 @@ public class InternalError extends FailureException implements Predicate {
 public void setErrorMessage(String s){ s1=s; setMessage("(internal-error \""+s1+"\")");}
 public String getErrorMessage() {return s1;}
 
-public void set_0(String s){ setErrorMessage(s);}
-public String get_0() {return getErrorMessage();}
 }

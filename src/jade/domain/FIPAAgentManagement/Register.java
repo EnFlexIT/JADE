@@ -37,9 +37,6 @@ public class Register implements AgentAction {
 	
 	Object description;
 	
-	public void set_0(Object desc) { setDescription(desc);}
-	public Object get_0() {return getDescription();}
-	
 	// Adder for new ontology support compatibility
 	
 	public void setDescription(Object desc) { description = desc; }

@@ -36,12 +36,7 @@ import jade.content.*;
 
 public class Quit implements AgentAction {
 	
-
-	
 	AID aid;
-	
-	public void set_0(AID a){ setAgentIdentifier(a);}
-	public AID get_0() {return getAgentIdentifier();}
 	
 	// Added for new ontology support compatibility
 	public void setAgentIdentifier(AID a) { aid = a; }
