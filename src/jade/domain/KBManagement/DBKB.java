@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.KBManagement;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;

@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.KBManagement;
 
+//#MIDP_EXCLUDE_FILE
+
 /**
  * @author Elisabetta Cortese - TILab
  *

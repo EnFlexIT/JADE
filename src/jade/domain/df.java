@@ -825,7 +825,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	}
   	
 		Object[] args = this.getArguments();
-	
+		
+		//#PJAVA_EXCLUDE_BEGIN
 		// Read configuration:
 		// If an argument is specified, it indicates the name of a properties
 		// file where to read DF configuration from. Otherwise configuration 
@@ -888,6 +889,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			log("- Type = volatile", 2);
 			agentDescriptions = new DFMemKB(maxResult);
 		}
+		//#PJAVA_EXCLUDE_END
+		/*#PJAVA_INCLUDE_BEGIN
+		agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
+		#PJAVA_INCLUDE_END*/
 	
 		// Initiate the SubscriptionManager used by the DF 
 		subManager = new KBSubscriptionManager(agentDescriptions);	

@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.KBManagement;
 
+//#MIDP_EXCLUDE_FILE
+
 import java.util.Date;
 
 /**

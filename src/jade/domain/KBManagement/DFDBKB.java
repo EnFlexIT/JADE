@@ -22,6 +22,8 @@
  */
 package jade.domain.KBManagement;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.FIPAManagementOntology;

@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.KBManagement;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.content.ContentManager;
 import jade.content.abs.AbsIRE;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
@@ -32,8 +34,6 @@ import jade.proto.SubscriptionResponder;
 import jade.util.leap.List;
 
 import java.util.Enumeration;
-
-//#MIDP_EXCLUDE_FILE
 
 
 /**
