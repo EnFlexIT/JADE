@@ -47,9 +47,6 @@ public interface ExceptionVocabulary {
   public static final String UNRECOGNISEDPARAMETERVALUE_PARAMETER_VALUE = "parameter-value";
 
   // Failure Exception Predicates
-  public static final String ALREADYREGISTERED = "already-registered";
-  public static final String NOTREGISTERED = "not-registered";
-  
   public static final String INTERNALERROR = "internal-error";  
   public static final String INTERNALERROR_MESSAGE = "error-message";	
 

@@ -24,59 +24,28 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
-import jade.util.leap.Iterator;
-
-import jade.content.lang.Codec;
 import jade.content.onto.*;
-import jade.content.onto.basic.*;
 import jade.content.schema.*;
 
 /**
+   This class represents the ontology defined by FIPA Agent Management 
+   specifications (document no. 23). 
+   <p>
+   The actual <code>Ontology</code> object representing the 
+   FIPA-Agent-Management-ontology is a singleton and is accessible through 
+   the static method <code>getInstance()</code>
    @author Fabio Bellifemine - CSELT S.p.A.
    @version $Date$ $Revision$
-*/
-
-/**
-   This class represents the ontology defined by FIPA Agent Management 
-   specifications (document no. 23). There is
-   only a single instance of this class.
-   <p>
-   The package contains one class for each Frame in the ontology.
-   <p>
-   Notice that userDefinedslots will be parsed but ignored and not
-   returned in the Java object. In order to get a userDefined Slot, a new
-   Termdescriptor must be added to the Frame
-   of this
-   ontology and a new couple of set/get methods to the Java class representing
-   that frame.
-   Every class implementing a concept of the fipa-agent-management ontology is a 
-   simple collection of attributes, with public methods to read and write them, 
-   according to the frame based model that represents FIPA fipa-agent-management 
-   ontology concepts.
-   The following convention has been used. 
-   For each attribute of the class, named attrName and of type attrType, 
-   two cases are possible:
-   1) The attribute type is a single value; then it can be read with attrType getAttrName() 
-      and written with void setAttrName(attrType a), where every call to setAttrName() 
-      overwrites any previous value of the attribute.
-   2) The attribute type is a set or a sequence of values; then there is 
-      an void addAttrName(attrType a) method to insert a new value and 
-      a void clearAllAttrName() method to remove all the values (the list becomes empty). 
-      Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
-      that allows the programmer to walk through the List and cast its elements to the appropriate type.
  */
 public class FIPAManagementOntology  extends Ontology implements FIPAManagementVocabulary {
 
   private static Ontology theInstance = new FIPAManagementOntology();
+  
   /**
-     This method grants access to the unique instance of the
-     ontology.
-     @return An <code>Ontology</code> object, containing the concepts
-     of the ontology.
+     This method returns the unique instance (according to the singleton 
+     pattern) of the FIPA-Agent-Management-ontology.
+     @return The singleton <code>Ontology</code> object, containing the 
+     schemas for the elements of the FIPA-Agent-Management-ontology.
   */
   public static Ontology getInstance() {
     return theInstance;
@@ -88,9 +57,8 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
     //#MIDP_EXCLUDE_END
     	
 		/*#MIDP_INCLUDE_BEGIN    	
-  	super(NAME, BasicOntology.getInstance(), null);
+  	super(NAME, ExceptionOntology.getInstance(), null);
    	#MIDP_INCLUDE_END*/
-
 
 		try {
     	//#MIDP_EXCLUDE_BEGIN
@@ -109,7 +77,9 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new AgentActionSchema(MODIFY), Modify.class);
 	  	add(new AgentActionSchema(SEARCH), Search.class);
 	  	add(new AgentActionSchema(GETDESCRIPTION), GetDescription.class);
-
+	  	
+	  	add(new PredicateSchema(ALREADYREGISTERED), AlreadyRegistered.class);
+	  	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
     	//#MIDP_EXCLUDE_END
 			   	  
 			/*#MIDP_INCLUDE_BEGIN    	
@@ -118,6 +88,10 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new ConceptSchema(SEARCHCONSTRAINTS));
 	  	add(new ConceptSchema(AMSAGENTDESCRIPTION));
 	  	add(new ConceptSchema(PROPERTY));
+	  	add(new ConceptSchema(ENVELOPE));
+	  	add(new ConceptSchema(RECEIVEDOBJECT));
+	  	add(new ConceptSchema(APDESCRIPTION));
+	  	add(new ConceptSchema(APSERVICE));
 	  	
 	  	add(new AgentActionSchema(REGISTER));
 	  	add(new AgentActionSchema(DEREGISTER));
@@ -125,21 +99,8 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new AgentActionSchema(SEARCH));
 	  	add(new AgentActionSchema(GETDESCRIPTION));
 	  
-	  	add(new PredicateSchema(UNAUTHORISED));
-	  	add(new PredicateSchema(UNSUPPORTEDACT));
-	  	add(new PredicateSchema(UNEXPECTEDACT));
-	  	add(new PredicateSchema(UNSUPPORTEDVALUE));
-	  	add(new PredicateSchema(UNRECOGNISEDVALUE));
-	  	add(new PredicateSchema(UNSUPPORTEDFUNCTION));
-	  	add(new PredicateSchema(MISSINGARGUMENT));
-	  	add(new PredicateSchema(UNEXPECTEDARGUMENT));
-	  	add(new PredicateSchema(UNEXPECTEDARGUMENTCOUNT));
-	  	add(new PredicateSchema(MISSINGPARAMETER));
-	  	add(new PredicateSchema(UNEXPECTEDPARAMETER));
-	  	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
 	  	add(new PredicateSchema(ALREADYREGISTERED));
 	  	add(new PredicateSchema(NOTREGISTERED));
-	  	add(new PredicateSchema(INTERNALERROR));
    		#MIDP_INCLUDE_END*/
 	  	
 	  	ConceptSchema cs = (ConceptSchema)getSchema(DFAGENTDESCRIPTION);
@@ -197,13 +158,10 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(APDESCRIPTION_SERVICES, (ConceptSchema)getSchema(APSERVICE), 0, ObjectSchema.UNLIMITED);
 
 	  	cs = (ConceptSchema)getSchema(APSERVICE);
-                cs.add(APSERVICE_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-                cs.add(APSERVICE_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-                cs.add(APSERVICE_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-	  	
-  	
-  		// FIXME: Configurare gli schemi per Envelope, ReceivedObject, APDescription, APService
-
+	    cs.add(APSERVICE_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+	    cs.add(APSERVICE_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+	    cs.add(APSERVICE_ADDRESSES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+	  	  	
 	  	AgentActionSchema as = (AgentActionSchema)getSchema(REGISTER);
 	  	as.add(REGISTER_DESCRIPTION, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.MANDATORY);
 	  	as.setEncodingByOrder(true);
@@ -220,11 +178,9 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	as.add(SEARCH_DESCRIPTION, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.MANDATORY);
 	  	as.add(SEARCH_CONSTRAINTS, (ConceptSchema)getSchema(SEARCHCONSTRAINTS), ObjectSchema.MANDATORY);
 	  	as.setEncodingByOrder(true);
-
     } 
     catch(OntologyException oe) {
+    	oe.printStackTrace();
     }
-  } //end of initInstance
-
-
+  } 
 }

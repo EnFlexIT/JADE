@@ -24,59 +24,31 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
-import jade.util.leap.Iterator;
-
-import jade.content.lang.Codec;
 import jade.content.onto.*;
-import jade.content.onto.basic.*;
 import jade.content.schema.*;
 
 /**
-   @author Fabio Bellifemine - CSELT S.p.A.
+   This class groups into a separated ontology the elements of the 
+   FIPA-Agent-Management-ontology (see FIPA specification document no. 23)
+   representing generic exceptions. This allows reusing these 
+   elements into other ontologies simply including tis Exception-ontology 
+   <p>
+   The actual <code>Ontology</code> object representing the 
+   Exception-ontology is a singleton and is accessible through 
+   the static method <code>getInstance()</code>
+   
+   @author Giovanni Caire - CSELT S.p.A.
    @version $Date$ $Revision$
-*/
-
-/**
-   This class represents the ontology defined by FIPA Agent Management 
-   specifications (document no. 23). There is
-   only a single instance of this class.
-   <p>
-   The package contains one class for each Frame in the ontology.
-   <p>
-   Notice that userDefinedslots will be parsed but ignored and not
-   returned in the Java object. In order to get a userDefined Slot, a new
-   Termdescriptor must be added to the Frame
-   of this
-   ontology and a new couple of set/get methods to the Java class representing
-   that frame.
-   Every class implementing a concept of the fipa-agent-management ontology is a 
-   simple collection of attributes, with public methods to read and write them, 
-   according to the frame based model that represents FIPA fipa-agent-management 
-   ontology concepts.
-   The following convention has been used. 
-   For each attribute of the class, named attrName and of type attrType, 
-   two cases are possible:
-   1) The attribute type is a single value; then it can be read with attrType getAttrName() 
-      and written with void setAttrName(attrType a), where every call to setAttrName() 
-      overwrites any previous value of the attribute.
-   2) The attribute type is a set or a sequence of values; then there is 
-      an void addAttrName(attrType a) method to insert a new value and 
-      a void clearAllAttrName() method to remove all the values (the list becomes empty). 
-      Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
-      that allows the programmer to walk through the List and cast its elements to the appropriate type.
  */
-public class ExceptionOntology  extends Ontology implements ExceptionVocabulary {
+public class ExceptionOntology extends Ontology implements ExceptionVocabulary {
 
   private static Ontology theInstance = new ExceptionOntology();
+  
   /**
-     This method grants access to the unique instance of the
-     ontology.
-     @return An <code>Ontology</code> object, containing the concepts
-     of the ontology.
+     This method returns the unique instance (according to the singleton 
+     pattern) of the Exception-ontology.
+     @return The singleton <code>Ontology</code> object, containing the 
+     schemas for the elements of the Exception-ontology.
   */
   public static Ontology getInstance() {
     return theInstance;
@@ -106,13 +78,11 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(MISSINGPARAMETER), MissingParameter.class);
 	  	add(new PredicateSchema(UNEXPECTEDPARAMETER), UnexpectedParameter.class);
 	  	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE), UnrecognisedParameterValue.class);
-	  	add(new PredicateSchema(ALREADYREGISTERED), AlreadyRegistered.class);
-	  	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
 	  	add(new PredicateSchema(INTERNALERROR), InternalError.class);
     	//#MIDP_EXCLUDE_END
 			   	  
 			/*#MIDP_INCLUDE_BEGIN    	
-		add(new PredicateSchema(UNAUTHORISED));
+			add(new PredicateSchema(UNAUTHORISED));
 	  	add(new PredicateSchema(UNSUPPORTEDACT));
 	  	add(new PredicateSchema(UNEXPECTEDACT));
 	  	add(new PredicateSchema(UNSUPPORTEDVALUE));
@@ -124,8 +94,6 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(MISSINGPARAMETER));
 	  	add(new PredicateSchema(UNEXPECTEDPARAMETER));
 	  	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
-	  	add(new PredicateSchema(ALREADYREGISTERED));
-	  	add(new PredicateSchema(NOTREGISTERED));
 	  	add(new PredicateSchema(INTERNALERROR));
    		#MIDP_INCLUDE_END*/
 	  	
@@ -164,12 +132,13 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	ps.add(UNRECOGNISEDPARAMETERVALUE_PARAMETER_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
 	  	ps.add(UNRECOGNISEDPARAMETERVALUE_PARAMETER_VALUE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
 
-      	ps = (PredicateSchema)getSchema(INTERNALERROR);
-      	ps.add(INTERNALERROR_MESSAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+    	ps = (PredicateSchema)getSchema(INTERNALERROR);
+    	ps.add(INTERNALERROR_MESSAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
     } 
     catch(OntologyException oe) {
+    	oe.printStackTrace();
     }
-  } //end of initInstance
+  } 
 
 
 }
