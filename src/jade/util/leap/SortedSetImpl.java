@@ -24,14 +24,15 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * This class represents the J2SE version of a &quot;SortedSet&quot; implementation
- * to be used in LEAP.
- * 
- * @author  Nicolas Lhuillier
- * @version 1.0, 20/10/00
- * 
- * @see java.util.SortedSet
- * @see java.util.TreeSet
+   The LEAP (environment-dependent) implementation of the &qote;SortedSet&qote; interface.
+   This class appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   
+   @author  Nicolas Lhuillier
+   @version 1.0, 20/10/00
+   
+   @see java.util.SortedSet
+   @see java.util.TreeSet
  */
 public class SortedSetImpl implements SortedSet {
     private java.util.TreeSet hiddenSet = null;

@@ -39,16 +39,8 @@ import java.util.Date;
    @author Elena Quarantotto - TILAB
    @author Giovanni Caire - TILAB
  */
-public abstract class Responder extends FSMBehaviour {
-	// FSM states names 
-	protected static final String RECEIVE_INITIATION = "Receive-Initiation";
-	protected static final String RECEIVE_NEXT = "Receive-Next";
-	protected static final String HANDLE_OUT_OF_SEQUENCE = "Handle-Out-of-seq";
-	protected static final String CHECK_IN_SEQ = "Check-In-seq";
-	protected static final String SEND_REPLY = "Send-Reply";
-	
+abstract class Responder extends FSMBehaviour {
 	// Data store keys
-	
 	/**
 	   Key to retrieve from the DataStore of the behaviour the last received
 	   ACLMessage
@@ -60,6 +52,14 @@ public abstract class Responder extends FSMBehaviour {
 	   to be sent back to the initiator as a reply.
 	 */
 	public final String REPLY_KEY = "__Reply_key" + hashCode();
+	
+  //#APIDOC_EXCLUDE_BEGIN
+	// FSM states names 
+	protected static final String RECEIVE_INITIATION = "Receive-Initiation";
+	protected static final String RECEIVE_NEXT = "Receive-Next";
+	protected static final String HANDLE_OUT_OF_SEQUENCE = "Handle-Out-of-seq";
+	protected static final String CHECK_IN_SEQ = "Check-In-seq";
+	protected static final String SEND_REPLY = "Send-Reply";
 	
 	private MsgReceiver cfpRecv, nextRecv;
 	
@@ -159,6 +159,7 @@ public abstract class Responder extends FSMBehaviour {
 		};
 		registerDSState(b, SEND_REPLY);
   }
+  //#APIDOC_EXCLUDE_END
 
   /**
      This method is called whenever a message is received that does
@@ -197,6 +198,7 @@ public abstract class Responder extends FSMBehaviour {
 		ds.remove(REPLY_KEY);
   }
   
+  //#APIDOC_EXCLUDE_BEGIN
   /**
      Check whether a received message complies with the protocol rules.
    */
@@ -218,4 +220,5 @@ public abstract class Responder extends FSMBehaviour {
     b.setDataStore(getDataStore());
     registerState(b,name);
   }
+  //#APIDOC_EXCLUDE_END
 }

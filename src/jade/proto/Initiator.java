@@ -41,6 +41,7 @@ import jade.util.leap.Serializable;
  * @author Giovanni Caire - TILab
  **/
 abstract class Initiator extends FSMBehaviour {	
+    //#APIDOC_EXCLUDE_BEGIN
     protected final String INITIATION_K = "__initiation" + hashCode();
     protected final String ALL_INITIATIONS_K = "__all-initiations" +hashCode();
     protected final String REPLY_K = "__reply" + hashCode();
@@ -246,6 +247,7 @@ abstract class Initiator extends FSMBehaviour {
 		   - The state has an "internal memory"
      */
     protected abstract String[] getToBeReset();
+    //#APIDOC_EXCLUDE_END
     
     /**
      * This method is called every time a <code>not-understood</code>
@@ -280,6 +282,7 @@ abstract class Initiator extends FSMBehaviour {
     protected void handleOutOfSequence(ACLMessage msg) {
     }
     
+    //#APIDOC_EXCLUDE_BEGIN
     /**
        Attach a behaviour to the <code>Prepare-initiations</code>
        protocol state.
@@ -290,6 +293,7 @@ abstract class Initiator extends FSMBehaviour {
 			registerState(b, PREPARE_INITIATIONS);
 			b.setDataStore(getDataStore());
     }
+    //#APIDOC_EXCLUDE_END
     
     /**
        This method allows to register a user defined <code>Behaviour</code>
@@ -373,7 +377,7 @@ abstract class Initiator extends FSMBehaviour {
     }
     
     /** 
-       Override the setDataStore() method to initialize propagate this
+       Override the setDataStore() method to propagate this
        setting to all children.
      */
     public void setDataStore(DataStore ds) {
@@ -385,12 +389,14 @@ abstract class Initiator extends FSMBehaviour {
     	}
     }
     
+    //#APIDOC_EXCLUDE_BEGIN
     /**
        Initialize the data store. 
      **/
     protected void initializeDataStore(ACLMessage initiation){
 			getDataStore().put(INITIATION_K, initiation);
     }
+    //#APIDOC_EXCLUDE_END
 
     /**
        Create a new conversation identifier to begin a new

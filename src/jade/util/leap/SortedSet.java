@@ -25,9 +25,10 @@
 package jade.util.leap;
 
 /**
- * The LEAP version of the <quote>SortedSet</quote> interface.
- * An ordered collection that contains no duplicate elements.
- * 
+   The LEAP (environment-dependent) version of the &qote;java.util.SortedSet&qote; interface.
+   This interface appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   An ordered collection that contains no duplicate elements.
  */
 public interface SortedSet extends Set {
 

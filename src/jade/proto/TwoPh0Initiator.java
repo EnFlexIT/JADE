@@ -147,17 +147,6 @@ public class TwoPh0Initiator extends Initiator {
                 Vector proposes = (Vector) getDataStore().get(ALL_PROPOSES_KEY);
                 Vector pendings = (Vector) getDataStore().get(ALL_PENDINGS_KEY);
                 Vector nextPhMsgs = (Vector) getDataStore().get(TwoPh0Initiator.this.outputKey);
-                /*Logger.log("\n\n(TwoPh0Initiator, TwoPh0Initiator(), HANDLE_ALL_RESPONSES, " + myAgent.getName() + "): " +
-                        "proposes = " + proposes.size() + " failures = " + failures.size() +
-                        " ph0pendings = " + ph0Pendings.size() + " responses = " + nextPhMsgs.size(), logging);
-                Logger.log("\n\n(TwoPh0Initiator, TwoPh0Initiator(), HANDLE_ALL_RESPONSES, " + myAgent.getName() + "): " +
-                        "proposes = " + proposes, logging);
-                Logger.log("\n\n(TwoPh0Initiator, TwoPh0Initiator(), HANDLE_ALL_RESPONSES, " + myAgent.getName() + "): " +
-                        "failures = " + failures, logging);
-                Logger.log("\n\n(TwoPh0Initiator, TwoPh0Initiator(), HANDLE_ALL_RESPONSES, " + myAgent.getName() + "): " +
-                        "ph0Pendings = " + ph0Pendings, logging);
-                Logger.log("\n\n(TwoPh0Initiator, TwoPh0Initiator(), HANDLE_ALL_RESPONSES, " + myAgent.getName() + "): " +
-                        "nextPhMsgs = " + nextPhMsgs, logging);*/
                 handleAllResponses(responses, proposes, pendings, nextPhMsgs);
             }
         };
@@ -176,21 +165,7 @@ public class TwoPh0Initiator extends Initiator {
     }
 
 	private String[] toBeReset = null;
-		
-  /**
-   */
-  protected String[] getToBeReset() {
-  	if (toBeReset == null) {
-			toBeReset = new String[] {
-				HANDLE_PROPOSE, 
-				HANDLE_NOT_UNDERSTOOD,
-				HANDLE_FAILURE,
-				HANDLE_OUT_OF_SEQ
-			};
-  	}
-  	return toBeReset;
-  }
-    
+
     /* User can override these methods */
 
     /**
@@ -289,7 +264,21 @@ public class TwoPh0Initiator extends Initiator {
     }
 
     /* User CAN'T override these methods */
-
+		//#APIDOC_EXCLUDE_BEGIN
+	  /**
+	   */
+	  protected String[] getToBeReset() {
+	  	if (toBeReset == null) {
+				toBeReset = new String[] {
+					HANDLE_PROPOSE, 
+					HANDLE_NOT_UNDERSTOOD,
+					HANDLE_FAILURE,
+					HANDLE_OUT_OF_SEQ
+				};
+	  	}
+	  	return toBeReset;
+	  }
+    
     /**
      * Prepare vector containing cfps.
      * @param initiation cfp passed in the constructor
@@ -467,14 +456,11 @@ public class TwoPh0Initiator extends Initiator {
         getDataStore().put(ALL_PROPOSES_KEY, new Vector());
         getDataStore().put(outputKey, new Vector());
     }
+    //#APIDOC_EXCLUDE_END
 
     public void reset(ACLMessage cfp) {
         super.reset(cfp);
     }
-
-    /*public String getConversationId() {
-        return this.conversationId;
-    }*/
 
     /**
      * Inner class Session

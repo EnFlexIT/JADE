@@ -25,6 +25,7 @@
 package jade.util;
  
 //#J2ME_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import java.io.*;
 import java.text.*;

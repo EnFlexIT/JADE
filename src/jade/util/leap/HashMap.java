@@ -30,13 +30,14 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 
 /**
- * This class represents the J2SE version of a &quot;HashMap&quot;
- * to be used in LEAP.
- * 
- * @author  Nicolas Lhuillier
- * @version 1.0, 29/09/00
- * 
- * @see java.util.HashMap
+   The LEAP (environment-dependent) version of the &qote;java.util.HashMap&qote; class.
+   This class appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   
+   @author  Nicolas Lhuillier
+   @version 1.0, 29/09/00
+   
+   @see java.util.HashMap
  */
 public class HashMap implements Map, Serializable {
     private transient java.util.HashMap realHiddenMap = null;

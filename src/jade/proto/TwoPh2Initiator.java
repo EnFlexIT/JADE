@@ -75,16 +75,10 @@ public class TwoPh2Initiator extends Initiator {
    */
   public final String ALL_PENDINGS_KEY = "__all-pendings" + hashCode();
     
-    /* Data store keys */
-    //public final String REPLY_KEY = REPLY_K;
-    //public final String ALL_PROPOSALS_KEY = ALL_INITIATIONS_K;
-    //public final String ALL_RESPONSES_RECEIVED_KEY = "__all-responses-received" + hashCode();
     /* FSM states names */
     private static final String HANDLE_INFORM = "Handle-Inform";
     private static final String HANDLE_OLD_RESPONSE = "Handle-old-response";
     private static final String HANDLE_ALL_RESPONSES = "Handle-all-responses";
-    /* Data store input key */
-    //private String inputKey = null;
     /* Possible TwoPh2Initiator's returned values */
     private static final int OLD_RESPONSE = 1000;
     private static final int ALL_RESPONSES_RECEIVED = 1;
@@ -117,7 +111,6 @@ public class TwoPh2Initiator extends Initiator {
      */
     public TwoPh2Initiator(Agent a, ACLMessage acceptance, DataStore store) {
         super(a, acceptance, store);
-        //this.inputKey = inputKey;
         /* Register the FSM transitions specific to the Two-Phase2-Commit protocol */
         registerTransition(CHECK_IN_SEQ, HANDLE_INFORM, ACLMessage.INFORM);
         registerTransition(CHECK_IN_SEQ, HANDLE_OLD_RESPONSE, OLD_RESPONSE);
@@ -152,17 +145,6 @@ public class TwoPh2Initiator extends Initiator {
                 		ret = -1;
                 	}
                 }
-                /*if(checkInSequence(reply)) {
-                    String phase = reply.getInReplyTo().substring(reply.getInReplyTo().length() - 4, reply.getInReplyTo().length() - 1);
-                    if((reply.getPerformative() == ACLMessage.FAILURE && phase.equals("_PH0")) ||
-                       (reply.getPerformative() == ACLMessage.DISCONFIRM && phase.equals("_PH1")))
-                        ret = OLD_RESPONSE;
-                    else
-                        ret = reply.getPerformative();
-                }
-                else {
-                    ret = -1;
-                }*/
             }
 
             public int onEnd() {
@@ -206,41 +188,8 @@ public class TwoPh2Initiator extends Initiator {
         b.setDataStore(getDataStore());
         registerState(b, HANDLE_ALL_RESPONSES);
 
-        /* DUMMY_FINAL 
-        b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                Logger.log("(TwoPh2Initiator, TwoPh2Initiator(), DUMMY_FINAL, " + myAgent.getName() + "): " +
-                        "started", logging);
-                super.onStart();
-            }
-            public void action() {
-            }
-            public int onEnd() {
-                Logger.log("(TwoPh2Initiator, TwoPh2Initiator(), DUMMY_FINAL, " + myAgent.getName() + "): " +
-                    "value returned (ALL_RESPONSES_RECEIVED = 1) = " + getState(CHECK_SESSIONS).onEnd(), logging);
-                return getState(CHECK_SESSIONS).onEnd();
-            }
-        };
-        b.setDataStore(getDataStore());
-        registerLastState(b, DUMMY_FINAL);*/
     }
 
-	private String[] toBeReset = null;
-		
-  /**
-   */
-  protected String[] getToBeReset() {
-  	if (toBeReset == null) {
-			toBeReset = new String[] {
-				HANDLE_INFORM,
-				HANDLE_OLD_RESPONSE, 
-				HANDLE_NOT_UNDERSTOOD,
-				HANDLE_FAILURE,
-				HANDLE_OUT_OF_SEQ
-			};
-  	}
-  	return toBeReset;
-  }
     /* User can override these methods */
 
     /**
@@ -351,7 +300,25 @@ public class TwoPh2Initiator extends Initiator {
     }
 
     /* User CAN'T override these methods */
+    //#APIDOC_EXCLUDE_BEGIN
 
+		private String[] toBeReset = null;
+			
+	  /**
+	   */
+	  protected String[] getToBeReset() {
+	  	if (toBeReset == null) {
+				toBeReset = new String[] {
+					HANDLE_INFORM,
+					HANDLE_OLD_RESPONSE, 
+					HANDLE_NOT_UNDERSTOOD,
+					HANDLE_FAILURE,
+					HANDLE_OUT_OF_SEQ
+				};
+	  	}
+	  	return toBeReset;
+	  }
+	  
     /**
      * Returns vector of accept/reject-proposal stored in the data store at
      * key <code>inputKey</code> from previouse phase.
@@ -385,13 +352,11 @@ public class TwoPh2Initiator extends Initiator {
           if (msg != null) {
               for(Iterator receivers = msg.getAllReceiver(); receivers.hasNext();) {
 	              ACLMessage toSend = (ACLMessage) msg.clone();
-	              //toSend.setProtocol(JADE_TWO_PHASE_COMMIT);
 	              toSend.setConversationId(conversationID);
                 toSend.clearAllReceiver();
                 AID r = (AID) receivers.next();
                 toSend.addReceiver(r);
 								String sessionKey = "R" + hashCode()+  "_" + Integer.toString(totSessions) + "_PH2";
-                //String sessionKey = "R_" + r.getName() + "_PH2";
                 toSend.setReplyWith(sessionKey);
                 /* Creates an object Session for all receivers */
                 sessions.put(sessionKey, new Session());
@@ -430,20 +395,9 @@ public class TwoPh2Initiator extends Initiator {
     protected final boolean checkInSequence(ACLMessage reply) {
         boolean ret = false;
       	String inReplyTo = reply.getInReplyTo();
-        /*String sessionKey = reply.getInReplyTo().substring(0, reply.getInReplyTo().length() - 4);
-        Logger.log("(TwoPh2Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                "inReplyTo = " + reply.getInReplyTo() + " sessionKey = " + sessionKey, logging);
-
-        // fix: altrimenti non avrebbe mai trovato la sessione
-        //Session s = (Session) sessions.get(sessionKey);
-        Logger.log("(TwoPh2Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                "sessions size = " + sessions.size(), currentLogging);
-
-        Session s = (Session) sessions.get(sessionKey + "_PH2");*/
         Session s = (Session) sessions.get(inReplyTo);
         if(s != null) {
             int perf = reply.getPerformative();
-            //if(s.update(perf)) {
             if(s.update(perf)) {
                 // The reply is compliant to the protocol 
                 ((Vector) getDataStore().get(ALL_RESPONSES_KEY)).add(reply);
@@ -454,7 +408,6 @@ public class TwoPh2Initiator extends Initiator {
                 ret = true;
             }
             if(s.isCompleted()) {
-                //sessions.remove(sessionKey + "_PH2");
                 sessions.remove(inReplyTo);
             }
         }
@@ -500,18 +453,6 @@ public class TwoPh2Initiator extends Initiator {
     		// We are still waiting for some responses
     		return -1;
     	}
-        /*int ret = ALL_RESPONSES_RECEIVED;
-        if(reply != null) {
-            if(sessions.size() > 0) {
-                // If there are still active sessions
-                ret = -1;
-                Logger.log("(TwoPh2Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                        "still active sessions, ret = -1", logging);
-            }
-        }
-        Logger.log("(TwoPh2Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-            "value returned (ALL_RESPONSES_RECEIVED = 1, -1) = " + ret, logging);
-        return ret;*/
     }
 
     /**
@@ -523,6 +464,7 @@ public class TwoPh2Initiator extends Initiator {
         getDataStore().put(ALL_RESPONSES_KEY, new Vector());
         getDataStore().put(ALL_INFORMS_KEY, new Vector());
     }
+    //#APIDOC_EXCLUDE_END
 
     public void reset(ACLMessage cfp) {
         super.reset(cfp);
@@ -559,52 +501,6 @@ public class TwoPh2Initiator extends Initiator {
                 return false;
             }
         }
-        /*public boolean update(ACLMessage reply) {
-            String phase = reply.getInReplyTo().substring(reply.getInReplyTo().length() - 4, reply.getInReplyTo().length());
-            Logger.log("\n\n(TwoPh2Initiator$Session, update(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                "phase = #" + phase + "#", currentLogging);
-            if(state == INIT) {
-                //switch(perf) {
-                switch(reply.getPerformative()) {
-                    case ACLMessage.INFORM:
-                        if(!phase.equals("_PH2"))
-                            return false;
-                        else {
-                            Logger.log("\n\n(TwoPh2Initiator$Session, update(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                                "INFORM", currentLogging);
-                            state = REPLY_RECEIVED;
-                            return true;
-                        }
-                    case ACLMessage.FAILURE:
-                        if(phase.equals("_PH0")) {
-                            state = REPLY_RECEIVED;
-                            return true;
-                        } else {
-                            if(phase.equals("_PH2")) {
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }
-                    case ACLMessage.DISCONFIRM:
-                        if(!phase.equals("_PH1"))
-                            return false;
-                        else {
-                            Logger.log("\n\n(TwoPh2Initiator$Session, update(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                                "DISCONFIRM", currentLogging);
-                            state = REPLY_RECEIVED;
-                            return true;
-                        }
-                    case ACLMessage.NOT_UNDERSTOOD:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-            else {
-                return false;
-            }
-        }*/
 
         public int getState() {
             return state;

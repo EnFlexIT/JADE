@@ -42,18 +42,21 @@ import javax.microedition.midlet.*;
 #MIDP_INCLUDE_END*/
 
 /**
- * Environment dependent implementation of the Properties class.
- * The J2SE and PJAVA implementation simply extend 
- * java.util.Properties.
- * The MIDP implementation allows getting properties from
- * the .jad file of the midlet or from a properly formatted 
- * RecordStore (see the <code>load()</code> and <code>store</code>
- * methods.
- * 
- * @author Steffen Rusitschka - Siemens AG
- * @author Marc Schlichte - Siemens AG
- * @author Nicolas Lhuillier - Motorola
- * @author Giovanni Caire - TILAB
+   The LEAP (environment-dependent) version of the &qote;java.util.Properties&qote; class.
+   This class appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   In particular the J2SE and PJAVA implementation simply extend 
+   java.util.Properties.
+   In particular the MIDP version re-implement the load and store 
+   methods to access properties from
+   the .jad file of the midlet or from a properly formatted 
+   RecordStore (see the <code>load()</code> and <code>store</code>
+   methods.
+   
+   @author Steffen Rusitschka - Siemens AG
+   @author Marc Schlichte - Siemens AG
+   @author Nicolas Lhuillier - Motorola
+   @author Giovanni Caire - TILAB
  */
 //#MIDP_EXCLUDE_BEGIN
 public class Properties extends java.util.Properties implements Serializable {

@@ -238,6 +238,7 @@ public class AchieveREInitiator extends Initiator {
 	registerState(b, CHECK_AGAIN);
     }
 
+    //#APIDOC_EXCLUDE_BEGIN
     /**
      */    
     protected Vector prepareInitiations(ACLMessage initiation) {
@@ -402,6 +403,7 @@ public class AchieveREInitiator extends Initiator {
     	}
     	return toBeReset;
     }
+    //#APIDOC_EXCLUDE_END
     
     /**
      * This method must return the vector of ACLMessage objects to be
@@ -609,6 +611,7 @@ public class AchieveREInitiator extends Initiator {
   }
 
     
+    //#APIDOC_EXCLUDE_BEGIN
     /**
        Initialize the data store. 
      **/
@@ -619,7 +622,8 @@ public class AchieveREInitiator extends Initiator {
 			l = new Vector();
 			getDataStore().put(ALL_RESULT_NOTIFICATIONS_KEY, l);
     }
-    
+     //#APIDOC_EXCLUDE_END
+   
     /**
        Inner class Session
      */

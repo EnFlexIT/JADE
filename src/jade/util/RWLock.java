@@ -24,6 +24,8 @@
 
 package jade.util;
  
+//#APIDOC_EXCLUDE_FILE
+
 /**
  * This class provides support for  
  * synchronizing threads acting on a generic resource in such a way that 

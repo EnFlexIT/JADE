@@ -24,7 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * The root of the LEAP Collection hierarchy.
+   The LEAP (environment-dependent) version of the &qote;java.util.Collection&qote; interface.
+   This interface appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
  */
 public interface Collection {
 

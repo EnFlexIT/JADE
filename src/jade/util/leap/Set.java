@@ -24,9 +24,10 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * The LEAP version of the <quote>Set</quote> interface.
- * An unordered collection that contains no duplicate elements.
- * 
+   The LEAP (environment-dependent) version of the &qote;java.util.Set&qote; interface.
+   This interface appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   An unordered collection that contains no duplicate elements.
  */
 public interface Set extends Collection {}
 

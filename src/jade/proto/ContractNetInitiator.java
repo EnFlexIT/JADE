@@ -276,6 +276,7 @@ public class ContractNetInitiator extends Initiator {
 		registerLastState(b, HANDLE_ALL_RESULT_NOTIFICATIONS);	
 	}
 
+  //#APIDOC_EXCLUDE_BEGIN
   /**
    */    
   protected Vector prepareInitiations(ACLMessage initiation) {
@@ -408,6 +409,7 @@ public class ContractNetInitiator extends Initiator {
   	}
   	return toBeReset;
   }
+  //#APIDOC_EXCLUDE_END
     
   /**
    * This method must return the vector of ACLMessage objects to be
@@ -628,6 +630,7 @@ public class ContractNetInitiator extends Initiator {
 		skipNextRespFlag = false;
   }
 
+  //#APIDOC_EXCLUDE_BEGIN
   /**
      Initialize the data store. 
    **/
@@ -641,6 +644,7 @@ public class ContractNetInitiator extends Initiator {
 		l = new Vector();
 		ds.put(ALL_ACCEPTANCES_KEY, l);
   }
+  //#APIDOC_EXCLUDE_END
         
   
   /**

@@ -268,6 +268,7 @@ public class TwoPhResponder extends Responder {
 		phase = 0;
   }
   
+  //#APIDOC_EXCLUDE_BEGIN
   protected boolean checkInSequence(ACLMessage received) {
   	int perf = received.getPerformative();
   	switch (phase) {
@@ -297,4 +298,5 @@ public class TwoPhResponder extends Responder {
 			break;
 		}
   }
+  //#APIDOC_EXCLUDE_END
 }

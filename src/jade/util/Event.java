@@ -35,6 +35,11 @@ import java.util.EventObject;
  * provides support for synchronous processing through the 
  * <code>waitUntilProcessed()</code> and <code>notifyProcessed()</code>
  * methods.
+ * This class can be effectively used in combination with the 
+ * <code>InputQueue</code> class to support a synchronization between an 
+ * external therad (posting events in the <code>InputQueue</code>)
+ * and the Agent thread (processing the events).
+ * @see jade.util.InputQueue
  * @author Giovanni Caire - TILab 
  */
  public class Event 

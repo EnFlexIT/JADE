@@ -34,7 +34,12 @@ import jade.core.behaviours.Behaviour;
  * puts objects in the queue and the agent gets and processes them.
  * The queue can be associated to a <code>Behaviour</code>. This
  * Behaviour will be restarted each time an object is inserted in the 
- * queue.
+ * queue. 
+ * This class can be effectively used in combination with the 
+ * <code>Event</code> class to support a synchronization between the 
+ * external therad (posting the event in the <code>InputQueue</code>)
+ * and the Agent thread (processing the event).
+ * @see jade.util.Event
  * @author Giovanni Caire - TILab 
  */
 public class InputQueue {

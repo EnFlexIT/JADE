@@ -213,6 +213,7 @@ public class SubscriptionInitiator extends Initiator {
 	registerState(b, CHECK_AGAIN);
     }
 
+  	//#APIDOC_EXCLUDE_BEGIN
     /**
        This method is called internally by the framework and is not intended 
        to be called by the user
@@ -312,14 +313,6 @@ public class SubscriptionInitiator extends Initiator {
     }
     
     /**
-       This method is called internally by the framework and is not intended 
-       to be called by the user
-     *
-    protected void handlePositiveResponse(ACLMessage positiveResp) {
-    	handleAgree(positiveResp);
-    }*/
-    
-    /**
        Check the status of the sessions after the reception of the last reply
        or the expiration of the timeout.
        This method is called internally by the framework and is not intended 
@@ -398,6 +391,7 @@ public class SubscriptionInitiator extends Initiator {
     	}
     	return toBeReset;
     }
+  	//#APIDOC_EXCLUDE_END
     
     /**
      * This method must return the vector of subscription ACLMessage objects to be
@@ -457,7 +451,7 @@ public class SubscriptionInitiator extends Initiator {
      * The used timeout is the minimum value of the slot <code>replyBy</code> 
      * of all the sent messages. 
      * By response message we intend here all the <code>agree, not-understood,
-     * refuse</code> received messages, which are not
+     * refuse, failure</code> received messages, which are
      * not out-of-sequence according
      * to the protocol rules.
      * This default implementation does nothing; programmers might
@@ -648,7 +642,7 @@ public class SubscriptionInitiator extends Initiator {
        This method has some effect only if a cancellation for
        agent <code>receiver</code> was previously activated by 
        means of the <code>cancel()</code> method.
-       @see #cancel(AID, boolean);
+       @see #cancel(AID, boolean)
      */       
     public void cancellationCompleted(AID receiver) {
     	ACLMessage subscription = (ACLMessage) getDataStore().get(receiver);
@@ -671,6 +665,7 @@ public class SubscriptionInitiator extends Initiator {
   }
 
     
+  	//#APIDOC_EXCLUDE_BEGIN
     /**
        Initialize the data store. 
        This method is called internally by the framework and is not intended 
@@ -681,6 +676,7 @@ public class SubscriptionInitiator extends Initiator {
 			Vector l = new Vector();
 			getDataStore().put(ALL_RESPONSES_KEY, l);
     }
+  	//#APIDOC_EXCLUDE_END
     
     /**
        Inner class Session

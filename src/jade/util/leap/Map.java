@@ -24,12 +24,14 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * This class represents the LEAP version of a &quot;Map&quot;
- * 
- * @author  Nicolas Lhuillier
- * @version 1.0, 23/10/00
- * 
- * @see java.util.Map (J2SE)
+   The LEAP (environment-dependent) version of the &qote;java.util.Map&qote; interface.
+   This interface appears to be exactly the same in J2SE, PJAVA and MIDP.
+   The internal implementation is different in the three cases however.
+   
+   @author  Nicolas Lhuillier
+   @version 1.0, 23/10/00
+   
+   @see java.util.Map (J2SE)
  */
 public interface Map {
 
