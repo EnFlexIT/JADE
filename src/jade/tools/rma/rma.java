@@ -523,18 +523,33 @@ public class rma extends Agent {
    Callback method for platform management <em>GUI</em>.
    */
   public void exit() {
-    killContainer(myContainerName);
+    if(myGUI.showExitDialog("Exit this container"))
+      killContainer(myContainerName);
   }
 
   /**
    Callback method for platform management <em>GUI</em>.
    */
   public void shutDownPlatform() {
-    killContainer(AgentManager.MAIN_CONTAINER_NAME);
+    if(myGUI.showExitDialog("Shut down the platform"))
+      killContainer(AgentManager.MAIN_CONTAINER_NAME);
   }
 
-  public MainWindow getRMAGui()
-  {
-  	return myGUI;
+  public void installMTP(String containerName) {
+    System.out.println("Installing MTP on container " + containerName);
+      /*
+    int result = Dialog.showDialog(containerName, mainWnd);
+    if(myGUI.showInstallMTPDialog(containerName)) {
+      String className = StartDialog.getClassName();
+      String container = StartDialog.getContainer();
+      String arguments = StartDialog.getArguments();
+      
+    }
+      */
   }
+
+  public void uninstallMTP(String containerName) {
+    System.out.println("Uninstalling MTP on container " + containerName);
+  }
+
 }
