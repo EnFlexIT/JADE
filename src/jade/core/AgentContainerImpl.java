@@ -312,78 +312,41 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     return correctName;
   }
 
+  /**
+    @param toBeSniffer is an Iterator over the AIDs of agents to be sniffed
+  **/
   public void enableSniffer(AID snifferName, Iterator toBeSniffed) throws RemoteException {
-    System.out.println("AgentContainerImpl::enableSniffer() called.");
-    /* In the SniffedAgents hashmap the key is the agent name and the value is a list
-       containing the sniffer names for that agent */
-      /*
-    String currentAgent = null;
-
-    Set sniffedAgentsSet = ToBeSniffed.keySet();
-    Iterator sniffedAgentsIt = sniffedAgentsSet.iterator();
-
-    if (SniffedAgents.size() > 0) {
-      // the list is not empty
-      while (sniffedAgentsIt.hasNext()){
-	currentAgent = (String)sniffedAgentsIt.next();
-	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
-	  // there is at least one sniffer name for this agent
-	  List curVector = (List)SniffedAgents.get(getCorrectName(currentAgent));
-	  if (!curVector.contains(getCorrectName(SnifferName))) {
-	    // we add it only if there isn't one
-	    curVector.add(getCorrectName(SnifferName));
-	  }
-	}
-	else {
-	  // there is no sniffer for that agent
-	  List curVector = new ArrayList(3);
-	  curVector.add(getCorrectName(SnifferName));
-	  SniffedAgents.put(getCorrectName(currentAgent),curVector);
-	}				
+    // In the SniffedAgents hashmap the key is the agent name and the value 
+    // is a list containing the sniffer names for that agent 
+    for ( ;toBeSniffed.hasNext(); ) {
+      AID aid = (AID)toBeSniffed.next();
+      ArrayList l;
+      if (SniffedAgents.containsKey(aid)) {
+	l = (ArrayList)SniffedAgents.get(aid);
+	if (!l.contains(snifferName))
+	  l.add(snifferName);
+      } else {
+	l = new ArrayList(1);
+	l.add(snifferName);
+	SniffedAgents.put(aid,l);
       }
     }
-    else {
-      // the list is empty
-      while (sniffedAgentsIt.hasNext()) {
-	currentAgent = (String)sniffedAgentsIt.next();
-	List curVector = new ArrayList(3);
-	curVector.add(getCorrectName(SnifferName));
-	SniffedAgents.put(getCorrectName(currentAgent),curVector);
-      }	
-    }
-      */
   }
 
 
   public void disableSniffer(AID snifferName, Iterator notToBeSniffed) throws RemoteException {
-    System.out.println("AgentContainerImpl::disableSniffer() called.");
-    /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
-       containing the sniffer names for that agent */
-      /*
-    String currentAgent = null;
-	
-    Set sniffedAgentsSet = NotToBeSniffed.keySet();
-    Iterator sniffedAgentsIt = sniffedAgentsSet.iterator();	
-
-    if (SniffedAgents.size() > 0) {
-      // the list is not empty
-      while (sniffedAgentsIt.hasNext()){
-	currentAgent = (String)sniffedAgentsIt.next();
-			
-	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
-	  // there is at least one sniffer name for this agent
-	  List curVector = (List)SniffedAgents.get(getCorrectName(currentAgent));
-	  if (curVector.contains(getCorrectName(SnifferName))) {
-	    // we add it only if there isn't one
-	    curVector.remove(getCorrectName(SnifferName));
-	    if (curVector.size() == 0)
-	      SniffedAgents.remove(getCorrectName(currentAgent));
-	  }
-	}
-
-      }
+    // In the SniffedAgents hashmap the key is the agent name and the value 
+    // is a list containing the sniffer names for that agent 
+    for ( ;notToBeSniffed.hasNext(); ) {
+      AID aid = (AID)notToBeSniffed.next();
+      ArrayList l;
+      if (SniffedAgents.containsKey(aid)) {
+	l = (ArrayList)SniffedAgents.get(aid);
+	int ind = l.indexOf(snifferName);
+	if (ind >= 0)
+	  l.remove(ind);
+      } 
     }
-      */
   }
 
 
@@ -516,33 +479,14 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
  * theAgent
  */
 private List getSniffer(AID id, java.util.Map theMap) {
-
-  List theSniffer = null;
-  /*
-  String theAgent = id.getName();
-
-  theAgent = getCorrectName(theAgent);
-  int atPos = theAgent.indexOf('@');
-  if ( atPos == -1 ) {
-    // theAgent is a local name
-    theSniffer = (List)theMap.get(theAgent);
-
-    // if the search fails let's add the platform address and see if it works
-    if ( theSniffer == null ) {
-      theSniffer = (List)theMap.get(theAgent + "@" + platformAddress);
-    }
-  } 
-  else { 
-    // theAgent is an absolute name
-    theSniffer = (List)theMap.get(theAgent);
-
-    // if the search fails let's remove the platform address ad see if it works
-    if ( theSniffer == null ) {
-      theSniffer = (List)theMap.get(theAgent.substring(0,atPos));
-    }
+  ArrayList tmp = (ArrayList)theMap.get(id);
+  if (tmp == null) { 
+    //might be that the AID is a local agent without '@hap' in its name
+    // then I try it
+    AID fullId = new AID(id.getName()+'@'+getPlatformID());
+    tmp = (ArrayList)theMap.get(fullId);
   }
-  */
-  return theSniffer;
+  return tmp;
 }
 
   /*
