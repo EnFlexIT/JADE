@@ -34,6 +34,17 @@ public class DummyCertificate implements IdentityCertificate, DelegationCertific
 	
 	JADEPrincipal subject = new DummyPrincipal();
 	
+	public DummyCertificate() {
+	}
+	
+	public DummyCertificate(byte[] encoded) {
+		subject = new DummyPrincipal(new String(encoded));
+	}
+
+	public DummyCertificate(String encoded) {
+		subject = new DummyPrincipal(encoded);
+	}
+	
 	public void setSubject(JADEPrincipal subject) { this.subject = subject; }
 	public JADEPrincipal getSubject() { return subject; }
 	
@@ -43,8 +54,12 @@ public class DummyCertificate implements IdentityCertificate, DelegationCertific
 	public void setNotAfter(Date notAfter) { }
 	public Date getNotAfter() { return null; }
 	
-	public String encode() { return subject.getName(); }
-	public void decode(String encoded) { subject = new DummyPrincipal(encoded); }
+	//public String encode() { return subject.getName(); }
+	//public void decode(String encoded) { subject = new DummyPrincipal(encoded); }
+	
+	public byte[] getEncoded() {
+		return subject.getName().getBytes();
+	}
 	
 	public void addPermission(Object permission) { }
 	public void addPermissions(List permissions) { }

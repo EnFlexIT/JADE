@@ -90,6 +90,14 @@ public class DummyAuthority implements Authority {
 	public DelegationCertificate createDelegationCertificate() {
 		return new DummyCertificate();
 	}
+
+	public DelegationCertificate createDelegationCertificate(String encoded) throws CertificateException {
+		return new DummyCertificate(encoded);
+	}
+	
+	public DelegationCertificate createDelegationCertificate(byte[] encoded) throws CertificateException {
+		return new DummyCertificate(encoded);
+	}
 	
 	//!!! to remove
 	public void sign(JADECertificate certificate, IdentityCertificate identity, DelegationCertificate[] delegations) throws AuthException {
