@@ -226,7 +226,8 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
   }
 
   // FIXME: Handle Properties
-
+  
+  //#MIDP_EXCLUDE_BEGIN
     public String toString() {
 	String s = new String("(Envelope ");
 	Iterator i = getAllTo();
@@ -273,6 +274,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	}
 	return s+")";
     }
+  //#MIDP_EXCLUDE_END
 
     public Object clone(){
 	Envelope env = new Envelope();
