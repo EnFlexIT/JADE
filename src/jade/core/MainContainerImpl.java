@@ -92,6 +92,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private df defaultDF;
 
     private String platformID;
+    private ContainerID localContainerID;
     private IMTPManager myIMTPManager;
 
     // FIXME: Temporary Hack
@@ -170,42 +171,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	authority.checkAction(Authority.PLATFORM_CREATE, principal, certs);
 	authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
 
-	/***
-	// Set the container-principal
-	ac.changeContainerPrincipal(certs);
-	***/
-
 	// Add the calling container as the main container
 	containers.addContainer(cid, node, principal);
+
+	localContainerID = cid;
 
     }
 
     public void removeLocalContainer(ContainerID cid) throws IMTPException {
-	// Deregister yourself as a container
-	containers.removeContainer(cid);
-
-	// Kill every other container
-	ContainerID[] allContainers = containers.names();
-
-	/***
-	for(int i = 0; i < allContainers.length; i++) {
-	    ContainerID targetID = allContainers[i];
-	    try {
-		killContainer(targetID);
-	    }
-	    catch(AuthException ae) {
-		System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
-	    }
-	    catch(NotFoundException nfe) {
-		// Ignore the exception as we are removing a non-existing container
-	        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
-	    }
-	}
-
-	// Make sure all containers are succesfully removed from the table...
-	containers.waitUntilEmpty();
-
-	***/
 
 	// Stop the Default DF
 	Agent systemAgent = defaultDF;
@@ -240,28 +213,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	// add to the platform's container list
 	containers.addContainer(cid, node, principal);
 
-	/***
-
-	// Send all platform addresses to the new container
-	ContainerID[] containerNames = containers.names();
-	for(int i = 0; i < containerNames.length; i++) {
-	    ContainerID name = containerNames[i];
-
-	    try {
-		AgentContainer cont = containers.getContainer(name);
-		List mtps = containers.getMTPs(name);
-		Iterator it = mtps.iterator();
-		while(it.hasNext()) {
-		    MTPDescriptor mtp = (MTPDescriptor)it.next();
-		    //						ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, cont);
-		}
-	    }
-	    catch(NotFoundException nfe) {
-		nfe.printStackTrace();
-	    }
-	}
-
-	***/
+	ContainerID[] allContainers = containers.names();
 
 	// Notify listeners
 	fireAddedContainer(cid);
@@ -835,6 +787,48 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
     }
 
+    /**
+       Shut down the whole platform
+    **/
+    public void shutdownPlatform() throws AuthException {
+
+	// Kill every other container
+	ContainerID[] allContainers = containers.names();
+
+	for(int i = 0; i < allContainers.length; i++) {
+	    ContainerID targetID = allContainers[i];
+	    try {
+		if(!targetID.equals(localContainerID)) {
+		    killContainer(targetID);
+		    containers.waitForRemoval(targetID);
+		}
+	    }
+	    catch(AuthException ae) {
+		System.out.println("Cannot kill container " + targetID.getName() + ": Permission Denied.");
+	    }
+	    catch(NotFoundException nfe) {
+		// Ignore the exception as we are removing a non-existing container
+	        System.out.println("Container " + targetID.getName() + " does not exist. Ignoring...");
+	    }
+	}
+
+	// Finally, kill the local container
+	try {
+	    killContainer(localContainerID);
+
+	    // Make sure all containers are succesfully removed from the table...
+	    containers.waitUntilEmpty();
+
+	}
+	catch(AuthException ae) {
+	    System.out.println("Cannot kill container " + localContainerID.getName() + ": Permission Denied.");
+	}
+	catch(NotFoundException nfe) {
+	    // Should never happen
+	    nfe.printStackTrace();
+	}
+    }
+
   /** 
      Install a new MTP on a given container
    */
@@ -859,6 +853,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 
       MTPDescriptor dsc = (MTPDescriptor)result;
+      /***
       System.out.println("--- New MTP ---");
       System.out.println("Name: " + dsc.getName());
       System.out.println("Addresses: ");
@@ -869,7 +864,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       for(int i = 0; i < dsc.getSupportedProtocols().length; i++) {
 	  System.out.println("[" + dsc.getSupportedProtocols()[i] + "]");
       }
-
+      ***/
 
 
       return (MTPDescriptor)result;
