@@ -632,6 +632,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   void join() {
   	//#MIDP_EXCLUDE_BEGIN
     try {
+      if(myThread == null) {
+	  return;
+      }
       myThread.join(5000);
       if (myThread.isAlive()) {
         System.out.println("*** Warning: Agent " + myName + " did not terminate when requested to do so.");
@@ -1030,7 +1033,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(stateLock) {
       if(myAPState != AP_DELETED && !terminating) {
 	setState(AP_DELETED);
-	if(!myThread.equals(Thread.currentThread()))
+	if((myThread != null) && !myThread.equals(Thread.currentThread()))
           interruptThread();
       }
     }
