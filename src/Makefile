@@ -14,6 +14,9 @@ export JFLAGS = -deprecation
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
+DFDESCFLAGS =	-OUTPUT_DIRECTORY:jade/domain
+DFDESCSPEC  =	jade/domain/DFDescriptionParser.jj
+
 EXECS       = 	jade/Boot.java
 ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/NonDeterministicBehaviour.java \
@@ -32,11 +35,14 @@ all: parsers classes stubs
 	@echo Build complete.
 	@echo
 
-parsers: ACLParser
+parsers: ACLParser DFDescParser
 	@echo Parsers generated
 
 ACLParser:
 	$(PARSERGEN) $(ACLFLAGS) $(ACLSPEC)
+
+DFDescParser:
+	$(PARSERGEN) $(DFDESCFLAGS) $(DFDESCSPEC)
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
@@ -57,6 +63,15 @@ clean:
 	rm -f jade/lang/acl/ParseException.java
 	rm -f jade/lang/acl/Token.java
 	rm -f jade/lang/acl/TokenMgrError.java
+
+	rm -f jade/domain/DFDescriptionParser.java
+	rm -f jade/domain/DFDescriptionParserConstants.java
+	rm -f jade/domain/DFDescriptionParserTokenManager.java
+	rm -f jade/domain/ASCII_CharStream.java
+	rm -f jade/domain/ParseException.java
+	rm -f jade/domain/Token.java
+	rm -f jade/domain/TokenMgrError.java
+
 
 
 
