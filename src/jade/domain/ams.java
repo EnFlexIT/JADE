@@ -456,6 +456,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	    toolNotification.addReceiver(tool);
 	  }
 
+	  
 	  send(toolNotification);
 	  it.remove();
 	}
@@ -921,10 +922,7 @@ public class ams extends Agent implements AgentManager.Listener {
   public synchronized void handleNewContainer(String name, InetAddress addr) {
 
     // Add a new location to the locations list
-    MobilityOntology.Location loc = new MobilityOntology.Location();
-    loc.setName(name);
-    loc.setTransportProtocol("JADE-IPMT");
-    loc.setTransportAddress(getHap() + "." + name);
+    MobilityOntology.Location loc = new MobilityOntology.Location(name,getHap());
     mobilityMgr.addLocation(name, loc);
 
     // Fire a 'container is born' event

@@ -44,7 +44,6 @@ import jade.onto.OntologyException;
 import jade.onto.basic.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
@@ -476,7 +475,8 @@ public class MobilityOntology {
   */
   public static class Location implements jade.core.Location {
 
-    /**
+    public static final String DEFAULT_LOCATION_TP ="JADE-IPMT"; 
+  	/**
     @serial
     */
   	private String name;
@@ -489,6 +489,20 @@ public class MobilityOntology {
     */
     private String address;
 
+    
+    public Location()
+    {}    
+    
+    /**
+    Create a location with default values for transport protocol and transport address.
+    */
+    public Location(String name, String hap)
+    {
+    	this.name = name;
+    	this.protocol = DEFAULT_LOCATION_TP;
+    	this.address = hap +"."+name;
+    }
+    
     public void setName(String n) {
       name = n;
     }
