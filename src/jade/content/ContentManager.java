@@ -35,7 +35,13 @@ import jade.content.schema.ObjectSchema;
 import jade.content.onto.*;
 
 /**
- * The content manager associated with an agent.
+ * This class provides all methods to manage the content languages 
+ * and ontologies "known" by a given agent and to fill and extract the 
+ * content of an ACL message according to a given content language and 
+ * ontology.
+ * Each agent has a <code>ContentManager</code> object accessible through
+ * the <code>getContentManager()</code> method of the <code>Agent</code>
+ * class.
  * 
  * @author Federico Bergenti
  * @author Govanni Caire - TILAB
@@ -46,65 +52,87 @@ public class ContentManager implements Serializable {
     private boolean validationMode = true;
 
     /**
-     * Registers a codec <code>c</code> with its default name (i.e.
+     * Registers a <code>Codec</code> for a given content language 
+     * with its default name (i.e.
      * the name returned by its <code>getName()</code> method.
-     * @param c the codec.
+     * Since this operation is performed the agent that owns this 
+     * <code>ContentManager</code> is able to "speak" the language
+     * corresponding to the registered <code>Codec</code>.
+     * @param c the <code>Codec</code> to be registered.
      */
     public void registerLanguage(Codec c) {
         registerLanguage(c, c.getName());
     }
 
     /**
-     * Registers a codec <code>c</code> with a given name 
-     * @param c the codec.
-     * @param name the name.
+     * Registers a <code>Codec</code> for a given content language 
+     * with a given name.
+     * @param c the <code>Codec</code> to be registered.
+     * @param name the name associated to the registered codec.
      */
     public void registerLanguage(Codec c, String name) {
         languages.put(name, c);
     }
 
     /**
-     * Registers an ontology <code>o</code> with its default name (i.e.
+     * Registers an <code>Ontology</code> with its default name (i.e.
      * the name returned by its <code>getName()</code> method.
-     * @param o the ontology.
+     * Since this operation is performed the agent that owns this 
+     * <code>ContentManager</code> "knows" the registered 
+     * <code>Ontology</code>.
+     * @param o the <code>Ontology</code> to be registered.
      */
     public void registerOntology(Ontology o) {
         registerOntology(o, o.getName());
     }
 
     /**
-     * Registers an ontology with a given <code>name</code>.
-     * @param o the ontology.
-     * @param name the name.
+     * Registers an <code>Ontology</code> with a given name.
+     * @param o the <code>Ontology</code> to be registered.
+     * @param name the name associated to the registered Ontology.
      */
     public void registerOntology(Ontology o, String name) {
         ontologies.put(name, o);
     }
 
     /**
-     * Retrieves a codec with a given <code>name</code>.
-     * @param name the name.
-     * @return the codec.
+     * Retrieves a previously registered <code>Codec</code> 
+     * giving its <code>name</code>.
+     * @param name the name associated to the <code>Codec</code> 
+     * to be retrieved.
+     * @return the <code>Codec</code> associated to 
+     * <code>name</code> or <code>null</code> if no Codec was registered 
+     * with the given name.
      */
     public Codec lookupLanguage(String name) {
         return (Codec) languages.get(name);
     }
 
     /**
-     * Retrieves an ontology with a given name.
-     * @param name the name.
-     * @return the ontology.
+     * Retrieves a previously registered <code>Ontology</code> 
+     * giving its <code>name</code>.
+     * @param name the name associated to the <code>Ontology</code> 
+     * to be retrieved.
+     * @return the <code>Ontology</code> associated to 
+     * <code>name</code> or <code>null</code> if no Ontology was registered 
+     * with the given name.
      */
     public Ontology lookupOntology(String name) {
         return (Ontology) ontologies.get(name);
     }
 
-   /**
-     * Fills the content of a message.
-     * @param msg the message
-     * @param content the content.
-     * @throws CodecException
-     * @throws OntologyException
+    /**
+     * Fills the <code>:content</code> slot of an 
+     * <code>ACLMessage msg</code> using the content language
+     * and ontology indicated in the <code>:language</code> and 
+     * <code>:ontology</code> fields of <code>msg</code>.
+     * @param msg the message whose content has to be filled.
+     * @param content the content of the message represented as an 
+     * <code>AbsContentElement</code>.
+     * @throws CodecException if <code>content</code> is not compliant
+     * to the content language used for this operation.
+     * @throws OntologyException if <code>content</code> is not compliant
+     * to the ontology used for this operation.
      */
     public void fillContent(ACLMessage msg, AbsContentElement content) 
             throws CodecException, OntologyException {
@@ -120,14 +148,17 @@ public class ContentManager implements Serializable {
     } 
 
     /**
-     * Fills the content of a message.
-     * 
-     * @param msg the message
-     * @param content the content.
-     * 
-     * @throws CodecException
-     * @throws OntologyException
-     * 
+     * Fills the <code>:content</code> slot of an 
+     * <code>ACLMessage msg</code> using the content language
+     * and ontology indicated in the <code>:language</code> and 
+     * <code>:ontology</code> fields of <code>msg</code>.
+     * @param msg the message whose content has to be filled.
+     * @param content the content of the message represented as a 
+     * <code>ContentElement</code>.
+     * @throws CodecException if <code>content</code> is not compliant
+     * to the content language used for this operation.
+     * @throws OntologyException if <code>content</code> is not compliant
+     * to the ontology used for this operation.
      */
     public void fillContent(ACLMessage msg, ContentElement content) 
             throws CodecException, OntologyException {
@@ -145,12 +176,17 @@ public class ContentManager implements Serializable {
     } 
 
     /**
-     * Extracts an abstract descriptor of the content from a message.
-     * @param msg the message
-     * @return the content as an abstract descriptor.
-     * @throws CodecException
-     * @throws OntologyException
-     * @see jade.content.Ontology
+     * Translates the <code>:content</code> slot of an 
+     * <code>ACLMessage msg</code> into an <code>AbsContentElement</code>
+     * using the content language and ontology indicated in the 
+     * <code>:language</code> and <code>:ontology</code> fields of <code>msg</code>.
+     * @param msg the message whose content has to be extracted.
+     * @return the content of the message represented as an 
+     * <code>AbsContentElement</code>.
+     * @throws CodecException if the content of the message is not compliant
+     * to the content language used for this operation.
+     * @throws OntologyException if the content of the message is not compliant
+     * to the ontology used for this operation.
      */
     public AbsContentElement extractAbsContent(ACLMessage msg) 
             throws CodecException, OntologyException {
@@ -165,12 +201,17 @@ public class ContentManager implements Serializable {
     }
 
     /**
-     * Retrieves the content of a message as a concrete object.
-     * @param msg the message
-     * @return the content.
-     * @throws CodecException
-     * @throws OntologyException
-     * @see jade.content.Ontology
+     * Translates the <code>:content</code> slot of an 
+     * <code>ACLMessage msg</code> into a <code>ContentElement</code>
+     * using the content language and ontology indicated in the 
+     * <code>:language</code> and <code>:ontology</code> fields of <code>msg</code>.
+     * @param msg the message whose content has to be extracted.
+     * @return the content of the message represented as a 
+     * <code>ContentElement</code>.
+     * @throws CodecException if the content of the message is not compliant
+     * to the content language used for this operation.
+     * @throws OntologyException if the content of the message is not compliant
+     * to the ontology used for this operation.
      */
     public ContentElement extractContent(ACLMessage msg) 
             throws CodecException, UngroundedException, OntologyException {
@@ -184,6 +225,35 @@ public class ContentManager implements Serializable {
 				return (ContentElement) onto.toObject(content);
     } 
 
+		/** 
+		   Set the validation mode i.e. whether contents that are managed
+		   by this content manager should be validated during 
+		   message content filling/extraction.
+		   Default value is <code>true</code>
+		   @param mode the new validation mode 
+		 */
+		public void setValidationMode(boolean mode) {
+			validationMode = mode;
+		}
+		
+		/** 
+		   Return the currently set validation mode i.e. whether 
+		   contents that are managed by this content manager should 
+		   be validated during message content filling/extraction.
+		   Default value is <code>true</code>
+		   @return the currently set validation mode 
+		 */
+		public boolean getValidationMode() {
+			return validationMode;
+		}
+		
+		/** 
+		 */
+		public Ontology getOntology(ACLMessage msg) {
+      Codec    codec = lookupLanguage(msg.getLanguage());
+      return getMergedOntology(codec, lookupOntology(msg.getOntology()));
+		}
+		
 		/**
 		 * Merge the reference ontology with the inner ontology of the 
 		 * content language
@@ -229,26 +299,5 @@ public class ContentManager implements Serializable {
 				throw new CodecException("UnsupportedTypeOfCodec");
 		}
 		
-		/** 
-		   Set the validation mode i.e. whether contents that are managed
-		   by this content manager should be validated during 
-		   message content filling/extraction.
-		   Default value is <code>true</code>
-		   @param mode the new validation mode 
-		 */
-		public void setValidationMode(boolean mode) {
-			validationMode = mode;
-		}
-		
-		/** 
-		   Return the currently set validation mode i.e. whether 
-		   contents that are managed by this content manager should 
-		   be validated during message content filling/extraction.
-		   Default value is <code>true</code>
-		   @return the currently set validation mode 
-		 */
-		public boolean getValidationMode() {
-			return validationMode;
-		}
 }
 
