@@ -24,8 +24,10 @@
  */
 package jade.content;
 
+import jade.util.leap.Serializable;
+
 /**
  * Interface representing a generic content element
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface ContentElement {}
+public interface ContentElement extends Serializable {}

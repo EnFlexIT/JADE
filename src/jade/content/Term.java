@@ -24,9 +24,11 @@
  */
 package jade.content;
 
+import jade.util.leap.Serializable;
+
 /**
  * Interface representing a generic term
  * @author Federico Bergenti - Universita` di Parma
  */
-public interface Term {}
+public interface Term extends Serializable {}
 
