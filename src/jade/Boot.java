@@ -244,29 +244,6 @@ public class Boot {
   }
 
 
-  /**
-   * Return a String with copyright Notice, Name and Version of this version of JADE
-  */
-  public String getCopyrightNotice() {
-    String CVSname = "$Name$";
-    String CVSdate = "$Date$";
-    int colonPos = CVSname.indexOf(":");
-    int dollarPos = CVSname.lastIndexOf('$');
-    String name = CVSname.substring(colonPos + 1, dollarPos);
-    if(name.indexOf("JADE") == -1)
-    	name = "JADE snapshot";
-    else 
-    {
-        name = name.replace('-', ' ');
-	      name = name.replace('_', '.');
-	      name = name.trim();
-    }
-    colonPos = CVSdate.indexOf(':');
-    dollarPos = CVSdate.lastIndexOf('$');
-    String date = CVSdate.substring(colonPos + 1, dollarPos);
-    date = date.trim();
-    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
-   }
 
 
   /**
@@ -313,14 +290,14 @@ public class Boot {
       Boot b = new Boot();  
 
       // print Copyright Notice
-      System.out.println(b.getCopyrightNotice());
+      //System.out.println(b.getCopyrightNotice());
 
       // parses the command line and stores the passed arguments into
       // the class variables
       b.parseCommandLine(args);
 
       if (b.printVersionInfo) {
-	  // already printed System.out.println(b.getCopyrightNotice());
+	  System.out.println(Runtime.getCopyrightNotice());
 	  return;
       } 
       if (b.printUsageInfo) {

@@ -154,6 +154,7 @@ public class Runtime {
 
   // Called by a starting up container.
   void beginContainer() {
+      System.out.println(getCopyrightNotice());
     if(activeContainers == 0) {
 
       // Set up group and attributes for time critical threads
@@ -215,6 +216,32 @@ public class Runtime {
   AgentToolkit getDefaultToolkit() {
     return defaultToolkit;
   }
+
+
+
+  /**
+   * Return a String with copyright Notice, Name and Version of this version of JADE
+  */
+  public static String getCopyrightNotice() {
+    String CVSname = "$Name$";
+    String CVSdate = "$Date$";
+    int colonPos = CVSname.indexOf(":");
+    int dollarPos = CVSname.lastIndexOf('$');
+    String name = CVSname.substring(colonPos + 1, dollarPos);
+    if(name.indexOf("JADE") == -1)
+    	name = "JADE snapshot";
+    else 
+    {
+        name = name.replace('-', ' ');
+	      name = name.replace('_', '.');
+	      name = name.trim();
+    }
+    colonPos = CVSdate.indexOf(':');
+    dollarPos = CVSdate.lastIndexOf('$');
+    String date = CVSdate.substring(colonPos + 1, dollarPos);
+    date = date.trim();
+    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
+   }
 
   /************************************************************************/
 
