@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.35  1999/06/04 07:48:07  rimassa
+  Made package scoped this previously public class. Changed package
+  scoping when using some String constants.
+
   Revision 1.34  1999/04/07 11:40:12  rimassa
   Fixed code indentation.
 
@@ -175,7 +179,7 @@ import jade.lang.acl.ACLMessage;
 
 import _FIPA_Agent_97ImplBase;
 
-public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
+class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, AgentManager {
 
   private static final String AMS_NAME = "ams";
   private static final String ACC_NAME = "acc";
@@ -216,7 +220,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   public AgentPlatformImpl(String args[]) throws RemoteException {
     super(args);
-    myName = MAIN_CONTAINER_NAME;
+    myName = AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
     initIIOP();
     initAMS();
@@ -245,7 +249,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   private void initACC() {
-    theACC = new acc(this);
+    theACC = new acc();
 
     // Subscribe as a listener for the AMS agent
     theACC.addCommListener(this);
@@ -321,10 +325,10 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       e.printStackTrace();
     }
 
-    containers.put(MAIN_CONTAINER_NAME, this);
+    containers.put(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME, this);
 
     // Notify AMS
-    theAMS.postNewContainer(MAIN_CONTAINER_NAME);
+    theAMS.postNewContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
 
     Agent a = theAMS;
     a.doStart(AMS_NAME, platformAddress, systemAgentsThreads);
@@ -364,7 +368,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   public String addContainer(AgentContainer ac) throws RemoteException {
 
-    String name = AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
+    String name = AgentManagementOntology.PlatformProfile.AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
     containers.put(name, ac);
 
     // Notify AMS
@@ -442,7 +446,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void shutDown() {
 
     // Deregister yourself as a container
-    containers.remove(MAIN_CONTAINER_NAME);
+    containers.remove(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
 
     // Kill every other container
     Collection c = containers.values();
