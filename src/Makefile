@@ -35,10 +35,10 @@ ROOTCLASSES =	jade/core/behaviours/CompositeBehaviour.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
 		jade/tools/sniffer/Sniffer.java \
+		jade/tools/introspector/Introspector.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 		jade/tools/applet/DFApplet.java \
-		starlight/util/Base64.java \
-		jade/tools/introspector/Introspector.java
+		starlight/util/Base64.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/ACLParserConstants.java \
@@ -146,6 +146,7 @@ images:
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
 	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
 	cp -R $(SRCDIR)/jade/tools/rma/images $(CLSDIR)/jade/tools/rma
+	cp -R $(SRCDIR)/jade/tools/introspector/gui/images $(CLSDIR)/jade/tools/introspector/gui/images
 	mkdir -p $(CLSDIR)/jade/gui/help
 
 idlclean:
@@ -175,6 +176,7 @@ batch:
 	echo 'xcopy /E /I jade\tools\dfgui\images ..\classes\jade\tools\dfgui\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\rma\images ..\classes\jade\tools\rma\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\introspector\gui\images ..\classes\jade\tools\introspector\gui\images' >> $(BATCH_ALL)
 
 	echo >> $(BATCH_ALL)
 
