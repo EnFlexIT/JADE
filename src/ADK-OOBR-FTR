@@ -1,5 +1,5 @@
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Agent.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/Agent.java
 Agent@= AP_ACTIVE@public static final int AP_ACTIVE =
 Agent@= AP_DELETED@public static final int AP_DELETED =
 Agent@= AP_INITIATED@public static final int AP_INITIATED =
@@ -55,14 +55,14 @@ Agent@- send@public final void send(ACLMessage msg, AgentGroup g) {
 Agent@- send@public final void send(ACLMessage msg) {
 Agent@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@= addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@= bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException;
 AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException;
 AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@= removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Behaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/Behaviour.java
 Behaviour@+ Behaviour@public Behaviour(Agent a) {
 Behaviour@+ Behaviour@public Behaviour() {
 Behaviour@= NOTIFY_DOWN@protected final int NOTIFY_DOWN =
@@ -81,11 +81,11 @@ Behaviour@= runnableState@private boolean runnableState =
 Behaviour@- setParent@final void setParent(ComplexBehaviour cb) {
 Behaviour@- setRunnable@void setRunnable(boolean runnable) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommBroadcaster.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@= addCommListener@void addCommListener (CommListener l);
 CommBroadcaster@= removeCommListener@void removeCommListener(CommListener event);
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommEvent.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message, AgentGroup group) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@- getMessage@public ACLMessage getMessage() {
@@ -94,13 +94,13 @@ CommEvent@- isMulticast@public boolean isMulticast() {
 CommEvent@= message@private ACLMessage message;
 CommEvent@= recipients@private AgentGroup recipients;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CommListener.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommListener.java
 CommListener@= CommHandle@void CommHandle( CommEvent event );
 
-/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcher.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcher.java
 MessageDispatcher@= dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ams.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ams.java
 ams@- AMSBehaviour@protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
 ams@- AMSBehaviour@protected AMSBehaviour(String name) {
 ams@- AuthBehaviour@public AuthBehaviour(ACLMessage request, ACLMessage reply) {
@@ -139,7 +139,7 @@ ams@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
 ams@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 ams@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/df.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/df.java
 df@- DFBehaviour@protected DFBehaviour(String name, ACLMessage request, ACLMessage reply) {
 df@- DFBehaviour@protected DFBehaviour(String name) {
 df@- DFSearch@private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd) {
@@ -197,10 +197,10 @@ df@= toChange.setOwnership@toChange.setOwnership(s);
 df@= toChange.setType@toChange.setType(s);
 df@= toRemove@AgentManagementOntology.DFAgentDescriptor toRemove =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/Parser.java
 Parser@= parse@public void parse(Reader textSource);
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Message.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/Message.java
 MessageImpl@+ MessageImpl@public MessageImpl() {
 MessageImpl@= acceptProposalKind@private static final Object acceptProposalKind =
 MessageImpl@= agreeKind@private static final Object agreeKind =
@@ -230,7 +230,7 @@ MessageImpl@= requestWhenKind@private static final Object requestWhenKind =
 MessageImpl@= requestWheneverKind@private static final Object requestWheneverKind =
 MessageImpl@= subscribeKind@private static final Object subscribeKind =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/grammar.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/grammar.java
 MessageParameter@= value@public String value();
 senderParam@- value@public String value() {
 receiverParam@- value@public String value() {
@@ -244,7 +244,7 @@ ontologyParam@- value@public String value() {
 protocolParam@- value@public String value() {
 conversationIdParam@- value@public String value() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@= demux@private MessageDispatcher demux;
 AgentDescriptor@= desc@private AgentManagementOntology.AMSAgentDescriptor desc;
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
@@ -252,18 +252,18 @@ AgentDescriptor@- getDesc@public AgentManagementOntology.AMSAgentDescriptor getD
 AgentDescriptor@- setDemux@public void setDemux(MessageDispatcher md) {
 AgentDescriptor@- setDesc@public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/NotFoundException.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/StartContainer.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/jade/core/StartPlatform.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 StartPlatform@- usage@private static void usage() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl() throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@= MAP_LOAD_FACTOR@private static final float MAP_LOAD_FACTOR =
@@ -279,7 +279,7 @@ AgentContainerImpl@= remoteAgentsCache@private Hashtable remoteAgentsCache =
 AgentContainerImpl@- shutDown@public void shutDown() {
 AgentContainerImpl@- unicastPostMessage@private void unicastPostMessage(ACLMessage msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@- AMSChangeData@public void AMSChangeData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData(String agentName) {
 AgentPlatformImpl@- AMSDumpData@public void AMSDumpData() {
@@ -301,13 +301,13 @@ AgentPlatformImpl@= platformAgents@private Hashtable platformAgents =
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@= theAMS@private ams theAMS;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@= localAgents@private Hashtable localAgents;
 MessageDispatcherImpl@= parser@private ACLParser parser =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
 ACLMessage@+ ACLMessage@public ACLMessage() {
 ACLMessage@= CONTENT@private static final String CONTENT =
 ACLMessage@= CONVERSATION_ID@private static final String CONVERSATION_ID =
@@ -362,7 +362,7 @@ ACLMessage@- setSource@public void setSource( String source ) {
 ACLMessage@- setType@public void setType( String type ) {
 ACLMessage@= source@private String source;
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
 Agent@- activate@public void activate(String name) {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
@@ -376,25 +376,25 @@ Agent@- schedule@public void schedule() {
 Agent@- send@protected final void send(String msg) {
 Agent@- send@protected final void send(ACLMessage msg) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentContainerImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
 AgentDescriptor@- getName@public String getName() {
 AgentDescriptor@- set@public void set(String s, MessageDispatcher md) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatform.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@> bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
 AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
 AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatformImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
@@ -402,42 +402,42 @@ AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteEx
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Behaviour.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/Behaviour.java
 Behaviour@> execute@public void execute();
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommBroadcaster.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
 CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommEvent.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, String command) {
 CommEvent@- getCommand@public String getCommand() {
 CommEvent@- getMessage@public ACLMessage getMessage() {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommListener.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/CommListener.java
 CommListener@> CommHandle@void CommHandle( CommEvent event );
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcher.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcher.java
 MessageDispatcher@> dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException;
 MessageDispatcher@> dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcherImpl.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/NotFoundException.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartContainer.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartPlatform.java
+/home/Giovanni/DEVEL/JADE/src/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
 ComplexBehaviour@- BehaviourList@private class BehaviourList {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
@@ -454,11 +454,11 @@ ComplexBehaviour@- restart@public void restart() {
 ComplexBehaviour@= starting@private boolean starting =
 ComplexBehaviour@= subBehaviours@protected BehaviourList subBehaviours =
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/Scheduler.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/Scheduler.java
 Scheduler@+ Scheduler@public Scheduler(Agent a) {
 Scheduler@- add@public synchronized void add(Behaviour b) {
 Scheduler@= behaviours@protected Vector behaviours =
@@ -469,7 +469,7 @@ Scheduler@= owner@private Agent owner;
 Scheduler@- remove@public synchronized void remove(Behaviour b) {
 Scheduler@- schedule@public synchronized Behaviour schedule() {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
 ACLParser@+ ACLParser@public ACLParser(ACLParserTokenManager tm) {
 ACLParser@+ ACLParser@public ACLParser(java.io.Reader stream) {
 ACLParser@+ ACLParser@public ACLParser(java.io.InputStream stream) {
@@ -515,7 +515,7 @@ ACLParser@= msg@ACLMessage msg =
 ACLParser@- parse@public ACLMessage parse(Reader text) throws ParseException {
 ACLParser@= token_source@public ACLParserTokenManager token_source;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParserTokenManager.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParserTokenManager.java
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream, int lexState) {
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream) {
 ACLParserTokenManager@- ReInit@public void ReInit(ASCII_CharStream stream, int lexState) {
@@ -579,7 +579,7 @@ ACLParserTokenManager@= jjtoToken@static final long[] jjtoToken =
 ACLParserTokenManager@= lengthOfMatch@int lengthOfMatch;
 ACLParserTokenManager@= lexStateNames@public static final String[] lexStateNames =
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ASCII_CharStream.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ASCII_CharStream.java
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn) {
@@ -620,7 +620,7 @@ ASCII_CharStream@- readChar@public final char readChar() throws java.io.IOExcept
 ASCII_CharStream@= staticFlag@public static final boolean staticFlag =
 ASCII_CharStream@= tokenBegin@int tokenBegin;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ParseException.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ParseException.java
 ParseException@+ ParseException@public ParseException(String message) {
 ParseException@+ ParseException@public ParseException() {
 ParseException@+ ParseException@public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal, String[] tokenImageVal ) {
@@ -632,7 +632,7 @@ ParseException@- getMessage@public String getMessage() {
 ParseException@= specialConstructor@protected boolean specialConstructor;
 ParseException@= tokenImage@public String[] tokenImage;
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Token.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/Token.java
 Token@= image@public String image;
 Token@= kind@public int kind;
 Token@- newToken@public static final Token newToken(int ofKind) {
@@ -640,7 +640,7 @@ Token@= next@public Token next;
 Token@= specialToken@public Token specialToken;
 Token@- toString@public final String toString() {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/TokenMgrError.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/TokenMgrError.java
 TokenMgrError@= INVALID_LEXICAL_STATE@static final int INVALID_LEXICAL_STATE =
 TokenMgrError@= LEXICAL_ERROR@static final int LEXICAL_ERROR =
 TokenMgrError@= LOOP_DETECTED@static final int LOOP_DETECTED =
@@ -653,13 +653,13 @@ TokenMgrError@- addEscapes@protected static final String addEscapes(String str) 
 TokenMgrError@= errorCode@int errorCode;
 TokenMgrError@- getMessage@public String getMessage() {
 
-/home/rimassa/DEVEL/JADE/src/jade/Boot.java
+/home/Giovanni/DEVEL/JADE/src/jade/Boot.java
 Boot@+ Boot@private Boot() {
 Boot@= SEPARATOR@private static final String SEPARATOR =
 Boot@- main@public static void main(String args[]) {
 Boot@- usage@private static void usage(){
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/MessageTemplate.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/MessageTemplate.java
 MessageTemplate@- MatchAll@public static MessageTemplate MatchAll() {
 MessageTemplate@- MatchContent@public static MessageTemplate MatchContent(String value) {
 MessageTemplate@- MatchConversationId@public static MessageTemplate MatchConversationId(String value) {
@@ -684,7 +684,7 @@ MessageTemplate@- or@public static MessageTemplate or(MessageTemplate op1, Messa
 MessageTemplate@= template@private ACLMessage template;
 MessageTemplate@= wildCard@private static final String wildCard =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Protocol.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Protocol.java
 Protocol@+ Protocol@public Protocol(CommunicativeAction start) {
 Protocol@= START_NAME@private static final String START_NAME =
 Protocol@- addCA@public void addCA(CommunicativeAction ca, String name) {
@@ -695,7 +695,7 @@ Protocol@= myElements@protected Hashtable myElements;
 Protocol@= responderRole@static final int responderRole =
 Protocol@= startingPoint@protected CommunicativeAction startingPoint;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/AgentGroup.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentGroup.java
 AgentGroup@- addMember@public void addMember(String name) {
 AgentGroup@- getNextMember@public String getNextMember() {
 AgentGroup@- hasMoreMembers@public boolean hasMoreMembers() {
@@ -704,7 +704,7 @@ AgentGroup@= memberNames@private Vector memberNames =
 AgentGroup@- removeMember@public void removeMember(String name) {
 AgentGroup@- resetCursor@public void resetCursor() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(Agent a, int endCondition) {
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(int endCondition) {
 NonDeterministicBehaviour@= WHEN_ALL@private static final int WHEN_ALL =
@@ -723,13 +723,13 @@ NonDeterministicBehaviour@- handle@protected void handle(RunnableChangedEvent rc
 NonDeterministicBehaviour@= terminatedSubBehaviours@private int terminatedSubBehaviours;
 NonDeterministicBehaviour@= whenToStop@private int whenToStop;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour(Agent a) {
 SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour() {
 SequentialBehaviour@- bodyAction@protected boolean bodyAction() {
 SequentialBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
 CommunicativeAction@+ CommunicativeAction@public CommunicativeAction(ACLMessage msg, Protocol p) {
 CommunicativeAction@- addAnswer@public void addAnswer(CommunicativeAction ca) {
 CommunicativeAction@= allowedAnswers@private Vector allowedAnswers =
@@ -744,20 +744,20 @@ CommunicativeAction@= myProtocol@private Protocol myProtocol;
 CommunicativeAction@= myRole@private int myRole;
 CommunicativeAction@- setName@void setName(String name) {
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Standard.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Standard.java
 Standard@+ Standard@private Standard() {
 Standard@- getProtocol@public static Protocol getProtocol(String name) {
 Standard@- initProtocols@private static void initProtocols() {
 Standard@= mutex@private static Object mutex =
 Standard@= stdProtocols@private static Hashtable stdProtocols =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/MessageHandler.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageHandler.java
 MessageHandler@= handle@public void handle(ACLMessage msg, Interaction i);
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/MessageSelector.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageSelector.java
 MessageSelector@= select@public void select(MessageGroup answers, Interaction i);
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/Interaction.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Interaction.java
 Interaction@+ Interaction@private Interaction(Protocol p, int role) {
 Interaction@- addPeer@public void addPeer(String name) {
 Interaction@- attachHandler@public void attachHandler(String CA, MessageHandler handler) {
@@ -774,7 +774,7 @@ Interaction@= myRole@int myRole;
 Interaction@- removePeer@public void removePeer(String name) {
 Interaction@= selectors@private Hashtable selectors =
 
-/home/rimassa/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
 ProtocolDrivenBehaviour@+ ProtocolDrivenBehaviour@public ProtocolDrivenBehaviour(Agent a, Interaction i) {
 ProtocolDrivenBehaviour@- action@public void action() {
 ProtocolDrivenBehaviour@= currentBehaviours@private NonDeterministicBehaviour currentBehaviours;
@@ -786,25 +786,25 @@ ProtocolDrivenBehaviour@= starting@private boolean starting =
 ProtocolDrivenBehaviour@- startupAsInitiator@private void startupAsInitiator() {
 ProtocolDrivenBehaviour@- startupAsResponder@private void startupAsResponder() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent1.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent1.java
 Agent1@- Behaviour1@public Behaviour1(String ID) {
 Agent1@- action@public void action() {
 Agent1@= counter@private int counter;
 Agent1@= myID@private String myID;
 Agent1@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent2.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent2.java
 Agent2@- Behaviour2@public Behaviour2(Agent a) {
 Agent2@- action@public void action() {
 Agent2@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent3.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent3.java
 Agent3@- Behaviour3Step@public Behaviour3Step(Agent a, String code) {
 Agent3@- action@public void action() {
 Agent3@= myCode@private String myCode;
 Agent3@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex1/Agent4.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent4.java
 Agent4@- Behaviour4Step@public Behaviour4Step(Agent a, String code, int i) {
 Agent4@- action@public void action() {
 Agent4@- done@public boolean done() {
@@ -813,7 +813,7 @@ Agent4@= finished@private boolean finished =
 Agent4@= myCode@private String myCode;
 Agent4@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
 AgentBroadcaster@- BehaviourElement@public BehaviourElement(AgentBroadcaster a, String source, String dest, String content) {
 AgentBroadcaster@- action@public void action() {
 AgentBroadcaster@- appendMessage@public synchronized void appendMessage(ACLMessage msg) {
@@ -826,19 +826,19 @@ AgentBroadcaster@= myMessage@private ACLMessage myMessage;
 AgentBroadcaster@= replyReceived@private boolean replyReceived =
 AgentBroadcaster@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentReceiver.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentReceiver.java
 AgentReceiver@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex2/AgentSender.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentSender.java
 AgentSender@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex3/AgentMessageFilter.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentMessageFilter.java
 AgentMessageFilter@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex3/AgentThread.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentThread.java
 AgentThread@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex4/AgentRequester.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentRequester.java
 AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour(AgentRequester a) {
 Receiver@+ Receiver@private Receiver() {
 AgentRequester@> action@public abstract void action();
@@ -862,7 +862,7 @@ AgentRequester@= receivedAgree@private boolean receivedAgree =
 AgentRequester@- sendRequest@public void sendRequest() {
 AgentRequester@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex4/AgentResponder.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentResponder.java
 AgentResponder@- MultipleBehaviour@public MultipleBehaviour(AgentResponder a) {
 AgentResponder@- ResponderBehaviour@public ResponderBehaviour(AgentResponder a, ACLMessage msg) {
 AgentResponder@- SendBehaviour@public SendBehaviour(AgentResponder a, ACLMessage msg) {
@@ -879,7 +879,7 @@ AgentResponder@= myPeer@private String myPeer;
 AgentResponder@= pattern@MessageTemplate pattern;
 AgentResponder@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/examples/amsTester.java
+/home/Giovanni/DEVEL/JADE/src/examples/amsTester.java
 amsTester@- ReceiveBehaviour@protected ReceiveBehaviour(amsTester a) {
 Receiver@+ Receiver@private Receiver() {
 amsTester@- agreed@public boolean agreed() {
@@ -902,36 +902,36 @@ amsTester@= receivedAgree@private boolean receivedAgree =
 amsTester@- sendRequest@public void sendRequest() {
 amsTester@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ACCUnavailableException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ACCUnavailableException.java
 ACCUnavailableException@+ ACCUnavailableException@public ACCUnavailableException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AMSOverloadedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AMSOverloadedException.java
 AMSOverloadedException@+ AMSOverloadedException@public AMSOverloadedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentAlreadyRegisteredException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentAlreadyRegisteredException.java
 AgentAlreadyRegisteredException@+ AgentAlreadyRegisteredException@public AgentAlreadyRegisteredException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentNotRegisteredException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentNotRegisteredException.java
 AgentNotRegisteredException@+ AgentNotRegisteredException@public AgentNotRegisteredException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/FIPAException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FIPAException.java
 FIPAException@+ FIPAException@public FIPAException(String msg) {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnableToDeregisterException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnableToDeregisterException.java
 UnableToDeregisterException@+ UnableToDeregisterException@public UnableToDeregisterException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeException.java
 UnrecognizedAttributeException@+ UnrecognizedAttributeException@public UnrecognizedAttributeException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeValueException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeValueException.java
 UnrecognizedAttributeValueException@+ UnrecognizedAttributeValueException@public UnrecognizedAttributeValueException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/acc.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/acc.java
 acc@- action@public void action() {
 acc@- done@public boolean done() {
 acc@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
 AgentManagementOntology@= ADDRESS@static final String ADDRESS =
 AgentManagementOntology@= AMSMandatoryAttributes@private static final boolean AMSMandatoryAttributes[][] =
 AgentManagementOntology@- APLifeCycle@public static class APLifeCycle {
@@ -1030,7 +1030,7 @@ AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 AgentManagementOntology@- toText@public void toText(Writer w) {
 
-/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParserConstants.java
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLParserConstants.java
 ACLParserConstants@= CONTENT@int CONTENT =
 ACLParserConstants@= CONTENTSTATE@int CONTENTSTATE =
 ACLParserConstants@= CONVERSATION_ID@int CONVERSATION_ID =
@@ -1062,7 +1062,7 @@ ACLParserConstants@= STRINGLITERAL@int STRINGLITERAL =
 ACLParserConstants@= WORD@int WORD =
 ACLParserConstants@= tokenImage@String[] tokenImage =
 
-/home/rimassa/DEVEL/JADE/src/examples/ex5/amsTester.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/amsTester.java
 amsTester@= APState@private String APState =
 amsTester@- ReceiveBehaviour@protected ReceiveBehaviour(amsTester a) {
 Receiver@+ Receiver@private Receiver() {
@@ -1091,22 +1091,22 @@ amsTester@- sendRequest@public void sendRequest() {
 amsTester@- setup@protected void setup() {
 amsTester@= signature@private String signature =
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/DFOverloadedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/DFOverloadedException.java
 DFOverloadedException@+ DFOverloadedException@public DFOverloadedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/InconsistencyException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/InconsistencyException.java
 InconsistencyException@+ InconsistencyException@public InconsistencyException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/NoCommunicationMeansException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/NoCommunicationMeansException.java
 NoCommunicationMeansException@+ NoCommunicationMeansException@public NoCommunicationMeansException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnauthorisedException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnauthorisedException.java
 UnauthorisedException@+ UnauthorisedException@public UnauthorisedException() {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
 UnwillingToPerformException@+ UnwillingToPerformException@public UnwillingToPerformException() {
 
-/home/rimassa/DEVEL/JADE/src/examples/ex5/dfTester.java
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/dfTester.java
 dfTester@= DFState@private String DFState =
 dfTester@- ReceiveBehaviour@protected ReceiveBehaviour(dfTester a) {
 Receiver@+ Receiver@private Receiver() {
@@ -1137,10 +1137,10 @@ dfTester@= services@private String services =
 dfTester@- setup@protected void setup() {
 dfTester@= type@private String type =
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
 BehaviourPrototype@= instance@public Behaviour instance(ACLMessage request, ACLMessage reply);
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/DFAgentDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/DFAgentDescriptor.java
 DFAgentDescriptor@= DFState@private String DFState;
 DFAgentDescriptor@= address@private String address;
 DFAgentDescriptor@- dump@public void dump() {
@@ -1167,7 +1167,7 @@ DFAgentDescriptor@- setServices@public void setServices(ServiceDescriptor sd) {
 DFAgentDescriptor@- setType@public void setType(String t) {
 DFAgentDescriptor@= type@private String type;
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
 FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a, MessageTemplate match) {
 FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a) {
 FipaRequestServerBehaviour@- action@public void action() {
@@ -1178,7 +1178,7 @@ FipaRequestServerBehaviour@= requestTemplate@private MessageTemplate requestTemp
 FipaRequestServerBehaviour@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
 FipaRequestServerBehaviour@- unregisterPrototype@public void unregisterPrototype(String actionName) {
 
-/home/rimassa/DEVEL/JADE/src/jade/domain/ServiceDescriptor.java
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ServiceDescriptor.java
 ServiceDescriptor@= communicationProperties@private String communicationProperties;
 ServiceDescriptor@= fixedProperties@private String fixedProperties;
 ServiceDescriptor@- getCommunicationProps@public String getCommunicationProps() {
@@ -1198,7 +1198,7 @@ ServiceDescriptor@- setOntology@public void setOntology(String o) {
 ServiceDescriptor@- setType@public void setType(String t) {
 ServiceDescriptor@= type@private String type;
 
-/home/rimassa/DEVEL/JADE/src/examples/example.java
+/home/Giovanni/DEVEL/JADE/src/examples/example.java
 example@- ReceiverBehaviour@public ReceiverBehaviour(ACLMessage msg) {
 example@- SenderBehaviour@public SenderBehaviour(String text) {
 example@- action@public void action() {
@@ -1213,17 +1213,17 @@ example@= myPeer@private String myPeer;
 example@= result@private ACLMessage result;
 example@- setup@protected void setup() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
 CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour(Agent a) {
 CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour() {
 CyclicBehaviour@- done@public final boolean done() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
 OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour(Agent a) {
 OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour() {
 OneShotBehaviour@- done@public final boolean done() {
 
-/home/rimassa/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
 ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg) {
 ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
 ReceiverBehaviour@- action@public void action() {
@@ -1233,7 +1233,7 @@ ReceiverBehaviour@= myAgent@Agent myAgent;
 ReceiverBehaviour@= result@private ACLMessage result;
 ReceiverBehaviour@= template@private MessageTemplate template;
 
-/home/rimassa/DEVEL/JADE/src/jade/core/SenderBehaviour.java
+/home/Giovanni/DEVEL/JADE/src/jade/core/SenderBehaviour.java
 SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg) {
 SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
 SenderBehaviour@- action@public void action() {
@@ -1241,5 +1241,5 @@ SenderBehaviour@= message@private ACLMessage message;
 SenderBehaviour@= myAgent@private Agent myAgent;
 SenderBehaviour@= receivers@private AgentGroup receivers;
 
-/home/rimassa/DEVEL/JADE/src/examples/jess/JessAgent.java
+/home/Giovanni/DEVEL/JADE/src/examples/jess/JessAgent.java
 JessAgent@- setup@protected void setup() {
