@@ -341,11 +341,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		maxResultLimit = Integer.parseInt(sMaxResults);
 		if(maxResultLimit < 0){
 			maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE,"WARNING: The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS);
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS);
 		}else if(maxResultLimit > Integer.parseInt(DEFAULT_MAX_RESULTS)){
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE,"WARNING: Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!");
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!");
 		}
   	}
   	catch (Exception e) {
@@ -374,7 +374,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
        
       } catch (Exception e) {
         if(logger.isLoggable(Logger.SEVERE))
-          logger.log(Logger.SEVERE,"Error loading class " + kbFactClass, e);
+          logger.log(Logger.SEVERE, "Error loading class " + kbFactClass + ". "+e);
       }
       
       if(logger.isLoggable(Logger.CONFIG)){
@@ -502,8 +502,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					s.close();
 				}
 				catch(Exception e) {
-					if(logger.isLoggable(Logger.WARNING))
-						logger.log(Logger.WARNING,"WARNING: unexpected CANCEL content");
+					if(logger.isLoggable(Logger.CONFIG))
+						logger.log(Logger.CONFIG,"Unknown CANCEL content. Use default handler");
 					super.handleCancel(cancel);
 				}
 				return null;
@@ -741,27 +741,27 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    			logger.log(Logger.SEVERE,"WARNING: Error decoding reply from federated DF "+inform.getSender().getName()+" during recursive search ["+e.toString()+"]."); 
 	    	}
     	}
-	    if(logger.isLoggable(Logger.SEVERE))
-	    	logger.log(Logger.SEVERE,cnt+" new items found."); 
+	    if(logger.isLoggable(Logger.CONFIG))
+	    	logger.log(Logger.CONFIG,cnt+" new items found in recursive search."); 
     }
     
     protected void handleRefuse(ACLMessage refuse) {
-  		if(logger.isLoggable(Logger.SEVERE))
-  			logger.log(Logger.SEVERE,"WARNING: REFUSE received from federated DF "+refuse.getSender().getName()+" during recursive search.");
+  		if(logger.isLoggable(Logger.WARNING))
+  			logger.log(Logger.WARNING,"REFUSE received from federated DF "+refuse.getSender().getName()+" during recursive search.");
     }
     protected void handleFailure(ACLMessage failure) {
-    	// In general this is due to a federation loop (search-id already used)
+    	// FIXME: In general this is due to a federation loop (search-id already used)
     	// In this case no warning must be printed --> We use verbosity level 1
   		if(logger.isLoggable(Logger.WARNING))
-  			logger.log(Logger.WARNING,"WARNING: FAILURE received from federated DF "+failure.getSender().getName()+" during recursive search.");
+  			logger.log(Logger.WARNING,"FAILURE received from federated DF "+failure.getSender().getName()+" during recursive search.");
     }
     protected void handleNotUnderstood(ACLMessage notUnderstood) {
-  		if(logger.isLoggable(Logger.SEVERE))
-  			logger.log(Logger.SEVERE,"WARNING: NOT_UNDERSTOOD received from federated DF "+notUnderstood.getSender().getName()+" during recursive search.");
+  		if(logger.isLoggable(Logger.WARNING))
+  			logger.log(Logger.WARNING,"NOT_UNDERSTOOD received from federated DF "+notUnderstood.getSender().getName()+" during recursive search.");
     }
     protected void handleOutOfSequence(ACLMessage msg) {
-  		if(logger.isLoggable(Logger.SEVERE))
-  			logger.log(Logger.SEVERE,"WARNING: Out of sequence message "+ACLMessage.getPerformative(msg.getPerformative())+" received from "+msg.getSender().getName()+" during recursive search.");
+  		if(logger.isLoggable(Logger.WARNING))
+  			logger.log(Logger.WARNING,"Out of sequence message "+ACLMessage.getPerformative(msg.getPerformative())+" received from "+msg.getSender().getName()+" during recursive search.");
     }
     
     public int onEnd() {
@@ -800,8 +800,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    throw new AlreadyRegistered();
 	
 	if(isADF(dfd)) {
-		if(logger.isLoggable(Logger.WARNING))
-			logger.log(Logger.WARNING,"Added federation "+dfd.getName().getName()+" --> "+getName());
+		if(logger.isLoggable(Logger.INFO))
+			logger.log(Logger.INFO,"Added federation "+dfd.getName().getName()+" --> "+getName());
 	    children.add(dfd.getName());
 	    try {
     		gui.addChildren(dfd.getName());
@@ -1027,8 +1027,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void federateAction(final Federate action, AID requester) {
 		AID remoteDF = action.getDf();
-    	if(logger.isLoggable(Logger.SEVERE))
-    		logger.log(Logger.SEVERE,"Agent "+requester+" requesting action Federate with DF "+remoteDF.getName());
+    	if(logger.isLoggable(Logger.CONFIG))
+    		logger.log(Logger.CONFIG,"Agent "+requester+" requesting action Federate with DF "+remoteDF.getName());
 		Register r = new Register();
 		DFAgentDescription tmp = action.getDescription();
 		final DFAgentDescription dfd = (tmp != null ? tmp : getDescriptionOfThisDF());
@@ -1422,8 +1422,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		myDescription = dfd;
 		myDescription.setName(getAID());
 		if (!isADF(myDescription)) {
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE,"WARNING: The description set for this DF does not include a \"fipa-df\" service.");
+			if(logger.isLoggable(Logger.WARNING))
+				logger.log(Logger.WARNING,"The description set for this DF does not include a \"fipa-df\" service.");
 		}
 	}
 	
@@ -1494,19 +1494,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	  		getContentManager().fillContent(notification, ce);
 	  		send(notification);
 	  		AID receiver = (AID) notification.getAllReceiver().next();
-	  		if(logger.isLoggable(Logger.CONFIG))
-	  			logger.log(Logger.CONFIG,"Notification sent back to "+receiver.getName());
+	  		if(logger.isLoggable(Logger.FINE))
+	  			logger.log(Logger.FINE,"Notification sent back to "+receiver.getName());
 	  	}
 	  	catch (Exception e) {
 	  		// Should never happen
 	  		if(logger.isLoggable(Logger.SEVERE))
-	  			logger.log(Logger.SEVERE,"WARNING: Error encoding pending notification content.");
+	  			logger.log(Logger.SEVERE,"Error encoding pending notification content.");
 	  		e.printStackTrace();
 	  	}
   	}
   	else {
-  		if(logger.isLoggable(Logger.SEVERE))
-  			logger.log(Logger.SEVERE,"WARNING: Processed action request not found.");
+  		if(logger.isLoggable(Logger.WARNING))
+  			logger.log(Logger.WARNING,"Processed action request not found.");
   	}
   }
   
