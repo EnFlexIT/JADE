@@ -291,8 +291,11 @@ public abstract class Behaviour implements Serializable {
 		myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_READY, Behaviour.STATE_RUNNING);
   	//#MIDP_EXCLUDE_END
 		action();
-  	//#MIDP_EXCLUDE_BEGIN
-    myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_RUNNING, Behaviour.STATE_READY);
+		//#MIDP_EXCLUDE_BEGIN
+		// Maybe the behaviour removed itself in its action() method
+		if (myAgent != null) {
+	    myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_RUNNING, Behaviour.STATE_READY);
+		}
   	//#MIDP_EXCLUDE_END
   }
   
