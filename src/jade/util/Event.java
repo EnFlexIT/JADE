@@ -28,6 +28,11 @@ import java.util.Vector;
 import java.util.EventObject;
 
 /**
+ * This class represents a generic event carrying some information
+ * (accessible in the form of <code>Object</code> parameters) and 
+ * provides support for synchronous processing through the 
+ * <code>waitUntilProcessed()</code> and <code>notifyProcessed()</code>
+ * methods.
  * @author Giovanni Caire - TILab 
  */
 public class Event extends EventObject {
@@ -37,21 +42,43 @@ public class Event extends EventObject {
 	private boolean processed = false;	
 	private Object processingResult = null;
 	
+	/**
+	   Construct an <code>Event</code> of a given type produced by
+	   the indicated source
+	   @param type The type of the event
+	   @param source The source that generated the event
+	 */
 	public Event(int type, Object source) {
 		super(source);
 		this.type = type;
 	}
 	
+	/**
+	   Construct an <code>Event</code> of a given type produced by
+	   the indicated source and carrying a given information.
+	   @param type The type of the event
+	   @param source The source that generated the event
+	   @param info The information associated to the event. This value
+	   is handled as the first parameter of the event and can be 
+	   accessed using the <code>getParameter(0)</code> method
+	 */
 	public Event(int type, Object source, Object info) {
 		super(source);
 		this.type = type;
 		addParameter(info);
 	}
 	
+	/**
+	   @return the type of this <code>Event</code> object
+	 */
 	public int getType() {
 		return type;
 	}
 	
+	/**
+	   Add a parameter to this <code>Event</code> object
+	   @param obj The parameter to be added
+	 */
 	public void addParameter(Object obj) {
 		if (param == null) {
 			param = new Vector();
@@ -59,6 +86,9 @@ public class Event extends EventObject {
 		param.addElement(obj);
 	}
 	
+	/**
+	   @return the index-th parameter of this <code>Event</code> object
+	 */
 	public Object getParameter(int index) {
 		if (param == null) {
 			throw new IndexOutOfBoundsException();
@@ -68,6 +98,12 @@ public class Event extends EventObject {
 		}
 	}
 	
+	/**
+	   Blocks the calling thread until the <code>notifyProcessed()</code>
+	   method is called.
+	   @return the result of the processing of this <code>Event</code> 
+	   object as set by the <code>notifyProcessed()</code> method.
+	 */
 	public synchronized Object waitUntilProcessed() throws InterruptedException {
 		while (!processed) {
 			wait();
@@ -75,6 +111,13 @@ public class Event extends EventObject {
 		return processingResult;
 	}
 	
+	/**
+	   Wakes up threads waiting for the processing of this <code>Event</code>
+	   object within the <code>waitUntilProcessed()</code> method.
+	   @param result The result of the processing. This value is passed
+	   to the waked threads as the result of the <code>waitUntilProcessed()</code> 
+	   method.
+	 */
 	public synchronized void notifyProcessed(Object result) {
 		if (!processed) {
 			processingResult = result;
@@ -83,7 +126,11 @@ public class Event extends EventObject {
 		}
 	}	
 	
+	/**
+	   Reset the "processed" status of this <code>Event</code>
+	 */
 	public synchronized void resetProcessed() {
 		processed = false;
+		processingResult = null;
 	}
 }
