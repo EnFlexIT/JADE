@@ -4,6 +4,7 @@
 
 package fipa.core;
 
+import java.io.Reader;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -45,7 +46,7 @@ public class Agent implements Runnable, CommBroadcaster {
   protected int APState;
   protected int DomainState;
 
-  private ACLParser myParser = null;
+  protected ACLParser myParser = ACLParser.create();
 
 
   public Agent() {
@@ -174,6 +175,18 @@ public class Agent implements Runnable, CommBroadcaster {
       msgQueue.removeElementAt(0);
       return msg;
     }
+  }
+
+  public ACLMessage parse(Reader text) {
+    ACLMessage msg = null;
+    try {
+      msg = myParser.parse(text);
+    }
+    catch(ParseException pe) {
+      pe.printStackTrace();
+      System.exit(1);
+    }
+    return msg;
   }
 
   // Event handling methods
