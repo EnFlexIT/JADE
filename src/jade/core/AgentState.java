@@ -183,7 +183,7 @@ public class AgentState {
 	new AgentState("Copy", Agent.AP_COPY),
 	new AgentState("Gone", Agent.AP_GONE),
 	new AgentState("Saving", Agent.AP_SAVING),
-	new AgentState("Loading", Agent.AP_LOADING),
+	new AgentState("Loading", Agent.AP_RELOADING),
 	new AgentState("Frozen", Agent.AP_FROZEN),
 	//#MIDP_EXCLUDE_END
 	new AgentState("Illegal MAX state", Agent.AP_MAX)
