@@ -68,7 +68,7 @@ public class Starter {
     try{
 
       if(isPlatform) {
-	theContainer = new AgentPlatformImpl(args);
+	theContainer = new MainContainerImpl(args);
 
 	// Create an embedded RMI Registry within the platform and
 	// bind the Agent Platform to it
