@@ -489,6 +489,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           
           // Create and init container-authority
           try {
+	      if (myProfile.getParameter(Profile.OWNER, null) != null) {
+		  // if there is an owner for this container
+		  // then try to use the full implementation of security
+		  myProfile.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
+		  myProfile.setParameter(Profile.AUTHORITY_CLASS,"jade.security.impl.ContainerAuthority");
+	      }
               String type = myProfile.getParameter(Profile.AUTHORITY_CLASS, null);
               if (type != null) {
                   authority = (Authority)Class.forName(type).newInstance();
@@ -497,7 +503,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               }
           }
           catch (Exception e1) {
-              e1.printStackTrace();
+	      System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
+	      authority = null;
+              //e1.printStackTrace();
           }
           
           try {

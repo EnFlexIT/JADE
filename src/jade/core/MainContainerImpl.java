@@ -116,6 +116,12 @@ class MainContainerImpl implements Platform, AgentManager {
 		}
 
 		try {
+		    if (p.getParameter(Profile.OWNER, null) != null) {
+			// if there is an owner for this container
+			// then try to use the full implementation of security
+			p.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
+			p.setParameter(Profile.AUTHORITY_CLASS,"jade.security.impl.ContainerAuthority");
+		    }
 			String type = p.getParameter(Profile.MAINAUTH_CLASS, null);
 			if (type != null) {
 				authority = (Authority)Class.forName(type).newInstance();
@@ -124,7 +130,9 @@ class MainContainerImpl implements Platform, AgentManager {
 			}
 		}
 		catch (Exception e1) {
-			e1.printStackTrace();
+		    System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
+		    authority = null;
+		    //			e1.printStackTrace();
 		}
 		
 		try {
