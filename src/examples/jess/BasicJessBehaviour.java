@@ -11,9 +11,13 @@
  *
  * @author Fabio Bellifemine - CSELT S.p.A.
  *
- * 6/12/98: myagent is now a template and a fact is asserted with deffacts to
- *          avoid problems with the (reset) jess command.
- *          removed all deprecated APIs. 
+ * $Log$
+ * Revision 1.5  1999/02/04 13:09:04  rimassa
+ * Fixed a bug and tested with Jess 4.3 .
+ *
+ * Revision 1.8  1999/02/04 09:41:21  bellifemine
+ * <>
+ *
  */
 
 package examples.jess;
@@ -92,13 +96,15 @@ public abstract class BasicJessBehaviour extends CyclicBehaviour{
     
     public Value call(ValueVector vv, Context context) throws ReteException {
       //      for (int i=0; i<vv.size(); i++) {
-      // System.out.println(" parameter " + i + "=" + vv.get(i).toString() +  
+      //System.out.println(" parameter " + i + "=" + vv.get(i).toString() +  
       // " type=" + vv.get(i).type());
       //}
-      if (vv.get(1).type() != RU.FACT_ID)
+      if (vv.get(1).type() != RU.FACT_ID) 
 	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
+
       vv=context.expandFact(findFactByID(context.engine(),vv.get(1).intValue())); 
-      if (vv.get(0).toString() != "ACLMessage")
+      System.err.println("vv.get(0)="+vv.get(0).toString());
+      if (! vv.get(0).toString().equalsIgnoreCase("ACLMessage"))
 	throw new ReteException(name(), "a fact with template ACLMessage must be passed to send","");
 
       //ACLMessage msg = new ACLMessage();
