@@ -38,22 +38,33 @@ import java.util.Properties;
  */
 public class ProfileImpl implements Profile {
 
-  private static final String HOST = "host";
-  private static final String PORT = "port";
-  private static final String PLATFORM_ID = "name";
+  /**
+     This constant is the name of the property whose value is the name
+     (or the IP address) of the network host where the JADE Main
+     Container is running.
+   */
+  public static final String HOST = "host";
+
+  /**
+     This constant is the name of the property whose value contains an
+     integer representing the port number where the Main Container is
+     listening for container registrations.
+   */
+  public static final String PORT = "port";
+
+
+  /**
+     This constant is the name of the property whose value contains
+     the unique platform ID of a JADE platform. Agent GUIDs in JADE
+     are made by a platform-unique nickname, the '@' character and the
+     platform ID.
+   */
+  public static final String PLATFORM_ID = "name";
 
   private Properties props;
 
-  public String getMainContainerHost() {
-    return props.getProperty(HOST);
-  }
-
-  public String getMainContainerPort() {
-    return props.getProperty(PORT);
-  }
-
-  public String getPlatformID() {
-    return props.getProperty(PLATFORM_ID);
+  public String getParameter(String name) {
+    return props.getProperty(name);
   }
 
   /**
@@ -94,6 +105,13 @@ public class ProfileImpl implements Profile {
       props.setProperty(PORT, port);
     if(platformID != null)
       props.setProperty(PLATFORM_ID, platformID);
+    else {
+      String h = props.getProperty(HOST);
+      String p = props.getProperty(PORT);
+      props.setProperty(PLATFORM_ID, h + ":" + p + "/JADE");
+
+    }
+
   }
 
 }
