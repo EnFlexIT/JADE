@@ -102,7 +102,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       aidSchema.add(AID_RESOLVERS, aidSchema, 0, ObjectSchema.UNLIMITED);
       add(aidSchema); 
       
-      // AID Schema
+      // ACLMessage Schema
 	    AgentActionSchema msgSchema = new AgentActionSchema(ACLMSG);
 	    msgSchema.add(ACLMSG_SENDER, (ConceptSchema) getSchema(AID), ObjectSchema.OPTIONAL);
 	    msgSchema.add(ACLMSG_RECEIVERS, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
