@@ -23,9 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.io.Serializable;
 
 import java.io.InputStream;
@@ -38,7 +35,6 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
@@ -54,7 +50,6 @@ import jade.lang.acl.*;
 import jade.lang.sl.SL0Codec;
 
 import jade.onto.Name;
-import jade.onto.basic.Action;
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.OntologyException;
@@ -62,15 +57,9 @@ import jade.onto.OntologyException;
 import jade.domain.AMSServiceCommunicator;
 // Concepts from fipa-agent-management ontology
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
 
-// Actions from fipa-agent-management ontology
+// fipa-agent-management ontology
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.domain.FIPAAgentManagement.Deregister;
-import jade.domain.FIPAAgentManagement.Modify;
-import jade.domain.FIPAAgentManagement.Register;
-import jade.domain.FIPAAgentManagement.Search;
-import jade.domain.FIPAAgentManagement.SearchConstraints;
 
 import jade.domain.FIPAException;
 
