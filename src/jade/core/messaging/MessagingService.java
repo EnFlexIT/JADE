@@ -666,18 +666,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    try {
 		MainContainer impl = myContainer.getMain();
 		if(impl != null) {
-			ContainerID prevCid = null;
 		    while(true) {
 			// Directly use the GADT on the main container
-		  MessagingSlice targetSlice = null;
+			MessagingSlice targetSlice = null;
 			ContainerID cid = impl.getContainerID(receiverID);
-			if (cid != prevCid) {
-				targetSlice = (MessagingSlice)getSlice(cid.getName());
-			}
-			else {
-				targetSlice = (MessagingSlice)getFreshSlice(cid.getName());
-			}
-			prevCid = cid;
+			targetSlice = (MessagingSlice)getSlice(cid.getName());
 			try {
 			    try {
 				targetSlice.dispatchLocally(msg, receiverID);
@@ -689,9 +682,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			    return; // Message dispatched
 			}
 			catch(NotFoundException nfe) {
-			  // The agent was found in the GADT, but not in the target LADT.
-				// The agent has moved in the meanwhile or the slice may be obsolete 
-				// => try again
+			    // The agent was found in the GADT, but not in the target LADT.
+			    // The agent has moved in the meanwhile or the slice may be obsolete 
+			    // => try again
 			}
 		    }
 		}
