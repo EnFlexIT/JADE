@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.io.Serializable;
 import javax.swing.SwingUtilities;
 import jade.gui.AgentTree;
+import jade.core.AID;
 
  /**
    Javadoc documentation for the file
@@ -51,6 +52,7 @@ public class Agent implements Serializable{
   public static final int bRet = 50;
   public static final int yRet = 20;
   public String agentName;
+  private AID myAID;
 
   private int pos = 0;
 
@@ -64,9 +66,14 @@ public class Agent implements Serializable{
   /**
    * Constructor for any named agent to be put on the Agent Canvas
    */
-  public Agent(String n){
-   agentName=n;
+  public Agent(AID id){
+   myAID = id;
+   agentName=id.getLocalName();
    onCanv = true;
+ }
+
+ public Agent(String localName){
+ 	this(new AID(localName, AID.ISLOCALNAME));
  }
 
   /**
@@ -77,22 +84,19 @@ public class Agent implements Serializable{
 
  public Agent(){
   agentName="Other";
+  myAID = new AID(agentName, AID.ISLOCALNAME);
   onCanv = false;
  }
 
  public boolean equals(Object o) {
 
-   if(o instanceof String) {
-     return agentName.equalsIgnoreCase((String)o);
-   }
-   try {
+   if(o instanceof Agent) {
      Agent ag = (Agent)o;
      return agentName.equalsIgnoreCase(ag.agentName);
    }
-   catch(ClassCastException cce) {
-     return false;
+   else {
+     return myAID.equals(o);
    }
-
  }
 
 }  // End of class Agent

@@ -99,8 +99,8 @@ public class AgentList implements Serializable{
     Iterator it = agents.iterator();
     while(it.hasNext()) {
       Agent agent = (Agent)it.next();
-      if(agName.equals(agent.agentName)) {
-	return true;
+      if(agent.equals(agName)) {
+				return true;
       }
     }
     return false;
@@ -114,18 +114,12 @@ public class AgentList implements Serializable{
    */
   public int getPos(String agName) {
     int i = 0;
-    int atPos = agName.indexOf("@");
-    String onlyName = agName;
-
-    if(atPos != -1) {
-      onlyName = agName.substring(0,atPos);
-    }
 
     Iterator it = agents.iterator();
     while(it.hasNext()) {
       Agent agent = (Agent)it.next();
-      if(agName.equals(agent.agentName) || onlyName.equalsIgnoreCase(agent.agentName)) {
-	return i;
+      if(agent.equals(agName)) {
+				return i;
       }
       i = i + 1;
     }

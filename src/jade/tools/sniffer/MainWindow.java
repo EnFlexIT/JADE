@@ -157,7 +157,7 @@ public class MainWindow extends JFrame {
      String agentName = agentID.getName();
      mainPanel.treeAgent.removeAgentNode(containerName, agentName);
      mainPanel.panelcan.canvAgent.removeAgent(agentName);
-     mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(new Agent(agentName));
+     mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(new Agent(agentID));
    }
   };
   SwingUtilities.invokeLater(removeIt);

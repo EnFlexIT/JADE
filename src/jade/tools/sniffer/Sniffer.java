@@ -202,12 +202,7 @@ public class Sniffer extends ToolAgent {
 	  // displayed when the 'sent-message' event occurred. In that
 	  // case, we simply skip this message.
 	  if(ev instanceof PostedMessage) {
-	    String nickname = msg.getSender().getName();
-	    int index = nickname.indexOf("@");
-	    if(index != -1)
-	      nickname = nickname.substring(0, index);
-
-	    Agent a = new Agent(nickname);
+	    Agent a = new Agent(msg.getSender());
 	    if(agentsUnderSniff.contains(a))
 	      return;
 	  }
