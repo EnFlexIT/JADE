@@ -157,50 +157,82 @@ public class BEAgentManagementService extends BaseService {
 	// Vertical command handler methods
 
 	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
-
-	    Object[] params = cmd.getParams();
-	    AID agentID = (AID)params[0];
-	    // If an actual agent instance was passed as second
-	    // argument, then this agent has to be started within the
-	    // Back-End container.
-	    if((params.length > 1) && (params[1] instanceof Agent))  {
-		Agent instance = (Agent)params[1];
-		createAgentOnBE(agentID, instance, cmd);
-	    }
-	    else {
-
-		BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) pendingImages.remove(agentID);
-		if (image == null) {
+    Object[] params = cmd.getParams();
+    AID agentID = (AID)params[0];
+    
+    boolean startedOnBE = false;
+    Agent previous = null;
+    // If an actual agent instance was passed as second argument, then this agent 
+    // is started within the Back-End container.
+    if((params.length > 1) && (params[1] instanceof Agent))  {
+	    // Add the new agent in the LADT
+			Agent instance = (Agent)params[1];
+	    previous = myContainer.addLocalAgent(agentID, instance);
+	    startedOnBE = true;
+			//createAgentOnBE(agentID, instance, cmd);
+    }
+    else {
+	    // Add the new agent in the images table 
+			BackEndContainer.AgentImage image = (BackEndContainer.AgentImage) pendingImages.remove(agentID);
+			if (image == null) {
 		    // The agent spontaneously born on the FrontEnd --> its image still has to be created
 		    image = myContainer.createAgentImage(agentID);
-		}
+			}
+			previous = (BackEndContainer.AgentImage) myContainer.addAgentImage(agentID, image);
+    }
 
-		// Add the agent image to the table
-		BackEndContainer.AgentImage previous = (BackEndContainer.AgentImage) myContainer.addAgentImage(agentID, image);
-
+    // Notify the Main Container. Roll back if something fails
 		try {
-
-		    ContainerID cid = myContainer.getID();
-
-		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-		    try {
-			mainSlice.bornAgent(agentID, cid, cmd);
-		    }
-		    catch(IMTPException imtpe) {
-			mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
-			mainSlice.bornAgent(agentID, cid, cmd);
-		    }
+	    ContainerID cid = myContainer.getID();
+	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
+	    try {
+				mainSlice.bornAgent(agentID, cid, cmd);
+	    }
+	    catch(IMTPException imtpe) {
+				mainSlice = (AgentManagementSlice)getFreshSlice(jade.core.ServiceFinder.MAIN_SLICE);
+				mainSlice.bornAgent(agentID, cid, cmd);
+	    }
+		}
+		catch (IMTPException imtpe) {
+			rollBack(agentID, previous, startedOnBE);
+			throw imtpe;
+		}
+		catch (NotFoundException nfe) {
+			rollBack(agentID, previous, startedOnBE);
+			throw nfe;
+		}
+		catch (NameClashException nce) {
+			rollBack(agentID, previous, startedOnBE);
+			throw nce;
+		}
+		catch (JADESecurityException jse) {
+			rollBack(agentID, previous, startedOnBE);
+			throw jse;
+		}
+		catch (ServiceException se) {
+			rollBack(agentID, previous, startedOnBE);
+			throw se;
 		}
 		catch (Exception e) {
-		    e.printStackTrace();
-		    // Roll back if necessary and throw an IMTPException
-		    myContainer.removeAgentImage(agentID);
-		    if (previous != null) {
-			myContainer.addAgentImage(agentID, previous);
-		    }
-		    throw new IMTPException("Error creating agent " + agentID.getLocalName() + ". ", e);
+			e.printStackTrace();
+			rollBack(agentID, previous, startedOnBE);
+	    throw new IMTPException("Error creating agent " + agentID.getLocalName() + ". ", e);
 		}
+	}
+	
+	private void rollBack(AID agentID, Agent previous, boolean startedOnBE) {
+		if (startedOnBE) {
+			myContainer.removeLocalAgent(agentID);
+			if(previous != null) {
+				myContainer.addLocalAgent(agentID, previous);
+			}
+		}
+		else {
+	    myContainer.removeAgentImage(agentID);
+	    if (previous != null) {
+				myContainer.addAgentImage(agentID, (BackEndContainer.AgentImage) previous);
 	    }
+		}
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
@@ -280,7 +312,7 @@ public class BEAgentManagementService extends BaseService {
 	    }
 	}
 
-	private void createAgentOnBE(AID target, Agent instance, VerticalCommand cmd) throws IMTPException, JADESecurityException, NameClashException, NotFoundException, ServiceException {
+	/*private void createAgentOnBE(AID target, Agent instance, VerticalCommand cmd) throws IMTPException, JADESecurityException, NameClashException, NotFoundException, ServiceException {
 	    // Connect the new instance to the local container
 	    Agent old = myContainer.addLocalAgent(target, instance);
 
@@ -316,7 +348,7 @@ public class BEAgentManagementService extends BaseService {
 		myContainer.removeLocalAgent(target);
 		throw ae;
 	    }
-	}
+	}*/
 
     } // End of CommandSourceSink class
 
