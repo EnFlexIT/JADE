@@ -619,7 +619,7 @@ public class Agent implements Runnable, Serializable {
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
      @see jade.core.Agent#fillContent(ACLMessage msg, List content)
-     @deprecated
+     @deprecated Use the new support for content Language and ontologies instead
    */
   public java.util.List extractContent(ACLMessage msg) throws FIPAException {
   	ArrayList l = (ArrayList) extractContent2(msg);
@@ -650,7 +650,7 @@ public class Agent implements Runnable, Serializable {
     @see jade.core.Agent#extractContent(ACLMessage msg)
     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
-    @deprecated
+    @deprecated Use the new support for content Language and ontologies instead
    */
   public void fillContent(ACLMessage msg, java.util.List content) throws FIPAException {
     ArrayList l = new ArrayList();
@@ -661,21 +661,10 @@ public class Agent implements Runnable, Serializable {
   	
 
   /**
-     Builds a Java object out of an ACL message. This method uses the
-     <code>:language</code> slot to select a content language and the
-     <code>:ontology</code> slot to select an ontology. Then the
-     <code>:content</code> slot is interpreted according to the chosen
-     language and ontology, to build an object of a user defined class.
-     @param msg The ACL message from which a suitable Java object will
-     be built.
-     @return A new list of Java objects, each object representing an element
-     of the t-uple of the the message content in the
-     given content language and ontology.
-     @exception jade.domain.FIPAException If some problem related to
-     the content language or to the ontology is detected.
-     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
-     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
-     @see jade.core.Agent#fillContent2(ACLMessage msg, List content)
+     This is a temporary hack that is used internally by the framework until
+     the new content language and ontology support will be fully integrated.
+     Do not use this method. Use the new support for content Language and 
+     ontologies instead
    */
   public List extractContent2(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
@@ -700,29 +689,10 @@ public class Agent implements Runnable, Serializable {
   }
 
   /**
-    Fills the <code>:content</code> slot of an ACL message with the string
-    representation of a t-uple of user defined ontological objects. Each 
-    Java object in the given list
-    is first converted into a <code>Frame</code> object according to the
-    ontology present in the <code>:ontology</code> message slot, then the
-    <code>Frame</code> is translated into a <code>String</code> using the codec
-    for the content language indicated by the <code>:language</code> message
-    slot.
-    <p>
-    Notice that this method works properly only if in the Ontology each
-    Java class has been registered to play just one role, otherwise
-    ambiguity of role playing cannot be solved automatically.
-    @param msg The ACL message whose content will be filled.
-    @param content A list of Java objects that will be converted into a string and
-    written inti the <code>:content</code> slot. This object must be an instance
-    of a class registered into the ontology named in the <code>:ontology</code>
-    message slot.
-    @exception jade.domain.FIPAException This exception is thrown if the
-    <code>:language</code> or <code>:ontology</code> message slots contain an
-    unknown name, or if some problem occurs during the various translation steps.
-    @see jade.core.Agent#extractContent2(ACLMessage msg)
-    @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
-    @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
+     This is a temporary hack that is used internally by the framework until
+     the new content language and ontology support will be fully integrated.
+     Do not use this method. Use the new support for content Language and 
+     ontologies instead
    */
   public void fillContent2(ACLMessage msg, List content) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
