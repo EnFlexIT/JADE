@@ -58,21 +58,15 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/imtp/rmi/MainContainerRMIImpl.java \
 		jade/imtp/rmi/RMIIMTPManager.java \
 
-ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
-		jade/content/abs/AbsAgentAction.java \
+ROOTCLASSES2 =	jade/content/abs/AbsAgentAction.java \
 		jade/content/abs/AbsAggregate.java \
-		jade/content/abs/AbsCommunicativeAct.java \
 		jade/content/abs/AbsConcept.java \
 		jade/content/abs/AbsContentElement.java \
 		jade/content/abs/AbsContentElementList.java \
-		jade/content/abs/AbsGenericAction.java \
-		jade/content/abs/AbsHigherOrderPredicate.java \
-		jade/content/abs/AbsHigherOrderAction.java \
 		jade/content/abs/AbsIRE.java \
 		jade/content/abs/AbsObject.java \
 		jade/content/abs/AbsPredicate.java \
 		jade/content/abs/AbsPrimitive.java \
-		jade/content/abs/AbsProposition.java \
 		jade/content/abs/AbsTerm.java \
 		jade/content/abs/AbsVariable.java \
 		jade/content/abs/AbsHelper.java \
@@ -80,18 +74,13 @@ ROOTCLASSES2 =	jade/content/abs/AbsAID.java \
 		jade/content/acl/Request.java \
 		jade/content/acl/CommunicativeActBase.java \
 		jade/content/AgentAction.java \
-		jade/content/CommunicativeAct.java \
 		jade/content/Concept.java \
 		jade/content/ContentElement.java \
 		jade/content/ContentElementList.java \
 		jade/content/ContentManager.java \
-		jade/content/GenericAction.java \
-		jade/content/HigherOrderPredicate.java \
-		jade/content/HigherOrderAction.java \
 		jade/content/OntoAID.java \
 		jade/content/Predicate.java \
-		jade/content/Proposition.java \
-		jade/content/Term.java \
+		jade/content/Term.java
 
 ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
@@ -109,25 +98,18 @@ ROOTCLASSES3 =	jade/content/lang/j/JCodec.java \
 		jade/content/onto/UnknownSchemaException.java \
 		jade/content/schema/AgentActionSchema.java \
 		jade/content/schema/AggregateSchema.java \
-		jade/content/schema/AIDSchema.java \
-		jade/content/schema/CommunicativeActSchema.java \
 		jade/content/schema/ConceptSchema.java \
 		jade/content/schema/ContentElementListSchema.java \
 		jade/content/schema/ContentElementSchema.java \
-		jade/content/schema/GenericActionSchema.java \
-		jade/content/schema/HigherOrderPredicateSchema.java \
-		jade/content/schema/HigherOrderActionSchema.java \
 		jade/content/schema/IRESchema.java \
 		jade/content/schema/ObjectSchema.java \
 		jade/content/schema/PredicateSchema.java \
 		jade/content/schema/PrimitiveSchema.java \
-		jade/content/schema/PropositionSchema.java \
 		jade/content/schema/TermSchema.java \
 		jade/content/schema/VariableSchema.java \
 		jade/content/onto/basic/Done.java \
 		jade/content/onto/basic/Equals.java \
 		jade/content/onto/basic/Result.java \
-		jade/content/onto/basic/TrueProposition.java \
 
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
