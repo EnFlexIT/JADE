@@ -53,6 +53,7 @@ import jade.core.UnreachableException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
+//import jade.core.BlockingNodeFailureMonitor;
 
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
@@ -91,6 +92,7 @@ public class MainReplicationService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
+	myProfile = p;
 
 	// Create a local slice
 	localSlice = new ServiceComponent();
@@ -409,9 +411,8 @@ public class MainReplicationService extends BaseService {
 	    monitoredSvcMgr = slice.getPlatformManagerAddress();
 
 	    // Set up a failure monitor on the target slice...
-	    nodeMonitor = new NodeFailureMonitor(slice.getNode(), this);
-	    Thread monitorThread = new Thread(nodeMonitor);
-	    monitorThread.start();
+      nodeMonitor = NodeFailureMonitor.getFailureMonitor(myProfile, slice.getNode(), this);
+	    nodeMonitor.start();
 	}
 
 	// Implementation of the Service.Slice interface
@@ -786,6 +787,7 @@ public class MainReplicationService extends BaseService {
 
 
     private AgentContainer myContainer;
+    private Profile myProfile;
 
     private ServiceComponent localSlice;
 
