@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+	<TestsList> 
+		<Test name="Create / Kill Agent" skip="false">
+			<TestClassName>test.domain.ams.tests.TestCreateKillAgent</TestClassName>
+			<WhatTest>Tests creating and killing agents by requesting the AMS to perform the CreateAgent and KillAgent actions of the JADEManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				The test creates a remote container C1 in the load phase and then
+				<UL>
+	   			<LI>requests the AMS to create an agent A on C1;</LI>
+	   			<LI>sends a message to A and waits for a reply;</LI>
+	   			<LI>requests the AMS to create another agent with the same name (should throw an exception);</LI>
+			    <LI>requests the AMS to kill A;</LI>
+			    <LI>sends a message to A and waits for a reply (should get back a FAILURE from the AMS);</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>		
+		<Test name="Install / Uninstall MTP" skip="false">
+			<TestClassName>test.domain.ams.tests.TestInstallMTP</TestClassName>
+			<WhatTest>Tests installing and un-installing MTPs by requesting the AMS to perform the InstallMTP and UninstallMTP actions of the JADEManagementOntology.</WhatTest>
+			<HowWorkTest> 
+				The test creates a remote container C1 in the load phase and then
+				<UL>
+	   			<LI>requests the AMS to install an iiop MTP on C1;</LI>
+	   			<LI>chechs that the new address has been added to the local AID;</LI>
+	   			<LI>searches the AMS for himself and checks that the new address has been added to the AMSDescription;</LI>
+			    <LI>gets the platform description and check that the new address has been added;</LI>
+			    <LI>requests the AMS to un-install the MTP;</LI>
+	   			<LI>chechs that the address has been removed from the local AID;</LI>
+	   			<LI>searches the AMS for himself and checks that the address has been removed from the AMSDescription;</LI>
+			    <LI>gets the platform description and check that the address has been removed;</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		</Test>				
+	</TestsList>
