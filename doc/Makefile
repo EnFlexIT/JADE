@@ -6,7 +6,7 @@ DOC_MAIN = $(SRCDIR)/jade-main.html
 DOC_OUTDIR = $(DOCDIR)/api
 DOC_WINTITLE = "$(PACKAGE) $(VERSION) API Reference"
 
-API_PACKAGES = jade jade.core jade.core.behaviours jade.lang jade.lang.acl jade.lang.sl jade.domain jade.proto jade.onto jade.gui
+API_PACKAGES = jade jade.core jade.core.behaviours jade.lang jade.lang.acl jade.lang.sl jade.domain jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic jade.gui jade.mtp jade.mtp.iiop
 
 API_FLAGS = -d $(DOC_OUTDIR) -overview $(DOC_MAIN) -author -windowtitle $(DOC_WINTITLE)
 
