@@ -299,9 +299,6 @@ class MainContainerImpl implements Platform, AgentManager {
 	    			target.ping(false); // Try a non blocking ping to check
 	  			}
 	  			catch(IMTPException imtpe2) { // Object down
-
-	    			//containers.removeContainer(targetID.getName());
-	    			//fireRemovedContainer(targetID);
 						cleanTables(targetID);
 	    			active = false;
 	  			}
@@ -1071,6 +1068,7 @@ class MainContainerImpl implements Platform, AgentManager {
 	   			}
 	   			catch (IMTPException imtp1) {
 	     			System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
+	     			cleanTables(contID);
 	     			try {
 	     				removeContainer(contID);
 	     			}
