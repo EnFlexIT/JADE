@@ -1,3 +1,36 @@
+MAJOR CHANGES in JADE Snapshot (27 November 2002) 
+==========================================================================
+GENERAL IMPROVEMENTS:
+- new jade2xback add-on. This add-on includes a number of packages and classes
+  from JADE 2.61 that have been removed because considered obsolete. It allows
+  users to have a smooth transition by guaranteeing backward compatibility.
+  - removed the old support to content and ontologies (jade.lang.sl and jade.onto).
+  - removed the old-style interaction protocols from jade.proto
+  - removed deprecated classes AMSServiceCommunicator.java DFServiceCommunicator.java
+    from jade.domain
+  - removed all old-style classes that defined ontologies.
+- updated jade.proto.SubscriptionResponder in order to use a single ACLMessage object
+  for several notifications
+- Added method getTickCount() in jade.core.behaviours.TickerBehaviour
+- jade.gui.ACLGui. Called the SLFormatter to pretty-print all content in SL language.
+- jade.content. 
+  Added method to get facets associated to a schema.
+  Added method to get the type of entities in an aggregate.
+- internal reorganization of the AMS and the MainContainer classes which improves
+  performance of AMS interaction (e.g. registering and deregistering agents)
+- added jade.util.InputQueue class
+
+BUG FIXES:
+- security add-on.
+  - fixed bug in using SSL
+  - improved example 
+- updated jade.util.ExpandedProperties for Windows XP support (Dick Cowan)
+- fixed bug about the imtp option on the command line
+- messages for FIPAExceptions have been quoted
+- fixed bug in jade.core.ProfileImpl on handling parameters
+
+
+
 MAJOR CHANGES in JADE 2.61 (23 September 2002) 
 ==========================================================================
 GENERAL IMPROVEMENTS:
