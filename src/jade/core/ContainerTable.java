@@ -106,8 +106,7 @@ class ContainerTable {
 
   public synchronized void removeContainer(ContainerID cid) {
     entries.remove(cid);
-    if(entries.isEmpty())
-      notifyAll();
+    notifyAll();
   }
 
   public synchronized void removeMTP(ContainerID cid, MTPDescriptor mtp) throws NotFoundException {
@@ -169,6 +168,17 @@ class ContainerTable {
       result[i++] = (ContainerID) it.next();
     }
     return result;
+  }
+
+  synchronized void waitForRemoval(ContainerID cid) {
+      while(entries.containsKey(cid)) {
+	  try {
+	      wait();
+	  }
+	  catch(InterruptedException ie) {
+	      // Do nothing...
+	  }
+      }
   }
 
   synchronized void waitUntilEmpty() {
