@@ -29,14 +29,13 @@ import jade.core.AID;
 import jade.core.ContainerID;
 
 
-public class DummyPrincipal implements AgentPrincipal, UserPrincipal, ContainerPrincipal, jade.util.leap.Serializable {
+public class DummyPrincipal implements AgentPrincipal, UserPrincipal, ContainerPrincipal {
 	
 	protected String name1 = null;
 	protected String name2 = null;
 	protected static final char sep = '/';
 	
 	public DummyPrincipal() {
-		name1 = NONE;
 	}
 	
 	public DummyPrincipal(String name) {
@@ -44,65 +43,38 @@ public class DummyPrincipal implements AgentPrincipal, UserPrincipal, ContainerP
 	}
 	
 	public void init(String name) {
+		if (name.indexOf(sep) == -1)
+			name = name + sep;
 		int pos = name.indexOf(sep);
-		if (pos != -1) {
-			this.name1 = name.substring(0, pos);
-			this.name2 = name.substring(pos + 1, name.length());
-		}
-		else {
-			this.name1 = name;
-			this.name2 = null;
-		}
+		
+		name1 = pos > 0 ? name.substring(0, pos) : null;
+		name2 = pos < name.length() - 1 ? name.substring(pos + 1, name.length()) : null;
 	}
 	
 	public void init(AID agentID, UserPrincipal user) {
-		if (agentID == null)
-			this.name2 = null;
-		else
-			this.name2 = agentID.getName();
-		if (user == null)
-			this.name1 = null;
-		else
-			this.name1 = user.getName();
+		name1 = user != null ? user.getName() : null;
+		name2 = agentID != null ? agentID.getName() : null;
 	}
 	
 	public void init(ContainerID containerID, UserPrincipal user) {
-		if (containerID == null)
-			this.name2 = null;
-		else
-			this.name2 = containerID.getName();
-		if (user == null)
-			this.name1 = null;
-		else
-			this.name1 = user.getName();
+		name1 = user != null ? user.getName() : null;
+		name2 = containerID != null ? containerID.getName() : null;
 	}
 	
 	public String getName() {
-		if (name2 != null)
-			return name1 + sep + name2;
-		else
-			return name1;
+		return (name1 != null ? name1 : "") + (name2 != null ? sep + name2 : "");
 	}
 	
 	public AID getAgentID() {
-		if (name2 == null)
-			return null;
-		else
-			return new AID(name2, AID.ISGUID);
+		return name2 != null ? new AID(name2, AID.ISLOCALNAME) : null;
 	}
 	
 	public ContainerID getContainerID() {
-		if (name2 == null)
-			return null;
-		else
-			return new ContainerID(name2, null);
+		return name2 != null ? new ContainerID(name2, null) : null;
 	}
 	
 	public UserPrincipal getUser() {
-		if (name1 == null)
-			return null;
-		else
-			return new DummyPrincipal(name1);
+		return name1 != null ? new DummyPrincipal(name1) : null;
 	}
 	
 	public String toString() {
