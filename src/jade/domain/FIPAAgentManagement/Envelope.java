@@ -31,7 +31,7 @@ import java.util.Properties;
 
 import jade.core.AID;
 
-public class Envelope {
+public class Envelope implements java.io.Serializable {
 
   private List to = new ArrayList();
   private AID from;
@@ -46,7 +46,7 @@ public class Envelope {
   private Properties transportBehaviour;
 
   public void addTo(AID id) {
-    to.add(to);
+    to.add(id);
   }
 
   public boolean removeTo(AID id) {
