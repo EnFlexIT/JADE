@@ -82,14 +82,23 @@ public class InProcessTest {
 	}
       }
 
+      // Exit the JVM when there are no more containers around
+      rt.setCloseVM(true);
 
       // Launch a complete platform on the 8888 port
-      Profile pMain = new ProfileImpl(null, "8888", null);
+      // create a default Profile 
+      Profile pMain = new ProfileImpl(null, 8888, null);
 
-      System.out.println("Launching a whole in-process platform...");
+      System.out.println("Launching a whole in-process platform..."+pMain);
       MainContainer mc = rt.createMainContainer(pMain);
-      AgentContainer cont = rt.createAgentContainer(pMain);
 
+      // set now the default Profile to start a container
+      ProfileImpl pContainer = new ProfileImpl(null, 8888, null);
+      pContainer.putProperty(pMain.MAIN, "false");
+      System.out.println("Launching the agent container ..."+pContainer);
+      AgentContainer cont = rt.createAgentContainer(pContainer);
+
+      System.out.println("Launching the rma agent on the main container ...");
       Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new String[0]);
       rma.start();
 
