@@ -28,6 +28,7 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
 import jade.util.leap.List;
+import jade.util.leap.Iterator;
 import java.lang.reflect.*;
 
 /**
@@ -76,6 +77,10 @@ public class ReflectiveIntrospector implements Introspector {
             if (obj instanceof ContentElementList) {
                 return AbsContentElementList.fromObject((List) obj, onto);
             } 
+	    
+	    if (obj instanceof Iterator) {
+		return AbsAggregate.fromObject((Iterator) obj, onto);
+	    }
 
             Class        javaClass = obj.getClass();
             ObjectSchema schema = onto.getElementSchema(javaClass);

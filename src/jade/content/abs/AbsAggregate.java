@@ -90,6 +90,88 @@ public class AbsAggregate extends AbsTerm {
     } 
 
     /**
+     * Returns an iterator to all elements.
+     *
+     * @return the elements.
+     *
+     */
+    public Iterator getAllElements () {
+	return elements.iterator();
+    }
+
+   /**
+     * Clear the aggregate.
+     *
+     */
+    public void clearElements () {
+	elements.clear();
+    }
+
+   /**
+     * Test if the aggregate contains an element.
+     *
+     * @return the result of the test.
+     *
+     */
+    public boolean containsElement (AbsTerm element) {
+	return elements.contains(element);
+    }
+
+   /**
+     * Returns the position of an element.
+     *
+     * @return the position.
+     *
+     */
+    public int indexOfElement (AbsTerm element) {
+	return elements.indexOf(element);
+    }
+
+   /**
+     * Removes an element.
+     *
+     * @return the removed element.
+     *
+     */
+    public AbsTerm removeElement (int index) {
+	return (AbsTerm)elements.remove(index);
+    }
+
+   /**
+     * Removes an element.
+     *
+     * @return if the element has been removed.
+     *
+     */
+    public boolean removeElement (AbsTerm element) {
+	return elements.remove(element);
+    }
+
+   /**
+     * Test if the aggregate is empty.
+     *
+     * @return the result of the test.
+     *
+     */
+    public boolean isEmpty () {
+	return elements.isEmpty();
+    }
+
+   /**
+     * Converts the aggregate to an array.
+     *
+     * @return the converted array.
+     *
+     */
+    public AbsTerm[] toArray () {
+	int size = elements.size();
+       	AbsTerm[] tmp = new AbsTerm[size];
+       	for (int i = 0; i < size; i++)
+       		tmp[i] = (AbsTerm)elements.get(i);
+       	return tmp;
+    }
+
+    /**
      * Converts to a <code>List</code> using the specified ontology.
      *
      * @param onto the ontology
@@ -149,6 +231,28 @@ public class AbsAggregate extends AbsTerm {
 
         return ret;
     } 
+
+    /**
+     * Converts an <code>Iterator</code> into a <code>AbsAggregate</code> using
+     * the specified ontology.
+     *
+     * @param obj the <code>Iterator</code>
+     * @param onto the ontology.
+     *
+     * @return the abstract descriptor.
+     *
+     * @throws OntologyException
+     *
+     */
+    public static AbsAggregate fromObject(Iterator obj, Ontology onto)
+            throws OntologyException {
+        AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
+
+        while(obj.hasNext())
+            ret.addElement((AbsTerm) (onto.fromObject(obj.next())));
+
+        return ret;
+    }
 
 }
 
