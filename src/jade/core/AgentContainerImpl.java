@@ -723,53 +723,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       myCommandProcessor.processOutgoing(cmd);
   }
 
-  //#MIDP_EXCLUDE_BEGIN
-  public void handleMove(AID agentID, Location where) throws AuthException, NotFoundException, IMTPException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_MOVED, jade.core.mobility.AgentMobilitySlice.NAME, null);
+  // FIXME: Needed due to the Persistence Service being an add-on
+  public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {
+      GenericCommand cmd = new GenericCommand("Save-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
-      cmd.addParam(where);
-      Object lastException = myCommandProcessor.processOutgoing(cmd);
-
-      if(lastException != null) {
-
-	  if(lastException instanceof AuthException) {
-	      throw (AuthException)lastException;
-	  }
-	  if(lastException instanceof NotFoundException) {
-	      throw (NotFoundException)lastException;
-	  }
-	  if(lastException instanceof IMTPException) {
-	      throw (IMTPException)lastException;
-	  }
-      }
+      cmd.addParam(repository);
+      myCommandProcessor.processOutgoing(cmd);
   }
-  //#MIDP_EXCLUDE_END
 
-  //#MIDP_EXCLUDE_BEGIN
-  public void handleClone(AID agentID, Location where, String newName) throws AuthException, IMTPException, NotFoundException, NameClashException {
-      GenericCommand cmd = new GenericCommand(jade.core.mobility.AgentMobilitySlice.INFORM_CLONED, jade.core.mobility.AgentMobilitySlice.NAME, null);
+  // FIXME: Needed due to the Persistence Service being an add-on
+  public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {
+      GenericCommand cmd = new GenericCommand("Freeze-Myself", "jade.core.persistence.Persistence", null);
       cmd.addParam(agentID);
-      cmd.addParam(where);
-      cmd.addParam(newName);
-      Object lastException = myCommandProcessor.processOutgoing(cmd);
-
-      if(lastException != null) {
-
-	  if(lastException instanceof AuthException) {
-	      throw (AuthException)lastException;
-	  }
-	  if(lastException instanceof NotFoundException) {
-	      throw (NotFoundException)lastException;
-	  }
-	  if(lastException instanceof IMTPException) {
-	      throw (IMTPException)lastException;
-	  }
-	  if(lastException instanceof NameClashException) {
-	      throw (NameClashException)lastException;
-	  }
-      }
+      cmd.addParam(repository);
+      cmd.addParam(bufferContainer);
+      myCommandProcessor.processOutgoing(cmd);
   }
-  //#MIDP_EXCLUDE_END
 
   public void setPlatformAddresses(AID id) {
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SET_PLATFORM_ADDRESSES, jade.core.messaging.MessagingSlice.NAME, null);
@@ -789,25 +758,23 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return myProfile.getParameter(key, aDefault);
   }
 
-
+  //#MIDP_EXCLUDE_BEGIN
   public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
-        ServiceHelper se = null;
-        Service s = null;
-    try {
-        // retrieve the service
-        s = myServiceFinder.findService(serviceName);
+      try {
 
-        // get the helper
-        se = s.getHelper( a );
-    } catch (Exception e) {
-          //#MIDP_EXCLUDE_BEGIN
-          System.out.println(" ServiceHelper could not be created for: "+ serviceName);
-          e.printStackTrace();
-          throw new ServiceException(" ServiceHelper could not be created for: "+ serviceName);
-          //#MIDP_EXCLUDE_END
-    }
-    return se;
+	  // Retrieve the service
+	  Service s = myServiceFinder.findService(serviceName);
+	  if(s == null) {
+	      throw new ServiceNotActiveException(serviceName);
+	  }
+
+	  return s.getHelper( a );
+      }
+      catch (IMTPException imtpe) {
+	  throw new ServiceException(" ServiceHelper could not be created for: " + serviceName, imtpe);
+      }
   }
+  //#MIDP_EXCLUDE_END
 
 
   // Private and package scoped methods
