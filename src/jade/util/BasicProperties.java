@@ -140,7 +140,7 @@ public class BasicProperties {
         }
         writer.write("#" + new Date().toString());
         writer.write(lineSeparator);
-        for (Enumeration e = properties.keys(); e.hasMoreElements();) {
+        for (Enumeration e = sortedKeys(); e.hasMoreElements();) {
             String key = (String)e.nextElement();
             Object data = properties.get(key);
             if (data != null) {
@@ -852,6 +852,9 @@ public class BasicProperties {
         while (!done) {
             int result = aReader.read();
             if (result == -1) {
+                if (sb.length() > 0) {
+                    break;
+                }
                 throw new EOFException();
             } else {
                 char ch = (char)result;
@@ -901,7 +904,7 @@ public class BasicProperties {
     public String[] toStringArray() {
         String[] result = new String[properties.size()];
         int i = 0;
-        for (Enumeration e = properties.keys(); e.hasMoreElements(); ) {
+        for (Enumeration e = sortedKeys(); e.hasMoreElements(); ) {
             String key = (String) e.nextElement();
             String value = getProperty(key);
             if (value != null) {
