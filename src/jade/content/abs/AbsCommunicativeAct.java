@@ -58,7 +58,7 @@ public class AbsCommunicativeAct extends AbsGenericAction {
             throw new UngroundedException();
         } 
 
-        set(name, value);
+        super.set(name, value);
     } 
 
     /**
