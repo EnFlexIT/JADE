@@ -1963,7 +1963,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   // Notify toolkit of the need to copy the current agent
-  private void notifyCopy() throws AuthException, IMTPException, NotFoundException {
+  private void notifyCopy() throws AuthException, IMTPException, NotFoundException, NameClashException {
     myToolkit.handleClone(myAID, myDestination, myNewName);
   }
 
