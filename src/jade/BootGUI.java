@@ -51,6 +51,7 @@ import jade.gui.TreeHelp;
  * This class create the gui for the jade configuration
  * @author Tiziana Trucco - CSELT S.p.A.
  * @author Dick Cowan - HP Labs
+ * @author Dominic Greenwood - Whitestein Technologies AG
  * @version $Date$ $Revision$
  */
 public class BootGUI extends JDialog {
@@ -382,6 +383,16 @@ public class BootGUI extends JDialog {
                 if (name.equalsIgnoreCase(label.getText())) {
                     found = true;
 
+                    if (type.equalsIgnoreCase(PropertyType.COMBO_TYPE)) {
+
+                        //JComboBox
+                        JComboBox box =
+                            (JComboBox) singlePanel.getComponent(1);
+
+                        out.setProperty(name.toLowerCase(),
+                                        box.getSelectedItem().toString());
+                    }
+
                     if (type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE)) {
 
                         //JCheckBox
@@ -558,6 +569,14 @@ public class BootGUI extends JDialog {
      */
     Vector createPropertyVector(BasicProperties theProperties) {
         Vector pv = new Vector();
+        String[] loginEnum = {"Simple", "Unix", "NT", "Kerberos"};
+        pv.add(new PropertyType(BootProfileImpl.LOGIN_KEY,
+                                PropertyType.COMBO_TYPE,
+                                loginEnum,
+                                theProperties.getProperty(BootProfileImpl.LOGIN_KEY),
+                                "User Authentication context",
+                                false));
+
         pv.add(new PropertyType(BootProfileImpl.HOST_KEY,
                                 PropertyType.STRING_TYPE,
                                 theProperties.getProperty(BootProfileImpl.HOST_KEY),
@@ -641,6 +660,7 @@ public class BootGUI extends JDialog {
             mainP.add(nameLabel);
 
             String type = property.getType();
+            JComboBox valueCombo;
             JCheckBox valueBox;
             JTextField valueText;
 
@@ -648,7 +668,12 @@ public class BootGUI extends JDialog {
             // otherwise is used the default value          
             String value = property.getDefaultValue();
 
-            if (type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE)) {
+            if (type.equalsIgnoreCase(PropertyType.COMBO_TYPE)) {
+                valueCombo = new JComboBox(property.getComboValues());
+                valueCombo.setSelectedIndex(0);
+                valueCombo.setToolTipText(property.getToolTip());
+                mainP.add(valueCombo);
+            } else if (type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE)) {
                 valueBox = new JCheckBox();
                 valueBox.setSelected((new Boolean(value)).booleanValue());
                 valueBox.setToolTipText(property.getToolTip());
