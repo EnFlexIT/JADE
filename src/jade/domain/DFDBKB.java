@@ -84,62 +84,62 @@ class DFDBKB extends DBKB {
  		 	stmt = conn.createStatement();
  		 	// Tables for DF registrations      
   		stmt.executeUpdate( "CREATE TABLE dfagentdescr (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "lease   	 VARCHAR(20)  NOT NULL, "   +
          "PRIMARY KEY( aid )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidaddress (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "address    VARCHAR(255)  NOT NULL, "   +
          "PRIMARY KEY( aid, address )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidresolver (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
-         "resolver 	 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
+         "resolver 	 VARCHAR(255)  NOT NULL, "   +
          "PRIMARY KEY( aid, resolver )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentprotocol (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "protocol   VARCHAR(32)	      NOT NULL, "   +
          "PRIMARY KEY( aid, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentontology (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "ontology 	 VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentlanguage (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "language   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservice (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
-         "sname   VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
+         "sname   VARCHAR(255)  NOT NULL, "   +
          "stype       VARCHAR(64)  NOT NULL, "   +
          "sownership  VARCHAR(64)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceprotocol (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
-         "sname   VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
+         "sname   VARCHAR(255)  NOT NULL, "   +
          "protocol   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceontology (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
-         "sname   VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
+         "sname   VARCHAR(255)  NOT NULL, "   +
          "ontology   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservicelanguage (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
-         "sname   VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
+         "sname   VARCHAR(255)  NOT NULL, "   +
          "language   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, sname, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceproperty (" +
-         "aid		 VARCHAR(256)  NOT NULL, "   +
+         "aid		 VARCHAR(255)  NOT NULL, "   +
          "sname   VARCHAR(32)  NOT NULL, "   +
          "propkey  VARCHAR(32)  NOT NULL, "   +
          "propval  VARCHAR(255)  NOT NULL, "   +
@@ -147,7 +147,7 @@ class DFDBKB extends DBKB {
 
 			// Tables for subscriptions registrations
   		stmt.executeUpdate( "CREATE TABLE subscription (" +
-         "conversationid	 VARCHAR(256)  NOT NULL, "   +
+         "conversationid	 VARCHAR(255)  NOT NULL, "   +
          "aclm1	 	 VARCHAR(255)         NOT NULL, " +
          "aclm2	 	 VARCHAR(255), " +
          "aclm3	 	 VARCHAR(255), " +
@@ -165,7 +165,7 @@ class DFDBKB extends DBKB {
 			// are already there.
 			// FIXME: We should distinguish the case of actual creation errors.
     	//DEBUG
-      System.out.println("Tables already present");
+			System.out.println("Tables already present");
 		}
 		finally {
 			if (stmt != null) {
