@@ -51,6 +51,14 @@ public class DeleteContainer implements AgentAction {
 	return container;
     }
 
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
+
+    public ContainerID getWhere() {
+	return where;
+    }
+
     public void setRepository(String r) {
 	repository = r;
     }
@@ -61,6 +69,7 @@ public class DeleteContainer implements AgentAction {
 
 
     private ContainerID container;
+    private ContainerID where;
     private String repository;
 
 }
