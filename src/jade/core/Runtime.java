@@ -30,9 +30,6 @@ import java.rmi.registry.*; // FIXME: This will go away...
 
 import java.util.LinkedList;
 
-import jade.wrapper.AgentContainer;
-import jade.wrapper.MainContainer;
-
 /**
    This class is a Singleton class, allowing intial access to the JADE
    runtime system. Invoking methods on the shared instance of this
@@ -75,13 +72,25 @@ public class Runtime {
       String[] empty = new String[] { };
       
       AgentContainerImpl impl = new AgentContainerImpl(p);
-      impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
+
+      // Look the remote Main Container up into the
+      // RMI Registry, then create a Smart Proxy for it.
+      MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
+      MainContainer mc = new MainContainerProxy(remoteMC);
+
+      impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
 
       return new jade.wrapper.AgentContainer(impl);
     }
     catch(RemoteException re) {
       throw new InternalError("Remote exception in a local call.");
+    }
+    catch(NotBoundException nbe) {
+      throw new InternalError("The platform was not found in the RMI Registry");
+    }
+    catch(MalformedURLException murle) {
+      throw new InternalError("Malformed URL exception"); // FIXME: Need to throw a suitable exception
     }
     catch(ProfileException pe) {
       throw new InternalError("Can't read configuration from Profile.");
@@ -103,7 +112,8 @@ public class Runtime {
 
       String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
-      MainContainerImpl impl = new MainContainerImpl(p);
+      AgentContainerImpl impl = new AgentContainerImpl(p);
+      MainContainerImpl mc = new MainContainerImpl(p);
 
       // Create an embedded RMI Registry within the platform and
       // bind the Agent Platform to it
@@ -111,9 +121,9 @@ public class Runtime {
       int portNumber = Integer.parseInt(port);
 
       Registry theRegistry = LocateRegistry.createRegistry(portNumber);
-      Naming.bind(platformRMI, impl);
+      Naming.bind(platformRMI, mc);
       String[] empty = new String[] { };
-      impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
+      impl.joinPlatform(mc, new LinkedList().iterator(), empty, empty);
       beginContainer();
 
       return new jade.wrapper.MainContainer(impl);
