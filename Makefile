@@ -16,7 +16,7 @@ all: $(LIBDIR) $(TESTDIR)
 	@echo ACL parser built
 
 $(LIBDIR): $(SRCDIR)
-	cd $(SRCDIR); $(MAKE) all
+	cd $(LIBDIR); $(MAKE) all
 	@echo libraries built
 
 $(SRCDIR):
