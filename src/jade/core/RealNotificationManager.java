@@ -109,12 +109,34 @@ class RealNotificationManager implements NotificationManager {
   }
 
   public void enableDebugger(AID debuggerName, AID toBeDebugged) {
+  	// AMS debug enabling must be done by a separated Thread to avoid
+  	// deadlock with ToolNotifier startup
+  	if (toBeDebugged.equals(myContainer.getAMS()) && !(Thread.currentThread().getName().equals("AMS-debug-helper"))) {
+			final AID dn = debuggerName;
+			final AID tbd = toBeDebugged;
+  		Thread helper = new Thread(new Runnable() {
+  			public void run() {
+  				enableDebugger(dn, tbd);
+  			}
+  		} );
+  		helper.setName("AMS-debug-helper");
+  		helper.start();
+  		return;
+  	}
+  		
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn == null) { // Need a new notifier
     	tn = new ToolNotifier(debuggerName);
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
 	      myContainer.initAgent(id, tn, AgentContainer.START);
+	      if (toBeDebugged.equals(myContainer.getAMS())) {
+	      	// If we are debugging the AMS, let's wait for the ToolNotifier 
+	      	// be ready to avoid deadlock problems. Note also that in 
+	      	// this case this code is executed by the helper thread and not
+	      	// by the AMS thread
+	      	tn.waitUntilStarted();
+	      }
   	    addMessageListener(tn);
     	  addAgentListener(tn);
       }
@@ -167,6 +189,7 @@ class RealNotificationManager implements NotificationManager {
     }
     // Notify essages currently pending in the message queue
     // FIXME: To be implemented
+    
   }
 
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) {
