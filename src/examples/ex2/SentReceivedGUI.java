@@ -149,12 +149,12 @@ public class SentReceivedGUI extends Frame
 			return;
 	
 		// Adjust components according to the insets
-		setSize(insets().left + insets().right + d.width, insets().top + insets().bottom + d.height);
+		setSize(getInsets().left + getInsets().right + d.width, getInsets().top + getInsets().bottom + d.height);
 		Component components[] = getComponents();
 		for (int i = 0; i < components.length; i++)
 		{
 			Point p = components[i].getLocation();
-			p.translate(insets().left, insets().top);
+			p.translate(getInsets().left, getInsets().top);
 			components[i].setLocation(p);
 		}
 		fComponentsAdjusted = true;
@@ -277,12 +277,12 @@ public class SentReceivedGUI extends Frame
 
 public void sentMessage(String msg) {
   n++;
-  textArea1.appendText("\nMESSAGE NUMBER " + n + "\n" + msg + "\n--------------------");
+  textArea1.append("\nMESSAGE NUMBER " + n + "\n" + msg + "\n--------------------");
 }
 
   public void receivedMessage(String msg) {
     m++;
-    textArea2.appendText("\nMESSAGE NUMBER " + m + "\n" + msg+"\n-------------------");
+    textArea2.append("\nMESSAGE NUMBER " + m + "\n" + msg+"\n-------------------");
   }
 }
 
