@@ -183,8 +183,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
   */
   public synchronized void shutdown() {
 
-	  if(myLogger.isLoggable(Logger.INFO))
-	  myLogger.log(Logger.INFO,"Shutting down JICPServer...");
+	  if(myLogger.isLoggable(Logger.FINE))
+	  myLogger.log(Logger.FINE,"Shutting down JICPServer...");
 
     state = TERMINATING;
 
@@ -239,8 +239,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
       } 
     } // END of while(listen) 
 
-		if(myLogger.isLoggable(Logger.INFO))
-			myLogger.log(Logger.INFO,"JICPServer terminated");
+		if(myLogger.isLoggable(Logger.FINE))
+			myLogger.log(Logger.FINE,"JICPServer terminated");
 
 		
     // release socket
@@ -408,8 +408,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  if(id != null) {
 					  	if (msisdn != null && !msisdn.equals(id)) {
 					  		// Security attack: Someone is pretending to be someone other
-	          		if(myLogger.isLoggable(Logger.INFO))
-	          			myLogger.log(Logger.INFO,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
+	          		if(myLogger.isLoggable(Logger.WARNING))
+	          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
 		reply = new JICPPacket("Not authorized", null);
 	          		break;
 					  	}	
@@ -529,14 +529,14 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	      	// This is a re-used connection waiting for the next incoming packet
 	      	if (e instanceof EOFException) {
 
-	      		if(myLogger.isLoggable(Logger.INFO))
-	      			myLogger.log(Logger.INFO,"Client "+addr+":"+port+" has closed the connection.");
+	      		if(myLogger.isLoggable(Logger.FINE))
+	      			myLogger.log(Logger.FINE,"Client "+addr+":"+port+" has closed the connection.");
 
 	      	}
 	      	else {
 
-	      		if(myLogger.isLoggable(Logger.INFO))
-	      			myLogger.log(Logger.INFO,"Unexpected client "+addr+":"+port+" termination. "+e.toString());
+	      		if(myLogger.isLoggable(Logger.FINE))
+	      			myLogger.log(Logger.FINE,"Unexpected client "+addr+":"+port+" termination. "+e.toString());
 
 	      	}
       	}
@@ -545,8 +545,8 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
         try {
           if (closeConnection) {
             // Close connection
-	          	if(myLogger.isLoggable(Logger.INFO))
-	          		myLogger.log(Logger.INFO,"Closing connection with "+addr+":"+port);
+	          	if(myLogger.isLoggable(Logger.FINEST))
+	          		myLogger.log(Logger.FINEST,"Closing connection with "+addr+":"+port);
 
           	c.close();
           } 
