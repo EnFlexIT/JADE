@@ -47,7 +47,7 @@ import jade.security.AuthException;
 */
 public interface AgentManagementSlice extends Service.Slice {
 
-    void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException;
+    void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException;
     void killAgent(AID agentID) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
