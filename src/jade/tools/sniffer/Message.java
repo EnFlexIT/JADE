@@ -25,11 +25,12 @@ package jade.tools.sniffer;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Enumeration;
 import javax.swing.SwingUtilities;
 
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
-
+import jade.util.leap.Properties;
 
 /**
  * A <em>Message</em> extends the meaning of an ACLMessage (thus extending
@@ -85,8 +86,13 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     this.setProtocol(msg.getProtocol());
     this.setConversationId(msg.getConversationId());
     this.setEnvelope(msg.getEnvelope());
-  }
 
+    Properties prop = msg.getAllUserDefinedParameters();
+    for (Enumeration e=prop.propertyNames();e.hasMoreElements();){
+      String key = (String)e.nextElement();
+      this.addUserDefinedParameter(key,prop.getProperty(key));
+    }
+  }
 
   public int getInitSeg(int xS){
     x1 = xS * step + offset+4;
