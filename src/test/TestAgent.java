@@ -33,7 +33,7 @@ import jade.domain.JADEAgentManagement.JADEAgentManagementOntology;
 import jade.domain.FIPAException;
 import jade.domain.introspection.JADEIntrospectionOntology;
 import jade.lang.acl.*;
-import jade.core.Agent;
+import jade.backward.Agent;
 import jade.lang.sl.SL0Codec;
 import jade.onto.basic.*;
 import jade.onto.*;
