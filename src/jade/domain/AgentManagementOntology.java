@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.24  1999/06/04 07:48:52  rimassa
+  Added two String constants to PlatformProfile inner class.
+
   Revision 1.23  1999/05/20 15:41:41  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -1397,6 +1400,9 @@ public class AgentManagementOntology {
     static final String OWNERSHIP = ":ownership";
     static final String CERTAUTH = ":certification-authority";
     static final String DEFAULTDF = ":default-df";
+
+    public static final String MAIN_CONTAINER_NAME = "Front-End";
+    public static final String AUX_CONTAINER_NAME = "Container-";
 
     // Table of allowed keywords in 'fipa-man-platform-profile'
     // objects
