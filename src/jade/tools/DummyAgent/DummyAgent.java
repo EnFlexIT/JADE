@@ -103,6 +103,18 @@ public static void main(String args[]) {
       restoreGUI();
   }
 
+  protected void beforeReload() {
+      super.beforeReload();
+
+      disposeGUI();
+  }
+
+  protected void afterReload() {
+      super.afterReload();
+
+      restoreGUI();
+  }
+
     private void restoreGUI() {
 	myGui = new DummyAgentGui(this);
 	myGui.showCorrect();

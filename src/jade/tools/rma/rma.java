@@ -406,6 +406,26 @@ public class rma extends ToolAgent {
       myGUI.ShowCorrect();
   }
 
+  protected void beforeReload() {
+      super.beforeReload();
+
+      myGUI.disposeAsync();
+      send(getCancel());
+  }
+
+  protected void afterReload() {
+      super.afterReload();
+
+      getContentManager().registerOntology(MobilityOntology.getInstance());
+      getContentManager().registerOntology(PersistenceOntology.getInstance());
+
+      myGUI = new MainWindow(this);
+      myGUI.ShowCorrect();
+
+      // Make the AMS send back the whole container list
+      send(getSubscribe());
+  }
+
   protected void beforeFreeze() {
       super.beforeFreeze();
 
