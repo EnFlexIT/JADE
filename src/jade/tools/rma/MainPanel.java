@@ -29,13 +29,16 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import java.awt.*;
 import jade.gui.AgentTree;
+	
+
 
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-class MainPanel extends JPanel implements TreeSelectionListener{
+class MainPanel extends JPanel implements  TreeSelectionListener
+{
 
   private JTextArea selArea;
   AgentTree treeAgent;       // FIXME: It should be private
@@ -46,8 +49,13 @@ class MainPanel extends JPanel implements TreeSelectionListener{
   private MainWindow mainWnd;
   private PopupMouser popM;
 
+  
+  	
   public MainPanel(rma anRMA, MainWindow mainWnd) {
-    table = new TablePanel();
+    
+  
+  	
+  	table = new TablePanel();
     this.mainWnd = mainWnd;
     Font f;
     f = new Font("SanSerif",Font.PLAIN,14);
@@ -74,7 +82,7 @@ class MainPanel extends JPanel implements TreeSelectionListener{
    AgentTree.Node current;
    AgentTree.ContainerNode currentC;
    Object[] relCur;
-
+   
    if (paths!=null) {
     current=(AgentTree.Node)paths[0].getLastPathComponent();
      int numPaths=paths.length;
@@ -95,8 +103,6 @@ class MainPanel extends JPanel implements TreeSelectionListener{
  }
 
 
-
-
   private void createSplit (JScrollPane scroll) {
     pan = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,pane,scroll);
     pan.setContinuousLayout(true);
@@ -113,6 +119,4 @@ class MainPanel extends JPanel implements TreeSelectionListener{
     return new Dimension(200, 200);
   }
 
-} // End of AgentTreeModel
-
-
+} 

@@ -56,12 +56,11 @@ class TablePanel extends JPanel {
 
   // final
   /**@clientCardinality **/
-  final String[] names = {"agent-name", "agent-address", "agent-type"};
-
+  final String[] names = {"agent-name", "agent-addresses"};
   // Create the dummy data (a few rows of names)
   /**@clientCardinality **/
   Object[][] data = {
-    {"AGENT-NAME", "AGENT-ADDRESSES","AGENT-TYPE"},
+    {"AGENT-NAME", "AGENT-ADDRESSES"},
   };
 
   public TablePanel() {
@@ -71,8 +70,7 @@ class TablePanel extends JPanel {
     mainPanel = this;
     JPanel column1 = new JPanel (new ColumnLayout() );
     JPanel column2 = new JPanel (new ColumnLayout() );
-    JPanel column3 = new JPanel (new ColumnLayout() );
-
+    
     tableAggregate = createTable();
     mainPanel.add(tableAggregate, BorderLayout.CENTER);
   }
@@ -123,7 +121,7 @@ class TablePanel extends JPanel {
   public void setData (TreePath paths[]) {
 
    int numPaths=paths.length;
-   data = new Object[numPaths][3];
+   data = new Object[numPaths][2];
    Object relCur[];
    AgentTree.AgentNode current;
     for(int i=0;i<numPaths;i++) {
@@ -133,7 +131,7 @@ class TablePanel extends JPanel {
               current = (AgentTree.AgentNode)relCur[j];
               data[i][0] = current.getName();
               data[i][1] = current.getAddress();
-              data[i][2] = current.getType();
+              //data[i][2] = current.getType();
             }
          }
       }

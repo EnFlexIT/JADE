@@ -52,7 +52,9 @@ class ActionProcessor {
      public static final String  EXIT_ACTION="Exit RMA";
      public static final String  SHUTDOWN_ACTION="Shutdown action";
      public static final String  SHOWDF_ACTION="ShowDfGui Action";
-     public static final Map actions=new HashMap(11);
+     public static final String  MOVEAGENT_ACTION="Migrate Agent";
+     public static final String  CLONEAGENT_ACTION="Clone Agent";
+     public static final Map actions=new HashMap(13);
 
  public ActionProcessor(rma anRma,MainWindow mWnd,MainPanel panel) {
       this.panel=panel;
@@ -67,6 +69,9 @@ class ActionProcessor {
       actions.put(EXIT_ACTION,new ExitAction(anRma,this));
       actions.put(SHUTDOWN_ACTION,new ShutDownAction(anRma,this));
       actions.put(SHOWDF_ACTION,new ShowDFGuiAction(anRma,this));
+      actions.put(MOVEAGENT_ACTION, new MoveAgentAction(anRma,this,mWnd));
+      actions.put(CLONEAGENT_ACTION, new CloneAgentAction(anRma, this,mWnd));
+      
 } // End builder
 
  public void process(RMAAction a) {
@@ -105,9 +110,10 @@ class ActionProcessor {
 				else
 				if
 				 (action instanceof DummyAgentAction)	
-				 		containerAct(null);
+				 	containerAct(null);
 				else
-				JOptionPane.showMessageDialog(new JFrame(), "You must select an agent-platform or a agent-container in the Tree","Start Procedure Error", JOptionPane.ERROR_MESSAGE);
+				  JOptionPane.showMessageDialog(new JFrame(), "You must select an agent-platform or a agent-container in the Tree","Start Procedure Error", JOptionPane.ERROR_MESSAGE);
+			
        }
    }
 

@@ -51,6 +51,8 @@ import java.util.Properties;
       "RMAAction.StartActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/start.gif"),
       "RMAAction.StartNewAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/baby.gif"),
       "RMAAction.SuspendActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/suspend.gif"),
+      "RMAAction.MoveAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/move.gif"), 
+      "RMAAction.CloneAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(),"images/clone.gif"),	
       "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
       "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/runtree.gif"),
       "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif"),

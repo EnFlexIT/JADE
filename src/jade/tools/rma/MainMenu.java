@@ -67,6 +67,8 @@ import jade.gui.AboutJadeAction;
     paintM(true,null,(RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION));
     paintM(true,null,(RMAAction)actPro.actions.get(actPro.RESUME_ACTION));
     paintM(true,null,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
+    paintM(true,null,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
+    paintM(true,null,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
     add(menu);
 
     menu = new JMenu ("Tools");

@@ -42,7 +42,7 @@ import jade.domain.AMSEvent;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
-
+import jade.domain.MobilityOntology;
 import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
@@ -232,7 +232,7 @@ public class rma extends Agent {
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
     registerOntology(JADEAgentManagementOntology.NAME, JADEAgentManagementOntology.instance());
-
+    registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
     // register the supported languages
     registerLanguage(SL0Codec.NAME, new SL0Codec());	
 
@@ -369,6 +369,8 @@ public class rma extends Agent {
       fe.printStackTrace();
     }
   }
+  
+  
 
   /**
    Callback method for platform management <em>GUI</em>.
@@ -460,6 +462,61 @@ public class rma extends Agent {
       fe.printStackTrace();
     }
 
+  }
+  
+  /**
+  Callback method for platform management
+  */
+  
+  public void moveAgent(AID name,String container)
+  {
+     MobilityOntology.MoveAction moveAct = new MobilityOntology.MoveAction();
+     //moveAct.setActor(getAMS().getName());
+     MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
+     desc.setName(name);
+     MobilityOntology.Location dest = new MobilityOntology.Location(container,getHap());
+     
+     desc.setDestination(dest);
+     moveAct.set_0(desc);
+         	
+      try{
+      	Action a = new Action();
+     	  a.set_0(getAMS());
+     	  a.set_1(moveAct);
+     	  List l = new ArrayList(1);
+     	  l.add(a);
+     	  requestMsg.setOntology(MobilityOntology.NAME);
+     	  fillContent(requestMsg,l);
+     	  addBehaviour(new AMSClientBehaviour("MoveAgent",requestMsg));
+     	  
+      }catch(FIPAException fe){fe.printStackTrace();}
+  }
+  
+  /**
+  Callback method for platform management
+  */
+  public void cloneAgent(AID name,String newName, String container)
+  {
+  	MobilityOntology.CloneAction cloneAct = new MobilityOntology.CloneAction();
+  //	cloneAct.setActor(getAMS().getName());
+  	MobilityOntology.MobileAgentDescription desc = new MobilityOntology.MobileAgentDescription();
+  	desc.setName(name);
+  	MobilityOntology.Location dest = new MobilityOntology.Location(container,getHap());
+  	desc.setDestination(dest);
+  	cloneAct.set_0(desc);
+  	cloneAct.set_1(newName);
+  	
+  	try{
+  		Action a = new Action();
+  		a.set_0(getAMS());
+  		a.set_1(cloneAct);
+  		List l = new ArrayList(1);
+  		l.add(a);
+  		requestMsg.setOntology(MobilityOntology.NAME);
+  		fillContent(requestMsg,l);
+  		addBehaviour(new AMSClientBehaviour("CloneAgent",requestMsg));
+  		
+  	}catch(FIPAException fe){fe.printStackTrace();}
   }
 
   /**

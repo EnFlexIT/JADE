@@ -46,10 +46,17 @@ class PopupMenuAgent extends JPopupMenu{
 
    tmp=add((RMAAction)actPro.actions.get(actPro.RESUME_ACTION) );
    tmp.setIcon(null);
+   
+   tmp=add((RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION) );
+   tmp.setIcon(null);
+
+   tmp=add((RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
+   tmp.setIcon(null);
    addSeparator();
 
    tmp=add((RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION) );
    tmp.setIcon(null);
-  }
+   
+     }
 
 } // End of PopupMenuAgent

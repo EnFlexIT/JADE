@@ -83,6 +83,12 @@ final class ToolBar  extends JToolBar  implements ActionListener {
 
     obj=(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION);
     setButton(add(obj));
+    
+    obj =(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION);
+    setButton(add(obj));
+    
+    obj =(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION);
+    setButton(add(obj));
 
     addSeparator();         // to add space between Sniffer,DummyAgent button and others buttons
     addSeparator();

@@ -30,7 +30,7 @@ import java.net.InetAddress;
 
 import java.util.Enumeration;
 import java.util.Vector;
-
+import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.tree.MutableTreeNode;
@@ -138,9 +138,15 @@ class MainWindow extends JFrame {
     // Add an agent to the specified container
     Runnable addIt = new Runnable() {
       public void run() {
-	String agentName = agentID.getName();
+	      String agentName = agentID.getName();
        	AgentTree.Node node = tree.treeAgent.createNewNode(agentName, 1);
-        tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+       	Iterator add = agentID.getAllAddresses();
+       	String agentAddresses = "";
+       	while(add.hasNext())
+       		agentAddresses = agentAddresses + add.next() + " ";
+        
+        //tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+       		tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, agentAddresses, "FIPAAGENT");
       }
     };
     SwingUtilities.invokeLater(addIt);
