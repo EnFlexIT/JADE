@@ -24,12 +24,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.introspector.gui;
 
-
-import javax.swing.JButton;
-import java.util.Vector;
-import java.awt.Color;
-import javax.swing.ImageIcon;
-
+import jade.core.AgentState;
 import jade.domain.introspection.ChangedAgentState;
 
 /**
@@ -38,27 +33,18 @@ import jade.domain.introspection.ChangedAgentState;
    the interface.
 
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
-
 */
 public class StateUpdater implements Runnable {
-  private int state;
-  private StatePanel gui;
-  private ImageIcon active;
+  private AgentState state;
+  private StatePanel sp;
 
-  public StateUpdater(ChangedAgentState cae, StatePanel gui) {
-    state = se.getState().intValue();
-    this.gui = gui;
-    active = new ImageIcon("sveglia.gif");
+  public StateUpdater(StatePanel wnd, ChangedAgentState cae) {
+    sp = wnd;
+    state = cae.getTo();
   }
+
   public void run(){
-
-    Vector leds = gui.getStateLeds();
-    JButton b = null;
-    for (int i=0;i<leds.size();i++){
-      b=(JButton)leds.elementAt(i);
-      if(b.getIcon()!=null ) b.setIcon(null);
-    }
-    b=(JButton)leds.elementAt(--state);
-    b.setIcon(active);
+    sp.switchTo(state);
   }
+
 }
