@@ -37,38 +37,72 @@ public class MicroRuntime {
 	public static final String MIDP = "midp";
 	
 	private static Runnable terminator;
+	private static FrontEnd myFrontEnd;
 	
 	/**
 	   Start up the JADE runtime
 	 */
-	public static FrontEnd startJADE(Properties p, Runnable r) {
-		terminator = r;
-		return new FrontEndContainer(p);
+	public static void startJADE(Properties p, Runnable r) {
+		if (myFrontEnd == null) {
+			terminator = r;
+			myFrontEnd = new FrontEndContainer(p);
+		}
+	}
+	
+	/**
+	   Shut down the JADE runtime
+	 */
+	public static void stopJADE() {
+		if (myFrontEnd != null) {
+	  	try {
+	  		// Self-initiated shutdown
+		  	myFrontEnd.exit(true);
+			}
+			catch (IMTPException imtpe) {
+				// Should never happen as this is a local call
+				imtpe.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	   Start a new agent.
+	 */
+	public static void startAgent(String name, String className, String[] args) throws Exception {
+		if (myFrontEnd != null) {
+			try {
+		  	myFrontEnd.createAgent(name, className, args);
+			}
+			catch (IMTPException imtpe) {
+				// This is a local call --> an IMTPxception always wrap some other exception
+				throw (Exception) imtpe.getNested();
+			}
+		}
+	}
+	
+	/**
+	   Kill an agent
+	 */
+	public static void killAgent(String name) throws NotFoundException {
+		if (myFrontEnd != null) {
+			try {
+		  	myFrontEnd.killAgent(name);
+			}
+			catch (IMTPException imtpe) {
+				// Should never happen as this is a local call
+				imtpe.printStackTrace();
+			}
+		}
 	}
 	
 	/**
 	   Activate the Java environment terminator when the JADE runtime
 	   has stopped.
 	 */
-	static void stopJADE(boolean join) {
-		/*if (join) {
-			final Thread toBeJoined = Thread.currentThread();
-			Thread t = new Thread(new Runnable() {
-				public void run() {
-					try {
-						toBeJoined.join();
-					}
-					catch (InterruptedException ie) {
-						ie.printStackTrace();
-					}
-					terminator.run();
-				}
-			} );
-		}
-		else {*/
-			Thread t = new Thread(terminator);
-			t.start();
-		//}
+	static void handleTermination() {
+		myFrontEnd = null;
+		Thread t = new Thread(terminator);
+		t.start();
 	}
 }
 
