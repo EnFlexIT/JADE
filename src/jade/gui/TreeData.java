@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.7  1998/11/09 00:39:19  rimassa
+  Removed loadChildren() method, since now the GUI is notified of every
+  event by the Agent Platform.
+  Changed some label strings and formatting.
+
   Revision 1.6  1998/11/05 23:45:59  rimassa
   Changed Agent default state in the GUI from 'suspended' to 'active'.
 
@@ -45,14 +50,14 @@ public class TreeData extends DefaultMutableTreeNode {
   public static final int SUSPENDED = 0;
   public static final int RUNNING   = 1;
 
-  public static final String AddSeparator = "";
+  public static final String AddSeparator = " - ";
 
   public static final int SUPER_NODE = 0;
   public static final int AGENT_PLATFORM = 1;
   public static final int CONTAINER = 2;
   public static final int AGENT = 3;
 
-  protected static String ContainerToolTip = "Agents Container";
+  protected static String ContainerToolTip = "Agent Container";
   protected static String SuperNodeToolTip = "JADE Remote Management Agent GUI";
 
   protected static String[] statesNames;
@@ -66,6 +71,8 @@ public class TreeData extends DefaultMutableTreeNode {
   protected int Level = AGENT; 
   protected String[] addresses ;
   protected boolean hasLoaded = false;	
+
+  private int containerID;
 
   static {
     statesNames = new String[2];
@@ -93,7 +100,7 @@ public class TreeData extends DefaultMutableTreeNode {
     name = nameP;
     if (addressesP == null) {
       addresses = new String[1];
-      addresses[0]=" - ";
+      addresses[0]="";
     }
     else addresses = addressesP;
     type = typeP;
@@ -196,7 +203,7 @@ public class TreeData extends DefaultMutableTreeNode {
   }
 
   public String toString() {
-    return  name+AddSeparator+type+AddSeparator+LevelsNames[Level];
+    return  name+AddSeparator+type;
   }
 
   public String getToolTipText () {
@@ -226,27 +233,4 @@ public class TreeData extends DefaultMutableTreeNode {
     return (Level == AGENT);
   }
 
-  /**
-   * If the children have not yet been loaded, 
-   * loadChildren is messaged and super is messaged for
-   * the return value.
-   */
-  public int getChildCount() {
-    if(!hasLoaded) {
-      loadChildren();
-    }
-    return super.getChildCount();
-  }
-
-  /**
-   * Messaged the first time getChildCount is messaged.  Creates
-   * children asking to the agent platform. This method loads
-   * agents on the tree.
-   */
-  protected void loadChildren() {
-
-    // FIXME:  Chiedere allo AMS informazioni circa gli agenti
-
-    hasLoaded = true;
-  }
 }
