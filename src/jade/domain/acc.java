@@ -50,6 +50,11 @@ public class acc extends Agent {
 	  //      pe.printStackTrace();
 	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
 	}
+	catch(TokenMgrError tme) {
+	  //      tme.printStackTrace();
+	  throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	}
+
 	ACLMessage toForward = myAction.getArg();
 
 	// Make sure destination agent is registered with platform AMS
@@ -58,14 +63,14 @@ public class acc extends Agent {
 
 	// Forward message
 	send(toForward);
+
+	// Acknowledge caller
+	sendAgree(myReply);
+	sendInform(myReply);
       }
       catch(FIPAException fe) {
 	sendRefuse(myReply, fe.getMessage());
-	return;
       }
-
-      sendAgree(myReply);
-      sendInform(myReply);
 
     }
 
@@ -73,21 +78,21 @@ public class acc extends Agent {
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      msg.setContent("( action acc " + myActionName + " ) " + reason);
       send(msg);
     }
     
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
     msg.setType("failure");
-    msg.setContent("( ams action " + myActionName + " ) " + reason);
+    msg.setContent("( action acc " + myActionName + " ) " + reason);
     send(msg);
     }
     
     // Send an 'agree' message back to the requester
     protected void sendAgree(ACLMessage msg) {
       msg.setType("agree");
-      msg.setContent("( ams action " + myActionName + " )");
+      msg.setContent("( action acc " + myActionName + " )");
       send(msg);
     }
     
