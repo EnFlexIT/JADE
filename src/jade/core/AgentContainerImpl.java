@@ -433,15 +433,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 			a.join();
 		}
 
-    // Unblock threads hung in ping() method
-    pingLock.notifyAll();
-
-    try {
-			// Deregister itself as a container
-      myPlatform.removeContainer(myName); // RMI call
-    }
-    catch(RemoteException re) {
-      re.printStackTrace();
+    // Unblock threads hung in ping() method (this will deregister the container)
+    synchronized(pingLock) {
+      pingLock.notifyAll();
     }
 
   }
