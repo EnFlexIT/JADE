@@ -117,7 +117,14 @@ public class HashMap implements Map, Serializable {
      */
     public boolean containsKey(Object key) {
         return realHiddenMap.containsKey(key);
-    } 
+    }
+	
+	/**
+	* @see java.util.Map interface
+	**/
+	public void clear(){
+		realHiddenMap.clear();
+	} 
 
     /**
      * @see jade.util.leap.Map interface
