@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import jade.core.AID;
+import jade.core.ContainerID;
 import jade.onto.basic.*;  // to import Done, Action, ...
 import jade.onto.*;
 
@@ -61,6 +62,7 @@ public class JADEAgentManagementOntology {
 
   // Concepts
   public static final String AGENTIDENTIFIER = "agent-identifier";
+  public static final String CONTAINERID = "container-ID";
   public static final String CONTAINERBORN = "container-born";
   public static final String CONTAINERDEAD = "container-dead";
   public static final String AGENTBORN = "agent-born";
@@ -68,9 +70,8 @@ public class JADEAgentManagementOntology {
   public static final String AGENTMOVED = "agent-moved";
   public static final String NEWMTP = "new-mtp";
   public static final String DEADMTP = "dead-mtp";
-  public static final String PLATFORMDESCRIPTION = "platform-description";
   public static final String APDESCRIPTION = "ap-description";
-  
+
   // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
   public static final String CREATEAGENT = "create-agent";
@@ -79,18 +80,14 @@ public class JADEAgentManagementOntology {
   public static final String UNINSTALLMTP = "uninstall-mtp";
   public static final String SNIFFON = "sniff-on";
   public static final String SNIFFOFF = "sniff-off";
- 
+
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
 
   // Predicates
-  public static final String EVENTOCCURRED = "event-occurred";
   //public static final String DONE = "done";
   //public static final String RESULT = "result";
 
-  
-  
-  
 
   /**
      This method grants access to the unique instance of the
@@ -115,7 +112,7 @@ public class JADEAgentManagementOntology {
     	theInstance.joinOntology(BasicOntology.instance());
 
 	theInstance.addRole(KILLCONTAINER, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, KillContainer.class);
 
@@ -123,7 +120,7 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("agent-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("arguments",Ontology.SET_SLOT,Ontology.ANY_TYPE, Ontology.O),	
-	  new SlotDescriptor("container-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, CreateAgent.class);
 
@@ -134,13 +131,13 @@ public class JADEAgentManagementOntology {
 
 	theInstance.addRole(INSTALLMTP, new SlotDescriptor[] {
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
 	  new SlotDescriptor("class-name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 	}, InstallMTP.class);
 
 	theInstance.addRole(UNINSTALLMTP, new SlotDescriptor[] {
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
+	  new SlotDescriptor("container", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
 	}, UninstallMTP.class);
 
 	theInstance.addRole(SNIFFON, new SlotDescriptor[] {
@@ -154,52 +151,14 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, SniffOff.class);
-	   
+
 	theInstance.addRole(SHOWGUI, new SlotDescriptor[] {
 	}, ShowGui.class);
-	   
-	theInstance.addRole(EVENTOCCURRED, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, DefaultOntology.ANY_TYPE, Ontology.M)
-	}, EventOccurred.class);
 
-	theInstance.addRole(CONTAINERBORN, new SlotDescriptor[] {
+	theInstance.addRole(CONTAINERID, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("host", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, ContainerBorn.class); 
-
-	theInstance.addRole(CONTAINERDEAD, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, ContainerDead.class); 
-
-	theInstance.addRole(AGENTBORN, new SlotDescriptor[] {
-	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, AgentBorn.class); 
-
-	theInstance.addRole(AGENTDEAD, new SlotDescriptor[] {
-	  new SlotDescriptor("container", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, AgentDead.class); 
-
-	theInstance.addRole(AGENTMOVED, new SlotDescriptor[] {
-	  new SlotDescriptor("from", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("to", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M)
-	}, AgentMoved.class);
-
-	theInstance.addRole(NEWMTP, new SlotDescriptor[] {
-	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("where", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, NewMTP.class);
-
-	theInstance.addRole(DEADMTP, new SlotDescriptor[] {
-	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("where", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
-	}, DeadMTP.class);
-
-	theInstance.addRole(PLATFORMDESCRIPTION, new SlotDescriptor[]{
-	   new SlotDescriptor("platform", Ontology.FRAME_SLOT,APDESCRIPTION,Ontology.M)
-	}, PlatformDescription.class);
+	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, ContainerID.class);
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
