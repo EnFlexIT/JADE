@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
 
    The <code>ServiceDescriptor</code> class serves as a meta-level

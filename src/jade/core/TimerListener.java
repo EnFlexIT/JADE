@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
 This interface is used by the JADE internal timing system to execute 
 an action scheduled after a given amount of time. It should not

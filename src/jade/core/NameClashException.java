@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
   This exception is thrown when trying to create an agent with an
   already existing name.

@@ -168,6 +168,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	//#MIDP_EXCLUDE_END
 
 
+    //#APIDOC_EXCLUDE_BEGIN
 
   /**
      Schedules a restart for a behaviour, after a certain amount of
@@ -236,6 +237,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
       myScheduler.restart(root);
     }
   }
+
+  //#APIDOC_EXCLUDE_END
+
 
   /**
      Out of band value for Agent Platform Life Cycle states.
@@ -624,11 +628,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return myToolkit.here();
   }
   
+    //#APIDOC_EXCLUDE_BEGIN
+
 	//#MIDP_EXCLUDE_BEGIN
   public Authority getAuthority() {
     return myToolkit.getAuthority();
   }
 	//#MIDP_EXCLUDE_END
+
+    //#APIDOC_EXCLUDE_END
 
   /**
    * This is used by the agent container to wait for agent termination.
@@ -691,6 +699,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
     /**
+     * This method retrieves the current lenght of the message queue
+     * of this agent.
      * @return The number of messages that are currently stored into the
      * message queue.
      **/
@@ -711,6 +721,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     return msgQueue.getMaxSize();
   }
 //#CUSTOM_EXCLUDE_END
+
+  //#APIDOC_EXCLUDE_BEGIN
+
   //#MIDP_EXCLUDE_BEGIN
 	public void setOwnership(String ownership) {
 	  this.ownership = ownership;
@@ -755,6 +768,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public CertificateFolder getCertificateFolder() {
 		return certs;
 	}
+
+    //#APIDOC_EXCLUDE_END
 	
 	private void doPrivileged(PrivilegedExceptionAction action) throws Exception {
 		getAuthority().doAsPrivileged(action, getCertificateFolder());
@@ -794,11 +809,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
       myAPState = state;
   }
 
-	//#MIDP_EXCLUDE_BEGIN
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    //#APIDOC_EXCLUDE_BEGIN
   public AgentState getAgentState() {
     return AgentState.getInstance(getState());
   }
-
+    //#APIDOC_EXCLUDE_END
   
   /**
      This is only called by the RealNotificationManager to provide the Introspector
@@ -1275,6 +1293,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
   //#MIDP_EXCLUDE_END
 
+
+  //#APIDOC_EXCLUDE_BEGIN
+
   /**
      This method is the main body of every agent. It can handle
      automatically <b>AMS</b> registration and deregistration and
@@ -1373,6 +1394,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
 
   }
+
+    //#APIDOC_EXCLUDE_END
+
 
   /**
      This protected method is an empty placeholder for application
@@ -1953,6 +1977,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   	#MIDP_INCLUDE_END*/
   }
 
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   /**
     This method blocks until the agent has finished its start-up phase
     (i.e. until just before its setup() method is called.
@@ -1969,6 +1996,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
     }
   }
+
+    //#APIDOC_EXCLUDE_END
+
   
   // Event firing methods
 
@@ -2025,6 +2055,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
   	}
   }
   
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   // Notify the toolkit of the change in behaviour state
   // Public as it is called by the Scheduler and by the Behaviour class 
   public void notifyChangeBehaviourState(Behaviour b, String from, String to) {
@@ -2032,10 +2065,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
     	myToolkit.handleChangeBehaviourState(myAID, b, from, to);
   	}
   }
-  
+
   public void setGenerateBehaviourEvents(boolean b) {
   	generateBehaviourEvents = b;
   }
+
+    //#APIDOC_EXCLUDE_END
+
 
   // For persistence service
   private boolean getGenerateBehaviourEvents() {
@@ -2119,6 +2155,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
         // all the agent's service executors
 private Hashtable serviceExecutors = new Hashtable();
 
+    //#APIDOC_EXCLUDE_BEGIN
+
         /**
         * Retrieves the agent's service executor
         * @return The service executor.
@@ -2149,6 +2187,7 @@ private Hashtable serviceExecutors = new Hashtable();
                 return se;
         }
 
+    //#APIDOC_EXCLUDE_END
 
 	//#CUSTOM_EXCLUDE_END
 	

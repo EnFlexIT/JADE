@@ -23,14 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//import jade.util.leap.SortedSet;
-//import jade.util.leap.SortedSetImpl;
+//#APIDOC_EXCLUDE_FILE
+
+
 import java.util.Vector;
 
 /**
 This class implements the JADE internal timing system. It should not
 be used by application developers.
-@author Giovanni Rimassa - Universita` di Parma
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 

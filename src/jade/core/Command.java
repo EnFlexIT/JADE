@@ -24,6 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
    The <code>Command</code> interface has to be implemented by all
    JADE kernel-level commands, used by the various platform services.

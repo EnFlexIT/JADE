@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
    This interface is used to notify the JADE kernel of important
    events related to the platform nodes.

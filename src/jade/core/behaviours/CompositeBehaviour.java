@@ -37,8 +37,8 @@ import jade.core.Agent;
    @see jade.core.behaviours.ParallelBehaviour
    @see jade.core.behaviours.FSMBehaviour
 
-   
-   @author Giovanni Rimassa - Universita` di Parma
+
+   @author Giovanni Rimassa - Universita' di Parma
    @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
 
@@ -56,9 +56,12 @@ public abstract class CompositeBehaviour extends Behaviour {
   
   private boolean currentDone;
   private int currentResult;
-  
-  protected boolean currentExecuted; 
-  
+
+  //#APIDOC_EXCLUDE_BEGIN  
+  protected boolean currentExecuted;
+  //#APIDOC_EXCLUDE_END
+
+
   /**
      Default constructor, does not set the owner agent.
   */
@@ -289,8 +292,11 @@ public abstract class CompositeBehaviour extends Behaviour {
 	  }
     }  	
   }*/
-  
+
+  //#APIDOC_EXCLUDE_BEGIN
   protected void registerAsChild(Behaviour b) {
   	b.setParent(this);
   }
+  //#APIDOC_EXCLUDE_END
+
 }

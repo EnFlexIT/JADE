@@ -131,6 +131,8 @@ public class SequentialBehaviour extends SerialBehaviour {
       // The specified behaviour was not found. Do nothing
     }
   }
+
+  //#APIDOC_EXCLUDE_BEGIN
   
   /**
      Handle block/restart notifications. A
@@ -174,6 +176,8 @@ public class SequentialBehaviour extends SerialBehaviour {
   public void skipNext() {
   	current = subBehaviours.size();
   }
+
+    //#APIDOC_EXCLUDE_END
 
 
     //#MIDP_EXCLUDE_BEGIN

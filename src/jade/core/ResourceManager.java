@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
+
 /**
    This is the interface that must be implemented by a class 
    managing Thread resources on a <code>Container</code>
