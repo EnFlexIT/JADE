@@ -1015,6 +1015,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    // The receiver does not exist --> Send a FAILURE message
 	    notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()), false);
 	}
+	catch(UnreachableException ue) {
+	    // Can't reach the destination container --> Send a FAILURE message
+	    notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + ue.getMessage()), false);
+	}
     }
 
 
