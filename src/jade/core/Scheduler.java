@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/03/03 16:03:44  rimassa
+  Changed a getName() call to getLocalName() call.
+
   Revision 1.6  1998/10/31 16:38:08  rimassa
   Method schedule() now does't catch InterruptedException anymore. This
   way an external 'kill-agent' is effective even on blocked agents.
@@ -78,7 +81,7 @@ class Scheduler {
   public synchronized Behaviour schedule() throws InterruptedException {
 
     if(behaviours.isEmpty()) {
-      // System.out.println("Agent " + owner.getName() + " has nothing to do, so it sleeps ...");
+      // System.out.println("Agent " + owner.getLocalName() + " has nothing to do, so it sleeps ...");
       wait();
     }
 
