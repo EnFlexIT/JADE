@@ -94,7 +94,7 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
   private JTextField agentName;
   
   /* Button to set the exipire date of the lease time */
-  private JToggleButton setLTDateb;
+  private JButton setLTDateb;
     
   /* expire date of lease time set by the user */ 
   private java.util.Date absDateLeaseTime;
@@ -251,9 +251,11 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
                * unlimeted
                */
                JPanel pLeaseTime = new JPanel();
+               
+               
                pLeaseTime.setEnabled(editable);
-               pLeaseTime.setToolTipText("The duration or time at which the lease for this registration will expire");
-               pLeaseTime.setLayout(new GridLayout(2,1));
+               pLeaseTime.setToolTipText("The duration at which the lease for this registration will expire");
+               
                pLeaseTime.setSize(400, 45);
                pLeaseTime.setBorder(BorderFactory.createTitledBorder("Lease Time"));
                java.util.Date dleasetime = dfdAgent.getLeaseTime();
@@ -263,18 +265,21 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
                } else {
                     textFieldLeaseTime = new JTextField(dfdAgent.getLeaseTime().toString());
                }
-               
+               textFieldLeaseTime.setPreferredSize(new Dimension(335,26));
+               textFieldLeaseTime.setMinimumSize(new Dimension(335,26));
+               textFieldLeaseTime.setMaximumSize(new Dimension(335,26));
+
                textFieldLeaseTime.setEnabled(false); 
-               pLeaseTime.add(textFieldLeaseTime); 
+               
                // add 2 buttons: one to set the date and the second to set the time
                // of the lease-time unlimeted
-               JPanel buttonLTp = new JPanel();
-               ButtonGroup buttonGroup = new ButtonGroup();
-               setLTDateb = new JToggleButton("Set");
+               
+               setLTDateb = new JButton("Set");
                setLTDateb.setEnabled(editable);
                setLTDateb.setToolTipText("Set the date at which the lease time will expire");
-               buttonLTp.add(setLTDateb);
-               pLeaseTime.add(buttonLTp);
+               
+               pLeaseTime.add(setLTDateb);
+               pLeaseTime.add(textFieldLeaseTime); 
                // when the button setLT is presse the dialog jade.gui.TimeChooser
                // is shown to set the date 
                // this is value is used to set the value of DFAgentDescription returned
@@ -402,7 +407,7 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
        
         /* Handle action after the button of inesub panel are pressed */
        public void actionPerformed(ActionEvent e) {
-            JToggleButton sourceEvent = (JToggleButton) e.getSource();
+            JButton sourceEvent = (JButton) e.getSource();
             // when the button setLT is presse the dialog jade.gui.TimeChooser
             // is shown to set the date 
             // this is value is used to set the value of DFAgentDescription returned
