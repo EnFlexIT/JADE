@@ -37,7 +37,7 @@ public class TimerDispatcher implements Runnable {
 	// The singleton TimerDispatcher
 	private static TimerDispatcher theDispatcher;
 	
-  private Thread myThread;
+  private Thread myThread = null;
   private SortedSet timers = new SortedSetImpl();
   private boolean active;
 
@@ -53,7 +53,7 @@ public class TimerDispatcher implements Runnable {
 
   public synchronized Timer add(Timer t) {
   	if (myThread == null) {
-  		myThread = new Thread();
+  		myThread = new Thread(this);
   		start();
   	}
   	while (!timers.add(t)) {
