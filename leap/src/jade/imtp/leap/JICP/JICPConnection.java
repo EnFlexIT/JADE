@@ -93,6 +93,12 @@ public class JICPConnection extends Connection {
   }
 
   //#MIDP_EXCLUDE_BEGIN
+  public void setReadTimeout(int timeout) throws IOException {
+  	if (sc != null) {
+  		sc.setSoTimeout(timeout);
+  	}
+  }
+  
   /**
    * Constructor declaration
    */
@@ -165,12 +171,22 @@ public class JICPConnection extends Connection {
   /**
    */
   public void close() throws IOException {
-  	try {is.close();} catch(Exception e) {}
-    is = null;
-  	try {os.close();} catch(Exception e) {}
-    os = null;
-    try {sc.close();} catch(Exception e) {}
-    sc = null;
+  	IOException firstExc = null;
+  	if (is != null) {
+	  	try {is.close();} catch(IOException e) {firstExc = e;}
+	    is = null;
+  	}
+  	if (os != null) {
+	  	try {os.close();} catch(IOException e) {firstExc = (firstExc != null ? firstExc : e);}
+	    os = null;
+  	}
+  	if (sc != null) {
+	    try {sc.close();} catch(IOException e) {firstExc = (firstExc != null ? firstExc : e);}
+	    sc = null;
+  	}
+  	if (firstExc != null) {
+  		throw firstExc;
+  	}
   } 
 
   //#MIDP_EXCLUDE_BEGIN
