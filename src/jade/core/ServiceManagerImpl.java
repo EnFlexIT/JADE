@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#MIDP_EXCLUDE_FILE
+
 
 import jade.security.AuthException;
 
@@ -153,7 +155,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
     }
 
 
-    // FIXME: The association between MainContainerImpl and ServiceManagerImpl need be clarified...
+    // FIXME: The association between MainContainer and ServiceManagerImpl need be clarified...
     private MainContainerImpl myMain;
     void setMain(MainContainerImpl impl) {
 	myMain = impl;
