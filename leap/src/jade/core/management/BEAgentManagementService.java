@@ -148,20 +148,8 @@ public class BEAgentManagementService extends BaseService {
 		    handleInformCreated(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
-		cmd.setReturnValue(new UnreachableException("Remote container is unreachable", imtpe));
-	    }
-	    catch(NotFoundException nfe) {
-		cmd.setReturnValue(nfe);
-	    }
-	    catch(NameClashException nce) {
-		cmd.setReturnValue(nce);
-	    }
-	    catch(JADESecurityException ae) {
-		cmd.setReturnValue(ae);
-	    }
-	    catch(ServiceException se) {
-		cmd.setReturnValue(new UnreachableException("A Service Exception occurred", se));
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 	}
 
