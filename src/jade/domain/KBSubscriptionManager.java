@@ -139,37 +139,32 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
   		return dfd;
   	}
   	
-  	// Handle new registrations/modifications by notifying 
-  	// subscribed agents if necessary
-  	// Arriva il dfd di quello che sto registrando
+  /**
+  	 Handle registrations/deregistrations/modifications by notifying 
+  	 subscribed agents if necessary
+   */
 	void handleChange(DFAgentDescription dfd) {
-		//prendo le sottoscrizioni nella base dati
-		Enumeration e = kBase.getSubscriptions();
+		// Create a temporary MemKB just to re-use the match() method. 
 		DFMemKB memTemp = new DFMemKB();
-		if( e != null ){
-			while (e.hasMoreElements()) {
-				SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
-				DFAgentDescription template = getDFAgentDescriptionFromACL(sub.getMessage());
-				if ( memTemp.match(template, dfd) ) {
-					
-					List results = new ArrayList();
-					results.add(dfd);
-					ACLMessage aclSub = sub.getMessage();
-					AbsIRE absIota=null;
-						try{
-							absIota = (AbsIRE) cm.extractAbsContent(aclSub);
-						}catch(Exception ex){
-							ex.printStackTrace();
-						}
-					notify(sub, results, absIota);
-				}
-//				else{
-//					System.out.println("KBSubscriptionManager[handleChange] NOT MATCH");
-//				}
+		
+		Enumeration e = kBase.getSubscriptions();
+		while (e.hasMoreElements()) {
+			SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
+			DFAgentDescription template = getDFAgentDescriptionFromACL(sub.getMessage());
+			if ( memTemp.match(template, dfd) ) {
+				// This subscriber must be notified
+				List results = new ArrayList();
+				results.add(dfd);
+				ACLMessage aclSub = sub.getMessage();
+				AbsIRE absIota=null;
+					try{
+						absIota = (AbsIRE) cm.extractAbsContent(aclSub);
+					}catch(Exception ex){
+						ex.printStackTrace();
+					}
+				notify(sub, results, absIota);
 			}
-		}else{
-//			System.out.println("KBSubscriptionManager[handleChange] NOT Subscriptions");
-		}	
+		}
 	}
   	
 	private void notify(SubscriptionResponder.Subscription sub, List results, AbsIRE absIota) {
