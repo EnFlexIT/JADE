@@ -64,12 +64,15 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	}
     }
 
-    public void activateService(String name, Class itf, String sliceName, NodeRMI node) throws ServiceException, RemoteException {
+    public void activateService(String name, Class itf, NodeDescriptor desc) throws ServiceException, RemoteException {
+
+	String sliceName = desc.getName();
+	Node remoteNode = desc.getNode();
+
 	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
 
 	try {
 	    // Create a slice proxy for the new node
-	    Node remoteNode = new NodeAdapter(sliceName, node);
 	    Service.Slice slice = manager.createSliceProxy(name, itf, remoteNode);
 	    impl.addRemoteSlice(name, sliceName, slice, remoteNode);
 	}
@@ -78,7 +81,7 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	}
     }
 
-    public void deactivateService(String name, NodeRMI node) throws ServiceException, RemoteException {
+    public void deactivateService(String name, NodeDescriptor desc) throws ServiceException, RemoteException {
 	// FIXME: To be implemented
 
 	// Remove the slice of the service corresponding to the calling node...
@@ -101,7 +104,7 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	List failedServices = new LinkedList();
 	for(int i = 0; i < svcNames.length; i++) {
 	    try {
-		activateService(svcNames[i], svcInterfaces[i], name, remoteNode.getRMIStub());
+		activateService(svcNames[i], svcInterfaces[i], desc);
 	    }
 	    catch(RemoteException re) {
 		// This should never happen, because it's a local call...
@@ -144,26 +147,18 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 
     }
 
-    public NodeAdapter[] findAllNodes(String serviceKey) throws ServiceException, RemoteException {
+    public Node[] findAllNodes(String serviceKey) throws ServiceException, RemoteException {
 	try {
-	  
-	    Node[] nodes = impl.findAllNodes(serviceKey);
-	    NodeAdapter[] result = new NodeAdapter[nodes.length];
-	    for(int i = 0; i < result.length; i++) {
-		result[i] = (NodeAdapter)nodes[i];
-	    }
-
-	    return result;
+	    return impl.findAllNodes(serviceKey);
 	}
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("IMTP Error during slice list retrieval", imtpe);
 	}
     }
 
-    public NodeAdapter findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException {
+    public Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException {
 	try {
-	    NodeAdapter node = (NodeAdapter)impl.findSliceNode(serviceKey, sliceKey);
-	    return node;
+	    return (NodeAdapter)impl.findSliceNode(serviceKey, sliceKey);
 	}
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("IMTP Error during slice lookup", imtpe);
