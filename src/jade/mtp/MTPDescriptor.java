@@ -25,6 +25,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
+import jade.core.CaseInsensitiveString;
 import jade.util.leap.Serializable;
 
 public class MTPDescriptor implements Serializable {
@@ -49,7 +50,39 @@ public class MTPDescriptor implements Serializable {
   public String[] getSupportedProtocols() {
     return protoNames;
   }
-
+  
+  public boolean equals(Object obj) {
+  	try {
+  		MTPDescriptor toBeCompared = (MTPDescriptor) obj;
+  		if (!CaseInsensitiveString.equalsIgnoreCase(name, toBeCompared.getName())) {
+  			return false;
+  		}
+  		String[] comparedAddresses = toBeCompared.getAddresses();
+  		if (addresses == null && comparedAddresses == null) {
+  			// No need to compare addresses
+  			return true;
+  		}
+  		if (addresses.length != comparedAddresses.length) {
+  			return false;
+  		}
+  		for (int i = 0; i < addresses.length; ++i) {
+  			int j;
+  			for (j = 0; j < comparedAddresses.length; ++j) {
+		  		if (CaseInsensitiveString.equalsIgnoreCase(addresses[i], comparedAddresses[j])) {
+		  			break;
+		  		}
+  			}
+  			if (j >= comparedAddresses.length) {
+  				// Address not found
+  				return false;
+  			}
+  		}
+  		return true;
+  	}
+  	catch (Exception e) {
+  		return false;
+  	}
+  }
 }
 
 
