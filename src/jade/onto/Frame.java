@@ -66,7 +66,7 @@ public class Frame {
   }
 
   public void dump() {
-
+    System.out.println("Frame: " + myName);
     Iterator i = slotsByName.entrySet().iterator();
     while(i.hasNext()) {
       Map.Entry e = (Map.Entry)i.next();
