@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.introspector.gui;
 
+import java.io.UnsupportedEncodingException;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
@@ -59,11 +61,13 @@ public class TableUpdater implements Runnable {
       }
       String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes(),charset);
+      msg = codec.decode(s.getBytes(charset),charset);
       msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();
+    } catch ( UnsupportedEncodingException exception ) {
+    	exception.printStackTrace();
     }
   }
 
@@ -80,12 +84,14 @@ public class TableUpdater implements Runnable {
       }
       String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes(),charset);
+      msg = codec.decode(s.getBytes(charset),charset);
       msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();
-    }
+    } catch ( UnsupportedEncodingException exception ) {
+		exception.printStackTrace();
+	}
   }
 
   public TableUpdater(MessagePanel wnd, ReceivedMessage rm) {
@@ -101,12 +107,14 @@ public class TableUpdater implements Runnable {
       }
       String s = m.getPayload();
       ACLCodec codec = new StringACLCodec();
-      msg = codec.decode(s.getBytes(),charset);
+      msg = codec.decode(s.getBytes(charset),charset);
       msg.setEnvelope(e);
     }
     catch(ACLCodec.CodecException aclce) {
       aclce.printStackTrace();
-    }
+    } catch ( UnsupportedEncodingException exception ) {
+		exception.printStackTrace();
+	}
   }
 
 

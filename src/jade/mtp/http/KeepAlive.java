@@ -60,23 +60,23 @@ public class KeepAlive {
    */
   public static class KAConnection {
     private Socket         socket;
-    private BufferedWriter out;
-    private BufferedReader in;
+    private OutputStream   out;
+    private InputStream    in;
     private HTTPAddress    address;
     private Vector         connections;
     
     KAConnection(Socket s, HTTPAddress a) throws IOException {
       socket = s;
-      out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-      in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      out = new BufferedOutputStream(socket.getOutputStream());
+      in = new BufferedInputStream(socket.getInputStream());
       address = a;
     }
     
-    BufferedWriter getOut() {
+    OutputStream getOut() {
       return out;
     }
     
-    BufferedReader getIn() {
+    InputStream getIn() {
       return in;
     }
 

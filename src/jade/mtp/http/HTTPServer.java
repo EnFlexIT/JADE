@@ -161,12 +161,12 @@ public class HTTPServer extends Thread {
   public static class ServerThread extends Thread {
     private HTTPServer           father;
     private Socket               client;    
-    private BufferedReader br;
-    private BufferedWriter out;
+    private InputStream          input;
+    private OutputStream         output;
     private InChannel.Dispatcher dispatcher;
     private XMLCodec             codec;
-    private boolean              keepAlive = false;
-    private boolean              active    = false;
+    private boolean             keepAlive = false;
+    private boolean             active    = false;
     
     /** Constructor: Store client port*/
     public ServerThread(HTTPServer f, Socket s, InChannel.Dispatcher d) { 
@@ -182,14 +182,14 @@ public class HTTPServer extends Thread {
     public void run () {
       try {
         codec = new XMLCodec(HTTPServer.CODEC);
-        br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+        input = new BufferedInputStream(client.getInputStream());
+        output = new BufferedOutputStream(client.getOutputStream());
         do {
           //Read the request from client
           StringBuffer envelope   = new StringBuffer(40);
-          StringBuffer payload    = new StringBuffer(40);
+          ByteArrayOutputStream payload = new ByteArrayOutputStream(40);
           StringBuffer connection = new StringBuffer();
-          String responseMsg      = HTTPIO.readAll(br,envelope,payload,connection);
+          String responseMsg      = HTTPIO.readAll(input,envelope,payload,connection);
           String type = connection.toString();
           if (HTTPIO.OK.equals(responseMsg)) {
             // Extract the information from request
@@ -204,10 +204,10 @@ public class HTTPServer extends Thread {
             //System.out.println("Envelope received:\n"+env);
             //Post the Message to Jade platform	
             synchronized (dispatcher) {
-              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.length())) {
+              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.size())) {
                 logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
               }
-              dispatcher.dispatchMessage(env,payload.toString().getBytes());
+              dispatcher.dispatchMessage(env,payload.toByteArray());
             }
             if (HTTPIO.KA.equalsIgnoreCase(type)) {
               if (! keepAlive) { 
@@ -228,7 +228,7 @@ public class HTTPServer extends Thread {
               active = false;
             }
           }
-          HTTPIO.writeAll(out,HTTPIO.createHTTPResponse(responseMsg,type));
+          HTTPIO.writeAll(output,HTTPIO.createHTTPResponse(responseMsg,type));
         } while(active);
       } 
       catch(SocketException se) {

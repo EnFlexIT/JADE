@@ -42,41 +42,62 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp.http;
 
-import java.net.*;
-import java.io.*;
-import java.io.BufferedReader;
-import java.util.StringTokenizer;
-import java.util.NoSuchElementException;
-
 import jade.domain.FIPAAgentManagement.Envelope;
-
 import jade.util.Logger;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 public class HTTPIO {
 	
   // Response codes
-  public static final String OK    = "200 OK";;
-  public static final String ERROR = "406 Not Acceptable";
-  public static final String UNAV  = "503 Service Unavailable";
+  public static final String OK    = "200 OK";
+  private static final String ERROR = "406 Not Acceptable";
+  //private static final String UNAV  = "503 Service Unavailable";
   // HTTP constants
-  public static final String HTTP1 = "HTTP/1.";
-  public static final String PROXY = "Proxy-Connection: ";
-  public static final String CR      = "\r\n";
-  public static final String POST    = "POST";
-  public static final String CONTENT = "Content-Type: ";
-  public static final String CLENGTH = "Content-Length: ";
-  public static final String MM      = "multipart/mixed";
-  public static final String BND     = "boundary";
-  public static final String APPLI   = "application/";
-  public static final String CONN    = "Connection: "; 
+  private static final String HTTP1 = "HTTP/1.";
+  private static final byte[] PROXY = {'P','r','o','x','y','-','C','o','n','n','e','c','t','i','o','n',':',' '};
+  private static final String PROXY_STR = "Proxy-Connection: ";
+  private static final byte CR = '\r';
+  private static final byte LF = '\n';
+  private static final byte[] CRLF = {CR,LF};
+  private static final byte[] POST = {'P','O','S','T'};
+  private static final String POST_STR = "POST";
+  private static final byte[] CONTENT = {'C','o','n','t','e','n','t','-','T','y','p','e',':',' '};
+  private static final String CONTENT_STR = "Content-Type: ";
+  private static final byte[] CLENGTH = {'C','o','n','t','e','n','t','-','L','e','n','g','t','h',':',' '};
+  private static final byte[] MM = {'m','u','l','t','i','p','a','r','t','/','m','i','x','e','d'};
+  private static final String MM_STR = "multipart/mixed";
+  private static final byte[] BND = {'b','o','u','n','d','a','r','y'};
+  private static final String BND_STR = "boundary";
+  private static final byte[] APPLI = {'a','p','p','l','i','c','a','t','i','o','n','/'};
+  private static final byte[] CONN = {'C','o','n','n','e','c','t','i','o','n',':',' '};
+  private static final String CONN_STR = "Connection: ";
   public static final String CLOSE   = "close"; 
   public static final String KA      = "Keep-Alive"; 
-  public static final String HTTP    = "HTTP/1.1";
-  public static final String CACHE   = "Cache-Control: no-cache";
-  public static final String MIME    = "Mime-Version: 1.0";
-  public static final String HOST    = "Host: ";
-  public static final String DL      = "--";
-  public static final String BLK     = "";
+  private static final byte[] HTTP = {'H','T','T','P','/','1','.','1'};
+  private static final byte[] CACHE =
+	{'C','a','c','h','e','-','C','o','n','t','r','o','l',':',' ','n','o','-','c','a','c','h','e'};
+  private static final byte[] MIME = {'M','i','m','e','-','V','e','r','s','i','o','n',':',' ','1','.','0'};
+  private static final byte[] HOST = {'H','o','s','t',':',' '};
+  private static final String HOST_STR = "Host: ";
+  private static final byte[] DL = {'-', '-'};
+  private static final String DL_STR = "--";
+  private static final String BLK     = "";
+  private static final byte[] MIME_MULTI_PART_HEADER =
+  	{'T','h','i','s',' ','i','s',' ','n','o','t',' ','p','a','r','t',' ','o','f',' ','t','h','e',' ',
+  		'M','I','M','E',' ','m','u','l','t','i','p','a','r','t',' ','e','n','c','o','d','e','d',' ',
+  		'm','e','s','s','a','g','e','.'};
+  private static final byte[] XML = {'x','m','l'};
+  private static final byte[] CHARSET = {';',' ','c','h','a','r','s','e','t','='};
+  private static final byte[] TEXT = {'t','e','x','t'};
+  private static final byte[] TEXT_HTML = {'t','e','x','t','/','h','t','m','l'};
+  private static final byte[] HTML_BEGIN = {'<','h','t','m','l','>','<','b','o','d','y','>','<','h','1','>'};
+  private static final byte[] HTML_END = {'<','/','h','1','>','<','/','b','o','d','y','>','<','/','h','t','m','l','>'};
   
   private static Logger logger = Logger.getMyLogger(HTTPIO.class.getName());
   
@@ -89,94 +110,151 @@ public class HTTPIO {
   /**
    * Write the message to the OutputStream associated to the Sender
    */
-  public static void writeAll(BufferedWriter bw ,String msg) throws IOException {       
-    bw.write(msg+"\n");
-    bw.flush();
+  public static void writeAll(OutputStream output, byte[] message) throws IOException {
+    output.write(message);
+    output.write(CRLF);
+    output.flush();
   }
   
   /**
    * Create a generic message of HTTP with the input msgCode 
    * and type of connection (close or Keep-Alive)
    */
-	public static String createHTTPResponse(String msgCode, String type){
-		StringBuffer msg = new StringBuffer(HTTP);
-    msg.append(" ").append(msgCode).append(CR);
-    msg.append(CONTENT).append("text/html").append(CR);
-    msg.append(CACHE).append(CR);
-    msg.append(CONN).append(type).append(CR);
-    msg.append(CR);
-    msg.append("<HTML><BODY><H1>").append(msgCode).append("</H1></BODY></HTML>");
-		return msg.toString();        
-	}
+  public static byte[] createHTTPResponse(String msgCode, String type) {
+    ByteArrayOutputStream message = new ByteArrayOutputStream(256);
+    try {
+      message.write(HTTP);
+      message.write(' ');
+      writeLowBytes(message,msgCode);
+      message.write(CRLF);
+      message.write(CONTENT);
+      message.write(TEXT_HTML);
+      message.write(CRLF);
+      message.write(CACHE);
+      message.write(CRLF);
+      message.write(CONN);
+      writeLowBytes(message,type);
+      message.write(CRLF);
+      message.write(CRLF);
+      message.write(HTML_BEGIN);
+      writeLowBytes(message,msgCode);
+      message.write(HTML_END);
+    } catch (IOException exception) {
+      exception.printStackTrace();
+    }
+    return message.toByteArray();        
+  }
 	      
   /**
    * Prepare the HTML header
    */
-  public static StringBuffer createHTTPHeader(HTTPAddress host, int length, String policy, String boundary, boolean proxy) {
+  public static byte[] createHTTPHeader(HTTPAddress host, int length, String policy, byte[] boundary, boolean proxy) {
     //Put the header
-    StringBuffer header = new StringBuffer(200);
-    header.append(POST).append(" ");
-    header.append(host.toString()).append(" ").append(HTTP).append(CR);
-    header.append(CACHE).append(CR);
-    header.append(MIME).append(CR);
-    header.append(HOST).append(host.getHost()).append(":").append(host.getPort()).append(CR);
-    
-    header.append(CONTENT).append(MM).append(" ; ").append(BND).append("=\"");
-    header.append(boundary).append("\"").append(CR);
-    
-    //put the Content-Length
-    header.append(CLENGTH).append(length).append(CR);
-    
-    //put the Connection policy
-    if (proxy) {
-      header.append(PROXY).append(policy).append(CR);
+    ByteArrayOutputStream header = new ByteArrayOutputStream(256);
+    try {
+      header.write(POST);
+      header.write(' ');
+      writeLowBytes(header,host.toString());
+      header.write(' ');
+      header.write(HTTP);
+      header.write(CRLF);
+      header.write(CACHE);
+      header.write(CRLF);
+      header.write(MIME);
+      header.write(CRLF);
+      header.write(HOST);
+      writeLowBytes(header,host.getHost());
+      header.write(':');
+      writeLowBytes(header,host.getPort());
+      header.write(CRLF);
+      header.write(CONTENT);
+      header.write(MM);
+      header.write(' ');
+      header.write(';');
+      header.write(' ');
+      header.write(BND);
+      header.write('=');
+      header.write('\"');
+      header.write(boundary);
+      header.write('\"');
+      header.write(CRLF);
+      //put the Content-Length
+      header.write(CLENGTH);
+      writeLowBytes(header,Integer.toString(length));
+      header.write(CRLF);
+      //put the Connection policy
+      if (proxy) {
+        header.write(PROXY);
+        writeLowBytes(header,policy);
+        header.write(CRLF);
+      } else {
+        header.write(CONN);
+        writeLowBytes(header,policy);
+        header.write(CRLF);
+      }
+      header.write(CRLF);
+      header.flush();
+    } catch (IOException exception) {
+      exception.printStackTrace();
     }
-    else {
-      header.append(CONN).append(policy).append(CR);
-    }
-    header.append(CR);
-    return header;
+    return header.toByteArray();
   }
 
   /**
    * Prepare the HTML body
    */
-  public static String createHTTPBody(Envelope env, String boundary, String payload) {
-    //PREPARE BODY
-    StringBuffer body = new StringBuffer(100);
-    body.append("This is not part of the MIME multipart encoded message.").append(CR);
-    body.append(DL).append(boundary).append(CR);
-    
-    //Insert The XML envelope
-    // Put the Content-Type
-    body.append(CONTENT).append(APPLI).append("xml").append(CR);
-    body.append(CR); //A empty line
-    env.setPayloadLength(new Long((long)payload.length()));
-    body.append(XMLCodec.encodeXML(env));
-    body.append("\n");
-    //Put the boundary delimit.
-    body.append(DL).append(boundary).append(CR);
-    
-    //Insert the ACL message
-    //Put the Content-Type  
-    String payloadEncoding = env.getPayloadEncoding();
-    if ((payloadEncoding != null) && 
-        (payloadEncoding.length() > 0)) {
-      body.append(CONTENT).append(env.getAclRepresentation());
-      body.append("; charset=").append(env.getPayloadEncoding());
-    }			
-    else {
-      body.append(CONTENT).append(APPLI).append("text");	      
-    }
-    body.append(CR).append(CR);
-			
-    //ACL part
-    //Insert the ACL payload
-    body.append(payload).append(CR);
-    //Put the final boundary
-    body.append(DL).append(boundary).append(DL).append(CR);
-    
-    return body.toString();
+  public static byte[] createHTTPBody(Envelope env, byte[] boundary, byte[] payload) {
+	ByteArrayOutputStream body = new ByteArrayOutputStream(payload.length + 100);
+  	try {
+      //PREPARE BODY
+      body.write(MIME_MULTI_PART_HEADER);
+      body.write(CRLF);
+      body.write(DL);
+      body.write(boundary);
+      body.write(CRLF);
+      //Insert The XML envelope
+      // Put the Content-Type
+      body.write(CONTENT);
+      body.write(APPLI);
+      body.write(XML);
+      body.write(CRLF);
+      body.write(CRLF); //A empty line
+      env.setPayloadLength(new Long(payload.length));
+      writeLowBytes(body,XMLCodec.encodeXML(env));
+      body.write(CRLF);
+      //Put the boundary delimit.
+      body.write(DL);
+      body.write(boundary);
+      body.write(CRLF);
+      //Insert the ACL message
+      //Put the Content-Type  
+      String payloadEncoding = env.getPayloadEncoding();
+      if ((payloadEncoding != null) && (payloadEncoding.length() > 0)) {
+        body.write(CONTENT);
+        writeLowBytes(body,env.getAclRepresentation());
+        body.write(CHARSET);
+        writeLowBytes(body,payloadEncoding);
+      } else {
+        body.write(CONTENT);
+        body.write(APPLI);
+        body.write(TEXT);
+      }
+      body.write(CRLF);
+      body.write(CRLF);
+      //ACL part
+      //Insert the ACL payload
+      body.write(payload);
+      body.write(CRLF);
+      //Put the final boundary
+      body.write(DL);
+      body.write(boundary);
+      body.write(DL);
+      body.write(CRLF);
+      body.flush();
+  	} catch (IOException exception) {
+      exception.printStackTrace();
+  	}
+    return body.toByteArray();
   }
 
 
@@ -201,18 +279,16 @@ public class HTTPIO {
    * Parse the input message, this message is received from the master server 
    * @param type return type of connection: close or Keep-Alive
    */  
-  public static String readAll(BufferedReader br, StringBuffer xml, StringBuffer acl, StringBuffer type) 
+  public static String readAll(InputStream input, StringBuffer xml, OutputStream acl, StringBuffer type) 
     throws IOException {
-    
     //For the Control of sintaxis  
     String  host = null;
     //boolean foundMime       = false;
     boolean foundBoundary   = false;
-    boolean findContentType = false;
+    //boolean findContentType = false;
     String  boundary = null;
     //String  line = null;
     String  typeConnection = null;
-    
     //Reset the Buffers
     // NL: Not supported on PJava
     /*
@@ -225,13 +301,11 @@ public class HTTPIO {
     */
     //try {
     String line;
-    while(BLK.equals(line=br.readLine())); // skip empty lines
-    
+    while(BLK.equals(line=readLineFromInputStream(input))); // skip empty lines
     if(line==null) throw new IOException();
-       
     StringTokenizer st = new StringTokenizer(line);
     try {
-      if(!(st.nextToken()).equalsIgnoreCase(POST) ) { 
+      if(!(st.nextToken()).equalsIgnoreCase(POST_STR) ) { 
         logger.log(Logger.WARNING,"Malformed POST");
         type.append(CLOSE);
         return ERROR;
@@ -248,10 +322,10 @@ public class HTTPIO {
       type.append(CLOSE);
       return ERROR;
     }
-    
     //Process rest of header
-    while (!(line=br.readLine()).equals(BLK)) {
-      if (line.startsWith(HOST)) {
+    while (!BLK.equals(line=readLineFromInputStream(input))) {
+      String lowerCaseLine = line.toLowerCase();
+      if (lowerCaseLine.startsWith(HOST_STR.toLowerCase())) {
         host = processLine(line); //De momento solo controlamos que este
       }
       /* // NL do not test MIME version for interoperability with other MTP 
@@ -259,101 +333,91 @@ public class HTTPIO {
          foundMime = true;
          }
       */
-      if (line.toLowerCase().startsWith(CONN.toLowerCase())) {
+      if (lowerCaseLine.startsWith(CONN_STR.toLowerCase())) {
         typeConnection= processLine(line);
       }
-      if (line.toLowerCase().startsWith(CONTENT.toLowerCase())) {	
+      if (lowerCaseLine.startsWith(CONTENT_STR.toLowerCase())) {	
         //Process the left part
-        if (!(processLine(line).toLowerCase().startsWith(MM))) {
+        if (!(processLine(line).toLowerCase().startsWith(MM_STR))) {
           logger.log(Logger.WARNING,"MULTIPART/MIXED");
           type.append(CLOSE);
           return ERROR;
         }
         //Process the right part
-        int pos = line.indexOf(BND);
+        int pos = line.indexOf(BND_STR);
         if (pos == -1) {
           // Boundary on next line
-          line=br.readLine();
-          if ((pos = line.indexOf(BND)) == -1) {
+          line=readLineFromInputStream(input);
+          if ((pos = line.indexOf(BND_STR)) == -1) {
             // Bounday not found
             logger.log(Logger.WARNING,"MIME boundary not found");
             type.append(CLOSE);
             return ERROR;
           }
         }
-        line = line.substring(pos+BND.length());
+        line = line.substring(pos+BND_STR.length());
         pos = line.indexOf("\"")+1;
-        boundary = DL+line.substring(pos,line.indexOf("\"",pos));
+        boundary = DL_STR+line.substring(pos,line.indexOf("\"",pos));
         foundBoundary = true;
       }
     }//end while
-       
     //if( !foundBoundary || !foundMime) {
     if(!foundBoundary) {
       logger.log(Logger.WARNING,"Mime header error");
       type.append(CLOSE);
       return ERROR;
     }
-    
     if (typeConnection == null) {
       type.append(KA); //Default Connection
     }	
     else {
       type.append(typeConnection); //Connection of request
     }
-      
     //jump to first  "--Boundary" 
-    while((line=br.readLine()).equals(BLK)); // skip empty lines
+    while(BLK.equals(line=readLineFromInputStream(input))); // skip empty lines
     do {
       if (line.startsWith(boundary)) { 
         break;
       }
     }
-    while(!(line=br.readLine()).equals(BLK));
-    
-    while((line=br.readLine()).equals(BLK)); // skip empty lines
+    while(!BLK.equals(line=readLineFromInputStream(input)));
+    while(BLK.equals(line=readLineFromInputStream(input))); // skip empty lines
     // Skip content-type
     do {    
-      if(line.toLowerCase().startsWith(CONTENT.toLowerCase())) { 
+      if(line.toLowerCase().startsWith(CONTENT_STR.toLowerCase())) { 
         break;
       }
     }
-    while(!(line=br.readLine()).equals(BLK));
-    
+    while(!BLK.equals(line=readLineFromInputStream(input)));
     //Capture the XML part
     //Capture the message envelope
-    while(!(line=br.readLine()).equals(boundary)) {
+    while(!boundary.equals(line=readLineFromInputStream(input))) {
       if (! line.equals(BLK)) {
         xml.append(line); 
       }
     }
-     
     //Capture the ACL part
     //JMP to ACLMessage
-    while((line=br.readLine()).equals(BLK)); // skip empty lines
+    while(BLK.equals(line=readLineFromInputStream(input))); // skip empty lines
     // Skip content-type
     do {    
-      if(line.toLowerCase().startsWith(CONTENT.toLowerCase())) { 
+      if(line.toLowerCase().startsWith(CONTENT_STR.toLowerCase())) { 
         break;
       }
     }
-    while(!(line=br.readLine()).equals(BLK));
+    while(!BLK.equals(line=readLineFromInputStream(input)));
     //Create last boundary for capture the ACLMessage
-    boundary = boundary+DL;
+    ByteArrayOutputStream boundaryPattern = new ByteArrayOutputStream(boundary.length()+6);
+    boundaryPattern.write(CRLF);
+    boundaryPattern.write(boundary.getBytes("ISO-8859-1"));
+    boundaryPattern.write(DL);
     //Capture the acl part.
-    // skip blank lines
-    while((line=br.readLine()).equals(BLK));
-    // handle first line separately
-    if (!line.equals(boundary)) {
-      acl.append(line);
+    int character = -1;
+    while(((character = input.read()) == CR ) || (character == LF)) {};  // Dirty hack: Skip leading blank lines.
+    if (character >= 0) {
+      acl.write(character);
+      readBytesUpTo(input,acl,boundaryPattern.toByteArray());
     }
-    // then handle following lines and append a separator
-    while(!(line=br.readLine()).equals(boundary)) {
-      if (! line.equals(BLK)) {
-        acl.append(" ").append(line); 
-      }
-    }
-    
     return OK;
     /*
       }
@@ -371,21 +435,21 @@ public class HTTPIO {
   /** 
    * Capture and return the code of response message, this message is received from client 
    */  
-  public static int getResponseCode(BufferedReader br, StringBuffer type) 
+  public static int getResponseCode(InputStream input, StringBuffer type) 
     throws IOException {
     int responseCode = -1;
     try {
       String line = null; 
       //Capture and process the response message
-      while (!(line=br.readLine()).startsWith(HTTP1));	
+      while (!(line=readLineFromInputStream(input)).startsWith(HTTP1));
       //capture the response code	     
       responseCode= Integer.parseInt(processLine(line));
       //Read all message
-      while(((line=br.readLine())!=null)&&(!line.equals(BLK))) {
-        if (line.toLowerCase().startsWith(CONN.toLowerCase())) {
+      while(((line=readLineFromInputStream(input))!=null)&&(!line.equals(BLK))) {
+        if (line.toLowerCase().startsWith(CONN_STR.toLowerCase())) {
           type.append(processLine(line));
         }
-        else if (line.toLowerCase().startsWith(PROXY.toLowerCase())) {
+        else if (line.toLowerCase().startsWith(PROXY_STR.toLowerCase())) {
           type.append(processLine(line));
         }
       }
@@ -408,7 +472,6 @@ public class HTTPIO {
    */
   private static String processLine(String line) 
     throws IOException {  
-    
     StringTokenizer st = new StringTokenizer(line);
     try {
       st.nextToken(); // Consumme first token
@@ -416,6 +479,115 @@ public class HTTPIO {
     }
     catch(NoSuchElementException nsee) {
       throw new IOException("Malformed line !: "+line);
+    }
+  }
+
+  /**
+   * Reads byte sequence from specified input stream into specified output stream up to specified
+   * byte sequence pattern is occurred. The output byte sequence does not contains any bytes matched
+   * with pattern. If the specified pattern was not found until the input stream reaches at end, output
+   * all byte sequence up to end of input stream and returns false.
+   *
+   * @param input specified input stream.
+   * @param output specified output stream.
+   * @param pattern specified pattern byte seqence.
+   * @return Whether the specified pattern was found or not.
+   * @throws IOException  If an I/O error occurs.
+   * @throws IllegalArgumentException If pattern is null or pattern is empty.
+   * @author mminagawa
+   */
+  private static boolean readBytesUpTo(InputStream input, OutputStream output, byte[] pattern) throws IOException {
+    if ((pattern == null) || (pattern.length == 0)) {
+      throw new IllegalArgumentException("Specified pattern is null or empty.");
+    }
+    int patternIndex = 0;
+    boolean matched = false;
+    boolean atEnd = false;
+    while ((!matched) && (!atEnd)) {
+      int readByte = input.read();
+      if (readByte < 0) {
+        atEnd = true;
+        if (patternIndex != 0) {
+          output.write(pattern,0,patternIndex);
+          patternIndex = 0;
+        }
+      } else {
+        if (readByte == pattern[patternIndex]) {
+          patternIndex++;
+          if (patternIndex >= pattern.length) {
+            matched = true;
+          }
+        } else {
+          if (patternIndex != 0) {
+			output.write(pattern,0,patternIndex);
+			patternIndex = 0;
+          }
+          output.write(readByte);
+        }
+      }
+    }
+    return matched;
+  }
+
+  /**
+   * Read a line of text from specified input stream.  A line is considered to be
+   * terminated by a carriage return ('\r') followed immediately by a linefeed ('\n').
+   *
+   * @param input specified input stream to read from.
+   * @return A String containing the contents of the line, not including any line-termination
+   *          characters, or null if the end of the stream has been reached.
+   * @throws IOException  If an I/O error occurs.
+   * @author mminagawa
+   */
+  private static String readLineFromInputStream(InputStream input) throws IOException {
+    StringBuffer buffer = new StringBuffer(256);
+    int characterByte;
+    boolean justBeforeCR = false;
+    boolean terminated = false;
+    boolean entered = false;
+    while ((!terminated) && ((characterByte = input.read()) >= 0)) {
+      entered = true;
+      switch (characterByte) {
+      case CR :
+        if (justBeforeCR) {
+          buffer.append((char)CR);
+        } else {
+          justBeforeCR = true;
+        }
+        break;
+      case LF :
+        if (justBeforeCR) {
+          terminated = true;
+        } else {
+          buffer.append((char)LF);
+        }
+		justBeforeCR = false;
+        break;
+      default :
+        if (justBeforeCR) { buffer.append((char)CR); }
+        buffer.append((char)characterByte);
+        justBeforeCR = false;
+      }
+    }
+    if (!entered) { return null; }
+    if ((!terminated) && (justBeforeCR)) {
+      buffer.append((char)CR);
+    }
+    return buffer.toString();
+  }
+
+  /**
+   * Write characters contained specified string to specified output stream.<br />
+   * These characters must be 7-bit character, and stored only low-byte of each code.
+   *
+   * @param output specified output stream.
+   * @param string specified string to output.
+   * @throws IOException  If an I/O error occurs.
+   * @author mminagawa
+   */
+  private static void writeLowBytes(OutputStream output, String string) throws IOException {
+    for (int i = 0 ; i < string.length() ; i++ ) {
+      output.write(string.charAt(i));
     }
   }
 

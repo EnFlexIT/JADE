@@ -219,7 +219,7 @@ public class Sniffer extends ToolAgent {
         ((charset = env.getPayloadEncoding()) == null)) {
       charset = ACLCodec.DEFAULT_CHARSET;
     }
-	  ACLMessage tmp = codec.decode(content.getBytes(),charset);
+	  ACLMessage tmp = codec.decode(content.getBytes(charset),charset);
 	  tmp.setEnvelope(env);
 	  Message msg = new Message(tmp);
     

@@ -317,18 +317,27 @@ public class MessageTransportProtocol implements MTP {
         }
         
         //Request body
-        String body = HTTPIO.createHTTPBody(env,boundary.toString(),new String(payload));
+        //String body = HTTPIO.createHTTPBody(env,boundary.toString(),new String(payload));
+				byte[] boundaryBytes = boundary.toString().getBytes("ISO-8859-1");
+        byte[] body = HTTPIO.createHTTPBody(env,boundaryBytes,payload);
       
         //HTTP header
-        StringBuffer req = HTTPIO.createHTTPHeader(host,body.length(),connPol,boundary.toString(),useProxy); 
+        //StringBuffer req = HTTPIO.createHTTPHeader(host,body.length(),connPol,boundary.toString(),useProxy); 
+        byte[] header = HTTPIO.createHTTPHeader(host,body.length,connPol,boundaryBytes,useProxy); 
         // Concatenate header + body
-        req.append(body);
-        
+        //req.append(body);
+				ByteArrayOutputStream requestStream = new ByteArrayOutputStream(header.length + body.length);
+				requestStream.write(header);
+				requestStream.write(body);
+				requestStream.flush();
+        requestStream.close();
+        byte[] request = requestStream.toByteArray();
+
         // Try to re-use an existing socket
         if (keepAlive) {
           //Search the address in Keep-Alive object
           kac = ka.getConnection(url);
-          if ((kac != null)&&(sendOut(kac,req,false) == 200)) {
+          if ((kac != null)&&(sendOut(kac,request,false) == 200)) {
             //change the priority of socket & another components of keep-alive object
             //Only the policy == AGGRESSIVE
             //HTTPAddress is cached;
@@ -354,7 +363,7 @@ public class MessageTransportProtocol implements MTP {
         kac = new KeepAlive.KAConnection(client,url);
         
         // Send out and check response code
-        if (sendOut(kac,req,true) != 200) { 
+        if (sendOut(kac,request,true) != 200) { 
           throw new MTPException("Description: ResponseMessage is not OK");
         }
       }
@@ -371,11 +380,11 @@ public class MessageTransportProtocol implements MTP {
     } 	
   }
   
-  private int sendOut(KeepAlive.KAConnection kac, StringBuffer req, boolean newC) throws IOException {
+  private int sendOut(KeepAlive.KAConnection kac, byte[] req, boolean newC) throws IOException {
     //Capture the streams
-    BufferedWriter os = kac.getOut();
-    BufferedReader is = kac.getIn();
-    HTTPIO.writeAll(os,req.toString());
+    OutputStream os = kac.getOut();
+    InputStream is = kac.getIn();
+    HTTPIO.writeAll(os,req);
     //Capture the HTTPresponse 
     StringBuffer typeConnection = new StringBuffer();
     int code = HTTPIO.getResponseCode(is,typeConnection);
