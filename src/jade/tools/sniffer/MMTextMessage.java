@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -26,17 +27,15 @@ package jade.tools.sniffer;
 
 import java.awt.Font;
 import javax.swing.JTextField;
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /**
  * Is the field in the bottom of the main frame. Shows the type of message
  *
  * @see javax.swing.JTextField
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
+ 
 public class MMTextMessage extends JTextField {
 	
   Font font = new Font("SanSerif",Font.PLAIN,14); 

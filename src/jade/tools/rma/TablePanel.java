@@ -35,7 +35,7 @@ import jade.gui.GuiProperties;
 /**
  * This is the Table on the left
 
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

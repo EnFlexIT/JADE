@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -41,7 +42,7 @@ import jade.proto.FipaRequestInitiatorBehaviour;
  *  At startup, the sniffer subscribes itself as an rma to be informed every time 
  *  an agent is born or dead, a container is created or deleted.<br>
  *  For more information see <a href="../../../../intro.htm" target="_top">Introduction to the Sniffer</a>
- * Javadoc documentation for the file
+ * 
  * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>(Developement) 
  * @author Gianluca Tanca (Concept & Early Version)
  * @version $Date$ $Revision$

@@ -34,7 +34,7 @@ import javax.swing.JFrame;
 import jade.gui.AboutJadeAction;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

@@ -28,7 +28,7 @@ import java.lang.Exception;
 import javax.swing.JOptionPane;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

@@ -27,7 +27,7 @@ package jade.tools.rma;
 import jade.lang.acl.ACLMessage;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -26,14 +27,12 @@ import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /** 
  * Abstract class because doesn't implements windowClosing methos 
+ *
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  *
  */
 abstract class WindowCloser extends WindowAdapter{

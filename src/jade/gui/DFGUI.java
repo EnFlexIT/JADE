@@ -36,7 +36,6 @@ import java.util.*;
 import jade.domain.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -169,6 +168,8 @@ public class DFGUI extends JFrame
 		registeredModel = new AgentNameTableModel();
 		registeredTable = new JTable(registeredModel); 
 		registeredTable.setRowHeight(20);
+		registeredTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
 		// Column names
 		TableColumn c;
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(0));
@@ -222,6 +223,8 @@ public class DFGUI extends JFrame
 		foundModel = new AgentNameTableModel();
 		foundTable = new JTable(foundModel); 
 		foundTable.setRowHeight(20);
+		foundTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		foundTable.setToolTipText("Double click on agent name to view the services provided by the selected agent");
 		// Column names
 		c = foundTable.getColumn((Object) foundTable.getColumnName(0));
 		c.setHeaderValue((Object) (new String("Agent name")));
@@ -230,6 +233,21 @@ public class DFGUI extends JFrame
 		c = foundTable.getColumn((Object) foundTable.getColumnName(2));
 		c.setHeaderValue((Object) (new String("Agent address")));
 	
+			// Doubleclick = view
+		MouseListener mouseListener2 = new MouseAdapter() 
+		{
+     			public void mouseClicked(MouseEvent e)
+			{
+				if (e.getClickCount() == 2)
+				{
+					DFGUISearchViewAction ac = new DFGUISearchViewAction(DFGUI.this);
+					ac.actionPerformed(new ActionEvent((Object) this, 0, "SearchView"));
+				}  
+			} 
+ 		};
+ 		foundTable.addMouseListener(mouseListener2); 
+
+
 		p.setLayout(new BorderLayout());
 		pane = new JScrollPane();
 		pane.getViewport().setView(foundTable); 
@@ -272,6 +290,14 @@ public class DFGUI extends JFrame
 		registeredModel.fireTableDataChanged();		
 	}
 
+	public void refreshLastSearch(Enumeration e){
+		foundModel.clear();
+		while(e.hasMoreElements()){
+		AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor) e.nextElement();
+		foundModel.add(dfd.getName());
+		}
+		foundModel.fireTableDataChanged();
+	}
 	////////////////////////////////////
 	// Show DF GUI properly
 	public void setVisible(boolean b) 

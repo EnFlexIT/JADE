@@ -77,14 +77,22 @@ public interface GUI2DFCommunicatorInterface {
    * this method modifies an agent description with the DF
    */
   public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd);
-
+  
   /**
-   * this method returns all the agent descriptions registered with the DF
+   * this method searches agents with the DF according to the dfd
    */
+  public void postSearchEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd); 
+  
+  /**
+  * this method returns all the agent descriptions registered with the DF
+  */
   public abstract Enumeration getAllDFAgentDsc();
 
   /**
    * this method returns the agent description registered with the DF given the agent name
    */
   public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException;
+  
+  
+	
 }

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -29,11 +30,6 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /**  
  * Creates a serialized snapshot of the agents and sniffed messages in both canvases for
@@ -42,6 +38,9 @@ Javadoc documentation for the file
  * @see jade.Sniffer.MMAbstractAction
  * @see jade.Sniffer.AgentList
  * @see jade.Sniffer.MessageList
+ *
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
 
 public class WriteLogFileAction extends MMAbstractAction implements Serializable{

@@ -37,7 +37,6 @@ import java.net.*;
 import java.io.*;
 
 /**
-Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -67,6 +66,7 @@ public class DFAppletCommunicator implements GUI2DFCommunicatorInterface {
 public DFAppletCommunicator(Applet applet) {
   try {
     a = applet;
+    
     Socket s = new Socket(a.getCodeBase().getHost(), DEFAULT_PORT);
     System.out.println("DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
     in = new DataInputStream(s.getInputStream());
@@ -158,7 +158,9 @@ public void postRegisterEvent(Object source, String parentName, AgentManagementO
       msg=receiveMessage();
       System.err.println("Received the message"+msg.toString());
       if (! "inform".equalsIgnoreCase(msg.getType())) 
-	gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      	gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
+	
+    gui.refresh();  	
     } else gui.showErrorMsg("Register unsucceeded because received "+msg.getType()+" "+msg.getContent());
   } catch (ParseException e) {
     gui.showErrorMsg("Register unsucceeded because "+e.getMessage());
@@ -176,7 +178,32 @@ public void postDeregisterEvent(Object source, String parentName, AgentManagemen
     w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (deregister  (:df-description ");
     dfd.toText(w);
     w.write("))))");
-    //System.out.println(w.toString());
+    sendMessage(w.toString());
+    ACLMessage msg=receiveMessage(); 
+    
+    if ("agree".equalsIgnoreCase(msg.getType())) {
+      msg=receiveMessage();
+      
+      if (! "inform".equalsIgnoreCase(msg.getType())) 
+      	gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    gui.refresh();
+    } else gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
+  } catch (ParseException e) {
+    gui.showErrorMsg("Deregister unsucceeded because "+e.getMessage());
+  }
+    
+}
+/**
+Modify the descriptor of an agent
+*/
+  public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+    
+  try {
+    StringWriter w = new StringWriter();
+    w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action df (modify  (:df-description ");
+    dfd.toText(w);
+    w.write(" ))))");
+    System.out.println(w.toString());
     sendMessage(w.toString());
     ACLMessage msg=receiveMessage(); 
     //System.err.println("Received the message"+msg.toString());
@@ -184,16 +211,14 @@ public void postDeregisterEvent(Object source, String parentName, AgentManagemen
       msg=receiveMessage();
       //System.err.println("Received the message"+msg.toString());
       if (! "inform".equalsIgnoreCase(msg.getType())) 
-	gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
-    } else gui.showErrorMsg("Deregister unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      	gui.showErrorMsg("Modify unsucceeded because received "+msg.getType()+" "+msg.getContent());
+    } else 
+    gui.showErrorMsg("Modify unsucceeded because received "+msg.getType()+" "+msg.getContent());
   } catch (ParseException e) {
-    gui.showErrorMsg("Deregister unsucceeded because "+e.getMessage());
-  }
-    
-}
-
-  public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-    gui.showErrorMsg("Modify not yet implemented via applet");
+    gui.showErrorMsg("Modify unsucceeded because "+e.getMessage());
+  }	
+  	
+  	//gui.showErrorMsg("Modify not yet implemented via applet");
   }
 
   /**
@@ -230,10 +255,88 @@ public Enumeration getAllDFAgentDsc() {
   return (new Hashtable()).elements();
 }
 
-  public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException {
-    gui.showErrorMsg("getDFAgentDSC not yet implemented !"); 
+/**
+Returns the agent descriptor of the agent with the given name  
+*/  
+public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException {
+    
+  	try{
+  	
+  		StringWriter w = new StringWriter();
+   	  w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (search (:df-description (:agent-name "+ name + " )) (:df-depth Max 1)))) ");
+  		sendMessage(w.toString());
+  		ACLMessage msg = receiveMessage();
+  		if("agree".equalsIgnoreCase(msg.getType()))
+  		{
+  			msg = receiveMessage();
+  			if(! "inform".equalsIgnoreCase(msg.getType()))
+  				gui.showErrorMsg("Search unsucceeded because received "+ msg.getType() + " "+ msg.getContent());
+  				else
+  				{
+  					StringReader textIn = new StringReader(msg.getContent());
+  					AgentManagementOntology.DFSearchResult found =  AgentManagementOntology.DFSearchResult.fromText(textIn);
+  				
+  					Enumeration e = found.elements();
+  					AgentManagementOntology.DFAgentDescriptor out = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
+  				
+  					return out;
+  				  
+  				}
+  		
+  		}
+  		else gui.showErrorMsg("Search unsucceeded because received "+ msg.getType() + " "+ msg.getContent());  		
+  			
+  	}catch(ParseException e ){
+  		gui.showErrorMsg("Search unsucceeded because received "+ e. getMessage());
+  	}catch(FIPAException e1){
+  		gui.showErrorMsg("Search unsucceeded because received "+ e1. getMessage());
+  	}catch(jade.domain.ParseException e2){
+  			gui.showErrorMsg("Search unsucceeded because received "+ e2. getMessage());
+  	
+  	}
+  
     return null;
   }
+  
+  /**
+  Da riscrivere non esiste più dovrò scrivere postsearchaction
+  Finds all the agent descriptors that match the given agent descriptor
+  */
+  public void postSearchEvent(Object source, String parentname, AgentManagementOntology.DFAgentDescriptor dfd)
+  {
+  
+  	try 
+  	{
+    StringWriter w = new StringWriter();
+    // FIXME: to use this method for search with other df it's necessary the address; parentname infact is only  df@null so it can be used
+    w.write("(request :receiver df :ontology fipa-agent-management :language SL0 :protocol fipa-request :content (action DF (search (:df-description "); 
+    dfd.toText(w);
+    w.write (")");
+    w.write ("(:df-depth Max 1)");
+    w.write(")))");
+    System.out.println(w.toString());
+    sendMessage(w.toString());
+    ACLMessage msg=receiveMessage(); 
+    //System.err.println("Received the message"+msg.toString());
+    if ("agree".equalsIgnoreCase(msg.getType())) {
+      msg=receiveMessage();
+      //System.err.println("Received the message"+msg.toString());
+      if (! "inform".equalsIgnoreCase(msg.getType())) 
+      	gui.showErrorMsg("Search unsucceeded because received "+msg.getType()+" "+msg.getContent());
+      else {
+      	StringReader textIn = new StringReader(msg.getContent());
+      	AgentManagementOntology.DFSearchResult found = AgentManagementOntology.DFSearchResult.fromText(textIn);
+        gui.refreshLastSearch(found.elements()); 
+      }
+    } 
+    else 
+    gui.showErrorMsg("Search with DF unsucceeded because received "+msg.getType()+" "+msg.getContent());
+  	} catch (ParseException e) { 
+    gui.showErrorMsg("Search unsucceeded because "+e.getMessage()); 
+  	} catch (FIPAException e1) { 
+    gui.showErrorMsg("Search unsucceeded because "+ e1.getMessage()); 
+  	} catch (jade.domain.ParseException e2) { 
+    gui.showErrorMsg("Search unsucceeded because "+e2.getMessage()); 
+  	}
+  }
 }
-
-

@@ -32,7 +32,7 @@ import jade.gui.AgentTree;
 import jade.gui.GuiProperties;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

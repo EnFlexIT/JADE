@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -42,11 +43,6 @@ import java.io.Serializable;
 
 import jade.gui.AclGui; 
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /**
  * Manages agents and messages on both canvas. It holds an agent list, a message
@@ -55,6 +51,9 @@ Javadoc documentation for the file
  *
  * @see javax.swing.JPanel
  * @see java.awt.event.MouseListener
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
+ *
  */
 
 public class MMCanvas extends JPanel implements MouseListener, Serializable {

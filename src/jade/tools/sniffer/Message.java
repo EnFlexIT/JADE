@@ -30,18 +30,14 @@ import jade.lang.acl.ACLMessage;
 import javax.swing.SwingUtilities;
 
 /**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
-
-/**
  * A <em>Message</em> extends the meaning of an ACLMessage (thus extending 
  * jade.lang.acl.ACLMessage) providing an ACLMessage with the graphic part: the
  * arrow going from the sender of the message to the receiver of the message to
  * be drawn on the Message Canvas
  *
  * @see jade.lang.acl.ACLMessage
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
 
 public class Message extends jade.lang.acl.ACLMessage implements Serializable{

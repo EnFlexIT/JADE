@@ -33,7 +33,6 @@ import javax.swing.*;
 import jade.domain.AgentManagementOntology;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */

@@ -64,7 +64,7 @@ import jade.lang.acl.*;
 
   @see jade.proto.FipaRequestInitiatorBehaviour
   
-  Javadoc documentation for the file  
+  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

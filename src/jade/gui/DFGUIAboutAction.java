@@ -30,7 +30,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */

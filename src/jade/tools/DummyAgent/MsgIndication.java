@@ -34,7 +34,6 @@ import jade.core.*;
 import jade.lang.acl.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */

@@ -28,7 +28,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */

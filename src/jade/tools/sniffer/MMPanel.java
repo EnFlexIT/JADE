@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -30,15 +31,13 @@ import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
-/**
+ /**
  * Encapsulates both the Agent Canavs and the Message Canvas in one JPanel
  * 
  * @see javax.swing.JPanel
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
+ *
  */
 
 public class MMPanel extends JPanel{

@@ -82,7 +82,7 @@ import java.io.*;
 * </ul>
 * @see jade.proto.FipaContractNetInitiatorBehaviour
 *
-* Javadoc documentation for the file
+* 
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
 */

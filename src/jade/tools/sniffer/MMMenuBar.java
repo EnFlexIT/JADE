@@ -33,12 +33,9 @@ import javax.swing.JFrame;
 import jade.gui.AboutJadeAction;
 
 /**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
-/**
  * Sets up the menu bar and the relative menus
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
 public class MMMenuBar extends JMenuBar{
 	

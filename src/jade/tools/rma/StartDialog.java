@@ -30,7 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.*;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

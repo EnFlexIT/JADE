@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -47,7 +48,7 @@ import java.util.Vector;
  * Created the Add/Remove Agent windows with tree and menu component. Also registers action
  * listeners and, in future, popup menu.
  *
- * Javadoc documentation for the file
+ * 
  * @author <a href="mailto:alessandro.beneventi@re.nettuno.it"> Alessandro Beneventi </a>
  * @version $Date$ $Revision$
  */

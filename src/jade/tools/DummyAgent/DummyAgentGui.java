@@ -40,7 +40,6 @@ import jade.lang.acl.*;
 import jade.gui.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */

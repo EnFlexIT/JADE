@@ -100,7 +100,7 @@ import java.io.*;
 * <p>
 * @see jade.proto.FipaContractNetResponderBehaviour
 *
-* Javadoc documentation for the file
+* 
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
 */

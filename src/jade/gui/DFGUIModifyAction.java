@@ -34,7 +34,6 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */

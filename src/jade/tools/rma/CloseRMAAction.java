@@ -30,7 +30,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */

@@ -32,7 +32,6 @@ import jade.core.*;
 import jade.core.behaviours.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */

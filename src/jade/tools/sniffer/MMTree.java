@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -38,11 +39,6 @@ import java.awt.Font;
 import java.awt.BorderLayout;
 import java.util.Enumeration;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /** 
  * The Tree listens TreeSelection events, because we want 
@@ -51,6 +47,9 @@ Javadoc documentation for the file
  * 
  * @see javax.swing.JPanel
  * @see javax.swing.tree.TreeSelectionListener
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
+ *
  */
 public class MMTree extends JPanel implements TreeSelectionListener{
     

@@ -27,7 +27,6 @@ import jade.gui.*;
 import java.applet.Applet;
 
 /**
-Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -37,13 +36,16 @@ Javadoc documentation for the file
  * showing the GUI of the default DF.
  * @see jade.applet.DFAppletCommunicator
  */
+ 
+ //<applet code = DFApplet.class width = 200 height=100></applet>
 public class DFApplet extends Applet {
 
   public void init() {
     DFAppletCommunicator dfc = new DFAppletCommunicator(this);
     DFGUI gui = new DFGUI(dfc);
-    dfc.setGUI(gui);
-    gui.setVisible(true);
+    dfc.setGUI(gui);  
+    gui.setVisible(true); 
+    gui.refresh();
   }
 
 }

@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -30,11 +31,6 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
 import java.io.Serializable;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /**
  * Class TreeData represents Agents, Containers and Agent-platforms 
@@ -45,6 +41,9 @@ Javadoc documentation for the file
  * representation of the state is given only for Agents, but Platforms and containers
  * have their own state, too.
  * The method loadChildren() must be rewritten to work properly 
+ * 
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
 
 public class TreeData extends DefaultMutableTreeNode implements Serializable{

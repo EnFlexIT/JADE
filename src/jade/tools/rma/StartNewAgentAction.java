@@ -29,7 +29,7 @@ import java.awt.Frame;
 import jade.gui.AgentTree;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

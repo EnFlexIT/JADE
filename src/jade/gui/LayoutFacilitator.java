@@ -28,7 +28,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -98,7 +97,7 @@ public class LayoutFacilitator
 		for (i = 0; i < dx; ++i)
 			preferredWidth += colWidth[x+i] + xSpacing;
 		preferredWidth -= xSpacing;
-		preferredHeight = c.getPreferredSize().height;
+	  preferredHeight = c.getPreferredSize().height;
 		c.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
 
 		constraint.insets = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);

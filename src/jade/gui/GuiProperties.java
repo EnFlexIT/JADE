@@ -29,7 +29,7 @@ import java.util.Properties;
 /**
  * This class encapsulates some informations used by the program
 
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
 

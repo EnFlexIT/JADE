@@ -41,7 +41,7 @@ import jade.gui.AgentTreeModel;
   message passing. Besides, this agent has a <em>GUI</em> through
   which <b>JADE</b> Agent Platform can be administered.
   
-  Javadoc documentation for the file
+  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

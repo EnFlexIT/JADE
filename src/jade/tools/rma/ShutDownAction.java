@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -26,16 +27,13 @@ import java.awt.Insets;
 import javax.swing.JToolBar;
 import javax.swing.JButton;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /** 
  * Sets up the toolbar for the main Sniffer Gui
  *
  * @see javax.swing.JToolBar
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
 public class MMToolBar extends JToolBar{
     

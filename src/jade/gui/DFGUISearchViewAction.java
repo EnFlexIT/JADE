@@ -33,18 +33,21 @@ import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
 
 /**
-@author Giovanni Caire - CSELT S.p.A.
+@author Tiziana Trucco - CSELT S.p.A.
 @version $Date$ $Revision$
 */
 
-class DFGUIViewAction extends AbstractAction
+
+//Using this class to view the agent description of an agent found with the search command
+
+class DFGUISearchViewAction extends AbstractAction
 {
 	private DFGUI gui;
 	
 
-	public DFGUIViewAction(DFGUI gui)
+	public DFGUISearchViewAction(DFGUI gui)
 	{
-		super ("View");
+		super ("SearchView");
 		this.gui = gui;
 
 	}
@@ -52,14 +55,14 @@ class DFGUIViewAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("VIEW");
-		int i = gui.registeredTable.getSelectedRow();
+		int i = gui.foundTable.getSelectedRow();
 	
 
 		if (i != -1)
 		{
 			AgentManagementOntology.DFAgentDescriptor dfd;
-			String name = gui.registeredModel.getElementAt(i);
-		  
+			String name = gui.foundModel.getElementAt(i);
+		
 			try
 			{
 				dfd = gui.myAgent.getDFAgentDsc(name);
@@ -74,6 +77,7 @@ class DFGUIViewAction extends AbstractAction
 			dlg.viewDFD(dfd);
 		
 		}
+	
 	}
 }
 	

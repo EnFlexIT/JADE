@@ -33,7 +33,7 @@ import jade.gui.AgentTree;
 import javax.swing.tree.TreeSelectionModel;
 
 /**
-   Javadoc documentation for the file
+   
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */

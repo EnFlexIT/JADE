@@ -39,7 +39,7 @@ import java.util.LinkedList;
    can then be used in <code>receive()</code> operations.
    @see jade.core.Agent#receive(MessageTemplate mt)
    
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -31,11 +32,6 @@ import javax.swing.Icon;
 import java.awt.event.ActionEvent;
 import java.util.Vector;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 /** 
  * MMAbstractAction is the superclass of the actions 
  * performed by Sniffer GUI controls.
@@ -53,6 +49,9 @@ Javadoc documentation for the file
  * @see  jade.tools.sniffer.WriteLogFileAction 
  * @see  jade.tools.sniffer.DisplayLogFileAction
  * @see  jade.tools.sniffer.WriteMessageListAction 
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
+ *
  */
 public abstract class MMAbstractAction extends AbstractAction{
 	/** Handler to the action icon */

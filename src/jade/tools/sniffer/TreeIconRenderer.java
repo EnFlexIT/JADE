@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -27,18 +28,17 @@ import javax.swing.JTree;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.Component;
 
-/**
-Javadoc documentation for the file
-@author Gianluca Tanca
-@version $Date$ $Revision$
-*/
 
 /** 
  * This is the renderer of the Tree. 
  * The method getTreeCellRendererComponent is messaged 
  * when OS repaints the Tree. In this class we describe as
  * a node of the tree must appear
+ *
+ * @author Gianluca Tanca
+ * @version $Date$ $Revision$
  */
+ 
 public class TreeIconRenderer extends JLabel implements TreeCellRenderer{ 
 
 	public static final int WHITE_PAGES = 0;

@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */

@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.Iterator;
 
 /**
-Javadoc documentation for the file
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
