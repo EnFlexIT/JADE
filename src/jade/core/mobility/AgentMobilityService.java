@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.mobility;
 
+//#MIDP_EXCLUDE_FILE
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -54,8 +55,8 @@ import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.core.ContainerID;
 import jade.core.Location;
-import jade.core.AgentContainerImpl;
-import jade.core.MainContainerImpl;
+import jade.core.AgentContainer;
+import jade.core.MainContainer;
 
 import jade.core.ProfileException;
 import jade.core.IMTPException;
@@ -149,7 +150,7 @@ public class AgentMobilityService extends BaseService {
     static final boolean       TRANSFER_COMMIT = true;
 
 
-    public AgentMobilityService(AgentContainerImpl ac, Profile p) throws ProfileException {
+    public AgentMobilityService(AgentContainer ac, Profile p) throws ProfileException {
 	super(p);
 
 	myContainer = ac;
@@ -520,7 +521,7 @@ public class AgentMobilityService extends BaseService {
 
 	public boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
 
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 
 		impl.lockEntryForAgent(agentID);
@@ -555,7 +556,7 @@ public class AgentMobilityService extends BaseService {
 
 
 	public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
-	    MainContainerImpl impl = myContainer.getMain();
+	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
@@ -595,7 +596,7 @@ public class AgentMobilityService extends BaseService {
 	AID agentID = (AID)params[0];
 	Location where = (Location)params[1];
 
-	MainContainerImpl impl = myContainer.getMain();
+	MainContainer impl = myContainer.getMain();
 	if(impl != null) {
 	    ContainerID cid = impl.getContainerID(agentID);
 	    AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
@@ -612,7 +613,7 @@ public class AgentMobilityService extends BaseService {
 	Location where = (Location)params[1];
 	String newName = (String)params[2];
 
-	MainContainerImpl impl = myContainer.getMain();
+	MainContainer impl = myContainer.getMain();
 	if(impl != null) {
 	    ContainerID cid = impl.getContainerID(agentID);
 	    AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
@@ -893,7 +894,7 @@ public class AgentMobilityService extends BaseService {
     private Map sites;
 
     // The concrete agent container, providing access to LADT, etc.
-    private AgentContainerImpl myContainer;
+    private AgentContainer myContainer;
 
     // The ResourceManager of the local container
     //private ResourceManager myResourceManager;
