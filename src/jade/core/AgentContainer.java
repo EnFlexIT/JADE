@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.13  1999/08/10 15:27:28  rimassa
+ * Changed the signature of copyAgent() method
+ *
  * Revision 1.12  1999/07/19 00:03:24  rimassa
  * Added a moveAgent() method.
  *
@@ -52,6 +55,7 @@ interface AgentContainer extends Remote {
   void wakeAgent(String agentName) throws RemoteException, NotFoundException;
 
   void moveAgent(String agentName, AgentContainer where) throws RemoteException;
+  void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
