@@ -26,6 +26,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 import jade.util.leap.*;
 import jade.content.Concept;
+import java.io.Serializable;
 
 /** 
  This class implements the property type, a pair of a name and value.
@@ -34,15 +35,15 @@ import jade.content.Concept;
  @version $Date$ $Revision$
 */
 
-  public class Property implements Concept {
+public class Property implements Concept {
 
     private String name;
-    private Object value;
+    private Serializable value;
     
 public Property() {
 }
 
-public Property(String name, Object value) {
+public Property(String name, Serializable value) {
 	this.name = name;
 	this.value = value;
 }
@@ -55,11 +56,11 @@ public String getName() {
   return name;
 }
 
-public void setValue(Object o) {
+public void setValue(Serializable o) {
   value = o;
 }
 
-public Object getValue(){
+public Serializable getValue(){
   return value;
 }
   }
