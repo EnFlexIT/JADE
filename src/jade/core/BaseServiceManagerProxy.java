@@ -306,9 +306,14 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 	}
 
 	// Find the node for this slice with the help of the remote Service Manager
-
-	// Remote call, IMTP-dependent
-	Node node = findSliceNode(serviceKey, sliceKey);
+  Node node = null;
+	if(sliceKey.equals(localNode.getName())) {
+		node = localNode;
+	}
+	else {
+		// Remote call, IMTP-dependent
+		node = findSliceNode(serviceKey, sliceKey);
+	}
 	return myIMTPManager.createSliceProxy(serviceKey, localService.getHorizontalInterface(), node);
     }
 
@@ -325,6 +330,13 @@ public abstract class BaseServiceManagerProxy implements ServiceManager, Service
 
 	// Remote call, IMTP-dependent
 	Node[] nodes = findAllNodes(serviceKey);
+  // Replace the stub for the local node (if present) with the real thing
+  for(int i = 0; i < nodes.length; i++) {
+		String nodeName = nodes[i].getName();
+		if(nodeName.equals(localNode.getName())) {
+	    nodes[i] = localNode;
+		}
+  }
 
 	Class itf = localService.getHorizontalInterface();
 	Service.Slice[] result = new Service.Slice[nodes.length];

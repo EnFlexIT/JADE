@@ -487,12 +487,7 @@ public class RMIIMTPManager implements IMTPManager {
 
 	      protected Node findSliceNode(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
 		  try {
-		      if(sliceKey.equals(localNode.getName())) {
-			  return localNode;
-		      }
-		      else {
 			  return remoteSvcMgr.findSliceNode(serviceKey, sliceKey);
-		      }
 		  }
 		  catch(RemoteException re) {
 
@@ -512,14 +507,6 @@ public class RMIIMTPManager implements IMTPManager {
 	      protected Node[] findAllNodes(String serviceKey) throws IMTPException, ServiceException {
 		  try {
 		      Node[] result = remoteSvcMgr.findAllNodes(serviceKey);
-
-		      // Replace the stub for the local node with the real thing
-		      for(int i = 0; i < result.length; i++) {
-			  String nodeName = result[i].getName();
-			  if(nodeName.equals(localNode.getName())) {
-			      result[i] = localNode;
-			  }
-		      }
 
 		      return result;
 		  }
