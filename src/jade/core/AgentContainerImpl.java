@@ -646,6 +646,28 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //fireChangedAgentState(agentID, from, to);
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_STATE,
     	new Object[]{agentID, from, to});
+    if (to.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+      try {
+        myPlatform.suspendedAgent(agentID);
+      }
+      catch(IMTPException re) {
+        re.printStackTrace();
+      }
+      catch(NotFoundException nfe) {
+        nfe.printStackTrace();
+      }
+    }
+    else if (from.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
+      try {
+        myPlatform.resumedAgent(agentID);
+      }
+      catch(IMTPException re) {
+        re.printStackTrace();
+      }
+      catch(NotFoundException nfe) {
+        nfe.printStackTrace();
+      }
+    }
   }
 
   public void handleStart(String localName, Agent instance) {
