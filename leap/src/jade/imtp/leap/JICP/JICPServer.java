@@ -203,7 +203,9 @@ public class JICPServer extends Thread {
       OutputStream out = null;
       InputStream  inp = null;
       boolean closeConnection = true;
-
+      int status = 0;
+			byte type = (byte) 0;
+			
       try {
         // Get input and output stream from the connection
         inp = c.getInputStream();
@@ -211,11 +213,12 @@ public class JICPServer extends Thread {
 
         // Read the input
         JICPPacket request = JICPPacket.readFrom(inp);
+        status = 1;
 
         // Reply packet
         JICPPacket reply = null;
 
-        byte type = request.getType();
+        type = request.getType();
         switch (type) {
         case JICPProtocol.COMMAND_TYPE:
         case JICPProtocol.RESPONSE_TYPE:
@@ -285,25 +288,40 @@ public class JICPServer extends Thread {
           log("Uncorrect JICP data type: "+request.getType(), 1);
           reply = new JICPPacket("Uncorrect JICP data type: "+request.getType(), null);
         }
+        status = 2;
 
         // Send the actual response data
         if (reply != null) {
 	        reply.writeTo(out);
         }
+        status = 3;
       } 
       catch (Exception e) {
-        log("Problems in communication with client", 1);
-        e.printStackTrace();
-
-        // If there was a connection try to send the exception over it.
-        if (out != null) {
-          try {
-            new JICPPacket("Unexpected error", e).writeTo(out);
-          } 
-          catch (Exception e2) {    /* ignore it */
-          	log("PANIC "+e2, 0);
-          } 
-        } 
+      	switch (status) {
+      	case 0:
+	        log("Communication error reading incoming packet", 1);
+        	e.printStackTrace();
+	        break;
+	      case 1:
+	      	log("Error handling incoming packet", 1);
+        	e.printStackTrace();
+	      	// If the incoming packet was a command, try 
+        	// to send back a generic error response
+	        if (type == JICPProtocol.COMMAND_TYPE && out != null) {
+	          try {
+	            new JICPPacket("Unexpected error", e).writeTo(out);
+	          } 
+	          catch (IOException ioe) {   
+	          	// Just print a warning
+	          	log("Can't send back error indication "+ioe, 1);
+	          } 
+	        }
+	      	break;
+	      case 2:
+	      	log("Communication error writing return packet", 1);
+        	e.printStackTrace();
+	      	break;
+      	}
       } 
       finally {
         try {
