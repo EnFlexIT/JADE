@@ -27,14 +27,18 @@ package jade.gui;
 // Import required java classes
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.util.*;
+import java.awt.Dimension;
 
 // Import required JADE classes
 import jade.core.*;
 import jade.lang.acl.*;
 import jade.core.AID;
+import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.ReceivedObject;
 
 /**
  * The AclGui class extends the Swing JPanel class by adding all the controls 
@@ -59,10 +63,10 @@ import jade.core.AID;
  * AclGui acl;<br>
  * .....<br>
  * JFrame agentGui = new JFrame();<br>
- * agentGui.setLayout(new BorderLayout());<br>
+ * agentGui.getContentPane().setLayout(new BorderLayout());<br>
  * acl = new AclGui();<br>
  * acl.setEnabled(false);<br>
- * agentGui.add("West", acl);<br>
+ * agentGui.getContentPane().add("West", acl);<br>
  * .....<br>
  * </code>
  * Each time a new message is received (assuming the message has been stored 
@@ -111,7 +115,17 @@ public class AclGui extends JPanel
   @serial
   */
 	AID newAIDSender = null;
-
+	
+  /**
+  @serial
+  */
+  AID fromAID = new AID();
+	/**
+  @serial
+  */
+	AID newAIDFrom = null;
+	
+ 
 	/**
   @serial
   */
@@ -191,9 +205,9 @@ public class AclGui extends JPanel
 	/**
 	@serial
 	*/
-	
-	//private JTextArea    envelope;
+  private Date    dateDate;
 
+  private Date    dateRecDate;
 	// Data for panel layout definition
 	/**
 	@serial
@@ -268,22 +282,106 @@ public class AclGui extends JPanel
 
 	// Other data used
 	private static ACLMessage editedMsg;
-
 	
 	/**
   @serial
   */
   private JButton senderButton;
-	
-	/////////////////
-	// CONSTRUCTOR
-	/////////////////
+
+  /**
+  @serial
+  */
+  private VisualAIDList toPanel;
+  
+  /**
+  @serial
+  */
+  private JTextField from;
+  
+  /**
+  @serial
+  */
+  private JTextArea comments;
+  
+  /**
+  @serial
+  */
+	private JTextField representation;
+		
 	/**
-		Ordinary <code>AclGui</code> constructor.
-		@see jade.lang.acl.ACLMessage#ACLMessage(String type)
-	*/
-	public AclGui()
+  @serial
+  */
+  private JTextField payloadLength;
+  /**
+  @serial
+  */
+  private JTextField payloadEncoding;
+
+  /**
+  @serial
+  */
+  private JTextField date;
+  
+  /**
+  @serial
+  */
+  private VisualStringList encryptedPanel;
+
+  
+  /**
+  @serial
+  */
+  private VisualAIDList intendedReceiverPanel;
+  /**
+  @serial
+  */
+	private JButton defaultEnvelopeButton;
+	
+	/**
+  @serial
+  */
+	private JButton fromButton;
+	
+  /**
+  @serial
+  */
+	private JButton dateButton;
+	
+  /**
+  @serial
+  */
+  private JButton dateRecButton;
+
+	/**
+  @serial
+  */
+	private JTextField by;
+	/**
+  @serial
+  */
+	private JTextField fromRec;
+	/**
+  @serial
+  */
+	private JTextField dateRec;
+	/**
+  @serial
+  */
+	private JTextField via;
+	/**
+  @serial
+  */
+	private JTextField id;
+
+
+
+
+
+
+	private class AclMessagePanel extends JPanel
 	{
+	  AclMessagePanel()
+	  {
 	
 		JLabel l;
 	  int    i;
@@ -294,11 +392,11 @@ public class AclGui extends JPanel
 		for (i = 0;i < N_FIPA_PROTOCOLS; ++i)
 			fipaProtocolArrayList.add((Object) fipaProtocols[i]);
 
-		firstPaintFlag = true;
-		guiEnabledFlag = true;
-		minDim = new Dimension();
+		//firstPaintFlag = true;
+		//guiEnabledFlag = true;
+		//minDim = new Dimension();
 		aclPanel = new JPanel();
-		aclPanel.setBackground(Color.lightGray); 
+		//aclPanel.setBackground(Color.lightGray); 
 		aclPanel.setLayout(lm);
 		
 		formatGrid(20,   // N of rows 
@@ -316,7 +414,7 @@ public class AclGui extends JPanel
     
 		// Sender  (line # 0)
 		l = new JLabel("Sender:");
-		put(l, 0, 0, 1, 1, false); 
+		put(aclPanel,l, 0, 0, 1, 1, false); 
 		senderEnabledFlag = true; // The sender field is enabled by default, but can be disabled with the setSenderEnabled() method.
 		sender = new JTextField();
 		sender.setPreferredSize(new Dimension(80,26));
@@ -327,8 +425,8 @@ public class AclGui extends JPanel
 		senderButton = new JButton("Set");
 		senderButton.setMargin(new Insets(2,3,2,3));
 	
-		put(senderButton,1,0,1,1,false);
-    put(sender, 2, 0, 1, 1, false);	
+		put(aclPanel,senderButton,1,0,1,1,false);
+    put(aclPanel,sender, 2, 0, 1, 1, false);	
 	
     senderButton.addActionListener(new ActionListener(){
     	public void actionPerformed(ActionEvent e)
@@ -338,10 +436,17 @@ public class AclGui extends JPanel
     		
     		if(command.equals("Set"))
     		{
-    		  newAIDSender = guiSender.ShowAIDGui(SenderAID,true,true);
-    		  //the name can be different
-    			if (newAIDSender != null)
+    			AID senderToView = SenderAID;
+    			//another sender was already inserted.
+    			if(newAIDSender != null)
+    				senderToView = newAIDSender;
+    		  senderToView = guiSender.ShowAIDGui(senderToView,true,true);
+    		  //if the cancel button was clicked --> maintain the old value inserted.
+          if (senderToView != null)
+           {newAIDSender = senderToView;
+    		     //the name can be different
     				sender.setText(newAIDSender.getName());
+           }
     		}
     		else
     		if(command.equals("View"))
@@ -352,22 +457,22 @@ public class AclGui extends JPanel
     
 		// Receiver (line # 1)
     l = new JLabel("Receivers:");
-    put(l,0,1,1,1,false);
+    put(aclPanel,l,0,1,1,1,false);
     receiverListPanel = new VisualAIDList(new ArrayList().iterator());
     receiverListPanel.setDimension(new Dimension(205,37));
- 	  put(receiverListPanel,1,1,2,1,false);
+ 	  put(aclPanel,receiverListPanel,1,1,2,1,false);
 
 		
 		//Reply-to (line #2)
 		l = new JLabel("Reply-to:");
-		put(l, 0, 2, 1, 1,false);
+		put(aclPanel,l, 0, 2, 1, 1,false);
 		replyToListPanel = new VisualAIDList(new ArrayList().iterator());
 		replyToListPanel.setDimension(new Dimension(205,37));
-		put(replyToListPanel,1,2,2,1,false);
+		put(aclPanel,replyToListPanel,1,2,2,1,false);
 			
 		// Communicative act (line # 3)
 		l = new JLabel("Communicative act:");
-		put(l, 0, 3, 1, 1, false);  
+		put(aclPanel,l, 0, 3, 1, 1, false);  
 		communicativeAct = new JComboBox();
 		
 		Iterator comm_Act = ACLMessage.getAllPerformatives().iterator();
@@ -375,42 +480,42 @@ public class AclGui extends JPanel
 			communicativeAct.addItem(((String)comm_Act.next()).toLowerCase());
 			
 		communicativeAct.setSelectedIndex(0);
-		put(communicativeAct, 1, 3, 2, 1, true);
+		put(aclPanel,communicativeAct, 1, 3, 2, 1, true);
 
 		// Content (line # 4-8)
 		l = new JLabel("Content:");
-		put(l, 0, 4, 3, 1, false);  		
+		put(aclPanel,l, 0, 4, 3, 1, false);  		
 		content = new JTextArea(5,TEXT_SIZE);
 		JScrollPane contentPane = new JScrollPane();
 		contentPane.getViewport().setView(content); 	
-		put(contentPane, 0, 5, 3, 4, false);
+		put(aclPanel,contentPane, 0, 5, 3, 4, false);
 		contentPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 		
 		contentPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 		
 
 		// Language (line # 9)
 		l = new JLabel("Language:");
-		put(l, 0, 9, 1, 1, false);  		
+		put(aclPanel,l, 0, 9, 1, 1, false);  		
 		language = new JTextField();
 		language.setBackground(Color.white);
-		put(language, 1, 9, 2, 1, false);	
+		put(aclPanel,language, 1, 9, 2, 1, false);	
 	
 		//Encoding (line # 10)
 	  l = new JLabel("Encoding:");
-		put(l, 0, 10, 1, 1, false);  		
+		put(aclPanel,l, 0, 10, 1, 1, false);  		
 		encoding = new JTextField(); 
 		encoding.setBackground(Color.white);
-		put(encoding, 1, 10, 2, 1, false);	
+		put(aclPanel,encoding, 1, 10, 2, 1, false);	
 		
 		// Ontology (line # 11)
 		l = new JLabel("Ontology:");
-		put(l, 0, 11, 1, 1, false);  		
+		put(aclPanel,l, 0, 11, 1, 1, false);  		
 		ontology = new JTextField();
 		ontology.setBackground(Color.white);
-		put(ontology, 1, 11, 2, 1, false);	
+		put(aclPanel,ontology, 1, 11, 2, 1, false);	
 
 		// Protocol (line # 12)
 		l = new JLabel("Protocol:");
-		put(l, 0, 12, 1, 1, false);  		
+		put(aclPanel,l, 0, 12, 1, 1, false);  		
 		protocol = new JComboBox(); 	
 		for (i = 0;i < fipaProtocolArrayList.size(); ++i)
 			protocol.addItem((String) fipaProtocolArrayList.get(i));
@@ -419,7 +524,7 @@ public class AclGui extends JPanel
 		protocol.setSelectedItem("Null");
 		lastSelectedIndex = protocol.getSelectedIndex();
 		lastSelectedItem = (String) protocol.getSelectedItem();
-		put(protocol, 1, 12, 2, 1, true);
+		put(aclPanel,protocol, 1, 12, 2, 1, true);
 		protocol.addActionListener( new ActionListener()
 		                                {
 											public void actionPerformed(ActionEvent e)
@@ -492,35 +597,35 @@ public class AclGui extends JPanel
 
 		// Conversation-id (line # 13)
 		l = new JLabel("Conversation-id:");
-		put(l, 0, 13, 1, 1, false);  		
+		put(aclPanel,l, 0, 13, 1, 1, false);  		
 		conversationId = new JTextField();
 		conversationId.setBackground(Color.white);
-		put(conversationId, 1, 13, 2, 1, false);	
+		put(aclPanel,conversationId, 1, 13, 2, 1, false);	
 
 		// In-reply-to (line # 14)
 		l = new JLabel("In-reply-to:");
-		put(l, 0, 14, 1, 1, false);  		
+		put(aclPanel,l, 0, 14, 1, 1, false);  		
 		inReplyTo = new JTextField(); 	
 		inReplyTo.setBackground(Color.white);
-		put(inReplyTo, 1, 14, 2, 1, false);	
+		put(aclPanel,inReplyTo, 1, 14, 2, 1, false);	
 
 		// Reply-with (line # 15)
 		l = new JLabel("Reply-with:");
-		put(l, 0, 15, 1, 1, false);  		
+		put(aclPanel,l, 0, 15, 1, 1, false);  		
 		replyWith = new JTextField(); 	
 		replyWith.setBackground(Color.white);
-		put(replyWith, 1, 15, 2, 1, false);	
+		put(aclPanel,replyWith, 1, 15, 2, 1, false);	
 		
 		// Reply-by (line # 16)
 		replyByDate = null;
 		l = new JLabel("Reply-by:");
-		put(l, 0, 16, 1, 1, false);
+		put(aclPanel,l, 0, 16, 1, 1, false);
 		replyBySet = new JButton("Set");
 		replyBySet.setMargin(new Insets(2,3,2,3));
 		replyBy = new JTextField();
 		replyBy.setBackground(Color.white);
-		put(replyBySet, 1, 16, 1, 1, false);
-		put(replyBy, 2, 16, 1, 1, false);	
+		put(aclPanel,replyBySet, 1, 16, 1, 1, false);
+		put(aclPanel,replyBy, 2, 16, 1, 1, false);	
 		replyBySet.addActionListener(new	ActionListener()
 											{
 												public void actionPerformed(ActionEvent e)
@@ -558,29 +663,336 @@ public class AclGui extends JPanel
 		
 		//Properties (line #17)
 		l = new JLabel("User Properties:");
-		put(l, 0, 17, 1, 1, false);
+		put(aclPanel,l, 0, 17, 1, 1, false);
 	  propertiesListPanel = new VisualPropertiesList(new Properties());
 	  propertiesListPanel.setDimension(new Dimension(205,37));
-	  put(propertiesListPanel,1,17,2,1,false);
-
+	  put(aclPanel,propertiesListPanel,1,17,2,1,false);
 		
-		// Envelope (line # 15-19)
-		/*l = new JLabel("Envelope:");
-		put(l, 0, 15, 3, 1, false);  		
-		envelope = new JTextArea(5, TEXT_SIZE); 
-		JScrollPane envelopePane = new JScrollPane();
-		envelopePane.getViewport().setView(envelope);	
-		put(envelopePane, 0, 16, 3, 4, false);	
-		envelopePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); 		
-		envelopePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);*/ 		
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(aclPanel);
 
-		updateEnabled();
+	
 	}
 
+	}
+	
+	//this private class build a panel to shoe the envelope field of an ACLMessage
+	private class EnvelopePanel extends JPanel
+	{
+	  EnvelopePanel()
+	  {
+	
+		JLabel l;
+	  int    i;
+   
+		//minDim = new Dimension();
+		aclPanel = new JPanel();
+		//aclPanel.setBackground(Color.lightGray); 
+		aclPanel.setLayout(lm);
+		
+		formatGrid(20,   // N of rows 
+		            3,   // N of columns
+		            5,   // Right border 
+		            5,   // Left border
+		            5,   // Top boredr
+		            5,   // Bottom border
+		            2,   // Space between columns
+		            2);  // Space between rows
+		setGridColumnWidth(0, 115);
+		setGridColumnWidth(1, 40);
+		setGridColumnWidth(2, 170);
+    
+		// To  (line # 0)
+		l = new JLabel("To:");
+		put(aclPanel,l, 0, 0, 1, 1, false); 
+		toPanel = new VisualAIDList(new ArrayList().iterator());
+    toPanel.setDimension(new Dimension(205,37)); 	
+    put(aclPanel,toPanel, 1, 0, 2, 1, false);	
+	
+    //From
+    l = new JLabel("From:");
+    put(aclPanel,l, 0, 1, 1, 1,false);
+    fromButton = new JButton("Set");
+    fromButton.setMargin(new Insets(2,3,2,3));
+    put(aclPanel,fromButton,1,1,1,1,false);
+    from = new JTextField();
+    from.setEditable(false);
+    from.setBackground(Color.white);
+    put(aclPanel,from,2,1,1,1,false);
+    fromButton.addActionListener(new ActionListener(){
+      public void actionPerformed(ActionEvent e){
+        String command = e.getActionCommand();
+        AIDGui guiFrom = new AIDGui();
+        if(command.equals("Set"))
+        {
+        	AID fromToView = fromAID;
+        	if (newAIDFrom != null)
+        		fromToView = newAIDFrom;
+        	fromToView = guiFrom.ShowAIDGui(fromToView,true,true);
+        	if(fromToView != null)
+        		{
+        			newAIDFrom = fromToView;
+        		  from.setText(newAIDFrom.getName());
+        		}
+        }else
+        {
+        	if(command.equals("View"))
+        		guiFrom.ShowAIDGui(fromAID,false,false);
+        }
+      }
+    });
+    
+		//Comments (line # 2-8)
+    l = new JLabel("Comments:");
+    put(aclPanel,l,0,2,1,1,false);
+    comments = new JTextArea(4,TEXT_SIZE);
+    JScrollPane commentsPane = new JScrollPane();
+    commentsPane.getViewport().setView(comments);
+    put(aclPanel,commentsPane,0,3,3,4,false);
+    commentsPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    commentsPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		
+    //aclRappresentation (line # 7)
+	  l = new JLabel("ACLRepresentation:");
+		put(aclPanel,l, 0, 7, 1, 1, false);  		
+		representation = new JTextField(); 
+		representation.setBackground(Color.white);
+		put(aclPanel,representation, 1, 7, 2, 1, false);	
+	
+		//payloadLength (line # 8)
+	  l = new JLabel("Payload Length:");
+		put(aclPanel,l, 0, 8, 1, 1, false);  		
+		payloadLength = new JTextField(); 
+		payloadLength.setBackground(Color.white);
+		put(aclPanel,payloadLength, 1, 8, 2, 1, false);
+		
+			//payloadEncoding (line # 9)
+	  l = new JLabel("Payload Encoding:");
+		put(aclPanel,l, 0, 9, 1, 1, false);  		
+		payloadEncoding = new JTextField(); 
+		payloadEncoding.setBackground(Color.white);
+		put(aclPanel,payloadEncoding, 1, 9, 2, 1, false);
+		
+		//Date (line # 10)
+		dateDate = null;
+	  l = new JLabel("Date:");
+		put(aclPanel,l, 0, 10, 1, 1, false);
+	  dateButton = new JButton("Set");
+		dateButton.setMargin(new Insets(2,3,2,3));
+		date = new JTextField();
+		date.setBackground(Color.white);
+		put(aclPanel,dateButton, 1, 10, 1, 1, false);
+		put(aclPanel,date, 2, 10, 1, 1, false);	
+		dateButton.addActionListener(new	ActionListener()
+											{
+												public void actionPerformed(ActionEvent e)
+												{
+													String command = e.getActionCommand();
+													//TimeChooser t = new TimeChooser(replyByDate);
+													TimeChooser t = new TimeChooser();
+													String d = date.getText();
+													if (!d.equals(""))
+													{
+														try
+														{
+															t.setDate(ISO8601.toDate(d));
+				 										}
+														catch (Exception ee) { System.out.println("Incorrect date format"); }
+													}
+													if (command.equals("Set"))
+													{
+														if (t.showEditTimeDlg(null) == TimeChooser.OK)
+														{
+															dateDate = t.getDate();
+															if (dateDate == null)
+																date.setText("");
+															else
+																date.setText(ISO8601.toString(dateDate));
+														}
+													}
+													else if (command.equals("View"))
+													{					
+														t.showViewTimeDlg(null);
+													}
+												}
+											} );
+		
+		//encrypted (line #11)
+		l = new JLabel("Encrypted:");
+		put(aclPanel,l, 0, 11, 1, 1,false);
+		encryptedPanel = new VisualStringList(new ArrayList().iterator());
+		encryptedPanel.setDimension(new Dimension(205,37));
+		put(aclPanel,encryptedPanel,1,11,2,1,false);
+			
+	
+		//intendedReceiver (line //12)
+		l = new JLabel("Intended Receiver:");
+		put(aclPanel,l,0,12,1,1,false);
+		intendedReceiverPanel = new VisualAIDList(new ArrayList().iterator());
+		intendedReceiverPanel.setDimension(new Dimension(205,37));
+		put(aclPanel,intendedReceiverPanel, 1, 12,2,1,false);
+		
+		//ReceivedObject (line //13)
+		JPanel recPanel = new JPanel();
+	  recPanel.setLayout(new BoxLayout(recPanel,BoxLayout.Y_AXIS));
+	  JPanel tempPane = new JPanel();
+	  tempPane.setLayout(new BoxLayout(tempPane,BoxLayout.X_AXIS));
+		recPanel.setBorder(new TitledBorder("Received Object"));
+		l = new JLabel("By:");
+		l.setPreferredSize(new Dimension(115,24));
+		l.setMinimumSize(new Dimension(115,24));
+		l.setMaximumSize(new Dimension(115,24));
+		tempPane.add(l);
+		by = new JTextField();
+		by.setBackground(Color.white);
+		tempPane.add(by);
+		recPanel.add(tempPane);
+    tempPane = new JPanel();
+		tempPane.setLayout(new BoxLayout(tempPane,BoxLayout.X_AXIS));
 
+		l = new JLabel("From:");
+		l.setPreferredSize(new Dimension(115,24));
+		l.setMinimumSize(new Dimension(115,24));
+		l.setMaximumSize(new Dimension(115,24));
+		tempPane.add(l);
+		fromRec = new JTextField();
+		fromRec.setBackground(Color.white);
+		tempPane.add(fromRec);
+		recPanel.add(tempPane);
+		
+		tempPane = new JPanel();
+		tempPane.setLayout(new BoxLayout(tempPane,BoxLayout.X_AXIS));
+
+		dateRecDate = null;
+		l = new JLabel("Date:");
+		l.setPreferredSize(new Dimension(115,24));
+		l.setMinimumSize(new Dimension(115,24));
+		l.setMaximumSize(new Dimension(115,24));
+		tempPane.add(l);
+		dateRecButton = new JButton("Set");
+		tempPane.add(dateRecButton);
+		dateRecButton.addActionListener(new	ActionListener()
+											{
+												public void actionPerformed(ActionEvent e)
+												{
+													String command = e.getActionCommand();
+													//TimeChooser t = new TimeChooser(replyByDate);
+													TimeChooser t = new TimeChooser();
+													String d = dateRec.getText();
+													if (!d.equals(""))
+													{
+														try
+														{
+															t.setDate(ISO8601.toDate(d));
+				 										}
+														catch (Exception ee) { System.out.println("Incorrect date format"); }
+													}
+													if (command.equals("Set"))
+													{
+														if (t.showEditTimeDlg(null) == TimeChooser.OK)
+														{
+															dateRecDate = t.getDate();
+															if (dateRecDate == null)
+																dateRec.setText("");
+															else
+																dateRec.setText(ISO8601.toString(dateRecDate));
+														}
+													}
+													else if (command.equals("View"))
+													{					
+														t.showViewTimeDlg(null);
+													}
+												}
+											} );
+
+		dateRec = new JTextField();
+		dateRec.setBackground(Color.white);
+		tempPane.add(dateRec);
+		recPanel.add(tempPane);
+
+		tempPane = new JPanel();
+		tempPane.setLayout(new BoxLayout(tempPane,BoxLayout.X_AXIS));
+
+		l = new JLabel("ID:");
+		l.setPreferredSize(new Dimension(115,24));
+		l.setMinimumSize(new Dimension(115,24));
+		l.setMaximumSize(new Dimension(115,24));
+		tempPane.add(l);
+		id = new JTextField();
+		id.setBackground(Color.white);
+		tempPane.add(id);
+		recPanel.add(tempPane);
+    
+		tempPane = new JPanel();
+		tempPane.setLayout(new BoxLayout(tempPane,BoxLayout.X_AXIS));
+
+		l = new JLabel("Via:");
+		l.setPreferredSize(new Dimension(115,24));
+		l.setMinimumSize(new Dimension(115,24));
+		l.setMaximumSize(new Dimension(115,24));
+		tempPane.add(l);
+		via = new JTextField();
+		via.setBackground(Color.white);
+		tempPane.add(via);
+		recPanel.add(tempPane);
+
+		put(aclPanel,recPanel,0,13,3,1,false);
+		
+		//(line 14)
+		JPanel tmpPanel = new JPanel();
+		//tmpPanel.setBackground(Color.lightGray);
+		defaultEnvelopeButton = new JButton("Set Default Envelope");
+		tmpPanel.add(defaultEnvelopeButton);
+		
+		defaultEnvelopeButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e)
+				{
+					String command = e.getActionCommand();
+					if(command.equals("Set Default Envelope"))
+					{
+					  ACLMessage tmp = getMsg();
+					  tmp.setDefaultEnvelope();
+					  Envelope envtmp = tmp.getEnvelope();
+					  showEnvelope(envtmp);
+					}
+				}
+		});
+		put(aclPanel,tmpPanel,0,18,3,1,false);
+		//setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		add(aclPanel);
+
+	
+	}
+
+	}
+	
+	
+  /////////////////
+	// CONSTRUCTOR
+	/////////////////
+	/**
+		Ordinary <code>AclGui</code> constructor.
+		@see jade.lang.acl.ACLMessage#ACLMessage(String type)
+	*/
+
+	public AclGui()
+	{	
+		
+		firstPaintFlag = true;
+		guiEnabledFlag = true;
+		minDim = new Dimension();
+
+		JTabbedPane tabbed = new JTabbedPane();
+		AclMessagePanel aclPane = new AclMessagePanel();
+		EnvelopePanel envelope = new EnvelopePanel();
+		tabbed.addTab("ACLMessage",aclPane);
+		tabbed.addTab("Envelope",envelope);
+		//to enable the textfields if needed.
+		updateEnabled();
+		
+		add(tabbed);
+	}
 	////////////////////
 	// PRIVATE METHODS
 	////////////////////
@@ -605,7 +1017,7 @@ public class AclGui extends JPanel
 		colWidth[col] = width;
 	}
 
-	private void put(JComponent c, int x, int y, int dx, int dy, boolean fill)
+	private void put(JPanel panel, JComponent c, int x, int y, int dx, int dy, boolean fill)
 	{
 	int leftMargin, rightMargin, topMargin, bottomMargin;
 	int preferredWidth, preferredHeight;
@@ -635,14 +1047,13 @@ public class AclGui extends JPanel
 
 		constraint.insets = new Insets(topMargin, leftMargin, bottomMargin, rightMargin);
 		lm.setConstraints(c,constraint); 
-		aclPanel.add(c);
+		panel.add(c);
 	}
 
 	private void updateEnabled()
 	{
 		communicativeAct.setEnabled(guiEnabledFlag);
-		//sender.setEditable(guiEnabledFlag && senderEnabledFlag); 
-		senderButton.setText(senderEnabledFlag ? "Set" : "View");
+		senderButton.setText((guiEnabledFlag && senderEnabledFlag) ? "Set" : "View");
 	
 		receiverListPanel.setEnabled(guiEnabledFlag);
 		replyToListPanel.setEnabled(guiEnabledFlag);
@@ -655,15 +1066,119 @@ public class AclGui extends JPanel
 		replyBySet.setEnabled(true);
 		replyBySet.setText(guiEnabledFlag ? "Set" : "View");
 		encoding.setEditable(guiEnabledFlag);
-		
-	  //envelope.setEditable(guiEnabledFlag);
 		protocol.setEnabled(guiEnabledFlag);
 		language.setEditable(guiEnabledFlag);
 		ontology.setEditable(guiEnabledFlag);
 		content.setEditable(guiEnabledFlag);
-			
+		
+		//Envelope
+		fromButton.setText(guiEnabledFlag && senderEnabledFlag ? "Set": "View");
+		toPanel.setEnabled(guiEnabledFlag);
+		comments.setEnabled(guiEnabledFlag);
+		representation.setEnabled(guiEnabledFlag);
+		payloadLength.setEnabled(guiEnabledFlag);
+		payloadEncoding.setEnabled(guiEnabledFlag);
+		date.setEditable(false);
+		dateButton.setText(guiEnabledFlag ? "Set" : "View");
+
+		encryptedPanel.setEnabled(guiEnabledFlag);
+	  intendedReceiverPanel.setEnabled(guiEnabledFlag);
+		defaultEnvelopeButton.setVisible(guiEnabledFlag);
+		  //ReceivedObject
+		by.setEditable(guiEnabledFlag);
+		fromRec.setEditable(guiEnabledFlag);
+		dateRec.setEditable(false);
+		dateRecButton.setText(guiEnabledFlag ? "Set" : "View");
+		id.setEditable(guiEnabledFlag);
+		via.setEditable(guiEnabledFlag);
 	}
 
+  private void showEnvelope(Envelope envelope)
+	{
+			String param;	
+		  try {
+		    this.fromAID = envelope.getFrom();
+		    param = fromAID.getName();
+		  } catch (NullPointerException e1) {
+		    param = "";
+		    this.fromAID = new AID();
+		  }
+		  from.setText(param);
+
+			toPanel.resetContent(envelope.getAllTo());
+			try{
+				AID fromAID = envelope.getFrom();
+			  param = fromAID.getName();
+			  
+			}catch(NullPointerException e1){param = "";}
+			from.setText(param);
+			
+			try{
+				param = envelope.getComments();
+			}catch(NullPointerException e1){param ="";}
+			comments.setText(param);
+			
+			try{
+				param = envelope.getAclRepresentation();
+			}catch(NullPointerException e1){param ="";}
+			representation.setText(param);
+      
+			try{
+				param = envelope.getPayloadLength();
+			}catch(NullPointerException e1){param ="";}
+			payloadLength.setText(param);
+      
+			try{
+				param = envelope.getPayloadEncoding();
+			}catch(NullPointerException e1){param ="";}
+			payloadEncoding.setText(param);
+
+			//Date
+			dateDate = envelope.getDate();
+			if (dateDate != null)
+					date.setText(ISO8601.toString(dateDate));	
+			else
+				date.setText("");
+			
+		  encryptedPanel.resetContent(envelope.getAllEncrypted());
+
+		  intendedReceiverPanel.resetContent(envelope.getAllIntendedReceiver());
+		  
+		  ReceivedObject recObject = envelope.getReceived();
+		  try{
+		  	param = recObject.getBy();
+		  }catch(NullPointerException e){
+		  	param = "";
+		  }
+		  by.setText(param);
+		  try{
+		  	param = recObject.getFrom();
+		  }catch(NullPointerException e){
+		  	param = "";
+		  }
+		  fromRec.setText(param);
+	
+		  try{
+		  	dateRecDate = recObject.getDate();
+		  	param = ISO8601.toString(dateRecDate);
+		  }catch(NullPointerException e){
+       param = "";		  
+		  }
+			dateRec.setText(param);
+
+		  try{
+		  	param = recObject.getId();
+		  }catch(NullPointerException e){
+		  	param = "";
+		  }
+		  id.setText(param);
+		  try{
+		  	param = recObject.getVia();
+		  }catch(NullPointerException e){
+		  	param = "";
+		  }
+		  via.setText(param);
+	}
 
 	/////////////////////////////////////////////
 	// MESSAGE GETTING and SETTING PUBLIC METHODS
@@ -714,10 +1229,6 @@ public class AclGui extends JPanel
 		if ((param = msg.getReplyBy()) == null) param = "";
 		replyBy.setText(param);
 		
-		/*Not yet existing
-		if ((param = msg.getEnvelope()) == null) param = "";
-		envelope.setText(param);*/
-		
 		if((param = msg.getProtocol()) == null)
 			protocol.setSelectedItem("Null");
 		else if (param.equals("") || param.equalsIgnoreCase("Null"))
@@ -746,11 +1257,17 @@ public class AclGui extends JPanel
 		content.setText(param);
 		if((param = msg.getEncoding())== null) param = "";
 		encoding.setText(param);
-		
-		
-
+	
+		//Envelope
+		Envelope envelope = msg.getEnvelope();
+				
+		if(envelope != null)
+		  	showEnvelope(envelope);
+		  
+		  
 	}
 	
+		
 	/**
 		Get the ACL message currently displayed by the AclGui panel 
 		@return The ACL message currently displayed by the AclGui panel as an ACLMessage object
@@ -788,31 +1305,127 @@ public class AclGui extends JPanel
 			msg.addUserDefinedParameter(k,user_Prop.getProperty(k));
 		}
 		
-		if (!(param = replyWith.getText()).equals(""))
+	  param = replyWith.getText().trim();
+		if (param.length() > 0)
 			msg.setReplyWith(param);
-		if (!(param = inReplyTo.getText()).equals(""))
+			
+		param = inReplyTo.getText().trim();	
+		if (param.length() > 0)
 			msg.setInReplyTo(param);
-		if (!(param = conversationId.getText()).equals(""))
+			
+		param = conversationId.getText().trim();	
+		if (param.length() > 0)
 			msg.setConversationId(param);
-		if (!(param = replyBy.getText()).equals(""))
+			
+		param = replyBy.getText().trim();	
+		if (param.length()>0)
 			msg.setReplyBy(param);
 		
-	  /* if (!(param = envelope.getText()).equals(""))
-			msg.setEnvelope(param);*/
-		
-			if (!(param = (String) protocol.getSelectedItem()).equals("Null"))
+	  
+		if (!(param = (String) protocol.getSelectedItem()).equals("Null"))
 			msg.setProtocol(param);
-		if (!(param = language.getText()).equals(""))
+			
+	  param = language.getText().trim();
+		if (param.length()>0)
 			msg.setLanguage(param);
-		if (!(param = ontology.getText()).equals(""))
+			
+		param = ontology.getText().trim();	
+		if (param.length()>0)
 			msg.setOntology(param);
-		if (!(param = content.getText()).equals(""))
+			
+	  param = content.getText().trim();		
+		if (param.length()>0)
 			msg.setContent(param);
 	  
 		param = (encoding.getText()).trim();
 	  if(param.length() > 0)
 	  	msg.setEncoding(param);
+		
+	  Envelope env = new Envelope();	
+	  
+	  Enumeration to_Enum = toPanel.getContent();
+	  while(to_Enum.hasMoreElements())
+	  	env.addTo((AID)to_Enum.nextElement());
+
+	  if(newAIDFrom!= null)
+			fromAID = newAIDFrom;
+		if (fromAID.getName().length() > 0)
+		   env.setFrom(fromAID);
+
+    param = comments.getText().trim();
+    if(param.length()>0)
+    	env.setComments(param);
+    	
+    param = representation.getText().trim();
+    if(param.length()>0)
+    	env.setAclRepresentation(param);
+	  
+    param = payloadLength.getText().trim();
+    if(param.length()>0)
+    	env.setPayloadLength(param);
+	
+    param = payloadEncoding.getText().trim();
+    if(param.length()>0)
+    	env.setPayloadEncoding(param);
+   
+    //setDate require a Date not a String
+    if (dateDate != null)	
+			env.setDate(dateDate);
+		
+    Enumeration enc_Enum = encryptedPanel.getContent();
+	  while(enc_Enum.hasMoreElements())
+	  	env.addEncrypted((String)enc_Enum.nextElement());
+    
+	  Enumeration int_Enum = intendedReceiverPanel.getContent();
+	  while(int_Enum.hasMoreElements())
+	  	env.addIntendedReceiver((AID)int_Enum.nextElement());
+	 
+	 
+	  param = language.getText().trim();
+		if (param.length()>0)
+			msg.setLanguage(param);
+	
+	  
+	  ReceivedObject recObject = new ReceivedObject();
+		boolean filled = false;
+		param = by.getText().trim();
+		
+		if(param.length()>0)
+		{
+			filled = true;
+			recObject.setBy(param);
+		}
+		param = fromRec.getText().trim();
+		if(param.length()>0)
+		{
+			filled = true;
+			recObject.setFrom(param);
+		}
+		
+		if (dateRecDate != null)	
+		{
+			filled = true;
+			recObject.setDate(dateRecDate);
+		}
+
+		param = id.getText().trim();
+		if(param.length()>0)
+		{
+			filled = true;
+			recObject.setId(param);
+		}
 			
+		param = via.getText().trim();
+		if(param.length()>0)
+		{
+			filled = true;
+			recObject.setVia(param);
+		}
+		
+		if(filled)
+		  env.setReceived(recObject);
+	  	
+    msg.setEnvelope(env);
 		return msg;
 	}
 
@@ -846,11 +1459,11 @@ public class AclGui extends JPanel
 		Set the specified border to the AclGui panel
 		@param b Specifies the type of border
 	*/
-	public void setBorder(Border b)
+	/*public void setBorder(Border b)
 	{
 		if (aclPanel != null)
 			aclPanel.setBorder(b);
-	}
+	}*/
 
 	/** 
 		Paint the AclGui panel
@@ -882,9 +1495,9 @@ public class AclGui extends JPanel
 	public static void showMsgInDialog(ACLMessage msg, Frame parent)
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
-
+  
 		AclGui aclPanel = new AclGui();
-		aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
+		//aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
 		aclPanel.setEnabled(false);
 		aclPanel.setMsg(msg);
 
@@ -982,5 +1595,19 @@ public class AclGui extends JPanel
 		return m;
 	}
 
+	/*public static void main(String[] args)
+	{
+		JFrame f = new JFrame();
 	
+		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+		msg.setLanguage("language");
+		msg.setOntology("onto");
+		Envelope env = new Envelope();
+		env.setComments("Commento");
+		env.setAclRepresentation("ACLRepresentation");
+		msg.setEnvelope(env);
+		AclGui.showMsgInDialog(msg,f);
+		f.pack();
+		f.show();
+	}*/
 }
