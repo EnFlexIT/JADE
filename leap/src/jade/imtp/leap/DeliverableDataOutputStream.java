@@ -660,13 +660,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
     public void serializeMTPDescriptor(MTPDescriptor dsc) throws LEAPSerializationException {
         try {
             writeUTF(dsc.getName());
+	    writeUTF(dsc.getClassName());
             writeStringArray(dsc.getAddresses());
             writeStringArray(dsc.getSupportedProtocols());
-        } 
+        }
         catch (IOException ioe) {
             throw new LEAPSerializationException("Error serializing MTPDescriptor");
-        } 
-    } 
+        }
+    }
 
     private void serializeNode(Node n) throws LEAPSerializationException {
 	try {
