@@ -230,16 +230,20 @@ public class AbsHelper {
 
       	  // Addresses
 					AbsAggregate addresses = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_ADDRESSES);
-					for (int i = 0; i < addresses.size(); ++i) {
-						String addr = ((AbsPrimitive) addresses.get(i)).getString();
-	    			ret.addAddresses(addr);
+					if (addresses != null) {
+						for (int i = 0; i < addresses.size(); ++i) {
+							String addr = ((AbsPrimitive) addresses.get(i)).getString();
+	  	  			ret.addAddresses(addr);
+						}
 					}
 				
         	// Resolvers
 					AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
-					for (int i = 0; i < resolvers.size(); ++i) {
-						OntoAID res = internaliseAID((AbsConcept) resolvers.get(i));
-	    			ret.addResolvers(res);
+					if (resolvers != null) {
+						for (int i = 0; i < resolvers.size(); ++i) {
+							OntoAID res = internaliseAID((AbsConcept) resolvers.get(i));
+	    				ret.addResolvers(res);
+						}
 					}
 
         	return ret;
