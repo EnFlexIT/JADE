@@ -55,6 +55,7 @@ public class ProfileImpl extends Profile {
   private static final String RESOURCE = "resource";
 	//#MIDP_EXCLUDE_END
   private static final String IMTP = "imtp";
+  private static final String LOCAL_PORT = "local-port";
   private static final int DEFAULT_PORT = 1099;
 
   private Properties          props = null;
@@ -139,6 +140,7 @@ public class ProfileImpl extends Profile {
   //#MIDP_EXCLUDE_END
 
   private void init() throws ProfileException {
+
   	// Set jvm parameter if not set
   	if (props.getProperty(JVM) == null) {
   		//#PJAVA_EXCLUDE_BEGIN
@@ -173,7 +175,13 @@ public class ProfileImpl extends Profile {
 
 	String p = props.getProperty(MAIN_PORT);
 	if(p == null) {
-	    p = Integer.toString(DEFAULT_PORT);
+	    String localPort = props.getProperty(LOCAL_PORT);
+	    if(localPort != null) {
+		p = localPort;
+	    }
+	    else {
+		p = Integer.toString(DEFAULT_PORT);
+	    }
 	    props.setProperty(MAIN_PORT, p);
 	}
 
