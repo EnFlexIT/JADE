@@ -324,8 +324,181 @@ public class ams extends Agent implements AgentManager.Listener {
 
   } // End of DeregisterToolBehaviour class
 
+  private interface Handler {
+      void handle(Event ev);
+  }
 
   private class NotifyToolsBehaviour extends CyclicBehaviour {
+
+    private Map handlers = new HashMap();
+
+    public NotifyToolsBehaviour() {
+        // Fill the handlers map with all the event handlers...
+        handlers.put(AddedContainer.NAME, new Handler() {
+            public void handle(Event ev) {
+
+                AddedContainer ac = (AddedContainer)ev;
+                ContainerID cid = ac.getContainer();
+                String name = cid.getName();
+
+                // Add a new location to the locations list
+                mobilityMgr.addLocation(name, cid);
+            }
+        });
+        handlers.put(RemovedContainer.NAME, new Handler() {
+            public void handle(Event ev) {
+
+                RemovedContainer rc = (RemovedContainer)ev;
+                ContainerID cid = rc.getContainer();
+                String name = cid.getName();
+
+                // Remove the location from the location list
+                mobilityMgr.removeLocation(name);
+            }
+        });
+        handlers.put(BornAgent.NAME, new Handler() {
+            public void handle(Event ev) {
+
+                BornAgent ba = (BornAgent)ev;
+                AID agentID = ba.getAgent();
+                String ownership = ba.getOwnership();
+                if(creations.get(agentID) == null)
+                    creations.put(agentID, new CreationInfo(null, null, ownership, null));
+            }
+        });
+        handlers.put(DeadAgent.NAME, new Handler() {
+            public void handle(Event ev) {
+
+                DeadAgent da = (DeadAgent)ev;
+                AID agentID = da.getAgent();
+
+		// Deregister the agent, if it's still there.
+		try {
+                    AMSAgentDescription amsd = new AMSAgentDescription();
+                    amsd.setName(agentID);
+                    AMSDeregister(amsd, agentID);
+		}
+		catch(NotRegistered nr) {
+                    // the agent deregistered already during his doDelete() method.
+		}
+		catch(FIPAException fe) {
+                    fe.printStackTrace();
+		}
+		catch(AuthException ae) {
+                    ae.printStackTrace();
+		}
+		creations.remove(agentID);
+            }
+        });
+        handlers.put(SuspendedAgent.NAME, new Handler() {
+            public void handle(Event ev) {
+                SuspendedAgent sa = (SuspendedAgent)ev;
+                AID name = sa.getAgent();
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if (amsd != null) {
+        	    // Registry needs an update here
+                    amsd.setState(AMSAgentDescription.SUSPENDED);
+                    agentDescriptions.register(name, amsd);
+		}
+            }
+        });
+        handlers.put(ResumedAgent.NAME, new Handler() {
+            public void handle(Event ev) {
+                ResumedAgent ra = (ResumedAgent)ev;
+                AID name = ra.getAgent();
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if(amsd != null) {
+                    // Registry needs an update here
+                    amsd.setState(AMSAgentDescription.ACTIVE);
+                    agentDescriptions.register(name, amsd);
+		}
+            }
+        });
+        handlers.put(ChangedAgentOwnership.NAME, new Handler() {
+            public void handle(Event ev) {
+                ChangedAgentOwnership cao = (ChangedAgentOwnership)ev;
+                AID name = cao.getAgent();
+                String ownership = cao.getTo();
+		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
+		if (amsd != null) {
+                    // Registry needs an update here
+                    amsd.setOwnership(ownership);
+                    agentDescriptions.register(name, amsd);
+		}
+            }
+        });
+        handlers.put(AddedMTP.NAME, new Handler() {
+            public void handle(Event ev) {
+
+                AddedMTP amtp = (AddedMTP)ev;
+                String address = amtp.getAddress();
+                String proto = amtp.getProto();
+
+                // Add the new address to the platform profile
+                APTransportDescription mtps = theProfile.getTransportProfile();
+                MTPDescription desc = findMTPDescription(mtps, proto);
+                desc.addAddresses(address);
+
+                // Update the APDescription file.
+                if(getState() != AP_INITIATED)
+                    writeAPDescription();
+
+                // Retrieve all agent descriptors
+                AMSAgentDescription amsd = new AMSAgentDescription();
+                List l = agentDescriptions.search(amsd);
+
+                // Add the new address to all the agent descriptors
+                Iterator it = l.iterator();
+                while(it.hasNext()) {
+                    AMSAgentDescription ad = (AMSAgentDescription)it.next();
+                    AID name = ad.getName();
+                    name.addAddresses(address);
+                }
+            }
+        });
+        handlers.put(RemovedMTP.NAME, new Handler() {
+            public void handle(Event ev) {
+                RemovedMTP rmtp = (RemovedMTP)ev;
+                String address = rmtp.getAddress();
+                String proto = rmtp.getProto();
+
+                // Remove the dead address from the platform profile
+                APTransportDescription mtps = theProfile.getTransportProfile();
+                MTPDescription desc = findMTPDescription(mtps, proto);
+                Iterator addresses = desc.getAllAddresses();
+                while(addresses.hasNext()) {
+                    // Remove all MTPs that have the 'address' String in their
+                    // address list.
+                    String nextAddr = (String)addresses.next();
+                    if(nextAddr.equalsIgnoreCase(address))
+                        addresses.remove();
+                }
+
+                // Check if there are other addresses left for this MTP: if not,
+                // remove the MTP from the 'ap-platform-description' object
+                addresses = desc.getAllAddresses();
+                if(!addresses.hasNext())
+                    mtps.removeAvailableMtps(desc);
+
+                // Update the APDescription file
+                writeAPDescription();
+
+                // Remove the dead address from all the registered agents
+                AID[] agents = myPlatform.agentNames();
+                AMSAgentDescription amsd = new AMSAgentDescription();
+                for(int i = 0; i < agents.length; i++) {
+                    amsd.setName(agents[i]);
+                    List l = agentDescriptions.search(amsd);
+                    if(!l.isEmpty()) {
+                        AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
+                        AID name = amsDesc.getName();
+                        name.removeAddresses(address);
+                    }
+                }
+            }
+        });
+
+    }
 
     public void action() {
 
@@ -339,6 +512,10 @@ public class ams extends Agent implements AgentManager.Listener {
 	  // Write the event into the notification message
 	  EventRecord er = (EventRecord)it.next();
 	  o.set_0(er);
+
+          // Handle the event, updating AMS knowledge bases
+          Event ev = er.getWhat();
+          handleEvent(ev);
 
 	  List l = new ArrayList(1);
 	  l.add(o);
@@ -369,6 +546,13 @@ public class ams extends Agent implements AgentManager.Listener {
 
       block();
 
+    }
+
+    // Handle a given platform event, running the handler associated with the given event name
+    private void handleEvent(Event ev) {
+        Handler handler = (Handler)handlers.get(ev.getName());
+        if(handler != null)
+            handler.handle(ev);
     }
 
   } // End of NotifyToolsBehaviour class
@@ -1093,9 +1277,6 @@ public class ams extends Agent implements AgentManager.Listener {
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
 
-    // Add a new location to the locations list. addLocation is already sycnrhonized
-    mobilityMgr.addLocation(name, cid);
-
     // Fire an 'added container' event
     AddedContainer ac = new AddedContainer();
     ac.setContainer(cid);
@@ -1115,9 +1296,6 @@ public class ams extends Agent implements AgentManager.Listener {
   public void removedContainer(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
-
-    // Remove the location from the location list. removeLocation is already synchronized
-    mobilityMgr.removeLocation(name);
 
     // Fire a 'container is dead' event
     RemovedContainer rc = new RemovedContainer();
@@ -1139,9 +1317,6 @@ public class ams extends Agent implements AgentManager.Listener {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
     String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
-    
-    if (creations.get(agentID) == null)
-    	creations.put(agentID, new CreationInfo(null, null, ownership, null));
 
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);
@@ -1157,42 +1332,25 @@ public class ams extends Agent implements AgentManager.Listener {
     doWake();
   }
 
-	/**
-		Post an event to the AMS agent. This method must not be used by
-		application agents.
-	*/
-	public void deadAgent(PlatformEvent ev) {
-		ContainerID cid = ev.getContainer();
-		AID agentID = ev.getAgent();
+    /**
+       Post an event to the AMS agent. This method must not be used by
+        application agents.
+    */
+    public void deadAgent(PlatformEvent ev) {
+        ContainerID cid = ev.getContainer();
+        AID agentID = ev.getAgent();
 
-		// Deregister the agent, if it's still there.
-		try {
-			AMSAgentDescription amsd = new AMSAgentDescription();
-			amsd.setName(agentID);
-			AMSDeregister(amsd, agentID);
-		}
-		catch(NotRegistered nr) {
-			//the agent deregistered already during his dodolete method.
-		}
-		catch(FIPAException fe) {
-			fe.printStackTrace();
-		}
-		catch(AuthException ae) {
-			ae.printStackTrace();
-		}
-		creations.remove(agentID);
+        DeadAgent da = new DeadAgent();
+        da.setAgent(agentID);
+        da.setWhere(cid);
 
-		DeadAgent da = new DeadAgent();
-		da.setAgent(agentID);
-		da.setWhere(cid);
-
-		EventRecord er = new EventRecord(da, here());
-		er.setWhen(ev.getTime());
-		synchronized (eventQueue) {
-		    eventQueue.add(er);
-		}
-		doWake();
+        EventRecord er = new EventRecord(da, here());
+	er.setWhen(ev.getTime());
+	synchronized (eventQueue) {
+            eventQueue.add(er);
 	}
+        doWake();
+    }
 
   /**
     Post an event to the AMS agent. This method must not be used by
@@ -1201,14 +1359,7 @@ public class ams extends Agent implements AgentManager.Listener {
   public void suspendedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID name = ev.getAgent();
-    
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if (amsd != null) {
-	    // Registry needs an update here
-			amsd.setState(AMSAgentDescription.SUSPENDED);
-			agentDescriptions.register(name, amsd);
-		}
-		
+
     SuspendedAgent sa = new SuspendedAgent();
     sa.setAgent(name);
     sa.setWhere(cid);
@@ -1228,14 +1379,7 @@ public class ams extends Agent implements AgentManager.Listener {
   public void resumedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID name = ev.getAgent();
-    
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if (amsd != null) {
-	    // Registry needs an update here
-			amsd.setState(AMSAgentDescription.ACTIVE);
-			agentDescriptions.register(name, amsd);
-		}
-		
+
     ResumedAgent ra = new ResumedAgent();
     ra.setAgent(name);
     ra.setWhere(cid);
@@ -1253,29 +1397,21 @@ public class ams extends Agent implements AgentManager.Listener {
 		application agents.
 	*/
 	public void changedAgentPrincipal(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    AID name = ev.getAgent();
-    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
-    
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if (amsd != null) {
-	    // Registry needs an update here
-			amsd.setOwnership(ownership);
-			agentDescriptions.register(name, amsd);
-		}
+            ContainerID cid = ev.getContainer();
+            AID name = ev.getAgent();
 
-		ChangedAgentOwnership cao = new ChangedAgentOwnership();
-		cao.setAgent(name);
-		cao.setWhere(cid);
-		cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
-		cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
+            ChangedAgentOwnership cao = new ChangedAgentOwnership();
+            cao.setAgent(name);
+            cao.setWhere(cid);
+            cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
+            cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
 
-		EventRecord er = new EventRecord(cao, here());
-		er.setWhen(ev.getTime());
-		synchronized (eventQueue) {
-		    eventQueue.add(er);
-		}
-		doWake();
+            EventRecord er = new EventRecord(cao, here());
+            er.setWhen(ev.getTime());
+            synchronized (eventQueue) {
+                eventQueue.add(er);
+            }
+            doWake();
 	}
 
 	/**
@@ -1283,8 +1419,8 @@ public class ams extends Agent implements AgentManager.Listener {
 		application agents.
 	*/
 	public synchronized void changedContainerPrincipal(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    containers.put(cid, ev.getNewPrincipal());
+            ContainerID cid = ev.getContainer();
+            containers.put(cid, ev.getNewPrincipal());
 	}
 
   /**
@@ -1319,30 +1455,10 @@ public class ams extends Agent implements AgentManager.Listener {
     String proto = ch.getProtocol();
     String address = ch.getAddress();
 
-    // Add the new address to the platform profile
-    APTransportDescription mtps = theProfile.getTransportProfile();
-    MTPDescription desc = findMTPDescription(mtps, proto);
-    desc.addAddresses(address);
-
-    // Update the APDescription file.
-    if(getState() != AP_INITIATED)
-      writeAPDescription();
-
-    // Retrieve all agent descriptors
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    List l = agentDescriptions.search(amsd);
-
-    // Add the new address to all the agent descriptors
-    Iterator it = l.iterator();
-    while(it.hasNext()) {
-      AMSAgentDescription ad = (AMSAgentDescription)it.next();
-      AID name = ad.getName();
-      name.addAddresses(address);
-    }
-
     // Generate a suitable AMS event
     AddedMTP amtp = new AddedMTP();
     amtp.setAddress(address);
+    amtp.setProto(proto);
     amtp.setWhere(cid);
 
     EventRecord er = new EventRecord(amtp, here());
@@ -1374,43 +1490,10 @@ public class ams extends Agent implements AgentManager.Listener {
     String proto = ch.getProtocol();
     String address = ch.getAddress();
 
-    // Remove the dead address from the platform profile
-    APTransportDescription mtps = theProfile.getTransportProfile();
-    MTPDescription desc = findMTPDescription(mtps, proto);
-    Iterator addresses = desc.getAllAddresses();
-    while(addresses.hasNext()) {
-      // Remove all MTPs that have the 'address' String in their
-      // address list.
-      String nextAddr = (String)addresses.next();
-      if(nextAddr.equalsIgnoreCase(address))
-	addresses.remove();
-    }
-
-    // Check if there are other addresses left for this MTP: if not,
-    // remove the MTP from the 'ap-platform-description' object
-    addresses = desc.getAllAddresses();
-    if(!addresses.hasNext())
-      mtps.removeAvailableMtps(desc);
-
-    //update the APDescription file
-    writeAPDescription();
-
-    // Remove the dead address from all the registered agents
-    AID[] agents = myPlatform.agentNames();
-    AMSAgentDescription amsd = new AMSAgentDescription();
-    for(int i = 0; i < agents.length; i++) {
-      amsd.setName(agents[i]);
-      List l = agentDescriptions.search(amsd);
-      if(!l.isEmpty()) {
-	AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
-	AID name = amsDesc.getName();
-	name.removeAddresses(address);
-      }
-    }
-
     // Generate a suitable AMS event
     RemovedMTP rmtp = new RemovedMTP();
     rmtp.setAddress(address);
+    rmtp.setProto(proto);
     rmtp.setWhere(cid);
 
     EventRecord er = new EventRecord(rmtp, here());
