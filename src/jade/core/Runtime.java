@@ -295,6 +295,14 @@ public class Runtime {
    * Return a String with copyright Notice, Name and Version of this version of JADE
    */
   public static String getCopyrightNotice() {
+    return("    This is "+instance().getVersionInfo()+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
+  }
+  //#APIDOC_EXCLUDE_END
+
+  /**
+     Return the version number and date of this JADE Runtime.
+   */
+  public String getVersionInfo() {
     String CVSname = "$Name$";
     String CVSdate = "$Date$";
     int colonPos = CVSname.indexOf(":");
@@ -312,8 +320,7 @@ public class Runtime {
     dollarPos = CVSdate.lastIndexOf('$');
     String date = CVSdate.substring(colonPos + 1, dollarPos);
     date = date.trim();
-    return("    This is "+name + " - " + date+"\n    downloaded in Open Source, under LGPL restrictions,\n    at http://jade.cselt.it/\n");
+    return name + " - " + date;
   }
-  //#APIDOC_EXCLUDE_END
 }
  
