@@ -243,7 +243,7 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/License"/>
     </jar>
   </target>
-  <target name="dist_bin" depends="init,examples">
+  <target name="dist_bin" depends="init,examples,demo">
     <jar jarfile="demo/MeetingScheduler.jar" manifest="demo/demo.mf">
       <fileset dir="${build}" includes="**/demo/**"/>
     </jar>
