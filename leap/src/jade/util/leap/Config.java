@@ -45,17 +45,20 @@ import jade.util.leap.Properties;
    @author Giovanni Caire - TILAB
  */
 public class Config extends MIDlet implements CommandListener {
+	private static final String CONFIG_RS = "config";
+	
   private static final Command setCommand = new Command("Set", Command.SCREEN, 0);
   private static final Command saveCommand = new Command("Save", Command.SCREEN, 1);
-  private static final Command viewCommand = new Command("View", Command.SCREEN, 1);
+  private static final Command clearCommand = new Command("Clear", Command.SCREEN, 1);
   private static final Command exitCommand = new Command("Exit", Command.SCREEN, 1);
   private static final Command okCommand = new Command("OK", Command.OK, 0);
-  private static final Command cancelCommand = new Command("Cancel", Command.OK, 0);
+  private static final Command cancelCommand = new Command("Cancel", Command.CANCEL, 0);
+  private static final Command yesCommand = new Command("Yes", Command.OK, 0);
+  private static final Command noCommand = new Command("No", Command.CANCEL, 0);
   private Display   display;
-  private Form      main, set, view, first, last, error;
+  private Form      main, set, last, error;
 	private TextField keyTxt, valueTxt;
-	private Properties props;
-	private boolean unsaved = false;
+	private boolean modified = false;
   
   /**
    */
@@ -66,23 +69,24 @@ public class Config extends MIDlet implements CommandListener {
   /**
    */
   public void startApp() {
-    props = new Properties();
-    first = new Form("");
-    first.append(new StringItem(null, "Reload previous configuration?"));
-    first.addCommand(okCommand);
-    first.addCommand(cancelCommand);
-    first.setCommandListener(this);
-    display.setCurrent(first);   
-    
     main = new Form("Configuration");
     main.addCommand(setCommand);
+    main.addCommand(clearCommand);
     main.addCommand(saveCommand);
-    main.addCommand(viewCommand);
     main.addCommand(exitCommand);
     main.setCommandListener(this);
     
+    set = new Form("Set property");
+    set.addCommand(okCommand);
+    set.addCommand(cancelCommand);
     keyTxt = new TextField("key", null, 64, TextField.ANY);
     valueTxt = new TextField("value", null, 64, TextField.ANY);
+    set.append(keyTxt);
+    set.append(valueTxt);
+    set.setCommandListener(this);
+    
+    display.setCurrent(main);
+    load();
   }
 
   /**
@@ -100,95 +104,84 @@ public class Config extends MIDlet implements CommandListener {
   public void commandAction(Command c, Displayable d) {
     if (d == main) {
       if (c == setCommand) {
-      	set();
+      	display.setCurrent(set);
+      }
+      else if (c == clearCommand) {
+        clear();
       }
       else if (c == saveCommand) {
       	save();
-      }
-      else if (c == viewCommand) {
-        view();
       }
       else if (c == exitCommand) {
         exit();
       }
     }
-    else if (d == first) {
-    	if (c == okCommand) {
-    		reload();
-    	}
-    	display.setCurrent(main);
-    	first = null;
-    }
-    else if (d == last) {
-    	if (c == okCommand) {
-    		save();
-    	}
-    	notifyDestroyed();
-    }
     else if (d == set) {
     	if (c == okCommand) {
     		grab(keyTxt.getString(), valueTxt.getString());
     	}
+    	keyTxt.setString(null);
+    	valueTxt.setString(null);
     	display.setCurrent(main);
-    	set = null;
     }
-    else if (d == view) {
-  		display.setCurrent(main);
-  		view = null;
+    else if (d == last) {
+    	if (c == yesCommand) {
+    		save();
+    	}
+    	notifyDestroyed();
     }
     else if (d == error) {
     	notifyDestroyed();
     }
   }
   
-  private void set() {
-  	set = new Form("Set property");
-  	set.append(keyTxt);
-  	set.append(valueTxt);
-  	set.addCommand(okCommand);
-  	set.addCommand(cancelCommand);
-    set.setCommandListener(this);
-  	display.setCurrent(set);
-  }
-  
-  private void reload() {
+  private void load() {
+  	Properties props = new Properties();
   	try {
-	  	props.load("CONFIG");
-	  	unsaved = false;
+	  	props.load(CONFIG_RS);
   	}
-  	catch(IOException ioe) {
-  		showError("Loading error: "+ioe.getMessage());
+  	catch (IOException ioe) {
+  		// The recordstore does not exist yet
+  	}
+  	
+  	modified = false;
+  	Enumeration keys = props.keys();
+  	while (keys.hasMoreElements()) {
+  		String k = (String) keys.nextElement();
+  		String v = props.getProperty(k);
+  		main.append(new StringItem(k, "="+v));
   	}
   }
   
   private void save() {
   	try {
-	  	props.store("CONFIG");
-	  	unsaved = false;
+	  	Properties props = new Properties();
+	  	int size = main.size();
+	  	for (int i = 0; i < size; ++i) {
+	  		StringItem si = (StringItem) main.get(i);
+	  		props.setProperty(si.getLabel(), si.getText().substring(1));
+	  	}
+	  	props.store(CONFIG_RS);
+	  	modified = false;
   	}
   	catch(IOException ioe) {
   		showError("Storing error: "+ioe.getMessage());
   	}
   }
   
-  private void view() {
-  	view = new Form("Current");
-  	Enumeration e = props.keys();
-  	while (e.hasMoreElements()) {
-  		String key = (String) e.nextElement();
-  		view.append(new StringItem(key+"=", props.getProperty(key)));
+  private void clear() {
+  	while (main.size() > 0) {
+  		main.delete(0);
   	}
-  	view.addCommand(okCommand);
-    view.setCommandListener(this);
-  	display.setCurrent(view);
-  }		
+  	modified = true;
+  }
   
   private void exit() {
-  	if (unsaved) {
+  	if (modified) {
   		last = new Form("");
-    	last.append(new StringItem(null, "Save current configuration?"));
-  		last.addCommand(okCommand);
-  		last.addCommand(cancelCommand);
+    	last.append(new StringItem(null, "Save before exiting?"));
+  		last.addCommand(yesCommand);
+  		last.addCommand(noCommand);
   		last.setCommandListener(this);
   		display.setCurrent(last);
   	}
@@ -197,18 +190,48 @@ public class Config extends MIDlet implements CommandListener {
   	}
   }  
   
-  private void grab(String key, String value) {
-  	if (key != null && !key.trim().equals("")) {
-  		if (value != null && !value.trim().equals("")) {
-  			props.setProperty(key.trim(), value.trim());
+  private void grab(String key, String value) {	
+  	if (key != null) {
+  		key = key.trim();
+  		if (!key.equals("")) {
+  			// Valid key. Search if it already exists
+  			int i = search(key);
+  			if (i >= 0) {
+  				// A property with the same key already exists. Substitute/remove it
+  				if (value != null && !value.trim().equals("")) {
+  					StringItem si = (StringItem) main.get(i);
+  					si.setText("="+value.trim());
+  				}
+  				else {
+  					main.delete(i);
+  				}
+  			}
+  			else {
+  				// New property
+  				if (value != null) {
+  					value = value.trim();
+  					if (!value.equals("")) {
+		  				StringItem si = new StringItem(key, "="+value);
+		  				main.append(si);
+  					}
+  				}
+  			}
+  			modified = true;
   		}
-  		else {
-  			props.remove(key.trim());
-  		}
-  		unsaved = true;
   	}
   }
   
+  private int search(String key) {
+  	int size = main.size();
+  	for (int i = 0; i < size; i++) {
+  		StringItem si = (StringItem) main.get(i);
+  		if (si.getLabel().equals(key)) {
+  			return i;
+  		}
+  	}
+  	return -1;
+  }
+  	
   private void showError(String msg) {
 		error = new Form("ERROR");
   	error.append(new StringItem(null, msg));

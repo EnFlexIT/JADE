@@ -38,21 +38,18 @@ import javax.microedition.lcdui.*;
 import javax.microedition.rms.*;
 
 /**
+   Utility MIDlet that visualize the output previously written using 
+   <code>Logger.println()</code>
    @author Giovanni Caire - TILAB
  */
 public class OutputViewer extends MIDlet implements CommandListener {
 	private static final String OUTPUT = "OUTPUT";
   
-	private static final Command downCommand = new Command("Down", Command.SCREEN, 0);
-  private static final Command upCommand = new Command("Up", Command.SCREEN, 1);
-  private static final Command exitCommand = new Command("Exit", Command.SCREEN, 1);
-  private static final Command okCommand = new Command("OK", Command.OK, 0);
-  private static final Command cancelCommand = new Command("Cancel", Command.OK, 0);
+  private static final Command exitCommand = new Command("Exit", Command.EXIT, 1);
+  private static final Command okCommand = new Command("OK", Command.OK, 1);
   private Display                       display;
   private String                        recordStoreName;
-  private Form                          form, last, error;
-  private StringItem                    si;
-  private int                           offset = 0;
+  private Form                          form, error;
 
   /**
    */
@@ -64,14 +61,10 @@ public class OutputViewer extends MIDlet implements CommandListener {
    */
   public void startApp() {
     form = new Form("Output:");
-    si = new StringItem(null, null);
-    form.append(si);
-    form.addCommand(downCommand);
-    form.addCommand(upCommand);
     form.addCommand(exitCommand);
     form.setCommandListener(this);
     display.setCurrent(form);    
-    si.setText(readOutput());
+    readOutput();
   }
 
   /**
@@ -87,75 +80,33 @@ public class OutputViewer extends MIDlet implements CommandListener {
   /**
    */
   public void commandAction(Command c, Displayable d) {
-    if (d == form) {
-      if (c == exitCommand) {
-        exit();
-      }
-      else if (c == downCommand) {
-      	offset++;
-    		si.setText(readOutput());
-      }
-      else if (c == upCommand) {
-      	offset--;
-    		si.setText(readOutput());
-      }
-    }
-    else if (d == last) {
-    	if (c == okCommand) {
-    		clearOutput();
-    	}
+    if (c == exitCommand) {
     	notifyDestroyed();
     }
-    else if (d == error) {
-    	notifyDestroyed();
+    if (c == okCommand) {
+    	display.setCurrent(form);
     }
   }
   
-  private void exit() {
-		last = new Form("");
-  	last.append(new StringItem(null, "Reset OUTPUT before exiting?"));
-		last.addCommand(okCommand);
-		last.addCommand(cancelCommand);
-		last.setCommandListener(this);
-		display.setCurrent(last);
-  }
-  
-  private String readOutput() {
-  	StringBuffer sb = new StringBuffer();
+  private void readOutput() {
   	try {
   		RecordStore rs = RecordStore.openRecordStore(OUTPUT, true);
   		int linesCnt = rs.getNumRecords();
-   		for (int i = offset; i < linesCnt; ++i) {
+   		for (int i=0; i < linesCnt; ++i) {
    			byte[] bb = rs.getRecord(i+1);
-   			String line = new String(bb);
-   			sb.append(line);
-   			sb.append('\n');
+   			StringItem line = new StringItem(null, new String(bb));
+   			form.append(line);
    		}
     	rs.closeRecordStore();
   	}
   	catch (Exception e) {
   		showError("Cannot open "+OUTPUT+" record store. "+e.getMessage());
   	}
-  	return sb.toString();
   }
-  
-  private void clearOutput() {
-  	try {
-  		RecordStore rs = RecordStore.openRecordStore(OUTPUT, false);
-  		int cnt = rs.getNumRecords();
-   		for (int i = 0; i < cnt; ++i) {
-   			rs.deleteRecord(i+1);
-   		}
-    	rs.closeRecordStore();
-  	}
-  	catch (Exception e) {
-  		showError("Cannot clear "+OUTPUT+" record store. "+e.getMessage());
-  	}
-  }		
   
   private void showError(String msg) {
 		error = new Form("ERROR");
-  	error.append(new StringItem(null, msg));
+  	form.append(new StringItem(null, msg));
 		error.addCommand(okCommand);
 		error.setCommandListener(this);
 		display.setCurrent(error);
