@@ -56,7 +56,7 @@ import java.util.logging.Level;
  *
  * For example to log the warning message  "Attention!"the code should be<br><br>
  *
- * <code>Logger logger = Logger.getLogger(this.getClass().getName());</code><br>
+ * <code>Logger logger = Logger.getMyLogger(this.getClass().getName());</code><br>
  * <code>logger.log("Logger.WARNING","Attention!"); </code><br><br>
  * 
  *
@@ -102,7 +102,7 @@ import java.util.logging.Level;
  * To modify logging level you have to set the MIDlet-LEAP-level at the selected level
  * property in the manifest file of your MIDlet.<br><br>
  * Example:<br><br>
- * MIDlet-LEAP-level:warning
+ * MIDlet-LEAP-log_level:warning
  * 
  * @author Rosalba Bochicchio - TILAB
  */
@@ -219,13 +219,12 @@ public class Logger
 				
 		public Logger (String name){
 			theName= name;
-			Logger.println("Logger name   :"+theName);
 			try{
 				Properties props = new Properties();
 				props.load("jad");
 												
-				if(props.getProperty("level")!=null){		
-				 	String tmp = props.getProperty("level");
+				if(props.getProperty("log_level")!=null){		
+				 	String tmp = props.getProperty("log_level");
 				 	
 				 	if (tmp.equals("severe"))
 				 		theLevel = 1000;
