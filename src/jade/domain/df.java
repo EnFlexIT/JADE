@@ -25,8 +25,8 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
-import java.lang.reflect.Method;
 import java.util.Vector;
+import java.util.Date;
 
 import jade.util.leap.HashMap;
 import jade.util.leap.ArrayList;
@@ -51,6 +51,7 @@ import jade.domain.DFGUIManagement.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.ISO8601;
 
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
@@ -872,11 +873,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
   
   // Configuration parameter keys
   private static final String VERBOSITY = "jade_domain_df_verbosity";
+	private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
+	private static final String MAX_RESULTS = "jade_domain_df_maxres";
   private static final String DB_DRIVER = "jade_domain_df_db-driver";
   private static final String DB_URL = "jade_domain_df_db-url";
   private static final String DB_USERNAME = "jade_domain_df_db-username";
   private static final String DB_PASSWORD = "jade_domain_df_db-password";
-	private static final String MAX_RESULTS = "jade_domain_df_maxres";
 
   // limit of searchConstraints.maxresult
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
@@ -889,6 +891,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
    * if no value is set in the Profile, then DEFAULT_MAX_RESULTS is used instead.
    */
   private int maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
+  private Date maxLeaseTime = null;
   private int verbosity = 0; 
 
 	private KB agentDescriptions = null;
@@ -900,62 +903,63 @@ public class df extends GuiAgent implements DFGUIAdapter {
     perform its role within <em><b>JADE</b></em> agent platform.
    */
   protected void setup() {
-		// Set verbosity level
-  	try {
-  		verbosity = Integer.parseInt(getProperty(VERBOSITY, "0"));
-  	}
-  	catch (Exception e) {
-  		// Keep default (0)
-  	}
-  	
-		Object[] args = this.getArguments();
-		
 		//#PJAVA_EXCLUDE_BEGIN
 		// Read configuration:
 		// If an argument is specified, it indicates the name of a properties
 		// file where to read DF configuration from. Otherwise configuration 
-		// properties are read from the Profile	
-		String sMaxResults = null;
-		String dbUrl = null;
-		String dbDriver = null;
-		String dbUsername = null;
-		String dbPassword = null;
+		// properties are read from the Profile.
+		// Values in a property file override those in the profile if
+		// both are specified.
+		String sVerbosity = getProperty(VERBOSITY, null);
+		String sMaxLeaseTime = getProperty(MAX_LEASE_TIME, null);
+		String sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
+		String dbUrl = getProperty(DB_URL, null);
+		String dbDriver = getProperty(DB_DRIVER, null);
+		String dbUsername = getProperty(DB_USERNAME, null);
+		String dbPassword = getProperty(DB_PASSWORD, null);
 		
+		Object[] args = this.getArguments();
 		if(args != null && args.length > 0) {
 			Properties p = new Properties();
 			try {
 				p.load((String) args[0]);
-				sMaxResults = p.getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
-				dbUrl = p.getProperty(DB_URL, null);
-				dbDriver = p.getProperty(DB_DRIVER, null);
-				dbUsername = p.getProperty(DB_USERNAME, null);
-				dbPassword = p.getProperty(DB_PASSWORD, null);
+				sVerbosity = p.getProperty(VERBOSITY, sVerbosity);
+				sMaxLeaseTime = p.getProperty(MAX_LEASE_TIME, sMaxLeaseTime);
+				sMaxResults = p.getProperty(MAX_RESULTS, sMaxResults);
+				dbUrl = p.getProperty(DB_URL, dbUrl);
+				dbDriver = p.getProperty(DB_DRIVER, dbDriver);
+				dbUsername = p.getProperty(DB_USERNAME, dbUsername);
+				dbPassword = p.getProperty(DB_PASSWORD, dbPassword);
 			}
 			catch (Exception e) {
-				log("Error loading configuration from file "+args[0]+" ["+e+"]. Use all defaults", 0);
+				log("Error loading configuration from file "+args[0]+" ["+e+"].", 0);
 			}
 		}
-		else {
-			
-			sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
-			dbUrl = getProperty(DB_URL, null);
-			dbDriver = getProperty(DB_DRIVER, null);
-			dbUsername = getProperty(DB_USERNAME, null);
-			dbPassword = getProperty(DB_PASSWORD, null);
 		
-			
-		}
+		// Convert verbosity into a number
+  	try {
+  		verbosity = Integer.parseInt(sVerbosity);
+  	}
+  	catch (Exception e) {
+      // Keep default
+  	}
+		// Convert max lease time into a Date
+  	try {
+  		maxLeaseTime = new Date(Long.parseLong(sMaxLeaseTime));
+  	}
+  	catch (Exception e) {
+      // Keep default
+  	}
+		// Convert max results into a number	
   	try {
   		maxResultLimit = Integer.parseInt(sMaxResults);
   	}
   	catch (Exception e) {
-            // Keep default
-            maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
+      // Keep default
   	}
 				
   	// Instantiate the knowledge base 
 		log("DF KB configuration:", 2);
-		log("- Max search result = "+maxResultLimit, 2);
 		if (dbUrl != null) {
 			log("- Type = persistent", 2);
 			log("- DB url = "+dbUrl, 2);
@@ -974,6 +978,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			log("- Type = volatile", 2);
 			agentDescriptions = new DFMemKB(maxResultLimit);
 		}
+		log("- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"), 2);
+		log("- Max search result = "+maxResultLimit, 2);
 		//#PJAVA_EXCLUDE_END
 		/*#PJAVA_INCLUDE_BEGIN
 		agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
@@ -1020,8 +1026,31 @@ public class df extends GuiAgent implements DFGUIAdapter {
     setDescriptionOfThisDF(getDefaultDescription());
 
 		// Set lease policy and subscription responder to the knowledge base  
-		agentDescriptions.setLeaseManager(new DFLeaseManager());
 		agentDescriptions.setSubscriptionResponder(dfSubscriptionResponder);
+		agentDescriptions.setLeaseManager(new LeaseManager() {
+			public Date getLeaseTime(Object item){
+				return ((DFAgentDescription) item).getLeaseTime();
+			}
+			
+			public void setLeaseTime(Object item, Date lease){
+				((DFAgentDescription) item).setLeaseTime(lease);
+			}
+		
+			public Object grantLeaseTime(Object item){
+				if (maxLeaseTime != null) {
+					Date lease = getLeaseTime(item);
+					long current = System.currentTimeMillis();
+					if (lease != null && lease.getTime() > (current+maxLeaseTime.getTime())) {
+						setLeaseTime(item, new Date(current+maxLeaseTime.getTime()));
+					}
+				}
+				return item;
+			}
+			
+			public boolean isExpired(Date lease){
+				return (lease != null && (lease.getTime() <= System.currentTimeMillis()));
+			}
+		} );
   }  // End of method setup()
 
 
@@ -1379,22 +1408,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		  return out;
 	}
 
-	
-	/**
-	 * This method set the kbResource variable to inform the DF
-	 * what kind of knoledge base (hashmap or database) it must use
-	 * to store its DFAgentDescriptions
-	 * If resourceName==none the the DF will use default: HashMap;
-	 * otherwise resourceName will be the file name where are the
-	 * configuration to use the DB 
-	 */
-	/*public void setKBResource(String resourceName){
-		
-		System.out.println("RISORSA UTILIZZATA DEFAULT: "+kbResource);
-		if(!resourceName.equalsIgnoreCase("none"))
-			kbResource = resourceName;
-		System.out.println("RISORSA UTILIZZATA: "+kbResource);
-	}*/
 	
 	/**
 	* This method set the description of the df according to the DFAgentDescription passed.
