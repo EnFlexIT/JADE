@@ -177,6 +177,7 @@ public class StringACLCodec implements ACLCodec {
 
 
     /**
+     * If a user-defined parameter contain a blank char inside, then it is skipped for FIPA-compatibility
      * @return a String encoded message
      * @see ACLMessage#toString()
      **/
@@ -224,61 +225,36 @@ public class StringACLCodec implements ACLCodec {
 		  str.append(CONTENT + " \"" + escape(content) + "\" \n");
 	  }
       }
-      String tmp = msg.getReplyWith();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(REPLY_WITH + " " + tmp + "\n");
-      }
-      tmp = msg.getInReplyTo();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(IN_REPLY_TO + " " + tmp + "\n");
-      }
-      tmp = msg.getEncoding();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(ENCODING + " " + tmp + "\n");
-      }
-      tmp = msg.getLanguage();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(LANGUAGE + " " + tmp + "\n");
-      }
-      tmp = msg.getOntology();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(ONTOLOGY + " " + tmp + "\n");
-      }
+      appendACLExpression(str, REPLY_WITH, msg.getReplyWith());
+      appendACLExpression(str, IN_REPLY_TO, msg.getInReplyTo());
+      appendACLExpression(str, ENCODING, msg.getEncoding());
+      appendACLExpression(str, LANGUAGE, msg.getLanguage());
+      appendACLExpression(str, ONTOLOGY, msg.getOntology());
+
       Date d = msg.getReplyByDate();
       if (d != null)
 	  str.append(REPLY_BY + " " + ISO8601.toString(d) + "\n");
-      tmp = msg.getProtocol();
+
+      String tmp = msg.getProtocol();
       if (tmp != null) {
 	  tmp = tmp.trim();
 	  if (tmp.length() > 0)
 	      str.append(PROTOCOL + " " + tmp + "\n");
       }
-      tmp = msg.getConversationId();
-      if (tmp != null) {
-	  tmp = tmp.trim();
-	  if (tmp.length() > 0)
-	      str.append(CONVERSATION_ID + " " + tmp + "\n");
-      }
+
+      appendACLExpression(str, CONVERSATION_ID, msg.getConversationId());
+
       Properties userDefProps = msg.getAllUserDefinedParameters();
       Enumeration e = userDefProps.propertyNames();
       while (e.hasMoreElements()) {
-	String key = ((String)e.nextElement()).trim();
-	String value = userDefProps.getProperty(key);
-	if (value != null) {
-	    value = value.trim();
-	    if (value.length()>0)
-		str.append(" :X-" + key + " " + value + "\n");
-	}
+	  String key = ((String)e.nextElement());
+	  if (key.indexOf(' ') == -1) {
+	      if ( (!key.startsWith("X-")) && (!key.startsWith("x-")) )
+		  appendACLExpression(str, ":X-"+key, userDefProps.getProperty(key));
+	      else
+		  appendACLExpression(str, ":"+key, userDefProps.getProperty(key));
+	  } else 
+	      System.err.println("WARNING: The slotName of user-defined parameters cannot contain blanks inside. Therefore "+key+" is not being encoded");
       }
       str.append(")");
 
@@ -322,4 +298,21 @@ public class StringACLCodec implements ACLCodec {
   public String getName() {
     return NAME;
   }
+
+    /**
+     * append to the passed StringBuffer the slot name and value.
+     * If the value contains a blank, then it is quoted.
+     * if the value is null or its length is zero, the method does nothing.
+     **/
+    static private void appendACLExpression(StringBuffer str, String slotName, String slotValue) {
+	if (slotValue != null) {
+	    //slotValue = slotValue.trim();
+	    if (slotValue.length() > 0) {
+		if (slotValue.indexOf(' ') != -1) // contains a blank inside
+		    if ((slotValue.charAt(0)!='"') || (slotValue.charAt(slotValue.length()-1)!='"'))
+			slotValue='"' +escape(slotValue) + '"';
+		str.append(slotName + " " + slotValue + "\n");
+	    }
+	}
+    }
 }

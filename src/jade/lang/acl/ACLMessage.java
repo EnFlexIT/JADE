@@ -828,8 +828,8 @@ private int performative; // keeps the performative type of this object
   /**
    * Add a new user defined parameter to this ACLMessage.
    * Notice that according to the FIPA specifications, the keyword of a
-   * user-defined parameter must start with the String ":X-". 
-   * If it does not, then this method adds the prefix silently!
+   * user-defined parameter must not contain space inside and must start with the String "X-". 
+   * If it does not, then the encoding method adds the prefix silently!
    * @param key the property key.
    * @param value the property value
   **/
