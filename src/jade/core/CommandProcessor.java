@@ -164,7 +164,13 @@ public class CommandProcessor {
 	Filter[] arr = outFiltersArray;
 	for(int i = 0; i < arr.length; i++) {
 	    Filter f = arr[i];
-	    f.accept(cmd);
+
+	    // Give each filter a chance to veto the command
+	    boolean accepted = f.accept(cmd);
+	    if(!accepted) {
+		// FIXME: Should we throw e.g. a VetoedCommandException?
+		return null;
+	    }
 	}
 
 	Sink s = (Sink)sourceSinks.get(cmd.getName());
@@ -191,7 +197,13 @@ public class CommandProcessor {
 	Filter[] arr = inFiltersArray;
 	for(int i = 0; i < arr.length; i++) {
 	    Filter f = arr[i];
-	    f.accept(cmd);
+
+	    // Give each filter a chance to veto the command
+	    boolean accepted = f.accept(cmd);
+	    if(!accepted) {
+		// FIXME: Should we throw e.g. a VetoedCommandException?
+		return null;
+	    }
 	}
 
 	Sink s = (Sink)targetSinks.get(cmd.getName());
