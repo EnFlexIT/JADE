@@ -27,20 +27,20 @@ package examples.content.ecommerceOntology;
 import jade.content.*;
 
 public class Price implements Concept {
-	private Integer value;
+	private int value;
 	
 	public Price() {
 	}
 	
-	public Price(Integer v) {
+	public Price(int v) {
 		setValue(v);
 	}
 	
-	public Integer getValue() {
+	public int getValue() {
 		return value;
 	}
 	
-	public void setValue(Integer v) {
+	public void setValue(int v) {
 		value = v;
 	}
 }

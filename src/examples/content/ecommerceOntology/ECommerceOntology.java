@@ -37,6 +37,7 @@ public class ECommerceOntology extends Ontology {
 	
 	// VOCABULARY
   public static final String ITEM = "ITEM";
+  public static final String ITEM_SERIALID = "serialID";
   
   public static final String OWNS = "OWNS";
   public static final String OWNS_OWNER = "owner";
@@ -69,6 +70,7 @@ public class ECommerceOntology extends Ontology {
 
     try {
     	ConceptSchema itemSchema = new ConceptSchema(ITEM);
+    	itemSchema.add(ITEM_SERIALID, (PrimitiveSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL); 
     	add(itemSchema, Item.class);
     	
     	PredicateSchema ownsSchema = new PredicateSchema(OWNS);

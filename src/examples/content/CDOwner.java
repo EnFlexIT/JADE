@@ -60,6 +60,7 @@ public class CDOwner extends Agent {
 			addBehaviour(new RequestManager(this)); 
 			
 			CD myCd = new CD();
+			myCd.setSerialID(11111);
 			myCd.setTitle("Synchronicity");
 			List tracks = new ArrayList();
 			Track t1 = new Track();
@@ -67,7 +68,8 @@ public class CDOwner extends Agent {
 			tracks.add(t1);
 			Track t2 = new Track();
 			t2.setName("King-of-pain");
-			t2.setDuration(new Integer(240000));
+			//t2.setDuration(new Integer(240000));
+			t2.setDuration(240000);
 			tracks.add(t2);
 			
 			/*CD cd = new CD();

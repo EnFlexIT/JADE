@@ -28,7 +28,8 @@ import jade.content.*;
 
 public class Track implements Concept {
 	private String name = null;
-	private Integer duration = null;
+	//private Integer duration = null;
+	private int duration;
 	
 	public String getName() {
 		return name;
@@ -38,13 +39,20 @@ public class Track implements Concept {
 		name = n;
 	}
 	
-	public Integer getDuration() {
+	public int getDuration() {
+		return duration;
+	}
+	
+	public void setDuration(int d) {
+		duration = d;
+	}
+	/*public Integer getDuration() {
 		return duration;
 	}
 	
 	public void setDuration(Integer d) {
 		duration = d;
-	}
+	}*/
 
 }
 

@@ -27,6 +27,15 @@ package examples.content.ecommerceOntology;
 import jade.content.*;
 
 public class Item implements Concept {
+	private int serialID;
+	
+	public void setSerialID(int id) {
+		serialID = id;
+	}
+	
+	public int getSerialID() {
+		return serialID;
+	}
 }
 
 

@@ -166,11 +166,9 @@ public class ReflectiveIntrospector implements Introspector {
                 String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
                 if (schema.containsSlot(attributeName)) {
-            			//DEBUG 
-                	System.out.println("Handling attribute "+attributeName);
+            			//DEBUG System.out.println("Handling attribute "+attributeName);
                 	AbsObject attributeValue = abs.getAbsObject(attributeName);
-            			//DEBUG 
-                	System.out.println("Attribute value is: "+attributeValue);
+            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
 
                   if (attributeValue != null) {
                   	invokeSetMethod(referenceOnto, m, obj, attributeValue);
