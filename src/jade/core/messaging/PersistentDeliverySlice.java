@@ -80,13 +80,6 @@ public interface PersistentDeliverySlice extends Service.Slice {
     */
     static final String DEREGISTER_MESSAGE_TEMPLATE = "Deregister-Message-Template";
 
-    /**
-       This command name represents the action of submitting an
-       undelivered ACL message to this service, so that it can be
-       stored and re-delivered later.
-    */
-    static final String STORE_UNDELIVERED_MESSAGE = "Store-Undelivered-Message";
-
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_ACTIVATEMSGSTORE = "1";
