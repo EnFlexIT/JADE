@@ -124,8 +124,8 @@ class RoutingTable {
 
   private static class OutPortList {
 
-    private final List local = new ArrayList();
-    private final List remote = new ArrayList();
+    private final List local = new ArrayList(1);
+    private final List remote = new ArrayList(1);
 
     public void add(OutPort port, boolean location) {
       if(location == LOCAL) {
@@ -165,8 +165,8 @@ class RoutingTable {
   } // End of OutPortList class
 
 
-  private final Map inPorts = new HashMap();
-  private final Map outPorts = new HashMap();
+  private final Map inPorts = new HashMap(2);
+  private final Map outPorts = new HashMap(2);
     private static final int EXPECTED_PLATFORMADDRESSES_SIZE = 2;
   private final List platformAddresses = new ArrayList(EXPECTED_PLATFORMADDRESSES_SIZE);
   
