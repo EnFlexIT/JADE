@@ -1,5 +1,117 @@
 (REQUEST
  :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ((action (Agent-Identifier :name x@001122)
+            (query-platform-locations)))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ( (RESULT (action (Agent-Identifier :name x@001122)
+                            (query-platform-locations))
+                    (Platform-Locations
+                     :locations 
+                      (SET (Location 
+			    :name Container1 
+			    :transport-protocol RMI
+                            :transport-address rmi://p.cselt.it:50)
+                           (Location 
+			    :name Container2 
+			    :transport-protocol RMI2
+                            :transport-address rmi2://p.cselt.it:50)
+        ))))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+(REQUEST
+ :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ((action (Agent-Identifier :name x@001122)
+            (move-agent
+             (Mobile-Agent-Description
+              :name x@ior:002233
+              :address iiop://p.cselt:50/acc
+              :destination (Location 
+			    :name Container1 
+			    :transport-protocol RMI
+                            :transport-address rmi://p.cselt.it:50)
+              :agent-profile (Mobile-Agent-Profile
+                              :system (Mobile-Agent-System
+                                       :name XXX
+                                       :major-version 5
+                                       :minor-version 0
+                                       :dependencies "A B C") 
+                              :language (Mobile-Agent-Language
+                                         :name YYY
+                                         :major-version 6
+                                         :minor-version 1
+                                         :dependencies "E F G")  
+                              :os (Mobile-Agent-OS
+                                         :name ZZZ
+                                         :major-version 7
+                                         :minor-version 2
+                                         :dependencies "E F G H") ) 
+              :agent-version JADE2.0
+              :signature "This is a String"
+            ))))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ((done (action (Agent-Identifier :name x@001122)
+                         (clone-agent
+             (Mobile-Agent-Description
+              :name x@ior:002233
+              :address iiop://p.cselt:50/acc
+              :destination (Location 
+			    :name Container1 
+			    :transport-protocol RMI
+                            :transport-address rmi://p.cselt.it:50)
+            ) NewName ))))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+(REQUEST
+ :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ((action (Agent-Identifier :name x@001122)
+            (clone-agent
+             (Mobile-Agent-Description
+              :name x@ior:002233
+              :address iiop://p.cselt:50/acc
+              :destination (Location 
+			    :name Container1 
+			    :transport-protocol RMI
+                            :transport-address rmi://p.cselt.it:50)
+            ) NEWName )))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+(INFORM
+ :language FIPA-SL0
+ :ontology jade-mobility-ontology
+ :content ( (result (action (Agent-Identifier :name x@001122)
+                            (where-is-agent Giovanni))
+             (Location 
+			    :name Container1 
+			    :transport-protocol RMI
+                            :transport-address rmi://p.cselt.it:50)
+            ))
+ :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
+)
+
+
+
+
+(REQUEST
+ :language FIPA-SL0
  :ontology fipa-agent-management
  :content ((action (Agent-Identifier :name x@001122)
             (SEARCH

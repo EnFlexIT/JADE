@@ -24,15 +24,17 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
-import java.util.*;
+import java.util.List;
 import java.io.*;
 
-import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAException;
-import jade.lang.acl.*;
-import jade.core.*;
-import jade.lang.sl.*;
-import jade.onto.*;
+import jade.lang.acl.ACLParser;
+import jade.lang.acl.ParseException;
+import jade.lang.acl.ACLMessage;
+import jade.core.Agent;
+import jade.lang.sl.SL0Codec;
+import jade.domain.MobilityOntology;
 
 public class TestAgent extends Agent {
 
@@ -42,6 +44,8 @@ protected void setup() {
 		
   // register the ontology used by application
   registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
+  // register the ontology used by application
+  registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
 	
   System.out.println("This TestAgent can be used to test the ACL Parser, the SL0 Parser, and the Fipa-Agent-Management ontology all together.");
   System.out.println("It is an application (i.e. do not need to run a JADE Agent Platform).");
