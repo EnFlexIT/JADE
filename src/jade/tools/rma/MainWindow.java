@@ -25,15 +25,20 @@ Boston, MA  02111-1307, USA.
 package jade.tools.rma;
 
 import java.awt.*;
+
+import java.net.InetAddress;
+
 import java.util.Enumeration;
-import javax.swing.*;
-import javax.swing.tree.*;
-import jade.lang.acl.ACLMessage;
-import jade.gui.AgentTreeModel;
-import jade.gui.AgentTree;
-import javax.swing.tree.MutableTreeNode;
 import java.util.Vector;
 
+import javax.swing.*;
+import javax.swing.tree.*;
+import javax.swing.tree.MutableTreeNode;
+
+import jade.gui.AgentTreeModel;
+import jade.gui.AgentTree;
+
+import jade.lang.acl.ACLMessage;
 
 /**
    
@@ -50,10 +55,10 @@ class MainWindow extends JFrame {
   public MainWindow (rma anRMA) {
     super("JADE Remote Agent Management GUI");
     tree = new MainPanel(anRMA, this);
-    actPro=new ActionProcessor(anRMA,this,tree);
+    actPro = new ActionProcessor(anRMA, this, tree);
     setJMenuBar(new MainMenu(this,actPro));
-    popA=new PopupMenuAgent(actPro);
-    popC=new PopupMenuContainer(actPro);
+    popA = new PopupMenuAgent(actPro);
+    popC = new PopupMenuContainer(actPro);
     setForeground(Color.black);
     setBackground(Color.lightGray);
     addWindowListener(new WindowCloser(anRMA));
@@ -64,7 +69,7 @@ class MainWindow extends JFrame {
 
   public void ShowCorrect() {
     pack();
-    setSize(600,400);
+    setSize(600, 400);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     int centerX = (int)screenSize.getWidth() / 2;
     int centerY = (int)screenSize.getHeight() / 2;
@@ -100,11 +105,11 @@ class MainWindow extends JFrame {
     return tree.treeAgent.getModel();
   }
 
-  public void addContainer(final String name) {
+  public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {
         MutableTreeNode node = tree.treeAgent.createNewNode(name,0);
-	      tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER");
+	tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER", addr);
         tree.treeAgent.setParameter("FIPACONTAINER",popC);
       }
     };
@@ -129,7 +134,7 @@ class MainWindow extends JFrame {
      Runnable addIt = new Runnable() {
       public void run() {
        	AgentTree.Node node = tree.treeAgent.createNewNode(agentName,1);
-        tree.treeAgent.addAgentNode(node,containerName,agentName,agentAddress,"FIPAAGENT");
+        tree.treeAgent.addAgentNode((AgentTree.AgentNode)node,containerName,agentName,agentAddress,"FIPAAGENT");
         tree.treeAgent.setParameter("FIPAAGENT",popA);
       }
     };
