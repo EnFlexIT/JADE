@@ -695,7 +695,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	activateAllBehaviours();
 	synchronized(suspendLock) {
 	  myBufferedState = AP_MIN;
-	  suspendLock.notify();
+	  suspendLock.notifyAll();
 	}
 	break;
       case AP_WAITING:
@@ -754,7 +754,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     if(myAPState == AP_ACTIVE) {
       activateAllBehaviours();
       synchronized(waitLock) {
-        waitLock.notify(); // Wakes up the embedded thread
+        waitLock.notifyAll(); // Wakes up the embedded thread
       }
     }
   }
@@ -1147,7 +1147,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   private void destroy() { 
 
     try {
+      int savedState = getState();
+      myAPState = AP_ACTIVE;
       deregisterWithAMS();
+      myAPState = savedState;
     }
     catch(FIPAException fe) {
       fe.printStackTrace();
@@ -1269,6 +1272,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	}
       }
     }
+
     return msg;
   }
 
@@ -1402,9 +1406,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
     send(request);
     ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
-    if(reply.getType().equalsIgnoreCase("agree")) {
+    if(reply.getPerformative() == ACLMessage.AGREE) {
       reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
-      if(!reply.getType().equalsIgnoreCase("inform")) {
+      if(reply.getPerformative() != ACLMessage.INFORM) {
 	String content = reply.getContent();
 	StringReader text = new StringReader(content);
 	throw FIPAException.fromText(text);
@@ -1881,10 +1885,34 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   */
   public final void postMessage (ACLMessage msg) {
     synchronized(waitLock) {
+      /*
+      try {
+	java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
+	f.write("waitLock taken in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
+	msg.toText(f);
+	f.close();
+      }
+      catch(java.io.IOException ioe) {
+	  System.out.println(ioe.getMessage());
+      }
+      */
+
       if(msg != null) msgQueue.addLast(msg);
       doWake();
       messageCounter++;
     }
+
+    /*
+    try {
+      java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
+      f.write("waitLock dropped in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
+      f.close();
+    }
+    catch(java.io.IOException ioe) {
+      System.out.println(ioe.getMessage());
+    }
+    */
+
   }
 
   Iterator messages() {
