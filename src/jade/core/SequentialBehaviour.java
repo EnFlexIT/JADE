@@ -35,4 +35,32 @@ public class SequentialBehaviour extends ComplexBehaviour {
 
   }
 
+
+  // Handle notifications of runnable/not-runnable transitions
+  protected void handle(RunnableChangedEvent rce) {
+
+    // For upwards notification from the currently executing
+    // sub-behaviour, copy the runnable state and create a new event
+    if(rce.isUpwards()) {
+      if(rce.getSource() == subBehaviours.getCurrent()) {
+	myEvent.init(rce.isRunnable(), NOTIFY_UP);
+	super.handle(myEvent);
+      }
+      // Ignore the event and pass it on
+      else
+	super.handle(rce);
+    }
+    // For downwards notifications, always copy the state but
+    // forward to current sub-behaviour only when runnable == true
+    else {
+      boolean b = rce.isRunnable();
+      if(b == true)
+	super.handle(rce);
+      else
+	setRunnable(b);
+    }
+
+  }
+
+
 }
