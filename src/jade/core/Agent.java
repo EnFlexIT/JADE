@@ -153,7 +153,7 @@ public class Agent implements Runnable, CommBroadcaster {
       currentBehaviour = myScheduler.schedule();
 
       // Just do it!
-      currentBehaviour.execute();
+      currentBehaviour.action();
 
       // When it is needed no more, delete it from the behaviours queue
       if(currentBehaviour.done()) {

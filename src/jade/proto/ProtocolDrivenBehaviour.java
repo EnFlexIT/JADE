@@ -76,7 +76,7 @@ public class ProtocolDrivenBehaviour extends SimpleBehaviour {
     }
 
     // Performs currently active behaviours.
-    currentBehaviours.execute();
+    currentBehaviours.action();
 
   }
 
