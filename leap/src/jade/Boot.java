@@ -84,7 +84,7 @@ public class Boot {
       Runtime.instance().setCloseVM(true);
       //#PJAVA_EXCLUDE_BEGIN
       // Check whether this is the Main Container or a peripheral container
-      if (p.getParameter(Profile.MAIN, true)) {
+      if (p.getBooleanProperty(Profile.MAIN, true)) {
         Runtime.instance().createMainContainer(p);
       } else {
         Runtime.instance().createAgentContainer(p);
