@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JADE-LEAP" default="build" basedir=".">
+  
+	<!-- PROPERTIES -->
+  <property environment="env"/>
+  <property name="java-home" value="${env.JAVA_HOME}"/>
+  <property name="root"      value="${env.LEAP_HOME}"/>
+	<property file="${root}/buildLEAP.properties"/>
+	
+	<!-- Where to find java classes -->
+	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
+	<property name="boot-java-1.1-classes" value="${java-1.1-home}/lib/classes.zip"/>
+	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+  
+	<!-- Where to find JADE-LEAP -->
+	<property name="jade-leap" value="${root}/${env.TYPE}/classes"/>
+
+  <property name="src" value="${env.SRC_PATH}"/>
+  <property name="jar" value="${root}/${env.JAR_NAME}"/>
+	
+  <property name="preprocessed" value="${root}/tmp/${env.TYPE}/preprocessed"/>	
+  <property name="unverified" value="${root}/tmp/${env.TYPE}/unverified"/>	
+  <property name="classes" value="${root}/tmp/${env.TYPE}/classes"/>	
+	
+	<!-- ANT TASK DEFINITIONS -->
+	<taskdef name = "pproc"    classname="leapTools.Preprocessor"/>
+  <taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask"/>
+  <property name="j2mewtk.home" value="${j2me-wtk-home}"/>
+  
+	<!-- ENVIRONMENT TARGETS -->
+
+	<target name = "j2se">
+		<property name = "j2se"  value = "true"/>
+	</target>
+
+	<target name = "pjava">
+		<property name = "pjava"  value = "true"/>
+	</target>
+
+	<target name = "midp">
+		<property name = "midp"  value = "true"/>
+	</target>
+	
+	<!-- ACTION TARGETS -->
+
+	<!-- INIT -->
+	<target name="init"
+	        description="Set time stamp">
+	  <tstamp/>
+		<delete dir = "${preprocessed}" quiet="true"/>
+		<delete dir = "${unverified}" quiet="true"/>
+		<delete dir = "${classes}" quiet="true"/>
+		<mkdir dir="${preprocessed}"/>
+		<mkdir dir="${unverified}"/>
+		<mkdir dir="${classes}"/>
+	</target>
+	
+	
+	<!-- PREPARE -->
+	<target name="prepare" depends="init">
+	  <copy todir="${preprocessed}" overwrite="yes">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</copy>
+		
+	  <pproc basedir="${preprocessed}" type="${env.TYPE}"/>
+	</target>
+
+	
+	<!-- COMPILE -->
+	<target name="compile" depends="prepare, compilej2se, compilepjava, compilemidp">
+	</target>
+
+	<target name="compilej2se" if="j2se">
+		<javac srcdir="${preprocessed}"
+		       destdir="${classes}"
+		       classpath="${jade-leap}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="on"/>
+	</target>
+
+	<target name="compilepjava" if="pjava">
+		<javac srcdir="${preprocessed}"
+		       destdir="${classes}"
+		       classpath="${jade-leap}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       bootclasspath="${boot-java-1.1-classes}"
+		       target="1.1"/>
+	</target>
+
+	<target name="compilemidp" if="midp">
+		<javac srcdir="${preprocessed}"
+		       destdir="${unverified}"
+		       classpath="${jade-leap}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
+		       deprecation="on"
+		       bootclasspath="${boot-midp-classes}"
+		       target="1.1"/>
+		       
+		<preverify unverified="${unverified}" verified="${classes}" classpath="${jade-leap}"/>		
+	</target>
+
+
+	<target name="build" depends="compile"
+	        description="Create the application jar file">
+	        
+	  <copy todir="${classes}">
+			<fileset dir="${jade-leap}">
+			</fileset>
+		</copy>
+		
+		<delete file="${jar}" quiet="true"/>
+		<jar jarfile="${jar}" manifest="sample.mf">
+			<fileset dir="${classes}">
+			</fileset>
+		</jar>
+		
+	</target>	
+</project>
