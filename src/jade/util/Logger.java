@@ -39,13 +39,18 @@ import javax.microedition.rms.RecordStore;
 #MIDP_INCLUDE_END*/
 
 /**
- * This class provides a uniform way to produce logging printouts
- * in a device dependent way. Different implementation of this class are
- * provided according to the target environment (J2SE, pJava, MIDP), where all
- * implementations keep the same API. See also this
+ * This class provides a uniform API to produce logs
+ * over a set of different and device-dependent logging mechanisms. 
+ * Different implementations of this class are
+ * provided according to the target environment (J2SE, pJava, MIDP), but all
+ * of them offer the same API. Finally the MIDP implementation redirects 
+ * logging printouts on a MIDP RecordStore where they can be later inspected 
+ * by means of the OutputViewer MIDlet distributed with the LEAP add-on.
+ * <br>
+ * See also this
  * <a href="../../../tutorials/logging/JADELoggingService.html"> tutorial </a>
  * for an overview of the JADE Logging Service.
- *
+ * <br>
  * Logging levels can be used to control logging output.
  * According to java logging philosophy, several logging levels can be set.
  * The levels in descending order are: <p>
@@ -82,26 +87,30 @@ import javax.microedition.rms.RecordStore;
  * can be overridden by setting the java.util.logging.config.file
  * system property, like the following example: <br>
  * <code>java -Djava.util.logging.config.file=mylogging.properties jade.Boot </code>
+ *
  * <p><b>PersonaJava</b><br>
- * The call to <code>log</code> method will result in
- * a <code>System.out.println()</code> if you're
- * running in a PersonalJava environment (through the LEAP add-on).
- * <br> For performance reasons, in MIDP and PJAVA
- * evironments the log level is unique for the whole JVM.
+ * In the PJava implementation of the <code>Logger</code> class (available in 
+ * the LEAP add-on) calls to the 
+ * <code>log()</code> method result in calls to <code>System.out.println()</code>.
+ * Alternatively it is possible to redirect logging printouts to a text file 
+ * by setting the <code>-jade_util_Logger_logfile</code> option. Note that, 
+ * in order to face resource limitations, it is not possible to redirect 
+ * logging printouts produced by different Logger objects to different files.
+ * 
  * <p><b>MIDP</b><br>
- * If you are running JADE in a MIDP environment (again through
- * the LEAP add-on), printouts are redirected so that they can be later viewed
+ * In the MIDP implementation of the <code>Logger</code> class (available in 
+ * the LEAP add-on) logging printouts are redirected to a MIDP RecordStore so 
+ * that they can be later viewed
  * by means of the <code>jade.util.leap.OutputViewer</code> MIDlet included
  * in the LEAP add-on.<br>
- * Notice that, in a MIDP environment, the constants that represent the logging levels
- * keeps the same names of the J2SE
- * environment. However, for better performance, they are mapped to int values.<br>
- * The default level for logging is set to INFO, all messages of higher level will be logged.
- * In order to modify logging level you have to set the MIDlet-LEAP-level at the selected level
- * property in the manifest file of your MIDlet, like this:
- * <br><code>MIDlet-LEAP-log_level:warning</code>
- * <br> For performance reasons, in MIDP and PJAVA
- * evironments the log level is unique for the whole JVM.
+ * <br>
+ * The default level for logging is set to INFO, all messages of higher level 
+ * will be logged by default.
+ * In MIDP and PJava the logging level for a Logger object registererd with 
+ * name x.y.z can be configured by setting the configuration option
+ * <code>x_y_z_loglevel</code> to one of <code>severe, warning, info, config,
+ * fine, finer, finest, all</code>. See the LEAP user guide for details about 
+ * how to set JADE configuration options in MIDP and PJava.
  *
  * @author Rosalba Bochicchio - TILAB
  * @author Nicolas Lhuillier - Motorola (MIDP version)
@@ -351,7 +360,14 @@ public class Logger
         try {
 		      java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("ddMMyyyy");
 		      String logfile = logprefix + sdf.format(new java.util.Date()) + ".txt";
-          return new PrintStream(new FileOutputStream(logfile, true));
+          return new PrintStream(new FileOutputStream(logfile, true)) {
+            private java.text.SimpleDateFormat hourFormatter = new java.text.SimpleDateFormat("HH:mm:ss");
+            
+            public void println(String s) {
+            s = hourFormatter.format(new java.util.Date()) + " " + s;
+              super.println(s);
+            }
+          };
         }
         catch (Exception e) {
           println("Cannot initialize log stream. "+e);
