@@ -319,7 +319,7 @@ public class StringACLCodec implements ACLCodec {
     static public void appendACLExpression(StringBuffer str, String slotName, String slotValue) {
 				if ((slotValue != null) && (slotValue.length() > 0) ) {
 						slotValue = (isAWord(slotValue)?slotValue:quotedString(slotValue));
-						str.append(slotName + " " + slotValue + "\n");
+						str.append(slotName + " " + slotValue + " ");
 				}
 		}
 
