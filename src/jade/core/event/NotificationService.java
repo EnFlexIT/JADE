@@ -83,6 +83,9 @@ public class NotificationService extends BaseService {
     static final String NAME = "jade.core.event.Notification";
 
     private static final String[] OWNED_COMMANDS = new String[] {
+	NotificationSlice.ADD_TOOL,
+	NotificationSlice.REMOVE_TOOL,
+	NotificationSlice.GET_TOOLS,
 	NotificationSlice.SNIFF_ON,
 	NotificationSlice.SNIFF_OFF,
 	NotificationSlice.DEBUG_ON,
@@ -156,7 +159,13 @@ public class NotificationService extends BaseService {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(SNIFF_ON)) {
+		if(name.equals(ADD_TOOL)) {
+		    handleAddTool(cmd);
+		}
+		else if(name.equals(REMOVE_TOOL)) {
+		    handleRemoveTool(cmd);
+		}
+		else if(name.equals(SNIFF_ON)) {
 		    handleSniffOn(cmd);
 		}
 		if(name.equals(SNIFF_OFF)) {
@@ -417,55 +426,6 @@ public class NotificationService extends BaseService {
 		tn.postedMessage(ev);
 	    }
 
-	    /***
-
-	    Agent a = localAgents.acquire(targetName);
-	    AgentState as = a.getAgentState();
-	    Scheduler s = a.getScheduler();
-	    MessageQueue mq = a.getMessageQueue();
-	    a.setGenerateBehaviourEvents(true);
-	    localAgents.release(targetName);
-    
-	    // Notify current agent state
-	    fireChangedAgentState(targetName, as, as);
-    
-	    // Notify currently loaded behaviour 
-	    // (Mutual exclusion with Scheduler.add(), remove()...)
-	    synchronized (s) {
-		Iterator it = s.readyBehaviours.iterator();
-		while (it.hasNext()) {
-		    Behaviour b = (Behaviour) it.next();
-		    // We can't just call fireAddedBehaviour() as we must only notify the 
-		    // ToolNotifier associated with introspectorName (NOT all AgentListeners)
-		    AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, new BehaviourID(b), myID());
-		    tn.addedBehaviour(ev);
-		}
-    	
-		it = s.blockedBehaviours.iterator();
-		while (it.hasNext()) {
-		    Behaviour b = (Behaviour) it.next();
-		    BehaviourID bid = new BehaviourID(b);
-		    AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, targetName, bid, myID());
-		    tn.addedBehaviour(ev);
-		    ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, targetName, bid, Behaviour.STATE_READY, Behaviour.STATE_BLOCKED, myID());
-		    tn.changedBehaviourState(ev);
-		}
-	    }
-    
-	    // Notify messages currently pending in the message queue
-	    // (Mutual exclusion with Agent.receive(), blockingReceive(), postMessage()...)
-	    synchronized (mq) {
-		Iterator it = mq.iterator();
-		while (it.hasNext()) {
-		    ACLMessage msg = (ACLMessage) it.next();
-		    // We can't just call firePostedMessage() as we must only notify the 
-		    // ToolNotifier associated with introspectorName (NOT all AgentListeners)
-		    MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, targetName, myID());
-		    tn.postedMessage(ev);
-		}
-	    }
-	    ***/
-
 	}
 
 	public void debugOff(AID introspectorName, AID targetName) throws IMTPException {
@@ -510,6 +470,31 @@ public class NotificationService extends BaseService {
 
 	// Vertical command handler methods
 
+	private void handleAddTool(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		impl.toolAdded(tool);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
+
+	private void handleRemoveTool(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+	    AID tool = (AID)params[0];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		impl.toolRemoved(tool);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
+	}
 
 	private void handleSniffOn(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
 	    Object[] params = cmd.getParams();
