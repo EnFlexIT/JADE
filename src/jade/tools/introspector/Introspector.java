@@ -55,7 +55,7 @@ import jade.lang.sl.SL0Codec;
 
 import jade.onto.basic.Action;
 
-import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 import jade.tools.introspector.gui.IntrospectorGUI;
@@ -74,20 +74,15 @@ import jade.tools.introspector.gui.MainWindow;
 */
 public class Introspector extends ToolAgent {
 
-  private class AMSRequester extends FipaRequestInitiatorBehaviour {
+    private class AMSRequester extends SimpleAchieveREInitiator {
 
     private String actionName;
 
-
-    public AMSRequester(String an, ACLMessage request) {
-      super(Introspector.this, request,
-	    MessageTemplate.and(MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
-				MessageTemplate.MatchLanguage(SL0Codec.NAME)
-				)
-	    );
-      actionName = an;
-    }
-
+      public AMSRequester(String an, ACLMessage request) {
+	  super(Introspector.this, request);
+	  actionName = an;
+      }
+	
     protected void handleNotUnderstood(ACLMessage reply) {
       myGUI.showError("NOT-UNDERSTOOD received during " + actionName);
     }

@@ -54,7 +54,7 @@ import jade.lang.sl.SL0Codec;
 import jade.onto.basic.ResultPredicate;
 import jade.onto.basic.Action;
 
-import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 
@@ -76,19 +76,15 @@ public class rma extends ToolAgent {
   private APDescription myPlatformProfile;
   
   // Sends requests to the AMS
-  private class AMSClientBehaviour extends FipaRequestInitiatorBehaviour {
+    private class AMSClientBehaviour extends SimpleAchieveREInitiator {
 
     private String actionName;
+      
+	public AMSClientBehaviour(String an, ACLMessage request) {
+	    super(rma.this, request);
+	    actionName = an;
+	}
 
-    public AMSClientBehaviour(String an, ACLMessage request) {
-      super(rma.this, request,
-	    MessageTemplate.and(
-	      MessageTemplate.or(MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME),
-				 MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME)),
-	      MessageTemplate.MatchLanguage(SL0Codec.NAME))
-	    );
-      actionName = an;
-    }
 
     protected void handleNotUnderstood(ACLMessage reply) {
       myGUI.showErrorDialog("NOT-UNDERSTOOD received by RMA during " + actionName, reply);

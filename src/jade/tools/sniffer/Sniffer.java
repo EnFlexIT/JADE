@@ -50,7 +50,7 @@ import jade.lang.sl.SL0Codec;
 
 import jade.onto.basic.Action;
 
-import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 
@@ -133,18 +133,15 @@ public class Sniffer extends ToolAgent {
 
 
   // Sends requests to the AMS
-  private class AMSClientBehaviour extends FipaRequestInitiatorBehaviour {
+   
+    private class AMSClientBehaviour extends SimpleAchieveREInitiator {
 
     private String actionName;
 
-    public AMSClientBehaviour(String an, ACLMessage request) {
-      super(Sniffer.this, request,
-	    MessageTemplate.and(MessageTemplate.MatchOntology(JADEAgentManagementOntology.NAME),
-				MessageTemplate.MatchLanguage(SL0Codec.NAME)
-				)
-	    );
-      actionName = an;
-    }
+      public AMSClientBehaviour(String an, ACLMessage request) {
+	  super(Sniffer.this, request);
+	  actionName = an;
+      }
 
     protected void handleNotUnderstood(ACLMessage reply) {
       myGUI.showError("NOT-UNDERSTOOD received during " + actionName);
