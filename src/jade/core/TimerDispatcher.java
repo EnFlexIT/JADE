@@ -44,7 +44,6 @@ class TimerDispatcher implements Runnable {
   void setThread(Thread t) {
     if(myThread == null) {
       myThread = t;
-      myThread.setName("JADE Timer dispatcher");
     }
   }
 
@@ -71,9 +70,6 @@ class TimerDispatcher implements Runnable {
     // Server loop, demultiplexing between timer dispatching and timer
     // addition/removal.
 
-    //    System.out.println("Timer Dispatcher started ...");
-    //    System.out.println("Running in group " + Thread.currentThread().getThreadGroup().getName() + " at priority " + Thread.currentThread().getPriority());
-
     try {
       // Used as a flag. The dispatcher must recheck the timer list
       // whenever the last timer was expired.
@@ -82,36 +78,39 @@ class TimerDispatcher implements Runnable {
       long timeToWait = 0;
       Timer t = null;
       synchronized(this) {
-	while(active) {
-	  checkAgain = false;
-	  // If no timers are armed, wait until one is added.
-	  if(emptySet()) {
-	    timeToWait = 0;
-	  }
-	  // Otherwise...
-	  else {
-	    t = firstTimer();
-	    // If t was expired, calling this function executes the
-	    // time-out action; then the timer is removed and the need
-	    // for further inspections of the timer list is flagged.
-	    if(t.isExpired()) {
-	      remove(t);
-	      checkAgain = true;
-	    }
-	    else {
-	      // The first timer is still armed. Then the dispatcher
-	      // calculates the remaining time to wait.
-	      timeToWait = t.expirationTime() - System.currentTimeMillis();
-	      if(timeToWait <= 0) // Avoid wait(0), that means 'for ever'...
-		timeToWait = 1;
-	    }
-	  }
-	  if(!checkAgain) {
-	    // System.out.println("Waiting for " + timeToWait + " ms.");
-	    wait(timeToWait);
-	  }
-	}
-      }
+				while(active) {
+	  			checkAgain = false;
+	  			// If no timers are armed, wait until one is added.
+	  			if(emptySet()) {
+	    			timeToWait = 0;
+	  			}
+	  			// Otherwise...
+	  			else {
+	    			t = firstTimer();
+	    			// If t was expired, calling this function executes the
+	    			// time-out action; then the timer is removed and the need
+	    			// for further inspections of the timer list is flagged.
+	    			if(t.isExpired()) {
+	      			remove(t);
+	      			checkAgain = true;
+	    			}
+	    			else {
+	      			// The first timer is still armed. Then the dispatcher
+	      			// calculates the remaining time to wait.
+	      			timeToWait = t.expirationTime() - System.currentTimeMillis();
+	      			if(timeToWait <= 0) // Avoid wait(0), that means 'for ever'...
+								timeToWait = 1;
+	    			}
+	  			}
+	  			if(!checkAgain) {
+	    			// System.out.println("Waiting for " + timeToWait + " ms.");
+	    			wait(timeToWait);
+	  			}
+	  			
+				}  // END of while
+				
+      }  // END of synchronized
+      
     }
     catch(InterruptedException ie) {
       // Do nothing, but just return, since this is a shutdown.
@@ -128,17 +127,19 @@ class TimerDispatcher implements Runnable {
   public void stop() {
     synchronized(myThread) {
       if(Thread.currentThread().equals(myThread)) {
-	System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
+				System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
       }
       else {
-	active = false;
-	myThread.interrupt();
-	try {
-	  myThread.join();
-	}
-	catch (InterruptedException ignore) {
-	  // Do nothing
-	}
+				active = false;
+				synchronized (this) {
+					notifyAll();
+				}
+				try {
+	  			myThread.join();
+				}
+				catch (InterruptedException ignore) {
+	  			// Do nothing
+				}
       }
     }
   }

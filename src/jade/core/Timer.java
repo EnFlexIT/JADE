@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.util.leap.Comparable;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$

@@ -171,6 +171,7 @@ public class Runtime {
       theDispatcher = new TimerDispatcher();
       Thread t = new Thread(criticalThreads, theDispatcher);
       t.setPriority(criticalThreads.getMaxPriority());
+      t.setName("JADE Timer dispatcher");
       //Thread t = ResourceManager.getThread(ResourceManager.CRITICAL, theDispatcher);
       theDispatcher.setThread(t);
       theDispatcher.start();

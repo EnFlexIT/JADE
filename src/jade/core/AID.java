@@ -25,9 +25,10 @@ package jade.core;
 
 
 import jade.util.leap.Serializable;
+import jade.util.leap.Comparable;
 import java.io.Writer; // FIXME: This must go away
 import java.io.IOException; // FIXME: This must go away
-import java.io.StringWriter; 
+//import java.io.StringWriter; 
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -41,7 +42,8 @@ import jade.content.Concept;
  This class represents a JADE Agent Identifier. JADE internal agent
  tables use this class to record agent names and addresses.
  */
-public class AID extends Concept implements Cloneable, Comparable, Serializable {
+//public class AID extends Concept implements Cloneable, Comparable, Serializable {
+public class AID extends Concept implements Comparable, Serializable {
   
   /**
   @serial
@@ -299,7 +301,35 @@ public class AID extends Concept implements Cloneable, Comparable, Serializable 
   /**
   * Clone the AID object.
   */
-  public synchronized Object clone() {
+    public synchronized Object clone() {
+        AID      result = new AID(this.name);
+
+        // Copying addresses
+        //Iterator it = getAllAddresses();
+        //while (it.hasNext()) {
+        //    result.addAddresses((String) it.next());
+        //}
+        result.addresses = addresses;
+
+        // Copying resolvers
+        //it = getAllResolvers();
+        //for (; it.hasNext(); ) {
+        //    result.addResolvers((AID) it.next());
+        //}
+        result.resolvers = resolvers;
+
+        // Copying user defined slots
+        //Enumeration enum = userDefSlots.propertyNames();
+        //while (enum.hasMoreElements()) {
+        //    String key = (String) enum.nextElement();
+        //    result.addUserDefinedSlot(key, 
+        //                              (String) userDefSlots.getProperty(key));
+        //}
+        result.userDefSlots = userDefSlots;
+
+        return result;
+    } 
+  /*public synchronized Object clone() {
     AID result;
     try {
       result = (AID)super.clone();
@@ -310,7 +340,8 @@ public class AID extends Concept implements Cloneable, Comparable, Serializable 
     }
     return result;
   }
-
+	*/
+	
   /**
     Equality operation. This method compares an <code>AID</code> object with
     another or with a Java <code>String</code>. The comparison is case
@@ -353,7 +384,7 @@ public class AID extends Concept implements Cloneable, Comparable, Serializable 
   */
   public int compareTo(Object o) {
     AID id = (AID)o;
-    return name.compareToIgnoreCase(id.name);
+    return name.toLowerCase().toUpperCase().compareTo(id.name.toLowerCase().toUpperCase());
   }
 
 

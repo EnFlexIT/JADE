@@ -119,7 +119,26 @@ class MainContainerImpl implements Platform, AgentManager {
     AgentContainer[] allContainers = containers.containers();
     for(int i = 0; i < allContainers.length; i++) {
       AgentContainer target = allContainers[i];
-      target.exit(); // This call removes 'ac' from 'container' map and from the collection 'c'
+	   	try {
+	   		// This call indirectly removes
+	     	target.exit(); 
+	   	}
+	   	catch(IMTPException imtp1) {
+	   		// FIXME: Should print a better message and remove the container  
+	   		// as in killContainer(). Not yet done as the ContainerID is not 
+	   		// accessible. Will be implemented as soon as the ContainerTable 
+	   		// will work on ContainerID-s instead of String-s
+	   		System.out.println("Removing unreachable container");
+	     	//System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
+	     	//try {
+	     	//	removeContainer(contID);
+	     	//}
+	     	//catch (IMTPException imtpe2) {
+	     		// Should never happen as this is a local call
+	     	//	imtpe2.printStackTrace();
+	     	//}
+	   	}
+      //target.exit(); // This call removes 'ac' from 'container' map and from the collection 'c'
     }
 
     // Make sure all containers are succesfully removed from the table...
@@ -705,8 +724,6 @@ class MainContainerImpl implements Platform, AgentManager {
 	     				// Should never happen as this is a local call
 	     				imtpe2.printStackTrace();
 	     			}
-	     			//containers.removeContainer(cName);
-	     			//fireRemovedContainer(new ContainerID(cName, null));
 	   			}
 	 			}
       });
