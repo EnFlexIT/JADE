@@ -1,0 +1,125 @@
+README file for JADE 0.71 - Example programs.
+
+Some example programs are provided in JADE package, to show various
+framework features and suggested programming idioms.  To run the
+examples, you must set CLASSPATH environment variable to contain the
+zip file where JADE framework is contained and the current directory.
+Then change to 'src' directory and refer to the various example agents
+with a fully qualified package name; all example agent classes belong
+to subpackages of 'examples' package: for example, class Agent1 in
+'ex1' subdirectory of 'examples' directory must be started with:
+
+	java jade.boot -platform examples.ex1.Agent1
+
+
+The following list describes all the example programs found in
+'src/examples' subdirectories, detailing their features.
+
+'ex1' subdirectory
+==================
+
+ - Agent1.class			An agent with a cyclic behaviour, printing 
+				a message once in a second. This shows
+				how an agent behaviour can be defined
+				in a class implementing
+				jade.core.Behaviour interface.
+
+ - Agent2.class			An agent which executes a behaviour once 
+				and then stops. This example shows how a
+				behaviour can be defined extending
+				jade.core.SimpleBehaviour class. It
+				also shows how an agent without active
+				behaviours is blocked. Besides, the
+				executed behaviour shows Message
+				Templates usage.
+
+ - Agent3.class			An agent with a behaviour made of many steps,
+				with some steps that have sub-steps
+				themselves. This examples shows how
+				jade.core.SequentialBehaviour class
+				allows the construction of aggregate
+				behaviours starting from simpler ones,
+				even with recursive aggregations.
+				Besides, it shows the cooperative
+				multitasking presently used for
+				intra-agent behaviour scheduling.
+
+ - Agent4.class			This agent uses both SequentialBehaviour
+				and NonDeterministicBehaviour classes
+				to build more complex behaviours from
+				simpler ones.
+
+
+
+'ex2' subdirectory
+==================
+
+ - AgentReceiver.class		This example creates an agent that continously
+				waits for messages and sends back automated 
+				replies; it shows how to create a simple
+				server agent, purely reactive.
+
+ - AgentSender.class		This agent works together with AgentReceiver
+				to build a simple client/server
+				interaction. The agent asks the user
+				for a message and an agent name. It
+				then sends the string to the specified agent.
+				This example, together with the
+				previous one, shows how the
+				distributed Agent Platform allows
+				message passing between the agents.
+
+ - AgentBroadcaster.class	This agent combines message passing with
+				ComplexBehaviour class to achieve
+				more complex interactions between agents.
+				This Agent asks for a string and three
+				agent names; then it sends the string
+				to each one of the three agents,
+				collecting the replies. Eventually, it
+				prints the concatenation of the three
+				replies.
+
+
+
+'ex3' subdirectory
+==================
+
+ - AgentThread.class		An agent that starts a simple conversation
+				using 'reply-with' and 'reply-to'
+				message fields to follow a
+				conversation thread. This example
+				sheds some light on selective
+				receive() using MessageTemplate
+				objects.
+
+ - AgentMessageFilter.class	This is the companion of the previous agent;
+				it receives an incoming message and uses
+				'reply-with' field to answer the
+				message in a specific conversation thread.
+
+
+
+'ex4' subdirectory
+==================
+
+ - AgentRequester.class		This agent plays initiator role in a
+				conversation following standard
+				'fipa-request' protocol. The example
+				program shows how more complex
+				interactions (such as agent
+				interaction protocols) can be handled
+				with primitives provided by JADE
+				framework, such as composite
+				behaviours and advanced message
+				passing.
+
+ - AgentResponder.class		The companion agent of AgentRequester.
+				This agent plays responder role in
+				'fipa-request' protocol and is able to
+				manage multiple simultaneous
+				conversations through
+				'conversation-id' message field.
+
+
+
+
