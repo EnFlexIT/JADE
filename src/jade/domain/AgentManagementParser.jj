@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.16  1998/12/08 00:04:21  rimassa
+  Added code to parse the common prefix for Actions (i.e. "( action
+  <AGENT_NAME>" ... ")" ).
+  Changed AgentName() grammar production to make the address optional.
+  Fixed FIPA_Exception() grammar production introducing a new
+  <EXCEPTIONSTATE> lexical state.
+
   Revision 1.15  1998/11/30 00:20:49  rimassa
   Made the parser a case-insensitive one, through a JavaCC option.
   Fixed an error in ':agent-type' clause.
@@ -170,7 +177,9 @@ AgentManagementOntology.Action Action() :
   AgentManagementOntology.Action a;
 }
 {
-  "(" ( a = AMSActionBody() | a = DFActionBody() | a = ACCActionBody() ) ")"
+  "(" <ACTION> AgentName()
+    "(" ( a = AMSActionBody() | a = DFActionBody() | a = ACCActionBody() ) ")"
+  ")"
   { return a; }
 }
 
@@ -179,7 +188,9 @@ AgentManagementOntology.AMSAction AMSAction() :
   AgentManagementOntology.AMSAction a;
 }
 {
-  "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | a = KillContainerBody() ) ")"
+  "(" <ACTION> AgentName()
+    "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | a = KillContainerBody() ) ")"
+  ")"
   { return a; }
 }
 
@@ -236,7 +247,9 @@ AgentManagementOntology.DFAction DFAction() :
   AgentManagementOntology.DFAction a;
 }
 {
-  "(" ( a = DFActionBody() | a = DFSearchBody() ) ")"
+  "(" <ACTION> AgentName()
+    "(" ( a = DFActionBody() | a = DFSearchBody() ) ")"
+  ")"
   { return a; }
 }
 
@@ -245,7 +258,9 @@ AgentManagementOntology.ACCAction ACCAction() :
   AgentManagementOntology.ACCAction a;
 }
 {
-  "(" a = ACCActionBody() ")"
+  "(" <ACTION> AgentName()
+    "(" a = ACCActionBody() ")"
+  ")"
   { return a; }
 }
 
@@ -619,9 +634,11 @@ String AgentName() :
 {
   Token t;
   String s;
+  String result;
 }
 {
-  t = <WORD> "@" s = CommAddress() { return t.image + "@" + s; }
+  t = <WORD> {result = t.image;} [ "@" s = CommAddress() { result = result.concat("@" + s); } ]
+  { return result; }
 }
 
 String CommAddress() :
@@ -721,7 +738,15 @@ FIPAException FIPA_Exception(AgentManagementOntology o) :
   String s;
 }
 {
-  "(" <ACTION> <WORD> <WORD> ")" t = <WORD>
+  "(" <ACTION>
+  {
+    token_source.SwitchTo(EXCEPTIONSTATE);
+  }
+  <NAME> <NAME>
+  {
+    token_source.SwitchTo(DEFAULT);
+  }
+  ")" t = <WORD>
   {
     s = t.image;
     return o.getException(s);
@@ -732,7 +757,7 @@ FIPAException FIPA_Exception(AgentManagementOntology o) :
 // JavaCC lexical productions
 
 <DEFAULT>
-SKIP :
+SKIP:
 {
   " "
 | "\t"
@@ -793,7 +818,7 @@ TOKEN:
 }
 
 <COMM_PROTOCOLSTATE>
-SKIP :
+SKIP:
 {
   " "
 | "\t"
@@ -808,7 +833,7 @@ TOKEN:
 }
 
 <APStateSTATE>
-SKIP :
+SKIP:
 {
   " "
 | "\t"
@@ -823,7 +848,7 @@ TOKEN:
 }
 
 <DfLifeCycleState>
-SKIP :
+SKIP:
 {
   " "
 | "\t"
@@ -866,7 +891,20 @@ TOKEN:
 
 }
 
+<EXCEPTIONSTATE>
+SKIP:
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
 
+<EXCEPTIONSTATE>
+TOKEN:
+{
+  <NAME : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"~"] (["*"-".", "0"-"9", ";"-"~","!"-"'"])* >
+}
 
 
 
