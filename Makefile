@@ -111,7 +111,7 @@ binarchive: $(CLSDIR) $(DOCDIR) doc all lib
 	$(ZIP) $(ZIPFLAGS) $(PACKAGE)-$(VERSION)-bin.$(ZIPEXT) $(ROOTNAME); \
 	cd $(ROOTDIR)
 
-batch:
+batch: $(CLSDIR) $(DOCDIR)
 	cd $(SRCDIR); $(MAKE) batch
 	cd $(EXAMPLESDIR); $(MAKE) batch
 	cd $(DOCDIR); $(MAKE) batch
