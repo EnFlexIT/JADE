@@ -101,6 +101,40 @@ public class AddressNotificationService extends BaseService {
 	return OWNED_COMMANDS;
     }
 
+    public void boot(Profile p) throws ServiceException {
+
+	// Retrieve the address list from the competent Service Manager...
+	AddressNotificationSlice mainSlice = (AddressNotificationSlice)getSlice(MAIN_SLICE);
+
+	String[] addresses;
+	try {
+	    addresses = mainSlice.getServiceManagerAddresses();
+	}
+	catch(IMTPException imtpe) {
+	    // Try to get a newer slice and repeat...
+	    mainSlice = (AddressNotificationSlice)getFreshSlice(MAIN_SLICE);
+
+	    try {
+		addresses = mainSlice.getServiceManagerAddresses();
+	    }
+	    catch(IMTPException imtpe2) {
+		throw new ServiceException("Could not retrieve Service Manager address list");
+	    }
+
+	}
+
+	for(int i = 0; i < addresses.length; i++) {
+	    try {
+		myServiceManager.addAddress(addresses[i]);
+	    }
+	    catch(IMTPException imtpe) {
+		// It should never happen...
+		imtpe.printStackTrace();
+	    }
+	}
+    }
+
+
     private class CommandSourceSink implements Sink {
 
 	// Implementation of the Sink interface
@@ -189,6 +223,9 @@ public class AddressNotificationService extends BaseService {
 		    String addr = (String)params[0];
 		    removeServiceManagerAddress(addr);
 		}
+		else if(cmdName.equals(AddressNotificationSlice.H_GETSERVICEMANAGERADDRESSES)) {
+		    cmd.setReturnValue(getServiceManagerAddresses());
+		}
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
@@ -208,6 +245,10 @@ public class AddressNotificationService extends BaseService {
 
 	private void removeServiceManagerAddress(String addr) throws IMTPException {
 	    myServiceManager.removeAddress(addr);
+	}
+
+	private String[] getServiceManagerAddresses() throws IMTPException {
+	    return myServiceManager.getAddresses();
 	}
 
     } // End of ServiceComponent class
