@@ -102,6 +102,13 @@ public class ArrayList implements List, Serializable {
         return realHiddenList.remove(index);
     } 
 
+		/**
+		   Inserts the specified element at the specified position in this list
+     */
+    public void add(int index, Object o) {
+    	realHiddenList.add(index, o);
+    }
+    
     /**
      * @see jade.util.leap.Collection interface
      */

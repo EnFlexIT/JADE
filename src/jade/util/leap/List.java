@@ -33,7 +33,12 @@ package jade.util.leap;
  */
 public interface List extends Collection {
 
-    /**
+		/**
+		   Inserts the specified element at the specified position in this list
+     */
+    void add(int index, Object o);
+    
+    /** 
      * Removes all of the elements from this list (optional operation).  This
      * list will be empty after this call returns.
      */

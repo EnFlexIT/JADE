@@ -95,6 +95,13 @@ public class LinkedList implements List, Serializable {
         return realHiddenList.add(o);
     } 
 
+		/**
+		   Inserts the specified element at the specified position in this list
+     */
+    public void add(int index, Object o) {
+    	realHiddenList.add(index, o);
+    }
+    
     /**
      * @see jade.util.leap.Collection interface
      */
