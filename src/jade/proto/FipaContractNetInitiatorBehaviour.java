@@ -206,7 +206,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       while (e.hasMoreElements()) {
 	actor = (String)e.nextElement();
 	cfpMsg.setContent(createCfpContent(oldcontent,actor));
-	cfpMsg.setDest(actor);
+	cfpMsg.addDest(actor);
 	myAgent.send(cfpMsg);
       }
 
