@@ -72,7 +72,7 @@ class SL0Parser {
 
   public static void main(String[] args) {
     System.out.println("SL0 Parser started...");
-    SL0Parser theParser = new SL0Parser(new BufferedReader(new InputStreamReader(System.in)));
+    SL0Parser theParser = new SL0Parser(System.in);
     SL0Codec codec = new SL0Codec();
     Ontology o = new DefaultOntology();
 
