@@ -22,10 +22,11 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-
 package jade.core;
 
-import java.util.Vector;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Iterator;
 
 import java.io.Serializable;
 
@@ -54,22 +55,29 @@ import jade.core.behaviours.Behaviour;
 ****************************************************************/
 class Scheduler implements Serializable {
 
-  protected Vector behaviours = new Vector();
-  private Agent owner;
-  private int currentIndex;
+  /**
+     @serial
+  */
+  protected List readyBehaviours = new LinkedList();
 
-  // A static instance of an unnamed inner class to provide a
-  // do-nothing behaviour
-  private static Behaviour idleBehaviour = null;
+  /**
+     @serial
+  */
+  protected List blockedBehaviours = new LinkedList();
+
+  /**
+     @serial
+  */
+  private Agent owner;
+
+  /**
+     @serial
+  */
+  private int currentIndex;
 
   public Scheduler(Agent a) {
     owner = a;
     currentIndex = 0;
-  }
-
-  protected void finalize() {
-    // Should terminate all threads of the pool.
-    // Now, no thread pool has been implemented.
   }
 
   // Adds a behaviour at the end of the behaviours queue. 
@@ -77,37 +85,74 @@ class Scheduler implements Serializable {
   // If the behaviours queue was empty notifies the embedded thread of
   // the owner agent that a behaviour is now available.
   public synchronized void add(Behaviour b) {
-    behaviours.addElement(b);
+    readyBehaviours.add(b);
     notify();
   }
 
+  // Moves a behaviour from the ready queue to the sleeping queue.
+  public synchronized void block(Behaviour b) {
+    removeFromReady(b);
+    blockedBehaviours.add(b);
+  }
 
-  // Removes a specified beaviour from the behaviours queue.
+  // Moves a behaviour from the sleeping queue to the ready queue.
+  public synchronized void restart(Behaviour b) {
+    removeFromBlocked(b);
+    readyBehaviours.add(b);
+    notify();
+  }
 
-  // This can change the index of the current behaviour, so a check is
-  // made: if the just removed behaviour has an index lesser than the
-  // current one, then the current index must be decremented.
+  // Restarts all blocked behaviours. This method simply calls
+  // Behaviour.restart() on every blocked behaviour. The
+  // Behaviour.restart() method then notifies the agent (with the
+  // Agent.notifyRestarted() method), causing Scheduler.restart() to
+  // be called.
+  public synchronized void restartAll() {
+    Behaviour[] behaviours = (Behaviour[])blockedBehaviours.toArray(new Behaviour[0]);
+    for(int i = 0; i < behaviours.length; i++) {
+      Behaviour b = behaviours[i];
+      b.restart();
+    }
+  }
+
+  // Removes a specified behaviour from the scheduler
   public synchronized void remove(Behaviour b) {
-    int index = behaviours.indexOf(b);
-    behaviours.removeElement(b);
-    if(index < currentIndex)
-      --currentIndex;
-    if(currentIndex < 0)
-      currentIndex = 0;
+    boolean found = removeFromBlocked(b);
+    if(!found)
+      removeFromReady(b);
   }
 
   // Selects the appropriate behaviour for execution, with a trivial
   // round-robin algorithm.
   public synchronized Behaviour schedule() throws InterruptedException {
-
-    while(behaviours.isEmpty()) {
+    while(readyBehaviours.isEmpty()) {
       // System.out.println("Agent " + owner.getLocalName() + " has nothing to do, so it sleeps ...");
       wait();
     }
-
-    Behaviour b = (Behaviour)behaviours.elementAt(currentIndex);
-    currentIndex = (currentIndex + 1) % behaviours.size();
+    Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);
+    currentIndex = (currentIndex + 1) % readyBehaviours.size();
     return b;
+  }
+
+  // Removes a specified behaviour from the blocked queue.
+  private boolean removeFromBlocked(Behaviour b) {
+    return blockedBehaviours.remove(b);
+  }
+
+  // Removes a specified behaviour from the ready queue.
+  // This can change the index of the current behaviour, so a check is
+  // made: if the just removed behaviour has an index lesser than the
+  // current one, then the current index must be decremented.
+  private boolean removeFromReady(Behaviour b) {
+    int index = readyBehaviours.indexOf(b);
+    if(index != -1) {
+      readyBehaviours.remove(b);
+      if(index < currentIndex)
+	--currentIndex;
+      if(currentIndex < 0)
+	currentIndex = 0;
+    }
+    return index != -1;
   }
 
 }
