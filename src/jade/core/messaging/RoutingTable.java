@@ -148,8 +148,10 @@ class RoutingTable {
     }
 
     public void remove(OutPort port) {
+
       local.remove(port);
       remote.remove(port);
+
     }
 
     public OutPort get() {
@@ -268,6 +270,7 @@ class RoutingTable {
      Removes the MTP for the URL named <code>name</code>.
    */
   public synchronized void removeRemoteMTP(MTPDescriptor mtp, String sliceName, MessagingSlice where) {
+
     OutPort ch = new OutViaSlice(sliceName, where);
     String[] protoNames = mtp.getSupportedProtocols();
     for(int i = 0; i < protoNames.length; i++) {
@@ -315,8 +318,9 @@ class RoutingTable {
       //proto = proto.toLowerCase();
       CaseInsensitiveString protoTmp = new CaseInsensitiveString(proto);
     OutPortList l = (OutPortList)outPorts.get(protoTmp);
-    if(l != null)
+    if(l != null) {
       l.remove(port);
+    }
   }
 
   private String extractProto(String address) {
