@@ -36,12 +36,11 @@
 
 package jade.imtp.leap;
 
-import jade.core.AgentContainer;
-import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
 import jade.core.IMTPException;
 import jade.core.UnreachableException;
 import jade.core.Profile;
+import jade.core.ServiceManagerImpl;
 import jade.mtp.TransportAddress;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -62,10 +61,6 @@ import java.util.Hashtable;
  */
 class FullCommandDispatcher extends CommandDispatcher {
 
-	/**
-	   The MainContainer object (the real one or a stub of it) 
-	 */
-	private MainContainer theMain = null;
 	
   /**
    * This hashtable maps the IDs of the objects remotized by this
@@ -126,15 +121,14 @@ class FullCommandDispatcher extends CommandDispatcher {
     // System.out.println("full command dispatcher initialized");
   }
 
-  /**
-   * Return a MainContainer object to call methods on the Main container
-   */
+    /***
   public MainContainer getMain(Profile p) throws IMTPException {
   	if (theMain == null) {
   		theMain = super.getMain(p);
   	}
   	return theMain;
   }
+    ***/
   
   /**
    * Adds (and activates) an ICP to this command dispatcher.
@@ -251,20 +245,16 @@ class FullCommandDispatcher extends CommandDispatcher {
    */
   public void registerSkeleton(Skeleton skeleton, Object remoteObject) {
   	Integer id = null;
-  	if (remoteObject instanceof MainContainer) {
-    	id = new Integer(0);
-    	name = "Main-Container";
-    	if (theMain != null) {
-    		System.out.println("WARNING: Replacing main in CommandDispatcher!!!");
-    	}
-    	theMain = (MainContainer) remoteObject;
+  	if (remoteObject instanceof ServiceManagerImpl) {
+	    id = new Integer(0);
+	    name = "Service-Manager";
   	}
   	else {
-    	id = new Integer(nextID++);
+	    id = new Integer(nextID++);
   	}
-    skeletons.put(id, skeleton);
-    ids.put(remoteObject, id);
-  } 
+	skeletons.put(id, skeleton);
+	ids.put(remoteObject, id);
+  }
 
   /**
    * Deregisters the specified remote object from the command dispatcher.
@@ -285,37 +275,34 @@ class FullCommandDispatcher extends CommandDispatcher {
     } 
   } 
 
-  /**
-   * Builds a stub for an already remotized object.
-   * 
-   * @param remoteObject the remote object the stub depends on.
-   * @return a new stub depending on the specified remote object.
-   * @throws IMTPException if the stub cannot be created.
-   */
   public Stub buildLocalStub(Object remoteObject) throws IMTPException {
     Stub stub = null;
 
-    if (remoteObject instanceof MainContainer) {
-      //stub = new MainContainerStub((MainContainer) remoteObject);
-      stub = new MainContainerStub(getID(remoteObject));
-    } 
-    else if (remoteObject instanceof AgentContainer) {
-      //stub = new AgentContainerStub((AgentContainer) remoteObject);
-      stub = new AgentContainerStub(getID(remoteObject));
-    } 
+    if(remoteObject instanceof NodeAdapter) {
+
+	NodeAdapter na = (NodeAdapter)remoteObject;
+	NodeLEAP nl = na.getAdaptee();
+	if(nl instanceof NodeStub) {
+	    stub = (NodeStub)nl;
+	}
+	else {
+	    stub = new NodeStub(getID(remoteObject));
+
+	    // Add the local addresses.
+	    Iterator it = addresses.iterator();
+
+	    while (it.hasNext()) {
+		stub.addTA((TransportAddress) it.next());
+	    }
+	}
+    }
     else {
       throw new IMTPException("can't create a stub for object "+remoteObject+".");
-    } 
-
-    // Add the local addresses.
-    Iterator it = addresses.iterator();
-
-    while (it.hasNext()) {
-      stub.addTA((TransportAddress) it.next());
-    } 
+    }
 
     return stub;
-  } 
+  }
+
 
   /**
    * Selects a suitable peer and sends the specified serialized command
