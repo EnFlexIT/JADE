@@ -77,7 +77,6 @@ public class MobileAgent extends GuiAgent {
   public static final int STOP_EVENT = 1002;
   public static final int CONTINUE_EVENT = 1003;
   public static final int REFRESH_EVENT = 1004;
-  public static final int EXIT = 1000;
   public static final int CLONE_EVENT = 1005;
 
   // this vector contains the list of visited locations
