@@ -1,3 +1,31 @@
+MAJOR CHANGES in JADE Snapshot (26 March 2002) 
+==========================================================================
+GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES:
+- Added SimpleAchieveREInitiator/Responder that are faster and simpler to use
+- FSMBehaviour: Added a method to force a transition into a given state
+- Added TickerBehaviour
+BUG FIXES:
+- content support: order of slots and slot names including
+- deadlock for some cases of agent mobility and tool event notification
+- StringACLCodec: Added quotes and removed bug in some expression slots
+- AchieveREResponder now goes in the PrepareResultNotification state 
+  also when no response is sent
+- Fixed bug when reading a boolean property from the configuration file
+- Added mechanism to preserve message order when messages are retransmitted 
+  due to disconnection problems
+DEPRECATIONS:
+- deprecated the old FIPARequest protocol classes
+DOCUMENTATION:
+- Added javadoc for jade.content.lang.sl jade.util jade.content.lang packages
+EXAMPLES:
+- content example: Improved output 
+MISCELLANEOUS:
+- reengineered df, ams, ToolAgents, and examples
+  in order to use the new SimpleAchieveRE classes
+- SocketProxyAgent: removed the limitation to wait just for one reply message, 
+  now it waits if an Agree message was sent in reply.
+
+	
 MAJOR CHANGES in JADE 2.5 (5 February 2002) 
 ==========================================================================
 GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
