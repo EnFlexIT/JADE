@@ -118,7 +118,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     localAgents.put(AMS_NAME, theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this, AMS_NAME);
     desc.setContainerName(myName);
     desc.setProxy(rp);
 
@@ -137,7 +137,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     localAgents.put(ACC_NAME, theACC);
 
     AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this, ACC_NAME);
     desc.setContainerName(myName);
     desc.setProxy(rp);
 
@@ -190,7 +190,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     localAgents.put(DEFAULT_DF_NAME, defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    RemoteProxyRMI rp = new RemoteProxyRMI(this);
+    RemoteProxyRMI rp = new RemoteProxyRMI(this, DEFAULT_DF_NAME);
     desc.setContainerName(myName);
     desc.setProxy(rp);
 
@@ -387,29 +387,30 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
   }
 
-  public void setDelegateAgent(String agentName, String delegateName) throws NotFoundException {
-      /*
+  public void setDelegateAgent(String agentName, String delegateName) throws NotFoundException, UnreachableException {
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     if(ad == null)
       throw new NotFoundException("setDelegateAgent failed to find " + agentName);
+    ad.lock();
     AgentDescriptor adDelegate = (AgentDescriptor)platformAgents.get(delegateName.toLowerCase());
     if(adDelegate == null)
       throw new NotFoundException("setDelegateAgent failed to find " + delegateName);
-    if(delegateName != null) {
-      RemoteProxy rpd = new RemoteProxyDelegate(adDelegate.getProxy());
+
+    AgentContainer ac = getContainerFromAgent(agentName);
+    if(delegateName.equalsIgnoreCase(agentName)) { // Remove a previous delegation
+      try {
+	ac.setDelegation(agentName, delegateName);
+      }
+      catch(RemoteException re) {
+	throw new UnreachableException(re.getMessage());
+      }
+      RemoteProxy rpd = new RemoteProxyDecorator(ad.getProxy());
       ad.setProxy(rpd);
     }
-    else {
-      try {
-	RemoteProxyDelegate rpd = (RemoteProxyDelegate)ad.getProxy();
-	RemoteProxy rp = rpd.getOriginal();
-	ad.setProxy(rp);
-      }
-      catch(ClassCastException cce) {
-	throw new NotFoundException("Agent " + agentName + " has no delegate");
-      }
+    else { // Add a new delegation
+
     }
-      */
+    ad.unlock();
   }
 
   public boolean transferIdentity(String agentName, String src, String dest) throws RemoteException, NotFoundException {
@@ -429,7 +430,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
     // Commit transaction and notify AMS
     ad.lock();
-    ad.setProxy(new RemoteProxyRMI(destAC));
+    ad.setProxy(new RemoteProxyRMI(destAC, agentName));
     ad.setContainerName(dest);
     theAMS.postMovedAgent(agentName, src, dest);
     ad.unlock();
