@@ -40,7 +40,9 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 		jade/tools/applet/DFApplet.java \
 		jade/tools/sl/SLFormatter.java \
-		starlight/util/Base64.java
+		starlight/util/Base64.java \
+		jade/imtp/rmi/MainContainerRMIImpl.java \
+		jade/imtp/rmi/RMIIMTPManager.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
 		jade/lang/acl/ACLParserConstants.java \
