@@ -18,4 +18,12 @@ import jade.core.Behaviour;
 
 ****************************************************************/
 public class ProtocolDrivenBehaviour implements Behaviour {
+
+  public void execute() {
+  }
+
+  public boolean done() {
+    return true; // FIXME: To be implemented
+  }
+
 }
