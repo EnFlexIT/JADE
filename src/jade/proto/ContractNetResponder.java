@@ -137,137 +137,183 @@ public final String PROPOSE_ACCEPTANCE_KEY = "___propose_acceptance"+hashCode();
 public final String RESULT_NOTIFICATION_KEY = "__result-notification" + hashCode();
 
 
-private MsgReceiver cfp_rec,accept_rec;
+    // Private inner classes for the FSM states
+    private static class PreparePropose extends OneShotBehaviour {
+
+	public PreparePropose(Agent a) {
+	    super(a);
+	}
+
+	// For persistence service
+	private PreparePropose() {
+	}
+
+	public void action() {
+
+	    ContractNetResponder fsm = (ContractNetResponder)getParent();
+	    DataStore ds = getDataStore();
+	    ACLMessage request = (ACLMessage) ds.get(fsm.CFP_KEY);
+
+	    ACLMessage response = null;
+	    try {
+		response = fsm.prepareResponse(request); 
+	    }
+	    catch (NotUnderstoodException nue) {
+		response = nue.getACLMessage();
+	    }
+	    catch (RefuseException re) {
+		response = re.getACLMessage();
+	    }
+	    ds.put(fsm.PROPOSE_KEY, response);
+	}
+
+    } // End of PreparePropose class
+
+    private static class AcceptReceiver extends MsgReceiver {
 
 
-/**
-* Constructor of the behaviour that creates a new empty DataStore
-* @see #ContractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
-**/
-public ContractNetResponder(Agent a,MessageTemplate mt){
-	 this(a,mt, new DataStore());
-}
+	public AcceptReceiver(Agent myAgent, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
+	    super(myAgent, mt, deadline, s, msgKey);
+	}
 
-/**
- * Constructor of the behaviour.
- * @param a is the reference to the Agent object
- * @param mt is the MessageTemplate that must be used to match
- * the initiator message. Take care that 
- * if mt is null every message is consumed by this protocol.
- * The best practice is to have a MessageTemplate that matches
- * the protocol slot; the static method <code>createMessageTemplate</code>
- * might be usefull. 
- * @param store the DataStore for this protocol behaviour
- **/
-public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
+	// For persistence service
+	private AcceptReceiver() {
+	}
+
+	public void onStart() {
+
+	    ContractNetResponder fsm = (ContractNetResponder)getParent();
+	    DataStore ds = getDataStore();
+	    ACLMessage propose = (ACLMessage)ds.get(fsm.PROPOSE_KEY);
+	    if(propose == null) {
+		return;
+	    }
+	    long t_out;
+	    Date reply_by = propose.getReplyByDate();
+	    if(reply_by == null) {
+		t_out = MsgReceiver.INFINITE;
+	    }
+	    else {
+		t_out = reply_by.getTime();
+	    }
+	    MessageTemplate mtemplate = MessageTemplate.and(
+							    MessageTemplate.MatchConversationId(propose.getConversationId()),
+							    MessageTemplate.MatchInReplyTo(propose.getReplyWith())
+							    );
+	    setDeadline(t_out);
+	    setTemplate(mtemplate);
+	}
+
+    } // End of AcceptReceiver class
+
+
+    private static class PrepareResult extends OneShotBehaviour {
+
+	public PrepareResult(Agent a) {
+	    super(a);
+	}
+
+	public void action() {
+	    ContractNetResponder fsm = (ContractNetResponder)getParent();
+	    DataStore ds = getDataStore();
+	    ACLMessage cfp = (ACLMessage) ds.get(fsm.CFP_KEY);
+	    ACLMessage propose = (ACLMessage) ds.get(fsm.PROPOSE_KEY);
+	    ACLMessage accept = (ACLMessage) ds.get(fsm.PROPOSE_ACCEPTANCE_KEY);
+	    ACLMessage resNotification = null;
+	    try {
+		resNotification = fsm.prepareResultNotification(cfp, propose, accept); 
+	    }
+	    catch (FailureException fe) {
+		resNotification = fe.getACLMessage();
+	    }
+	    ds.put(fsm.RESULT_NOTIFICATION_KEY, resNotification);
+	}
+
+	// For persistence service
+	private PrepareResult() {
+	}
+
+    } // End of PrepareResult class
+
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private ContractNetResponder() {
+    }
+    //#MIDP_EXCLUDE_END
+
+    /**
+     * Constructor of the behaviour that creates a new empty DataStore
+     * @see #ContractNetResponder(Agent a, MessageTemplate mt, DataStore store) 
+     **/
+    public ContractNetResponder(Agent a,MessageTemplate mt) {
+	this(a,mt, new DataStore());
+    }
+
+    /**
+     * Constructor of the behaviour.
+     * @param a is the reference to the Agent object
+     * @param mt is the MessageTemplate that must be used to match
+     * the initiator message. Take care that 
+     * if mt is null every message is consumed by this protocol.
+     * The best practice is to have a MessageTemplate that matches
+     * the protocol slot; the static method <code>createMessageTemplate</code>
+     * might be usefull. 
+     * @param store the DataStore for this protocol behaviour
+     **/
+    public ContractNetResponder(Agent a,MessageTemplate mt,DataStore store){
 	super(a);
 
-	setDataStore(store); 
-		  
-  registerDefaultTransition(RECEIVE_CFP_STATE,PREPARE_PROPOSE_STATE);
-  registerDefaultTransition(PREPARE_PROPOSE_STATE, SEND_PROPOSE_STATE);
-	registerTransition(SEND_PROPOSE_STATE,WAIT_ACCEPTANCE_STATE,ACLMessage.PROPOSE);
-  
-	registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,ACLMessage.REJECT_PROPOSAL);
-  registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,MsgReceiver.TIMEOUT_EXPIRED);//Time Out
-  registerTransition(WAIT_ACCEPTANCE_STATE,PREPARE_RESULT_NOTIFICATION_STATE,ACLMessage.ACCEPT_PROPOSAL);
-  registerDefaultTransition(WAIT_ACCEPTANCE_STATE,HANDLE_OUT_OF_SEQUENCE_STATE);
+	setDataStore(store);
 
-  registerDefaultTransition(PREPARE_RESULT_NOTIFICATION_STATE,SEND_RESULT_NOTIFICATION_STATE);
-  
-  registerDefaultTransition(SEND_PROPOSE_STATE, RESET_STATE);
-  registerDefaultTransition(HANDLE_REJECT_STATE, RESET_STATE);
-  registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_STATE, RESET_STATE);
+	registerDefaultTransition(RECEIVE_CFP_STATE,PREPARE_PROPOSE_STATE);
+	registerDefaultTransition(PREPARE_PROPOSE_STATE, SEND_PROPOSE_STATE);
+	registerTransition(SEND_PROPOSE_STATE,WAIT_ACCEPTANCE_STATE,ACLMessage.PROPOSE);
+
+	registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,ACLMessage.REJECT_PROPOSAL);
+	registerTransition(WAIT_ACCEPTANCE_STATE,HANDLE_REJECT_STATE,MsgReceiver.TIMEOUT_EXPIRED); // Time Out
+	registerTransition(WAIT_ACCEPTANCE_STATE,PREPARE_RESULT_NOTIFICATION_STATE,ACLMessage.ACCEPT_PROPOSAL);
+	registerDefaultTransition(WAIT_ACCEPTANCE_STATE,HANDLE_OUT_OF_SEQUENCE_STATE);
+
+	registerDefaultTransition(PREPARE_RESULT_NOTIFICATION_STATE,SEND_RESULT_NOTIFICATION_STATE);
+
+	registerDefaultTransition(SEND_PROPOSE_STATE, RESET_STATE);
+	registerDefaultTransition(HANDLE_REJECT_STATE, RESET_STATE);
+	registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_STATE, RESET_STATE);
 	registerDefaultTransition(SEND_RESULT_NOTIFICATION_STATE, RESET_STATE);
 
 	Behaviour b;
-	
-	//reset state
-	
-	b=new StateResetter();
-  registerState(b,RESET_STATE);
-	
+
+	// Reset state
+	b = new StateResetter();
+	registerState(b,RESET_STATE);
+
 	// RECEIVE_CFP
-	cfp_rec=new MsgReceiver(myAgent,mt,-1,getDataStore(),CFP_KEY);
-	registerFirstState(cfp_rec,RECEIVE_CFP_STATE);
-  
-  	// PREPARE_PROPOSE
-	b = new OneShotBehaviour(myAgent) {
-		
-	  public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage request = (ACLMessage) ds.get(CFP_KEY);
-		  
-		    ACLMessage response = null;
-		    try {
-			response = prepareResponse(request); 
-		    }
-		    catch (NotUnderstoodException nue) {
-			response = nue.getACLMessage();
-		    }
-		    catch (RefuseException re) {
-			response = re.getACLMessage();
-		    }
-		    ds.put(PROPOSE_KEY, response);
-		}
-	    };
+	b = new MsgReceiver(myAgent,mt,-1,getDataStore(),CFP_KEY);
+	registerFirstState(b, RECEIVE_CFP_STATE);
+
+	// PREPARE_PROPOSE
+	b = new PreparePropose(myAgent);
 	registerDSState(b, PREPARE_PROPOSE_STATE);
-	
 
-	
-	
 	// SEND_PROPOSE
-  b = new ReplySender(myAgent,PROPOSE_KEY,CFP_KEY);
+	b = new ReplySender(myAgent,PROPOSE_KEY,CFP_KEY);
 	registerDSState(b, SEND_PROPOSE_STATE);
-	
-	
-	// RECEIVE_ACCEPT
-	accept_rec=new MsgReceiver(myAgent,mt,-1,getDataStore(),PROPOSE_ACCEPTANCE_KEY){
-	  public void onStart(){
-	        DataStore ds = getDataStore();
-					ACLMessage propose=(ACLMessage)ds.get(PROPOSE_KEY);
-					if(propose==null) return;
-					long t_out;
-					Date reply_by=propose.getReplyByDate();
-					if(reply_by==null) t_out=MsgReceiver.INFINITE;
-					else t_out=reply_by.getTime();
-					MessageTemplate mtemplate=MessageTemplate.and(					          			
-										MessageTemplate.MatchConversationId(propose.getConversationId()),
-										MessageTemplate.MatchInReplyTo(propose.getReplyWith())
-									 );
-																
-					//set(mtemplate,t_out,ds,PROPOSE_ACCEPTANCE_KEY);
-					setDeadline(t_out);
-					setTemplate(mtemplate);
-	  }
-	};
-	registerDSState(accept_rec,WAIT_ACCEPTANCE_STATE);
 
-	
+	// RECEIVE_ACCEPT
+	b = new AcceptReceiver(myAgent, mt, -1, getDataStore(), PROPOSE_ACCEPTANCE_KEY);
+	registerDSState(b, WAIT_ACCEPTANCE_STATE);
+
 	// PREPARE_RESULT_NOTIFICATION
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage cfp = (ACLMessage) ds.get(CFP_KEY);
-		    ACLMessage propose = (ACLMessage) ds.get(PROPOSE_KEY);
-		    ACLMessage accept = (ACLMessage) ds.get(PROPOSE_ACCEPTANCE_KEY);
-		    ACLMessage resNotification = null;
-		    try {
-					resNotification = prepareResultNotification(cfp,propose,accept); 
-		    }
-		    catch (FailureException fe) {
-			resNotification = fe.getACLMessage();
-		    }
-		    ds.put(RESULT_NOTIFICATION_KEY, resNotification);
-		}
-	    };
+	b = new PrepareResult(myAgent);
 	registerDSState(b, PREPARE_RESULT_NOTIFICATION_STATE);
 	
 	// SEND_RESULT_NOTIFICATION
-  b = new ReplySender(myAgent, RESULT_NOTIFICATION_KEY, PROPOSE_ACCEPTANCE_KEY);
-	registerDSState(b,SEND_RESULT_NOTIFICATION_STATE );
-	
+	b = new ReplySender(myAgent, RESULT_NOTIFICATION_KEY, PROPOSE_ACCEPTANCE_KEY);
+	registerDSState(b, SEND_RESULT_NOTIFICATION_STATE );
+
 	// Handle reject/Time out
 	b = new OneShotBehaviour(myAgent) {
 		
@@ -476,10 +522,14 @@ public void registerHandleOutOfSequnece(Behaviour b) {
    * that defines what messages this ContractNetResponder will react to. 
    **/
   public void reset(MessageTemplate mt) {
-		this.reset();
-		cfp_rec.reset(mt, -1, getDataStore(), CFP_KEY);
-		accept_rec.reset(mt, -1, getDataStore(), PROPOSE_ACCEPTANCE_KEY);
-	
+      this.reset();
+
+      MsgReceiver cfp_rec = (MsgReceiver)getState(RECEIVE_CFP_STATE);
+      cfp_rec.reset(mt, -1, getDataStore(), CFP_KEY);
+
+      MsgReceiver accept_rec = (MsgReceiver)getState(WAIT_ACCEPTANCE_STATE);
+      accept_rec.reset(mt, -1, getDataStore(), PROPOSE_ACCEPTANCE_KEY);
+
   }
     
 

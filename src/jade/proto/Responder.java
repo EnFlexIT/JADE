@@ -40,6 +40,8 @@ import java.util.Date;
    @author Giovanni Caire - TILAB
  */
 abstract class Responder extends FSMBehaviour {
+
+
 	// Data store keys
 	/**
 	   Key to retrieve from the DataStore of the behaviour the last received
@@ -52,17 +54,137 @@ abstract class Responder extends FSMBehaviour {
 	   to be sent back to the initiator as a reply.
 	 */
 	public final String REPLY_KEY = "__Reply_key" + hashCode();
-	
+
+
+
+    // private inner classes for the FSM states
+
+
+    private static class CfpReceiver extends MsgReceiver {
+
+	public CfpReceiver(Agent myAgent, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
+	    super(myAgent, mt, deadline, s, msgKey);
+	}
+
+	// For persistence service
+	private CfpReceiver() {
+	}
+
+	public int onEnd() {
+	    Responder fsm = (Responder)getParent();
+	    MsgReceiver nextRecv = (MsgReceiver)fsm.getState(RECEIVE_NEXT);
+
+	    // Set the template to receive next messages
+	    ACLMessage received = (ACLMessage)getDataStore().get(fsm.RECEIVED_KEY);
+	    nextRecv.setTemplate(MessageTemplate.MatchConversationId(received.getConversationId()));
+	    return super.onEnd();
+	}
+
+    } // End of CfpReceiver class
+
+    private static class NextReceiver extends MsgReceiver {
+
+	public NextReceiver(Agent myAgent, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
+	    super(myAgent, mt, deadline, s, msgKey);
+	}
+
+	// For persistence service
+	private NextReceiver() {
+	}
+
+	public void onStart() {
+	    // Set the deadline for receiving the next message on the basis 
+	    // of the last reply sent
+	    Responder fsm = (Responder)getParent();
+	    ACLMessage reply = (ACLMessage)getDataStore().get(fsm.REPLY_KEY);
+	    if (reply != null) {
+		Date d = reply.getReplyByDate();
+		if (d != null && d.getTime() > System.currentTimeMillis()) {
+		    setDeadline(d.getTime());
+		}
+	    }
+	}
+
+    } // End of NextReceiver class
+
+    private static class CheckInSeq extends OneShotBehaviour {
+
+	private int ret;
+	private static final long     serialVersionUID = 4487495895818000L;
+
+	public CheckInSeq(Agent a) {
+	    super(a);
+	}
+
+	// For persistence service
+	private CheckInSeq() {
+	}
+
+	public void action() {
+	    Responder fsm = (Responder)getParent();
+	    ACLMessage received = (ACLMessage)getDataStore().get(fsm.RECEIVED_KEY);
+	    if (fsm.checkInSequence(received)) {
+		ret = received.getPerformative();
+	    }
+	    else {
+		ret = -1;
+	    }
+	}
+	public int onEnd() {
+	    return ret;
+	}
+
+    } // End of CheckInSeq class
+
+
+    private static class HandleOutOfSeq extends OneShotBehaviour {
+
+	private static final long     serialVersionUID = 4487495895818005L;
+
+	public HandleOutOfSeq(Agent a) {
+	    super(a);
+	}
+
+	// For persistence service
+	private HandleOutOfSeq() {
+	}
+
+	public void action() {
+	    Responder fsm = (Responder)getParent();
+	    fsm.handleOutOfSequence((ACLMessage)getDataStore().get(fsm.RECEIVED_KEY));
+	}
+
+    } // End of HandleOutOfSeq class
+
+
+    private static class SendReply extends ReplySender {
+
+	public SendReply(Agent a, String replyKey, String msgKey) {
+	    super(a, replyKey, msgKey);
+	}
+
+	// For persistence service
+	private SendReply() {
+	}
+
+	public int onEnd() {
+	    int ret = super.onEnd();
+	    Responder fsm = (Responder)getParent();
+	    fsm.replySent(ret);
+	    return ret;
+	}
+
+    } // End of SendReply class
+
+
   //#APIDOC_EXCLUDE_BEGIN
-	// FSM states names 
+	// FSM states names
 	protected static final String RECEIVE_INITIATION = "Receive-Initiation";
 	protected static final String RECEIVE_NEXT = "Receive-Next";
 	protected static final String HANDLE_OUT_OF_SEQUENCE = "Handle-Out-of-seq";
 	protected static final String CHECK_IN_SEQ = "Check-In-seq";
 	protected static final String SEND_REPLY = "Send-Reply";
-	
-	private MsgReceiver cfpRecv, nextRecv;
-	
+
 	/**
 	* Constructor of the behaviour that creates a new empty DataStore
 	* @see #Responder(Agent a, MessageTemplate mt, DataStore store)
@@ -70,7 +192,7 @@ abstract class Responder extends FSMBehaviour {
 	public Responder(Agent a, MessageTemplate mt) {
 	     this(a, mt, new DataStore());
 	}
-	
+
 	/**
 	 * Constructor of the behaviour.
 	 * @param a is the reference to the Agent object
@@ -93,72 +215,30 @@ abstract class Responder extends FSMBehaviour {
 		Behaviour b;
 		
 		// RECEIVE_INITIATION 
-		cfpRecv = new MsgReceiver(myAgent, mt, -1, getDataStore(), RECEIVED_KEY) {
-			public int onEnd() {
-				// Set the template to receive next messages
-			  ACLMessage received = (ACLMessage) getDataStore().get(RECEIVED_KEY);
-			  nextRecv.setTemplate(MessageTemplate.MatchConversationId(received.getConversationId()));
-			  return super.onEnd();
-			}
-		};				
-		registerFirstState(cfpRecv, RECEIVE_INITIATION);
+		b = new CfpReceiver(myAgent, mt, -1, getDataStore(), RECEIVED_KEY);
+		registerFirstState(b, RECEIVE_INITIATION);
 		
 		// RECEIVE_NEXT 
-		nextRecv = new MsgReceiver(myAgent, null, -1, getDataStore(), RECEIVED_KEY) {
-			public void onStart() {
-				// Set the deadline for receiving the next message on the basis 
-				// of the last reply sent
-				ACLMessage reply = (ACLMessage) getDataStore().get(REPLY_KEY);
-				if (reply != null) {
-					Date d = reply.getReplyByDate();
-					if (d != null && d.getTime() > System.currentTimeMillis()) {
-						setDeadline(d.getTime());
-					}
-				}
-			}
-		};
-		registerState(nextRecv, RECEIVE_NEXT);
-		
+		b = new NextReceiver(myAgent, null, -1, getDataStore(), RECEIVED_KEY);
+		registerState(b, RECEIVE_NEXT);
+
 		// CHECK_IN_SEQ
-		b = new OneShotBehaviour(myAgent) {
-			int ret;
-	  	private static final long     serialVersionUID = 4487495895818000L;
-	  			
-			public void action() {
-			  ACLMessage received = (ACLMessage) getDataStore().get(RECEIVED_KEY);
-				if (checkInSequence(received)) {
-					ret = received.getPerformative();
-				}
-				else {
-					ret = -1;
-				}
-			}
-			public int onEnd() {
-			    return ret;
-			}
-		};
+		b = new CheckInSeq(myAgent);
 		registerDSState(b, CHECK_IN_SEQ);
         
 		// HANDLE_OUT_OF_SEQUENCE
-		b = new OneShotBehaviour(myAgent) {
-	  	private static final long     serialVersionUID = 4487495895818005L;
-	  	
-			public void action() {
-			    handleOutOfSequence((ACLMessage) getDataStore().get(RECEIVED_KEY));
-			}
-		};
+		b = new HandleOutOfSeq(myAgent);
 		registerDSState(b, HANDLE_OUT_OF_SEQUENCE);
 		
 		// SEND_REPLY
-		b = new ReplySender(myAgent, REPLY_KEY, RECEIVED_KEY) {
-			public int onEnd() {
-				int ret = super.onEnd();
-				replySent(ret);
-				return ret;
-			}
-		};
+		b = new SendReply(myAgent, REPLY_KEY, RECEIVED_KEY);
 		registerDSState(b, SEND_REPLY);
   }
+
+    // For persistence service
+    private Responder() {
+    }
+
   //#APIDOC_EXCLUDE_END
 
   /**

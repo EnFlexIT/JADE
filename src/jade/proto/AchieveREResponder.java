@@ -94,6 +94,111 @@ public class AchieveREResponder extends FSMBehaviour implements FIPANames.Intera
 		return MessageTemplate.MatchProtocol(iprotocol);
     }
 
+
+    // Inner classes for the FSM states
+
+    private static class PrepareResponse extends OneShotBehaviour {
+
+	public PrepareResponse(Agent a) {
+	    super(a);
+	}
+
+	public void action() {
+	    DataStore ds = getDataStore();
+	    AchieveREResponder fsm = (AchieveREResponder)getParent();
+	    ACLMessage request = (ACLMessage) ds.get(fsm.REQUEST_KEY);
+
+	    ACLMessage response = null;
+	    try {
+		response = fsm.prepareResponse(request);
+	    }
+	    catch (NotUnderstoodException nue) {
+		response = nue.getACLMessage();
+	    }
+	    catch (RefuseException re) {
+		response = re.getACLMessage();
+	    }
+	    ds.put(fsm.RESPONSE_KEY, response);
+	}
+
+
+	// For persistence service
+	private PrepareResponse() {
+	}
+
+    } // End of PrepareResponse class
+
+
+    private static class SendResponse extends ReplySender {
+
+	public SendResponse(Agent a, String replyKey, String msgKey) {
+	    super(a, replyKey, msgKey);
+	}
+
+	// For persistence service
+	private SendResponse() {
+	}
+
+  	public int onEnd() {
+	    int ret = super.onEnd();
+	    if (ret != ACLMessage.AGREE && ret != ReplySender.NO_REPLY_SENT) {
+		AchieveREResponder fsm = (AchieveREResponder)getParent();
+		fsm.reset();
+	    }
+	    return ret;
+  	}
+
+    } // End of SendResponse class
+
+
+    private static class PrepareResult extends OneShotBehaviour {
+
+	public PrepareResult(Agent a) {
+	    super(a);
+	}
+
+	// For persistence service
+	private PrepareResult() {
+	}
+
+	public void action() {
+	    DataStore ds = getDataStore();
+	    AchieveREResponder fsm = (AchieveREResponder)getParent();
+	    ACLMessage request = (ACLMessage) ds.get(fsm.REQUEST_KEY);
+	    ACLMessage response = (ACLMessage) ds.get(fsm.RESPONSE_KEY);
+	    ACLMessage resNotification = null;
+	    try {
+		resNotification = fsm.prepareResultNotification(request, response); 
+	    }
+	    catch (FailureException fe) {
+		resNotification = fe.getACLMessage();
+	    }
+	    ds.put(fsm.RESULT_NOTIFICATION_KEY, resNotification);
+	}
+
+    } // End of PrepareResult class
+
+
+    private static class SendResult extends ReplySender {
+
+	public SendResult(Agent a, String replyKey, String msgKey) {
+	    super(a, replyKey, msgKey);
+	}
+
+	// For persistence service
+	private SendResult() {
+	}
+
+  	public int onEnd() {
+	    AchieveREResponder fsm = (AchieveREResponder)getParent();
+	    fsm.reset();
+	    return super.onEnd();
+  	}
+
+    } // End of SendResult class
+
+
+
     /**
      * Constructor of the behaviour that creates a new empty DataStore
      * @see #AchieveREResponder(Agent a, MessageTemplate mt, DataStore store) 
@@ -132,73 +237,31 @@ public class AchieveREResponder extends FSMBehaviour implements FIPANames.Intera
 	registerFirstState(rec, RECEIVE_REQUEST);
 	
 	// PREPARE_RESPONSE
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage request = (ACLMessage) ds.get(REQUEST_KEY);
-		  
-		    ACLMessage response = null;
-		    try {
-			response = prepareResponse(request); 
-		    }
-		    catch (NotUnderstoodException nue) {
-			response = nue.getACLMessage();
-		    }
-		    catch (RefuseException re) {
-			response = re.getACLMessage();
-		    }
-		    ds.put(RESPONSE_KEY, response);
-		}
-	    };
+	b = new PrepareResponse(myAgent);
 	b.setDataStore(getDataStore());		
 	registerState(b, PREPARE_RESPONSE);
-	
+
 	// SEND_RESPONSE
-  b = new ReplySender(myAgent,RESPONSE_KEY,REQUEST_KEY) {
-  	public int onEnd() {
-  		int ret = super.onEnd();
-  		if (ret != ACLMessage.AGREE && ret != ReplySender.NO_REPLY_SENT) {
-		    AchieveREResponder.this.reset();
-			}
-		  return ret;
-  	}
-  };  			
+	b = new SendResponse(myAgent,RESPONSE_KEY,REQUEST_KEY);
 	b.setDataStore(getDataStore());		
 	registerState(b, SEND_RESPONSE);	
 	
 	// PREPARE_RESULT_NOTIFICATION
-	b = new OneShotBehaviour(myAgent) {
-		
-		public void action() {
-		    DataStore ds = getDataStore();
-		    ACLMessage request = (ACLMessage) ds.get(REQUEST_KEY);
-		    ACLMessage response = (ACLMessage) ds.get(RESPONSE_KEY);
-		    ACLMessage resNotification = null;
-		    try {
-			resNotification = prepareResultNotification(request, response); 
-		    }
-		    catch (FailureException fe) {
-		    	resNotification = fe.getACLMessage();
-		    }
-		    ds.put(RESULT_NOTIFICATION_KEY, resNotification);
-		}
-	    };
+	b = new PrepareResult(myAgent);
 	b.setDataStore(getDataStore());		
 	registerState(b, PREPARE_RESULT_NOTIFICATION);
-	
+
 	// SEND_RESULT_NOTIFICATION
-  b = new ReplySender(myAgent, RESULT_NOTIFICATION_KEY, REQUEST_KEY) {
-  	public int onEnd() {
-		  AchieveREResponder.this.reset();
-		  return super.onEnd();
-  	}
-  };  			
+	b = new SendResult(myAgent, RESULT_NOTIFICATION_KEY, REQUEST_KEY);
 	b.setDataStore(getDataStore());		
 	registerState(b, SEND_RESULT_NOTIFICATION);
-
     } 
-    
+
+    // For persistence service
+    private AchieveREResponder() {
+    }
+
+
     /**
        Reset this behaviour using the same MessageTemplate.
      */

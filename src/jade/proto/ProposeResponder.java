@@ -92,6 +92,38 @@ public class ProposeResponder extends FSMBehaviour implements FIPANames.Interact
   protected static final String PREPARE_RESPONSE = "Prepare-response";
   protected static final String SEND_RESPONSE = "Send-response";
 
+    // Private inner classes for the FSM states
+    private static class PrepareResponse extends OneShotBehaviour {
+
+	public PrepareResponse(Agent a) {
+	    super(a);
+	}
+
+	// For persistence service
+	private PrepareResponse() {
+	}
+
+        public void action() {
+	    ProposeResponder fsm = (ProposeResponder)getParent();
+	    DataStore ds = getDataStore();
+	    ACLMessage propose = (ACLMessage) ds.get(fsm.PROPOSE_KEY);
+
+	    ACLMessage response = null;
+	    try {
+		response = fsm.prepareResponse(propose); 
+	    }
+	    catch (NotUnderstoodException nue) {
+		response = nue.getACLMessage();
+	    }
+	    catch (RefuseException re) {
+		response = re.getACLMessage();
+	    }
+	    ds.put(fsm.RESPONSE_KEY, response);
+        }
+
+    } // End of PrepareResponse class
+
+
   // The MsgReceiver behaviour used to receive propose messages
   MsgReceiver rec = null;
 	
@@ -138,41 +170,22 @@ public class ProposeResponder extends FSMBehaviour implements FIPANames.Interact
 	
     // Create and register the states that make up the FSM
     Behaviour b = null;
-	
+
     // RECEIVE_PROPOSE
     rec = new MsgReceiver(myAgent, mt, -1, getDataStore(), PROPOSE_KEY);
     registerFirstState(rec, RECEIVE_PROPOSE);
-	
+
     // PREPARE_RESPONSE
-    b = new OneShotBehaviour(myAgent) {
-
-        public void action() {
-          DataStore ds = getDataStore();
-          ACLMessage propose = (ACLMessage) ds.get(PROPOSE_KEY);
-		  
-          ACLMessage response = null;
-          try {
-            response = prepareResponse(propose); 
-          }
-          catch (NotUnderstoodException nue) {
-            response = nue.getACLMessage();
-          }
-          catch (RefuseException re) {
-            response = re.getACLMessage();
-          }
-          ds.put(RESPONSE_KEY, response);
-        }
-
-	    };
+    b = new PrepareResponse(myAgent);
     b.setDataStore(getDataStore());		
     registerState(b, PREPARE_RESPONSE);
-	
+
     // SEND_RESPONSE
     b = new ReplySender(myAgent, RESPONSE_KEY, PROPOSE_KEY);
     b.setDataStore(getDataStore());		
     registerState(b, SEND_RESPONSE);
-  } 
-    
+  }
+
   /**
    * Reset this behaviour.
    */
@@ -228,4 +241,12 @@ public class ProposeResponder extends FSMBehaviour implements FIPANames.Interact
     registerState(b, PREPARE_RESPONSE);
     b.setDataStore(getDataStore());
   }
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private ProposeResponder() {
+    }
+    //#MIDP_EXCLUDE_END
+
 }
