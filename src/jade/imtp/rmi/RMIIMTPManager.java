@@ -34,6 +34,7 @@ import jade.util.leap.LinkedList;
 import jade.core.*;
 import jade.security.JADESecurityException;
 import jade.mtp.TransportAddress;
+import jade.util.Logger;
 
 import java.util.Vector;
 
@@ -108,6 +109,8 @@ public class RMIIMTPManager implements IMTPManager {
 
     private NodeAdapter localNode;
     private ServiceManagerRMIImpl myRMIServiceManager;
+    
+    private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
   public RMIIMTPManager() {
   }
@@ -183,6 +186,10 @@ public class RMIIMTPManager implements IMTPManager {
       // If this is a backup main, initialize the address of the original PlatformManager 
       if(myProfile.getBooleanProperty(Profile.MAIN, true) && myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false)) {
 			  originalPMAddr = "rmi://" + mainHost + ":" + mainPort + "/";
+      }
+      
+      if (myLogger.isLoggable(Logger.CONFIG)) {
+      	myLogger.log(Logger.CONFIG, "IMTP parameters: main-host = "+mainHost+" main-port = "+mainPort+" local-port = "+localPort+" sm-port = "+localSvcMgrPort+" node-port = "+localNodePort);
       }
       
 		  // Create the local node and (if needed) mark it as hosting a local Service Manager
