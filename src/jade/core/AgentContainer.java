@@ -73,6 +73,7 @@ public interface AgentContainer {
     void addAddressToLocalAgents(String address);
     void removeAddressFromLocalAgents(String address);
     boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID);
+    void storeUndelivered(ACLMessage msg, AID receiverID);
     boolean livesHere(AID id);
     Location here();
 
