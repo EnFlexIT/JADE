@@ -24,9 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * J2SE version of the &qote;Serializable&qote; interface.
+ * J2SE version of the &quot;Serializable&quot; interface.
  * 
- * @see java.io.Serializable
  */
 public interface Serializable 
 //#MIDP_EXCLUDE_BEGIN

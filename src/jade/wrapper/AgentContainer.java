@@ -10,7 +10,8 @@ modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation, 
 version 2.1 of the License. 
 
-This library is distributed in the hope that it will be usefubut WITHOUT ANY WARRANTY; without even the implied warranty of
+This library is distributed in the hope that it will be usefubut
+WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
@@ -46,7 +47,7 @@ import java.util.Enumeration;
    <code>Runtime</code>.
    @see jade.core.Runtime#createAgentContainer(Profile)
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
 
  */
 public class AgentContainer implements PlatformController {
@@ -235,7 +236,8 @@ public class AgentContainer implements PlatformController {
   public String getName() { return myPlatformName; }
     
   /**
-   * @returns the name (i.e. the HAP) of this platform
+   * Retrieve the name of the wrapped platform.
+   * @return the name (i.e. the HAP) of this platform.
    * @see jade.wrapper.AgentContainer#getContainerName()
    **/
   public String getPlatformName() {
@@ -243,7 +245,8 @@ public class AgentContainer implements PlatformController {
   }
 
   /**
-   * @return the name of this platform container
+   * Retrieve the name of the wrapped container.
+   * @return the name of this platform container.
    * @see jade.wrapper.AgentContainer#getPlatformName()
    **/
   public String getContainerName() throws ControllerException {

@@ -23,6 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools;
 
+
+//#APIDOC_EXCLUDE_FILE
+
 import java.util.Set;
 import java.util.Map;
 import java.util.HashSet;

@@ -133,7 +133,10 @@ public class ProposeInitiator extends FSMBehaviour {
   private static final String CHECK_AGAIN = "Check-again";  
   protected static final String CHECK_SESSIONS = "Check-sessions";
   protected static final String DUMMY_FINAL = "Dummy-final";
-	
+
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   // This maps the AID of each responder to a Session object
   // holding the status of the protocol as far as that responder
   // is concerned. Sessions are protocol-specific
@@ -143,11 +146,15 @@ public class ProposeInitiator extends FSMBehaviour {
   // The MessageTemplate used by the replyReceiver
   protected MessageTemplate replyTemplate = null; 
 
+    //#APIDOC_EXCLUDE_END
+
   private ACLMessage initiation;
   
   // States exit values
   private static final int ALL_RESPONSES_RECEIVED = 1;
   private static final int TERMINATED = 2;
+
+    //#APIDOC_EXCLUDE_BEGIN
  
 	// These states must be reset before they are visited again.
   // Note that resetting a state before visiting it again is required
@@ -162,6 +169,9 @@ public class ProposeInitiator extends FSMBehaviour {
     HANDLE_NOT_UNDERSTOOD,
     HANDLE_OUT_OF_SEQ
   };
+
+    //#APIDOC_EXCLUDE_END
+
 
   // If set to true all expected responses have been received
   private boolean allResponsesReceived = false;
@@ -722,7 +732,14 @@ public class ProposeInitiator extends FSMBehaviour {
       b.setDataStore(ds);
     }
   }
-    
+
+    /**
+       Create a new conversation identifier to begin a new
+       interaction.
+       @param msgs A vector of ACL messages. If the first one has a
+       non-empty <code>:conversation-id</code> slot, its value is
+       used, else a new conversation identifier is generated.
+    */
   protected String createConvId(Vector msgs) {
     // If the conversation-id of the first message is set --> 
     // use it. Otherwise create a default one
@@ -738,7 +755,8 @@ public class ProposeInitiator extends FSMBehaviour {
     }
     return convId;
   }
-    
+
+    //#APIDOC_EXCLUDE_BEGIN
   protected void adjustReplyTemplate(ACLMessage msg) {
     // If myAgent is among the receivers (strange case, but can happen)
     // then modify the replyTemplate to avoid intercepting the initiation
@@ -750,6 +768,8 @@ public class ProposeInitiator extends FSMBehaviour {
                                           MessageTemplate.not(MessageTemplate.MatchCustom(msg, true)));
     }
   }
+    //#APIDOC_EXCLUDE_END
+
 
   /**
    * Inner class Session

@@ -165,4 +165,11 @@ public class SLFormatter {
 	    e.printStackTrace();
 	}
     }
+
+    /**
+       Default constructor.
+    */
+    public SLFormatter() {
+    }
+
 }

@@ -40,6 +40,13 @@ import java.io.*; // used only for debugging purposes
 public class RoundList implements Serializable{
 	private int cur=-1;
 	private LinkedList l=new LinkedList();
+
+
+    /**
+       Default constructor.
+    */
+    public RoundList() {
+    }
 	
 	/** Inserts the <code>element</code> before the current element.
 	 * If the list was empty, the inserted element becomes also the current element.

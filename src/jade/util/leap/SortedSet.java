@@ -28,7 +28,6 @@ package jade.util.leap;
  * The LEAP version of the <quote>SortedSet</quote> interface.
  * An ordered collection that contains no duplicate elements.
  * 
- * @see java.util.SortedSet (J2SE)
  */
 public interface SortedSet extends Set {
 

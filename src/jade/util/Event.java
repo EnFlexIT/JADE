@@ -46,9 +46,14 @@ import java.util.EventObject;
 	/*#MIDP_INCLUDE_BEGIN
   protected Object source;
 	#MIDP_INCLUDE_END*/
+
+	/**
+	   The type of this event.
+	*/
 	protected int type; 
+
+
 	private Vector param = null;
-	
 	private boolean processed = false;	
 	private Object processingResult = null;
 	
@@ -89,6 +94,7 @@ import java.util.EventObject;
 	#MIDP_INCLUDE_END*/
 	
 	/**
+	   Retrieve the type of this event. 
 	   @return the type of this <code>Event</code> object
 	 */
 	public int getType() {
@@ -107,15 +113,18 @@ import java.util.EventObject;
 	}
 	
 	/**
-	   @return the index-th parameter of this <code>Event</code> object
+	   Retrieve an element of the event parameter list.
+	   @param index The index of the parameter to retrieve.
+	   @return the index-th parameter of this <code>Event</code>
+	   object.
 	 */
 	public Object getParameter(int index) {
-		if (param == null) {
-			throw new IndexOutOfBoundsException();
-		}
-		else {
-			return param.elementAt(index);
-		}
+	    if (param == null) {
+		throw new IndexOutOfBoundsException();
+	    }
+	    else {
+		return param.elementAt(index);
+	    }
 	}
 	
 	/**

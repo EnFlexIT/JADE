@@ -450,6 +450,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			}
 			
 			/**
+			   Retrieve the ACL message with which this
+			   subscription object was created.
 			   @return the subscription message corresponding to this 
 			   <code>Subscription</code>
 			 */

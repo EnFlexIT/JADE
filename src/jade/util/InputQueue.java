@@ -40,7 +40,13 @@ import jade.core.behaviours.Behaviour;
 public class InputQueue {
 	private Vector queue = new Vector();
 	private Behaviour myManager;
-	
+
+    /**
+       Default constructor.
+    */
+    public InputQueue() {
+    }
+
 	/**
 	   Associate this <code>InputQueue</code> object with the indicated
 	   <code>Behaviour</code> so that it will be restarted each time
@@ -86,6 +92,9 @@ public class InputQueue {
 		return obj;
 	}			
 
+    /**
+       Remove all elements from this queue.
+    */
         public synchronized void clear() {
 	    queue.removeAllElements();
 	}

@@ -64,15 +64,34 @@ public abstract class ToolAgent extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
+
+    //#APIDOC_EXCLUDE_BEGIN
+
   // Used by AMSListenerBehaviour
   // FIXME. This interface should have been declared protected. However JDK1.2.2 complains and
   // requires it to be declared public.
+
+    /**
+       This interface must be implemented by concrete event handlers
+       installed by actual tool agents.
+    */
   public static interface EventHandler {
+
+      /**
+	 Handle the given event.
+	 @param ev The event to handle 
+      */
     void handle(Event ev);
   }
 
+    //#APIDOC_EXCLUDE_END
 
-  // Receives notifications by AMS
+
+
+    /**
+       This abstract behaviour is used to receive notifications from
+       the AMS. 
+    */
   protected abstract class AMSListenerBehaviour extends CyclicBehaviour {
 
     private MessageTemplate listenTemplate;
@@ -80,6 +99,11 @@ public abstract class ToolAgent extends Agent {
     // Ignore case for event names
     private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
 
+      /**
+	 Default constructor. This constructor sets up the resources
+	 needed to receive notifications from the AMS and process them
+	 by invoking user installed event handlers.
+      */
     protected AMSListenerBehaviour() {
 
       MessageTemplate mt1 = MessageTemplate.MatchLanguage(FIPANames.ContentLanguage.FIPA_SL0);
@@ -134,6 +158,12 @@ public abstract class ToolAgent extends Agent {
   } // End of AMSListenerBehaviour class
 
 
+    /**
+       Default constructor.
+    */
+    public ToolAgent() {
+    }
+
   /**
      This method is invoked just after the generic agent
      setup. Subclasses must use this method the same way ordinary
@@ -152,19 +182,34 @@ public abstract class ToolAgent extends Agent {
 
   }
 
-
+    /**
+       Retrieve the <code>subscribe</code> ACL message with which this
+       tool agent subscribed with the AMS.
+       @return The subscription ACL message.
+    */
   protected ACLMessage getSubscribe() {
     return AMSSubscription;
   }
 
+    /**
+       Retrieve the <code>cancel</code> ACL message with which this
+       tool agent removes its subscription with the AMS.
+       @return The cancellation ACL message.
+    */
   protected ACLMessage getCancel() {
     return AMSCancellation;
   }
 
+    /**
+       Retrieve the <code>request</code> ACL message with which this
+       tool agent requests the AMS tool-specific actions.
+       @return The request ACL message.
+    */
   protected ACLMessage getRequest() {
     return AMSRequest;
   }
 
+    //#APIDOC_EXCLUDE_BEGIN
   public final void setup() {
 
     // Register the supported ontologies
@@ -206,10 +251,13 @@ public abstract class ToolAgent extends Agent {
     toolSetup();
 
   }
+    //#APIDOC_EXCLUDE_END
 
+    //#APIDOC_EXCLUDE_BEGIN
   protected final void takeDown() {
     // Call tool-specific takedown
     toolTakeDown();
   }
+    //#APIDOC_EXCLUDE_END
 
 }

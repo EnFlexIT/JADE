@@ -31,7 +31,10 @@ import java.util.EventObject;
  * @author David Bell, Dick Cowan: Hewlett-Packard
  */
 public interface PlatformController
-{    
+{
+    /**
+       Inner callback interface to receive platform events.
+    */
     public static interface Listener extends EventListener {
         /**
          * Called when an agent is born. EventObject source is AgentController.

@@ -52,18 +52,29 @@ public class EmptyIterator implements Iterator {
 		}
 
     /**
+       Checks whether the iterator can scan further.
+       @return This method always returns <code>false</code>.
      */
     public boolean hasNext() {
       return false;
     } 
 
     /**
+       Retrieves the next element in the collection scanned by this
+       iterator.
+       @return This method always throws an exception.
+       @throws NoSuchElementException Always, because the underlying
+       collection is always empty.
      */
     public Object next() {
       throw new NoSuchElementException();
     } 
 
     /**
+       Remove the element pointed to by this iterator from the
+       collection.
+       @throws RuntimeException Always, because the underlying
+       collection is always empty.
      */
     public void remove() {
       throw new RuntimeException();

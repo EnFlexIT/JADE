@@ -73,7 +73,15 @@ public class Properties extends Hashtable {
   private static final String JAD_PREFIX = "MIDlet-LEAP-";
   private boolean             fromJad = false;
 #MIDP_INCLUDE_END*/
-  
+
+
+  /**
+     Default constructor.
+  */
+    public Properties() {
+    }
+
+
   /**
      Load a set of key-value pairs from a given storage element.
      All key-value pairs previously included in this Properties object
@@ -140,6 +148,7 @@ public class Properties extends Hashtable {
   	#MIDP_INCLUDE_END*/
   } 
 
+    //#APIDOC_EXCLUDE_BEGIN
   public Object clone() {
     Properties  p = new Properties();
     Enumeration enum = propertyNames();
@@ -156,6 +165,8 @@ public class Properties extends Hashtable {
     #MIDP_INCLUDE_END*/
     return p;
   } 
+    //#APIDOC_EXCLUDE_END
+
 
   /*#J2ME_INCLUDE_BEGIN
   public synchronized Object setProperty(String key, String value) {

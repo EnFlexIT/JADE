@@ -61,7 +61,10 @@ public class Logger {
 		}
 	}
 	#MIDP_INCLUDE_END*/
-	
+
+    /**
+	Print a new line on the log stream.
+    */
 	public static void println() {
 		println("");
 	}
@@ -101,10 +104,22 @@ public class Logger {
 	private DateFormat timeFormatter = null;
 	private Printer[] myPrinters;
 	
+    /**
+       Create a logger object with the given name and verbosity level.
+       @param id The name identifying the new logger.
+       @param verbosity The verbosity level.
+    */
 	public Logger(String id, int verbosity) {
 		this(id, verbosity, null, null);
 	}
 	
+    /**
+       Create a logger object with a custom log format.
+       @param id The name identifying the new logger.
+       @param verbosity The verbosity level.
+       @param timeFormat The format for log timestamps.
+       @param logFormat The format for log messages.
+    */
 	public Logger(String id, int verbosity, String timeFormat, String logFormat) {
 		this.id = id;
 		this.verbosity = verbosity;
@@ -175,6 +190,11 @@ public class Logger {
 		}
 	}
 	
+    /**
+       Establish a time format for this logger.
+       @param format A string detailing the desired format for log
+       messages.
+    */
 	public synchronized void setTimeFormat(String format) {
 		if (format != null) {
 			timeFormatter = new SimpleDateFormat(format);

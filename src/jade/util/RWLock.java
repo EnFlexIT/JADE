@@ -44,7 +44,21 @@ public class RWLock {
 	// writeLock()/unlock() can be nested. This indicates the current 
 	// depth
 	private int writeLockDepth = 0;
-	
+
+    /**
+       Default constructor.
+    */
+    public RWLock() {
+    }
+
+    /**
+       Acquire the protected resource with writing privileges. Only
+       one writer at a time can access the protected resource, and no
+       readers can access it at the same time. The locking is
+       recursive (i.e. the same thread can acquire the lock multiple
+       times, but must unlock it a matching number of times to
+       actually free the protected resource).
+    */
 	public synchronized void writeLock() {
 		Thread me = Thread.currentThread();
 		while ((currentWriter != null && currentWriter != me) || readersCnt > 0) {
@@ -65,6 +79,10 @@ public class RWLock {
 		}
 	}
 	
+    /**
+       Release the protected resource, previously acquired with
+       writing privileges.
+    */
 	public synchronized void writeUnlock() {
 		if (Thread.currentThread() == currentWriter) {
 			writeLockDepth--;
@@ -77,6 +95,14 @@ public class RWLock {
 		}
 	}
 	
+    /**
+       Acquire the protected resource with reading privileges. Many
+       readers can access the protected resource at the same time, but
+       no writer can access it while at least one reader is
+       present. The locking is recursive (i.e. the same thread can
+       acquire the lock multiple times, but must unlock it a matching
+       number of times to actually free the protected resource).
+    */
 	public synchronized void readLock() {
 		while (currentWriter != null) {
 			// Someone is writing the resource --> Go to sleep
@@ -90,6 +116,11 @@ public class RWLock {
 		readersCnt++;
 	}
 	
+
+    /**
+       Release the protected resource, previously acquired with
+       reading privileges.
+    */
 	public synchronized void readUnlock() {
 		readersCnt--;
 		if (readersCnt == 0) {
@@ -98,10 +129,26 @@ public class RWLock {
 			notifyAll();
 		}
 	}
-	
+
+    /**
+       This placeholder method is called every time a thread actually
+       acquires the protected resource with writing privileges (this
+       means that, in case of multiple recursive locking by the same
+       thread, this method is called only the first time). Subclasses
+       can exploit this to transparently trigger a resource
+       acquisition prolog.
+    */	
 	protected void onWriteStart() {
 	}
 	
+    /**
+       This placeholder method is called every time a thread actually
+       releases the protected resource with writing privileges (this
+       means that, in case of multiple recursive unlocking by the same
+       thread, this method is called only the last time). Subclasses
+       can exploit this to transparently trigger a resource release
+       epilog.
+    */	
 	protected void onWriteEnd() {
 	}
 }

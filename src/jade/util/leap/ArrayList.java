@@ -202,6 +202,12 @@ public class ArrayList implements List, Serializable {
         return realHiddenList;
     } 
 
+    /**
+       Fill this list with the content of a given
+       <code>java.util.List</code> object.
+       @param l The <code>java.util.List</code> to copy the content
+       from.
+    */
     public void fromList(java.util.List l) {
     	clear();
     	java.util.Iterator it = l.iterator();
@@ -211,9 +217,9 @@ public class ArrayList implements List, Serializable {
     }
     
     /**
-       A customized writeObject() method is needed to ensure compatibility with  
-       the J2ME version of this class in serialization/deserialization 
-       operations
+       A customized writeObject() method is needed to ensure
+       compatibility with the J2ME version of this class in
+       serialization/deserialization operations.
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
         hiddenList = new Vector();

@@ -38,16 +38,38 @@ import jade.util.leap.LinkedList;
 public class SynchList extends RWLock {
 	// The actual list of objects
 	private List innerList = null;
-	
+
+
+    /**
+       Default constructor.
+    */	
+    public SynchList() {
+    }
+
+    /**
+       This method grants writing privileges to the calling thread and
+       grants access to the protected list.
+       @return The inner, protected list.
+    */
 	public synchronized List startModifying() {
 		writeLock();
 		return innerList;
 	}
-	
+
+    /**
+       This method must be called when a writer thread has finished
+       modifying the list, so that the associated readers-writer lock
+       can be relinquished.
+    */	
 	public synchronized void stopModifying() {
 		writeUnlock();
 	}
 	
+    /**
+       This method grants reading privileges to the calling thread and
+       grants access to the protected list.
+       @return The inner, protected list.
+    */
 	public synchronized List startScanning() {
 		if (innerList != null) {
 			readLock();
@@ -55,11 +77,18 @@ public class SynchList extends RWLock {
 		return innerList;
 	}
 	
+    /**
+       This method must be called when a reader thread has finished
+       accessing the list, so that the associated readers-writer lock
+       can be relinquished.
+    */	
 	public synchronized void stopScanning() {
 		if (innerList != null) {
 			readUnlock();
 		}
 	}
+
+    //#APIDOC_EXCLUDE_BEGIN
 	
 	protected void onWriteStart() {
 		if (innerList == null) {
@@ -72,4 +101,7 @@ public class SynchList extends RWLock {
 			innerList = null;
 		}
 	}
+
+    //#APIDOC_EXCLUDE_END
+
 }

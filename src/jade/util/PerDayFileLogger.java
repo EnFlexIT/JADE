@@ -42,6 +42,11 @@ public class PerDayFileLogger extends PrintStream {
 	private long dayCnt;
 	private static DateFormat df = new SimpleDateFormat("yyyyMMdd");
 
+    /**
+       Create a new day-based logger.
+       @param file The name of the file to write logs to.
+       @throws IOException If some filesystem operation fails.
+    */
 	public PerDayFileLogger(String file) throws IOException {
 		super(new FileOutputStream(file+"."+df.format(new Date())), true);
 		
@@ -60,27 +65,51 @@ public class PerDayFileLogger extends PrintStream {
 			catch (Exception e) {}
 		}
 	}
-	
+
+    /**
+       Print a Java object to the proper file, replacing the file
+       every new day.
+       @param obj The Java object to print.
+    */	
 	public void print(Object obj) {
 		checkDate();
 		super.print(obj);
 	}
-	
+
+    /**
+       Print a string to the proper file, replacing the file every new
+       day.
+       @param str The string to print.
+    */	
 	public void print(String str) {
 		checkDate();
 		super.print(str);
 	}
 	
+    /**
+       Print a new line to the proper file, replacing the file every
+       new day.
+    */	
 	public void println() {
 		checkDate();
 		super.println();
 	}
 	
+    /**
+       Print a Java object and a newline to the proper file, replacing
+       the file every new day.
+       @param obj The Java object to print.
+    */	
 	public void println(Object obj) {
 		checkDate();
 		super.println(obj);
 	}
 	
+    /**
+       Print a string and a new line to the proper file, replacing the
+       file every new day.
+       @param str THe string to print.
+    */	
 	public void println(String str) {
 		checkDate();
 		super.println(str);

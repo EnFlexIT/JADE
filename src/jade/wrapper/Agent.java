@@ -35,7 +35,7 @@ import jade.core.Location;
    <code>createAgent()</code> method in class
    <code>AgentContainer</code>.
    @see jade.wrapper.AgentContainer#createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
  */
 public class Agent implements AgentController {
 
@@ -67,11 +67,14 @@ public class Agent implements AgentController {
     adaptee = a;
   }
 
+    //#APIDOC_EXCLUDE_BEGIN
   protected void validateProxy() throws StaleProxyException {
     if (adaptee == null) {
       throw new StaleProxyException("The proxy is not valid anymore.");
     }
   }
+    //#APIDOC_EXCLUDE_END
+
 
   /**
    * Get the platforms name of the agent.

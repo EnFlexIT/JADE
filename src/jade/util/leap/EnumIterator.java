@@ -26,7 +26,8 @@ import java.util.NoSuchElementException;
 import java.util.Enumeration;
 
 /**
- * Implementation of an Iterator constructed by an enumeration. 
+ * Implementation of an Iterator constructed by an
+ * <code>Enumeration</code>.
  * @version $Date$ $Revision$
  * @author Fabio Bellifemine, TILAB
  */
@@ -42,24 +43,35 @@ public class EnumIterator implements Iterator {
     } 
 
     /**
+       Checks whether the iterator can scan further by looking at the
+       underlying <code>Enumeration</code>.
+       @return The return value of the <code>hasMoreElements()</code>
+       method of the underlying <code>Enumeration</code>..
      */
     public boolean hasNext() {
       return e.hasMoreElements();
     } 
 
     /**
+       Retrieves the next element in the collection scanned by this
+       iterator, forwarding the request to the underlying
+       <code>Enumeration</code>.
+       @return The return value of the <code>nextElement()</code> of
+       the underlying <code>Enumeration</code>.
      */
     public Object next() {
       return e.nextElement();
     } 
 
     /**
-		 * THIS OPERATION IS NOT SUPPORTED!
+       Remove the element pointed to by this iterator. <b>This
+       operation is not supported and this method will always throw a
+       runtime exception</b>
      */
     public void remove() {
-			RuntimeException e = new RuntimeException("Unsupported Operation");
-      jade.util.Logger.println(e.getMessage());
-			throw e;
-    } 
+	RuntimeException e = new RuntimeException("Unsupported Operation");
+	jade.util.Logger.println(e.getMessage());
+	throw e;
+    }
 
   }

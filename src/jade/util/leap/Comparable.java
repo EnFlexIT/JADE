@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.util.leap;
 
 /**
- * J2SE version of the &qote;Comparable&qote; interface, used to sort elements in LEAPSortedSet.
+ * J2SE version of the &quot;Comparable&quot; interface, used to sort elements in LEAPSortedSet.
  * 
  * @see java.lang.Comparable
  */

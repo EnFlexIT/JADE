@@ -30,44 +30,64 @@ package jade.util;
   this class is to throw them within the <code>catch</code> block for
   their nested exception.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 
  */
 public abstract class WrapperException extends Exception {
   private Throwable nested = null;
 
-  protected WrapperException(String m, Throwable t) {
+    /**
+       Create a wrapper exception with the given message and nested
+       exception.
+       @param m The exception message text.
+       @param t The nested exception that caused this one.
+    */
+    protected WrapperException(String m, Throwable t) {
   	super(m);
-    nested = t;
-  }
+	nested = t;
+    }
 
-  protected WrapperException(String m) {
+    /**
+       Create a wrapper exception with the given message.
+       @param m The exception message text.
+    */
+    protected WrapperException(String m) {
   	super(m);
-  }
-
-  public String getMessage() {
-    if((nested != null)) {
-      return super.getMessage()+" [nested "+nested.getMessage()+"]";
     }
-    return super.getMessage();
-  }
 
-  public void printStackTrace() {
-    super.printStackTrace();
-    if(nested != null) {
-      System.err.println("Nested Exception:");
-      nested.printStackTrace();
+    /**
+       Retrieve the exception message text.
+       @return The exception message, including the nested exception
+       text if present.
+    */
+    public String getMessage() {
+	if((nested != null)) {
+	    return super.getMessage() + " [nested "+nested.getMessage() + "]";
+	}
+	return super.getMessage();
     }
-  }
 
-  /**
-     Reads the exception wrapped by this object.
-     @return the <code>Throwable</code> object that is the exception 
-     that was originally thrown
-  */
-  public Throwable getNested() {
-    return nested;
-  }
+    /**
+       Prints the stack trace of this exception on the standard output
+       stream. If a nested exception is present, its stack trace is
+       also printed.
+    */
+    public void printStackTrace() {
+	super.printStackTrace();
+	if(nested != null) {
+	    System.err.println("Nested Exception:");
+	    nested.printStackTrace();
+	}
+    }
+
+    /**
+       Reads the exception wrapped by this object.
+       @return the <code>Throwable</code> object that is the exception 
+       that was originally thrown.
+    */
+    public Throwable getNested() {
+	return nested;
+    }
 
 }

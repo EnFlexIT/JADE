@@ -83,21 +83,30 @@ public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPANam
     private boolean finished = false;
 
     /**
-		 * @see AchieveREResponder#createMessageTemplate(String)
+       This static method can be used 
+       to set the proper message Template (based on the interaction protocol 
+       and the performative)
+       into the constructor of this behaviour.
+       @see FIPANames.InteractionProtocol
     **/
     public static MessageTemplate createMessageTemplate(String iprotocol){
 				return AchieveREResponder.createMessageTemplate(iprotocol);
     }
 
     /**
-     * @see AchieveREResponder#AchieveREResponder(Agent, MessageTemplate) 
+     * Constructor of the behaviour that creates a new empty DataStore
      **/
     public SimpleAchieveREResponder(Agent a,MessageTemplate mt){
 	this(a,mt,new DataStore());
     }
 
     /**
-     * @see AchieveREResponder#AchieveREResponder(Agent, MessageTemplate, DataStore) 
+     * Constructor.
+     * @param a is the reference to the Agent object
+     * @param mt is the MessageTemplate that must be used to match
+     * the initiator message. Take care that 
+     * if mt is null every message is consumed by this protocol.
+     * @param store the DataStore for this protocol
      **/
     public SimpleAchieveREResponder(Agent a,MessageTemplate mt, DataStore store){
 	super(a);
@@ -106,7 +115,7 @@ public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPANam
 	finished = false;
     }
 
-
+    //#APIDOC_EXCLUDE_BEGIN
 
     public final void action(){
 
@@ -192,26 +201,52 @@ public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPANam
 	}
     }
 
+    //#APIDOC_EXCLUDE_END
 
     /**   
-		 * @see AchieveREResponder#prepareResponse(ACLMessage)
+     * This method is called when the initiator's
+     * message is received that matches the message template
+     * passed in the constructor. 
+     * This default implementation return null which has
+     * the effect of sending no reponse. Programmers should
+     * override the method in case they need to react to this event.
+     * @param request the received message
+     * @return the ACLMessage to be sent as a response (i.e. one of
+     * <code>agree, refuse, not-understood, inform</code>. <b>Remind</b> to
+     * use the method createReply of the class ACLMessage in order
+     * to create a good reply message
+     * @see jade.lang.acl.ACLMessage#createReply()
      **/
-    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
+    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
 	System.out.println("prepareResponse() method not re-defined");
 	return null;
     }
 
     /**   
-		 * @see AchieveREResponder#prepareResultNotification(ACLMessage request, ACLMessage response) 
+     * This method is called after the response has been sent
+     * and only when one of the folliwing two cases arise:
+     * the response was an <code>agree</code> message OR no response
+     * message was sent.
+     * This default implementation return null which has
+     * the effect of sending no result notification. Programmers should
+     * override the method in case they need to react to this event.
+     * @param request the received message
+     * @param response the previously sent response message
+     * @return the ACLMessage to be sent as a result notification (i.e. one of
+     * <code>inform, failure</code>. <b>Remind</b> to
+     * use the method createReply of the class ACLMessage in order
+     * to create a good reply message
+     * @see jade.lang.acl.ACLMessage#createReply()
+     * @see #prepareResponse(ACLMessage)
      **/
-    protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{
+    protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
 	System.out.println("prepareResultNotification() method not re-defined");
 	return null;
     }
 
     /**
-		 * @see AchieveREResponder#reset() 
-    */
+       Reset this behaviour using the same MessageTemplate.
+     */
     public void reset(){
 	finished = false;
 	state = WAITING_MSG_STATE;
@@ -223,7 +258,8 @@ public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPANam
     }
 
     /**
-		 * @see AchieveREResponder#reset(MessageTemplate)
+       This method allows to change the <code>MessageTemplate</code>
+       that defines what messages this FIPARequestResponder will react to and reset the protocol.
     */
     public void reset(MessageTemplate mt){
 	template = mt;

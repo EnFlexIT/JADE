@@ -39,9 +39,21 @@ import jade.lang.acl.*;
  **/
 public class MsgReceiver extends SimpleBehaviour {
 
+    /**
+       A numeric constant to mean that a timeout expired.
+    */
     public static final int TIMEOUT_EXPIRED = -1001;
+
+    /**
+       A numeric constant to mean that the receive operation was
+       interrupted.
+    */
     public static final int INTERRUPTED = -1002;
-	
+
+    /**
+       A numeric constant to mean that the deadline for the receive
+       operation will never expire.
+    */
     public static final int INFINITE = -1;
     
     private MessageTemplate template;
@@ -74,7 +86,8 @@ public class MsgReceiver extends SimpleBehaviour {
 		expired = false;
 		interrupted = false;
 	}
-	
+
+    //#APIDOC_EXCLUDE_BEGIN	
 	public void action() {
 		if (interrupted) {
 			getDataStore().put(receivedMsgKey, null); 
@@ -115,7 +128,7 @@ public class MsgReceiver extends SimpleBehaviour {
 	public boolean done() {
 		return received || expired || interrupted;
 	}
-	
+
     /**
      * @return the performative if a message arrived,
      * <code>TIMEOUT_EXPIRED</code> if the timeout expired or
@@ -128,8 +141,24 @@ public class MsgReceiver extends SimpleBehaviour {
 		interrupted =false;
 		return ret;
 	}
-	
+    //#APIDOC_EXCLUDE_END
 
+
+	
+    /**
+       Reset this behaviour, possibly replacing the receive templatt
+       and other data.
+       @param mt The template to match ACL messages against during the
+       receive operation.
+       @param deadline The relative timeout of the receive
+       operation. If the <code>INFINITE</code> constant is used, then
+       no deadline is set and the operation will wait until a matching
+       ACL message arrives.
+       @param s The datastore where the received ACL message is to be
+       put.
+       @param msgKey The key to use to put the received message into
+       the selected datastore.
+    */
     public void reset(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
 	super.reset();
 	received = false;
@@ -162,7 +191,11 @@ public class MsgReceiver extends SimpleBehaviour {
     public void setReceivedKey(Object key) {
 	receivedMsgKey = key;
     }
-	
+
+    /**
+       Signal an interruption to this receiver, and cause the ongoing
+       receive operation to abort.
+    */
     public void interrupt() {
     	interrupted = true;
     	restart();

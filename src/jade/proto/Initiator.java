@@ -281,6 +281,10 @@ abstract class Initiator extends FSMBehaviour {
     }
     
     /**
+       Attach a behaviour to the <code>Prepare-initiations</code>
+       protocol state.
+       @param b The behaviour object to be executed in the
+       <code>Prepare-initiations</code> state.
      */
     protected void registerPrepareInitiations(Behaviour b) {
 			registerState(b, PREPARE_INITIATIONS);
@@ -387,7 +391,14 @@ abstract class Initiator extends FSMBehaviour {
     protected void initializeDataStore(ACLMessage initiation){
 			getDataStore().put(INITIATION_K, initiation);
     }
-    
+
+    /**
+       Create a new conversation identifier to begin a new
+       interaction.
+       @param msgs A vector of ACL messages. If the first one has a
+       non-empty <code>:conversation-id</code> slot, its value is
+       used, else a new conversation identifier is generated.
+    */
     protected String createConvId(Vector msgs) {
 			// If the conversation-id of the first message is set --> 
     	// use it. Otherwise create a default one
@@ -403,7 +414,8 @@ abstract class Initiator extends FSMBehaviour {
 		  }
 		  return convId;
     }
-    
+
+    //#APIDOC_EXCLUDE_BEGIN
     protected void adjustReplyTemplate(ACLMessage msg) {
 			// If myAgent is among the receivers (strange case, but can happen)
 			// then modify the replyTemplate to avoid intercepting the initiation
@@ -415,7 +427,6 @@ abstract class Initiator extends FSMBehaviour {
 					MessageTemplate.not(MessageTemplate.MatchCustom(msg, true)));
 			}
     }
+    //#APIDOC_EXCLUDE_END
+
 }
-	
-		
-		
