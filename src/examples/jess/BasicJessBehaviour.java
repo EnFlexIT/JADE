@@ -12,6 +12,9 @@
  * @author Fabio Bellifemine - CSELT S.p.A.
  *
  * $Log$
+ * Revision 1.8  1999/10/06 08:57:50  rimassa
+ * Added a missing import clause.
+ *
  * Revision 1.7  1999/04/06 00:08:07  rimassa
  * New version by Fabio.
  *
@@ -36,6 +39,7 @@
 package examples.jess;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jess.*;
 import java.io.*;
