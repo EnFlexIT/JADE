@@ -77,7 +77,7 @@ public interface IMTPManager {
        @throws IMTPException If something goes wrong in the underlying
        network transport.
     */
-    void exportServiceManager(ServiceManager mgr) throws IMTPException;
+    void exportServiceManager(ServiceManagerImpl mgr) throws IMTPException;
 
     /**
        Stops making the platform <i>Service Manager</i> available
@@ -86,6 +86,79 @@ public interface IMTPManager {
        network transport.
     */
     void unexportServiceManager(ServiceManager sm) throws IMTPException;
+
+    /**
+       Adds a new address to the <i>Service Manager</i> address
+       list. New nodes can join the distributed platform by contacting
+       the <i>Service Manager</i> at any among its addresses.
+       @param addr A stringified URL referring to a valid address in
+       the IMTP managed by this IMTP manager.
+       @throws IMTPException If something goes wrong in the underlying
+       network transport.
+    */
+    void addServiceManagerAddress(String addr) throws IMTPException;
+
+    /**
+       Removes an address from the <i>Service Manager</i> address
+       list. New nodes can join the distributed platform by contacting
+       the <i>Service Manager</i> at any among its addresses.
+       @param addr A stringified URL referring to a valid address in
+       the IMTP managed by this IMTP manager.
+       @throws IMTPException If something goes wrong in the underlying
+       network transport.
+    */
+    void removeServiceManagerAddress(String addr) throws IMTPException;
+
+    /**
+       Retrieves the list of the (remote) addresses for the <i>Service
+       Manager</i>. Notice that the locally exported address (if any)
+       is not included in the list.
+
+       @return A string array containing all the remote addresses
+       through which the platform <i>Service Manager</i> can be reached.
+       @throws IMTPException If something goes wrong in the underlying
+       network transport.
+       @see jade.core.ServiceManager#getLocalAddress()
+    */
+    String[] getServiceManagerAddresses() throws IMTPException;
+
+    /**
+       Informs this IMTP Manager that a new node joined the
+       distributed platform.
+       @param desc The description of the newly added node.
+       @param svcNames The list of the names of the services deployed
+       on the newly added node.
+       @param svcInterfaces The list of the <code>Class</code> objects
+       representing the horizontal slice interfaces for each service.
+    */
+    void nodeAdded(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, int nodeCnt, int mainCnt) throws IMTPException;
+
+    /**
+       Informs this IMTP Manager that a node left the distributed
+       platform.
+       @param desc The description of the newly added node.
+    */
+    void nodeRemoved(NodeDescriptor desc) throws IMTPException;
+
+    /**
+       Informs this IMTP Manager that a new service was activated on a
+       node of the distributed platform.
+       @param svcName The name of the newly activated service.
+       @param svcItf The horizontal slice interface of the newly
+       activated service.
+       @param where The node of the distributed platform where the
+       service is deployed.
+    */
+    void serviceActivated(String svcName, Class svcItf, Node where) throws IMTPException;
+
+    /**
+       Informs this IMTP Manager that a new service was deactivated on
+       a node of the distributed platform.
+       @param svcName The name of the newly activated service.
+       @param where The node of the distributed platform where the
+       service is deployed.
+    */
+    void serviceDeactivated(String svcName, Node where) throws IMTPException;
 
     /**
        Builds a proxy object for the (possibly remote) platform
