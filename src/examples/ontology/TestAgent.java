@@ -78,8 +78,6 @@ protected void setup() {
       fillContent(msg,l);
       System.out.println(" created the following message:\n"+msg.toString());
 
-    } catch (OntologyException e) {
-      e.printStackTrace();
     } catch (FIPAException e) {
       e.printStackTrace();
       System.exit(0);
