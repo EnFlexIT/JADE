@@ -1074,6 +1074,7 @@ public class Agent implements Runnable, Serializable {
 	  ((jade.domain.ams)this).AMSRegister(amsd);
 	else
 	  AMSServiceCommunicator.register(this,amsd);
+        notifyStarted();
 	setup();
 	break;
       case AP_TRANSIT:
@@ -1611,9 +1612,29 @@ public class Agent implements Runnable, Serializable {
     myToolkit = null;
   }
 
-
+  /**
+    This method blocks until the agent has finished its start-up phase
+    (i.e. until just before its setup() method is called.
+    When this method returns, the target agent is registered with the
+   AMS and the JADE platform is aware of it.
+  */
+  public synchronized void waitUntilStarted() {
+    while(getState() == AP_INITIATED) {
+      try {
+        wait();
+      }
+      catch(InterruptedException ie) {
+        // Do nothing...
+      }
+    }
+  }
+  
   // Event firing methods
 
+  // Notify creator that the start-up phase has completed
+  private synchronized void notifyStarted() {
+    notifyAll();
+  }
 
   // Notify toolkit that a message was posted in the message queue
   private void notifyPosted(ACLMessage msg) {
