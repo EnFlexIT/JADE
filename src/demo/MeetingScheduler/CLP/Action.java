@@ -28,7 +28,7 @@ package demo.MeetingScheduler.CLP;
 /**
 Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A
-@version $Date:$ 2000/02/17 10:18:30 $Revision: 1.1 $
+@version $Date: 2000/02/17 10:18:30 $ $Revision: 1.1 $
 */
 
 /**
