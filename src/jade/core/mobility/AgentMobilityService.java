@@ -995,7 +995,7 @@ public class AgentMobilityService extends BaseService {
     // The ResourceManager of the local container
     //private ResourceManager myResourceManager;
     
-    private static final String VERBOSITY_KEY = "jade_core_AgentMobilityService_verbosity";
+    private static final String VERBOSITY_KEY = "jade_core_mobility_AgentMobilityService_verbosity";
     private int verbosity = 0;
 
     // The local slice for this service
