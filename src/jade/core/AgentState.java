@@ -35,6 +35,14 @@ public class AgentState {
 
   private String name;
 
+
+  public AgentState() {
+  }
+
+  public AgentState(String n) {
+    name = n;
+  }
+
   public void setName(String n) { 
     name = n;
   }
@@ -43,5 +51,29 @@ public class AgentState {
     return name;
   }
 
+
+  public boolean equals(Object o) {
+
+    if(o instanceof String) {
+      return name.equalsIgnoreCase((String)o);
+    }
+    try {
+      AgentState as = (AgentState)o;
+      return name.equalsIgnoreCase(as.name);
+    }
+    catch(ClassCastException cce) {
+      return false;
+    }
+
+  }
+
+  public int compareTo(Object o) {
+    AgentState as = (AgentState)o;
+    return name.compareToIgnoreCase(as.name);
+  }
+
+  public int hashCode() {
+    return name.toLowerCase().hashCode();
+  }
 
 }
