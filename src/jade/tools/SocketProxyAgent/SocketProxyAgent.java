@@ -27,6 +27,7 @@ package jade.tools.SocketProxyAgent;
 import jade.core.Agent;
 import jade.lang.acl.*;
 import jade.core.behaviours.SimpleBehaviour;
+import jade.domain.FIPAAgentManagement.AID;
 
 import java.net.*;
 import java.io.*;
@@ -197,27 +198,27 @@ class Connection extends Thread {
     start();
   }
 
-  private boolean myOnlyReceiversContains(String aName) {
+  private boolean myOnlyReceiversContains(Iterator aids) {
+    List l = new ArrayList();
+    while (aids.hasNext()) 
+      l.add(aids.next());
     for (int i=0; i<myOnlyReceivers.size(); i++)
-    { 
-    
-      if ( ((String)myOnlyReceivers.elementAt(i)).equalsIgnoreCase(aName) )
-      	return true;
-    }
+      if (l.contains(myOnlyReceivers.elementAt(i)))
+	return true;
     return false;
   }
 
   public void run() {
     String line;
     try {
-      //ACLParser parser = new ACLParser(in);
+      ACLParser parser = new ACLParser(in);
       ACLMessage msg;
       while (true) {
-      	msg = ACLMessage.fromText(new InputStreamReader(in)); // parser.Message();
+      	msg = parser.Message(); // ACLMessage.fromText(new InputStreamReader(in)); 
      
-      	if (myOnlyReceiversContains(msg.getFirstDest())) 
+      	if (myOnlyReceiversContains(msg.getAllReceiver())) 
       	{
-      		msg.setSource(myAgent.getLocalName());
+      		msg.setSender(myAgent.getAID());
 	        if ((msg.getReplyWith() == null) || (msg.getReplyWith().length()<1))
 	          msg.setReplyWith(myAgent.getLocalName()+"."+getName()+"."+java.lang.System.currentTimeMillis()); 
 	        myAgent.send(msg);
@@ -268,7 +269,11 @@ class WaitAnswersBehaviour extends SimpleBehaviour {
   WaitAnswersBehaviour(Agent a, ACLMessage m, PrintStream o) {
     super(a);
     out = o;
-    mt = MessageTemplate.and(MessageTemplate.MatchSource(m.getFirstDest()),MessageTemplate.MatchReplyTo(m.getReplyWith()));
+    try {
+      mt = MessageTemplate.and(MessageTemplate.MatchSender((AID)m.getAllReceiver().next()),MessageTemplate.MatchInReplyTo(m.getReplyWith()));
+    } catch (Exception e) {
+      mt = MessageTemplate.MatchInReplyTo(m.getReplyWith());
+    }
     timeout = m.getReplyByDate().getTime()-(new Date()).getTime();
     if (timeout <= 1000) timeout = DEFAULT_TIMEOUT; 
     endingTime = System.currentTimeMillis() + timeout;
