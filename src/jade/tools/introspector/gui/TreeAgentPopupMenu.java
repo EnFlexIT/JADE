@@ -61,10 +61,10 @@ class TreeAgentPopupMenu extends JPopupMenu{
     public void actionPerformed(ActionEvent e) {
       JMenuItem source=(JMenuItem) e.getSource();
       if(source.getName().equals("on")) {
-        debugger.addAgent(new AID(agentName));
+        debugger.addAgent(new AID(agentName, AID.ISGUID));
       }
       else if(source.getName().equals("off")) {
-        debugger.removeAgent(new AID(agentName));
+        debugger.removeAgent(new AID(agentName, AID.ISGUID));
       }
     }
   }
