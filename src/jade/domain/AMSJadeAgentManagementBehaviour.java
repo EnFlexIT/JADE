@@ -24,211 +24,147 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 import jade.core.CaseInsensitiveString;
+import jade.core.Agent;
 import jade.core.AID;
-
+import jade.core.Location;
+import jade.content.Concept;
+import jade.content.Predicate;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
-
+import jade.content.onto.basic.Done;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import jade.domain.FIPAAgentManagement.FailureException;
-import jade.domain.FIPAAgentManagement.UnrecognisedValue;
-import jade.domain.FIPAAgentManagement.Unauthorised;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.UnsupportedFunction;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-
-import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
-
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.mobility.*;
-
-import jade.core.Location;
-
-//__SECURITY__BEGIN
+import jade.mtp.MTPDescriptor;
 import jade.security.AuthException;
-//__SECURITY__END
 
 /**
-  @author Tiziana Trucco - Tilab
-  @version $Date$ $Revision$
+   Extends RequestManagementBehaviour and implements performAction() to 
+   i) call the method of the AMS corresponding to the requested 
+   action and ii) prepare the result notification depending on 
+   - whether a result should be returned (RESULT or DONE)
+   - whether the notification can be sent immediately or must be delayed
+   at a later time.
+   @author Tiziana Trucco - Tilab
+   @author Giovanni Caire - Tilab
+   @version $Date$ $Revision$
 */
 
-class AMSJadeAgentManagementBehaviour extends DFResponderBehaviour{
+class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
 
-    private ams myAgent;
-    private MobilityManager myMobilityMgr;
-   
-    //the result notification prepared into the prepareResponse.
-    private ACLMessage res;
-
-    protected AMSJadeAgentManagementBehaviour(ams a, MobilityManager b, MessageTemplate mt){
-		super(a,mt);
-		myAgent = a;
-		myMobilityMgr = b;
-    }
-
-    /*
-    In this method we can be send : AGREE- NOT UNDERSTOOD and Refuse.
-    in this method we parse the content in order to know the action required to the DF.
-    if the action is unsupported a NOT UDERSTOOD message is sent.
-    if something went wrong with the ontology a REFUSE message will be sent, otherwise an AGREE will be sent.
-    and performs the action.
-    */
-    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException{
-
-	Object action = null;
-	Action SLAction = null;
- 
-	try{	
-	    isAnSLRequest(request);
-
-	    //prepare the resultNotification
-	    res = request.createReply();
-	    res.setPerformative(ACLMessage.INFORM);
-	    	    
-	    SLAction = (Action)myAgent.getContentManager().extractContent(request);
-	    
-	    action = SLAction.getAction();
-
-	    if(action instanceof CreateAgent){
-  			ACLMessage reply = request.createReply();
-			reply.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-			reply.setPerformative(ACLMessage.INFORM);
-			//res is null in this case. The INFORM will be sent by the AMS later.
-			res = myAgent.createAgentAction((CreateAgent)action,request,reply);
-	    } else if(action instanceof KillAgent){
-			//performs a KILLAGENT
-			myAgent.killAgentAction((KillAgent)action, request.getSender());
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof KillContainer){
-			//performs a KILLCONTAINER
-			myAgent.killContainerAction((KillContainer)action,request.getSender());
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof SniffOn){
-			//performs a SNIFFON
-			myAgent.sniffOnAction((SniffOn)action);
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof SniffOff){
-			myAgent.sniffOffAction((SniffOff)action); 
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof DebugOn){
-			myAgent.debugOnAction((DebugOn)action);
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof DebugOff){
-			myAgent.debugOffAction((DebugOff)action);
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof InstallMTP){
-			myAgent.installMTPAction((InstallMTP)action);
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof UninstallMTP){
-			myAgent.unistallMTPAction((UninstallMTP)action);
-			res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-	    } else if(action instanceof QueryAgentsOnLocation) {
-	    	Location loc = ((QueryAgentsOnLocation)action).getLocation();
-	    	List l = myAgent.queryAgentsOnLocationAction(loc);
-	    	Result r  = new Result();
-	    	r.setAction(SLAction);
-	    	r.setItems(l);
-	    	try {
-		    	myAgent.getContentManager().fillContent(res, r);
-		  	} catch (Exception e) {
-		  		System.out.println(e);
-		  	}
-	 	} else if(action instanceof WhereIsAgentAction){
-		    AID agentN = ((WhereIsAgentAction)action).getAgentIdentifier();
-		    Location where = myAgent.AMSWhereIsAgent(agentN, request.getSender());
-		    Result r = new Result();
-		    r.setAction(SLAction);
-		    List l1 = new ArrayList();
-		    l1.add(where);
-		    r.setItems(l1);
-		    try {
-		    	myAgent.getContentManager().fillContent(res, r);
-		  	} catch (Exception e) {
-		  		System.out.println(e);
-		  	}
-		} else if(action instanceof QueryPlatformLocationsAction){
-		    Result r2 = new Result();
-		    r2.setAction(SLAction);
-			r2.setItems(myMobilityMgr.getLocations());
-		    try {
-		    	myAgent.getContentManager().fillContent(res, r2); 
-		  	} catch (Exception e) {
-		  		System.out.println(e);
-		  	}
-		} else if (action instanceof MoveAction){
-		    if(action instanceof CloneAction){
-				MobileAgentDescription description = ((CloneAction)action).getMobileAgentDescription(); 
-				AID aName = description.getName();
-				Location dest = description.getDestination();
-				String newName = ((CloneAction)action).getNewName();
-				myAgent.AMSCloneAgent(aName, dest, newName, request.getSender());
-				// res.setContent("FIXME");
-				res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		    } else {
-				MobileAgentDescription description = ((MoveAction)action).getMobileAgentDescription();
-				AID agentName = description.getName();
-				Location destination = description.getDestination();
-				myAgent.AMSMoveAgent(agentName, destination, request.getSender());
-				//res.setContent("FIXME");
-				res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		    }		   
-	   } else {
-			//this case should never occur since if the action does not exist the extract content throws a Ontology Exception.
-			//FIXME: the UnsupportedFunction exception requires as parameter the name of the unsupported function.
-			//how can we retrive this name ?
-			UnsupportedFunction uf = new UnsupportedFunction();
-			//createExceptionalMsgContent(SLAction,uf,request);
-			throw uf;
-	   }
-	} catch(RefuseException re){
-	    createExceptionalMsgContent(SLAction,re,request);
-	    throw re;
-	}catch(FailureException ie){
-	    res.setPerformative(ACLMessage.FAILURE);
-	    createExceptionalMsgContent(SLAction,ie,request);  
-	    res.setContent(ie.getMessage());
-	}catch(AuthException au){
-	    //FIXME: perhaps this AuthEception could be caught into the createAgentAction.
-	    Unauthorised un = new Unauthorised();
-	    createExceptionalMsgContent(SLAction, un,request);
-	    throw un;
-	}catch(FIPAException fe){
-	    //Exception thrown by the parser.
-	    fe.printStackTrace();
-	    UnrecognisedValue uv = new UnrecognisedValue("content");
-	    createExceptionalMsgContent(SLAction,uv,request);
-	    throw uv;
-	}catch (Exception e) {
-	    e.printStackTrace();
-	    UnrecognisedValue uv2 = new UnrecognisedValue("content");
-	    createExceptionalMsgContent(SLAction,uv2,request);
-	    throw uv2;
-	}
-
-	//if everything is OK returns an AGREE message.
-	ACLMessage agree = request.createReply();
-	agree.setPerformative(ACLMessage.AGREE);
-	agree.setContent(createAgreeContent(SLAction,request.getLanguage(),request.getOntology()));
+	private ams theAMS;
 	
-	return agree;
-    }
-    
-    /**
-       Send the Inform message.
-     */
-    protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
-		return res;       
-    }
-    
-    //to reset the action
-    public void reset(){
-	super.reset();
-	res = null;
-    }
-}//end class AMSJadeAgentManagementBehaviour
+  protected AMSJadeAgentManagementBehaviour(ams a, MessageTemplate mt) {
+		super(a,mt);
+		theAMS = a;
+  }
+	
+  /**
+     Call the proper method of the ams and prepare the notification 
+     message
+   */
+  protected ACLMessage performAction(Action slAction, ACLMessage request) throws FIPAException {
+  	Concept action = slAction.getAction();
+  	List resultItems = null;
+  	Object asynchNotificationKey = null;
+  	
+  	// CREATE AGENT
+  	if (action instanceof CreateAgent) {
+  		theAMS.createAgentAction((CreateAgent) action, request.getSender());
+  	}
+  	// KILL AGENT (asynchronous notification to requester)
+  	else if (action instanceof KillAgent) {
+  		theAMS.killAgentAction((KillAgent) action, request.getSender());
+  		asynchNotificationKey = ((KillAgent) action).getAgent();
+  	}
+  	// CLONE AGENT (asynchronous notification to requester)
+  	// Note that CloneAction extends MoveAction --> must be considered first!!!
+  	else if (action instanceof CloneAction) {
+  		theAMS.cloneAgentAction((CloneAction) action, request.getSender());
+  		asynchNotificationKey = new AID(((CloneAction) action).getNewName(), AID.ISLOCALNAME); 
+  	}
+  	// MOVE AGENT (asynchronous notification to requester)
+  	else if (action instanceof MoveAction) {
+  		theAMS.moveAgentAction((MoveAction) action, request.getSender());
+  		asynchNotificationKey = ((MoveAction) action).getMobileAgentDescription().getName();
+  	}
+  	// KILL CONTAINER (asynchronous notification to requester)
+  	else if (action instanceof KillContainer) {
+  		theAMS.killContainerAction((KillContainer) action, request.getSender());
+  		asynchNotificationKey = ((KillContainer) action).getContainer();
+  	}
+  	// INSTALL MTP
+  	else if (action instanceof InstallMTP) {
+  		MTPDescriptor dsc = theAMS.installMTPAction((InstallMTP) action, request.getSender());
+  		resultItems = new ArrayList();
+  		resultItems.add(dsc.getAddresses()[0]);
+  	}
+  	// UNINSTALL MTP
+  	else if (action instanceof UninstallMTP) {
+  		theAMS.uninstallMTPAction((UninstallMTP) action, request.getSender());
+  	}
+  	// SNIFF ON
+  	else if (action instanceof SniffOn) {
+  		theAMS.sniffOnAction((SniffOn) action, request.getSender());
+  	}
+  	// SNIFF OFF
+  	else if (action instanceof SniffOff) {
+  		theAMS.sniffOffAction((SniffOff) action, request.getSender());
+  	}
+  	// DEBUG ON
+  	else if (action instanceof DebugOn) {
+  		theAMS.debugOnAction((DebugOn) action, request.getSender());
+  	}
+  	// DEBUG OFF
+  	else if (action instanceof DebugOff) {
+  		theAMS.debugOffAction((DebugOff) action, request.getSender());
+  	}
+  	// WHERE IS AGENT
+  	else if (action instanceof WhereIsAgentAction) {
+  		Location l = theAMS.whereIsAgentAction((WhereIsAgentAction) action, request.getSender());
+  		resultItems = new ArrayList();
+  		resultItems.add(l);
+  	}
+  	// QUERY PLATFORM LOCATIONS
+  	else if (action instanceof QueryPlatformLocationsAction) {
+  		resultItems = theAMS.queryPlatformLocationsAction((QueryPlatformLocationsAction) action, request.getSender());
+  	}
+  	// QUERY AGENTS ON LOCATION
+  	else if (action instanceof QueryAgentsOnLocation) {
+  		resultItems = theAMS.queryAgentsOnLocationAction((QueryAgentsOnLocation) action, request.getSender());
+  	}
+  	
+  	// Prepare the notification
+  	ACLMessage notification = request.createReply();
+  	notification.setPerformative(ACLMessage.INFORM);
+  	Predicate p = null;
+  	if (resultItems != null) {
+  		// The action produced a result
+  		p = new Result(slAction, resultItems);
+  	}
+  	else {
+  		p = new Done(slAction);
+  	}
+  	try {
+	  	theAMS.getContentManager().fillContent(notification, p);
+  	}
+  	catch (Exception e) {
+  		// Should never happen
+  		e.printStackTrace();
+  	}
+  	
+  	if (asynchNotificationKey != null) {
+  		// The event forced by the action has not happened yet. Store the
+  		// notification so that the AMS will send it when the event will
+  		// be happened.
+  		theAMS.storeNotification(action, asynchNotificationKey, notification);
+  		return null;
+  	}
+  	else {
+	  	return notification;
+  	}
+  }  
+}

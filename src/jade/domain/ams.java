@@ -30,7 +30,6 @@ import java.io.StringWriter;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.FileWriter;
-import java.net.InetAddress;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
@@ -38,6 +37,8 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Set;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
+import jade.util.InputQueue; 
+
 import java.util.Hashtable; 
 
 import jade.core.*;
@@ -46,6 +47,7 @@ import jade.core.behaviours.*;
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;
 
+import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
@@ -61,8 +63,8 @@ import jade.content.lang.Codec.*;
 import jade.content.onto.basic.Action;
 
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
-//__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.JADEPrincipal;
 import jade.security.AgentPrincipal;
@@ -72,7 +74,7 @@ import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
 import jade.security.AuthException;
 import jade.security.CertificateException;
-//__SECURITY__END
+import jade.security.PrivilegedExceptionAction;
 
 /**
   Standard <em>Agent Management System</em> agent. This class
@@ -80,78 +82,589 @@ import jade.security.CertificateException;
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
 
-
   @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Caire - TILAB
   @version $Date$ $Revision$
-
-
 */
 public class ams extends Agent implements AgentManager.Listener {
 
-    Profile bootProfile = null;    
+  Profile bootProfile = null;    
+  
+  // The AgentPlatform where information about agents is stored
+  private AgentManager myPlatform;
+
+  // The codec for the SL language
+  private Codec codec = new SLCodec();
+   
+  // Group of tools registered with this AMS
+  private List tools = new ArrayList();
+
+  // ACL Message to use for tool notification
+  private ACLMessage toolNotification = new ACLMessage(ACLMessage.INFORM);
+
+  // Buffer for AgentPlatform notifications
+  private InputQueue eventQueue = new InputQueue();
+
+  private Hashtable pendingDeadAgents = new Hashtable();
+  private Hashtable pendingClonedAgents = new Hashtable();
+  private Hashtable pendingMovedAgents = new Hashtable();
+  private Hashtable pendingRemovedContainers = new Hashtable();
+
+  private APDescription theProfile = new APDescription();
+      
+  /**
+     This constructor creates a new <em>AMS</em> agent. Since a direct
+     reference to an Agent Platform implementation must be passed to
+     it, this constructor cannot be called from application
+     code. Therefore, no other <em>AMS</em> agent can be created
+     beyond the default one.
+  */
+  public ams(AgentManager ap, Profile aBootProfile) {
+		System.out.println("New AMS active");
+    myPlatform = ap;
+    myPlatform.addListener(this);
+    bootProfile = aBootProfile;
+  }
+
+  /**
+     AMS initialization
+   */
+  protected void setup() {
+    // Fill Agent Platform Description. 
+    theProfile.setName("\"" + getHap() + "\"");
+    theProfile.setDynamic(new Boolean(false));
+    theProfile.setMobility(new Boolean(false));
+    APTransportDescription mtps = new APTransportDescription();
+    theProfile.setTransportProfile(mtps);
+    writeAPDescription(theProfile);
     
-    private Codec codec = new SLCodec();
-     
-    //registration of an agent.
-    void AMSRegisterAction(Action a, AMSAgentDescription amsd,AID sender,String ontology)throws AlreadyRegistered,AuthException,MissingParameter {
-			
-	// This agent was created by some other, which is still
-	// waiting for an 'inform' message. Recover the buffered
-	// message from the Map and send it back.
-	CreationInfo creation = (CreationInfo)creations.get(amsd.getName());
-	//!!! michele removed next lines: now a global name is stored
-	/*
-	  // The message in creations can be registered with only the localName
-	  // without the platformID
-	  if (creation == null) {
-	  String name = amsd.getName().getName();
-	  int atPos = name.lastIndexOf('@');
-	  if (atPos > 0) {
-	  name = name.substring(0, atPos);
-	  creation = (CreationInfo)creations.remove(name);
-	  }
+    // Register the supported ontologies
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(IntrospectionOntology.getInstance());
+    // Use fully qualified name to avoid conflict with old jade.domain.MobilityOntology
+    getContentManager().registerOntology(jade.domain.mobility.MobilityOntology.getInstance());
+
+    // register the supported languages: all profiles of SL are ok for ams
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
+    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
+		
+    // The behaviour managing FIPA requests
+    MessageTemplate mtF = MessageTemplate.and(
+    	MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+    	MessageTemplate.MatchOntology(FIPAManagementVocabulary.NAME));
+    Behaviour fipaResponderB = new AMSFipaAgentManagementBehaviour(this, mtF);
+    addBehaviour(fipaResponderB);
+
+    // The behaviour managing JADE requests
+    // MobilityOntology is matched for JADE 2.5 Backward compatibility
+    MessageTemplate mtJ = MessageTemplate.and(
+    	MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+    	MessageTemplate.or(
+    		MessageTemplate.MatchOntology(JADEManagementVocabulary.NAME), 
+    		MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME)));
+    Behaviour jadeResponderB = new AMSJadeAgentManagementBehaviour(this, mtJ);
+    addBehaviour(jadeResponderB);
+
+    // The behaviours dealing with platform tools
+    Behaviour registerTool = new RegisterToolBehaviour();
+    Behaviour deregisterTool = new DeregisterToolBehaviour();
+    Behaviour eventManager = new EventManager();
+    addBehaviour(registerTool);
+    addBehaviour(deregisterTool);
+    addBehaviour(eventManager);
+    eventQueue.associate(eventManager);
+
+    // Initialize the message used for tools notification
+    toolNotification.setLanguage("FIPA-SL0");
+    toolNotification.setOntology(IntrospectionOntology.NAME);
+    toolNotification.setInReplyTo("tool-subscription");   
+  }
+
+  //////////////////////////////////////////////////////////////////
+  // Methods implementing the actions of the JADEManagementOntology.
+  // All these methods 
+  // - extract the necessary information from the requested Action 
+  //   object and format them properly (if necessary)
+  // - Call the corresponding method of the AgentManager using the 
+  //   permissions of the requester agent.
+  // - Convert eventual JADE-internal Exceptions into proper FIPAException.
+  // These methods are package-scoped as they are called by the 
+  // AMSJadeAgentManagementBehaviour.
+  //////////////////////////////////////////////////////////////////
+  
+	// CREATE AGENT
+	void createAgentAction(CreateAgent ca, AID requester) throws FIPAException {
+		final String agentName = ca.getAgentName();
+		final AID agentID = new AID(agentName, AID.ISLOCALNAME);
+		final String className = ca.getClassName();
+		final ContainerID container = ca.getContainer();
+		// Prepare arguments as a String[]
+		Iterator it = ca.getAllArguments(); 
+		ArrayList listArg = new ArrayList();
+		while (it.hasNext()) {
+			listArg.add(it.next().toString());
+		}
+		final String[] args = new String[listArg.size()];
+		for (int n = 0; n < listArg.size(); n++) {
+			args[n] = (String)listArg.get(n);
+		}
+	
+		try {
+			// IdentityCertificate: The new agent will have the same 
+			// ownership as the requester
+			final String ownership = getAgentOwnership(requester);
+		
+			Authority authority = getAuthority();
+			AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, ownership);
+		  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+			IdentityCertificate identity = authority.createIdentityCertificate();
+			identity.setSubject(agentPrincipal);
+			authority.sign(identity, requesterCredentials);
+		
+			// DelegationCertificate: The new agent will have the same 
+			// permissions of the requester unless the requester specified 
+			// a restricted set of permissions 
+			DelegationCertificate delegation = null;
+			if (ca.getDelegation() != null) {
+				// Restricted set of permissions
+				delegation = authority.createDelegationCertificate(ca.getDelegation());
 			}
-	*/
+			else {
+				// All requester permissions
+				delegation = authority.createDelegationCertificate();
+				delegation.setSubject(agentPrincipal);
+				DelegationCertificate requesterDelegation = (DelegationCertificate) requesterCredentials.getDelegationCertificates().get(0);
+				delegation.addPermissions(requesterDelegation.getPermissions());
+				authority.sign(delegation, requesterCredentials);
+			}
+
+			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	
-	try {
-	    // Write new agent data in AMS Agent Table
-	    AMSRegister(amsd, sender);
+	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException {
+					myPlatform.create(agentName, className, args, container, ownership, agentCerts);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(CertificateException ce) {
+			throw new Unauthorised();
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action CreateAgent");
+			throw new Unauthorised();
+		}
+		catch (UnreachableException ue) {
+	    throw new InternalError("Destination container unreachable. "+ue.getMessage());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+	    throw new InternalError("Unexpected exception. "+e.getMessage());
+		}
+	}
 	
-	    // Inform agent creator that registration was successful.
-	    if (creation != null && creation.getReply() != null) {
-		send(creation.getReply());
-	    }
-	}
-	catch (AlreadyRegistered are) {
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //String ontoName = getRequest().getOntology();
-	    //sendReply(ACLMessage.FAILURE, createExceptionalMsgContent(a, ontoName, are));
-	    // Inform agent creator that registration failed.
-	    if (creation != null && creation.getReply() != null) {
-		ACLMessage creationReply = creation.getReply();
-		creationReply.setPerformative(ACLMessage.FAILURE);
-		creationReply.setContent(createExceptionalContent(a, ontology, are));
-		send(creationReply);
-	    }
-	    throw are;
-	}catch(MissingParameter mp){
-	    if (creation != null && creation.getReply() != null) {
-		ACLMessage creationReply = creation.getReply();
-		creationReply.setPerformative(ACLMessage.FAILURE);
-		creationReply.setContent(createExceptionalContent(a, ontology, mp));
-		send(creationReply);
-	    }
-	    throw mp;
-	}
+	// KILL AGENT
+	void killAgentAction(KillAgent ka, AID requester) throws FIPAException {
+  	final AID agentID = ka.getAgent();
+	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+
+    try {
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+        	myPlatform.kill(agentID);
+					return null;
+		    }
+			}, requesterCredentials); 
+
     }
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action KillAgent");
+			throw new Unauthorised();
+		}
+    catch (UnreachableException ue) {
+      throw new InternalError("Container not reachable. "+ue.getMessage());
+    }
+    catch (NotFoundException nfe) {
+      throw new InternalError("Agent not found. "+nfe.getMessage());
+    }
+ 		catch (Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+	  }
+	}
+	
+	// CLONE AGENT
+	void cloneAgentAction(CloneAction ca, AID requester) throws FIPAException {
+		MobileAgentDescription dsc = ca.getMobileAgentDescription();
+		final AID agentID = dsc.getName();
+		final ContainerID where = (ContainerID) dsc.getDestination();
+		final String newName = ca.getNewName();
+	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+	  try {
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+					myPlatform.copy(agentID, where, newName);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action CloneAgent");
+			throw new Unauthorised();
+		}
+    catch (UnreachableException ue) {
+      throw new InternalError("Container not reachable. "+ue.getMessage());
+    }
+    catch (NotFoundException nfe) {
+      throw new InternalError("NotFoundException. "+nfe.getMessage());
+    }
+ 		catch (Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+	  }
+	}
+	
+	// MOVE AGENT
+	void moveAgentAction(MoveAction ma, AID requester) throws FIPAException {
+		MobileAgentDescription dsc = ma.getMobileAgentDescription();
+		final AID agentID = dsc.getName();
+		final ContainerID where = (ContainerID) dsc.getDestination();
+	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+	  try {
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws UnreachableException, AuthException, NotFoundException {
+					myPlatform.move(agentID, where);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action MoveAgent");
+			throw new Unauthorised();
+		}
+    catch (UnreachableException ue) {
+      throw new InternalError("Container not reachable. "+ue.getMessage());
+    }
+    catch (NotFoundException nfe) {
+      throw new InternalError("NotFoundException. "+nfe.getMessage());
+    }
+ 		catch (Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+	  }
+	}
+	
+	// KILL CONTAINER
+	void killContainerAction(KillContainer kc, AID requester) throws FIPAException {
+    final ContainerID cid = kc.getContainer();
+    CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+    try{
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws AuthException, NotFoundException {
+	    		myPlatform.killContainer(cid);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action KillContainer");
+			throw new Unauthorised();
+		}
+    catch(NotFoundException nfe) {
+    	throw new InternalError("Container not found. "+nfe.getMessage());   
+    }
+    catch(Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+    }
+	}
+	
+	// INSTALL MTP
+	MTPDescriptor installMTPAction(InstallMTP im, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    return myPlatform.installMTP(im.getAddress(), im.getContainer(), im.getClassName());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Container not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+		catch(MTPException mtpe) {
+	    throw new InternalError("Error in MTP installation. "+mtpe.getMessage());
+	  }
+	}
+	
+	// UNINSTALL MTP
+	void uninstallMTPAction(UninstallMTP um, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    myPlatform.uninstallMTP(um.getAddress(), um.getContainer());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Container not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+		catch(MTPException mtpe) {
+	    throw new InternalError("Error in MTP de-installation. "+mtpe.getMessage());
+		}
+	}
+	
+	// SNIFF ON
+	void sniffOnAction(SniffOn so, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Agent not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+	}
+	
+	// SNIFF OFF
+	void sniffOffAction(SniffOff so, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Agent not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+	}
+	
+	// DEBUG ON
+	void debugOnAction(DebugOn don, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    myPlatform.debugOn(don.getDebugger(), don.getCloneOfDebuggedAgents());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Agent not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+	}
+	
+	// DEBUG OFF
+	void debugOffAction(DebugOff doff, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    myPlatform.debugOff(doff.getDebugger(), doff.getCloneOfDebuggedAgents());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Agent not found. "+nfe.getMessage());
+		}
+		catch(UnreachableException ue) {
+	    throw new InternalError("Container unreachable. "+ue.getMessage());
+		}
+	}
+	
+	// WHERE IS AGENT
+	Location whereIsAgentAction(WhereIsAgentAction wia, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    return myPlatform.getContainerID(wia.getAgentIdentifier());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Agent not found. "+nfe.getMessage());
+		}
+	}
+	
+	// QUERY PLATFORM LOCATIONS
+	List queryPlatformLocationsAction(QueryPlatformLocationsAction qpl, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+	  ContainerID[] ids = myPlatform.containerIDs();
+	  List l = new ArrayList();
+	  for (int i = 0; i < ids.length; ++i) {
+	  	l.add(ids[i]);
+	  }
+	  return l;
+	}
+	
+	// QUERY AGENTS ON LOCATION
+	List queryAgentsOnLocationAction(QueryAgentsOnLocation qaol, AID requester) throws FIPAException {
+		// FIXME: Permissions for this action are not yet defined
+		try {
+	    return myPlatform.containerAgents((ContainerID) qaol.getLocation());
+		}
+		catch(NotFoundException nfe) {
+	    throw new InternalError("Location not found. "+nfe.getMessage());
+		}
+	}
+    
+  //////////////////////////////////////////////////////////////////
+  // Methods implementing the actions of the FIPAManagementOntology.
+  // All these methods 
+  // - extract the necessary information from the requested Action 
+  //   object and check whether mandatory slots are present.
+  // - Call the corresponding method of the AgentManager using the 
+  //   permissions of the requester agent.
+  // - Convert eventual JADE-internal Exceptions into proper FIPAException.
+  // These methods are package-scoped as they are called by the 
+  // AMSFipaAgentManagementBehaviour.
+  //////////////////////////////////////////////////////////////////
+      
+  // REGISTER
+  void registerAction(Register r, AID requester) throws FIPAException {
+    final AMSAgentDescription amsd = (AMSAgentDescription) r.getDescription();
+    // Check mandatory slots
+    AID id = amsd.getName();
+    log("Agent "+id+" registering with the AMS");
+    if (id == null || id.getName() == null || id.getName().length() == 0) {
+			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
+    }
+    
+  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+    try{
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws AlreadyRegistered, AuthException {
+	    		myPlatform.amsRegister(amsd);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(AlreadyRegistered ar) {
+			throw ar;
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action Register");
+			throw new Unauthorised();
+		}
+    catch(Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+    }
+  }
 
-    //return the APDescription.
-    APDescription getDescriptionAction(){
-	return theProfile;
-    } 
+  // DEREGISTER
+  void deregisterAction(Deregister d, AID requester) throws FIPAException {
+    final AMSAgentDescription amsd = (AMSAgentDescription) d.getDescription();
+    // Check mandatory slots
+    AID id = amsd.getName();
+    log("Agent "+id+" de-registering with the AMS");
+    if (id == null || id.getName() == null || id.getName().length() == 0) {
+			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
+    }
+    
+  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+    try{
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NotRegistered, AuthException {
+	    		myPlatform.amsDeregister(amsd);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(NotRegistered nr) {
+			throw nr;
+		}
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action Deregister");
+			throw new Unauthorised();
+		}
+    catch(Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+    }
+  }
 
-  // These Behaviours handle interactions with platform tools.
+  // MODIFY
+  void modifyAction(Modify m, AID requester) throws FIPAException {
+    final AMSAgentDescription amsd = (AMSAgentDescription) m.getDescription();
+    // Check mandatory slots
+    AID id = amsd.getName();
+    if (id == null || id.getName() == null || id.getName().length() == 0) {
+			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
+    }
+    
+  	CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+    try{
+	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() throws NotRegistered, NotFoundException, UnreachableException, AuthException {
+	    		myPlatform.amsModify(amsd);
+					return null;
+		    }
+			}, requesterCredentials);
+		}
+		catch(NotRegistered nr) {
+			throw nr;
+		}
+    catch (UnreachableException ue) {
+      throw new InternalError("Container not reachable. "+ue.getMessage());
+    }
+    catch (NotFoundException nfe) {
+      throw new InternalError("Agent not found. "+nfe.getMessage());
+    }
+		catch(AuthException ae) {
+			log("Agent "+requester.getName()+" does not have permission to perform action Modify");
+			throw new Unauthorised();
+		}
+    catch(Exception e) {
+			e.printStackTrace();
+    	throw new InternalError("Unexpected exception. "+e.getMessage());   
+    }
+  }
 
+  // SEARCH
+  List searchAction(Search s, AID requester) {
+  	AMSAgentDescription template = (AMSAgentDescription) s.getDescription();
+  	long max = -1;
+  	SearchConstraints sc = s.getConstraints();
+  	if (sc != null) {
+  		Long l = sc.getMaxResults();
+  		if (l != null) {
+  			max = l.longValue();
+  		}
+  	}
+  	return myPlatform.amsSearch(template, max);
+  }
+
+  // GET_DESCRIPTION
+  APDescription getDescriptionAction(AID requester) {
+  	APTransportDescription tdsc = theProfile.getTransportProfile();
+  	tdsc.clearAllAvailableMtps();
+  	Iterator mtps = platformMTPs().iterator();
+  	while (mtps.hasNext()) {
+  		MTPDescriptor dr = (MTPDescriptor) mtps.next();
+    	MTPDescription dn = new MTPDescription();
+    	dn.setMtpName(dr.getName());
+    	String[] addresses = dr.getAddresses();
+    	for (int i = 0; i < addresses.length; ++i) {
+    		dn.addAddresses(addresses[i]);
+    	}
+    	tdsc.addAvailableMtps(dn);
+  	}
+  	
+  	return theProfile;
+  } 
+
+  //////////////////////////////////////////////////////////////////
+  // TOOLS REGISTRATION and NOTIFICATION
+  //////////////////////////////////////////////////////////////////
+  /**
+     Inner calss RegisterToolBehaviour.
+     This behaviour handles tools subscriptions to be notified
+     about platform events.
+   */
   private class RegisterToolBehaviour extends CyclicBehaviour {
 
     private MessageTemplate subscriptionTemplate;
@@ -179,32 +692,50 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// Get new tool name from subscription message
 	AID newTool = current.getSender();
-
+  toolNotification.clearAllReceiver();
+  toolNotification.addReceiver(newTool);
+	    
 	try {
-
 	  // Send back the whole container list.
 	  ContainerID[] ids = myPlatform.containerIDs();
 	  for(int i = 0; i < ids.length; i++) {
-
 	    ContainerID cid = ids[i];
 
 	    AddedContainer ac = new AddedContainer();
 	    ac.setContainer(cid);
-	    ac.setOwnership(getContainerPrincipal(cid).getOwnership());
+	    ac.setOwnership(getContainerOwnership(cid));
 
 	    EventRecord er = new EventRecord(ac, here());
 	    Occurred o = new Occurred();
 	    o.setWhat(er);
 
-	    toolNotification.clearAllReceiver();
-	    toolNotification.addReceiver(newTool);
-	    
 	    try {
 	    	getContentManager().fillContent(toolNotification, o);
 	    	send(toolNotification);
-	 	} catch (Exception e) {
-	 		e.printStackTrace();
-	 	}
+	 		} 
+	 		catch (Exception e) {
+	 			e.printStackTrace();
+	 		}
+	 		
+		  // Send the list of the MTPs installed on this container
+		  Iterator mtps = myPlatform.containerMTPs(cid).iterator();
+		  while (mtps.hasNext()) {
+		    AddedMTP amtp = new AddedMTP();
+		    amtp.setAddress(((MTPDescriptor) mtps.next()).getAddresses()[0]);
+		    amtp.setWhere(cid); 
+	
+		    er = new EventRecord(amtp, here());
+		    o = new Occurred();
+		    o.setWhat(er);
+	
+		    try {
+		    	getContentManager().fillContent(toolNotification, o);
+		    	send(toolNotification);
+		 		}
+		 		catch (Exception e) {
+		 			e.printStackTrace();
+		 		}
+		  }
 	  }
 
 	  // Send all agent names, along with their container name.
@@ -213,67 +744,52 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    AID agentName = agents[i];
 	    ContainerID cid = myPlatform.getContainerID(agentName);
-
+	    AMSAgentDescription amsd = myPlatform.getAMSDescription(agentName);
+	    
 	    BornAgent ba = new BornAgent();
-	    ba.setAgent(agentName);
+	    // Note that "agentName" may not include agent addresses
+			AID id = agentName;
+	    if (amsd != null) {
+				if (amsd.getName() != null) {
+					id = amsd.getName();
+				}
+	    	ba.setState(amsd.getState());
+	    	ba.setOwnership(amsd.getOwnership());
+	    }
+	    ba.setAgent(id);
 	    ba.setWhere(cid);
-	    ba.setState(getAgentState(agentName));
-	    ba.setOwnership(getAgentOwnership(agentName));
 
 	    EventRecord er = new EventRecord(ba, here());
 	    Occurred o = new Occurred();
 	    o.setWhat(er);
 
-	    toolNotification.clearAllReceiver();
-	    toolNotification.addReceiver(newTool);
-	    
 	    try {
 	    	getContentManager().fillContent(toolNotification, o);
 	    	send(toolNotification);
-	 	} catch (Exception e) {
-	 		e.printStackTrace();
-	 	}
+	 		} 
+	 		catch (Exception e) {
+	 			e.printStackTrace();
+	 		}
 	  }
 
-	  // Send the list of the installed MTPs
-	  String[] addresses = myPlatform.platformAddresses();
-	  for(int i = 0; i < addresses.length; i++) {
-	    AddedMTP amtp = new AddedMTP();
-	    amtp.setAddress(addresses[i]);
-	    amtp.setWhere(new ContainerID(AgentManager.MAIN_CONTAINER_NAME, null)); // FIXME: should use AgentManager to know the container
+	  // Notification of the APDescription
+	  PlatformDescription ap = new PlatformDescription();
+	  ap.setPlatform(getDescriptionAction(null));
 
-	    EventRecord er = new EventRecord(amtp, here());
-	    Occurred o = new Occurred();
-	    o.setWhat(er);
+	  EventRecord er = new EventRecord(ap,here());
+	  Occurred o = new Occurred();
+	  o.setWhat(er);
 
-	    toolNotification.clearAllReceiver();
-	    toolNotification.addReceiver(newTool);
-	    
-	    try {
-	    	getContentManager().fillContent(toolNotification, o);
-	    	send(toolNotification);
-	 	} catch (Exception e) {
-	 		e.printStackTrace();
-	 	}
+	  try {
+			getContentManager().fillContent(toolNotification, o);
+			send(toolNotification);
 	  }
-
-	  //Notification to the RMA of the APDescription
-	   PlatformDescription ap = new PlatformDescription();
-	   ap.setPlatform(theProfile);
-
-	   EventRecord er = new EventRecord(ap,here());
-	   Occurred o = new Occurred();
-	   o.setWhat(er);
-
-	   toolNotification.clearAllReceiver();
-	   toolNotification.addReceiver(newTool);
-	   
-	   getContentManager().fillContent(toolNotification, o);
-	   send(toolNotification);
+	  catch (Exception e) {
+	   	e.printStackTrace();
+	  }
 
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
-
 	}
 	catch(NotFoundException nfe) {
 	  nfe.printStackTrace();
@@ -286,9 +802,12 @@ public class ams extends Agent implements AgentManager.Listener {
 
     }
 
-  } // End of RegisterToolBehaviour class
+  } // End of RegisterToolBehaviour inner class
 
-
+  /**
+     Inner calss DeregisterToolBehaviour.
+     This behaviour handles tools un-subscriptions.
+   */
   private class DeregisterToolBehaviour extends CyclicBehaviour {
 
     private MessageTemplate cancellationTemplate;
@@ -322,755 +841,420 @@ public class ams extends Agent implements AgentManager.Listener {
 
     }
 
-  } // End of DeregisterToolBehaviour class
+  } // End of DeregisterToolBehaviour inner class
 
+  /**
+     Inner interface Handler.
+     Perform additional operations related to a given platform event
+   */
   private interface Handler {
-      void handle(Event ev);
-  }
+    void handle(Event ev);
+  }  // END of Handler inner interface
 
-  private class NotifyToolsBehaviour extends CyclicBehaviour {
+  /**
+     Inner class EventManager.
+     This behaviour notifies 
+     - all registered tools about all platform events
+     - the agent that had requested the AMS to perform an action 
+     about the platform event forced by that action. Note that 
+     this is done only for actions that produce an "asynchronous 
+     event".
+   */
+  private class EventManager extends CyclicBehaviour {
 
     private Map handlers = new HashMap();
 
-    public NotifyToolsBehaviour() {
-        // Fill the handlers map with all the event handlers...
-        handlers.put(AddedContainer.NAME, new Handler() {
-            public void handle(Event ev) {
-
-                AddedContainer ac = (AddedContainer)ev;
-                ContainerID cid = ac.getContainer();
-                String name = cid.getName();
-
-                // Add a new location to the locations list
-                mobilityMgr.addLocation(name, cid);
-            }
-        });
-        handlers.put(RemovedContainer.NAME, new Handler() {
-            public void handle(Event ev) {
-
-                RemovedContainer rc = (RemovedContainer)ev;
-                ContainerID cid = rc.getContainer();
-                String name = cid.getName();
-
-                // Remove the location from the location list
-                mobilityMgr.removeLocation(name);
-            }
-        });
-        handlers.put(BornAgent.NAME, new Handler() {
-            public void handle(Event ev) {
-    						//REMOVED BY MICHLE
-    						//creationinfo has to be stored immediately!!!
-    						//if needed, synchronization can be added
-    
-                /*
-                BornAgent ba = (BornAgent)ev;
-                AID agentID = ba.getAgent();
-                String ownership = ba.getOwnership();
-            		//System.out.println("ams.born: " + agentID + ", " + ownership + ";");
-                if (creations.get(agentID) == null) {
-                	creations.put(agentID, new CreationInfo(null, null, ownership, null));
-                }
-                */
-            }
-        });
-        handlers.put(DeadAgent.NAME, new Handler() {
-            public void handle(Event ev) {
-
-                DeadAgent da = (DeadAgent)ev;
-                AID agentID = da.getAgent();
-
-		// Deregister the agent, if it's still there.
-		try {
-                    AMSAgentDescription amsd = new AMSAgentDescription();
-                    amsd.setName(agentID);
-                    AMSDeregister(amsd, agentID);
-		}
-		catch(NotRegistered nr) {
-                    // the agent deregistered already during his doDelete() method.
-		}
-		catch(FIPAException fe) {
-                    fe.printStackTrace();
-		}
-		catch(AuthException ae) {
-                    ae.printStackTrace();
-		}
-		creations.remove(agentID);
-            }
-        });
-        handlers.put(SuspendedAgent.NAME, new Handler() {
-            public void handle(Event ev) {
-                SuspendedAgent sa = (SuspendedAgent)ev;
-                AID name = sa.getAgent();
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if (amsd != null) {
-        	    // Registry needs an update here
-                    amsd.setState(AMSAgentDescription.SUSPENDED);
-                    agentDescriptions.register(name, amsd);
-		}
-            }
-        });
-        handlers.put(ResumedAgent.NAME, new Handler() {
-            public void handle(Event ev) {
-                ResumedAgent ra = (ResumedAgent)ev;
-                AID name = ra.getAgent();
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if(amsd != null) {
-                    // Registry needs an update here
-                    amsd.setState(AMSAgentDescription.ACTIVE);
-                    agentDescriptions.register(name, amsd);
-		}
-            }
-        });
-        handlers.put(ChangedAgentOwnership.NAME, new Handler() {
-            public void handle(Event ev) {
-                ChangedAgentOwnership cao = (ChangedAgentOwnership)ev;
-                AID name = cao.getAgent();
-                String ownership = cao.getTo();
-		AMSAgentDescription amsd = (AMSAgentDescription)agentDescriptions.deregister(name);
-		if (amsd != null) {
-                    // Registry needs an update here
-                    amsd.setOwnership(ownership);
-                    agentDescriptions.register(name, amsd);
-		}
-            }
-        });
-        handlers.put(AddedMTP.NAME, new Handler() {
-            public void handle(Event ev) {
-
-                AddedMTP amtp = (AddedMTP)ev;
-                String address = amtp.getAddress();
-                String proto = amtp.getProto();
-
-                // Add the new address to the platform profile
-                APTransportDescription mtps = theProfile.getTransportProfile();
-                MTPDescription desc = findMTPDescription(mtps, proto);
-                desc.addAddresses(address);
-
-                // Update the APDescription file.
-                if(getState() != AP_INITIATED)
-                    writeAPDescription();
-
-                // Retrieve all agent descriptors
-                AMSAgentDescription amsd = new AMSAgentDescription();
-                List l = agentDescriptions.search(amsd);
-
-                // Add the new address to all the agent descriptors
-                Iterator it = l.iterator();
-                while(it.hasNext()) {
-                    AMSAgentDescription ad = (AMSAgentDescription)it.next();
-                    AID name = ad.getName();
-                    name.addAddresses(address);
-                }
-            }
-        });
-        handlers.put(RemovedMTP.NAME, new Handler() {
-            public void handle(Event ev) {
-                RemovedMTP rmtp = (RemovedMTP)ev;
-                String address = rmtp.getAddress();
-                String proto = rmtp.getProto();
-
-                // Remove the dead address from the platform profile
-                APTransportDescription mtps = theProfile.getTransportProfile();
-                MTPDescription desc = findMTPDescription(mtps, proto);
-                Iterator addresses = desc.getAllAddresses();
-                while(addresses.hasNext()) {
-                    // Remove all MTPs that have the 'address' String in their
-                    // address list.
-                    String nextAddr = (String)addresses.next();
-                    if(nextAddr.equalsIgnoreCase(address))
-                        addresses.remove();
-                }
-
-                // Check if there are other addresses left for this MTP: if not,
-                // remove the MTP from the 'ap-platform-description' object
-                addresses = desc.getAllAddresses();
-                if(!addresses.hasNext())
-                    mtps.removeAvailableMtps(desc);
-
-                // Update the APDescription file
-                writeAPDescription();
-
-                // Remove the dead address from all the registered agents
-                AID[] agents = myPlatform.agentNames();
-                AMSAgentDescription amsd = new AMSAgentDescription();
-                for(int i = 0; i < agents.length; i++) {
-                    amsd.setName(agents[i]);
-                    List l = agentDescriptions.search(amsd);
-                    if(!l.isEmpty()) {
-                        AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
-                        AID name = amsDesc.getName();
-                        name.removeAddresses(address);
-                    }
-                }
-            }
-        });
-
+    public EventManager() {
+      handlers.put(RemovedContainer.NAME, new Handler() {
+        public void handle(Event ev) {
+      		// If this event was forced by an action requested by
+        	// an agent --> notify him.
+          RemovedContainer rc = (RemovedContainer)ev;
+          ContainerID cid = rc.getContainer();
+          ACLMessage notification = (ACLMessage) pendingRemovedContainers.remove(cid);
+          if (notification != null) {
+          	send(notification);
+          }
+        }
+      });
+      handlers.put(DeadAgent.NAME, new Handler() {
+        public void handle(Event ev) {
+      		// If this event was forced by an action requested by
+        	// an agent --> notify him.
+          DeadAgent da = (DeadAgent)ev;
+          AID agentID = da.getAgent();
+          ACLMessage notification = (ACLMessage) pendingDeadAgents.remove(agentID);
+          if (notification != null) {
+          	send(notification);
+          }
+        }
+      });
+      handlers.put(MovedAgent.NAME, new Handler() {
+        public void handle(Event ev) {
+      		// If this event was forced by an action requested by
+        	// an agent --> notify him.
+          MovedAgent ma = (MovedAgent)ev;
+          AID agentID = ma.getAgent();
+          ACLMessage notification = (ACLMessage) pendingMovedAgents.remove(agentID);
+          if (notification != null) {
+          	send(notification);
+          }
+        }
+      });
+      handlers.put(BornAgent.NAME, new Handler() {
+        public void handle(Event ev) {
+      		// If this event was forced by an action requested by
+        	// an agent --> notify him.
+          BornAgent ba = (BornAgent)ev;
+          AID agentID = ba.getAgent();
+          ACLMessage notification = (ACLMessage) pendingClonedAgents.remove(agentID);
+          if (notification != null) {
+          	send(notification);
+          }
+        }
+      });
     }
 
     public void action() {
-
-    synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid ConcurrentModificationException
-
-	// Look into the event buffer
-	Iterator it = eventQueue.iterator();
-	Occurred o = new Occurred();
-	while(it.hasNext()) {
-
-	  // Write the event into the notification message
-	  EventRecord er = (EventRecord)it.next();
-	  o.setWhat(er);
-
-          // Handle the event, updating AMS knowledge bases
-          Event ev = er.getWhat();
-          handleEvent(ev);
-
-    try {
-	    getContentManager().fillContent(toolNotification, o);
-	  }
-	  /*catch(FIPAException fe) {
-	    fe.printStackTrace();*/
-	  catch(Exception fe) {
-	  	fe.printStackTrace();
-	  }
-	  // -- Filippo
-
-	  // Put all tools in the receiver list
-	  toolNotification.clearAllReceiver();
-	  Iterator toolIt = tools.iterator();
-
-	  while(toolIt.hasNext()) {
-	    AID tool = (AID)toolIt.next();
-	    toolNotification.addReceiver(tool);
-	  }
-
-	  // Schedule the message send for later, when the critical
-	  // section ends and this Behaviour yields the CPU...
-	  addBehaviour(new SenderBehaviour(ams.this, (ACLMessage)toolNotification.clone()));
-
-	  it.remove();
-	}
-
-      } // End of synchronized block
-
-      block();
-
-    }
-
-    // Handle a given platform event, running the handler associated with the given event name
-    private void handleEvent(Event ev) {
-        Handler handler = (Handler)handlers.get(ev.getName());
-        if(handler != null)
-            handler.handle(ev);
-    }
-
-  } // End of NotifyToolsBehaviour class
-
- 
-    // when a AuthException occurs a Unauthorised exception is thrown
-    void killContainerAction(KillContainer action,AID sender) throws Unauthorised, jade.domain.FIPAAgentManagement.InternalError{
-	try{
-	    //KillContainer kc = (KillContainer)a.get_1();
-	    final ContainerID cid = action.getContainer();
-	    //checkAction(Authority.CONTAINER_KILL, cid, sender);
-
-	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
-	    myPlatform.killContainer(cid);
-			return null;
-		    }
-		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
-				(DelegationCertificate)delegations.get(sender.getName()) ));
-
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
-	}
-        catch(AuthException au) {
-	    throw new Unauthorised();
-	}
-        catch(NotFoundException nfe) {
-            throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");   
-    }
-   		catch (Exception e) {
-			// should be never thrown
-			e.printStackTrace();
-	}
-    }
-
-    //create an agent.
-    ACLMessage createAgentAction(CreateAgent ca, ACLMessage request, ACLMessage reply) throws jade.domain.FIPAAgentManagement.InternalError, Unauthorised,AuthException{
-	//CreateAgent ca = (CreateAgent)a.get_1();
-
-	final String agentName = ca.getAgentName();
-	final AID agentID = new AID(agentName, AID.ISLOCALNAME);
-	final String className = ca.getClassName();
-	final ContainerID container = ca.getContainer();
-	Iterator arg = ca.getAllArguments(); //return an iterator of all arguments
-	//create the array of string
-	ArrayList listArg = new ArrayList();
-	while (arg.hasNext())
-	    listArg.add(arg.next().toString());
-	final String[] arguments = new String[listArg.size()];
-	for (int n = 0; n < listArg.size(); n++)
-	    arguments[n] = (String)listArg.get(n);
-	
-	AID creator = request.getSender();
-	final String ownership = getAgentOwnership(creator);
-	
-	Authority authority = getAuthority();
-	AgentPrincipal agent = authority.createAgentPrincipal(agentID, ownership);
-	
-	DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator.getName());
-	
-	final IdentityCertificate identity = authority.createIdentityCertificate();
-	identity.setSubject(agent);
-	authority.sign(identity, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
-	
-	DelegationCertificate delegation = null;
-	try {
-	if (ca.getDelegation() != null) {
-		delegation = authority.createDelegationCertificate(ca.getDelegation());
-	}
-	else {
-		delegation = authority.createDelegationCertificate();
-		delegation.setSubject(agent);
-		if (creatorDelegation != null)
-			delegation.addPermissions(creatorDelegation.getPermissions());
-		authority.sign(delegation, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
-	}
-	} catch( CertificateException e ) {
-		throw new Unauthorised();
-	}
-
-	final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
-	
-	//sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	
-	try {
-	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException {
-			myPlatform.create(agentName, className, arguments, container, ownership, agentCerts);
-			return null;
-		    }
-		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), creatorDelegation));
-
-	    // An 'inform Done' message will be sent to the requester only
-	    // when the newly created agent will register itself with the
-	    // AMS. The new agent's name will be used as the key in the map.
-	    //ACLMessage reply = request.createReply();
-	    //reply = (ACLMessage)reply.clone();
-	    //reply.setPerformative(ACLMessage.INFORM);
-	    //reply.setContent(doneAction(a));
-	    
-	    creations.put(agentID, new CreationInfo(request, reply, ownership, agentCerts));
-	    return null;
-	}
-	catch (UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
-	}
-	catch (AuthException ae) {
-	    //When this exception occurs a Refuse message will be sent with a Unauthorised Exception as content
-	    //the exception with no parameter.
-	    Unauthorised ue = new Unauthorised();
-	    throw ue;	
-	    //ACLMessage failure = getReply();
-	    //failure.setPerformative(ACLMessage.FAILURE);
-	    //failure.setContent(createExceptionalMsgContent(a, getRequest().getOntology(), new FIPAException(ae.getMessage())));
-	    //send(failure);
-	}
-	catch (Exception e) {
-	    // Never thrown
-	    e.printStackTrace();
-	    
-	}
-	return null;
-    }
-
- 
-    //kill an agent.
-    void killAgentAction(KillAgent action,AID sender) throws jade.domain.FIPAAgentManagement.InternalError, NotRegistered, Unauthorised{
-
-	// Kill an agent
-      final AID agentID = action.getAgent();
-      String password = action.getPassword();
-
-      try {
-	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
-        myPlatform.kill(agentID);
-			return null;
-		    }
-		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
-				(DelegationCertificate)delegations.get(sender.getName()) ));
-
-
-	//sendReply(ACLMessage.AGREE, createAgreeContent(a));
-        //sendReply(ACLMessage.INFORM, doneAction(a));
-      }
-      catch (UnreachableException ue) {
-	  ue.printStackTrace();
-        throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-      }
-      catch (NotFoundException nfe) {
-        throw new NotRegistered();
-      }
-      catch(AuthException au){
-	  	//au.printStackTrace();
-	  	throw new Unauthorised();
-      }
-   		catch (Exception e) {
-			// should be never thrown
-			e.printStackTrace();
-	  }
-
-
-    }
-
-    //performs the SniffOn action.
-    void sniffOnAction(SniffOn action)throws jade.domain.FIPAAgentManagement.InternalError,NotRegistered{
-	try {
-	    myPlatform.sniffOn(action.getSniffer(), action.getCloneOfSniffedAgents());
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-	}
-	catch(NotFoundException nfe) {
-	    throw new NotRegistered();
-	}
-    }
-
-    //performs the sniffOff aciton
-    void sniffOffAction(SniffOff action)throws jade.domain.FIPAAgentManagement.InternalError,NotRegistered{
-	try {
-	    myPlatform.sniffOff(action.getSniffer(), action.getCloneOfSniffedAgents());
-	    // sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM,doneAction(a));
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-	}
-	catch(NotFoundException nfe) {
-	    throw new NotRegistered();
-	}
-    }
-
-
-    //performs the debugOn action.
-    void debugOnAction(DebugOn action)throws jade.domain.FIPAAgentManagement.InternalError,NotRegistered{
-	try {
-	    myPlatform.debugOn(action.getDebugger(), action.getCloneOfDebuggedAgents());
-	    //   sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-	}
-	catch(NotFoundException nfe) {
-	    throw new NotRegistered();
-	}
-    }
-
-     //performs s debugOff action
-    void debugOffAction(DebugOff action)throws jade.domain.FIPAAgentManagement.InternalError,NotRegistered{
-	try {
-	    myPlatform.debugOff(action.getDebugger(), action.getCloneOfDebuggedAgents());
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-	}
-	catch(NotFoundException nfe) {
-	    throw new NotRegistered();
-	}
-    }
-
-    //install new MTP.
-    void installMTPAction(InstallMTP imtp) throws FailureException, RefuseException{
-	try {
-	    myPlatform.installMTP(imtp.getAddress(), imtp.getContainer(), imtp.getClassName());
-	}
-	catch(NotFoundException nfe) {
-	    // throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
-	    throw new jade.domain.FIPAAgentManagement.InternalError(nfe.getMessage());
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
-	}
-	catch(MTPException mtpe) {
-	     throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", mtpe.getMessage());
-	    }
-
-    }  
-
-    //unistall an MTP.
-    void unistallMTPAction(UninstallMTP umtp) throws FailureException, RefuseException{
-	try {
-	    myPlatform.uninstallMTP(umtp.getAddress(), umtp.getContainer());
-	}
-	catch(NotFoundException nfe) {
-	    throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());	  
-	}
-	catch(UnreachableException ue) {
-	    throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
-	}
-	catch(MTPException mtpe) {
-	    throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", mtpe.getMessage());
-	}
-    }
-    
-    
-    // -- Filippo to be completed
-    List queryAgentsOnLocationAction(Location loc) {
-      List l = new ArrayList();
-    	
-	  try {    	
-    	AID[] agents = myPlatform.agentNames();
-
-    	for (int i=0; i < agents.length; i++) {
-    		AID agentName = agents[i];
-    		Location cid = (Location)myPlatform.getContainerID(agentName);
-    		if (loc.equals(cid)) 
-    			l.add(agentName);
+    	try {
+	    	EventRecord er = (EventRecord) eventQueue.get();
+  	  	if (er != null) {
+			    // Perform event-specific actions (if any)
+			    Event ev = er.getWhat();
+			    log("EventManager serving event "+ev.getName());
+			    Handler handler = (Handler)handlers.get(ev.getName());
+			    if(handler != null) {
+			      handler.handle(ev);
+			    }
+			
+			    // Notify all tools about the event
+				  toolNotification.clearAllReceiver();
+				  Iterator toolIt = tools.iterator();				
+				  while(toolIt.hasNext()) {
+				    AID tool = (AID)toolIt.next();
+				    toolNotification.addReceiver(tool);
+				  }
+				  Occurred o = new Occurred();
+				  o.setWhat(er);
+			    getContentManager().fillContent(toolNotification, o);
+			    myAgent.send(toolNotification);
+				}
+	    	else {
+		      block();
+	    	}
     	}
-    	
-      } catch (Exception e) {
-      		System.out.println(e);
-      }	
-      return l;
-	}
-	// -- Filippo to be completed
+    	catch (Throwable t) {
+    		// Should never happen
+    		t.printStackTrace();
+    	}
+    }
+  } // END of EventManager inner class
 
-	private class CreationInfo {
-		private ACLMessage request;
-		private ACLMessage reply;
-		private String ownership;
-		private CertificateFolder certs;
-
-		public CreationInfo(ACLMessage request, ACLMessage reply, String ownership, CertificateFolder certs) {
-			this.request = request;
-			this.reply = reply;
-			this.ownership = ownership;
-			this.certs = certs;
-		}
-
-		public ACLMessage getRequest() {
-			return request;
-		}
-
-		public ACLMessage getReply() {
-			return reply;
-		}
-
-		public String getOwnership() {
-			return ownership;
-		}
-
-		public CertificateFolder getCertificateFolder() {
-			return certs;
-		}
-
-	}
-
-  // The AgentPlatform where information about agents is stored
-  /**
-  @serial
-  */
-  private AgentManager myPlatform;
-
-
-  // Contains a main Behaviour and some utilities to handle JADE mobility
-  /**
-  @serial
-  */
-  private MobilityManager mobilityMgr;
-
-  // Behaviour to listen to incoming 'subscribe' messages from tools.
-  /**
-  @serial
-  */
-  private RegisterToolBehaviour registerTool;
-
-  // Behaviour to broadcats AgentPlatform notifications to each
-  // registered tool.
-  /**
-  @serial
-  */
-  private NotifyToolsBehaviour notifyTools;
-
-  // Behaviour to listen to incoming 'cancel' messages from tools.
-  /**
-  @serial
-  */
-  private DeregisterToolBehaviour deregisterTool;
-
-  // Group of tools registered with this AMS
-  /**
-  @serial
-  */
-  private List tools;
-
-  // ACL Message to use for tool notification
-  /**
-  @serial
-  */
-  private ACLMessage toolNotification = new ACLMessage(ACLMessage.INFORM);
-
-  // Buffer for AgentPlatform notifications
-  /**
-  @serial
-  */
-  private List eventQueue = new ArrayList(10);
-
-  /** The HashTable is synchronized, while the HashMap is not!
-  @serial
-  */
-  private Hashtable creations = new Hashtable();
+  
+  //////////////////////////////////////////////////////////////////
+  // Platform events input methods.
+  // The following methods are called when a platform event is notified
+  // to the Main and are executed outside the AMS thread. 
+  // They result in preparing a proper IntrospectionOntology event (i.e. a
+  // description of the event that has just happened) and inserting it in
+  // AMS event queue. The EventManager behaviour will handle them within
+  // the AMS thread.
+  //////////////////////////////////////////////////////////////////
 
   /**
-  @serial
-  */
-  private Map delegations = new HashMap();
+     Put a BornAgent event in the AMS event queue
+   */
+  public void bornAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
 
-  /**
-  @serial
-  */
-  private Map containers = new HashMap();
+    BornAgent ba = new BornAgent();
+    ba.setAgent(agentID);
+    ba.setWhere(cid);
+    ba.setState(AMSAgentDescription.ACTIVE);
+    ba.setOwnership(ownership);
 
-  /**
-  @serial
-  */
-  private APDescription theProfile = new APDescription();
-    
-    private AMSFipaAgentManagementBehaviour fipaResponderB;
-    private AMSJadeAgentManagementBehaviour jadeResponderB;
-
-  /**
-     This constructor creates a new <em>AMS</em> agent. Since a direct
-     reference to an Agent Platform implementation must be passed to
-     it, this constructor cannot be called from application
-     code. Therefore, no other <em>AMS</em> agent can be created
-     beyond the default one.
-  */
-  public ams(AgentManager ap, Profile aBootProfile) {
-  //public ams(AgentManager ap) {
-
-    bootProfile = aBootProfile;
-    
-    // Fill Agent Platform Profile with data.
-    theProfile.setDynamic(new Boolean(false));
-    theProfile.setMobility(new Boolean(false));
-    APTransportDescription mtps = new APTransportDescription();
-    theProfile.setTransportProfile(mtps);
-
-    myPlatform = ap;
-    myPlatform.addListener(this);
-
- 
-    MessageTemplate mtF = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchOntology(FIPAManagementVocabulary.NAME));
-    fipaResponderB = new AMSFipaAgentManagementBehaviour(this,mtF);
-
-	mobilityMgr = new MobilityManager(this);
- 
-    // FIXME MobilityOntology is matched for JADE 2.5 Backward compatibility
-    MessageTemplate mtJ = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.or(MessageTemplate.MatchOntology(JADEManagementVocabulary.NAME), MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME)));
-    //mtJ = MessageTemplate.or(mtJ,MessageTemplate.MatchOntology(jade.domain.mobility.MobilityOntology.NAME));
-    jadeResponderB = new AMSJadeAgentManagementBehaviour(this, mobilityMgr, mtJ);
-    
-    registerTool = new RegisterToolBehaviour();
-    deregisterTool = new DeregisterToolBehaviour();
-    notifyTools = new NotifyToolsBehaviour();
-
-    tools = new ArrayList();
-
-    toolNotification.setSender(new AID());
-    toolNotification.setLanguage("FIPA-SL0");
-    toolNotification.setOntology(IntrospectionOntology.NAME);
-    toolNotification.setInReplyTo("tool-subscription");
-   
+    EventRecord er = new EventRecord(ba, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
   }
 
   /**
-   This method starts the <em>AMS</em> behaviours to allow the agent
-   to carry on its duties within <em><b>JADE</b></em> agent platform.
+     Put a DeadAgent event in the AMS event queue
+   */
+  public void deadAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
+    DeadAgent da = new DeadAgent();
+    da.setAgent(agentID);
+    da.setWhere(cid);
+
+    EventRecord er = new EventRecord(da, here());
+		er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+  /**
+     Put a SuspendedAgent event in the AMS event queue
+   */
+  public void suspendedAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID name = ev.getAgent();
+
+    SuspendedAgent sa = new SuspendedAgent();
+    sa.setAgent(name);
+    sa.setWhere(cid);
+
+    EventRecord er = new EventRecord(sa, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+  /**
+     Put a ResumedAgent event in the AMS event queue
+   */
+  public void resumedAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID name = ev.getAgent();
+
+    ResumedAgent ra = new ResumedAgent();
+    ra.setAgent(name);
+    ra.setWhere(cid);
+
+    EventRecord er = new EventRecord(ra, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+  /**
+     Put a MovedAgent event in the AMS event queue
+   */
+  public void movedAgent(PlatformEvent ev) {
+    ContainerID from = ev.getContainer();
+    ContainerID to = ev.getNewContainer();
+    AID agentID = ev.getAgent();
+
+    MovedAgent ma = new MovedAgent();
+    ma.setAgent(agentID);
+    ma.setFrom(from);
+    ma.setTo(to);
+
+    EventRecord er = new EventRecord(ma, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+	/**
+     Put a ChangedAgentOwnership event in the AMS event queue
+	 */
+	public void changedAgentPrincipal(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID name = ev.getAgent();
+
+    ChangedAgentOwnership cao = new ChangedAgentOwnership();
+    cao.setAgent(name);
+    cao.setWhere(cid);
+    cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
+    cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
+
+    EventRecord er = new EventRecord(cao, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+	}
+
+  /**
+     Put an AddedContainer event in the AMS event queue
+   */
+  public void addedContainer(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    String name = cid.getName();
+
+    AddedContainer ac = new AddedContainer();
+    ac.setContainer(cid);
+
+    EventRecord er = new EventRecord(ac, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+  /**
+     Put a RemovedContainer event in the AMS event queue
   */
-  protected void setup() {
+  public void removedContainer(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    String name = cid.getName();
 
-    // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
-    theProfile.setName("\"" + getHap() + "\"");
-    writeAPDescription();
-    
-    // Register the supported ontologies
-    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
-    getContentManager().registerOntology(JADEManagementOntology.getInstance());
-    getContentManager().registerOntology(IntrospectionOntology.getInstance());
-    getContentManager().registerOntology(jade.domain.mobility.MobilityOntology.getInstance());
+    RemovedContainer rc = new RemovedContainer();
+    rc.setContainer(cid);
 
-    // register the supported languages: all profiles of SL are ok for ams
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);	
-    getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);	
+    EventRecord er = new EventRecord(rc, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
 
+	/**
+     Put a XXX event in the AMS event queue
+	 */
+	public synchronized void changedContainerPrincipal(PlatformEvent ev) {
+		// FIXME: There is no element in the IntrospectionOntology 
+		// corresponding to this event
+	}
+
+  /**
+     Put a AddedMTP event in the AMS event queue
+   */
+  public synchronized void addedMTP(MTPEvent ev) {
+    Channel ch = ev.getChannel();
+    ContainerID cid = ev.getPlace();
+    String proto = ch.getProtocol();
+    String address = ch.getAddress();
+
+    // Generate a suitable AMS event
+    AddedMTP amtp = new AddedMTP();
+    amtp.setAddress(address);
+    amtp.setProto(proto);
+    amtp.setWhere(cid);
+
+    EventRecord er = new EventRecord(amtp, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
 		
-    // Add a Behaviour for all ams actions following from a
-    // 'fipa-request' interaction with 'fipa-agent-management' ontology.
-    addBehaviour(fipaResponderB);
-
-    // Add a Behaviour for all ams actions following from a
-    // 'fipa-request' interaction with 'jade-agent-management' ontology.
-    addBehaviour(jadeResponderB);
-
-    // Add a main behaviour to manage mobility related messages
-    // addBehaviour(mobilityMgr.getMain());
-
-    // Add a Behaviour to accept incoming tool registrations and a
-    // Behaviour to broadcast events to registered tools.
-    addBehaviour(registerTool);
-    addBehaviour(deregisterTool);
-    addBehaviour(notifyTools);
-
+    // The PlatformDescription has changed --> Generate a suitable event
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(getDescriptionAction(null));
+    er = new EventRecord(ap, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
   }
 
+  /**    
+     Put a RemovedMTP event in the AMS event queue
+   */
+  public synchronized void removedMTP(MTPEvent ev) {
+
+    Channel ch = ev.getChannel();
+    ContainerID cid = ev.getPlace();
+    String proto = ch.getProtocol();
+    String address = ch.getAddress();
+
+    RemovedMTP rmtp = new RemovedMTP();
+    rmtp.setAddress(address);
+    rmtp.setProto(proto);
+    rmtp.setWhere(cid);
+
+    EventRecord er = new EventRecord(rmtp, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+		
+    // The PlatformDescription has changed --> Generate a suitable event
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(getDescriptionAction(null));
+    er = new EventRecord(ap, here());
+    er.setWhen(ev.getTime());
+		eventQueue.put(er);
+  }
+
+  public void messageIn(MTPEvent ev) { System.out.println("Message In."); }
+  public void messageOut(MTPEvent ev) { System.out.println("Message Out."); }
+
+  //////////////////////////////////////////////////
+  // Utility methods
+  //////////////////////////////////////////////////
+ 
+  /**
+     Redefine the getAuthority() method to return the platform main 
+     authority
+   */
 	public Authority getAuthority() {
 		return myPlatform.getAuthority();
 	}
 
-	public void setDelegation(AID agent, DelegationCertificate delegation) {
-		delegations.put(agent.getName(), delegation);
+	/**
+	   Return the ownership of a container
+	 */
+	private String getContainerOwnership(ContainerID container) {
+		// FIXME: should use AgentManager to do that
+		return ContainerPrincipal.NONE;
 	}
 
-  /**
-  * checks that all the mandatory slots for a register/modify/deregister action
-  * are present.
-  * @param actionName is the name of the action (one of
-  * <code>FIPAAgentManagementOntology.REGISTER</code>,
-  * <code>FIPAAgentManagementOntology.MODIFY</code>,
-  * <code>FIPAAgentManagementOntology.DEREGISTER</code>)
-  * @param amsd is the AMSAgentDescription to be checked for
-  * @throws MissingParameter if one of the mandatory slots is missing
-  **/
-   void checkMandatorySlots(String actionName, AMSAgentDescription amsd) throws MissingParameter {
+	/**
+	   Return the ownership of an agent 
+	 */
+	private String getAgentOwnership(AID agent) {
+		String ownership = null;
+		try {
+			AMSAgentDescription amsd = myPlatform.getAMSDescription(agent);
+			ownership = amsd.getOwnership();
+		}
+		catch (Exception e) {
+			// Do nothing
+		}
+		return (ownership != null ? ownership : AgentPrincipal.NONE);
+	}
+		
+	/**
+	   Write the AP description in a text file
+	 */
+  private void writeAPDescription(APDescription description) {
+    //Write the APDescription file.
     try {
-      AID name = amsd.getName();
-      if ((name == null)||(name.getName().length() == 0))
-	throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "name");
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "name");
+      FileWriter f = new FileWriter(bootProfile.getParameter(Profile.FILE_DIR, "") + "APDescription.txt");
+      f.write(description.toString());
+	  f.write('\n');
+	  f.flush();
+      f.close();
+    } catch(java.io.IOException ioe) {
+      ioe.printStackTrace();
     }
-    if (!actionName.equalsIgnoreCase(FIPAManagementVocabulary.DEREGISTER))
-      try {
-	String state = amsd.getState();
-	if((state == null)||(state.length() == 0))
-	  throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "state");
-      } catch (Exception e) {
-	e.printStackTrace();
-	throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, "state");
-      }
   }
 
+  /**
+     Return a list of all MTPs in the platform
+   */
+  private List platformMTPs() {
+  	List mtps = new ArrayList();
+  	ContainerID[] cc = myPlatform.containerIDs();
+  	for (int i = 0; i < cc.length; ++i) {
+  		try {
+  			List l = myPlatform.containerMTPs(cc[i]);
+	  		Iterator it = l.iterator();
+	  		while (it.hasNext()) {
+	  			mtps.add(it.next());
+	  		}
+  		}
+  		catch (NotFoundException nfe) {
+  			// The container has died while we were looping --> ignore it 
+  		}
+  	}
+  	return mtps;
+  }
+
+  /**
+     Store a notification message to be sent at a later time.
+     Package-scoped as it is called by the AMSJadeAgentManagementBehaviour
+   */
+ 	void storeNotification(Concept action, Object key, ACLMessage notification) {
+ 		if (action instanceof KillAgent) {
+ 			pendingDeadAgents.put(key, notification);
+ 		}
+ 		else if (action instanceof CloneAction) {
+ 			pendingClonedAgents.put(key, notification);
+ 		}
+ 		else if (action instanceof MoveAction) {
+ 			pendingMovedAgents.put(key, notification);
+ 		}
+ 		else if (action instanceof KillContainer) {
+ 			pendingRemovedContainers.put(key, notification);
+ 		}
+  }
+  
+  private void log(String s) {
+  	System.out.println("AMS - "+s);
+  }
+  
+  
   /**
      @serial
    */
@@ -1108,589 +1292,4 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
       }
     };
-
-	/** it is called also by Agent.java **/
-    //	public void AMSRegister(AMSAgentDescription amsd, AID sender) throws FIPAException, AuthException {
-	public void AMSRegister(AMSAgentDescription amsd, AID sender) throws AlreadyRegistered, AuthException,MissingParameter {
-
-	        checkMandatorySlots(FIPAManagementVocabulary.REGISTER, amsd);
-		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
-		if (old != null) {
-			agentDescriptions.register(old.getName(), old);
-			throw new AlreadyRegistered();
-		}
-
-		CreationInfo creation = (CreationInfo)creations.remove(amsd.getName());
-
-		old = new AMSAgentDescription();
-		old.setName(amsd.getName());
-		old.setState(AMSAgentDescription.ACTIVE);
-		if (creation != null)
-			old.setOwnership(creation.getOwnership());
-		else
-			old.setOwnership(AgentPrincipal.NONE);
-
-		String[] addresses = myPlatform.platformAddresses();
-		for (int i = 0; i < addresses.length; i++)
-			amsd.getName().addAddresses(addresses[i]);
-
-		AMSModify(Authority.AMS_REGISTER, old, amsd, sender, creation);
-	}
-
-	/** it is called also by Agent.java **/
- 
-    public void AMSDeregister(AMSAgentDescription amsd, AID sender) throws NotRegistered, AuthException,MissingParameter {
-	checkMandatorySlots(FIPAManagementVocabulary.DEREGISTER, amsd);
-		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
-		if (old == null)
-			throw new NotRegistered();
-		AMSModify(Authority.AMS_DEREGISTER, old, amsd, sender, null);
-	}
-
- 
-    void AMSModify(AMSAgentDescription amsd, AID sender) throws NotRegistered, AuthException, MissingParameter {
-		checkMandatorySlots(FIPAManagementVocabulary.MODIFY, amsd);
-		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
-		if (old == null)
-			throw new NotRegistered();
-		//agentDescriptions.register(old.getName(), old);
-		AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
-	}
-
-	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws AuthException {
-		Authority authority = getAuthority();
-		final AID name = old.getName();
-
-		String oldOwnership = old.getOwnership();
-		if (oldOwnership == null)
-			oldOwnership = AgentPrincipal.NONE;
-		String newOwnership = amsd.getOwnership();
-		if (newOwnership == null)
-			newOwnership = oldOwnership;
-		String oldState = old.getState();
-		String newState = amsd.getState();
-
-		amsd.setOwnership(oldOwnership);
-		amsd.setState(oldState);
-
-		AgentPrincipal oldAgent = authority.createAgentPrincipal(old.getName(), oldOwnership);
-
-		final byte[] password = extractPassword(newOwnership);
-		final String username = extractUsername(newOwnership);
-		
-		AgentPrincipal newAgent = authority.createAgentPrincipal(name, username);
-
-		// we have to find the "subject" of this action
-		IdentityCertificate actorIdentity = null;
-		DelegationCertificate actorDelegation = null;
-		// we use sender's delegation to ams
-		actorIdentity = getCertificateFolder().getIdentityCertificate();
-		actorDelegation = (DelegationCertificate)delegations.get(sender.getName());
-		CertificateFolder actorCerts = new CertificateFolder(actorIdentity, actorDelegation);
-
-		try {
-			getAuthority().checkAction(action, oldAgent, actorCerts);
-
-			if (action.equals(Authority.AMS_DEREGISTER))
-				return;
-
-			// change agent principal
-			if (! newOwnership.equals(oldOwnership) || password != null && password.length > 0) {
-				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-					public Object run() throws NotFoundException, UnreachableException, AuthException {
-						myPlatform.take(name, username, password);
-						return null;
-					}
-				}, actorCerts);
-				amsd.setOwnership(username);
-			}
-			//agentDescriptions.register(amsd.getName(), amsd);
-			old.setOwnership(amsd.getOwnership());
-
-			// change agent state
-			if (! oldState.equals(AMSAgentDescription.SUSPENDED) && newState.equals(AMSAgentDescription.SUSPENDED)) {
-			    // if the agent must be suspended and was not suspended
-				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-					public Object run() throws NotFoundException, UnreachableException, AuthException {
-						myPlatform.suspend(name);
-						return null;
-					}
-				}, actorCerts);
-				amsd.setState(newState);
-			}
-			else if (oldState.equals(AMSAgentDescription.SUSPENDED) && ! newState.equals(AMSAgentDescription.SUSPENDED)) {
-			    // if the agent was suspended and must change its state 
-				authority.doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-					public Object run() throws NotFoundException, UnreachableException, AuthException {
-						myPlatform.activate(name);
-						return null;
-					}
-				}, actorCerts);
-				amsd.setState(newState);
-			} else //FIXME do we need to check for a permission to change the AgentState also in this situation?
-				amsd.setState(newState);
-			agentDescriptions.register(amsd.getName(), amsd);
-		}
-		catch (NotFoundException ne) {
-			agentDescriptions.register(old.getName(), old);
-			ne.printStackTrace();
-		}
-		catch (UnreachableException ue) {
-			agentDescriptions.register(old.getName(), old);
-			ue.printStackTrace();
-		}
-		catch (AuthException ae) {
-			agentDescriptions.register(old.getName(), old);
-			throw ae;
-		}
-		catch (Exception e) {
-			// Never thrown
-			agentDescriptions.register(old.getName(), old);
-			e.printStackTrace();
-		}
-	}
-
-	List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply, AID senderID) throws FIPAException, AuthException {
-		// Search has no mandatory slots
-		return agentDescriptions.search(amsd);
-	}
-
-	// This one is called in response to a 'move-agent' action
-	void AMSMoveAgent(final AID agent, final Location where, AID sender) throws FIPAException, AuthException {
-		//checkAction(Authority.AGENT_MOVE, agent, sender);
-		try {
-	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
-			myPlatform.move(agent, where);
-			return null;
-		    }
-		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
-				(DelegationCertificate)delegations.get(sender.getName()) ));
-		}
-		catch (UnreachableException ue) {
-			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-		}
-		catch (NotFoundException nfe) {
-			throw new NotRegistered();
-		}
-		catch (AuthException ae) {
-		    Unauthorised ue = new Unauthorised();
-		    throw ue;
-		}
-		catch (Exception e) {
-			// should be never thrown
-			e.printStackTrace();
-		}
-
-	}
-
-	// This one is called in response to a 'clone-agent' action
-	void AMSCloneAgent(final AID agent, final Location where, final String newName, AID sender) throws FIPAException, AuthException {
-		//checkAction(Authority.AGENT_CLONE, agent, sender);
-		try {
-	    getAuthority().doAsPrivileged(new jade.security.PrivilegedExceptionAction() {
-		    public Object run() throws UnreachableException, AuthException, NotFoundException {
-			myPlatform.copy(agent, where, newName);
-			return null;
-		    }
-		}, new CertificateFolder(getCertificateFolder().getIdentityCertificate(), 
-				(DelegationCertificate)delegations.get(sender.getName()) ));
-		}
-		catch(UnreachableException ue) {
-			throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
-		}
-		catch(NotFoundException nfe) {
-			throw new NotRegistered();
-		}
-		catch (AuthException ae) {
-		    Unauthorised ue = new Unauthorised();
-		    throw ue;
-		}
-  		catch (Exception e) {
-			// should be never thrown
-			e.printStackTrace();
-		}
-	}
-
-
-	// This one is called in response to a 'where-is-agent' action
-	Location AMSWhereIsAgent(AID agent, AID sender) throws FIPAException, AuthException {
-		try {
-			ContainerID cid = myPlatform.getContainerID(agent);
-			String containerName = cid.getName();
-			return mobilityMgr.getLocation(containerName);
-		}
-		catch(NotFoundException nfe) {
-			nfe.printStackTrace();
-			throw new NotRegistered();
-		}
-	}
-
-	void checkAction(String action, AID agent, AID sender) throws AuthException {
-		getAuthority().checkAction(action, getAgentPrincipal(agent), new CertificateFolder(getCertificateFolder().getIdentityCertificate(), (DelegationCertificate)delegations.get(sender.getName())));
-	}
-	
-	void checkAction(String action, ContainerID container, AID sender) throws AuthException {
-		getAuthority().checkAction(action, getContainerPrincipal(container), new CertificateFolder(getCertificateFolder().getIdentityCertificate(), (DelegationCertificate)delegations.get(sender.getName())));
-	}
-	
-	AgentPrincipal getAgentPrincipal(AID agent) {
-		return getAuthority().createAgentPrincipal(agent, getAgentOwnership(agent));
-	}
-
-	ContainerPrincipal getContainerPrincipal(ContainerID container) {
-		ContainerPrincipal principal = (ContainerPrincipal)containers.get(container);
-		//!!!
-		if (principal == null) {
-			Authority authority = getAuthority();
-			principal = authority.createContainerPrincipal(container, ContainerPrincipal.NONE);
-		}
-		return principal;
-	}
-
-	String getAgentOwnership(AID agent) {
-		AMSAgentDescription amsd = new AMSAgentDescription();
-		amsd.setName(new AID(agent.getName(), AID.ISGUID));
-		List l = agentDescriptions.search(amsd);
-		if (l.size() == 0)
-			return AgentPrincipal.NONE;
-
-		amsd = (AMSAgentDescription)l.get(0);
-		return amsd.getOwnership();
-	}
-	
-	String getAgentState(AID agent) {
-		AMSAgentDescription amsd = new AMSAgentDescription();
-		amsd.setName(new AID(agent.getName(), AID.ISGUID));
-		List l = agentDescriptions.search(amsd);
-		if (l.size() == 0)
-			return AMSAgentDescription.ACTIVE;
-
-		amsd = (AMSAgentDescription)l.get(0);
-		return amsd.getState();
-	}
-	
-  // Methods to be called from AgentPlatform to notify AMS of special events
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void addedContainer(PlatformEvent ev) {
-
-    ContainerID cid = ev.getContainer();
-    String name = cid.getName();
-
-    // Fire an 'added container' event
-    AddedContainer ac = new AddedContainer();
-    ac.setContainer(cid);
-
-    EventRecord er = new EventRecord(ac, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-  }
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void removedContainer(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    String name = cid.getName();
-
-    // Fire a 'container is dead' event
-    RemovedContainer rc = new RemovedContainer();
-    rc.setContainer(cid);
-
-    EventRecord er = new EventRecord(rc, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-  }
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void bornAgent(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    AID agentID = ev.getAgent();
-    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
-
-    //ADDED BY MICHLE
-    //creationinfo has to bestored immediately!!!
-    //if needed, synchronization can be added
-    
-	//System.out.println("ams.suddenborn: " + agentID + ", " + ownership + ";");
-    if (creations.get(agentID) == null) {
-    	creations.put(agentID, new CreationInfo(null, null, ownership, null));
-    }
-
-    BornAgent ba = new BornAgent();
-    ba.setAgent(agentID);
-    ba.setWhere(cid);
-    ba.setState(AMSAgentDescription.ACTIVE);
-    ba.setOwnership(ownership);
-
-    EventRecord er = new EventRecord(ba, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-    
-  }
-
-    /**
-       Post an event to the AMS agent. This method must not be used by
-        application agents.
-    */
-    public void deadAgent(PlatformEvent ev) {
-        ContainerID cid = ev.getContainer();
-        AID agentID = ev.getAgent();
-
-        DeadAgent da = new DeadAgent();
-        da.setAgent(agentID);
-        da.setWhere(cid);
-
-        EventRecord er = new EventRecord(da, here());
-	er.setWhen(ev.getTime());
-	synchronized (eventQueue) {
-            eventQueue.add(er);
-	}
-        doWake();
-    }
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void suspendedAgent(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    AID name = ev.getAgent();
-
-    SuspendedAgent sa = new SuspendedAgent();
-    sa.setAgent(name);
-    sa.setWhere(cid);
-
-    EventRecord er = new EventRecord(sa, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-  }
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void resumedAgent(PlatformEvent ev) {
-    ContainerID cid = ev.getContainer();
-    AID name = ev.getAgent();
-
-    ResumedAgent ra = new ResumedAgent();
-    ra.setAgent(name);
-    ra.setWhere(cid);
-
-    EventRecord er = new EventRecord(ra, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-  }
-
-	/**
-		Post an event to the AMS agent. This method must not be used by
-		application agents.
-	*/
-	public void changedAgentPrincipal(PlatformEvent ev) {
-            ContainerID cid = ev.getContainer();
-            AID name = ev.getAgent();
-
-            ChangedAgentOwnership cao = new ChangedAgentOwnership();
-            cao.setAgent(name);
-            cao.setWhere(cid);
-            cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
-            cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
-
-            EventRecord er = new EventRecord(cao, here());
-            er.setWhen(ev.getTime());
-            synchronized (eventQueue) {
-                eventQueue.add(er);
-            }
-            doWake();
-	}
-
-	/**
-		Post an event to the AMS agent. This method must not be used by
-		application agents.
-	*/
-	public synchronized void changedContainerPrincipal(PlatformEvent ev) {
-            ContainerID cid = ev.getContainer();
-            containers.put(cid, ev.getNewPrincipal());
-	}
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public void movedAgent(PlatformEvent ev) {
-    ContainerID from = ev.getContainer();
-    ContainerID to = ev.getNewContainer();
-    AID agentID = ev.getAgent();
-
-    MovedAgent ma = new MovedAgent();
-    ma.setAgent(agentID);
-    ma.setFrom(from);
-    ma.setTo(to);
-
-    EventRecord er = new EventRecord(ma, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-    doWake();
-  }
-
-  /**
-    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public synchronized void addedMTP(MTPEvent ev) {
-    Channel ch = ev.getChannel();
-    ContainerID cid = ev.getPlace();
-    String proto = ch.getProtocol();
-    String address = ch.getAddress();
-
-    // Generate a suitable AMS event
-    AddedMTP amtp = new AddedMTP();
-    amtp.setAddress(address);
-    amtp.setProto(proto);
-    amtp.setWhere(cid);
-
-    EventRecord er = new EventRecord(amtp, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-
-    //Notify the update of the APDescription...
-    PlatformDescription ap = new PlatformDescription();
-    ap.setPlatform(theProfile);
-    er = new EventRecord(ap, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-
-    doWake();
-
-  }
-
-  /**    Post an event to the AMS agent. This method must not be used by
-    application agents.
-  */
-  public synchronized void removedMTP(MTPEvent ev) {
-
-    Channel ch = ev.getChannel();
-    ContainerID cid = ev.getPlace();
-    String proto = ch.getProtocol();
-    String address = ch.getAddress();
-
-    // Generate a suitable AMS event
-    RemovedMTP rmtp = new RemovedMTP();
-    rmtp.setAddress(address);
-    rmtp.setProto(proto);
-    rmtp.setWhere(cid);
-
-    EventRecord er = new EventRecord(rmtp, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-
-    //Notify the update of the APDescription...
-    PlatformDescription ap = new PlatformDescription();
-    ap.setPlatform(theProfile);
-    er = new EventRecord(ap, here());
-    er.setWhen(ev.getTime());
-    synchronized (eventQueue) {
-	eventQueue.add(er);
-    }
-
-    doWake();
-
-  }
-
-  public void messageIn(MTPEvent ev) { System.out.println("Message In."); }
-  public void messageOut(MTPEvent ev) { System.out.println("Message Out."); }
-
-  private void writeAPDescription() {
-    //Write the APDescription file.
-    try {
-      FileWriter f = new FileWriter(bootProfile.getParameter(Profile.FILE_DIR, "") + "APDescription.txt");
-      f.write(theProfile.toString());
-      //f.write(s, 0, s.length());
-	  f.write('\n');
-	  f.flush();
-      f.close();
-    } catch(java.io.IOException ioe) {
-      ioe.printStackTrace();
-    }
-  }
-
-  private MTPDescription findMTPDescription(APTransportDescription mtps, String proto) {
-    Iterator it = mtps.getAllAvailableMtps();
-    while(it.hasNext()) {
-      MTPDescription desc = (MTPDescription)it.next();
-      if(proto.equalsIgnoreCase(desc.getMtpName()))
-	return desc;
-    }
-
-    // No MTP was found: create a new one and add it to the
-    // 'ap-transport-description' object.
-    MTPDescription desc = new MTPDescription();
-    desc.setMtpName(proto);
-    mtps.addAvailableMtps(desc);
-    return desc;
-
-  }
-
-
-    //FIXME: it's only used into the registerAction when a failure occurs into the registration of an agent.
-/**
-     * Create the content for a so-called "exceptional" message, i.e.
-     * one of NOT_UNDERSTOOD, FAILURE, REFUSE message
-     * @param a is the Action that generated the exception
-     * @param e is the generated Exception
-     * @return a String containing the content to be sent back in the reply
-     * message; in case an exception is thrown somewhere, the method
-     * try to return anyway a valid content with a best-effort strategy
-     **/
-    protected String createExceptionalContent(Action a, String ontoName, FIPAException e) {
-	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-	temp.setLanguage("FIPA-SL0");
-	temp.setOntology(ontoName);
-	ContentElementList l = new ContentElementList();
-	if (a == null) {
-	    a = new Action();
-	    a.setActor(getAID());
-	    a.setAction(null);
-	}
-	l.add(a);
-	l.add(e);
-	try {
-	    getContentManager().fillContent(temp,l);
-	} catch (Exception ee) { // in any case try to return some good content
-	    return e.getMessage();
-	}
-	return temp.getContent();
-    }
-} // End of class ams
+}
