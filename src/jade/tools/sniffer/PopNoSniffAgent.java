@@ -56,6 +56,7 @@ public class PopNoSniffAgent extends AbstractPopup {
  public void actionPerformed(ActionEvent avt) {
    noSniffAgent.addElement(popAg.agent);
    canvAgent.removeAgent(popAg.agent.agentName);
+   canvAgent.repaintNoSniffedAgent(popAg.agent);
    mySniffer.sniffMsg(noSniffAgent,Sniffer.SNIFF_OFF);
    noSniffAgent.removeAllElements();
  }

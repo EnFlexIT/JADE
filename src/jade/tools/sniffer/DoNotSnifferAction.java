@@ -1,6 +1,7 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
@@ -55,16 +56,14 @@ public class DoNotSnifferAction extends AgentAction {
  }
 
  public void doAction(AgentTree.AgentNode node ) {
-  String realName;
-  realName=checkString(node.getName());
-  agent=new Agent(realName);
-  noSniffedAgents.addElement(agent);
-  mainPanel.panelcan.canvAgent.removeAgent(agent.agentName);
- }
+   String realName=checkString(node.getName());
+   agent=new Agent(realName);
 
- public void sendAgentVector() {
-  mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
-  noSniffedAgents.removeAllElements();
+   noSniffedAgents.addElement(agent);
+   mainPanel.panelcan.canvAgent.removeAgent(agent.agentName);
+   mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(agent);
+   mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
+   noSniffedAgents.removeAllElements();
  }
 
  private String checkString(String nameAgent) {
@@ -73,7 +72,6 @@ public class DoNotSnifferAction extends AgentAction {
    if (index != -1) return nameAgent.substring(0,index);
     else {
       System.out.println("The agent's name is not correct");
-      System.exit(-1);
     return null;
    }
  }
