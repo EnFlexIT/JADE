@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.38  1999/04/13 15:58:55  rimassa
+  Added a hack to catch a SocketException arising during RMA shutdown.
+
   Revision 1.37  1999/04/08 12:07:55  rimassa
   Added a missing clone() to multicast messages.
 
@@ -290,7 +293,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
-		String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
+    String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
     int atPos = completeName.indexOf('@');
     if(atPos == -1)
@@ -423,7 +426,13 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       cachedProxies.remove(name + '@' + platformAddress); // FIXME: It shouldn't be needed
     }
     catch(RemoteException re) {
-      re.printStackTrace();
+      // FIXME: This happens with 'Resource temporarily unavailable'
+      // since RMA GUI disposal has been made asynchronous.
+      Throwable t = re.detail;
+      if(t instanceof java.net.SocketException)
+	System.out.println(t.getMessage());
+      else
+	re.printStackTrace();
     }
     catch(NotFoundException nfe) {
       nfe.printStackTrace();
