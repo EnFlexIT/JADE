@@ -35,19 +35,15 @@
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
-		<Test name="Light DF Service" skip="true">
-			<TestClassName>test.domain.df.tests.TestLightDFService</TestClassName>
-			<WhatTest> Tests accessing the DF agent by means of the LightDFService utility class.</WhatTest>
-			<HowWorkTest> 
-				The test uses the LightDFService class to:
-				<UL>
-	   			<LI>register with the DF;</LI>
-	   			<LI>search the DF (he should find himself);</LI>
-	   			<LI>deregister with the DF;</LI>
-			    <LI>searche again the DF (he shouldn't find any agent);</LI>
-			    </UL>			
-		    </HowWorkTest>
-			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+		<Test name="Registration renewal" skip="false">
+			<TestClassName>test.domain.df.tests.TestRegistrationRenewer</TestClassName>
+			<WhatTest> Tests the renewal of a registration by means of the keepRegistered() method.
+			</WhatTest>
+			<HowWorkTest> Load phase: Kill the DF and restarts it on the same container with a properties file setting a maximum lease time of 20 secs.<br/>
+			Actual test: Create an agent that will register with the DF for 40 secs using the keepRegistered() method.<br/>
+			In parallel, search the DF after 5, 15, 25, 35 and 45 secs.
+		  </HowWorkTest>
+			<WhenTestPass>The test passes if search 1, 2, 3 and 4 find 1 agent while search 5 finds no agent.</WhenTestPass>
 		</Test>		
 		<Test name="FIPA Management Onto DF" skip="false">
 			<TestClassName>test.domain.df.tests.TestFIPAManagementOntology_DF</TestClassName>
@@ -80,6 +76,44 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
+		<Test name="Recursive Search" skip="true">
+			<TestClassName>test.domain.df.tests.TestRecursiveSearch</TestClassName>
+			<WhatTest>Test recursive search perfomed on a federation of DFs.
+				The parameters tested are max-depth, max-result as defined in: Fipa Agent 
+				Management Specification - SC00023J.
+				<br>Note that to execute this test you have to the package 
+				jade.misc in classpath as it makes use of the DFFedarator agent.
+				(..\jade\add-ons\misc).</br>			
+			</WhatTest>
+			<HowWorkTest> 
+				<br><b>Load phase</b></br>
+				Seven DF agents are created and some of them register themselves to other DFs such 
+				that the resulting graph of DFs has the following arcs:
+				<br>arc1 = (df5,df6) (read as df5  is registered on df6)</br>
+				<br>arc2 = (df4,df5)</br>
+				<br>arc3 = (df2,df4)</br>
+				<br>arc4 = (df2,df4)</br>
+				<br>arc5 = (df3,df1)</br>
+				<br>arc6 = (df1,df2)</br>
+				<br>arc7 = (df1,df)</br>
+				<br><b>Actual Test</b></br>
+				<br>After the federation has been created some agents are registered:</br>
+				<br>df6 = {a14}</br>
+				<br>df5 = {a13}</br>
+				<br>df4 = {a11,a12}</br>
+				<br>df2 = {a2,a3,a4}</br>
+				<br>df3 = {a5,a6,a7,a8,a9,a10}</br>
+				<br>df1 = {a1}</br>
+				<br>df ={}</br>
+				<br>where each agent offers different services (use DF gui to have more details).
+				The test performs different queries changening the value of the parametes like
+				max-depth, max-results and serivce type.</br>
+				<br>See the log of the test for more details on query search and
+				its results.</br>
+		  </HowWorkTest>
+			<WhenTestPass> The test passes if the different queires obtain the expected results and no exception is thrown.
+			</WhenTestPass>
+		</Test>
 		<Test name="Search Until Found" skip="false">
 			<TestClassName>test.domain.df.tests.TestSearchUntilFound</TestClassName>
 			<WhatTest> Tests the searchUntilFound() method of the DFService class.</WhatTest>
@@ -128,57 +162,7 @@
 		  </HowWorkTest>
 			<WhenTestPass> The test passes if the tester agent gets an INFORM message from each subscriber within a 10 sec.timeout.</WhenTestPass>
 		</Test>
-		<Test name="Recursive Search" skip="true">
-			<TestClassName>test.domain.df.tests.TestRecursiveSearch</TestClassName>
-			<WhatTest>Test recursive search perfomed on a federation of DFs.
-				The parameters tested are max-depth, max-result as defined in: Fipa Agent 
-				Management Specification - SC00023J.
-				<br>Note that to execute this test you have to the package 
-				jade.misc in classpath as it makes use of the DFFedarator agent.
-				(..\jade\add-ons\misc).</br>			
-		</WhatTest>
-			<HowWorkTest> 
-				<br><b>Load phase</b></br>
-				Seven DF agents are created and some of them register themselves to other DFs such 
-				that the resulting graph of DFs has the following arcs:
-				<br>arc1 = (df5,df6) (read as df5  is registered on df6)</br>
-				<br>arc2 = (df4,df5)</br>
-				<br>arc3 = (df2,df4)</br>
-				<br>arc4 = (df2,df4)</br>
-				<br>arc5 = (df3,df1)</br>
-				<br>arc6 = (df1,df2)</br>
-				<br>arc7 = (df1,df)</br>
-				<br><b>Actual Test</b></br>
-				<br>After the federation has been created some agents are registered:</br>
-				<br>df6 = {a14}</br>
-				<br>df5 = {a13}</br>
-				<br>df4 = {a11,a12}</br>
-				<br>df2 = {a2,a3,a4}</br>
-				<br>df3 = {a5,a6,a7,a8,a9,a10}</br>
-				<br>df1 = {a1}</br>
-				<br>df ={}</br>
-				<br>where each agent offers different services (use DF gui to have more details).
-				The test performs different queries changening the value of the parametes like
-				max-depth, max-results and serivce type.</br>
-				<br>See the log of the test for more details on query search and
-				its results.</br>
-		  </HowWorkTest>
-			<WhenTestPass> The test passes if the different queires obtain the expected results and no
-					exception is thrown.
-obtained by the DFService.search()</WhenTestPass>
-		</Test>
-			<Test name="RegistrationRenewer Behaviour" skip="false">
-			<TestClassName>test.domain.df.tests.TestRegistrationRenewer</TestClassName>
-			<WhatTest>The behaviour jade.domain.DFRegistrationRenewer is used to keep registered a DFAgentDescription if the leasetime requested 
-is greater than the leasetime assigned to the DFAgentDescription
-			</WhatTest>
-			<HowWorkTest>
-			Create an agent with AID 'RenewerAgent'. The agent registers itself for 5000ms and than it
-uses the behaviour jade.domain.RegistrationRenewerBehaviour to keep itself registered for other 10000ms. 
-In parallel the TesterAgent performs several searches in order to test if the agent is still kept registered.
-		  </HowWorkTest>
-			<WhenTestPass>After 15000ms the agent 'RenewerAgent" deregisters itself.</WhenTestPass>
-		</Test>		
+		
 		<Test name="DF Persistence" skip="false">
 			<TestClassName>test.domain.df.tests.TestPersistence</TestClassName>
 			<WhatTest> Tests if the subscription service is supported by the persistent JADE DF, 
