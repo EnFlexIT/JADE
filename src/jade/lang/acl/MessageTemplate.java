@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1999/06/08 00:02:26  rimassa
+  Removed an useless comment.
+  Put some dead code to start implementing complete Bool algebra for
+  message templates.
+
   Revision 1.13  1999/05/19 18:23:10  rimassa
   Changed static or() method access from public to private, since it
   isn't implemented yet.
@@ -22,7 +27,9 @@ package jade.lang.acl;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
-import java.util.Hashtable;
+
+import java.util.List;
+import java.util.LinkedList;
 
 /**
    A pattern for matching incoming ACL messages. This class allows to
@@ -35,29 +42,6 @@ import java.util.Hashtable;
 
 */
 public class MessageTemplate {
-
-  // Beware: '*' is used as a matches-all string. Maybe a different
-  // class could hold out-of-band values, e.g. :
-
-  //        interface TemplateItem {
-  //          public boolean equal(TemplateItem rhs);
-  //        }
-
-  //        class WildCard implements TemplateItem {
-  //          public boolean equal(TemplateItem rhs) {
-  //            return true;
-  //          }
-  //        }
-
-  //        class ItemString implements TemplateItem {
-  //          private String content;
-  //          public boolean equal(TemplateItem rhs) {
-  //            if(<rhs is a WildCard>)
-  //              return true
-  //            else
-  //              <Compare the two Strings>
-  //          }
-  //        }
 
   private static final String wildCard = "*";
 
@@ -76,6 +60,51 @@ public class MessageTemplate {
 					       "Source",
 					       "Type"
   };
+
+  // This class represents an elementary template term, that is a term
+  // with a single non-null slot, which can be negated or not.
+  private class ProductTerm extends ACLMessage {
+    private boolean negated;
+
+    private String name;
+    private Class type;
+    private Object value;
+
+    public ProductTerm(String slotName, Class slotType, Object slotValue) {
+      negated = false;
+      name = slotName;
+      type = slotType;
+      value = slotValue;
+    }
+
+    public void not() {
+      negated = !negated;
+    }
+
+    public boolean match(Object aValue) {
+      return false;
+    }
+
+  }
+
+
+  // This class represent a logical AND of one or more elementary terms.
+  private class SumTerm extends ACLMessage {
+
+    private List slots = new LinkedList();
+
+    public SumTerm() {
+    }
+
+    public boolean match(ACLMessage msg) {
+      return false;
+    }
+
+  }
+
+  // A message template is a logical OR of logical ANDs of elementary
+  // terms, negated or not.
+
 
   private ACLMessage template;
 
