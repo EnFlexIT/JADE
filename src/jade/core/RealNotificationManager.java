@@ -240,7 +240,7 @@ class RealNotificationManager implements NotificationManager {
 
 //__SECURITY__BEGIN
   private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
-    synchronized(messageListenersLock) {
+    synchronized(agentListenersLock) {
       if(agentListeners != null) {
         AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_PRINCIPAL, agentID, from, to, myID());
           for(int i = 0; i < agentListeners.size(); i++) {
@@ -253,7 +253,7 @@ class RealNotificationManager implements NotificationManager {
 //__SECURITY__END
 
   private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
-    synchronized(messageListenersLock) {
+    synchronized(agentListenersLock) {
       if(agentListeners != null) {
 		AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID());
 		for(int i = 0; i < agentListeners.size(); i++) {
@@ -264,6 +264,7 @@ class RealNotificationManager implements NotificationManager {
     }
   }
   
+    //FIXME Maybe this should be synchronized on messageListeners
   private ToolNotifier findNotifier(AID observerName) {
     if(messageListeners == null)
       return null;
@@ -300,7 +301,7 @@ class RealNotificationManager implements NotificationManager {
   }
 
   private void addAgentListener(AgentListener l) {
-    synchronized(messageListenersLock) {
+    synchronized(agentListenersLock) {
       if(agentListeners == null)
 	agentListeners = new LinkedList();
       agentListeners.add(l);
@@ -308,7 +309,7 @@ class RealNotificationManager implements NotificationManager {
   }
 
   private void removeAgentListener(AgentListener l) {
-    synchronized(messageListenersLock) {
+    synchronized(agentListenersLock) {
       if(agentListeners != null) {
 	agentListeners.remove(l);
 	if(agentListeners.isEmpty())
