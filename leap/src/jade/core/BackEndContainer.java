@@ -111,7 +111,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    image.setToolkit(this);
 
 	    Service agMan = myServiceFinder.findService(jade.core.management.AgentManagementSlice.NAME);
-	    jade.core.management.AgentManagementSlice mainSlice = (jade.core.management.AgentManagementSlice)agMan.getSlice(jade.core.management.AgentManagementSlice.MAIN_SLICE);
+	    jade.core.management.AgentManagementSlice mainSlice = (jade.core.management.AgentManagementSlice)agMan.getSlice(jade.core.ServiceFinder.MAIN_SLICE);
 	    mainSlice.bornAgent(id, cid, image.getCertificateFolder());
 
 	    // Prepare platform info to return if necessary
