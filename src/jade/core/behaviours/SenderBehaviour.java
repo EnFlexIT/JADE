@@ -1,4 +1,3 @@
-
 /*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
@@ -26,7 +25,6 @@ Boston, MA  02111-1307, USA.
 package jade.core.behaviours;
 
 import jade.core.Agent;
-import jade.core.AgentGroup;
 
 import jade.lang.acl.ACLMessage;
 
@@ -52,29 +50,6 @@ public final class SenderBehaviour extends OneShotBehaviour {
 	*/
   private ACLMessage message;
 
-  // An AgentGroup to perform multicasting
-  /**
-  @serial
-  */
-  private AgentGroup receivers;
-
-  /**
-     Send a given ACL message to an agent group. This constructor
-     creates a <code>SenderBehaviour</code> which sends an ACL
-     message, multicasting it to an <code>AgentGroup</code>.
-     @param a The agent this behaviour belongs to, and that will
-     <code>send()</code> the message.
-     @param msg An ACL message to send.
-     @param ag The agent group to send the message to.
-  */
-  public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
-    super(a);
-    message = msg;
-    receivers = ag;
-
-    message.setSource(myAgent.getLocalName());
-  }
-
   /**
      Send a given ACL message. This constructor creates a
      <code>SenderBehaviour</code> which sends an ACL message.
@@ -83,7 +58,9 @@ public final class SenderBehaviour extends OneShotBehaviour {
      @param msg An ACL message to send.
   */
   public SenderBehaviour(Agent a, ACLMessage msg) {
-    this(a, msg, null);
+    super(a);
+    message = msg;
+    message.setSender(myAgent.getAID());
   }
 
   /**
@@ -93,10 +70,7 @@ public final class SenderBehaviour extends OneShotBehaviour {
      names.
   */
   public void action() {
-    if(receivers == null)
-      myAgent.send(message);
-    else
-      myAgent.send(message, receivers);
+    myAgent.send(message);
   }
 
 }
