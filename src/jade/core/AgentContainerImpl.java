@@ -254,103 +254,105 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return authority;
   }
 
+  protected void init() throws IMTPException, ProfileException {
 
-  void joinPlatform() {
+      // Create and initialize the IMTPManager
+      myIMTPManager = myProfile.getIMTPManager();
+      myIMTPManager.initialize(myProfile, myCommandProcessor);
+
+      // Get the Service Manager and the Service Finder
+      myServiceManager = myProfile.getServiceManager();
+      myServiceFinder = myProfile.getServiceFinder();
+
+      //#MIDP_EXCLUDE_BEGIN
+
+      // FIXME: It should probably go away...
+      myMainContainer = myProfile.getMain();
+
+      //#MIDP_EXCLUDE_END
+
+      // Create and init container-authority
       try {
-
-          // Create and initialize the IMTPManager
-          myIMTPManager = myProfile.getIMTPManager();
-          myIMTPManager.initialize(myProfile, myCommandProcessor);
-
-	  // Get the Service Manager and the Service Finder
-	  myServiceManager = myProfile.getServiceManager();
-	  myServiceFinder = myProfile.getServiceFinder();
-
-	  //#MIDP_EXCLUDE_BEGIN
-
-	  // FIXME: It should probably go away...
-	  myMainContainer = myProfile.getMain();
-
-	  //#MIDP_EXCLUDE_END
-
-          // Create and init container-authority
-          try {
-	      if (myProfile.getParameter(Profile.OWNER, null) != null) {
-		  // if there is an owner for this container
-		  // then try to use the full implementation of security
-		  myProfile.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
+	  if (myProfile.getParameter(Profile.OWNER, null) != null) {
+	      // if there is an owner for this container
+	      // then try to use the full implementation of security
+	      myProfile.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
 		  myProfile.setParameter(Profile.AUTHORITY_CLASS,"jade.security.impl.ContainerAuthority");
-	      }
-              String type = myProfile.getParameter(Profile.AUTHORITY_CLASS, null);
-              if (type != null) {
-                  authority = (Authority)Class.forName(type).newInstance();
-                  authority.setName("container-authority");
+	  }
+	  String type = myProfile.getParameter(Profile.AUTHORITY_CLASS, null);
+	  if (type != null) {
+	      authority = (Authority)Class.forName(type).newInstance();
+	      authority.setName("container-authority");
 		  //#MIDP_EXCLUDE_BEGIN
-                  authority.init(myProfile, myMainContainer);
-		  //#MIDP_EXCLUDE_END
-              }
-          }
-          catch (Exception e1) {
-	      System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
-	      authority = null;
-              //e1.printStackTrace();
-          }
+	      authority.init(myProfile, myMainContainer);
+	      //#MIDP_EXCLUDE_END
+	  }
+      }
+      catch (Exception e1) {
+	  System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
+	  authority = null;
+	  //e1.printStackTrace();
+      }
 
-          try {
-              if (authority == null) {
-                  authority = new jade.security.dummy.DummyAuthority();
-                  authority.setName("container-authority");
-		  //#MIDP_EXCLUDE_BEGIN
-                  authority.init(myProfile, myMainContainer);
-		  //#MIDP_EXCLUDE_END
-              }
-          }
-          catch (Exception e2) {
-              e2.printStackTrace();
-          }
+      try {
+	  if (authority == null) {
+	      authority = new jade.security.dummy.DummyAuthority();
+	      authority.setName("container-authority");
+	      //#MIDP_EXCLUDE_BEGIN
+	      authority.init(myProfile, myMainContainer);
+	      //#MIDP_EXCLUDE_END
+	  }
+      }
+      catch (Exception e2) {
+	  e2.printStackTrace();
+      }
           
-          // This string will be used to build the GUID for every agent on
-          // this platform.
-          AID.setPlatformID(myServiceManager.getPlatformName());
+      // This string will be used to build the GUID for every agent on
+      // this platform.
+      AID.setPlatformID(myServiceManager.getPlatformName());
 
-          // Build the Agent IDs for the AMS and for the Default DF.
-          theAMS = new AID("ams", AID.ISLOCALNAME);
-          theDefaultDF = new AID("df", AID.ISLOCALNAME);
+      // Build the Agent IDs for the AMS and for the Default DF.
+      theAMS = new AID("ams", AID.ISLOCALNAME);
+      theDefaultDF = new AID("df", AID.ISLOCALNAME);
 
-          // Create the ResourceManager
-          myResourceManager = myProfile.getResourceManager();
+      // Create the ResourceManager
+      myResourceManager = myProfile.getResourceManager();
 
-          // Initialize the Container ID
-          TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
+      // Initialize the Container ID
+      TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
 
-          // Acquire username and password
-	  //#MIDP_EXCLUDE_BEGIN
+      // Acquire username and password
+      //#MIDP_EXCLUDE_BEGIN
 
-	  // the name for this container is got from the Profile, if exists
-	  // "No-name" is needed because the NAME is mandatory in the Ontology
-          myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, AgentManager.UNNAMED_CONTAINER_NAME), addr);
-          String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
-          password = Agent.extractPassword(ownership);
-          username = Agent.extractUsername(ownership);
-	  //#MIDP_EXCLUDE_END
-	  /*#MIDP_INCLUDE_BEGIN
-	    myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
-	    password = new byte[] {};
-	    username = ContainerPrincipal.NONE;
-	    #MIDP_INCLUDE_END*/
-          myProfile.setParameter(Profile.OWNER, username);
+      // the name for this container is got from the Profile, if exists
+      // "No-name" is needed because the NAME is mandatory in the Ontology
+      myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, AgentManager.UNNAMED_CONTAINER_NAME), addr);
+      String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
+      password = Agent.extractPassword(ownership);
+      username = Agent.extractUsername(ownership);
+      //#MIDP_EXCLUDE_END
+      /*#MIDP_INCLUDE_BEGIN
+	myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
+	password = new byte[] {};
+	username = ContainerPrincipal.NONE;
+	#MIDP_INCLUDE_END*/
+      myProfile.setParameter(Profile.OWNER, username);
 
-	  // FIXME: Temporary Hack --- Start 
-	  certs = new CertificateFolder();
-	  IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
-	  identity.setSubject(new jade.security.dummy.DummyPrincipal(myID, username));
-	  certs.setIdentityCertificate(identity);
-	  // FIXME: Temporary Hack --- End 
+      // FIXME: Temporary Hack --- Start 
+      certs = new CertificateFolder();
+      IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
+      identity.setSubject(new jade.security.dummy.DummyPrincipal(myID, username));
+      certs.setIdentityCertificate(identity);
+      // FIXME: Temporary Hack --- End 
 
+      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
+
+  }
+
+  protected void startServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Create the agent management service
 	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService();
 	  agentManagement.init(this, myProfile);
-
 
 	  //#MIDP_EXCLUDE_BEGIN
 	  // Create the messaging service
@@ -363,7 +365,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  messaging.init(this, myProfile);
 
-	  myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
 	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
 	      new ServiceDescriptor(messaging.getName(), messaging)
@@ -414,6 +415,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  }
 
 	  //#MIDP_EXCLUDE_END
+
+  }
+
+  protected NodeDescriptor getNodeDescriptor() {
+      return myNodeDescriptor;
+  }
+
+  void joinPlatform() {
+      try {
+
+	  // Perform the initial setup from the profile
+	  init();
+
+	  // Activate the services and connect to the platform
+	  startServices();
 
       }
       catch (IMTPException imtpe) {
