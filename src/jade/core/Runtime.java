@@ -135,7 +135,7 @@ public class Runtime {
   	if (flag) {
 	    terminators.addLast(new Runnable() {
   	  	public void run() {
-    			System.out.println("Exiting now!");
+    			System.out.println("JADE is closing down now.");
     			System.exit(0);
  	   		}
     	} );
