@@ -270,6 +270,20 @@ public class FSMBehaviour extends CompositeBehaviour {
   }
   
   /**
+     Reset the children behaviours registered in the states indicated in
+     the <code>states</code> parameter
+     @param states the names of the states that have to be reset
+   */
+  public void resetStates(String[] states) {	
+  	if (states != null) {
+	  	for(int i=0; i < states.length; i++){
+				Behaviour b = getState(states[i]);
+				b.reset();
+			}
+  	}
+  }
+  
+  /**
    * Handle block/restart notifications. An
    * <code>FSMBehaviour</code> is blocked <em>only</em> when
    * its currently active child is blocked, and becomes ready again

@@ -256,8 +256,6 @@ public abstract class Behaviour implements Serializable {
   */
   public void reset() {
   	startFlag = true;
-	if (myStore != null)
-	    myStore.clear();
 	restart();
   }
 
