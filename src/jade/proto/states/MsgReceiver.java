@@ -142,18 +142,6 @@ public class MsgReceiver extends SimpleBehaviour {
     }
 
     /**
-     * This method allows to modify the values of the parameters passed in 
-     * the constructor.
-     * @deprecated 
-     **
-    public void set(MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
-	setDataStore(s);
-	template=mt;
-	this.deadline = deadline;
-	receivedMsgKey = msgKey;
-    }*/
-	
-    /**
      * This method allows modifying the deadline
      **/
     public void setDeadline(long deadline) {
