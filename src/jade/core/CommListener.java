@@ -43,7 +43,7 @@ import java.util.EventListener;
 interface CommListener extends EventListener {
   void CommHandle(CommEvent event);
   void endSource(String name);
-  void moveSource(String name, String where);
-  void copySource(String name, String where, String newName);
+  void moveSource(String name, Location where);
+  void copySource(String name, Location where, String newName);
 
 }
