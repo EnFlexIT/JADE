@@ -121,7 +121,7 @@ String CommAddress() :
   String acc;
 }
 {
-  proto = <COMM_PROTOCOL> "://" (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
+  proto = <WORD> "://" (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
   {
     String s = proto.image + "://" + addr + ":" + port + "/" + acc;
     return s;
@@ -189,7 +189,7 @@ void FIPA_Service_Desc_Item() :
     {
       sd.setType(t.image);
     }
- | <SERVICE_ONTOLOGY> s = SL1Term() ")"
+ | <SERVICE_ONTOLOGY> s = SL1Term()
     {
       sd.setOntology(s);
     }
@@ -232,13 +232,14 @@ SKIP :
 | "\r"
 }
 
-
+<DEFAULT>
 TOKEN: 
 {
 
   <DF_DESCRIPTION : ":df-description">
 | <AGENT_NAME : ":agent-name">
 | <AGENT_ADDRESS : ":agent-address">
+| <WORD : ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 | <COMM_PROTOCOL : ["A"-"Z", "a"-"z"](["A"-"Z", "a"-"z", "0"-"9", "_"])*>
 | <INTEGER : ["0"-"9"](["0"-"9"])*>
 | <AGENT_SERVICES : ":agent-services">
@@ -256,7 +257,6 @@ TOKEN:
 | <COMMUNICATION_PROPERTIES : ":communication-properties">
 | <STATES : "active" | "suspended" | "retired">
 | <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
-| <WORD :   ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 
 }
 
