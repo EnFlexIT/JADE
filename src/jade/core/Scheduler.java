@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1998/10/31 16:38:08  rimassa
+  Method schedule() now does't catch InterruptedException anymore. This
+  way an external 'kill-agent' is effective even on blocked agents.
+
   Revision 1.5  1998/10/04 18:01:14  rimassa
   Added a 'Log:' field to every source file.
 
@@ -71,16 +75,11 @@ class Scheduler {
 
   // Selects the appropriate behaviour for execution, with a trivial
   // round-robin algorithm.
-  public synchronized Behaviour schedule() {
+  public synchronized Behaviour schedule() throws InterruptedException {
 
     if(behaviours.isEmpty()) {
       // System.out.println("Agent " + owner.getName() + " has nothing to do, so it sleeps ...");
-      try {
-	wait();
-      }
-      catch(InterruptedException ie) {
-	// Do nothing ...
-      }
+      wait();
     }
 
     Behaviour b = (Behaviour)behaviours.elementAt(currentIndex);
