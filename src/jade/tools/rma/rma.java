@@ -142,17 +142,12 @@ public class rma extends Agent {
     	}
     	
     	protected void handleInform(ACLMessage msg){
-    		System.out.println("arrived a new agents from a remote platform");
+	    //System.out.println("arrived a new agents from a remote platform");
     		try{
     			AID sender = msg.getSender();
     			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),new SL0Codec(),FIPAAgentManagementOntology.instance()); 
     			Iterator i = r.getAll_1();
     			myGUI.addRemoteAgentsToRemoteAMS(sender,i);
-    		  /*while(i.hasNext()){	
-    			 jade.domain.FIPAAgentManagement.AMSAgentDescription agent = (AMSAgentDescription)i.next();
-    			 System.out.println("Name: " + agent.getName().getName()+ "\n");
-    		  }*/
-    			
     		}catch(FIPAException e){
     		e.printStackTrace();
     		}
