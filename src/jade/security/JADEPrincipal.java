@@ -28,8 +28,10 @@ package jade.security;
 	The <code>JADEPrincipal</code> interface represents all principals
 	acting on the platform. They will be held responsible for their
 	own agents and containers.
-   
+
 	@author Michele Tomaiuolo - Universita` di Parma
+	@author Giosue Vitaglione - Telecom Italia LAB
+
 	@version $Date$ $Revision$
 */
 public interface JADEPrincipal
@@ -49,7 +51,14 @@ public interface JADEPrincipal
 		@return The name.
 	*/
 	public String getName();
-	
+
+	/**
+		Returns the SDSI name of this principal (if any)
+		@return The SDSIName
+	*/
+	public  SDSIName getSDSIName();
+
+
 	/**
 		Checks the hierarchical relationship between two principals, i.e.
 		tells if this principal belongs to group <code>p</code>.
@@ -57,7 +66,7 @@ public interface JADEPrincipal
 		automatically granted to this principal, too.
 		@param p The principal to check.
 		@return True if this principal is a member of group <code>p</code>.
-	*/
-	public boolean implies(JADEPrincipal p);
 
+	public boolean implies(JADEPrincipal p);
+	*/
 }
