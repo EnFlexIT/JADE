@@ -64,6 +64,10 @@ public class Starter {
       AgentContainerImpl theContainer;
 
       try{
+	  // Configure the JADE runtime so that it exits the VM when
+	  // there are no more active containers.
+	  Runtime.instance().setCloseVM(true);
+
 	  String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
 	  if(isPlatform) {
@@ -80,7 +84,10 @@ public class Starter {
 	  }
 	
 	  theContainer.joinPlatform(platformRMI, agents, MTPs,ACLCodecs);
-  	
+	  Runtime.instance().beginContainer();
+
+	  Runtime.instance().setDefaultToolkit(theContainer); // FIXME: Temporary hack for JSP example
+
       }catch(ConnectException ce) {
       // This one is thrown when trying to bind in an RMIRegistry that
       // is not on the current host
