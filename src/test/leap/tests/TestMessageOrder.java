@@ -67,10 +67,7 @@ public class TestMessageOrder extends Test {
 	private Vector participants = new Vector();
 	private boolean lightDone = false;
 	
-  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
-  	final DataStore store = ds;
-  	final String key = resultKey;
-  	
+  public Behaviour load(Agent a) throws TestException {
 		// Get the number of participants as test argument
 		try {
 			nParticipants = Integer.parseInt(getTestArgument("n-participants"));
@@ -95,7 +92,7 @@ public class TestMessageOrder extends Test {
 			// Ignore and keep default
 		}
 		
-		// MIDP container name as group argument
+		// Get the light container name as group argument
 		lightContainerName = (String) getGroupArgument(LEAPTesterAgent.LIGHT_CONTAINER_KEY);
 
 		// Create the light agent on the light container
@@ -118,21 +115,21 @@ public class TestMessageOrder extends Test {
 			}
 			
 			private void launchParticipant(int index) {
+				String p = "p"+index;
 				try {						
-					String p = "p"+index;
 					AID id = TestUtility.createAgent(myAgent, p, "test.leap.tests.ParticipantAgent", new String[] {myAgent.getLocalName(), LIGHT_AGENT, String.valueOf(nMessages), String.valueOf(period)});
 					participants.add(id);
 				}
 				catch (Exception e) {
 					e.printStackTrace();
+					failed("Error launching participant "+p);
 				}
 			}	
 		} );
 		
-		// Wait for the termination message from the light agent 
-		// and from the participants
+		// Wait for the termination message from both the light agent 
+		// and all the participants
 		pb.addSubBehaviour(new SimpleBehaviour(a) {
-			private boolean failed = false;
 			
 			public void action() {
 				ACLMessage msg = myAgent.receive();
@@ -142,9 +139,7 @@ public class TestMessageOrder extends Test {
 					if (sender.getLocalName().equals(LIGHT_AGENT)) {
 						// Termination notification from the Light agent
 						if (!b) {
-							Logger.getLogger().log("Error notification received from light agent");
-							failed = true;
-							return;
+							failed("Error notification received from light agent");
 						}
 						else {
 							lightDone = true;
@@ -153,17 +148,15 @@ public class TestMessageOrder extends Test {
 					else if (participants.contains(sender)) {
 						// Termination notification from a participant
 						if (!b) {
-							Logger.getLogger().log("Error notification received from participant "+sender.getLocalName());
-							failed = true;
-							return;
+							failed("Error notification received from participant "+sender.getLocalName());
 						}
 						else {
-							participants.remove(sender);;
+							participants.remove(sender);
 						}
 					}
 					else {
 						// Unexpected message
-						Logger.getLogger().log(myAgent.getLocalName()+": Unexpected message received from "+sender.getLocalName());
+						log(myAgent.getLocalName()+": Unexpected message received from "+sender.getLocalName());
 					}
 				}
 				else {
@@ -172,19 +165,12 @@ public class TestMessageOrder extends Test {
 			}
 			
 			public boolean done() {
-				return ( (lightDone && participants.size() == 0) || failed );
-			}
-			
-			public int onEnd() {
-				if (!failed) {
-					Logger.getLogger().log("Termination notification received from light agent and all participants.");
-					store.put(key, new Integer(Test.TEST_PASSED));
+				if (lightDone && participants.size() == 0) {
+					passed("Termination notification received from light agent and all participants.");
+					return true;
 				}
-				else {
-					store.put(key, new Integer(Test.TEST_FAILED));
-				}
-				return 0;
-			}
+				return false;
+			}			
 		} );
 		
 		return pb;
@@ -197,7 +183,7 @@ public class TestMessageOrder extends Test {
 			TestUtility.killAgent(a, new AID(LIGHT_AGENT, AID.ISLOCALNAME));
 		}
 		catch (Exception e) {
-			Logger.getLogger().log(a.getLocalName()+": exception killing light agent ");
+			log(a.getLocalName()+": exception killing light agent ");
 		}
 		
 		for (int i = 1; i <= nParticipants; ++i) {
@@ -206,7 +192,7 @@ public class TestMessageOrder extends Test {
 				TestUtility.killAgent(a, new AID(name, AID.ISLOCALNAME));
 			}
 			catch (Exception e) {
-				Logger.getLogger().log(a.getLocalName()+": exception killing participant "+name);
+				log(a.getLocalName()+": exception killing participant "+name);
 			}
 		}
 	}

@@ -35,8 +35,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 /**
-   This Test addresses the basic operations of life-cycle management (agent creation/killing) 
-   and communication (message exchange) in a wireless device.   
    @author Giovanni Caire - TILAB
  */
 public class TestMessageReception extends Test {

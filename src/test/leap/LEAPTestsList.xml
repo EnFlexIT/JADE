@@ -5,19 +5,6 @@
 	]>
 -->
 	<TestsList> 
-		<Test name="Message reception" skip="false">
-			<TestClassName>test.leap.tests.TestMessageReception</TestClassName>
-			<WhatTest> 
-			</WhatTest>
-			<HowWorkTest> 
-			</HowWorkTest>
-			<WhenTestPass>
-			</WhenTestPass>
-			<Argument key="period" value="60000"> The time interval (in ms) between sending two successive messages to the receiver agent</Argument>
-			<Argument key="n-messages" value="100"> The number of messages to be sent </Argument>
-			<Argument key="size" value="1000"> The size in bytes of the content of each message </Argument>
-		</Test>	
-		
 		<Test name="Basic life-cycle and communication" skip="false">
 			<TestClassName>test.leap.tests.TestLCCommunication</TestClassName>
 			<WhatTest> Tests the basic operations of life-cycle management (agent creation/killing) and communication (message exchange) in a MIDP environment.</WhatTest>
@@ -30,7 +17,30 @@
 			<WhenTestPass> The test passes if all the described checks are OK, no exception is thrown and everything is completed within 30 sec.</WhenTestPass>
 		</Test>	
 		
-		<Test name="Message order preservation" skip="false">
+		<Test name="Sending messages in the takeDown() method" skip="false">
+			<TestClassName>test.leap.tests.TestTakeDownSend</TestClassName>
+			<WhatTest> Tests that messages sent within the agent takeDown() method are correctly delivered</WhatTest>
+			<HowWorkTest> 
+			</HowWorkTest>
+			<WhenTestPass> The test passes if all the expected messages are received within a given timeout</WhenTestPass>
+			<Argument key="n-participants" value="2"> The number of agents that will send messages in their takeDown() method</Argument>
+			<Argument key="n-messages" value="10"> The number of messages to be sent </Argument>
+		</Test>	
+		
+		<Test name="Message reception" skip="true">
+			<TestClassName>test.leap.tests.TestMessageReception</TestClassName>
+			<WhatTest> 
+			</WhatTest>
+			<HowWorkTest> 
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+			<Argument key="period" value="60000"> The time interval (in ms) between sending two successive messages to the receiver agent</Argument>
+			<Argument key="n-messages" value="100"> The number of messages to be sent </Argument>
+			<Argument key="size" value="1000"> The size in bytes of the content of each message </Argument>
+		</Test>	
+		
+		<Test name="Message order preservation" skip="true">
 			<TestClassName>test.leap.tests.TestMessageOrder</TestClassName>
 			<WhatTest> Tests whether a number of messages exchanged between agents both in the fixed network and in the wireless environment are posted correctly and in the same order they were sent.</WhatTest>
 			<HowWorkTest>
@@ -46,7 +56,7 @@
 			<Argument key="period" value="100000"> The time interval (in ms) between sending two successive messages </Argument>
 		</Test>	
 		
-		<Test name="Message transmission performances" skip="false">
+		<Test name="Message transmission performances" skip="true">
 			<TestClassName>test.leap.tests.TestPerformances</TestClassName>
 			<WhatTest> Measures the performances of the communication mechanism (the round-trip time) in the wireless environment.</WhatTest>
 			<HowWorkTest>

@@ -46,12 +46,8 @@ public class TestPerformances extends Test {
 	private String lightContainerName = "Container-1";
 	private int nMessages = 30;
 	private AID ping;
-	private Logger l = Logger.getLogger();
 	
-  public Behaviour load(final Agent a, DataStore ds, String resultKey) throws TestException {
-  	final DataStore store = ds;
-  	final String key = resultKey;
-  	
+  public Behaviour load(final Agent a) throws TestException {  	
 		// MIDP container name as group argument
 		lightContainerName = (String) getGroupArgument(LEAPTesterAgent.LIGHT_CONTAINER_KEY);
 		
@@ -65,7 +61,7 @@ public class TestPerformances extends Test {
 		
 		// Create the Ping agent on the Light container
 		ping = TestUtility.createAgent(a, PING_AGENT, "test.leap.midp.PingAgent", null, a.getAMS(), lightContainerName);
-		l.log("Ping agent correctly created.");
+		log("Ping agent correctly created.");
 		
 		
 		Behaviour b = new SimpleBehaviour(a) {
@@ -89,13 +85,16 @@ public class TestPerformances extends Test {
 				ACLMessage reply = myAgent.receive(template);
 				if (reply != null) {
 					if (reply.getPerformative() == ACLMessage.FAILURE && reply.getSender().equals(myAgent.getAMS())) {
-						l.log("Ping agent does not exist.");
-						error = true;
+						failed("Ping agent does not exist.");
 					}
 					else {
 						cnt++;
 						if (cnt < nMessages) {
 							myAgent.send(msg);
+						}
+						else {
+							printResult();
+							passed("");
 						}
 					}
 				}
@@ -105,34 +104,28 @@ public class TestPerformances extends Test {
 			}
 			
 			public boolean done() {
-				return (cnt >= nMessages || error);
+				return (cnt >= nMessages);
 			}
 			
-			public int onEnd() {
-				if (error) {
-					store.put(key, new Integer(Test.TEST_FAILED));
-				}
-				else {
-					long endTime = System.currentTimeMillis();
-					l.log("---------------------------------------------");
-					l.log("Round trip time = "+ ((endTime - initTime) / nMessages)); 
-					l.log("---------------------------------------------");
-					store.put(key, new Integer(Test.TEST_PASSED));
-				}
-				return 0;
+			private void printResult() {
+				long endTime = System.currentTimeMillis();
+				log("---------------------------------------------");
+				log("Round trip time = "+ ((endTime - initTime) / nMessages)); 
+				log("---------------------------------------------");
 			}
 		};
 		return b;
   }
   
 	public void clean(Agent a) {
-		// Kill light agent and all participants
+		// Kill the ping agent
 		if (ping != null) {
 			try {
 				TestUtility.killAgent(a, ping);
 			}
 			catch (Exception e) {
-				Logger.getLogger().log(a.getLocalName()+": exception killing ping agent");
+				log(a.getLocalName()+": exception killing ping agent");
+				e.printStackTrace();
 			}
 		}
 	}
