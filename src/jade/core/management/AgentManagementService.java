@@ -230,7 +230,15 @@ public class AgentManagementService extends BaseService {
 
 	    // Notify the main container through its slice
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-	    mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+
+	    try {
+		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+	    }
+	    catch(IMTPException imtpe) {
+		// Try to get a newer slice and repeat...
+		mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+	    }
 
 	    // Actually start the agent thread
 	    myContainer.powerUpLocalAgent(target, instance);
@@ -301,7 +309,15 @@ public class AgentManagementService extends BaseService {
 
 	    // Notify the main container through its slice
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-	    mainSlice.deadAgent(target);
+
+	    try {
+		mainSlice.deadAgent(target);
+	    }
+	    catch(IMTPException imtpe) {
+		// Try to get a newer slice and repeat...
+		mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+		mainSlice.deadAgent(target);
+	    }
 	}
 
 	private void handleInformStateChanged(VerticalCommand cmd) {
@@ -315,7 +331,15 @@ public class AgentManagementService extends BaseService {
 		try {
 		    // Notify the main container through its slice
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-		    mainSlice.suspendedAgent(target);
+
+		    try {
+			mainSlice.suspendedAgent(target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+			mainSlice.suspendedAgent(target);
+		    }
 		}
 		catch(IMTPException re) {
 		    re.printStackTrace();
@@ -331,7 +355,15 @@ public class AgentManagementService extends BaseService {
 		try {
 		    // Notify the main container through its slice
 		    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-		    mainSlice.resumedAgent(target);
+
+		    try {
+			mainSlice.resumedAgent(target);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+			mainSlice.resumedAgent(target);
+		    }
 		}
 		catch(IMTPException re) {
 		    re.printStackTrace();
@@ -758,7 +790,15 @@ public class AgentManagementService extends BaseService {
 
 		// Notify the main container through its slice
 		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+
+		try {
+		    mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
+		    mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
+		}
 
 		// Actually start the agent thread
 		myContainer.powerUpLocalAgent(target, instance);

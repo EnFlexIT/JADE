@@ -291,7 +291,16 @@ public class AgentMobilityService extends BaseService {
 		// Perform an atomic transaction for agent identity transfer
 		// From now on, messages for the moving agent will be routed to the 
 		// destination container
-		boolean transferResult = mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		boolean transferResult = false;
+		try {
+		    mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (AgentMobilitySlice)getFreshSlice(MAIN_SLICE);
+		    mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		}
+
 		transferState = 3;
 		log("Identity of agent " + agentID + " correctly transferred", 1);
                         
@@ -715,7 +724,15 @@ public class AgentMobilityService extends BaseService {
 		if(isCloned) {
 		    // Notify the main slice that a new agent is born
 		    AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
-		    mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
+
+		    try {
+			mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
+		    }
+		    catch(IMTPException imtpe) {
+			// Try to get a newer slice and repeat...
+			mainSlice = (AgentMobilitySlice)getFreshSlice(MAIN_SLICE);
+			mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
+		    }
 		}
 
 		// Store the container where the classes for this agent can be

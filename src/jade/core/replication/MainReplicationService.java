@@ -552,7 +552,7 @@ public class MainReplicationService extends BaseService {
 
 	    }
 
-	    myServiceManager.addAddress(smAddr);
+	    myMain.addServiceManagerAddress(smAddr);
 
 	}
 
@@ -570,7 +570,7 @@ public class MainReplicationService extends BaseService {
 		monitoredLabel--;
 	    }
 
-	    myServiceManager.removeAddress(smAddr);
+	    myMain.removeServiceManagerAddress(smAddr);
 
 	}
 

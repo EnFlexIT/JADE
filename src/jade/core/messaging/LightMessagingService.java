@@ -174,7 +174,16 @@ public class LightMessagingService extends BaseService implements MessageManager
 	    boolean ok = false;
 	    do {
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-		ContainerID cid = mainSlice.getAgentLocation(receiverID);
+		ContainerID cid;
+
+		try {
+		    cid = mainSlice.getAgentLocation(receiverID);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		    cid = mainSlice.getAgentLocation(receiverID);
+		}
 
 		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 		try {

@@ -304,7 +304,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
 		    handleSendMessage(cmd);
 		}
-		if(name.equals(MessagingSlice.INSTALL_MTP)) {
+		else if(name.equals(MessagingSlice.INSTALL_MTP)) {
 		    Object result = handleInstallMTP(cmd);
 		    cmd.setReturnValue(result);
 		}
@@ -461,7 +461,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MTPDescriptor result = new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
 
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-		mainSlice.newMTP(result, myContainer.getID());
+
+		try {
+		    mainSlice.newMTP(result, myContainer.getID());
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		    mainSlice.newMTP(result, myContainer.getID());
+		}
+
 		return result;
 	    }
 	    catch(ClassNotFoundException cnfe) {
@@ -484,7 +493,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		MTPDescriptor desc = new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
 
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-		mainSlice.deadMTP(desc, myContainer.getID());
+
+		try {
+		    mainSlice.deadMTP(desc, myContainer.getID());
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		    mainSlice.deadMTP(desc, myContainer.getID());
+		}
 	    }
 	    else {
 		throw new MTPException("No such address was found on this container: " + address);
@@ -566,7 +583,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    boolean ok = false;
 	    do {
 		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-		ContainerID cid = mainSlice.getAgentLocation(receiverID);
+		ContainerID cid;
+		try {
+		    cid = mainSlice.getAgentLocation(receiverID);
+		}
+		catch(IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+		    cid = mainSlice.getAgentLocation(receiverID);
+		}
+
 		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 		try {
 		    targetSlice.dispatchLocally(msg, receiverID);
