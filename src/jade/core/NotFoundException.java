@@ -37,7 +37,7 @@ public class NotFoundException extends Exception {
     Construct a <code>NotFoundException</code> with the given message.
     @param msg The exception message.
   */
-  NotFoundException(String msg) {
+  public NotFoundException(String msg) {
     super(msg);
   }
 }
