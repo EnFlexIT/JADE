@@ -51,7 +51,7 @@ import java.io.*;
 * the value of <code>:in-reply-to</code> parameter set (fixed) correctly
 * <li> <code> public void handleInformeMessages(Vector messages) </code>
 * to handle the "inform" messages received 
-* </ul>* <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
+* </ul> <li> create a new instance of this class and add it to the agent (agent.addBehaviour())
 * </ul>
 * <p>
 * @author Fabio Bellifemine - CSELT S.p.A
@@ -154,7 +154,7 @@ public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
       if (!waitedAgents.getMembers().hasMoreElements()) {
       	state=2;
       }
-      if (msg.getType().equalsIgnoreCase("inform")) {
+      if (ACLMessage.INFORM == msg.getPerformative()) {
         // msg contains an inform ACLMessage
 	msgInforms.addElement(msg);
       } else	handleOtherMessages(msg);

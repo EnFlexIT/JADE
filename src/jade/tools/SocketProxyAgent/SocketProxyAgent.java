@@ -199,7 +199,7 @@ class Connection extends Thread {
       ACLMessage msg;
       while (true) {
 	msg = ACLMessage.fromText(new InputStreamReader(in)); // parser.Message();
-	if (myOnlyReceiversContains(msg.getDest())) {
+	if (myOnlyReceiversContains(msg.getFirstDest())) {
 	  msg.setSource(myAgent.getLocalName());
 	  if ((msg.getReplyWith() == null) || (msg.getReplyWith().length()<1))
 	    msg.setReplyWith(myAgent.getLocalName()+"."+getName()+"."+java.lang.System.currentTimeMillis()); 
@@ -249,7 +249,7 @@ class WaitAnswersBehaviour extends SimpleBehaviour {
   WaitAnswersBehaviour(Agent a, ACLMessage m, PrintStream o) {
     super(a);
     out = o;
-    mt = MessageTemplate.and(MessageTemplate.MatchSource(m.getDest()),MessageTemplate.MatchReplyTo(m.getReplyWith()));
+    mt = MessageTemplate.and(MessageTemplate.MatchSource(m.getFirstDest()),MessageTemplate.MatchReplyTo(m.getReplyWith()));
     timeout = m.getReplyByDate().getTime()-(new Date()).getTime();
     if (timeout <= 1000) timeout = DEFAULT_TIMEOUT; 
     endingTime = System.currentTimeMillis() + timeout;

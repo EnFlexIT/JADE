@@ -106,9 +106,9 @@ public boolean done() {
       break;
     }
     case 1: {
-      if (!  (msg.getType().equalsIgnoreCase("query-if") || 
-	      msg.getType().equalsIgnoreCase("query-ref"))) {
-	if (! msg.getType().equalsIgnoreCase("not-understood"))
+      if (!  (ACLMessage.QUERY_IF ==msg.getPerformative()|| 
+	      ACLMessage.QUERY_REF == msg.getPerformative())) {
+	if (! (ACLMessage.NOT_UNDERSTOOD == msg.getPerformative()))
 	  SendNotUnderstood(msg, "unexpected Communicative Act");
 	state = 0;
       } else { 
@@ -118,10 +118,10 @@ public boolean done() {
       break;
     }
     case 2: {
-      if (! ( reply.getType().equalsIgnoreCase("inform") ||
-	      reply.getType().equalsIgnoreCase("not-understood") ||
-	      reply.getType().equalsIgnoreCase("failure") ||
-	      reply.getType().equalsIgnoreCase("refuse")))
+      if (! ( ACLMessage.INFORM == reply.getPerformative() ||
+	      ACLMessage.NOT_UNDERSTOOD == reply.getPerformative() ||
+	      ACLMessage.FAILURE == reply.getPerformative()||
+	      ACLMessage.REFUSE == reply.getPerformative()))
 	SendFailure(msg,"ill-formed return in handleQueryMessage");
       else 
 	SendReply(msg,reply);

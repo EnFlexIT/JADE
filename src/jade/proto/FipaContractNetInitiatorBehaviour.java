@@ -261,7 +261,7 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       if (!waitedAgents.getMembers().hasMoreElements()) {
 	state=2;
 	}
-      if (msg.getType().equalsIgnoreCase("propose")) 
+      if (ACLMessage.PROPOSE == msg.getPerformative()) 
 	msgProposals.addElement(msg);    
       else { 
 	handleOtherMessages(msg);
@@ -299,11 +299,11 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
       String replyWith = "ContractNetState4"+(new Date()).getTime();
       for (int i=0; i<msgAcceptReject.size(); i++) {
 	tmpmsg = (ACLMessage)msgAcceptReject.elementAt(i);
-	if (tmpmsg.getType().equalsIgnoreCase("accept-proposal")) {
+	if (ACLMessage.ACCEPT_PROPOSAL ==tmpmsg.getPerformative()) {
 	  tmptime = tmpmsg.getReplyByDate().getTime()-(new Date()).getTime();
 	  if (timeout < tmptime)
 	    timeout = tmptime; // put in timeout the maximum timeout
-	  waitedAgents.addMember(tmpmsg.getDest());
+	  waitedAgents.addMember(tmpmsg.getFirstDest());
 	}
 	tmpmsg.setSource(myAgent.getName());
 	tmpmsg.setReplyWith(replyWith);
