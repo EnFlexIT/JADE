@@ -29,7 +29,7 @@ import jade.core.ContainerID;
 import jade.core.AgentState;
 
 //__SECURITY__BEGIN
-import jade.security.AgentPrincipal;
+import jade.security.JADEPrincipal;
 //__SECURITY__END
 
 /**
@@ -56,8 +56,8 @@ public class AgentEvent extends JADEEvent {
   private String behaviourFrom = null;
   private String behaviourTo = null;
 //__SECURITY__BEGIN
-	private AgentPrincipal oldPrincipal = null;
-  private AgentPrincipal newPrincipal = null;
+  private JADEPrincipal oldPrincipal = null;
+  private JADEPrincipal newPrincipal = null;
 //__SECURITY__END
 
   public AgentEvent(int id, AID aid, AgentState f, AgentState t, ContainerID cid) {
@@ -73,7 +73,7 @@ public class AgentEvent extends JADEEvent {
   }
 
 //__SECURITY__BEGIN
-  public AgentEvent(int id, AID aid, AgentPrincipal f, AgentPrincipal t, ContainerID cid) {
+  public AgentEvent(int id, AID aid, JADEPrincipal f, JADEPrincipal t, ContainerID cid) {
     super(id, cid);
     //myID = id;
     if(!isChangedAgentPrincipal()) {
@@ -140,11 +140,11 @@ public class AgentEvent extends JADEEvent {
   }
 
 //__SECURITY__BEGIN
-  public AgentPrincipal getOldPrincipal() {
+  public JADEPrincipal getOldPrincipal() {
     return oldPrincipal;
   }
 
-  public AgentPrincipal getNewPrincipal() {
+  public JADEPrincipal getNewPrincipal() {
     return newPrincipal;
   }
 //__SECURITY__END

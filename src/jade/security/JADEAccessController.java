@@ -30,7 +30,7 @@ import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.MainContainer;
 import jade.core.Profile;
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import java.security.Permission;
 
 

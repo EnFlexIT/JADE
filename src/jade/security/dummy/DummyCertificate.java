@@ -30,7 +30,7 @@ import jade.util.leap.List;
 import java.util.Date;
 
 
-public class DummyCertificate implements IdentityCertificate, DelegationCertificate, jade.util.leap.Serializable {
+public class DummyCertificate implements DelegationCertificate, jade.util.leap.Serializable {
 	
 	JADEPrincipal subject = new DummyPrincipal();
 	

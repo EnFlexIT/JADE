@@ -29,7 +29,7 @@ import jade.core.AID;
 import jade.core.ContainerID;
 
 
-public class DummyPrincipal implements AgentPrincipal, ContainerPrincipal, jade.util.leap.Serializable {
+public class DummyPrincipal implements JADEPrincipal, jade.util.leap.Serializable {
 	
 	protected String name = null;
 	

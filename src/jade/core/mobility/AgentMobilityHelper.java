@@ -34,7 +34,6 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
-import jade.security.CertificateFolder;
 import jade.security.AuthException;
 
 import jade.util.leap.List;

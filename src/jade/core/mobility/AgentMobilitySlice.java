@@ -36,7 +36,7 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -77,6 +77,6 @@ public interface AgentMobilitySlice extends Service.Slice {
 
     boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException;
     void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;
-    void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException;
+    void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, AuthException, NotFoundException, NameClashException;
 
 }

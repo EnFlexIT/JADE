@@ -66,7 +66,19 @@ public class DummySecurityFactory extends SecurityFactory {
   }
 
   public JADEAuthority newJADEAuthority() {
-    return null; //new DummyJADEAutority();
+    return new JADEAuthority() {
+	  public void init(String s, Agent a) { }
+ 	  public void init(String s, Agent a, Credentials c) { }
+      public void init(Agent myAgent, Credentials creds) { }
+      public void init(String authorityName, Profile prof) { }
+      public void init(String authorityName, Profile prof, Credentials creds) { }
+      public JADEPrincipal getJADEPrincipal() { return null; }
+	  public SDSIName getSDSIName() { return null; }
+      public void verify(JADECertificate certificate) { }
+      public void sign(JADECertificate certificate) { }
+	  public String getName() { return ""; }
+
+    };
   }
 
   public JADEPrincipal newJADEPrincipal(SDSIName sdsiname) {

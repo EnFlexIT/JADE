@@ -70,9 +70,8 @@ import jade.core.UnreachableException;
 import jade.lang.acl.ACLMessage;
 
 import jade.security.Authority;
-import jade.security.CertificateFolder;
-import jade.security.AgentPrincipal;
-import jade.security.IdentityCertificate;
+import jade.security.Credentials;
+import jade.security.JADEPrincipal;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -547,9 +546,9 @@ public class AgentMobilityService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    CertificateFolder certs = (CertificateFolder)params[2];
+	    Credentials creds = (Credentials)params[2];
 
-	    clonedAgent(agentID, cid, certs);
+	    clonedAgent(agentID, cid, creds);
 	}
 
 	private void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
@@ -572,12 +571,12 @@ public class AgentMobilityService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	private void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws AuthException, NotFoundException, NameClashException {
+	private void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws AuthException, NotFoundException, NameClashException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(agentID, cid, certs, false); 
+		    impl.bornAgent(agentID, cid, creds, false); 
 		}
 		catch(NameClashException nce) {
 		    try {
@@ -595,7 +594,7 @@ public class AgentMobilityService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(agentID, cid, certs, true);
+			impl.bornAgent(agentID, cid, creds, true);
 		    }
 		}
 	    }
@@ -692,10 +691,10 @@ public class AgentMobilityService extends BaseService {
 		    GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.INFORM_CLONED, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    CertificateFolder certs = (CertificateFolder)params[2];
+		    Credentials creds = (Credentials)params[2];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(cid);
-		    gCmd.addParam(certs);
+		    gCmd.addParam(creds);
 
 		    result = gCmd;
 		}
@@ -750,7 +749,7 @@ public class AgentMobilityService extends BaseService {
 		// --- End of code that should go into the Security Service ---    
 		*/
 
-	  CertificateFolder agentCerts = null;
+	  Credentials agentCerts = null;
 		//#MIDP_EXCLUDE_BEGIN
 		//CertificateFolder agentCerts = instance.getCertificateFolder();
 		//#MIDP_EXCLUDE_END

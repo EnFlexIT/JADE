@@ -37,7 +37,7 @@ import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
 
-import jade.security.CertificateFolder;
+import jade.security.Credentials;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -245,12 +245,12 @@ public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobil
 	}
     }
 
-    public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
+    public void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, AuthException, NotFoundException, NameClashException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_CLONEDAGENT, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(cid);
-	    cmd.addParam(certs);
+	    cmd.addParam(creds);
 
 
 	    Node n = getNode();

@@ -57,7 +57,7 @@ import jade.core.messaging.GenericMessage;
 import jade.core.behaviours.Behaviour;
 
 import jade.lang.acl.ACLMessage;
-import jade.security.AgentPrincipal;
+import jade.security.JADEPrincipal;
 import jade.tools.ToolNotifier;
 
 import jade.util.SynchList;
@@ -629,8 +629,8 @@ public class NotificationService extends BaseService {
 	private void handleNotifyChangedAgentPrincipal(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
 	    AID id = (AID)params[0];
-	    AgentPrincipal from = (AgentPrincipal)params[1];
-	    AgentPrincipal to = (AgentPrincipal)params[2];
+	    JADEPrincipal from = (JADEPrincipal)params[1];
+	    JADEPrincipal to = (JADEPrincipal)params[2];
 
 	    fireChangedAgentPrincipal(id, from, to);
 	}
@@ -786,7 +786,7 @@ public class NotificationService extends BaseService {
 
 
     //__SECURITY__BEGIN
-    private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
+    private void fireChangedAgentPrincipal(AID agentID, JADEPrincipal from, JADEPrincipal to) {
   	// NOTE: A normal synchronized block could create deadlock problems
   	// as it prevents concurrent scannings of the listeners list.
 	List l = agentListeners.startScanning();

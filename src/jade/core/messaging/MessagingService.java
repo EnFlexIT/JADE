@@ -62,7 +62,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 
 import jade.security.Authority;
-import jade.security.AgentPrincipal;
+import jade.security.JADEPrincipal;
 import jade.security.PrivilegedExceptionAction;
 import jade.security.AuthException;
 
@@ -338,14 +338,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    Object[] params = cmd.getParams();
 	    AID sender = (AID)params[0];
 	    GenericMessage msg = (GenericMessage)params[1];
-      AID dest = (AID)params[2];
+            AID dest = (AID)params[2];
 
-	    // --- This code could go into a Security Service, intercepting the message sending...
+	    // --- This code must go into a Security Service, intercepting the message sending...
 
-	    AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
+	    //AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
 
-	    Authority authority = myContainer.getAuthority();
-	    authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
+	    //Authority authority = myContainer.getAuthority();
+	    //authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
 
 	    // --- End of security code		
 
@@ -353,15 +353,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    AuthException lastException = null;
 
    
-      try {
-        AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-        authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
+      //try {
+        //AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
+        //authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
         myMessageManager.deliver(msg, dest, MessagingService.this);  
-      }
-      catch (AuthException ae) {
-        lastException = ae;
-        notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-      }
+      //}
+      //catch (AuthException ae) {
+      //  lastException = ae;
+      //  notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
+      //}
       
 	    if(lastException != null)
         throw lastException;
@@ -398,11 +398,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
 	    failure.setContent(content);
 
-	    try {
-        Authority authority = myContainer.getAuthority();
-        authority.doPrivileged(new PrivilegedExceptionAction() {
-            public Object run() {
-              try {
+            try {
                 GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
                 command.addParam(theAMS);
                 command.addParam(new GenericMessage(failure));
@@ -413,13 +409,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
                 // It should never happen
                 se.printStackTrace();
               }
-              return null; // nothing to return
-            }
-          });
-	    } catch(Exception e) {
-        // should be never thrown
-        e.printStackTrace();
-	    }
     }
 
     private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {

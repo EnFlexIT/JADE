@@ -27,7 +27,7 @@ package jade.domain.introspection;
 import jade.core.AID;
 import jade.core.ContainerID;
 
-import jade.security.AgentPrincipal;
+import jade.security.JADEPrincipal;
 
 /**
    An introspection event, recording the change of the ownership of an

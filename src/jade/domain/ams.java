@@ -71,11 +71,7 @@ import jade.mtp.MTPDescriptor;
 
 import jade.security.Authority;
 import jade.security.JADEPrincipal;
-import jade.security.AgentPrincipal;
-import jade.security.ContainerPrincipal;
-import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
-import jade.security.CertificateFolder;
 import jade.security.AuthException;
 import jade.security.CertificateException;
 import jade.security.PrivilegedExceptionAction;
@@ -217,12 +213,12 @@ public class ams extends Agent implements AgentManager.Listener {
 			args[n] = (String)listArg.get(n);
 		}
 	
-		try {
+
 			// IdentityCertificate: The new agent will have the same 
 			// ownership as the requester
-			final String ownership = getAgentOwnership(requester);
+			//final String ownership = getAgentOwnership(requester);
 		
-			Authority authority = getAuthority();
+			//Authority authority = getAuthority();
                   /*
 			AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, ownership);
 		  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
@@ -249,8 +245,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 			final CertificateFolder agentCerts = new CertificateFolder(identity, delegation);
 	*/
-	    authority.doAsPrivileged(new PrivilegedExceptionAction() {
-		    public Object run() throws Exception /*throws UnreachableException, AuthException, NotFoundException, NameClashException*/ {
+                      
 					Thread auxThread = new Thread() {
 				    public void run() {
 							try {
@@ -281,30 +276,8 @@ public class ams extends Agent implements AgentManager.Listener {
 				    }
 					};
 					auxThread.start();
-					return null;
-		    }
-			}, null); //requesterCredentials);
-		}
-		catch(CertificateException ce) {
-			throw new Unauthorised();
-		}
-		/*catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action CreateAgent", 0);
-			throw new Unauthorised();
-		}
-		catch (UnreachableException ue) {
-	    throw new InternalError("Destination container unreachable. "+ue.getMessage());
-		}
-		catch (NotFoundException nfe) {
-	    throw new InternalError("Destination container not found. "+nfe.getMessage());
-		}
-		catch (NameClashException nce) {
-		    throw new AlreadyRegistered();
-		}*/
-		catch (Exception e) {
-			e.printStackTrace();
-	    throw new InternalError("Unexpected exception. "+e.getMessage());
-		}
+
+
 	}
 	
 	// KILL AGENT
@@ -1182,7 +1155,7 @@ public class ams extends Agent implements AgentManager.Listener {
   	logger.log(Logger.CONFIG,ev.toString());
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
-    String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
+    String ownership = JADEPrincipal.NONE; //((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
 
     BornAgent ba = new BornAgent();
     ba.setAgent(agentID);
@@ -1314,8 +1287,8 @@ public class ams extends Agent implements AgentManager.Listener {
     ChangedAgentOwnership cao = new ChangedAgentOwnership();
     cao.setAgent(name);
     cao.setWhere(cid);
-    cao.setFrom(((AgentPrincipal)ev.getOldPrincipal()).getOwnership());
-    cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getOwnership());
+    cao.setFrom( JADEPrincipal.NONE ); //((JADEPrincipal)ev.getOldPrincipal()).getOwnership() );
+    cao.setTo( JADEPrincipal.NONE ); //((JADEPrincipal)ev.getNewPrincipal()).getOwnership() );
 
     EventRecord er = new EventRecord(cao, here());
     er.setWhen(ev.getTime());
@@ -1443,7 +1416,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	 */
 	private String getContainerOwnership(ContainerID container) {
 		// FIXME: should use AgentManager to do that
-		return ContainerPrincipal.NONE;
+		return JADEPrincipal.NONE;
 	}
 
 	/**
@@ -1458,7 +1431,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		catch (Exception e) {
 			// Do nothing
 		}
-		return (ownership != null ? ownership : AgentPrincipal.NONE);
+		return (ownership != null ? ownership : JADEPrincipal.NONE);
 	}
 		
 	/**
