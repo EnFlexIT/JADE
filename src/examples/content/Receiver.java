@@ -61,7 +61,7 @@ public class Receiver extends Agent {
 			    ContentElement p = manager.extractContent(msg);
 			    if(p instanceof FatherOf) {
 				proposition = (FatherOf)p; 
-				System.out.println("[" + getLocalName() + "] Information stored.");
+				System.out.println("[" + getLocalName() + "] Receiver inform message: information stored.");
 				break;
 			    }
 			case ACLMessage.QUERY_REF:
@@ -87,7 +87,7 @@ public class Receiver extends Agent {
 
 				send(msg);
 
-				System.out.println("[" + getLocalName() + "] Reply sent:");
+				System.out.println("[" + getLocalName() + "] Received query-ref message: reply sent:");
 				absEquals.dump();
 				break;
 			    }
