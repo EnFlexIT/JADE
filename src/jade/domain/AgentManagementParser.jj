@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.23  1999/11/08 15:24:49  rimassaJade
+  Added lexical tokens and grammar productions to support the message
+  sniffer.
+
   Revision 1.22  1999/10/06 08:32:33  rimassa
   Removed syntax checks for communication protocols. Changed WORD token
   definition to allow words starting with ':'.
@@ -214,7 +218,7 @@ AgentManagementOntology.Action ActionWithoutParenthesis() :
 }
 {
   <ACTION> AgentName()
-    "(" ( a = AMSActionBody() | a = DFActionBody() | a = DFSearchBody() | a = ACCActionBody() ) ")"
+    "(" ( a = AMSActionBody() | a = DFActionBody() | a = DFSearchBody() | a = ACCActionBody() | a = SniffAgentOnBody() ) ")"
   { return a; }
 }
 
@@ -224,8 +228,8 @@ AgentManagementOntology.AMSAction AMSAction() :
 }
 {
   "(" <ACTION> AgentName()
-    "(" ( a = AMSActionBody() | a = CreateAgentBody() | a = KillAgentBody() | 
-	  a = KillContainerBody() | a = QueryPlatformProfileBody() ) ")"
+    "(" ( a = SniffAgentOnBody() | a = SniffAgentOffBody() | a = AMSActionBody() | a = CreateAgentBody() |
+	  a = KillAgentBody() | a = KillContainerBody() | a = QueryPlatformProfileBody() ) ")"
   ")"
   { return a; }
 }
@@ -339,6 +343,37 @@ AgentManagementOntology.AMSAction QueryPlatformProfileBody() :
     return a;
   }
 }
+
+AgentManagementOntology.AMSAction SniffAgentOnBody() :
+{
+  AgentManagementOntology.SniffAgentOnAction saoa = new AgentManagementOntology.SniffAgentOnAction();
+  Token t;
+}
+{
+  ( t = <SNIFF_ON> )
+  { 
+    saoa.setName(t.image);
+  }
+  ( Sniff_Description(saoa) ) // Maybe a '+' is needed
+
+  { return saoa; }
+}
+
+AgentManagementOntology.AMSAction SniffAgentOffBody() :
+{
+  AgentManagementOntology.SniffAgentOffAction saoa = new AgentManagementOntology.SniffAgentOffAction();
+  Token t;
+}
+{
+  ( t = <SNIFF_OFF> )
+  { 
+    saoa.setName(t.image);
+  }
+  ( Sniff_Description_Off(saoa) ) // Maybe a '+' is needed
+
+  { return saoa; }
+}
+
 
 AgentManagementOntology.CreateAgentAction CreateAgentBody() :
 {
@@ -538,6 +573,21 @@ AgentManagementOntology.AMSAgentDescriptor AMS_Description() :
   { return result; }
 }
 
+void Sniff_Description(AgentManagementOntology.SniffAgentOnAction saoa) :
+{
+}
+{
+  "(" SniffDescriptionBody(saoa) ")"
+}
+
+void Sniff_Description_Off(AgentManagementOntology.SniffAgentOffAction saoa) :
+{
+}
+{
+  "(" SniffDescriptionBodyOff(saoa) ")"
+}
+
+
 AgentManagementOntology.AMSAgentDescriptor AMSDescriptionBody() :
 {
   AgentManagementOntology.AMSAgentDescriptor result = new AgentManagementOntology.AMSAgentDescriptor();
@@ -549,6 +599,69 @@ AgentManagementOntology.AMSAgentDescriptor AMSDescriptionBody() :
  }
 
 }
+
+void SniffDescriptionBody(AgentManagementOntology.SniffAgentOnAction saoa) :
+{
+}
+{
+ <SNIFF_NAME> ( Sniffing_description(saoa) ) // Maybe a '+' is needed
+}
+
+void SniffDescriptionBodyOff(AgentManagementOntology.SniffAgentOffAction saoa) :
+{
+}
+{
+ <SNIFF_NAME> ( Sniffing_descriptionOff(saoa) ) // Maybe a '+' is needed
+}
+
+
+void Sniffing_description(AgentManagementOntology.SniffAgentOnAction saoa) :
+{
+  String s;
+  Token t;
+  String name;
+}
+{
+  ( s = AgentName() ) 
+  { 
+    saoa.setSnifferName(s); 
+  }
+  ( <AG_LIST> "{" SniffAGList(saoa) "}" )
+}
+
+void Sniffing_descriptionOff(AgentManagementOntology.SniffAgentOffAction saoa) :
+{
+  String s;
+  Token t;
+  String name;
+}
+{
+  ( s = AgentName() ) 
+  { 
+    saoa.setSnifferName(s); 
+  }
+  ( <AG_LIST> "{" SniffAGListOff(saoa) "}" )
+}
+
+
+void SniffAGList(AgentManagementOntology.SniffAgentOnAction saoa) :
+{	
+  Token t;
+  String s;
+}
+{
+  ( s = AgentName() { saoa.addSniffedAgent(s); } )+
+}
+
+void SniffAGListOff(AgentManagementOntology.SniffAgentOffAction saoa) :
+{	
+  Token t;
+  String s;
+}
+{
+  ( s = AgentName() { saoa.addNotSniffedAgent(s); } )+
+}
+
 
 void FIPA_AMS_description(AgentManagementOntology.AMSAgentDescriptor amsd) :
 {
@@ -566,6 +679,11 @@ void FIPA_AMS_description(AgentManagementOntology.AMSAgentDescriptor amsd) :
     if(amsd.getAddress() == null) amsd.setAddress(s);
     else throw new ParseException();
   }
+| <SNIFF_NAME> s = AgentName()
+	{
+    if(amsd.getName() == null) amsd.setName(s);
+    else throw new ParseException();		
+	}
 | <SIGNATURE> t = <WORD>
   {
     if(amsd.getSignature() == null) amsd.setSignature(t.image);
@@ -883,6 +1001,10 @@ TOKEN:
 | <SEARCH : "search">
 | <REGISTER_AGENT : "register-agent">
 | <DEREGISTER_AGENT : "deregister-agent">
+| <SNIFF_ON : "sniff-agent-on">
+| <SNIFF_OFF : "sniff-agent-off">
+| <SNIFF_NAME : ":sniffer-name">
+| <AG_LIST : ":agent-list">  
 | <AUTHENTICATE : "authenticate">
 | <QUERY_PLATFORM_PROFILE : "query-platform-profile">
 | <MODIFY_AGENT : "modify-agent">
