@@ -32,6 +32,8 @@ import java.util.List;
 
 import jade.lang.acl.ACLMessage;
 
+import jade.mtp.MTPException;
+
 /**
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
@@ -72,7 +74,7 @@ interface AgentContainer extends Remote {
   void uninstallMTP(String address) throws RemoteException, NotFoundException;
 
   void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException;
-  void route(Object env, byte[] payload, String address) throws RemoteException, NotFoundException;
+  void route(Object env, byte[] payload, String address) throws RemoteException, MTPException;
 
   void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException;
   void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException;
