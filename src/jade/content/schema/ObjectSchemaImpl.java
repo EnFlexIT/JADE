@@ -32,16 +32,18 @@ import java.util.Enumeration;
 import jade.content.schema.facets.*;
 import jade.core.CaseInsensitiveString;
 import jade.util.leap.Serializable;
+import jade.util.Logger;
 
 /**
  * @author Giovanni Caire - TILAB
  */
 class ObjectSchemaImpl extends ObjectSchema {
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+
     private class SlotDescriptor implements Serializable {
         private String       name = null;
         private ObjectSchema schema = null;
         private int          optionality = 0;
-
         /**
            Construct a SlotDescriptor
          */
@@ -188,7 +190,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 					v = new Vector();
 					facets.put(ciName, v);
 					//DEBUG
-					//System.out.println("Added facet "+f+" to slot "+slotName); 
+					logger.log(Logger.CONFIG,"Added facet "+f+" to slot "+slotName); 
 				}
 				v.addElement(f);
 			}
@@ -359,7 +361,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 	   */
   	private boolean validate(CaseInsensitiveString slotName, AbsObject value, Ontology onto) throws OntologyException {
 			// DEBUG
-  		//System.out.println("Validating "+value+" as a value for slot "+slotName); 
+  		logger.log(Logger.FINE,"Validating "+value+" as a value for slot "+slotName); 
   		// NOTE: for performance reasons we don't want to scan the schema 
   		// to check if slotValue is a valid slot and THEN to scan again
   		// the schema to validate value. This is the reason for the 
@@ -372,7 +374,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   		SlotDescriptor dsc = getOwnSlot(slotName);
   		if (dsc != null) {
 				// DEBUG
-  			//System.out.println("Slot "+slotName+" is defined in schema "+this); 
+  			logger.log(Logger.CONFIG,"Slot "+slotName+" is defined in schema "+this); 
   			if (value == null) {
   				// Check optionality
   				if (dsc.optionality == MANDATORY) {
@@ -389,7 +391,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   				// - Finally check value against s
   				ObjectSchema s = onto.getSchema(value.getTypeName());
   				//DEBUG 
-  				//System.out.println("Actual schema for "+value+" is "+s); 
+  				logger.log(Logger.CONFIG,"Actual schema for "+value+" is "+s); 
   				if (s == null) {
   					throw new OntologyException("No schema found for type "+value.getTypeName());
   				}
@@ -397,7 +399,7 @@ class ObjectSchemaImpl extends ObjectSchema {
   					throw new OntologyException("Schema "+s+" for element "+value+" is not compatible with schema "+dsc.schema+" for slot "+slotName); 
   				}
   				//DEBUG
-  				//System.out.println("Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName); 
+  				logger.log(Logger.CONFIG,"Schema "+s+" for type "+value+" is compatible with schema "+dsc.schema+" for slot "+slotName); 
   				s.validate(value, onto);
   			}
   			slotFound = true;
@@ -425,13 +427,13 @@ class ObjectSchemaImpl extends ObjectSchema {
   				while (e.hasMoreElements()) {
   					Facet f = (Facet) e.nextElement();
   					//DEBUG
-  					//System.out.println("Checking facet "+f+" defined on slot "+slotName);
+  					logger.log(Logger.CONFIG,"Checking facet "+f+" defined on slot "+slotName);
   					f.validate(value, onto);
   				}
   			}
   			else {
   				//DEBUG
-  				//System.out.println("No facets for slot "+slotName);
+  				logger.log(Logger.CONFIG,"No facets for slot "+slotName);
   			}
   		}
   		
