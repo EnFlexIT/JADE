@@ -73,9 +73,6 @@ class acc implements MTP.Dispatcher {
   @ return true is the passed address is one of the addresses of this platform, false otherwise
   **/
   boolean isAPlatformAddress(String address) {
-  	System.err.println("isAPlatformAddress "+address);
-  	for (Iterator i=externalAddresses.iterator(); i.hasNext(); )
-  		System.err.println("contains "+i.next().toString());
   		String tmp = address.toLowerCase();
   		if (tmp.startsWith("ior"))
   			tmp = "iiop://"+tmp;
