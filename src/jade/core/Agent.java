@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.25  1998/11/08 23:57:50  rimassa
+  Added a join() method to allow AgentContainer objects to wait for all
+  their agents to terminate before exiting.
+
   Revision 1.24  1998/11/05 23:31:20  rimassa
   Added a protected takeDown() method as a placeholder for
   agent-specific destruction actions.
@@ -210,6 +214,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return myName;
   }
 
+  // This is used by the agent container to wait for agent termination
+  void join() {
+    try { // FIXME: Some deadlock problems, since thread.interrupt() does not seem to work
+      doWake();
+      myThread.join(500); // Wait at most 500 milliseconds
+    }
+    catch(InterruptedException ie) {
+      ie.printStackTrace();
+    }
+
+  }
+
   // State transition methods for Agent Platform Life-Cycle
 
   public void doStart(String name, String platformAddress) { // Transition from Initiated to Active
@@ -240,11 +256,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   public synchronized void doWait() { // Transition from Active to Waiting
     myAPState = AP_WAITING;
-    try {
-      wait(); // Blocks on its monitor
-    }
-    catch(InterruptedException ie) {
-      myThread.interrupt();
+    while(myAPState == AP_WAITING) {
+      try {
+	wait(); // Blocks on its monitor
+      }
+      catch(InterruptedException ie) {
+	myThread.interrupt();
+	System.out.println("Thread " + Thread.currentThread().getName() + " Interrupted");
+	myAPState = AP_DELETED;
+      }
     }
   }
 
@@ -271,16 +291,16 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
       mainLoop();
 
-      takeDown();
-
-      destroy();
     }
     catch(InterruptedException ie) {
-      destroy();
+      // Do Nothing, since this is a killAgent from outside
     }
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
+    }
+    finally {
+      takeDown();
       destroy();
     }
 
@@ -298,6 +318,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
       // Just do it!
       currentBehaviour.action();
+
+      if(myAPState == AP_DELETED)
+	return;
 
       // When it is needed no more, delete it from the behaviours queue
       if(currentBehaviour.done()) {
@@ -319,7 +342,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   private void destroy() {
-    System.out.println("Agent " + myName + " is dead.");
+
     try {
       deregisterWithAMS();
     }
@@ -712,6 +735,3 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
 }
-
-
-
