@@ -143,10 +143,7 @@ public class Start extends MicroBoot implements CommandListener {
     	}
     	else {
     		try {
-    			form.removeCommand(okCommand); 
-    			form.delete(1);
-    			form.delete(0);
-    			form.setTicker(new Ticker("Joining chat..."));
+    			si.setText("Joining chat. Please wait...");
 	    		MicroRuntime.startAgent(name, "chat.client.ChatClientAgent", null);
     		}
     		catch (Exception e) {
