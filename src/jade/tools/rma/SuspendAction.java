@@ -43,7 +43,7 @@ class SuspendAction extends AgentAction {
 
   public void doAction(AgentTree.AgentNode node ) {
     node.setState("Suspended");
-    node.changeIcon(0);
+    node.changeIcon(true);
     String toSuspend = node.getName();
     AID agentID = new AID();
     agentID.setName(toSuspend);
