@@ -51,7 +51,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void dispatchLocally(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_DISPATCHLOCALLY, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_DISPATCHLOCALLY, NAME, null);
 	    cmd.addParam(msg);
 	    cmd.addParam(receiverID);
 
@@ -77,7 +77,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_ROUTEOUT, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_ROUTEOUT, NAME, null);
 	    cmd.addParam(msg);
 	    cmd.addParam(receiverID);
 	    cmd.addParam(address);
@@ -104,7 +104,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_GETAGENTLOCATION, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_GETAGENTLOCATION, NAME, null);
 	    cmd.addParam(agentID);
 
 
@@ -130,7 +130,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public MTPDescriptor installMTP(String address, String className) throws IMTPException, ServiceException, MTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_INSTALLMTP, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_INSTALLMTP, NAME, null);
 	    cmd.addParam(address);
 	    cmd.addParam(className);
 
@@ -160,7 +160,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_UNINSTALLMTP, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_UNINSTALLMTP, NAME, null);
 	    cmd.addParam(address);
 
 
@@ -188,7 +188,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_NEWMTP, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_NEWMTP, NAME, null);
 	    cmd.addParam(mtp);
 	    cmd.addParam(cid);
 
@@ -214,7 +214,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException, ServiceException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_DEADMTP, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_DEADMTP, NAME, null);
 	    cmd.addParam(mtp);
 	    cmd.addParam(cid);
 
@@ -240,7 +240,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_ADDROUTE, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_ADDROUTE, NAME, null);
 	    cmd.addParam(mtp);
 	    cmd.addParam(sliceName);
 
@@ -266,7 +266,7 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 
     public void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_REMOVEROUTE, MessagingService.NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_REMOVEROUTE, NAME, null);
 	    cmd.addParam(mtp);
 	    cmd.addParam(sliceName);
 
