@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.18  1998/11/01 14:58:25  rimassa
+  Now shutDown() method is correctly called on exit.
+
   Revision 1.17  1998/10/31 16:30:58  rimassa
   Added support for correct agent and container termination. Now when an
   Agent informs its AgentContainer it is ended, the container removes
@@ -244,8 +247,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Deregister itself as a container
       myPlatform.removeContainer(this); // RMI call
 
-      System.exit(0);
-
     }
     catch(RemoteException re) {
       re.printStackTrace();
@@ -253,6 +254,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   }
 
   protected void finalize() {
+    shutDown();
   }
 
   // Implementation of CommListener interface
@@ -282,7 +284,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       myPlatform.deadAgent(name); // RMI call
 
       if(localAgents.isEmpty())
-	shutDown();
+	System.exit(0);
 
     }
     catch(RemoteException re) {
