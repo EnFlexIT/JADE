@@ -28,6 +28,9 @@ import jade.util.leap.Serializable;
 
 import jade.core.Agent;
 
+// DEBUG
+//import jade.proto.*;
+
 /**
    Composite behaviour with Finite State Machine based children scheduling. 
    It is a <code>CompositeBehaviour</code> that executes its children 
@@ -252,6 +255,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   	}
   	current = getState(currentName);
   	// DEBUG
+  	//if (this instanceof SubscriptionResponder || this instanceof SubscriptionInitiator)
   	//System.out.println(myAgent.getLocalName()+" is Executing state "+currentName);
   }
   
@@ -291,6 +295,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   			throw new RuntimeException("Inconsistent FSM. State: "+previousName+" event: "+currentResult);
   		}
   		// DEBUG
+  		//if (this instanceof SubscriptionResponder || this instanceof SubscriptionInitiator)
   		//System.out.println(myAgent.getLocalName()+ " is Executing state "+currentName);
   	}
   }
