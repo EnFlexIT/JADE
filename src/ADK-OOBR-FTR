@@ -1868,3 +1868,1055 @@ Frame1@- setVisible@public void setVisible(boolean b) {
 Frame1@= textArea1@java.awt.TextArea textArea1;
 Frame1@= textArea2@java.awt.TextArea textArea2;
 Frame1@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent1.java
+Agent1@- Behaviour1@public Behaviour1(String ID) {
+Agent1@- action@public void action() {
+Agent1@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent2.java
+Agent2@- Behaviour2@public Behaviour2(Agent a) {
+Agent2@- action@public void action() {
+Agent2@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent3.java
+Agent3@- Behaviour3Step@public Behaviour3Step(Agent a, String code) {
+Agent3@- action@public void action() {
+Agent3@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex1/Agent4.java
+Agent4@- Behaviour4Step@public Behaviour4Step(Agent a, String code, int i) {
+Agent4@- action@public void action() {
+Agent4@- done@public boolean done() {
+Agent4@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AboutDialog.java
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, String title, boolean modal) {
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, boolean modal) {
+AboutDialog@- AboutDialog_WindowClosing@void AboutDialog_WindowClosing(java.awt.event.WindowEvent event) {
+AboutDialog@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+AboutDialog@- addNotify@public void addNotify() {
+AboutDialog@- okButton_Clicked@void okButton_Clicked(java.awt.event.ActionEvent event) {
+AboutDialog@- setVisible@public void setVisible(boolean b) {
+AboutDialog@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentBroadcaster.java
+AgentBroadcaster@- BehaviourElement@public BehaviourElement(String source, String dest, String content) {
+AgentBroadcaster@- action@public void action() {
+AgentBroadcaster@- appendMessage@public synchronized void appendMessage(ACLMessage msg) {
+AgentBroadcaster@- done@public boolean done() {
+AgentBroadcaster@- dumpMessage@public void dumpMessage() {
+AgentBroadcaster@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentReceiver.java
+AgentReceiver@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/AgentSender.java
+AgentSender@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/FilebasedSenderAgent.java
+FilebasedSenderAgent@- setup@protected void setup() {
+FilebasedSenderAgent@- takeDown@protected void takeDown() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex2/Frame1.java
+Frame1@+ Frame1@public Frame1(Agent a) {
+Frame1@+ Frame1@public Frame1(String title) {
+Frame1@+ Frame1@public Frame1() {
+Frame1@- Frame1_WindowClosing@void Frame1_WindowClosing(java.awt.event.WindowEvent event) {
+Frame1@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+Frame1@- addNotify@public void addNotify() {
+Frame1@- main@static public void main(String args[]) {
+Frame1@- miAbout_Action@void miAbout_Action(java.awt.event.ActionEvent event) {
+Frame1@- miExit_Action@void miExit_Action(java.awt.event.ActionEvent event) {
+Frame1@- miOpen_Action@void miOpen_Action(java.awt.event.ActionEvent event) {
+Frame1@- receivedMessage@public void receivedMessage(String msg) {
+Frame1@- setVisible@public void setVisible(boolean b) {
+Frame1@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentMessageFilter.java
+AgentMessageFilter@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex3/AgentThread.java
+AgentThread@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentRequester.java
+AgentRequester@- ReceiveBehaviour@protected ReceiveBehaviour() {
+AgentRequester@- Receiver@private Receiver() {
+AgentRequester@> action@public abstract void action();
+AgentRequester@- agreed@public boolean agreed() {
+AgentRequester@- done@public boolean done() {
+AgentRequester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
+AgentRequester@- getConvID@public String getConvID() {
+AgentRequester@- getPeer@public String getPeer() {
+AgentRequester@- handleFailure@public void handleFailure(ACLMessage msg) {
+AgentRequester@- handleInform@public void handleInform(ACLMessage msg) {
+AgentRequester@- newConvID@private String newConvID() {
+AgentRequester@- receive@public static final ACLMessage receive(AgentRequester a, String messageType) {
+AgentRequester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
+AgentRequester@- reset@public void reset() {
+AgentRequester@- sendRequest@public void sendRequest() {
+AgentRequester@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex4/AgentResponder.java
+AgentResponder@- MultipleBehaviour@public MultipleBehaviour() {
+AgentResponder@- ResponderBehaviour@public ResponderBehaviour(ACLMessage msg) {
+AgentResponder@- SendBehaviour@public SendBehaviour(ACLMessage msg) {
+AgentResponder@- action@public void action() {
+AgentResponder@- action@public void action() {
+AgentResponder@- action@public void action() {
+AgentResponder@- done@public boolean done() {
+AgentResponder@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/SubDF.java
+SubDF@- setup@public void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/amsTester.java
+amsTester@- ReceiveBehaviour@protected ReceiveBehaviour() {
+amsTester@- Receiver@private Receiver() {
+amsTester@> action@public abstract void action();
+amsTester@- agreed@public boolean agreed() {
+amsTester@- done@public boolean done() {
+amsTester@- dumpMessage@public void dumpMessage(ACLMessage msg) {
+amsTester@- getAction@public String getAction() {
+amsTester@- getConvID@public String getConvID() {
+amsTester@- handleFailure@public void handleFailure(ACLMessage msg) {
+amsTester@- handleInform@public void handleInform(ACLMessage msg) {
+amsTester@- newConvID@private String newConvID() {
+amsTester@- receive@public static final ACLMessage receive(amsTester a, String messageType) {
+amsTester@- receiveAgree@public void receiveAgree(ACLMessage msg) {
+amsTester@- sendRequest@public void sendRequest() {
+amsTester@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/ex5/dfTester.java
+dfTester@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/jess/BasicJessBehaviour.java
+BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile, int maxJessPasses){
+BasicJessBehaviour@+ BasicJessBehaviour@public BasicJessBehaviour(Agent agent, String jessFile){
+BasicJessBehaviour@- JessSend@public JessSend(Agent a){
+BasicJessBehaviour@> JessString@public abstract String JessString(ACLMessage msg);
+BasicJessBehaviour@- action@public void action() {
+BasicJessBehaviour@- assert@void assert(String fact) {
+BasicJessBehaviour@- call@public Value call(ValueVector vv, Context context) throws ReteException {
+BasicJessBehaviour@- findFactByID@private ValueVector findFactByID(Rete r, int id) throws ReteException {
+BasicJessBehaviour@- name@public String name() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/jess/JessAgent.java
+JessAgent@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/examples/jess/JessBehaviour.java
+JessBehaviour@+ JessBehaviour@public JessBehaviour(Agent agent, String jessFile, int maxJessPasses){
+JessBehaviour@- JessString@public String JessString(ACLMessage msg) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/Boot.java
+Boot@+ Boot@private Boot() {
+Boot@- main@public static void main(String args[]) {
+Boot@- usage@private static void usage(){
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/Agent.java
+Agent@+ Agent@public Agent() {
+Agent@- AgentDeathError@AgentDeathError() {
+Agent@- FipaRequestMessage@private ACLMessage FipaRequestMessage(String dest, String replyString) {
+Agent@- activateAllBehaviours@private void activateAllBehaviours() {
+Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
+Agent@- addCommListener@public final void addCommListener(CommListener l) {
+Agent@- authenticateWithAMS@public void authenticateWithAMS(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
+Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive(MessageTemplate pattern) {
+Agent@- blockingReceive@public final synchronized ACLMessage blockingReceive() {
+Agent@- broadcastEvent@private void broadcastEvent(CommEvent event) {
+Agent@- deregisterWithAMS@public void deregisterWithAMS() throws FIPAException {
+Agent@- deregisterWithDF@public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+Agent@- destroy@private void destroy() {
+Agent@- doActivate@public void doActivate() {
+Agent@- doDelete@public void doDelete() {
+Agent@- doFipaRequestClient@private String doFipaRequestClient(ACLMessage request, String replyString) throws FIPAException {
+Agent@- doMove@public void doMove() {
+Agent@- doStart@public void doStart(String name, String platformAddress) {
+Agent@- doSuspend@public void doSuspend() {
+Agent@- doWait@public synchronized void doWait() {
+Agent@- doWake@public synchronized void doWake() {
+Agent@- forwardWithACC@public void forwardWithACC(ACLMessage msg) throws FIPAException {
+Agent@- getAddress@public String getAddress() {
+Agent@- getName@public String getName() {
+Agent@- join@void join() {
+Agent@- mainLoop@private void mainLoop() throws InterruptedException {
+Agent@- modifyAMSRegistration@public void modifyAMSRegistration(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
+Agent@- modifyDFData@public void modifyDFData(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+Agent@- notifyDestruction@private void notifyDestruction() {
+Agent@- parse@public ACLMessage parse(Reader text) {
+Agent@- postMessage@public final synchronized void postMessage (ACLMessage msg) {
+Agent@- putBack@public final synchronized void putBack(ACLMessage msg) {
+Agent@- receive@public final synchronized ACLMessage receive(MessageTemplate pattern) {
+Agent@- receive@public final synchronized ACLMessage receive() {
+Agent@- registerWithAMS@public void registerWithAMS(String signature, int APState, String delegateAgent, String forwardAddress, String ownership) throws FIPAException {
+Agent@- registerWithDF@public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+Agent@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+Agent@- removeCommListener@public final void removeCommListener(CommListener l) {
+Agent@- run@public final void run() {
+Agent@- searchDF@public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {
+Agent@- send@public final void send(ACLMessage msg, AgentGroup g) {
+Agent@- send@public final void send(ACLMessage msg) {
+Agent@- setup@protected void setup() {
+Agent@- takeDown@protected void takeDown() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainer.java
+AgentContainer@> createAgent@void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException;
+AgentContainer@> createAgent@void createAgent(String agentName, String className, boolean startIt) throws RemoteException;
+AgentContainer@> dispatch@void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
+AgentContainer@> exit@void exit() throws RemoteException;
+AgentContainer@> invalidateCacheEntry@void invalidateCacheEntry(String key) throws RemoteException;
+AgentContainer@> killAgent@void killAgent(String agentName) throws RemoteException, NotFoundException;
+AgentContainer@> ping@void ping() throws RemoteException;
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
+AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl() throws RemoteException {
+AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
+AgentContainerImpl@- createAgent@public void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException {
+AgentContainerImpl@- createAgent@public void createAgent(String agentName, String className, boolean startIt) throws RemoteException {
+AgentContainerImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
+AgentContainerImpl@- endSource@public void endSource(String name) {
+AgentContainerImpl@- exit@public void exit() throws RemoteException {
+AgentContainerImpl@+ finalize@protected void finalize() {
+AgentContainerImpl@- invalidateCacheEntry@public void invalidateCacheEntry(String key) throws RemoteException {
+AgentContainerImpl@- joinPlatform@public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
+AgentContainerImpl@- killAgent@public void killAgent(String agentName) throws RemoteException, NotFoundException {
+AgentContainerImpl@- lookup3@private AgentPlatform lookup3(String URL) throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
+AgentContainerImpl@- ping@public void ping() throws RemoteException {
+AgentContainerImpl@- postOtherPlatform@private void postOtherPlatform(ACLMessage msg, String receiverName, String receiverAddr) {
+AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
+AgentContainerImpl@- shutDown@public void shutDown() {
+AgentContainerImpl@- unicastPostMessage@private void unicastPostMessage(ACLMessage msg) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentDescriptor.java
+AgentDescriptor@- getContainer@public AgentContainer getContainer() {
+AgentDescriptor@- getDesc@public AgentManagementOntology.AMSAgentDescriptor getDesc() {
+AgentDescriptor@- setContainer@public void setContainer(AgentContainer ac) {
+AgentDescriptor@- setDesc@public void setDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentGroup.java
+AgentGroup@- addMember@public void addMember(String name) {
+AgentGroup@- getNextMember@public String getNextMember() {
+AgentGroup@- hasMoreMembers@public boolean hasMoreMembers() {
+AgentGroup@- removeMember@public void removeMember(String name) {
+AgentGroup@- reset@public void reset() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatform.java
+AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
+AgentPlatform@> bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
+AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException;
+AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
+AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
+AgentPlatformImpl@- AMSAgentNames@public Enumeration AMSAgentNames() {
+AgentPlatformImpl@- AMSChangeData@public void AMSChangeData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
+AgentPlatformImpl@- AMSContainerNames@public Enumeration AMSContainerNames() {
+AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, Agent instance, String containerName) throws NoCommunicationMeansException {
+AgentPlatformImpl@- AMSCreateAgent@public void AMSCreateAgent(String agentName, String className, String containerName) throws NoCommunicationMeansException {
+AgentPlatformImpl@- AMSDumpData@public void AMSDumpData(String agentName) {
+AgentPlatformImpl@- AMSDumpData@public void AMSDumpData() {
+AgentPlatformImpl@- AMSGetAddress@public String AMSGetAddress(String agentName) {
+AgentPlatformImpl@- AMSGetContainerName@public String AMSGetContainerName(String agentName) {
+AgentPlatformImpl@- AMSKillAgent@public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
+AgentPlatformImpl@- AMSKillContainer@public void AMSKillContainer(String containerName) {
+AgentPlatformImpl@- AMSNewData@public void AMSNewData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException, AgentAlreadyRegisteredException {
+AgentPlatformImpl@- AMSRemoveData@public void AMSRemoveData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
+AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
+AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
+AgentPlatformImpl@- bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
+AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException {
+AgentPlatformImpl@- getContainerName@private String getContainerName(AgentContainer ac) {
+AgentPlatformImpl@- initACC@private void initACC() {
+AgentPlatformImpl@- initAMS@private void initAMS() {
+AgentPlatformImpl@- initDF@private void initDF() {
+AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
+AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
+AgentPlatformImpl@- shutDown@public void shutDown() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/Behaviour.java
+Behaviour@+ Behaviour@public Behaviour(Agent a) {
+Behaviour@+ Behaviour@public Behaviour() {
+Behaviour@> action@public abstract void action();
+Behaviour@- block@public void block() {
+Behaviour@> done@public abstract boolean done();
+Behaviour@- getSource@public Behaviour getSource() {
+Behaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+Behaviour@- init@public void init(boolean b, int d) {
+Behaviour@- isRunnable@boolean isRunnable() {
+Behaviour@- isRunnable@public boolean isRunnable() {
+Behaviour@- isUpwards@public boolean isUpwards() {
+Behaviour@> reset@public abstract void reset();
+Behaviour@- restart@public void restart() {
+Behaviour@- setParent@final void setParent(ComplexBehaviour cb) {
+Behaviour@- setRunnable@void setRunnable(boolean runnable) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommBroadcaster.java
+CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
+CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommEvent.java
+CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message, AgentGroup group) {
+CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
+CommEvent@- getMessage@public ACLMessage getMessage() {
+CommEvent@- getRecipients@public AgentGroup getRecipients() {
+CommEvent@- isMulticast@public boolean isMulticast() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/CommListener.java
+CommListener@> CommHandle@void CommHandle(CommEvent event);
+CommListener@> endSource@void endSource(String name);
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
+ComplexBehaviour@- BehaviourList@public BehaviourList() {
+ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
+ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
+ComplexBehaviour@- action@public final void action() {
+ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
+ComplexBehaviour@- addElement@public void addElement(Behaviour b) {
+ComplexBehaviour@- begin@public void begin() {
+ComplexBehaviour@> bodyAction@protected abstract boolean bodyAction();
+ComplexBehaviour@- done@public boolean done() {
+ComplexBehaviour@- end@public void end() {
+ComplexBehaviour@- getCurrent@public Behaviour getCurrent() {
+ComplexBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+ComplexBehaviour@- isEmpty@public boolean isEmpty() {
+ComplexBehaviour@- next@public boolean next() {
+ComplexBehaviour@- popCurrent@public void popCurrent() {
+ComplexBehaviour@- postAction@protected void postAction() {
+ComplexBehaviour@- preAction@protected void preAction() {
+ComplexBehaviour@- pushCurrent@public void pushCurrent() {
+ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+ComplexBehaviour@- removeElement@public boolean removeElement(Behaviour b) {
+ComplexBehaviour@- reset@public void reset() {
+ComplexBehaviour@- restart@public void restart() {
+ComplexBehaviour@- size@public int size() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/CyclicBehaviour.java
+CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour(Agent a) {
+CyclicBehaviour@+ CyclicBehaviour@public CyclicBehaviour() {
+CyclicBehaviour@- done@public final boolean done() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/NameClashException.java
+NameClashException@+ NameClashException@NameClashException(String msg) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
+NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(Agent a, int endCondition) {
+NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(int endCondition) {
+NonDeterministicBehaviour@- block@public void block() {
+NonDeterministicBehaviour@- bodyAction@protected boolean bodyAction() {
+NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll(Agent a) {
+NonDeterministicBehaviour@- createWhenAll@public static NonDeterministicBehaviour createWhenAll() {
+NonDeterministicBehaviour@- createWhenAny@public static NonDeterministicBehaviour createWhenAny(Agent a) {
+NonDeterministicBehaviour@- createWhenAny@public static NonDeterministicBehaviour createWhenAny() {
+NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour createWhenN(Agent a, int howMany) {
+NonDeterministicBehaviour@- createWhenN@public static NonDeterministicBehaviour createWhenN(int howMany) {
+NonDeterministicBehaviour@- evalCondition@private boolean evalCondition() {
+NonDeterministicBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+NonDeterministicBehaviour@- reset@public void reset() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/NotFoundException.java
+NotFoundException@+ NotFoundException@NotFoundException(String msg) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/OneShotBehaviour.java
+OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour(Agent a) {
+OneShotBehaviour@+ OneShotBehaviour@public OneShotBehaviour() {
+OneShotBehaviour@- done@public final boolean done() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/ReceiverBehaviour.java
+ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg) {
+ReceiverBehaviour@+ ReceiverBehaviour@public ReceiverBehaviour(Agent a, ACLMessage msg, MessageTemplate mt) {
+ReceiverBehaviour@- action@public void action() {
+ReceiverBehaviour@- done@public boolean done() {
+ReceiverBehaviour@- reset@public void reset() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/Scheduler.java
+Scheduler@+ Scheduler@public Scheduler(Agent a) {
+Scheduler@- add@public synchronized void add(Behaviour b) {
+Scheduler@+ finalize@protected void finalize() {
+Scheduler@- remove@public synchronized void remove(Behaviour b) {
+Scheduler@- schedule@public synchronized Behaviour schedule() throws InterruptedException {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/SenderBehaviour.java
+SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg) {
+SenderBehaviour@+ SenderBehaviour@public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
+SenderBehaviour@- action@public void action() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/SequentialBehaviour.java
+SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour(Agent a) {
+SequentialBehaviour@+ SequentialBehaviour@public SequentialBehaviour() {
+SequentialBehaviour@- bodyAction@protected boolean bodyAction() {
+SequentialBehaviour@- handle@protected void handle(RunnableChangedEvent rce) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
+SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
+SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
+SimpleBehaviour@- reset@public void reset() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ACCUnavailableException.java
+ACCUnavailableException@+ ACCUnavailableException@public ACCUnavailableException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AMSOverloadedException.java
+AMSOverloadedException@+ AMSOverloadedException@public AMSOverloadedException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentAlreadyRegisteredException.java
+AgentAlreadyRegisteredException@+ AgentAlreadyRegisteredException@public AgentAlreadyRegisteredException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentManagementOntology.java
+AgentManagementOntology@- ACCAction@public ACCAction() {
+AgentManagementOntology@- AMSAction@public AMSAction() {
+AgentManagementOntology@- APLifeCycle@private APLifeCycle() {
+AgentManagementOntology@+ AgentManagementOntology@private AgentManagementOntology() {
+AgentManagementOntology@- CreateAgentAction@public CreateAgentAction() {
+AgentManagementOntology@- DFSearchAction@public DFSearchAction() {
+AgentManagementOntology@- DomainLifeCycle@private DomainLifeCycle() {
+AgentManagementOntology@- Exception@private Exception() {
+AgentManagementOntology@- KillAgentAction@public KillAgentAction() {
+AgentManagementOntology@- KillContainerAction@public KillContainerAction() {
+AgentManagementOntology@- PlatformProfile@private PlatformProfile() {
+AgentManagementOntology@- ServiceTypes@private ServiceTypes() {
+AgentManagementOntology@- addAddress@public void addAddress(String a) {
+AgentManagementOntology@- addAgentService@public void addAgentService(ServiceDescriptor sd) {
+AgentManagementOntology@- addConstraint@public void addConstraint(Constraint c) {
+AgentManagementOntology@- addInteractionProtocol@public void addInteractionProtocol(String ip) {
+AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
+AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
+AgentManagementOntology@> addProperty@void addProperty(String name, String value);
+AgentManagementOntology@- elements@public Enumeration elements() throws FIPAException {
+AgentManagementOntology@- fromText@public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static DFAction fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static AMSEvent fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static DFSearchResult fromText(Reader r) throws ParseException {
+AgentManagementOntology@- fromText@public static DFAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- fromText@public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
+AgentManagementOntology@- get@public DFAgentDescriptor get(String agentName) throws FIPAException {
+AgentManagementOntology@- getAPState@public String getAPState() {
+AgentManagementOntology@- getAPStateByCode@public String getAPStateByCode(int code) throws FIPAException {
+AgentManagementOntology@- getAPStateByName@public int getAPStateByName(String name) throws FIPAException {
+AgentManagementOntology@- getActor@public String getActor() {
+AgentManagementOntology@- getActor@public String getActor() {
+AgentManagementOntology@- getActor@public String getActor() {
+AgentManagementOntology@> getActor@String getActor();
+AgentManagementOntology@- getAddress@public String getAddress() {
+AgentManagementOntology@- getAddresses@public Enumeration getAddresses() {
+AgentManagementOntology@- getAgentDescriptor@public AMSAgentDescriptor getAgentDescriptor() {
+AgentManagementOntology@- getAgentName@public String getAgentName() {
+AgentManagementOntology@- getAgentServices@public Enumeration getAgentServices() {
+AgentManagementOntology@- getArg@public ACLMessage getArg() {
+AgentManagementOntology@- getArg@public DFAgentDescriptor getArg() {
+AgentManagementOntology@- getArg@public AMSAgentDescriptor getArg() {
+AgentManagementOntology@- getArg@public int getArg() {
+AgentManagementOntology@- getClassName@public String getClassName() {
+AgentManagementOntology@- getCommunicationProps@public String getCommunicationProps() {
+AgentManagementOntology@- getConstraints@public Enumeration getConstraints() {
+AgentManagementOntology@- getContainerName@public String getContainerName() {
+AgentManagementOntology@- getContainerName@public String getContainerName() {
+AgentManagementOntology@- getDFState@public String getDFState() {
+AgentManagementOntology@- getDelegateAgentName@public String getDelegateAgentName() {
+AgentManagementOntology@- getDomainStateByName@public int getDomainStateByName(String name) throws FIPAException {
+AgentManagementOntology@- getDomainStatebyCode@public String getDomainStatebyCode(int code) throws FIPAException {
+AgentManagementOntology@- getException@public FIPAException getException(Reader r) {
+AgentManagementOntology@- getException@public FIPAException getException(String message) {
+AgentManagementOntology@- getFixedProps@public String getFixedProps() {
+AgentManagementOntology@- getFn@public String getFn() {
+AgentManagementOntology@- getForwardAddress@public String getForwardAddress() {
+AgentManagementOntology@- getInteractionProtocols@public Enumeration getInteractionProtocols() {
+AgentManagementOntology@- getKind@public int getKind() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@> getName@String getName();
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getName@public String getName() {
+AgentManagementOntology@- getNegotiableProps@public String getNegotiableProps() {
+AgentManagementOntology@- getOntology@public String getOntology() {
+AgentManagementOntology@- getOntology@public String getOntology() {
+AgentManagementOntology@- getOwnership@public String getOwnership() {
+AgentManagementOntology@- getOwnership@public String getOwnership() {
+AgentManagementOntology@- getPassword@public String getPassword() {
+AgentManagementOntology@- getProperty@public String getProperty(String name) {
+AgentManagementOntology@- getProperty@public String getProperty(String name) {
+AgentManagementOntology@> getProperty@String getProperty(String name);
+AgentManagementOntology@- getSignature@public String getSignature() {
+AgentManagementOntology@- getType@public String getType() {
+AgentManagementOntology@- getType@public String getType() {
+AgentManagementOntology@- instance@public static final AgentManagementOntology instance() {
+AgentManagementOntology@- isMandatoryForAMS@public boolean isMandatoryForAMS(String actionName, String attributeName) {
+AgentManagementOntology@- isMandatoryForDF@public boolean isMandatoryForDF(String actionName, String attributeName) {
+AgentManagementOntology@- isValidAMSADKeyword@public boolean isValidAMSADKeyword(String keyword) {
+AgentManagementOntology@- isValidDFADKeyword@public boolean isValidDFADKeyword(String keyword) {
+AgentManagementOntology@- isValidException@public boolean isValidException(String message) {
+AgentManagementOntology@- isValidPPKeyword@public boolean isValidPPKeyword(String keyword) {
+AgentManagementOntology@- isValidSDKeyword@public boolean isValidSDKeyword(String keyword) {
+AgentManagementOntology@- put@public void put(String agentName, DFAgentDescriptor dfd) {
+AgentManagementOntology@- removeAddresses@public void removeAddresses() {
+AgentManagementOntology@- removeAgentServices@public void removeAgentServices() {
+AgentManagementOntology@- removeConstraints@public void removeConstraints() {
+AgentManagementOntology@- removeInteractionProtocols@public void removeInteractionProtocols() {
+AgentManagementOntology@- removeProperty@public void removeProperty(String name) {
+AgentManagementOntology@- removeProperty@public void removeProperty(String name) {
+AgentManagementOntology@> removeProperty@void removeProperty(String name);
+AgentManagementOntology@- setAPState@public void setAPState(int AP) throws IllegalArgumentException {
+AgentManagementOntology@- setActor@public void setActor(String name) {
+AgentManagementOntology@- setActor@public void setActor(String name) {
+AgentManagementOntology@- setActor@public void setActor(String name) {
+AgentManagementOntology@> setActor@void setActor(String name);
+AgentManagementOntology@- setAddress@public void setAddress(String a) {
+AgentManagementOntology@- setAgentDescriptor@public void setAgentDescriptor(AMSAgentDescriptor amsd) {
+AgentManagementOntology@- setAgentName@public void setAgentName(String an) {
+AgentManagementOntology@- setArg@public void setArg(ACLMessage msg) {
+AgentManagementOntology@- setArg@public void setArg(DFAgentDescriptor dfd) {
+AgentManagementOntology@- setArg@public void setArg(AMSAgentDescriptor amsd) {
+AgentManagementOntology@- setArg@public void setArg(int i) {
+AgentManagementOntology@- setClassName@public void setClassName(String cn) {
+AgentManagementOntology@- setCommunicationProps@public void setCommunicationProps(String cp) {
+AgentManagementOntology@- setContainerName@public void setContainerName(String cn) {
+AgentManagementOntology@- setContainerName@public void setContainerName(String cn) {
+AgentManagementOntology@- setDFState@public void setDFState(String dfs) {
+AgentManagementOntology@- setDelegateAgentName@public void setDelegateAgentName(String d) {
+AgentManagementOntology@- setException@public void setException(FIPAException fe) {
+AgentManagementOntology@- setFixedProps@public void setFixedProps(String fp) {
+AgentManagementOntology@- setFn@public void setFn(String s) {
+AgentManagementOntology@- setForwardAddress@public void setForwardAddress(String f) {
+AgentManagementOntology@- setKind@public void setKind(int k) {
+AgentManagementOntology@- setName@public void setName(String s) {
+AgentManagementOntology@- setName@public void setName(String s) {
+AgentManagementOntology@- setName@public void setName(String s) {
+AgentManagementOntology@> setName@void setName(String name);
+AgentManagementOntology@- setName@public void setName(String s) {
+AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setName@public void setName(String n) {
+AgentManagementOntology@- setNegotiableProps@public void setNegotiableProps(String np) {
+AgentManagementOntology@- setOntology@public void setOntology(String o) {
+AgentManagementOntology@- setOntology@public void setOntology(String o) {
+AgentManagementOntology@- setOwnership@public void setOwnership(String o) {
+AgentManagementOntology@- setOwnership@public void setOwnership(String o) {
+AgentManagementOntology@- setPassword@public void setPassword(String pwd) {
+AgentManagementOntology@- setSignature@public void setSignature(String s) {
+AgentManagementOntology@- setType@public void setType(String t) {
+AgentManagementOntology@- setType@public void setType(String t) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@> toText@public abstract void toText(Writer w);
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@> toText@void toText(Writer w);
+AgentManagementOntology@- toText@public void toText(Writer w) throws FIPAException {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+AgentManagementOntology@- toText@public void toText(Writer w) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/AgentNotRegisteredException.java
+AgentNotRegisteredException@+ AgentNotRegisteredException@public AgentNotRegisteredException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/BehaviourPrototype.java
+BehaviourPrototype@> instance@public Behaviour instance(ACLMessage request, ACLMessage reply);
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/DFOverloadedException.java
+DFOverloadedException@+ DFOverloadedException@public DFOverloadedException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FIPAException.java
+FIPAException@+ FIPAException@public FIPAException(String msg) {
+FIPAException@- fromText@public static FIPAException fromText(Reader r) {
+FIPAException@- toText@public void toText(Writer w) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FailedManagementActionException.java
+FailedManagementActionException@+ FailedManagementActionException@public FailedManagementActionException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FipaRequestClientBehaviour.java
+FipaRequestClientBehaviour@+ FipaRequestClientBehaviour@FipaRequestClientBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
+FipaRequestClientBehaviour@> handleAgree@protected abstract void handleAgree(ACLMessage reply);
+FipaRequestClientBehaviour@> handleFailure@protected abstract void handleFailure(ACLMessage reply);
+FipaRequestClientBehaviour@> handleInform@protected abstract void handleInform(ACLMessage reply);
+FipaRequestClientBehaviour@> handleNotUnderstood@protected abstract void handleNotUnderstood(ACLMessage reply);
+FipaRequestClientBehaviour@> handleRefuse@protected abstract void handleRefuse(ACLMessage reply);
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/FipaRequestServerBehaviour.java
+FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a, MessageTemplate match) {
+FipaRequestServerBehaviour@+ FipaRequestServerBehaviour@public FipaRequestServerBehaviour(Agent a) {
+FipaRequestServerBehaviour@- action@public void action() {
+FipaRequestServerBehaviour@- registerPrototype@public void registerPrototype(String actionName, BehaviourPrototype bp) {
+FipaRequestServerBehaviour@- sendNotUnderstood@private void sendNotUnderstood(ACLMessage msg) {
+FipaRequestServerBehaviour@- unregisterPrototype@public void unregisterPrototype(String actionName) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/InconsistencyException.java
+InconsistencyException@+ InconsistencyException@public InconsistencyException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/NoCommunicationMeansException.java
+NoCommunicationMeansException@+ NoCommunicationMeansException@public NoCommunicationMeansException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/SearchDFBehaviour.java
+SearchDFBehaviour@+ SearchDFBehaviour@public SearchDFBehaviour(Agent a, ACLMessage msg, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints, AgentManagementOntology.DFSearchResult r) throws FIPAException {
+SearchDFBehaviour@- handleAgree@protected void handleAgree(ACLMessage reply) {
+SearchDFBehaviour@- handleFailure@protected void handleFailure(ACLMessage reply) {
+SearchDFBehaviour@- handleInform@protected void handleInform(ACLMessage reply) {
+SearchDFBehaviour@- handleNotUnderstood@protected void handleNotUnderstood(ACLMessage reply) {
+SearchDFBehaviour@- handleRefuse@protected void handleRefuse(ACLMessage reply) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnableToDeregisterException.java
+UnableToDeregisterException@+ UnableToDeregisterException@public UnableToDeregisterException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnauthorisedException.java
+UnauthorisedException@+ UnauthorisedException@public UnauthorisedException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeException.java
+UnrecognizedAttributeException@+ UnrecognizedAttributeException@public UnrecognizedAttributeException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnrecognizedAttributeValueException.java
+UnrecognizedAttributeValueException@+ UnrecognizedAttributeValueException@public UnrecognizedAttributeValueException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/UnwillingToPerformException.java
+UnwillingToPerformException@+ UnwillingToPerformException@public UnwillingToPerformException() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/acc.java
+acc@- ACCBehaviour@protected ACCBehaviour(ACLMessage request, ACLMessage reply) {
+acc@- ACCBehaviour@protected ACCBehaviour() {
+acc@+ acc@public acc(AgentPlatformImpl ap) {
+acc@- action@public void action() {
+acc@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+acc@- sendAgree@protected void sendAgree(ACLMessage msg) {
+acc@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
+acc@- sendInform@protected void sendInform(ACLMessage msg) {
+acc@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
+acc@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/ams.java
+ams@- AMSBehaviour@protected AMSBehaviour(String name, ACLMessage request, ACLMessage reply) {
+ams@- AMSBehaviour@protected AMSBehaviour(String name) {
+ams@- AgDesc@public AgDesc(String s, AgentManagementOntology.AMSAgentDescriptor a) {
+ams@- AuthBehaviour@public AuthBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- AuthBehaviour@public AuthBehaviour() {
+ams@- CreateBehaviour@CreateBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- CreateBehaviour@CreateBehaviour() {
+ams@- DeregBehaviour@public DeregBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- DeregBehaviour@public DeregBehaviour() {
+ams@- DeregisterRMABehaviour@DeregisterRMABehaviour() {
+ams@- KillBehaviour@KillBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- KillBehaviour@KillBehaviour() {
+ams@- KillContainerBehaviour@KillContainerBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- KillContainerBehaviour@KillContainerBehaviour() {
+ams@- ModBehaviour@public ModBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- ModBehaviour@public ModBehaviour() {
+ams@- RegBehaviour@public RegBehaviour(ACLMessage request, ACLMessage reply) {
+ams@- RegBehaviour@public RegBehaviour() {
+ams@- RegisterRMABehaviour@RegisterRMABehaviour() {
+ams@- action@public void action() {
+ams@- action@public void action() {
+ams@- action@public void action() {
+ams@- action@public void action() {
+ams@+ ams@public ams(AgentPlatformImpl ap, String name) {
+ams@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
+ams@- checkMandatory@protected void checkMandatory(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+ams@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
+ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage msg, ACLMessage reply) {
+ams@- instance@public Behaviour instance(ACLMessage msg, ACLMessage reply) {
+ams@- postDeadAgent@public synchronized void postDeadAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+ams@- postDeadContainer@public synchronized void postDeadContainer(String name) {
+ams@- postNewAgent@public synchronized void postNewAgent(String containerName, AgentManagementOntology.AMSAgentDescriptor amsd) {
+ams@- postNewContainer@public synchronized void postNewContainer(String name) {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@- processAction@protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+ams@> processAction@protected abstract void processAction(AgentManagementOntology.AMSAction a) throws FIPAException;
+ams@- processDeadAgents@private void processDeadAgents() {
+ams@- processDeadContainers@private void processDeadContainers() {
+ams@- processNewAgents@private void processNewAgents() {
+ams@- processNewContainers@private void processNewContainers() {
+ams@- registerWithAMS@public void registerWithAMS(String signature, int APState, String delegateAgentName, String forwardAddress, String ownership) {
+ams@- sendAgree@protected void sendAgree(ACLMessage msg) {
+ams@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
+ams@- sendInform@protected void sendInform(ACLMessage msg) {
+ams@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
+ams@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
+ams@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/df.java
+df@- DFBehaviour@protected DFBehaviour(String name, ACLMessage request, ACLMessage reply) {
+df@- DFBehaviour@protected DFBehaviour(String name) {
+df@- DFDeregister@protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+df@- DFModify@protected void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+df@- DFRegister@protected void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+df@- DFSearch@private void DFSearch(AgentManagementOntology.DFAgentDescriptor dfd, Enumeration constraints, ACLMessage myReply) throws FIPAException {
+df@- DeregBehaviour@public DeregBehaviour(ACLMessage request, ACLMessage reply) {
+df@- DeregBehaviour@public DeregBehaviour() {
+df@- ModBehaviour@public ModBehaviour(ACLMessage request, ACLMessage reply) {
+df@- ModBehaviour@public ModBehaviour() {
+df@- RecursiveSearchBehaviour@RecursiveSearchBehaviour(AgentManagementOntology.DFAgentDescriptor dfd, ACLMessage msg, AgentManagementOntology.DFSearchResult res, int dfDepth) {
+df@- RegBehaviour@public RegBehaviour(ACLMessage request, ACLMessage reply) {
+df@- RegBehaviour@public RegBehaviour() {
+df@- SrchBehaviour@public SrchBehaviour(ACLMessage request, ACLMessage reply) {
+df@- SrchBehaviour@public SrchBehaviour() {
+df@- action@public void action() {
+df@- checkAttribute@private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
+df@- checkAttributeList@private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
+df@- contains@private boolean contains(Enumeration list, String value) {
+df@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
+df@+ df@public df() {
+df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
+df@- match@private boolean match(AgentManagementOntology.DFAgentDescriptor template, AgentManagementOntology.DFAgentDescriptor dfd) {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
+df@> processAction@protected abstract void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException;
+df@- sendAgree@protected void sendAgree(ACLMessage msg) {
+df@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
+df@- sendInform@protected void sendInform(ACLMessage msg) {
+df@- sendNotUnderstood@protected void sendNotUnderstood(ACLMessage msg) {
+df@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
+df@- setup@protected void setup() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/domain/rma.java
+rma@- AMSListenerBehaviour@AMSListenerBehaviour() {
+rma@- action@public void action() {
+rma@- killAgent@public void killAgent(String name) {
+rma@- killContainer@public void killContainer(String name) {
+rma@- newAgent@public void newAgent(String agentName, String className, String containerName) {
+rma@- setup@public void setup() {
+rma@- shutDownPlatform@public void shutDownPlatform() {
+rma@- takeDown@public void takeDown() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSAbstractAction.java
+AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction (String IconPath,String ActionName) {
+AMSAbstractAction@+ AMSAbstractAction@public AMSAbstractAction(String IconKey,String ActionName, Vector listeners) {
+AMSAbstractAction@- AddListener@public synchronized static void AddListener(Object current) {
+AMSAbstractAction@- getActionName@public String getActionName() {
+AMSAbstractAction@- getAllListeners@public synchronized static Vector getAllListeners() {
+AMSAbstractAction@- getFirst@public synchronized static Object getFirst() {
+AMSAbstractAction@- getLast@public synchronized static Object getLast() {
+AMSAbstractAction@- removeAllListeners@public synchronized static void removeAllListeners() {
+AMSAbstractAction@- removeListener@public synchronized static void removeListener (Object current) {
+AMSAbstractAction@- setIcon@public synchronized void setIcon (Icon i) {
+AMSAbstractAction@- setListeners@public synchronized static void setListeners(Object[] listenersP) {
+AMSAbstractAction@- setTree@public static void setTree (AMSTree treeP) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSMainFrame.java
+AMSMainFrame@+ AMSMainFrame@public AMSMainFrame (rma anRMA) {
+AMSMainFrame@- ShowCorrect@public void ShowCorrect() {
+AMSMainFrame@- addAgent@public void addAgent(String containerName, String agentName, String agentAddress, String agentType) {
+AMSMainFrame@- addContainer@public void addContainer(String name) {
+AMSMainFrame@- getRMA@public static rma getRMA() {
+AMSMainFrame@- main@public static void main (String[] argv) {
+AMSMainFrame@- removeAgent@public void removeAgent(String containerName, String agentName) {
+AMSMainFrame@- removeContainer@public void removeContainer(String name) {
+AMSMainFrame@- setUI@private void setUI(String ui) {
+AMSMainFrame@- setUI2Metal@public void setUI2Metal() {
+AMSMainFrame@- setUI2Motif@public void setUI2Motif() {
+AMSMainFrame@- setUI2Multi@public void setUI2Multi() {
+AMSMainFrame@- setUI2Windows@public void setUI2Windows() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSMenu.java
+AMSMenu@+ AMSMenu@public AMSMenu () {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSPopupMenu.java
+AMSPopupMenu@+ AMSPopupMenu@public AMSPopupMenu (PopupMenuListener parent) {
+AMSPopupMenu@- setMenu@public boolean setMenu(int Level) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTable.java
+AMSTable@+ AMSTable@public AMSTable() {
+AMSTable@- getModel@public AMSTableModel getModel() {
+AMSTable@- getPreferredSize@public Dimension getPreferredSize() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTableModel.java
+AMSTableModel@+ AMSTableModel@public AMSTableModel(Vector agents) {
+AMSTableModel@+ AMSTableModel@public AMSTableModel () {
+AMSTableModel@- getColumnClass@public Class getColumnClass(int columnIndex) {
+AMSTableModel@- getColumnCount@public int getColumnCount() {
+AMSTableModel@- getColumnName@public String getColumnName(int columnIndex) {
+AMSTableModel@- getRowCount@public int getRowCount() {
+AMSTableModel@- getValueAt@public Object getValueAt(int rowIndex, int columnIndex) {
+AMSTableModel@- isCellEditable@public boolean isCellEditable(int rowIndex, int columnIndex) {
+AMSTableModel@- setAgents@public void setAgents(Vector agents) {
+AMSTableModel@- setValueAt@public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSToolBar.java
+AMSToolBar@+ AMSToolBar@public AMSToolBar (AMSTree treeP) {
+AMSToolBar@- actionPerformed@public void actionPerformed (ActionEvent evt) {
+AMSToolBar@- addAction@private void addAction(AMSAbstractAction act) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTree.java
+AMSTree@+ AMSTree@public AMSTree() {
+AMSTree@- actionPerformed@public void actionPerformed (ActionEvent e){
+AMSTree@- createNewNode@public TreeData createNewNode(String name,int level) {
+AMSTree@- createSplit@private void createSplit (JScrollPane scroll) {
+AMSTree@- getModel@public AMSTreeModel getModel() {
+AMSTree@- getPathAsString@private String getPathAsString (TreePath Tpath) {
+AMSTree@- getPreferredSize@public Dimension getPreferredSize() {
+AMSTree@- getSelectedNode@protected DefaultMutableTreeNode getSelectedNode() {
+AMSTree@- popupMenuCanceled@public void popupMenuCanceled(PopupMenuEvent e){
+AMSTree@- popupMenuWillBecomeInvisible@public void popupMenuWillBecomeInvisible(PopupMenuEvent e){
+AMSTree@- popupMenuWillBecomeVisible@public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+AMSTree@- valueChanged@public void valueChanged(TreeSelectionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AMSTreeModel.java
+AMSTreeModel@+ AMSTreeModel@public AMSTreeModel () {
+AMSTreeModel@- fireValueChanged@protected void fireValueChanged(TreePath path,int[] ind,Object[] children) {
+AMSTreeModel@- getRoot@public Object getRoot() {
+AMSTreeModel@- valueForPathChanged@public void valueForPathChanged(TreePath path, Object newValue) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/AddAgentPlatformAction.java
+AddAgentPlatformAction@+ AddAgentPlatformAction@public AddAgentPlatformAction() {
+AddAgentPlatformAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/CloseRMAAction.java
+CloseRMAAction@+ CloseRMAAction@public CloseRMAAction () {
+CloseRMAAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/CustomAction.java
+CustomAction@+ CustomAction@public CustomAction() {
+CustomAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ExitAction.java
+ExitAction@+ ExitAction@public ExitAction () {
+ExitAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/GuiProperties.java
+GuiProperties@- getIcon@public static final Icon getIcon(String key) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/KillAction.java
+KillAction@+ KillAction@public KillAction(String label) {
+KillAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/OpenScriptFileAction.java
+OpenScriptFileAction@+ OpenScriptFileAction@public OpenScriptFileAction () {
+OpenScriptFileAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/PingAction.java
+PingAction@+ PingAction@public PingAction() {
+PingAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/PopupMouser.java
+PopupMouser@+ PopupMouser@public PopupMouser(JPopupMenu p) {
+PopupMouser@- mousePressed@public void mousePressed(MouseEvent e) {
+PopupMouser@- mouseReleased@public void mouseReleased(MouseEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ReloadAction.java
+ReloadAction@+ ReloadAction@public ReloadAction() {
+ReloadAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/RemoveAction.java
+RemoveAction@+ RemoveAction@public RemoveAction () {
+RemoveAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ResumeAction.java
+ResumeAction@+ ResumeAction@public ResumeAction() {
+ResumeAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/ShutDownAction.java
+ShutDownAction@+ ShutDownAction@public ShutDownAction () {
+ShutDownAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/SnifferAction.java
+SnifferAction@+ SnifferAction@public SnifferAction() {
+SnifferAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartAction.java
+StartAction@+ StartAction@public StartAction() {
+StartAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartDialog.java
+StartDialog@+ StartDialog@protected StartDialog (String agentNameP) {
+StartDialog@- actionPerformed@public void actionPerformed (ActionEvent evt) {
+StartDialog@- getAgentName@public static String getAgentName() {
+StartDialog@- getClassName@public static String getClassName() {
+StartDialog@- getContainer@public static String getContainer() {
+StartDialog@- getPreferredSize@public Dimension getPreferredSize () {
+StartDialog@- setAgentName@public static void setAgentName(String agentNameP) {
+StartDialog@- setClassName@public static void setClassName(String classNameP) {
+StartDialog@- setContainer@public static void setContainer(String containerP) {
+StartDialog@- showStartDialog@public static int showStartDialog(String agentNameP) {
+StartDialog@- showStartNewDialog@public static int showStartNewDialog(String containerName) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/StartNewAgentAction.java
+StartException@+ StartException@public StartException() {
+StartNewAgentAction@+ StartNewAgentAction@public StartNewAgentAction() {
+StartNewAgentAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+StartNewAgentAction@- doStartNewAgent@private int doStartNewAgent(String containerName) {
+StartException@- handle@public static final void handle () {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/SuspendAction.java
+SuspendAction@+ SuspendAction@public SuspendAction() {
+SuspendAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TablePanel.java
+TablePanel@+ TablePanel@public TablePanel() {
+ColumnLayout@- addLayoutComponent@public void addLayoutComponent(String s, Component c) {
+TablePanel@- createTable@public JScrollPane createTable() {
+ColumnLayout@- layoutContainer@public void layoutContainer(Container c) {
+TablePanel@- loadIcon@private ImageIcon loadIcon(String name, String description) {
+TablePanel@- loadImageIcon@public ImageIcon loadImageIcon(String filename, String description) {
+ColumnLayout@- minimumLayoutSize@public Dimension minimumLayoutSize(Container c) {
+ColumnLayout@- preferredLayoutSize@public Dimension preferredLayoutSize(Container c) {
+ColumnLayout@- removeLayoutComponent@public void removeLayoutComponent(Component c) {
+TablePanel@- setData@public void setData (Vector dat) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TreeData.java
+TreeData@+ TreeData@public TreeData(String t) {
+TreeData@+ TreeData@public TreeData(String t,int LevelP) {
+TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String typeP) {
+TreeData@+ TreeData@public TreeData (String nameP, String[] addressesP,String typeP,int LevelP) {
+TreeData@- addAddress@public void addAddress(String newAdd) {
+TreeData@- getAddressesAsString@public String getAddressesAsString() {
+TreeData@- getIcon@public Icon getIcon() {
+TreeData@- getLevel@public int getLevel () {
+TreeData@- getName@public String getName () {
+TreeData@- getStateName@public String getStateName () {
+TreeData@- getToolTipText@public String getToolTipText () {
+TreeData@- getType@public String getType() {
+TreeData@- isLeaf@public boolean isLeaf() {
+TreeData@- setAddresses@public void setAddresses (String[] aP) {
+TreeData@- setLevel@public boolean setLevel (int LevelP) {
+TreeData@- setName@public void setName(String nameP) {
+TreeData@- setState@public boolean setState (int state) {
+TreeData@- setType@public void setType (String r) {
+TreeData@- toString@public String toString() {
+TreeData@- transState@public void transState() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/TreeIconRenderer.java
+TreeIconRenderer@+ TreeIconRenderer@public TreeIconRenderer() {
+TreeIconRenderer@- getShowType@public static int getShowType () {
+TreeIconRenderer@- if@if(data != null) {
+TreeIconRenderer@- if@if(selected) {
+TreeIconRenderer@> setIcon@setIcon(null);
+TreeIconRenderer@- setShowType@public static void setShowType (int TypeP) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/WindowCloser.java
+WindowCloser@- windowClosing@public void windowClosing(WindowEvent e) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/gui/getPropertiesAction.java
+getPropertiesAction@- actionPerformed@public void actionPerformed(ActionEvent e) {
+getPropertiesAction@+ getPropertiesAction@public getPropertiesAction() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/lang/Parser.java
+Parser@> parse@public void parse(Reader textSource);
+
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
+ACLMessage@+ ACLMessage@public ACLMessage(String type) {
+ACLMessage@+ ACLMessage@public ACLMessage() {
+ACLMessage@- clone@public synchronized Object clone() {
+ACLMessage@- dump@public void dump() {
+ACLMessage@- fromText@public static ACLMessage fromText(Reader r) {
+ACLMessage@- getContent@public String getContent() {
+ACLMessage@- getConversationId@public String getConversationId() {
+ACLMessage@- getDest@public String getDest() {
+ACLMessage@- getEnvelope@public String getEnvelope() {
+ACLMessage@- getLanguage@public String getLanguage() {
+ACLMessage@- getOntology@public String getOntology() {
+ACLMessage@- getProtocol@public String getProtocol() {
+ACLMessage@- getReplyBy@public String getReplyBy() {
+ACLMessage@- getReplyTo@public String getReplyTo() {
+ACLMessage@- getReplyWith@public String getReplyWith() {
+ACLMessage@- getSource@public String getSource() {
+ACLMessage@- getType@public String getType() {
+ACLMessage@- if@if (this.conversation_id != null) {
+ACLMessage@- if@if (this.protocol != null) {
+ACLMessage@- if@if (this.reply_by != null) {
+ACLMessage@- if@if (this.ontology != null) {
+ACLMessage@- if@if (this.language != null) {
+ACLMessage@- if@if (this.envelope != null) {
+ACLMessage@- if@if (this.in_reply_to != null) {
+ACLMessage@- if@if (this.reply_with != null) {
+ACLMessage@- if@if (this.content != null) {
+ACLMessage@- if@if (this.dest != null) {
+ACLMessage@- if@if (this.source != null) {
+ACLMessage@- reset@public void reset() {
+ACLMessage@- setContent@public void setContent( String content ) {
+ACLMessage@- setConversationId@public void setConversationId( String str ) {
+ACLMessage@- setDest@public void setDest( String dest ) {
+ACLMessage@- setEnvelope@public void setEnvelope( String str ) {
+ACLMessage@- setLanguage@public void setLanguage( String str ) {
+ACLMessage@- setOntology@public void setOntology( String str ) {
+ACLMessage@- setProtocol@public void setProtocol( String str ) {
+ACLMessage@- setReplyBy@public void setReplyBy( String str ) {
+ACLMessage@- setReplyTo@public void setReplyTo( String reply ) {
+ACLMessage@- setReplyWith@public void setReplyWith( String reply ) {
+ACLMessage@- setSource@public void setSource( String source ) {
+ACLMessage@- setType@public void setType( String type ) {
+ACLMessage@- toText@public void toText(Writer w) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/lang/acl/MessageTemplate.java
+MessageTemplate@- MatchAll@public static MessageTemplate MatchAll() {
+MessageTemplate@- MatchContent@public static MessageTemplate MatchContent(String value) {
+MessageTemplate@- MatchConversationId@public static MessageTemplate MatchConversationId(String value) {
+MessageTemplate@- MatchDest@public static MessageTemplate MatchDest(String value) {
+MessageTemplate@- MatchEnvelope@public static MessageTemplate MatchEnvelope(String value) {
+MessageTemplate@- MatchLanguage@public static MessageTemplate MatchLanguage(String value) {
+MessageTemplate@- MatchOntology@public static MessageTemplate MatchOntology(String value) {
+MessageTemplate@- MatchProtocol@public static MessageTemplate MatchProtocol(String value) {
+MessageTemplate@- MatchReplyBy@public static MessageTemplate MatchReplyBy(String value) {
+MessageTemplate@- MatchReplyTo@public static MessageTemplate MatchReplyTo(String value) {
+MessageTemplate@- MatchReplyWith@public static MessageTemplate MatchReplyWith(String value) {
+MessageTemplate@- MatchSource@public static MessageTemplate MatchSource(String value) {
+MessageTemplate@- MatchType@public static MessageTemplate MatchType(String value) {
+MessageTemplate@+ MessageTemplate@private MessageTemplate(ACLMessage msg) {
+MessageTemplate@+ MessageTemplate@private MessageTemplate() {
+MessageTemplate@- allWildCard@private static ACLMessage allWildCard() {
+MessageTemplate@- and@public static MessageTemplate and(MessageTemplate op1, MessageTemplate op2) throws IllegalArgumentException {
+MessageTemplate@- fromText@public static void fromText(Reader r) {
+MessageTemplate@- match@public boolean match(ACLMessage msg) {
+MessageTemplate@- or@public static MessageTemplate or(MessageTemplate op1, MessageTemplate op2) {
+MessageTemplate@- toText@public void toText(Writer w) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/CommunicativeAction.java
+CommunicativeAction@+ CommunicativeAction@public CommunicativeAction(ACLMessage msg, Protocol p) {
+CommunicativeAction@- addAnswer@public void addAnswer(CommunicativeAction ca) {
+CommunicativeAction@- getAnswers@public Enumeration getAnswers() {
+CommunicativeAction@- getMessage@public ACLMessage getMessage() {
+CommunicativeAction@- getRole@public int getRole() {
+CommunicativeAction@- makeInitiator@public void makeInitiator() {
+CommunicativeAction@- makeResponder@public void makeResponder() {
+CommunicativeAction@- setName@void setName(String name) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Interaction.java
+Interaction@+ Interaction@private Interaction(Protocol p, int role) {
+Interaction@- addPeer@public void addPeer(String name) {
+Interaction@- attachHandler@public void attachHandler(String CA, MessageHandler handler) {
+Interaction@- attachSelector@public void attachSelector(String CA, MessageSelector selector) {
+Interaction@- createInitiator@public static Interaction createInitiator(Protocol p, AgentGroup peers, String convId) {
+Interaction@- createResponder@public static Interaction createResponder(Protocol p) {
+Interaction@- isInitiator@public boolean isInitiator() {
+Interaction@- removePeer@public void removePeer(String name) {
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageHandler.java
+MessageHandler@> handle@public void handle(ACLMessage msg, Interaction i);
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/MessageSelector.java
+MessageSelector@> select@public void select(MessageGroup answers, Interaction i);
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Protocol.java
+Protocol@+ Protocol@public Protocol(CommunicativeAction start) {
+Protocol@- addCA@public void addCA(CommunicativeAction ca, String name) {
+Protocol@- getCA@public CommunicativeAction getCA(String name) {
+Protocol@- getStart@public CommunicativeAction getStart() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/ProtocolDrivenBehaviour.java
+ProtocolDrivenBehaviour@+ ProtocolDrivenBehaviour@public ProtocolDrivenBehaviour(Agent a, Interaction i) {
+ProtocolDrivenBehaviour@- action@public void action() {
+ProtocolDrivenBehaviour@- done@public boolean done() {
+ProtocolDrivenBehaviour@- startupAsInitiator@private void startupAsInitiator() {
+ProtocolDrivenBehaviour@- startupAsResponder@private void startupAsResponder() {
+
+/home/Giovanni/DEVEL/JADE/src/jade/proto/Standard.java
+Standard@+ Standard@private Standard() {
+Standard@- getProtocol@public static Protocol getProtocol(String name) {
+Standard@- initProtocols@private static void initProtocols() {
