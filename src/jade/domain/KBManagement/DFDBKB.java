@@ -458,7 +458,7 @@ public class DFDBKB extends DBKB {
 
   		// PRIMA SELELCT PER AID
   		String querySel = dfdToSelectQuery(dfd);
-
+			
   		Statement s = null;
   		ResultSet rs = null;
   		try{
@@ -755,7 +755,9 @@ public class DFDBKB extends DBKB {
 		for(i = 0; i < lT.size(); i++){
 			query +=lT.get(i);
 		}
-		query += " WHERE ";
+		if (lW.size() > 0) {
+			query += " WHERE ";
+		}
 		for(i = 0; i < lW.size(); i++){
 			if(i > 0)
 				query += " and ";
