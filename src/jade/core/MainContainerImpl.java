@@ -830,7 +830,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
 
   public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
-
     Iterator it = toBeSniffed.iterator();
     try {
       while(it.hasNext()) {
@@ -858,6 +857,34 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       throw new UnreachableException(re.getMessage());
     }
 
+  }
+
+  public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
+    Iterator it = toBeDebugged.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.enableDebugger(debuggerName, id); // RMI call
+      }
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+  public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
+    Iterator it = notToBeDebugged.iterator();
+    try {
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	AgentContainer ac = getContainerFromAgent(id);
+	ac.disableDebugger(debuggerName, id); // RMI call
+      }
+    }
+    catch(RemoteException re) {
+      throw new UnreachableException(re.getMessage());
+    }
   }
 
 
