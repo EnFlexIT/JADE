@@ -60,44 +60,44 @@ public class HTTPIO {
   //private static final String UNAV  = "503 Service Unavailable";
   // HTTP constants
   private static final String HTTP1 = "HTTP/1.";
-  private static final byte[] PROXY = {'P','r','o','x','y','-','C','o','n','n','e','c','t','i','o','n',':',' '};
+  private static final byte[] PROXY = {(byte) 'P',(byte) 'r',(byte) 'o',(byte) 'x',(byte) 'y',(byte) '-',(byte) 'C',(byte) 'o',(byte) 'n',(byte) 'n',(byte) 'e',(byte) 'c',(byte) 't',(byte) 'i',(byte) 'o',(byte) 'n',(byte) ':',(byte) ' '};
   private static final String PROXY_STR = "Proxy-Connection: ";
-  private static final byte CR = '\r';
-  private static final byte LF = '\n';
-  private static final byte[] CRLF = {CR,LF};
-  private static final byte[] POST = {'P','O','S','T'};
+  private static final byte CR = (byte) '\r';
+  private static final byte LF = (byte) '\n';
+  private static final byte[] CRLF = {(byte) CR,(byte) LF};
+  private static final byte[] POST = {(byte) 'P',(byte) 'O',(byte) 'S',(byte) 'T'};
   private static final String POST_STR = "POST";
-  private static final byte[] CONTENT = {'C','o','n','t','e','n','t','-','T','y','p','e',':',' '};
+  private static final byte[] CONTENT = {(byte) 'C',(byte) 'o',(byte) 'n',(byte) 't',(byte) 'e',(byte) 'n',(byte) 't',(byte) '-',(byte) 'T',(byte) 'y',(byte) 'p',(byte) 'e',(byte) ':',(byte) ' '};
   private static final String CONTENT_STR = "Content-Type: ";
-  private static final byte[] CLENGTH = {'C','o','n','t','e','n','t','-','L','e','n','g','t','h',':',' '};
-  private static final byte[] MM = {'m','u','l','t','i','p','a','r','t','/','m','i','x','e','d'};
+  private static final byte[] CLENGTH = {(byte) 'C',(byte) 'o',(byte) 'n',(byte) 't',(byte) 'e',(byte) 'n',(byte) 't',(byte) '-',(byte) 'L',(byte) 'e',(byte) 'n',(byte) 'g',(byte) 't',(byte) 'h',(byte) ':',(byte) ' '};
+  private static final byte[] MM = {(byte) 'm',(byte) 'u',(byte) 'l',(byte) 't',(byte) 'i',(byte) 'p',(byte) 'a',(byte) 'r',(byte) 't',(byte) '/',(byte) 'm',(byte) 'i',(byte) 'x',(byte) 'e',(byte) 'd'};
   private static final String MM_STR = "multipart/mixed";
-  private static final byte[] BND = {'b','o','u','n','d','a','r','y'};
+  private static final byte[] BND = {(byte) 'b',(byte) 'o',(byte) 'u',(byte) 'n',(byte) 'd',(byte) 'a',(byte) 'r',(byte) 'y'};
   private static final String BND_STR = "boundary";
-  private static final byte[] APPLI = {'a','p','p','l','i','c','a','t','i','o','n','/'};
-  private static final byte[] CONN = {'C','o','n','n','e','c','t','i','o','n',':',' '};
+  private static final byte[] APPLI = {(byte) 'a',(byte) 'p',(byte) 'p',(byte) 'l',(byte) 'i',(byte) 'c',(byte) 'a',(byte) 't',(byte) 'i',(byte) 'o',(byte) 'n',(byte) '/'};
+  private static final byte[] CONN = {(byte) 'C',(byte) 'o',(byte) 'n',(byte) 'n',(byte) 'e',(byte) 'c',(byte) 't',(byte) 'i',(byte) 'o',(byte) 'n',(byte) ':',(byte) ' '};
   private static final String CONN_STR = "Connection: ";
   public static final String CLOSE   = "close"; 
   public static final String KA      = "Keep-Alive"; 
-  private static final byte[] HTTP = {'H','T','T','P','/','1','.','1'};
+  private static final byte[] HTTP = {(byte) 'H',(byte) 'T',(byte) 'T',(byte) 'P',(byte) '/',(byte) '1',(byte) '.',(byte) '1'};
   private static final byte[] CACHE =
-	{'C','a','c','h','e','-','C','o','n','t','r','o','l',':',' ','n','o','-','c','a','c','h','e'};
-  private static final byte[] MIME = {'M','i','m','e','-','V','e','r','s','i','o','n',':',' ','1','.','0'};
-  private static final byte[] HOST = {'H','o','s','t',':',' '};
+	{(byte) 'C',(byte) 'a',(byte) 'c',(byte) 'h',(byte) 'e',(byte) '-',(byte) 'C',(byte) 'o',(byte) 'n',(byte) 't',(byte) 'r',(byte) 'o',(byte) 'l',(byte) ':',(byte) ' ',(byte) 'n',(byte) 'o',(byte) '-',(byte) 'c',(byte) 'a',(byte) 'c',(byte) 'h',(byte) 'e'};
+  private static final byte[] MIME = {(byte) 'M',(byte) 'i',(byte) 'm',(byte) 'e',(byte) '-',(byte) 'V',(byte) 'e',(byte) 'r',(byte) 's',(byte) 'i',(byte) 'o',(byte) 'n',(byte) ':',(byte) ' ',(byte) '1',(byte) '.',(byte) '0'};
+  private static final byte[] HOST = {(byte) 'H',(byte) 'o',(byte) 's',(byte) 't',(byte) ':',(byte) ' '};
   private static final String HOST_STR = "Host: ";
-  private static final byte[] DL = {'-', '-'};
+  private static final byte[] DL = {(byte) '-',(byte) '-'};
   private static final String DL_STR = "--";
   private static final String BLK     = "";
   private static final byte[] MIME_MULTI_PART_HEADER =
-  	{'T','h','i','s',' ','i','s',' ','n','o','t',' ','p','a','r','t',' ','o','f',' ','t','h','e',' ',
-  		'M','I','M','E',' ','m','u','l','t','i','p','a','r','t',' ','e','n','c','o','d','e','d',' ',
-  		'm','e','s','s','a','g','e','.'};
-  private static final byte[] XML = {'x','m','l'};
-  private static final byte[] CHARSET = {';',' ','c','h','a','r','s','e','t','='};
-  private static final byte[] TEXT = {'t','e','x','t'};
-  private static final byte[] TEXT_HTML = {'t','e','x','t','/','h','t','m','l'};
-  private static final byte[] HTML_BEGIN = {'<','h','t','m','l','>','<','b','o','d','y','>','<','h','1','>'};
-  private static final byte[] HTML_END = {'<','/','h','1','>','<','/','b','o','d','y','>','<','/','h','t','m','l','>'};
+  	{(byte) 'T',(byte) 'h',(byte) 'i',(byte) 's',(byte) ' ',(byte) 'i',(byte) 's',(byte) ' ',(byte) 'n',(byte) 'o',(byte) 't',(byte) ' ',(byte) 'p',(byte) 'a',(byte) 'r',(byte) 't',(byte) ' ',(byte) 'o',(byte) 'f',(byte) ' ',(byte) 't',(byte) 'h',(byte) 'e',(byte) ' ',
+  		(byte) 'M',(byte) 'I',(byte) 'M',(byte) 'E',(byte) ' ',(byte) 'm',(byte) 'u',(byte) 'l',(byte) 't',(byte) 'i',(byte) 'p',(byte) 'a',(byte) 'r',(byte) 't',(byte) ' ',(byte) 'e',(byte) 'n',(byte) 'c',(byte) 'o',(byte) 'd',(byte) 'e',(byte) 'd',(byte) ' ',
+  		(byte) 'm',(byte) 'e',(byte) 's',(byte) 's',(byte) 'a',(byte) 'g',(byte) 'e',(byte) '.'};
+  private static final byte[] XML = {(byte) 'x',(byte) 'm',(byte) 'l'};
+  private static final byte[] CHARSET = {(byte) ';',(byte) ' ',(byte) 'c',(byte) 'h',(byte) 'a',(byte) 'r',(byte) 's',(byte) 'e',(byte) 't',(byte) '='};
+  private static final byte[] TEXT = {(byte) 't',(byte) 'e',(byte) 'x',(byte) 't'};
+  private static final byte[] TEXT_HTML = {(byte) 't',(byte) 'e',(byte) 'x',(byte) 't',(byte) '/',(byte) 'h',(byte) 't',(byte) 'm',(byte) 'l'};
+  private static final byte[] HTML_BEGIN = {(byte) '<',(byte) 'h',(byte) 't',(byte) 'm',(byte) 'l',(byte) '>',(byte) '<',(byte) 'b',(byte) 'o',(byte) 'd',(byte) 'y',(byte) '>',(byte) '<',(byte) 'h',(byte) '1',(byte) '>'};
+  private static final byte[] HTML_END = {(byte) '<',(byte) '/',(byte) 'h',(byte) '1',(byte) '>',(byte) '<',(byte) '/',(byte) 'b',(byte) 'o',(byte) 'd',(byte) 'y',(byte) '>',(byte) '<',(byte) '/',(byte) 'h',(byte) 't',(byte) 'm',(byte) 'l',(byte) '>'};
   
   private static Logger logger = Logger.getMyLogger(HTTPIO.class.getName());
   
