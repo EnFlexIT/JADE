@@ -38,7 +38,6 @@ import java.io.*;
 
 import jade.core.*;
 import jade.domain.MobilityOntology;
-import jade.gui.LocationTableModel;
 
 /**
  * This is the GUI of the MobileAGent. Becuase in Java a new Thread is spawn
