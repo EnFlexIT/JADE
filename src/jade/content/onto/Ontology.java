@@ -560,10 +560,10 @@ public class Ontology {
     		  obj instanceof Boolean ||
     		  obj instanceof Integer ||
     		  obj instanceof Long ||
-    		  //__CLDC_UNSUPPORTED__BEGIN
+    		  //#MIDP_EXCLUDE_BEGIN
     		  obj instanceof Float ||
     		  obj instanceof Double ||
-    		  //__CLDC_UNSUPPORTED__END
+    		  //#MIDP_EXCLUDE_END
     		  obj instanceof Date ||
     		  obj instanceof Term) {
     		return;

@@ -285,14 +285,14 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       if (obj instanceof Long) {
         return AbsPrimitive.wrap(((Long) obj).longValue());
       } 
-      //__CLDC_UNSUPPORTED__BEGIN
+      //#MIDP_EXCLUDE_BEGIN
       if (obj instanceof Float) {
         return AbsPrimitive.wrap(((Float) obj).floatValue());
       } 
       if (obj instanceof Double) {
         return AbsPrimitive.wrap(((Double) obj).doubleValue());
       } 
-      //__CLDC_UNSUPPORTED__END
+      //#MIDP_EXCLUDE_END
       if (obj instanceof Date) {
         return AbsPrimitive.wrap((Date) obj);
       } 

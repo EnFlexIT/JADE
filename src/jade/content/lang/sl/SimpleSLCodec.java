@@ -296,7 +296,7 @@ class SimpleSLCodec extends StringCodec {
   	}
   	catch (Exception e) {
   	}
-//__CLDC_UNSUPPORTED__BEGIN
+		//#MIDP_EXCLUDE_BEGIN
   	// Float
   	try {
   		// Note that Double.parseDouble() does not exist in PJava
@@ -304,7 +304,7 @@ class SimpleSLCodec extends StringCodec {
   	}
   	catch (Exception e) {
   	}
-//__CLDC_UNSUPPORTED__END
+		//#MIDP_EXCLUDE_END
   	// Date
   	try {
   		return AbsPrimitive.wrap(ISO8601.toDate(val));

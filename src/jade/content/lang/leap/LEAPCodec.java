@@ -194,12 +194,12 @@ public class LEAPCodec extends ByteArrayCodec {
             		stream.writeLong(((Long) obj).longValue());
             } 
 
-            //__CLDC_UNSUPPORTED__BEGIN
+            //#MIDP_EXCLUDE_BEGIN
             if (obj instanceof Double) {
                 stream.writeByte(FLOAT);
             		stream.writeDouble(((Double) obj).doubleValue());
             } 
-            //__CLDC_UNSUPPORTED__END
+            //#MIDP_EXCLUDE_END
 
             if (obj instanceof Date) {
                 stream.writeByte(DATE);
@@ -303,12 +303,12 @@ public class LEAPCodec extends ByteArrayCodec {
                 abs = AbsPrimitive.wrap(value);
             } 
 
-            //__CLDC_UNSUPPORTED__BEGIN
+            //#MIDP_EXCLUDE_BEGIN
             if (type == FLOAT) {
             		double value = stream.readDouble();
                 abs = AbsPrimitive.wrap(value);
             } 
-            //__CLDC_UNSUPPORTED__END
+            //#MIDP_EXCLUDE_END
 
             if (type == DATE) {
                 long value = stream.readLong();

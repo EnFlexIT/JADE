@@ -24,6 +24,8 @@
  */
 package jade;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.util.Enumeration;    // J2ME CLDC OK
 import java.util.Vector;         // J2ME CLDC OK
 import java.util.Stack;          // J2ME CLDC OK

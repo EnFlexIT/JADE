@@ -27,9 +27,9 @@ package jade.content.lang.sl;
 import jade.content.*;
 import jade.content.onto.*;
 import jade.content.schema.*;
-/*__J2ME_COMPATIBILITY__BEGIN
+/*#MIDP_INCLUDE_BEGIN
 import jade.content.abs.*;
-__J2ME_COMPATIBILITY__END*/
+#MIDP_INCLUDE_END*/
 
 /**
  * Ontology containing schemas for the SL language operators.
@@ -37,24 +37,24 @@ __J2ME_COMPATIBILITY__END*/
  * @author Giovanni Caire - TILAB
  */
 class SLOntology 
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 	extends SL2Ontology 
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 	extends Ontology
-__J2ME_COMPATIBILITY__END*/
+#MIDP_INCLUDE_END*/
 	implements SLVocabulary {
 		
 	// NAME
   public static final String ONTOLOGY_NAME = "SL-ONTOLOGY";
 	
   // The singleton instance of this ontology
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 	private static Ontology theInstance = new SLOntology(ONTOLOGY_NAME, SL2Ontology.getInstance(), null);
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 	private static Ontology theInstance = new SLOntology(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
-__J2ME_COMPATIBILITY__END*/
+#MIDP_INCLUDE_END*/
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -66,7 +66,7 @@ __J2ME_COMPATIBILITY__END*/
   protected SLOntology(String name, Ontology base, Introspector intro) {
   	super(name, base, intro);
 
-/*__J2ME_COMPATIBILITY__BEGIN
+/*#MIDP_INCLUDE_BEGIN
   	try {
 			// Schemas for the SL1 operators
   		add(new PredicateSchema(AND), AbsPredicate.getJavaClass());
@@ -141,7 +141,7 @@ __J2ME_COMPATIBILITY__END*/
     catch (OntologyException oe) {
       oe.printStackTrace();
     } 
-__J2ME_COMPATIBILITY__END*/
+#MIDP_INCLUDE_END*/
 	}
 
 }

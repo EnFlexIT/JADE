@@ -25,6 +25,8 @@
  */
 package jade;
 
+//#ALL_EXCLUDE_FILE
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 

@@ -24,6 +24,8 @@
  */
 package jade.content.onto;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.core.CaseInsensitiveString;
 import jade.content.*;
 import jade.content.abs.*;

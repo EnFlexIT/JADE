@@ -24,6 +24,8 @@
  */
 package jade.content.onto;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;

@@ -96,7 +96,7 @@ public class AbsPrimitive implements AbsTerm {
         return ret;
     } 
 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     /**
      * Create an AbsPrimitive of type <code>BasicOntology.FLOAT</code>
      * containing a given <code>float</code> value.
@@ -114,7 +114,7 @@ public class AbsPrimitive implements AbsTerm {
         AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Double(value));
         return ret;
     } 
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
 
     /**
      * Create an AbsPrimitive of type <code>BasicOntology.DATE</code>
@@ -189,7 +189,7 @@ public class AbsPrimitive implements AbsTerm {
       this.value = new Long(value);
     } 
 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     /**
      * Set the value of this AbsPrimitive to the given float value.
      * @param value The new value
@@ -213,7 +213,7 @@ public class AbsPrimitive implements AbsTerm {
     		throw new IllegalArgumentException("Wrong type");
       this.value = new Double(value);
     } 
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
 
     /**
      * Set the value of this AbsPrimitive to the given Date value.
@@ -275,7 +275,7 @@ public class AbsPrimitive implements AbsTerm {
         return ((Long) value).longValue();
     } 
 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     /**
      * @return the value of this AbsPrimitive as a float.
      * @throws ClassCastException If the type of this AbsPrimitive 
@@ -293,7 +293,7 @@ public class AbsPrimitive implements AbsTerm {
     public double getDouble() {
         return ((Double) value).doubleValue();
     } 
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
 
     /**
      * @return the value of this AbsPrimitive as a Date.

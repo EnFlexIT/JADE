@@ -85,7 +85,7 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
         set(name, AbsPrimitive.wrap(value));
     } 
 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     /**
      * Utility method that allows setting attributes of type
      * <code>float</code> without the need of wrapping the new value
@@ -107,7 +107,7 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
     public void set(String name, double value) {
         set(name, AbsPrimitive.wrap(value));
     } 
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
 
     /**
      * Utility method that allows setting attributes of type
@@ -181,7 +181,7 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
     	return ((AbsPrimitive) getAbsObject(name)).getLong();
     }
 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     /**
      * Utility method that allows getting the value of attributes 
      * of type <code>float</code> directly as a <code>float</code>
@@ -203,7 +203,7 @@ class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
     public double getDouble(String name) {
     	return ((AbsPrimitive) getAbsObject(name)).getDouble();
     }
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
     
     /**
      * Utility method that allows getting the value of attributes 

@@ -51,13 +51,13 @@ public class ContentManager implements Serializable {
     transient private Map languages = new HashMap();
     transient private Map ontologies = new HashMap();
     private boolean validationMode = true;
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
     private void readObject(java.io.ObjectInputStream oin) throws java.io.IOException, ClassNotFoundException {
 	oin.defaultReadObject();
 	languages = new HashMap();
 	ontologies = new HashMap();
     }
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
 
     /**
      * Registers a <code>Codec</code> for a given content language 

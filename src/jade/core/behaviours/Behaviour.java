@@ -287,13 +287,13 @@ public abstract class Behaviour implements Serializable {
   		startFlag = false;
   	}
   	
-  	//__CLDC_UNSUPPORTED__BEGIN
+  	//#MIDP_EXCLUDE_BEGIN
 		myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_READY, Behaviour.STATE_RUNNING);
-  	//__CLDC_UNSUPPORTED__END
+  	//#MIDP_EXCLUDE_END
 		action();
-  	//__CLDC_UNSUPPORTED__BEGIN
+  	//#MIDP_EXCLUDE_BEGIN
     myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_RUNNING, Behaviour.STATE_READY);
-  	//__CLDC_UNSUPPORTED__END
+  	//#MIDP_EXCLUDE_END
   }
   
   /**

@@ -28,14 +28,12 @@ package jade.content.lang.sl;
  * @author Giovanni Caire - TILAB
  */
 public interface SLVocabulary 
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 	extends SL2Vocabulary {
-//__CLDC_UNSUPPORTED__END
-/*__J2ME_COMPATIBILITY__BEGIN
+//#MIDP_EXCLUDE_END
+/*#MIDP_INCLUDE_BEGIN
 	extends SL0Vocabulary {
-__J2ME_COMPATIBILITY__END*/
 
-/*__J2ME_COMPATIBILITY__BEGIN
 	// SL1 operators
   public static final String         AND = "and";
   public static final String         AND_LEFT = "left";
@@ -88,5 +86,5 @@ __J2ME_COMPATIBILITY__END*/
   public static final String         ACTION_ALTERNATIVE = "|";
   public static final String         ACTION_ALTERNATIVE_FIRST = "first";
   public static final String         ACTION_ALTERNATIVE_SECOND = "second";
-__J2ME_COMPATIBILITY__END*/
+#MIDP_INCLUDE_END*/
 }
