@@ -82,12 +82,6 @@ public class MobileAgent extends GuiAgent {
   // this vector contains the list of visited locations
   Vector visitedLocations = new Vector();
 
-    public void setArguments(String args[]) {
-	System.out.println("The old deprecated setArguments method has been called");
-	for (int i=0; i<args.length; i++)
-	    System.out.print(args[i]+" ");
-	System.out.println();
-    }
 
 	public void setup() {
 	    System.out.println(getLocalName()+" has been launched with the following arguments:");

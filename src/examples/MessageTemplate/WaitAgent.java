@@ -115,7 +115,7 @@ public class WaitAgent extends Agent {
   	
   	try{
   		ArrayList sender = new ArrayList();
-    	System.out.println("\nEnter the agent name (name@hap) of the expected senders separated by white spaces or tab: ");
+    	System.out.println("\nEnter the agent name, i.e. its globally unique identifier (name@hap), of the expected senders separated by white spaces or tab: ");
     	BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
     	String agentNames = buff.readLine();
     	StringTokenizer st = new StringTokenizer(agentNames);
@@ -123,7 +123,7 @@ public class WaitAgent extends Agent {
     	while(st.hasMoreTokens())
     	{
       	String name = st.nextToken();
-      	sender.add(new AID(name));
+      	sender.add(new AID(name, AID.ISGUID));
     	}
     
     	if(sender.isEmpty())

@@ -59,8 +59,9 @@ public class ComplexBehaviourAgent extends Agent {
 
     SequentialBehaviour myBehaviour1 = new SequentialBehaviour(this) {
       
-    	protected void postAction() {
+    	public int onEnd() {
       	reset();
+	return super.onEnd();
       }
     };
 
