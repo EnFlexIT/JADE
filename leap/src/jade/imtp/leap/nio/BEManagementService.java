@@ -28,6 +28,7 @@ package jade.imtp.leap.nio;
 import jade.core.Profile;
 import jade.core.Specifier;
 import jade.core.BaseService;
+import jade.core.GenericCommand;
 import jade.core.ServiceException;
 import jade.core.ServiceHelper;
 import jade.core.Agent;
@@ -113,6 +114,12 @@ public class BEManagementService extends BaseService {
 	private static final int TERMINATED_STATE = 3;
 	private static final int ERROR_STATE = -1;
  
+	public static final String INCOMING_CONNECTION = "Incoming-Connection";
+	
+	private static final String[] OWNED_COMMANDS = new String[] {
+		INCOMING_CONNECTION
+	};
+
   private Hashtable servers = new Hashtable(2);
   private Ticker myTicker;
   private ServiceHelper myHelper;
@@ -131,6 +138,10 @@ public class BEManagementService extends BaseService {
 	public String getName() {
 		String className = getClass().getName();	
 		return className.substring(0, className.indexOf("Service"));
+	}
+	
+	public String[] getOwnedCommands() {
+		return OWNED_COMMANDS;
 	}
 	
 	/** 
@@ -208,7 +219,7 @@ public class BEManagementService extends BaseService {
 	   that happen on it and on all sockets opened through it.
 	   The BEManagementService is basically a collection of these servers.
 	 */
-	private class IOEventServer implements PDPContextManager.Listener, JICPMediatorManager {
+	private class IOEventServer implements PDPContextManager, PDPContextManager.Listener, JICPMediatorManager {
 		private String myID;
 		private String myLogPrefix;
 		private int state = INIT_STATE;
@@ -284,6 +295,10 @@ public class BEManagementService extends BaseService {
 					t.printStackTrace();
 					myPDPContextManager = null;
 				}
+			}
+			else {
+				// Use itself as default
+				myPDPContextManager = this;
 			}
 			
 			// Looper pool size
@@ -535,7 +550,7 @@ public class BEManagementService extends BaseService {
 							}
 									        
 			        // Create an ad-hoc reply including the assigned mediator-id and the IP address
-			        String replyMsg = id+'#'+address.getHostAddress();
+			        String replyMsg = mediator.getID()+'#'+address.getHostAddress();
 			        reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 			        reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 		      	}
@@ -742,6 +757,62 @@ public class BEManagementService extends BaseService {
   		}
 	  }
 	  
+	  ///////////////////////////////////////
+	  // PDPContextManager interface
+	  ///////////////////////////////////////
+	  /**
+	     If no PDPContextManager is specified in the properties file 
+	     the IOEventServer itself is used and the default behaviour
+	     is to issue an INCOMING_CONNECTION outgoing command
+	   */
+	  public Properties getPDPContextInfo(InetAddress addr, String owner) {
+      GenericCommand cmd = new GenericCommand(INCOMING_CONNECTION, getName(), null);
+      cmd.addParam(myID);
+      cmd.addParam(addr);
+      cmd.addParam(owner);
+
+      try {
+	      Object ret = submit(cmd);
+	      if (ret != null) {
+	      	if (ret instanceof Properties) {
+	      		// PDP Context properties detected
+	      		return (Properties) ret;
+	      	}
+	      	else if (ret instanceof JADESecurityException) {
+	      		// Incoming connection from non-authorized device
+	      		return null;
+	      	}
+	      	else if (ret instanceof Throwable) {
+	      		// Unexpected exception
+	      		((Throwable) ret).printStackTrace();
+	      		return null;
+	      	}
+	      }
+	      
+	    	// If we get here, no installed service is able to retrieve 
+	      // the PDPContext properties --> Let all through with 
+	      // empty properties
+	    	return new Properties();
+      }
+      catch (ServiceException se) {
+      	// Should never happen
+      	se.printStackTrace();
+      	return null;
+      }      
+	  }
+	  
+	  public void init(Properties pp) {
+	  	// Just do nothing
+	  }
+	  
+	  public void registerListener(PDPContextManager.Listener l) {
+	  	// Just do nothing
+	  }
+
+	  
+	  ///////////////////////////////////////
+	  // PDPContextManager.Listener interface
+	  ///////////////////////////////////////
 	  /**
 	     Called by the PDPContextManager (if any)
 	   */

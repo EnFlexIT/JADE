@@ -126,9 +126,11 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
     	myContainer = new BackEndContainer(props, this);
     	if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");
-			}
+    	}
+    	// Possibly the node name was re-assigned by the main
+    	myID = myContainer.here().getName();
       if(myLogger.isLoggable(Logger.CONFIG)) {
-      	myLogger.log(Logger.CONFIG,"BackEndContainer "+myContainer.here().getName()+" successfully joined the platform");
+      	myLogger.log(Logger.CONFIG,"BackEndContainer "+myID+" successfully joined the platform");
       }
     	return new BackEndSkel(myContainer);
     }
