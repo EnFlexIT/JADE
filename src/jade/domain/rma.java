@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1998/11/05 23:38:06  rimassa
+  Added GUI callback methods to create new agents and to kill them.
+
   Revision 1.4  1998/11/03 00:39:52  rimassa
   Added processing of 'inform' messages received from AMS in response to
   AgentPlatform events.
@@ -22,7 +25,12 @@
 
 package jade.domain;
 
+// FIXME: Only for debug
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+
 import java.io.StringReader;
+import java.io.StringWriter;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
@@ -47,6 +55,8 @@ public class rma extends Agent {
 
   private ACLMessage AMSSubscription = new ACLMessage("subscribe");
   private ACLMessage AMSCancellation = new ACLMessage("cancel");
+  private ACLMessage newAgentMsg = new ACLMessage("request");
+  private ACLMessage killAgentMsg = new ACLMessage("request");
 
   private class AMSListenerBehaviour extends CyclicBehaviour {
 
@@ -122,7 +132,7 @@ public class rma extends Agent {
 
   private SequentialBehaviour AMSSubscribe = new SequentialBehaviour();
 
-  private AMSMainFrame myGUI = new AMSMainFrame();
+  private AMSMainFrame myGUI = new AMSMainFrame(this);
 
   public void setup() {
 
@@ -148,6 +158,19 @@ public class rma extends Agent {
 
     // No content is needed (cfr. FIPA 97 Part 2 page 26)
 
+
+    killAgentMsg.setSource(myName);
+    killAgentMsg.setDest("AMS");
+    killAgentMsg.setProtocol("fipa-request");
+    killAgentMsg.setOntology("fipa-agent-management");
+    killAgentMsg.setLanguage("SL0");
+
+    newAgentMsg.setSource(myName);
+    newAgentMsg.setDest("AMS");
+    newAgentMsg.setProtocol("fipa-request");
+    newAgentMsg.setOntology("fipa-agent-management");
+    newAgentMsg.setLanguage("SL0");
+
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addBehaviour(new SenderBehaviour(this, AMSSubscription));
 
@@ -159,6 +182,46 @@ public class rma extends Agent {
 
     // Show Graphical User Interface
     myGUI.ShowCorrect();
+
+  }
+
+  public void takeDown() {
+    send(AMSCancellation);
+  }
+
+
+  // Callback methods from GUI
+
+  public void newAgent(String agentName, String className, int containerID) {
+
+    AgentManagementOntology.CreateAgentAction caa = new AgentManagementOntology.CreateAgentAction();
+    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+
+    amsd.setName(agentName);
+
+    caa.setArg(amsd);
+    caa.setClassName(className);
+    caa.addProperty(AgentManagementOntology.CreateAgentAction.CONTAINER, new Integer(containerID).toString());
+
+    StringWriter createText = new StringWriter();
+    caa.toText(createText);
+    newAgentMsg.setContent("( action ams " + createText + " )");
+
+    newAgentMsg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+
+    send(newAgentMsg);
+  }
+
+  public void killAgent(String name) {
+    AgentManagementOntology.KillAgentAction kaa = new AgentManagementOntology.KillAgentAction();
+    kaa.setAgentName(name);
+    StringWriter killText = new StringWriter();
+    kaa.toText(killText);
+    killAgentMsg.setContent("( action ams " + killText + " )");
+
+    send(killAgentMsg);
+
+    // FIXME: Should do a complete 'fipa-request' protocol
 
   }
 
