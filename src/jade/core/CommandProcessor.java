@@ -36,7 +36,7 @@ import java.util.Hashtable;
    @author Giovanni Rimassa - FRAMeTech s.r.l.
    @author Giovanni Caire - TILAB
 */
-public class CommandProcessor {
+class CommandProcessor {
 		private Filter firstDownFilter;
 		private Filter firstUpFilter;
 		
