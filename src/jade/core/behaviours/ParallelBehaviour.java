@@ -201,7 +201,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
      this <code>ParallelBehaviour</code> 
      @see jade.core.behaviours.CompositeBehaviour#getChildren
   */
-  protected Collection getChildren() {
+  public Collection getChildren() {
 	return subBehaviours;
   }
   	

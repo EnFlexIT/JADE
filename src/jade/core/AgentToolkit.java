@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.lang.acl.ACLMessage;
+import jade.core.behaviours.Behaviour;
 //__SECURITY__BEGIN
 import jade.security.Authority;
 import jade.security.AuthException;
@@ -48,6 +49,9 @@ interface AgentToolkit {
   void handlePosted(AID agentID, ACLMessage msg) throws AuthException;
   void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
+  void handleBehaviourAdded(AID agentID, Behaviour b);
+  void handleBehaviourRemoved(AID agentID, Behaviour b);
+  void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
 //__SECURITY__BEGIN
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, CertificateFolder certs);
   Authority getAuthority();

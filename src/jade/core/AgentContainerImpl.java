@@ -33,6 +33,7 @@ import jade.util.leap.HashMap;
 import jade.util.leap.Set;
 
 import jade.lang.acl.ACLMessage;
+import jade.core.behaviours.Behaviour;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -787,6 +788,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //fireReceivedMessage(msg, agentID);
     myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
       new Object[]{msg, agentID});
+  }
+
+  public void handleBehaviourAdded(AID agentID, Behaviour b) {
+      myNotificationManager.fireEvent(NotificationManager.ADDED_BEHAVIOUR,
+        new Object[]{agentID, b});
+  }
+  
+  public void handleBehaviourRemoved(AID agentID, Behaviour b) {
+      myNotificationManager.fireEvent(NotificationManager.REMOVED_BEHAVIOUR,
+        new Object[]{agentID, b});
+  }
+  
+  public void handleChangeBehaviourState(AID agentID, Behaviour b,
+                                         String from, String to) {
+      myNotificationManager.fireEvent(NotificationManager.CHANGED_BEHAVIOUR_STATE,
+        new Object[]{agentID, b, from, to});
   }
 
 //__SECURITY__BEGIN

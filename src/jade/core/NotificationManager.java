@@ -42,6 +42,9 @@ interface NotificationManager {
 	public static final int ROUTED_MESSAGE = 4;
 	public static final int CHANGED_AGENT_STATE = 5;
 	public static final int CHANGED_AGENT_PRINCIPAL = 6;
+  public static final int ADDED_BEHAVIOUR = 7;
+  public static final int REMOVED_BEHAVIOUR = 8;
+  public static final int CHANGED_BEHAVIOUR_STATE = 9;
 
   void initialize(AgentContainerImpl ac, LADT ladt);
   

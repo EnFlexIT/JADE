@@ -175,7 +175,7 @@ public abstract class CompositeBehaviour extends Behaviour {
    * This method returns a Collection view of the children of 
    * this <code>CompositeBehaviour</code> 
    */
-  protected abstract Collection getChildren();
+  public abstract Collection getChildren();
 
   /**
      Blocks this behaviour. When <code>block()</code> is called 

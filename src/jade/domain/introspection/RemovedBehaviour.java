@@ -26,6 +26,7 @@ package jade.domain.introspection;
 
 import jade.core.AID;
 import jade.core.BehaviourID;
+import jade.domain.introspection.Event;
 
 /**
 
@@ -33,7 +34,9 @@ import jade.core.BehaviourID;
    @version $Date$ $Revision$
 */
 
-public class RemovedBehaviour {
+public class RemovedBehaviour implements Event {
+
+  public static final String NAME = "Removed-Behaviour";
 
   private AID agent;
   private BehaviourID behaviour;
@@ -53,6 +56,10 @@ public class RemovedBehaviour {
 
   public BehaviourID getBehaviour() {
     return behaviour;
+  }
+
+  public String getName() {
+      return NAME;
   }
 
 }

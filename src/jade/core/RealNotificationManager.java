@@ -27,6 +27,8 @@ import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
+import jade.core.behaviours.Behaviour;
+
 import jade.core.event.MessageEvent;
 import jade.core.event.MessageListener;
 import jade.core.event.AgentEvent;
@@ -93,11 +95,11 @@ class RealNotificationManager implements NotificationManager {
       tn = new ToolNotifier(snifferName);
       AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
-        myContainer.initAgent(id, tn, AgentContainer.START);
-        addMessageListener(tn);
+	      myContainer.initAgent(id, tn, AgentContainer.START);
+  	    addMessageListener(tn);
       }
-      catch(Exception e) {
-          e.printStackTrace();
+      catch (Exception e) {
+      	e.printStackTrace();
       }
     }
     tn.addObservedAgent(toBeSniffed);
@@ -127,12 +129,12 @@ class RealNotificationManager implements NotificationManager {
       tn = new ToolNotifier(debuggerName);
       AID id = new AID(debuggerName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
       try {
-        myContainer.initAgent(id, tn, AgentContainer.START);
-        addMessageListener(tn);
-        addAgentListener(tn);
+	      myContainer.initAgent(id, tn, AgentContainer.START);
+  	    addMessageListener(tn);
+    	  addAgentListener(tn);
       }
-      catch(Exception e) {
-        e.printStackTrace();
+      catch (Exception e) {
+      	e.printStackTrace();
       }
     }
     tn.addObservedAgent(toBeDebugged);
@@ -185,6 +187,15 @@ class RealNotificationManager implements NotificationManager {
   		case CHANGED_AGENT_STATE:
   			fireChangedAgentState((AID) param[0], (AgentState) param[1], (AgentState) param[2]);
   			break;
+      case ADDED_BEHAVIOUR:
+        fireAddedBehaviour((AID) param[0], (Behaviour) param[1]);
+        break;
+     	case REMOVED_BEHAVIOUR:
+        fireRemovedBehaviour((AID) param[0], (Behaviour) param[1]);
+        break;
+      case CHANGED_BEHAVIOUR_STATE:
+        fireChangedBehaviourState((AID)param[0], (Behaviour)param[1], (String)param[2], (String)param[3]);
+        break;
 //__SECURITY__BEGIN
   		case CHANGED_AGENT_PRINCIPAL:
   			fireChangedAgentPrincipal((AID) param[0], (AgentPrincipal) param[1], (AgentPrincipal) param[2]);
@@ -249,6 +260,45 @@ class RealNotificationManager implements NotificationManager {
     }
   }
 
+  private void fireAddedBehaviour(AID agentID, Behaviour b) {
+    synchronized(agentListenersLock) {
+      if(agentListeners != null) {
+		AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+		for(int i = 0; i < agentListeners.size(); i++) {
+	  		AgentListener l = (AgentListener)agentListeners.get(i);
+            l.addedBehaviour(ev);
+		}
+      }
+    }
+  }
+
+private void fireRemovedBehaviour(AID agentID, Behaviour b) {
+    synchronized(agentListenersLock) {
+      if(agentListeners != null) {
+		AgentEvent ev = new AgentEvent(AgentEvent.REMOVED_BEHAVIOUR, agentID, new BehaviourID(b), myID());
+		for(int i = 0; i < agentListeners.size(); i++) {
+	  		AgentListener l = (AgentListener)agentListeners.get(i);
+            l.removedBehaviour(ev);
+		}
+      }
+    }
+  }
+
+  private void fireChangedBehaviourState(AID agentID, Behaviour b, String from, String to) {
+    synchronized(agentListenersLock) {
+      if(agentListeners != null) {
+		AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, agentID, new BehaviourID(b), from, to, myID());
+		for(int i = 0; i < agentListeners.size(); i++) {
+	  		AgentListener l = (AgentListener)agentListeners.get(i);
+            l.changedBehaviourState(ev);
+		}
+      }
+    }
+  }
+  
+
+
+
 //__SECURITY__BEGIN
   private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
     synchronized(agentListenersLock) {
@@ -312,6 +362,7 @@ class RealNotificationManager implements NotificationManager {
   }
 
   private void addAgentListener(AgentListener l) {
+  	System.out.println("added listener "+l);
     synchronized(agentListenersLock) {
       if(agentListeners == null)
 	agentListeners = new LinkedList();

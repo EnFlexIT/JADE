@@ -53,6 +53,8 @@ public class AgentEvent extends JADEEvent {
   private BehaviourID behaviour = null;
   private AgentState from = null;
   private AgentState to = null;
+  private String behaviourFrom = null;
+  private String behaviourTo = null;
 //__SECURITY__BEGIN
 	private AgentPrincipal oldPrincipal = null;
   private AgentPrincipal newPrincipal = null;
@@ -95,7 +97,7 @@ public class AgentEvent extends JADEEvent {
     to = null;
   }
 
-  public AgentEvent(int id, AID aid, BehaviourID bid, String f, String t, ContainerID cid) {
+  public AgentEvent(int id, AID aid, BehaviourID bid, String strFrom, String strTo, ContainerID cid) {
     super(cid);
     myID = id;
     if(!isChangedBehaviourState()) {
@@ -104,7 +106,12 @@ public class AgentEvent extends JADEEvent {
 
     agent = aid;
     behaviour = bid;
-    // FIXME: set old and new behaviour states...
+    
+    from = null;
+    to = null;
+    
+    behaviourFrom = strFrom;
+    behaviourTo = strTo;
 
   }
 
@@ -122,6 +129,14 @@ public class AgentEvent extends JADEEvent {
 
   public AgentState getTo() {
     return to;
+  }
+
+  public String getBehaviourFrom() {
+      return behaviourFrom;
+  }
+  
+  public String getBehaviourTo() {
+      return behaviourTo;
   }
 
 //__SECURITY__BEGIN

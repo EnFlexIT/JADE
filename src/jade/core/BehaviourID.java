@@ -23,6 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CompositeBehaviour;
+
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.Collection;
 
 /**
 
@@ -37,8 +44,25 @@ public class BehaviourID {
 
   private String name;
   private String kind;
-  private BehaviourID parent;
+  private List children = new ArrayList();
 
+  public BehaviourID () {
+  }
+  
+  public BehaviourID (Behaviour b) {
+      name = b.getClass().getName();
+      kind = "Behaviour";
+      
+      // If we have a composite behaviour, add the
+      // children to this behaviour id.
+      if (b instanceof CompositeBehaviour) {
+          CompositeBehaviour c = (CompositeBehaviour)b;
+          Iterator iter = c.getChildren().iterator();
+          while (iter.hasNext()) {
+              addChildren(new BehaviourID((Behaviour)iter.next()));
+          }
+      }
+  }
 
   public void setName(String n) {
     name = n;
@@ -56,13 +80,15 @@ public class BehaviourID {
     return kind;
   }
 
-  public void setParent(BehaviourID id) {
-    parent = id;
+  public void addChildren(BehaviourID bid) {
+      children.add(bid);
   }
 
-  public BehaviourID getParent() {
-    return parent;
+  public Iterator getAllChildren() {
+      return children.iterator();
   }
-
-
+  
+  public boolean isSimple() {
+      return (children.size() == 0) ? true : false;
+  }
 }

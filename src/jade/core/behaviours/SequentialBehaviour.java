@@ -101,7 +101,7 @@ public class SequentialBehaviour extends CompositeBehaviour {
      this <code>SequentialBehaviour</code> 
      @see jade.core.behaviours.CompositeBehaviour#getChildren
   */
-  protected Collection getChildren() {
+  public Collection getChildren() {
 	return subBehaviours;
   }
   	

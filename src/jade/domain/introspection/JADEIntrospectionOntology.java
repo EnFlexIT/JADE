@@ -242,7 +242,7 @@ public class JADEIntrospectionOntology {
 	theInstance.addRole(BEHAVIOURID, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("kind", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("parent", Ontology.FRAME_SLOT, BEHAVIOURID, Ontology.O)
+      new SlotDescriptor("children", Ontology.SEQUENCE_SLOT, BEHAVIOURID, Ontology.O),
 	}, BehaviourID.class);
 
 	theInstance.addRole(ACLMESSAGE, new SlotDescriptor[] {

@@ -67,6 +67,10 @@ public class AgentState {
 
   }
 
+  public String toString() {
+      return name;
+  }
+
   public int compareTo(Object o) {
     AgentState as = (AgentState)o;
 		return name.toLowerCase().toUpperCase().compareTo(as.name.toLowerCase().toUpperCase());

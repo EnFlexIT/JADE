@@ -283,7 +283,7 @@ public class FSMBehaviour extends CompositeBehaviour {
      this <code>SequentialBehaviour</code> 
      @see jade.core.behaviours.CompositeBehaviour#getChildren
   */
-  protected Collection getChildren() {
+  public Collection getChildren() {
   	return states.values();
   }
   

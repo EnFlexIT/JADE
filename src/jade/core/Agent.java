@@ -237,7 +237,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
     // If so, put the root behaviour back into the ready queue.
     Behaviour root = b.root();
     if(root.isRunnable())
+    {
       myScheduler.restart(root);
+      notifyChangeBehaviourState(b, "Blocked", "Running");
+    }
   }
 
   /**
@@ -347,24 +350,23 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public static final int D_MAX = 41;    // Hand-made type checking
 
 
-
   /**
      Get the Agent ID for the platform AMS.
      @return An <code>AID</code> object, that can be used to contact
      the AMS of this platform.
   */
-  public final AID getAMS() {
-    return myToolkit.getAMS();
-  }
+	public final AID getAMS() {
+		return myToolkit.getAMS();  
+	}
 
   /**
      Get the Agent ID for the platform default DF.
      @return An <code>AID</code> object, that can be used to contact
      the default DF of this platform.
   */
-  public final AID getDefaultDF() {
-    return myToolkit.getDefaultDF();
-  }
+	public final AID getDefaultDF() {
+		return myToolkit.getDefaultDF();
+	}
 
   private int       msgQueueMaxSize = 0;
   private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
@@ -1687,23 +1689,23 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	    }
 	    else {
 	      synchronized(myScheduler) {
-		// Need synchronized block (Crais Sayers, HP): What if
-		// 1) it checks to see if its runnable, sees its not,
-		//    so it begins to enter the body of the if clause
-		// 2) meanwhile, in another thread, a message arrives, so
-		//    the behaviour is restarted and moved to the ready list.
-		// 3) now back in the first thread, the agent executes the
-		//    body of the if clause and, by calling block(), moves
-		//   the behaviour back to the blocked list.
-		if(!currentBehaviour.isRunnable()) {
-		  // Remove blocked behaviour from ready behaviours queue
-		  // and put it in blocked behaviours queue
-		  myScheduler.block(currentBehaviour);
-		  currentBehaviour = null;
-		}
+					// Need synchronized block (Crais Sayers, HP): What if
+					// 1) it checks to see if its runnable, sees its not,
+					//    so it begins to enter the body of the if clause
+					// 2) meanwhile, in another thread, a message arrives, so
+					//    the behaviour is restarted and moved to the ready list.
+					// 3) now back in the first thread, the agent executes the
+					//    body of the if clause and, by calling block(), moves
+					//   the behaviour back to the blocked list.
+					if(!currentBehaviour.isRunnable()) {
+		  			// Remove blocked behaviour from ready behaviours queue
+		  			// and put it in blocked behaviours queue
+		  			myScheduler.block(currentBehaviour);
+      			notifyChangeBehaviourState(currentBehaviour, "Running", "Blocked");
+		  			currentBehaviour = null;
+					}
 	      }
 	    }
-	    break;
 	  }
 	  // Someone interrupted the agent. It could be a kill or a
 	  // move/clone request...
@@ -1722,46 +1724,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	      break;
 	    }
 	  }
-
-
-	  // Remember how many messages arrived
-	  int oldMsgCounter = messageCounter;
-
-	  // Just do it!
-	  currentBehaviour.actionWrapper();
-
-	  // If the current Behaviour is blocked and more messages
-	  // arrived, restart the behaviour to give it another chance
-	  if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
-	    currentBehaviour.restart();
-
-
-	  // When it is needed no more, delete it from the behaviours queue
-	  if(currentBehaviour.done()) {
-	  	currentBehaviour.onEnd();
-	    myScheduler.remove(currentBehaviour);
-	    currentBehaviour = null;
-	  }
-	  else {
-	      synchronized(myScheduler) {
-		  // Need syncrhonzied block (Crais Sayers, HP): What if
-		  // 1) it checks to see if its runnable, sees its not,
-		  //    so it begins to enter the body of the if clause
-		  // 2) meanwhile, in another thread, a message arrives, so
-		  //    the behaviour is restarted and moved to the ready list.
-		  // 3) now back in the first thread, the agent executes the
-		  //    body of the if clause and, by calling block(), moves
-		  //   the behaviour back to the blocked list.
-		  if(!currentBehaviour.isRunnable()) {
-		      // Remove blocked behaviour from ready behaviours queue
-		      // and put it in blocked behaviours queue
-		      myScheduler.block(currentBehaviour);
-		      currentBehaviour = null;
-		  }
-	      }
-	  }
 	  break;
-	}
+	}  // END of switch on agent atate
 
 	// Now give CPU control to other agents
 	Thread.yield();
@@ -1870,6 +1834,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void addBehaviour(Behaviour b) {
     b.setAgent(this);
     myScheduler.add(b);
+    notifyAddBehaviour(b);
   }
 
   /**
@@ -1883,6 +1848,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void removeBehaviour(Behaviour b) {
     b.setAgent(null);
     myScheduler.remove(b);
+    notifyRemoveBehaviour(b);
   }
 
 	/*
@@ -2189,6 +2155,24 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myToolkit.handleClone(myAID, myDestination, myNewName);
   }
 
+  // Notify toolkit of the added behaviour
+  private void notifyAddBehaviour(Behaviour b) {
+      if (myToolkit != null)
+          myToolkit.handleBehaviourAdded(myAID, b);
+  }
+  
+  // Notify the toolkit of the removed behaviour
+  private void notifyRemoveBehaviour(Behaviour b) {
+      if (myToolkit != null)
+          myToolkit.handleBehaviourRemoved(myAID, b);
+  }
+  
+  // Notify the toolkit of the change in behaviour state
+  private void notifyChangeBehaviourState(Behaviour b, String from, String to) {
+      if (myToolkit != null)
+          myToolkit.handleChangeBehaviourState(myAID, b, from, to);
+  }
+  
   // Notify toolkit that the current agent has changed its state
   private void notifyChangedAgentState(int oldState, int newState) {
     AgentState from = STATES[oldState];
@@ -2196,7 +2180,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if (myToolkit != null)
       myToolkit.handleChangedAgentState(myAID, from, to);
   }
-
+  
 //__SECURITY__BEGIN
   // Notify toolkit that the current agent has changed its principal
   private void notifyChangedAgentPrincipal(AgentPrincipal from, CertificateFolder certs) {
