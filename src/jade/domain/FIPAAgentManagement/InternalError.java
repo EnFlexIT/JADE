@@ -31,7 +31,10 @@ public class InternalError extends FailureException {
   }
 
   public InternalError() {
-    this("Internal Error");
+    this("Internal-Error");
   }
 
+  String s1;
+public void set_0(String s){ s1=s;}
+public String get_0() {return s1;}
 }
