@@ -339,7 +339,16 @@ public class StringACLCodec implements ACLCodec {
      **/
     static public void appendACLExpression(StringBuffer str, String slotName, String slotValue) {
 				if ((slotValue != null) && (slotValue.length() > 0) ) {
-						slotValue = (isAWord(slotValue)?slotValue:quotedString(slotValue));
+						if (!isAWord(slotValue)) {
+								try {
+										// if the value is a number, then leave as it is
+										Double.valueOf(slotValue);
+								} catch (NumberFormatException e) {
+										// if the program is here, then slotValue is neither a
+										// word or a number. Therefore it must be quoted
+										slotValue = quotedString(slotValue);
+								}
+						}
 						str.append(slotName + " " + slotValue + " ");
 				}
 		}
