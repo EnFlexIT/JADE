@@ -60,7 +60,7 @@ import jade.util.leap.Serializable;
  * If you want to create a log in a PersonalJava or MIDP environment you
  * don't need to change anything in your code.<br><br>
  *
- * For example to log the warning message  "Attention!"the code should be<br><br>
+ * For instance to log the warning message  "Attention!"the code should be<br><br>
  *
  * <code>Logger logger = Logger.getMyLogger(this.getClass().getName());</code><br>
  * <code>logger.log("Logger.WARNING","Attention!"); </code><br><br>
@@ -70,7 +70,7 @@ import jade.util.leap.Serializable;
  * object of type java.util.logging.Logger if you're running in a
  * J2SE environment or in a <code>System.out.println()</code> if you're
  * running in a PersonalJava environment (through the LEAP add-on).<br>On the
- * other hand if you are running JADE in a MIDP environment (again through
+ * other hand, if you are running JADE in a MIDP environment (again through
  * the LEAP add-on) printouts are redirected so that they can be later viewed
  * by means of the <code>jade.util.leap.OutputViewer</code> MIDlet included
  * in the LEAP add-on.<br><br>
@@ -88,7 +88,7 @@ import jade.util.leap.Serializable;
  * In addition there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
  * In J2SE environment the logging configuration can be initialized using a logging
  * configuration file that will be read at startup. This file is in standard
- * java.util.Properties format. The default logging configuration that ships with th JRE
+ * java.util.Properties format. The default logging configuration that ships with the JRE
  * is only a default, and can be overridden with the java.util.logging.config.file <br>
  * system property. For example: <br><br>
  * java -Djava.util.logging.config.file=mylogging.properties jade.Boot <br><br><br>
@@ -106,7 +106,8 @@ import jade.util.leap.Serializable;
  * In addition there is a level OFF that can be used to turn off logging, and a level ALL that can be used to enable logging of all messages.
  * The default level for logging is set to INFO. All messages of higher level will be logged.
  * To modify logging level you have to set the MIDlet-LEAP-level at the selected level
- * property in the manifest file of your MIDlet.<br><br>
+ * property in the manifest file of your MIDlet.For performance reasons, in MIDP and PJAVA
+ * evironments the log level is unique for the whole JVM.<br><br>
  * Example:<br><br>
  * MIDlet-LEAP-log_level:warning
  *
