@@ -422,7 +422,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private volatile int myAPState;
 
   //#MIDP_EXCLUDE_BEGIN
-  private Authority authority;
+  //private Authority authority;
   private String ownership = jade.security.JADEPrincipal.NONE;
   private AgentPrincipal principal = null;
   private CertificateFolder certs = new CertificateFolder();
@@ -443,7 +443,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
      When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
      or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
      These events in facts are very frequent.
-     @See setGenerateBehaviourEvents()
    */
   private boolean generateBehaviourEvents = false;
 
@@ -1293,9 +1292,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
     catch(AgentDeathError ade) {
       // Do Nothing, since this is a killAgent from outside
     }
+    //#MIDP_EXCLUDE_BEGIN
+    catch(AgentInMotionError aime) {
+      // This is a move from the outside while the agent was waiting 
+    	// (blockingReceive()) outside the mainLoop(). There is nothing 
+    	// we can do
+    }
+    //#MIDP_EXCLUDE_END
     finally {
 			//#MIDP_EXCLUDE_BEGIN
       switch(myAPState) {
+      case AP_TRANSIT:
+      case AP_COPY:
+      	System.err.println("***  Agent " + myName + " moved in a forbidden situation ***");
+      	// No break statement --> fall through
       case AP_DELETED:
       	terminating = true;
 	int savedState = getState();
@@ -2064,7 +2074,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	   of the local container (first) or as a System property.
 	   @param key the key that maps to the property that has to be 
 	   retrieved.
-	   @default a aDefault value that is returned if there is no mapping
+	   @param aDefault a default value to be returned if there is no mapping
 	   for <code>key</code>
 	 */
 	public String getProperty(String key, String aDefault) {

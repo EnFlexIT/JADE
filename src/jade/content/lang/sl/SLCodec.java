@@ -72,7 +72,7 @@ public class SLCodec extends StringCodec {
     
     /**
      * Construct a Codec object for the given profile of SL-language.
-     * @parameter slType specify 0 for FIPA-SL0, 1 for FIPA-SL1, 2 for FIPA-SL2, any other value can be used for full FIPA-SL
+     * @param slType specify 0 for FIPA-SL0, 1 for FIPA-SL1, 2 for FIPA-SL2, any other value can be used for full FIPA-SL
      */
     public SLCodec(int slType) {
 	super((slType==0 ? FIPANames.ContentLanguage.FIPA_SL0 :
