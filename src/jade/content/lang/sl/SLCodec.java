@@ -26,10 +26,11 @@ package jade.content.lang.sl;
 
 import jade.content.onto.Ontology;
 import jade.content.abs.*;
-import jade.content.lang.Codec;
+import jade.content.lang.StringCodec;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.Iterator;
 import jade.domain.FIPANames;
+import jade.core.CaseInsensitiveString;
 
 import java.util.Date;
 import java.util.Vector;
@@ -47,10 +48,17 @@ import java.io.InputStreamReader; // only for debugging purposes in the main
  * @author Fabio Bellifemine - TILAB 
  * @version $Date$ $Revision$
  */
-public class SLCodec extends Codec {
+public class SLCodec extends StringCodec {
 
     private SLParser parser;
 
+    /**
+     * Construct a Codec object for the full SL-language (FIPA-SL).
+     */
+    public SLCodec() {
+    	this(3);
+    }
+    
     /**
      * Construct a Codec object for the given profile of SL-language.
      * @parameter slType specify 0 for FIPA-SL0, 1 for FIPA-SL1, 2 for FIPA-SL2, any other value can be used for full FIPA-SL
@@ -71,23 +79,23 @@ public class SLCodec extends Codec {
 
 
     /**
-     * Encodes a content into a byte array.
+     * Encodes a content into a String.
      * @param content the content as an abstract descriptor.
-     * @return the content as a byte array.
+     * @return the content as a String.
      * @throws CodecException
      */
-    public byte[] encode(AbsContentElement content) throws CodecException {
+    public String encode(AbsContentElement content) throws CodecException {
 	return encode(null, content);
     }
 
     /**
-     * Encodes a content into a byte array.
+     * Encodes a content into a String.
      * @param ontology the ontology 
      * @param content the content as an abstract descriptor.
-     * @return the content as a byte array.
+     * @return the content as a String.
      * @throws CodecException
      */
-    public byte[] encode(Ontology ontology, AbsContentElement content) throws CodecException {
+    public String encode(Ontology ontology, AbsContentElement content) throws CodecException {
 	StringBuffer str = new StringBuffer("(");
 	if (content instanceof AbsContentElementList) {
 	    for (Iterator i=((AbsContentElementList)content).iterator(); i.hasNext(); ) {
@@ -97,12 +105,13 @@ public class SLCodec extends Codec {
 	    }
 	} else str.append(toString(content));
 	str.append(")");
-	try {
+	/*try {
 	    return str.toString().getBytes("US-ASCII");
 	} catch (java.io.UnsupportedEncodingException e) {
 	    e.printStackTrace();
 	    return str.toString().getBytes();
-	}
+	}*/
+	return str.toString();
     }
 
   /** 
@@ -170,12 +179,12 @@ public class SLCodec extends Codec {
 
     /**
      * this method is used by all the toString methods and it exploits
-     * the common AbsObjectImpl implementation
+     * the common AbsObject implementation
      * @param encodeSlotNames if true and the name of the slot does not
      * start with <code>Codec.UNNAMEDPREFIX</code>, then the slotName is
      * also encoded, otherwise it is skipped.
      **/
-    private String encode(AbsObjectImpl val, boolean encodeSlotNames) throws CodecException {
+    private String encode(AbsObject val, boolean encodeSlotNames) throws CodecException {
 	StringBuffer str = new StringBuffer("(");
 	str.append(encode(val.getTypeName()));
 	String[] slotNames = val.getNames();
@@ -183,7 +192,7 @@ public class SLCodec extends Codec {
 	// FIXME. This can be improved because it might lower performance!
 	if (encodeSlotNames && (slotNames != null)) {
 	    for (int i=0; i<slotNames.length; i++)
-		if (slotNames[i].startsWith(Codec.UNNAMEDPREFIX)) {
+		if (slotNames[i].startsWith(UNNAMEDPREFIX)) {
 		    encodeSlotNames = false;
 		    break;
 		}
@@ -221,16 +230,26 @@ public class SLCodec extends Codec {
 	    return "?"+encode(var.substring(1));
     }
 
+    /** Constant needed to create an <code>AbsIRE(SLCodec.IOTA)</code> **/
+    public final static String IOTA = "IOTA";
+    // these 2 constants, set and sequence, are also used by SLParser.jj
+    final static String SET = "set";
+    final static String SEQUENCE = "sequence";
     /** Vector of all the functionals which have been pre-defined by FIPA
      * and whose slots should not be encoded */
     private Vector vectorOfPredefinedFunctionals;
-    private static Vector SL0Functionals = new Vector(2); 
-    private static Vector FullSLFunctionals = new Vector(14); 
+    private static Vector SL0Functionals = new Vector(5); 
+    private static Vector FullSLFunctionals = new Vector(17); 
     static {
-	SL0Functionals.addElement("set"); 
-	SL0Functionals.addElement("sequence");
+	SL0Functionals.addElement(SET); 
+	SL0Functionals.addElement(SEQUENCE);
+	SL0Functionals.addElement("action");
+	SL0Functionals.addElement("|");
+	SL0Functionals.addElement(";");
 	FullSLFunctionals.addElement(SL0Functionals.elementAt(0));
 	FullSLFunctionals.addElement(SL0Functionals.elementAt(1));
+ 	FullSLFunctionals.addElement(SL0Functionals.elementAt(2));
+  FullSLFunctionals.addElement(SL0Functionals.elementAt(3));
 	FullSLFunctionals.addElement("cons");
 	FullSLFunctionals.addElement("first");
 	FullSLFunctionals.addElement("rest");
@@ -257,20 +276,35 @@ public class SLCodec extends Codec {
     }
 
 
-    private String toString(AbsHigherOrderAction val) throws CodecException {
-	return encode(val, false);
+    private String toString(AbsAggregate val) throws CodecException {
+    	StringBuffer str = new StringBuffer("(");
+			str.append(encode(val.getTypeName()));
+			for (Iterator i=val.iterator(); i.hasNext(); ) {
+				str.append(" ");
+				str.append(toString((AbsObject)i.next()));
+			}
+	    str.append(")");
+	    return str.toString();
     }
 
-    private String toString(AbsHigherOrderPredicate val) throws CodecException{
-	return encode(val, false);
-    }
+/*
+    private String toString(AbsAgentAction val) throws CodecException {
+    	if ( CaseInsensitiveString.equalsIgnoreCase("action",val.getTypeName()) ||
+      		 CaseInsensitiveString.equalsIgnoreCase("|",val.getTypeName()) ||
+     		 	 CaseInsensitiveString.equalsIgnoreCase(";",val.getTypeName()))
+ 				return encode(val, false);
+ 			else
+ 				//throw new CodecException("SLEncoderRequiresTheSLActionOperator_insteadOf_"+val.getTypeName());
+    }*/
 
     private String toString(AbsPrimitive val) throws CodecException {
 	Object v = val.getObject();
 	if (v instanceof Date)
 	    return ISO8601.toString((Date)v);
-	else
-	    return v.toString();
+	else if (v instanceof Number)
+		  return v.toString();
+  else
+	    return encode(v.toString());
     }
 
     private String toString(AbsObject val) throws CodecException {
@@ -278,9 +312,9 @@ public class SLCodec extends Codec {
 	if (val instanceof AbsPredicate) return toString( (AbsPredicate)val);
 	if (val instanceof AbsIRE) return toString( (AbsIRE)val);
 	if (val instanceof AbsVariable) return toString( (AbsVariable)val);
+//	if (val instanceof AbsAgentAction) return toString( (AbsAgentAction)val);
+	if (val instanceof AbsAggregate) return toString( (AbsAggregate)val);
 	if (val instanceof AbsConcept) return toString( (AbsConcept)val);
-	if (val instanceof AbsHigherOrderAction) return toString( (AbsHigherOrderAction)val);
-	if (val instanceof AbsHigherOrderPredicate) return toString( (AbsHigherOrderPredicate)val);
 	throw new CodecException("SLCodec cannot encode this object "+val);
     }
 
@@ -289,26 +323,26 @@ public class SLCodec extends Codec {
 
     /**
      * Decodes the content to an abstract description.
-     * @param content the content as a byte array.
+     * @param content the content as a String.
      * @return the content as an abstract description.
      * @throws CodecException
      */
-    public AbsContentElement decode(byte[] content) throws CodecException {
+    public AbsContentElement decode(String content) throws CodecException {
 	return decode(null, content); 
     }
 
     /**
      * Decodes the content to an abstract description.
      * @param ontology the ontology.
-     * @param content the content as a byte array.
+     * @param content the content as a String.
      * @return the content as an abstract description.
      * @throws CodecException
      */
-    public AbsContentElement decode(Ontology ontology, byte[] content) throws CodecException {
+    public AbsContentElement decode(Ontology ontology, String content) throws CodecException {
 	try {
-	    return parser.parse(content);
+	    return parser.parse(ontology,content);
 	}  catch(Throwable e) { // both ParseException and TokenMgrError
-	    throw new Codec.CodecException("Parse exception", e);
+	    throw new CodecException("Parse exception", e);
 	}
     }
 
@@ -328,12 +362,14 @@ public class SLCodec extends Codec {
 		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
 		String str = buff.readLine();
 		System.out.println("\n\n");
-		AbsContentElement result = codec.decode(str.getBytes("US-ASCII"));
+		//AbsContentElement result = codec.decode(str.getBytes("US-ASCII"));
+		AbsContentElement result = codec.decode(str);
 		System.out.println("DUMP OF THE DECODE OUTPUT:");
 		result.dump();
 		System.out.println("\n\n");
 		System.out.println("AFTER ENCODE:");
-		System.out.println(new String(codec.encode(result),"US-ASCII"));
+		//System.out.println(new String(codec.encode(result),"US-ASCII"));
+		System.out.println(codec.encode(result));
 		System.out.println("\n\n");
 	    } catch(Exception pe) {
 		pe.printStackTrace();
@@ -343,5 +379,12 @@ public class SLCodec extends Codec {
     }
 
 
+    /**
+     * @return the ontology containing the schemas of the operator
+     * defined in this language
+     */
+    public Ontology getInnerOntology() {
+    	return SLOntology.getInstance();
+    }
 }
 
