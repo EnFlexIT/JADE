@@ -638,7 +638,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               
               try {
                   String agentOwnership = username;
-                  AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+                  /*AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
                   
                   IdentityCertificate agentIdentity = authority.createIdentityCertificate();
                   agentIdentity.setSubject(agentPrincipal);
@@ -653,6 +653,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   CertificateFolder agentCerts = new CertificateFolder();
                   agentCerts.setIdentityCertificate(agentIdentity);
                   agentCerts.addDelegationCertificate(agentDelegation);
+                  */
+                  CertificateFolder agentCerts = createCertificateFolder(agentID);
                   
                   try {
                       createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, NOSTART);
@@ -702,6 +704,25 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       System.out.println("Agent container " + myID + " is ready.");
   }
 
+  CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
+	  AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+	  
+	  IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+	  agentIdentity.setSubject(agentPrincipal);
+	  authority.sign(agentIdentity, certs);
+	  
+	  DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+	  agentDelegation.setSubject(agentPrincipal);
+	  for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
+	      agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+	  authority.sign(agentDelegation, certs);
+	  
+	  CertificateFolder agentCerts = new CertificateFolder();
+	  agentCerts.setIdentityCertificate(agentIdentity);
+	  agentCerts.addDelegationCertificate(agentDelegation);
+	  
+	  return agentCerts;
+  }
 
   public void shutDown() {
     // Close down the ACC
@@ -794,37 +815,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//
 		// create an Iterator with all the receivers to which the message must be 
 		// delivered
-		Iterator it = null;
-		Envelope env = msg.getEnvelope();
-		if (env != null) {
-			it = env.getAllIntendedReceiver();
-			if ((it != null) && (it.hasNext())) {
-				//System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
-				// ok. use the intendedreceiver
-			}
-			else {
-				it = env.getAllTo();
-				if ((it != null) && (it.hasNext())) {
-					//System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
-					// ok. use the :to
-					// FIXME. Should I copy all the :to values in the :IntendedReceiver?
-				}
-				else {
-					it = msg.getAllReceiver();
-					// ok. use the receivers set in the ACLMessage
-				}
-			}
-		}
-		else
-			it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
-		if (it == null)
-			return; // No Message is sent in this case because no receiver was found
+		Iterator it = msg.getAllIntendedReceiver();
 		
-		// Now it contains the Iterator with all the receivers of this message
-		// Iterator it = msg.getAllReceiver();
+		// Now "it" contains the Iterator with all the receivers of this message
 		while (it.hasNext()) {
+			AID dest = (AID)it.next();
 			try {
-				AID dest = (AID)it.next();
 				AgentPrincipal target2 = getAgentPrincipal(dest);
 				authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
 				ACLMessage copy = (ACLMessage)msg.clone();
@@ -833,7 +829,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			catch (AuthException ae) {
 				lastException = ae;
 				//ae.printStackTrace();
-				notifyFailureToSender(msg, new InternalError(ae.getMessage()));
+				notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()));
 			}
 		}
 
@@ -845,7 +841,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		if (lastException != null)
 			throw lastException;
 	}
-
+	
   public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
     AgentPrincipal target = getAgentPrincipal(msg.getSender());
     authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
@@ -999,7 +995,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	myMessageManager.deliver(msg, receiverID);
     }
     catch(IMTPException imtpe) {
-			// This should never happen as this is a local call
+			// Should never happen as this is a local call
 			imtpe.printStackTrace();
     }
   }
@@ -1020,7 +1016,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
     catch(NotFoundException nfe) {
     	// The receiver does not exist --> Send a FAILURE message
-      notifyFailureToSender(msg, new InternalError("\"Agent not found: " + nfe.getMessage()+"\""));
+      notifyFailureToSender(msg, receiverID, new InternalError("\"Agent not found: " + nfe.getMessage()+"\""));
     }
   }
   
@@ -1030,7 +1026,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
    * the Message Transport Service.
    * Package scoped as it can be called by the MessageManager
    */
-  void notifyFailureToSender(ACLMessage msg, InternalError ie) {
+  void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
 		//if (the sender is not the AMS and the performative is not FAILURE)
 		if ( (msg.getSender()==null) || ((msg.getSender().equals(getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
 	    return;
@@ -1039,8 +1035,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		failure.setPerformative(ACLMessage.FAILURE);
 		//System.err.println(failure.toString());
 		failure.setSender(getAMS());
-		// FIXME the content is not completely correct, but that should
+		// FIXME: the content is not completely correct, but that should
 		// also avoid creating wrong content
+		// FIXME: the content should include the indication about the 
+		// receiver to wich dispatching failed.
 		String content = "( (action " + msg.getSender().toString();
 		content = content + " ACLMessage ) "+ie.getMessage()+")" ;
 		failure.setContent(content);

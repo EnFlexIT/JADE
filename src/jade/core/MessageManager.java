@@ -305,7 +305,7 @@ __J2ME_COMPATIBILITY__END*/
 				PendingMsg pm = (PendingMsg) it.next();
 				if (System.currentTimeMillis() > pm.getDeadline()) {
 					// If the deadline has expired, don't even try again
-      		myContainer.notifyFailureToSender(pm.getMessage(), new InternalError("\"Agent unreachable\""));
+      		myContainer.notifyFailureToSender(pm.getMessage(), pm.getReceiver(), new InternalError("\"Agent unreachable\""));
 				}
 				else {
 					// Otherwise schedule again the message for delivery
