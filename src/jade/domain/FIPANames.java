@@ -40,7 +40,7 @@ public class FIPANames {
      * that can be assigned via 
      * <code> ACLMessage.getEnvelope().setAclRepresentation(FIPANames.ACLCodec.BITEFFICIENT); </code>
      **/
-    public class ACLCodec {
+    public static class ACLCodec {
 	/** Syntactic representation of ACL in string form 
 	 * @see <a href=http://www.fipa.org/specs/fipa00070/XC00070f.html>FIPA Spec</a>
 	 **/
@@ -61,7 +61,7 @@ public class FIPANames {
      * <code>ACLMessage.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST)
      * </code>
      **/
-    public class InteractionProtocol implements jade.proto.FIPAProtocolNames {
+    public static class InteractionProtocol implements jade.proto.FIPAProtocolNames {
     }
 
     /**
@@ -70,13 +70,13 @@ public class FIPANames {
      * <code>ACLMessage.setLanguage(FIPANames.ContentLanguage.SL0)
      * </code>
      **/
-    public class ContentLanguage {
+    public static class ContentLanguage {
     }
 
     /**
      * Set of constants that identifies the Message Transport Protocols. 
      **/
-    public class MTP {
+    public static class MTP {
 	/**
 	 * IIOP-based MTP
 	 * @see <a href=http://www.fipa.org/specs/fipa00075/XC00075e.html>FIPA Spec</a>
