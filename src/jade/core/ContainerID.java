@@ -77,5 +77,19 @@ public class ContainerID implements Location {
   public String toString() {
     return getID();
   }
-
+  
+  public boolean equals(Object obj) {
+  	try {
+  		ContainerID cid = (ContainerID) obj;
+  		return CaseInsensitiveString.equalsIgnoreCase(name, cid.getName());
+  	}
+  	catch (ClassCastException cce) {
+  		return false;
+  	}
+  }
+  
+  public int hashCode() {
+  	return name.toLowerCase().hashCode();
+  }
+  		
 }

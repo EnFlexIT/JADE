@@ -66,44 +66,44 @@ class ContainerTable {
   private Map entries = new HashMap(CONTAINERS_SIZE);
 
 
-  public synchronized void addContainer(String containerName, AgentContainer ac) {
+  public synchronized void addContainer(ContainerID cid, AgentContainer ac) {
     Entry e = new Entry(ac);
-    entries.put(new CaseInsensitiveString(containerName), e);
+    entries.put(cid, e);
   }
 
-  public synchronized void addMTP(String containerName, MTPDescriptor mtp) throws NotFoundException {
-    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
+  public synchronized void addMTP(ContainerID cid, MTPDescriptor mtp) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
     if(e == null)
-      throw new NotFoundException("No container named " + containerName + " was found.");
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
     List l = e.getMTPs();
     l.add(mtp);
   }
 
-  public synchronized void removeContainer(String containerName) {
-    entries.remove(new CaseInsensitiveString(containerName));
+  public synchronized void removeContainer(ContainerID cid) {
+    entries.remove(cid);
     if(entries.isEmpty())
       notifyAll();
   }
 
-  public synchronized void removeMTP(String containerName, MTPDescriptor mtp) throws NotFoundException {
-    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
+  public synchronized void removeMTP(ContainerID cid, MTPDescriptor mtp) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
     if(e == null)
-      throw new NotFoundException("No container named " + containerName + " was found.");
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
     List l = e.getMTPs();
     l.remove(mtp);
   }
 
-  public synchronized AgentContainer getContainer(String containerName) throws NotFoundException {
-    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
+  public synchronized AgentContainer getContainer(ContainerID cid) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
     if(e == null)
-      throw new NotFoundException("No container named " + containerName + " was found.");
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
     return e.getContainer();
   }
 
-  public synchronized List getMTPs(String containerName) throws NotFoundException {
-    Entry e = (Entry)entries.get(new CaseInsensitiveString(containerName));
+  public synchronized List getMTPs(ContainerID cid) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
     if(e == null)
-      throw new NotFoundException("No container named " + containerName + " was found.");
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
     return e.getMTPs();
   }
 
@@ -122,13 +122,12 @@ class ContainerTable {
     return result;
   }
 
-  public synchronized String[] names() {
-    String[] result = new String[entries.size()];
+  public synchronized ContainerID[] names() {
+    ContainerID[] result = new ContainerID[entries.size()];
     Iterator it = entries.keySet().iterator();
     int i = 0;
     while(it.hasNext()) {
-      String s = ((CaseInsensitiveString)it.next()).toString();
-      result[i++] = s;
+      result[i++] = (ContainerID) it.next();
     }
     return result;
   }
