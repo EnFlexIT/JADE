@@ -3,16 +3,21 @@
 VERSION    = 0.93
 ARCHIVE    = JADE
 
+ROOTDIR = $(shell pwd)
+ROOTNAME = $(shell basename $(ROOTDIR))
+SRCDIR  = $(ROOTDIR)/src
+LIBDIR  = $(ROOTDIR)/lib
+LIBNAME = JADE.zip
+EXAMPLESDIR = $(SRCDIR)/examples
+MAKE = make
 
-export ROOTDIR = $(shell pwd)
-export ROOTNAME = $(shell basename $(ROOTDIR))
-export SRCDIR  = $(ROOTDIR)/src
-export LIBDIR  = $(ROOTDIR)/lib
-export LIBNAME = JADE.zip
-
-export EXAMPLESDIR = $(SRCDIR)/examples
-
-export MAKE = make
+export ROOTDIR
+export ROOTNAME
+export SRCDIR
+export LIBDIR
+export LIBNAME
+export EXAMPLESDIR
+export MAKE
 
 # The following targets are not file names
 .PHONY: all clean doc archive src lib examples
