@@ -404,7 +404,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   public void kill(AID agentID, String password) throws NotFoundException, UnreachableException {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
-      ac.killAgent(agentID); // RMI call
+      ac.killAgent(agentID);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -412,13 +412,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }
 
   public void APKillContainer(AgentContainer ac) throws IMTPException {
-    try {
-      ac.exit(); // RMI call
-    }
-    catch(UnmarshalException ue) {
-      // FIXME: This is ignored, since we'd need oneway calls to
-      // perform exit() remotely
-    }
+      ac.exit();
   }
 
   public void suspend(AID agentID, String password) throws NotFoundException, UnreachableException {
