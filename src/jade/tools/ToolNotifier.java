@@ -50,7 +50,6 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.StringACLCodec;
 import jade.lang.sl.SL0Codec;
 
-import jade.util.Sensor;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.LinkedList;
