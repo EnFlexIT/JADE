@@ -55,17 +55,18 @@ public class mainFrame extends Frame
  final static int VIEWKNOWNPERSONS = 0;
  final static int VIEWKNOWNDF = 1;
 
-public mainFrame(MeetingSchedulerAgent a, String title) {
-  this(title);
+public mainFrame(MeetingSchedulerAgent a, String aName, String title) {
+  this(aName, title);
   myAgent = a;
 }
 
+public mainFrame(String aName, String title) {
+  this(aName + " - " + title);
+}
 
-
-
-public mainFrame() {
+public mainFrame(String title) {
   //{{INIT_CONTROLS
-	java.util.Locale.setDefault(Locale.US);
+  java.util.Locale.setDefault(Locale.US);
   setLayout(null);
   setVisible(false);
   setSize(255,305);
@@ -98,7 +99,7 @@ public mainFrame() {
   listNames.setVisible(false);
   add(listNames);
   listNames.setBounds(0,0,250,200);
-  setTitle("A Basic Application");
+  setTitle(title);
   
   //{{INIT_MENUS
   mainMenuBar = new java.awt.MenuBar();
@@ -140,10 +141,6 @@ public mainFrame() {
   setLocation(50, 50);
 }
 	
-public mainFrame(String title) {
-  this();
-  setTitle(title);
-}
 	
 	public void addNotify()
 	{

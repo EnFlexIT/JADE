@@ -69,7 +69,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
     registerOntology(MSOntology.NAME, MSOntology.instance());
     registerLanguage(SL0Codec.NAME, new SL0Codec());
     // request the user to insert the password and username
-    (new PasswordDialog(this, "Enter your name and password")).setVisible(true);
+    (new PasswordDialog(this, getLocalName(), "Enter name and password")).setVisible(true);
     // when the user has inserted password and username, a GuiEvent will be posted
   }
 
@@ -125,7 +125,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
    **/
   private void startTasks(String userName){
     setUser(userName);
-    mf = new mainFrame(this,getUser() + " - Appointment Scheduler" );
+    mf = new mainFrame(this,getUser(),"Appointment Scheduler" );
     mf.setVisible(true);
     try {
       DFServiceCommunicator.register(this,getDFAgentDescription());
