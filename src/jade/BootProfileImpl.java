@@ -70,8 +70,8 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String NOMTP_KEY = "nomtp";
     public static final String NAME_KEY = "name";
     public static final String OWNER_KEY = "owner";
-    public static final String PASSWD_KEY = "passwd";
-    public static final String POLICY_KEY = "policy";
+    public static final String PASSWD_KEY = "jade.security.passwd";
+    public static final String POLICY_KEY = "java.security.policy";
     public static final String PORT_KEY = "port";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";

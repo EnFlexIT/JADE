@@ -65,8 +65,8 @@ public abstract class Profile {
 
   public static final String MAINAUTH_CLASS = "main-auth";
   public static final String AUTHORITY_CLASS = "authority";
-  public static final String POLICY_FILE = "policy";
-  public static final String PASSWD_FILE = "passwd";
+  public static final String POLICY_FILE = "java.security.policy";
+  public static final String PASSWD_FILE = "jade.security.passwd";
   public static final String OWNER = "owner";
   public static final String PWD_HASH_ALGORITHM = "jade.security.impl.pwdHashAlgorithm";
 
