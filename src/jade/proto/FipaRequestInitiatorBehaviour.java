@@ -170,6 +170,7 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   public void reset(){
   	finished = false;
   	state = INITIAL_STATE; 
+	super.reset();
   }
     
   /**
