@@ -1,0 +1,458 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+package jade.imtp.leap.JICP;
+
+//#MIDP_EXCLUDE_FILE
+
+import jade.core.AgentManager;
+import jade.core.BackEndContainer;
+import jade.core.BEConnectionManager;
+import jade.core.BackEnd;
+import jade.core.FrontEnd;
+import jade.core.IMTPException;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.core.ProfileException;
+import jade.core.ContainerID;
+import jade.imtp.leap.FrontEndStub;
+import jade.imtp.leap.MicroSkeleton;
+import jade.imtp.leap.BackEndSkel;
+import jade.imtp.leap.Dispatcher;
+import jade.imtp.leap.ICPException;
+import jade.util.leap.Properties;
+import jade.util.Logger;
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+/**
+ * Class declaration
+ * @author Giovanni Caire - TILAB
+ */
+public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispatcher, JICPMediator {
+	
+  private long              maxDisconnectionTime;
+
+  private JICPServer        myJICPServer;
+  private String            myID;
+
+  private int inpCnt = 0;
+  private boolean active = true;
+
+  private InpConnectionHolder  inpHolder = new InpConnectionHolder();
+  private OutConnectionHolder  outHolder = new OutConnectionHolder();
+
+  private MicroSkeleton mySkel = null;
+  private FrontEndStub myStub = null;
+  private BackEndContainer myContainer = null;
+
+	private Logger myLogger;
+	
+  /**
+   * Constructor declaration
+   */
+  public BIBEDispatcher() {
+  }
+  
+  /////////////////////////////////////
+  // JICPMediator interface implementation
+  /////////////////////////////////////
+  /**
+     Initialize parameters and start the embedded thread
+   */
+  public void init(JICPServer srv, String id, Properties props) throws ICPException {
+    myJICPServer = srv;
+    myID = id;
+    
+		// Verbosity
+    int verbosity = 1;
+  	try {
+  		verbosity = Integer.parseInt(props.getProperty("verbosity"));
+  	}
+  	catch (NumberFormatException nfe) {
+      // Use default (1)
+  	}
+  	/*#CUSTOMJ2SE_INCLUDE_BEGIN
+  	verbosity = 3;
+  	#CUSTOMJ2SE_INCLUDE_END*/
+  	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
+
+  	// Max disconnection time
+    maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
+    try {
+    	maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    
+    // Start the embedded thread dealing with outgoing commands only on the master copy
+    if(props.getProperty(Profile.MASTER_NODE_NAME) == null) {
+    	start();
+    }
+
+    myLogger.log("Created BIBEDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);  	
+    startBackEndContainer(props);
+  }
+
+  protected final void startBackEndContainer(Properties props) throws ICPException {
+    try {
+    	myStub = new FrontEndStub(this);
+
+    	props.setProperty(Profile.MAIN, "false");
+    	props.setProperty("mobility", "jade.core.DummyMobilityManager");
+			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
+
+			// Add the mediator ID to the profile (it's used as a token
+			// to keep related replicas together)
+			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
+
+    	myContainer = new BackEndContainer(props, this);
+			// Check that the BackEndContainer has successfully joined the platform
+			ContainerID cid = (ContainerID) myContainer.here();
+			if (cid == null || cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
+				throw new ICPException("BackEnd container failed to join the platform");
+			}
+    	mySkel = new BackEndSkel(myContainer);
+
+			if(masterNode == null) {
+		    String masterAddr = InetAddress.getLocalHost().getHostName() + ':' + myJICPServer.getLocalPort();
+		    props.put(Profile.BE_REPLICA_ZERO_ADDRESS, masterAddr);
+		    myContainer.activateReplicas();
+			}
+
+    	myLogger.log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
+    }
+    catch (ProfileException pe) {
+    	// should never happen
+    	pe.printStackTrace();
+			throw new ICPException("Error creating profile");
+    }
+    catch(UnknownHostException uhe) {
+			uhe.printStackTrace();
+    }
+  }
+  
+  /**
+     Shutdown forced by the JICPServer this BackEndContainer is attached 
+     to
+   */
+  public void kill() {
+    // Force the BackEndContainer to terminate. This will also
+    // cause this BIBEDispatcher to terminate and deregister 
+    // from the JICPServer
+    myContainer.shutDown();
+  }
+  
+  /**
+     This is called by the JICPServer. In the case of the BIBEDispatcher
+     this should never happen.
+   */
+  public JICPPacket handleJICPPacket(JICPPacket p, InetAddress addr, int port) throws ICPException {
+  	return null;
+  } 
+
+  /**
+   */
+  public JICPPacket handleIncomingConnection(Connection c, JICPPacket pkt, InetAddress addr, int port) {
+  	boolean inp = false;
+   	try {
+   		inp = (new String(pkt.getData())).equals("inp");
+   	}
+   	catch (Exception e) {}
+   	if (inp) {
+   		inpHolder.setConnection(c);
+   	}
+   	else {
+   		outHolder.setConnection(c);
+   	}
+
+    // On reconnections, a back end container becomes the master node
+    if((pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) && (!myContainer.isMaster())) {
+    	myContainer.becomeMaster();
+			start();
+    }
+    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+  } 
+  
+  ////////////////////////////////////////////////
+  // BEConnectionManager interface implementation
+  ////////////////////////////////////////////////
+	/**
+	   Return a stub of the remote FrontEnd that is connected to the 
+	   local BackEnd.
+	   @param be The local BackEnd 
+	   @param props Additional (implementation dependent) connection 
+	   configuration properties.
+	   @return A stub of the remote FrontEnd. 
+	 */
+  public FrontEnd getFrontEnd(BackEnd be, Properties props) throws IMTPException {
+  	return myStub;
+  }
+
+  public void activateReplica(String addr, Properties props) throws IMTPException {
+      try {
+
+	  // Build a CREATE_MEDIATOR packet with the given properties as payload
+	  StringBuffer sb = new StringBuffer();
+	  Enumeration e = props.propertyNames();
+	  while(e.hasMoreElements()) {
+
+	      String key = (String)e.nextElement();
+	      String value = props.getProperty(key);
+	      sb.append(key);
+	      sb.append('=');
+	      sb.append(value);
+	      sb.append('#');
+
+	  }
+
+	  JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
+
+	  // Open a Connection to the given JICP address and write the packet to it
+	  int colonPos = addr.indexOf(':');
+	  String host = addr.substring(0, colonPos);
+	  String port = addr.substring(colonPos + 1, addr.length());
+	  JICPAddress targetAddress = new JICPAddress(host, port, "", "");
+	  Connection c = new JICPConnection(targetAddress);
+	  c.writePacket(pkt);
+
+	  // Read back the response
+	  pkt = c.readPacket();
+	  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+	      // The JICPServer refused to create the Mediator or didn't find myMediator anymore
+	      byte[] data = pkt.getData();
+	      String errorMsg = (data != null ? new String(data) : null);
+	      throw new IMTPException(errorMsg);
+	  }
+
+	  c.close();
+      }
+      catch(IOException ioe) {
+	  throw new IMTPException("An I/O error occurred", ioe);
+      }
+  }
+
+  /**
+     Make this BackEndDispatcher terminate.
+   */
+  public void shutdown() {
+    myLogger.log("Initiate BIBEDispatcher shutdown", 2);
+
+    // Deregister from the JICPServer
+    if (myID != null) {
+	    myJICPServer.deregisterMediator(myID);
+  	  myID = null;
+    }
+
+		active = false;
+		inpHolder.resetConnection();
+		outHolder.resetConnection();
+  } 
+
+  //////////////////////////////////////////
+  // Dispatcher interface implementation
+  //////////////////////////////////////////
+  public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+  	Connection inpConnection = inpHolder.getConnection(flush);
+  	if (inpConnection != null && active) {
+  		int status = 0;
+		  int sid = inpCnt;
+		  inpCnt = (inpCnt+1) & 0x0f;
+	  	myLogger.log("Issuing command to FE "+sid, 3);
+	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
+	  	pkt.setSessionID((byte) sid);
+	  	try {
+		  	inpConnection.writePacket(pkt);
+		  	status = 1;
+		  	pkt = inpConnection.readPacket();
+		  	status = 2;
+	  		myLogger.log("Response received from FE "+pkt.getSessionID(), 3); 
+		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+		    	// Communication OK, but there was a JICP error on the peer
+		      throw new ICPException(new String(pkt.getData()));
+		    }
+		    return pkt.getData();
+	  	}
+	  	catch (IOException ioe) {
+	  		// Can't reach the FrontEnd. 
+	  		myLogger.log("IOException IC["+status+"]"+ioe, 2);
+	  		inpHolder.resetConnection();
+	  		throw new ICPException("Dispatching error.", ioe);
+	  	}
+  	}
+  	else {
+  		throw new ICPException("Unreachable");
+  	}
+  } 
+
+	
+  //////////////////////////////////////////////////
+  // The embedded Thread handling outgoing commands
+  //////////////////////////////////////////////////
+  public void run() {
+  	JICPPacket lastResponse = null;
+  	byte lastSid = 0x10;
+  	int status = 0;
+  	
+		myLogger.log("BIBEDispatcher thread started", 2);
+  	while (active) {
+  		try {
+				while (true) {
+					status = 0;
+					Connection outConnection = outHolder.getConnection();
+					myLogger.log("outConnection is "+outConnection, 2);
+					JICPPacket pkt = outConnection.readPacket();
+		    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+		    		// PEER TERMINATION NOTIFICATION
+		    		// The remote FrontEnd has terminated spontaneously -->
+		    		// Terminate and notify up.
+		    		handlePeerExited();
+		    		break;
+		    	}
+					status = 1;
+  				byte sid = pkt.getSessionID();
+  				if (sid == lastSid) {
+  					myLogger.log("Duplicated command from FE "+sid, 2);
+  					pkt = lastResponse;
+  				}
+  				else {
+	      		myLogger.log("Command from FE received "+sid, 3);
+						byte[] rspData = mySkel.handleCommand(pkt.getData());
+	      		myLogger.log("Command from FE served "+ sid, 3);
+					  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+					  pkt.setSessionID(sid);
+					  lastSid = sid;
+					  lastResponse = pkt;
+  				}
+  				status = 2;
+  				outConnection.writePacket(pkt);
+  				status = 3;
+  			}
+  		}
+  		catch (IOException ioe) {
+				if (active) {
+  				myLogger.log("IOException OC["+status+"]"+ioe, 2);
+  				outHolder.resetConnection();
+				}
+  		}
+  	}
+    myLogger.log("BIBEDispatcher Thread terminated", 1);
+  }
+
+  private void handlePeerExited() {
+		myLogger.log("Peer termination notification received", 2);
+		active = false;
+  	kill();
+  }
+  
+  /**
+     Inner class InpConnectionHolder
+   */
+  private class InpConnectionHolder {
+  	private Connection myConnection;
+  	private boolean connectionRefreshed;
+  	private boolean waitingForFlush = false;
+  	
+  	private synchronized void setConnection(Connection c) {
+  		if (myConnection != null) {
+  			close(myConnection);
+  		}
+  		myConnection = c;
+  		connectionRefreshed = true;
+  		waitingForFlush = myStub.flush();
+  	}
+  	
+  	private synchronized Connection getConnection(boolean flush) {
+  		if (waitingForFlush && (!flush)) {
+  			return null;
+  		}
+  		waitingForFlush = false;
+  		connectionRefreshed = false;
+  		return myConnection;
+  	}
+  	
+  	private synchronized void resetConnection() {
+  		if (!connectionRefreshed) {
+	  		if (myConnection != null) {
+	  			close(myConnection);
+	  		}
+	  		myConnection = null;
+  		}
+  	}
+  } // END of inner class InpConnectionHolder
+
+  
+  /**
+     Inner class OutConnectionHolder
+   */
+  private class OutConnectionHolder {
+  	private Connection myConnection;
+  	private boolean connectionRefreshed;
+  	
+  	private synchronized void setConnection(Connection c) {
+  		if (myConnection != null) {
+  			close(myConnection);
+  		}
+  		myConnection = c;
+  		connectionRefreshed = true;
+  		notifyAll();
+  	}
+  	
+  	private synchronized Connection getConnection() {
+  		while (myConnection == null) {
+  			try {
+  				wait(maxDisconnectionTime);
+  				if (myConnection == null) {
+  					kill();
+  				}
+  			}
+  			catch (Exception e) {
+  				myLogger.log("Spurious wake up", 1);
+  			}
+  		}
+  		connectionRefreshed = false;
+  		return myConnection;
+  	}
+  	
+  	private synchronized void resetConnection() {
+  		if (!connectionRefreshed) {
+	  		if (myConnection != null) {
+  				close(myConnection);
+	  		}
+	  		myConnection = null;
+  		}
+  	}
+  } // END of inner class OutConnectionHolder
+
+  private void close(Connection c) {
+  	try {
+  		c.close();
+  	}
+  	catch (IOException ioe) {
+  	}
+  }
+}
+
