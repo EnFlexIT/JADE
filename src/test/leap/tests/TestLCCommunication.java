@@ -41,6 +41,7 @@ import java.util.Vector;
  */
 public class TestLCCommunication extends Test {
 	private static final String PING_AGENT = "ping";
+	private static final String CONV_ID = "ping_conv";
 	
 	private String lightContainerName = "Container-1";
 	private int ret = Test.TEST_FAILED;
@@ -71,7 +72,38 @@ public class TestLCCommunication extends Test {
 			}
 		} );
 		// Step 2: Send a message to the ping agent and gets the reply
-		// FIXME: to be implemented
+		sb.addSubBehaviour(new SimpleBehaviour(a) {
+			private boolean finished = false;
+			
+			public void onStart() {
+				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+				msg.addReceiver(ping);
+				msg.setConversationId(CONV_ID);
+				myAgent.send(msg);
+				l.log("Message 1 sent to Ping agent.");
+			}
+			
+			public void action() {
+				ACLMessage msg = myAgent.receive(MessageTemplate.MatchConversationId(CONV_ID));
+				if (msg != null) {
+					if (msg.getSender().equals(ping)) {
+						l.log("Reply from Ping agent correctly received.");
+					}
+					else {
+						l.log("Unexpected reply received: "+msg);
+						sb.skipNext();
+					}
+					finished = true;
+				}
+				else {
+					block();
+				}
+			}
+			
+			public boolean done() {
+				return finished;
+			}
+		} );
 		// Step 3: Kill the ping agent on the light container
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
 			public void action() {
@@ -87,7 +119,38 @@ public class TestLCCommunication extends Test {
 			}
 		} );
 		// Step 4: Send a message to the ping agent and gets the FAILURE from the AMS
-		// FIXME: to be implemented
+		sb.addSubBehaviour(new SimpleBehaviour(a) {
+			private boolean finished = false;
+			
+			public void onStart() {
+				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+				msg.addReceiver(ping);
+				msg.setConversationId(CONV_ID);
+				myAgent.send(msg);
+				l.log("Message 2 sent to Ping agent.");
+			}
+			
+			public void action() {
+				ACLMessage msg = myAgent.receive(MessageTemplate.MatchConversationId(CONV_ID));
+				if (msg != null) {
+					if (msg.getSender().equals(myAgent.getAMS()) && msg.getPerformative() == ACLMessage.FAILURE) {
+						l.log("FAILURE notification from AMS correctly received.");
+					}
+					else {
+						l.log("Unexpected reply received: "+msg);
+						sb.skipNext();
+					}
+					finished = true;
+				}
+				else {
+					block();
+				}
+			}
+			
+			public boolean done() {
+				return finished;
+			}
+		} );
 		// Step 5: If we get here the test is passed
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
 			public void action() {

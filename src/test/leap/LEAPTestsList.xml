@@ -5,7 +5,7 @@
 	]>
 -->
 	<TestsList> 
-		<Test name="Basic life-cycle and communication" skip="true">
+		<Test name="Basic life-cycle and communication" skip="false">
 			<TestClassName>test.leap.tests.TestLCCommunication</TestClassName>
 			<WhatTest> Tests the basic operations of life-cycle management (agent creation/killing) and communication (message exchange) in a MIDP environment.</WhatTest>
 			<HowWorkTest> 
