@@ -53,7 +53,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 
   private FIPAManagementOntology() {
     //#MIDP_EXCLUDE_BEGIN
-  	super(NAME, ExceptionOntology.getInstance(), new BCReflectiveIntrospector());
+  	super(NAME, new Ontology[]{ExceptionOntology.getInstance(), SerializableOntology.getInstance()}, new BCReflectiveIntrospector());
     //#MIDP_EXCLUDE_END
     	
 		/*#MIDP_INCLUDE_BEGIN    	
@@ -132,7 +132,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  
 	  	cs = (ConceptSchema)getSchema(PROPERTY);
 	  	cs.add(PROPERTY_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
-	  	cs.add(PROPERTY_VALUE, (TermSchema)TermSchema.getBaseSchema());
+	  	cs.add(PROPERTY_VALUE, (TermSchema)TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL);  // In a template we can specify a null value
 
 	  	cs = (ConceptSchema)getSchema(ENVELOPE);
 	  	cs.add(ENVELOPE_TO, (ConceptSchema)getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
