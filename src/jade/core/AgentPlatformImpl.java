@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.39  1999/08/27 15:44:43  rimassa
+  Added Agent Descriptor locking in GADT lookup, to support
+  transactional agent migration.
+
   Revision 1.38  1999/08/10 15:32:56  rimassa
   Added implementation for lookup() method, and changed some method names.
 
@@ -365,8 +369,10 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     if(ad == null) {
       throw new NotFoundException("Agent " + agentName + " not found in getContainerFromAgent()");
     }
+    ad.lock();
     String name = ad.getContainerName();
     AgentContainer ac = (AgentContainer)containers.get(name);
+    ad.unlock();
     return ac;
   }
 
@@ -446,7 +452,9 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     if(ad == null)
       throw new NotFoundException("getProxy() failed to find " + agentName);
     else {
+      ad.lock();
       rp = ad.getProxy();
+      ad.unlock();
       try {
 	rp.ping();
       }
@@ -620,7 +628,10 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     if(ad == null)
       throw new NotFoundException("Agent " + agentName + " not found in getContainerName()");
-    return ad.getContainerName();
+    ad.lock();
+    String result = ad.getContainerName();
+    ad.unlock();
+    return result;
   }
 
   // This maps the name of an agent to its IIOP address.
