@@ -61,10 +61,7 @@ public class MSOntology {
 	new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	new SlotDescriptor("AID", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O),
 	new SlotDescriptor("DFName", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.O)
-	  }, new RoleEntityFactory() {
-             public Object create(Frame f) { return new Person(); }
-	     public Class getClassForRole() { return Person.class; }
-	  });
+	  }, Person.class);
       theInstance.addRole(APPOINTMENT, new SlotDescriptor[] {
 	new SlotDescriptor("inviter", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	new SlotDescriptor("description", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
@@ -73,10 +70,7 @@ public class MSOntology {
 	new SlotDescriptor("fixed-date", Ontology.PRIMITIVE_SLOT, Ontology.DATE_TYPE, Ontology.O),
 	new SlotDescriptor("invited-persons", Ontology.SET_SLOT, PERSON, Ontology.O),
 	new SlotDescriptor("possible-dates", Ontology.SET_SLOT, Ontology.DATE_TYPE, Ontology.O)
-	  }, new RoleEntityFactory() {
-             public Object create(Frame f) { return new Appointment(); }
-	     public Class getClassForRole() { return Appointment.class; }
-	  });
+	  }, Appointment.class);
     } catch (OntologyException oe) {
       oe.printStackTrace();
     }
