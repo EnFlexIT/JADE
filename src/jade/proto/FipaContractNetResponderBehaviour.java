@@ -172,7 +172,7 @@ private long timeout, blockTime, endingTime;
       myAgent.send(proposeMsg);
       //System.err.println("FipaContractNetResponderBehaviour: send");
       //proposeMsg.dump();
-      if (! proposeMsg.getType().equalsIgnoreCase("propose"))
+      if (! (ACLMessage.PROPOSE == proposeMsg.getPerformative()))
 	reset();
       else {
 	timeout = proposeMsg.getReplyByDate().getTime()-(new Date()).getTime();
@@ -200,12 +200,12 @@ private long timeout, blockTime, endingTime;
 	  return;
 	}
       }
-      if (acceptMsg.getType().equalsIgnoreCase("accept-proposal")) {
+      if (ACLMessage.ACCEPT_PROPOSAL == acceptMsg.getPerformative()) {
 	//System.err.println("FipaContractNetResponderBehaviour: receive");
 	//acceptMsg.dump();
 	state = 4;
 	informMsg = handleAcceptProposalMessage(acceptMsg);
-      } else if (acceptMsg.getType().equalsIgnoreCase("reject-proposal")) {
+      } else if (ACLMessage.REJECT_PROPOSAL == acceptMsg.getPerformative()) {
 	//System.err.println("FipaContractNetResponderBehaviour: receive");
 	//acceptMsg.dump();
 	handleRejectProposalMessage(acceptMsg);
