@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.38  1999/08/31 17:28:55  rimassa
+  Added automatic notification to registered RMAs whenever an agent
+  moves across containers.
+
   Revision 1.37  1999/08/10 15:39:00  rimassa
   Changed method name in an invocation to the agent platform to reflect
   AgentManager changes.
@@ -529,7 +533,7 @@ public class ams extends Agent {
       while(e.hasMoreElements()) {
 	String name = (String)e.nextElement();
 	AgentManagementOntology.AMSContainerEvent ev = new AgentManagementOntology.AMSContainerEvent();
-	ev.setKind(AgentManagementOntology.AMSContainerEvent.DEADCONTAINER);
+	ev.setKind(AgentManagementOntology.AMSEvent.DEADCONTAINER);
 	ev.setContainerName(name);
 	StringWriter w = new StringWriter();
 	ev.toText(w);
@@ -544,7 +548,7 @@ public class ams extends Agent {
       while(e.hasMoreElements()) {
 	AgDesc ad = (AgDesc)e.nextElement();
 	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
+	ev.setKind(AgentManagementOntology.AMSEvent.NEWAGENT);
 	ev.setContainerName(ad.containerName);
 	ev.setAgentDescriptor(ad.amsd);
 	StringWriter w = new StringWriter();
@@ -560,7 +564,7 @@ public class ams extends Agent {
       while(e.hasMoreElements()) {
 	AgDesc ad = (AgDesc)e.nextElement();
 	AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	ev.setKind(AgentManagementOntology.AMSContainerEvent.DEADAGENT);
+	ev.setKind(AgentManagementOntology.AMSEvent.DEADAGENT);
 	ev.setContainerName(ad.containerName);
 	ev.setAgentDescriptor(ad.amsd);
 
@@ -577,6 +581,26 @@ public class ams extends Agent {
       }
     }
 
+    private void processMovedAgents() {
+      Enumeration e = movedAgentsBuffer.elements();
+      while(e.hasMoreElements()) {
+	MotionDesc md = (MotionDesc)e.nextElement();
+	AgentManagementOntology.AMSMotionEvent ev = new AgentManagementOntology.AMSMotionEvent();
+	ev.setKind(AgentManagementOntology.AMSEvent.MOVEDAGENT);
+
+	ev.setAgentDescriptor(md.desc);
+	ev.setSrc(md.src);
+	ev.setDest(md.dest);
+
+	StringWriter w = new StringWriter();
+	ev.toText(w);
+	RMANotification.setContent(w.toString());
+
+	send(RMANotification, RMAs);
+	movedAgentsBuffer.removeElement(md);
+      }
+    }
+
     public void action() {
       // Look into the event buffers with AgentPlatform and send
       // appropriate ACL messages to registered RMAs
@@ -587,6 +611,7 @@ public class ams extends Agent {
 	processDeadContainers();
 	processNewAgents();
 	processDeadAgents();
+	processMovedAgents();
       }
 
       block();
@@ -687,6 +712,20 @@ public class ams extends Agent {
 
   }
 
+  private static class MotionDesc {
+
+    public MotionDesc(AgentManagementOntology.AMSAgentDescriptor amsd, String s, String d) {
+      desc = amsd;
+      src = s;
+      dest = d;
+    }
+
+    public AgentManagementOntology.AMSAgentDescriptor desc;
+    public String src;
+    public String dest;
+
+  }
+
   // The AgentPlatform where information about agents is stored 
   private AgentManager myPlatform;
 
@@ -719,6 +758,7 @@ public class ams extends Agent {
   private Vector deadContainersBuffer = new Vector();
   private Vector newAgentsBuffer = new Vector();
   private Vector deadAgentsBuffer = new Vector();
+  private Vector movedAgentsBuffer = new Vector();
 
   private Map pendingInforms = new HashMap();
 
@@ -974,6 +1014,12 @@ public class ams extends Agent {
   public synchronized void postDeadAgent(String containerName, String agentName) {
     AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
     deadAgentsBuffer.addElement(new AgDesc(containerName, amsd));
+    doWake();
+  }
+
+  public synchronized void postMovedAgent(String agentName, String src, String dest) {
+    AgentManagementOntology.AMSAgentDescriptor amsd = (AgentManagementOntology.AMSAgentDescriptor)descrTable.get(agentName.toLowerCase());
+    movedAgentsBuffer.addElement(new MotionDesc(amsd, src, dest));
     doWake();
   }
 
