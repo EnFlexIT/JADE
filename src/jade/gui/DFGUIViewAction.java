@@ -56,33 +56,32 @@ class DFGUIViewAction extends AbstractAction
 	    DFAgentDescription dfd = new DFAgentDescription();
 	    int kind = gui.kindOfOperation();
 		
-		if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW || kind == DFGUI.LASTSEARCH_VIEW)
-	  {
-	  	AID name = gui.getSelectedAgentInTable();
-	  	if (name != null)
-	      try{
-	      	if(kind == DFGUI.LASTSEARCH_VIEW)
-	      	  { 
-	      	  	//
-	      	  	dfd = gui.getDFAgentSearchDsc(name);
-	      	  }
+	    AID name = gui.getSelectedAgentInTable();
+	    
+	    //something was selected
+		  if (name != null)
+		  	if ( kind == DFGUI.AGENT_VIEW || kind == DFGUI.CHILDREN_VIEW || kind == DFGUI.LASTSEARCH_VIEW)
+	      {
+	      	try
+	      	{
+	      		if(kind == DFGUI.LASTSEARCH_VIEW)
+	      	  	dfd = gui.getDFAgentSearchDsc(name); // the dsc is maintained in a variable of the gui
 	        else
-	  			  dfd = gui.myAgent.getDFAgentDsc(name);
-	  		}catch (FIPAException fe){
-	  			//System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
-	  			gui.showStatusMsg("WARNING! No description for agent called " + name + " is found");
-	  			return;}
-	  	else dfd = null;
-	  	
-	  	}
-	  	else
-	  	if (kind == DFGUI.PARENT_VIEW)
-	  	{
-	  	  // In this case the description that will be shown will be the standard description used to federate the df 
-	  		dfd = gui.myAgent.getDescriptionOfThisDF();
-	  	
-	  	}		
-	  	
+	  			  dfd = gui.myAgent.getDFAgentDsc(name); // agent registered
+	      	}catch (FIPAException fe){
+	  			  //System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
+	  			  gui.showStatusMsg("WARNING! No description for agent called " + name + " is found");
+	  			  return;}
+	  	  }
+	      else
+	  	  {
+	  	  	if (kind == DFGUI.PARENT_VIEW)
+	  	    // In this case the description that will be shown will be the description used to federate the df 
+	  		  dfd = gui.myAgent.getDescriptionOfThisDF(name);
+	  	  }
+	    else //nothing selected
+	  	  return;
+
 	    if(dfd != null && kind != -1)
 	    {
 	    	DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
