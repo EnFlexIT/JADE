@@ -1,14 +1,14 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
+JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
+Copyright (C) 2000 CSELT S.p.A.
 
 GNU Lesser General Public License
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
+License as published by the Free Software Foundation,
+version 2.1 of the License.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -70,11 +70,9 @@ public class MeetingSchedulerAgent extends GuiAgent {
     Hashtable knownPersons = new Hashtable(); // list of known persons: (String)name -> Person
     private Hashtable appointments = new Hashtable(); // list of appointments:  (String)date -> Appointment
     private ACLMessage cancelMsg;
-	private Ontology MSOnto = MSOntology.getInstance();
-    private Codec SL0Codec = new SLCodec(); 
-
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-		
+    private Ontology MSOnto = MSOntology.getInstance();
+    private Codec SL0Codec = new SLCodec();
+private Logger logger = Logger.getMyLogger(this.getClass().getName());
   protected void setup() {
     // fill the fields of the cancel message
     cancelMsg = new ACLMessage(ACLMessage.CANCEL);
@@ -103,9 +101,9 @@ public class MeetingSchedulerAgent extends GuiAgent {
    **/
   protected void onGuiEvent(GuiEvent ev) {
     switch (ev.getType()) {
-    case STARTTASKS: 
+    case STARTTASKS:
       String userName = (String)ev.getParameter(0);
-      startTasks(userName); 
+      startTasks(userName);
       break;
     case FIXAPPOINTMENT:
       Appointment a = (Appointment)ev.getParameter(0);
@@ -115,14 +113,17 @@ public class MeetingSchedulerAgent extends GuiAgent {
       AID dfName = new AID((String)ev.getParameter(0), AID.ISGUID);
       try {
 	mf.showErrorMessage("Registering with "+dfName.getName()+" ...");
-	logger.log(Logger.CONFIG,"Registering with "+dfName.getName()+" ...");
+	if(logger.isLoggable(Logger.CONFIG))
+          logger.log(Logger.CONFIG,"Registering with "+dfName.getName()+" ...");
 	DFService.register(this,dfName,getDFAgentDescription());
 	mf.showErrorMessage("Done registration with "+dfName.getName()+".");
-	logger.log(Logger.CONFIG,"Done registration with "+dfName.getName()+".");
+        if(logger.isLoggable(Logger.CONFIG))
+          logger.log(Logger.CONFIG,"Done registration with "+dfName.getName()+".");
       } catch (FIPAException e) {
 	e.printStackTrace();
 	mf.showErrorMessage(e.getMessage());
-	logger.log(Logger.WARNING,e.getMessage());
+        if(logger.isLoggable(Logger.WARNING))
+          logger.log(Logger.WARNING,e.getMessage());
       }
       break;
     case CANCELAPPOINTMENT:
@@ -132,7 +133,8 @@ public class MeetingSchedulerAgent extends GuiAgent {
     case SEARCHWITHDF:
       AID dfName2 = (AID)ev.getParameter(0);
       mf.showErrorMessage("Updating with DF: "+dfName2.getName()+" ...");
-	  logger.log(Logger.CONFIG,"Updating with DF: "+dfName2.getName()+" ...");
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,"Updating with DF: "+dfName2.getName()+" ...");
       searchPerson(dfName2, null);
       break;
     default:
@@ -154,8 +156,9 @@ public class MeetingSchedulerAgent extends GuiAgent {
     } catch (FIPAException e) {
       e.printStackTrace();
       mf.showErrorMessage(e.getMessage());
-	  logger.log(Logger.WARNING,e.getMessage());
-      
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,e.getMessage());
+
           }
     addBehaviour(new myFipaContractNetResponderBehaviour(this));
     addBehaviour(new CancelAppointmentBehaviour(this));
@@ -172,18 +175,19 @@ public class MeetingSchedulerAgent extends GuiAgent {
     dfd.addServices(sd);
     try {
       DFAgentDescription[] l = DFService.search(this,dfname, dfd);
-    
+
       if (l != null)
 	  for (int i=0; i<l.length; i++) {
 	      // add values to knownPersons
 	      dfd = (DFAgentDescription)l[i];
-	      Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd.getName(),dfname); 
+	      Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd.getName(),dfname);
 	      addKnownPerson(prs);
 	  }
     } catch (FIPAException fe) {
       fe.printStackTrace();
       mf.showErrorMessage(fe.getMessage());
-	  logger.log(Logger.WARNING,fe.getMessage());
+      if(logger.isLoggable(Logger.WARNING))
+         logger.log(Logger.WARNING,fe.getMessage());
     }
   }
 
@@ -213,7 +217,7 @@ protected Enumeration getKnownDF() {
   return knownDF.elements();
 }
 
-/** 
+/**
 * This method returns an Enumeration of objects.
 * The object type is Person
 */
@@ -224,7 +228,8 @@ protected Enumeration getKnownPersons() {
 protected void addKnownPerson(Person p) {
     knownPersons.put(p.getName(),p);
     mf.showErrorMessage("Known " + p.getName());
-	logger.log(Logger.CONFIG,"Known " + p.getName());
+    if(logger.isLoggable(Logger.CONFIG))
+      logger.log(Logger.CONFIG,"Known " + p.getName());
 }
 
 protected Person getPerson(String name) {
@@ -236,7 +241,7 @@ protected Person getPersonbyAgentName(AID agentname) {
   Person p;
   while (e.hasMoreElements()) {
     p = (Person)e.nextElement();
-    if (p.getAID().equals(agentname)) 
+    if (p.getAID().equals(agentname))
       return p;
   }
   return null;
@@ -249,42 +254,44 @@ protected Person getPersonbyAgentName(AID agentname) {
 private void fixAppointment(Appointment a) {
 
   List ag = new ArrayList();
-  for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); ) 
+  for (Iterator i=a.getAllInvitedPersons(); i.hasNext(); )
     ag.add(((Person)i.next()).getAID());
-    
+
   if (ag.size() == 0) {//there is only me, nobody invited. Just find a free day
     Date goodDate = findADate(a);
     if (goodDate == null) {
       mf.showErrorMessage("No free date for "+a.toString());
-	  logger.log(Logger.WARNING,"No free date for "+a.toString());}
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,"No free date for "+a.toString());}
     else {
       a.setFixedDate(goodDate);
       addMyAppointment(a);
     }
   } else {
-    if (fillAppointmentWithPossibleDates(a)) 
+    if (fillAppointmentWithPossibleDates(a))
       // if returns True than there are available dates
-	addBehaviour(new myFipaContractNetInitiatorBehaviour(this,a,ag)); 
+	addBehaviour(new myFipaContractNetInitiatorBehaviour(this,a,ag));
     else {
       mf.showErrorMessage("No free date for "+a.toString());
-	  logger.log(Logger.WARNING,"No free date for "+a.toString());}
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,"No free date for "+a.toString());}
   }
 }
 
 
 /**
 * This function fills the Appointment with all the dates when this user
-* is available 
+* is available
 * @param a the Appointment
 * @return true if there was at least one day available, false otherwise
 */
   private boolean fillAppointmentWithPossibleDates(Appointment a) {
-    Date ds = (Date)a.getStartingOn().clone(); 
+    Date ds = (Date)a.getStartingOn().clone();
     Date de = a.getEndingWith();
-    while (! ds.after(de)) {     
-      if (! appointments.containsKey(key(ds))) 
+    while (! ds.after(de)) {
+      if (! appointments.containsKey(key(ds)))
 	a.addPossibleDates((Date)ds.clone());
-      ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day    
+      ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day
     }
     return a.getAllPossibleDates().hasNext();
   }
@@ -294,21 +301,21 @@ private void fixAppointment(Appointment a) {
    * @return a good Date for that Appointment
    */
   Date findADate(Appointment a) {
-    Date ds = a.getStartingOn(); 
+    Date ds = a.getStartingOn();
     if (appointments.containsKey(key(ds))) {
-     ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day    
+     ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day
      Date de = a.getEndingWith();
 
-     while (! ds.after(de)) { 
-       if (appointments.containsKey(key(ds))) { 
-             ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day    
+     while (! ds.after(de)) {
+       if (appointments.containsKey(key(ds))) {
+             ds.setTime(ds.getTime()+(24*60*60*1000)); // + 1 day
        } else return ds;
      } // end of while
      return null;
     }
     return ds;
     }
-  
+
 
   boolean isFree(Date d) {
     return !appointments.containsKey(key(d));
@@ -325,9 +332,10 @@ private Appointment getMyAppointment(Appointment app) {
   **/
   void cancelAppointment(Date d) {
     Appointment a = getMyAppointment(d);
-    if (a == null) { 
+    if (a == null) {
       mf.showErrorMessage("Nothing to cancel: no appointmen was fixed on "+d.toString());
-	  logger.log(Logger.WARNING,"Nothing to cancel: no appointmen was fixed on "+d.toString());
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,"Nothing to cancel: no appointmen was fixed on "+d.toString());
       return;
     }
 
@@ -345,7 +353,8 @@ private Appointment getMyAppointment(Appointment app) {
     } catch (FIPAException e) {
       e.printStackTrace();
       mf.showErrorMessage(e.getMessage());
-	  logger.log(Logger.WARNING,e.getMessage());
+      if(logger.isLoggable(Logger.WARNING))
+        logger.log(Logger.WARNING,e.getMessage());
       //System.out.println(cancelMsg.toString());
     }
 }
@@ -355,23 +364,24 @@ void removeMyAppointment(Appointment app) {
   Appointment a = getMyAppointment(app);
   if (a == null) {
     mf.showErrorMessage("Someone has requested to cancel an appointment for " + app.getFixedDate().toString()+" but there was no appointment actually");
-	logger.log(Logger.WARNING,"Someone has requested to cancel an appointment for " + app.getFixedDate().toString()+" but there was no appointment actually");
+    if(logger.isLoggable(Logger.WARNING))
+      logger.log(Logger.WARNING,"Someone has requested to cancel an appointment for " + app.getFixedDate().toString()+" but there was no appointment actually");
   } else {
     appointments.remove(key(a.getFixedDate()));
     //mf.calendar1_Action(null);
     mf.showErrorMessage("Cancelled Appointment: "+ a.toString());
-	logger.log(Logger.CONFIG,"Cancelled Appointment: "+ a.toString());
-    
+    if(logger.isLoggable(Logger.CONFIG))
+      logger.log(Logger.CONFIG,"Cancelled Appointment: "+ a.toString());
   }
 }
 
   // called by myFipaContractNetInitiatorBehaviour
 void addMyAppointment(Appointment a) {
   appointments.put(key(a.getFixedDate()),a);
-  mf.calendar1_Action();	
+  mf.calendar1_Action();
   mf.showErrorMessage(a.toString());
-  logger.log(Logger.CONFIG,a.toString());
-  
+  if(logger.isLoggable(Logger.CONFIG))
+    logger.log(Logger.CONFIG,a.toString());
 }
 
 
