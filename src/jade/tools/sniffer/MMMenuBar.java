@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -27,6 +28,10 @@ package jade.tools.sniffer;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JFrame;
+
+import jade.gui.AboutJadeAction;
+
 /**
 Javadoc documentation for the file
 @author Gianluca Tanca
@@ -46,9 +51,8 @@ public class MMMenuBar extends JMenuBar{
 		myGui = snifferGui; 
 
 		MMAbstractAction act;
-
 		JMenu jmenu = new JMenu("Actions");
-	    JMenuItem tmp;
+	  JMenuItem tmp;
 
 		act = new AddRemoveAgentAction();
 		tmp = jmenu.add(act);
@@ -77,10 +81,10 @@ public class MMMenuBar extends JMenuBar{
 		add(jmenu);
 		
 		jmenu = new JMenu("Help"); 
-		
-		act = new AboutBoxAction(myGui); 
+		act = new AboutBoxAction(myGui);
 		tmp = jmenu.add(act);
-				
+		tmp = jmenu.add(new AboutJadeAction((JFrame)myGui));
+		
 		add(jmenu);
 	}
 

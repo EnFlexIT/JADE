@@ -82,6 +82,7 @@ public class DFGUI extends JFrame
 
 		JMenu helpMenu = new JMenu ("Help");
 		item = helpMenu.add(new DFGUIAboutAction(this));
+		item = helpMenu.add(new AboutJadeAction(this));
 		jmb.add (helpMenu);
 
 		setJMenuBar(jmb);
