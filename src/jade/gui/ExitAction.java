@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1998/11/09 22:18:16  Giovanni
+  Changed code indentation to comply with JADE coding style.
+
   Revision 1.3  1998/10/10 19:37:14  rimassa
   Imported a newer version of JADE GUI from Fabio.
 
@@ -18,17 +21,14 @@ import com.sun.java.swing.border.*;
  * Exit Action
  * @see jade.gui.AMSAbstractAction
  */
-public class ExitAction extends AMSAbstractAction
-{
-	
-	public ExitAction ()
-	{
-		super ("ExitActionIcon","Exit");
-	}
+public class ExitAction extends AMSAbstractAction {
 
-	public void actionPerformed(ActionEvent evt)
-    {
-        System.exit(0);
-    }
+  public ExitAction () {
+    super ("ExitActionIcon","Exit this Container");
+  }
+
+  public void actionPerformed(ActionEvent evt) {
+    System.exit(0);
+  }
 }
 
