@@ -33,6 +33,7 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPANames;
 import jade.util.leap.Iterator;
 
 /**
@@ -53,7 +54,7 @@ import jade.util.leap.Iterator;
  * @version $Date$ $Revision$
  **/
 
-public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPAProtocolNames{
+public class SimpleAchieveREResponder extends SimpleBehaviour implements FIPANames.InteractionProtocol {
 
     private final static int WAITING_MSG_STATE = 0;
     private final static int PREPARE_RESPONSE_STATE = 1;

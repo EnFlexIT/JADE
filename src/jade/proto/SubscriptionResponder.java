@@ -29,6 +29,7 @@ import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPANames;
 import jade.proto.states.*;
 import jade.util.leap.*;
 
@@ -48,7 +49,7 @@ import jade.util.leap.*;
  * @author Elisabetta Cortese - TILAB
  * @author Giovanni Caire - TILAB
  */
-public class SubscriptionResponder extends FSMBehaviour implements FIPAProtocolNames{
+public class SubscriptionResponder extends FSMBehaviour implements FIPANames.InteractionProtocol {
 	
     /** 
      *  key to retrieve from the DataStore of the behaviour the ACLMessage 

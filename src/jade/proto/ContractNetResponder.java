@@ -421,7 +421,7 @@ public void registerHandleOutOfSequnece(Behaviour b) {
   *  This static method can be used 
   *  to set the proper message Template (based on the interaction protocol 
   *  and the performative) to be passed to the constructor of this behaviour.
-  *  @see FIPAProtocolNames 
+  *  @see jade.domain.FIPANames.InteractionProtocol
   **/
     public static MessageTemplate createMessageTemplate(String iprotocol){
 
