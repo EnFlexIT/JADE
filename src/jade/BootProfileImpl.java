@@ -139,8 +139,9 @@ public class BootProfileImpl extends ProfileImpl {
         profileProp.setProperty(Profile.MAIN_PROTO, "rmi");
         
         value = argProp.getProperty(CONTAINER_KEY);
-        if (value != null) {
+        if (value != null) { // is a container
             profileProp.setProperty(Profile.MAIN, value);
+            setSpecifiers(Profile.MTPS, new ArrayList(0)); // remove default MTP
         }
 
         value = argProp.getProperty(AUTHORITY_KEY);
