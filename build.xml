@@ -15,7 +15,6 @@ ant dist - to create the distribution files
   <property name="build.compiler" value="javac1.2"/>
   <property name="javac.optimize" value="on" />
   <property name="javac.debug" value="off" />
-  <property name="javac.target" value="1.2" />
 
  <property name="EXECidlj" value="false"/> 
   <!-- by default idlj is not executed, set to true the value for the
@@ -67,7 +66,7 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="{javac.target}" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**"/>
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="{javac.optimize}" debug="{javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**"/>
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
