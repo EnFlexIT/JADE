@@ -178,7 +178,7 @@ public class RMIIMTPManager implements IMTPManager {
 
       try {
 	  // Create the local node and mark it as hosting a local Service Manager
-	  localNode = new NodeAdapter(AgentManager.UNNAMED_CONTAINER_NAME, myProfile.getParameter(Profile.MAIN, true), localNodePort);
+	  localNode = new NodeAdapter(AgentContainer.UNNAMED_CONTAINER_NAME, myProfile.getParameter(Profile.MAIN, true), localNodePort);
       }
       catch(RemoteException re) {
 	  throw new IMTPException("An RMI error occurred", re);

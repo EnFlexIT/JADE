@@ -462,7 +462,7 @@ public class rma extends ToolAgent {
     CreateAgent ca = new CreateAgent();
 
     if(containerName.equals(""))
-      containerName = AgentManager.MAIN_CONTAINER_NAME;
+      containerName = AgentContainer.MAIN_CONTAINER_NAME;
 
     ca.setAgentName(agentName);
     ca.setClassName(className);
