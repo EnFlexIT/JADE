@@ -476,7 +476,7 @@ public class AgentManagementService extends BaseService {
 		
 	    try {
 		String name = cmd.getName();
-		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
+		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) { 
 		    handleRequestCreate(cmd);
 		}
 		else if(name.equals(AgentManagementSlice.REQUEST_START)) {

@@ -50,7 +50,7 @@ import jade.util.leap.Map;
  * @author Jerome Picault - Motorola Labs
  * @version $Date$ $Revision$
  */
-public class OutgoingEncodingFilter implements Filter {
+public class OutgoingEncodingFilter extends Filter {
 
   private Map messageEncodings;
   private AgentContainer myAgentContainer;
@@ -58,7 +58,7 @@ public class OutgoingEncodingFilter implements Filter {
   public OutgoingEncodingFilter(Map m, AgentContainer ac){
     messageEncodings = m;
     myAgentContainer = ac;
-
+    setPreferredPosition(10);
   }
 
 

@@ -43,12 +43,13 @@ import jade.lang.acl.LEAPACLCodec;
  * @author Jerome Picault - Motorola Labs
  * @version $Date$ $Revision$
  */
-public class IncomingEncodingFilter implements Filter {
+public class IncomingEncodingFilter extends Filter {
 
   private Map messageEncodings;
 
   public IncomingEncodingFilter(Map m){
     messageEncodings = m;
+    setPreferredPosition(50);
   }
 
   /**

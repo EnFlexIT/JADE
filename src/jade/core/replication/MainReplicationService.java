@@ -179,7 +179,7 @@ public class MainReplicationService extends BaseService {
     }
 
 
-    private class CommandOutgoingFilter implements Filter {
+    private class CommandOutgoingFilter extends Filter {
 
 	public boolean accept(VerticalCommand cmd) {
 
@@ -243,7 +243,7 @@ public class MainReplicationService extends BaseService {
     } // End of CommandOutgoingFilter class
 
 
-    private class CommandIncomingFilter implements Filter {
+    private class CommandIncomingFilter extends Filter {
 
 	public boolean accept(VerticalCommand cmd) {
 

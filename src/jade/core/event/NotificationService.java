@@ -149,7 +149,7 @@ public class NotificationService extends BaseService {
        the <code>NotificationSlice</code> interface (that extends the
        <code>Service.Slice</code> interface).
     */
-    private class ServiceComponent implements Filter, NotificationSlice {
+    private class ServiceComponent extends Filter implements NotificationSlice {
 
 
 	// Implementation of the Filter interface

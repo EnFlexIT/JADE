@@ -319,7 +319,7 @@ public class PersistentDeliveryService extends BaseService {
        Outgoing commanf FILTER.
        Processes the NOTIFY_FAILURE command
      */
-    private class CommandOutgoingFilter implements Filter {
+    private class CommandOutgoingFilter extends Filter {
 
 	public boolean accept(VerticalCommand cmd) {
 
@@ -391,10 +391,9 @@ public class PersistentDeliveryService extends BaseService {
        Outgoing commanf FILTER.
        Processes the INFORM_CREATED command
      */
-    private class CommandIncomingFilter implements Filter {
+    private class CommandIncomingFilter extends Filter {
 
-	public boolean accept(VerticalCommand cmd) {
-
+	public void postProcess(VerticalCommand cmd) {
 	    try {
 		String name = cmd.getName();
 
@@ -408,8 +407,6 @@ public class PersistentDeliveryService extends BaseService {
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
 	    }
-
-	    return true;
 	}
 
 	private void handleInformCreated(VerticalCommand cmd) throws IMTPException, ServiceException {
@@ -418,16 +415,9 @@ public class PersistentDeliveryService extends BaseService {
 
 	    // This happens on the main container only.
 	    // Requests all slices to flush the stored messages for the newly born agent.
-	    // Do it in a separated thread since the new agent has not been inserted 
-	    // in the GADT yet.
+	    // Do it in a separated thread since this may take time
 	    Thread t = new Thread() {
 	    	public void run() {
-	    		// Wait a bit to be sure the new agent is in the GADT
-	    		try {
-	    			Thread.sleep(500);
-	    		}
-	    		catch (Exception e) {}
-	    		
 	    		try {
 				    Service.Slice[] slices = getAllSlices();
 				    for(int i = 0; i < slices.length; i++) {
