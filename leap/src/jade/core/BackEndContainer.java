@@ -96,7 +96,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
 
-      protected void startServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+      protected void startBasicServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Create the agent management service
 	  jade.core.management.BEAgentManagementService agentManagement = new jade.core.management.BEAgentManagementService();
 	  agentManagement.init(this, myProfile);
@@ -105,10 +105,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
 
 	  messaging.init(this, myProfile);
-
-	  /* Create the back-end replication service
-	  jade.core.replication.BEReplicationService beReplication = new jade.core.replication.BEReplicationService();
-	  beReplication.init(this, myProfile);*/
 
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
 	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
@@ -121,7 +117,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
+      }
 
+      protected void startAdditionalServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  startService("jade.core.event.NotificationService");
 	  // Start the Back-End replication service
 	  startService("jade.core.replication.BEReplicationService");

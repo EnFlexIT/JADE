@@ -350,7 +350,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   }
 
-  protected void startServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
+  protected void startBasicServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Create the agent management service
 	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService();
 	  agentManagement.init(this, myProfile);
@@ -379,15 +379,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  messaging.boot(myProfile);
 
 	  //#MIDP_EXCLUDE_BEGIN
-
 	  if(myMainContainer != null) {
 	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null) == null);
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
-
 	  //#MIDP_EXCLUDE_END
+  }
 
-
+  protected void startAdditionalServices() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Start all the additional services mentioned in the profile
           List l = myProfile.getSpecifiers(Profile.SERVICES);
           Iterator serviceSpecifiers = l.iterator();
@@ -430,8 +429,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Perform the initial setup from the profile
 	  init();
 
-	  // Activate the services and connect to the platform
-	  startServices();
+	  // Activate the basic services and connect to the platform
+	  startBasicServices();
 
       }
       catch (IMTPException imtpe) {
@@ -453,6 +452,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           return;
       }
       
+      // Start additional services as specified in the profile
+      try {
+      	startAdditionalServices();
+      }
+      catch (Exception e) {
+      	e.printStackTrace();
+      }
+      
       // Create and activate agents that must be launched at bootstrap
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -464,22 +471,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               
               try {
                   String agentOwnership = username;
-                  /*AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
-                  
-                  IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-                  agentIdentity.setSubject(agentPrincipal);
-                  authority.sign(agentIdentity, certs);
-                  
-                  DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-                  agentDelegation.setSubject(agentPrincipal);
-                  for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
-                      agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-                  authority.sign(agentDelegation, certs);
-                  
-                  CertificateFolder agentCerts = new CertificateFolder();
-                  agentCerts.setIdentityCertificate(agentIdentity);
-                  agentCerts.addDelegationCertificate(agentDelegation);
-                  */
                   CertificateFolder agentCerts = createCertificateFolder(agentID);
 
 		  createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, CREATE_ONLY);
@@ -540,9 +531,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       AID id = a.getAID();
       if(id.equals(getAMS()) || id.equals(getDefaultDF()))
         continue;
-
+        
+      //System.out.println("Killing agent "+a.getLocalName());
+      //System.out.flush();
       a.doDelete();
-      //System.out.println("Killed agent "+a.getLocalName()+". Waiting for its termination...");
+      //System.out.println("Done. Waiting for its termination...");
       //System.out.flush();
       a.join();
       //System.out.println("Agent "+a.getLocalName()+" terminated");
