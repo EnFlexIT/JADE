@@ -98,7 +98,7 @@ public class ReflectiveIntrospector implements Introspector {
             throw oe;
         } 
         catch (Exception e) {
-            throw new OntologyException("Error invoking get method");
+            throw new OntologyException("Error invoking get method", e);
         } 
     } 
 
@@ -189,7 +189,7 @@ public class ReflectiveIntrospector implements Introspector {
             throw oe;
         } 
         catch (Exception e) {
-            throw new OntologyException("Error invoking set method");
+            throw new OntologyException("Error invoking set method", e);
         } 
     } 
 
