@@ -39,8 +39,6 @@ import jade.content.lang.*;
 import jade.content.lang.sl.*;
 
 import test.common.*;
-import test.common.xml.*;
-
 
 /**
    @author Giovanni Caire - TILAB
@@ -52,12 +50,7 @@ public class MobilityTesterAgent extends TesterAgent {
 	public static final String CONTAINER2_KEY = "C2";
 	
 	protected TestGroup getTestGroup() {
-		TestDescriptor[] td = XMLManager.getTests("test\\mobility\\mobilityTestsList.xml");
-		String[] listT = new String[td.length];
-		for (int i = 0; i < td.length; i++) {
-			listT[i] = td[i].getTestClassName();
-		}
-		TestGroup tg = new TestGroup(listT){		
+		TestGroup tg = new TestGroup("test\\mobility\\mobilityTestsList.xml"){		
 			 
 			private JadeController jc1;
 			private JadeController jc2;

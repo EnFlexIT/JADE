@@ -29,7 +29,6 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.wrapper.*;
 import test.common.*;
-import test.common.xml.*;
 
 /**
  * @author Giovanni Caire - TiLab
@@ -38,13 +37,7 @@ import test.common.xml.*;
  */
 public class AchieveRETesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {		
-		TestDescriptor[] td = XMLManager.getTests("test\\proto\\achieveRETestsList.xml");
-		String[] listT = new String[td.length];
-		for (int i = 0; i < td.length; i++) {
-			listT[i] = td[i].getTestClassName();
-		}
-		TestGroup tg = new TestGroup(listT);		
-		
+		TestGroup tg = new TestGroup("test\\proto\\achieveRETestsList.xml");		
 		return tg;
 	}
 		

@@ -39,7 +39,6 @@ import jade.content.lang.*;
 import jade.content.lang.sl.*;
 
 import test.common.*;
-import test.common.xml.*;;
 
 
 /**
@@ -49,12 +48,7 @@ import test.common.xml.*;;
 public class DFTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
-		TestDescriptor[] td = XMLManager.getTests("test\\domain\\df\\dfTestsList.xml");
-		String[] listT = new String[td.length];
-		for (int i = 0; i < td.length; i++) {
-			listT[i] = td[i].getTestClassName();
-		}
-		TestGroup tg = new TestGroup(listT);		
+		TestGroup tg = new TestGroup("test\\domain\\df\\dfTestsList.xml");		
 		return tg;
 	}
 				

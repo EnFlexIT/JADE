@@ -36,8 +36,6 @@ import jade.content.lang.*;
 
 import test.common.*;
 import test.common.agentConfigurationOntology.*;
-import test.common.xml.TestDescriptor;
-import test.common.xml.XMLManager;
 import test.content.testOntology.TestOntology;
 
 /**
@@ -56,12 +54,7 @@ public class ContentTesterAgent extends TesterAgent {
 	private static final String RESPONDER_NAME = "responder";
 	
 	protected TestGroup getTestGroup() {
-		TestDescriptor[] td = XMLManager.getTests("test\\content\\contentTestsList.xml");
-		String[] listT = new String[td.length];
-		for (int i = 0; i < td.length; i++) {
-			listT[i] = td[i].getTestClassName();
-		}
-		TestGroup tg = new TestGroup(listT){		
+		TestGroup tg = new TestGroup("test\\content\\contentTestsList.xml"){		
 			
 			private AID resp;
 			

@@ -39,7 +39,6 @@ import jade.content.lang.*;
 import jade.content.lang.sl.*;
 
 import test.common.*;
-import test.common.xml.*;
 
 /**
  * @author Giovanni Caire - TILAB
@@ -54,12 +53,7 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
 	private static final String TEST_RESPONSE_ID = "Test-response";
 	
 	protected TestGroup getTestGroup() {
-		TestDescriptor[] td = XMLManager.getTests("test\\domain\\jadeManagementOntoTestsList.xml");
-		String[] listT = new String[td.length];
-		for (int i = 0; i < td.length; i++) {
-			listT[i] = td[i].getTestClassName();
-		}
-		TestGroup tg = new TestGroup(listT){		
+		TestGroup tg = new TestGroup("test\\domain\\jadeManagementOntoTestsList.xml"){		
 			
 			private AID resp;
 			
