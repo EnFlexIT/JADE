@@ -34,14 +34,26 @@ public class JadeGateway {
 		private static AgentController myAgent = null;
 		private static String agentType;
 		// jade profile properties
-		private static Properties profile;
+		private static ProfileImpl profile;
 		private static final Logger myLogger = Logger.getMyLogger(JadeGateway.class.getName());
+
+
+		/** Searches for the property with the specified key in the JADE Platform Profile. 
+		 *	The method returns the default value argument if the property is not found. 
+		 * @param key - the property key. 
+		 * @param defaultValue - a default value
+		 * @return the value with the specified key value
+		 * @see java.util.Properties#getProfileProperty(String, String)
+		 **/
+		public final static String getProfileProperty(String key, String defaultValue) {
+				return profile.getParameter(key, defaultValue);
+		}
 
 		/**
 		 * @throws StaleProxyException if the method was not able to execute the Command
 		 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 		 **/
-		public static synchronized void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
+		public final static synchronized void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
 				checkJADE();
 				// incapsulate the command into an Event
 				Event e = new Event(-1, command);
@@ -66,7 +78,7 @@ public class JadeGateway {
 		 **/
 		private final static void checkJADE() throws StaleProxyException,ControllerException {
 				if (myContainer == null) {
-						myContainer = Runtime.instance().createAgentContainer(profile == null ? new ProfileImpl(false) : new ProfileImpl(profile));
+						myContainer = Runtime.instance().createAgentContainer(profile); 
 				}
 				if (myAgent == null) {
 						myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, null);
@@ -102,9 +114,9 @@ public class JadeGateway {
 		 * Typically these properties will have to be read from a JADE configuration file.
 		 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 		 **/
-		public static void init(String agentClassName, Properties jadeProfile) {
+		public final static void init(String agentClassName, Properties jadeProfile) {
 				agentType = agentClassName;
-				profile = jadeProfile; 
+				profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
 		}
 		
 		/** This private constructor avoids other objects to create a new instance of this singleton **/
