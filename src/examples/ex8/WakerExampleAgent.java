@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 package examples.ex8;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 import java.util.*;
 
