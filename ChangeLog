@@ -23,6 +23,9 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
   (University of Parma)
 - added support for enhanced configuration files with environment variables
   and file inclusions (HP Palo Alto)
+- added the new command-line option "-nomobility" that increase the
+  level of security of the host by disabling mobility and cloning for
+  that container
 - added methods jade.wrapper.AgentContainer#acceptNewAgent and 
   jade.core.Agent#getContainerController (HP Palo Alto)
 - added interface to support agent security functionality 
@@ -51,15 +54,15 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
     abstract descriptors only for schemas defined in the ontology that uses it
     (and not also in base ontologies)
   - Added support for full FIPA-SL
-- Made fully asynchronous the message passing. This feature has temporarily
-  reduced the performance of JADE, but optimization is under development
+- Made fully asynchronous the message passing and added mechanism to buffer 
+  messages in the disconnected state and to
+  automatically retry sending messages in case of exceptions.
 - Deprecated FipaContractNetInitiator/ResponderBehaviour and replaced by
   ContractNetInitiator/Responder whose interface is homogeneous with
   AchieveREInitiator/Responder
 - Reingeneered the implementation of MessageTemplate in order to improve
   performance.
-- Added mechanism to bufer messages in the disconnected state and to
-  automatically retry sending messages in case of exceptions.
+- modified StringACLCodec in order to add/remove the prefix ":X-" a
 - HTTP MTP. see ChangeLog in jade\add-ons\http
 	
 BUG FIX
