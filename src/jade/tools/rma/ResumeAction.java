@@ -49,7 +49,7 @@ import jade.gui.AgentTreeModel;
   public void doAction(AgentTree.AgentNode node ) {
 
     node.setState("Running");
-    node.changeIcon(1);
+    node.changeIcon(false);
     String toResume = node.getName();
     AID agentID = new AID();
     agentID.setName(toResume);
