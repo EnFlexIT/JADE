@@ -73,7 +73,7 @@ public class SimpleSLTokenizer {
 		try {
 			skipSpaces();
 			if (content.charAt(current++) != c) {
-				throw new Codec.CodecException("Parse error: found "+content.charAt(current-1)+" while "+c+" was expected");
+				throw new Codec.CodecException("Parse error: position "+(current-1)+", found "+content.charAt(current-1)+" while "+c+" was expected ["+content.substring(0, current)+"]");
 			}
 		}
 		catch (IndexOutOfBoundsException ioobe) {
@@ -92,11 +92,13 @@ public class SimpleSLTokenizer {
 			skipSpaces();
 			if (content.charAt(current) == '"') {
 				int start = current++;
-				while (content.charAt(current++) != '"') {
+				while (content.charAt(current) != '"') {
 					if (content.charAt(current) == '\\') {
 						current++;
 					}
+					current++;
 				}
+				current++;
 				el = content.substring(start, current);
 			}
 			else {
