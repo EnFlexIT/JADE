@@ -1,10 +1,10 @@
-MIDlet-1: Start, , chat.client.Start
-MIDlet-2: Configure, , jade.util.leap.Config
 MIDlet-3: View-output, , jade.util.leap.OutputViewer
-MIDlet-Description: Sample suite from MIDP early access workspace.
-MIDlet-Jar-Size: 490210
+MIDlet-Jar-Size: 508832
+MIDlet-2: Configure, , jade.util.leap.Config
+MIDlet-1: Start, , chat.client.Start
 MIDlet-Jar-URL: demoMidp.jar
-MIDlet-LEAP-conf: config
-MIDlet-Name: Demo
-MIDlet-Vendor: TILAB
 MIDlet-Version: 1.0
+MIDlet-Vendor: TILAB
+MIDlet-Name: Demo
+MIDlet-Description: Sample suite from MIDP early access workspace.
+MIDlet-LEAP-conf: conf

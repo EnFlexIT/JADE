@@ -3,7 +3,7 @@ MicroEdition-Profile: MIDP-1.0
 MIDlet-1: Start, , chat.client.Start
 MIDlet-2: Config, , jade.util.leap.Config
 MIDlet-3: View-output, , jade.util.leap.OutputViewer
-MIDlet-LEAP-conf: config
+MIDlet-LEAP-conf: conf
 MIDlet-Name: Demo
 MIDlet-Vendor: TILAB
 MIDlet-Version: 1.0
