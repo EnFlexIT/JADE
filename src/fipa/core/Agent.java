@@ -83,14 +83,8 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
   protected    Thread       myThread;
 
   protected    boolean      isActive;
-  protected    boolean      isRegisteredWithDf;
 
   protected    Vector       actions;
-  protected    int          statRegister;
-  protected    int          statDeregister;
-  protected    int          statDeregisterAgent;
-  protected    int          statDFRetrieve;
-  protected    int          statSearchServices;
 
   protected    String[]     args;
 
@@ -106,26 +100,19 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
     this.isApplet = isApplet;
     this.codeBase = codeBase;
     this.args     = args;
-    myPort = port; // FIXME: To remove
 
     listeners = new Vector();
 
-    AMSDescription = new AMSAgentDescription(host, port);
+    AMSDescription = new AMSAgentDescription(host, port); // FIXME: No more TCP/IP ...
 
     msgQueue = new Vector();
     actions  = new Vector();
 
-    isActive           = true;
-    isRegisteredWithDf = false;
+    isActive = true;
 
-    statRegister = 0;
-    statDeregister = 0;
-    statDeregisterAgent = 0;
-    statDFRetrieve = 0;
+    services = new Vector(); // FIXME: Maybe it's not needed
 
-    services  = new Vector();
-
-    myThread = new Thread( this );
+    myThread = new Thread(this);
     myThread.start();
 
   }
@@ -139,16 +126,8 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
     Object[] args  = new Object[0];
 
     local_startup();
-    AMSDescription.setPort( myPort );
-    AMSDescription.setName( myName );
 
     System.out.println(myName + ": initializing...");
-
-    registerAgent();
-    if( !myName.equalsIgnoreCase("df") ) {
-      addLightTask( new String( "retrieveDFAddress" ) );
-      addLightTask( new String( "register" ) );
-    }
 
     schedule();
 
@@ -167,7 +146,7 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 	String s = (String)actions.elementAt(i);
 	System.out.println(agentName + ": invoking " + s);
 	try{
-	  Method m = this.getClass().getMethod(s, params);
+	  Method m = this.getClass().getMethod(s, params); // FIXME: Change Method to Behaviour
 	  try{
 	    ret = ((Integer)m.invoke( this, args )).intValue();
 	    if( ret == 1 ) actions.removeElementAt(i);
@@ -181,7 +160,6 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 	  System.exit(3);
 	}
 
-	//Thread.yield();
 	try {
 	  Thread.sleep(500);
 	} catch( InterruptedException e ) {
@@ -194,223 +172,6 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 
   public void addLightTask( String task ) {
     actions.addElement( task );
-  }
-
-  public synchronized void blockingFipaRequest( String content, String dest, String cont1, String cont2 ) {
-
-    aclMessage registerMsg = new aclMessage(agentName, myPort);
-    registerMsg.setDest( dest );
-    registerMsg.setOntology("fipa-agent-management");
-    registerMsg.setProtocol("fipa-request");
-    registerMsg.setType("request");
-    registerMsg.setContent( content );
-
-    send( registerMsg );
-
-    aclMessage okMsg = receiveIf( dest, "agree",  cont1, null );
-    while( okMsg == null ) {
-      //System.out.println(agentName + " getting null message");
-      try {
-	wait();
-      } catch( InterruptedException ioe ) {
-	ioe.printStackTrace();
-      }
-      //System.out.println(agentName + " verifying 1...");
-      okMsg = receiveIf( dest, "agree", cont1, null );
-    }
-    //System.out.println(agentName + " getting " + okMsg.getType());
-
-    okMsg            = receiveIf( dest, "inform", cont2, null );
-    while( okMsg == null ) {
-      //System.out.println(agentName + " getting 2 null message");
-      try {
-	wait();
-      } catch( InterruptedException ioe ) {
-	ioe.printStackTrace();
-      }
-      //System.out.println(agentName + " verifying 2...");
-      okMsg = receiveIf( dest, "inform", cont2, null );
-    }
-    System.out.println(agentName + " exiting blockingFipaRequest...");
-
-  }
-
-/**
- * Implementa il protocollo FIPA-request,
- * controllando che arrivino un "agree" ed un "inform"
- * e matchando la destinazione ed il content di entrambi i messaggi.
- * @see aclMessage
- * @return Ritorna il content del secondo messaggio.
- */
-  public int FipaRequest( String content, String reply, String dest, String cont1, String cont2, int status ) {
-
-    int returnValue = status;
-    aclMessage okMsg = null;
-
-    if( returnValue == 0 ) {
-      aclMessage registerMsg = new aclMessage(agentName, myPort);
-      registerMsg.setDest( dest );
-      registerMsg.setOntology("fipa-agent-management");
-      registerMsg.setProtocol("fipa-request");
-      if( reply != null ) registerMsg.setReplyWith(reply);
-      registerMsg.setType("request");
-      registerMsg.setContent(content);
-      
-      send( registerMsg );
-      returnValue++;
-    }
-    if( returnValue == 1 ) {
-      okMsg = receiveIf( dest, "agree",  cont1, reply );
-      if( okMsg != null ) {
-	returnValue++;
-	System.out.print(agentName + " getting 1... ");
-	System.out.println(okMsg.getReplyTo());
-      } else return returnValue;
-    }
-    if( returnValue == 2 ) {
-      okMsg = receiveIf( dest, "inform", cont2, reply );
-      if( okMsg != null ) {
-	returnValue++;
-	System.out.print(agentName + " getting 2... ");
-	System.out.println(okMsg.getReplyTo());
-      } else return returnValue;
-    }
-
-    lastMessage = okMsg;
-
-    return returnValue;
-
-  }
-
-  public synchronized void blockingSendReceive( String type, String content, String reply, String dest, String type1 ) {
-
-    aclMessage okMsg = null;
-
-    aclMessage registerMsg = new aclMessage(agentName, myPort);
-    registerMsg.setDest( dest );
-    if( reply != null ) registerMsg.setReplyWith(reply);
-    registerMsg.setType(type);
-    registerMsg.setContent(content);
-    
-    send( registerMsg );
-
-    okMsg = receiveIf( dest, type1, null, reply );
-    while( okMsg == null ) {
-      //System.out.println(agentName + " getting null message");
-      try {
-	wait();
-      } catch( InterruptedException ioe ) {
-	ioe.printStackTrace();
-      }
-      //System.out.println(agentName + " verifying 1...");
-      okMsg = receiveIf( dest, type1, null, reply );
-    }
-
-    lastMessage = okMsg;
-
-  }
-
-  public int SendReceive( String type, String content, String reply, String dest, String type1, int status ) {
-
-    int returnValue = status;
-    aclMessage okMsg = null;
-
-    if( returnValue == 0 ) {
-      aclMessage registerMsg = new aclMessage(agentName, myPort);
-      registerMsg.setDest( dest );
-      if( reply != null ) registerMsg.setReplyWith(reply);
-      registerMsg.setType(type);
-      registerMsg.setContent(content);
-      
-      send( registerMsg );
-      returnValue++;
-    }
-    if( returnValue == 1 ) {
-      okMsg = receiveIf( dest, type1, null, reply );
-      if( okMsg != null ) {
-	returnValue++;
-	System.out.print(agentName + " getting 1... ");
-	System.out.println(okMsg.getReplyTo());
-      } else return returnValue;
-    }
-
-    lastMessage = okMsg;
-
-    return returnValue;
-
-  }
-
-/**
- * Implementa la registrazione con il DF, indicando il servizio di competenza.
- * @param myName E' il nome logico dell'agente.
- */
-  public int register() {
-
-    if( dfAddress != null ) {
-      String content = new String();
-      if( myService == null )
-	content = content.concat("(register (:agent-name " + myName + ") (:agent-services (:service-type any)))");
-      else
-	content = content.concat("(register (:agent-name " + myName + ") (:agent-services (:service-type " + myService + ")))");
-      statRegister = FipaRequest( content, null, dfAddress, "register", "(done (register", statRegister );
-    }
-
-    if( statRegister == 3 ) {isRegisteredWithDf = true; return 1;}
-    else                    return 0;
-
-  }
-
-/**
- * Implementa la registrazione con l'AMS
- * @param myName E' il nome logico dell'agente.
- */
-  public void registerAgent() {
-
-    agentName = new String( AMSDescription.getAddress() );
-    String content = new String("(register-agent (:agent-name " + myName + "))");
-    blockingFipaRequest( content, "AMS", "register-agent", "(done (register-agent" );
-
-  }
-
-/**
- * Implementa la deregistrazione con l'AMS.
- * @param myName E' il nome logico dell'agente.
- */
-  public void deregisterAgent() {
-
-    aclMessage registerMsg = new aclMessage(agentName, myPort);
-    registerMsg.setDest("AMS");
-    registerMsg.setOntology("fipa-agent-management");
-    registerMsg.setProtocol("fipa-request");
-    registerMsg.setType("request");
-    registerMsg.setContent("(deregister-agent (:agent-name " + myName + "))");
-
-    send( registerMsg );
-
-    //statDeregisterAgent = FipaRequest( "AMS", "deregister-agent", "(done (deregister-agent", statDeregisterAgent, 1 );
-
-  }
-
-/**
- * Implementa la deregistrazione con il DF, indicando il servizio di competenza.
- * @param myName E' il nome logico dell'agente.
- */
-  public void deregister() {
-
-    aclMessage registerMsg = new aclMessage(agentName, myPort);
-    registerMsg.setDest("DF");
-    registerMsg.setOntology("fipa-agent-management");
-    registerMsg.setProtocol("fipa-request");
-    registerMsg.setType("request");
-    if( myService == null )
-      registerMsg.setContent("(deregister (:agent-name " + myName + " :agent-services (:service-type any)))");
-    else
-      registerMsg.setContent("(deregister (:agent-name " + myName + " :agent-services (:service-type " + myService + ")))");
-
-    send( registerMsg );
-
-    //statDeregister = FipaRequest( "DF", "deregister", "(done (deregister", statDeregister, 1 );
-
   }
 
 /**
@@ -439,7 +200,7 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
  * @return Ritorna falso se il messaggio e' sbagliato.
  */
   public boolean verifyMsg( aclMessage msg, String source, String type, String content, String reply ) {
-
+    // FIXME: Check with Paolo whether this is still needed...
     String mySource  = msg.getSource();
     String myType    = msg.getType();
     String myContent = msg.getContent();
@@ -468,7 +229,7 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
  * @return Ritorna il messaggio corretto oppure null.
  */
   public synchronized aclMessage receiveIf( String source, String type, String content, String reply ) {
-
+    // FIXME: Check with Paolo whether this is still needed...
     aclMessage msg = null;
     for( int i=0; i<msgQueue.size(); i++ ) {
       msg = (aclMessage)msgQueue.elementAt(i);
@@ -483,102 +244,6 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 
   }
 
-/**
- * Metodo per ricavare dal DF l'indirizzo di un agente.
- * @param agent E' il nome logico dell'agente da ricercare.
- * Per motivi storici in pratica serve solo per richiedere l'indirizzo dell'UPA.
- * <B>Dovrebbe essere generalizzato</B>
- * Riempie la stringa upaAddress.
- */
-  public int retrieveDFAddress() {
-
-    String content = new String("(search (:agent-address DF))");
-    String reply   = new String("DFaddress");
-    statDFRetrieve = FipaRequest( content, reply, "AMS", "search", "(result", statDFRetrieve );
-    System.out.println(agentName + ": statDFRetrieve " + statDFRetrieve);
-    if( statDFRetrieve == 3 && lastMessage != null ) {
-      content = lastMessage.getContent();
-      String inReply = lastMessage.getReplyTo();
-      if( inReply.equals( reply ) ) {
-	try {
-	  StreamTokenizer st = new StreamTokenizer( new  StringBufferInputStream( content ));
-	  st.wordChars( '/', '/' );
-	  st.wordChars( ':', ':' );
-	  st.wordChars( '@', '@' );
-	  st.nextToken();
-	  st.nextToken();
-	  if( st.sval.equals("result") ) {
-	    st.nextToken();
-	    st.nextToken();
-	    if( st.sval.equals(":agent-name") ) {
-	      st.nextToken();
-	      dfAddress = st.sval; System.out.println("DF address: " + dfAddress);
-	    }
-	  }
-	} catch( IOException ioe ) {
-	  ioe.printStackTrace();
-	}
-      }
-    }
-
-    if( statDFRetrieve == 3 ) return 1;
-    else                      return 0;
-
-  }
-
-/**
- * Metodo per richiedere al DF la lista di servizi disponibili ed i relativi CA.
- */
-  public int getServices() {
-
-    if( dfAddress != null && isRegisteredWithDf ) {
-      String content = new String("(search (:agent-name ?CA) (:agent-services (:service-type ?type)))");
-      statSearchServices = FipaRequest( content, "services", dfAddress, "search", "(result", statSearchServices );
-      System.out.println(agentName + ": statSearchServices " + statSearchServices);
-      if( statSearchServices == 3 && lastMessage != null ) {
-	content = lastMessage.getContent();
-	String inReply = lastMessage.getReplyTo();
-	if( inReply.equals( "services" ) ) {
-	  try {
-	    StreamTokenizer st = new StreamTokenizer( new  StringBufferInputStream( content ));
-	    st.nextToken();
-	    st.nextToken();
-	    if( st.sval != null && st.sval.equals("result") ) {
-	      st.wordChars( '/', '/' );
-	      st.wordChars( ':', ':' );
-	      st.wordChars( '@', '@' );
-	      st.nextToken();
-	      st.nextToken();
-	      st.nextToken();
-	      if( st.sval.equals(":agent-name") ) {
-		st.nextToken();
-		if( st.sval.substring(0,2).equals("CA") ) {
-		  if (Debug.getLevel() > 1) System.out.println("CA address: " + st.sval);
-		  caAddress.addElement( new String(st.sval) );
-		  st.nextToken();
-		  if( st.sval.equals(":agent-services") ) {
-		    st.nextToken();
-		    st.nextToken();
-		    if( st.sval.equals(":service-type") ) {
-		      st.nextToken();
-		      if (Debug.getLevel() > 1) System.out.println("service: " + st.sval);
-		      services.addElement( st.sval );
-		    }
-		  }
-		}
-	      }
-	    }
-	  } catch( IOException ioe ) {
-	    ioe.printStackTrace();
-	  }
-	}
-	return 1;
-      } else return 0;
-    }
-    return 0;
-
-  }
-
   public String getAgentName() {
     if( AMSDescription.getAddress() != null ) 
       return new String( AMSDescription.getAddress() );
@@ -586,7 +251,7 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
       return null;
   }
 
-  public void CommListener( CommListener l ) {
+  public void addCommListener( CommListener l ) {
     listeners.addElement( l );
   }
 
@@ -616,3 +281,5 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
   }
 
 }
+
+
