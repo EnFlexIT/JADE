@@ -466,7 +466,7 @@ class MainContainerImpl implements Platform, AgentManager {
 //__SECURITY__END
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
-    PlatformEvent ev = new PlatformEvent(agentID, from, to);
+  	PlatformEvent ev = new PlatformEvent(agentID, from, to);
 
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);

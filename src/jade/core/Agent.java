@@ -239,7 +239,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(root.isRunnable())
     {
       myScheduler.restart(root);
-      notifyChangeBehaviourState(b, "Blocked", "Running");
+      //notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_RUNNING);
     }
   }
 
@@ -1715,7 +1715,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		  			// Remove blocked behaviour from ready behaviours queue
 		  			// and put it in blocked behaviours queue
 		  			myScheduler.block(currentBehaviour);
-      			notifyChangeBehaviourState(currentBehaviour, "Running", "Blocked");
+      			//notifyChangeBehaviourState(currentBehaviour, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED);
 		  			currentBehaviour = null;
 					}
 	      }
@@ -1847,7 +1847,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void addBehaviour(Behaviour b) {
     b.setAgent(this);
     myScheduler.add(b);
-    notifyAddBehaviour(b);
+    //notifyAddBehaviour(b);
   }
 
   /**
@@ -1861,7 +1861,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void removeBehaviour(Behaviour b) {
     b.setAgent(null);
     myScheduler.remove(b);
-    notifyRemoveBehaviour(b);
+    //notifyRemoveBehaviour(b);
   }
 
 	/*
@@ -2169,17 +2169,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   // Notify toolkit of the added behaviour
-  private void notifyAddBehaviour(Behaviour b) {
+  // Package scooped as it is called by the Scheduler
+  void notifyAddBehaviour(Behaviour b) {
     myToolkit.handleBehaviourAdded(myAID, b);
   }
   
   // Notify the toolkit of the removed behaviour
-  private void notifyRemoveBehaviour(Behaviour b) {
+  // Package scooped as it is called by the Scheduler
+ 	void notifyRemoveBehaviour(Behaviour b) {
     myToolkit.handleBehaviourRemoved(myAID, b);
   }
   
   // Notify the toolkit of the change in behaviour state
-  private void notifyChangeBehaviourState(Behaviour b, String from, String to) {
+  // Package scooped as it is called by the Scheduler
+  void notifyChangeBehaviourState(Behaviour b, String from, String to) {
     myToolkit.handleChangeBehaviourState(myAID, b, from, to);
   }
   

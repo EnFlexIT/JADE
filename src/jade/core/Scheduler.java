@@ -87,6 +87,8 @@ class Scheduler implements Serializable {
   public synchronized void add(Behaviour b) {
     readyBehaviours.add(b);
     notify();
+    owner.notifyAddBehaviour(b);
+
   }
 
   // Moves a behaviour from the ready queue to the sleeping queue.
@@ -94,6 +96,7 @@ class Scheduler implements Serializable {
     if (removeFromReady(b)) {
 	    blockedBehaviours.add(b);
     }
+    owner.notifyChangeBehaviourState(b, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED);
   }
 
   // Moves a behaviour from the sleeping queue to the ready queue.
@@ -102,6 +105,7 @@ class Scheduler implements Serializable {
 	    readyBehaviours.add(b);
     	notify();
     }
+    owner.notifyChangeBehaviourState(b, Behaviour.STATE_BLOCKED, Behaviour.STATE_RUNNING);
   }
 
   // Restarts all behaviours. This method simply calls
@@ -142,8 +146,10 @@ class Scheduler implements Serializable {
   // Removes a specified behaviour from the scheduler
   public synchronized void remove(Behaviour b) {
     boolean found = removeFromBlocked(b);
-    if(!found)
+    if(!found) {
       removeFromReady(b);
+    }
+    owner.notifyRemoveBehaviour(b);    
   }
 
   // Selects the appropriate behaviour for execution, with a trivial

@@ -31,6 +31,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Collection;
 
+import java.util.StringTokenizer;
 /**
 
   This class represents an unique identifier referring to a specific
@@ -50,17 +51,31 @@ public class BehaviourID {
   }
   
   public BehaviourID (Behaviour b) {
-      name = b.getClass().getName();
-      kind = "Behaviour";
       
+      name = b.getClass().getName();
+      
+      // Remove the class name and the '$' characters from
+      // the class name for readability.
+      int dotIndex = name.lastIndexOf('.');
+      int dollarIndex = name.lastIndexOf('$');
+      int lastIndex = Math.max(dotIndex, dollarIndex);
+      
+      if (lastIndex != -1) {
+          name = name.substring(lastIndex+1);
+      }
+
       // If we have a composite behaviour, add the
       // children to this behaviour id.
       if (b instanceof CompositeBehaviour) {
+          kind = "CompositeBehaviour";
           CompositeBehaviour c = (CompositeBehaviour)b;
           Iterator iter = c.getChildren().iterator();
           while (iter.hasNext()) {
               addChildren(new BehaviourID((Behaviour)iter.next()));
           }
+      }
+      else {
+          kind = "Behaviour";
       }
   }
 
@@ -90,5 +105,18 @@ public class BehaviourID {
   
   public boolean isSimple() {
       return (children.size() == 0) ? true : false;
+  }
+  
+  public boolean equals(Object o) {
+      boolean bEqual = false;
+      if (o instanceof BehaviourID) {
+          BehaviourID b = (BehaviourID)o;
+          bEqual = b.name.equals(name) && b.kind.equals(kind);
+      }
+      return bEqual;
+  }
+  
+  public String toString() {
+      return name;
   }
 }

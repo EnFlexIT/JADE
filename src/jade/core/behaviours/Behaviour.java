@@ -54,6 +54,18 @@ public abstract class Behaviour implements Serializable {
   protected final int NOTIFY_DOWN = 1;
 
   /**
+     A constant identifying the blocked state.
+     @serial
+   */
+  public static final String STATE_BLOCKED = "Blocked";
+  
+  /**
+     A constant identifying the runnable state.
+     @serial
+   */
+  public static final String STATE_RUNNING = "Running";
+  
+  /**
      Event class for notifying blocked and restarted behaviours.
      This class is used to notify interested behaviours when a
      Behaviour changes its runnable state. It may be sent to
