@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.*;
 import java.applet.*;
 import java.lang.reflect.*;
-import netscape.security.PrivilegeManager;
 
 import fipa.lang.acl.*;
 
@@ -31,42 +30,28 @@ import fipa.lang.acl.*;
 
 /**
  * The abstract Agent class.
- * All the agents belonging to the agent platform must inherit from this Agent template.
- * Agent is composed by a single execution thread for the active part.
- * All the tasks that must be performed by an agent are implemenmted as methods,
- * which are called and scheduled in a round-robin fashion by the agent scheduler.
- * All general purpose tasks that can be carried out by all platform agents
- * are already available in the sbstract Agent class as methods.
- * In particular the <em>register-agent</em> (the registration with the AMS)
- * and the <en>register</em> (the registration with the DF) actions
- * are called by default by the initialization Agent method.
- * The following tasks are also provided to the Agent developer by the Agent abstract class:
- * deregister, deregister-agent, retrieveDFAddress and getServices.
- * All the specific tasks an agent has to implement must be added as further methods to the
- * particular Agent derived class.
- * The abstract Agent class provides to the agent developer also some methods
- * able to implement particular FIPA protocols or simply some communication paradigms:
- * FipaRequest (corresponding to the FIPA-request protocol), SendReceive (when
- * a message requires only a single answer notification), blockingSendReceive
- * (the corresponding blocking paradigm).
- * In fact, by default all protocols and communication paradigms are non-blocking.
- * In order to allow the user to be able to add its own tasks, the method
- * addTask is provided by the abstract Agent, requiring as a parameter
- * the name of the method implementing the task. As soon as the method is called,
- * the task specified is added to the queue of ready tasks for the scheduler.
+ * All the agents belonging to the agent platform must inherit from
+ * this Agent class.  Agent is composed by a single execution thread
+ * for the active part.  All the tasks that must be performed by an
+ * agent are implemented as Behaviours, which are called and scheduled
+ * in a round-robin fashion by the agent scheduler.  All the specific
+ * tasks an agent has to implement must be added as Behaviours to the
+ * particular Agent derived class.  The abstract Agent class provides
+ * the agent developer with some methods to implement some
+ * communication paradigms: FipaRequest (corresponding to the
+ * FIPA-request protocol), SendReceive (when a message requires only a
+ * single answer notification), blockingSendReceive (the corresponding
+ * blocking paradigm).  In fact, by default all protocols and
+ * communication paradigms are non-blocking.  In order to allow the
+ * user to be able to add its own tasks, the method addTask is
+ * provided by the abstract Agent, requiring as a parameter the name
+ * of the method implementing the task. As soon as the method is
+ * called, the task specified is added to the queue of ready tasks for
+ * the scheduler.
  * 
  * @version 2.0 5/98
- *
- */
-public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
-
-/**
- * Agent physical address.
- */
-  protected String agentName;
-
-  protected URL codeBase;
-  protected Vector listeners;
+ * */
+public abstract class Agent implements Runnable, CommBroadcaster {
 
 /**
  * Pending messages queue
@@ -82,7 +67,7 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 
   protected    Thread       myThread;
 
-  protected    boolean      isActive;
+  protected    boolean      isActive = false;
 
   protected    Vector       actions;
 
@@ -91,19 +76,12 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
   protected    String       myName;
   protected    String       myService;
 
-/**
- * Nel caso l'agente sia un applet bisogna abilitare i privilegi di connessione,
- * chiedendo l'autorizzazione all'utente.
- */
-  public void play( String host, int port, URL codeBase, boolean isApplet, String[] args ) {
 
-    this.isApplet = isApplet;
-    this.codeBase = codeBase;
-    this.args     = args;
+  public void activate(String[] args) { // FIXME: Check with FIPA specs for agent lifecycle
+
+    this.args = args;
 
     listeners = new Vector();
-
-    AMSDescription = new AMSAgentDescription(host, port); // FIXME: No more TCP/IP ...
 
     msgQueue = new Vector();
     actions  = new Vector();
@@ -114,7 +92,6 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 
     myThread = new Thread(this);
     myThread.start();
-
   }
 
   protected void local_startup() {}
@@ -150,19 +127,23 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 	  try{
 	    ret = ((Integer)m.invoke( this, args )).intValue();
 	    if( ret == 1 ) actions.removeElementAt(i);
-	  } catch( InvocationTargetException e ){
+	  }
+	  catch( InvocationTargetException e ){
 	    e.printStackTrace();
-	  } catch( IllegalAccessException e ){
+	  } 
+	  catch( IllegalAccessException e ){
 	    e.printStackTrace();
 	  }
-	} catch( NoSuchMethodException e ){
+	}
+	catch( NoSuchMethodException e ){
 	  System.out.println(" method " + s + " not found ! ");
 	  System.exit(3);
 	}
 
 	try {
 	  Thread.sleep(500);
-	} catch( InterruptedException e ) {
+	} 
+	catch( InterruptedException e ) {
 	}
 
       }
@@ -244,42 +225,33 @@ public abstract class Agent implements Runnable, CommListener, CommBroadcaster {
 
   }
 
-  public String getAgentName() {
-    if( AMSDescription.getAddress() != null ) 
-      return new String( AMSDescription.getAddress() );
-    else
-      return null;
+  public void addCommListener(CommListener l) {
+    listeners.addElement(l);
   }
 
-  public void addCommListener( CommListener l ) {
-    listeners.addElement( l );
+  public void removeCommListener(CommListener l) {
+    listeners.removeElement(l);
   }
 
-  public void removeCommListener( CommListener l ) {
-    listeners.removeElement( l );
-  }
-
-  public void processCommEvent( CommEvent event ) {
+  public void processCommEvent(CommEvent event) {
 
     Enumeration e = listeners.elements();
     while( e.hasMoreElements() ) {
       CommListener l = (CommListener)e.nextElement();
-      l.CommHandle( event );
+      l.CommHandle(event);
     }
 
   }
 
-  public synchronized void localCommChanged( CommEvent event ) {}
+  public synchronized void localCommChanged(CommEvent event) {}
 
-  public synchronized void CommChanged( CommEvent event ) {
-
-    aclMessage msg = event.getMessage();
-    if( msg != null ) msgQueue.addElement( msg );
+  public synchronized void postMessage (ACLmessage msg) {
+    if(msg != null) msgQueue.addElement(msg);
     System.out.println("Agent: receiving from " + msg.getSource());
     notify();
-
   }
 
 }
+
 
 
