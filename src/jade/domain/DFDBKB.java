@@ -64,7 +64,7 @@ class DFDBKB extends DBKB {
 	// Number of registrations after the last lease-time-cleanup
 	private int regsCnt = 0;
 	
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger;
 
 	// COSTRUCTORS
 	public DFDBKB(int max, String drv, String url, String user, String passwd) throws SQLException {
@@ -73,6 +73,7 @@ class DFDBKB extends DBKB {
 	}
 	
 	protected void setup() throws SQLException {
+		logger = Logger.getMyLogger(this.getClass().getName());		
 		createTables();
 		clean();
 	}
@@ -83,7 +84,7 @@ class DFDBKB extends DBKB {
 	private void createTables() {
 		Statement stmt = null;
 // dfagdescr war 64
-		try{
+		try{ 
  		 	stmt = conn.createStatement();
  		 	// Tables for DF registrations      
   		stmt.executeUpdate( "CREATE TABLE dfagentdescr (" +
@@ -168,7 +169,7 @@ class DFDBKB extends DBKB {
 			// are already there.
 			// FIXME: We should distinguish the case of actual creation errors.
     	//DEBUG
-			logger.log(Logger.WARNING,"Tables already present");
+			logger.log(Logger.INFO,"Tables already present");
 		}
 		finally {
 			if (stmt != null) {
