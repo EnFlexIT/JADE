@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.32  1999/03/24 12:19:02  rimassa
+  Ported most data structures to the newer Java 2 Collection framework.
+
   Revision 1.31  1999/03/17 13:04:56  rimassa
   Many changes to support new proxy based design. Now platform agent
   table is indexed by the complete agent GUID and not just the local
@@ -138,9 +141,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import java.util.Vector;    // FIXME: This will go away
 
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
@@ -183,15 +190,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private acc theACC;
   private InComingIIOP frontEndACC;
 
-  private Hashtable containers = new Hashtable(CONTAINERS_SIZE);
-  private Hashtable platformAgents = new Hashtable(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
+  private Map containers = Collections.synchronizedMap(new HashMap(CONTAINERS_SIZE));
+  private Map platformAgents = Collections.synchronizedMap(new HashMap(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR));
 
   private class InComingIIOP extends _FIPA_Agent_97ImplBase {
     public void message(String acl_message) {
 
       // Recover ACL message object from String
       ACLMessage msg = ACLMessage.fromText(new StringReader(acl_message));
-
       // Create and handle a suitable communication event
       CommEvent ev = new CommEvent(theACC, msg);
       CommHandle(ev);
@@ -426,18 +432,19 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     containers.remove(MAIN_CONTAINER_NAME);
 
     // Kill every other container
-    Enumeration e = containers.keys();
-    while(e.hasMoreElements()) {
-      String containerName = (String)e.nextElement();
+    Set s = containers.keySet();
+    Iterator i = s.iterator();
+    while(i.hasNext()) {
+      String containerName = (String)i.next();
       AgentContainer ac = (AgentContainer)containers.get(containerName);
       APKillContainer(ac);
     }
 
     // Kill all non-system agents
-    Enumeration agentNames = localAgents.keys();
-
-    while(agentNames.hasMoreElements()) {
-      String name = (String)agentNames.nextElement();
+    Set names = localAgents.keySet();
+    Iterator nameList = names.iterator();
+    while(nameList.hasNext()) {
+      String name = (String)nameList.next();
       if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
 	 name.equalsIgnoreCase(theACC.getLocalName()) ||
 	 name.equalsIgnoreCase(defaultDF.getLocalName()))
@@ -558,14 +565,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   // These methods are to be used only by AMS agent.
 
 
-  // This is used by AMS to obtain the list of all the Agent Containers of the platform.
-  public Enumeration AMSContainerNames() {
-    return containers.keys();
+  // This is used by AMS to obtain the set of all the Agent Containers of the platform.
+  public Set AMSContainerNames() {
+    return containers.keySet();
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
-  public Enumeration AMSAgentNames() {
-    return platformAgents.keys();
+  public Set AMSAgentNames() {
+    return platformAgents.keySet();
   }
 
   // This maps the name of an agent to the name of the Agent Container the agent lives in.
@@ -621,7 +628,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void AMSKillContainer(String containerName) {
 
     // This call spawns a separate thread in order to avoid deadlock.
-      //    System.out.println("About to kill " + containerName);
     final AgentContainer ac = (AgentContainer)containers.get(containerName);
     Thread auxThread = new Thread(new Runnable() {
       public void run() {
@@ -644,9 +650,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     try {
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
       if(ad == null) {// FIXME: Should accept foreign agents
-	Enumeration e = platformAgents.keys();
-	while(e.hasMoreElements()) {
-	  String s = (String)e.nextElement();
+	Iterator i = platformAgents.keySet().iterator(); 
+	while(i.hasNext()) {
+	  String s = (String)i.next();
 	  System.out.println(s);
 	}
 	throw new NotFoundException("AMSNewData failed to find " + agentName);
@@ -744,9 +750,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void AMSDumpData() {
-    Enumeration descriptors = platformAgents.elements();
-    while(descriptors.hasMoreElements()) {
-      AgentDescriptor desc = (AgentDescriptor)descriptors.nextElement();
+    Iterator descriptors = platformAgents.values().iterator();
+    while(descriptors.hasNext()) {
+      AgentDescriptor desc = (AgentDescriptor)descriptors.next();
       AgentManagementOntology.AMSAgentDescriptor amsd = desc.getAMSDesc();
       amsd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
     }
