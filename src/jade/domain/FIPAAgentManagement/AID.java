@@ -98,13 +98,21 @@ public void addUserDefinedSlot(String key, String value){
   userDefSlots.setProperty(key,value);
 }
 
+public Properties getAllUserDefinedSlot(){
+  return userDefSlots;
+}
+
+public boolean removeUserDefinedSlot(String key){
+  return (userDefSlots.remove(key) != null);
+}
+
   /**
    * This method is called from ACLMessage in order to create
    * the String encoding of an ACLMessage.
    */
   public void toText(Writer w) {
   try {
-    w.write("(AID ");
+    w.write("(Agent-Identifier ");
     if ((name!=null)&&(name.length()>0))
       w.write(":name "+name);
     if (addresses.size()>0)
