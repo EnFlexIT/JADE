@@ -1,0 +1,357 @@
+/* $Log$
+ * Revision 1.1  1998/07/26 21:29:20  rimassa
+ * JavaCC grammar file for ACL parser. First version, imported from VOD source code.
+ *
+/* Revision 1.1.1.1  1998/06/24 21:42:05  Giovanni
+/* Imported VoD source
+/*
+ * Revision 1.2  1998/02/08 11:11:46  paolo
+ * Removed a debugging print
+ *
+ * Revision 1.1  1998/02/02 07:54:41  paolo
+ * Initial revision
+ *
+ * Revision 1.8  1997/11/12 10:33:12  bellifemine
+ * Gestito correttamente il PrefixByteLengthEncodedString ed eliminato il problema nel parsing di DateTimeToken. Adesso parrebbe funzionare. Versione inviata il 12/11 a Paolo Marenzoni.
+ *
+ * Revision 1.7  1997/11/11 18:34:54  bellifemine
+ * Eliminato baco: se il valore di un parametro (es. :content) conteneva una parola riservata (es. inform) il token restituito era errato. Per eliminare il baco ho cambiato la gestione del TokenManager introducento piu' stati lessicali.
+ *
+ * Revision 1.6  1997/11/07 16:39:34  bellifemine
+ * Parzialmente gestita la lettura di ByteLengthEncodedString. Ora parrebbe funzionare nel caso si leggano fino a 9 byte. Ancora da perfezionare.
+ *
+ * Revision 1.5  1997/11/06 16:06:40  bellifemine
+ * Inserita la gestione del prefisso di un ByteLengthEncodedString. Manca la lettura del successivo numero di byte
+ *
+ * Revision 1.4  1997/11/06 15:53:58  bellifemine
+ * Gestito correttamente il parsing di StringLiteral e di DateTimeToken.
+ * Manca ancora la gestione di ByteLengthEncodedString
+ *
+   Revision 1.3  1997/11/06 13:12:41  bellifemine
+   <>
+  
+   ACLParser.jj is the Grammar File of the FIPA ACL.
+     To generate the Java source code:   javacc ACLParser.jj
+     To compile the Java source code:    javac  ACLParser*.java
+     To run the parser:                  java   ACLParser < MessaggiDiProva.txt
+
+   Known bugs and/or limitations:
+   - MIME Extension not supported
+   - Content is parsed according to the ACL Grammar and not the Content Language Grammar
+   - The definition of the token <WORD> does not allow to distinguish between AgentName
+     and AgentAddress. This is because it includes the character "@".
+     Further processing should be included in order to make this differentiation
+*/
+
+options {
+  LOOKAHEAD = 1;	      
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = true;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = true;	// Force LookAhead Cecking
+}
+
+PARSER_BEGIN(ACLParser)
+
+package Parser;
+
+import java.io.*;
+import Bare.*;
+
+public class ACLParser {
+  aclMessage msg = new aclMessage();
+
+  public static void main(String args[]) throws ParseError {
+    ACLParser parser = new ACLParser(System.in);
+    
+	while (true) {
+	      //msg.reset();
+	      parser.Message();
+    	      //msg.dump();
+        }
+    
+  }
+}
+
+PARSER_END(ACLParser)
+
+aclMessage Message() :
+{
+  //aclMessage msg = new aclMessage();
+}
+{
+  <START> MessageType() (MessageParameter())* <END>  
+ {
+   msg.dump(); 
+   return msg;
+ }
+}
+
+void MessageType() :
+{ Token t; }
+{
+  t= <MESSAGETYPE> 	{ msg.setType(t.image);}
+}
+
+
+void MessageParameter() :
+{ String s; }
+{
+  <SENDER>          s=AgentName()			{ msg.setSource(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <RECEIVER>        s=RecipientExpr()		        { msg.setDest(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <CONTENT>         s=Expression()			{ msg.setContent(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <REPLY_WITH>      s=Expression()			{ msg.setReplyWith(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <REPLY_BY>        s=DateTimeToken()		        { msg.setReplyBy(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <IN_REPLY_TO>     s=Expression()			{ msg.setReplyTo(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <ENVELOPE>        s=KeyValuePairList()		{ msg.setEnvelope(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <LANGUAGE>        s=Expression()			{ msg.setLanguage(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <ONTOLOGY>        s=Expression()			{ msg.setOntology(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <PROTOCOL>        s=Word()				{ msg.setProtocol(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+| <CONVERSATION_ID> s=Expression()			{ msg.setConversationId(s); token_source.SwitchTo(MESSAGEPARAMETERSTATE);}
+}
+
+
+String Expression():
+{ String s; String s1=new String(); }
+{ 
+  s=Word()						{return s;}
+| s=Stringa()					{return s;}
+| s=Number()					{return s;}
+| <LBRACE> ( s=Expression() {s1+=(s+" ");} )* <RBRACE>		{return "("+s1+")";}
+}
+
+
+String KeyValuePairList():
+{ String s; String s1=new String();}
+{ 
+  <LBRACE> (s=KeyValuePair() {s1+=(s+" ");} )* <RBRACE>		{return "("+s1+")";}
+}
+
+
+String KeyValuePair():
+{ String s1,s2;}
+{ 
+  <LBRACE> s1=Word() s2=Expression() <RBRACE> 		{return ("("+s1+" "+s2+")");}
+}
+
+
+String RecipientExpr():
+{ String s; String s1=new String();}
+{ 
+  s=AgentName() 							{return s;}
+| <LBRACE> ( s=AgentName() {s1+=(s+" ");} )+ <RBRACE>		{return "("+s1+")";}
+}
+
+
+String AgentName():
+{ String s; }
+{ 
+  s=Word()					{return s;}
+// the definition of the <WORD> Token includes also the production rule for AgentAddress
+}
+
+
+String Word():
+{ Token t; }
+{ 
+  t=<WORD>	{ return t.image; }
+}
+
+
+String Stringa():
+{ String s;}
+{ 
+  s=StringLiteral()			{return s;}
+| s=ByteLengthEncodedString() 	{return s;}
+}
+
+
+String StringLiteral():
+{ Token t; }
+{ 
+  t=<STRINGLITERAL>			{return t.image;}
+}
+
+
+String ByteLengthEncodedString():
+{ Token t; /* int i=0; char c; */}
+{ 
+  t=<PREFIXBYTELENGTHENCODEDSTRING>  {return t.image;}
+}
+
+
+String Number():
+{ String s;}
+{ 
+  s=Digit()			{return s;}
+| s=Integer()			{return s;}
+| s=Float() 			{return s;}
+}
+
+
+String DateTimeToken():
+{ Token t; String s;}
+{ 
+  t=<DATETIME>				{return t.image;} 
+}
+
+
+String Digit():
+{ Token t;}
+{ 
+  t=<DIGIT>				{return t.image;}
+}
+
+
+String Integer():
+{ Token t; String s=new String();}
+{ 
+  // (t="+" {s+=t.image;} | t="-" {s+=t.image;})? ( t=<DIGIT> {s+=t.image;} )+	{return s;}*/
+  t=<INTEGER>	{return t.image;}
+}
+
+String Float():
+{ Token t;}
+{ 
+  t=<FLOATONE>			{return t.image;}
+| t=<FLOATTWO>			{return t.image;}
+}
+
+
+
+<DEFAULT>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<DEFAULT>
+TOKEN:
+{
+  <START : "("> : MESSAGETYPESTATE 
+}
+
+<MESSAGETYPESTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<MESSAGETYPESTATE>
+TOKEN:
+{
+  <MESSAGETYPE :  "accept-proposal"
+                | "agree"		
+                | "cancel"	
+                | "cfp"			
+                | "confirm"	
+                | "disconfirm"	
+                | "failure"		
+                | "inform"		
+                | "inform-if"		
+                | "inform-ref"	
+                | "not-understood"	
+                | "propose"		
+                | "query-if"	
+                | "query-ref"	
+                | "refuse"		
+                | "reject-proposal"
+                | "request"		
+                | "request-when"	
+                | "request-whenever"	
+                | "subscribe"	>        : MESSAGEPARAMETERSTATE
+}	
+
+<MESSAGEPARAMETERSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<MESSAGEPARAMETERSTATE>
+TOKEN:
+{
+  <SENDER :          ":sender" >          : CONTENTSTATE
+| <RECEIVER :        ":receiver" >        : CONTENTSTATE
+| <CONTENT :         ":content" >         : CONTENTSTATE
+| <REPLY_WITH :      ":reply-with" >      : CONTENTSTATE
+| <REPLY_BY :        ":reply-by" >        : CONTENTSTATE
+| <IN_REPLY_TO:      ":in-reply-to" >     : CONTENTSTATE
+| <ENVELOPE :        ":envelope" >        : CONTENTSTATE
+| <LANGUAGE :        ":language" >        : CONTENTSTATE
+| <ONTOLOGY :        ":ontology" >        : CONTENTSTATE
+| <PROTOCOL :        ":protocol" >        : CONTENTSTATE
+| <CONVERSATION_ID : ":conversation-id" > : CONTENTSTATE
+| <END :             ")" >                : DEFAULT
+}
+
+<CONTENTSTATE>
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+<CONTENTSTATE>
+TOKEN:
+{
+  < DATETIME :      ("+")? (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                           (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
+                           (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
+                           (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["a"-"z","A"-"Z"] > 
+|  < WORD :          ["!" , "\"" , "$"-"'" , "*" , "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
+| <STRINGLITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\""> 
+| < DIGIT :         ["0"-"9"] >
+| < INTEGER :       (["+","-"])? (["0"-"9"])+ >
+| < FLOATONE :      (["+","-"])? ((["0"-"9"])+ "." (["0"-"9"])* | (["0"-"9"])* "." (["0"-"9"])+)
+                    (["e","E"] (["-","+"])? (["0"-"9"])+)? >
+| < FLOATTWO :      (["+","-"])? (["0"-"9"])+ ["e","E"] (["-","+"])? (["0"-"9"])+  >
+| <PREFIXBYTELENGTHENCODEDSTRING :  "#" <INTEGER> "\"" > 
+         {
+            String tmp = matchedToken.image.substring(1,  
+                                      matchedToken.image.length() - 1);
+            int numBytes = Integer.parseInt(tmp);
+		if (numBytes < 0) 
+               throw new TokenMgrError("ERROR: PrefixByteLengthEncodedString with length < 0", TokenMgrError.STATIC_LEXER_ERROR);
+            char[] bytes = new char[numBytes];
+            int i = 0; 
+	 	
+            while (numBytes-- > 0) 
+			try {
+	                bytes[i++] = input_stream.readChar(); 
+			} catch (IOException e) {
+                        System.out.println("IOException during PREFIXBYTELENGTHENCODEDSTRING");
+                        throw new TokenMgrError(true, curLexState, input_stream.getEndLine(), input_stream.getEndColumn(),input_stream.GetImage(), curChar, TokenMgrError.LEXICAL_ERROR);
+			}	
+            // If you want, you can add bytes to matchedToken.image here.
+		matchedToken.image = new String(bytes);
+         }
+ | <RBRACE : ")" >
+ | <LBRACE : "(" >
+}
+
+
+
