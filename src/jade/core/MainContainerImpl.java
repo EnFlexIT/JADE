@@ -200,10 +200,10 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     }
     catch(MTPException mtpe) {
       mtpe.printStackTrace();
-      System.exit(0);
+      Runtime.instance().endContainer();
     }catch(jade.lang.acl.ACLCodec.CodecException ce){
     	ce.printStackTrace();
-    	System.exit(0);
+    	Runtime.instance().endContainer();
     }
 
     // Notify platform listeners
@@ -575,6 +575,19 @@ public class MainContainerImpl extends AgentContainerImpl implements MainContain
     systemAgent.join();
     systemAgent.resetToolkit();
     removeListener(theAMS);
+
+    try {
+      // Unexport the container, without waiting for pending calls to
+      // complete.
+      unexportObject(this, true);
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
+    }
+
+    // Notify the JADE Runtime that the container has terminated
+    // execution
+    Runtime.instance().endContainer();
 
   }
 
