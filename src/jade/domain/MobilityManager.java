@@ -112,7 +112,7 @@ class MobilityManager {
       Object o;
       ACLMessage msg = getRequest();
       try {
-	o = theAMS.buildFrom(msg);
+	o = theAMS.extractContent(msg);
 	sendAgree();
 	try {
 	  doAction(o);
