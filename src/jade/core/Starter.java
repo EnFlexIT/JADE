@@ -63,7 +63,7 @@ public class Starter {
      of the agents to fire up during JADE startup.
      @param args Command line arguments, used by CORBA ORB.
   */
-  public static void startUp(boolean isPlatform, String platformID, Iterator agents) {
+  public static void startUp(boolean isPlatform, String platformID, Iterator agents, String[] MTPs) {
 
     try{
 
@@ -88,7 +88,7 @@ public class Starter {
       else {
 	theContainer = new AgentContainerImpl();
       }
-      theContainer.joinPlatform(platformID, agents);
+      theContainer.joinPlatform(platformID, agents, MTPs);
 
     }
     catch(RemoteException re) {
