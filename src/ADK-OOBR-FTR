@@ -1,9 +1,15 @@
 
 /home/Giovanni/DEVEL/ADK/src/fipa/core/Agent.java
-Agent@- activate@public void activate(String name) {
+Agent@+ Agent@public Agent() {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
 Agent@- blockingReceive@protected final ACLMessage blockingReceive() {
+Agent@- doActivate@public void doActivate() {
+Agent@- doMove@public void doMove() {
+Agent@- doStart@public void doStart(String name) {
+Agent@- doSuspend@public void doSuspend() {
+Agent@- doWait@public void doWait() {
+Agent@- doWake@public void doWake() {
 Agent@- localStartup@protected void localStartup() {
 Agent@- postMessage@public final synchronized void postMessage (ACLMessage msg) {
 Agent@- receive@protected final ACLMessage receive() {
@@ -11,7 +17,6 @@ Agent@- removeBehaviour@public void removeBehaviour(Behaviour b) {
 Agent@- removeCommListener@public final void removeCommListener(CommListener l) {
 Agent@- run@public final void run() {
 Agent@- schedule@public void schedule() {
-Agent@- send@protected final void send(String msg) {
 Agent@- send@protected final void send(ACLMessage msg) {
 
 /home/Giovanni/DEVEL/ADK/src/fipa/core/AgentPlatform.java
@@ -22,6 +27,7 @@ AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws Re
 AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
 /home/Giovanni/DEVEL/ADK/src/fipa/core/Behaviour.java
+Behaviour@> done@public boolean done();
 Behaviour@> execute@public void execute();
 
 /home/Giovanni/DEVEL/ADK/src/fipa/core/CommBroadcaster.java
@@ -248,3 +254,28 @@ StartContainer@- usage@private static void usage(){
 
 /home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
+
+/home/Giovanni/DEVEL/ADK/src/fipa/core/ComplexBehaviour.java
+ComplexBehaviour@- BehaviourList@public BehaviourList() {
+ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
+ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
+ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
+ComplexBehaviour@- addElement@public final synchronized void addElement(Behaviour b) {
+ComplexBehaviour@- begin@public void begin() {
+ComplexBehaviour@- done@public boolean done() {
+ComplexBehaviour@- end@public void end() {
+ComplexBehaviour@- execute@public final void execute() {
+ComplexBehaviour@- getCurrent@public Behaviour getCurrent() {
+ComplexBehaviour@- isEmpty@public boolean isEmpty() {
+ComplexBehaviour@- next@public boolean next() {
+ComplexBehaviour@> postAction@protected abstract void postAction();
+ComplexBehaviour@> preAction@protected abstract void preAction();
+ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
+ComplexBehaviour@- removeElement@public final synchronized boolean removeElement(Behaviour b) {
+
+/home/Giovanni/DEVEL/ADK/src/fipa/core/SimpleBehaviour.java
+SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
+SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
+SimpleBehaviour@> action@protected abstract void action();
+SimpleBehaviour@- done@public boolean done() {
+SimpleBehaviour@- execute@public final void execute() {
