@@ -283,18 +283,30 @@ class DFAgentDscDlg extends JDialog
 
 		setModal(true);
 		setResizable(false);
-		setLocation(50, 50);
-		pack();
-		show();
-		
+		//setLocation(50, 50);
+		//pack();
+		//show();
+		ShowCorrect();
 		return out;
     
 	}
 	
+	private void ShowCorrect() 
+ 	 {
+    pack();
+    //setSize(300, 300);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int centerX = (int)screenSize.getWidth() / 2;
+    int centerY = (int)screenSize.getHeight() / 2;
+    Dimension sizePanel = getSize();
+    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
+    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
+    setLocation(centerX - x, centerY - y);
+    
+    setVisible(true);
+    toFront();
+ 	 }
+
+
 	
-
-	public static void main(String args[])
-	{
-
-	}
 }
