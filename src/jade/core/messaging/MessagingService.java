@@ -480,10 +480,22 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		// Update the routing tables of all the other slices
 		Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
-		    MessagingSlice slice = (MessagingSlice)slices[i];
-		    String sliceName = slice.getNode().getName();
-		    if(!sliceName.equals(cid.getName())) {
-			slice.addRoute(mtp, cid.getName());
+		    try {
+			MessagingSlice slice = (MessagingSlice)slices[i];
+			String sliceName = slice.getNode().getName();
+			if(!sliceName.equals(cid.getName())) {
+			    slice.addRoute(mtp, cid.getName());
+			}
+		    }
+		    catch(Throwable t) {
+			// Re-throw allowed exceptions
+			if(t instanceof IMTPException) {
+			    throw (IMTPException)t;
+			}
+			if(t instanceof ServiceException) {
+			    throw (ServiceException)t;
+			}
+			System.out.println("### addRoute() threw " + t.getClass().getName() + " ###");
 		    }
 		}
 		impl.newMTP(mtp, cid);
@@ -501,10 +513,22 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		// Update the routing tables of all the other slices
 		Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
-		    MessagingSlice slice = (MessagingSlice)slices[i];
-		    String sliceName = slice.getNode().getName();
-		    if(!sliceName.equals(cid.getName())) {
-			slice.removeRoute(mtp, cid.getName());
+		    try {
+			MessagingSlice slice = (MessagingSlice)slices[i];
+			String sliceName = slice.getNode().getName();
+			if(!sliceName.equals(cid.getName())) {
+			    slice.removeRoute(mtp, cid.getName());
+			}
+		    }
+		    catch(Throwable t) {
+			// Re-throw allowed exceptions
+			if(t instanceof IMTPException) {
+			    throw (IMTPException)t;
+			}
+			if(t instanceof ServiceException) {
+			    throw (ServiceException)t;
+			}
+			System.out.println("### removeRoute() threw " + t.getClass().getName() + " ###");
 		    }
 		}
 		impl.deadMTP(mtp, cid);
