@@ -60,12 +60,10 @@ subdirectory; remember to set CLASSPATH environment variable to
 include the file jade.zip in 'lib' directory and the current directory,
 then change to 'src' directory.
 
-The Agent Platform uses Java RMI, so one has to start the RMI registry
-on the same host the Agent Platform will run on. Be careful to set a
-suitable CLASSPATH (i.e. including both the jade.zip file with compiled
-classes and the current directory) *also* in the command shell where
-you start the RMI registry, otherwise you will get a
-'ClassNotFoundException' during 'Naming.bind()' operation.
+Be careful to set a suitable CLASSPATH (i.e. including both the
+jade.zip file with compiled classes and the current directory)
+otherwise you will get a 'ClassNotFoundException' during
+'Naming.bind()' operation.
 
 To run the Agent Platform, one must issue the command:
 
