@@ -41,10 +41,15 @@
 	<property name="demo-classes" value="${tmp}/demo/classes"/>
 	
 	<!-- Additional ANT tasks definition -->
-	<!-- Preverify -->
+	<!-- Preprocessor -->
 	<taskdef name = "pproc"    classname="leapTools.Preprocessor">
 		<classpath path ="resources/antTasks/leapTools.jar"/>
 	</taskdef>
+	<!-- Minimizer -->
+	<taskdef name = "minimize"    classname="leapTools.Minimizer">
+		<classpath path ="resources/antTasks/leapTools.jar"/>
+	</taskdef>
+	<!-- Preverifier -->
 	<taskdef  name="preverify" classname="com.stampysoft.ant.j2me.PreverifyTask">
   	<classpath path ="resources/antTasks/StampysoftAntTasks.jar" />
 	</taskdef>
@@ -254,6 +259,7 @@
 	  <javac srcdir  = "resources/src"
 	         destdir = "${tmp}/leapTools"/>
 
+		<delete file="resources/antTasks/leapTools.jar" quiet="true"/>
 	  <jar jarfile = "resources/antTasks/leapTools.jar"
 	       basedir = "${tmp}/leapTools"/>
 		
@@ -277,4 +283,61 @@
 		<ant antfile="${buildfiles}/dotnet.xml" target="do-reset" dir="."/>
 	</target>
 
+	
+	<!-- ******** Minimize a jar file ******** -->
+	
+  <target name = "minimize" description = "" depends = "init">
+  	<basename property="name" file="${JAR}" suffix=".jar"/>
+  	<dirname property="dir" file="${JAR}"/>
+  	<property name="base" value="${dir}/${name}"/>
+  	
+  	<!-- Where to find the .dlc file (same as the jar unless specified) -->
+  	<condition property="dlcfile" value="${DLC}">
+  		<isset property="DLC"/>
+  	</condition>
+  	<condition property="dlcfile" value="${base}.dlc">
+  		<not>
+	  		<isset property="DLC"/>
+	  	</not>
+  	</condition>
+  	
+  	<!-- Detect all classes that are referenced starting from the .dlc file --> 
+		<java classname="leapTools.Package" fork="true">
+			<classpath>
+				<pathelement location="resources\antTasks\packagingtool.jar"/>
+				<pathelement location="${boot-midp-classes}"/>
+				<pathelement location="${JAR}"/>
+			</classpath>
+			<arg line="-d ${base}-tmp.jar -f ${dlcfile} -e -s"/>
+		</java>
+		
+		<mkdir dir="${tmp}/t1"/>
+		<mkdir dir="${tmp}/t2"/>
+		
+		<unzip src="${JAR}" dest="${tmp}/t1"/>
+		<unzip src="${base}-tmp.jar" dest="${tmp}/t2"/>
+		
+		<!-- Remove from t1 all .class files that are not in t2 -->
+		<minimize basedir="${tmp}/t1" checkdir="${tmp}/t2" verbose="true"/>
+		
+  	<!-- Where to find the manifest (from the jar unless specified) -->
+  	<condition property="manifest" value="${MANIFEST}">
+  		<isset property="MANIFEST"/>
+  	</condition>
+  	<condition property="manifest" value="${tmp}/t1/meta-inf/Manifest.mf">
+  		<not>
+	  		<isset property="MANIFEST"/>
+	  	</not>
+  	</condition>
+  	<echo> ${manifest} </echo>
+  	
+		<!-- Produce the minimized jar -->
+		<delete file="${base}-min.jar" quiet="true"/>
+	  <jar jarfile="${base}-min.jar" basedir="${tmp}/t1" manifest="${manifest}"/>
+	       
+	  <!-- Delete temp files and directories -->
+	  <delete file="${base}-tmp.jar" quiet="true"/>
+	  <delete dir="${tmp}/t1"/>
+	  <delete dir="${tmp}/t2"/>
+	</target>
 </project>
