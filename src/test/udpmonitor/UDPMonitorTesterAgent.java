@@ -86,9 +86,11 @@ public class UDPMonitorTesterAgent extends TesterAgent {
         String addr = receiverAgent.getAddressesArray()[0];
         String aidStr = receiverAgent.getName();
         listenerAgent = TestUtility.createAgent(a, LISTENER_AGENT_NAME, "test.udpmonitor.AMSEventListenerAgent", new String[] {aidStr, addr}, 
-            remoteAMS, main.getContainerName());
+        remoteAMS, main.getContainerName());
         
-        EventReceiverAgent.waitForEvent(); // skip next REMOVED container event
+        // Wait a bit then clear the map of received events so that 
+        // we start from a clean situation.
+        try { Thread.sleep(3000); } catch (Exception e) {}
         EventReceiverAgent.clear();
         
         setArgument(AMS_LISTENER_AGENT_AID_KEY, listenerAgent);
