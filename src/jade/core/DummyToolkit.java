@@ -56,7 +56,7 @@ final class DummyToolkit implements AgentToolkit {
     
     //FIXME should we here throw an InternalError also?
     public void handleEnd(AID agentID) {}
-    public void handleSend(ACLMessage msg, AID sender, boolean cloneFirst) {}
+    public void handleSend(ACLMessage msg, AID sender, boolean needClone) {}
     public void handlePosted(AID agentID, ACLMessage msg) {}
     public void handleReceived(AID agentID, ACLMessage msg) {}
     public void handleChangedAgentState(AID agentID, int from, int to) {}

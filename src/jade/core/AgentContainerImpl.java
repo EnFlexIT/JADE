@@ -560,21 +560,28 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   /**
      Issue a SEND_MESSAGE VerticalCommand for each receiver
    */
-  public void handleSend(ACLMessage msg, AID sender, boolean cloneFirst) {
+  public void handleSend(ACLMessage msg, AID sender, boolean needClone) {
     Iterator it = msg.getAllIntendedReceiver();
-    while (it.hasNext()){
+    // If there are multiple receivers the message must always be cloned
+    // since the MessageManager will modify it. If there is a single 
+    // receiver we clone it or not depending on the needClone parameter
+    boolean isFirst = true;
+    while (it.hasNext()) {
       AID receiver = (AID)it.next();
+      if (isFirst) {
+      	needClone = needClone || it.hasNext();
+      	isFirst = false;
+      }
       GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
       cmd.addParam(sender);
       ACLMessage toBeSent = null;
-      if (cloneFirst) {
+      if (needClone) {
       	toBeSent = (ACLMessage) msg.clone();
       }
       else {
       	toBeSent = msg;
-      	// The following copies must always be cloned!
-      	cloneFirst = false;
       }
+    	isFirst = false;
       GenericMessage gmsg = new GenericMessage(toBeSent);
       cmd.addParam(gmsg);
       cmd.addParam(receiver);
