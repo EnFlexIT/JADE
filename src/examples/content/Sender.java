@@ -34,17 +34,17 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.lang.*;
-import jade.content.lang.j.*;
+import jade.content.lang.leap.*;
 
 import examples.content.ontology.*;
 
 public class Sender extends Agent {
     // We handle contents
-    private FullContentManager manager  = (FullContentManager)getContentManager();
-    // This agent speaks a language called "J"
-    private Codec              codec    = new JCodec();
+    private ContentManager manager  = (ContentManager)getContentManager();
+    // This agent speaks a language called "LEAP"
+    private Codec          codec    = new LEAPCodec();
     // This agent complies with the People ontology
-    private FullOntology       ontology = PeopleOntology.getInstance();
+    private FullOntology   ontology = PeopleOntology.getInstance();
 
     class SenderBehaviour extends SimpleBehaviour {
 	private boolean finished = false;

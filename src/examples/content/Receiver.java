@@ -31,15 +31,15 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.lang.*;
-import jade.content.lang.j.*;
+import jade.content.lang.leap.*;
 
 import examples.content.ontology.*;
 
 public class Receiver extends Agent {
-    private FullContentManager manager     = (FullContentManager)getContentManager();
-    private Codec              codec       = new JCodec();
-    private FullOntology       ontology    = PeopleOntology.getInstance();
-    private FatherOf           proposition = null;
+    private ContentManager manager     = (ContentManager)getContentManager();
+    private Codec          codec       = new LEAPCodec();
+    private FullOntology   ontology    = PeopleOntology.getInstance();
+    private FatherOf       proposition = null;
 
     class ReceiverBehaviour extends SimpleBehaviour {
 	private boolean finished = false;
