@@ -30,7 +30,7 @@ import jade.content.onto.OntologyException;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ContentElementSchema extends ObjectSchema {
+public class ContentElementSchema extends ObjectSchemaImpl {
     public static final String         BASE_NAME = "ContentElement";
     private static ContentElementSchema baseSchema = new ContentElementSchema();
 

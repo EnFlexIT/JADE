@@ -30,7 +30,7 @@ import jade.content.onto.OntologyException;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class TermSchema extends ObjectSchema {
+public class TermSchema extends ObjectSchemaImpl {
     public static final String BASE_NAME = "Term";
     private static TermSchema  baseSchema = new TermSchema();
 
