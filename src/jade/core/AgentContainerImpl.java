@@ -71,8 +71,8 @@ import jade.security.PrivilegedExceptionAction;
 */
 public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
-    static final boolean CREATE_AND_START = true;
-    static final boolean CREATE_ONLY = false;
+    public static final boolean CREATE_AND_START = true;
+    public static final boolean CREATE_ONLY = false;
 
 
   // Local agents, indexed by agent name
@@ -98,10 +98,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   // The Object managing Thread resources in this container
   private ResourceManager myResourceManager;
-  
-  // The Object managing all operations related to event notification
-  // in this container
-  private NotificationManager myNotificationManager;
   
   private ContainerID myID;
 
@@ -251,43 +247,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 //__SECURITY__END
 
-  /**
-    @param snifferName The Agent ID of the sniffer to send messages to.
-    @param toBeSniffed The <code>AID</code> of the agent to be sniffed
-  **/
-  public void enableSniffer(AID snifferName, AID toBeSniffed) throws IMTPException {
-  	// Delegate the operation to the NotificationManager
-  	myNotificationManager.enableSniffer(snifferName, toBeSniffed);
-  }
-
-
-  /**
-    @param snifferName The Agent ID of the sniffer to send messages to.
-    @param notToBeSniffed The <code>AID</code> of the agent to stop sniffing
-  **/
-  public void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException {
-  	// Delegate the operation to the NotificationManager
-  	myNotificationManager.disableSniffer(snifferName, notToBeSniffed);
-  }
-
-
-  /**
-    @param debuggerName The Agent ID of the debugger to send messages to.
-    @param toBeDebugged The <code>AID</code> of the agent to start debugging.
-  **/
-  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
-  	// Delegate the operation to the NotificationManager
-  	myNotificationManager.enableDebugger(debuggerName, toBeDebugged);
-  }
-
-  /**
-    @param debuggerName The Agent ID of the debugger to send messages to.
-    @param notToBeDebugged The <code>AID</code> of the agent to stop debugging.
-  **/
-  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
-  	// Delegate the operation to the NotificationManager
-  	myNotificationManager.disableDebugger(debuggerName, notToBeDebugged); 
-  }
 
   public Authority getAuthority() {
     return authority;
@@ -349,11 +308,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           // Create the ResourceManager
           myResourceManager = myProfile.getResourceManager();
 
-	  // FIXME: This will be replaced by activateService("Event-Notification")
-          // Create and initialize the NotificationManager
-          myNotificationManager = myProfile.getNotificationManager();
-          myNotificationManager.initialize(this, localAgents);
-
           // Initialize the Container ID
           TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
 	  // the name for this container is got from the Profile, if exists
@@ -406,6 +360,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      jade.core.mobility.AgentMobilityService agMob = new jade.core.mobility.AgentMobilityService(this, myProfile);
 	      myServiceManager.activateService(new ServiceDescriptor(agMob.getName(), agMob));
 	  }
+
+	  // Activate the Event Notification Service
+	  jade.core.event.NotificationService evNot = new jade.core.event.NotificationService(this, myProfile);
+	  myServiceManager.activateService(new ServiceDescriptor(evNot.getName(), evNot));
 
           // If myPlatform is the real MainContainerImpl this call starts the AMS and DF, otherwise it does nothing
 	  myPlatform.startSystemAgents(this);
@@ -583,50 +541,74 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	cmd.addParam(sender);
 	Object lastException = myCommandProcessor.process(cmd);
 
+	/***
 	// Notify message listeners
 	myNotificationManager.fireEvent(NotificationManager.SENT_MESSAGE, new Object[] {msg, msg.getSender()});
+	***/
 
 	if((lastException != null) && (lastException instanceof AuthException)) {
 	    throw (AuthException)lastException;
 	}
 
     }
-	
-  public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
-    AgentPrincipal target = getAgentPrincipal(msg.getSender());
-    authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
-    //firePostedMessage(msg, agentID);
-    myNotificationManager.fireEvent(NotificationManager.POSTED_MESSAGE,
-    	new Object[]{msg, agentID});
+
+    public void handlePosted(AID agentID, ACLMessage msg) throws AuthException {
+
+	AgentPrincipal target = getAgentPrincipal(msg.getSender());
+
+	// --- This code could go into a Security Service, intercepting the agent creation...
+
+	authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
+
+	// --- End of Security code
+
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_POSTED, jade.core.event.NotificationService.NAME, "");
+	cmd.addParam(msg);
+	cmd.addParam(agentID);
+
+	myCommandProcessor.process(cmd);
   }
 
   public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
-    //!!!AgentPrincipal target = getAgentPrincipal(msg.getSender());
-    //!!!authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null);
-    //fireReceivedMessage(msg, agentID);
-    myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
-      new Object[]{msg, agentID});
+
+	GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_RECEIVED, jade.core.event.NotificationService.NAME, "");
+	cmd.addParam(msg);
+	cmd.addParam(agentID);
+
+	myCommandProcessor.process(cmd);
+
   }
 
   public void handleBehaviourAdded(AID agentID, Behaviour b) {
-      myNotificationManager.fireEvent(NotificationManager.ADDED_BEHAVIOUR,
-        new Object[]{agentID, b});
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_BEHAVIOUR_ADDED, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(agentID);
+      cmd.addParam(b);
+
+      myCommandProcessor.process(cmd);
   }
   
   public void handleBehaviourRemoved(AID agentID, Behaviour b) {
-      myNotificationManager.fireEvent(NotificationManager.REMOVED_BEHAVIOUR,
-        new Object[]{agentID, b});
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_BEHAVIOUR_REMOVED, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(agentID);
+      cmd.addParam(b);
+
+      myCommandProcessor.process(cmd);
   }
   
-  public void handleChangeBehaviourState(AID agentID, Behaviour b,
-                                         String from, String to) {
-      myNotificationManager.fireEvent(NotificationManager.CHANGED_BEHAVIOUR_STATE,
-        new Object[]{agentID, b, from, to});
+  public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.NOTIFY_CHANGED_BEHAVIOUR_STATE, jade.core.event.NotificationService.NAME, "");
+      cmd.addParam(agentID);
+      cmd.addParam(b);
+      cmd.addParam(from);
+      cmd.addParam(to);
+
+      myCommandProcessor.process(cmd);
   }
 
   public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, CertificateFolder certs) {
 
       /***
+
     myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
       new Object[]{agentID, oldPrincipal, (AgentPrincipal)certs.getIdentityCertificate().getSubject()});
     try {
@@ -643,11 +625,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
-
-      // FIXME: This needs to go in the Event Notification Service
-      myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_STATE,
-				      new Object[]{agentID, from, to});
-
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementService.INFORM_STATE_CHANGED, jade.core.management.AgentManagementService.NAME, "");
       cmd.addParam(agentID);
       cmd.addParam(from);
@@ -771,11 +748,44 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     public void fillListFromMessageQueue(List messages, Agent a) {
-	Iterator i = a.getMessageQueue().iterator();
-	while (i.hasNext()) {
-	    messages.add(i.next());
+	MessageQueue mq = a.getMessageQueue();
+
+	synchronized(mq) {
+	    Iterator i = mq.iterator();
+	    while (i.hasNext()) {
+		messages.add(i.next());
+	    }
 	}
     } 
+
+    public void fillListFromReadyBehaviours(List behaviours, Agent a) {
+
+	Scheduler s = a.getScheduler();
+
+	// (Mutual exclusion with Scheduler.add(), remove()...)
+	synchronized (s) {
+	    Iterator it = s.readyBehaviours.iterator();
+	    while (it.hasNext()) {
+		Behaviour b = (Behaviour) it.next();
+		behaviours.add(new BehaviourID(b));
+	    }
+
+	}
+    }
+
+    public void fillListFromBlockedBehaviours(List behaviours, Agent a) {
+
+	Scheduler s = a.getScheduler();
+
+	// (Mutual exclusion with Scheduler.add(), remove()...)
+	synchronized (s) {
+	    Iterator it = s.blockedBehaviours.iterator();
+	    while (it.hasNext()) {
+		Behaviour b = (Behaviour) it.next();
+		behaviours.add(new BehaviourID(b));
+	    }
+	}
+    }
 
     public void commitMigration(Agent instance) {
 	instance.doGone();
