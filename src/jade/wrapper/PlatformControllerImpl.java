@@ -103,7 +103,8 @@ class PlatformControllerImpl implements PlatformController {
   public void kill() throws ControllerException {
   	try {
   		platformState = PlatformState.PLATFORM_STATE_KILLING;
-    	myMain.shutdownPlatform();
+  		// FIXME: Where do we get the principal and credentials
+    	myMain.shutdownPlatform(null, null);
   	}
   	catch (JADESecurityException jse) {
   		throw new ControllerException("Security error. "+jse.getMessage());
