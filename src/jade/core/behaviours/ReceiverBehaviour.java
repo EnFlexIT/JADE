@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.3  1999/06/30 10:36:45  rimassa
+  Fixed a bug which was causing a NullPointerException when a
+  ReceiverBehaviour without a timeout was reset.
+
   Revision 1.2  1999/06/16 00:20:40  rimassa
   Added a comprehensive support for timeouts on message reception.
 
@@ -315,8 +319,8 @@ public final class ReceiverBehaviour extends Behaviour {
   */
   public void reset() {
     finished = false;
-    result = null;
     if(future != null) {
+      result = null;
       future.reset();
       result = new ACLMessage("not-understood");
     }
@@ -330,9 +334,13 @@ public final class ReceiverBehaviour extends Behaviour {
     String s = msg.getContent();
     if(s != null)
       result.setContent(s);
+    else
+      result.setContent("");
     s = msg.getConversationId();
     if(s != null)
       result.setConversationId(s);
+    else
+      result.setConversationId("");
     AgentGroup ag = msg.getDests();
     Enumeration e = ag.getMembers();
     while(e.hasMoreElements()) {
@@ -342,28 +350,43 @@ public final class ReceiverBehaviour extends Behaviour {
     s = msg.getEnvelope();
     if(s != null)
       result.setEnvelope(s);
+    else
+      result.setEnvelope("");
     s = msg.getLanguage();
     if(s != null)
       result.setLanguage(s);
+    else
+      result.setLanguage("");
     s = msg.getOntology();
     if(s != null)
       result.setOntology(s);
+    else
+      result.setOntology("");
     s = msg.getProtocol();
     if(s != null)
       result.setProtocol(s);
+    else
+      result.setProtocol("");
     s = msg.getReplyBy();
     if(s != null)
       result.setReplyBy(s);
+    else
+      result.setReplyBy("");
     s = msg.getReplyTo();
     if(s != null)
       result.setReplyTo(s);
+    else
+      result.setReplyTo("");
     s = msg.getReplyWith();
     if(s != null)
       result.setReplyWith(s);
+    else
+      result.setReplyWith("");
     s = msg.getSource();
     if(s != null)
       result.setSource(s);
-
+    else
+      result.setSource("");
     if(future != null)
       future.setMessage(result);
 
