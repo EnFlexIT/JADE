@@ -22,14 +22,15 @@
  */
 package jade.core;
 
+import jade.util.WrapperException;
+
 /**
  * This exception is thrown when an error occurs in the
  * communication with a remote object
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
  */
- public class IMTPException extends Exception {
- 	private Throwable nested;
+ public class IMTPException extends WrapperException {
 
   /**
    * Constructs an <code>IMTPException</code> with the specified detail message.
@@ -46,16 +47,8 @@ package jade.core;
    * @param t The exception to wrap.
    */
   public IMTPException(String msg, Throwable t) {
-    super(msg);
-    nested = t;
+    super(msg, t);
   }
 
-  public String getMessage() {
-    String base = super.getMessage();
-    if(nested == null)
-      return base;
-    else
-      return base + " [Wrapping an " + nested.getClass().getName() + ": " + nested.getMessage() + "]";
-  }
 }
 
