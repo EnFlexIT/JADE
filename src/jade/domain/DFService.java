@@ -420,9 +420,6 @@ public class DFService extends FIPAService {
     ACLMessage subscribe = createSubscriptionMessage(a, dfName, dfd, constraints);
 
 		ACLMessage inform = doFipaRequestClient(a, subscribe, timeout);
-    if (inform == null) {
-    	throw new FIPAException("Missing reply");
-    }
 		
 		// Send the CANCEL message
 		ACLMessage cancel = createCancelMessage(a, dfName, subscribe);
