@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.15  1998/11/15 23:04:59  rimassa
+  Added a new AMS action 'kill-container', as an inner class of the
+  ontology.
+
   Revision 1.14  1998/11/09 00:16:22  rimassa
   Uniformed syntax for different kinds of AMS related ontology objects:
   now a property list is used both in AMSAgentEvent class and in
@@ -573,12 +577,13 @@ public class AgentManagementOntology {
     public static final String REGISTERAGENT = "register-agent";
     public static final String DEREGISTERAGENT = "deregister-agent";
     public static final String MODIFYAGENT = "modify-agent";
+    public static final String KILLCONTAINER = "kill-container";
     public static final String CREATEAGENT = "create-agent";
     public static final String KILLAGENT = "kill-agent";
 
     static final String ARGNAME = ":ams-description";
 
-    private static Hashtable actions = new Hashtable(6, 1.0f);
+    private static Hashtable actions = new Hashtable(7, 1.0f);
     private String name;
     private AMSAgentDescriptor arg;
 
@@ -618,6 +623,37 @@ public class AgentManagementOntology {
     }
 
   } // End of AMSAction class
+
+
+  public static class KillContainerAction extends AMSAction {
+
+    private String containerName;
+
+    public KillContainerAction() {
+      setName(KILLCONTAINER);
+    }
+
+    public void setContainerName(String cn) {
+      containerName = cn;
+    }
+
+    public String getContainerName() {
+      return containerName;
+    }
+
+    public void toText(Writer w) {
+      try {
+	w.write("( " + name + " ");
+	w.write(containerName + " )");
+	w.flush();
+      }
+      catch(IOException ioe) {
+	ioe.printStackTrace();
+      }
+
+    }
+
+  } // End of KillContainerAction class
 
   public static class CreateAgentAction extends AMSAction implements PropertyContainer {
 
@@ -1135,6 +1171,7 @@ public class AgentManagementOntology {
     AMSAction.actions.put(AMSAction.MODIFYAGENT, new Integer(3));
     AMSAction.actions.put(AMSAction.CREATEAGENT, new Integer(4));
     AMSAction.actions.put(AMSAction.KILLAGENT, new Integer(5));
+    AMSAction.actions.put(AMSAction.KILLCONTAINER, new Integer(6));
 
     DFAction.actions.put(DFAction.REGISTER, new Integer(0));
     DFAction.actions.put(DFAction.DEREGISTER, new Integer(1));
