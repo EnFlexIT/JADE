@@ -56,6 +56,8 @@ import java.util.Hashtable;
    @author Giovanni Caire - TILAB
  */
 class RealNotificationManager implements NotificationManager {
+
+	private final static String AMS_DEBUG_HELPER = "AMS-debug-helper";
 	
   private AgentContainerImpl myContainer;
   private LADT localAgents;
@@ -111,7 +113,7 @@ class RealNotificationManager implements NotificationManager {
   public void enableDebugger(AID debuggerName, AID toBeDebugged) {
   	// AMS debug enabling must be done by a separated Thread to avoid
   	// deadlock with ToolNotifier startup
-  	if (toBeDebugged.equals(myContainer.getAMS()) && !(Thread.currentThread().getName().equals("AMS-debug-helper"))) {
+  	if (toBeDebugged.equals(myContainer.getAMS()) && !(Thread.currentThread().getName().equals(AMS_DEBUG_HELPER))) {
 			final AID dn = debuggerName;
 			final AID tbd = toBeDebugged;
   		Thread helper = new Thread(new Runnable() {
@@ -119,7 +121,7 @@ class RealNotificationManager implements NotificationManager {
   				enableDebugger(dn, tbd);
   			}
   		} );
-  		helper.setName("AMS-debug-helper");
+  		helper.setName(AMS_DEBUG_HELPER);
   		helper.start();
   		return;
   	}
@@ -193,7 +195,7 @@ class RealNotificationManager implements NotificationManager {
   }
 
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) {
-    ToolNotifier tn = findNotifier(debuggerName);
+  	ToolNotifier tn = findNotifier(debuggerName);
     if(tn != null) { 
       tn.removeObservedAgent(notToBeDebugged);
       if(tn.isEmpty()) {
