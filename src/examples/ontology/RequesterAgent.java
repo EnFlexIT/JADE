@@ -24,201 +24,266 @@ Boston, MA  02111-1307, USA.
 package examples.ontology;
 
 import jade.lang.acl.ACLMessage;
-import jade.core.Agent;
-import jade.domain.*;
+import jade.core.*;
+import jade.core.behaviours.*;
+import jade.domain.FIPAException;
 import jade.proto.FipaRequestInitiatorBehaviour;
+import jade.proto.FipaQueryInitiatorBehaviour;
 import jade.lang.sl.*;
 import jade.onto.*;
+import jade.onto.basic.*;
+import examples.ontology.employment.*;
 
 import java.util.*;
+import java.io.*;
+
 
 /**
-* @author Angelo Difino - CSELT S.p.A
+* @author Giovanni Caire - CSELT S.p.A
 * @version $Date$ $Revision$
 */
 public class RequesterAgent extends Agent {
 	
-	
-	private final static String ontology = "Engagement";
-
+	// AGENT BEHAVIOURS
 	/**
-	* Behaviour used by the Requester Agent that perform an request
-	* specified by parameter to the Executor Agent
+	* Main behaviour for the Requester Agent.
+	* First the personal particulars of the person to engage are requested 
+	* to the user.
+	* Then a check is performed to verify that the indicated person is not
+	* already working for the indicated company
+	* Finally, according to the above check, the engagement is requested.
 	*/
-	class EngagePersonBehaviour extends FipaRequestInitiatorBehaviour {
+	class HandleEngagementBehaviour extends SequentialBehaviour {
+		// Local variables
+		Behaviour queryBehaviour = null;
+		Behaviour requestBehaviour = null;
 		
-		/**
-		* Constructor for the Engage Person Behaviour
-		*
-		* @parameter a Agent  that are requesting and action
-		* @parameter p Person that has to be engaged
-		* @parameter c Company that are engaging the person p
-		* @parameter executor Agent that can perform the request
-		*/
-		public EngagePersonBehaviour(Agent a, Person p, Company c,String executor){
-			super(a,new ACLMessage(ACLMessage.REQUEST));
-			//creating the action to  perform
-			EngageAction action = new EngageAction();
-			action.setPerson(p);	
-			action.setCompany(c);
-			action.setActor(executor);
+		// Constructor
+		public HandleEngagementBehaviour(Agent myAgent){
+			super(myAgent);
+		}
+		
+		// This is executed at the beginning of the behaviour
+		protected void preAction(){
+			// Get detail of person to be engaged
+			try{
+				BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+				Person p = new Person();
+				Address a = new Address();
+				System.out.println("ENTER details of person to engage");
+				System.out.print("  Person name --> ");			
+				p.setName(buff.readLine());
+				System.out.print("  Person age --> ");			
+				Integer i = new Integer(buff.readLine());
+				p.setAge(i.intValue());
+				System.out.println("  Person address");
+				System.out.print("    Street --> ");
+				a.setStreet(buff.readLine());
+				System.out.print("    Number --> ");
+				i = new Integer(buff.readLine());
+				a.setNumber(i.intValue());
+				System.out.print("    City   --> ");
+				a.setCity(buff.readLine());
+				p.setAddress(a);
 			
-			// creates the message to Request the engagement of a Person in a Company
-			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-			msg.addDest(executor);
-			msg.setLanguage(SL0Codec.NAME);
-			msg.setOntology(((RequesterAgent)myAgent).ontology);
+				// Create an object representing the fact that person p works for company c
+				WorksFor wf = new WorksFor();
+				wf.set_0(p);
+				wf.set_1(((RequesterAgent) myAgent).c);
 			
-			try {
-				//fill the Action into a msg to send to the executor using the language and
-				//the ontology specified
-				myAgent.fillContent(msg,action,"EngageAction");
+				// Create an ACL message to query the engager agent if the above fact is true or false
+				ACLMessage queryMsg = new ACLMessage(ACLMessage.QUERY_IF);
+				queryMsg.addReceiver(((RequesterAgent) myAgent).engager);
+				queryMsg.setLanguage(SL0Codec.NAME);
+				queryMsg.setOntology(EmploymentOntology.NAME);
+    		// Write the works for predicate in the :content slot of the message
+		    List l = new ArrayList(1);
+		    l.add(wf);
+		    myAgent.fillContent(queryMsg, l);
+				
+		    // Create and add a behaviour to query the engager agent whether
+				// person p already works for company c following a FIPAQeury protocol
+				queryBehaviour = new CheckAlreadyWorkingBehaviour(myAgent, queryMsg);
+				addSubBehaviour(queryBehaviour);
 			}
 			catch (FIPAException fe) {
-				System.err.println(getLocalName()+" Fill convent unsucceeded. Reason:" + fe.getMessage());
-			}	
-
-			// reset the behaviour in order to change the message to be sent
-			reset(msg);
+				System.err.println(myAgent.getLocalName()+" Fill content unsucceeded. Reason:" + fe.getMessage());
+			}
+			catch (IOException ioe) { 
+				System.out.println("I/O error"); 
+			}
+			
+		}
+		
+		// This is executed at the end of the behaviour
+		protected void postAction(){
+			reset(); // This makes this behaviour be cyclically executed
+		}
+		
+		// Extends the reset method in order to remove the sub-behaviours that
+		// are dynamically added 
+		public void reset(){
+			if (queryBehaviour != null){
+				removeSubBehaviour(queryBehaviour);
+				queryBehaviour = null;
+			}
+			if (requestBehaviour != null){
+				removeSubBehaviour(requestBehaviour);
+				requestBehaviour = null;
+			}
+			super.reset();
+		}
+	}
+	
+	
+	/**
+	* This behaviour embeds the check that the indicated person is not
+	* already working for the indicated company.
+	* This is done following a FIPA-Query interaction protocol
+	*/
+	class CheckAlreadyWorkingBehaviour extends FipaQueryInitiatorBehaviour {
+		// Constructor
+		public CheckAlreadyWorkingBehaviour(Agent myAgent, ACLMessage queryMsg){
+			super(myAgent, queryMsg);
+		}
+		
+		public void handleInformMessages(Vector messages) {
+			ACLMessage msg = (ACLMessage) messages.get(0);
+			try{
+				List l = myAgent.extractContent(msg);
+				Object resp = l.get(0);
+				Ontology o = myAgent.lookupOntology(msg.getOntology());
+				String respName = o.getRoleName(resp.getClass());
+				if (respName == EmploymentOntology.WORKS_FOR){
+					// The indicated person is already working for company c. 
+					// Inform the user
+					WorksFor wf = (WorksFor) resp;
+					Person p = (Person) wf.get_0();
+					Company c = (Company) wf.get_1();
+					System.out.println("Person " + p.getName() + " is already working for " + c.getName());
+				}
+				else if (respName == BasicOntologyVocabulary.NOT){
+					// The indicated person is NOT already working for company c.
+					// Get person and company details and create an object representing the engagement action
+					WorksFor wf = (WorksFor) ((Not) resp).get_0();
+					Person p = (Person) wf.get_0();
+					Company c = (Company) wf.get_1();
+					Engage e = new Engage();
+					e.set_0(p);
+					e.set_1(c);
+					Action a = new Action();
+					a.set_0(((RequesterAgent) myAgent).engager);
+					a.set_1(e);
+			
+					// Create an ACL message to request the above action
+					ACLMessage requestMsg = new ACLMessage(ACLMessage.REQUEST);
+					requestMsg.addReceiver(((RequesterAgent) myAgent).engager);
+					requestMsg.setLanguage(SL0Codec.NAME);
+					requestMsg.setOntology(EmploymentOntology.NAME);
+    			// Write the action in the :content slot of the message
+		    	l = new ArrayList(1);
+		    	l.add(a);
+		    	myAgent.fillContent(requestMsg, l);
+				
+					// Create and add a behaviour to request the engager agent to engage
+					// person p in company c following a FIPARequest protocol
+					((HandleEngagementBehaviour) parent).requestBehaviour = new RequestEngagementBehaviour(myAgent, requestMsg);
+					parent.addSubBehaviour(((HandleEngagementBehaviour) parent).requestBehaviour);
+				}
+				else{
+					// Unexpected response received from the engager agent.
+					// Inform the user
+					System.out.println("Unexpected response from engager agent");
+				}
+				
+			} // End of try
+			catch (FIPAException fe) {
+				System.err.println(myAgent.getLocalName()+" Fill/extract content unsucceeded. Reason:" + fe.getMessage());
+			}
+			catch (OntologyException fe) {
+				System.err.println(myAgent.getLocalName()+" getRoleName() unsucceeded. Reason:" + fe.getMessage());
+			}
+		}
+		
+		public void handleOtherMessages(ACLMessage msg) {
+			System.out.println("Unexpected message in FIPAQuery interaction protocol");
+		}
+	}
+			
+			
+	/**
+	* This behaviour embeds the request to engage the indicated person 
+	* in the indicated company.
+	* This is done following a FIPA-Request interaction protocol
+	*/
+	class RequestEngagementBehaviour extends FipaRequestInitiatorBehaviour {
+		// Constructor
+		public RequestEngagementBehaviour(Agent myAgent, ACLMessage requestMsg){
+			super(myAgent, requestMsg);
 		}
 
 		protected void handleAgree(ACLMessage msg) {
-			System.out.println(getLocalName()+ " Handle Agree msg" + msg.toString());
+			System.out.println("Engagement agreed. Waiting for completion notification");
 		}
 		protected void handleInform(ACLMessage msg) {
-			System.out.println(getLocalName()+ " Handle Inform msg" + msg.toString());	
+			System.out.println("Engagement successfully completed");	
 			myAgent.doDelete();
 		}
 		protected void handleNotUnderstood(ACLMessage msg) {
-			System.out.println(getLocalName()+ " Handle Not Understood msg" + msg.toString());			
+			System.out.println("Engagement request not understood by engager agent");			
 		}
 		protected void handleFailure(ACLMessage msg) {
-			System.out.println(getLocalName()+ " Handle Failure msg" + msg.toString());
+			System.out.println("Engagement failed");
 		}
 		protected void handleRefuse(ACLMessage msg) {
-			System.out.println(getLocalName()+ " Handle Refuse msg" + msg.toString());
+			System.out.println("Engagement refused by engager agent");
 		}
 	}		
 		
-	/**
-	* Method that search into the DF an agent of agentType
-	*
-	* parameter searchAgent Type of the agent to search into the DF
-	*/
-	private String searchAgent(String agentType) {
-		System.out.println(getLocalName()+ " searching into DF");
-		String reader = new String("");
-		try {
-    	while (true) {
-  		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
-  		dfd.setType(agentType); 
-      AgentManagementOntology.DFSearchResult result;
-      Vector vc = new Vector(1);
-      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-      c.setFn(AgentManagementOntology.Constraint.MAX);
-      c.setArg(3);
-      vc.addElement(c);
-      result = searchDF("DF",dfd,vc);
-      Enumeration e = result.elements();
-      if (e.hasMoreElements()) {
-				dfd = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
-				reader = dfd.getName();
-				break;
-      } 
-      Thread.sleep(1000);
-    	}
-  	} 
-  	catch (Exception fe) {
-    	System.err.println(getLocalName()+" search with DF is not succeeded. Reason:" + fe.getMessage());
-    	doDelete();
-  	}
-		System.out.println(getLocalName()+ " founded into DF");
-		return reader;
-	}
-	
-	
-	/**
-	* Method that create an application-oriented Ontology
-	*
-	* @return an application-oriented ontology
-	*/
-	private DefaultOntology createOntology() {
-		
-		//create an default ontology
-		DefaultOntology myOntology = new DefaultOntology();	
 
+	// AGENT LOCAL VARIABLES
+	AID engager; // AID of the agent the engagement requests will have to be sent to
+	Company c;   // The  company where people will be engaged
+	
+	
+	// AGENT SETUP
+	protected void setup() {
+		
+		// Register the codec for the SL0 language
+		registerLanguage(SL0Codec.NAME, new SL0Codec());	
+		
+		// Register the ontology used by this application
+		registerOntology(EmploymentOntology.NAME, EmploymentOntology.instance());
+	
+		// Get from the user the name of the agent the engagement requests
+		// will have to be sent to
 		try {
-			
-		//adding the Address ontology
-		myOntology.addFrame("Address",Ontology.CONCEPT_TYPE,
-			new TermDescriptor[] {
-				new TermDescriptor("STREET", Ontology.STRING_TYPE,Ontology.M),
-				new TermDescriptor("CITY", Ontology.STRING_TYPE,Ontology.M)
-			}, new AddressFactory()
-		);
-	
-		//adding the Person ontology
-		myOntology.addFrame("Person",Ontology.CONCEPT_TYPE,
-			new TermDescriptor[] {
-				new TermDescriptor("NAME", Ontology.STRING_TYPE,Ontology.M),
-				new TermDescriptor("AGE",Ontology.LONG_TYPE,Ontology.M),
-				new TermDescriptor("ADDRESS",Ontology.CONCEPT_TYPE,"Address", Ontology.O)
-			}, new  PersonFactory()
-		);
-	
-		//adding the Company ontology
-		myOntology.addFrame("Company",Ontology.CONCEPT_TYPE,
-			new TermDescriptor[] {
-				new TermDescriptor("NAME", Ontology.STRING_TYPE,Ontology.M),
-			  new TermDescriptor("ADDRESS", Ontology.CONCEPT_TYPE,"Address", Ontology.M)
-			}, new CompanyFactory()
-		);
-	
-		//adding the Engage Action ontology
-		myOntology.addFrame("EngageAction",Ontology.ACTION_TYPE,
-			new TermDescriptor[] {
-				new TermDescriptor(Ontology.CONCEPT_TYPE, "Company", Ontology.M),
-				new TermDescriptor(Ontology.CONCEPT_TYPE, "Person", Ontology.M)
-			}, new EngageActionFactory()
-		);
-		} catch (OntologyException oe) {
-			System.err.println(getLocalName()+" Adding parameters to frame unsucceeded. Reason:" + oe.getMessage());
-    	doDelete();
+			BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
+			System.out.print("ENTER the local name of the Engager agent --> ");
+			String name = buff.readLine() + '@' + getHap();
+			engager = (AID) getAID().clone();
+			engager.setName(name);
+		
+			// Get from the user the details of the company where people will 
+			// be engaged
+			c  = new Company();
+			Address a = new Address();
+			System.out.println("ENTER details of the company where people will be engaged");
+			System.out.print("  Company name --> ");			
+			c.setName(buff.readLine());
+			System.out.println("  Company address");
+			System.out.print("    Street --> ");
+			a.setStreet(buff.readLine());
+			System.out.print("    Number --> ");
+			Integer i = new Integer(buff.readLine());
+			a.setNumber(i.intValue());
+			System.out.print("    City   --> ");
+			a.setCity(buff.readLine());
+			c.setAddress(a);
 		}
-		return myOntology;
-	}
-
-protected void setup() {
+		catch (IOException ioe) { System.out.println("I/O error"); }
 		
-	// register the codec of the language
-	registerLanguage(SL0Codec.NAME,new SL0Codec());	
-		
-	// register the ontology used by application
-	registerOntology(ontology,createOntology());
-	
-	// create some dummy data to represent a person and a company 
-	Address a1 = new Address();
-	a1.setStreet("\"Via Roma 2\"");
-	a1.setCity("Torino");
-	
-	Person p = new Person();
-	p.setName("\"Roberto Lomele\"");
-	p.setAge(25);
-	p.setAddress(a1);
-	
-	Address a2 = new Address();
-	a2.setStreet("\"Via Avigliana 7\"");
-	a2.setCity("Rivoli");
-	
-	Company c = new Company();
-	c.setName("\"Firp SPA\"");
-	c.setAddress(a2);
-		
-	// search with the DF for the ResponderAgent
-	String executor = searchAgent("ResponderAgent");
-	
-	// finally, adds the Task to the Agent scheduler
-  addBehaviour(new EngagePersonBehaviour(this,p,c,executor));
+		// Create and add the main behaviour of this agent
+  	addBehaviour(new HandleEngagementBehaviour(this));
 	}
 }
