@@ -363,6 +363,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       addAgentListener(tn);
     }
     tn.addObservedAgent(toBeDebugged);
+
+    //  FIXME: Need to send a complete, transactional snapshot of the
+    //  agent state.
+    Agent a = localAgents.get(toBeDebugged);
+    AgentState as = a.getAgentState();
+    fireChangedAgentState(toBeDebugged, as, as);
+
   }
 
   /**
