@@ -487,4 +487,12 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			}
 		} // END of inner class Subscription
 
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private SubscriptionResponder() {
+    }
+
+    //#MIDP_EXCLUDE_END
+
 }
