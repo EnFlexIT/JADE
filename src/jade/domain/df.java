@@ -291,8 +291,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			}
 		}
 		if (agentDescriptions == null) {
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE,"- Type = volatile");
+			if(logger.isLoggable(Logger.CONFIG))
+				logger.log(Logger.CONFIG,"- Type = volatile");
 			agentDescriptions = new DFMemKB(maxResultLimit);
 		}
 		if(logger.isLoggable(Logger.CONFIG)){
