@@ -182,16 +182,19 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd. 
   		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
-  		log("Pushing termination notification", 2);
-  		try {
-  			deliver(pkt, outConnection);
-  		}
-  		catch (IOException ioe) {
-  			// When the BackEnd receives the termination notification,
-  			// it just closes the connection --> we always have this
-  			// exception --> just explicitly close the outConnection
-  			log("The BackEnd has closed the outgoing connection as expected", 2);
-  			closeSilently(outConnection);
+  		// Mutual exclusion with dispatch() to avoid using the outConnection at the same time
+  		synchronized (this) {
+	  		log("Pushing termination notification", 2);
+	  		try {
+	  			deliver(pkt, outConnection);
+	  		}
+	  		catch (IOException ioe) {
+	  			// When the BackEnd receives the termination notification,
+	  			// it just closes the connection --> we always have this
+	  			// exception --> just explicitly close the outConnection
+	  			log("The BackEnd has closed the outgoing connection as expected", 2);
+	  			closeSilently(outConnection);
+	  		}
   		}
   	} 		
   }
