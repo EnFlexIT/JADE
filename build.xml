@@ -139,6 +139,11 @@ ant dist - to create the distribution files
       <fileset dir="${build}" includes="**/FIPA/*"/>
       <fileset dir="${build}" includes="**/jade/mtp/iiop/*"/>
     </jar>
+    <!-- Create the http.jar file -->
+                <delete file="${lib}/http.jar" quiet="true"/>
+    <jar jarfile="${lib}/http.jar">
+      <fileset dir="${build}" includes="**/jade/mtp/http/*"/>
+    </jar>
     <!-- Create the Base64.jar file -->
 		<delete file="${lib}/Base64.jar" quiet="true"/>
     <jar jarfile="${lib}/Base64.jar">
@@ -155,6 +160,8 @@ ant dist - to create the distribution files
        	<exclude name="**/FIPA/**"/>
       	<exclude name="**/jade/tools/**"/>
       	<exclude name="**/jade/gui/**"/>
+	<exclude name="**/jade/mtp/iiop/**" />
+	<exclude name="**/jade/mtp/http/**" />
       </fileset>
       <fileset dir="${build}">
       	<include name="**/jade/tools/*.class"/>

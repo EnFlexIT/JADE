@@ -283,7 +283,7 @@ public class ProfileImpl extends Profile {
     // been directly provided).
     if(isMain() && !getBooleanProperty("nomtp", false) && (props.getProperty(MTPS) == null)) {
 	Specifier s = new Specifier();
-	s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
+	s.setClassName("jade.mtp.http.MessageTransportProtocol"); 
 	List l = new ArrayList(1);
 	l.add(s);
 	props.put(MTPS, l);
