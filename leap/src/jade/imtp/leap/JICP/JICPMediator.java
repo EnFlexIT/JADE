@@ -57,16 +57,19 @@ public interface JICPMediator {
   void kill(); 
 
   /**
-   * Sets the socket connected to the mediated entity.
+   * Passes to this JICPMediator the connection opened by the mediated 
+   * entity.
    * This is called by the JICPServer this Mediator is attached to
    * as soon as the mediated entity (re)connects.
-   * @param s the socket connected to the mediated container
+   * @param c the connection to the mediated container
    */
-  void setConnection(Socket s);
+  JICPPacket handleIncomingConnection(Connection c);
   
   /**
-     Handle a JICP packet that was received by the JICPServer this
-     JICPMediator is attached to.
+   * Passes to this JICPMediator a JICP packet.
+   * This is called by the JICPServer this Mediator is attached to
+   * when a JICPPacket is received having the recipient-ID field
+   * set to the ID of this JICPMediator.
    */
   JICPPacket handleJICPPacket(JICPPacket p) throws ICPException; 
 }

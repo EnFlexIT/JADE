@@ -42,6 +42,7 @@ import jade.core.ProfileException;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import java.io.*;
+import java.net.*;
 
 /**
  * Class declaration
@@ -55,24 +56,16 @@ public class JICPPeer implements ICP {
   /**
    * Default port for the local container JICP transport address
    */
-  private JICPProtocol protocol;
   private JICPClient   client;
   private JICPServer   server;
-
-  /**
-   * Constructor declaration
-   */
-  public JICPPeer() {
-    protocol = new JICPProtocol();
-    client = new JICPClient();
-    server = null;
-  }
 
   /**
    * Start listening for internal platform messages on the specified port
    */
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
-  	String host = null;
+    client = new JICPClient(getProtocol(), getConnectionFactory());
+  	
+    String host = null;
     int    port = JICPProtocol.DEFAULT_PORT;
     
   	StringBuffer sb = null;
@@ -124,11 +117,11 @@ public class JICPPeer implements ICP {
     } 
 			
     // Start listening for connections
-    server = new JICPServer(port, l, changePortIfBusy);
+    server = new JICPServer(port, changePortIfBusy, l, getConnectionFactory());
     server.start();
 
     // Creates the local transport address
-    TransportAddress localTA = new JICPAddress(host, String.valueOf(server.getLocalPort()), null, null);
+    TransportAddress localTA = getProtocol().buildAddress(host, String.valueOf(server.getLocalPort()), null, null);
 
     return localTA;
   } 
@@ -181,14 +174,26 @@ public class JICPPeer implements ICP {
   } 
 
   /**
-   * Method declaration
-   * @return
-   * @see
+     Subclasses may re-define this method to return their own
+     protocol
    */
   public TransportProtocol getProtocol() {
-    return protocol;
+    return JICPProtocol.getInstance();
   } 
-
-
+  
+  /**
+     Subclasses may re-define this method to return their own
+     ConnectionFactory
+   */
+  protected ConnectionFactory getConnectionFactory() {
+    return new ConnectionFactory() {
+			public Connection createConnection(Socket s) {
+				return new Connection(s);
+			}
+			public Connection createConnection(TransportAddress ta) throws IOException {
+				return new Connection(ta);
+			}
+    };
+  }  
 }
 

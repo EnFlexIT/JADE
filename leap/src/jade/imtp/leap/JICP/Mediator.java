@@ -265,20 +265,21 @@ public class Mediator extends EndPoint implements JICPMediator {
 	}	
 	
   /**
-   * Sets the socket connected to the mediated container.
+   * Prepare to set the connection to the mediated container.
    * This is called by the JICPServer this Mediator is attached to
    * as soon as the mediated container (re)connects.
-   * @param s the socket connected to the mediated container
+   * @param c the connection to the mediated container
    */
-  public synchronized void setConnection(Socket s) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c) {
     if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
       resetConnection();
     } 
-    conn = new Connection(s);
+    conn = c;
     newConnectionReady = true;
     notifyAll();
+    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
   
   //////////////////////////////////////////////////////////////////////

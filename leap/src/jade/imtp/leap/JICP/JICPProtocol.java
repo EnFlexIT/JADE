@@ -56,41 +56,41 @@ public class JICPProtocol extends TransportProtocol {
 	// JICP packet types
   
   /** ID code for packets carrying IMTP commands */
-  static final byte          COMMAND_TYPE = 0;
+  public static final byte          COMMAND_TYPE = 0;
   /** ID code for packets carrying IMTP responses */
-  static final byte          RESPONSE_TYPE = 1;
+  public static final byte          RESPONSE_TYPE = 1;
   /** ID code for packets carrying requests to get the local address */
-  static final byte          GET_ADDRESS_TYPE = 21;
+  public static final byte          GET_ADDRESS_TYPE = 21;
   /** ID code for packets carrying requests to create a Mediator */
-  static final byte          CREATE_MEDIATOR_TYPE = 22;
+  public static final byte          CREATE_MEDIATOR_TYPE = 22;
   /** ID code for packets carrying requests to connect to a Mediator */
-  static final byte          CONNECT_MEDIATOR_TYPE = 23;
+  public static final byte          CONNECT_MEDIATOR_TYPE = 23;
   /** ID code for packets carrying JICP protocol errors */
-  static final byte          ERROR_TYPE = 100;
+  public static final byte          ERROR_TYPE = 100;
 
 
   /**
    * bit encoded data info constants
    */
-  static final byte          DEFAULT_INFO = 0;                   // All bits = 0
-  static final byte          COMPRESSED_INFO = 1;                // bit 1 == 1
-  static final byte          RECIPIENT_ID_PRESENT_INFO = 2;      // bit 2 == 1
-  static final byte          SESSION_ID_PRESENT_INFO = 4;        // bit 3 == 1
-  static final byte          DATA_PRESENT_INFO = 8;              // bit 4 == 1
-  static final byte          BLOCKING_IMTP_PING_INFO = 16;       // bit 5 == 1
-  static final byte          NON_BLOCKING_IMTP_PING_INFO = 32;   // bit 6 == 1
-  static final byte          TERMINATED_INFO = 64;               // bit 7 == 1
+  public static final byte DEFAULT_INFO = 0;                  // All bits = 0
+  public static final byte COMPRESSED_INFO = 1;               // bit 1 == 1
+  public static final byte RECIPIENT_ID_PRESENT_INFO = 2;     // bit 2 == 1
+  public static final byte SESSION_ID_PRESENT_INFO = 4;       // bit 3 == 1
+  public static final byte DATA_PRESENT_INFO = 8;             // bit 4 == 1
+  public static final byte BLOCKING_IMTP_PING_INFO = 16;      // bit 5 == 1
+  public static final byte NON_BLOCKING_IMTP_PING_INFO = 32;  // bit 6 == 1
+  public static final byte TERMINATED_INFO = 64;              // bit 7 == 1
 
   /**
    * Default recipient ID
    */
-  static final String        DEFAULT_RECIPIENT_ID = "";
+  public static final String  DEFAULT_RECIPIENT_ID = "";
 
   /**
    * Default MaxDisconnection and retry times for the mediator mechanism
    */
-  static final long          DEFAULT_MAX_DISCONNECTION_TIME = 600000;    // 10 min
-  static final long          DEFAULT_RETRY_TIME = 10000;                 // 10 sec
+  public static final long DEFAULT_MAX_DISCONNECTION_TIME = 600000; // 10 min
+  public static final long DEFAULT_RETRY_TIME = 10000;              // 10 sec
 
   /**
    * Configuration keys

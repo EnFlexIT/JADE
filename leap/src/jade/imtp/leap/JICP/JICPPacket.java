@@ -43,7 +43,7 @@ import jade.util.Logger;
  * @author Ronnie Taib - Motorola
  * @author Steffen Rusitschka - Siemens AG
  */
-class JICPPacket {
+public class JICPPacket {
 
   /**
    * The type of data included in the packet
@@ -86,7 +86,7 @@ class JICPPacket {
    * @param type The type of data included in the packet
    * @param data The data itself, as a byte array.
    */
-  JICPPacket(byte type, byte info, byte[] data) {
+  public JICPPacket(byte type, byte info, byte[] data) {
     init(type, info, null, data);
   }
 
@@ -95,7 +95,7 @@ class JICPPacket {
    * @param type The type of data included in the packet
    * @param data The data itself, as a byte array.
    */
-  JICPPacket(byte type, byte info, String recipientID, byte[] data) {
+  public JICPPacket(byte type, byte info, String recipientID, byte[] data) {
     init(type, info, recipientID, data);
   }
 
@@ -103,7 +103,7 @@ class JICPPacket {
    * constructs a JICPPacket of type JICPProtocol.ERROR_TYPE and sets the
    * data to the string representation of the exception.
    */
-  JICPPacket(String explanation, Exception e) {
+  public JICPPacket(String explanation, Exception e) {
     if (e != null) {
       explanation = explanation+": "+e.toString();
     } 
@@ -132,21 +132,21 @@ class JICPPacket {
   /**
    * @return The type of data included in the packet.
    */
-  byte getType() {
+  public byte getType() {
     return type;
   } 
 
   /**
    * @return the info field of this packet
    */
-  byte getInfo() {
+  public byte getInfo() {
     return info;
   } 
 
   /**
    * @return The sessionID of this packet.
    */
-  byte getSessionID() {
+  public byte getSessionID() {
     return sessionID;
   } 
 
@@ -154,7 +154,7 @@ class JICPPacket {
    * Set the sessionID of this packet and adjust the info field
    * accordingly.
    */
-  void setSessionID(byte id) {
+  public void setSessionID(byte id) {
     sessionID = id;
     
     if (sessionID >= 0) {
@@ -168,7 +168,7 @@ class JICPPacket {
   /**
    * @return The recipientID of this packet.
    */
-  String getRecipientID() {
+  public String getRecipientID() {
     return recipientID;
   } 
 
@@ -176,7 +176,7 @@ class JICPPacket {
    * Set the recipientID of this packet and adjust the info field
    * accordingly.
    */
-  void setRecipientID(String id) {
+  public void setRecipientID(String id) {
     recipientID = id;
     
     if (recipientID != null) {
@@ -190,14 +190,14 @@ class JICPPacket {
   /**
    * Set the TERMINATED_INFO flag in the info field.
    */
-  void setTerminatedInfo() {
+  public void setTerminatedInfo() {
     info |= JICPProtocol.TERMINATED_INFO;
   } 
 
   /**
    * @return The actual data included in the packet, as a byte array.
    */
-  byte[] getData() {
+  public byte[] getData() {
     //if (data != null && data.length != 0) {
     //  return (info & JICPProtocol.COMPRESSED_INFO) != 0 ? JICPCompressor.decompress(data) : data;
     //} 
@@ -217,7 +217,7 @@ class JICPPacket {
    * @exception May send a large bunch of exceptions, mainly in the IO
    * package.
    */
-  int writeTo(OutputStream out) throws IOException {
+  public int writeTo(OutputStream out) throws IOException {
   	int cnt = 2;
     try {
       // Write the packet type
@@ -270,7 +270,7 @@ class JICPPacket {
    * @exception May send a large bunch of exceptions, mainly in the IO
    * package.
    */
-  static JICPPacket readFrom(InputStream in) throws IOException {
+  public static JICPPacket readFrom(InputStream in) throws IOException {
     JICPPacket p = new JICPPacket();
 
     // Read packet type

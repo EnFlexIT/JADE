@@ -50,10 +50,15 @@ import java.io.*;
  */
 class JICPClient {
 
+	private TransportProtocol protocol;
+	private ConnectionFactory connFactory;
+	
   /**
    * Constructor declaration
    */
-  public JICPClient() {
+  public JICPClient(TransportProtocol tp, ConnectionFactory f) {
+  	protocol = tp;
+  	connFactory = f;
   } 
 
   /**
@@ -67,22 +72,21 @@ class JICPClient {
    */
   public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICPException {
     Connection       connection = null;
-    DataOutputStream out = null;
-    DataInputStream  inp = null;
+    OutputStream out = null;
+    InputStream  inp = null;
     JICPPacket       reply = null;
 
     try {
-      // Check that the protocol is JICP
+      // Check the protocol indicated in the destination transport address
       String proto = ta.getProto();
-
-      if (!CaseInsensitiveString.equalsIgnoreCase(proto, JICPProtocol.NAME)) {
+      if (!CaseInsensitiveString.equalsIgnoreCase(proto, protocol.getName())) {
         throw new ICPException("Incorrect protocol "+proto);
       } 
 
       // Open the connection and gets the output and input streams
-      connection = new Connection(ta);
-      out = new DataOutputStream(connection.getOutputStream());
-      inp = new DataInputStream(connection.getInputStream());
+      connection = connFactory.createConnection(ta);
+      out = connection.getOutputStream();
+      inp = connection.getInputStream();
 
       byte dataInfo = JICPProtocol.COMPRESSED_INFO;
 
@@ -145,6 +149,5 @@ class JICPClient {
 
     return reply.getData();
   } 
-
 }
 

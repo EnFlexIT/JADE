@@ -63,6 +63,9 @@ public class Connection {
   private OutputStream os;
   private ByteArrayOutputStream bos;
 
+  protected Connection() {
+  }
+  
   /**
    * Constructor declaration
    */
@@ -155,6 +158,14 @@ public class Connection {
     sc = null;
   } 
 
+  //#MIDP_EXCLUDE_BEGIN
+  /**
+   */
+  public String getRemoteHost() throws Exception {
+    return sc.getInetAddress().getHostAddress();
+  }
+  //#MIDP_EXCLUDE_END
+  
   /**
    */
   public static String getLocalHost() throws Exception {
@@ -172,9 +183,9 @@ public class Connection {
 
     return host;
   	//#MIDP_EXCLUDE_END
-  	/*#MIDP_INCLUDE_BEGIN
-  	throw new Exception("Unsupported operation");
-  	#MIDP_INCLUDE_END*/
+    /*#MIDP_INCLUDE_BEGIN
+    throw new Exception("Not supported");
+    #MIDP_INCLUDE_END*/
   } 
 }
 
