@@ -1086,82 +1086,112 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   }
 
+
+  // This lock is used to synchronize operations on the message
+  // listeners list. Using lazy processing (the list is set to null
+  // when empty) the space overhead is reduced, even with this lock
+  // object (an empty LinkedList holds three null pointers).
+  private Object messageListenersLock = new Object();
+
   private void addMessageListener(MessageListener l) {
-    // Use lazy evaluation
-    if(messageListeners == null)
-      messageListeners = new LinkedList();
-    messageListeners.add(l);
+    synchronized(messageListenersLock) {
+      if(messageListeners == null)
+	messageListeners = new LinkedList();
+      messageListeners.add(l);
+    }
   }
 
   private void removeMessageListener(MessageListener l) {
-    if(messageListeners != null) {
-      messageListeners.remove(l);
-      if(messageListeners.isEmpty())
-	messageListeners = null;
+    synchronized(messageListenersLock) {
+      if(messageListeners != null) {
+	messageListeners.remove(l);
+	if(messageListeners.isEmpty())
+	  messageListeners = null;
+      }
     }
   }
 
   private void fireSentMessage(ACLMessage msg, AID sender) {
-    if(messageListeners != null) {
-      MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID);
-      for(int i = 0; i < messageListeners.size(); i++) {
-	MessageListener l = (MessageListener)messageListeners.get(i);
-	l.sentMessage(ev);
+    synchronized(messageListenersLock) {
+      if(messageListeners != null) {
+	MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID);
+	for(int i = 0; i < messageListeners.size(); i++) {
+	  MessageListener l = (MessageListener)messageListeners.get(i);
+	  l.sentMessage(ev);
+	}
       }
     }
   }
 
   private void firePostedMessage(ACLMessage msg, AID receiver) {
-    if(messageListeners != null) {
-      MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID);
-      for(int i = 0; i < messageListeners.size(); i++) {
-	MessageListener l = (MessageListener)messageListeners.get(i);
-	l.postedMessage(ev);
+    synchronized(messageListenersLock) {
+      if(messageListeners != null) {
+	MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID);
+	for(int i = 0; i < messageListeners.size(); i++) {
+	  MessageListener l = (MessageListener)messageListeners.get(i);
+	  l.postedMessage(ev);
+	}
       }
     }
   }
 
   private void fireReceivedMessage(ACLMessage msg, AID receiver) {
-    if(messageListeners != null) {
-      MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID);
-      for(int i = 0; i < messageListeners.size(); i++) {
-	MessageListener l = (MessageListener)messageListeners.get(i);
-	l.receivedMessage(ev);
+    synchronized(messageListenersLock) {
+      if(messageListeners != null) {
+	MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID);
+	for(int i = 0; i < messageListeners.size(); i++) {
+	  MessageListener l = (MessageListener)messageListeners.get(i);
+	  l.receivedMessage(ev);
+	}
       }
     }
   }
 
   private void fireRoutedMessage(ACLMessage msg, Channel from, Channel to) {
-    if(messageListeners != null) {
-      MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID);
-      for(int i = 0; i < messageListeners.size(); i++) {
-	MessageListener l = (MessageListener)messageListeners.get(i);
-	l.routedMessage(ev);
+    synchronized(messageListenersLock) {
+      if(messageListeners != null) {
+	MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID);
+	for(int i = 0; i < messageListeners.size(); i++) {
+	  MessageListener l = (MessageListener)messageListeners.get(i);
+	  l.routedMessage(ev);
+	}
       }
     }
   }
 
+
+  // This lock is used to synchronize operations on the agent
+  // listeners list. Using lazy processing (the list is set to null
+  // when empty) the space overhead is reduced, even with this lock
+  // object (an empty LinkedList holds three null pointers).
+  private Object agentListenersLock = new Object();
+
   private void addAgentListener(AgentListener l) {
-    // Use lazy evaluation
-    if(agentListeners == null)
-      agentListeners = new LinkedList();
-    agentListeners.add(l);
+    synchronized(messageListenersLock) {
+      if(agentListeners == null)
+	agentListeners = new LinkedList();
+      agentListeners.add(l);
+    }
   }
 
   private void removeAgentListener(AgentListener l) {
-    if(agentListeners != null) {
-      agentListeners.remove(l);
-      if(agentListeners.isEmpty())
-	agentListeners = null;
+    synchronized(messageListenersLock) {
+      if(agentListeners != null) {
+	agentListeners.remove(l);
+	if(agentListeners.isEmpty())
+	  agentListeners = null;
+      }
     }
   }
 
   private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
-    if(agentListeners != null) {
-      AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID);
-      for(int i = 0; i < agentListeners.size(); i++) {
-	AgentListener l = (AgentListener)agentListeners.get(i);
-	l.changedAgentState(ev);
+    synchronized(messageListenersLock) {
+      if(agentListeners != null) {
+	AgentEvent ev = new AgentEvent(AgentEvent.CHANGED_AGENT_STATE, agentID, from, to, myID);
+	for(int i = 0; i < agentListeners.size(); i++) {
+	  AgentListener l = (AgentListener)agentListeners.get(i);
+	  l.changedAgentState(ev);
+	}
       }
     }
   }
