@@ -151,7 +151,7 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
   public void windowActivated(WindowEvent e){}
 
  public void showError(String errMsg) {
-  JOptionPane.showMessageDialog(null, errMsg, "Error", JOptionPane.ERROR_MESSAGE);
+  JOptionPane.showMessageDialog(null, errMsg, "Error in " + debugger.getName(), JOptionPane.ERROR_MESSAGE);
  }
 
   public void about(){
@@ -175,6 +175,11 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
   public void messageReceived(MainWindow f, ReceivedMessage rm) {
     MessagePanel mp = f.getMessagePanel();
     SwingUtilities.invokeLater(new TableUpdater(mp, rm));
+  }
+
+  public void changedAgentState(MainWindow f, ChangedAgentState cas) {
+    StatePanel sp = f.getStatePanel();
+    SwingUtilities.invokeLater(new StateUpdater(sp, cas));
   }
 
     /*
