@@ -1,38 +1,33 @@
-MAJOR CHANGES in future JADE 2.2 (current snapshot $Date$ $Name$)
+MAJOR CHANGES in future JADE 2.2 ($Date$ $Name$)
 ======================================================	
-- Removed bug in jade\mtp\ioop\MessageTransportProtocol.java	
 - The class MessageTemplate has been modified in order to allow the
-  creation of application-specific template.
-- Removed bug in the MeetingScheduler demo 
-- some small modifications to the Meeting Scheduler demo, adding agent names 
-  to title bars, and to the default login and meeting description as 
-  provided by Martin L. Griss
-- Removed bug in the AMS. The AMS now send the INFORM message after a 
-  'create-agent' action.
+  creation of application-specific templates.
 - Integrated the following modifications to the Sniffer Agent provided by 
   Robert Kessler and Griss Martin:
-   1) The performative is listed above the message line.
-   2) Above the message line is also truncated versions of the conversationID,
-      inreplyto and replywith fields.
-   3) Messages are colored in the same color if it can be determined to be part
-      of the same conversation.  It uses the three fields to "guess" that it is
-      all part of the same conversation.
-   4) The agent box now can take longer names without overflowing spread over 
-      2 lines (truncating the name if it exceeds 2 lines).
-    5) Clicking on the agent box will give you the full name of the agent.
-    6) The agents boxes at the top do not scroll when you scroll the window, so
-       you can see which line is associated with which agent.
-    7) When the sniffer starts up, it looks for a <agentname>.inf file in the 
-       connected directory.  If it doesn't find it there, it looks for the file
-       in \<agentname>.inf.  This inf file contains a list of agent names that
-       are to be immediately sniffed once the agent is born.  The agent names 
-       are listed one name per line.
-    8) In the same .inf file you can store performative filtering information. 
-       If you want all messages to appear then leave it blank.  Otherwise, 
-       list the names of the performatives to actually see (the rest being 
-       filtered out). I.e. agentfoo inform propose.
-    9) When you click a message, more information appears in the message window
-       at the bottom.
+  - The performative is listed above the message line.
+  - Above the message line is also truncated versions of the conversationID,
+    inreplyto and replywith fields.
+  - Messages are colored in the same color if it can be determined to be part
+    of the same conversation.  It uses the three fields to "guess" that it is
+    all part of the same conversation.
+  - The agent box now can take longer names without overflowing spread over 
+    2 lines (truncating the name if it exceeds 2 lines).
+  - Clicking on the agent box will give you the full name of the agent.
+  - The agents boxes at the top do not scroll when you scroll the window, so
+    you can see which line is associated with which agent.
+  - When the sniffer starts up, it looks for a <agentname>.inf file in the 
+    connected directory.  If it doesn't find it there, it looks for the file
+    in \<agentname>.inf.  This inf file contains a list of agent names that
+    are to be immediately sniffed once the agent is born.  The agent names 
+    are listed one name per line.
+  - In the same .inf file you can store performative filtering information. 
+    If you want all messages to appear then leave it blank.  Otherwise, 
+    list the names of the performatives to actually see (the rest being 
+    filtered out). I.e. agentfoo inform propose.
+  - When you click a message, more information appears in the message window
+    at the bottom.
+  - Fixed bug on the SnifferAgent when displaying long agent names 
+  - The AMS now send the INFORM message after a 'create-agent' action.
 - Integrated the following modification to the SL0Parser/SL0Encoder 
   provided by Sayers Craig, HP Labs, Palo Alto, California:
   Noticed that when using Jade's SL0 encoder/parser, 
@@ -42,11 +37,53 @@ MAJOR CHANGES in future JADE 2.2 (current snapshot $Date$ $Name$)
   that they handle a wider range of strings 
 - Modified the ISO8601 class by Sayers Craig, HP Labs, Palo Alto, California
   in order to read/write dates in UTC time (as recommended by FIPA)
-- Fixed bug in ReceiverBehaviour that did not clone correctly the
-  received ACLMessage, as reported by Andreas Lauer 
+- Integrated the following 3rd party contributions:
+  - HTTP-based MTP provided by EPFL
+  - XML-based ACLCodec provided by EPFL
+  - bit-efficient ACLCodec provided by Sonera
+- slight improvements to the directory structure of the ORBacus support
 - When the ACC is not able to deliver an ACLMessage, it sends back to the
   original sender a FAILURE message, as required by the FIPA specs.
-
+- Deprecated the toText() method of the class AID and improved its toString() 
+  method.
+- Restructured the jade.core.behaviours package as follows:
+  - deleted the class ComplexBehaviour
+  - added the classes ParallelBehaviour, CompositeBehaviour, and FSMBehaviour
+  - deprecated the methods preAction() and postAction() and replaced by
+    the new methods onStart() and onEnd()
+  - deprecated the class NonDeterministicBehaviour and replaced by the
+    new class ParallelBehaviour
+- Command line:
+  - Improved the usage of the "-host" option on the command line such that
+    it can be now used to orverride the local host name and including
+    the full domain (e.g. "-host sharon.cselt.it")
+  - added the option "-aclcodec" to integrate external ACLCodecs
+  - modified the separator on the "-mtp" option from "," to ";"
+- Fully integrated the usage of the FIPA Envelope when transporting messages
+- RMA GUI (Remote Monitoring Agent):
+  - added support for displaying the APDescription of the platform
+  - added support for monitoring a remote Agent Platform, including
+    searching for agents in a remote AMS
+- Fixed the following bugs:
+  - all the reported bugs about the scheduling of Behaviours
+  - nullException when an empty content was received in the FipaRequest 
+    Behaviours
+  - name of the package JadeMetaOntology for non-Windows platforms
+  - ACC failed when a message with an empty :sender slot was received
+  - The ACC went into endless loop when a 'bad' message came in.
+  - bug in jade\mtp\iiop\MessageTransportProtocol.java
+  - ReceiverBehaviour that did not clone correctly the
+    received ACLMessage, as reported by Andreas Lauer 
+  - bug in the value of the slot :name of the APDescription
+- The content of the ACLMessages has been quoted as specified by the FIPA
+  specifications.
+- Improved the About GUI.
+- MeetingScheduler demo 
+  - fixed bug by setting the DateFormat
+  - small modifications to the Meeting Scheduler demo, adding agent names 
+    to title bars, and to the default login and meeting description as 
+    provided by Martin L. Griss
+	
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
 =============================================
 - Fixed bugs in behaviour scheduling (blocked behaviour could not be removed, 
