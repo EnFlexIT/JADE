@@ -1890,7 +1890,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     myScheduler.remove(b);
   }
 
-	class SendAction implements jade.security.PrivilegedExceptionAction {
+	class SendAction implements jade.security.PrivilegedExceptionAction, jade.util.leap.Serializable {
 		ACLMessage msg;
 		
 		public SendAction() {
