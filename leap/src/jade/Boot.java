@@ -307,6 +307,7 @@ public class Boot extends MIDlet implements Runnable {
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
+  		Logger.println("Destroying MIDlet now");
 	    Agent.midlet.notifyDestroyed();
 		}
   	Agent.midlet = null;
