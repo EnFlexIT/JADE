@@ -105,17 +105,18 @@ all:
 #	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
 
 clean:
-	rm -f $(LIBDIR)/$(BOOT_LIBNAME)
-	rm -f $(LIBDIR)/$(MAINCONTAINER_LIBNAME)
-	rm -f $(LIBDIR)/$(KERNELJ2SE_LIBNAME)
-	rm -f $(LIBDIR)/$(UTILS_LIBNAME)
-	rm -f $(LIBDIR)/$(TOOLS_LIBNAME)
-	rm -f $(LIBDIR)/$(IMTPRMI_LIBNAME)
-	rm -f $(LIBDIR)/$(IIOP_LIBNAME)
-	rm -f $(LIBDIR)/$(KERNELSHARE_LIBNAME)
 	rm -f $(LIBDIR)/$(JADE_LIBNAME)
 	rm -f $(LIBDIR)/$(JADETOOLS_LIBNAME)
+	rm -f $(LIBDIR)/$(IIOP_LIBNAME)
 	rm -f $(LIBDIR)/$(BASE64_LIBNAME)
+
+	rm -f $(MODULEDIR)/$(BOOT_LIBNAME)
+	rm -f $(MODULEDIR)/$(MAINCONTAINER_LIBNAME)
+	rm -f $(MODULEDIR)/$(KERNELJ2SE_LIBNAME)
+	rm -f $(MODULEDIR)/$(UTILS_LIBNAME)
+	rm -f $(MODULEDIR)/$(TOOLS_LIBNAME)
+	rm -f $(MODULEDIR)/$(IMTPRMI_LIBNAME)
+	rm -f $(MODULEDIR)/$(KERNELSHARE_LIBNAME)
 
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
@@ -138,6 +139,11 @@ batch:
 	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo >> $(BATCH_LIB)
+
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(BASE64_LIBNAME)) starlight' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y starlight' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(BOOT_LIBNAME)) $(subst /,\,$(BOOT_CLASSES))' >> $(BATCH_LIB)
@@ -176,7 +182,7 @@ batch:
 	echo 'deltree /Y $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(KERNELSHARE_LIBNAME)) $(subst /,\,$(KERNELSHARE_CLASSES)) $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(KERNELSHARE_LIBNAME)) $(subst /,\,$(KERNELSHARE_CLASSES)) $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)
 	echo 'del $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
