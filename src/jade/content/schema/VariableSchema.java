@@ -53,7 +53,7 @@ public class VariableSchema extends TermSchema {
 
         try {
         	add(NAME, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
-        	add(VALUE_TYPE, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
+        	add(VALUE_TYPE, BasicOntology.getInstance().getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
