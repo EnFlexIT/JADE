@@ -45,6 +45,7 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
 import jade.domain.MobilityOntology;
+import jade.domain.FIPANames;
 import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
@@ -669,7 +670,8 @@ public class rma extends ToolAgent {
 		requestMsg.setSender(getAID());
     		requestMsg.clearAllReceiver();
     		requestMsg.addReceiver(remoteAMS);
-    		requestMsg.setProtocol("fipa-request");
+    		//requestMsg.setProtocol("fipa-request");
+    		requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
     		requestMsg.setLanguage(SL0Codec.NAME);
 		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
     	
@@ -774,6 +776,7 @@ public class rma extends ToolAgent {
   		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
   		request.setSender(getAID());
   		request.addReceiver(ams);
+    		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
       request.setLanguage(SL0Codec.NAME);
       request.setOntology(FIPAAgentManagementOntology.NAME);
   		AMSAgentDescription amsd = new AMSAgentDescription();
