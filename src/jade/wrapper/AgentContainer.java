@@ -28,6 +28,7 @@ import java.rmi.RemoteException; // FIXME: This will have to go away...
 import jade.core.AID;
 import jade.core.AgentContainerImpl;
 import jade.core.NotFoundException;
+import jade.core.IMTPException;
 
 import jade.mtp.MTPException;
 
@@ -129,7 +130,7 @@ public class AgentContainer {
     try {
       myImpl.installMTP(address, className);
     }
-    catch(RemoteException re) { // It should never happen...
+    catch(IMTPException re) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
     }
   }
@@ -151,7 +152,7 @@ public class AgentContainer {
     try {
       myImpl.uninstallMTP(address);
     }
-    catch(RemoteException re) { // It should never happen...
+    catch(IMTPException re) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
     }
   }

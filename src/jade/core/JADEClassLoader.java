@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import java.rmi.RemoteException;
-
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -45,7 +43,7 @@ class JADEClassLoader extends ClassLoader {
     try {
       classFile = classServer.fetchClassFile(name);
     }
-    catch (RemoteException re) {
+    catch (IMTPException re) {
       throw new ClassNotFoundException();
     } 
 

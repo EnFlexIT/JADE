@@ -45,7 +45,7 @@ class RemoteProxyRMI implements RemoteProxy {
     try {
       ref.dispatch(msg, receiverName); // RMI call
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       throw new NotFoundException("RMI communication failure: ["+ re.getMessage() + "]");
     }
 
@@ -55,7 +55,7 @@ class RemoteProxyRMI implements RemoteProxy {
     try {
       ref.ping(false);
     }
-    catch(RemoteException re) {
+    catch(IMTPException re) {
       throw new UnreachableException("Unreachable RMI object");
     }
   }
