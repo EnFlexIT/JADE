@@ -143,9 +143,32 @@ class RealNotificationManager implements NotificationManager {
     //  agent state.
     Agent a = localAgents.acquire(toBeDebugged);
     AgentState as = a.getAgentState();
+    Scheduler s = a.getScheduler();
     localAgents.release(toBeDebugged);
     fireChangedAgentState(toBeDebugged, as, as);
-
+    // Mutual exclusion with Scheduler.add(), remove()...
+    synchronized (s) {
+    	Iterator it = s.readyBehaviours.iterator();
+    	while (it.hasNext()) {
+    		Behaviour b = (Behaviour) it.next();
+    		// We can't just call fireAddedBehaviour() as we must only notify the 
+    		// ToolNotifier associated with debuggerName (NOT all AgentListeners)
+				AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, toBeDebugged, new BehaviourID(b), myID());
+    		tn.addedBehaviour(ev);
+    	}
+    	// Blocked behaviours: fire an ADD event and then a BLOCK event
+    	it = s.blockedBehaviours.iterator();
+    	while (it.hasNext()) {
+    		Behaviour b = (Behaviour) it.next();
+    		BehaviourID bid = new BehaviourID(b);
+				AgentEvent ev = new AgentEvent(AgentEvent.ADDED_BEHAVIOUR, toBeDebugged, bid, myID());
+    		tn.addedBehaviour(ev);
+				ev = new AgentEvent(AgentEvent.CHANGED_BEHAVIOUR_STATE, toBeDebugged, bid, Behaviour.STATE_RUNNING, Behaviour.STATE_BLOCKED, myID());
+    		tn.changedBehaviourState(ev);
+    	}
+    }
+    	
+		
   }
 
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) {
