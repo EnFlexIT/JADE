@@ -249,7 +249,9 @@ public interface Service {
     /**
        Access the command filter this service needs to perform its
        tasks. This filter will be installed within the local command
-       processing engine.
+       processing engine. 
+       Note that when called multiple times with the same value of the <code>direction</code> 
+       parameter this method MUST always return the same object!
 
        @param direction One of the two constants
        <code>Filter.INCOMING</code> and <code>Filter.OUTGOING</code>,

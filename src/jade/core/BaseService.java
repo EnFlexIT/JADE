@@ -177,6 +177,8 @@ public abstract class BaseService implements Service {
     /** 
        This should be properly implemented
        by the services that have filters.
+       Note that when called multiple times with the same value of the <code>direction</code> 
+       parameter this method MUST always return the same object!
      */
     public Filter getCommandFilter(boolean direction) {
          return null;
