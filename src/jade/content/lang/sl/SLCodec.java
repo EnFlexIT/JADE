@@ -60,7 +60,7 @@ public class SLCodec extends SimpleSLCodec {
 //#MIDP_EXCLUDE_BEGIN
 public class SLCodec extends StringCodec {
 
-    private SLParser parser;
+    private transient SLParser parser;
     private SL0Ontology slOnto; // ontology of the content language
     private Ontology domainOnto = null; // application ontology
 
