@@ -79,8 +79,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
        to set the proper message Template (based on the interaction protocol 
        and the performative)
        into the constructor of this behaviour.
-       @see FIPAProtocolNames.FIPA_REQUEST_PROTOCOL
-       @see FIPAProtocolNames.FIPA_QUERY_PROTOCOL
+       @see FIPAProtocolNames
     **/
     public static MessageTemplate createMessageTemplate(String iprotocol){
 	
@@ -95,7 +94,7 @@ public class AchieveREResponder extends FSMBehaviour implements FIPAProtocolName
 
     /**
      * Constructor of the behaviour that creates a new empty DataStore
-     * @see AchieveREResponder(Agent a, MessageTemplate mt, DataStore store) 
+     * @see #AchieveREResponder(Agent a, MessageTemplate mt, DataStore store) 
      **/
     public AchieveREResponder(Agent a, MessageTemplate mt){
 	this(a,mt, new DataStore());
