@@ -51,7 +51,7 @@ class RemoteProxyRMI extends RemoteProxy {
 
   public void ping() throws UnreachableException {
     try {
-      ref.ping();
+      ref.ping(false);
     }
     catch(RemoteException re) {
       throw new UnreachableException("Unreachable RMI object");
