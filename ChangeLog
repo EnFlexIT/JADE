@@ -7,7 +7,33 @@ MAJOR CHANGES in JADE 2.2
 - some small modifications to the Meeting Scheduler demo, adding agent names 
   to title bars, and to the default login and meeting description as 
   provided by Martin L. Griss
-- Removed bug in the AMS. The AMS now send the INFORM message after a 'create-agent' action.
+- Removed bug in the AMS. The AMS now send the INFORM message after a 
+  'create-agent' action.
+- Integrated the following modifications to the Sniffer Agent provided by 
+  Robert Kessler and Griss Martin:
+   1) The performative is listed above the message line.
+   2) Above the message line is also truncated versions of the conversationID,
+      inreplyto and replywith fields.
+   3) Messages are colored in the same color if it can be determined to be part
+      of the same conversation.  It uses the three fields to "guess" that it is
+      all part of the same conversation.
+   4) The agent box now can take longer names without overflowing spread over 
+      2 lines (truncating the name if it exceeds 2 lines).
+    5) Clicking on the agent box will give you the full name of the agent.
+    6) The agents boxes at the top do not scroll when you scroll the window, so
+       you can see which line is associated with which agent.
+    7) When the sniffer starts up, it looks for a <agentname>.inf file in the 
+       connected directory.  If it doesn't find it there, it looks for the file
+       in \<agentname>.inf.  This inf file contains a list of agent names that
+       are to be immediately sniffed once the agent is born.  The agent names 
+       are listed one name per line.
+    8) In the same .inf file you can store performative filtering information. 
+       If you want all messages to appear then leave it blank.  Otherwise, 
+       list the names of the performatives to actually see (the rest being 
+       filtered out). I.e. agentfoo inform propose.
+    9) When you click a message, more information appears in the message window
+       at the bottom.
+ 
 
 
 MAJOR CHANGES IN JADE 2.1 (December 18, 2000)
