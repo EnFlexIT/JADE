@@ -404,12 +404,21 @@ public class PlatformManagerImpl implements PlatformManager {
 			myLogger.log("Adding slice for service <" + serviceKey+"> on node <"+dsc.getName() + ">", 3);
 		
 			Node node = dsc.getNode();
-			Service.Slice slice = myIMTPManager.createSliceProxy(serviceKey, service.getHorizontalInterface(), node);
+			Service.Slice slice = null;
+			if (service.getHorizontalInterface() != null) {
+				// Create a real SliceProxy
+				slice = myIMTPManager.createSliceProxy(serviceKey, service.getHorizontalInterface(), node);
+			}
+			else {
+				// Create a dummy SliceProxy (it will never be used)
+				slice = new Service.SliceProxy(service, node);
+			}
+				
 			String sliceKey = node.getName();
 			e.addSlice(sliceKey, slice, node);
 			
 			if (isLocalNode(node)) {
-				// The service slice was activated on this node
+				// The service is just started on this main container
 				// Register the service-specific behaviour (if any) within the AMS
 				Behaviour b = service.getAMSBehaviour();
 				if(b != null) {
