@@ -1,7 +1,7 @@
 # Makefile for Agent Development Kit project 
 
 ROOTDIR    = ADK
-VERSION    = 0.1
+VERSION    = 0.5
 ARCHIVE    = ADK
 SRCDIR     = src
 LIBDIR     = lib
