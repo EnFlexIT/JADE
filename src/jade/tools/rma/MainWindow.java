@@ -66,6 +66,7 @@ class MainWindow extends JFrame {
   private PopupMenuPlatform popP;
   private PopupMenuRemotePlatform popRP;
   private InstallMTPDialog installDlg = new InstallMTPDialog(this, true);
+  private ManageMTPsDialog manageDlg;
   private String logojade = "images/logosmall.jpg";
 
   private List containerNames = new LinkedList();
@@ -74,7 +75,8 @@ class MainWindow extends JFrame {
 
   public MainWindow (rma anRMA) {
     super(anRMA.getName() +" - JADE Remote Agent Management GUI");
-    
+
+    manageDlg = new ManageMTPsDialog(anRMA, this, false, addresses);
     tree = new MainPanel(anRMA, this);
     actPro = new ActionProcessor(anRMA, this, tree);
     setJMenuBar(new MainMenu(this,actPro));
@@ -96,6 +98,7 @@ class MainWindow extends JFrame {
     JPopupMenu popLocalPlatform = new JPopupMenu();
     JMenuItem tmp = popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
     tmp.setIcon(null);
+    popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.MANAGE_MTPS_ACTION));
     tree.treeAgent.setNewPopupMenu("LOCALPLATFORM",popLocalPlatform);
     
     setForeground(Color.black);
@@ -152,6 +155,7 @@ class MainWindow extends JFrame {
         MutableTreeNode node = tree.treeAgent.createNewNode(name, 0);
         tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
 	containerNames.add(name);
+	manageDlg.setData(containerNames, addresses);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -165,6 +169,7 @@ class MainWindow extends JFrame {
       public void run() {
        tree.treeAgent.removeContainerNode(name);
        containerNames.remove(name);
+       manageDlg.setData(containerNames, addresses);
      }
     };
     SwingUtilities.invokeLater(removeIt);
@@ -210,6 +215,7 @@ class MainWindow extends JFrame {
 	  addresses.put(where, addrs);
 	}
 	addrs.add(address);
+	manageDlg.setData(containerNames, addresses);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -279,8 +285,9 @@ class MainWindow extends JFrame {
       public void run() {
 	List addrs = (List)addresses.get(where);
 	addresses.remove(address);
-	if(addrs.isEmpty())
+	if(!addrs.isEmpty())
 	  addresses.remove(where);
+	manageDlg.setData(containerNames, addresses);
       }
     };
     SwingUtilities.invokeLater(removeIt);
@@ -356,7 +363,11 @@ class MainWindow extends JFrame {
       return false;
   }
 
-  
+  public void showManageMTPsDialog() {
+    manageDlg.showCentered();
+  }
+
+
   public void viewAPDescriptionDialog(APDescription ap, String title){
   	
   	if (ap != null)
