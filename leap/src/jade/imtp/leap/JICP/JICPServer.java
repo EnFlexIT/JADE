@@ -36,6 +36,7 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
+import jade.core.Profile;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.util.leap.Properties;
@@ -65,7 +66,8 @@ public class JICPServer extends Thread {
   private int maxHandlers;
 
   private ConnectionFactory connFactory;
-  
+  private String localHost;
+
   private static int     verbosity = 1;
 
   /**
@@ -95,6 +97,13 @@ public class JICPServer extends Thread {
 	      throw new ICPException("I/O error opening server socket on port "+port);
     	}
     } 
+
+    try {
+	localHost = InetAddress.getLocalHost().getCanonicalHostName();
+    }
+    catch(UnknownHostException uhe) {
+	localHost = "localhost";
+    }
     
     setDaemon(true);
     setName("Main");
@@ -364,14 +373,22 @@ public class JICPServer extends Thread {
 	          break;
 	
 	        case JICPProtocol.CREATE_MEDIATOR_TYPE:
-	
+
 	          // Starts a new Mediator and sends back its ID
-	          String   id = String.valueOf(mediatorCnt++);
-	          log("Received a CREATE_MEDIATOR request from "+addr+":"+port+". New Mediator ID is "+id+".", 2);
 	          String s = new String(pkt.getData());
 	          Properties p = parseProperties(s);
+
+		  // Get mediator ID from the passed properties, if there is one
+		  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
+		  if(id == null) {
+		      // The string representation of the server's TCP endpoint is used to build an unique mediator ID
+		      id = localHost + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+		  }
+
+	          log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
+
 	          JICPMediator m = startMediator(id, p);
-	        	m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
+		  m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
 	          mediators.put(id, m);
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
 	        	closeConnection = false;
