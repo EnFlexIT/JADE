@@ -48,7 +48,7 @@ import jade.util.PropertiesException;
 /**
  * Boots <B><em>JADE</em></b> system, parsing command line arguments.
  * @author Giovanni Rimassa - Universita` di Parma
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan - HP Labs</A>
+ * @author Dick Cowan - HP Labs
  * @version $Date$ $Revision$
  */
 public class Boot {

@@ -79,7 +79,7 @@ import java.io.EOFException;
  * either of two formats:
  * <b>key=value</b> or <b>key:value</b>.
  * To substitute the value of a key in a value use the format <b><tt>${key}</tt></b>.
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan</A>
+ * @author Dick Cowan - HP Labs
  */
 public class BasicProperties {
 

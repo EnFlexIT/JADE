@@ -48,7 +48,7 @@ import jade.gui.TreeHelp;
 /**
  * This class create the gui for the jade configuration
  * @author Tiziana Trucco - CSELT S.p.A.
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan - HP Labs</A>
+ * @author Dick Cowan - HP Labs
  * @version $Date$ $Revision$
  */
 public class BootGUI extends JDialog {

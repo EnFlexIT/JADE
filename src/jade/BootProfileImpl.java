@@ -51,7 +51,7 @@ import jade.core.Specifier;
  * from the argument properties. The class Profile defines
  * a similar collection of keys which are used to access profile
  * properties.
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan - HP Labs</A>
+ * @author Dick Cowan - HP Labs
  * @version $Date$ $Revision$
  */
 public class BootProfileImpl extends ProfileImpl {

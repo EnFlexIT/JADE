@@ -23,7 +23,7 @@ package jade.util;
 
 /**
  * Property related exception.
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan</A>
+ * @author Dick Cowan - HP Labs
  */
 public class PropertiesException extends RuntimeException {
 

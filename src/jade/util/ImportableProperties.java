@@ -55,7 +55,7 @@ import java.io.IOException;
  * <li> PropertiesException - Extends RuntimeException and is thrown under various
  * error conditions by these classes.
  </ol>
- * @author <A href="mailto:dick_cowan@hp.com">Dick Cowan</A>
+ * @author Dick Cowan - HP Labs
  */
 public abstract class ImportableProperties extends BasicProperties {
 

@@ -37,9 +37,7 @@ import java.util.*;
  * extend functionality. This will be contributed back to the
  * Jade development team.
  * @author Fabio Bellifemine - CSELT S.p.A
- * @author (HP modifications) <A href="mailto:dick_cowan@hp.com">Dick Cowan</A>
- * @author (Added Flush statments) <A href="mailto:Sebastien_Siva@hp.com">Dick Cowan</A>
- * @author (More HP modifications) <A href="mailto:David_I_Bell@hp.com">David I. Bell</A>
+ * @author (HP modifications) Dick Cowan, David Bell, Sebastien Siva
  */
 public class SocketProxyAgent extends Agent
 {
