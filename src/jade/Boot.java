@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.15  1999/02/25 08:03:26  rimassa
+  Removed older, commented out code.
+
   Revision 1.14  1999/02/14 22:57:23  rimassa
   Put back System.runFinalizersOnExit() call, for now.
 
@@ -184,9 +187,6 @@ public class Boot {
       e.printStackTrace();
       System.exit(1);
     }
-
-    // This will run all finalization code when this Java VM ends.
-    System.runFinalizersOnExit(true);  // FIXME: Deprecated and deadlock-prone 
 
     try{
 
