@@ -25,8 +25,11 @@ import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
 
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.ACLParser;
 
 class AgentManagementParser {
+
+  private Reader myReader; // FIXME: Maybe it's unnecessary
 
   public static void main(String args[]) throws ParseException {
     AgentManagementParser parser = new AgentManagementParser(System.in);
@@ -48,36 +51,43 @@ class AgentManagementParser {
   }
 
   public AgentManagementOntology.Action parseAction(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return Action();
   }
 
   public AgentManagementOntology.AMSAction parseAMSAction(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return AMSAction();
   }
 
   public AgentManagementOntology.DFAction parseDFAction(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return DFAction();
   }
 
   public AgentManagementOntology.ACCAction parseACCAction(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return ACCAction();
   }
 
   public AgentManagementOntology.DFAgentDescriptor parseDFDescriptor(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return DF_description();
   }
 
   public AgentManagementOntology.AMSAgentDescriptor parseAMSDescriptor(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return AMS_Description();
   }
 
   public AgentManagementOntology.ServiceDescriptor parseServiceDescriptor(Reader r) throws ParseException {
+    myReader = r;
     ReInit(r);
     return FIPA_Service_Desc();
   }
@@ -183,8 +193,15 @@ AgentManagementOntology.ACCAction ACCActionBody() :
   t = <FORWARD>
   {
     a.setName(t.image);
-    // FIXME: Add ACL message parsing
-    
+
+    ACLParser p = ACLParser.create();
+    try {
+      msg = p.parse(myReader);
+    }
+    catch(jade.lang.acl.ParseException jlape) {
+      throw new ParseException();
+    }
+
     a.setArg(msg);
     return a;
   }
