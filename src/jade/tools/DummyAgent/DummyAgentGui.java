@@ -38,6 +38,7 @@ import java.io.*;
 import jade.core.*;
 import jade.lang.acl.*;
 import jade.gui.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -46,7 +47,7 @@ import jade.gui.*;
 class DummyAgentGui extends JFrame implements ActionListener
 {
 	DummyAgent        myAgent;
-	String            agentName;
+	AID               agentName;
 	AclGui            currentMsgGui;
 	DefaultListModel  queuedMsgListModel;
 	JList             queuedMsgList;
@@ -65,7 +66,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 		/////////////////////////////////////////////////////////////////////
 		// Get agent name and initialize the saving/opening directory to null 
-		agentName = myAgent.getLocalName();
+		agentName = myAgent.getAID();
 		currentDir = null;
 
 		////////////////////////////////////////////////////////////////
@@ -82,7 +83,9 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 		//////////////////////////
 		// Set title in GUI window
-		setTitle(agentName + ":DummyAgent");
+		try{
+			setTitle(agentName.getName() + ":DummyAgent");
+		}catch(Exception e){setTitle("DummyAgent");}
 		
 		////////////////////////////////
 		// Set GUI window layout manager
@@ -102,7 +105,9 @@ class DummyAgentGui extends JFrame implements ActionListener
 		currentMsgGui = new AclGui();
 		currentMsgGui.setBorder(new TitledBorder("Current message"));
 		ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-		msg.setSource(agentName);
+		
+		msg.setSender(agentName);
+		
 		currentMsgGui.setMsg(msg);
 		getContentPane().add("West", currentMsgGui);
 
@@ -257,7 +262,7 @@ class DummyAgentGui extends JFrame implements ActionListener
 		if      (command.equals("Reset"))
 		{
 			ACLMessage m = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-			m.setSource(agentName);
+			m.setSender(agentName);
 			currentMsgGui.setMsg(m);
 		}
 		// SEND
@@ -281,12 +286,12 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 				try
 				{
-					BufferedReader inp = new BufferedReader(new FileReader(fileName));
-					ACLMessage ACLmsg = ACLMessage.fromText(inp);
-					currentMsgGui.setMsg(ACLmsg);
+					StringACLCodec codec = new StringACLCodec(new FileReader(fileName),null);
+					currentMsgGui.setMsg(codec.decode());
 				}
 				catch(FileNotFoundException e1) { System.out.println("File Not Found: " + fileName); }
-				catch (ParseException e2) { System.out.println("Bad ACL Message in file: " +fileName); }
+				catch (ACLCodec.CodecException e2) { System.out.println("Bad ACL Message in file: " +fileName);
+			}
 			} 
 		}
 		// SAVE
@@ -303,9 +308,9 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 				try
 				{
-					BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
+					StringACLCodec codec = new StringACLCodec(null,new FileWriter(fileName));
 					ACLMessage ACLmsg = currentMsgGui.getMsg();
-					ACLmsg.toText(out);
+					codec.write(ACLmsg); 
 				}
 				catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
 				catch(IOException e4) { System.out.println("IO Exception"); }

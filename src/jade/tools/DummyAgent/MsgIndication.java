@@ -73,21 +73,14 @@ class MsgIndication
 			tmpType += " ";
 		
 		// Put the destination agent group in form of a string
-		String dest = new String("");
-		AgentGroup destAG = msg.getDests();
-		if (destAG != null)
-		{
-			Enumeration destE = destAG.getMembers();
-			while (destE.hasMoreElements())
-			{
-				String tmp = (String) destE.nextElement();
-				dest = dest.concat(tmp);
-				dest = dest.concat(" ");
-			}
-		}
+		String dest = new String("(set ");
+		Iterator destAG = msg.getAllReceiver();
+		
+		while(destAG.hasNext())
+			dest.concat(destAG.next().toString() + " ");
 
 		String tmpDir = (direction == OUTGOING ? "sent to  " : "recv from");
-		String tmpPeer = (direction == OUTGOING ? dest : msg.getSource());
+		String tmpPeer = (direction == OUTGOING ? dest : msg.getSender().toString());
 		return(df.format(date) + ":  " + tmpType + " " + tmpDir + "   " + tmpPeer);
 	}
 
@@ -152,8 +145,9 @@ class MsgIndication
 			// Message
 			char[] cBuf = new char[len];
 			r.read(cBuf,0,len);
-			StringReader msgReader = new StringReader(new String(cBuf));
-			mi.msg = ACLMessage.fromText(msgReader);
+			
+			StringACLCodec codec =  new StringACLCodec (new StringReader(new String(cBuf)),null);
+			mi.msg = codec.decode();
 
 			// Read the last newline
 			line = r.readLine();
@@ -161,7 +155,7 @@ class MsgIndication
 		}
 		catch(IOException e) { System.out.println("IO Exception in MsgIndication.fromText()"); }
 		catch (java.text.ParseException e1) { System.out.println("ParseException in MsgIndication.fromText()"); }
-		catch (jade.lang.acl.ParseException e2) { System.out.println("ParseException in parsing the ACL message"); } //eccezione generate da ACLMessage.fromText()
+		catch (ACLCodec.CodecException e2) { System.out.println("ParseException in parsing the ACL message"); } //Exception thrown by ACLMessage.fromText()
 
 		return(mi);
 	}
