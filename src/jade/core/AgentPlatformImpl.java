@@ -405,8 +405,12 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
   // other agent containers exit.
   public void shutDown() {
 
+    System.out.println("Step 1");
+
     // Deregister yourself as a container
     containers.remove(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
+
+    System.out.println("Step 2");
 
     // Kill every other container
     Collection c = containers.values();
@@ -420,6 +424,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 	System.out.println("Container is unreachable. Ignoring...");
       } 
     }
+
+    System.out.println("Step 3");
 
     // Kill all non-system agents
     Set s = localAgents.keySet();
@@ -437,20 +443,29 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
       a.join();
     }
 
+
+    System.out.println("Step 4");
+
     // Kill system agents, at last
 
     Agent systemAgent = defaultDF;
     systemAgent.doDelete();
     systemAgent.join();
 
+    System.out.println("Step 5");
+
     systemAgent = theACC;
     systemAgent.doDelete();
     systemAgent.join();
+
+    System.out.println("Step 6");
 
     theAMS.removeCommListener(this);
     systemAgent = theAMS;
     systemAgent.doDelete();
     systemAgent.join();
+
+    System.out.println("Step 7");
 
     // Now, close CORBA link to outside world
     myORB.disconnect(frontEndACC);
