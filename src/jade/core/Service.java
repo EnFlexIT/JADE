@@ -25,6 +25,8 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
+import jade.core.behaviours.Behaviour;
+
 
 /**
 
@@ -278,6 +280,17 @@ public interface Service {
        @see Agent#getHelper
     */
     ServiceHelper getHelper(Agent a) throws ServiceException;
+
+    /**
+       Retrieve a behaviour that is associated with this service, and
+       that will be deployed within the AMS. Typical uses for this
+       behaviour will be to handle a service-specific ontology and
+       actions.
+
+       @return A <code>Behaviour</code> object associated with this
+       service, or <code>null</code> if no such behaviour exists.
+    */
+    Behaviour getAMSBehaviour();
 
     /**
        Performs the passive initialization step of the service. This

@@ -27,6 +27,8 @@ package jade.core;
 //#MIDP_EXCLUDE_FILE
 
 
+import jade.core.behaviours.Behaviour;
+
 import jade.security.AuthException;
 
 
@@ -688,8 +690,6 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	Service.Slice localProxy = myIMTPManager.createSliceProxy(name, null, here);
 	e.addSlice(here.getName(), localProxy, here);
 
-	//	System.out.println("Added a local slice <" + name + ";" + here.getName() + ">");
-
 	// Install the service filters
 	Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
 	if(fOut != null) {
@@ -711,6 +711,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    myCommandProcessor.registerSink(sTgt, Sink.COMMAND_TARGET, commandNames);
 	}
 
+	// Register the service-specific behaviour (if any) within the AMS
+	Behaviour b = svc.getAMSBehaviour();
+	if(b != null) {
+	    myMain.installAMSBehaviour(b);
+	}
+
     }
 
     private void doDeactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
@@ -720,6 +726,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	if(e != null) {
 
 	    Service svc = e.getService();
+
+	    // Deregister the service-specific behaviour (if any) within the AMS
+	    Behaviour b = svc.getAMSBehaviour();
+	    if(b != null) {
+		myMain.uninstallAMSBehaviour(b);
+	    }
 
 	    // Uninstall the service filters
 	    Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
