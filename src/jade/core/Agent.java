@@ -1266,7 +1266,7 @@ public class Agent implements Runnable, Serializable {
 	  int oldMsgCounter = messageCounter;
 
 	  // Just do it!
-	  currentBehaviour.action();
+	  currentBehaviour.actionWrapper();
 
 	  // If the current Behaviour is blocked and more messages
 	  // arrived, restart the behaviour to give it another chance
@@ -1276,6 +1276,7 @@ public class Agent implements Runnable, Serializable {
 
 	  // When it is needed no more, delete it from the behaviours queue
 	  if(currentBehaviour.done()) {
+	  	currentBehaviour.onEnd();
 	    myScheduler.remove(currentBehaviour);
 	    currentBehaviour = null;
 	  }
