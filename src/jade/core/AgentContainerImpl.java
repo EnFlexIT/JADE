@@ -257,6 +257,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   void joinPlatform() {
       try {
+
           // Create and initialize the IMTPManager
           myIMTPManager = myProfile.getIMTPManager();
           myIMTPManager.initialize(myProfile, myCommandProcessor);
@@ -412,7 +413,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      startService("jade.core.replication.MainReplicationService");
 	  }
 
-	  // #MIDP_EXCLUDE_END
+	  //#MIDP_EXCLUDE_END
 
       }
       catch (IMTPException imtpe) {
