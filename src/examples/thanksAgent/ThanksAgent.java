@@ -32,7 +32,6 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-/* THESE 4 IMPORTS ARE NEEDED AFTER JADE 2.3 */
 import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -77,17 +76,20 @@ public class ThanksAgent extends Agent {
 	    IAmTheCreator = false;  // next agent in this JVM will not be a creator
 
 	    // create another two ThanksAgent
+	    String t1AgentName = getLocalName()+"t1";
+	    String t2AgentName = getLocalName()+"t2";
 
-	    /* THIS CODE WORKS FOR JADE 2.3 
-	       ThanksAgent t1 = new ThanksAgent();
-	       t1.doStart(getLocalName()+"t1");
-	       System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1.getLocalName());
-	       ThanksAgent t2 = new ThanksAgent();
-	       t2.doStart(getLocalName()+"t2");
-	       System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2.getLocalName()); 
-	    */
+	    ThanksAgent t1 = new ThanksAgent();
+	    t1.doStart(t1AgentName);
+	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1.getLocalName());
+	    ThanksAgent t2 = new ThanksAgent();
+	    t2.doStart(t2AgentName);
+	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2.getLocalName()); 
 
-	    /* THIS CODE WORKS AFTER JADE 2.3 */
+
+
+	    /* THIS CODE WORKS AFTER JADE 2.3. 
+	       IT IS AN EXAMPLE OF USAGE OF THE INPROCESS INTERFACE
 	    // Get a hold on JADE runtime
 	    Runtime rt = Runtime.instance();
 	    // Create a default profile
@@ -95,8 +97,6 @@ public class ThanksAgent extends Agent {
 	    // set the profile to be non-main container
 	    p.putProperty(Profile.MAIN, "false");
 
-	    String t1AgentName = getLocalName()+"t1";
-	    String t2AgentName = getLocalName()+"t2";
 	    try {
 		// Create a new non-main container, connecting to the default
 		// main container (i.e. on this host, port 1099)
@@ -114,16 +114,12 @@ public class ThanksAgent extends Agent {
 	    } catch (Exception e2) {
 		e2.printStackTrace();
 	    }
-
+	    */
 
 	    // send them a GREETINGS message
 	    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 	    msg.setContent(GREETINGS);
-	    /* THIS CODE WORKS FOR JADE 2.3
-	       msg.addReceiver(t1.getAID());
-	       msg.addReceiver(t2.getAID());
-	    */
-	    /* THIS CODE WORKS AFTER JADE 2.3 */
+
 	    msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
 	    msg.addReceiver(new AID(t2AgentName, AID.ISLOCALNAME));
 
