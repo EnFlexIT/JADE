@@ -387,7 +387,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       break;
     case DEL_RT:
       myACC.removeRoute(mtp, ac);
-      System.out.println("removed address "+mtp.getAddress());
     	// Remove the address of the old MTP to the AIDs of all local agents
       for(int i = 0; i < allLocalAgents.length; i++) 
 	  		allLocalAgents[i].removePlatformAddress(mtp.getAddress());
