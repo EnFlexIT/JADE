@@ -54,7 +54,7 @@ import java.io.*;
  *
  */
 public class Boot {
-  private static final String DEFAULT_FILENAME = "leap.properties";
+  public static final String DEFAULT_FILENAME = "leap.properties";
   private static Logger logger = Logger.getMyLogger("jade.Boot");
 
   /**
@@ -120,7 +120,7 @@ public class Boot {
   }
 
   
-  private static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
+  public static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
   	Properties props = new Properties();
   	
   	int i = 0;
@@ -246,7 +246,7 @@ public class Boot {
   	return props;
   }
   
-  private static void printUsage() {
+  public static void printUsage() {
   	System.out.println("Usage 1:");
   	System.out.println("java -cp <classpath> jade.Boot <property-file-name>");
   	System.out.println("\nUsage 2:");
