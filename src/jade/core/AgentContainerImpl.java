@@ -146,6 +146,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   private void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) {
+
       Agent agent = null;
       try {
           agent = (Agent)Class.forName(new String(className)).newInstance();
@@ -968,7 +969,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     // Utility method to start a kernel service
-    private void startService(String name) throws ServiceException {
+    protected void startService(String name) throws ServiceException {
 
 	try {
 
