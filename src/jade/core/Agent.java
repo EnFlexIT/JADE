@@ -995,11 +995,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		return delegation;
 	}
 	
-	public synchronized void setDelegations(DelegationCertificate[] delegations) {
+    //FIXME Removed synchornized because of a deadlock creation.
+    //maybe we should have a delegationsLock object
+	public void setDelegations(DelegationCertificate[] delegations) {
 		this.delegations = delegations;
 	}
 	
-	public synchronized DelegationCertificate[] getDelegations() {
+    //FIXME Removed synchornized because of a deadlock creation.
+    //maybe we should have a delegationsLock object
+	public DelegationCertificate[] getDelegations() {
 		if (delegations == null && delegation != null)
 			delegations = new DelegationCertificate[] {delegation};
 		return delegations;

@@ -38,6 +38,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Set;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
+import java.util.Hashtable; 
 
 import jade.core.*;
 import jade.core.behaviours.*;
@@ -566,7 +567,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     public void action() {
 
-      synchronized(ams.this) { // Mutual exclusion with handleXXX() methods
+      synchronized(eventQueue) { // Mutual exclusion with handleXXX() methods to avoid concurentmodificationexception
 
 	// Look into the event buffer
 	Iterator it = eventQueue.iterator();
@@ -1002,10 +1003,10 @@ public class ams extends Agent implements AgentManager.Listener {
   */
   private List eventQueue = new ArrayList(10);
 
-  /**
+  /** The HashTable is synchronized, while the HashMap is not!
   @serial
   */
-  private Map creations = new HashMap();
+  private Hashtable creations = new Hashtable();
 
   /**
   @serial
@@ -1433,12 +1434,12 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void addedContainer(PlatformEvent ev) {
+  public void addedContainer(PlatformEvent ev) {
 
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
 
-    // Add a new location to the locations list
+    // Add a new location to the locations list. addLocation is already sycnrhonized
     mobilityMgr.addLocation(name, cid);
 
     // Fire an 'added container' event
@@ -1447,7 +1448,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(ac, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1455,11 +1458,11 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void removedContainer(PlatformEvent ev) {
+  public void removedContainer(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
 
-    // Remove the location from the location list
+    // Remove the location from the location list. removeLocation is already synchronized
     mobilityMgr.removeLocation(name);
 
     // Fire a 'container is dead' event
@@ -1468,7 +1471,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(rc, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1476,7 +1481,7 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void bornAgent(PlatformEvent ev) {
+  public void bornAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
     
@@ -1489,7 +1494,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(ba, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1497,7 +1504,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		Post an event to the AMS agent. This method must not be used by
 		application agents.
 	*/
-	public synchronized void deadAgent(PlatformEvent ev) {
+	public void deadAgent(PlatformEvent ev) {
 		ContainerID cid = ev.getContainer();
 		AID agentID = ev.getAgent();
 
@@ -1524,7 +1531,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
 		EventRecord er = new EventRecord(da, here());
 		er.setWhen(ev.getTime());
-		eventQueue.add(er);
+		synchronized (eventQueue) {
+		    eventQueue.add(er);
+		}
 		doWake();
 	}
 
@@ -1532,7 +1541,7 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void suspendedAgent(PlatformEvent ev) {
+  public void suspendedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
     
@@ -1544,7 +1553,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(sa, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1552,7 +1563,7 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void resumedAgent(PlatformEvent ev) {
+  public void resumedAgent(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID aid = ev.getAgent();
 
@@ -1564,7 +1575,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(ra, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1572,7 +1585,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		Post an event to the AMS agent. This method must not be used by
 		application agents.
 	*/
-	public synchronized void changedAgentPrincipal(PlatformEvent ev) {
+	public void changedAgentPrincipal(PlatformEvent ev) {
     ContainerID cid = ev.getContainer();
     AID aid = ev.getAgent();
 
@@ -1593,8 +1606,10 @@ public class ams extends Agent implements AgentManager.Listener {
 		cao.setTo(((AgentPrincipal)ev.getNewPrincipal()).getUser().getName());
 
 		EventRecord er = new EventRecord(cao, here());
-    er.setWhen(ev.getTime());
-		eventQueue.add(er);
+		er.setWhen(ev.getTime());
+		synchronized (eventQueue) {
+		    eventQueue.add(er);
+		}
 		doWake();
 	}
 
@@ -1611,7 +1626,7 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
-  public synchronized void movedAgent(PlatformEvent ev) {
+  public void movedAgent(PlatformEvent ev) {
     ContainerID from = ev.getContainer();
     ContainerID to = ev.getNewContainer();
     AID agentID = ev.getAgent();
@@ -1623,7 +1638,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(ma, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
     doWake();
   }
 
@@ -1665,14 +1682,18 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(amtp, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
 
     //Notify the update of the APDescription...
     PlatformDescription ap = new PlatformDescription();
     ap.setPlatform(theProfile);
     er = new EventRecord(ap, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
 
     doWake();
 
@@ -1729,14 +1750,18 @@ public class ams extends Agent implements AgentManager.Listener {
 
     EventRecord er = new EventRecord(rmtp, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
 
     //Notify the update of the APDescription...
     PlatformDescription ap = new PlatformDescription();
     ap.setPlatform(theProfile);
     er = new EventRecord(ap, here());
     er.setWhen(ev.getTime());
-    eventQueue.add(er);
+    synchronized (eventQueue) {
+	eventQueue.add(er);
+    }
 
     doWake();
 
