@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.34  1999/03/30 06:49:44  rimassa
+  Fixed a bug: when an agent on another platform had the same local name
+  of a local agent, it was not contacted with IIOP.
+
   Revision 1.33  1999/03/24 12:16:57  rimassa
   Ported most data structures to newer Java 2 Collection
   framework. Changed unicastPostMessage() method to provide transparent
@@ -490,7 +494,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     // Look first in local agents
     Agent a = (Agent)localAgents.get(name.toLowerCase());
-    if(a != null) {
+    if((a != null)&&(addr.equalsIgnoreCase(platformAddress))) {
       result = new LocalProxy(a);
     }
     else { // Agent is not local
