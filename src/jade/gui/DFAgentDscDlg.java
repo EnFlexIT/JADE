@@ -40,6 +40,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.core.AID;
 
 /**
+   This class implements the gui to manipulate a
+   <code>DFAgentDescription</code>.
+
 @author Tiziana Trucco - CSELT S.p.A
 @author alessandro Chiarotto - TILAB
 @version $Date$ $Revision$
@@ -102,27 +105,35 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
   /* text field showing the value set by the user in the dialog */
   private JTextField textFieldLeaseTime;
   
-	// CONSTRUCTORS
-	public DFAgentDscDlg(Frame parent) 
-	{
-		super(parent);
-		dlgParent = (Dialog) this;
-	}
+    /**
+       Create a dialog with the given parent.
+       @param parent The <code>Frame</code> that is the parent window
+       of this dialog.
+    */
+    public DFAgentDscDlg(Frame parent) 
+    {
+	super(parent);
+	dlgParent = (Dialog) this;
+    }
 
-	public DFAgentDscDlg(Dialog parent) 
-	{
-		super(parent);
-		dlgParent = (Dialog) this;
-	}
+    /**
+       Create a dialog with the given parent.
+       @param parent The <code>Dialog</code> that is the parent window
+       of this dialog.
+    */
+    public DFAgentDscDlg(Dialog parent) 
+    {
+	super(parent);
+	dlgParent = (Dialog) this;
+    }
 
 	/**
-	* This method show a a giu for a DFAgentDescription.
+	* This method show a a giu for a <code>DFAgentDescription</code>.
 	* @param dfd the DFAgentDescrption to show
 	* @param ed true if the fields of the gui must be editable, false otherwise.
 	* @param checkMandatorySlots true to verify that a value is specified for all the mandatory fields, false otherwise.  
 	* @return a DFAgentDescription if the OK button is pressed, false if the Cancel button is pressed.
 	*/
-	
 	public DFAgentDescription ShowDFDGui(DFAgentDescription dfd, boolean ed , boolean checkMandatorySlots)
 	{
 		setTitle("DF description");
@@ -403,7 +414,7 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
     toFront();
  	 }
 
-       
+    //#APIDOC_EXCLUDE_BEGIN       
         /* Handle action after the button of inesub panel are pressed */
        public void actionPerformed(ActionEvent e) {
             JButton sourceEvent = (JButton) e.getSource();
@@ -438,7 +449,7 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
             }
             return;
         }
-                
+    //#APIDOC_EXCLUDE_END                
 
 	
 }

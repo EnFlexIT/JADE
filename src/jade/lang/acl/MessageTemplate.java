@@ -53,7 +53,7 @@ import jade.core.CaseInsensitiveString;
    
    @see jade.core.Agent#receive(MessageTemplate mt)
    
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @author Tiziana Trucco - Telecom Italia Lab S.p.A.
    @version $Date$ $Revision$
 
@@ -94,9 +94,18 @@ public class MessageTemplate implements Serializable {
   to return <b>true</b> if the message match with the application 
   specific requirements <b>false</b> otherwise.
   */
-
   public static interface MatchExpression extends Serializable{
-    boolean match(ACLMessage msg);
+      /**
+	 Check whether a given ACL message matches this
+	 template. Concrete implementations of this interface will
+	 have this method called to accept or refuse an ACL message.
+	 @param msg The ACL message to match against this message
+	 template.
+	 @return A compliant implementation will return
+	 <code>true</code> if the parameter ACL message matches the
+	 template, and <code>false</code> otherwise.
+      */
+      boolean match(ACLMessage msg);
   }
 
   //#CUSTOM_EXCLUDE_BEGIN
@@ -710,7 +719,12 @@ public class MessageTemplate implements Serializable {
 	return toMatch.match(msg);
     }
 		//#CUSTOM_EXCLUDE_BEGIN    
-    //only for debug
+
+    /**
+       Retrieve a string representation of this message template.
+       @return A string describing the syntactic structure of this
+       message template.
+    */
     public String toString(){
 	return toMatch.toString();
     }

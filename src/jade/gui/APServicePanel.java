@@ -36,7 +36,7 @@ import jade.domain.FIPAAgentManagement.APService;
 import jade.domain.FIPAAgentManagement.Property;
 
 /**
-To show a MTPDescription.
+To show an <code>APService</code> object within a Swing dialog.
 @author Tiziana Trucco - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -133,7 +133,7 @@ public class APServicePanel extends JPanel
 	}
 
 	/**
-	To show a MTPDescription in A JDialog.
+	To show an <code>APService</code> in A JDialog.
 	*/
 	public static void viewAPServiceDialog(APService ap,Dialog parent,String title){
 	

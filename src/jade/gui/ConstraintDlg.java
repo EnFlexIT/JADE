@@ -36,13 +36,15 @@ import java.util.List;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 
 /*
-@author Tiziana Trucco - CSELT S.p.A.
-@version $Date$ $Revision$
+
 */
 
 /**
-* This class implements the gui to insert the constraints for the search operation.
-*/
+ * This class implements the gui to insert the constraints for the search operation.
+ *
+ * @author Tiziana Trucco - CSELT S.p.A.
+ * @version $Date$ $Revision$
+ */
 public class ConstraintDlg extends JDialog
 {
 	/**
@@ -54,19 +56,30 @@ public class ConstraintDlg extends JDialog
   */
   SearchConstraints constraints = new SearchConstraints();
 	
-	//CONSTRUCTORS
-	public ConstraintDlg(Frame parent)
-	{
-		super(parent);
-	}
-	
-	public ConstraintDlg(Dialog parent)
-	{
-		super(parent);
-	}
+    /**
+       Create a dialog with the given parent.
+       @param parent The <code>Frame</code> that is the parent window
+       of this dialog.
+    */
+    public ConstraintDlg(Frame parent)
+    {
+	super(parent);
+    }
+
+    /**
+       Create a dialog with the given parent.
+       @param parent The <code>Dialog</code> that is the parent window
+       of this dialog.
+    */
+    public ConstraintDlg(Dialog parent)
+    {
+	super(parent);
+    }
 	
 	/**
-	This method display a gui to insert the search constraints. Return a <code>SearchConstraints </code> if the OK button is pressed null otherwise.
+	This method display a gui to insert the search
+	constraints. Return a <code>SearchConstraints </code> if the
+	OK button is pressed null otherwise.
 	*/
 	public SearchConstraints setConstraint()
 	{

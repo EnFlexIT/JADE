@@ -45,6 +45,10 @@ import starlight.util.Base64;
  **/
 public class StringACLCodec implements ACLCodec {
 
+    /**
+       String constant for the name of the ACL representation managed
+       by this ACL codec.
+    */
   public static final String NAME = jade.domain.FIPANames.ACLCodec.STRING; 
 
     /** Key of the user-defined parameter used to signal the automatic JADE
@@ -147,6 +151,10 @@ public class StringACLCodec implements ACLCodec {
     }
   }
 
+    /**
+       Parse an agent identifier, without it being included within an
+       ACL message.
+    */
   public AID decodeAID() throws ACLCodec.CodecException {
     try {
 	return parser.parseAID(null);

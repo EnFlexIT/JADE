@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
+//#APIDOC_EXCLUDE_FILE
 //#J2ME_EXCLUDE_FILE
 
 import java.awt.Component;
@@ -51,7 +52,7 @@ public class VisualAPServiceList extends VisualStringList
 	{
 		return (((APService)el).getName());
 	}
-	
+
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		

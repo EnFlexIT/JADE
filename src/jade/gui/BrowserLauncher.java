@@ -174,6 +174,9 @@ public class BrowserLauncher {
 	 */
 	private static String errorMessage;
 
+    /**
+       The URL for the official JADE Home Page.
+    */
 	public static String jadeURL ="http://jade.cselt.it/";
 	/**
 	 * An initialization block that determines the operating system and loads the necessary

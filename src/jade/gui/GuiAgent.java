@@ -63,7 +63,6 @@ the Agent thread to execute the method <code>onGuiEvent</code>.
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
-
 public abstract class GuiAgent extends Agent
 {
   private static final long     serialVersionUID = 3487495895819010L;
@@ -116,29 +115,32 @@ public abstract class GuiAgent extends Agent
 		}
 	}
 
-	//////////////
-	// CONSTRUCTOR
-	public GuiAgent()
-	{
-		super();
-		guiEventQueue = new Vector();
-		guiEventQueueLock = new Boolean(true);
+    /**
+       Default constructor.
+    */
+    public GuiAgent()
+    {
+	super();
+	guiEventQueue = new Vector();
+	guiEventQueueLock = new Boolean(true);
 
-		// Add the GUI handler behaviour
-		Behaviour b = new GuiHandlerBehaviour();
-		addBehaviour(b);
-	}
+	// Add the GUI handler behaviour
+	Behaviour b = new GuiHandlerBehaviour();
+	addBehaviour(b);
+    }
 
-	///////////////////////////////////////////////////////////////
-	// PROTECTED METHODS TO POST AND GET A GUI EVENT FROM THE QUEUE
-	public void postGuiEvent(GuiEvent e)
-	{
-		synchronized(guiEventQueueLock)
-		{
-			guiEventQueue.addElement( (Object) e );
-			doWake();
-		}
-	}
+    /**
+       Posts an event from the GUI thread to the agent event queue.
+       @param e The GUI event to post.
+    */
+    public void postGuiEvent(GuiEvent e)
+    {
+	synchronized(guiEventQueueLock)
+	    {
+		guiEventQueue.addElement( (Object) e );
+		doWake();
+	    }
+    }
 
 	/////////////////////////////////////////////////////////////////////////
 	// METHODS TO POST PREDEFINED EXIT AND CLOSEGUI EVENTS IN GUI EVENT QUEUE
@@ -154,8 +156,13 @@ public abstract class GuiAgent extends Agent
 		postGuiEvent(e);
 	}*/
 
-	///////////////////////////////
-	// METHOD TO HANDLE GUI EVENTS
+
+	/**
+	   Abstract method to handle posted GUI events. Subclasses of
+	   <code>GuiAgent</code> will implement their own reactions to
+	   GUI events starting with this method.
+	   @param ev The GUI event to handle.
+	*/
 	protected abstract void onGuiEvent(GuiEvent ev);
 	
 }

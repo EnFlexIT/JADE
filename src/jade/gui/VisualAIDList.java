@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
+//#APIDOC_EXCLUDE_FILE
 //#J2ME_EXCLUDE_FILE
 
 import java.awt.Component;
@@ -57,7 +58,13 @@ public class VisualAIDList extends VisualStringList
 	{
 		return (((AID)el).getName());
 	}
-	
+
+    /**
+       Allow the user to edit the chosen agent identifier.
+       @param el The chosen agent identifier.
+       @param isEditable A boolean flag telling whether the user is
+       allowed to modify che chosen agent identifier or not.
+    */
 	protected Object editElement(Object el, boolean isEditable)
 	{
 		

@@ -38,10 +38,9 @@ import java.util.Date;
 import java.text.*;
 
 /**
- * The TimeChooser class can be used to let the user define a certain point 
- * in time by means of a dialog window.<p>
- * <p>
- * @author Giovanni Rimassa - Universita` di Parma
+ * The <code>TimeChooser</code> class can be used to let the user
+ * define a certain point in time by means of a dialog window.<p> <p>
+ * @author Giovanni Rimassa - Universita' di Parma
  * @version $Date$ $Revision$
 
  */
@@ -53,26 +52,41 @@ public class TimeChooser implements ActionListener
 	private int         retVal;
 	private JDialog     dlg;
 	private JTextField  year, month, day, hour, min, sec;
-	public static final int ABSOLUTE = 0;
-	public static final int RELATIVE = 1;
+
 	JToggleButton absButton;
 	JToggleButton relButton;
 
+    //#APIDOC_EXCLUDE_BEGIN
+	public static final int ABSOLUTE = 0;
+	public static final int RELATIVE = 1;
 	public static final int OK     = 1;
 	public static final int CANCEL = 0;
+    //#APIDOC_EXCLUDE_END
 
+    /**
+       Default constructor.
+    */
 	public TimeChooser()
 	{
 		retVal = CANCEL;
 		date = null;
 	}
 
+    /**
+       Create a time chooser set at the given time instant.
+       @param d The initial time instant for this time chooser.
+    */
 	public TimeChooser(Date d)
 	{
 		retVal = CANCEL;
 		date = d;
 	}
 
+    /**
+       Allow the user to manipulate a time instant through this
+       dialog.
+       @param parent The parent component for this dialog.
+    */
 	public int showEditTimeDlg(JFrame parent)
 	{
 		Calendar cal;
@@ -165,6 +179,11 @@ public class TimeChooser implements ActionListener
 		return(retVal);
 	}
 
+    /**
+       Allow the user to view a time instant through a read-only
+       version of this dialog.
+       @param parent The parent component of this dialog.
+    */
 	public void showViewTimeDlg(JFrame parent)
 	{
 		String s;
@@ -215,6 +234,8 @@ public class TimeChooser implements ActionListener
 		dlg.show();
 	}
 
+
+    //#APIDOC_EXCLUDE_BEGIN
 	public void actionPerformed(ActionEvent e)
 	{
 		String command = e.getActionCommand();
@@ -269,12 +290,21 @@ public class TimeChooser implements ActionListener
 		}
 
 	}
+    //#APIDOC_EXCLUDE_END
 
+    /**
+       Retrieve the time instant this time chooser is set to.
+       @return The selected time instant.
+    */
 	public Date getDate()
 	{
 		return(date);
 	}
 
+    /**
+       Set the time instant for thistime chooser.
+       @param d The time instant for this chooser to point to.
+    */
 	public void setDate(Date d)
 	{
 		date = d;

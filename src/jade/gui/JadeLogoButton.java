@@ -45,7 +45,10 @@ package jade.gui;
 	public class JadeLogoButton extends JButton
 	{
 		private static String logojade ="images/logosmall.jpg";
-		
+
+	    /**
+	       Default constructor.
+	    */
 		public JadeLogoButton()
 		{
 			ImageIcon jadeicon = new ImageIcon(getClass().getResource(logojade));

@@ -93,6 +93,10 @@ import jade.domain.FIPAAgentManagement.*;
   */
   private AIDGui thisGUI;
 
+     /**
+	Create a dialog with the given parent.
+	@param owner The parent component of this dialog.
+     */
  	public AIDGui(Component owner)
  	{
    super();

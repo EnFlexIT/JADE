@@ -66,6 +66,10 @@ public interface ACLCodec {
       return nested;
     }
    
+      /**
+	 Print the stack trace for this exception on the standard
+	 output stream.
+      */
     public void printStackTrace() {
       if (nested != null)
 	nested.printStackTrace();

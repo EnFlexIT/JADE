@@ -1074,6 +1074,7 @@ private int performative; // keeps the performative type of this object
   }
 
   /**
+     retrieve the whole list of intended receivers for this message.
      @return An Iterator over all the intended receivers of this
      message taking into account the Envelope ":intended-receiver"
      first, the Envelope ":to" second and the message ":receiver" 

@@ -45,11 +45,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Component;
 
-/** This class permits to show the APDescription of a platform. 
-@author Tiziana Trucco - CSELT S.p.A
-@version $Date$ $Revision$
+/**
+   This class permits to show the APDescription of a platform. 
+   @author Tiziana Trucco - CSELT S.p.A
+   @version $Date$ $Revision$
 **/
-
 public class APDescriptionPanel extends JPanel
 {
 	private JTextField platformName_Field;

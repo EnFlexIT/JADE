@@ -32,10 +32,11 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
-@author Giovanni Caire - CSELT S.p.A.
-@version $Date$ $Revision$
-*/
+   This class implements the gui to manipulate a string.
 
+   @author Giovanni Caire - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
 public class StringDlg extends JDialog 
 {
 	String     hint;
@@ -58,132 +59,148 @@ public class StringDlg extends JDialog
 		this.out = null;
 	}*/
 	
-	public StringDlg(Component parent,String hint) 
-	{
-		super();
-		parentGUI = parent;
-		this.hint = new String(hint);
-		this.out = null;
-	}
+    /**
+       Create a dialog with the given parent and initial string value.
+       @param parent The parent component for this dialog.
+       @param hint The initial value for the manipulated string.
+    */
+    public StringDlg(Component parent,String hint) 
+    {
+	super();
+	parentGUI = parent;
+	this.hint = new String(hint);
+	this.out = null;
+    }
 	
-	public String editString(String value)
-	{
-		setTitle("Edit");
+    /**
+       Allow the user to manipulate a string value through this
+       dialog.
+       @param value The string value to edit.
+       @return A new string, containing the edited value.
+    */
+    public String editString(String value)
+    {
+	setTitle("Edit");
 
-		JPanel p = new JPanel();
-		//p.setLayout(new GridLayout(2, 1));
-		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		JLabel l = new JLabel(hint);
-		p.add(Box.createRigidArea(new Dimension(0,6)));
-		p.add(l);
-		txtString = new JTextField();
-		txtString.setText(value);
-		txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
-		p.add(txtString);
-		p.add(Box.createRigidArea(new Dimension(0,15)));
-		getContentPane().add(p, BorderLayout.CENTER);
+	JPanel p = new JPanel();
+	//p.setLayout(new GridLayout(2, 1));
+	p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+	JLabel l = new JLabel(hint);
+	p.add(Box.createRigidArea(new Dimension(0,6)));
+	p.add(l);
+	txtString = new JTextField();
+	txtString.setText(value);
+	txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
+	p.add(txtString);
+	p.add(Box.createRigidArea(new Dimension(0,15)));
+	getContentPane().add(p, BorderLayout.CENTER);
 
-		p = new JPanel();
-		JButton bOK = new JButton("OK");
-		JButton bCancel = new JButton("Cancel");
-		bOK.setPreferredSize(bCancel.getPreferredSize());
-		p.add(bOK);
-		p.add(bCancel);
-		bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									String insertedValue = (txtString.getText()).trim();
-                  if(insertedValue.length() == 0)
+	p = new JPanel();
+	JButton bOK = new JButton("OK");
+	JButton bCancel = new JButton("Cancel");
+	bOK.setPreferredSize(bCancel.getPreferredSize());
+	p.add(bOK);
+	p.add(bCancel);
+	bOK.addActionListener( new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{    
+		    String param = (String) e.getActionCommand();
+		    if (param.equals("OK"))
+			{
+			    String insertedValue = (txtString.getText()).trim();
+			    if(insertedValue.length() == 0)
                   		{
-                  			JOptionPane.showMessageDialog(null,"Must have non-empty fields !","Error Message",JOptionPane.ERROR_MESSAGE);
-									      return;
+				    JOptionPane.showMessageDialog(null,"Must have non-empty fields !","Error Message",JOptionPane.ERROR_MESSAGE);
+				    return;
                   		}
-									else 
-									{
-										out = insertedValue;
-									  dispose();
-									}
-								}
-							} 
-		                           } );
-		bCancel.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("Cancel"))
-									dispose();
-								
-							} 
-		                           } );
-		getContentPane().add(p, BorderLayout.SOUTH);
+			    else 
+				{
+				    out = insertedValue;
+				    dispose();
+				}
+			}
+		} 
+	    } );
+	bCancel.addActionListener( new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{    
+		    String param = (String) e.getActionCommand();
+		    if (param.equals("Cancel"))
+			dispose();
+		    
+		} 
+	    } );
+	getContentPane().add(p, BorderLayout.SOUTH);
 
-		setModal(true);
-		setResizable(false);
-	
-		ShowCorrect();
+	setModal(true);
+	setResizable(false);
+
+	ShowCorrect();
 
 	
-		return out;
-	}
-	
-	public void viewString(String value)
-	{
+	return out;
+    }
+
+    /**
+       Allows the user to view a string value through a read-only
+       version of this dialog.
+       @param value The string value to display.
+    */
+    public void viewString(String value)
+    {
 		
-		setTitle("View");
+	setTitle("View");
 
-		JPanel p = new JPanel();
-		//p.setLayout(new GridLayout(2, 1));
-		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		JLabel l = new JLabel(hint);
-		p.add(Box.createRigidArea(new Dimension(0,6)));
-		p.add(l);
-		txtString = new JTextField();
-		txtString.setEditable(false);
-		txtString.setText(value);
-		txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
-		p.add(txtString);
-		p.add(Box.createRigidArea(new Dimension(0,15)));
-		getContentPane().add(p, BorderLayout.CENTER);
+	JPanel p = new JPanel();
+	//p.setLayout(new GridLayout(2, 1));
+	p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+	JLabel l = new JLabel(hint);
+	p.add(Box.createRigidArea(new Dimension(0,6)));
+	p.add(l);
+	txtString = new JTextField();
+	txtString.setEditable(false);
+	txtString.setText(value);
+	txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
+	p.add(txtString);
+	p.add(Box.createRigidArea(new Dimension(0,15)));
+	getContentPane().add(p, BorderLayout.CENTER);
 
-		p = new JPanel();
-		JButton bOK = new JButton("OK");
+	p = new JPanel();
+	JButton bOK = new JButton("OK");
 		
 	
-		p.add(bOK);
+	p.add(bOK);
 		
-		bOK.addActionListener( new ActionListener()
-		                           {
-						   	public void actionPerformed(ActionEvent e)
-							{    
-								String param = (String) e.getActionCommand();
-								if (param.equals("OK"))
-								{
-									dispose();
-								}
-							} 
-		                           } );
-	
-		getContentPane().add(p, BorderLayout.SOUTH);
+	bOK.addActionListener( new ActionListener()
+	    {
+		public void actionPerformed(ActionEvent e)
+		{    
+		    String param = (String) e.getActionCommand();
+		    if (param.equals("OK"))
+			{
+			    dispose();
+			}
+		} 
+	    } );
 
-		setModal(true);
-		setResizable(false);
-	
-		ShowCorrect();
-	
-	}
+	getContentPane().add(p, BorderLayout.SOUTH);
 
-	private void ShowCorrect() 
- 	 {
-    pack();
+	setModal(true);
+	setResizable(false);
+	
+	ShowCorrect();
+	
+    }
+
+    private void ShowCorrect() 
+    {
+	pack();
     
-    setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);
-    setVisible(true);
-    toFront();
- 	 }
+	setLocation(parentGUI.getX() + (parentGUI.getWidth() - getWidth()) / 2, parentGUI.getY() + (parentGUI.getHeight() - getHeight()) / 2);
+	setVisible(true);
+	toFront();
+    }
 
 }

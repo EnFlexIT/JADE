@@ -41,14 +41,21 @@ into appropriate objects(e.g <code>java.lang.Integer</code>).
 @author Giovanni Caire - CSELT S.p.A.
 @version $Date$ $Revision$
 */
-
 public class GuiEvent 
 {
-  protected Object source;
-  protected int type;
+    //#APIDOC_EXCLUDE_BEGIN
+    protected Object source;
+    protected int type;
+    //#APIDOC_EXCLUDE_END
+
   private List parameters;
 
- 
+    /**
+       Create a GUI event.
+       @param eventSource The logical source of this event.
+       @param eventType An integer value, identifying the kind of this
+       event.
+    */ 
   public GuiEvent(Object eventSource, int eventType)
   {
     source = eventSource;
@@ -56,17 +63,26 @@ public class GuiEvent
     parameters = new ArrayList();
   }
 
-  public int getType()
-  {
-    return(type);
-  }
+    /**
+       Retrieve the kind of this GUI event.
+       @return The kind of this event.
+    */
+    public int getType()
+    {
+	return(type);
+    }
 
-  public Object getSource()
-  {
-    return(source);
-  }
+    /**
+       Retrieve the logical source of this GUI event.
+       @return The event source, or <code>null</code> if no source was
+       set.
+    */
+    public Object getSource()
+    {
+	return(source);
+    }
 
-  /** adds a new parameter to this event 
+  /** Add a new parameter to this event.
   * @param param is the parameter 
   **/
   public void addParameter(Object param) {
@@ -74,15 +90,16 @@ public class GuiEvent
   }     
 
   /**
-   * get the parameter in the given position
-   * @return the Object with the prameter
+   * Get the parameter in the given position.
+   * @return the Object with the parameter.
    **/
   public Object getParameter(int number) {
     return parameters.get(number);
   }
 
   /**
-   * get an Iterator over all the parameters
+   * Get an Iterator over all the parameters.
+   * @return An iterator, scanning the event parameter list.
    **/
   public Iterator getAllParameter() {
     return parameters.iterator();

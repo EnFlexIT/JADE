@@ -139,6 +139,12 @@ public class ISO8601 {
     private final static long minute = 60*1000;
     private final static long sec = 1000;
 
+    /**
+       Default constructor.
+    */
+    public ISO8601() {
+    }
+
   /**
    * This method converts a FIPA DateTime token to a <code>java.util.Date</code>.  
    * It will accept both local and UTC time formats.

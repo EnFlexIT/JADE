@@ -23,6 +23,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+
+//#APIDOC_EXCLUDE_FILE
 //#J2ME_EXCLUDE_FILE
 
 import java.awt.image.RGBImageFilter;
@@ -34,8 +36,6 @@ import java.awt.image.ImageFilter;
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-
-
 public class MyFilterImage extends RGBImageFilter {
 
   Color colorPixel;
