@@ -19,12 +19,12 @@ import java.io.*;
 
 * <ul> <li> Implement a class that extends
 * <code>FipaContractNetResponderBehaviour</code>.  This class must
-* implement 3 methods that are called by
+* implement 4 methods that are called by
 * <code>FipaContractNetResponderBehaviour</code>:
 
 * <ul>
 
-* <li> <code>public ACLMessage evaluateCfp(ACLMessage cfp)</code> to
+* <li> <code>public ACLMessage handleCfpMessage(ACLMessage cfp)</code> to
 * evaluate the <code>cfp</code> message received and to return an
 * <code>ACLMessage</code> to be sent in response
 * (<code>propose</code>, <code>refuse</code> or
@@ -32,14 +32,17 @@ import java.io.*;
 * then the <code>cfp</code> is ignored and the behaviour is reset and
 * start again waiting for <code>cfp</code> messages.
 
-* <li> <code>public ACLMessage AcceptedProposal(ACLMessage msg)</code>
+* <li> <code>public ACLMessage handleAcceptProposalMessage(ACLMessage msg)</code>
 * to evaluate the received <code>accept-proposal</code> message and to
 * return an <code>ACLMessage</code> to be sent back (<code>inform
 * Done</code> or <code>failure</code>).
 
-* <li> <code>public void RejectedProposal(ACLMessage msg)</code> to
+* <li> <code>public void handleRejectProposalMessage(ACLMessage msg)</code> to
 * evaluate the received <code>reject-proposal</code>. After this
 * method, the protocol is reset and it restarts again.
+
+* <li> <code>public void handleOtherMessages(ACLMessage msg)</code> to
+* handle all the other types of messages, eventually answering not-understood.
 
 * <li> Optionally, the programmer might override the
 * <code>reset()</code> method that is called to reset the behaviour
@@ -59,31 +62,17 @@ import java.io.*;
 */
 public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour {
     
-  /** It is the pointer to the Agent class.
-   * A common usage of this variable is to cast it to the actual type of
-   * Agent class and then use the methods of the extended class. 
-   * For instance 
-   * <code>appointments = (AppointmentAgent)myAgent.getAppointments() </code>
-   */
- public Agent myAgent;
- MessageTemplate mt=MessageTemplate.MatchType("cfp");
- MessageTemplate template;
- int   state=0; // state of the protocol
- long timeout;
- ACLMessage cfpMsg, acceptMsg, informMsg, proposeMsg;
+ private MessageTemplate mt=MessageTemplate.MatchType("cfp");
+ private MessageTemplate template;
+ private int   state=0; // state of the protocol
+private long timeout, blockTime, endingTime;
+ private ACLMessage cfpMsg, acceptMsg, informMsg, proposeMsg;
   /**
    * this variable should be set to true when the behaviour should
    * terminate
  */
  public boolean finished = false;
-  /** 
-   * default timeout in milliseconds to wait for proposals.  This
-   * timeout is overriden by the reply-by parameter of the
-   * <code>cfp</code> message, if set.
-   */
-  public static final long DEFAULTTIMEOUT = 90000; 
-  ACLMessage wakeMsg;
-  Waker waker;
+
  
   /**
    * This method is called to restart the protocol and wait again for
@@ -107,8 +96,8 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
    * Constructor of the class.
    * @param a is the pointer to the Agent class
    */ 
-  FipaContractNetResponderBehaviour(Agent a) {
-    myAgent = a;
+  public FipaContractNetResponderBehaviour(Agent a) {
+    super(a); 
   }
  
   
@@ -139,11 +128,10 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
       break;
     }
     case 1: {
+      proposeMsg = handleCfpMessage(cfpMsg);
       state = 2;
-      proposeMsg = evaluateCfp(cfpMsg);
-      if (proposeMsg == null) {
+      if (proposeMsg == null) 
 	reset();
-      }
       break;
     }
     case 2: {
@@ -162,41 +150,42 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
 	reset();
       else {
 	timeout = proposeMsg.getReplyByDate().getTime()-(new Date()).getTime();
-	if (timeout <= 1000) timeout = DEFAULTTIMEOUT; // at least 1 second
-	//start a thread with the timeout
-	wakeMsg = new ACLMessage("inform");
-	wakeMsg.setReplyTo(proposeMsg.getReplyWith());
-	wakeMsg.setConversationId("WAKEUP"+proposeMsg.getReplyWith());
-	wakeMsg.setContent("(timeout " + timeout + ")");
-	waker = new Waker(myAgent,wakeMsg,timeout);
-	waker.start();
+	if (timeout <= 1000) timeout = -1; // infinite timeout
+	endingTime = System.currentTimeMillis() + timeout;
+      //      System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis());
       }
       break;
     }   
     case 3: { // in this state I can receive only accept-proposal or reject-proposal
       acceptMsg = myAgent.receive(template);
       if (acceptMsg == null) {
-	block();
-	return;
-      } else if (acceptMsg.getType().equalsIgnoreCase("accept-proposal")) {
+	if (timeout > 0) {
+	  blockTime = endingTime - System.currentTimeMillis();
+	  //	  System.err.println("FipaContractNetResponderBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
+	  if (blockTime <= 0) { //timeout expired
+	    reset();
+	    return;
+	  } else {
+	    block(blockTime);
+	    return;
+	  }
+	} else { // query without timeout
+	  block();
+	  return;
+	}
+      }
+      if (acceptMsg.getType().equalsIgnoreCase("accept-proposal")) {
 	//System.err.println("FipaContractNetResponderBehaviour: receive");
-	waker.stop();
 	//acceptMsg.dump();
 	state = 4;
-	informMsg = AcceptedProposal(acceptMsg);
+	informMsg = handleAcceptProposalMessage(acceptMsg);
       } else if (acceptMsg.getType().equalsIgnoreCase("reject-proposal")) {
-	waker.stop();
 	//System.err.println("FipaContractNetResponderBehaviour: receive");
 	//acceptMsg.dump();
-	RejectedProposal(acceptMsg);
-	reset();
-      } else if (acceptMsg.getConversationId() == null) {
-	myAgent.postMessage(acceptMsg); // the message is not for me
-      } else if (acceptMsg.getConversationId().equalsIgnoreCase(wakeMsg.getConversationId())) { 
-	// wake-up message
+	handleRejectProposalMessage(acceptMsg);
 	reset();
       } else 
-	myAgent.postMessage(acceptMsg); // the message is not for me
+	handleOtherMessages(acceptMsg);
       break;
     }
     case 4: { // send the last message
@@ -222,7 +211,7 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
    * @return the <code>ACLMessage</code> to be sent as a response at
    * the next state of the protocol.
    */
-  public abstract ACLMessage AcceptedProposal(ACLMessage msg);
+  public abstract ACLMessage handleAcceptProposalMessage(ACLMessage msg);
 
   /**
    * This method is called when the <code>reject-proposal</code>
@@ -233,7 +222,7 @@ public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour 
    * After the execution of this method the protocol is reset.
    * @param msg contains the received reject-proposal message.
    */
-public abstract void RejectedProposal(ACLMessage msg);
+public abstract void handleRejectProposalMessage(ACLMessage msg);
 
 
   /**
@@ -244,7 +233,23 @@ public abstract void RejectedProposal(ACLMessage msg);
    * the next state of the protocol. If null, or different from
    * <code>propose</code>, then the protocol is reset.
    */
-public abstract ACLMessage evaluateCfp(ACLMessage cfp);
+public abstract ACLMessage handleCfpMessage(ACLMessage cfp);
+
+  /**
+   * This method must be implemented by all subclasses.
+   * After having sent the <code> propose </code> message, the base class calls
+   * this method everytime a new message arrives that is not an <code> accept-proposal / reject-proposal
+   * </code> message.
+   * The method should react to this message in an
+   * implementation-dependent way. The instruction
+   * <code> finished=true; </code> should be executed to finish the
+   * protocol.
+   * The class variable <code>myAgent </code> can be used to send
+   * messages or, after casting, to execute other implementation-dependent
+   * methods that belongs to the actual Agent object.
+   * @param msg is the ACLMessage just arrived
+   */
+public abstract void handleOtherMessages(ACLMessage msg);
 }
 
 
