@@ -26,10 +26,8 @@
 package jade.tools.gui;
 
 import javax.swing.text.Segment;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
 
-import jade.onto.SlotDescriptor;
-import jade.onto.basic.BasicOntology;
 
 /**
  *  ACL/SL token marker. The original file is written by Slava Pestov
@@ -57,6 +55,7 @@ public class ACLSLTokenMarker {
     if (aclSLKeywords == null) {
       aclSLKeywords = new KeywordMap(false);
 
+      /* FIXME Need new method to get a vocabulary from an ontology
       jade.util.leap.List agentMgt = FIPAAgentManagementOntology.instance().getVocabulary();
       for (int i = 0; i < agentMgt.size(); i++) {
         String roleName = (String)agentMgt.get(i);
@@ -69,7 +68,7 @@ public class ACLSLTokenMarker {
         }
         catch (Exception ex) {
         }
-      }
+      } */
 
       aclSLKeywords.add("inv", ACLToken.INVALID);
       aclSLKeywords.add("ams", ACLToken.LABEL);
@@ -78,10 +77,11 @@ public class ACLSLTokenMarker {
       aclSLKeywords.add("l1", ACLToken.LITERAL1);
       aclSLKeywords.add("l2", ACLToken.LITERAL2);
 
+	  /* FIXME Need new method to get a vocabulary from an ontology
       jade.util.leap.List li = BasicOntology.instance().getVocabulary();
       for (int i = 0; i < li.size(); i++) {
         aclSLKeywords.add((String)li.get(i), ACLToken.OPERATOR);
-      }
+      } */
 
       aclSLKeywords.add("wantarray", ACLToken.KEYWORD3);
       aclSLKeywords.add("warn", ACLToken.KEYWORD3);
