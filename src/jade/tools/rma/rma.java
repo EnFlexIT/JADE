@@ -725,22 +725,29 @@ public class rma extends Agent {
     	APDescription APDesc = (APDescription)i.next();
    
     	if(APDesc != null){
-    			myGUI.addRemotePlatformFolder();
-    			AID ams = new AID("ams@" + APDesc.getName());
-    			Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
-    			
-    			while(TP.hasNext())
-    			{
-    				MTPDescription mtp = (MTPDescription)TP.next();
-    				Iterator add = mtp.getAllAddresses();
-    				while(add.hasNext())
-    				{
-    					String address = (String)add.next();
-    					ams.addAddresses(address);
-    				}
+    			String amsName = "ams@" + APDesc.getName();
+
+    			if(amsName.equalsIgnoreCase(getAMS().getName())){
+    				System.out.println("ERROR: Action not allowed.");
     			}
-    	
-    			myGUI.addRemotePlatform(ams,APDesc);
+    				else
+    			{
+    				AID ams = new AID(amsName);
+    				Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
+    			
+    				while(TP.hasNext())
+    				{
+    					MTPDescription mtp = (MTPDescription)TP.next();
+    					Iterator add = mtp.getAllAddresses();
+    					while(add.hasNext())
+    					{
+    						String address = (String)add.next();
+    						ams.addAddresses(address);
+    					}
+    				}
+    				myGUI.addRemotePlatformFolder();
+    				myGUI.addRemotePlatform(ams,APDesc);
+    			}
     	}
      	
      	}catch(jade.domain.FIPAException e){
