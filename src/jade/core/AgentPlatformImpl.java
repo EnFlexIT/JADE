@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.34  1999/04/07 11:40:12  rimassa
+  Fixed code indentation.
+
   Revision 1.33  1999/03/29 10:40:58  rimassa
   Fixed a bug raising a ConcurrentModificationException during Agent
   Platform shutdown.
@@ -455,9 +458,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     for(int i = 0; i < allLocalAgents.length; i++) {
       String name = (String)allLocalAgents[i];
       if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
-	 name.equalsIgnoreCase(theACC.getLocalName()) ||
-	 name.equalsIgnoreCase(defaultDF.getLocalName()))
-	  continue;
+				 name.equalsIgnoreCase(theACC.getLocalName()) ||
+				 name.equalsIgnoreCase(defaultDF.getLocalName()))
+					continue;
 
       // Kill agent and wait for its termination
       Agent a = (Agent)localAgents.get(name);
