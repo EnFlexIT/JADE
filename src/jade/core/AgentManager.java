@@ -99,8 +99,8 @@ public interface AgentManager {
   void move(AID agentID, Location where) throws NotFoundException, UnreachableException, JADESecurityException;
   void copy(AID agentID, Location where, String newAgentName) throws NotFoundException, NameClashException, UnreachableException, JADESecurityException;
 
-  void shutdownPlatform() throws JADESecurityException;
-  void killContainer(ContainerID cid) throws NotFoundException, JADESecurityException;
+  void shutdownPlatform(JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException;
+  void killContainer(ContainerID cid, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException;
   MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException;
   void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException;
 
