@@ -99,6 +99,9 @@ public class Boot {
       System.exit(1);
     }
 
+    // This will run all finalization code when this Java VM ends.
+    System.runFinalizersOnExit(true);
+
     // Build the complete URL of the agent platform from default
     // values and command line options, both for RMI and IIOP calls.
     String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
@@ -159,7 +162,7 @@ public class Boot {
     System.out.println("");
     System.out.println("  Connect to a platform on host zork.zot.za, on port 1100,");
     System.out.println("  with name 'Platform', starting two agents");
-    System.out.println("  java StartContainer -host zork.zot.za -port 1100 -name Platform peter:heAgent paula:sheAgent");
+    System.out.println("  java jade.Boot -host zork.zot.za -port 1100 -name Platform peter:heAgent paula:sheAgent");
     System.out.println("");
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
     System.out.println("  \tjava jade.Boot -platform Willy:searchAgent");
