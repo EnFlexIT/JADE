@@ -25,51 +25,69 @@ import fipa.lang.acl.*;
     (Behaviour)
 
 ****************************************************************/
-
-/**
- * The abstract Agent class.
- * All the agents belonging to the agent platform must inherit from
- * this Agent class.  Agent is composed by a single execution thread
- * for the active part.  All the tasks that must be performed by an
- * agent are implemented as Behaviours, which are called and scheduled
- * in a round-robin fashion by the agent scheduler.  All the specific
- * tasks an agent has to implement must be added as Behaviours to the
- * particular Agent derived class.  The abstract Agent class provides
- * the agent developer with some methods to implement some
- * communication paradigms: FipaRequest (corresponding to the
- * FIPA-request protocol), SendReceive (when a message requires only a
- * single answer notification), blockingSendReceive (the corresponding
- * blocking paradigm).  In fact, by default all protocols and
- * communication paradigms are non-blocking.  In order to allow the
- * user to be able to add its own tasks, the method addTask is
- * provided by the abstract Agent, requiring as a parameter the name
- * of the method implementing the task. As soon as the method is
- * called, the task specified is added to the queue of ready tasks for
- * the scheduler.
- * 
- * @version 2.0 5/98
- * */
 public class Agent implements Runnable, CommBroadcaster {
+
+  protected static final int AP_INITIATED = 1;
+  protected static final int AP_ACTIVE = 2;
+  protected static final int AP_SUSPENDED = 3;
+  protected static final int AP_WAITING = 4;
+
 
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
   protected Vector actions = new Vector();
 
-  protected ACLMessage   currentMessage;
-  protected String       myName;
-  protected Thread       myThread;
-  protected boolean      isActive = false;
+
+  protected String myName;
+  protected Thread myThread;
+  protected int APState;
+  protected int DomainState;
 
   private ACLParser parser = null; // FIXME: Must be initialized with a valid ACL parser
+  protected ACLMessage currentMessage;
 
-  public void activate(String name) { // FIXME: Check with FIPA specs for agent lifecycle
+  public Agent() {
+    APState = AP_INITIATED;
+  }
+
+  public void doStart(String name) { // Transition from Initiated to Active
 
     myName = new String(name);
 
-    isActive = true;
+    APState = AP_ACTIVE;
     myThread = new Thread(this);
     myThread.start();
 
+  }
+
+  public void doMove() { // Transition from Active to Initiated
+    APState = AP_INITIATED;
+    // FIXME: Should do something more
+  }
+
+  public void doSuspend() { // Transition from Active to Suspended
+    APState = AP_SUSPENDED;
+    // FIXME: Should do something more
+  }
+
+  public void doActivate() { // Transition from Suspended to Active
+    APState = AP_ACTIVE;
+    // FIXME: Should do something more
+  }
+
+  public void doWait() { // Transition from Active to Waiting
+    APState = AP_WAITING;
+    try {
+      wait(); // Block on its monitor
+    }
+    catch(InterruptedException ie) {
+      // Do nothing
+    }
+  }
+
+  public void doWake() { // Transition from Waiting to Active
+    APState = AP_ACTIVE;
+    notify(); // Wakes up the embedded thread
   }
 
   protected void localStartup() {}
@@ -87,7 +105,8 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   public void schedule() {
-
+    
+    /*
     int ret;
     Class[] params = new Class[0];
     Object[] args  = new Object[0];
@@ -122,8 +141,10 @@ public class Agent implements Runnable, CommBroadcaster {
 
       }
     }
+    */
 
   }
+
 
   public void addBehaviour(Behaviour b) {
     actions.addElement(b);
@@ -132,6 +153,7 @@ public class Agent implements Runnable, CommBroadcaster {
   public void removeBehaviour(Behaviour b) {
     // FIXME: To be implemented
   }
+
 
   // Event based message sending -- serialized object
   protected final void send(ACLMessage msg) {
@@ -143,20 +165,10 @@ public class Agent implements Runnable, CommBroadcaster {
     }
   }
 
-  // Event based message sending -- plain string
-  protected final void send(String msg) {
-    // FIXME: To be implemented
-  }
-
   // Blocking receive
   protected final ACLMessage blockingReceive() {
     if(msgQueue.isEmpty()) {
-      try {
-	wait();
-      }
-      catch(InterruptedException ie) {
-	// Do nothing
-      }
+      doWait();
     }
     ACLMessage msg = (ACLMessage)msgQueue.firstElement();
     currentMessage = msg;
@@ -176,61 +188,7 @@ public class Agent implements Runnable, CommBroadcaster {
     }
   }
 
-  // FIXME: Check with Paolo whether this is still needed.
-/**
- * Metodo per fare il match fra un messaggio ed una serie di campi dati.
- * @param msg E' il messaggio da controllare
- * Gli altri parametri sono i campi da macthare.
- * @see aclMessage
- * @return Ritorna falso se il messaggio e' sbagliato.
- */
-  /*
-  public boolean verifyMsg( aclMessage msg, String source, String type, String content, String reply ) {
-    String mySource  = msg.getSource();
-    String myType    = msg.getType();
-    String myContent = msg.getContent();
-    String myReply   = msg.getReplyTo();
-    if( source  != null && !source.equals(mySource) ) return false;
-    if( type    != null && !type.equals(myType) )     return false;
-    if( content != null ) {
-      int len = content.length();
-      if( !content.equals(myContent.substring(0,len)) ) return false;
-    }
-    if( reply   != null ) {
-      int len = reply.length();
-      if( !reply.equals(myReply.substring(0,len)) ) return false;
-    }
-    return true;
-
-  }
-  */
-
-  // FIXME: Check with Paolo whether this is still needed...
-/**
- * Metodo per ricevere un messaggio con determinati campi.
- * Prima vengono controllati i messaggi non consumati nella coda msgQueue.
- * Quindi eventualmente si attendono i messaggi in arrivo sul socket
- * I messaggi ricevuti ma non corretti vengono accodati a msgQueue.
- * @see Agent#receive
- * @see aclMessage
- * @return Ritorna il messaggio corretto oppure null.
- */
-  /*
-  public synchronized aclMessage receiveIf( String source, String type, String content, String reply ) {
-    aclMessage msg = null;
-    for( int i=0; i<msgQueue.size(); i++ ) {
-      msg = (aclMessage)msgQueue.elementAt(i);
-      if( verifyMsg( msg, source, type, content, reply ) ) {
-	//System.out.println("verifying " + msg.getDest() + " " + msg.getType());
-	msgQueue.removeElementAt(i);
-	return msg;
-      } else msg = null;
-    }
-
-    return msg;
-
-  }
-  */
+  // Event handling methods
 
   public final void addCommListener(CommListener l) {
     listeners.addElement(l);
@@ -243,7 +201,7 @@ public class Agent implements Runnable, CommBroadcaster {
   public final synchronized void postMessage (ACLMessage msg) {
     if(msg != null) msgQueue.addElement(msg);
     System.out.println("Agent: receiving from " + msg.getSource());
-    notify();
+    doWake();
   }
 
 }
