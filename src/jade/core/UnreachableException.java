@@ -36,7 +36,7 @@ public class UnreachableException extends Exception {
     Construct an <code>UnreachableException</code> with the given message.
     @param msg The exception message.
   */
-  UnreachableException(String msg) {
+  public UnreachableException(String msg) {
     super(msg);
   }
 
