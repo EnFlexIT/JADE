@@ -87,35 +87,7 @@ public class Agent implements Runnable, Serializable {
   /**
   @serial
   */
-  private SecurityManager mySecurityManager; // private pointer 
-  //FIXME So far the SecurityManager is private, but it should become protected
-  /** This private inner class stores all the permissions for this
-   * Agent object. 
-   * The default is that everything is allowed until it is not
-   * explicitly disallowed.
-  **/
-  private class SecurityManager implements Serializable {
-    private Vector unpermissions = new Vector(1);
-    /**
-      adds a new permission
-    **/
-    private void allow(short permission){
-      unpermissions.remove(new Short(permission));
-    }
-    /**
-      removes a permission
-    **/
-    private void disallow(short permission) {
-      unpermissions.add(new Short(permission));
-    }
-    /**
-     *@return true if this permission has not yet been disallowed
-     * therefore the default is that everything is allowed!
-     **/
-    private boolean isAllowed(short permission) {
-      return !unpermissions.contains(new Short(permission));
-    }
-  }
+
   // This inner class is used to force agent termination when a signal
   // from the outside is received
   private class AgentDeathError extends Error {
@@ -457,7 +429,6 @@ public class Agent implements Runnable, Serializable {
   public Agent() {
     setState(AP_INITIATED);
     myScheduler = new Scheduler(this);
-    mySecurityManager = new SecurityManager();
   }
 
   /**
