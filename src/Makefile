@@ -32,7 +32,6 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 #		jade/proto/FipaContractNetResponderBehaviour.java \
 #		jade/proto/FipaQueryInitiatorBehaviour.java \
 #		jade/proto/FipaQueryResponderBehaviour.java \
-#		jade/onto/DefaultOntology.java \
 #		jade/tools/rma/rma.java \
 #		jade/tools/sniffer/Sniffer.java \
 #		jade/tools/DummyAgent/DummyAgent.java \
@@ -92,7 +91,7 @@ IDLSTUBS    =   FIPA/AgentID.java \
 		FIPA/stringsHolder.java
 
 STUBS       = 	jade.core.AgentContainerImpl \
-		jade.core.AgentPlatformImpl
+		jade.core.MainContainerImpl
 
 all: $(IDLSTUBS) parsers classes stubs images
 	@echo
