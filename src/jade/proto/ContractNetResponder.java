@@ -124,6 +124,9 @@ public final String CFP_KEY = "__CFP_key" + hashCode();
  *	object sent as a response to the initiator CFP.
  **/
 public final String RESPONSE_KEY = "__Response" + hashCode();
+		/**
+		 * @deprecated use RESPONSE_KEY instead
+		 **/
 public final String PROPOSE_KEY = RESPONSE_KEY;
 
 /** 
