@@ -40,47 +40,32 @@ public class TestByteSeq extends Test{
   	
   	try {
   		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
-  		if (!msg.getLanguage().startsWith(jade.domain.FIPANames.ContentLanguage.FIPA_SL)) {
-  			return new SuccessExpectedInitiator(a, ds, resultKey) {
-  				protected ACLMessage prepareMessage() throws Exception {
-  					Track t = new Track();
-  					t.setName("Blowing in the wind");
-  					t.setDuration(new Integer(240));
-  					t.setPcm(VALUE);
-  					Exists e = new Exists(t);
-  					myAgent.getContentManager().fillContent(msg, e);
-  					l.log("Content correctly encoded");
-  					return msg;
+			return new SuccessExpectedInitiator(a, ds, resultKey) {
+				protected ACLMessage prepareMessage() throws Exception {
+					Track t = new Track();
+					t.setName("Blowing in the wind");
+					t.setDuration(new Integer(240));
+					t.setPcm(VALUE);
+					Exists e = new Exists(t);
+					myAgent.getContentManager().fillContent(msg, e);
+					l.log("Content correctly encoded");
+					return msg;
+				}
+				
+				protected boolean checkReply(ACLMessage reply) throws Exception {
+					Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+					Track t = (Track) e.getWhat();
+					byte[] value = t.getPcm();
+  				if (compare(value, VALUE)) {
+  					l.log("Byte[] value OK");
+  					return true;
   				}
-  				
-  				protected boolean checkReply(ACLMessage reply) throws Exception {
-						Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
-						Track t = (Track) e.getWhat();
-						byte[] value = t.getPcm();
-	  				if (compare(value, VALUE)) {
-	  					l.log("Byte[] value OK");
-	  					return true;
-	  				}
-	  				else {
-	  					l.log("Wrong byte[] value: expected "+VALUE+", received "+value); 
-	  					return false;
-	  				}
-  				}		
-  			};
-  		}
-  		else {
-  			return new FailureExpectedInitiator(a, ds, resultKey) {
-  				protected ACLMessage prepareMessage() throws Exception {
-  					Track t = new Track();
-  					t.setName("Blowing in the wind");
-  					t.setDuration(new Integer(240));
-  					t.setPcm(VALUE);
-  					Exists e = new Exists(t);
-  					myAgent.getContentManager().fillContent(msg, e);
-  					return msg;
+  				else {
+  					l.log("Wrong byte[] value: expected "+VALUE+", received "+value); 
+  					return false;
   				}
-  			};
-  		}
+				}		
+			};
   	}
   	catch (Exception e) {
   		throw new TestException("Wrong group argument", e);
