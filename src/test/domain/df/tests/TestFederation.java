@@ -67,14 +67,14 @@ public class TestFederation extends Test {
   	}	
   	
     // Register the ontologies and codec required to request the federation
-    a.getContentManager().registerLanguage(codec, "FIPA-SL0");
+    a.getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
     //a.getContentManager().registerOntology(FIPAManagementOntology.getInstance());
     a.getContentManager().registerOntology(DFAppletOntology.getInstance());
     
   	// Create the REQUEST message to be sent to df1 to make it federate with the default DF
   	ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
   	request.addReceiver(df1);
-		request.setLanguage("FIPA-SL0");
+		request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 		request.setOntology(DFAppletOntology.getInstance().getName());
 		try {
 			Federate f = new Federate();

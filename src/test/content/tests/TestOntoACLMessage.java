@@ -66,14 +66,14 @@ public class TestOntoACLMessage extends Test {
   			protected boolean checkReply(ACLMessage reply) throws Exception {
   				Action action = (Action) myAgent.getContentManager().extractContent(reply);
   				l.log("Content correctly decoded");
-  				ACLMessage msg = (ACLMessage) action.getAction();
+  				ACLMessage msg1 = (ACLMessage) action.getAction();
   				// Check the performative
-  				if (msg.getPerformative() != ACLMessage.INFORM) {
-  					l.log("Wrong content: expected performative "+ACLMessage.INFORM+", found "+msg.getPerformative());
+  				if (msg1.getPerformative() != ACLMessage.INFORM) {
+  					l.log("Wrong content: expected performative "+ACLMessage.INFORM+", found "+msg1.getPerformative());
   					return false;
   				}
   				// Check the content
-  				Exists e = (Exists) myAgent.getContentManager().extractContent(msg);
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(msg1);
   				AID id = (AID) e.getWhat();
   				if (id.equals(myAgent.getAID())) {
   					l.log("Content OK");

@@ -59,7 +59,7 @@ public class TestFIPAManagementOntology_DF extends Test {
  	
   	SequentialBehaviour sb = new SequentialBehaviour(a) {
   		public void onStart() {
- 				myAgent.getContentManager().registerLanguage(codec, "FIPA-SL0");
+ 				myAgent.getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
  				myAgent.getContentManager().registerOntology(ontology);
   			store.put(key, new Integer(Test.TEST_PASSED));
   		}
@@ -67,7 +67,7 @@ public class TestFIPAManagementOntology_DF extends Test {
   	
   	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
   	msg.addReceiver(a.getDefaultDF());
-		msg.setLanguage("FIPA-SL0");
+		msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
 		msg.setOntology(ontology.getName());
 		
 		// Registration step

@@ -59,7 +59,7 @@ public class TestAgentAction extends Test{
   				try {
 	  				Sell sell = (Sell) myAgent.getContentManager().extractContent(reply);
 	  				l.log("Content correctly decoded");
-	  				if (reply.getLanguage().startsWith("FIPA-SL")) {
+	  				if (reply.getLanguage().startsWith(jade.domain.FIPANames.ContentLanguage.FIPA_SL)) {
 	  					l.log("AgentAction decoding succeeded while a failure was expected");
 	  					return false;
 	  				}
@@ -69,7 +69,7 @@ public class TestAgentAction extends Test{
 	  				}
   				}
   				catch (Codec.CodecException ce) {
-	  				if (reply.getLanguage().startsWith("FIPA-SL")) {
+	  				if (reply.getLanguage().startsWith(jade.domain.FIPANames.ContentLanguage.FIPA_SL)) {
 	  					l.log("AgentAction decoding failed as expected");
 	  					ce.printStackTrace();
 	  					return true;

@@ -40,7 +40,7 @@ public class TestByteSeq extends Test{
   	
   	try {
   		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
-  		if (!msg.getLanguage().startsWith("FIPA-SL")) {
+  		if (!msg.getLanguage().startsWith(jade.domain.FIPANames.ContentLanguage.FIPA_SL)) {
   			return new SuccessExpectedInitiator(a, ds, resultKey) {
   				protected ACLMessage prepareMessage() throws Exception {
   					Track t = new Track();
