@@ -19,6 +19,8 @@ set JADEIIOP=..\..\lib\iiop.jar
 set JADETOOLSJAR=..\..\lib\jadeTools.jar
 set BASE64JAR=..\..\lib\Base64.jar
 set ALLJADEJARS=%JADEJAR%;%JADEIIOP%;%JADETOOLSJAR%;%BASE64JAR%
+set HTTPJARS=..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar 
+set ORBACUSJARS=..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar
 set JADECLASSES=..\..\classes
 set JAVA=java -Djava.compiler=""
 echo 
@@ -195,6 +197,22 @@ echo Edit RoundTripper.conf with the right IOR of the running platform and
 echo set container=false
 %JAVA% -cp %CLASSPATH% jade.Boot -conf roundTripTime\RoundTripper.conf 
 pause
+
+echo Running the roundTripTime test on 2 platforms with HTTP-based MTP
+echo Kill any platform that is currently running
+pause
+START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%HTTPJARS%;%JADECLASSES% jade.Boot -conf roundTripTime\RX_http.conf
+%JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%HTTPJARS%;%JADECLASSES% jade.Boot -conf roundTripTime\RT_http.conf
+pause
+
+echo Running the roundTripTime test on 2 platforms with ORBacus-based MTP
+echo Kill any platform that is currently running
+pause
+START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%ORBACUSJARS%;%JADECLASSES% jade.Boot -conf roundTripTime\RX_ORBacus.conf
+%JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;%ORBACUSJARS%;%JADECLASSES% jade.Boot -conf roundTripTime\RT_ORBacus.conf
+pause
+
+
 :STARTHERE	
 
 
@@ -225,20 +243,6 @@ echo Running the MessageTemplate test
 pause Please SHUTDOWN any platform running
 %JAVA% -cp %CLASSPATH% test.MessageTemplate.MessageTester
 
-echo Testing the orbacus add-on
-pause Please SHUTDOWN any platform running
-echo starting two platform using ORBacusMTP. Try to send messages between the two platforms using the DummyAgents
-echo Testing also the addRemotePlatform via RMA.
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1200 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:3000/jade) da0:jade.tools.DummyAgent.DummyAgent
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\lib\OB.jar;..\..\lib\OBNaming.jar;..\..\add-ons\ORBacusMTP\lib\iiopOB.jar jade.Boot -gui -port 1300 -mtp orbacus.MessageTransportProtocol(corbaloc:iiop:%LOCALHOST%:4000/jade) da0:jade.tools.DummyAgent.DummyAgent
-pause 
-
-echo Testing the HTTP-MTP add-on
-pause Please SHUTDOWN any platform running and copy the crimson parser into the jade\lib directory.
-echo starting two platform using HTTP MTP. Try to send messages between the two platforms using the DummyAgents
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar jade.Boot -gui -port 1200 -mtp jamr.jademtp.http.MessageTransportProtocol da0:jade.tools.DummyAgent.DummyAgent
-START %JAVA% -cp %JADEJAR%;%JADETOOLSJAR%;..\..\add-ons\http\lib\http.jar;..\..\lib\crimson.jar jade.Boot -gui -port 1300 -mtp jamr.jademtp.http.MessageTransportProtocol(http://%LOCALHOST%:7779/acc) da0:jade.tools.DummyAgent.DummyAgent
-pause
 
 
 echo FIXME RDFCodec Test
