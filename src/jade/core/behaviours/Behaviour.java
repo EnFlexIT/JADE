@@ -185,8 +185,6 @@ public abstract class Behaviour implements Serializable {
   	parent = cb;
 	if (parent != null)
 	    myAgent = parent.myAgent;
-	else
-	    myAgent = null;
   }
 
     // For persistence service
@@ -452,7 +450,7 @@ public abstract class Behaviour implements Serializable {
   }
 
     // For persistence service
-    private Agent getAgent() {
+    protected Agent getAgent() {
 	return myAgent;
     }
 
