@@ -4,6 +4,7 @@
 .PHONY: all clean
 
 export MAKE = make
+export IDLCC = idltojava
 export STUBGEN = rmic
 export PARSERGEN = javacc
 
@@ -18,6 +19,7 @@ AGENTMANFLAGS =	-OUTPUT_DIRECTORY:jade/domain
 AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
 
 EXECS       = 	jade/Boot.java
+IDLSPEC     =   FIPA_Agent_97.idl
 ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/NonDeterministicBehaviour.java \
 		jade/core/SequentialBehaviour.java \
@@ -31,14 +33,23 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/proto/Standard.java \
 		jade/gui/AMSMainFrame.java
 STUBDIR     =	.
+IDLSTUBS    =   _FIPA_Agent_97Stub.java \
+		FIPA_Agent_97.java \
+		FIPA_Agent_97Holder.java \
+		FIPA_Agent_97Helper.java \
+		_FIPA_Agent_97ImplBase.java
+
 STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.AgentPlatformImpl
 
 
-all: parsers classes stubs
+all: idl parsers classes stubs
 	@echo
 	@echo Build complete.
 	@echo
+
+idl:
+	$(IDLCC) $(IDLSPEC)
 
 parsers: ACLParser AgentManParser
 	@echo Parsers generated
@@ -61,6 +72,13 @@ clean:
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
+
+	rm -f _FIPA_Agent_97Stub.java
+	rm -f FIPA_Agent_97.java
+	rm -f FIPA_Agent_97Holder.java
+	rm -f FIPA_Agent_97Helper.java
+	rm -f _FIPA_Agent_97ImplBase.java
+
 
 	rm -f jade/lang/acl/ACLParser.java
 	rm -f jade/lang/acl/ACLParserConstants.java
