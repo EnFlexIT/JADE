@@ -129,30 +129,30 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // AgentContainer INTERFACE
   // /////////////////////////////////////////
   public void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
-    Agent agent = null;
-    try {
-      agent = (Agent)Class.forName(new String(className)).newInstance();
-      agent.setArguments(args);
-      // Set agent principal and certificates
-      if (certs != null) {
-	      agent.setPrincipal(certs);
-	    }
-      // Set agent ownership
-      if (ownership != null)
-	      agent.setOwnership(ownership);
-	    else if (certs.getIdentityCertificate() != null)
-      	agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
-    }
-    catch (ClassNotFoundException cnfe) {
-      System.err.println("Class " + className + " for agent " + agentID + " was not found.");
-  		throw new IMTPException("Exception in createAgent",cnfe); 
-    }
-    catch (Exception e ) {
-      e.printStackTrace();
-  		throw new IMTPException("Exception in createAgent",e); 
-    }
+      Agent agent = null;
+      try {
+          agent = (Agent)Class.forName(new String(className)).newInstance();
+          agent.setArguments(args);
+          // Set agent principal and certificates
+          if(certs != null) {
+              agent.setPrincipal(certs);
+          }
+          // Set agent ownership
+          if(ownership != null)
+              agent.setOwnership(ownership);
+          else if(certs.getIdentityCertificate() != null)
+              agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
 
-    initAgent(agentID, agent, startIt);
+          initAgent(agentID, agent, startIt);
+      }
+      catch(ClassNotFoundException cnfe) {
+          System.err.println("Class " + className + " for agent " + agentID + " was not found.");
+          throw new IMTPException("Exception in createAgent",cnfe);
+      }
+      catch(Exception e ) {
+          // FIXME: Log the Exception
+          throw new IMTPException("Exception in createAgent",e);
+      }
   }
 
   public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
@@ -173,49 +173,48 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	return myMobilityManager.fetchClassFile(name);
   }
 
-	public void initAgent(AID agentID, Agent instance, boolean startIt) {
-
-		// Subscribe as a listener for the new agent
-		instance.setToolkit(this);
-
-		// put the agent in the local table and get the previous one, if any
-		Agent previous = localAgents.put(agentID, instance);
-		if (startIt) {
-			try {
-				CertificateFolder agentCerts = instance.getCertificateFolder();
-				if (agentCerts.getIdentityCertificate() == null) {
-					AgentPrincipal principal = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
-					IdentityCertificate identity = authority.createIdentityCertificate();
-					identity.setSubject(principal);
-					authority.sign(identity, certs);
-					agentCerts.setIdentityCertificate(identity);
-				}
-				myPlatform.bornAgent(agentID, myID, agentCerts);
-				instance.powerUp(agentID, myResourceManager);
-			}
-			catch (NameClashException nce) {
-				System.out.println("Agentname already in use:"+nce.getMessage());
-				localAgents.remove(agentID);
-				if (previous != null) {
-					localAgents.put(agentID, previous);
-				}
-			}
-			catch (IMTPException re) {
-				System.out.println("Communication error while adding a new agent to the platform.");
-				re.printStackTrace();
-				localAgents.remove(agentID);
-			}
-			catch (NotFoundException nfe) {
-				System.out.println("This container does not appear to be registered with the main container.");
-				localAgents.remove(agentID);
-			}
-			catch (AuthException ae) {
-				System.out.println("Authorization or authentication error while adding a new agent to the platform.");
-				ae.printStackTrace();
-				localAgents.remove(agentID);
-			}
-		}
-	}
+  public void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException {
+      
+      // Subscribe as a listener for the new agent
+      instance.setToolkit(this);
+      
+      // put the agent in the local table and get the previous one, if any
+      Agent previous = localAgents.put(agentID, instance);
+      if(startIt) {
+          try {
+              CertificateFolder agentCerts = instance.getCertificateFolder();
+              if(agentCerts.getIdentityCertificate() == null) {
+                  AgentPrincipal principal = authority.createAgentPrincipal(agentID, AgentPrincipal.NONE);
+                  IdentityCertificate identity = authority.createIdentityCertificate();
+                  identity.setSubject(principal);
+                  authority.sign(identity, certs);
+                  agentCerts.setIdentityCertificate(identity);
+              }
+              myPlatform.bornAgent(agentID, myID, agentCerts);
+              instance.powerUp(agentID, myResourceManager);
+          }
+          catch(NameClashException nce) {
+              // System.out.println("Agentname already in use:"+nce.getMessage());
+              localAgents.remove(agentID);
+              if(previous != null) {
+                  localAgents.put(agentID, previous);
+              }
+              throw nce;
+          }
+          catch (IMTPException imtpe) {
+              localAgents.remove(agentID);
+              throw imtpe;
+          }
+          catch (NotFoundException nfe) {
+              localAgents.remove(agentID);
+              throw nfe;
+          }
+          catch (AuthException ae) {
+              localAgents.remove(agentID);
+              throw ae;
+          }
+      }
+  }
 
   public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
     Agent agent = localAgents.acquire(agentID);
@@ -810,7 +809,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void handleStart(String localName, Agent instance) {
     AID agentID = new AID(localName, AID.ISLOCALNAME);
-    initAgent(agentID, instance, START);
+    try {
+        initAgent(agentID, instance, START);
+    }
+    catch(NameClashException ne) {
+        // Do nothing, since this agent hassn't started yet
+    }
+    catch(IMTPException imtpe) {
+        // Do nothing, since this agent hassn't started yet
+    }
+    catch(NotFoundException nfe) {
+        // Do nothing, since this agent hassn't started yet
+    }
+    catch(AuthException ae) {
+        // Do nothing, since this agent hassn't started yet
+    }
+
   }
 
   public void handleEnd(AID agentID) {
