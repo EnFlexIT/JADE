@@ -108,6 +108,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Unique ID of the platform, used to build the GUID of resident
   // agents.
+  protected Profile myProfile;
   protected static String platformID;
   protected static String platformRMI;
   protected ContainerID myID;
@@ -123,10 +124,12 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
-  AgentContainerImpl() throws RemoteException {
+  AgentContainerImpl(Profile p) throws RemoteException {
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
+
+    myProfile = p;
 
   }
 
@@ -468,8 +471,13 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
   }
 
-  public void route(Object env, byte[] payload, String address) throws RemoteException, MTPException {
-    theACC.forwardMessage((jade.domain.FIPAAgentManagement.Envelope)env, payload, address);
+  public void routeOut(ACLMessage msg, AID receiver, String address) throws RemoteException, MTPException {
+    theACC.forwardMessage(msg, receiver, address);
+  }
+
+
+  void routeIn(ACLMessage msg, AID receiver) {
+    unicastPostMessage(msg, receiver);
   }
 
   void joinPlatform( String pRMI, Iterator agentSpecifiers, String[] MTPs,String[] ACLCodecs) {
@@ -488,7 +496,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
-      theACC = new acc(this, platformID);
+      theACC = myProfile.getAcc();
+
+      theACC.initialize(this, myProfile);
 
       //Install the ACLCodecs inserted by command line.
       for(int i =0; i<ACLCodecs.length;i++){
@@ -889,9 +899,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   {
   	return platformID;
   }
-  
-  // FIXME: Temporary hack (this should be private)
-  void unicastPostMessage(ACLMessage msg, AID receiverID) {
+
+  private void unicastPostMessage(ACLMessage msg, AID receiverID) {
 
     AgentProxy ap = cachedProxies.get(receiverID);
     if(ap != null) { // Cache hit :-)
