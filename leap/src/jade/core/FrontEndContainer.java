@@ -435,7 +435,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   
   private synchronized void post(ACLMessage msg, String sender) {
   	synchronized(pending) {
-	  	pending.addElement(msg);
+	  	pending.addElement(msg.clone());
 	  	pending.addElement(sender);
 	  	pending.notifyAll();
   	}
