@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.19  1999/04/07 11:42:10  rimassa
+  Removed wrong exception handler from takeDown() method. Fixed a bug
+  where ACL request messages were sent twice to the AMS.
+
   Revision 1.18  1999/04/06 16:12:30  rimassa
   Added a check on InterruptedException during dispose().
 
@@ -284,12 +288,7 @@ public class rma extends Agent {
   public void takeDown() {
     send(AMSCancellation);
     myGUI.setVisible(false);
-    try {
-      myGUI.dispose();
-    }
-    catch(InterruptedException ie) {
-      // Do nothing, since it's time to die...
-    }
+    myGUI.dispose();
   }
 
 
@@ -346,7 +345,6 @@ public class rma extends Agent {
     StringWriter suspendText = new StringWriter();
     a.toText(suspendText);
     requestMsg.setContent(suspendText.toString());
-    send(requestMsg);
 
     addBehaviour(new AMSClientBehaviour("SuspendAgent", requestMsg));
 
@@ -377,7 +375,6 @@ public class rma extends Agent {
     StringWriter resumeText = new StringWriter();
     a.toText(resumeText);
     requestMsg.setContent(resumeText.toString());
-    send(requestMsg);
 
     addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
   }
@@ -399,8 +396,6 @@ public class rma extends Agent {
     kaa.toText(killText);
     requestMsg.setContent(killText.toString());
 
-    send(requestMsg);
-
     addBehaviour(new AMSClientBehaviour("KillAgent", requestMsg));
 
   }
@@ -415,8 +410,6 @@ public class rma extends Agent {
     StringWriter killText = new StringWriter();
     kca.toText(killText);
     requestMsg.setContent(killText.toString());
-
-    send(requestMsg);
 
     addBehaviour(new AMSClientBehaviour("KillContainer", requestMsg));
 
