@@ -206,7 +206,8 @@ public class SnifferGUI extends JFrame {
 			toDispose.dispose();
       }
     }
-    EventQueue.invokeLater(new disposeIt(this));
+    SwingUtilities.invokeLater(new disposeIt(this));
+    SwingUtilities.invokeLater(new disposeIt(MMAbstractAction.selFrame));
   }
 
 }
