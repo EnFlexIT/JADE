@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/03/09 13:05:06  rimassa
+  A minor change to avoid using deprecated 'ACLMessage.getDest()' calls.
+
   Revision 1.2  1998/12/08 00:07:17  rimassa
   Removed handcrafted content generation for request message; now using
   updated DFSearchBehaviour.toText() method.
@@ -38,7 +41,7 @@ public class SearchDFBehaviour extends FipaRequestClientBehaviour {
 
     result = r;
 
-    String dfName = msg.getDest();
+    String dfName = msg.getFirstDest();
     String sender = msg.getSource();
     AgentManagementOntology o = AgentManagementOntology.instance();
     if((dfName == null)||(sender == null))
