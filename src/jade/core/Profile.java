@@ -54,14 +54,14 @@ public abstract class Profile {
      (or the IP address) of the network host where the JADE Main
      Container is running.
    */
-  public static final String MAIN_HOST = "main-host";
+  public static final String MAIN_HOST = "host";
 
   /**
      This constant is the name of the property whose value contains an
      integer representing the port number where the Main Container is
      listening for container registrations.
    */
-  public static final String MAIN_PORT = "main-port";
+  public static final String MAIN_PORT = "port";
 
   public static final String MAINAUTH_CLASS = "main-auth";
   public static final String AUTHORITY_CLASS = "authority";
