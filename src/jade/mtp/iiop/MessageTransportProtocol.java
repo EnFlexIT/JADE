@@ -85,7 +85,7 @@ public class MessageTransportProtocol implements MTP {
 	}
 
 	// Read in the 'from' slot
-	if(IDLenv.to.length > 0) {
+	if(IDLenv.from.length > 0) {
 	  AID id = unmarshalAID(IDLenv.from[0]);
 	  env.setFrom(id);
 	}
