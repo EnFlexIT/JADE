@@ -75,6 +75,12 @@ import jade.gui.AboutJadeAction;
     paintM(true,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
+    menu.addSeparator();
+    paintM(true, (RMAAction)actPro.actions.get(actPro.LOADAGENT_ACTION));
+    paintM(true, (RMAAction)actPro.actions.get(actPro.SAVEAGENT_ACTION));
+    menu.addSeparator();
+    paintM(true, (RMAAction)actPro.actions.get(actPro.FREEZEAGENT_ACTION));
+    paintM(true, (RMAAction)actPro.actions.get(actPro.THAWAGENT_ACTION));
     add(menu);
 
     menu = new JMenu ("Tools");
