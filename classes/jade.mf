@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Class-Path: modules/boot.jar modules/main_container.jar modules/kernel_j2se.jar modules/utils.jar modules/imtp_rmi.jar modules/kernel_share.jar modules/tools.jar Base64.jar
+Class-Path: jadeTools.jar Base64.jar
 Main-Class: jade.Boot
