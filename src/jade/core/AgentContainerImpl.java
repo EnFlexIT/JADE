@@ -814,7 +814,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 			catch (AuthException ae) {
 				lastException = ae;
-				ae.printStackTrace();
+				//ae.printStackTrace();
 				notifyFailureToSender(msg, new InternalError(ae.getMessage()));
 			}
 		}

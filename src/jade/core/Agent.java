@@ -1802,7 +1802,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
       catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
-      } catch(AuthException e) {
+    } catch(AuthException e) {
 		  // FIXME: maybe should send a message to the agent
 		  System.out.println("AuthException: "+e.getMessage() );
 	} catch(Exception ie) {
@@ -1884,8 +1884,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			    }
 		    } catch (FIPAException fe) {
 			    fe.printStackTrace();
-		    } catch (AuthException ae) {
-			    ae.printStackTrace();
+		    } catch (AuthException e) {
+				System.out.println("AuthException: "+e.getMessage() );;
+			    //e.printStackTrace();
 		    }
 		}
 
@@ -1978,6 +1979,9 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				}
 			});
 		}
+		catch (AuthException e) {
+			System.out.println("AuthException: "+e.getMessage() );;
+		} 
 		catch (Exception e) {
 			e.printStackTrace();
 		} 
@@ -2308,6 +2312,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
 							return null;
 						}
 					});
+				}
+				catch (AuthException e) {
+		  			System.out.println("AuthException: "+e.getMessage() );
+					//e.printStackTrace();
 				}
 				catch (Exception e) {
 					e.printStackTrace();
