@@ -36,21 +36,37 @@ package jade.imtp.leap;
  */
 public interface ConnectionListener {
 	/**
-	   This method is called whenever a temporary disconnection 
-	   is detected.
+	   This event is rised just before each attempt to create 
+	   a network connection. A common use case consists in reacting to
+	   it to set up an appropriate PDP context just if not in place
+	   already.
 	 */
-	public void handleDisconnection();
+	public static final int BEFORE_CONNECTION = 1;
 	
 	/**
-	   This method is called whenever a the device reconnects
+	   This event is raised whenever a temporary disconnection 
+	   is detected.
+	 */
+	public static final int DISCONNECTED = 2;
+	
+	/**
+	   This event is raised whenever a the device reconnects
 	   after a temporary disconnection.
 	 */
-	public void handleReconnection();
+	public static final int RECONNECTED = 3;
 
 	/**
-	   This method is called when the device detects it is no longer
+	   This event is raised when the device detects it is no longer
 	   possible to reconnect (e.g. because the maximum disconnection 
 	   timeout expired) 
 	 */
-	public void handleReconnectionFailure();
+	public static final int RECONNECTION_FAILURE = 4;
+
+	/**
+	   This event is raised when the mediator replies with a BE Not Found
+	   to a connection request.
+	 */
+	public static final int BE_NOT_FOUND = 5;
+	
+	public void handleConnectionEvent(int ev);
 }
