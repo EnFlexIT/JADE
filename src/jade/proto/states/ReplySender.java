@@ -115,5 +115,14 @@ public void action(){
 			}	
 		}
 	}
+
+    //#APIDOC_EXCLUDE_BEGIN
+
+    // For persistence service
+    protected ReplySender() {
+    }
+
+    //#APIDOC_EXCLUDE_END
+
 	
 }

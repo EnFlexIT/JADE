@@ -87,7 +87,14 @@ public class MsgReceiver extends SimpleBehaviour {
 		interrupted = false;
 	}
 
+
+
     //#APIDOC_EXCLUDE_BEGIN	
+
+    // For persistence service
+    protected MsgReceiver() {
+    }
+
 	public void action() {
 		if (interrupted) {
 			getDataStore().put(receivedMsgKey, null); 
