@@ -106,7 +106,12 @@ public class FSMBehaviour extends SerialBehaviour {
   	state.setParent(this);
 	state.setAgent(myAgent);
   	states.put(name, state);
-
+  	
+  	// Maybe we are over-writing the state that is currently in execution
+  	if (name.equals(currentName)) {
+  		current = state;
+  	}
+  		
 	//#MIDP_EXCLUDE_BEGIN
 	persistentSubBehaviours.put(name, state);
 	//#MIDP_EXCLUDE_END
