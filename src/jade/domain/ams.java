@@ -235,8 +235,8 @@ public class ams extends Agent implements AgentManager.Listener {
 			// This agent was created by some other, which is still
 			// waiting for an 'inform' message. Recover the buffered
 			// message from the Map and send it back.
-			CreationInfo creation = (CreationInfo)creations.remove(amsd.getName());
-			//!!! michele removed next lines
+			CreationInfo creation = (CreationInfo)creations.get(amsd.getName());
+			//!!! michele removed next lines: now a global name is stored
 			/*
 			// The message in creations can be registered with only the localName
 			// without the platformID
@@ -252,11 +252,11 @@ public class ams extends Agent implements AgentManager.Listener {
 			
 			try {
 				// Write new agent data in AMS Agent Table
-				AMSRegister(amsd, getRequest().getSender(), creation);
+				AMSRegister(amsd, getRequest().getSender());
 				sendReply(ACLMessage.AGREE, createAgreeContent(a));
 				sendReply(ACLMessage.INFORM, doneAction(a));
 				// Inform agent creator that registration was successful.
-				if (creation !=  null) {
+				if (creation != null && creation.getReply() != null) {
 					send(creation.getReply());
 				}
 			}
@@ -265,7 +265,7 @@ public class ams extends Agent implements AgentManager.Listener {
 				String ontoName = getRequest().getOntology();
 				sendReply(ACLMessage.FAILURE, createExceptionalMsgContent(a, ontoName, are));
 				// Inform agent creator that registration failed.
-				if (creation != null) {
+				if (creation != null && creation.getReply() != null) {
 					ACLMessage creationReply = creation.getReply();
 					creationReply.setPerformative(ACLMessage.FAILURE);
 					creationReply.setContent(createExceptionalMsgContent(a, ontoName, are));
@@ -652,7 +652,6 @@ public class ams extends Agent implements AgentManager.Listener {
 			String ownership = UserPrincipal.NONE;
 			AID creator = getRequest().getSender();
 			ownership = getAgentOwnership(creator);
-			System.out.println("creator.owner=" + ownership); //!!!
 
 			Authority authority = getAuthority();
 			UserPrincipal user = authority.createUserPrincipal();
@@ -1193,20 +1192,22 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	  return true;
 	}
-	catch(ClassCastException cce) {
+	catch (ClassCastException cce) {
 	  return false;
 	}
       }
     };
 
 	/** it is called also by Agent.java **/
-	public void AMSRegister(AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
+	public void AMSRegister(AMSAgentDescription amsd, AID sender) throws FIPAException, AuthException {
 		checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old != null) {
 			agentDescriptions.register(old.getName(), old);
 			throw new AlreadyRegistered();
 		}
+
+		CreationInfo creation = (CreationInfo)creations.remove(amsd.getName());
 
 		old = new AMSAgentDescription();
 		old.setName(amsd.getName());
@@ -1242,10 +1243,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
-		System.out.println("modifying: " + amsd.getName().getName());
-		System.out.println("modifying: " + amsd.getOwnership());
 		Authority authority = getAuthority();
-		if (action.equals(Authority.AMS_REGISTER)) System.out.println("amsreg: "+creation);//!!!
 		AID name = old.getName();
 
 		String oldOwnership = old.getOwnership();
@@ -1338,7 +1336,6 @@ public class ams extends Agent implements AgentManager.Listener {
 			agentDescriptions.register(old.getName(), old);
 			throw ae;
 		}
-		System.out.println("modified " + getAgentOwnership(amsd.getName()));
 	}
 
 	private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply, AID senderID) throws FIPAException, AuthException {
@@ -1395,7 +1392,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	void checkAction(String action, ContainerID container, AID sender) throws AuthException {
 		//!!! null-check
-		getAuthority().checkAction(action, (ContainerPrincipal)containers.get(container), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
+		getAuthority().checkAction(action, getContainerPrincipal(container), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
 	}
 	
 	AgentPrincipal getAgentPrincipal(AID agent) {
@@ -1404,6 +1401,18 @@ public class ams extends Agent implements AgentManager.Listener {
 		user.init(getAgentOwnership(agent));
 		AgentPrincipal principal = authority.createAgentPrincipal();
 		principal.init(agent, user);
+		return principal;
+	}
+
+	ContainerPrincipal getContainerPrincipal(ContainerID container) {
+		ContainerPrincipal principal = (ContainerPrincipal)containers.get(container);
+		if (principal == null) {
+			Authority authority = getAuthority();
+			UserPrincipal user = authority.createUserPrincipal();
+			user.init(UserPrincipal.NONE);
+			principal = authority.createContainerPrincipal();
+			principal.init(container, user);
+		}
 		return principal;
 	}
 

@@ -63,11 +63,12 @@ import jade.content.ContentManager;
 
 //__SECURITY__BEGIN
 import jade.security.Authority;
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
-import jade.security.AuthException;
+import jade.security.PrivilegedExceptionAction;
 //__SECURITY__END
 
 /**
@@ -441,6 +442,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private AgentPrincipal principal = null;
   private IdentityCertificate identity = null;
   private DelegationCertificate delegation = null;
+  private DelegationCertificate[] delegations = null;
 //__SECURITY__END
   
   /**
@@ -962,6 +964,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		synchronized (principalLock) {
 			this.identity = identity;
 			this.delegation = delegation;
+			this.delegations = new DelegationCertificate[] {delegation};
 			this.principal = principal;
 			notifyChangedAgentPrincipal(old, principal, identity);
 		}
@@ -990,6 +993,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	
 	public DelegationCertificate getDelegation() {
 		return delegation;
+	}
+	
+	public synchronized void setDelegations(DelegationCertificate[] delegations) {
+		this.delegations = delegations;
+	}
+	
+	public synchronized DelegationCertificate[] getDelegations() {
+		if (delegations == null && delegation != null)
+			delegations = new DelegationCertificate[] {delegation};
+		return delegations;
+	}
+	
+	public void doPrivileged(PrivilegedExceptionAction action) throws Exception {
+		getAuthority().doAsPrivileged(action, getIdentity(), getDelegations());
 	}
 	//__SECURITY__END
 
@@ -1481,7 +1498,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	// No 'break' statement - fall through
       case AP_ACTIVE:
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd, myAID, null);
+	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
 	else
 	  AMSService.register(this, amsd);
         notifyStarted();
@@ -1494,7 +1511,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       case AP_COPY:
 	doExecute();
 	if (myAID.equals(getAMS())) //special version for the AMS to avoid deadlock
-	  ((jade.domain.ams)this).AMSRegister(amsd, myAID, null);
+	  ((jade.domain.ams)this).AMSRegister(amsd, myAID);
 	else
 	  AMSService.register(this, amsd);
 	afterClone();
@@ -1896,78 +1913,119 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
 
-  /**
-     Send an <b>ACL</b> message to another agent. This methods sends
-     a message to the agent specified in <code>:receiver</code>
-     message field (more than one agent can be specified as message
-     receiver).
-     @param msg An ACL message object containing the actual message to
-     send.
-     @see jade.lang.acl.ACLMessage
-  */
-  public final void send(ACLMessage msg) {
-    try {
-      if(msg.getSender().getName().length() < 1)
-	msg.setSender(myAID);
-    } catch (NullPointerException e) {
-	msg.setSender(myAID);
-    }
-    notifySend(msg);
-  }
-
-  /**
-     Receives an <b>ACL</b> message from the agent message
-     queue. This method is non-blocking and returns the first message
-     in the queue, if any. Therefore, polling and busy waiting is
-     required to wait for the next message sent using this method.
-     @return A new ACL message, or <code>null</code> if no message is
-     present.
-     @see jade.lang.acl.ACLMessage
-  */
-  public final ACLMessage receive() {
-    synchronized(waitLock) {
-      if(msgQueue.isEmpty()) {
-	return null;
-      }
-      else {
-	currentMessage = msgQueue.removeFirst();
-	notifyReceived(currentMessage);
-	return currentMessage;
-      }
-    }
-  }
-
-  /**
-     Receives an <b>ACL</b> message matching a given template. This
-     method is non-blocking and returns the first matching message in
-     the queue, if any. Therefore, polling and busy waiting is
-     required to wait for a specific kind of message using this method.
-     @param pattern A message template to match received messages
-     against.
-     @return A new ACL message matching the given template, or
-     <code>null</code> if no such message is present.
-     @see jade.lang.acl.ACLMessage
-     @see jade.lang.acl.MessageTemplate
-  */
-  public final ACLMessage receive(MessageTemplate pattern) {
-    ACLMessage msg = null;
-    synchronized(waitLock) {
-      Iterator messages = msgQueue.iterator();
-
-      while(messages.hasNext()) {
-	ACLMessage cursor = (ACLMessage)messages.next();
-	if(pattern.match(cursor)) {
-	  msg = cursor;
-	  msgQueue.remove(cursor);
-	  currentMessage = cursor;
-	  notifyReceived(msg);
-	  break; // Exit while loop
+	private class SendAction implements PrivilegedExceptionAction {
+		ACLMessage message;
+		SendAction(ACLMessage message) {
+			this.message = message;
+		}
+		public Object run() throws AuthException {
+			notifySend(message);
+			return null;
+		}
 	}
-      }
-    }
+	
+	private class ReceiveAction implements PrivilegedExceptionAction {
+		ACLMessage message;
+		ReceiveAction(ACLMessage message) {
+			this.message = message;
+		}
+		public Object run() throws AuthException {
+			notifyReceived(message);
+			return null;
+		}
+	}
+	
+	/**
+		Send an <b>ACL</b> message to another agent. This methods sends
+		a message to the agent specified in <code>:receiver</code>
+		message field (more than one agent can be specified as message
+		receiver).
+		@param msg An ACL message object containing the actual message to
+		send.
+		@see jade.lang.acl.ACLMessage
+	*/
+	public final void send(ACLMessage msg) {
+		try {
+			if (msg.getSender().getName().length() < 1)
+				msg.setSender(myAID);
+		}
+		catch (NullPointerException e) {
+			msg.setSender(myAID);
+		}
+		//notifySend(msg);
+		try {
+			doPrivileged(new SendAction(msg));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    return msg;
-  }
+	/**
+		Receives an <b>ACL</b> message from the agent message
+		queue. This method is non-blocking and returns the first message
+		in the queue, if any. Therefore, polling and busy waiting is
+		required to wait for the next message sent using this method.
+		@return A new ACL message, or <code>null</code> if no message is
+		present.
+		@see jade.lang.acl.ACLMessage
+	*/
+	public final ACLMessage receive() {
+		synchronized (waitLock) {
+			if (msgQueue.isEmpty()) {
+				return null;
+			}
+			else {
+				currentMessage = msgQueue.removeFirst();
+				//notifyReceived(currentMessage);
+				try {
+					doPrivileged(new ReceiveAction(currentMessage));
+				}
+				catch (Exception e) {
+					//!!! discard the message
+					return receive();
+				}
+				return currentMessage;
+			}
+		}
+	}
+
+	/**
+		Receives an <b>ACL</b> message matching a given template. This
+		method is non-blocking and returns the first matching message in
+		the queue, if any. Therefore, polling and busy waiting is
+		required to wait for a specific kind of message using this method.
+		@param pattern A message template to match received messages
+		against.
+		@return A new ACL message matching the given template, or
+		<code>null</code> if no such message is present.
+		@see jade.lang.acl.ACLMessage
+		@see jade.lang.acl.MessageTemplate
+	*/
+	public final ACLMessage receive(MessageTemplate pattern) {
+		ACLMessage msg = null;
+		synchronized (waitLock) {
+			Iterator messages = msgQueue.iterator();
+
+			while (messages.hasNext()) {
+				ACLMessage cursor = (ACLMessage)messages.next();
+				if (pattern.match(cursor)) {
+					//notifyReceived(msg);
+					try {
+						doPrivileged(new ReceiveAction(cursor));
+						msgQueue.remove(cursor);
+						currentMessage = cursor;
+						msg = cursor;
+						break; // Exit while loop
+					}
+					catch (Exception e) {
+					}
+				}
+			}
+		}
+
+		return msg;
+	}
 
   /**
      Receives an <b>ACL</b> message from the agent message
@@ -2122,13 +2180,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // Notify toolkit that a message was extracted from the message
   // queue
-  private void notifyReceived(ACLMessage msg) {
+  private void notifyReceived(ACLMessage msg) throws AuthException {
     myToolkit.handleReceived(myAID, msg);
   }
 
   // Notify toolkit of the need to send a message
-  private void notifySend(ACLMessage msg) {
-    myToolkit.handleSend(msg);
+  private void notifySend(ACLMessage msg) throws AuthException {
+  	myToolkit.handleSend(msg);
   }
 
   // Notify toolkit of the destruction of the current agent

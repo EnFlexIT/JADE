@@ -108,6 +108,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private IdentityCertificate identity;
   private DelegationCertificate delegation;
   private Authority authority;
+  private Map principals = new HashMap();
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
@@ -133,12 +134,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent agent = null;
     try {
       agent = (Agent)Class.forName(new String(className)).newInstance();
-      agent.setOwnership(ownership);
+      // Set agent principal and certificates
       if (identity != null) {
-      	System.out.println("" + identity.getSubject()); //!!!
 	      agent.setPrincipal((AgentPrincipal)identity.getSubject(), identity, delegation);
 	    }
-      agent.setArguments(args);
+	    else if (ownership != null) {
+  	  	AgentPrincipal principal = authority.createAgentPrincipal();
+    		principal.init(agentID, extractUser(ownership));
+      	agent.setPrincipal(principal, null, null);
+      }
+      // Set agent ownership
+      if (ownership != null)
+	      agent.setOwnership(ownership);
+	    else if (identity != null)
+      	agent.setOwnership(((AgentPrincipal)identity.getSubject()).getUser().getName());
     }
     catch(ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
@@ -218,15 +227,26 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 //__SECURITY__BEGIN
   public void changeAgentPrincipal(AID agentID, AgentPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
+    principals.put(agentID, principal);
     Agent agent = localAgents.get(agentID);
-    if (agent == null)
-      throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
-    agent.setPrincipal(principal, identity, delegation);
+    if (agent != null && identity != null)
+	    agent.setPrincipal(principal, identity, delegation);
   }
 
   public void changeContainerPrincipal(ContainerPrincipal principal, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
     this.identity = identity;
     this.delegation = delegation;
+  }
+  
+  public AgentPrincipal getAgentPrincipal(AID agentID) {
+  	AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
+  	if (principal == null) {
+  		UserPrincipal user = authority.createUserPrincipal();
+  		user.init(UserPrincipal.NONE);
+  		principal = authority.createAgentPrincipal();
+  		principal.init(agentID, user);
+  	}
+  	return principal;
   }
 //__SECURITY__END
 
@@ -452,7 +472,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   void routeIn(ACLMessage msg, AID receiver) {
-    unicastPostMessage(msg, receiver);
+   	unicastPostMessage(msg, receiver);
   }
   
   public Authority getAuthority() {
@@ -563,7 +583,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
     }
-    catch(IMTPException imtpe) {
+    catch (IMTPException imtpe) {
       System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
       imtpe.printStackTrace();
       Runtime.instance().endContainer();
@@ -575,7 +595,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       Runtime.instance().endContainer();
       return;
     }
-    catch(Exception e) {
+    catch (Exception e) {
       System.err.println("Some problem occurred while contacting agent platform.");
       e.printStackTrace();
       Runtime.instance().endContainer();
@@ -592,13 +612,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
 
 	  try {
+	    AgentPrincipal agentPrincipal = authority.createAgentPrincipal();
+   		agentPrincipal.init(agentID, user);
+	    IdentityCertificate agentIdentity = null;
+	    DelegationCertificate agentDelegation = null;
 	    
 	    try {
-	    	IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-	    	DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+	    	agentIdentity = authority.createIdentityCertificate();
+	    	agentDelegation = authority.createDelegationCertificate();
 	    	if (agentIdentity != null && agentDelegation != null) {
-	    		AgentPrincipal agentPrincipal = authority.createAgentPrincipal();
-	    		agentPrincipal.init(agentID, user);
 	    		agentIdentity.setSubject(agentPrincipal);
 	    		authority.sign(agentIdentity, identity, new DelegationCertificate[] {delegation});
 	    		agentDelegation.setSubject(agentPrincipal);
@@ -620,6 +642,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      continue;
 	    }
 	    myPlatform.bornAgent(agentID, myID);
+	    myPlatform.changedAgentPrincipal(agentID, null, agentPrincipal, agentIdentity);
 	  }
 	  catch(IMTPException imtpe1) {
 	    imtpe1.printStackTrace();
@@ -641,7 +664,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     	// Now activate all agents (this call starts their embedded threads)
     	AID[] allLocalNames = localAgents.keys();
-    	for(int i = 0; i < allLocalNames.length; i++) {
+    	for (int i = 0; i < allLocalNames.length; i++) {
       	AID id = allLocalNames[i];
       	Agent agent = localAgents.get(id);
       	agent.powerUp(id, myResourceManager);
@@ -721,55 +744,72 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return myID;
   }
 
-  public void handleSend(ACLMessage msg) {
+	public void handleSend(ACLMessage msg) throws AuthException {
 
-    // 26-Mar-2001. The receivers set into the Envelope of the message, 
-    // if present, must have precedence over those set into the ACLMessage.
-    // If no :intended-receiver parameter is present in the Envelope, 
-    // then the :to parameter
-    // is used to generate :intended-receiver field. 
-    //
-    // create an Iterator with all the receivers to which the message must be 
-    // delivered
-    Iterator it=null;
-    Envelope env = msg.getEnvelope();
-    if(env != null) {
-      it = env.getAllIntendedReceiver();
-      if((it != null) && (it.hasNext()) ) {
-	//System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
-	// ok. use the intendedreceiver
-      }
-      else {
-	it = env.getAllTo();
-	if((it != null) && (it.hasNext())) {
-	  //System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
-	  // ok. use the :to
-	  // FIXME. Should I copy all the :to values in the :IntendedReceiver?
+		AgentPrincipal target1 = getAgentPrincipal(msg.getSender());
+		authority.checkAction(Authority.AGENT_SEND_AS, target1, null, null);
+
+		AuthException lastException = null;
+
+		// 26-Mar-2001. The receivers set into the Envelope of the message, 
+		// if present, must have precedence over those set into the ACLMessage.
+		// If no :intended-receiver parameter is present in the Envelope, 
+		// then the :to parameter
+		// is used to generate :intended-receiver field. 
+		//
+		// create an Iterator with all the receivers to which the message must be 
+		// delivered
+		Iterator it = null;
+		Envelope env = msg.getEnvelope();
+		if (env != null) {
+			it = env.getAllIntendedReceiver();
+			if ((it != null) && (it.hasNext())) {
+				//System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
+				// ok. use the intendedreceiver
+			}
+			else {
+				it = env.getAllTo();
+				if ((it != null) && (it.hasNext())) {
+					//System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
+					// ok. use the :to
+					// FIXME. Should I copy all the :to values in the :IntendedReceiver?
+				}
+				else {
+					it = msg.getAllReceiver();
+					// ok. use the receivers set in the ACLMessage
+				}
+			}
+		}
+		else
+			it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
+		if (it == null)
+			return; // No Message is sent in this case because no receiver was found
+		
+		// Now it contains the Iterator with all the receivers of this message
+		// Iterator it = msg.getAllReceiver();
+		while (it.hasNext()) {
+			try {
+				AID dest = (AID)it.next();
+				AgentPrincipal target2 = getAgentPrincipal(dest);
+				authority.checkAction(Authority.AGENT_SEND_TO, target2, null, null);
+				ACLMessage copy = (ACLMessage)msg.clone();
+				unicastPostMessage(copy, dest);
+			}
+			catch (AuthException ae) {
+				lastException = ae;
+				ae.printStackTrace();
+				notifyFailureToSender(msg, new InternalError(ae.getMessage()));
+			}
+		}
+
+		// Notify message listeners
+		//fireSentMessage(msg, msg.getSender());
+		myNotificationManager.fireEvent(NotificationManager.SENT_MESSAGE,
+			new Object[] {msg, msg.getSender()});
+
+		if (lastException != null)
+			throw lastException;
 	}
-	else {
-	  it = msg.getAllReceiver();
-	  // ok. use the receivers set in the ACLMessage
-	}
-      }
-    }
-    else 
-      it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
-    if(it == null)
-      return; // No Message is sent in this case because no receiver was found
-    // now it contains the Iterator with all the receivers of this message
-    // Iterator it = msg.getAllReceiver();
-    while(it.hasNext()) {
-      AID dest = (AID)it.next();
-      ACLMessage copy = (ACLMessage)msg.clone();
-      unicastPostMessage(copy, dest);
-    }
-
-    // Notify message listeners
-    //fireSentMessage(msg, msg.getSender());
-    myNotificationManager.fireEvent(NotificationManager.SENT_MESSAGE,
-    	new Object[]{msg, msg.getSender()});
-
-  }
 
   public void handlePosted(AID agentID, ACLMessage msg) {
     //firePostedMessage(msg, agentID);
@@ -777,7 +817,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	new Object[]{msg, agentID});
   }
 
-  public void handleReceived(AID agentID, ACLMessage msg) {
+  public void handleReceived(AID agentID, ACLMessage msg) throws AuthException {
+  	AgentPrincipal target = getAgentPrincipal(msg.getSender());
+		authority.checkAction(Authority.AGENT_RECEIVE_FROM, target, null, null);
     //fireReceivedMessage(msg, agentID);
     myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
     	new Object[]{msg, agentID});
@@ -937,7 +979,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		String content = "( (action " + msg.getSender().toString();
 		content = content + " ACLMessage ) "+ie.getMessage()+")" ;
 		failure.setContent(content);
-		handleSend(failure);
+		try {
+			handleSend(failure);
+		}
+		catch (AuthException ae) {
+		}
   }
 
 

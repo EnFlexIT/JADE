@@ -143,7 +143,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		return authority;
 	}
 
-	public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, AuthException {
+	public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] password) throws IMTPException, AuthException {
 		// Authenticate user
 		ContainerPrincipal principal = getAuthority().createContainerPrincipal();
 		principal.init(cid, user);
@@ -151,10 +151,10 @@ class MainContainerImpl implements Platform, AgentManager {
 		DelegationCertificate delegation = authority.createDelegationCertificate();
 		if (identity != null && delegation != null) {
 			identity.setSubject(principal);
-			authority.authenticate(identity, delegation, passwd);
+			authority.authenticate(identity, delegation, password);
 		}
-		authority.checkAction(Authority.PLATFORM_CREATE, principal, identity, new DelegationCertificate[]{delegation});
-		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[]{delegation});
+		authority.checkAction(Authority.PLATFORM_CREATE, principal, identity, new DelegationCertificate[] {delegation});
+		authority.checkAction(Authority.CONTAINER_CREATE, principal, identity, new DelegationCertificate[] {delegation});
 
 		// Set the container-principal
 		ac.changeContainerPrincipal(principal, identity, delegation);
@@ -164,21 +164,39 @@ class MainContainerImpl implements Platform, AgentManager {
 		containers.addContainer(cid, ac);
 		containersProgNo++;
 
-		String ownership = user.getName() + ":" + new String(passwd);
+		String ownership = user.getName() + ":" + new String(password);
 
 		// Start the AMS
 		theAMS = new ams(this);
 		theAMS.setOwnership(ownership);
+		AgentPrincipal amsPrincipal = authority.createAgentPrincipal();
+		amsPrincipal.init(Agent.getAMS(), user);
+		IdentityCertificate amsIdentity = authority.createIdentityCertificate();
+		DelegationCertificate amsDelegation = authority.createDelegationCertificate();
+		if (amsIdentity != null && amsDelegation != null) {
+			amsIdentity.setSubject(amsPrincipal);
+			authority.authenticate(amsIdentity, amsDelegation, password);
+			theAMS.setPrincipal(amsPrincipal, amsIdentity, amsDelegation);
+		}
 		ac.initAgent(Agent.getAMS(), theAMS, AgentContainer.START);
 		theAMS.waitUntilStarted();
 
 		// Notify the AMS about the main container existence
 		fireAddedContainer(cid);
-		fireChangedContainerPrincipal(cid, principal, principal);
+		fireChangedContainerPrincipal(cid, null, principal);
 
 		// Start the Default DF
 		defaultDF = new df();
 		defaultDF.setOwnership(ownership);
+		AgentPrincipal dfPrincipal = authority.createAgentPrincipal();
+		dfPrincipal.init(Agent.getDefaultDF(), user);
+		IdentityCertificate dfIdentity = authority.createIdentityCertificate();
+		DelegationCertificate dfDelegation = authority.createDelegationCertificate();
+		if (dfIdentity != null && dfDelegation != null) {
+			dfIdentity.setSubject(dfPrincipal);
+			authority.authenticate(dfIdentity, dfDelegation, password);
+			defaultDF.setPrincipal(dfPrincipal, dfIdentity, dfDelegation);
+		}
 		ac.initAgent(Agent.getDefaultDF(), defaultDF, AgentContainer.START);
 		defaultDF.waitUntilStarted();
 		
@@ -375,10 +393,16 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   private void fireChangedContainerPrincipal(ContainerID cid, ContainerPrincipal from, ContainerPrincipal to) {
+  	if (from == null) {
+  		UserPrincipal user = authority.createUserPrincipal();
+  		user.init(UserPrincipal.NONE);
+  		from = authority.createContainerPrincipal();
+  		from.init(cid, user);
+  	}
     PlatformEvent ev = new PlatformEvent(cid, from, to);
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.addedContainer(ev);
+      l.changedContainerPrincipal(ev);
     }
   }
 
@@ -420,9 +444,15 @@ class MainContainerImpl implements Platform, AgentManager {
 
 //__SECURITY__BEGIN
   private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
+  	if (oldPrincipal == null) {
+  		UserPrincipal user = authority.createUserPrincipal();
+  		user.init(UserPrincipal.NONE);
+  		oldPrincipal = authority.createAgentPrincipal();
+  		oldPrincipal.init(agentID, user);
+  	}
     PlatformEvent ev = new PlatformEvent(agentID, cid, oldPrincipal, newPrincipal);
 
-    for(int i = 0; i < platformListeners.size(); i++) {
+    for (int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.changedAgentPrincipal(ev);
     }
@@ -596,14 +626,22 @@ class MainContainerImpl implements Platform, AgentManager {
 			throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
 
 		try {
+			//!!! attenzione se identity == null
 			authority.verify(identity);
 			if (identity != null && ! identity.getSubject().equals(to))
 				throw new AuthException("identity-subject doesn't match new agent principal");
-			
-			// Notify listeners
+
 			ContainerID cid = ad.getContainerID();
-			if (from != null && to != null)
-				fireChangedAgentPrincipal(cid, name, from, to);
+
+			// Notify containers
+			AgentContainer[] allContainers = containers.containers();
+			for (int i = 0; i < allContainers.length; i++) {
+				AgentContainer ac = allContainers[i];
+				ac.changeAgentPrincipal(name, to, null, null);
+			}
+
+			// Notify listeners
+			fireChangedAgentPrincipal(cid, name, from, to);
 		}
 		catch (AuthException ae) {
 			ae.printStackTrace();

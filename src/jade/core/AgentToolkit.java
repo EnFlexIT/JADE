@@ -26,6 +26,7 @@ package jade.core;
 import jade.lang.acl.ACLMessage;
 //__SECURITY__BEGIN
 import jade.security.Authority;
+import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
 //__SECURITY__END
@@ -41,9 +42,9 @@ interface AgentToolkit {
   void handleEnd(AID agentID);
   void handleMove(AID agentID, Location where);
   void handleClone(AID agentID, Location where, String newName);
-  void handleSend(ACLMessage msg);
+  void handleSend(ACLMessage msg) throws AuthException;
   void handlePosted(AID agentID, ACLMessage msg);
-  void handleReceived(AID agentID, ACLMessage msg);
+  void handleReceived(AID agentID, ACLMessage msg) throws AuthException;
   void handleChangedAgentState(AID agentID, AgentState from, AgentState to);
 //__SECURITY__BEGIN
   void handleChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to, IdentityCertificate identity);

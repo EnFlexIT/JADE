@@ -37,5 +37,6 @@ public interface PlatformListener extends EventListener
   void resumedAgent(PlatformEvent ev);
 //__SECURITY__BEGIN  
   void changedAgentPrincipal(PlatformEvent ev);
+  void changedContainerPrincipal(PlatformEvent ev);
 //__SECURITY__END 
 }
