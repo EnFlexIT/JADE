@@ -17,23 +17,37 @@ import jade.lang.acl.*;
     message.
     (ACLMessage)
 
+  + Holds a list of recipients agent to allow trasparent message
+    multicasting
+    (AgentGroup)
+
 ******************************************************************/
 public class CommEvent extends AWTEvent {
 
-  private String      command;
   private ACLMessage  message;
+  private AgentGroup recipients;
 
   public CommEvent(CommBroadcaster source, ACLMessage message) {
     super(source, -1);
     this.message = message;
+    recipients = null;
   }
 
-  public String getCommand() {
-    return command;
+  public CommEvent(CommBroadcaster source, ACLMessage message, AgentGroup group) {
+    this(source, message);
+    recipients = group;
   }
 
   public ACLMessage getMessage() {
     return message;
+  }
+
+  public boolean isMulticast() {
+    return recipients != null;
+  }
+
+  public AgentGroup getRecipients() {
+    return recipients;
   }
 
 }
