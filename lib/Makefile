@@ -188,9 +188,8 @@ batch:
 	echo 'rmdir /S /Q $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
 	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
+	echo 'cd ..' >> $(BATCH_LIB)
 
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\*.jar' >> $(BATCH_CLEAN)
-
-
 
