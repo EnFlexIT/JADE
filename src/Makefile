@@ -4,7 +4,7 @@
 .PHONY: all idl parsers classes stubs images realclean idlclean jjclean batch
 
 MAKE = make
-IDLCC = idltojava -fno-cpp
+IDLCC = idlj -fall
 STUBGEN = rmic 
 PARSERGEN = javacc
 
@@ -160,7 +160,7 @@ batch:
 	echo '@REM ===============================================================' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'cd src' >> $(BATCH_ALL)
-	echo '@REM idltojava not executed because of a bug in the idl compiler' $(IDLCC) $(IDLSPEC) >> $(BATCH_ALL)
+	echo $(IDLCC) $(IDLSPEC) >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
