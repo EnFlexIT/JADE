@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.28  1999/03/03 16:09:34  rimassa
+  Implemented new methods from AgentContainer interface to remotely
+  suspend and resume agents.
+
   Revision 1.27  1999/02/25 08:18:03  rimassa
   Added separate ThreadGroup objects for JADE user agents and JADE
   system agents.
@@ -226,6 +230,34 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
     if(startIt)
       instance.doStart(agentName, platformAddress, agentThreads);
+  }
+
+  public void suspendAgent(String agentName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent == null)
+      throw new NotFoundException("SuspendAgent failed to find " + agentName);
+    agent.doSuspend();
+  }
+
+  public void resumeAgent(String agentName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent == null)
+      throw new NotFoundException("ResumeAgent failed to find " + agentName);
+    agent.doActivate();
+  }
+
+  public void waitAgent(String agentName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent==null)
+      throw new NotFoundException("WaitAgent failed to find " + agentName);
+    agent.doWait();
+  }
+
+  public void wakeAgent(String agentName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent==null)
+      throw new NotFoundException("WaitAgent failed to find " + agentName);
+    agent.doWake();
   }
 
   public void killAgent(String agentName) throws RemoteException, NotFoundException {
