@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.50  1999/11/03 07:52:55  rimassaJade
+  Changed an older, check-and-wait code to adhere to new try-and-see
+  approach.
+
   Revision 1.49  1999/10/20 15:26:48  rimassa
   Removed an useless semicolon.
 
@@ -386,21 +390,16 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     if(receiver == null) 
       throw new NotFoundException("DispatchMessage failed to find " + receiverName);
 
-    synchronized(receiver) {
-      // If this is a mobile agent, Wait until the end of the transaction.
-      while(receiver.getState() == Agent.AP_TRANSIT) {
-	try {
-	  receiver.wait();
-	}
-	catch(InterruptedException ie) {
-	  ie.printStackTrace();
-	}
-      }
-      if(receiver.getState() == Agent.AP_GONE) {
-	throw new TransientException("Agent " + receiverName + " is dead.");
-      }
-      receiver.postMessage(msg);
+    // If this is a mobile agent, Wait until the end of the transaction.
+    if(receiver.getState() == Agent.AP_TRANSIT) {
+      System.out.println("AP_TRANSIT in AgentContainerImpl.dispatch()");
+      throw new TransientException("Agent " + receiverName + " is moving...");
     }
+    if(receiver.getState() == Agent.AP_GONE) {
+      System.out.println("AP_GONE in AgentContainerImpl.dispatch()");
+      throw new TransientException("Agent " + receiverName + " is dead.");
+    }
+    receiver.postMessage(msg);
   }
 
   public void ping() throws RemoteException {
@@ -586,7 +585,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
       // Start an atomic transaction for agent identity transfer
       boolean transferResult = myPlatform.transferIdentity(name + '@' + platformAddress, myName, where);
-      Vector messages = new Vector();
+      Vector messages = new Vector();;
       if(transferResult == TRANSFER_COMMIT) {
 
 	Iterator i = a.messages();

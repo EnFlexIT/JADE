@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.3  1999/11/03 07:50:28  rimassaJade
+  Changed an older, check-and-wait code to adhere to new try-and-see
+  approach.
+
   Revision 1.2  1999/08/27 15:46:32  rimassa
   Added support for TransientException in order to retry message
   dispatch when the receiver agent has moved.
@@ -33,22 +37,16 @@ class LocalProxy implements AgentProxy {
     if(receiver == null)
       throw new NotFoundException("Stale local proxy");
 
-    synchronized(receiver) {
-      // If this is a mobile agent, Wait until the end of the transaction.
-      while(receiver.getState() == Agent.AP_TRANSIT) {
-	try {
-	  receiver.wait();
-	}
-	catch(InterruptedException ie) {
-	  ie.printStackTrace();
-	}
-      }
-      if(receiver.getState() == Agent.AP_GONE) {
-	System.out.println("ARGH!!! in LocalProxy.dispatch()");
-	throw new TransientException("Agent " + receiver.getLocalName() + " is dead.");
-      }
-      receiver.postMessage(msg);
+    // If this is a mobile agent, Wait until the end of the transaction.
+    if(receiver.getState() == Agent.AP_TRANSIT) {
+      System.out.println("AP_TRANSIT in LocalProxy.dispatch()");
+      throw new TransientException("Agent " + receiver.getLocalName() + " is moving...");
     }
+    if(receiver.getState() == Agent.AP_GONE) {
+      System.out.println("AP_GONE in LocalProxy.dispatch()");
+      throw new TransientException("Agent " + receiver.getLocalName() + " is dead.");
+    }
+    receiver.postMessage(msg);
 
   }
 
