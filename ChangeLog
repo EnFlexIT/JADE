@@ -1,4 +1,4 @@
-MAJOR CHANGES since JADE 2.4 ($Date$ $Name$)
+MAJOR CHANGES in JADE 2.5 (5 February 2002) 
 ==========================================================================
 GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - the queue of ACLMessages of an Agent is now set by default to unlimited size.
@@ -9,16 +9,20 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - RMA GUI:
   - added a dialog box to manage all the platform MTPs (i.e.
     installing and deinstalling MTPs)
-  - added a vertical scroll bar to see better all the agents (Ion Constantinescu, EPFL)
-  - Now several APDescriptions can be added via a single AddViaURL command (Ion Constantinescu, EPFL)
+  - added a vertical scroll bar to see better all the agents 
+    (Ion Constantinescu, EPFL)
+  - Now several APDescriptions can be added via a single AddViaURL command 
+    (Ion Constantinescu, EPFL)
 - the reception of the AGREE message is now optional in Fipa-Request initiator
   protocol. In this way initiating the protocol with a not-existent agent,
   or an agent with a wrong address, does not block for-ever the protocol
   because it manages the FAILURE message received by the platform.
-- corbaloc and corbaname addresses are properly handled in the IIOP-MTP
-  implementation based on ORBacus, both as client and as server
-- corbaloc address is properly handled in the IIOP-MTP implementation
-  based on the Sun ORB, so far only as client side
+- corbaloc and corbaname addresses in the IIOP-MTP
+  - corbaloc and corbaname addresses are properly handled in the IIOP-MTP
+    implementation based on ORBacus, both as client and as server
+  - corbaloc address is properly handled in the IIOP-MTP implementation
+    based on the Sun ORB, so far only as client side because of JDK limitations
+  - checked compatibility when ORBacus is server and Sun ORB is client
 - add new add-on: the RDF Codec for encoding the content of ACLMessages 
   (University of Parma)
 - added support for enhanced configuration files with environment variables
@@ -31,7 +35,7 @@ GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - added interface to support agent security functionality 
 - added support for Object2Agent Communication (see 
   jade.core.Agent.putO2AObject and jade.wrapper.Agent.putO2AObject)
-- support to content
+- reingeneered the support to content
   - added new class OntoAID that wraps a jade.core.AID 
   - ContentElementList, AbsContentElementList and AbsAggregate
     Now all these classes have methods with the same names as the methods in 
