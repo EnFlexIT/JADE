@@ -590,6 +590,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
       SniffedMessage.setContent(theMsg.toString());
       SniffedMessage.setOntology("sniffed-message");
       unicastPostMessage(SniffedMessage,currentSniffer);
+    
     }
   }
 
@@ -611,34 +612,45 @@ private List getSniffer(AID id, java.util.Map theMap) {
       msgSource.setName(guid);
     }
 
+    ArrayList sniffersToNotify = new ArrayList(SniffedAgents.size());
     currentSnifferVector = getSniffer(msgSource, SniffedAgents);
     if (currentSnifferVector != null) {
-      sniffedSource = true;
-      sendMsgToSniffers(msg, currentSnifferVector);		
+    	for (Iterator i=currentSnifferVector.iterator(); i.hasNext(); ) {
+    		AID aSniffer = (AID)i.next();
+    		if (!sniffersToNotify.contains(aSniffer))
+    			sniffersToNotify.add(aSniffer);
+    	}
     }
-
+    //System.out.println("Sniffer to Notify- sender: "+ sniffersToNotify.size());
     Iterator it = msg.getAllReceiver();
     while(it.hasNext()) {
       AID dest = (AID)it.next();
       currentSnifferVector = getSniffer(dest, SniffedAgents);	    
-      if((currentSnifferVector != null) && (!sniffedSource)) {
-	sendMsgToSniffers(msg,currentSnifferVector);	    		
+      if (currentSnifferVector != null) {
+    	 for (Iterator i=currentSnifferVector.iterator(); i.hasNext(); ) {
+    		AID aSniffer = (AID)i.next();
+    		if (!sniffersToNotify.contains(aSniffer))
+    			sniffersToNotify.add(aSniffer);
+    	 }
+    	//System.out.println("Sniffer to Notify- in while: "+ sniffersToNotify.size() + dest.toString());
       }
-
 
       // If this AID has no explicit addresses, but it does not seem
       // to live here, then the platform ID is appended to the AID
       // name
       Iterator addresses = dest.getAllAddresses();
       if(!addresses.hasNext() && !livesHere(dest)) {
-	String guid = dest.getName();
-	guid = guid.concat("@" + platformID);
-	dest.setName(guid);
+	      String guid = dest.getName();
+	      guid = guid.concat("@" + platformID);
+	      dest.setName(guid);
       }
 
       ACLMessage copy = (ACLMessage)msg.clone();
       unicastPostMessage(copy, dest);
     }
+    //System.out.println("handle send per msg="+msg.toString());
+    sendMsgToSniffers(msg,sniffersToNotify);	    		
+    
   }
 
   public void handleStart(String localName, Agent instance) {
