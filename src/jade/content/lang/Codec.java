@@ -26,6 +26,7 @@ package jade.content.lang;
 
 import jade.content.onto.*;
 import jade.content.abs.*;
+import jade.util.WrapperException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -37,7 +38,7 @@ public abstract class Codec {
      *
      * @author Federico Bergenti
      */
-    public static class CodecException extends Exception {
+    public static class CodecException extends WrapperException {
 
         /**
          * Constructor
@@ -48,6 +49,15 @@ public abstract class Codec {
         public CodecException(String message) {
             super(message);
         }
+
+	/**
+	   Construct a new <code>CodecException</code>
+	   @param msg The message for this exception.
+	   @param t The exception wrapped by this object.
+	*/
+	public CodecException(String msg, Throwable t) {
+	    super(msg, t);
+	}
 
     }
 
