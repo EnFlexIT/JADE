@@ -177,4 +177,57 @@ public abstract class ToolAgent extends Agent {
     // Call tool-specific takedown
     toolTakeDown();
   }
+
+  protected void afterClone() {
+      refillContentManager();
+  }
+
+  protected void afterMove() {
+      refillContentManager();
+  }
+
+  protected void afterLoad() {
+      refillContentManager();
+  }
+
+  protected void afterThaw() {
+      refillContentManager();
+  }
+
+  private void refillContentManager() {
+    // Register the supported ontologies
+    getContentManager().registerOntology(JADEManagementOntology.getInstance());
+    getContentManager().registerOntology(IntrospectionOntology.getInstance());
+    getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+
+    // register the supported languages
+    getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+
+    AMSSubscription.setSender(getAID());
+    AMSSubscription.clearAllReceiver();
+    AMSSubscription.addReceiver(getAMS());
+    AMSSubscription.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    AMSSubscription.setOntology(IntrospectionOntology.NAME);
+    AMSSubscription.setReplyWith(AMSSubscriber.AMS_SUBSCRIPTION);
+    AMSSubscription.setConversationId(getLocalName());
+
+    String content = AMSSubscriber.PLATFORM_EVENTS;
+    AMSSubscription.setContent(content);
+
+    AMSCancellation.setSender(getAID());
+    AMSCancellation.clearAllReceiver();
+    AMSCancellation.addReceiver(getAMS());
+    AMSCancellation.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    AMSCancellation.setOntology(IntrospectionOntology.NAME);
+    AMSCancellation.setReplyWith(AMSSubscriber.AMS_CANCELLATION);
+    AMSCancellation.setConversationId(getLocalName());
+
+    AMSRequest.setSender(getAID());
+    AMSRequest.clearAllReceiver();
+    AMSRequest.addReceiver(getAMS());
+    AMSRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+    AMSRequest.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+
+  }
+
 }
