@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/07/13 20:01:38  rimassa
+  Removed useless code.
+
   Revision 1.9  1999/03/17 12:58:01  rimassa
   Changed AgentDescriptor responsibilities: now the class is not
   Serializable any more, so that AMS descriptors are not uselessly
@@ -20,27 +23,14 @@
 
 package jade.core;
 
-import java.io.Serializable;
-
-import jade.domain.AgentManagementOntology;
-import jade.domain.FIPAException;
 
 class AgentDescriptor {
 
-  private AgentManagementOntology.AMSAgentDescriptor desc;
   private RemoteProxy proxy;
   private String containerName;
 
-  public void setAMSDesc(AgentManagementOntology.AMSAgentDescriptor amsd) {
-    desc = amsd;
-  }
-
   public void setProxy(RemoteProxy rp) {
     proxy = rp;
-  }
-
-  public AgentManagementOntology.AMSAgentDescriptor getAMSDesc() {
-    return desc;
   }
 
   public RemoteProxy getProxy() {
