@@ -87,7 +87,7 @@ import jade.security.IdentityCertificate;
    @version $Date$ $Revision$
  */
 
-public class Agent implements Runnable, Serializable {
+public class Agent implements Runnable, Serializable, TimerListener {
 
   private final static short UNPROTECTMYPOINTER = 0;
   /**
@@ -187,9 +187,13 @@ public class Agent implements Runnable, Serializable {
     theDispatcher.add(t);
   }
 
-  // Restarts the behaviour associated with t. This method runs within
-  // the time-critical Timer Dispatcher thread.
-  void doTimeOut(Timer t) {
+  /**
+     Restarts the behaviour associated with t. 
+     This method runs within the time-critical Timer Dispatcher thread and
+     is not intended to be called by users. It is defined public only because
+     is part of the <code>TimerListener</code> interface.
+   */
+  public void doTimeOut(Timer t) {
     Behaviour b = pendingTimers.getPeer(t);
     if(b != null) {
       b.restart();

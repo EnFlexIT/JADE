@@ -125,9 +125,9 @@ class MainContainerImpl implements Platform, AgentManager {
   public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
 
     // Add the calling container as the main container and set its name
-    containers.addContainer(MAIN_CONTAINER_NAME, ac);
-    containersProgNo++;
     cid.setName(MAIN_CONTAINER_NAME);
+    containers.addContainer(cid, ac);
+    containersProgNo++;
 
     // Start the AMS
     theAMS = new ams(this);
@@ -148,32 +148,31 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void deregister(AgentContainer ac) throws IMTPException {
     // Deregister yourself as a container
-    containers.removeContainer(MAIN_CONTAINER_NAME);
+    containers.removeContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
 
     // Kill every other container
-    AgentContainer[] allContainers = containers.containers();
+    ContainerID[] allContainers = containers.names();
     for(int i = 0; i < allContainers.length; i++) {
-      AgentContainer target = allContainers[i];
+      ContainerID targetID = allContainers[i];
 	   	try {
-	   		// This call indirectly removes
+      	AgentContainer target = containers.getContainer(targetID);
+	   		// This call indirectly removes target
 	     	target.exit(); 
 	   	}
 	   	catch(IMTPException imtp1) {
-	   		// FIXME: Should print a better message and remove the container  
-	   		// as in killContainer(). Not yet done as the ContainerID is not 
-	   		// accessible. Will be implemented as soon as the ContainerTable 
-	   		// will work on ContainerID-s instead of String-s
-	   		System.out.println("Removing unreachable container");
-	     	//System.out.println("Container " + contID.getName() + " is unreachable. Ignoring...");
-	     	//try {
-	     	//	removeContainer(contID);
-	     	//}
-	     	//catch (IMTPException imtpe2) {
+	     	System.out.println("Container " + targetID.getName() + " is unreachable. Ignoring...");
+	     	try {
+	     		removeContainer(targetID);
+	     	}
+	     	catch (IMTPException imtpe2) {
 	     		// Should never happen as this is a local call
-	     	//	imtpe2.printStackTrace();
-	     	//}
+	     		imtpe2.printStackTrace();
+	     	}
 	   	}
-      //target.exit(); // This call removes 'ac' from 'container' map and from the collection 'c'
+	   	catch(NotFoundException nfe) {
+	   		// Ignore the exception as we are removing a non-existing container
+	     	System.out.println("Container " + targetID.getName() + " deos not exist. Ignoring...");
+	   	}
     }
 
     // Make sure all containers are succesfully removed from the table...
@@ -196,7 +195,7 @@ class MainContainerImpl implements Platform, AgentManager {
     myIMTPManager.unremotize(this);
   }
 
-  public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException {
+  public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException {
     // Directly use the GADT
     AgentDescriptor ad = platformAgents.get(receiverID);
     if(ad == null) {
@@ -205,14 +204,7 @@ class MainContainerImpl implements Platform, AgentManager {
     ad.lock();
     AgentProxy ap = ad.getProxy();
     ad.unlock();
-    try {
-    	ap.dispatch(msg);
-    }
-    catch (UnreachableException ue) {
-      // TBD: Here we should buffer massages for temporarily disconnected 
-      // agents
-      throw new NotFoundException(ue.getMessage());
-    }
+    ap.dispatch(msg);
   }
 
   // this variable holds a progressive number just used to name new containers
@@ -226,7 +218,7 @@ class MainContainerImpl implements Platform, AgentManager {
     }
     ad.lock();
     ContainerID cid = ad.getContainerID();
-    AgentContainer ac = containers.getContainer(cid.getName());
+    AgentContainer ac = containers.getContainer(cid);
     ad.unlock();
     return ac;
   }
@@ -248,8 +240,10 @@ class MainContainerImpl implements Platform, AgentManager {
 				try {
 	  			target.ping(true); // Hang on this call
 	  			active = false;
+	  			System.out.println("PING exited normally");
 				}
 				catch(IMTPException imtpe1) { // Connection down
+	  			System.out.println("PING exited with exception");
 	  			try {
 	    			target.ping(false); // Try a non blocking ping to check
 	  			}
@@ -280,7 +274,6 @@ class MainContainerImpl implements Platform, AgentManager {
   } // END of inner class FailureMonitor
 
   private void cleanTables(ContainerID crashedID) {
-  	String crashedName = crashedID.getName();
     // If a container has crashed all its agents
     // appear to be still alive both in the GADT and in the AMS -->
   	// Clean them 
@@ -290,7 +283,7 @@ class MainContainerImpl implements Platform, AgentManager {
     	AID    id = allIds[i];
       ContainerID cid = platformAgents.get(id).getContainerID();
 
-      if (CaseInsensitiveString.equalsIgnoreCase(cid.getName(), crashedName)) {
+      if (crashedID.equals(cid)) {
       	// This agent was living in the container that has crashed
         // --> It must be cleaned
         platformAgents.remove(id);
@@ -301,15 +294,15 @@ class MainContainerImpl implements Platform, AgentManager {
   	// Also notify listeners and other containers that the MTPs that 
   	// were active on the crashed container are no longer available
   	try {
-	  	String[] names = containers.names();
-  		AgentContainer crashed = containers.getContainer(crashedName);
-  		List mtps = containers.getMTPs(crashedName);
+	  	ContainerID[] names = containers.names();
+  		AgentContainer crashed = containers.getContainer(crashedID);
+  		List mtps = containers.getMTPs(crashedID);
   		Iterator it = mtps.iterator();
   		while (it.hasNext()) {
   			MTPDescriptor dsc = (MTPDescriptor) it.next();
   			fireRemovedMTP(dsc, crashedID);
   			for (int i = 0; i < names.length; ++i) {
-  				if (!CaseInsensitiveString.equalsIgnoreCase(names[i], crashedName)) {
+  				if (!crashedID.equals(names[i])) {
   					AgentContainer ac = containers.getContainer(names[i]);
   					ac.updateRoutingTable(AgentContainer.DEL_RT, dsc, crashed);
   				}
@@ -424,9 +417,9 @@ class MainContainerImpl implements Platform, AgentManager {
   public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
 
     // Send all platform addresses to the new container
-    String[] containerNames = containers.names();
+    ContainerID[] containerNames = containers.names();
     for(int i = 0; i < containerNames.length; i++) {
-      String name = containerNames[i];
+      ContainerID name = containerNames[i];
       
       try {
 	AgentContainer cont = containers.getContainer(name);
@@ -444,7 +437,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
     String name = AUX_CONTAINER_NAME + containersProgNo;
     cid.setName(name);
-    containers.addContainer(name, ac);
+    containers.addContainer(cid, ac);
     containersProgNo++;
 
     // Spawn a blocking call to the remote container in a separate
@@ -461,21 +454,21 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   public void removeContainer(ContainerID cid) throws IMTPException {
-    containers.removeContainer(cid.getName());
+    containers.removeContainer(cid);
 
     // Notify listeners
     fireRemovedContainer(cid);
   }
 
   public AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException {
-    AgentContainer ac = containers.getContainer(cid.getName());
+    AgentContainer ac = containers.getContainer(cid);
     return ac;
   }
 
   public void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException  {
 
     AgentDescriptor desc = new AgentDescriptor();
-    AgentContainer ac = containers.getContainer(cid.getName());
+    AgentContainer ac = containers.getContainer(cid);
     AgentProxy ap = myIMTPManager.createAgentProxy(ac, name);
     desc.setProxy(ap);
     desc.setContainerID(cid);
@@ -689,8 +682,8 @@ class MainContainerImpl implements Platform, AgentManager {
       String[] mtpAddrs = mtp.getAddresses();
       String mtpAddress = mtpAddrs[0];
       platformAddresses.add(mtpAddress);
-      containers.addMTP(containerName, mtp);
-      AgentContainer target = containers.getContainer(containerName);
+      containers.addMTP(cid, mtp);
+      AgentContainer target = containers.getContainer(cid);
 
       // To avoid additions/removals of containers during MTP tables update
       synchronized(containers) {
@@ -720,8 +713,8 @@ class MainContainerImpl implements Platform, AgentManager {
       String[] mtpAddrs = mtp.getAddresses();
       String mtpAddress = mtpAddrs[0];
       platformAddresses.remove(mtpAddress);
-      containers.removeMTP(containerName, mtp);
-      AgentContainer target = containers.getContainer(containerName);
+      containers.removeMTP(cid, mtp);
+      AgentContainer target = containers.getContainer(cid);
 
       // To avoid additions/removals of containers during MTP tables update
       synchronized(containers) {
@@ -750,7 +743,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public MTPDescriptor installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
     String containerName = cid.getName();
-    AgentContainer target = containers.getContainer(containerName);
+    AgentContainer target = containers.getContainer(cid);
     try {
       return target.installMTP(address, className);
     }
@@ -762,7 +755,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
     String containerName = cid.getName();
-    AgentContainer target = containers.getContainer(containerName);
+    AgentContainer target = containers.getContainer(cid);
     try {
       target.uninstallMTP(address);
     }
@@ -785,12 +778,7 @@ class MainContainerImpl implements Platform, AgentManager {
 
   // This is used by AMS to obtain the set of all the Agent Containers of the platform.
   public ContainerID[] containerIDs() {
-    String[] names = containers.names();
-    ContainerID[] ids = new ContainerID[names.length];
-    for(int i = 0; i < names.length; i++) {
-      ids[i] = new ContainerID(names[i], null);
-    }
-    return ids;
+  	return containers.names();
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
@@ -823,14 +811,14 @@ class MainContainerImpl implements Platform, AgentManager {
       AgentContainer ac;
       // If no name is given, the agent is started on the MainContainer itself
       if(containerName == null)
-        containerName = MAIN_CONTAINER_NAME;
+        cid.setName(MAIN_CONTAINER_NAME);
       try {
-	ac = containers.getContainer(containerName);
+				ac = containers.getContainer(cid);
       }
       catch(NotFoundException nfe) {
         try {
-	  // If a wrong name is given, then again the agent starts on the MainContainer itself
-          ac = containers.getContainer(MAIN_CONTAINER_NAME);
+	  			// If a wrong name is given, then again the agent starts on the MainContainer itself
+          ac = containers.getContainer(new ContainerID(MAIN_CONTAINER_NAME, null));
         }
         catch(NotFoundException nfe2) {
           throw new UnreachableException(nfe2.getMessage());
@@ -850,7 +838,7 @@ class MainContainerImpl implements Platform, AgentManager {
     // This call spawns a separate thread in order to avoid deadlock.
     try {
       final ContainerID contID = cid;
-      final AgentContainer ac = containers.getContainer(cid.getName());
+      final AgentContainer ac = containers.getContainer(cid);
       Thread auxThread = new Thread(new Runnable() {
 	 			public void run() {
 	   			try {

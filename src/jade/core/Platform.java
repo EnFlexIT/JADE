@@ -44,5 +44,5 @@ interface Platform extends MainContainer {
 
   void deregister(AgentContainer ac) throws IMTPException;
 
-  void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
+  void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException, UnreachableException;
 }	

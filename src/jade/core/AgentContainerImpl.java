@@ -85,6 +85,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Object managing Thread resources in this container
   private ResourceManager myResourceManager;
   
+  // The Object managing messages that cannot reach the destination because
+  // of disconnection problems in this container
+  private DisconnectionManager myDisconnectionManager;
+  
   // The Object managing all operations related to event notification
   // in this container
   private NotificationManager myNotificationManager;
@@ -346,7 +350,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       Agent receiver = localAgents.get(receiverID);
 
       if(receiver == null) {
-	throw new NotFoundException("DispatchMessage failed to find " + receiverID);
+				throw new NotFoundException("DispatchMessage failed to find " + receiverID);
       }
 
       receiver.postMessage(msg);
@@ -361,6 +365,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  pingLock.wait();
 	}
 	catch(InterruptedException ie) {
+		System.out.println("PING wait interrupted");
 	  // Do nothing
 	}
       }
@@ -448,6 +453,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Build the Agent IDs for the AMS and for the Default DF.
       Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
 
+      // Create the DisconnectionManager
+      myDisconnectionManager = new DisconnectionManager();
+      myDisconnectionManager.initialize(myProfile, this);
+      
       // Create the ResourceManager
       myResourceManager = myProfile.getResourceManager();
       
@@ -744,55 +753,68 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 	
 	
-  // Private methods
+  // Private and package scoped methods
 
-    /**
-     * This method is used by the class AID in order to get the HAP.
-     **/
+  /**
+   * This method is used by the class AID in order to get the HAP.
+   */
   static String getPlatformID()
   {
   	return platformID;
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
-
-    try {
-      if(livesHere(receiverID)) {
-				// Dispatch it through the MainContainerProxy
-				myPlatform.dispatch(msg, receiverID);
-      }
-      else {
-				// Dispatch it through the ACC
-				myACC.dispatch(msg, receiverID);
-      }
+		try {
+			deliverNow(msg, receiverID);
+		}
+    catch (UnreachableException ue) {
+    	// The receiver is currently unreachable --> retry later
+    	myDisconnectionManager.deliverLater(msg, receiverID);
     }
-    catch(NotFoundException nfe) {
-      notifyFailureToSender(msg, new InternalError("\"Agent not found: " + nfe.getMessage()+"\""));
-    }
-
   }
 
-    /**
-     * This private method is used internally by the platform in order
-     * to notify the sender of a message that a failure was reported by
-     * the Message Transport Service.
-     **/
-    private void notifyFailureToSender(ACLMessage msg, InternalError ie) {
-	//if (the sender is not the AMS and the performative is not FAILURE)
-	if ( (msg.getSender()==null) || ((msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
-	    return;
-	// else send back a failure message
-	ACLMessage failure = msg.createReply();
-	failure.setPerformative(ACLMessage.FAILURE);
-	//System.err.println(failure.toString());
-	failure.setSender(Agent.getAMS());
-	// FIXME the content is not completely correct, but that should
-	// also avoid creating wrong content
-	String content = "( (action " + msg.getSender().toString();
-	content = content + " ACLMessage ) "+ie.getMessage()+")" ;
-	failure.setContent(content);
-	handleSend(failure);
+  /**
+   * Package scoped as it is called by the DisconnectionManager
+   */
+  void deliverNow(ACLMessage msg, AID receiverID) throws UnreachableException {
+    try {
+    	if(livesHere(receiverID)) {
+				// Dispatch it through the MainContainerProxy
+				myPlatform.dispatch(msg, receiverID);
+    	}
+    	else {
+				// Dispatch it through the ACC
+				myACC.dispatch(msg, receiverID);
+    	}
     }
+    catch(NotFoundException nfe) {
+    	// The receiver does not exist --> Send a FAILURE message
+      notifyFailureToSender(msg, new InternalError("\"Agent not found: " + nfe.getMessage()+"\""));
+    }
+  }
+  
+  /**
+   * This method is used internally by the platform in order
+   * to notify the sender of a message that a failure was reported by
+   * the Message Transport Service.
+   * Package scoped as it can be called by the DisconnectionManager
+   */
+  void notifyFailureToSender(ACLMessage msg, InternalError ie) {
+		//if (the sender is not the AMS and the performative is not FAILURE)
+		if ( (msg.getSender()==null) || ((msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
+	    return;
+		// else send back a failure message
+		ACLMessage failure = msg.createReply();
+		failure.setPerformative(ACLMessage.FAILURE);
+		//System.err.println(failure.toString());
+		failure.setSender(Agent.getAMS());
+		// FIXME the content is not completely correct, but that should
+		// also avoid creating wrong content
+		String content = "( (action " + msg.getSender().toString();
+		content = content + " ACLMessage ) "+ie.getMessage()+")" ;
+		failure.setContent(content);
+		handleSend(failure);
+  }
 
 
  	// Tells whether the given AID refers to an agent of this platform

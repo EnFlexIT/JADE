@@ -23,54 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.util.leap.Comparable;
-
 /**
-@author Giovanni Rimassa - Universita` di Parma
-@version $Date$ $Revision$
+@author Giovanni Caire - TILAB
 */
-class Timer implements Comparable {
-
-  private long expireTimeMillis;
-  private boolean expired;
-  private TimerListener owner;
-
-  public Timer(long when, TimerListener tl) {
-    expireTimeMillis = when;
-    owner = tl;
-    expired = false;
-  }
-
-  public int compareTo(Object o) {
-    if(equals(o))
-      return 0;
-    else {
-      Timer t = (Timer)o;
-      return (expireTimeMillis <= t.expireTimeMillis) ? -1 : 1;
-    }
-  }
-
-  public boolean equals(Object o) {
-    Timer t = (Timer)o;
-    return (expireTimeMillis == t.expireTimeMillis);
-  }
-
-
-  // Called by the TimerDispatcher
-
-  boolean isExpired() {
-
-    boolean oldExpired = expired;
-    expired |= (expireTimeMillis < System.currentTimeMillis());
-    // Edge triggered action
-    if(!oldExpired && expired)
-      owner.doTimeOut(this);
-
-    return expired;
-  }
-
-  long expirationTime() {
-    return expireTimeMillis;
-  }
-
+interface TimerListener {
+  void doTimeOut(Timer t);
 }
