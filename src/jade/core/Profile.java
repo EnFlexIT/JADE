@@ -144,10 +144,16 @@ public abstract class Profile {
   public static final String PWD_DIALOG_CLASS = "jade.security.PwdDialog";
 
   // On J2SE and pJava, install mobility and notification services by default
-  //#MIDP_EXCLUDE_BEGIN
+  //#J2ME_EXCLUDE_BEGIN
   public static final String DEFAULT_SERVICES = "jade.core.mobility.AgentMobilityService;jade.core.event.NotificationService";
   public static final String DEFAULT_SERVICES_NOMOBILITY = "jade.core.event.NotificationService";
-  //#MIDP_EXCLUDE_END
+  //#J2ME_EXCLUDE_END
+
+  // On PJAVA the Notification service is not supported
+  /*#PJAVA_INCLUDE_BEGIN
+  public static final String DEFAULT_SERVICES = "jade.core.mobility.AgentMobilityService";
+  public static final String DEFAULT_SERVICES_NOMOBILITY = "";
+  #PJAVA_INCLUDE_END*/
 
   // On MIDP, no additional services are installed by default
   /*#MIDP_INCLUDE_BEGIN
