@@ -43,6 +43,7 @@ import java.util.Properties;
 import java.util.Enumeration;
 
 import jade.core.AID;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import starlight.util.Base64;
 
@@ -226,6 +227,8 @@ private int performative; // keeps the performative type of this object
   @serial
   */
   private Properties userDefProps = new Properties();
+
+  private transient Envelope messageEnvelope;
 
   /**
   Returns the list of the communicative acts.
@@ -878,12 +881,52 @@ private int performative; // keeps the performative type of this object
   /**
    * Removes the key and its corresponding value from the list of user
    * defined parameters in this ACLMessage.
-   * @ param key the key that needs to be removed
+   * @param key the key that needs to be removed
      @return true if the property has been found and removed, false otherwise
    */
    public boolean removeUserDefinedParameter(String key) {
      return (userDefProps.remove(key) != null);
    }
+
+  /**
+     Attaches an envelope to this message. The envelope is used by the
+     <b><it>ACC</it></b> for inter-platform messaging.
+     @param e The <code>Envelope</code> object to attach to this
+     message.
+     @see getEnvelope()
+     @see setDefaultEnvelope()
+   */
+  public void setEnvelope(Envelope e) {
+    messageEnvelope = e;
+  }
+
+
+  /**
+     Writes the message envelope for this message, using the
+     <code>:sender</code> and <code>:receiver</code> message slots to
+     fill in the envelope.
+     @see setEnvelope(Envelope e)
+     @see getEnvelope()
+   */
+  public void setDefaultEnvelope() {
+    messageEnvelope = new Envelope();
+    messageEnvelope.setFrom(source);
+    Iterator it = dests.iterator();
+    while(it.hasNext())
+      messageEnvelope.addTo((AID)it.next());
+    messageEnvelope.setAclRepresentation(StringACLCodec.NAME);
+    messageEnvelope.setDate(new Date());
+  }
+
+  /**
+     Reads the envelope attached to this message, if any.
+     @return The envelope for this message.
+     @see setEnvelope(Envelope e)
+     @see setDefaultEnvelope()
+   */
+  public Envelope getEnvelope() {
+    return messageEnvelope;
+  }
 
   /**
      Writes an ACL message object on a stream as a character
