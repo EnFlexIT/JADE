@@ -54,7 +54,8 @@ class DFGuiProperties
 			"registeragent",LookAndFeel.makeIcon(foo.getClass(), "images/registeragent.gif"),
 			"federatedf",LookAndFeel.makeIcon(foo.getClass(), "images/federatedf.gif"),
 			"about",LookAndFeel.makeIcon(foo.getClass(), "images/about.gif"),
-			"searchwithconstraints",LookAndFeel.makeIcon(foo.getClass(), "images/searchfed.gif")	
+			"searchwithconstraints",LookAndFeel.makeIcon(foo.getClass(), "images/searchfed.gif"),	
+			"refreshapplet",LookAndFeel.makeIcon(foo.getClass(), "images/connec.gif")	
 		};
 
 		MyDefaults = new UIDefaults (icons);
