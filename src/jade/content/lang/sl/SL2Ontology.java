@@ -40,7 +40,7 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   public static final String ONTOLOGY_NAME = "SL2-ONTOLOGY";
 	
   // The singleton instance of this ontology
-	private static Ontology theInstance = new SL2Ontology(ONTOLOGY_NAME, SL1Ontology.getInstance());
+	private static Ontology theInstance = new SL2Ontology(ONTOLOGY_NAME, SL1Ontology.getInstance(), null);
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -49,8 +49,8 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   /**
    * Constructor
    */
-  protected SL2Ontology(String name, Ontology base) {
-  	super(name, base);
+  protected SL2Ontology(String name, Ontology base, Introspector intro) {
+  	super(name, base, intro);
   	
   	try {
     	add(VariableSchema.getBaseSchema(), AbsVariable.getJavaClass());
@@ -98,10 +98,12 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   		AgentActionSchema as = (AgentActionSchema) getSchema(ACTION_SEQUENCE);
   		as.add(ACTION_SEQUENCE_FIRST, (AgentActionSchema) AgentActionSchema.getBaseSchema());
   		as.add(ACTION_SEQUENCE_SECOND, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		as.setEncodingByOrder(true);
   		
   		as = (AgentActionSchema) getSchema(ACTION_ALTERNATIVE);
   		as.add(ACTION_ALTERNATIVE_FIRST, (AgentActionSchema) AgentActionSchema.getBaseSchema());
   		as.add(ACTION_ALTERNATIVE_SECOND, (AgentActionSchema) AgentActionSchema.getBaseSchema());
+  		as.setEncodingByOrder(true);
   		
     } 
     catch (OntologyException oe) {

@@ -434,7 +434,7 @@ public class SLCodec extends StringCodec {
      * defined in this language
      */
     public Ontology getInnerOntology() {
-    	return SLOntology.getInstance();
+    	return slOnto;
     }
     
 		private String[] getSlotNames(AbsObject abs) throws CodecException {

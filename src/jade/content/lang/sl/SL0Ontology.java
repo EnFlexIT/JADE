@@ -39,7 +39,7 @@ class SL0Ontology extends Ontology implements SL0Vocabulary {
   public static final String ONTOLOGY_NAME = "SL0-ONTOLOGY";
 	
   // The singleton instance of this ontology
-	private static Ontology theInstance = new SL0Ontology(ONTOLOGY_NAME, BasicOntology.getInstance());
+	private static Ontology theInstance = new SL0Ontology(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -48,8 +48,8 @@ class SL0Ontology extends Ontology implements SL0Vocabulary {
   /**
    * Constructor
    */
-  protected SL0Ontology(String name, Ontology base) {
-  	super(name, base, null);
+  protected SL0Ontology(String name, Ontology base, Introspector intro) {
+  	super(name, base, intro);
 	}
 
 	boolean isUnaryLogicalOp(String symbol) {

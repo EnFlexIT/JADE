@@ -86,7 +86,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
    * Constructor
    */
   private BasicOntology() {
-  	super("BASIC_ONTOLOGY", (Ontology) null);
+  	super("BASIC_ONTOLOGY", (Ontology) null, null);
   }
   
   private void initialize() {
@@ -148,6 +148,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
       actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
       actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
+  		actionSchema.setEncodingByOrder(true);
       add(actionSchema);
       
       // DONE Schema

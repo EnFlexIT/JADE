@@ -41,7 +41,7 @@ class SL1Ontology extends SL0Ontology implements SL1Vocabulary {
 	
   // The singleton instance of this ontology
   // Note that the SL0Ontology does not add any schema to the BasicOntology
-	private static Ontology theInstance = new SL1Ontology(ONTOLOGY_NAME, BasicOntology.getInstance());
+	private static Ontology theInstance = new SL1Ontology(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -50,8 +50,8 @@ class SL1Ontology extends SL0Ontology implements SL1Vocabulary {
   /**
    * Constructor
    */
-  protected SL1Ontology(String name, Ontology base) {
-  	super(name, base);
+  protected SL1Ontology(String name, Ontology base, Introspector intro) {
+  	super(name, base, intro);
   	
   	try {
   		add(new PredicateSchema(AND), AbsPredicate.getJavaClass());
