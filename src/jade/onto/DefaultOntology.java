@@ -756,11 +756,11 @@ public class DefaultOntology implements Ontology {
 	    // the cast works in any case as jade.util.leap.Iterator extends java.util.Iterator
 	    java.util.Iterator i = (java.util.Iterator) value;
   		//__JADE_ONLY__END
-  		/*__J2ME_COMPATIBILITY__BEGIN If we are on J2ME the getAllXXX method definitely returns a jade.util.leap.Iterator
+  		/*__PJAVA_COMPATIBILITY__BEGIN If we are on PJava the getAllXXX method definitely returns a jade.util.leap.Iterator
 	    // The getAllXXX() method of the user defined class must return 
 	    // a jade.util.leap.Iterator
 	    jade.util.leap.Iterator i = (jade.util.leap.Iterator) value;
-  		__J2ME_COMPATIBILITY__END*/
+  		__PJAVA_COMPATIBILITY__END*/
 	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
 	      while (i.hasNext()) {
 		Object elem = i.next();
