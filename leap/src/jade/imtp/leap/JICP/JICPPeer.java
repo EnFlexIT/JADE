@@ -52,7 +52,7 @@ import java.net.*;
  * @author Nicolas Lhuillier - Motorola
  */
 public class JICPPeer implements ICP {
-	private static final int POOL_SIZE = 6;
+	private static final int POOL_SIZE = 10;
 	
   /**
    * Default port for the local container JICP transport address
