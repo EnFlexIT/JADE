@@ -83,8 +83,8 @@ public class Starter {
 	      theContainer = new AgentContainerImpl();
 	  }
 	
-	  theContainer.joinPlatform(platformRMI, agents, MTPs,ACLCodecs);
 	  Runtime.instance().beginContainer();
+	  theContainer.joinPlatform(platformRMI, agents, MTPs,ACLCodecs);
 
 	  Runtime.instance().setDefaultToolkit(theContainer); // FIXME: Temporary hack for JSP example
 
