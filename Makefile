@@ -1,6 +1,6 @@
 # Makefile for JADE project
 
-VERSION    = 0.975
+VERSION    = 0.99b1
 ARCHIVE    = JADE
 
 ROOTDIR = $(shell pwd)
