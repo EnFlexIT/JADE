@@ -24,32 +24,33 @@ Boston, MA  02111-1307, USA.
 package jade.core.event;
 
 import java.util.Date;
+import java.util.EventObject;
 
 import jade.core.ContainerID;
 
 /**
-   This class represents a generic JADE event.
-
-   @author Giovanni Rimassa - Universita` di Parma
-   @version $Date$ $Revision$
+ * This class represents a generic JADE event.
+ *
+ * @author Giovanni Rimassa - Universita` di Parma
+ * @author David I. Bell, Dick Cowan - Hewlett-Packard
+ *
+ * @version $Date$ $Revision$
  */
-public class JADEEvent {
+public class JADEEvent extends EventObject {
 
-  private ContainerID place;
   private Date time;
 
   public JADEEvent(ContainerID cid) {
-    place = cid;
-    time = new Date(); // Now
+      super(cid);
+      time = new Date(); // Now
   }
 
   public ContainerID getPlace() {
-    return place;
+    return (ContainerID)(getSource());
   }
-
+  
   public Date getTime() {
     return time;
   }
-
 
 }

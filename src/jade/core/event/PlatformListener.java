@@ -24,12 +24,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
-public interface PlatformListener {
+import java.util.EventListener;
 
+public interface PlatformListener extends EventListener
+{
   void addedContainer(PlatformEvent ev);
   void removedContainer(PlatformEvent ev);
   void bornAgent(PlatformEvent ev);
   void deadAgent(PlatformEvent ev);
   void movedAgent(PlatformEvent ev);
-
 }
