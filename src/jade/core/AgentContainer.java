@@ -23,6 +23,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+
+import jade.lang.acl.ACLMessage;
+
+import jade.security.Authority;
+import jade.security.AgentPrincipal;
+import jade.security.ContainerPrincipal;
+import jade.security.AuthException;
+
+import jade.util.leap.List;
+
+
 /**
   @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
@@ -30,21 +41,44 @@ package jade.core;
 
 public interface AgentContainer {
 
-    /***
+    static final boolean CREATE_AND_START = true;
+    static final boolean CREATE_ONLY = false;
 
-//__SECURITY__BEGIN
-  void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException;
-  void changedAgentPrincipal(AID agentID, AgentPrincipal principal) throws IMTPException;
-  void changeContainerPrincipal(CertificateFolder certs) throws IMTPException;
-//__SECURITY__END
 
-  void exit() throws IMTPException;
+    ContainerID getID();
+    String getPlatformID();
+    MainContainer getMain();
 
-  void enableSniffer(AID snifferName , AID toBeSniffed) throws IMTPException;
-  void disableSniffer(AID snifferName, AID notToBeSniffed) throws IMTPException;
+    AID getAMS();
+    AID getDefaultDF();
 
-  void enableDebugger(AID debuggerName , AID toBeDebugged) throws IMTPException;
-  void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException;
+    void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException;
+    Agent addLocalAgent(AID id, Agent a) throws AuthException;
+    void powerUpLocalAgent(AID agentID, Agent instance);
+    void removeLocalAgent(AID id);
+    Agent acquireLocalAgent(AID id);
+    void releaseLocalAgent(AID id);
 
-    ***/
+    //#MIDP_EXCLUDE_BEGIN
+    void fillListFromMessageQueue(List messages, Agent a);
+    void fillListFromReadyBehaviours(List behaviours, Agent a);
+    void fillListFromBlockedBehaviours(List behaviours, Agent a);
+
+    void commitMigration(Agent instance);
+    void abortMigration(Agent instance);
+    //#MIDP_EXCLUDE_END
+
+    void addAddressToLocalAgents(String address);
+    void removeAddressFromLocalAgents(String address);
+    boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID);
+    boolean livesHere(AID id);
+    Location here();
+
+    Authority getAuthority();
+    AgentPrincipal getAgentPrincipal(final AID agentID);
+    ContainerPrincipal getContainerPrincipal();
+
+    void shutDown();
+
+
 }
