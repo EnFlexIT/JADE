@@ -75,6 +75,16 @@ public class AgentTree extends JPanel {
    */
    protected String name;
    /**
+   /**
+   @serial
+   */
+   protected String state;
+   /**
+   /**
+   @serial
+   */
+   protected String ownership;
+   /**
   @serial
   */
   protected boolean chgeIcon=false;
@@ -102,6 +112,22 @@ public class AgentTree extends JPanel {
    this.name = name;
    }
    
+   public String getState(){
+    return state != null ? state : "";
+   }
+
+   public void setState(String state){
+   this.state = state;
+   }
+   
+   public String getOwnership(){
+    return ownership != null ? ownership : "";
+   }
+
+   public void setOwnership(String ownership){
+   this.ownership = ownership;
+   }
+   
    public void changeIcon(boolean chI) {
       chgeIcon=chI;
    }
@@ -117,10 +143,6 @@ public class AgentTree extends JPanel {
    @serial
    */
    private String typeAgent;
-   /**
-   @serial
-   */
-   private String stateAgent;
    /**
    @serial
    */
@@ -140,10 +162,6 @@ public class AgentTree extends JPanel {
 
     public String getType() {
      return typeAgent;
-    }
-
-    public void setState(String state){
-     stateAgent=state;
     }
 
     public String getAddress() {
@@ -443,11 +461,11 @@ public class RemoteAgentNode extends AgentNode{
       MutableTreeNode root = (MutableTreeNode)model.getRoot();
       node.setType(agentType);
       AgentTree.AgentNode nod=(AgentTree.AgentNode) node;
-       nod.address(agentAddress);
-       nod.setState("Running");
-       //search for the folder of the local Platform
-       Enumeration folders = root.children();
-       while(folders.hasMoreElements()){
+      nod.address(agentAddress);
+      nod.setState("Running");
+      //search for the folder of the local Platform
+      Enumeration folders = root.children();
+      while(folders.hasMoreElements()){
        	AgentTree.Node folderNode = (AgentTree.Node)folders.nextElement();
        	String folderName = folderNode.getName();
        	if(folderName.equalsIgnoreCase(localPlatformName))
@@ -459,12 +477,45 @@ public class RemoteAgentNode extends AgentNode{
 	          String contName = container.getName();
 	           if(contName.equalsIgnoreCase(containerName)) {
                 // Add this new agent to this container and return
-	              model.insertNodeInto(node, container, container.getChildCount());
+ 	              model.insertNodeInto(node, container, container.getChildCount());
                 return;
              }
           }
        	}
        }
+  }
+
+  public void modifyAgentNode(String containerName, String agentName, String address, String state, String ownership) {
+      AgentTreeModel model = getModel();
+      MutableTreeNode root = (MutableTreeNode)model.getRoot();
+      //search for the folder of the local Platform
+      Enumeration folders = root.children();
+      while (folders.hasMoreElements()) {
+       	AgentTree.Node folderNode = (AgentTree.Node)folders.nextElement();
+       	String folderName = folderNode.getName();
+       	if (folderName.equalsIgnoreCase(localPlatformName)) {
+       		// Search for the agent container 'containerName'
+	      	Enumeration containers = folderNode.children();
+	        while (containers.hasMoreElements()) {
+	          AgentTree.Node container = (AgentTree.Node)containers.nextElement();
+	          String contName = container.getName();
+	          if (contName.equalsIgnoreCase(containerName)) {
+             	Enumeration agents = container.children();
+	            while(agents.hasMoreElements()) {
+    	          AgentTree.Node agent = (AgentTree.Node)agents.nextElement();
+                // Add this new agent to this container and return
+                if (agent.getName().equalsIgnoreCase(agentName)) {
+                  if (state != null) agent.setState(state);
+                  if (ownership != null) agent.setOwnership(ownership);
+                  agent.changeIcon(state != null && state.equalsIgnoreCase("suspended"));
+                  model.nodeChanged(agent);
+                  return;
+                }
+              }
+            }
+          }
+       	}
+      }
   }
 
   public void removeAgentNode(String containerName, String agentName) {
@@ -552,8 +603,8 @@ public class RemoteAgentNode extends AgentNode{
 	         if(agName.equalsIgnoreCase(name)){
              model.removeNodeFromParent(agent);
              //if it's the last child remove the folder REMOTEPLATFORMS
-             if(container.getChildCount() == 0)
-             	model.removeNodeFromParent(container);
+             if (container.getChildCount() == 0)
+               model.removeNodeFromParent(container);
              return;
            }
         }
