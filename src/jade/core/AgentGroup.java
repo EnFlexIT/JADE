@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/03/07 22:50:52  rimassa
+  Added a reset() method to remove all group members.
+
   Revision 1.7  1999/02/25 08:27:26  rimassa
   Made AgentGroup case-insensitive with respect to agent names.
 
@@ -47,6 +50,10 @@ public class AgentGroup implements Cloneable {
 
   public void removeMember(String name) {
      memberNames.removeElement(name.toLowerCase());
+  }
+
+  public void reset() {
+    memberNames.removeAllElements();
   }
 
   public Enumeration getMembers(){
