@@ -24,30 +24,45 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.util.leap.*;
+import jade.util.leap.ArrayList;
 import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.InternalError;
 
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Enumeration;
 
 /**
+ * This class manages the delivery of ACLMessages to remote destinations
+ * in an asynchronous way.
+ * If network problems prevent the delivery of a message, this class also 
+ * embeds a mechanism to buffer the message and periodically retry to 
+ * deliver it.
  * @author  Giovanni Caire - TILAB
+ * @author  Elisabetta Cortese - TILAB
+ * @author  Fabio Bellifemine - TILAB
  */
-class MessageManager implements TimerListener {
+class MessageManager implements TimerListener{
+
 	// Default values for retry-interval and retry-maximum
-	//private static final int  DEFAULT_POOL_SIZE = 1;
-	private static final long  DEFAULT_RETRY_INTERVAL = 60000; // 1 minute
-	private static final long  DEFAULT_RETRY_MAXIMUM = 600000; // 10 minutes
-	//private int poolSize = DEFAULT_POOL_SIZE;
+	private static final long  DEFAULT_RETRY_INTERVAL = 20000; // 20 sec
+	private static final long  DEFAULT_RETRY_MAXIMUM = 300000; // 5 minutes
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 	private long retryMaximum = DEFAULT_RETRY_MAXIMUM;
-	private boolean preserveOrder;
+	
+//__CLDC_UNSUPPORTED__BEGIN
+	private static final int  DEFAULT_POOL_SIZE = 5;
+	private static final int  MAX_POOL_SIZE = 100;
+	private int poolSize = DEFAULT_POOL_SIZE;
+	
+	private OutBox outBox = new OutBox();
+//__CLDC_UNSUPPORTED__END
+/*__J2ME_COMPATIBILITY__BEGIN
+	private List         outBox = new LinkedList();
+__J2ME_COMPATIBILITY__END*/    
+	private List   errBox = new ArrayList();
 	
 	private AgentContainerImpl myContainer;
-	private List         errBox = new ArrayList();
-	private List         outBox = new LinkedList();
-	//private HashMap      receivers = new HashMap();
-	//private Hashtable    waiting = new Hashtable();
 	
 	private int verbosity = 2;
 	
@@ -57,116 +72,86 @@ class MessageManager implements TimerListener {
 	public void initialize(Profile p, AgentContainerImpl ac) {
 		myContainer = ac;
 		
+		String tmp = null;
+		// RETRY_INTERVAL
 		try {
-			/* POOL_SIZE
-			String tmp = p.getParameter("jade.core.MessageManager.pool-size");
-			try {
-				poolSize = Integer.parseInt(tmp);
-			}
-			catch (Exception e) {
-				// Do nothing and keep default value
-			}*/
-			
-			// RETRY_INTERVAL
-			String tmp = p.getParameter("jade.core.MessageManager.retry-interval");
-			try {
-				retryInterval = Long.parseLong(tmp);
-			}
-			catch (Exception e) {
-				// Do nothing and keep default value
-			}
-			
-			// RETRY_MAXIMUM
-			tmp = p.getParameter("jade.core.MessageManager.retry-maximum");
-			try {
-				retryMaximum = Long.parseLong(tmp);
-			}
-			catch (Exception e) {
-				// Do nothing and keep default value
-			}
-			
-			// PRESERVE_ORDER
-			tmp = p.getParameter("jade.core.MessageManager.preserve-order");
-			try {
-				preserveOrder = !("false").equals(tmp);
-			}
-			catch (Exception e) {
-				// Do nothing and keep default value
-			}
-			System.out.println("preserveOrder set to "+preserveOrder);
+			tmp = p.getParameter("jade.core.MessageManager.retry-interval");
+			retryInterval = Long.parseLong(tmp);
 		}
-		catch (ProfileException pe) {
-			// Print a warning and keep default values
-			System.out.println("Error reading MessageManager configuration. Keep default values");
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+			
+		// RETRY_MAXIMUM
+		try {
+			tmp = p.getParameter("jade.core.MessageManager.retry-maximum");
+			retryMaximum = Long.parseLong(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
 		}
 		
+//__CLDC_UNSUPPORTED__BEGIN
+		// POOL_SIZE
+		try {
+			tmp = p.getParameter("jade.core.MessageManager.pool-size");
+			poolSize = Integer.parseInt(tmp);
+		}
+		catch (Exception e) {
+			// Do nothing and keep default value
+		}
+			
 		try {
 			ResourceManager rm = p.getResourceManager();
-			//for (int i = 0; i < poolSize; ++i) {
-				//Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer-"+i, new Deliverer());
-				Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer", new Deliverer());
+			for (int i = 0; i < poolSize; ++i) {
+				Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer-"+i, new Deliverer());
+				//log("[Initialize] Thread created: "+t.getName());
 				t.start();
-			//}
+			}
 		}
 		catch (ProfileException pe) {
 			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
 		}
+//__CLDC_UNSUPPORTED__END
+		
+/*__J2ME_COMPATIBILITY__BEGIN
+		try {
+			ResourceManager rm = p.getResourceManager();
+			Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, "Deliverer", new Deliverer());
+			t.start();
+		}
+		catch (ProfileException pe) {
+			throw new RuntimeException("Can't get ResourceManager. "+pe.getMessage());
+		}
+__J2ME_COMPATIBILITY__END*/    
 	}
 			
 	/**
 	   Activate the asynchronuos delivery of an ACLMessage
-	 */
+   */
 	public void deliver(ACLMessage msg, AID receiverID) {
-		//enqueue(new PendingMsg(msg, receiverID, -1));
+//__CLDC_UNSUPPORTED__BEGIN
+		outBox.addLast(receiverID, msg);
+//__CLDC_UNSUPPORTED__END
+/*__J2ME_COMPATIBILITY__BEGIN
 		putInOutBox(new PendingMsg(msg, receiverID, -1));
+__J2ME_COMPATIBILITY__END*/    
 	}
 	
-	/*private void enqueue(PendingMsg pm) {
-		ACLMessage msg = pm.getMessage();
-		AID receiverID = pm.getReceiver();
-		
-		synchronized (receivers) {
-			if (!receivers.containsKey(receiverID)) {
-				receivers.put(receiverID, null);
-				putInOutBox(pm);
-			}
-			else {
-				Deliverer d = null;
-				while ((d = (Deliverer) receivers.get(receiverID)) == null) {
-					try {
-						waiting.put(Thread.currentThread(), receiverID);
-						//log("before wait");
-						receivers.wait();
-						//log("after wait");
-					}
-					catch (InterruptedException ie) {
-					}
-				}
-				d.enqueue(msg);
-				//log("Message "+stringify(msg, receiverID)+" enqueued to active deliverer");
-			}
-		}
-	}*/
-	
+
+/*__J2ME_COMPATIBILITY__BEGIN
 	private void putInOutBox(PendingMsg pm) {
 		synchronized (outBox) {
 			outBox.add(pm);
-			//log("Message "+stringify(pm.getMessage(), pm.getReceiver())+" inserted in OutBox "+outBox.size());
-			// Wake up one delivering thread. Don't want to wake up all of them
-			// to avoid unnecessary task-switches
-			//outBox.notify();
 			outBox.notifyAll();
 		}
 	}
 	
 	private PendingMsg getFromOutBox() {
 		synchronized (outBox) {
-		    //log("getFromOutBox. size="+outBox.size());
 			while (outBox.isEmpty()) {
 				try {
-				    //log("before wait");
 					outBox.wait();
-					//log("after wait");
 				}
 				catch (InterruptedException ie) {
 				}
@@ -174,16 +159,34 @@ class MessageManager implements TimerListener {
 			return (PendingMsg) outBox.remove(0);
 		}
 	}
+__J2ME_COMPATIBILITY__END*/    
 	
  	/**
  	   Inner class Deliverer
  	 */
  	class Deliverer implements Runnable {
- 		//private List queued = new LinkedList();
- 		
+
  		public void run() {
- 			//log("Started");
  			while (true) {
+ 				// Get a message from the OutBox
+//__CLDC_UNSUPPORTED__BEGIN
+ 				PendingMsg pm = outBox.get();
+ 				ACLMessage msg = pm.getMessage();
+ 				AID receiverID = pm.getReceiver();
+				//log("Serving message for "+receiverID.getName());
+	    	try {
+	    		// Deliver the message
+		    	myContainer.deliverNow(msg, receiverID);
+					//log("Message served");
+	    		outBox.handleDelivered(receiverID);	
+	    	}
+	    	catch (UnreachableException ue) {
+	    		// If delivery fails insert the message in the ErrBox. It will
+	    		// be delivered at a later time.
+	    		deliverLater(pm);
+	    	}
+//__CLDC_UNSUPPORTED__END
+/*__J2ME_COMPATIBILITY__BEGIN
  				// Get the next message to be delivered
  				PendingMsg pm = getFromOutBox();
  				ACLMessage msg = pm.getMessage();
@@ -203,22 +206,16 @@ class MessageManager implements TimerListener {
     				deliverLater(pm);
     			}
  				}
- 			}
+__J2ME_COMPATIBILITY__END*/    
+	 		}
  		}
- 		
- 		/*void enqueue(ACLMessage msg) {
- 			synchronized (this) {
-	 			queued.add(msg);
-	 			waiting.remove(Thread.currentThread());
-	 			notifyAll();
- 			}
- 		}*/
- 	}
+ 	
+ 	} 	
  	
 	/**
 	   Inner class PendingMsg
 	 */
-	private class PendingMsg {
+	public static class PendingMsg {
 		private ACLMessage msg;
 		private AID receiverID;
 		private long deadline;
@@ -250,31 +247,30 @@ class MessageManager implements TimerListener {
  	// Methods dealing with buffering and retransmission when
 	// the destination is temporarily unreachable
  	/////////////////////////////////////////////////////////
+/*__J2ME_COMPATIBILITY__BEGIN
 	private boolean checkPostpone(AID receiverID, AID senderID) {
-		if (preserveOrder) {
-			synchronized (errBox) {
-				Iterator it = errBox.iterator();
-				while (it.hasNext()) {
-					PendingMsg pm = (PendingMsg) it.next();
-					if (receiverID.equals(pm.getReceiver())) {
-						if (senderID.equals(pm.getMessage().getSender())) {
-							return true;
-						}
+		synchronized (errBox) {
+			Iterator it = errBox.iterator();
+			while (it.hasNext()) {
+				PendingMsg pm = (PendingMsg) it.next();
+				if (receiverID.equals(pm.getReceiver())) {
+					if (senderID.equals(pm.getMessage().getSender())) {
+						return true;
 					}
 				}
-				return false;
 			}
+			return false;
 		}
-		return false;
 	}
+__J2ME_COMPATIBILITY__END*/    
 	
 	private void deliverLater(PendingMsg pm) {
+		// Mutual exclusion with doTimeOut()
 		synchronized (errBox) {
 			// If the errBox is not empty --> a proper Timer is already active.
 			if (errBox.isEmpty()) {
 				activateTimer();
 			}
-			
 			// Set the deadline unless already set
 			if (pm.getDeadline() < 0) {
 				long current = System.currentTimeMillis();
@@ -290,36 +286,41 @@ class MessageManager implements TimerListener {
 				}
 				pm.setDeadline(deadline);
 			}
-	
 			errBox.add(pm);
 		}
 	}
 		
 	/**
-	   Put all messages in the errBox back in the outBox (unless their
+	   Put all messages in the errBox back in the OutBox (unless their
 	   deadline has already expired).
-	 */
+	   Note that, due to the "receiver busy" mechanism, there can't be  
+	   two or more messages for the same receiver in the errBox. 
+	*/
 	public void doTimeOut(Timer t) {
+		// Mutual exclusion with deliverLater()
 		synchronized (errBox) {
 			log("Retry Timer expired. Handle "+errBox.size()+" messages", 1);
 			Iterator it = errBox.iterator();
 			while (it.hasNext()) {
 				PendingMsg pm = (PendingMsg) it.next();
-			
 				if (System.currentTimeMillis() > pm.getDeadline()) {
 					// If the deadline has expired, don't even try again
       		myContainer.notifyFailureToSender(pm.getMessage(), new InternalError("\"Agent unreachable\""));
 				}
 				else {
 					// Otherwise schedule again the message for delivery
-					//enqueue(pm);
+//__CLDC_UNSUPPORTED__BEGIN
+					outBox.addFirst(pm.getReceiver(), pm.getMessage());
+//__CLDC_UNSUPPORTED__END
+/*__J2ME_COMPATIBILITY__BEGIN
 					putInOutBox(pm);
+__J2ME_COMPATIBILITY__END*/    
 				}
 			}
 			errBox.clear();
 		}
 	}
-		
+
 	private void activateTimer() {
 		Timer t = new Timer(System.currentTimeMillis() + retryInterval, this);
 		Runtime.instance().getTimerDispatcher().add(t);
@@ -345,6 +346,8 @@ class MessageManager implements TimerListener {
     } 
   } 	
   
+  /**
+   */
   private String stringify(ACLMessage msg, AID receiverID) {
   	return new String(ACLMessage.getPerformative(msg.getPerformative())+" to "+receiverID.getName()+" ("+msg.getConversationId()+")");
   }
