@@ -1295,6 +1295,11 @@ public class Agent implements Runnable, Serializable {
     if(o2aQueue == null)
       return;
 
+    // If the queue has a limited capacity and it is full, discard the
+    // first element
+    if((o2aQueueSize != 0) && (o2aQueue.size() == o2aQueueSize))
+      o2aQueue.remove(0);
+
     o2aQueue.add(o);
 
     // Reactivate the agent
