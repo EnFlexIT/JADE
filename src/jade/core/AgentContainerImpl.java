@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.36  1999/04/08 12:00:03  rimassa
+  Changed multicast code to make it work, even if now isn't probably
+  compliant.
+
   Revision 1.35  1999/04/07 11:39:00  rimassa
   Fixed a shutdown problem: a ConcurrentModificationException was thrown
   during local agents destruction.
@@ -387,19 +391,23 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
       group = event.getRecipients();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-				String dest = (String)e.nextElement();
-				msg.removeAllDests();
-				msg.addDest(dest);
-				unicastPostMessage(msg, dest);
+	String dest = (String)e.nextElement();
+	msg.removeAllDests();
+	msg.addDest(dest);
+	unicastPostMessage(msg, dest);
       }
     }
-    else {
+    else {  // FIXME: This is probably not compliant
       group = msg.getDests();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-				String dest = (String)e.nextElement();
-				unicastPostMessage(msg, dest);
+	String dest = (String)e.nextElement();
+	ACLMessage copy = (ACLMessage)msg.clone();
+	copy.removeAllDests();
+	copy.addDest(dest);
+	unicastPostMessage(copy, dest);
       }
+
     }
   }
 
