@@ -48,6 +48,8 @@ public interface AgentContainer {
     ContainerID getID();
     String getPlatformID();
     MainContainer getMain();
+    ServiceManager getServiceManager();
+    ServiceFinder getServiceFinder();
 
     AID getAMS();
     AID getDefaultDF();
@@ -80,5 +82,5 @@ public interface AgentContainer {
 
     void shutDown();
 
-
+    void becomeLeader();
 }
