@@ -68,28 +68,24 @@ public class TwoPhInitiator extends FSMBehaviour {
     public TwoPhInitiator(Agent a, ACLMessage cfp, DataStore ds) {
         super(a);
         setDataStore(ds);
-        /* Register the FSM transitions specific to the Two-Phase-Commit protocol */
-        //registerDefaultTransition(PH0_STATE, PH0_STATE); // if it's sent more than one block of cfps.
-        /* update1
-        registerTransition(PH0_STATE, PH1_STATE, ALL_PROPOSE);
-        registerTransition(PH0_STATE, PH2_STATE, PH0_TIMEOUT_EXPIRED);
-        registerTransition(PH0_STATE, PH2_STATE, SOME_FAILURE);
-        */
-        registerTransition(PH0_STATE, PH1_STATE, ACLMessage.QUERY_IF); // update1
-        registerTransition(PH0_STATE, PH2_STATE, ACLMessage.REJECT_PROPOSAL); // update1
+        // Register the FSM transitions specific to the Two-Phase-Commit protocol 
+        registerTransition(PH0_STATE, PH1_STATE, ACLMessage.QUERY_IF);
+        registerTransition(PH0_STATE, PH2_STATE, ACLMessage.REJECT_PROPOSAL);
         registerTransition(PH0_STATE, DUMMY_FINAL, -1);
-        
+        registerTransition(PH0_STATE, PH0_STATE, ACLMessage.CFP, new String[] {PH0_STATE});
+
         registerTransition(PH1_STATE, PH2_STATE, ACLMessage.ACCEPT_PROPOSAL);
         registerTransition(PH1_STATE, PH2_STATE, ACLMessage.REJECT_PROPOSAL);
         registerTransition(PH1_STATE, DUMMY_FINAL, -1); // fix
         
-        /* Create and register the states specific to the Two-Phase-Commit protocol */
+        // Create and register the states specific to the Two-Phase-Commit protocol
         Behaviour b;
 
         /* PH0_STATE activated for the first time. It sends cfps messages and wait
         for a propose (operation completed), a failure (operation failed) or
         expiration of timeout. */
         b = new TwoPh0Initiator(myAgent, cfp, TEMP, ds) {
+
             protected Vector prepareCfps(ACLMessage cfp) {
                 return TwoPhInitiator.this.prepareCfps(cfp);
             }
