@@ -43,7 +43,7 @@ import jade.core.NodeFailureMonitor;
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
 import jade.core.MainContainerImpl;
-import jade.core.ServiceManager;
+import jade.core.PlatformManager;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
@@ -91,7 +91,7 @@ public class MainReplicationService extends BaseService {
 	myContainer = ac;
 
 	// Create a local slice
-	localSlice = new ServiceComponent(p);
+	localSlice = new ServiceComponent();
 
 	// Create the command filters
 	outFilter = new CommandOutgoingFilter();
@@ -154,7 +154,7 @@ public class MainReplicationService extends BaseService {
 		    temp[label] = slice;
 
 		    if(!sliceName.equals(localNodeName)) {
-			slice.addReplica(localNodeName, myServiceManager.getLocalAddress(), myLabel);
+			slice.addReplica(localNodeName, myPlatformManager.getLocalAddress(), myLabel);
 		    }
 
 		    if(label == myLabel - 1) {
@@ -377,18 +377,17 @@ public class MainReplicationService extends BaseService {
 
     private class ServiceComponent implements Service.Slice, NodeEventListener {
 
-	public ServiceComponent(Profile p) {
-
-	    myMain = (MainContainerImpl)myContainer.getMain();
-	    myServiceManager = myContainer.getServiceManager();
-
+	public ServiceComponent() {
+    myMain = (MainContainerImpl) myContainer.getMain();
+    myPlatformManager = myMain.getPlatformManager();
 	}
 
 	private void attachTo(int label, MainReplicationSlice slice) throws IMTPException, ServiceException {
 
 	    // Stop the previous monitor, if any
 	    if(nodeMonitor != null) {
-		nodeMonitor.stop();
+	    	log("Stop monitoring node <"+nodeMonitor.getNode().getName()+">", 2);
+				nodeMonitor.stop();
 	    }
 
 	    // Store the label of the monitored slice
@@ -400,7 +399,7 @@ public class MainReplicationService extends BaseService {
 	    }
 
 	    // Store the Service Manager address for the monitored slice
-	    monitoredSvcMgr = slice.getServiceManagerAddress();
+	    monitoredSvcMgr = slice.getPlatformManagerAddress();
 
 	    // Set up a failure monitor on the target slice...
 	    nodeMonitor = new NodeFailureMonitor(slice.getNode(), this);
@@ -433,8 +432,8 @@ public class MainReplicationService extends BaseService {
 		    Integer i = new Integer(getLabel());
 		    cmd.setReturnValue(i);
 		}
-		else if(cmdName.equals(MainReplicationSlice.H_GETSERVICEMANAGERADDRESS)) {
-		    cmd.setReturnValue(getServiceManagerAddress());
+		else if(cmdName.equals(MainReplicationSlice.H_GETPLATFORMMANAGERADDRESS)) {
+		    cmd.setReturnValue(getPlatformManagerAddress());
 		}
 		else if(cmdName.equals(MainReplicationSlice.H_ADDREPLICA)) {
 		    String sliceName = (String)params[0];
@@ -504,8 +503,8 @@ public class MainReplicationService extends BaseService {
 	    return myLabel;
 	}
 
-	private String getServiceManagerAddress() throws IMTPException {
-	    return myServiceManager.getLocalAddress();
+	private String getPlatformManagerAddress() throws IMTPException {
+	    return myPlatformManager.getLocalAddress();
 	}
 
 	private void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException, ServiceException {
@@ -555,8 +554,6 @@ public class MainReplicationService extends BaseService {
 		    slice.newTool(tools[i]);
 		}
 
-		myMain.addServiceManagerAddress(smAddr);
-
 	    }
 
 	}
@@ -574,9 +571,6 @@ public class MainReplicationService extends BaseService {
 		// Handle the ring wrap-around case...
 		monitoredLabel--;
 	    }
-
-	    myMain.removeServiceManagerAddress(smAddr);
-
 	}
 
 	private void fillGADT(AID[] agents, ContainerID[] containers) throws AuthException {
@@ -590,6 +584,7 @@ public class MainReplicationService extends BaseService {
 		// FIXME: Temporary Hack --- End
 		try {
 		    myMain.bornAgent(agents[i], containers[i], certs, true);
+				log("Agent "+agents[i].getName()+" inserted into GADT", 2);		    
 		}
 		catch(NotFoundException nfe) {
 		    // It should never happen...
@@ -607,6 +602,7 @@ public class MainReplicationService extends BaseService {
 	    try {
 		// If the name is already in the GADT, throws NameClashException
 		myMain.bornAgent(name, cid, certs, false);
+		log("Agent "+name.getName()+" inserted into GADT", 2);
 	    }
 	    catch(NameClashException nce) {
 		try {
@@ -625,6 +621,7 @@ public class MainReplicationService extends BaseService {
 		catch(Exception e) {
 		    // Ping failed: forcibly replace the dead agent...
 		    myMain.bornAgent(name, cid, certs, true);
+				log("Agent "+name.getName()+" inserted into GADT", 2);
 		}
 	    }
 	}
@@ -686,14 +683,15 @@ public class MainReplicationService extends BaseService {
 	// Implementation of the NodeEventListener interface
 
 	public void nodeAdded(Node n) {
-	    // Do nothing...
+  	log("Start monitoring node <"+n.getName()+">", 2);
 	}
 
 	public void nodeRemoved(Node n) {
+	    log("Node <"+n.getName()+"> TERMINATED", 2);
 	    try {
+	    	myPlatformManager.removeReplica(monitoredSvcMgr, false);
+	    	myPlatformManager.removeNode(new NodeDescriptor(n.getName(), n), false);
 
-		// FIXME: Should be done somewhere else?
-		((jade.core.ServiceManagerImpl)myServiceManager).removeRemoteNode(new NodeDescriptor(n.getName(), n), true);
 
 		// Broadcast a 'removeReplica()' method (exclude yourself from bcast)
 		GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_REMOVEREPLICA, MainReplicationSlice.NAME, null);
@@ -711,7 +709,7 @@ public class MainReplicationService extends BaseService {
 		attachTo(monitoredLabel, newSlice);
 
 		if((oldLabel != 0) && (myLabel == 0)) {
-		    System.out.println("-- I'm the new leader ---");
+		    log("-- I'm the new leader ---", 1);
 
 		    myContainer.becomeLeader();
 
@@ -727,11 +725,11 @@ public class MainReplicationService extends BaseService {
 	}
 
 	public void nodeUnreachable(Node n) {
-	    // Do nothing...
+	    log("Node <"+n.getName()+"> UNREACHABLE", 2);
 	}
 
 	public void nodeReachable(Node n) {
-	    // Do nothing...
+	    log("Node <"+n.getName()+"> REACHABLE", 2);
 	}
 
 	// The active object monitoring the remote node
@@ -762,7 +760,7 @@ public class MainReplicationService extends BaseService {
 
     // Owned copies of Main Container and Service Manager
     private MainContainerImpl myMain;
-    private ServiceManager myServiceManager;
+    private PlatformManager myPlatformManager;
 
     private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
 

@@ -58,7 +58,7 @@ public interface MainReplicationSlice extends Service.Slice {
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_GETLABEL = "1";
-    static final String H_GETSERVICEMANAGERADDRESS = "2";
+    static final String H_GETPLATFORMMANAGERADDRESS = "2";
     static final String H_ADDREPLICA = "3";
     static final String H_REMOVEREPLICA = "4";
     static final String H_FILLGADT = "5";
@@ -72,7 +72,7 @@ public interface MainReplicationSlice extends Service.Slice {
     static final String H_DEADTOOL = "13";
 
     int getLabel() throws IMTPException;
-    String getServiceManagerAddress() throws IMTPException;
+    String getPlatformManagerAddress() throws IMTPException;
     void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException;
     void removeReplica(String smAddr, int sliceIndex) throws IMTPException;
 

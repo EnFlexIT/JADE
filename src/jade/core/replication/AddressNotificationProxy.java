@@ -60,7 +60,7 @@ public class AddressNotificationProxy extends Service.SliceProxy implements Addr
 	}
     }
 
-    public void removeServiceManagerAddress(String addr) throws IMTPException {
+    /*public void removeServiceManagerAddress(String addr) throws IMTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_REMOVESERVICEMANAGERADDRESS, NAME, null);
 	    cmd.addParam(addr);
@@ -80,11 +80,11 @@ public class AddressNotificationProxy extends Service.SliceProxy implements Addr
 	catch(ServiceException se) {
 	    throw new IMTPException("Unable to access remote node", se);
 	}
-    }
+    }*/
 
-    public String[] getServiceManagerAddresses() throws IMTPException {
+    public String getServiceManagerAddress() throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_GETSERVICEMANAGERADDRESSES, NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_GETSERVICEMANAGERADDRESS, NAME, null);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -97,7 +97,7 @@ public class AddressNotificationProxy extends Service.SliceProxy implements Addr
 		}
 	    }
 
-	    return (String[])result;
+	    return (String)result;
 
 	}
 	catch(ServiceException se) {

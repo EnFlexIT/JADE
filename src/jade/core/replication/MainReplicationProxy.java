@@ -73,9 +73,9 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	}
     }
 
-    public String getServiceManagerAddress() throws IMTPException {
+    public String getPlatformManagerAddress() throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_GETSERVICEMANAGERADDRESS, NAME, null);
+	    GenericCommand cmd = new GenericCommand(H_GETPLATFORMMANAGERADDRESS, NAME, null);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

@@ -47,24 +47,24 @@ public interface AddressNotificationSlice extends Service.Slice {
        This command name represents the notification of the addition
        of a new address to the <i>Service Manager</i> of the platform.
     */
-    static final String SM_ADDRESS_ADDED = "SM-Address-Added";
+    //static final String SM_ADDRESS_ADDED = "SM-Address-Added";
 
     /**
        This command name represents the notification of the removal of
        an address from the <i>Service Manager</i> of the platform.
     */
-    static final String SM_ADDRESS_REMOVED = "SM-Address-Removed";
+    //static final String SM_ADDRESS_REMOVED = "SM-Address-Removed";
 
 
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_ADDSERVICEMANAGERADDRESS = "1";
-    static final String H_REMOVESERVICEMANAGERADDRESS = "2";
-    static final String H_GETSERVICEMANAGERADDRESSES = "3";
+    //static final String H_REMOVESERVICEMANAGERADDRESS = "2";
+    static final String H_GETSERVICEMANAGERADDRESS = "3";
 
     void addServiceManagerAddress(String addr) throws IMTPException;
-    void removeServiceManagerAddress(String addr) throws IMTPException;
-    String[] getServiceManagerAddresses() throws IMTPException;
+    //void removeServiceManagerAddress(String addr) throws IMTPException;
+    String getServiceManagerAddress() throws IMTPException;
 
 
 }

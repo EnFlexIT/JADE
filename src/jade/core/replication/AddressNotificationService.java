@@ -53,10 +53,6 @@ import jade.core.AgentContainer;
 */
 public class AddressNotificationService extends BaseService {
 
-    private static final String[] OWNED_COMMANDS = new String[] {
-	AddressNotificationSlice.SM_ADDRESS_ADDED, AddressNotificationSlice.SM_ADDRESS_REMOVED
-    };
-
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	super.init(ac, p);
 
@@ -85,81 +81,50 @@ public class AddressNotificationService extends BaseService {
     }
 
     public Filter getCommandFilter(boolean direction) {
-	return null;
-    }
-
-    public Sink getCommandSink(boolean side) {
-	if(side == Sink.COMMAND_SOURCE) {
-	    return senderSink;
+	if(direction == Filter.INCOMING) {
+	    return incomingFilter;
 	}
 	else {
 	    return null;
 	}
     }
 
+    public Sink getCommandSink(boolean side) {
+	    return null;
+    }
+
     public String[] getOwnedCommands() {
-	return OWNED_COMMANDS;
+    	return null;
     }
 
     public void boot(Profile p) throws ServiceException {
-
-	try {
-
-	    // Get the Service Manager address list, if this node isn't hosting one itself...
-	    Node n = getLocalNode();
-	    if(!n.hasServiceManager()) {
-
-		// Retrieve the address list from the competent Service Manager...
-		AddressNotificationSlice mainSlice = (AddressNotificationSlice)getSlice(MAIN_SLICE);
-
-		String[] addresses;
-		try {
-		    addresses = mainSlice.getServiceManagerAddresses();
-		}
-		catch(IMTPException imtpe) {
-		    // Try to get a newer slice and repeat...
-		    mainSlice = (AddressNotificationSlice)getFreshSlice(MAIN_SLICE);
-
-		    try {
-			addresses = mainSlice.getServiceManagerAddresses();
-		    }
-		    catch(IMTPException imtpe2) {
-			throw new ServiceException("Could not retrieve Service Manager address list");
-		    }
-
-		}
-
-		for(int i = 0; i < addresses.length; i++) {
-		    try {
-			myServiceManager.addAddress(addresses[i]);
-		    }
-		    catch(IMTPException imtpe) {
-			// It should never happen...
-			imtpe.printStackTrace();
-		    }
-		}
-	    }
-	}
-	catch(IMTPException imtpe) {
-	    throw new ServiceException("Boot failure", imtpe);
-	}
-
+			try {
+			    // Get the Service Manager address list, if this node isn't hosting one itself...
+			    Node n = getLocalNode();
+			    if(!n.hasPlatformManager()) {
+						Object[] slices = getAllSlices();
+						for(int i = 0; i < slices.length; i++) {
+						    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
+						    if (slice.getNode().hasPlatformManager()) {
+						    	addAddress(slice.getServiceManagerAddress());
+						    }
+						}
+			    }
+			}
+			catch(Exception e) {
+			    throw new ServiceException("Boot failure", e);
+			}
     }
 
 
-    private class CommandSourceSink implements Sink {
+    private class IncomingFilter extends Filter {
 
-	// Implementation of the Sink interface
-
-	public void consume(VerticalCommand cmd) {
+	public boolean accept(VerticalCommand cmd) {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(AddressNotificationSlice.SM_ADDRESS_ADDED)) {
+		if(name.equals(Service.NEW_REPLICA)) {
 		    handleAddressAdded(cmd);
-		}
-		else if(name.equals(AddressNotificationSlice.SM_ADDRESS_REMOVED)) {
-		    handleAddressRemoved(cmd);
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -168,6 +133,7 @@ public class AddressNotificationService extends BaseService {
 	    catch(ServiceException se) {
 		se.printStackTrace();
 	    }
+	    return true;
 	}
 
 	// Vertical command handler methods
@@ -183,18 +149,7 @@ public class AddressNotificationService extends BaseService {
 	    broadcastToSlices(hCmd);
 	}
 
-	private void handleAddressRemoved(VerticalCommand cmd) throws IMTPException, ServiceException {
-	    Object[] params = cmd.getParams();
-	    String addr = (String)params[0];
-
-	    // Broadcast the address to all the slices...
-	    GenericCommand hCmd = new GenericCommand(AddressNotificationSlice.H_REMOVESERVICEMANAGERADDRESS, AddressNotificationSlice.NAME, null);
-	    hCmd.addParam(addr);
-
-	    broadcastToSlices(hCmd);
-	}
-
-    } // End of CommandSourceSink class
+    } // End of IncomingFilter class
 
 
     private class ServiceComponent implements Service.Slice {
@@ -229,12 +184,8 @@ public class AddressNotificationService extends BaseService {
 		    String addr = (String)params[0];
 		    addServiceManagerAddress(addr);
 		}
-		else if(cmdName.equals(AddressNotificationSlice.H_REMOVESERVICEMANAGERADDRESS)) {
-		    String addr = (String)params[0];
-		    removeServiceManagerAddress(addr);
-		}
-		else if(cmdName.equals(AddressNotificationSlice.H_GETSERVICEMANAGERADDRESSES)) {
-		    cmd.setReturnValue(getServiceManagerAddresses());
+		else if(cmdName.equals(AddressNotificationSlice.H_GETSERVICEMANAGERADDRESS)) {
+		    cmd.setReturnValue(getServiceManagerAddress());
 		}
 	    }
 	    catch(Throwable t) {
@@ -252,7 +203,7 @@ public class AddressNotificationService extends BaseService {
 	    try {
 		String localSMAddr = myServiceManager.getLocalAddress();
 		if(!addr.equals(localSMAddr)) {
-		    myServiceManager.addAddress(addr);
+		    addAddress(addr);
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -260,12 +211,8 @@ public class AddressNotificationService extends BaseService {
 	    }
 	}
 
-	private void removeServiceManagerAddress(String addr) throws IMTPException {
-	    myServiceManager.removeAddress(addr);
-	}
-
-	private String[] getServiceManagerAddresses() throws IMTPException {
-	    return myServiceManager.getAddresses();
+	private String getServiceManagerAddress() throws IMTPException {
+	    return myServiceManager.getLocalAddress();
 	}
 
     } // End of ServiceComponent class
@@ -277,7 +224,7 @@ public class AddressNotificationService extends BaseService {
     private ServiceComponent localSlice;
 
     // The command sink, source side
-    private final CommandSourceSink senderSink = new CommandSourceSink();
+    private final IncomingFilter incomingFilter = new IncomingFilter();
 
     private ServiceManager myServiceManager;
 
@@ -286,12 +233,18 @@ public class AddressNotificationService extends BaseService {
 	Object[] slices = getAllSlices();
 	for(int i = 0; i < slices.length; i++) {
 	    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
-	    slice.serve(cmd);
+	    if (!slice.getNode().hasPlatformManager()) {
+		    slice.serve(cmd);
+	    }
 	}
 
     }
 
 
+    private void addAddress(String addr) throws IMTPException {
+    	log("Adding PlatformManager address "+addr, 2);
+			myServiceManager.addAddress(addr);
+    }
 
 
 }
