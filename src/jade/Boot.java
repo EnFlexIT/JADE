@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/10/25 23:52:46  rimassa
+  Added '-gui' command line option to start a Remote Agent Management
+  GUI.
+
   Revision 1.6  1998/10/18 12:40:41  rimassa
   Added code to create an RMI registry embedded within the Agent
   Platform; now you don't need to run rmiregistry anymore.
@@ -42,6 +46,7 @@ public class Boot {
     String platformPort = "1099";
     String platformName = "JADE";
     boolean isPlatform = false;
+    boolean hasGUI = false;
 
     Vector agents = new Vector();
 
@@ -54,6 +59,8 @@ public class Boot {
                  registered into RMI registry.
 
        -file     File name to retrieve agent names from.
+
+       -gui      Starts the Remote Management Agent.
 
        -platform When specified, an Agent Platform is started.
                  Otherwise, an Agent Container is added to an
@@ -86,6 +93,9 @@ public class Boot {
 	}
 	else if(args[n].equals("-platform")) {
 	  isPlatform = true;
+	}
+	else if(args[n].equals("-gui")) {
+	  hasGUI = true;
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
 	  usage();
@@ -121,6 +131,15 @@ public class Boot {
     String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
     String platformIIOP = "iiop://" + platformHost + ":" + platformPort + "/" + "acc";
     try{
+
+      // If '-gui' option is given, add 'RMA:jade.domain.rma' to
+      // startup agents, making sure that the RMA starts before all
+      // other agents.
+      if(hasGUI) {
+	agents.insertElementAt(new String("RMA"), 0);
+	agents.insertElementAt(new String("jade.domain.rma"), 1);
+      }
+
       AgentContainerImpl theContainer = null;
       if(isPlatform) {
 	theContainer = new AgentPlatformImpl();
