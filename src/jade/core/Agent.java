@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.util.leap.Serializable;
-
 import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
@@ -35,13 +33,16 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
+import java.util.Vector;
+
+
+import jade.util.leap.Serializable;
+
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
-
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import java.util.Vector;
 
 import jade.core.behaviours.Behaviour;
 
@@ -146,7 +147,27 @@ public class Agent implements Runnable, Serializable {
       return TtoB.keySet().iterator();
     }
 
-  }
+  } // End of AssociationTB class
+
+
+  // A simple class for a boolean condition variable
+  private static class CondVar {
+    private boolean value = false;
+
+    public synchronized void waitOn() throws InterruptedException {
+      while(!value) {
+	wait();
+      }
+    }
+
+    public synchronized void set() {
+      value = true;
+      notifyAll();
+    }
+
+  } // End of CondVar class
+
+
 
   /**
      Schedules a restart for a behaviour, after a certain amount of
@@ -335,6 +356,9 @@ public class Agent implements Runnable, Serializable {
 
   private int       msgQueueMaxSize = 0;
   private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
+  private transient List o2aQueue;
+  private int o2aQueueSize;
+  private transient Map o2aLocks = new HashMap();
   private transient AgentToolkit myToolkit;
 
   /**
@@ -1258,6 +1282,115 @@ public class Agent implements Runnable, Serializable {
   */
   public void restore(InputStream s) throws IOException {
     // FIXME: Not implemented
+  }
+
+  /**
+     This method should not be used by application code. Use the
+     same-named method of <code>jade.wrapper.Agent</code> instead.
+     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
+   */
+  public void putO2AObject(Object o, boolean blocking) throws InterruptedException {
+    // Drop object on the floor if object-to-agent communication is
+    // disabled.
+    if(o2aQueue == null)
+      return;
+
+    o2aQueue.add(o);
+
+    // Reactivate the agent
+    activateAllBehaviours();
+
+    // Synchronize the calling thread on a condition associated to the
+    // object
+    if(blocking) {
+      CondVar cond = new CondVar();
+
+      // Store lock for later, when getO2AObject will be called
+      o2aLocks.put(o, cond);
+
+      // Sleep on the condition
+      cond.waitOn();
+
+    }
+
+  }
+
+  /**
+     This method picks an object (if present) from the internal
+     object-to-agent communication queue. In order for this method to
+     work, the agent must have declared its will to accept objects
+     from other software components running within its JVM. This can
+     be achieved by calling the
+     <code>jade.core.Agent.setEnabledO2ACommunication()</code> method.
+     If the retrieved object was originally inserted by an external
+     component using a blocking call, that call will return during the
+     execution of this method.
+     @return the first object in the queue, or <code>null</code> if
+     the queue is empty.
+     @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
+     @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
+   */
+  public Object getO2AObject() {
+
+    // Return 'null' if object-to-agent communication is disabled
+    if(o2aQueue == null)
+      return null;
+
+    if(o2aQueue.isEmpty())
+      return null;
+
+    // Retrieve the first object from the object-to-agent
+    // communication queue
+    Object result = o2aQueue.remove(0);
+
+    // If some thread issued a blocking putO2AObject() call with this
+    // object, wake it up
+    CondVar cond = (CondVar)o2aLocks.remove(result);
+    if(cond != null) {
+      cond.set();
+    }
+
+    return result;
+    
+  }
+
+
+  /**
+     This method declares this agent attitude towards object-to-agent
+     communication, that is, whether the agent accepts to communicate
+     with other non-JADE components living within the same JVM.
+     @param enabled Tells whether Java objects inserted with
+     <code>putO2AObject()</code> will be accepted.
+     @param queueSize If the object-to-agent communication is enabled,
+     this parameter specifiies the maximum number of Java objects that
+     will be queued. If the passed value is 0, no maximum limit is set
+     up for the queue.
+
+     @see jade.wrapper.Agent#putO2AObject(Object o)
+     @see jade.core.Agent#getO2AObject()
+
+   */
+  public void setEnabledO2ACommunication(boolean enabled, int queueSize) {
+    if(enabled) {
+      if(o2aQueue == null)
+	o2aQueue = new ArrayList(queueSize);
+
+      // Ignore a negative value
+      if(queueSize >= 0)
+	o2aQueueSize = queueSize;
+    }
+    else {
+
+      // Wake up all threads blocked in putO2AObject() calls
+      Iterator it = o2aLocks.values().iterator();
+      while(it.hasNext()) {
+	CondVar cv = (CondVar)it.next();
+	cv.set();
+      }
+
+      o2aQueue = null;
+    }
+
   }
 
   /**
