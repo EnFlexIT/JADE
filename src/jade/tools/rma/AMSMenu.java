@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 11:31:40  rimassa
+  Integrated RMA GUI with DummyAgent tool.
+
   Revision 1.1  1999/05/20 15:42:07  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -48,14 +51,17 @@ public class AMSMenu extends JMenuBar {
 		
     act = new AddAgentPlatformAction();
     tmp = menu.add(act);
+    tmp.setEnabled(false);
     tmp.setIcon(null);
 		
     act = new OpenScriptFileAction();
     tmp = menu.add(act);
+    tmp.setEnabled(false);
     tmp.setIcon(null);
     add(menu);
 
     tmp = new JMenuItem ("Execute Current Script");
+    tmp.setEnabled(false);
     menu.add(tmp);
 
     act = new CloseRMAAction(anRMA);
@@ -97,13 +103,24 @@ public class AMSMenu extends JMenuBar {
 
     act = new PingAction();
     tmp = menu.add(act);
+    tmp.setEnabled(false);
     tmp.setIcon(null);
 
-    act = new SnifferAction();
+    act = new CustomAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
-    act = new CustomAction();
+    add(menu);
+
+    // TOOLS MENU
+    menu = new JMenu ("Tools");
+
+    act = new SnifferAction();
+    tmp = menu.add(act);
+    tmp.setEnabled(false);
+    tmp.setIcon(null);
+
+    act = new DummyAgentAction(anRMA);
     tmp = menu.add(act);
     tmp.setIcon(null);
 
