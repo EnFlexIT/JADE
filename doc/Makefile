@@ -2,6 +2,7 @@
 
 ZIP = jar
 ZIPFLAGS = cMvf
+ZIPUPDATEFLAGS = uvf
 ZIPEXT = zip
 
 UNZIP = jar
@@ -15,7 +16,7 @@ DOC_OUTDIR = $(DOCDIR)/api
 DOC_WINTITLE = "$(PACKAGE) $(VERSION) API Reference"
 TMPSRCDIR = $(DOCDIR)/__tmp
 
-API_CLASSES = 	jade/core/behaviours/package.html \
+API_FILES1 = 	jade/core/behaviours/package.html \
 		jade/core/behaviours/DataStore.java \
 		jade/core/behaviours/Behaviour.java \
 		jade/core/behaviours/CompositeBehaviour.java \
@@ -52,8 +53,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/core/event/MessageEvent.java \
 		jade/core/event/MessageListener.java \
 		jade/core/event/PlatformEvent.java \
-		jade/core/event/PlatformListener.java \
-		jade/domain/DFGUIManagement/DFAppletManagementOntology.java \
+		jade/core/event/PlatformListener.java
+
+API_FILES2 =	jade/domain/DFGUIManagement/DFAppletManagementOntology.java \
 		jade/domain/DFGUIManagement/DeregisterFrom.java \
 		jade/domain/DFGUIManagement/Federate.java \
 		jade/domain/DFGUIManagement/GetDefaultDescription.java \
@@ -70,8 +72,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/domain/FIPAException.java \
 		jade/domain/FIPAServiceCommunicator.java \
 		jade/domain/MobilityOntology.java \
-		jade/domain/RequestFIPAServiceBehaviour.java \
-		jade/domain/FIPAAgentManagement/package.html \
+		jade/domain/RequestFIPAServiceBehaviour.java
+
+API_FILES3 =	jade/domain/FIPAAgentManagement/package.html \
 		jade/domain/FIPAAgentManagement/AMSAgentDescription.java \
 		jade/domain/FIPAAgentManagement/APDescription.java \
 		jade/domain/FIPAAgentManagement/APTransportDescription.java \
@@ -103,8 +106,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/domain/FIPAAgentManagement/UnrecognisedValue.java \
 		jade/domain/FIPAAgentManagement/UnsupportedAct.java \
 		jade/domain/FIPAAgentManagement/UnsupportedFunction.java \
-		jade/domain/FIPAAgentManagement/UnsupportedValue.java \
-		jade/domain/JADEAgentManagement/CreateAgent.java \
+		jade/domain/FIPAAgentManagement/UnsupportedValue.java
+
+API_FILES4 =	jade/domain/JADEAgentManagement/CreateAgent.java \
 		jade/domain/JADEAgentManagement/DebugOff.java \
 		jade/domain/JADEAgentManagement/DebugOn.java \
 		jade/domain/JADEAgentManagement/InstallMTP.java \
@@ -140,8 +144,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/domain/introspection/StartNotify.java \
 		jade/domain/introspection/StopNotify.java \
 		jade/domain/AMSService.java \
-		jade/domain/DFService.java \
-		jade/gui/package.html \
+		jade/domain/DFService.java
+
+API_FILES5 =	jade/gui/package.html \
 		jade/gui/AIDGui.java \
 		jade/gui/APDescriptionPanel.java \
 		jade/gui/AboutJadeAction.java \
@@ -206,8 +211,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/onto/basic/FalseProposition.java \
 		jade/onto/basic/Not.java \
 		jade/onto/basic/ResultPredicate.java \
-		jade/onto/basic/TrueProposition.java \
-		jade/proto/package.html \
+		jade/onto/basic/TrueProposition.java
+
+API_FILES6 =	jade/proto/package.html \
 		jade/proto/states/HandlerSelector.java \
 		jade/proto/states/MsgReceiver.java \
 		jade/proto/FipaContractNetInitiatorBehaviour.java \
@@ -247,8 +253,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/tools/dfgui/DFGUIRegisterAction.java \
 		jade/tools/dfgui/DFGUISearchAction.java \
 		jade/tools/dfgui/DFGUIViewAction.java \
-		jade/tools/dfgui/DFGuiProperties.java \
-		jade/tools/introspector/gui/AboutBoxAction.java \
+		jade/tools/dfgui/DFGuiProperties.java
+
+API_FILES7 =	jade/tools/introspector/gui/AboutBoxAction.java \
 		jade/tools/introspector/gui/BehaviourPanel.java \
 		jade/tools/introspector/gui/IntrospectorGUI.java \
 		jade/tools/introspector/gui/MainBar.java \
@@ -286,8 +293,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/tools/rma/InstallMTPAction.java \
 		jade/tools/rma/InstallMTPDialog.java \
 		jade/tools/rma/IntrospectorAction.java \
-		jade/tools/rma/KillAction.java \
-		jade/tools/rma/MainMenu.java \
+		jade/tools/rma/KillAction.java
+
+API_FILES8 =	jade/tools/rma/MainMenu.java \
 		jade/tools/rma/MainPanel.java \
 		jade/tools/rma/MainWindow.java \
 		jade/tools/rma/MoveAgentAction.java \
@@ -337,8 +345,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/tools/sniffer/MainPanel.java \
 		jade/tools/sniffer/MainWindow.java \
 		jade/tools/sniffer/Message.java \
-		jade/tools/sniffer/MessageList.java \
-		jade/tools/sniffer/PanelCanvas.java \
+		jade/tools/sniffer/MessageList.java
+
+API_FILES9 =	jade/tools/sniffer/PanelCanvas.java \
 		jade/tools/sniffer/PopMouserAgent.java \
 		jade/tools/sniffer/PopMouserMessage.java \
 		jade/tools/sniffer/PopNoSniffAgent.java \
@@ -394,8 +403,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/content/abs/AbsTerm.java \
 		jade/content/abs/AbsVariable.java \
 		jade/content/abs/AbsEquals.java \
-		jade/content/abs/AbsHelper.java \
-		jade/content/acl/Inform.java \
+		jade/content/abs/AbsHelper.java
+
+API_FILES10 =	jade/content/acl/Inform.java \
 		jade/content/acl/QueryRef.java \
 		jade/content/acl/Request.java \
 		jade/content/acl/CommunicativeActBase.java \
@@ -447,6 +457,9 @@ API_CLASSES = 	jade/core/behaviours/package.html \
 		jade/content/schema/EqualsSchema.java \
 		jade/content/Equals.java
 
+API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FILES5) \
+		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
+
 API_PACKAGES = 	jade.core jade.core.behaviours jade.core.event jade.lang jade.lang.acl jade.lang.sl jade.domain \
 		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic \
 		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
@@ -492,18 +505,27 @@ batch: $(DOC_OUTDIR) $(SNIFFER_OUTDIR)
 	echo '@REM ===============================================================' > $(BATCH_DOC)
 	echo '@REM =           Generated by JADE Makefile. DO NOT EDIT           =' >> $(BATCH_DOC)
 	echo '@REM ===============================================================' >> $(BATCH_DOC)
-	echo >> $(BATCH_DOC)
+	echo 'cd src' >> $(BATCH_DOC)
 	echo 'mkdir $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)))' >> $(BATCH_DOC)
-	echo '$(ZIP) $(ZIPFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_CLASSES)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES1)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES2)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES3)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES4)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES5)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES6)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES7)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES8)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES9)))' >> $(BATCH_DOC)
+	echo '$(ZIP) $(ZIPUPDATEFLAGS) $(subst /,\,$(subst $(DOCDIR),..\doc,$(TMPSRCDIR)\src.$(ZIPEXT) $(API_FILES10)))' >> $(BATCH_DOC)
 	echo 'cd $(subst /,\,$(subst $(ROOTDIR),..,$(TMPSRCDIR)))' >> $(BATCH_DOC)
 	echo '$(UNZIP) $(UNZIPFLAGS) src.$(UNZIPEXT)' >> $(BATCH_DOC)
-	echo 'cd $(subst /,\,$(subst $(ROOTDIR),..\..,$(SRCDIR)))' >> $(BATCH_DOC)
-	echo '$(subst /,\,$(subst $(ROOTDIR),.,$(DOC))) -sourcepath $(subst /,\,$(subst $(ROOTDIR),..,$(TMPSRCDIR))) $(subst /,\,$(subst $(ROOTDIR),.,$(API_FLAGS))) $(API_PACKAGES)' >> $(BATCH_DOC)
+	echo 'cd ..\..' >> $(BATCH_DOC)
+	echo '$(subst /,\,$(subst $(ROOTDIR),.,$(DOC))) -sourcepath $(subst /,\,$(subst $(ROOTDIR),.,$(TMPSRCDIR))) $(subst /,\,$(subst $(ROOTDIR),.,$(API_FLAGS))) $(API_PACKAGES)' >> $(BATCH_DOC)
 	echo 'rmdir /S /Q $(subst /,\,$(subst $(ROOTDIR),.,$(TMPSRCDIR)))' >> $(BATCH_DOC) # For Win NT
 	echo 'deltree /Y $(subst /,\,$(subst $(ROOTDIR),.,$(TMPSRCDIR)))' >> $(BATCH_DOC)  # For Win 95/98
 
 	echo >> $(BATCH_DOC)
-	echo '$(subst /,\,$(subst $(ROOTDIR),.,$(DOC))) -sourcepath $(subst /,\,$(subst $(ROOTDIR),..,$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),.,$(SNIFFER_FLAGS))) $(SNIFFER_PACKAGES)' >> $(BATCH_DOC)
+	echo '$(subst /,\,$(subst $(ROOTDIR),.,$(DOC))) -sourcepath $(subst /,\,$(subst $(ROOTDIR),.,$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),.,$(SNIFFER_FLAGS))) $(SNIFFER_PACKAGES)' >> $(BATCH_DOC)
 	echo >> $(BATCH_DOC)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(DOC_OUTDIR)))\*.html' >> $(BATCH_CLEAN)
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(DOC_OUTDIR)))\*.css' >> $(BATCH_CLEAN)
