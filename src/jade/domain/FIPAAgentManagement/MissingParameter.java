@@ -29,6 +29,12 @@ public class MissingParameter extends RefuseException {
   public MissingParameter() {
     super("A parameter is missing");
   }
+  
+public MissingParameter(String objectName, String parameterName) {
+  this();
+  s1=objectName;
+  s2=parameterName;
+}
 
 String s1,s2;
 public void set_0(String a){s1=a;}
