@@ -140,6 +140,7 @@ DOCUMENTATION:
 	guide
 - Added a link to "JADE Primer" (J. Vaucher and A. Ncho - Université de Montréal)
 - Added a link to "Basic aspects of JADE programming" (Owen Cliffe - University of Bath)
+- Added a link to tutorial on running JADE over .NET (Marti Bayo Alemany - Yellowmap AG)
 - Added JADEApplets tutorial
 - administratorsguide: Added the description of how to pass arguments to the 
   sniffer and to the introspector (Karl-Heinz Krempels)
