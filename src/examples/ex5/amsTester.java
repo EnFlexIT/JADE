@@ -111,7 +111,7 @@ public class amsTester extends Agent {
       len = System.in.read(buffer);
       APState = new String(buffer,0,len-1);
 
-      System.out.print(":delegate-agent ");
+      System.out.print(":delegate-agent-name ");
       len = System.in.read(buffer);
       delegateAgent = new String(buffer,0,len-1);
 
@@ -258,24 +258,25 @@ public class amsTester extends Agent {
       "    :protocol fipa-request" +
       "    :ontology fipa-agent-management" +
       "    :language SL0" +
-      "    :content  ( action ams " + myAction;
+      "    :content  ( action ams ( " + myAction +
+      "    ( :ams-description ";
 
     if(agentName.length() > 0)
-      text = text.concat("      :agent-name " + agentName);
+      text = text.concat("( :agent-name " + agentName + " )");
     if(address.length() > 0)
-      text = text.concat("      :address " + address);
+      text = text.concat("( :address " + address + " )");
     if(signature.length() > 0)
-      text = text.concat("      :signature " + signature);
+      text = text.concat("( :signature " + signature + " )");
     if(APState.length() > 0)
-      text = text.concat("      :ap-state " + APState);
+      text = text.concat("( :ap-state " + APState + " )");
     if(forwardAddress.length() > 0)
-      text = text.concat("      :forward-address" + forwardAddress);
+      text = text.concat("( :forward-address" + forwardAddress + " )");
     if(delegateAgent.length() > 0)
-      text = text.concat("      :delegate-agent" + delegateAgent);
+      text = text.concat("( :delegate-agent-name" + delegateAgent + " )");
 
     text = text +
-      " )" +
-      "    :conversation-id " + convID +
+      " ) ) )" +
+      " :conversation-id " + convID +
       ")";
 
     ACLMessage toSend = parse(new StringReader(text));
