@@ -127,11 +127,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // Support for the in-process interface section 
   ///////////////////////////////////////////////// 
   jade.wrapper.AgentContainer getContainerController() {
-  	return getContainerController(ownerPrincipal, ownerCredentials);
+  	return getContainerController(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials());
   }
   
-  public jade.wrapper.AgentContainer getContainerController(final JADEPrincipal principal, final Credentials credentials) {
-		return new jade.wrapper.AgentContainer(new jade.wrapper.ContainerProxy() {
+  public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials) {
+  	return new jade.wrapper.AgentContainer(getContainerProxy(principal, credentials), this, getPlatformID());
+  }
+
+  /**
+     Return a proxy that allows making requests to the local container 
+     as if they were received from the main. This allows dealing 
+     uniformly with local and remote requests.
+     Local requests occurs at bootstrap and following calls to the
+     in-process interface.
+   */
+  private jade.wrapper.ContainerProxy getContainerProxy(final JADEPrincipal principal, final Credentials credentials) {
+		return new jade.wrapper.ContainerProxy() {
 			GenericCommand dummyCmd = new GenericCommand(null, null, null);
 			
 			{
@@ -143,7 +154,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				// Do as if it was a remote call from the main to allows 
 				// security checks to take place if needed
 				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
-				target.createAgent(id, className, args, principal, null, dummyCmd);
+				target.createAgent(id, className, args, principal, null, target.CREATE_ONLY, dummyCmd);
 			}
 			
 			public void killContainer() throws Throwable {
@@ -214,38 +225,16 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				Service svc = myServiceFinder.findService(serviceName);
 				return (Service.SliceProxy) myIMTPManager.createSliceProxy(serviceName, svc.getHorizontalInterface(), myIMTPManager.getLocalNode());
 			}
-		}, this, getPlatformID());
+		};
   }
   ////////////////////////////////////////////////////////
   // END of support for the in-process interface section 
   //////////////////////////////////////////////////////// 
   //#MIDP_EXCLUDE_END
 
-  /**
-     Create an agent, put it in the LADT, notify the main, but 
-     does not start the embedded Thread
-   */
-  private void createAgent(AID agentID, String className, Object[] args,
-                           JADEPrincipal creator, Credentials creds) 
-          throws AuthException {
-
-      Agent agent = null;
-      try {
-          agent = (Agent)Class.forName(new String(className)).newInstance();
-          agent.setArguments(args);
-          initAgent(agentID, agent, creator, creds);
-      } 
-      catch(AuthException e) { throw e; }
-      catch(ClassNotFoundException cnfe) {
-          System.err.println("Class " + className + " for agent " + agentID + " was not found.");
-      }
-      catch(Exception e ) {
-	  e.printStackTrace();
-      }
-  }
 
   /**
-     Issue an INFORM_CREATED vertical command
+     Issue an INFORM_CREATED vertical command.
    */
    public void initAgent(
         AID agentID, Agent instance, 
@@ -255,6 +244,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
+      cmd.addParam("none"); // Dummy ownership
       cmd.setPrincipal(ownerPrincipal);
       cmd.setCredentials(ownerCredentials);
 
@@ -286,75 +276,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	ownerCredentials = c;
   }
   
-	/*public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
-		//#MIDP_EXCLUDE_BEGIN
-		Agent agent = localAgents.acquire(agentID);
-		if (agent != null)
-                  if (certs!=null)
-			agent.setPrincipal(certs);
-		localAgents.release(agentID);
-		//#MIDP_EXCLUDE_END
-	}*/
-
 	public void changedAgentPrincipal(AID agentID, JADEPrincipal principal) throws IMTPException {
 		principals.put(agentID, principal);
 	}
-
-	/*public ContainerPrincipal getContainerPrincipal() {
-		ContainerPrincipal cp = null;
-                if (certs!=null) 
-		cp = (ContainerPrincipal) certs.getIdentityCertificate().getSubject();
-		return cp;
-	}*/
-
-
-	/*public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
-		// FIXME: manage the HashMap 'containerPrincipals' as done for 'principals'
-		// see getAgentPrincipal()
-		return myPlatform.getContainerPrincipal(cid);
-	}
-
-	public ContainerPrincipal getContainerPrincipal(Location loc) throws IMTPException, NotFoundException {
-		return myPlatform.getContainerPrincipal((ContainerID)loc);
-	}*/
-
-/***
-	public AgentPrincipal getAgentPrincipal(final AID agentID) {
-		AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
-		if (principal == null) {
-
-
-			try {
-				principal = (AgentPrincipal)authority.doPrivileged(new jade.security.PrivilegedExceptionAction() {
-					public Object run() throws IMTPException, NotFoundException {
-						return myPlatform.getAgentPrincipal(agentID);
-					}
-				});
-				principals.put(agentID, principal);
-			}
-			catch (IMTPException ie) {
-				//!!! Manage ie
-				ie.printStackTrace();
-			}
-			catch (NotFoundException ne) {
-				//!!! Manage ne
-				ne.printStackTrace();
-			}
-			catch (Exception e) {
-				// e should never be thrown
-				e.printStackTrace();
-			}
-
-
-		    // FIXME: Temporary Hack
-		    principal = new jade.security.dummy.DummyPrincipal();
-		    principals.put(agentID, principal);
-		}
-		return principal;
-	}
-***/
-//__SECURITY__END
-
 
   public Authority getAuthority() {
     return authority;
@@ -398,8 +322,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
-      // Register with the platform 
-      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
   }
 
   /**
@@ -430,13 +352,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			  basicServices.add(dsc);
 			  break;
 		  }
-    }
-			  	
+    }			  	
+
+    // Register with the platform 
+    myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
     ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
-    }
-	  // This call can modify the name of this container
+    }    
+    // This call can modify the name of this container
 	  myServiceManager.addNode(myNodeDescriptor, descriptors);
 
 	  // Boot all basic services
@@ -540,11 +464,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
 
               try {
-                  createAgent(agentID, s.getClassName(), s.getArgs(),
-                              myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials());
-              } catch (AuthException ae) {
-                  Logger.println("Authorization or authentication error while adding a new agent to the platform.");
-                  localAgents.remove(agentID);
+              	getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(agentID, s.getClassName(), s.getArgs());
+              } 
+              catch (Throwable t) {
+              	Logger.println("Cannot create agent "+s.getName()+": "+t.getMessage());
               }
           }
           
@@ -569,29 +492,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
   
-/*
-  CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
-          AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
-
-          IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-          agentIdentity.setSubject(agentPrincipal);
-          authority.sign(agentIdentity, certs);
-
-          DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-          agentDelegation.setSubject(agentPrincipal);
-          for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
-              agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-          authority.sign(agentDelegation, certs);
-
-          CertificateFolder agentCerts = new CertificateFolder();
-          agentCerts.setIdentityCertificate(agentIdentity);
-          agentCerts.addDelegationCertificate(agentDelegation);
-
-          return agentCerts;
-  }
-*/
   public void shutDown() {
-
     // Remove all non-system agents 
     Agent[] allLocalAgents = localAgents.values();
 
@@ -801,17 +702,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	}
       }
   }
-
-  // FIXME: kept only to make jade.wrapper compile
-  /*public void handleStart(String localName, Agent instance) {
-      try {
-	  AID agentID = new AID(localName, AID.ISLOCALNAME);
-	  startAgent(agentID);
-      }
-      catch(Exception e) {
-	  e.printStackTrace();
-      }
-  }*/
 
   public void handleEnd(AID agentID) {
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_KILLED, jade.core.management.AgentManagementSlice.NAME, null);

@@ -50,7 +50,7 @@ import jade.security.AuthException;
 */
 public class AgentManagementProxy extends Service.SliceProxy implements AgentManagementSlice {
 
-    public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException {
+    public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(agentID);
@@ -58,6 +58,7 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	    cmd.addParam(arguments);
 	    cmd.addParam(owner);
 	    cmd.addParam(initialCredentials);
+	    cmd.addParam(new Boolean(startIt));
 	    cmd.setPrincipal(sourceCmd.getPrincipal());
 	    cmd.setCredentials(sourceCmd.getCredentials());
 
@@ -135,12 +136,14 @@ public class AgentManagementProxy extends Service.SliceProxy implements AgentMan
 	}
     }
 
-    public void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    public void bornAgent(AID name, ContainerID cid, String ownership, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, AgentManagementSlice.NAME, null);
 	    cmd.addParam(name);
 	    cmd.addParam(cid);
-	    cmd.addParam(creds);
+	    cmd.addParam(ownership);
+	    cmd.setPrincipal(sourceCmd.getPrincipal());
+	    cmd.setCredentials(sourceCmd.getCredentials());
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

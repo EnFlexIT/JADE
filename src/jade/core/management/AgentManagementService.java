@@ -69,7 +69,6 @@ public class AgentManagementService extends BaseService {
 
     private static final String[] OWNED_COMMANDS = new String[] {
         AgentManagementSlice.REQUEST_CREATE,
-	AgentManagementSlice.REQUEST_START,
 	AgentManagementSlice.REQUEST_KILL,
 	AgentManagementSlice.REQUEST_STATE_CHANGE,
 	AgentManagementSlice.INFORM_CREATED,
@@ -137,23 +136,20 @@ public class AgentManagementService extends BaseService {
 		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) {
 		    handleRequestCreate(cmd);
 		}
-		else if(name.equals(AgentManagementSlice.REQUEST_START)) {
-		    handleRequestStart(cmd);
-		}
 		else if(name.equals(AgentManagementSlice.REQUEST_KILL)) {
 		    handleRequestKill(cmd);
 		}
 		else if(name.equals(AgentManagementSlice.REQUEST_STATE_CHANGE)) {
 		    handleRequestStateChange(cmd);
 		}
+		else if(name.equals(AgentManagementSlice.INFORM_CREATED)) {
+		    handleInformCreated(cmd);
+		}
 		else if(name.equals(AgentManagementSlice.INFORM_KILLED)) {
 		    handleInformKilled(cmd);
 		}
 		else if(name.equals(AgentManagementSlice.INFORM_STATE_CHANGED)) {
 		    handleInformStateChanged(cmd);
-		}
-		else if(name.equals(AgentManagementSlice.INFORM_CREATED)) {
-		    handleInformCreated(cmd);
 		}
 		else if(name.equals(AgentManagementSlice.KILL_CONTAINER)) {
 		    handleKillContainer(cmd);
@@ -190,12 +186,12 @@ public class AgentManagementService extends BaseService {
 				AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 				if (targetSlice != null) {
 					try {
-					    targetSlice.createAgent(agentID, className, args, owner, initialCredentials, cmd);
+					    targetSlice.createAgent(agentID, className, args, owner, initialCredentials, AgentManagementSlice.CREATE_AND_START, cmd);
 					}
 					catch(IMTPException imtpe) {
 					    // Try to get a newer slice and repeat...
 					    targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-					    targetSlice.createAgent(agentID, className, args, owner, initialCredentials, cmd);
+					    targetSlice.createAgent(agentID, className, args, owner, initialCredentials, AgentManagementSlice.CREATE_AND_START, cmd);
 					}
 				}
 				else {
@@ -205,40 +201,6 @@ public class AgentManagementService extends BaseService {
 	    else {
 				// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
 	    }
-	}
-
-	private void handleRequestStart(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
-		/*
-
-	    Object[] params = cmd.getParams();
-	    AID target = (AID)params[0];
-
-	    log("Source Sink consuming command REQUEST_START. Name is "+target.getName(), 3);
-	    Agent instance = myContainer.acquireLocalAgent(target);
-
-	    if(instance == null)
-		throw new NotFoundException("Start-Agent failed to find " + target);
-
-
-			Credentials agentCerts = null;
-
-	    // Notify the main container through its slice
-	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
-
-	    try {
-		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
-	    }
-	    catch(IMTPException imtpe) {
-		// Try to get a newer slice and repeat...
-		mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-		mainSlice.bornAgent(target, myContainer.getID(), agentCerts);
-	    }
-
-	    // Actually start the agent thread
-	    myContainer.powerUpLocalAgent(target, instance);
-
-	    myContainer.releaseLocalAgent(target);
-	    */
 	}
 
 	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
@@ -307,9 +269,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 	    Agent instance = (Agent)params[1];
+	    String ownership = (String) params[2];
 
     	log("Source Sink consuming command INFORM_CREATED. Name is "+target.getName(), 3);
-	    initAgent(target, instance, cmd);
+	    initAgent(target, instance, ownership, cmd);
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
@@ -489,9 +452,10 @@ public class AgentManagementService extends BaseService {
 	    Object[] arguments = (Object[])params[2];
 	    JADEPrincipal owner = (JADEPrincipal)params[3];
 	    Credentials initialCredentials = (Credentials)params[4];
+	    boolean startIt = ((Boolean) params[5]).booleanValue();
 	    
 			log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
-	    createAgent(agentID, className, arguments, owner, initialCredentials);
+	    createAgent(agentID, className, arguments, owner, initialCredentials, startIt);
 	}
 
 	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
@@ -512,16 +476,16 @@ public class AgentManagementService extends BaseService {
 	    changeAgentState(agentID, newState);
 	}
 
-	private void handleInformCreated(VerticalCommand cmd) throws NotFoundException, NameClashException, AuthException, ServiceException {
+	private void handleInformCreated(VerticalCommand cmd) throws NotFoundException, NameClashException, ServiceException {
 
 	    Object[] params = cmd.getParams();
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    Credentials certs = (Credentials)params[2];
+	    String ownership = (String) params[2];
 
 			log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
-	    bornAgent(agentID, cid, certs);
+	    bornAgent(agentID, cid, ownership, cmd.getPrincipal());
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws NotFoundException, ServiceException {
@@ -553,20 +517,22 @@ public class AgentManagementService extends BaseService {
 	    exitContainer();
 	}
 
-	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials) throws IMTPException, NotFoundException, NameClashException, AuthException {
+	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
 		agent.setArguments(arguments);
 
 		myContainer.initAgent(agentID, agent, owner, initialCredentials);
-		myContainer.powerUpLocalAgent(agentID);
+		if (startIt) {
+			myContainer.powerUpLocalAgent(agentID);
+		}
 	    }
 	    catch(ClassNotFoundException cnfe) {
-		throw new IMTPException("Class " + className + " for agent " + agentID + " not found in createAgent()", cnfe);
+		throw new IMTPException("Class " + className + " for agent " + agentID + " not found", cnfe);
 	    }
 	    catch(InstantiationException ie) {
-		throw new IMTPException("Instantiation exception in createAgent()", ie);
+		throw new IMTPException("Class " + className + " for agent " + agentID + " cannot be instantiated", ie);
 	    }
 	    catch(IllegalAccessException iae) {
 		throw new IMTPException("Illegal access exception in createAgent()", iae);
@@ -609,12 +575,12 @@ public class AgentManagementService extends BaseService {
 	    myContainer.releaseLocalAgent(agentID);
 	}
 
-	private void bornAgent(AID name, ContainerID cid, Credentials creds) throws NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, String ownership, JADEPrincipal principal) throws NameClashException, NotFoundException {
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		try {
 		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(name, cid, creds, false); 
+		    impl.bornAgent(name, cid, ownership, principal, false); 
 		}
 		catch(NameClashException nce) {
 			//#CUSTOMJ2SE_EXCLUDE_BEGIN
@@ -633,7 +599,7 @@ public class AgentManagementService extends BaseService {
 		    }
 		    catch(Exception e) {
 			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(name, cid, creds, true);
+			impl.bornAgent(name, cid, ownership, principal, true);
 		    }
 			//#CUSTOMJ2SE_EXCLUDE_END
 			/*#CUSTOMJ2SE_INCLUDE_BEGIN
@@ -642,11 +608,11 @@ public class AgentManagementService extends BaseService {
 				dyingAgents.add(name);
 				((jade.core.AgentManager) impl).kill(name);
 				waitUntilDead(name);
-		    impl.bornAgent(name, cid, certs, false); 
+		    impl.bornAgent(name, cid, ownership, principal, false); 
 			}
 			catch (Exception e) {
 				dyingAgents.remove(name);
-				impl.bornAgent(name, cid, certs, true);
+				impl.bornAgent(name, cid, ownership, principal, true);
 			}				
 			#CUSTOMJ2SE_INCLUDE_END*/
 		}
@@ -742,13 +708,15 @@ public class AgentManagementService extends BaseService {
 		    AID agentID = (AID)params[0];
 		    String className = (String)params[1];
 		    Object[] arguments = (Object[])params[2];
-		    String ownership = (String)params[3];
-		    Credentials certs = (Credentials)params[4];
+		    JADEPrincipal owner = (JADEPrincipal)params[3];
+		    Credentials initialCredentials = (Credentials)params[4];
+		    Boolean startIt = (Boolean) params[5];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(className);
 		    gCmd.addParam(arguments);
-		    gCmd.addParam(ownership);
-		    gCmd.addParam(certs);
+		    gCmd.addParam(owner);
+		    gCmd.addParam(initialCredentials);
+		    gCmd.addParam(startIt);
 
 		    result = gCmd;
 		}
@@ -772,10 +740,10 @@ public class AgentManagementService extends BaseService {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.INFORM_CREATED, AgentManagementSlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    Credentials certs = (Credentials)params[2];
+		    String ownership = (String) params[2];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(cid);
-		    gCmd.addParam(certs);
+		    gCmd.addParam(ownership);
 
 		    result = gCmd;
 		}
@@ -820,47 +788,22 @@ public class AgentManagementService extends BaseService {
 
 
 
-    private void initAgent(AID target, Agent instance, VerticalCommand vCmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
+    private void initAgent(AID target, Agent instance, String ownership, VerticalCommand vCmd) throws IMTPException, AuthException, NameClashException, NotFoundException, ServiceException {
   // Connect the new instance to the local container
 	Agent old = myContainer.addLocalAgent(target, instance);
 
 	try {
-
-	    Credentials agentCerts = null;
-          //TOFIX:  --- the following needs to be replaced ----
-	    //#MIDP_EXCLUDE_BEGIN
-	    //CertificateFolder agentCerts = instance.getCertificateFolder();
-	    //#MIDP_EXCLUDE_END
-
-	    /*# MIDP_INCLUDE_BEGIN
-	    CertificateFolder agentCerts = new CertificateFolder();
-
-	    Authority authority = myContainer.getAuthority();
-
-	    if(agentCerts.getIdentityCertificate() == null) {
-	        AgentPrincipal principal = authority.createAgentPrincipal(target, AgentPrincipal.NONE);
-		IdentityCertificate identity = authority.createIdentityCertificate();
-		identity.setSubject(principal);
-		authority.sign(identity, agentCerts);
-		agentCerts.setIdentityCertificate(identity);
-	    }
-	    # MIDP_INCLUDE_END*/
-
 		// Notify the main container through its slice
 		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 		try {
-		    mainSlice.bornAgent(target, myContainer.getID(), null);
+		    mainSlice.bornAgent(target, myContainer.getID(), ownership, vCmd);
 		}
 		catch(IMTPException imtpe) {
 		    // Try to get a newer slice and repeat...
 		    mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-		    mainSlice.bornAgent(target, myContainer.getID(), null);
+		    mainSlice.bornAgent(target, myContainer.getID(), ownership, vCmd);
 		}
-
-		// Actually start the agent thread
-		//myContainer.powerUpLocalAgent(target, instance);
-
 	}
 	catch(NameClashException nce) {
 	    myContainer.removeLocalAgent(target);

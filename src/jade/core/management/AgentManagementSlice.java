@@ -68,14 +68,6 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String REQUEST_CREATE = "Request-Create";
 
     /**
-       This command name represents the <code>start-agent</code>
-       action. The target agent identifier in this command has already
-       been created, but its internal thread was not started at
-       creation time.
-    */
-    static final String REQUEST_START = "Request-Start";
-
-    /**
        This command name represents the <code>kill-agent</code>
        action.
        This command object represents only the <i>first half</i> of
@@ -153,8 +145,8 @@ public interface AgentManagementSlice extends Service.Slice {
 
 
 
-    //static final boolean CREATE_AND_START = true;
-    //static final boolean CREATE_ONLY = false;
+    static final boolean CREATE_AND_START = true;
+    static final boolean CREATE_ONLY = false;
 
 
     // Constants for the names of horizontal commands associated to methods
@@ -167,11 +159,11 @@ public interface AgentManagementSlice extends Service.Slice {
     static final String H_RESUMEDAGENT = "7";
     static final String H_EXITCONTAINER = "8";
 
-    void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException;
+    void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, AuthException;
     void killAgent(AID agentID) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    void bornAgent(AID name, ContainerID cid, String ownership, Command sourceCmd) throws IMTPException, NameClashException, NotFoundException, AuthException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
     void resumedAgent(AID name) throws IMTPException, NotFoundException;

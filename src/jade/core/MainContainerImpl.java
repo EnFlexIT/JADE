@@ -298,24 +298,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   /**
      Notify the platform that an agent has just born on a container
    */
-  public void bornAgent(AID name, ContainerID cid, Credentials creds, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException {
-
-    // verify identity certificate
-//    authority.verify(certs.getIdentityCertificate());
-
+  public void bornAgent(AID name, ContainerID cid, String ownership, JADEPrincipal principal, boolean forceReplacement) throws NameClashException, NotFoundException {
     AgentDescriptor ad = new AgentDescriptor(AgentDescriptor.NATIVE_AGENT);
     ad.setContainerID(cid);
-    //AgentPrincipal principal = (AgentPrincipal) certs.getIdentityCertificate().getSubject();
-    JADEPrincipal principal = new jade.security.dummy.DummyPrincipal();
-    
-//    ad.setPrincipal(principal);
-    // CertificateFolder to be used by the AMS to perform actions on
-    // behalf of (requested  by) the new agent
-//    ad.setAMSDelegation(prepareAMSDelegation(certs));
+    ad.setPrincipal(principal);
     // Registration to the With Pages service
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(name);
-//    amsd.setOwnership(principal.getOwnership());
+    amsd.setOwnership(ownership);
     amsd.setState(AMSAgentDescription.ACTIVE);
     ad.setDescription(amsd);
     
@@ -344,7 +334,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
 
     // Notify listeners
-    fireBornAgent(cid, name, principal);
+    fireBornAgent(cid, name, ownership);
   }
   
   /**
@@ -1679,8 +1669,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-  private void fireBornAgent(ContainerID cid, AID agentID, JADEPrincipal principal) {
-    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, principal);
+  private void fireBornAgent(ContainerID cid, AID agentID, String ownership) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, null);
 
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
