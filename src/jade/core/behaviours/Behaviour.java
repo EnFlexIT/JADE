@@ -198,8 +198,7 @@ public abstract class Behaviour implements Serializable {
 	    myAgent = parent.myAgent;
   }
 
-    // For persistence service
-    private CompositeBehaviour getParent() {
+    protected CompositeBehaviour getParent() {
 	return parent;
     }
 
@@ -506,6 +505,8 @@ public abstract class Behaviour implements Serializable {
   }  
 
 
+    //#MIDP_EXCLUDE_BEGIN
+
     // For persistence service
     private Long persistentID;
 
@@ -518,6 +519,8 @@ public abstract class Behaviour implements Serializable {
     private void setPersistentID(Long l) {
 	persistentID = l;
     }
+
+    //#MIDP_EXCLUDE_END
 
 	//#CUSTOM_EXCLUDE_END
 }

@@ -128,4 +128,37 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	public final int getTickCount() {
 		return tickCount;
 	}
+
+
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private void setTickCount(int tc) {
+	tickCount = tc;
+    }
+
+    // For persistence service
+    private void setPeriod(long p) {
+	period = p;
+    }
+
+    // For persistence service
+    private long getPeriod() {
+	return period;
+    }
+
+    // For persistence service
+    private void setWakeupTime(long wt) {
+	wakeupTime = wt;
+    }
+
+    // For persistence service
+    private long getWakeupTime() {
+	return wakeupTime;
+    }
+
+
+    //#MIDP_EXCLUDE_END
+
+
 }
