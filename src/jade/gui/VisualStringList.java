@@ -86,8 +86,6 @@ public class VisualStringList extends JPanel
 	VisualStringList(Iterator content)
 	{
 	
-	
-		
 		listModel = new DefaultListModel();
 		try
 	  {
@@ -98,6 +96,7 @@ public class VisualStringList extends JPanel
 	 		
 	  }catch(Exception e){e.printStackTrace();}
 		
+	  
 	  genericList = new JList(listModel);
 	  genericList.setCellRenderer(new VisualListCellRenderer(this));
 	  genericList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -105,6 +104,7 @@ public class VisualStringList extends JPanel
 	  
 	  pane = new JScrollPane(genericList);
 	  
+	  genericList.setToolTipText("Right mouse click to show the popup menu");
 	  genericList.addMouseListener(new PopupMouser());
 	  	
 		popUp = new JPopupMenu();
