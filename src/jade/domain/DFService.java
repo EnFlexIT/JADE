@@ -455,7 +455,7 @@ public class DFService extends FIPAServiceCommunicator {
 		actSearch.setAction(s);
 	
 		AbsPredicate results = new AbsPredicate(BasicOntology.RESULT);
-		results.set(BasicOntology.RESULT_ITEMS, x);
+		results.set(BasicOntology.RESULT_VALUE, x);
 		
 		synchronized (cm) {
 			try {
