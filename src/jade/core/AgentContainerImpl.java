@@ -32,6 +32,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.FileWriter;
 import java.io.StringWriter;
+import java.io.PrintWriter;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -455,7 +456,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       myName = myPlatform.addContainer(this, netAddr); // RMI call
 
       // Install required MTPs
-      FileWriter f = new FileWriter("MTPs-" + myName + ".txt");
+      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myName + ".txt"));
 
       for(int i = 0; i < MTPs.length; i += 2) {
 
@@ -465,8 +466,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 	  			addressURL = null;
 				String s = installMTP(addressURL, className);
 
-				f.write(s, 0, s.length());
-				f.write('\n');
+				f.println(s);
 				System.out.println(s);
       }
 
