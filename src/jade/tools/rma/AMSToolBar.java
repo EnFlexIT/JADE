@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 11:32:58  rimassa
+  Changed some code to support DummyAgent tool.
+
   Revision 1.1  1999/05/20 15:42:08  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -47,28 +50,30 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
     tree = treeP;
     setBorderPainted(true);
 		
-    addAction(new OpenScriptFileAction());
+    //    addAction(new OpenScriptFileAction());
 
-    addSeparator();
+    // addSeparator();
 	
     addAction(new StartNewAgentAction(anRMA));
     addAction(new StartAction());
     addAction(new KillAction("Kill Selected Items", anRMA));
     addAction(new SuspendAction(anRMA));
     addAction(new ResumeAction(anRMA));
-    addAction(new PingAction());
+    // addAction(new PingAction());
 		
     addSeparator();
 
-    addAction(new SnifferAction());
-    addAction(new CustomAction());
-		
+    // addAction(new SnifferAction());
+    addAction(new CustomAction(anRMA));
+    addAction(new DummyAgentAction(anRMA));
+
     addSeparator();
 
     ShowChoice.setToolTipText("Show Agent as...");
     ShowChoice.addItem("White Pages");
     ShowChoice.addItem("Yellow Pages");
     ShowChoice.addActionListener(this);
+    ShowChoice.setEnabled(false);
     add(ShowChoice);
   }
 

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 11:32:33  rimassa
+  Changed some code to support DummyAgent tool.
+
   Revision 1.1  1999/05/20 15:42:07  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -45,9 +48,9 @@ public class AMSPopupMenu extends JPopupMenu {
   protected KillAction killAgent;
   protected KillAction killContainer;
   protected ResumeAction resume;
-  protected CustomAction custom = new CustomAction();
+  protected CustomAction custom;
   protected getPropertiesAction properties = new getPropertiesAction();
-  protected SnifferAction sniffer = new SnifferAction();
+  //  protected SnifferAction sniffer = new SnifferAction();
   protected StartNewAgentAction NewAgent;
   protected SuspendAction suspend;
   protected AddAgentPlatformAction NewAgentPlatform = new AddAgentPlatformAction();
@@ -63,7 +66,8 @@ public class AMSPopupMenu extends JPopupMenu {
     tmp = add(NewAgentPlatform);
     tmp.setIcon(null);
 
-    tmp = add(properties);			
+    tmp = add(properties);
+    tmp.setEnabled(false);
     tmp.setIcon(null);
 
     NewAgent = new StartNewAgentAction(anRMA);
@@ -90,13 +94,15 @@ public class AMSPopupMenu extends JPopupMenu {
     tmp.setIcon(null);
 		
     tmp = ActionsMenu.add(ping);
+    tmp.setEnabled(false);
     tmp.setIcon(null);
-		
+
+    custom = new CustomAction(anRMA);
     tmp = ActionsMenu.add(custom);
     tmp.setIcon(null);
-		
-    tmp = ActionsMenu.add(sniffer);
-    tmp.setIcon(null);
+
+    //    tmp = ActionsMenu.add(sniffer);
+    //    tmp.setIcon(null);
 				
     addPopupMenuListener(parent);
     add(ActionsMenu);
@@ -122,7 +128,7 @@ public class AMSPopupMenu extends JPopupMenu {
       killAgent.setEnabled(true);
       ping.setEnabled(true);
       properties.setEnabled(true);
-      sniffer.setEnabled(true);
+      //      sniffer.setEnabled(true);
       start.setEnabled(true);
       suspend.setEnabled(true);
       break;
@@ -135,7 +141,7 @@ public class AMSPopupMenu extends JPopupMenu {
       killAgent.setEnabled(false);
       ping.setEnabled(false);
       properties.setEnabled(false);
-      sniffer.setEnabled(false);
+      //      sniffer.setEnabled(false);
       suspend.setEnabled(false);
       start.setEnabled(false);
       break;
@@ -149,7 +155,7 @@ public class AMSPopupMenu extends JPopupMenu {
       custom.setEnabled(true);
       ping.setEnabled(true);
       properties.setEnabled(true);
-      sniffer.setEnabled(true);
+      //      sniffer.setEnabled(true);
       suspend.setEnabled(true);
       NewAgentPlatform.setEnabled(false);
       break;
@@ -163,7 +169,7 @@ public class AMSPopupMenu extends JPopupMenu {
       killAgent.setEnabled(false);
       ping.setEnabled(false);
       properties.setEnabled(false);
-      sniffer.setEnabled(false);
+      //      sniffer.setEnabled(false);
       suspend.setEnabled(false);
       start.setEnabled(false);
       break;
