@@ -44,20 +44,27 @@ import java.lang.reflect.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Set;
+
+import jade.core.event.MessageEvent;
+import jade.core.event.MessageListener;
 
 import jade.lang.acl.ACLMessage;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
+import jade.lang.acl.ACLCodec;
+
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
-import jade.lang.acl.ACLCodec;
+
+import jade.tools.sniffer.Notifier; // FIXME: This should not be imported
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -68,7 +75,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   private static final int CACHE_SIZE = 10;
 
-  
+
   // Local agents, indexed by agent name
   protected LADT localAgents = new LADT();
 
@@ -96,8 +103,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   // An object used to manage Agent IDs using nicknames
   protected AIDTranslator translator;
 
-  private Map SniffedAgents = new HashMap();
-  private String theSniffer;           
+  private List messageListeners;
 
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
@@ -300,45 +306,42 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   /**
-    @param toBeSniffer is an Iterator over the AIDs of agents to be sniffed
+    @param snifferName The Agent ID of the sniffer to send messages to.
+    @param toBeSniffed The <code>AID</code> of the agent to be sniffed
   **/
-  public void enableSniffer(AID snifferName , List toBeSniffed) throws RemoteException {
-    // In the SniffedAgents hashmap the key is the agent name and the value 
-    // is a list containing the sniffer names for that agent 
-    Iterator iOnToBeSniffed = toBeSniffed.iterator();
-    while(iOnToBeSniffed.hasNext()) {
-      AID aid = (AID)iOnToBeSniffed.next();
-      ArrayList l;
-      if (SniffedAgents.containsKey(aid)) {
-	l = (ArrayList)SniffedAgents.get(aid);
-	if (!l.contains(snifferName))
-	  l.add(snifferName);
-      }
-      else {
-	l = new ArrayList(1);
-	l.add(snifferName);
-	SniffedAgents.put(aid,l);
-      }
+  public void enableSniffer(AID snifferName, AID toBeSniffed) throws RemoteException {
+
+    Notifier n = findNotifier(snifferName);
+    if(n != null && n.getState() == Agent.AP_DELETED) { // A formerly dead notifier
+      removeMessageListener(n);
+      n = null;
     }
+    if(n == null) { // New sniffer
+      n = new Notifier(snifferName);
+      AID id = globalAID(snifferName.getLocalName() + "-on-" + myID.getName());
+      initAgent(id, n, START);
+      addMessageListener(n);
+    }
+    n.addSniffedAgent(toBeSniffed);
+
   }
 
 
-  public void disableSniffer(AID snifferName, List notToBeSniffed) throws RemoteException {
-    // In the SniffedAgents hashmap the key is the agent name and the value 
-    // is a list containing the sniffer names for that agent 
-    Iterator iOnNotToBeSniffed = notToBeSniffed.iterator();
-    while(iOnNotToBeSniffed.hasNext()) {
-      AID aid = (AID)iOnNotToBeSniffed.next();
-      ArrayList l;
-      if (SniffedAgents.containsKey(aid)) {
-	l = (ArrayList)SniffedAgents.get(aid);
-	int ind = l.indexOf(snifferName);
-	if (ind >= 0)
-	  l.remove(ind);
-      } 
+  /**
+    @param snifferName The Agent ID of the sniffer to send messages to.
+    @param notToBeSniffed The <code>AID</code> of the agent to stop sniffing
+  **/
+  public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException {
+    Notifier n = findNotifier(snifferName);
+    if(n != null) { // The sniffer must be here
+      n.removeSniffedAgent(notToBeSniffed);
+      if(n.isEmpty()) {
+	removeMessageListener(n);
+	n.doDelete();
+      }
     }
-  }
 
+  }
 
 
   public void dispatch(ACLMessage msg, AID receiverID) throws RemoteException, NotFoundException {
@@ -589,47 +592,6 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
 
-/*
- * This method returns the vector of the sniffers registered for 
- * theAgent
- */
-private List getSniffer(AID id, java.util.Map theMap) {
-  ArrayList tmp = (ArrayList)theMap.get(id);
-  if (tmp == null) { 
-    //might be that the AID is a local agent without '@hap' in its name
-    // then I try it
-    AID fullId = new AID(id.getName()+'@'+getPlatformID());
-    tmp = (ArrayList)theMap.get(fullId);
-  }
-  return tmp;
-}
-
-  /*
-   * Creates the message to be sent to the sniffer. The ontology must be set to 
-   * "sniffed-message" otherwise the sniffer doesn't recognize it. The sniffed 
-   * message is put in the content field of this message.
-   *
-   * @param theMsg handler of the sniffed message
-   * @param theDests list of the destination (sniffers)
-   */
-  private void sendMsgToSniffers(ACLMessage theMsg, List theDests){
-
-    AID currentSniffer;
-
-    for (int z = 0; z < theDests.size(); z++) {
-      currentSniffer = (AID)theDests.get(z);
-      ACLMessage SniffedMessage = new ACLMessage(ACLMessage.INFORM);
-      SniffedMessage.clearAllReceiver();
-      SniffedMessage.addReceiver(currentSniffer);
-      SniffedMessage.setSender(null);
-      SniffedMessage.setContent(theMsg.toString());
-      SniffedMessage.setOntology("sniffed-message");
-      unicastPostMessage(SniffedMessage,currentSniffer);
-
-    }
-  }
-
-
   // Implementation of AgentToolkit interface
 
   public Location here() {
@@ -638,23 +600,8 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
   public void handleSend(ACLMessage msg) {
 
-    String currentSniffer;
-    List currentSnifferVector;
-
-    boolean sniffedSource = false;
-
     translator.translateOutgoing(msg);
 
-    ArrayList sniffersToNotify = new ArrayList(SniffedAgents.size());
-    AID msgSource = msg.getSender();
-    currentSnifferVector = getSniffer(msgSource, SniffedAgents);
-    if (currentSnifferVector != null) {
-    	for (Iterator i=currentSnifferVector.iterator(); i.hasNext(); ) {
-    		AID aSniffer = (AID)i.next();
-    		if (!sniffersToNotify.contains(aSniffer))
-    			sniffersToNotify.add(aSniffer);
-    	}
-    }
     //System.out.println("Sniffer to Notify- sender: "+ sniffersToNotify.size());
     // 26-Mar-2001. The receivers set into the Envelope of the message, 
     // if present, must have precedence over those set into the ACLMessage.
@@ -666,46 +613,48 @@ private List getSniffer(AID id, java.util.Map theMap) {
     // delivered
     Iterator it=null;
     Envelope env = msg.getEnvelope();
-    if (env != null) {
-	it = env.getAllIntendedReceiver();
-	if ( (it != null) && (it.hasNext()) ) {
-	    //System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
-	    // ok. use the intendedreceiver
-	} else {
-	    it = env.getAllTo();
-	    if ( (it != null) && (it.hasNext()) ) {
-		//System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
-		// ok. use the :to
-		// FIXME. Should I copy all the :to values in the :IntendedReceiver?
-	    } else {
-		it = msg.getAllReceiver();
-		// ok. use the receivers set in the ACLMessage
-	    }
+    if(env != null) {
+      it = env.getAllIntendedReceiver();
+      if((it != null) && (it.hasNext()) ) {
+	//System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
+	// ok. use the intendedreceiver
+      }
+      else {
+	it = env.getAllTo();
+	if((it != null) && (it.hasNext())) {
+	  //System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
+	  // ok. use the :to
+	  // FIXME. Should I copy all the :to values in the :IntendedReceiver?
 	}
-    } else 
-	it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
-    if (it == null)
-	return; //No Message is sent in this case because no receiver was found
+	else {
+	  it = msg.getAllReceiver();
+	  // ok. use the receivers set in the ACLMessage
+	}
+      }
+    }
+    else 
+      it = msg.getAllReceiver(); //use the receivers set in the ACLMessage
+    if(it == null)
+      return; // No Message is sent in this case because no receiver was found
     // now it contains the Iterator with all the receivers of this message
     // Iterator it = msg.getAllReceiver();
     while(it.hasNext()) {
       AID dest = (AID)it.next();
-      currentSnifferVector = getSniffer(dest, SniffedAgents);	    
-      if (currentSnifferVector != null) {
-    	 for (Iterator i=currentSnifferVector.iterator(); i.hasNext(); ) {
-    		AID aSniffer = (AID)i.next();
-    		if (!sniffersToNotify.contains(aSniffer))
-    			sniffersToNotify.add(aSniffer);
-    	 }
-    	//System.out.println("Sniffer to Notify- in while: "+ sniffersToNotify.size() + dest.toString());
-      }
-
       ACLMessage copy = (ACLMessage)msg.clone();
       unicastPostMessage(copy, dest);
     }
-    //System.out.println("handle send per msg="+msg.toString());
-    sendMsgToSniffers(msg,sniffersToNotify);	    		
-    
+
+    // Notify message listeners
+    fireSentMessage(msg, msg.getSender());
+
+  }
+
+  public void handlePosted(AID agentID, ACLMessage msg) {
+    firePostedMessage(msg, agentID);
+  }
+
+  public void handleReceived(AID agentID, ACLMessage msg) {
+    fireReceivedMessage(msg, agentID);
   }
 
   public void handleStart(String localName, Agent instance) {
@@ -1070,5 +1019,78 @@ private List getSniffer(AID id, java.util.Map theMap) {
     }
 
   }
+
+  private Notifier findNotifier(AID snifferName) {
+    if(messageListeners == null)
+      return null;
+    Iterator it = messageListeners.iterator();
+    while(it.hasNext()) {
+      Object obj = it.next();
+      if(obj instanceof Notifier) {
+	Notifier n = (Notifier)obj;
+	AID id = n.getSniffer();
+	if(id.equals(snifferName))
+	  return n;
+      }
+    }
+    return null;
+
+  }
+
+  private void addMessageListener(MessageListener l) {
+    // Use lazy evaluation
+    if(messageListeners == null)
+      messageListeners = new LinkedList();
+    messageListeners.add(l);
+  }
+
+  private void removeMessageListener(MessageListener l) {
+    if(messageListeners != null) {
+      messageListeners.remove(l);
+      if(messageListeners.isEmpty())
+	messageListeners = null;
+    }
+  }
+
+  private void fireSentMessage(ACLMessage msg, AID sender) {
+    if(messageListeners != null) {
+      MessageEvent ev = new MessageEvent(MessageEvent.SENT_MESSAGE, msg, sender, myID);
+      for(int i = 0; i < messageListeners.size(); i++) {
+	MessageListener l = (MessageListener)messageListeners.get(i);
+	l.sentMessage(ev);
+      }
+    }
+  }
+
+  private void firePostedMessage(ACLMessage msg, AID receiver) {
+    if(messageListeners != null) {
+      MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, receiver, myID);
+      for(int i = 0; i < messageListeners.size(); i++) {
+	MessageListener l = (MessageListener)messageListeners.get(i);
+	l.postedMessage(ev);
+      }
+    }
+  }
+
+  private void fireReceivedMessage(ACLMessage msg, AID receiver) {
+    if(messageListeners != null) {
+      MessageEvent ev = new MessageEvent(MessageEvent.RECEIVED_MESSAGE, msg, receiver, myID);
+      for(int i = 0; i < messageListeners.size(); i++) {
+	MessageListener l = (MessageListener)messageListeners.get(i);
+	l.receivedMessage(ev);
+      }
+    }
+  }
+
+  private void fireRoutedMessage(ACLMessage msg, Channel from, Channel to) {
+    if(messageListeners != null) {
+      MessageEvent ev = new MessageEvent(MessageEvent.ROUTED_MESSAGE, msg, from, to, myID);
+      for(int i = 0; i < messageListeners.size(); i++) {
+	MessageListener l = (MessageListener)messageListeners.get(i);
+	l.routedMessage(ev);
+      }
+    }
+  }
+
 
 }
