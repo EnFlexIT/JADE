@@ -924,12 +924,22 @@ public class Agent implements Runnable, Serializable, TimerListener {
     msgQueueMaxSize = newSize;
   }
 
+    /**
+     * @return The number of messages that are currently stored into the
+     * message queue.
+     **/
+    public int getCurQueueSize() {
+	return msgQueue.size();
+    }
+
   /**
-     Reads message queue size. A zero value means that thee message
+     Reads message queue size. A zero value means that the message
      queue is unbounded (its size is limited only by amount of
      available memory).
-     @return The actual size of the message queue.
+     @return The actual size of the message queue (i.e. the max number
+     of messages that can be stored into the queue)
      @see jade.core.Agent#setQueueSize(int newSize)
+     @see jade.core.Agent#getCurQueueSize()
   */
   public int getQueueSize() {
     return msgQueue.getMaxSize();

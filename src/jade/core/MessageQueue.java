@@ -73,6 +73,14 @@ class MessageQueue {
     return maxSize;
   }
 
+    /**
+     * @return the number of messages
+     * currently in the queue
+     **/
+    public int size() {
+	return list.size();
+    }
+
   public void addFirst(ACLMessage msg) {
     if((maxSize != 0) && (list.size() >= maxSize))
       list.removeFirst(); // FIFO replacement policy
