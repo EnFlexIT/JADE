@@ -46,16 +46,24 @@ import jade.core.AID;
     }
 
   public void doAction(AgentTree.AgentNode nod) {
-
-    AgentTree.Node node=(AgentTree.Node) nod;
-    ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-    // msg2.addDest(node.getName());
-    AID rec = new AID();
-    rec.setName(node.getName());
-    msg2.addReceiver(rec);
+  	
+		ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+  	AID rec;
+  	
+		if(nod instanceof AgentTree.RemoteAgentNode){
+	  	AgentTree.RemoteAgentNode agent = (AgentTree.RemoteAgentNode)nod;
+	  	rec = agent.getAMSDescription().getName();	
+	  }
+	  else{
+    	AgentTree.Node node=(AgentTree.Node) nod;
+    	// msg2.addDest(node.getName());
+    	rec = new AID();
+    	rec.setName(node.getName());}
+    	
+	  msg2.addReceiver(rec);
     ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
-      if (msg != null)
-	  myRMA.send(msg);
+    if (msg != null)
+	  	myRMA.send(msg);
 
   }
 

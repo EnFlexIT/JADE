@@ -36,9 +36,10 @@ class PopupMenuPlatform extends JPopupMenu{
   super();
    JMenuItem tmp;
 
-   tmp=add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
+   tmp=add((RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION));
    tmp.setIcon(null);
-   
+   tmp=add((RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORMFROMURL_ACTION));
+   tmp.setIcon(null);
    
      }
 

@@ -56,12 +56,14 @@ class ActionProcessor {
      public static final String  SHOWDF_ACTION="ShowDfGui Action";
      public static final String  MOVEAGENT_ACTION="Migrate Agent";
      public static final String  CLONEAGENT_ACTION="Clone Agent";
-     public static final String  ADDREMOTEPLATFORM_ACTION ="Add Remote Platform";
-     public static final String  ADDREMOTEPLATFORMFROMURL_ACTION = "Add Remote Platform form URL"; 
+     public static final String  ADDREMOTEPLATFORM_ACTION ="Add Platform via AMS AID";
+     public static final String  ADDREMOTEPLATFORMFROMURL_ACTION = "Add Platform via URL"; 
      public static final String  VIEWPLATFORM_ACTION ="View AP Description";
      public static final String  REFRESHAPDESCRIPTION_ACTION = "Refresh AP Description";
      public static final String  REMOVEREMOTEAMS_ACTION = "Remove Remote Platform";
      public static final String  REFRESHAMSAGENT_ACTION = "Refresh Agent List";
+     public static final String  REGISTERREMOTEAGENTWITHAMS_ACTION = "Register Remote Agent with local AMS";
+     
      public static final Map actions=new HashMap();
 
  public ActionProcessor(rma anRma,MainWindow mWnd,MainPanel panel) {
@@ -87,6 +89,7 @@ class ActionProcessor {
       actions.put(REMOVEREMOTEAMS_ACTION,new RemoveRemoteAMSAction(anRma,this));
       actions.put(REFRESHAMSAGENT_ACTION, new RefreshAMSAgentAction(anRma,this));
       actions.put(ADDREMOTEPLATFORMFROMURL_ACTION, new AddRemotePlatformFromURLAction(anRma,this,mWnd));
+      actions.put(REGISTERREMOTEAGENTWITHAMS_ACTION, new RegisterRemoteAgentAction(anRma,this));
       
 } // End builder
 
@@ -151,7 +154,7 @@ class ActionProcessor {
     if(node instanceof AgentTree.AgentNode) {
        nod=(AgentTree.AgentNode)node;
        ag.doAction(nod);
-    }
+    }    
  }
 
  private void containerAct(AgentTree.Node node){
@@ -188,7 +191,7 @@ class ActionProcessor {
  private void platformAct(AgentTree.Node node){
 
   PlatformAction ac = (PlatformAction) action; 
- 	if((node instanceof AgentTree.SuperContainer) || (node instanceof AgentTree.RemoteAMSNode))
+ 	if((node instanceof AgentTree.localPlatformFolderNode) || (node instanceof AgentTree.RemotePlatformNode))
  		ac.doAction(node);
  	
  }

@@ -128,7 +128,7 @@ class TablePanel extends JPanel {
     for(int i=0;i<numPaths;i++) {
        relCur= paths[i].getPath();
          for (int j=0;j<relCur.length;j++) {
-            if (j==2) {
+            if (j==3) {
               current = (AgentTree.AgentNode)relCur[j];
               data[i][0] = current.getName();
               data[i][1] = current.getAddress();

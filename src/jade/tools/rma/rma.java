@@ -115,9 +115,10 @@ public class rma extends Agent {
 
 
   private class handleAddRemotePlatformBehaviour extends AMSClientBehaviour{
-     
+       		
     	public handleAddRemotePlatformBehaviour(String an, ACLMessage request){
     		super(an,request);
+    	
     	}
     	
     	protected void handleInform(ACLMessage msg){
@@ -129,8 +130,8 @@ public class rma extends Agent {
     			Iterator i = r.getAll_1();
     			APDescription APDesc = (APDescription)i.next();
     			if(APDesc != null){
-    			myGUI.addRemotePlatform();
-    			myGUI.addRemoteAMS(sender,APDesc);}
+    			myGUI.addRemotePlatformFolder();
+    			myGUI.addRemotePlatform(sender,APDesc);}
     		}catch(jade.domain.FIPAException e){
     		e.printStackTrace();
     		}
@@ -138,10 +139,14 @@ public class rma extends Agent {
     
     }//end handleAddRemotePlatformBehaviour
     
-    private class handleRefreshAMSAgentBehaviour extends AMSClientBehaviour{
+    private class handleRefreshRemoteAgentBehaviour extends AMSClientBehaviour{
      
-    	public handleRefreshAMSAgentBehaviour(String an, ACLMessage request){
+    	private APDescription platform;
+    	
+    	public handleRefreshRemoteAgentBehaviour(String an, ACLMessage request,APDescription ap){
     		super(an,request);
+    		platform = ap;
+    		
     	}
     	
     	protected void handleInform(ACLMessage msg){
@@ -150,7 +155,7 @@ public class rma extends Agent {
     			AID sender = msg.getSender();
     			ResultPredicate r = FIPAServiceCommunicator.extractContent(msg.getContent(),lookupLanguage(msg.getLanguage()),lookupOntology(msg.getOntology())); 
     			Iterator i = r.getAll_1();
-    			myGUI.addRemoteAgentsToRemoteAMS(sender,i);
+    			myGUI.addRemoteAgentsToRemotePlatform(platform,i);
     		}catch(FIPAException e){
     		e.printStackTrace();
     		}
@@ -265,6 +270,7 @@ public class rma extends Agent {
     	PlatformDescription pd = (PlatformDescription)ev;
     	APDescription APdesc = pd.getPlatform();
       myPlatformProfile = APdesc;
+      myGUI.refreshLocalPlatformName(myPlatformProfile.getName());
     }
     
     });
@@ -719,7 +725,7 @@ public class rma extends Agent {
     	APDescription APDesc = (APDescription)i.next();
    
     	if(APDesc != null){
-    			myGUI.addRemotePlatform();
+    			myGUI.addRemotePlatformFolder();
     			AID ams = new AID("ams@" + APDesc.getName());
     			Iterator TP = (APDesc.getTransportProfile()).getAllAvailableMtps();
     			
@@ -734,7 +740,7 @@ public class rma extends Agent {
     				}
     			}
     	
-    			myGUI.addRemoteAMS(ams,APDesc);
+    			myGUI.addRemotePlatform(ams,APDesc);
     	}
      	
      	}catch(jade.domain.FIPAException e){
@@ -757,13 +763,13 @@ public class rma extends Agent {
   	myGUI.viewAPDescriptionDialog(remoteAP,title);
   }
   
-  public void removeRemotePlatform(AID ams){
-  	myGUI.removeRemoteAMS(ams);
+  public void removeRemotePlatform(APDescription platform){
+  	myGUI.removeRemotePlatform(platform.getName());
   }
   
   //make a search on a specified ams in order to return 
   //all the agents registered with that ams.
-  public void refreshAMSAgent(AID ams){
+  public void refreshRemoteAgent(APDescription platform,AID ams){
   	try{
   		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
   		request.setSender(getAID());
@@ -785,10 +791,29 @@ public class rma extends Agent {
 			l.add(act);
 			fillContent(request,l);
 			
-			addBehaviour(new handleRefreshAMSAgentBehaviour ("search",request));
+			addBehaviour(new handleRefreshRemoteAgentBehaviour ("search",request,platform));
 			
   	}catch(jade.domain.FIPAException e){
   		e.printStackTrace();
   	}
   }
+  
+  // ask the local AMS to register a remote Agent.
+  public void registerRemoteAgentWithAMS(AMSAgentDescription amsd){
+ 		
+  	Register register_act = new Register();
+  	register_act.set_0(amsd);
+  	
+  	try{
+  		Action a = new Action();
+  		a.set_0(getAMS());
+  		a.set_1(register_act);
+  		List l = new ArrayList();
+  		l.add(a);
+  		requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+      fillContent(requestMsg, l);
+      addBehaviour(new AMSClientBehaviour("Register", requestMsg));
+
+  	}catch(FIPAException e){e.printStackTrace();}
+ } 	
 }

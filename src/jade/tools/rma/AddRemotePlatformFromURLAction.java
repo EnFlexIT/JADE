@@ -40,10 +40,7 @@ class AddRemotePlatformFromURLAction extends FixedAction
   
   AddRemotePlatformFromURLAction(rma anRMA,ActionProcessor actPro,MainWindow mW) {
 
-     // Note: this class uses the DummyAgentActionIcon just because it
-     // never displays an icon, but a parameter must anyway be passed.
-
-     super ("AddRemotePlatformActionIcon","Add Remote Platform from URL",actPro);
+     super ("AddRemotePlatformActionIcon","Add Platform via URL",actPro);
      myRMA = anRMA;
      main = mW;
       
@@ -52,7 +49,7 @@ class AddRemotePlatformFromURLAction extends FixedAction
    public void doAction() {
     
    	//System.out.println("Add remote platform form URL");
-   	StringDlg URLDialog = new StringDlg(main,"Insert the URL of the Remote Plaform:");
+   	StringDlg URLDialog = new StringDlg(main,"Insert the URL that contains the APDescripition of the Remote Plaform:");
    	String url = URLDialog.editString("");
    	if (url != null)
    		myRMA.addRemotePlatformFromURL(url);

@@ -41,9 +41,9 @@ class RefreshAMSAgentAction extends PlatformAction {
 
   public void doAction(AgentTree.Node node ) {
 
-    	if(node instanceof AgentTree.RemoteAMSNode){
+    	if(node instanceof AgentTree.RemotePlatformNode){
 	  //System.out.println("Refresh AMS Agent");
-    	  myRMA.refreshAMSAgent(((AgentTree.RemoteAMSNode)node).getAmsAID());
+    	  myRMA.refreshRemoteAgent(((AgentTree.RemotePlatformNode)node).getAPDescription(),((AgentTree.RemotePlatformNode)node).getAmsAID());
     		
     	}
   }

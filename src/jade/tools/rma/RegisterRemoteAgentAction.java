@@ -23,27 +23,29 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import javax.swing.JPopupMenu;
-import javax.swing.JMenuItem;
+import jade.gui.AgentTree;
 
 /**
-   
+   Register a remote Agent with local AMS.
    @author Tiziana Trucco - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-class PopupMenuRemotePlatform extends JPopupMenu{
-	
- public PopupMenuRemotePlatform(ActionProcessor actPro) {
-  	super();
-   JMenuItem tmp;
-	 tmp=add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
-   tmp.setIcon(null);
-   tmp=add((RMAAction)actPro.actions.get(actPro.REFRESHAPDESCRIPTION_ACTION));
-   tmp.setIcon(null);
-   tmp=add((RMAAction)actPro.actions.get(actPro.REMOVEREMOTEAMS_ACTION));
-   tmp.setIcon(null);
-   tmp=add((RMAAction)actPro.actions.get(actPro.REFRESHAMSAGENT_ACTION));
-   tmp.setIcon(null);
-     }
+class RegisterRemoteAgentAction extends AgentAction {
 
-} // End of PopupMenuRemotePlatform
+  private rma myRMA;
+
+  public RegisterRemoteAgentAction(rma anRMA, ActionProcessor actPro) {
+    super ("RegisterRemoteAgentIcon", "Register Remote Agent with local AMS", actPro);
+    myRMA = anRMA;
+  }
+
+  public void doAction(AgentTree.AgentNode node ) {
+
+    	if(node instanceof AgentTree.RemoteAgentNode){
+	  		//System.out.println("Register Remote Agent with local AMS");
+    	  myRMA.registerRemoteAgentWithAMS(((AgentTree.RemoteAgentNode)node).getAMSDescription());
+    		
+    	}
+  }
+
+} // End of RegisterRemoteAgentAction

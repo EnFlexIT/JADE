@@ -39,11 +39,8 @@ class AddRemotePlatformAction extends FixedAction
   private MainWindow main;
   
   AddRemotePlatformAction(rma anRMA,ActionProcessor actPro,MainWindow mW) {
-
-     // Note: this class uses the DummyAgentActionIcon just because it
-     // never displays an icon, but a parameter must anyway be passed.
-
-     super ("AddRemotePlatformActionIcon","Add Remote Platform",actPro);
+  	
+     super ("AddRemotePlatformActionIcon","Add Platform via AMS AID",actPro);
      myRMA = anRMA;
      main = mW;
       

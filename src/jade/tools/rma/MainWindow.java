@@ -81,9 +81,19 @@ class MainWindow extends JFrame {
     popRP = new PopupMenuRemotePlatform(actPro);
     tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
     tree.treeAgent.register("FIPACONTAINER",popC,"images/foldergreen.gif");
-    tree.treeAgent.register("REMOTEAMS",popRP ,"images/runtree.gif");
-    tree.treeAgent.register("REMOTEAGENT", new JPopupMenu(), "images/runtree.gif");
+    tree.treeAgent.register("REMOTEPLATFORM",popRP ,"images/folderlightblue.gif");
+    JPopupMenu popupRemote = new JPopupMenu();
+    JMenuItem temp = popupRemote.add((RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
+    temp.setIcon(null);
+    temp = popupRemote.add((RMAAction)actPro.actions.get(actPro.REGISTERREMOTEAGENTWITHAMS_ACTION));
+    temp.setIcon(null);
+    temp.setEnabled(false);
+    tree.treeAgent.register("REMOTEAGENT", popupRemote, "images/runtree.gif");
     tree.treeAgent.setNewPopupMenu("SUPERCONTAINER",popP);
+    JPopupMenu popLocalPlatform = new JPopupMenu();
+    JMenuItem tmp = popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
+    tmp.setIcon(null);
+    tree.treeAgent.setNewPopupMenu("LOCALPLATFORM",popLocalPlatform);
     
     setForeground(Color.black);
     setBackground(Color.lightGray);
@@ -199,7 +209,7 @@ class MainWindow extends JFrame {
     
   }
 
-  public void addRemotePlatform(){
+  public void addRemotePlatformFolder(){
   	Runnable addIt = new Runnable(){
   	public void run(){
   		JPopupMenu menu = new JPopupMenu();
@@ -214,14 +224,14 @@ class MainWindow extends JFrame {
   }
   
   
-  public void addRemoteAMS(AID name,APDescription profile){
+  public void addRemotePlatform(AID name,APDescription profile){
   
   	final APDescription desc = profile;
   	final AID ams = name;
   	Runnable addIt = new Runnable(){
   	
   	public void run(){
-  		tree.treeAgent.addRemoteAMSNode(ams,desc);
+  		tree.treeAgent.addRemotePlatformNode(ams,desc);
   		
   	}
   	};
@@ -229,7 +239,7 @@ class MainWindow extends JFrame {
   }
   
   
-  public void addRemoteAgentsToRemoteAMS(final AID ams,final Iterator i){
+  public void addRemoteAgentsToRemotePlatform(final APDescription platform,final Iterator i){
  	
     // Add an agent to a specified AMS
     Runnable addIt = new Runnable() {
@@ -238,7 +248,7 @@ class MainWindow extends JFrame {
       	while(i.hasNext()){
       		AMSAgentDescription agent = (AMSAgentDescription)i.next();
 	    
-          tree.treeAgent.addRemoteAgentNode(agent,ams.getName());
+          tree.treeAgent.addRemoteAgentNode(agent,platform.getName());
       		}
       }
     };
@@ -246,13 +256,12 @@ class MainWindow extends JFrame {
 
   }
   
-  public void removeRemoteAMS(AID ams){
+  public void removeRemotePlatform(final String platformName){
   
-  	final String name = ams.getName();
   	Runnable addIt = new Runnable(){
   	
   	public void run(){
-  		tree.treeAgent.removeRemoteAMSNode(name);
+  		tree.treeAgent.removeRemotePlatformNode(platformName);
   		
   	}
   	};
@@ -269,6 +278,17 @@ class MainWindow extends JFrame {
   }
 
   
+  public void refreshLocalPlatformName(final String name){
+  
+  	Runnable refreshName = new Runnable(){
+  		public void run(){
+  			tree.treeAgent.refreshLocalPlatformName(name);
+  		}
+  		
+  	};
+  	SwingUtilities.invokeLater(refreshName);
+  	
+  }
   
  
   
