@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1999/02/14 22:51:23  rimassa
+  Changed a getName() call to getLocalName().
+
   Revision 1.5  1998/10/18 16:10:34  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -65,7 +68,7 @@ public class AgentResponder extends Agent {
       // failure probability.
 
       ACLMessage reply = new ACLMessage("not-understood");
-      reply.setSource(getName());
+      reply.setSource(getLocalName());
       reply.setDest(myPeer);
       reply.setProtocol("fipa-request");
       reply.setConversationId(myConvId);
