@@ -174,6 +174,7 @@
                      bottom="${apidoc-footer}"
                      verbose="false"
                      windowtitle="${apidoc-title}"
+                     use="true"
                      packagenames="jade.*"
                      excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.introspection, jade.domain.KBManagement, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
                      <!--
