@@ -1,5 +1,5 @@
 echo modify the following line and set the default compiler and JVM to be 1.2
-set PATH=c:\MyPrograms\jdk1.2.2\bin;%PATH%
+set PATH=c:\MyPrograms\jdk1.2.2\bin;c:\MyPrograms\javacc\bin;c:\winnt\system32
 
 java -version
 pause check now that the JVM is actually 1.2. Otherwise abort the testing
@@ -61,6 +61,8 @@ echo Remind to send a REQUEST message from the DummyAgent
 java -cp %CLASSPATH% jade.Boot -container a:examples.MessageTemplate.WaitAgent
 
 echo Running the Mobile example
+echo Try also to clone, migrate and all the lifecycle of the mobile agent
+echo by using the RMA GUI. Try also to create new agents from that RMA GUI.
 java -cp %CLASSPATH% jade.Boot -container a:examples.mobile.MobileAgent
 
 echo Running the Ontoloogy example
@@ -69,11 +71,15 @@ java -cp %CLASSPATH% jade.Boot -container a:examples.ontology.EngagerAgent b:exa
 echo Running the PingAgent example
 java -cp %CLASSPATH% jade.Boot -container a:examples.PingAgent.PingAgent
 
+:STARTHERE
 echo Running the protocols example
+REM java -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1 r2 r3) r1:examples.protocols.Responder r2:examples.protocols.Responder r3:examples.protocols.Responder
+java -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1) r1:examples.protocols.Responder 
 echo Everytime the initiator is blocked, it might be waiting forever for
 echo an INFORM/FAILURE message that closes the protocol.
 echo In such a case, just send it by using the DummyAgent (remind to match
-echo both conversation-id and in-reply-to field values)
+echo both conversation-id and in-reply-to field values) or simply
+echo press a key and the responder will unblock the initiator.
 java -cp %CLASSPATH% examples.protocols.ProtocolTester r1 r2 r3
 
 echo Running the receivers example
@@ -84,8 +90,6 @@ START java -cp %CLASSPATH% jade.Boot -container subDF:examples.subdf.SubDF
 
 echo Running the thanksAgent example
 java -cp %CLASSPATH% jade.Boot -container t:examples.thanksAgent.ThanksAgent
-
-:STARTHERE
 
 echo Running the demo
 pause shutdown the current Agent Platform before continuing
