@@ -283,7 +283,7 @@ public class SLCodec extends StringCodec {
     private String toString(AbsIRE val) throws CodecException {
 	return "(" + encode(val.getTypeName()) + " " + toString(val.getVariable()) + " " + toString(val.getProposition()) + ")"; 
     }
-
+ 
     private String toString(AbsVariable val) throws CodecException {
 	String var = val.getName();
 	if (!var.startsWith("?"))
