@@ -73,7 +73,6 @@ public class TreeIconRenderer extends JLabel implements TreeCellRenderer {
        setText(data.getName());
      }
       else {
-       System.out.println("He have done else");
        setIcon(null);
        setText(value.toString());
      }
