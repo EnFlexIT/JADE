@@ -75,7 +75,15 @@ import jade.util.leap.Iterator;
       a void clearAllAttrName() method to remove all the values (the list becomes empty). 
       Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
       that allows the programmer to walk through the List and cast its elements to the appropriate type.
-
+      * <p>
+      * <i>
+      * FIPA2000 still uses singular names for some slots whose type
+      * value is a set. In particular for "ontologies","languages","protocols".
+      * Because of that, since JADE 2.4, both singular and plural names
+      * can be used and are valid for those slots.
+      * That might change as soon as FIPA takes a final decision on the
+      * names of those slots.
+      * </i>
  */
 public class FIPAAgentManagementOntology {
 
@@ -156,7 +164,10 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
           new SlotDescriptor("services", Ontology.SET_SLOT, SERVICEDESCRIPTION, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("languages", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	  new SlotDescriptor("languages", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("protocol", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O), 
+	  new SlotDescriptor("ontology", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("language", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, DFAgentDescription.class); 
 
       theInstance.addRole(SERVICEDESCRIPTION, new SlotDescriptor[] {
@@ -166,7 +177,10 @@ public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-
 	  new SlotDescriptor("languages", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("properties", Ontology.SET_SLOT, PROPERTY, Ontology.O)
+	  new SlotDescriptor("properties", Ontology.SET_SLOT, PROPERTY, Ontology.O),
+	  new SlotDescriptor("protocol", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O), 
+	  new SlotDescriptor("ontology", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
+	  new SlotDescriptor("language", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, ServiceDescription.class); 
 
       theInstance.addRole(SEARCHCONSTRAINTS, new SlotDescriptor[] {
