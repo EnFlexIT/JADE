@@ -12,11 +12,13 @@ MODULEDIR = $(LIBDIR)/modules
 # Low level modules
 
 BOOT_CLASSES = jade/*.class jade/util/leap/Properties.class
+BOOT_PACKAGES =
 BOOT_LIBNAME = boot.jar
 
 MAINCONTAINER_CLASSES = jade/core/AgentManager*.class jade/core/ContainerTable*.class jade/core/GADT.class 	\
 			jade/core/MainContainerImpl*.class jade/domain/ams*.class jade/domain/df*.class 	\
 			jade/domain/KB.class jade/domain/KBAbstractImpl.class
+MAINCONTAINER_PACKAGES =
 MAINCONTAINER_LIBNAME = main_container.jar
 
 KERNELJ2SE_CLASSES = jade/lang/acl/ISO8601.class jade/lang/acl/MessageTemplate*.class jade/lang/acl/StringACLCodec.class 	\
@@ -40,24 +42,30 @@ KERNELJ2SE_CLASSES = jade/lang/acl/ISO8601.class jade/lang/acl/MessageTemplate*.
 		     jade/domain/FIPAAgentManagement/MTPDescription.class 							\
 		     jade/domain/FIPAAgentManagement/UnrecognisedParameterValue.class 						\
 		     jade/domain/FIPAAgentManagement/Modify.class jade/domain/FIPAAgentManagement/UnsupportedAct.class 		\
-		     jade/domain/FIPAAgentManagement/NotRegistered.class jade/domain/FIPAAgentManagement/UnsupportedValue.class \
-		     jade/domain/DFGUIManagement jade/domain/JADEAgentManagement jade/lang/sl jade/onto
+		     jade/domain/FIPAAgentManagement/NotRegistered.class jade/domain/FIPAAgentManagement/UnsupportedValue.class
+
+KERNELJ2SE_PACKAGES = jade/domain/DFGUIManagement jade/domain/JADEAgentManagement jade/lang/sl jade/onto
 KERNELJ2SE_LIBNAME = kernel_j2se.jar
 
 UTILS_CLASSES = jade/util/leap/ArrayList*.class jade/util/leap/Comparable.class jade/util/leap/HashMap*.class 			\
 		jade/util/leap/Iterator.class jade/util/leap/LinkedList*.class jade/util/leap/SortedSetImpl*.class
+UTILS_PACKAGES =
 UTILS_LIBNAME = utils.jar
 
-TOOLS_CLASSES = jade/gui jade/tools
+TOOLS_CLASSES =
+TOOLS_PACKAGES = jade/gui jade/tools
 TOOLS_LIBNAME = tools.jar
 
-IMTPRMI_CLASSES = jade/imtp/rmi
+IMTPRMI_CLASSES =
+IMTPRMI_PACKAGES = jade/imtp/rmi
 IMTPRMI_LIBNAME = imtp_rmi.jar
 
-IIOP_CLASSES = FIPA jade/mtp/iiop
+IIOP_CLASSES =
+IIOP_PACKAGES = FIPA jade/mtp/iiop
 IIOP_LIBNAME = iiop.jar
 
-KERNELSHARE_CLASSES = jade
+KERNELSHARE_CLASSES =
+KERNELSHARE_PACKAGES = jade
 KERNELSHARE_LIBNAME = kernel_share.jar
 
 JADE_LIBNAME = jade.jar
@@ -71,27 +79,27 @@ all:
 	cd $(CLSDIR);										\
 	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) Notice.txt;			\
 	$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(LIBDIR)/$(JADETOOLS_LIBNAME) Notice.txt;	\
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES); 				\
-	rm -rf $(IIOP_CLASSES); 								\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES) $(IIOP_PACKAGES); 		\
+	rm -rf $(IIOP_CLASSES) $(IIOP_PACKAGES); 						\
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(BASE64_LIBNAME) starlight;					\
 	rm -rf starlight
 
 #	Lower level modules, the ones really needed
-	cd $(CLSDIR); 										\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(BOOT_LIBNAME) $(BOOT_CLASSES); 				\
-	rm -rf $(BOOT_CLASSES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(MAINCONTAINER_LIBNAME) $(MAINCONTAINER_CLASSES); 	\
-	rm -rf $(MAINCONTAINER_CLASSES); 							\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELJ2SE_LIBNAME) $(KERNELJ2SE_CLASSES); 		\
-	rm -rf $(KERNELJ2SE_CLASSES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(UTILS_LIBNAME) $(UTILS_CLASSES); 			\
-	rm -rf $(UTILS_CLASSES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(TOOLS_LIBNAME) $(TOOLS_CLASSES); 			\
-	rm -rf $(TOOLS_CLASSES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(IMTPRMI_LIBNAME) $(IMTPRMI_CLASSES); 			\
-	rm -rf $(IMTPRMI_CLASSES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELSHARE_LIBNAME) $(KERNELSHARE_CLASSES); 		\
-	rm -rf $(KERNELSHARE_CLASSES);
+	cd $(CLSDIR); 													\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(BOOT_LIBNAME) $(BOOT_CLASSES) $(BOOT_PACKAGES); 				\
+	rm -rf $(BOOT_CLASSES) $(BOOT_PACKAGES);									\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(MAINCONTAINER_LIBNAME) $(MAINCONTAINER_CLASSES); $(MAINCONTAINER_CLASSES)	\
+	rm -rf $(MAINCONTAINER_CLASSES) $(MAINCONTAINER_PACKAGES); 							\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELJ2SE_LIBNAME) $(KERNELJ2SE_CLASSES) $(KERNELJ2SE_PACKAGES); 		\
+	rm -rf $(KERNELJ2SE_CLASSES) $(KERNELJ2SE_PACKAGES); 								\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(UTILS_LIBNAME) $(UTILS_CLASSES) $(UTILS_PACKAGES); 				\
+	rm -rf $(UTILS_CLASSES) $(UTILS_PACKAGES); 									\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(TOOLS_LIBNAME) $(TOOLS_CLASSES) $(TOOLS_PACKAGES); 				\
+	rm -rf $(TOOLS_CLASSES); $(TOOLS_PACKAGES); 									\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(IMTPRMI_LIBNAME) $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 			\
+	rm -rf $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 									\
+	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELSHARE_LIBNAME) $(KERNELSHARE_CLASSES) $(KERNELSHARE_PACKAGES); 		\
+	rm -rf $(KERNELSHARE_CLASSES) $(KERNELSHARE_PACKAGES);
 
 
 #	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
@@ -126,44 +134,52 @@ batch:
 	echo '$(AR) $(MANIFESTARFLAGS) jade.mf $(subst /,\,..\lib\$(JADE_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
 	echo '$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(subst /,\,..\lib\$(JADETOOLS_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(IIOP_LIBNAME)) $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(IIOP_LIBNAME)) $(subst /,\,$(IIOP_CLASSES)) $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
 	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(BOOT_LIBNAME)) $(subst /,\,$(BOOT_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(BOOT_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(BOOT_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(BOOT_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(BOOT_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(MAINCONTAINER_LIBNAME)) $(subst /,\,$(MAINCONTAINER_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(MAINCONTAINER_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(MAINCONTAINER_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(MAINCONTAINER_LIBNAME)) $(subst /,\,$(MAINCONTAINER_CLASSES)) $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(MAINCONTAINER_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(KERNELJ2SE_LIBNAME)) $(subst /,\,$(KERNELJ2SE_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(KERNELJ2SE_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(KERNELJ2SE_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(KERNELJ2SE_LIBNAME)) $(subst /,\,$(KERNELJ2SE_CLASSES)) $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(KERNELJ2SE_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(UTILS_LIBNAME)) $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(UTILS_LIBNAME)) $(subst /,\,$(UTILS_CLASSES)) $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(TOOLS_LIBNAME)) $(subst /,\,$(TOOLS_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(TOOLS_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(TOOLS_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(TOOLS_LIBNAME)) $(subst /,\,$(TOOLS_CLASSES)) $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(TOOLS_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(TOOLS_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(IMTPRMI_LIBNAME)) $(subst /,\,$(IMTPRMI_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(IMTPRMI_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(IMTPRMI_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(IMTPRMI_LIBNAME)) $(subst /,\,$(IMTPRMI_CLASSES)) $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(IMTPRMI_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(KERNELSHARE_LIBNAME)) $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(KERNELSHARE_LIBNAME)) $(subst /,\,$(KERNELSHARE_CLASSES)) $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
 	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
