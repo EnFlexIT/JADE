@@ -35,8 +35,10 @@ import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
+import jade.core.Runtime;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.Property;
 
 import jade.lang.acl.ACLMessage;
 
@@ -95,13 +97,19 @@ class RoutingTable {
   private static class OutViaMTP implements OutPort {
 
     private final OutChannel myChannel;
+    private String platformInfo;
 
-    public OutViaMTP(OutChannel proto) {
+    public OutViaMTP(OutChannel proto, String platformInfo) {
       myChannel = proto;
+      this.platformInfo = platformInfo;
     }
 
     public void route(Envelope env, byte[] payload, AID receiver, String address) throws MTPException {
-      myChannel.deliver(address, env, payload);
+      if (platformInfo != null) {
+      	env.addProperties(new Property(MessagingService.PLATFORM_IDENTIFIER, platformInfo));
+      	env.addProperties(new Property(MessagingService.MTP_IDENTIFIER, myChannel.getClass().getName()));
+      }
+    	myChannel.deliver(address, env, payload);
     }
 
     public boolean equals(Object o) {
@@ -169,8 +177,12 @@ class RoutingTable {
   private final Map outPorts = new HashMap(2);
     private static final int EXPECTED_PLATFORMADDRESSES_SIZE = 2;
   private final List platformAddresses = new ArrayList(EXPECTED_PLATFORMADDRESSES_SIZE);
-  
-  public RoutingTable() {
+  private String platformInfo = null;
+  	
+  public RoutingTable(boolean attachPlatformInfo) {
+  	if (attachPlatformInfo) {
+  		platformInfo = Runtime.instance().getVersionInfo() + " (" + System.getProperty("java.version") + ", " + System.getProperty("os.name") + " " + System.getProperty("os.version") + ")";
+  	}
   }
 
   /**
@@ -185,7 +197,7 @@ class RoutingTable {
     inPorts.put(urlTmp, proto);
 
     // A local MTP can also send messages, over all supported protocols
-    OutPort out = new OutViaMTP(proto);
+    OutPort out = new OutViaMTP(proto, platformInfo);
     String[] protoNames = proto.getSupportedProtocols();
     for(int i = 0; i < protoNames.length; i++) {
       addOutPort(protoNames[i], out, LOCAL);
@@ -218,7 +230,7 @@ class RoutingTable {
       // Remove all outgoing ports associated with this MTP
       String[] protoNames = proto.getSupportedProtocols();
       for(int i = 0; i < protoNames.length; i++) {
-	OutPort out = new OutViaMTP(proto);
+	OutPort out = new OutViaMTP(proto, platformInfo);
 	removeOutPort(protoNames[i], out);
       }
     }
