@@ -36,35 +36,73 @@ import jade.content.Concept;
 */
 public class ACLMessage implements Concept {
 
-  private Envelope env;
-  private String payload;
+    private Envelope env;
+    private String payload;
 
-  public void setEnvelope(Envelope e) {
-    env = e;
-  }
+    /**
+       Default constructor. A default constructor is necessaty for
+       JADE ontological classes.
+    */
+    public ACLMessage() {
+    }
 
-  public Envelope getEnvelope() {
-    return env;
-  }
+    /**
+       Set the message envelope.
+       @param e The transport-level envelope to attach to this ACL
+       message.
+    */
+    public void setEnvelope(Envelope e) {
+	env = e;
+    }
 
-  public void setAclRepresentation(String r) {
-    if(env != null)
-      env.setAclRepresentation(r);
-  }
+    /**
+       Retrieve the message envelope.
+       @return The transport-level envelope attached to this ACL
+       message, or <code>null</code> if no envelope was set.
+    */
+    public Envelope getEnvelope() {
+	return env;
+    }
 
-  public String getAclRepresentation() {
-    if(env != null)
-      return env.getAclRepresentation();
-    else
-      return null;
-  }
+    /**
+       Set the representation of the message payload.
+       @param r The name of the representation expressing the message
+       payload.
+    */
+    public void setAclRepresentation(String r) {
+	if(env != null)
+	    env.setAclRepresentation(r);
+    }
 
-  public void setPayload(String p) {
-    payload = p;
-  }
+    /**
+       Retrieve the representation of the message payload.
+       @return The ACL representation of the message.
+    */
+    public String getAclRepresentation() {
+	if(env != null)
+	    return env.getAclRepresentation();
+	else
+	    return null;
+    }
 
-  public String getPayload() {
-    return payload;
-  }
+    /**
+       Set the payload (i.e. the speech act level part) of this ACL
+       message.
+       @param p A string containing the encoding of the payload
+       according to a concrete ACL representaiton.
+    */
+    public void setPayload(String p) {
+	payload = p;
+    }
+
+    /**
+       Retrieve the payload (i.e. the speech act level part) of this
+       ACL message.
+       @return A string containing the encoding of the payload
+       according to a concrete ACL representation.
+    */
+    public String getPayload() {
+	return payload;
+    }
 
 }

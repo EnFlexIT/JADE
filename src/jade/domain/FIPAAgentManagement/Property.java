@@ -27,39 +27,70 @@ package jade.domain.FIPAAgentManagement;
 import jade.util.leap.*;
 import jade.content.Concept;
 
+
 /** 
- This class implements the property type, a pair of a name and value.
+ This class implements the <code>property</code> type, a pair of a
+ name and value.
  @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
  @author Fabio Bellifemine - CSELT S.p.A.
  @version $Date$ $Revision$
 */
-
 public class Property implements Concept {
 
     private String name;
     private Object value;
-    
-public Property() {
-}
 
-public Property(String name, Object value) {
+    /**
+       Default constructor. A default constructor is needed for JADE
+       ontological classes.
+    */
+    public Property() {
+    }
+
+    /**
+       Create a property object, with the given name and value pair.
+       @param name The name of the property.
+       @param value The Java object associated with the given name.
+    */
+    public Property(String name, Object value) {
 	this.name = name;
 	this.value = value;
-}
+    }
 
-public void setName(String n) {
-  name = n;
-}
+    /**
+       Set the name of the property object.
+       @param n The new name for this property.
+    */
+    public void setName(String n) {
+	name = n;
+    }
 
-public String getName() {
-  return name;
-}
+    /**
+       Retrieve the name of this property object.
+       @return The string that is the name of this property, or
+       <code>null</code> if no name was set.
+    */
+    public String getName() {
+	return name;
+    }
 
-public void setValue(Object o) {
-  value = o;
-}
+    /**
+       Set the value for this property object, attached to the
+       property name.
+       @param o The new Java object to attach to the property name.
+    */
+    public void setValue(Object o) {
+	value = o;
+    }
 
-public Object getValue(){
-  return value;
+    /**
+       Retrieve the value of this property object, associated with the
+       property name.
+       @return The value of this property, or <code>null</code> if no
+       value was set.
+    */
+    public Object getValue() {
+	return value;
+    }
+
 }
-  }

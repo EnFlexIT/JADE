@@ -23,23 +23,47 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+
+
+import jade.content.*;
+
 /** 
-* This class implements the modify action (to modify an agent description).
+* This class implements the <code>modify</code> action (to modify an
+* agent description).
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-
-import jade.content.*;
-
 public class Modify implements AgentAction {
+
+    /**
+       A string constant for the <code>description</code> slot name.
+    */
+    public static final String MODIFY_DESCRIPTION = "description";
 	
-	public static final String MODIFY_DESCRIPTION = "description";
-	
-	Object description;
-	
-	// Added for new ontology support compatibility
-	
-	public void setDescription(Object desc) { description = desc; }
-	public Object getDescription() { return description; } 
+    Object description;
+
+    /**
+       Default constructor.
+    */
+    public Modify() {
+    }
+
+    /**
+       Set the <code>description</code> slot of this object.
+       @param desc An AMS or DF description for this action.
+    */
+    public void setDescription(Object desc) {
+	description = desc;
+    }
+
+    /**
+       Retrieve the <code>description</code> slot of this object.
+       @return The value of the <code>description</code> slot of
+       this action, or <code>null</code> if no value was set.
+    */
+    public Object getDescription() {
+	return description;
+    }
+
 }

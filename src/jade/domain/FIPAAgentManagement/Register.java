@@ -23,22 +23,46 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+
+import jade.content.*;
+
 /** 
-* This class implements the register action (registration of an agent description).
+* This class implements the <code>register</code> action (registration
+* of an agent description).
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-import jade.content.*;
-
 public class Register implements AgentAction {
+
+    /**
+       A string constant for the <code>description</code> slot name.
+    */
+    public static final String REGISTER_DESCRIPTION = "description";
 	
-	public static final String REGISTER_DESCRIPTION = "description";
-	
-	Object description;
-	
-	// Adder for new ontology support compatibility
-	
-	public void setDescription(Object desc) { description = desc; }
-	public Object getDescription() { return description; }
+    Object description;	
+
+    /**
+       Default constructor.
+    */
+    public Register() {
+    }
+
+    /**
+       Set the <code>description</code> slot of this object.
+       @param desc An AMS or DF description for this action.
+    */
+    public void setDescription(Object desc) {
+	description = desc;
+    }
+
+    /**
+       Retrieve the <code>description</code> slot of this object.
+       @return The value of the <code>description</code> slot of
+       this action, or <code>null</code> if no value was set.
+    */
+    public Object getDescription() {
+	return description;
+    }
+
 }

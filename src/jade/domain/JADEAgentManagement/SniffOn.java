@@ -32,56 +32,109 @@ import jade.core.AID;
 import jade.content.AgentAction;
 
 /**
-   
-   @author Giovanni Rimassa -  Universita` di Parma
+   This class represents the <code>sniff-off</code> action, requesting
+   a sniffer to start observing a set of agents in the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class SniffOn implements AgentAction {
 
-  private AID sniffer;
-  private List sniffedAgents = new ArrayList();
-  private String password;
+    private AID sniffer;
+    private List sniffedAgents = new ArrayList();
+    private String password;
 
-  public void setSniffer(AID id) {
-    sniffer = id;
-  }
 
-  public AID getSniffer() {
-    return sniffer;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public SniffOn() {
+    }
 
-  public void clearAllSniffedAgents() {
-    sniffedAgents.clear();
-  }
+    /**
+       Set the <code>sniffer</code> slot of this action.
+       @param id The agent identifier of the sniffer agent.
+    */
+    public void setSniffer(AID id) {
+	sniffer = id;
+    }
 
-  public void addSniffedAgents(AID id) {
-    sniffedAgents.add(id);
-  }
+    /**
+       Retrieve the value of the <code>sniffer</code> slot of this
+       action, containing the agent identifier of the sniffer agent.
+       @return The value of the <code>sniffer</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getSniffer() {
+	return sniffer;
+    }
 
-  public boolean removeSniffedAgents(AID id) {
-    return sniffedAgents.remove(id);
-  }
+    /**
+       Remove all agent identifiers from the
+       <code>sniffed-agents</code> slot collection of this object.
+    */
+    public void clearAllSniffedAgents() {
+	sniffedAgents.clear();
+    }
 
-  public Iterator getAllSniffedAgents() {
-    return sniffedAgents.iterator();
-  }
-  
-  /**
-     This method is called by the AMS in order to prepare an RMI call.
-     The <code>getAllSniffedAgents()</code> cannot be used as it returns
-     an <code>Iterator</code> that is not serializable.
-  */
-  public ArrayList getCloneOfSniffedAgents(){
-    return (ArrayList) ((ArrayList) sniffedAgents).clone();
-  }
+    /**
+       Add an agent identifier to the <code>sniffed-agents</code> slot
+       collection of this object.
+       @param id The agent identifier to add to the collection.
+    */
+    public void addSniffedAgents(AID id) {
+	sniffedAgents.add(id);
+    }
 
-  public void setPassword(String p) {
-    password = p;
-  }
+    /**
+       Remove an agent identifier from the <code>sniffed-agents</code>
+       slot collection of this object.
+       @param id The agent identifier to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeSniffedAgents(AID id) {
+	return sniffedAgents.remove(id);
+    }
 
-  public String getPassword() {
-    return password;
-  }
+    /**
+       Access all agent identifiers from the
+       <code>sniffed-agents</code> slot collection of this object.
+       @return An iterator over the properties collection.
+    */
+    public Iterator getAllSniffedAgents() {
+	return sniffedAgents.iterator();
+    }
+
+    /**
+       This method is called by the AMS in order to prepare an RMI call.
+       The <code>getAllSniffedAgents()</code> cannot be used as it returns
+       an <code>Iterator</code> that is not serializable.
+    */
+    public ArrayList getCloneOfSniffedAgents(){
+	return (ArrayList) ((ArrayList) sniffedAgents).clone();
+    }
+
+    /**
+       Set the <code>password</code> slot of this action.
+       @param p The password used to authenticate the principal
+       requesting this action.
+    */
+    public void setPassword(String p) {
+	password = p;
+    }
+
+    /**
+       Retrieve the value of the <code>password</code> slot of this
+       action, containing the password used to authenticate the
+       principal requesting this action.
+       @return The value of the <code>password</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getPassword() {
+	return password;
+    }
+
 
 }

@@ -28,36 +28,75 @@ import jade.core.AID;
 import jade.core.BehaviourID;
 
 /**
+   An introspection event, recording that a behaviour was added to an
+   agent.
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class AddedBehaviour implements Event {
 
-  public static final String NAME = "Added-Behaviour";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Added-Behaviour";
   
-  private AID agent;
-  private BehaviourID behaviour;
+    private AID agent;
+    private BehaviourID behaviour;
 
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public AddedBehaviour() {
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Set the <code>agent</code> of this event.
+       @param id The agent identifier of the agent the behaviour was
+       added to.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent the
+       behaviour was added to.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public void setBehaviour(BehaviourID id) {
-    behaviour = id;
-  }
+    /**
+       Set the <code>behaviour</code> of this event.
+       @param id The behaviour identifier of the newly added
+       behaviour.
+    */
+    public void setBehaviour(BehaviourID id) {
+	behaviour = id;
+    }
 
-  public BehaviourID getBehaviour() {
-    return behaviour;
-  }
+    /**
+       Retrieve the value of the <code>behaviour</code> slot of this
+       event, containing the behaviour identifier of the newly added
+       behaviour.
+       @return The value of the <code>behaviour</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public BehaviourID getBehaviour() {
+	return behaviour;
+    }
 
-  public String getName() {
-      return NAME;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
+
 }

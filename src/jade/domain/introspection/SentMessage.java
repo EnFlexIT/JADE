@@ -28,36 +28,74 @@ import jade.core.AID;
 
 /**
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   An introspection event, recording the sending of an ACL message
+   within the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class SentMessage implements Event {
 
-  public static final String NAME = "Sent-Message";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Sent-Message";
 
-  private AID sender;
-  private ACLMessage message;
+    private AID sender;
+    private ACLMessage message;
 
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public SentMessage() {
+    }
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public void setSender(AID id) {
-    sender = id;
-  }
+    /**
+       Set the <code>sender</code> slot of this event.
+       @param id The agent identifier of the agent that sent the
+       message.
+    */
+    public void setSender(AID id) {
+	sender = id;
+    }
 
-  public AID getSender() {
-    return sender;
-  }
+    /**
+       Retrieve the value of the <code>sender</code> slot of this
+       event, containing the agent identifier of the agent that sent
+       the message.
+       @return The value of the <code>sender</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getSender() {
+	return sender;
+    }
 
-  public void setMessage(ACLMessage msg) {
-    message = msg;
-  }
+    /**
+       Set the <code>message</code> slot of this event.
+       @param msg The ACL message that was sent.
+    */
+    public void setMessage(ACLMessage msg) {
+	message = msg;
+    }
 
-  public ACLMessage getMessage() {
-    return message;
-  }
+    /**
+       Retrieve the value of the <code>message</code> slot of this
+       event, containing the ACL message that was sent.
+       @return The value of the <code>message</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ACLMessage getMessage() {
+	return message;
+    }
 
 }

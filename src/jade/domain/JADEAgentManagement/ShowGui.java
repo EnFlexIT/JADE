@@ -27,10 +27,20 @@ package jade.domain.JADEAgentManagement;
 import jade.content.AgentAction;
 
 /**
-   
+   This class represents the <code>show-gui</code> action, requesting
+   an agent (tipically the JADE DF) to make its graphical user
+   interface visible.
+
    @author Tiziana Trucco -  CSELT s.p.a
    @version $Date$ $Revision$
 */
-
 public class ShowGui implements AgentAction {
+
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ShowGui() {
+    }
+
 }

@@ -27,46 +27,83 @@ import jade.content.Concept;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
- 
+
 /**
-   Agent platform description.
+   This class implements a concept of the fipa-agent-management ontology
+   representing an agent platform description.
    @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @author Alessandro Chiarotto - TILAB
    @version $Date$ $Revision$
- */
- 
+*/
 public class APDescription implements Concept {
 
-  private String name;
-  private List services = new ArrayList(1); 
+    private String name;
+    private List services = new ArrayList(1); 
 
-  public void setName(String n) {
-    name = n;
-  }
 
-  public String getName() {
-      return name;
-  }
-
-  
-   public void addAPServices(APService a) {
-      services.add(a);
+    /**
+       Default constructor.
+    */
+    public APDescription() {
     }
 
+    /**
+       Set the <code>name</code> slot of this object.
+       @param n The string for the platform name.
+    */
+    public void setName(String n) {
+	name = n;
+    }
+
+    /**
+       Retrieve the <code>name</code> slot of this object.
+       @return The value of the <code>name</code> slot of this
+       platform description, or <code>null</code> if no value was set.
+    */
+    public String getName() {
+	return name;
+    }
+
+    /**
+       Add a service to the <code>ap-services</code> slot collection
+       of this object.
+       @param a The platform service to add to the collection.
+    */  
+    public void addAPServices(APService a) {
+	services.add(a);
+    }
+
+    /**
+       Remove a service from the <code>ap-services</code> slot
+       collection of this object.
+       @param a The platform service to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
     public boolean removeAPServices(APService a) {
       return services.remove(a);
     }
 
-	public void clearAllAPServices(){
-	  services.clear();
-	}
-	
-	public Iterator getAllAPServices(){
-	  return services.iterator();
-	}
+    /**
+       Remove all services from the <code>ap-services</code> slot
+       collection of this object.
+    */
+    public void clearAllAPServices(){
+	services.clear();
+    }
 
     /**
+       Access all services from the <code>ap-services</code> slot
+       collection of this object.
+       @return An iterator over the services collection.
+    */
+    public Iterator getAllAPServices(){
+	return services.iterator();
+    }
+
+    /**
+     * Retrieve a string representation for this platform description.
      * @return an SL0-like String representation of this object 
      **/
     public String toString() {

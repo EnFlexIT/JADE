@@ -27,23 +27,20 @@ import jade.util.leap.*;
 import jade.core.AID;
 import jade.content.Concept;
 
-  /**
-  *  Models a DF agent descriptor.  This class provides platform-level
-  *  support to <em>DF</em> agent, holding all informations needed by
-  *  <code>DF-agent-description</code> objects in
-  *  <code>fipa-agent-management</code> ontology.
-  *  @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-  *  @author Fabio Bellifemine - CSELT S.p.A.
-  *  @version $Date$ $Revision$
-  *
-  */
-
 import java.util.Date;
 
-/** This type of object represents the description that can be registered with the
- * DF service.
+
+/**
+ *  Models a DF agent descriptor.  This class provides platform-level
+ *  support to <em>DF</em> agent, holding all informations needed by
+ *  <code>DF-agent-description</code> objects in
+ *  <code>fipa-agent-management</code> ontology.
+ *  @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+ *  @author Fabio Bellifemine - CSELT S.p.A.
+ *  @version $Date$ $Revision$
+ *
  */
-  public class DFAgentDescription implements Concept{
+public class DFAgentDescription implements Concept{
 
     private AID name;
     private List services = new ArrayList();
@@ -52,22 +49,30 @@ import java.util.Date;
     private List language = new ArrayList();
 	
 
-	// Added lease default value -1
-	//private Date leaseTime = new Date(-1);
-	private Date leaseTime;
+    // Added lease default value -1
+    //private Date leaseTime = new Date(-1);
+    private Date leaseTime;
 
-        /** Set the identifier of the agent
-         * @param n the identifier of the agent
-         */        
+
+    /**
+       Default constructor.
+    */
+    public DFAgentDescription() {
+    }
+
+    /** Set the identifier of the agent
+     * @param n the identifier of the agent
+     */        
     public void setName(AID n) {
-      name = n;
+	name = n;
     }
 
     /**
-     * @return the identifier of the agent
+     * Retrieve the agent identifier for the described agent.
+     * @return The identifier of the agent
      */    
     public AID getName() {
-      return name;
+	return name;
     }
     
     /**
@@ -76,23 +81,26 @@ import java.util.Date;
        @param absoluteTime The lease time for the registration of this 
        DFAgentDescription as an absolute time. Use <code>null</code> 
        (default) to indicate an infinite lease time
-     */
+    */
     public void setLeaseTime(Date absoluteTime) {
-      leaseTime = absoluteTime;
+	leaseTime = absoluteTime;
     }
 
     /**
-       @return The lease time for the registration of this DFAgentDescription
-       as an absolute time. A <code>null</code> value indicates an infinite 
-       time.
-     */
+       Retrieve the lease time for the registration of this
+       description (i.e., how long it will be kept within the DF agent
+       knowledge base).
+       @return The lease time for the registration of this
+       <code>DFAgentDescription</code> as an absolute time. A
+       <code>null</code> value indicates an infinite time.
+    */
     public Date getLeaseTime() {
-      return leaseTime;
+	return leaseTime;
     }
     
     /**
-       Set the lease time for the registration of this DFAgentDescription
-       as a relative time.
+       Set the lease time for the registration of this
+       <code>DFAgentDescription</code> as a relative time.
        @param relativeTime The lease time for the registration of this 
        DFAgentDescription as a relative time.
      */
@@ -102,70 +110,164 @@ import java.util.Date;
     
     /**
        Indicates whether the lease time for the registration of this 
-       DFAgentDescription has expired.
+       <code>DFAgentDescription</code> expired.
+       @return If the lease time expired, <code>true</code> is
+       returned, and <code>false</code> otherwise.
      */
     public boolean checkLeaseTimeExpired(){
     	if (leaseTime == null) {
-    		return false;
+	    return false;
     	}
     	else {
-    		return (System.currentTimeMillis() > leaseTime.getTime());
+	    return (System.currentTimeMillis() > leaseTime.getTime());
     	}
     }
 
+    /**
+       Add a service description to the <code>service</code> slot
+       collection of this object.
+       @param a The service description to add to the collection.
+    */
     public void addServices(ServiceDescription a) {
       services.add(a);
     }
 
+    /**
+       Remove a service description from the <code>services</code>
+       slot collection of this object.
+       @param a The service description to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
     public boolean removeServices(ServiceDescription a) {
       return services.remove(a);
     }
 
-	public void clearAllServices(){
-	  services.clear();
-	}
-	
-	public Iterator getAllServices(){
-	  return services.iterator();
-	}
+    /**
+       Remove all service descriptions from the <code>services</code>
+       slot collection of this object.
+    */
+    public void clearAllServices(){
+	services.clear();
+    }
 
+    /**
+       Access all service descriptions from the <code>services</code>
+       slot collection of this object.
+       @return An iterator over the service descriptions collection.
+    */
+    public Iterator getAllServices(){
+	return services.iterator();
+    }
+
+    /**
+       Add a protocol name to the <code>protocols</code> slot
+       collection of this object.
+       @param ip The protocol name to add to the collection.
+    */
     public void addProtocols(String ip) {
 	interactionProtocols.add(ip);
     }
+
+    /**
+       Remove a protocol name from the <code>protocols</code> slot
+       collection of this object.
+       @param ip The protocol name to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
     public boolean removeProtocols(String ip) {
-      return interactionProtocols.remove(ip);
+	return interactionProtocols.remove(ip);
     }
+
+    /**
+       Remove all protocol names from the <code>protocols</code> slot
+       collection of this object.
+    */
     public void clearAllProtocols(){
       interactionProtocols.clear();
     }
+
+    /**
+       Access all protocol names from the <code>protocols</code> slot
+       collection of this object.
+       @return An iterator over the protocol names collection.
+    */
     public Iterator getAllProtocols() {
       return interactionProtocols.iterator();
     }
 
-
-
-    public void addOntologies(String ip) {
-	ontology.add(ip);
+    /**
+       Add an ontology name to the <code>ontologies</code> slot
+       collection of this object.
+       @param o The ontology name to add to the collection.
+    */
+    public void addOntologies(String o) {
+	ontology.add(o);
     }
-    public boolean removeOntologies(String ip) {
-      return ontology.remove(ip);
+
+    /**
+       Remove an ontology name from the <code>ontologies</code> slot
+       collection of this object.
+       @param o The ontology name to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeOntologies(String o) {
+      return ontology.remove(o);
     }
+
+    /**
+       Remove all ontology names from the <code>ontologies</code> slot
+       collection of this object.
+    */
     public void clearAllOntologies(){
       ontology.clear();
     }
+
+    /**
+       Access all ontology names from the <code>ontologies</code> slot
+       collection of this object.
+       @return An iterator over the ontology names collection.
+    */
     public Iterator getAllOntologies() {
       return ontology.iterator();
     }
 
-    public void addLanguages(String ip) {
-	language.add(ip);
+    /**
+       Add a content language name to the <code>languages</code> slot
+       collection of this object.
+       @param l The content language name to add to the collection.
+    */
+    public void addLanguages(String l) {
+	language.add(l);
     }
-    public boolean removeLanguages(String ip) {
-      return language.remove(ip);
+
+    /**
+       Remove a content language name from the <code>languages</code>
+       slot collection of this object.
+       @param l The content language name to remove from the
+       collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeLanguages(String l) {
+      return language.remove(l);
     }
+
+    /**
+       Remove all content language names from the
+       <code>languages</code> slot collection of this object.
+    */
     public void clearAllLanguages(){
       language.clear();
     }
+
+    /**
+       Access all content language names from the
+       <code>languages</code> slot collection of this object.
+       @return An iterator over the content language names collection.
+    */
     public Iterator getAllLanguages() {
       return language.iterator();
     }

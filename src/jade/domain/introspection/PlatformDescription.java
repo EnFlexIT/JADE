@@ -28,29 +28,56 @@ import jade.core.AID;
 
 import jade.domain.FIPAAgentManagement.APDescription;
 /**
+   This class represents the <code>platform-description</code>
+   predicate, whose argument is a platform description object from the
+   FIPA Agent Management ontology.
    
    @author Tiziana Trucco -  CSELT S.p.A.
    @version $Date$ $Revision$
 */
+public class PlatformDescription implements Event {
 
-public class PlatformDescription implements Event{
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = IntrospectionVocabulary.PLATFORMDESCRIPTION;
 
-  public static final String NAME = IntrospectionVocabulary.PLATFORMDESCRIPTION;
+    private APDescription platform;
 
-  private APDescription platform;
-  
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public PlatformDescription() {
+    }
 
-  public void setPlatform(APDescription p) {
-    platform = p;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public APDescription getPlatform() {
-    return platform;
-  }
+    /**
+       Set the <code>platform</code> slot of this event.
+       @param p The <code>ap-description</code> this notification
+       refers to.
+    */
+    public void setPlatform(APDescription p) {
+	platform = p;
+    }
 
- 
+    /**
+       Retrieve the value of the <code>platform</code> slot of this
+       event, containing the <code>ap-description</code> this
+       notification refers to.
+       @return The value of the <code>platform</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public APDescription getPlatform() {
+	return platform;
+    }
+
 
 }

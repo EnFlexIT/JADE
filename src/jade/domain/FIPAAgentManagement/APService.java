@@ -44,51 +44,101 @@ public class APService implements Concept {
   private String name;
   private String type;
 
-  public APService() {
-  }
+    /**
+       Default constructor. Necessary for ontological classes.
+    */
+    public APService() {
+    }
   
-  /**
-   * Constructor. Create a new APService where name and type get the same value (i.e.
-   * the passed type parameter).
-   **/
-  public APService(String type, String[] addresses) {
-      name=type;
-      this.type=type;
-      for (int i=0; i<addresses.length; i++)
-          this.addresses.add(addresses[i]);
-  }
-  
-  public void setName(String n) {
-    name = n;
-  }
-  public String getName() {
-      return name;
-  }
+    /**
+     * Constructor. Create a new APService where name and type get the same value (i.e.
+     * the passed type parameter).
+     **/
+    public APService(String type, String[] addresses) {
+	name=type;
+	this.type=type;
+	for (int i=0; i<addresses.length; i++)
+	    this.addresses.add(addresses[i]);
+    }
 
-  public void setType(String t) {
-    type = t;
-  }
-  public String getType() {
-      return type;
-  }
+    /**
+       Set the <code>name</code> slot of this object.
+       @param n The string for the platform service name.
+    */
+    public void setName(String n) {
+	name = n;
+    }
 
-  public void addAddresses(String address) {
-    addresses.add(address);
-  }
+    /**
+       Retrieve the <code>name</code> slot of this object.
+       @return The value of the <code>name</code> slot of this
+       platform service description, or <code>null</code> if no value
+       was set.
+    */
+    public String getName() {
+	return name;
+    }
 
-  public boolean removeAddresses(String address) {
-    return addresses.remove(address);
-  }
+    /**
+       Set the <code>type</code> slot of this object.
+       @param t The string for the platform service type.
+    */
+    public void setType(String t) {
+	type = t;
+    }
 
-  public void clearAllAddresses() {
-    addresses.clear();
-  }
+    /**
+       Retrieve the <code>type</code> slot of this object.
+       @return The value of the <code>type</code> slot of this
+       platform service description, or <code>null</code> if no value
+       was set.
+    */
+    public String getType() {
+	return type;
+    }
 
-  public Iterator getAllAddresses() {
-    return addresses.iterator();
-  
-  }
+    /**
+       Add a service to the <code>addresses</code> slot collection
+       of this object.
+       @param a The address to add to the collection.
+    */
+    public void addAddresses(String address) {
+	addresses.add(address);
+    }
 
+    /**
+       Remove a service from the <code>addresses</code> slot
+       collection of this object.
+       @param a The address to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeAddresses(String address) {
+	return addresses.remove(address);
+    }
+
+    /**
+       Remove all addresses from the <code>addresses</code> slot
+       collection of this object.
+    */
+    public void clearAllAddresses() {
+	addresses.clear();
+    }
+
+    /**
+       Access all addresses from the <code>addresses</code> slot
+       collection of this object.
+       @return An iterator over the addresses collection.
+    */
+    public Iterator getAllAddresses() {
+	return addresses.iterator();
+    }
+
+    /**
+     * Retrieve a string representation for this platform service
+     * description.
+     * @return an SL0-like String representation of this object 
+     **/
     public String toString() {
 	StringBuffer str = new StringBuffer("( ap-service ");
         if ((name!=null)&&(name.length()>0))

@@ -32,46 +32,86 @@ import jade.content.Concept;
    This class represents the <code>event-record</code> concept in the
    <code>jade-introspection</code> ontology.
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class EventRecord implements Concept {
-  private Event what;
-  private Date when;
-  private Location where;
 
-  // Default constructor, used by the ontology engine.
-  public EventRecord() {
-  }
+    private Event what;
+    private Date when;
+    private Location where;
 
-  public EventRecord(Event evt, Location l) {
-    what = evt;
-    when = new Date();
-    where = l;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public EventRecord() {
+    }
 
-  public void setWhat(Event evt) {
-    what = evt;
-  }
+    /**
+       Construct an event record, attaching a location and a timestamp
+       to an event object.
+       @param evt The occurred event.
+       @param l The location where the event occurred.
+    */
+    public EventRecord(Event evt, Location l) {
+	what = evt;
+	when = new Date();
+	where = l;
+    }
 
-  public Event getWhat() {
-    return what;
-  }
+    /**
+       Set the <code>what</code> slot of this event.
+       @param id The occurred event.
+    */
+    public void setWhat(Event evt) {
+	what = evt;
+    }
 
-  public void setWhen(Date d) {
-    when = d;
-  }
+    /**
+       Retrieve the value of the <code>what</code> slot of this
+       event, containing the occurred event.
+       @return The value of the <code>what</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public Event getWhat() {
+	return what;
+    }
 
-  public Date getWhen() {
-    return when;
-  }
+    /**
+       Set the <code>when</code> slot of this event.
+       @param d The time instant when the event occurred.
+    */
+    public void setWhen(Date d) {
+	when = d;
+    }
 
-  public void setWhere(Location l) {
-    where = l;
-  }
+    /**
+       Retrieve the value of the <code>when</code> slot of this event,
+       containing the time instant when the event occurred.
+       @return The value of the <code>when</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public Date getWhen() {
+	return when;
+    }
 
-  public Location getWhere() {
-    return where;
-  }
+    /**
+       Set the <code>where</code> slot of this event.
+       @param l The location where the event occurred.
+    */
+    public void setWhere(Location l) {
+	where = l;
+    }
+
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the location where the event occurred.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public Location getWhere() {
+	return where;
+    }
 
 }

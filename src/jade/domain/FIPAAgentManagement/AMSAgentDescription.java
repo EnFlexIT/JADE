@@ -36,37 +36,95 @@ import jade.content.Concept;
 */
 public class AMSAgentDescription implements Concept {
 
-public static final String INITIATED = "initiated";
-public static final String ACTIVE = "active";
-public static final String SUSPENDED = "suspended";
-public static final String WAITING = "waiting";
-public static final String TRANSIT = "transit";
+    /**
+       String constant for the <code>initiated</code> agent life-cycle
+       state.
+    */
+    public static final String INITIATED = "initiated";
 
-private AID name;
-private String ownership;
-private String state;
+    /**
+       String constant for the <code>active</code> agent life-cycle
+       state.
+    */
+    public static final String ACTIVE = "active";
 
-public void setName(AID n){
-  name = n;
-}
+    /**
+       String constant for the <code>suspended</code> agent life-cycle
+       state.
+    */
+    public static final String SUSPENDED = "suspended";
 
-public void setOwnership(String n) {
-  ownership = n;
-}
+    /**
+       String constant for the <code>waiting</code> agent life-cycle
+       state.
+    */
+    public static final String WAITING = "waiting";
 
-public void setState(String n) {
-  state = n;
-}
+    /**
+       String constant for the <code>transit</code> agent life-cycle
+       state.
+    */
+    public static final String TRANSIT = "transit";
 
-public AID getName(){
-  return name;
-}
+    private AID name;
+    private String ownership;
+    private String state;
 
-public String getOwnership(){
-  return ownership;
-}
+    /**
+       Default constructor.
+    */
+    public AMSAgentDescription() {
+    }
 
-public String getState(){
-  return state;
-}
+    /**
+       Set the <code>name</code> slot of this object.
+       @param n The agent identifier for the name.
+    */
+    public void setName(AID n){
+	name = n;
+    }
+
+    /**
+       Set the <code>ownership</code> slot of this object.
+       @param n The string for the ownership.
+    */
+    public void setOwnership(String n) {
+	ownership = n;
+    }
+
+    /**
+       Set the <code>state</code> slot of this object.
+       @param n The string for the state.
+    */
+    public void setState(String n) {
+	state = n;
+    }
+
+    /**
+       Retrieve the <code>name</code> slot of this object.
+       @return The value of the <code>name</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getName(){
+	return name;
+    }
+
+   /**
+       Retrieve the <code>ownership</code> slot of this object.
+       @return The value of the <code>ownership</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getOwnership(){
+	return ownership;
+    }
+
+   /**
+       Retrieve the <code>state</code> slot of this object.
+       @return The value of the <code>state</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getState(){
+	return state;
+    }
+
 }

@@ -29,43 +29,89 @@ import jade.core.ContainerID;
    This class represents the <code>added-mtp</code> concept in the
    <code>jade-introspection</code> ontology.
 
-   @author Giovanni Rimassa - Universita` di Parma
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class AddedMTP implements Event {
 
-  public static final String NAME = "Added-MTP";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Added-MTP";
 
-  private String address;
-  private String proto;
-  private ContainerID where;
+    private String address;
+    private String proto;
+    private ContainerID where;
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public AddedMTP() {
+    }
 
-  public void setAddress(String s) {
-    address = s;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public String getAddress() {
-    return address;
-  }
+    /**
+       Set the <code>address</code> of this event.
+       @param s The address URL exported by the newly added MTP.
+    */
+    public void setAddress(String s) {
+	address = s;
+    }
 
-  public void setProto(String p) {
-    proto = p;
-  }
+    /**
+       Retrieve the value of the <code>address</code> slot of this
+       event, containing the address URL of the newly added MTP.
+       @return The value of the <code>address</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getAddress() {
+	return address;
+    }
 
-  public String getProto() {
-    return proto;
-  }
+    /**
+       Set the <code>proto</code> slot of this event.
+       @param p The protocol name for the newly added MTP.
+    */
+    public void setProto(String p) {
+	proto = p;
+    }
 
-  public void setWhere(ContainerID id) {
-    where = id;
-  }
+    /**
+       Retrieve the value of the <code>proto</code> slot of this
+       event, containing the protocol name for the newly added MTP.
+       @return The value of the <code>proto</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getProto() {
+	return proto;
+    }
 
-  public ContainerID getWhere() {
-    return where;
-  }
+    /**
+       Set the <code>where</code> slot of this event.
+       @param id The container identifier of the container where the
+       newly added MTP was deployed.
+    */
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
+
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the container identifier of the container
+       where the newly added MTP was deployed.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getWhere() {
+	return where;
+    }
 
 }

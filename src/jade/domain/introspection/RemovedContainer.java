@@ -27,28 +27,56 @@ package jade.domain.introspection;
 import jade.core.ContainerID;
 
 /**
-   This class represents the <code>removed-container</code> concept in the
-   <code>jade-introspection</code> ontology.
 
-   @author Giovanni Rimassa - Universita` di Parma
+   An introspection event, recording the removal of an agent container
+   within the platform.
+
+   @author Giovanni Rimassa - Universita' di Parma
    @version $Date$ $Revision$
  */
 public class RemovedContainer implements Event {
 
-  public static final String NAME = "Removed-Container";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Removed-Container";
 
-  private ContainerID container;
+    private ContainerID container;
 
-  public String getName() {
-    return NAME;
-  }
 
-  public void setContainer(ContainerID id) {
-    container = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public RemovedContainer() {
+    }
 
-  public ContainerID getContainer() {
-    return container;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
+
+    /**
+       Set the <code>container</code> slot of this event.
+       @param id The container identifier of the newly removed
+       container.
+    */
+    public void setContainer(ContainerID id) {
+	container = id;
+    }
+
+    /**
+       Retrieve the value of the <code>container</code> slot of this
+       event, containing the container identifier of the newly removed
+       container.
+       @return The value of the <code>container</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getContainer() {
+	return container;
+    }
 
 }

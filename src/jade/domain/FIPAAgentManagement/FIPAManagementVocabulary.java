@@ -23,6 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+
+/**
+   This interface contains all the string constants for frame and slot
+   names (not related to exceptions) defined in the
+   <code>fipa-agent-management</code> ontology.
+*/
 public interface FIPAManagementVocabulary extends ExceptionVocabulary {
 	
   /**

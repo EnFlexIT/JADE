@@ -32,56 +32,110 @@ import jade.core.AID;
 import jade.content.AgentAction;
 
 /**
-   
-   @author Giovanni Rimassa -  Universita` di Parma
+
+  This class represents the <code>debug-off</code> action, requesting
+  a debugger to stop observing a set of agents in the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class DebugOff implements AgentAction {
 
-  private AID debugger;
-  private List debuggedAgents = new ArrayList();
-  private String password;
+    private AID debugger;
+    private List debuggedAgents = new ArrayList();
+    private String password;
 
-  public void setDebugger(AID id) {
-    debugger = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public DebugOff() {
+    }
 
-  public AID getDebugger() {
-    return debugger;
-  }
+    /**
+       Set the <code>debugger</code> slot of this action.
+       @param id The agent identifier of the debugger agent.
+    */
+    public void setDebugger(AID id) {
+	debugger = id;
+    }
 
-  public void clearAllDebuggedAgents() {
-    debuggedAgents.clear();
-  }
+    /**
+       Retrieve the value of the <code>debugger</code> slot of this
+       action, containing the agent identifier of the debugger agent.
+       @return The value of the <code>debugger</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getDebugger() {
+	return debugger;
+    }
 
-  public void addDebuggedAgents(AID id) {
-    debuggedAgents.add(id);
-  }
+    /**
+       Remove all agent identifiers from the
+       <code>debugged-agents</code> slot collection of this object.
+    */
+    public void clearAllDebuggedAgents() {
+	debuggedAgents.clear();
+    }
 
-  public boolean removeDebuggedAgents(AID id) {
-    return debuggedAgents.remove(id);
-  }
+    /**
+       Add an agent identifier to the <code>debugged-agents</code>
+       slot collection of this object.
+       @param id The agent identifier to add to the collection.
+    */
+    public void addDebuggedAgents(AID id) {
+	debuggedAgents.add(id);
+    }
 
-  public Iterator getAllDebuggedAgents() {
-    return debuggedAgents.iterator();
-  }
+    /**
+       Remove an agent identifier from the
+       <code>debugged-agents</code> slot collection of this object.
+       @param id The agent identifier to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeDebuggedAgents(AID id) {
+	return debuggedAgents.remove(id);
+    }
 
-  /**
-     This method is called by the AMS in order to prepare an RMI call.
-     The <code>getAllDebuggedAgents()</code> cannot be used as it returns
-     an <code>Iterator</code> that is not serializable.
-  */
-  public ArrayList getCloneOfDebuggedAgents() {
-    return (ArrayList) ((ArrayList) debuggedAgents).clone();
-  }
+    /**
+       Access all agent identifiers from the
+       <code>debugged-agents</code> slot collection of this object.
+       @return An iterator over the properties collection.
+    */
+    public Iterator getAllDebuggedAgents() {
+	return debuggedAgents.iterator();
+    }
 
-  public void setPassword(String p) {
-    password = p;
-  }
+    //#APIDOC_EXCLUDE_BEGIN
+    /**
+       This method is called by the AMS in order to prepare an RMI call.
+       The <code>getAllDebuggedAgents()</code> cannot be used as it returns
+       an <code>Iterator</code> that is not serializable.
+    */
+    public ArrayList getCloneOfDebuggedAgents() {
+	return (ArrayList) ((ArrayList) debuggedAgents).clone();
+    }
+    //#APIDOC_EXCLUDE_END
 
-  public String getPassword() {
-    return password;
-  }
+    /**
+       Set the <code>password</code> slot of this action.
+       @param p The password used to authenticate the principal
+       requesting this action.
+    */
+    public void setPassword(String p) {
+	password = p;
+    }
+
+    /**
+       Retrieve the value of the <code>password</code> slot of this
+       action, containing the password used to authenticate the
+       principal requesting this action.
+       @return The value of the <code>password</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getPassword() {
+	return password;
+    }
 
 }

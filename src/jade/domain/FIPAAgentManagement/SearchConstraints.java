@@ -32,23 +32,24 @@ package jade.domain.FIPAAgentManagement;
 */
 public class SearchConstraints {
 
-private Long max_depth = null; 
+    private Long max_depth = null; 
 
-private Long max_results = null;
+    private Long max_results = null;
 
-private String search_id = null;
-private int cnt = 0;
+    private String search_id = null;
+    private int cnt = 0;
 
     /**
-     * Constructor. Creates a new SearchConstraints by setting default value, as defined
-     * by FIPA, for max_depth (i.e. 0 that corresponds to no propagation of the search
-     * to the federated DFs) and max_results (i.e. 1 result only to be returned).
-     * Furthermore, a new globally unique identifier is created for the value of
-     * search_id.
-     * WARNING: When the same object is reused for several searches, it is
-     * recommended to call the method <code>renewSearchId</code> in order
-     * to create a new globally unique identifier. Otherwise, the DF might reply
-     * with a FAILURE having received already the same search.
+     * Default constructor. Creates a new SearchConstraints by setting
+     * default value, as defined by FIPA, for max_depth (i.e. 0 that
+     * corresponds to no propagation of the search to the federated
+     * DFs) and max_results (i.e. 1 result only to be returned).
+     * Furthermore, a new globally unique identifier is created for
+     * the value of search_id.  WARNING: When the same object is
+     * reused for several searches, it is recommended to call the
+     * method <code>renewSearchId</code> in order to create a new
+     * globally unique identifier. Otherwise, the DF might reply with
+     * a FAILURE having received already the same search.
      **/
     public SearchConstraints () {
     }
@@ -67,36 +68,66 @@ private int cnt = 0;
         	cnt = 0;
         }
     }
-    
+
+
+    /**
+       Set the <code>search-id</code> slot of this object.
+       @param searchId The unique identifier associated with this
+       search operation.
+    */
     public void setSearchId(String searchId) {
 	search_id = searchId;
     }
-  /**
-   * return null if it has not been set
-   */
+
+    /**
+       Retrieve the <code>search-id</code> slot of this object. This
+       slot uniquely identifies a search operation.
+       @return The value of the <code>search-id</code> slot of this
+       object, or <code>null</code> if no value was set.
+    */
     public String getSearchId() {
 	return search_id;
     }
 
-public void setMaxDepth(Long l){
-  max_depth=l;
-}
 
-  /**
-   * return null if it has not been set
-   */
-public Long getMaxDepth() {
-  return max_depth;
-}
+    /**
+       Set the <code>max-depth</code> slot of this object.
+       @param l The value of the maximum recursion depth of this
+       search over the DF federation graph.
+    */
+    public void setMaxDepth(Long l) {
+	max_depth = l;
+    }
 
-public void setMaxResults(Long l) {
-  max_results = l;
-}
+    /**
+       Retrieve the <code>max-depth</code> slot of this object. This
+       slot describes the maximum recursion depth of this search over
+       the DF federation graph.
+       @return The value of the <code>max-depth</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public Long getMaxDepth() {
+	return max_depth;
+    }
 
-  /**
-   * return null if it has not been set
-   */
-  public Long getMaxResults(){
-    return max_results;
-  }
+    /**
+       Set the <code>max-results</code> slot of this object.
+       @param l The name of the maximum number of results to retrieve
+       in response to this search operation.
+    */
+    public void setMaxResults(Long l) {
+	max_results = l;
+    }
+
+    /**
+       Retrieve the <code>max-results</code> slot of this object. This
+       slot contains the maximum numver of results to retrieve in
+       response to this search operation.  object was sent.
+       @return The value of the <code>max-results</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public Long getMaxResults() {
+	return max_results;
+    }
+
 }

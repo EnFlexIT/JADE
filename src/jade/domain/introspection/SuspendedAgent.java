@@ -29,37 +29,78 @@ import jade.core.ContainerID;
 
 
 /**
+
+   An introspection event, recording the suspension of a formerly
+   active agent within the platform.
    
-   @author Michele Tomaiuolo -  Universita` di Parma
+   @author Michele Tomaiuolo -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class SuspendedAgent implements Event {
 
-  public static final String NAME = "Suspended-Agent";
 
-  private AID agent;
-  private ContainerID where;
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Suspended-Agent";
 
-  public String getName() {
-    return NAME;
-  }
+    private AID agent;
+    private ContainerID where;
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public SuspendedAgent() {
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public void setWhere(ContainerID id) {
-    where = id;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the newly suspended agent.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public ContainerID getWhere() {
-    return where;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the newly suspended
+       agent.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
+
+    /**
+       Set the <code>where</code> slot of this event.
+       @param id The container identifier of the container where the
+       newly suspended agent was deployed.
+    */
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
+
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the container identifier of the container
+       where the newly suspended agent was deployed.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getWhere() {
+	return where;
+    }
+
 
 
 }

@@ -49,11 +49,11 @@ import jade.domain.FIPAAgentManagement.APService;
    This class represents the ontology <code>jade-introspection</code>,
    containing all JADE extensions related to agent and platform
    monitoring. There is only a single instance of this class.
-   <p>
-   The package contains one class for each Frame in the ontology.
-   <p>
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   <p>The package contains one class for each action, object or
+   predicate defined in the ontology.</p><p></p>
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 
 */
@@ -271,12 +271,15 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
       oe.printStackTrace();
     }
   } //end of initInstance
+
+    //#APIDOC_EXCLUDE_BEGIN
     
-  // Used for debug
-  public static void main(String args[]) {
-  	
+    // Used for debug
+    public static void main(String args[]) {
   	Ontology ontology = IntrospectionOntology.getInstance();
-  	
-  	
   }
+
+    //#APIDOC_EXCLUDE_END
+
+
 }

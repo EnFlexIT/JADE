@@ -24,45 +24,46 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
-import jade.core.Channel;
+//#APIDOC_EXCLUDE_FILE
 
+import jade.core.Channel;
 import jade.content.Concept;
 
 /**
+   An introspection event, recording the routing of an ACL message
+   within the platform.
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class RoutedMessage implements Concept {
 
-  private Channel from;
-  private Channel to;
-  private ACLMessage message;
+    private Channel from;
+    private Channel to;
+    private ACLMessage message;
 
+    public void setFrom(Channel c) {
+	from = c;
+    }
 
-  public void setFrom(Channel c) {
-    from = c;
-  }
+    public Channel getFrom() {
+	return from;
+    }
 
-  public Channel getFrom() {
-    return from;
-  }
+    public void setTo(Channel c) {
+	to = c;
+    }
 
-  public void setTo(Channel c) {
-    to = c;
-  }
+    public Channel getTo() {
+	return to;
+    }
 
-  public Channel getTo() {
-    return to;
-  }
+    public void setMessage(ACLMessage msg) {
+	message = msg;
+    }
 
-  public void setMessage(ACLMessage msg) {
-    message = msg;
-  }
-
-  public ACLMessage getMessage() {
-    return message;
-  }
+    public ACLMessage getMessage() {
+	return message;
+    }
 
 }

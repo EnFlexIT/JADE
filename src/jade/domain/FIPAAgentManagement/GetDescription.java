@@ -27,11 +27,18 @@ package jade.domain.FIPAAgentManagement;
 import jade.content.*;
 
 /** 
-* This class implements the get-description action.
+* This class implements the <code>get-description</code> action.
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-
 public class GetDescription implements AgentAction {
+
+    /**
+       Default constructor. A default constructor is needed for
+       ontological classes.
+    */
+    public GetDescription() {
+    }
+
 }

@@ -28,47 +28,98 @@ import jade.core.AID;
 import jade.core.ContainerID;
 
 /**
-  
-   @author Giovanni Rimassa -  Universita` di Parma
+   An introspection event, recording the migration of an agent within
+   the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class MovedAgent implements Event {
 
-  public static final String NAME = "Moved-Agent";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Moved-Agent";
 
-  private AID agent;
-  private ContainerID from;
-  private ContainerID to;
+    private AID agent;
+    private ContainerID from;
+    private ContainerID to;
 
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public MovedAgent() {
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the newly moved agent.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public void setFrom(ContainerID id) {
-    from = id;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the newly moved agent.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public ContainerID getFrom() {
-    return from;
-  }
 
-  public void setTo(ContainerID id) {
-    to = id;
-  }
+    /**
+       Set the <code>from</code> slot of this event.
+       @param id The container identifier of the container from where
+       the agent migrated.
+    */
+    public void setFrom(ContainerID id) {
+	from = id;
+    }
 
-  public ContainerID getTo() {
-    return to;
-  }
+    /**
+       Retrieve the value of the <code>from</code> slot of this event,
+       containing the container identifier of the container from where
+       the agent migrated.
+       @return The value of the <code>from</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getFrom() {
+	return from;
+    }
+
+    /**
+       Set the <code>to</code> slot of this event.
+       @param id The container identifier of the container where the
+       agent migrated.
+    */
+    public void setTo(ContainerID id) {
+	to = id;
+    }
+
+    /**
+       Retrieve the value of the <code>to</code> slot of this
+       event, containing the container identifier of the container
+       where the agent migrated.
+       @return The value of the <code>to</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getTo() {
+	return to;
+    }
 
 
 }

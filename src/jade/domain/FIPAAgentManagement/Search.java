@@ -27,22 +27,56 @@ package jade.domain.FIPAAgentManagement;
 import jade.content.*;
 
 /** 
-* This class implements the search action (searching for agent description).
+* This class implements the <code>search</code> action (searching for
+* agent description).
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
 public class Search implements AgentAction {
 	
-	Object description;
-	SearchConstraints constraints;
+    Object description;
+    SearchConstraints constraints;
 
-	// Added for new ontology support compatibility
 
-	public void setDescription(Object desc) { description = desc; }
-	public Object getDescription() { return description; }
-	
-	public void setConstraints(SearchConstraints s) { constraints = s; }
-	public SearchConstraints getConstraints() { return constraints; }
+    /**
+       Default constructor.
+    */
+    public Search() {
+    }
+
+    /**
+       Set the <code>description</code> slot of this object.
+       @param desc An AMS or DF description for this action.
+    */
+    public void setDescription(Object desc) {
+	description = desc;
+    }
+
+    /**
+       Retrieve the <code>description</code> slot of this object.
+       @return The value of the <code>description</code> slot of this
+       action, or <code>null</code> if no value was set.
+    */
+    public Object getDescription() {
+	return description;
+    }
+
+    /**
+       Set the <code>constraints</code> slot of this object.
+       @param s The search constraints for this action.
+    */
+    public void setConstraints(SearchConstraints s) {
+	constraints = s;
+    }
+
+    /**
+       Retrieve the <code>constraints</code> slot of this object.
+       @return The value of the <code>constraints</code> slot of this
+       action, or <code>null</code> if no value was set.
+    */
+    public SearchConstraints getConstraints() {
+	return constraints;
+    }
 
 }

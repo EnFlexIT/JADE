@@ -3,7 +3,8 @@ JADE - Java Agent DEvelopment Framework is a framework to develop
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
-The updating of this file to JADE 2.0 has been partially supported by the IST-1999-10211 LEAP Project
+The updating of this file to JADE 2.0 has been partially supported by
+the IST-1999-10211 LEAP Project
 
 GNU Lesser General Public License
 
@@ -28,14 +29,19 @@ package jade.domain.introspection;
 
 import jade.content.Concept;
 
+
 /**
-  
-   @author Giovanni Rimassa -  Universita` di Parma
+   The generic interface for all introspection events.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public interface Event extends Concept {
 
-  String getName();
+    /**
+       Retrieve the name of this event.
+       @return The event name.
+    */
+    String getName();
 
 }

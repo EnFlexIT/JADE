@@ -28,30 +28,65 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
-  
-   @author Giovanni Rimassa -  Universita` di Parma
-   @version $Date$ $Revision$
-*/
 
+  This class represents the <code>kill-container</code> action, requesting
+  the termination of an agent container in the platform.
+
+  @author Giovanni Rimassa -  Universita' di Parma
+  @version $Date$ $Revision$
+*/
 public class KillContainer implements AgentAction {
 
-  private ContainerID container;
-  private String password;
 
-  public void setContainer(ContainerID cid) {
-    container = cid;
-  }
+    private ContainerID container;
+    private String password;
 
-  public ContainerID getContainer() {
-    return container;
-  }
 
-  public void setPassword(String p) {
-    password = p;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public KillContainer() {
+    }
 
-  public String getPassword() {
-    return password;
-  }
+    /**
+       Set the <code>container</code> slot of this action.
+       @param id The container identifier of the container to
+       terminate.
+    */
+    public void setContainer(ContainerID cid) {
+	container = cid;
+    }
+
+    /**
+       Retrieve the value of the <code>container</code> slot of this
+       event, containing the container identifier of the container to
+       terminate.
+       @return The value of the <code>container</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getContainer() {
+	return container;
+    }
+
+    /**
+       Set the <code>password</code> slot of this action.
+       @param p The password to authenticate the principal requesting
+       the container termination.
+    */
+    public void setPassword(String p) {
+	password = p;
+    }
+
+    /**
+       Retrieve the value of the <code>password</code> slot of this
+       event, containing the password to authenticate the principal
+       requesting the container termination.
+       @return The value of the <code>password</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getPassword() {
+	return password;
+    }
 
 }

@@ -30,54 +30,118 @@ import jade.core.ContainerID;
 import jade.security.AgentPrincipal;
 
 /**
+   An introspection event, recording the change of the ownership of an
+   agent within the platform.
   
-   @author Michele Tomaiuolo -  Universita` di Parma
+   @author Michele Tomaiuolo -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class ChangedAgentOwnership implements Event {
 
-  public static final String NAME = "Changed-Agent-Ownership";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Changed-Agent-Ownership";
 
-  private AID agent;
-  private String from;
-  private String to;
+    private AID agent;
+    private String from;
+    private String to;
 
-  private ContainerID where;
-  
-  public void setWhere(ContainerID id) {
-    where = id;
-  }
+    private ContainerID where;
 
-  public ContainerID getWhere() {
-    return where;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ChangedAgentOwnership() {
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Set the <code>where</code> slot of this event.
+       @param id The container identifier of the container where the
+       agent is deployed.
+    */
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the container identifier of the container
+       where the agent is deployed.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getWhere() {
+	return where;
+    }
 
-  public void setFrom(String o) {
-    from = o;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the agent whose ownership
+       changed.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public String getFrom() {
-    return from;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent whose
+       ownership changed.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public void setTo(String o) {
-    to = o;
-  }
+    /**
+       Set the <code>from</code> slot of this event.
+       @param o The name of the entity that owned the agent before
+       this event occurred.
+    */
+    public void setFrom(String o) {
+	from = o;
+    }
 
-  public String getTo() {
-    return to;
-  }
+    /**
+       Retrieve the value of the <code>from</code> slot of this event,
+       containing the name of the entity that owned the agent before
+       this event occurred.
+       @return The value of the <code>from</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getFrom() {
+	return from;
+    }
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Set the <code>to</code> slot of this event.
+       @param o The name of the entity owning the agent after this
+       event occurred.
+    */
+    public void setTo(String o) {
+	to = o;
+    }
+
+    /**
+       Retrieve the value of the <code>to</code> slot of this
+       event, containing the name of the entity owning the agent after this
+       event occurred.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getTo() {
+	return to;
+    }
+
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
+
 }

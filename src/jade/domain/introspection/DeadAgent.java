@@ -29,37 +29,75 @@ import jade.core.ContainerID;
 
 
 /**
+   An introspection event, recording the death of an agent within the
+   platform.
    
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class DeadAgent implements Event {
 
-  public static final String NAME = "Dead-Agent";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Dead-Agent";
 
-  private AID agent;
-  private ContainerID where;
+    private AID agent;
+    private ContainerID where;
 
-  public String getName() {
-    return NAME;
-  }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public DeadAgent() {
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public void setWhere(ContainerID id) {
-    where = id;
-  }
+    /**
+       Set the <code>where</code> slot of this event.
+       @param id The container identifier of the container where the
+       newly dead agent was deployed.
+    */
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
 
-  public ContainerID getWhere() {
-    return where;
-  }
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the container identifier of the container
+       where the newly dead agent was deployed.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getWhere() {
+	return where;
+    }
 
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the newly dead agent.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
+
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the newly dead agent.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
 }

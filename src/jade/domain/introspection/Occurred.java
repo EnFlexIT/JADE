@@ -27,23 +27,42 @@ import jade.content.Predicate;
 
 /**
 
-  This class represents the 'occurred' predicate, whose argument is a
-  JADE event.
+  This class represents the <code>occurred</code> predicate, whose
+  argument is a JADE introspection event.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 */
 public class Occurred implements Predicate {
 
-  private EventRecord arg;
+    private EventRecord arg;
 
-  public void setWhat(EventRecord er) {
-    arg = er;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public Occurred() {
+    }
 
-  public EventRecord getWhat() {
-  	return arg;
-  }
+    /**
+       Set the <code>what</code> slot of this event.
+       @param er The record of the occurred event, along with location
+       and timestamp information.
+    */
+    public void setWhat(EventRecord er) {
+	arg = er;
+    }
+
+    /**
+       Retrieve the value of the <code>what</code> slot of this event,
+       containing the record of the occurred event, along with
+       location and timestamp information.
+       @return The value of the <code>what</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public EventRecord getWhat() {
+	return arg;
+    }
 
 
 }

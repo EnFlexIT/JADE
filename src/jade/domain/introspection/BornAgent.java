@@ -29,54 +29,114 @@ import jade.core.ContainerID;
 
 
 /**
+   An introspection event, recording the birth of a new agent within
+   the platform.
    
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class BornAgent implements Event {
 
-  public static final String NAME = "Born-Agent";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Born-Agent";
 
-  private AID agent;
-  private ContainerID where;
-  private String state;
-  private String ownership;
+    private AID agent;
+    private ContainerID where;
+    private String state;
+    private String ownership;
 
-  public String getName() {
-    return NAME;
-  }
 
-  public void setWhere(ContainerID id) {
-    where = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public BornAgent() {
+    }
 
-  public ContainerID getWhere() {
-    return where;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Set the <code>where</code> slot of this event.
+       @param id The container identifier of the container where the
+       newly added agent was born.
+    */
+    public void setWhere(ContainerID id) {
+	where = id;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the value of the <code>where</code> slot of this
+       event, containing the container identifier of the container
+       where the newly added agent was born.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getWhere() {
+	return where;
+    }
 
-  public void setState(String as) {
-    state = as;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the newly born agent.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public String getState() {
-    return state;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the newly born agent.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public void setOwnership(String o) {
-    ownership = o;
-  }
+    /**
+       Set the <code>state</code> slot of this event.
+       @param as The name of the initial state of the newly born
+       agent.
+    */
+    public void setState(String as) {
+	state = as;
+    }
 
-  public String getOwnership() {
-    return ownership;
-  }
+    /**
+       Retrieve the value of the <code>state</code> slot of this
+       event, containing the initial state of the newly born agent.
+       @return The value of the <code>state</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getState() {
+	return state;
+    }
+
+    /**
+       Set the <code>ownership</code> slot of this event.
+       @param o The name of the entity owning the newly born agent.
+    */
+    public void setOwnership(String o) {
+	ownership = o;
+    }
+
+    /**
+       Retrieve the value of the <code>ownership</code> slot of this
+       event, containing the name of the entity owning the newly born
+       agent.
+       @return The value of the <code>where</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getOwnership() {
+	return ownership;
+    }
 
 }

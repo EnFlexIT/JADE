@@ -29,29 +29,63 @@ import jade.content.AgentAction;
 
 /**
 
-   @author Giovanni Rimassa -  Universita` di Parma
+  This class represents the <code>kill-agent</code> action, requesting
+  the termination of an agent in the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class KillAgent implements AgentAction {
 
-  private AID agent;
-  private String password;
+    private AID agent;
+    private String password;
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public KillAgent() {
+    }
 
-  public void setPassword(String p) {
-    password = p;
-  }
+    /**
+       Set the <code>agent</code> slot of this action.
+       @param id The agent identifier of the agent to terminate.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public String getPassword() {
-    return password;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent to
+       terminate.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
+
+    /**
+       Set the <code>password</code> slot of this action.
+       @param p The password to authenticate the principal requesting
+       the agent termination.
+    */
+    public void setPassword(String p) {
+	password = p;
+    }
+
+    /**
+       Retrieve the value of the <code>password</code> slot of this
+       event, containing the password to authenticate the principal
+       requesting the agent termination.
+       @return The value of the <code>password</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getPassword() {
+	return password;
+    }
 
 }

@@ -24,12 +24,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.JADEAgentManagement;
 
-/**
-   
-   @author Giovanni Rimassa -  Universita` di Parma
-   @version $Date$ $Revision$
-*/
-
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -37,65 +31,143 @@ import jade.util.leap.Iterator;
 import jade.core.ContainerID;
 import jade.content.AgentAction;
 
+/**
+
+  This class represents the <code>create-agent</code> action,
+  requesting to create a new agent within the platform.
+
+  @author Giovanni Rimassa -  Universita' di Parma
+  @version $Date$ $Revision$
+*/
 public class CreateAgent implements AgentAction {
 
-  private String agentName;
-  private String className;
-  private ContainerID container;
-  private String password;
-  private String delegation;
-  private List arguments = new ArrayList();
+    private String agentName;
+    private String className;
+    private ContainerID container;
+    private String password;
+    private String delegation;
+    private List arguments = new ArrayList();
+
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public CreateAgent() {
+    }
+
+    /**
+       Set the <code>agent-name</code> slot of this action.
+       @param an The local name (i.e. without the platform ID) of the
+       agent to create.
+    */
+    public void setAgentName(String an) {
+	agentName = an;
+    }
+
+    /**
+       Retrieve the value of the <code>agent-name</code> slot of this
+       event, containing the local name (i.e. without the platform ID)
+       of the agent to create.
+       @return The value of the <code>agent-name</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getAgentName() {
+	return agentName;
+    }
+
+    /**
+       Set the <code>class-name</code> slot of this action.
+       @param cn The name of the Java class implementing the agent to
+       create.
+    */
+    public void setClassName(String cn) {
+	className = cn;
+    }
+
+    /**
+       Retrieve the value of the <code>class-name</code> slot of this
+       event, containing the name of the Java class implementing the
+       agentto create.
+       @return The value of the <code>class-name</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getClassName() {
+	return className;
+    }
+
+    /**
+       Set the <code>container</code> slot of this action.
+       @param cid The container identifier of the container where the
+       agent is to be created.
+    */
+    public void setContainer(ContainerID cid) {
+	container = cid;
+    }
+
+    /**
+       Retrieve the value of the <code>container</code> slot of this
+       event, containing the container identifier of the container
+       where the agent is to be created.
+       @return The value of the <code>container</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getContainer() {
+	return container;
+    }
+
+    /**
+       Set the <code>password</code> slot of this action.
+       @param p The password to authenticate the principal requesting
+       the agent creation.
+    */
+    public void setPassword(String p) {
+	password = p;
+    }
+
+    /**
+       Retrieve the value of the <code>password</code> slot of this
+       event, containing the pasword to authenticate the principal
+       requesting the agent creation.
+       @return The value of the <code>password</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getPassword() {
+	return password;
+    }
+
+    /**
+       Set the <code>delegation</code> slot of this action.
+       @param d The delegation to write into the slot.
+    */
+    public void setDelegation(String d) {
+	delegation = d;
+    }
+
+    /**
+       Retrieve the value of the <code>delegation</code> slot of this
+       event.
+       @return The value of the <code>delegation</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getDelegation() {
+	return delegation;
+    }
+
+    /**
+       Add an object to the <code>arguments</code> slot collection of
+       this object.
+       @param a The object to add to the collection.
+    */
+    public void addArguments(Object a) {
+	arguments.add(a);
+    }
   
-  public void setAgentName(String an) {
-    agentName = an;
-  }
-
-  public String getAgentName() {
-    return agentName;
-  }
-
-  public void setClassName(String cn) {
-    className = cn;
-  }
-
-  public String getClassName() {
-    return className;
-  }
-
-  public void setContainer(ContainerID cid) {
-    container = cid;
-  }
-
-  public ContainerID getContainer() {
-    return container;
-  }
-
-  public void setPassword(String p) {
-    password = p;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setDelegation(String d) {
-    delegation = d;
-  }
-
-  public String getDelegation() {
-    return delegation;
-  }
-  
-  
-  public void addArguments(Object a)
-  {
-    arguments.add(a);
-  }
-  
-  
-  public Iterator getAllArguments()
-  {
-  	
+    /**
+       Remove all objects from the <code>arguments</code> slot
+       collection of this object.
+    */
+    public Iterator getAllArguments() {
   	return arguments.iterator();
-  }
+    }
+
 }

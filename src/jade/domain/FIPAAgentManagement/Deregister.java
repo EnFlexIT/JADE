@@ -27,20 +27,37 @@ package jade.domain.FIPAAgentManagement;
 import jade.content.*;
 
 /** 
-* This class implements the deregister action.
+* This class implements the <code>deregister</code> action.
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-
 public class Deregister implements AgentAction {
 
+    Object description;
 
-	Object description;
-	
-	// Added for new ontology support compatibility
-	
-	public void setDescription(Object desc) { description = desc; }
-	public Object getDescription() { return description; }
+    /**
+       Default constructor.
+    */
+    public Deregister() {
+    }
+
+    /**
+       Set the <code>description</code> slot of this object.
+       @param desc An AMS or DF description for this action.
+    */
+    public void setDescription(Object desc) {
+	description = desc;
+    }
+
+
+    /**
+       Retrieve the <code>description</code> slot of this object.
+       @return The value of the <code>description</code> slot of
+       this action, or <code>null</code> if no value was set.
+    */
+    public Object getDescription() {
+	return description;
+    }
 
 }

@@ -29,37 +29,74 @@ import jade.core.BehaviourID;
 import jade.domain.introspection.Event;
 
 /**
+   An introspection event, recording the removal of an agent behaviour
+   within the platform.
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class RemovedBehaviour implements Event {
 
-  public static final String NAME = "Removed-Behaviour";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Removed-Behaviour";
 
-  private AID agent;
-  private BehaviourID behaviour;
+    private AID agent;
+    private BehaviourID behaviour;
 
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public RemovedBehaviour() {
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the agent owning the newly removed behaviour.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent owning the
+       newly removed behaviour.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public void setBehaviour(BehaviourID id) {
-    behaviour = id;
-  }
+    /**
+       Set the <code>behaviour</code> slot of this event.
+       @param id The behaviour identifier of the newly removed
+       behaviour.
+    */
+    public void setBehaviour(BehaviourID id) {
+	behaviour = id;
+    }
 
-  public BehaviourID getBehaviour() {
-    return behaviour;
-  }
+    /**
+       Retrieve the value of the <code>behaviour</code> slot of this
+       event, containing the behaviour identifier of the newly removed
+       behaviour.
+       @return The value of the <code>behaviour</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public BehaviourID getBehaviour() {
+	return behaviour;
+    }
 
-  public String getName() {
-      return NAME;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
 }

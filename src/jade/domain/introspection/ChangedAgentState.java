@@ -28,46 +28,98 @@ import jade.core.AID;
 import jade.core.AgentState;
 
 /**
+   An introspection event, recording the change of the atate of an
+   agent within the platform.
   
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class ChangedAgentState implements Event {
 
-  public static final String NAME = "Changed-Agent-State";
+    /**
+       A string constant for the name of this event.
+    */ 
+    public static final String NAME = "Changed-Agent-State";
 
-  private AID agent;
-  private AgentState from;
-  private AgentState to;
+    private AID agent;
+    private AgentState from;
+    private AgentState to;
 
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ChangedAgentState() {
+    }
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the agent whose state
+       changed.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public void setFrom(AgentState as) {
-    from = as;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent whose
+       state changed.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public AgentState getFrom() {
-    return from;
-  }
+    /**
+       Set the <code>from</code> slot of this event.
+       @param as The name of the entity the state the agent was in
+       before this event occurred.
+    */
+    public void setFrom(AgentState as) {
+	from = as;
+    }
 
-  public void setTo(AgentState as) {
-    to = as;
-  }
+    /**
+       Retrieve the value of the <code>from</code> slot of this event,
+       containing the name of the state the agent was in before this
+       event occurred.
+       @return The value of the <code>from</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AgentState getFrom() {
+	return from;
+    }
 
-  public AgentState getTo() {
-    return to;
-  }
+    /**
+       Set the <code>to</code> slot of this event.
+       @param as The name of the state the agent was in after this
+       event occurred.
+    */
+    public void setTo(AgentState as) {
+	to = as;
+    }
+
+    /**
+       Retrieve the value of the <code>to</code> slot of this event,
+       containing the name of the state the agent was in after this
+       event occurred.
+       @return The value of the <code>to</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AgentState getTo() {
+	return to;
+    }
 
 }

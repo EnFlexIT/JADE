@@ -33,34 +33,63 @@ import jade.content.AgentAction;
 
 /**
 
-  This class represents the 'stop-notify' action, requesting to end
-  a continuous notification of some events via ACL messages.
+  This class represents the <code>stop-notify</code> action,
+  requesting to end a continuous notification of some events via ACL
+  messages.
 
-  @author Giovanni Rimassa - Universita` di Parma
+  @author Giovanni Rimassa - Universita' di Parma
   @version $Date$ $Revision$
 
 */
 public class StopNotify implements AgentAction {
 
-  private AID observed;
-  private List events = new ArrayList();
+    private AID observed;
+    private List events = new ArrayList();
 
 
-  public void setObserved(AID id) {
-    observed = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public StopNotify() {
+    }
 
-  public AID getObserved() {
-    return observed;
-  }
+    /**
+       Set the <code>observed</code> slot of this action.
+       @param id The agent identifier of the agent whose events were
+       being notified so far.
+    */
+    public void setObserved(AID id) {
+	observed = id;
+    }
 
-  public void addEvents(String evName) {
-    events.add(evName);
-  }
+    /**
+       Retrieve the value of the <code>observed</code> slot of this
+       event, containing the agent identifier of the agent whose
+       events were being notified so far.
+       @return The value of the <code>observed</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getObserved() {
+	return observed;
+    }
 
-  public Iterator getAllEvents() {
-    return events.iterator();
-  }
+    /**
+       Add an event name to the <code>events</code> slot collection of
+       this object.
+       @param evName The event name to add to the collection.
+    */
+    public void addEvents(String evName) {
+	events.add(evName);
+    }
+
+    /**
+       Remove all event names from the <code>events</code> slot
+       collection of this object.
+    */
+    public Iterator getAllEvents() {
+	return events.iterator();
+    }
 
 
 }

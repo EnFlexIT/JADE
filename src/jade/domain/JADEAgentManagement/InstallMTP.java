@@ -26,34 +26,84 @@ package jade.domain.JADEAgentManagement;
 import jade.core.ContainerID;
 import jade.content.AgentAction;
 
+/**
+
+  This class represents the <code>install-mtp</code> action,
+  requesting the activation of a new MTP endpoint in the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
+   @version $Date$ $Revision$
+*/
 public class InstallMTP implements AgentAction {
 
-  private String address;
-  private ContainerID container;
-  private String className;
+    private String address;
+    private ContainerID container;
+    private String className;
 
-  public void setAddress(String a) {
-    address = a;
-  }
 
-  public String getAddress() {
-    return address;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public InstallMTP() {
+    }
 
-  public void setContainer(ContainerID cid) {
-    container = cid;
-  }
+    /**
+       Set the <code>address</code> slot of this action.
+       @param a The address URL of the MTP endpoint to install.
+    */
+    public void setAddress(String a) {
+	address = a;
+    }
 
-  public ContainerID getContainer() {
-    return container;
-  }
+    /**
+       Retrieve the value of the <code>address</code> slot of this
+       action, containing the address URL of the MTP to install.
+       @return The value of the <code>address</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getAddress() {
+	return address;
+    }
 
-  public void setClassName(String a) {
-    className = a;
-  }
+    /**
+       Set the <code>container</code> slot of this action.
+       @param cid The container identifier of the container where the
+       new MTP is to be deployed.
+    */
+    public void setContainer(ContainerID cid) {
+	container = cid;
+    }
 
-  public String getClassName() {
-    return className;
-  }
+    /**
+       Retrieve the value of the <code>container</code> slot of this
+       action, containing the container identifier of the container
+       where the new MTP is to be deployed.
+       @return The value of the <code>container</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getContainer() {
+	return container;
+    }
+
+    /**
+       Set the <code>class-name</code> slot of this action.
+       @param a The name of the Java class implementing the MTP
+       endpoint to install.
+    */
+    public void setClassName(String a) {
+	className = a;
+    }
+
+    /**
+       Retrieve the value of the <code>class-name</code> slot of this
+       action, containing the name of the Java class implementing the
+       MTP endpoint to install.
+       @return The value of the <code>class-name</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getClassName() {
+	return className;
+    }
 
 }

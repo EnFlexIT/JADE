@@ -25,17 +25,32 @@ package jade.domain.introspection;
 
 
 /**
-   This class represents the <code>meta-reset-events</code> concept in the
-   <code>jade-introspection</code> ontology.
+   This class represents the <code>meta-reset-events</code> concept in
+   the <code>jade-introspection</code> ontology.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
 public class ResetEvents implements Event {
 
-  public static final String NAME = "Meta_Reset-Events";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Meta_Reset-Events";
 
-  public String getName() {
-    return NAME;
-  }
+
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ResetEvents() {
+    }
+
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
 }

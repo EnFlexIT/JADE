@@ -23,12 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-/** 
-* This class models an envelope.
-* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-* @author Fabio Bellifemine - CSELT S.p.A.
-* @version $Date$ $Revision$
-*/
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -39,6 +33,13 @@ import jade.util.leap.Properties;
 import jade.core.AID;
 import jade.content.Concept;
  
+
+/** 
+* This class models an envelope.
+* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+* @author Fabio Bellifemine - CSELT S.p.A.
+* @version $Date$ $Revision$
+*/
 public class Envelope implements Concept, jade.util.leap.Serializable {
 
     private final static int EXPECTED_LIST_SIZE = 2;
@@ -81,150 +82,289 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
   private Properties transportBehaviour;
 
   /**
-  serial
+  @serial
   */
   private ArrayList stamps = new ArrayList(EXPECTED_LIST_SIZE);
 
+  /**
+     @serial
+  */
   private ArrayList properties = new ArrayList(EXPECTED_LIST_SIZE);
 
     /**
-     * Constructor. Initializes the payloadLength to -1.
+     * Default constructor. Initializes the payloadLength to -1.
      **/
     public Envelope () {
 	payloadLength = new Long(-1);
     }
-  public void addTo(AID id) {
-    to.add(id);
-  }
 
-  public boolean removeTo(AID id) {
-    return to.remove(id);
-  }
 
-  public void clearAllTo() {
-    to.clear();
-  }
+    /**
+       Add an agent identifier to the <code>to</code> slot collection
+       of this object.
+       @param id The agent identifier to add to the collection.
+    */
+    public void addTo(AID id) {
+	to.add(id);
+    }
 
-  public Iterator getAllTo() {
-    return to.iterator();
-  }
+    /**
+       Remove an agent identifier from the <code>to</code> slot
+       collection of this object.
+       @param id The agent identifierto remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeTo(AID id) {
+	return to.remove(id);
+    }
 
-  public void setFrom(AID id) {
-    from = id;
-  }
+    /**
+       Remove all agent identifiers from the <code>to</code> slot
+       collection of this object.
+    */
+    public void clearAllTo() {
+	to.clear();
+    }
 
-  public AID getFrom() {
-    return from;
-  }
+    /**
+       Access all agent identifiers from the <code>to</code> slot
+       collection of this object.
+       @return An iterator over the agent identifiers collection.
+    */
+    public Iterator getAllTo() {
+	return to.iterator();
+    }
 
-  public void setComments(String c) {
-    comments = c;
-  }
+    /**
+       Set the <code>from</code> slot of this object.
+       @param id The agent identifier for the envelope sender.
+    */
+    public void setFrom(AID id) {
+	from = id;
+    }
 
-  public String getComments() {
-    return comments;
-  }
+    /**
+       Retrieve the <code>from</code> slot of this object.
+       @return The value of the <code>from</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public AID getFrom() {
+	return from;
+    }
 
-  public void setAclRepresentation(String r) {
-    aclRepresentation = r;
-  }
+    /**
+       Set the <code>comments</code> slot of this object.
+       @param c The string for the envelope comments.
+    */
+    public void setComments(String c) {
+	comments = c;
+    }
 
-  public String getAclRepresentation() {
-    return aclRepresentation;
-  }
+    /**
+       Retrieve the <code>comments</code> slot of this object.
+       @return The value of the <code>comments</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public String getComments() {
+	return comments;
+    }
 
-  public void setPayloadLength(Long l) {
-    payloadLength = l;
-  }
+    /**
+       Set the <code>acl-representation</code> slot of this object.
+       @param r The string for the ACL representation.
+    */
+    public void setAclRepresentation(String r) {
+	aclRepresentation = r;
+    }
 
-  public Long getPayloadLength() {
-    return payloadLength;
-  }
+    /**
+       Retrieve the <code>acl-representation</code> slot of this
+       object.
+       @return The value of the <code>acl-representation</code> slot
+       of this envelope, or <code>null</code> if no value was set.
+    */
+    public String getAclRepresentation() {
+	return aclRepresentation;
+    }
 
-  public void setPayloadEncoding(String e) {
-    payloadEncoding = e;
-  }
+    /**
+       Set the <code>payload-length</code> slot of this object.
+       @param l The payload length, in bytes.
+    */
+    public void setPayloadLength(Long l) {
+	payloadLength = l;
+    }
 
-  public String getPayloadEncoding() {
-    return payloadEncoding;
-  }
+    /**
+       Retrieve the <code>payload-length</code> slot of this object.
+       @return The value of the <code>payload-length</code> slot of
+       this envelope, or <code>null</code> if no value was set.
+    */
+    public Long getPayloadLength() {
+	return payloadLength;
+    }
 
-  public void setDate(Date d) {
-    date = d;
-  }
+    /**
+       Set the <code>payload-encoding</code> slot of this object.
+       @param e The string for the payload encoding.
+    */
+    public void setPayloadEncoding(String e) {
+	payloadEncoding = e;
+    }
 
-  public Date getDate() {
-    return date;
-  }
+    /**
+       Retrieve the <code>payload-encoding</code> slot of this object.
+       @return The value of the <code>payload-encoding</code> slot of
+       this envelope, or <code>null</code> if no value was set.
+    */
+    public String getPayloadEncoding() {
+	return payloadEncoding;
+    }
 
+    /**
+       Set the <code>date</code> slot of this object.
+       @param d The envelope date.
+    */
+    public void setDate(Date d) {
+	date = d;
+    }
+
+    /**
+       Retrieve the <code>date</code> slot of this object.
+       @return The value of the <code>date</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public Date getDate() {
+	return date;
+    }
   
-  public void addIntendedReceiver(AID id) {
-    intendedReceiver.add(id);
-  }
-
-  public boolean removeIntendedReceiver(AID id) {
-    return intendedReceiver.remove(id);
-  }
-
-  public void clearAllIntendedReceiver() {
-    intendedReceiver.clear();
-  }
-
-  public Iterator getAllIntendedReceiver() {
-    return intendedReceiver.iterator();
-  }
-
-  public void setReceived(ReceivedObject ro) {
-    addStamp(ro);
-  }
-
-  public ReceivedObject getReceived() {
-    if(stamps.isEmpty())
-      return null;
-    else
-      return (ReceivedObject)stamps.get(stamps.size() - 1);
-  }
-
-  /**
-     Add a <code>received-object</code> stamp to this message
-     envelope. This method is used by the ACC to add a new stamp to
-     the envelope at every routing hop.
-     @param ro The <code>received-object</code> to add.
-  */
-  public void addStamp(ReceivedObject ro) {
-    stamps.add(ro);
-  }
-
-  /**
-     Access the list of all the stamps. The
-     <code>received-object</code> stamps are sorted according to the
-     routing path, from the oldest to the newest.
-  */
-  public ReceivedObject[] getStamps() {
-      ReceivedObject[] ret = new ReceivedObject[stamps.size()];
-      int counter = 0;
-
-      for(Iterator it = stamps.iterator(); it.hasNext(); )
-      ret[counter++] = (ReceivedObject)it.next();
-
-    return ret;
-  }
-
-
-    public void addProperties(Property ip) {
-      properties.add(ip);
+    /**
+       Add an agent identifier to the <code>intended-receiver</code>
+       slot collection of this object.
+       @param id The agent identifier to add to the collection.
+    */
+    public void addIntendedReceiver(AID id) {
+	intendedReceiver.add(id);
     }
-    public boolean removeProperties(Property ip) {
-      return properties.remove(ip);
+
+    /**
+       Remove an agent identifier from the
+       <code>intended-receiver</code> slot collection of this object.
+       @param id The agent identifier to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeIntendedReceiver(AID id) {
+	return intendedReceiver.remove(id);
     }
+
+    /**
+       Remove all agent identifiers from the
+       <code>intended-receiver</code> slot collection of this object.
+    */
+    public void clearAllIntendedReceiver() {
+	intendedReceiver.clear();
+    }
+
+    /**
+       Access all agent identifiers from the <code>intended
+       receiver</code> slot collection of this object.
+       @return An iterator over the agent identifiers collection.
+    */
+    public Iterator getAllIntendedReceiver() {
+	return intendedReceiver.iterator();
+    }
+
+    /**
+       Set the <code>received</code> slot of this object.
+       @param ro The received object for the <code>received</code>
+       slot.
+    */
+    public void setReceived(ReceivedObject ro) {
+	addStamp(ro);
+    }
+
+    /**
+       Retrieve the <code>received</code> slot of this object.
+       @return The value of the <code>received</code> slot of this
+       envelope, or <code>null</code> if no value was set.
+    */
+    public ReceivedObject getReceived() {
+	if(stamps.isEmpty())
+	    return null;
+	else
+	    return (ReceivedObject)stamps.get(stamps.size() - 1);
+    }
+
+    /**
+       Add a <code>received-object</code> stamp to this message
+       envelope. This method is used by the ACC to add a new stamp to
+       the envelope at every routing hop.
+       @param ro The <code>received-object</code> to add.
+    */
+    public void addStamp(ReceivedObject ro) {
+	stamps.add(ro);
+    }
+
+    /**
+       Access the list of all the stamps. The
+       <code>received-object</code> stamps are sorted according to the
+       routing path, from the oldest to the newest.
+    */
+    public ReceivedObject[] getStamps() {
+	ReceivedObject[] ret = new ReceivedObject[stamps.size()];
+	int counter = 0;
+
+	for(Iterator it = stamps.iterator(); it.hasNext(); )
+	    ret[counter++] = (ReceivedObject)it.next();
+
+	return ret;
+    }
+
+
+    /**
+       Add a property to the <code>properties</code> slot collection
+       of this object.
+       @param p The property to add to the collection.
+    */
+    public void addProperties(Property p) {
+      properties.add(p);
+    }
+
+    /**
+       Remove a property from the <code>properties</code> slot
+       collection of this object.
+       @param p The property to remove from the collection.
+       @return A boolean, telling whether the element was present in
+       the collection or not.
+    */
+    public boolean removeProperties(Property p) {
+      return properties.remove(p);
+    }
+
+    /**
+       Remove all properties from the <code>properties</code> slot
+       collection of this object.
+    */
     public void clearAllProperties(){
       properties.clear();
     }
+
+    /**
+       Access all properties from the <code>properties</code> slot
+       collection of this object.
+       @return An iterator over the properties collection.
+    */
     public Iterator getAllProperties() {
       return properties.iterator();
     }
   
-  //#MIDP_EXCLUDE_BEGIN
+    //#MIDP_EXCLUDE_BEGIN
+    /**
+     * Retrieve a string representation for this platform description.
+     * @return an SL0-like String representation of this object 
+     **/
     public String toString() {
 	String s = new String("(Envelope ");
 	Iterator i = getAllTo();
@@ -258,7 +398,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	    s = s + " :received-object (sequence ";
 	    for (int j=0; j<ro.length; j++) {
 	    	if (ro[j] != null) {
-					s = s + " "+ ro[j].toString(); 
+		    s = s + " "+ ro[j].toString(); 
 	    	}
 	    }
 	    s = s + ") ";
@@ -275,6 +415,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     }
   //#MIDP_EXCLUDE_END
 
+    //#APIDOC_EXCLUDE_BEGIN
     public Object clone(){
 	Envelope env = new Envelope();
 	env.to = (ArrayList)to.clone();
@@ -290,4 +431,6 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	env.properties = (ArrayList)properties.clone();
 	return env;
     }
+    //#APIDOC_EXCLUDE_END
+
 }

@@ -26,25 +26,65 @@ package jade.domain.JADEAgentManagement;
 import jade.core.ContainerID;
 import jade.content.AgentAction;
 
+
+/**
+
+  This class represents the <code>uninstall-mtp</code> action,
+  requesting the deactivation of an MTP endpoint in the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
+   @version $Date$ $Revision$
+*/
 public class UninstallMTP implements AgentAction {
 
-  private String address;
-  private ContainerID container;
+    private String address;
+    private ContainerID container;
 
-  public void setAddress(String a) {
-    address = a;
-  }
 
-  public String getAddress() {
-    return address;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public UninstallMTP() {
+    }
 
-  public void setContainer(ContainerID cid) {
-    container = cid;
-  }
+    /**
+       Set the <code>address</code> slot of this action.
+       @param a The address URL of the MTP endpoint to uninstall.
+    */
+    public void setAddress(String a) {
+	address = a;
+    }
 
-  public ContainerID getContainer() {
-    return container;
-  }
+    /**
+       Retrieve the value of the <code>address</code> slot of this
+       action, containing the address URL of the MTP to uninstall.
+       @return The value of the <code>address</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getAddress() {
+	return address;
+    }
+
+    /**
+       Set the <code>container</code> slot of this action.
+       @param cid The container identifier of the container where the
+       MTP to uninstall is deployed.
+    */
+    public void setContainer(ContainerID cid) {
+	container = cid;
+    }
+
+    /**
+       Retrieve the value of the <code>container</code> slot of this
+       action, containing the container identifier of the container
+       where the MTP to uninstall is deployed.
+       @return The value of the <code>container</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ContainerID getContainer() {
+	return container;
+    }
+
 
 }

@@ -28,37 +28,76 @@ import jade.core.AID;
 
 
 /**
+   An introspection event, recording the reception of an ACL message
+   within the platform.
 
-   @author Giovanni Rimassa -  Universita` di Parma
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
-
 public class ReceivedMessage implements Event {
 
-  public static final String NAME = "Received-Message";
+    /**
+       A string constant for the name of this event.
+    */
+    public static final String NAME = "Received-Message";
 
-  private AID receiver;
-  private ACLMessage message;
+    private AID receiver;
+    private ACLMessage message;
+
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ReceivedMessage() {
+    }
+
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
 
 
-  public String getName() {
-    return NAME;
-  }
+    /**
+       Set the <code>message</code> slot of this event.
+       @param msg The ACL message that was extracted from the receiver
+       agent message queue.
+    */
+    public void setMessage(ACLMessage msg) {
+	message = msg;
+    }
 
-  public void setMessage(ACLMessage msg) {
-    message = msg;
-  }
+    /**
+       Retrieve the value of the <code>message</code> slot of this
+       event, containing the ACL message that was extracted from the
+       receiver agent message queue.
+       @return The value of the <code>message</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public ACLMessage getMessage() {
+	return message;
+    }
 
-  public ACLMessage getMessage() {
-    return message;
-  }
+    /**
+       Set the <code>receiver</code> slot of this event.
+       @param id The agent identifier of the agent owning the message
+       queue the message was extracted from.
+    */
+    public void setReceiver(AID id) {
+	receiver = id;
+    }
 
-  public void setReceiver(AID id) {
-    receiver = id;
-  }
-
-  public AID getReceiver() {
-    return receiver;
-  }
+    /**
+       Retrieve the value of the <code>receiver</code> slot of this
+       event, containing the agent identifier of the agent owning the
+       message queue the message was extracted from.
+       @return The value of the <code>receiver</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getReceiver() {
+	return receiver;
+    }
 
 }

@@ -29,58 +29,127 @@ import jade.core.BehaviourID;
 import jade.domain.introspection.Event;
 
 /**
-  
-   @author Giovanni Rimassa -  Universita` di Parma
+
+   An introspection event, recording the change of the state of an
+   agent behaviour within the platform.
+
+   @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */
 
 public class ChangedBehaviourState implements Event {
 
-  public static final String NAME = "Changed-Behaviour-State";
+    /**
+       A string constant for the name of this event.
+    */ 
+    public static final String NAME = "Changed-Behaviour-State";
 
-  private AID agent;
-  private BehaviourID behaviour;
-  private String from;
-  private String to;
+    private AID agent;
+    private BehaviourID behaviour;
+    private String from;
+    private String to;
 
 
-  public void setAgent(AID id) {
-    agent = id;
-  }
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ChangedBehaviourState() {
+    }
 
-  public AID getAgent() {
-    return agent;
-  }
+    /**
+       Set the <code>agent</code> slot of this event.
+       @param id The agent identifier of the agent whose behaviour
+       state changed.
+    */
+    public void setAgent(AID id) {
+	agent = id;
+    }
 
-  public void setBehaviour(BehaviourID id) {
-    behaviour = id;
-  }
+    /**
+       Retrieve the value of the <code>agent</code> slot of this
+       event, containing the agent identifier of the agent whose
+       behaviour state changed.
+       @return The value of the <code>agent</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public AID getAgent() {
+	return agent;
+    }
 
-  public BehaviourID getBehaviour() {
-    return behaviour;
-  }
+    /**
+       Set the <code>behaviour</code> slot of this event.
+       @param id The behaviour identifier of the behaviour whose state
+       changed.
+    */
+    public void setBehaviour(BehaviourID id) {
+	behaviour = id;
+    }
 
-  public void setFrom(String s) {
-    from = s;
-  }
+    /**
+       Retrieve the value of the <code>behaviour</code> slot of this
+       event, containing the behaviour identifier of the behaviour
+       whose state changed.
+       @return The value of the <code>behaviour</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public BehaviourID getBehaviour() {
+	return behaviour;
+    }
 
-  public String getFrom() {
-    return from;
-  }
+    /**
+       Set the <code>from</code> slot of this event.
+       @param s The name of the state the behaviour was in before this
+       event occurred.
+    */
+    public void setFrom(String s) {
+	from = s;
+    }
 
-  public void setTo(String s) {
-    to = s;
-  }
+    /**
+       Retrieve the value of the <code>from</code> slot of this event,
+       containing the name of the state the behaviour was in before
+       this event occurred.
+       @return The value of the <code>from</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getFrom() {
+	return from;
+    }
 
-  public String getTo() {
-    return to;
-  }
+    /**
+       Set the <code>to</code> slot of this event.
+       @param s The name of the state the behaviour was in after this
+       event occurred.
+    */
+    public void setTo(String s) {
+	to = s;
+    }
 
-  public String getName() {
-      return NAME;
-  }
+    /**
+       Retrieve the value of the <code>to</code> slot of this event,
+       containing the name of the state the behaviour was in after
+       this event occurred.
+       @return The value of the <code>to</code> slot, or
+       <code>null</code> if no value was set.
+    */
+    public String getTo() {
+	return to;
+    }
 
-  public String toString() {
-  	return new String(NAME+ " Name: "+behaviour.getName()+" from: "+from+" to: "+to);
-  }
+    /**
+       Retrieve the name of this event.
+       @return A constant value for the event name.
+    */
+    public String getName() {
+	return NAME;
+    }
+
+    /**
+       Retrieve an SL0-like string representation for this object.
+    */
+    public String toString() {
+  	return new String(NAME+ " Name: "+ behaviour.getName() + " from: " + from + " to: " + to);
+    }
+
 }

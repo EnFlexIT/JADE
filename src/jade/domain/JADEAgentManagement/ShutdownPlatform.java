@@ -28,9 +28,18 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
-  
+   This class represents the <code>shutdown-platform</code> action,
+   requesting to terminate the whole agent platform.
+
    @author Giovanni Rimassa -  FRAMeTech s.r.l.
 */
-
 public class ShutdownPlatform implements AgentAction {
+
+    /**
+       Default constructor. A default constructor is necessary for
+       ontological classes.
+    */
+    public ShutdownPlatform() {
+    }
+
 }
