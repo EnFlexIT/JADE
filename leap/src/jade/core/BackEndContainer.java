@@ -50,33 +50,33 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	
 	// The manager of the connection with the FrontEnd
 	private BEConnectionManager myConnectionManager;
-	
+        private ServiceFinder myServiceFinder;
+
 	private Hashtable agentImages = new Hashtable();
 	private Hashtable pendingImages = new Hashtable();
 	
-	private Platform myPlatform;
 	private boolean refreshPlatformInfo = true;
 	
 	
 	public BackEndContainer(Profile p, BEConnectionManager cm) {
-		super(p);
-		myConnectionManager = cm;
-		try {
-			myFrontEnd = cm.getFrontEnd(this, null);
-			Runtime.instance().beginContainer();
-			joinPlatform();
-			myPlatform = p.getPlatform();
-		}
-		catch (IMTPException imtpe) {
-			// Should never happen
-			imtpe.printStackTrace();
-		}
-		catch (ProfileException pe) {
-			// Should never happen
-			pe.printStackTrace();
-		}
+	    super(p);
+	    myConnectionManager = cm;
+	    try {
+		myFrontEnd = cm.getFrontEnd(this, null);
+		Runtime.instance().beginContainer();
+		joinPlatform();
+		myServiceFinder = p.getServiceFinder();
+	    }
+	    catch (IMTPException imtpe) {
+		// Should never happen
+		imtpe.printStackTrace();
+	    }
+	    catch(ProfileException pe) {
+		// Should never happen
+		pe.printStackTrace();
+	    }
 	}
-	
+
 	/////////////////////////////////////
 	// BackEnd interface implementation
 	/////////////////////////////////////
@@ -95,9 +95,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   		image = new AgentImage(id);
   		// Create and set security information
   		try {
-	    	CertificateFolder certs = createCertificateFolder(id);
-	  		image.setPrincipal(certs);
-	    	image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
+		    CertificateFolder certs = createCertificateFolder(id);
+		    image.setPrincipal(certs);
+		    image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
   		}
   		catch (AuthException ae) {
   			// Should never happen
@@ -106,31 +106,37 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	}
   	AgentImage previous = (AgentImage) agentImages.put(id, image);
   	try {
-  		ContainerID cid = (ContainerID) here();
-		//	  	myPlatform.bornAgent(id, cid, image.getCertificateFolder());
-	  	image.setToolkit(this);
-	  	// Prepare platform info to return if necessary
-	  	String[] info = null;
-	  	if (refreshPlatformInfo) {
-	  		AID ams = getAMS();
-	  		String[] addresses = ams.getAddressesArray();
-	  		info = new String[2+addresses.length];
-	  		info[0] = cid.getName();
-	  		info[1] = ams.getHap();
-	  		for (int i = 0; i < addresses.length; ++i) {
-	  			info[i+2] = addresses[i];
-	  		}
-	  		refreshPlatformInfo = false;
-	  	}
-  		return info;
+
+	    ContainerID cid = getID();
+	    image.setToolkit(this);
+
+	    Service agMan = myServiceFinder.findService(jade.core.management.AgentManagementSlice.NAME);
+	    jade.core.management.AgentManagementSlice mainSlice = (jade.core.management.AgentManagementSlice)agMan.getSlice(jade.core.management.AgentManagementSlice.MAIN_SLICE);
+	    mainSlice.bornAgent(id, cid, image.getCertificateFolder());
+
+	    // Prepare platform info to return if necessary
+	    String[] info = null;
+	    if (refreshPlatformInfo) {
+		AID ams = getAMS();
+		String[] addresses = ams.getAddressesArray();
+		info = new String[2+addresses.length];
+		info[0] = cid.getName();
+		info[1] = ams.getHap();
+		for (int i = 0; i < addresses.length; ++i) {
+		    info[i+2] = addresses[i];
+		}
+		refreshPlatformInfo = false;
+	    }
+	    return info;
   	}
   	catch (Exception e) {
-    	// Roll back if necessary and throw an IMTPException
-  		agentImages.remove(id);
-  		if (previous != null) {
-  			agentImages.put(id, previous);
-  		}
-  		throw new IMTPException("Error creating agent "+name+". ", e);
+	    e.printStackTrace();
+	    // Roll back if necessary and throw an IMTPException
+	    agentImages.remove(id);
+	    if (previous != null) {
+		agentImages.put(id, previous);
+	    }
+	    throw new IMTPException("Error creating agent "+name+". ", e);
   	}
   }
 
@@ -142,15 +148,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	AID id = new AID(name, AID.ISLOCALNAME);
   	AgentImage image = (AgentImage) agentImages.remove(id);
   	if (image != null) {
-	    /***
-  		try {
-	  		myPlatform.deadAgent(id);
-  		}
-  		catch (Exception e) {
-  			// There is nothing we can do
-  			e.printStackTrace();
-  		}
-	    ***/
+	    try {
+		handleEnd(id);
+	    }
+	    catch (Exception e) {
+		// There is nothing we can do
+		e.printStackTrace();
+	    }
   	}
   }
   
@@ -310,54 +314,65 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      sent by an agent in the FrontEnd too, nothing is done as the
      dispatch has already taken place in the FrontEnd (see messageOut()).
    */
-  public void dispatch(final ACLMessage msg, final AID receiverID) throws IMTPException, NotFoundException {
+  public boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID) {
 
-      /***
-  	// Try first in the real LADT
-  	try {
-  		super.dispatch(msg, receiverID);
-  	}
-  	catch (NotFoundException nfe) {
-  		// The receiver must be in the FrontEnd
-	  	AgentImage image = (AgentImage) agentImages.get(receiverID);
-	  	if (image != null) {
-	  		if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
-	  			// The message was sent by an agent living in the FrontEnd. The
-	  			// receiverID (living in the FrontEnd too) has already received
-	  			// the message.
-	  			return;
-	  		}
-	  		
-	  		// FIXME: The right way to do things should be i) check permission
-	  		// ii) call messageIn() iii) notify listeners. On the other hand 
-	  		// handlePosted() currently does i) and iii). 
-	  		try {
-		  		// An AuthException will be thrown if the receiver does not have
-		  		// the permission to receive messages from the sender of this message
-		  		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-						public Object run() throws AuthException {
-			  			handlePosted(receiverID, msg);
-							return null;
-						}
-					}, image.getCertificateFolder());
-	  		}
-	  		catch (AuthException ae) {
-	  			String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
-			  	System.out.println(errorMsg+". "+ae.getMessage());
-	      	notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
-	  		}
-	  		catch (Exception e) {
-	  			// Should never happen
-	  			e.printStackTrace();
-	  		}
-	  		// Forward the message to the FrontEnd
-		  	myFrontEnd.messageIn(msg, receiverID.getLocalName());
-	  	}
-	  	else {
-				throw new NotFoundException("DispatchMessage failed to find " + receiverID);
-	  	}
-  	}
-      ***/
+      // Try first in the LADT
+      boolean found = super.postMessageToLocalAgent(msg, receiverID);
+      if(found) {
+	  return found;
+      }
+      else {
+	  // The receiver must be in the FrontEnd
+	  AgentImage image = (AgentImage) agentImages.get(receiverID);
+	  if (image != null) {
+	      if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
+		  // The message was sent by an agent living in the FrontEnd. The
+		  // receiverID (living in the FrontEnd too) has already received
+		  // the message.
+		  return true;
+	      }
+
+	      // FIXME: The right way to do things should be i) check permission
+	      // ii) call messageIn() iii) notify listeners. On the other hand 
+	      // handlePosted() currently does i) and iii). 
+	      try {
+		  final ACLMessage msgFinal = msg;
+		  final AID receiverIDFinal = receiverID;
+		  // An AuthException will be thrown if the receiver does not have
+		  // the permission to receive messages from the sender of this message
+		  getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+			  public Object run() throws AuthException {
+			      handlePosted(receiverIDFinal, msgFinal);
+			      return null;
+			  }
+		      }, image.getCertificateFolder());
+	      }
+	      catch (AuthException ae) {
+		  String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
+		  System.out.println(errorMsg+". "+ae.getMessage());
+		  notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
+	      }
+	      catch (Exception e) {
+		  // Should never happen
+		  e.printStackTrace();
+	      }
+	      try {
+		  // Forward the message to the FrontEnd
+		  myFrontEnd.messageIn(msg, receiverID.getLocalName());
+		  return true;
+	      }
+	      catch(NotFoundException nfe) {
+		  return false;
+	      }
+	      catch(IMTPException imtpe) {
+		  return false;
+	      }	      
+	  }
+	  else {
+	      // Agent not found
+	      return false;
+	  }
+      }
   }
   
   /**
@@ -401,48 +416,83 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	}
   	
   	// "Kill" all agent images
-		Enumeration e = agentImages.keys();
-		while (e.hasMoreElements()) {
-			AID id = (AID) e.nextElement();
-			/***
-			try {
-				myPlatform.deadAgent(id);
-			}
-			catch (Exception ex) {
-				ex.printStackTrace();
-			}
-			***/
-		}
-		agentImages.clear();
+	Enumeration e = agentImages.keys();
+	while (e.hasMoreElements()) {
+	    AID id = (AID) e.nextElement();
+	    try {
+		handleEnd(id);
+	    }
+	    catch (Exception ex) {
+		ex.printStackTrace();
+	    }
+	}
+	agentImages.clear();
   	
-    shutDown();
+	shutDown();
+  }
+
+    /**
+     */
+    private void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
+
+	// If the message was sent by an agent living on the FrontEnd, the
+	// FAILURE has to be notified only if the receiver does not live
+	// on the FrontEnd too. In this case in fact the message has
+	// been delivered even if we have an exception. 
+	if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
+	    if (agentImages.get(receiver) == null) {
+		Thread.currentThread().setName("dummy");
+	    }
 	}
 
-  /**
-   */
-	void notifyFailureToSender(ACLMessage msg, AID receiver, InternalError ie) {
-	    /***
-		// If the message was sent by an agent living on the FrontEnd, the
-		// FAILURE has to be notified only if the receiver does not live
-		// on the FrontEnd too. In this case in fact the message has
-		// been delivered even if we have an exception. 
-		if (Thread.currentThread().getName().startsWith(OUTGOING_NAME)) {
-			if (agentImages.get(receiver) == null) {
-				Thread.currentThread().setName("dummy");
+	//if (the sender is not the AMS and the performative is not FAILURE)
+	if ( (msg.getSender()==null) || ((msg.getSender().equals(getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
+	    return;
+	// else send back a failure message
+	final ACLMessage failure = msg.createReply();
+	failure.setPerformative(ACLMessage.FAILURE);
+	//System.err.println(failure.toString());
+	final AID theAMS = getAMS();
+	failure.setSender(theAMS);
+
+	// FIXME: the content is not completely correct, but that should
+	// also avoid creating wrong content
+	// FIXME: the content should include the indication about the 
+	// receiver to wich dispatching failed.
+	String content = "( (action " + msg.getSender().toString();
+	content = content + " ACLMessage ) " + ie.getMessage() + ")";
+	failure.setContent(content);
+
+	try {
+	    Authority authority = getAuthority();
+	    authority.doPrivileged(new PrivilegedExceptionAction() {
+		    public Object run() {
+			try {
+			    handleSend(failure, theAMS);
+			} catch (AuthException ae) {
+			    // it does not have permission to notify the failure 
+			    // it never happens if the policy file gives 
+			    // enough permission to the jade.jar 
+			    System.out.println( ae.getMessage() );
 			}
-		}
-		super.notifyFailureToSender(msg, receiver, ie);
+			return null; // nothing to return
+		    }
+		});
+	} catch(Exception e) {
+	    // should be never thrown
+	    e.printStackTrace();
+	}
+    }
 
-	    ***/
-	}
-	
-	/**
-	   Inner class AgentImage
-	 */
-	private class AgentImage extends Agent {
-	  private AgentImage(AID id) {
-	  	super(id);
-	  }  	
-	}
+    /**
+       Inner class AgentImage
+    */
+    private class AgentImage extends Agent {
+	private AgentImage(AID id) {
+	    super(id);
+	}  	
+    }
+
+
 }
 
