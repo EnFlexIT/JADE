@@ -4,30 +4,109 @@
 .PHONY: all clean
 
 AR = jar
-ARFLAGS = cvf
-MANIFESTARFLAGS = cmf jade.mf
+ARFLAGS = cvMf
+MANIFESTARFLAGS = cmf
+
+# Low level modules
+
+BOOT_CLASSES = jade/*.class jade/util/leap/Properties.class
+BOOT_LIBNAME = boot.jar
+
+MAINCONTAINER_CLASSES = jade/core/AgentManager*.class jade/core/ContainerTable*.class jade/core/GADT.class 	\
+			jade/core/MainContainerImpl*.class jade/domain/ams*.class jade/domain/df*.class 	\
+			jade/domain/KB.class jade/domain/KBAbstractImpl.class
+MAINCONTAINER_LIBNAME = main_container.jar
+
+KERNELJ2SE_CLASSES = jade/lang/acl/ISO8601.class jade/lang/acl/MessageTemplate*.class jade/lang/acl/StringACLCodec.class 	\
+		     jade/core/Agent.class jade/core/Agent$*.class jade/core/RealMobilityManager*.class 			\
+		     jade/core/RealNotificationManager.class jade/core/JADEClassLoader.class jade/core/FullAcc.class 		\
+		     jade/core/FullResourceManager.class jade/core/Runtime*.class jade/util/leap/Serializable.class 		\
+		     jade/proto/FipaRequestResponderBehaviour*.class jade/domain/AMSServiceCommunicator.class 			\
+		     jade/domain/DFServiceCommunicator.class jade/domain/FIPAServiceCommunicator.class 				\
+		     jade/domain/DFGUIAdapter.class jade/domain/DFGUIInterface.class 						\
+		     jade/domain/FIPAAgentManagement/APDescription.class jade/domain/FIPAAgentManagement/Quit.class 		\
+		     jade/domain/FIPAAgentManagement/APTransportDescription.class 						\
+		     jade/domain/FIPAAgentManagement/AlreadyRegistered.class 							\
+		     jade/domain/FIPAAgentManagement/DFAgentDescription.class jade/domain/FIPAAgentManagement/Register.class 	\
+		     jade/domain/FIPAAgentManagement/Deregister.class jade/domain/FIPAAgentManagement/Search.class 		\
+		     jade/domain/FIPAAgentManagement/FIPAAgentManagementOntology.class 						\
+		     jade/domain/FIPAAgentManagement/ServiceDescription.class 							\
+		     jade/domain/FIPAAgentManagement/FailureException.class jade/domain/FIPAAgentManagement/Unauthorised.class 	\
+		     jade/domain/FIPAAgentManagement/GetDescription.class jade/domain/FIPAAgentManagement/UnexpectedAct.class 	\
+		     jade/domain/FIPAAgentManagement/InternalError.class 							\
+		     jade/domain/FIPAAgentManagement/UnexpectedParameter.class 							\
+		     jade/domain/FIPAAgentManagement/MTPDescription.class 							\
+		     jade/domain/FIPAAgentManagement/UnrecognisedParameterValue.class 						\
+		     jade/domain/FIPAAgentManagement/Modify.class jade/domain/FIPAAgentManagement/UnsupportedAct.class 		\
+		     jade/domain/FIPAAgentManagement/NotRegistered.class jade/domain/FIPAAgentManagement/UnsupportedValue.class \
+		     jade/domain/DFGUIManagement jade/domain/JADEAgentManagement jade/lang/sl jade/onto
+KERNELJ2SE_LIBNAME = kernel_j2se.jar
+
+UTILS_CLASSES = jade/util/leap/ArrayList*.class jade/util/leap/Comparable.class jade/util/leap/HashMap*.class 			\
+		jade/util/leap/Iterator.class jade/util/leap/LinkedList*.class jade/util/leap/SortedSetImpl*.class
+UTILS_LIBNAME = utils.jar
+
+TOOLS_CLASSES = jade/gui jade/tools
+TOOLS_LIBNAME = tools.jar
+
+ICPRMI_CLASSES = jade/imtp/rmi
+ICPRMI_LIBNAME = icp_rmi.jar
+
+IIOP_CLASSES = FIPA jade/mtp/iiop
+IIOP_LIBNAME = iiop.jar
+
+KERNELSHARE_CLASSES = jade
+KERNELSHARE_LIBNAME = kernel_share.jar
+
+JADE_LIBNAME = jade.jar
+JADETOOLS_LIBNAME = jadeTools.jar
+BASE64_LIBNAME = Base64.jar
 
 all:
 	@echo Making library ...
-	cd $(CLSDIR); \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
-	rm -rf jade/tools/applet; \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
-	rm -rf jade/tools; \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBIIOPNAME) jade/mtp/iiop FIPA; \
-	rm -rf jade/tools FIPA; \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) jade; \
-	rm -rf jade; \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBBASE64NAME) starlight; \
-	rm -rf starlight; \
-	cd $(LIBDIR)
+
+#	Higher level modules, for backward compatibility
+	cd $(CLSDIR);										\
+	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) Notice.txt;			\
+	$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(LIBDIR)/$(JADETOOLS_LIBNAME) Notice.txt;	\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(BASE64_LIBNAME) starlight;					\
+	rm -rf starlight
+
+#	Lower level modules, the ones really needed
+	cd $(CLSDIR); 									\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(BOOT_LIBNAME) $(BOOT_CLASSES); 			\
+	rm -rf $(BOOT_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(MAINCONTAINER_LIBNAME) $(MAINCONTAINER_CLASSES); 	\
+	rm -rf $(MAINCONTAINER_CLASSES); 						\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(KERNELJ2SE_LIBNAME) $(KERNELJ2SE_CLASSES); 	\
+	rm -rf $(KERNELJ2SE_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(UTILS_LIBNAME) $(UTILS_CLASSES); 			\
+	rm -rf $(UTILS_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(TOOLS_LIBNAME) $(TOOLS_CLASSES); 			\
+	rm -rf $(TOOLS_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(ICPRMI_LIBNAME) $(ICPRMI_CLASSES); 		\
+	rm -rf $(ICPRMI_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES); 			\
+	rm -rf $(IIOP_CLASSES); 							\
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(KERNELSHARE_LIBNAME) $(KERNELSHARE_CLASSES); 	\
+	rm -rf $(KERNELSHARE_CLASSES);
+
+
+#	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
 
 clean:
-	rm -f $(LIBDIR)/$(LIBAPPLETNAME)
-	rm -f $(LIBDIR)/$(LIBTOOLSNAME)
-	rm -f $(LIBDIR)/$(LIBIIOPNAME)
-	rm -f $(LIBDIR)/$(LIBNAME)
-	rm -f $(LIBDIR)/$(LIBBASE64NAME)
+	rm -f $(LIBDIR)/$(BOOT_LIBNAME)
+	rm -f $(LIBDIR)/$(MAINCONTAINER_LIBNAME)
+	rm -f $(LIBDIR)/$(KERNELJ2SE_LIBNAME)
+	rm -f $(LIBDIR)/$(UTILS_LIBNAME)
+	rm -f $(LIBDIR)/$(TOOLS_LIBNAME)
+	rm -f $(LIBDIR)/$(ICPRMI_LIBNAME)
+	rm -f $(LIBDIR)/$(IIOP_LIBNAME)
+	rm -f $(LIBDIR)/$(KERNELSHARE_LIBNAME)
+	rm -f $(LIBDIR)/$(JADE_LIBNAME)
+	rm -f $(LIBDIR)/$(JADETOOLS_LIBNAME)
+	rm -f $(LIBDIR)/$(BASE64_LIBNAME)
+
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
