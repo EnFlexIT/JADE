@@ -33,7 +33,7 @@ import jade.domain.introspection.PostedMessage;
 import jade.domain.introspection.ReceivedMessage;
 
 /**
-   This class receives a MessageEvent and upsates the message table
+   This class receives a MessageEvent and updates the message table
    accordingly.
 
    @author Andrea Squeri, Corti Denis, Ballestracci Paolo -  Universita` di Parma
@@ -90,13 +90,15 @@ public class TableUpdater implements Runnable {
   }
 
   public void run() {
-    if(added){
+    if(added) {
       model.addRow(msg);
     }
     else {
       for(int i = 0; i < model.getRowCount(); i++) {
-        ACLMessage m = (ACLMessage)model.getValueAt(i,0);
-        if(m.equals(msg)) {
+        ACLMessage m = (ACLMessage)model.getValueAt(i, 0);
+	String s1 = m.toString();
+	String s2 = msg.toString();
+	if(s1.equalsIgnoreCase(s2)) {
           model.removeRow(i);
           break;
         }
