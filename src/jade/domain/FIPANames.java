@@ -49,7 +49,7 @@ public interface FIPANames {
 	 * @see <a href=http://www.fipa.org/specs/fipa00071/XC00071b.html>FIPA Spec</a>
 	 **/
 	public static final String XML = "fipa.acl.rep.xml.std";
-	/** Syntactic representation of ACL in XML form
+	/** Syntactic representation of ACL in bit-efficient form
 	 * @see <a href=http://www.fipa.org/specs/fipa00069/XC00069e.html>FIPA Spec</a>
 	 **/
 	public static final String BITEFFICIENT = "fipa.acl.rep.bitefficient.std"; 
@@ -62,22 +62,61 @@ public interface FIPANames {
      * </code>
      **/
     public static interface InteractionProtocol {
-	    //achieve rational effect protocol
-	    public static final String FIPA_REQUEST = "fipa-request";
-	    public static final String FIPA_QUERY =  "fipa-query" ;
-			public static final String FIPA_REQUEST_WHEN = "fipa-request-when";
-			public static final String FIPA_BROKERING = "fipa-brokering";
-			public static final String FIPA_RECRUITING = "fipa-recruiting";
-			public static final String FIPA_PROPOSE = "fipa-propose";
-			public static final String FIPA_SUBSCRIBE = "fipa-subscribe";
-			
-			//auction protocol
-			public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
-			public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
-		
-		
-			public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
-			public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";
+
+	/**
+	   The FIPA-Request interaction protocol.
+	*/
+	public static final String FIPA_REQUEST = "fipa-request";
+
+	/**
+	   The FIPA-Query interaction protocol.
+	*/
+	public static final String FIPA_QUERY =  "fipa-query" ;
+
+	/**
+	   The FIPA-Request-When interaction protocol.
+	*/
+	public static final String FIPA_REQUEST_WHEN = "fipa-request-when";
+
+	/**
+	   The FIPA-Brokering interaction protocol.
+	*/
+	public static final String FIPA_BROKERING = "fipa-brokering";
+
+	/**
+	   The FIPA-Recruiting interaction protocol.
+	*/
+	public static final String FIPA_RECRUITING = "fipa-recruiting";
+
+	/**
+	   The FIPA-Propose interaction protocol.
+	*/
+	public static final String FIPA_PROPOSE = "fipa-propose";
+
+	/**
+	   The FIPA-Subscribe interaction protocol.
+	 */
+	public static final String FIPA_SUBSCRIBE = "fipa-subscribe";
+
+	/**
+	   The FIPA-Auction-English interaction protocol.
+	*/
+	public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
+
+	/**
+	   The FIPA-Auction-Dutch interaction protocol.
+	*/
+	public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
+
+	/**
+	   The FIPA-Contract-Net interaction protocol.
+	*/
+	public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
+
+	/**
+	   The FIPA-Iterated-Contract-Net interaction protocol.
+	 */
+	public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";
     }
 
     /**
@@ -87,9 +126,25 @@ public interface FIPANames {
      * </code>
      **/
     public static interface ContentLanguage {
+	/**
+	   The level-0 profile for the FIPA SL content language.
+	*/
 	public static final String FIPA_SL0 = "fipa-sl0";
+
+	/**
+	   The level-1 profile for the FIPA-SL content language.
+	*/
 	public static final String FIPA_SL1 = "fipa-sl1";
+
+	/**
+	   The level-2 profile for the FIPA-SL content language.
+	*/
 	public static final String FIPA_SL2 = "fipa-sl2";
+
+	/**
+	   The FIPA-SL language, with no restriction on
+	   expressiveness.
+	*/
 	public static final String FIPA_SL  = "fipa-sl";
     }
 

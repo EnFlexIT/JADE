@@ -524,6 +524,10 @@ public class DFService extends FIPAService {
   ///////////////////////////////////
   
   /**
+     Process the content of the final <code>inform (Done)</code> message
+     resulting from a <code>register</code> or <code>deregister</code>
+     action requested to a DF agent, extracting the
+     <code>df-agent-description</code> contained within.
      @return The <code>DFAgentDescription</code> object included
      in the "done" expression used as the content of the INFORM message
      send back by the DF in response to a REQUEST to perform a register,
@@ -544,6 +548,9 @@ public class DFService extends FIPAService {
   }
   
   /**
+     Process the content of the final <code>inform (result)</code> message resulting
+     from a <code>search</code> action requested to a DF agent, extracting the array of
+     <code>df-agent-description</code> contained within.
      @return The <code>DFAgentDescription</code> objects (as an array) included
      in the "result" expression used as the content of the INFORM message
      send back by the DF in response to a REQUEST to perform a search action.
@@ -564,6 +571,9 @@ public class DFService extends FIPAService {
   }
   
   /**
+     Process the content of the <code>inform</code> message resulting
+     from a subscription with a DF agent, extracting the array of
+     <code>df-agent-description</code> objects contained within.
      @return The <code>DFAgentDescription</code> objects (as an array) included
      in the "(= (iota...) ...)" expression used as the content of an INFORM message
      sent back by the DF as a subscription notification.
@@ -1089,5 +1099,12 @@ a default AgentDescription is used, where only the agent AID is set.
     return getNonBlockingBehaviour(a,dfName,actionName,dfd,constraints);
   }
  	//#MIDP_EXCLUDE_END 
+
+    /**
+       Default constructor.
+    */
+    public DFService() {
+    }
+
 }
 

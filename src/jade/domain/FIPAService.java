@@ -98,7 +98,27 @@ public class FIPAService {
   public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request) throws FIPAException {
   	return doFipaRequestClient(a, request, 0);
   }
-  
+
+  /**
+   * This method plays the initiator role in the Fipa-Request
+   * interaction protocol and performs all the steps of the protocol,
+   * and additionally sets a conversation timeout. The method uses the
+   * <code>:reply-with</code>/<code>:in-reply-to</code> ACL message
+   * slots as a mechanism to match the protocol replies.  Under error
+   * conditions, or if the responder does not wish to respond, that
+   * might block the execution of the agent until the conversation
+   * timeout expires.  For this reason, the
+   * <code>FipaRequestInitiatorBehaviour</code> is the preferred way
+   * to play the protocol.
+   * @param a is the Agent playing the initiator role
+   * @param request is the ACLMessage to be sent. Notice that all the
+   * slots of the message must have already been filled by the
+   * caller. If the <code>:reply-with</code> message slot is not set,
+   * a default one will be generated automatically.
+   * @param timeout The maximum time to wait for the conversation to finish, in milliseconds.
+   * @return the INFORM message received in the final state of the protocol, if
+   * the protocol succeeded, otherwise it throws an Exception
+   */
   public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request, long timeout) throws FIPAException {
   	// If the request message does not have a ':reply-with' slot set
     if (request.getReplyWith() == null) 
@@ -139,4 +159,11 @@ public class FIPAService {
 		// The timeout has expired
 		return null;
   }
+
+    /**
+       Default constructor
+    */
+    public FIPAService() {
+    }
+
 }

@@ -458,5 +458,11 @@ the default SearchContraints are used.
     return getNonBlockingBehaviour(a,amsName,actionName,amsd,constraints);
   }
 
+  /**
+     Default constructor.
+  */
+  public AMSService() {
+  }
+
 }
 
