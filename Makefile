@@ -147,8 +147,8 @@ batch: $(CLSDIR) $(DOCDIR)
 	echo '@REM ===============================================================' >> $(BATCH_DIST)
 	echo >> $(BATCH_DIST)
 
-	echo 'cd ..;' >> $(BATCH_DIST)
-	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-src-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\*.bat jade\Makefile jade\src\Makefile jade\src\*.idl jade\src\jade' >> $(BATCH_DIST)
+	echo 'cd ..' >> $(BATCH_DIST)
+	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-src-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\*.bat jade\Makefile jade\src\Makefile jade\src\*.idl jade\src\jade jade\src\starlight jade\src\*.java jade\src\*.html' >> $(BATCH_DIST)
 	echo 'cd jade' >> $(BATCH_DIST)
 
 	echo 'cd ..' >> $(BATCH_DIST)
