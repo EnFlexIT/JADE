@@ -74,6 +74,7 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
     private final static int MODIFY = 2;
     private final static int SEARCH = 3;
     private final static int UNSUPPORTED = -1;
+	
 
     protected DFFipaAgentManagementBehaviour(df a, MessageTemplate mt){
 	super(a,mt);
@@ -153,6 +154,9 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	}
     }
     
+	
+	
+	
     /**
        Do the action and send the Inform message.
      */
@@ -166,84 +170,67 @@ class DFFipaAgentManagementBehaviour extends DFResponderBehaviour{
 	    try{
 		myAgent.DFRegister(agentDescription);
 		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		break;
 	    }catch(AlreadyRegistered ar){
 		createExceptionalMsgContent(SLAction,ar,request);
 		throw ar;
 	    }
+		break;
 	case DEREGISTER:
 	    try{
 		myAgent.DFDeregister(agentDescription);
 		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		break;
 	    }catch(NotRegistered nr){
 		createExceptionalMsgContent(SLAction,nr,request);
 		throw nr;
 	    }
+		break;
 	case SEARCH: 
-	    List result = myAgent.DFSearch(agentDescription,constraints,null);
-
-	    // Note that if the local search produced more results than
-	    // required, we don't even consider the recursive search 
-	    // regardless of the maxDepth parameter.
-	    Long maxResult = constraints.getMaxResults();
-	    if(maxResult != null) {
-				if(result.size() >= maxResult.intValue()){
-		    	// More results than required have been found
-		    	ArrayList list = new ArrayList();
-		    	int j = 0;
-		    	for(Iterator i = result.iterator();i.hasNext()&& j < maxResult.intValue();j++) {
-						list.add(i.next());
-		    	}
-		    	try{
-						Result rs = new Result();
-						rs.setAction(SLAction);
-						rs.setItems(list);
-						myAgent.getContentManager().fillContent(res,rs);
-						return res;
-		    	}
-		    	catch(Exception e){
-						InternalError ie = new InternalError("error in creating the reply");
-						createExceptionalMsgContent(SLAction,ie,request);
-						throw ie;
-		    	}
-				}
-			}
-			
-			// Check if recursive search is required
-	    Long maxDepth = constraints.getMaxDepth();
-	    if(maxDepth != null) {
-				if(maxDepth.intValue()>0){
-		    	// Recursive search on children. Note that in this case 
-					// the INFORM message will be sent by another behaviour.
-		    	if(myAgent.performRecursiveSearch(result,constraints,agentDescription,request,SLAction)) {
-						return null;
-		    	}
-				}
-			}
-	  
-			// No recursive search. Just send back the results
-	    try{
-				Result rs = new Result();
-				rs.setAction(SLAction);
-				rs.setItems(result);
-				myAgent.getContentManager().fillContent(res, rs);
-				return res;
-	    }
-	    catch(Exception e){
-				InternalError ie2 = new InternalError("error in creating the reply");
-				createExceptionalMsgContent(SLAction,ie2,request);
-				throw ie2;
-	    }  
+                List result;
+                // check if the search has to be served (e.g. the search-id is new)
+                if (myAgent.searchMustBeServed(constraints)) {
+                    result = myAgent.DFSearch(agentDescription,constraints,null);
+                    // Note that if the local search produced more results than
+                    // required, we don't even consider the recursive search 
+                    // regardless of the maxDepth parameter.
+                    int maxResult = myAgent.getActualMaxResults(constraints); 
+                    if(result.size() >= maxResult) {
+                        // More results than required have been found, remove the unwanted results
+                        for (int i=maxResult; i<result.size(); i++)
+                            result.remove(i);
+                     } else { // result.size < maxResult
+                        // check if the search has to be propagated
+                        if (myAgent.searchMustBePropagated(constraints,result.size()))
+                            if(myAgent.performRecursiveSearch(result,constraints,agentDescription,request,SLAction)) 
+                                  return null; // here return null because the recursive search takes care of sending back the INFORM
+                     } // end else
+                } else {  
+                    // this search has been seen already, therefore send back a FAILURE
+                    InternalError ie3 = new InternalError("search-id already served");
+                    createExceptionalMsgContent(SLAction,ie3,request);
+                    throw ie3;
+                }
+                // send back the results
+                try{
+                    Result rs = new Result();
+                    rs.setAction(SLAction);
+                    rs.setItems(result);
+                    myAgent.getContentManager().fillContent(res, rs);
+                }
+                catch(Exception e){
+                    InternalError ie2 = new InternalError("error in creating the reply");
+                    createExceptionalMsgContent(SLAction,ie2,request);
+                    throw ie2;
+                }  
+                break;
 	case MODIFY: 
 	    try{
 		myAgent.DFModify(agentDescription);
 		res.setContent(createInformDoneContent(SLAction,request.getLanguage(),request.getOntology()));
-		break;
 	    }catch(NotRegistered nre){
 		createExceptionalMsgContent(SLAction,nre,request);
 		throw nre;
 	    }
+		break;
 	default : break; //should never occur.
 
 	}

@@ -161,17 +161,84 @@ public class df extends GuiAgent implements DFGUIAdapter {
       }
   }//End class RecursiveSearchBehaviour
   
-     
+  
+
+  // FIXME The size of the cache must be read from the Profile
+  private jade.util.HashCache searchIdCache = new jade.util.HashCache(10);
+
+ 
+  
+  /**
+   * @return 
+   * <ul>
+   * <li> 1 if constraints.maxResults == null (according to FIPA specs)
+   * <li> LIMIT_MAXRESULT if constraints.maxResults < 0 (the FIPA specs requires it to be 
+   * infinite, but for practical reason we prefer to limit it)
+   * <li> constraints.maxResults otherwise
+   * </ul>
+   **/
+  int getActualMaxResults(SearchConstraints constraints) {
+      int maxResult = (constraints.getMaxResults() == null ? 1 : constraints.getMaxResults().intValue());
+      maxResult = (maxResult < 0 ? maxResultLimit : maxResult); // limit the max num of results
+      return maxResult;              
+  }
+  
+  /**
+  * Check if this search request must be propagated to the federated DFs.
+  * The following conditions are checked:
+  * <ul>
+  * <li> max_depth must not be equal to 0 or to null 
+  *      (the default value for max_depth is 0 according to FIPA)
+  * <li> the number of found results must be less than max_results
+  *      (the default value for max_results is 1 according to FIPA)
+  * </ul>
+  * @param constraints is the searchConstraints parameter received in the search request
+  * @param foundResultSize is the number of results that have been already found
+  * @return true if the search must be propagated, false otherwise
+  **/
+  boolean searchMustBePropagated(SearchConstraints constraints, int foundResultSize) 
+  {
+  Long maxDepth = constraints.getMaxDepth();
+  if ( (maxDepth == null) || (maxDepth.intValue() == 0) ) 
+  	return false;
+  if (foundResultSize >= getActualMaxResults(constraints))
+  	return false;
+  return true;
+  }
+  
+  /**    
+   * Check if this search must be served, i.e. if it has not yet been received.
+   * In particular the value of search_id must be different from any prior value that was received.
+   * If search_id is not null and it has not yet been received, search_id is
+   * added into the cache.
+   * If search_id is null, the method returns true.
+   * @return true if the search must be served, false otherwise
+  **/
+	boolean searchMustBeServed(SearchConstraints constraints) 
+	{
+	String searchId = constraints.getSearchId();
+	if (searchId == null)
+		return true;
+	else if (searchIdCache.contains(searchId))
+		return false;
+	else {
+   	    searchIdCache.add(searchId);
+		return true;
+	}
+	}
+	 
   /**
     This method called into the DFFIPAAgentManagementBehaviour add the behaviours for a recursive search.
-		return true if the Df has children, false otherwise
+	If constraints contains a null search_id, then a new one is generated and
+	the new search_id is stored into searchIdCache 
+	for later check (i.e. to avoid search loops). 
+		@return true if the Df has children, false otherwise
    */
-	protected boolean performRecursiveSearch(List l, SearchConstraints constraints, DFAgentDescription dfd, ACLMessage request, Action action){
+	boolean performRecursiveSearch(List l, SearchConstraints constraints, DFAgentDescription dfd, ACLMessage request, Action action){
 
 	    boolean out = false;
-
 	    Long maxResults=constraints.getMaxResults();
- 
+
 	    RecursiveSearchHandler rsh = new RecursiveSearchHandler(l, constraints, dfd, request, action);
 	    SearchConstraints newConstr = new SearchConstraints();
 	    
@@ -179,7 +246,18 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    
 	    if(maxResults != null)
 		newConstr.setMaxResults(new Long((new Integer(constraints.getMaxResults().intValue() - l.size())).longValue()));	    
+	
+		String searchId = constraints.getSearchId();
+		if (searchId == null) {
+			// then create a globally unique searchId and store into searchIdCache
+			searchId = getName() + System.currentTimeMillis();
+	  	    searchIdCache.add(searchId);
+		}
+			
+	    newConstr.setSearchId(searchId);
+			
 	    Iterator childIt = children.iterator();
+				
 	    while(childIt.hasNext()){
 		try{
 		    out = true;
@@ -195,22 +273,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	List children;
   	long deadline;
   	List results;
-  	SearchConstraints constraints;
+  	int max_results; 
   	DFAgentDescription dfd;
   	ACLMessage request;
   	Action action;
         int DEFAULTTIMEOUT = 300000; // 5 minutes	
-  	long MAXRESULTS = 100; //Maximum number of results if not set 
   	
     //constructor
     RecursiveSearchHandler(List l, SearchConstraints c, DFAgentDescription dfd, ACLMessage msg, Action a) { 
 	    this.results = l;
-	    this.constraints = new SearchConstraints();
-	    constraints.setMaxDepth(c.getMaxDepth()); //MaxDepth is not null by definition of this point of the code
-	    if(c.getMaxResults() != null)
-	      constraints.setMaxResults(c.getMaxResults());
-	    // else
-	    // constraints.setMaxResults(new Long(MAXRESULTS));
+		max_results = getActualMaxResults(c); 
+        // 1 is the default value defined by FIPA
 	    this.dfd = dfd;
 	    this.request = msg;
 	    this.children = new ArrayList();
@@ -234,9 +307,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
     void addResults(Behaviour b, List localResults) throws FIPAException {
 	  	this.children.remove(b);
 	  
-	  	if(constraints.getMaxResults() != null){
+	  	if(max_results >= 0){
 	      //number of results still missing	 
-	      int remainder = constraints.getMaxResults().intValue() - results.size();
+	      int remainder = max_results - results.size();
 
 	      if(remainder > 0){
 		  		//add the local result to fill the list of results
@@ -306,15 +379,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
       	  ACLMessage inform = request.createReply();      
           inform.setPerformative(ACLMessage.INFORM);
 
-		  List tmp = new ArrayList();
-		  tmp.add(thisDF);
-		  Result rs = new Result(a, tmp);
-		  try {
-		  	getContentManager().fillContent(inform, rs);
-  		  }catch (Exception e) {
-			  throw new FIPAException(e.getMessage());
-	  	  }
-		  return inform;
+	  List tmp = new ArrayList();
+	  tmp.add(thisDF);
+	  Result rs = new Result(a, tmp);
+	  try {
+	  	getContentManager().fillContent(inform, rs);
+		}
+		catch (Exception e) {
+		  throw new FIPAException(e.getMessage());
+		}
+
+	  return inform;
 	  
 	  }catch(FIPAException e) { //FIXME no exception predicate in the DFApplet ontology
 	   throw new InternalError("Impossible_to_provide_the_needed_information");
@@ -803,8 +878,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private static final String DB_PASSWORD = "jade.domain.df.db-password";
 	private static final String MAX_RESULTS = "jade.domain.df.maxres";
 
-  private static final String DEFAULT_MAX_RESULTS = "10";
-  
+  // limit of searchConstraints.maxresult
+  // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
+  // a negative value of maxresults indicates that the sender agent is willing to receive
+  // all available results --> we limit the result to 20 for practical reasons
+  private static final String DEFAULT_MAX_RESULTS = "20";
+  /*
+   * This is the actual value for the limit on the maximum number of results to be
+   * returned in case of an ulimited search. This value is read from the Profile,
+   * if no value is set in the Profile, then DEFAULT_MAX_RESULTS is used instead.
+   */
+  private int maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
   private int verbosity = 0; 
 
 	private KB agentDescriptions = null;
@@ -861,17 +945,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 			
 		}
-		int maxResult = Integer.parseInt(DEFAULT_MAX_RESULTS);
   	try {
-  		maxResult = Integer.parseInt(sMaxResults);
+  		maxResultLimit = Integer.parseInt(sMaxResults);
   	}
   	catch (Exception e) {
-  		// Keep default
+            // Keep default
+            maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
   	}
 				
   	// Instantiate the knowledge base 
 		log("DF KB configuration:", 2);
-		log("- Max search result = "+maxResult, 2);
+		log("- Max search result = "+maxResultLimit, 2);
 		if (dbUrl != null) {
 			log("- Type = persistent", 2);
 			log("- DB url = "+dbUrl, 2);
@@ -879,7 +963,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			log("- DB username = "+dbUsername, 2);
 			log("- DB password = "+dbPassword, 2);
 			try {
-	  			agentDescriptions = new DFDBKB(maxResult, dbDriver, dbUrl, dbUsername, dbPassword);
+	  			agentDescriptions = new DFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
 			}
 			catch (Exception e) {
 				log("Error creating persistent KB ["+e+"]. Use a volatile KB.", 0);
@@ -887,7 +971,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		}
 		if (agentDescriptions == null) {
 			log("- Type = volatile", 2);
-			agentDescriptions = new DFMemKB(maxResult);
+			agentDescriptions = new DFMemKB(maxResultLimit);
 		}
 		//#PJAVA_EXCLUDE_END
 		/*#PJAVA_INCLUDE_BEGIN
@@ -1126,7 +1210,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		agentDescriptions.register(dfd.getName(), dfd);    
 		// for subscription
 		subManager.handleChange(dfd);
-	
 		try{
 		    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
 		    gui.addAgentDesc(dfd.getName());
