@@ -24,7 +24,7 @@ vlink="#0000FF" alink="#0000FF">
                 <td align="center" valign="top" bgcolor="#EEEEFF"
                 id="NavBarCell1">Sections:</td>
                 <td align="center" valign="top" bgcolor="#EEEEFF"
-                id="NavBarCell1"><a href="../index.html"><b>Index</b></a></td>
+                id="NavBarCell1"><a href="index.html"><b>Index</b></a></td>
                 <td align="center" valign="top" bgcolor="#FFFFFF"
                 id="NavBarCell1Rev">&nbsp;<b>Introduction</b></td>
                 <td align="center" valign="top" bgcolor="#EEEEFF"
@@ -32,10 +32,12 @@ vlink="#0000FF" alink="#0000FF">
                 <td align="center" valign="top" bgcolor="#EEEEFF"
                 id="NavBarCell1"><b>Visual Index</b></td>
                 <td align="center" valign="top" bgcolor="#EEEEFF"
-                id="NavBarCell1"><a href="../api/index.html"><b>Class
+                id="NavBarCell1"><a
+                href="file:///C|/jade/jade/doc/api/index.html"><b>Class
                 by Class</b></a></td>
                 <td align="center" valign="top" bgcolor="#EEEEFF"
-                id="NavBarCell1"><a href="../links.htm"><b>Links</b></a></td>
+                id="NavBarCell1"><a
+                href="file:///C|/jade/jade/doc/links.htm"><b>Links</b></a></td>
             </tr>
         </table>
         </td>
@@ -45,195 +47,276 @@ vlink="#0000FF" alink="#0000FF">
 
 <p><font size="6" face="Arial"><b>Protocols</b></font> </p>
 
-<p>Author: Fabio Bellifemine - Tiziana Trucco (CSELT S.p.a) <br>
-Date: 19/09/2001</p>
-
-<p><font face="Arial,Helvetica">Trying this set of examples the
-user learn about the JADE support to FIPA interaction protocols.
-In detail they show how to use the classes provided by the
-framework (in the package jade.proto) to utilize these protocols.<br>
+<p><font face="Arial,Helvetica">The following examples show how to use
+the support provided JADE to implement interaction protocols.
 </font></p>
 
 <ul>
-    <li><a href="#target1"><font size="4">Example one</font></a></li>
-    <li><a href="#target2"><font size="4">Example two</font></a></li>
+    <li><a href="#target1"><font size="4">FIPARequestInitiatorAgent</font></a><font
+        size="4"><br>
+        <br>
+        </font><font size="3">Author: Giovanni Caire (TILab
+        S.p.a)<br>
+        Date: 26/11/2003<br>
+        </font></li>
+</ul>
+
+<ul>
+    <li><a href="#target2"><font size="4">FIPARequestResponderAgent</font></a><font
+        size="4"><br>
+        <br>
+        </font><font size="3">Author: Giovanni Caire (TILab
+        S.p.a)<br>
+        Date: 26/11/2003<br>
+        </font></li>
+</ul>
+
+<ul>
+    <li><a href="#target3"><font size="4">ContractNetInitiatorAgent</font></a><font
+        size="4"><br>
+        <br>
+        </font><font size="3">Author: Giovanni Caire (TILab
+        S.p.a)<br>
+        Date: 26/11/2003<br>
+        </font></li>
+</ul>
+
+<ul>
+    <li><a href="#target4"><font size="4">ContractNetResponderAgent</font></a><font
+        size="4"><br>
+        <br>
+        </font><font size="3">Author: Giovanni Caire (TILab
+        S.p.a)<br>
+        Date: 26/11/2003<br>
+        </font></li>
+</ul>
+
+<ul>
+    <li><a href="#target5"><font size="4">BrokerAgent</font></a><font
+        size="4"><br>
+        <br>
+        </font><font size="3">Author: Giovanni Caire (TILab
+        S.p.a)<br>
+        Date: 26/11/2003<br>
+        </font></li>
 </ul>
 
 <p>&nbsp;</p>
 
-<p><a name="target1"><font size="5" face="Arial"><b>Example one</b></font></a></p>
-
-<p><font face="Arial,Helvetica"><br>
-This example illustrates several FIPA Request and FIPA Query
-protocol flows using two or more companion agents. The flow
-creation is random so restarting the example could generate
-different interactions among the participants. </font></p>
-
-<p><font face="Arial,Helvetica">To launch this example directly
-from the command line enter:</font></p>
-
-<p><font face="Arial,Helvetica"><em>java -classpath
-&lt;jade-path&gt; examples.protocols.ProtocolTester receiver1 receiver2 receiver3</em></font></p>
-
-<p><font face="Arial,Helvetica">The agent involved are:<br>
-</font></p>
-
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
-        <td colspan="2" bgcolor="#CCCCFF"><font size="5"><b>Initiator
-        </b></font></td>
+        <td colspan="2" bgcolor="#CCCCFF"><a name="target1"><font
+        size="5"><b>FIPARequestInitiatorAgent</b></font></a></td>
     </tr>
     <tr>
         <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
     </tr>
     <tr>
-        <td><font face="Arial,Helvetica">This agent plays
-        initiator role in a conversation following standard
-        'fipa-request' or 'fipa-query' protocol. It sends
-        randomly a REQUEST, a QUERY-IF or a QUERY-REF to a set of
-        agent passed as argument by the user</font></td>
+        <td><font face="Arial,Helvetica">
+        This example shows how to implement the initiator role in 
+        a FIPA-request interaction protocol. In this case in particular 
+        we use an <code>AchieveREInitiator</code> ("Achieve Rational effect") 
+        to request a dummy action to a number of agents (whose local
+        names must be specified as arguments). 
+        <br><br>
+        This example should be used together with the <a href="#target2"><font size="4">FIPARequestResponderAgent</font></a>
+        as described below.<br>
+        Start the JADE runtime (with the management GUI) and launch some
+        FIPARequestResponderAgent on it.<br>
+        java jade.Boot -gui r1:examples.protocols.FIPARequestResponderAgent r2:examples.protocols.FIPARequestResponderAgent<br>
+        Then, from another window (or from the management GUI), launch an
+        FIPARequestInitiatorAgent specifying the local names of the responder as arguments.<br>
+        java jade.Boot -container i:examples.protocols.FIPARequestInitiatorAgent(r1, r2)<br>
+				</font> </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>AchieveREInitiator</td>
+        <td>Agent, ACLMessage, AchieveREInitiator</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
     </tr>
     <tr>
-        <td>\src\examples\protocols\Initiator.java</td>
-    </tr>
-</table>
-
-<p>&nbsp; </p>
-
-<table border="1" cellpadding="3" cellspacing="0" width="100%">
-    <tr>
-        <td colspan="2" bgcolor="#CCCCFF"><font size="5"><b>Responder</b></font></td>
-    </tr>
-    <tr>
-        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
-    </tr>
-    <tr>
-        <td><font face="Arial,Helvetica">The companion agent of
-        Initiator.This agent plays responder role in
-        'fipa-request' and&nbsp; 'fipa-query' protocol&nbsp;
-        according to the messsage received.</font> <br>
-        <font face="Arial,Helvetica">&nbsp;If a REQUEST arrives
-        it answers random in one of the following way:</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an AGREE
-        message and then an INFORM message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an AGREE
-        message and then a FAILURE message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an AGREE
-        message and then no message (in this case the Initiator
-        agent will wait forever for the INFORM/FAILURE message)</font>
-        <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an AGREE
-        message and then an out of sequence message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an
-        INFORM message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send a REFUSE
-        message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send a
-        NOT_UNDERSTOD message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send an out
-        of sequence message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - send no
-        message</font> <br>
-        <font face="Arial,Helvetica">If a QUERY-IF/QUERY-REF
-        message arrives if replies in one of the following way:</font>
-        <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends a
-        NOT_UNDERSTOOD message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends a
-        REFUSE message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends a
-        FAILURE message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends an
-        INFORM message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends an out
-        of sequence message</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp; - sends no
-        message</font> </td>
-    </tr>
-    <tr>
-        <td><strong>Jade classes used: </strong></td>
-    </tr>
-    <tr>
-        <td>AchieveREResponder</td>
-    </tr>
-    <tr>
-        <td><strong>Source</strong></td>
-    </tr>
-    <tr>
-        <td>\src\examples\protocols\Responder.java</td>
+        <td>\src\examples\protocols\FIPARequestInitiatorAgent.java</td>
     </tr>
 </table>
 
 <p>&nbsp;</p>
 
-<p><a name="target2"><font size="5" face="Arial"><b>Example two</b></font></a></p>
-
-<p><font face="Arial,Helvetica">The AchieveREInitiator class (
-package jade.proto) is a single homogeneous and effective
-implementation of all the FIPA-Request-like interaction
-protocols. This kind of interaction protocol is characterized by
-the existence of a initiator that sends a single message ( it performs a single
-communicative act) in order to verify that the
-rational effect of the communicative act has been achieved or
-not. This example shows how the user can modify the standard ways
-AchieveREInitiator manages FIPA-Request-like interaction
-protocols.</font></p>
-
-<p>&nbsp;</p>
-
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
-        <td colspan="2" bgcolor="#CCCCFF"><font size="5"><b>ComplexInitiator</b></font></td>
+        <td colspan="2" bgcolor="#CCCCFF"><a name="target2"><font
+        size="5"><b>FIPARequestResponderAgent</b></font></a></td>
     </tr>
     <tr>
         <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
     </tr>
     <tr>
-        <td>It is an extension of the Initiator agent ( see above
-        ) that use a different way of handle interaction protocol
-        states. In fact it has an AchieveREInitiator behaviour
-        like its parent but messages handling is obtained
-        registering specifying behaviours instead of overring the
-        base class methods handleXXX(). The registered behaviours
-        (istances of RWBehaviour class) display the different
-        messages exchanged among the initiator and the
-        partecipants. To try this example you must create a set
-        of Responder agents and give their names to the
-        ComplexInitiator agent as arguments.</td>
+        <td><font face="Arial,Helvetica">
+        This example shows how to implement the responder role in 
+        a FIPA-request interaction protocol. In this case in particular 
+        we use an <code>AchieveREResponder</code> ("Achieve Rational effect") 
+        to serve requests to perform actions from other agents. We use a 
+        random generator to simulate request refusals and action execution 
+        failures. 
+        <br><br>
+        This example should be used together with the <a href="#target1"><font size="4">FIPARequestInitiatorAgent</font></a>
+        as described <a href="#target1">here.</a>
+        </font> </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>AchieveREInitiator</td>
+        <td>Agent, ACLMessage, MessageTemplate, AchieveREResponder</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
     </tr>
     <tr>
-        <td>\src\examples\protocols\ComplexInitiator.java</td>
+        <td>\src\examples\protocols\FIPARequestResponderAgent.java</td>
     </tr>
 </table>
 
-<p>&nbsp; </p>
+<p>&nbsp;</p>
+
+<table border="1" cellpadding="3" cellspacing="0" width="100%">
+    <tr>
+        <td colspan="2" bgcolor="#CCCCFF"><a name="target3"><font
+        size="5"><b>ContractNetInitiatorAgent</b></font></a></td>
+    </tr>
+    <tr>
+        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
+    </tr>
+    <tr>
+        <td><font face="Arial,Helvetica">
+        This example shows how to implement the initiator role in 
+        a FIPA-contract-net interaction protocol. In this case in particular 
+        we use a <code>ContractNetInitiator</code>  
+        to assign a dummy task to the agent that provides the best offer
+        among a set of agents (whose local
+        names must be specified as arguments). 
+        <br><br>
+        This example should be used together with the <a href="#target4"><font size="4">ContractNetResponderAgent</font></a>
+        as described below.<br>
+        Start the JADE runtime (with the management GUI) and launch some
+        ContractNetResponderAgent on it.<br>
+        java jade.Boot -gui r1:examples.protocols.ContractNetResponderAgent r2:examples.protocols.ContractNetResponderAgent<br>
+        Then, from another window (or from the management GUI), launch an
+        ContractNetInitiatorAgent specifying the local names of the responder as arguments.<br>
+        java jade.Boot -container i:examples.protocols.ContractNetInitiatorAgent(r1, r2)<br>
+        </font> </td>
+    </tr>
+    <tr>
+        <td><strong>Jade classes used: </strong></td>
+    </tr>
+    <tr>
+        <td>Agent, ACLMessage, ContractNetInitiator</td>
+    </tr>
+    <tr>
+        <td><strong>Source</strong></td>
+    </tr>
+    <tr>
+        <td>\src\examples\protocols\ContractNetInitiatorAgent.java</td>
+    </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<table border="1" cellpadding="3" cellspacing="0" width="100%">
+    <tr>
+        <td colspan="2" bgcolor="#CCCCFF"><a name="target4"><font
+        size="5"><b>ContractNetResponderAgent</b></font></a></td>
+    </tr>
+    <tr>
+        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
+    </tr>
+    <tr>
+        <td><font face="Arial,Helvetica">
+        This example shows how to implement the responder role in 
+        a FIPA-contract-net interaction protocol. In this case in particular 
+        we use a <code>ContractNetResponder</code>  
+        to participate into a negotiation where an initiator needs to assign
+        a task to an agent among a set of candidates.<br>
+        
+        <br><br>
+        This example should be used together with the <a href="#target3"><font size="4">ContractNetInitiatorAgent</font></a>
+        as described <a href="#target3">here.</a>
+        </font> </td>
+    </tr>
+    <tr>
+        <td><strong>Jade classes used: </strong></td>
+    </tr>
+    <tr>
+        <td>Agent, ACLMessage, MessageTemplate, ContractNetResponder</td>
+    </tr>
+    <tr>
+        <td><strong>Source</strong></td>
+    </tr>
+    <tr>
+        <td>\src\examples\protocols\ContractNetResponderAgent.java</td>
+    </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<table border="1" cellpadding="3" cellspacing="0" width="100%">
+    <tr>
+        <td colspan="2" bgcolor="#CCCCFF"><a name="target5"><font
+        size="5"><b>BrokerAgent</b></font></a></td>
+    </tr>
+    <tr>
+        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
+    </tr>
+    <tr>
+        <td><font face="Arial,Helvetica">
+        This example shows how to implement nested protocols.
+        In this case in particular we want to implement a broker agent
+        that forwards incoming requests to perform actions to another 
+        agent. To implement that we use an <code>AchieveREResponder</code> ("Achieve Rational effect") 
+        and we register an <code>AchieveREInitiator</code> in the state where the 
+        requested action has to be performed. 
+        <br><br>
+        This example should be used together with the <a href="#target1"><font size="4">FIPARequestInitiatorAgent</font></a>
+        and the <a href="#target4"><font size="4">FIPARequestResponderAgent</font></a>
+        as described below.<br>
+        Start the JADE runtime (with the management GUI) and launch one
+        FIPARequestResponderAgent and one BrokerAgent on it.<br>
+        java jade.Boot -gui r:examples.protocols.FIPARequestResponderAgent b:examples.protocols.BrokerAgent<br>
+        Then, from another window (or from the management GUI), launch an
+        FIPARequestInitiatorAgent specifying the local name of the broker as argument.<br>
+        java jade.Boot -container i:examples.protocols.FIPARequestInitiatorAgent(b)<br>
+        </font> </td>
+    </tr>
+    <tr>
+        <td><strong>Jade classes used: </strong></td>
+    </tr>
+    <tr>
+        <td>Agent, ACLMessage, MessageTemplate, AchieveREResponder, AchieveContractNetInitiator</td>
+    </tr>
+    <tr>
+        <td><strong>Source</strong></td>
+    </tr>
+    <tr>
+        <td>\src\examples\protocols\BrokerAgent.java</td>
+    </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
 
 <hr>
 
-<p align="center"><a href="http://jade.cselt.it/"><font face="Arial" size="2">JADE</font></a><font face="Arial" size="2">
+<p align="left"><a href="http://jade.cselt.it/"><font face="Arial" size="2">JADE</font></a><font face="Arial" size="2">
 is a trademark of <a href="http://www.telecomitalialab.com">TILAB</a> (formerly </font><a href="http://www.cselt.it"><font face="Arial" size="2">CSELT</font></a><font face="Arial" size="2">).&nbsp;</font><a href="http://jade.cselt.it/"><font face="Arial" size="2"><br>
 JADE</font></a><font face="Arial" size="2"> has been developed jointly by <a href="http://www.telecomitalialab.com">TILAB</a>
 (formerly </font><a href="http://www.cselt.it"><font face="Arial" size="2">CSELT</font></a><font face="Arial" size="2">)
 and the </font><a href="http://www.ce.unipr.it"><font face="Arial" size="2">Computer
 Engineering Group</font></a><font face="Arial" size="2"> of the </font><a href="http://www.unipr.it"><font face="Arial" size="2">University
 of Parma</font></a> </p>
+
 </body>
 </html>

@@ -5,7 +5,7 @@
 content="text/html; charset=iso-8859-1">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <meta name="GENERATOR" content="Microsoft FrontPage 4.0">
-<title>Behaviours</title>
+<title>Messaging</title>
 <link rel="stylesheet" type="text/css" href="stylesheet.css"
 title="Style">
 <!-- created by Alessandro Beneventi, Universita' degli Studi di Parma -->
@@ -45,16 +45,13 @@ vlink="#0000FF" alink="#0000FF">
     </tr>
 </table>
 
-<p><font size="6" face="Arial"><b>Behaviours</b></font> </p>
+<p><font size="6" face="Arial"><b>Messaging</b></font> </p>
 
-<p><font face="Arial,Helvetica">The following examples introduce
-the user to the concept of agent behaviour showing the agent
-computational model supported by Jade. In detail, they show the
-use of the behaviour class hierarchy provided by the framework (
-for further information, see the Jade programmer's guide ).</font></p>
+<p><font face="Arial,Helvetica">The following examples show how to make 
+	JADE agents communicate by exchanging ACL messages</font></p>
 
 <ul>
-    <li><a href="#target1"><font size="4">SimpleAgent</font></a><font
+    <li><a href="#target1"><font size="4">PingAgent</font></a><font
         size="4"><br>
         <br>
         </font><font size="3">Author: Giovanni Caire (TILab
@@ -64,7 +61,7 @@ for further information, see the Jade programmer's guide ).</font></p>
 </ul>
 
 <ul>
-    <li><a href="#target2"><font size="4">TimeAgent</font></a><font
+    <li><a href="#target2"><font size="4">BlockingReceiveAgent</font></a><font
         size="4"><br>
         <br>
         </font><font size="3">Author: Giovanni Caire (TILab
@@ -74,21 +71,13 @@ for further information, see the Jade programmer's guide ).</font></p>
 </ul>
 
 <ul>
-    <li><a href="#target3"><font size="4">ComplexBehaviourAgent</font></a><font
+    <li><a href="#target3"><font size="4">CustomTemplateAgent</font></a><font
         size="4"><br>
         <br>
-        </font><font size="3">Author: Giovanni Rimassa
-        (Università di Parma)<br>
-        Date: 06/08/2001</font></li>
-</ul>
-
-<ul>
-    <li><a href="#target4"><font size="4">FSMAgent</font></a><font
-        size="4"><br>
-        <br>
-        </font><font size="3">Author: Tiziana Trucco (TILab
+        </font><font size="3">Author: Giovanni Caire (TILab
         S.p.a)<br>
-        Date: 12/09/2000</font></li>
+        Date: 01/12/2003<br>
+        </font></li>
 </ul>
 
 <p>&nbsp;</p>
@@ -96,31 +85,39 @@ for further information, see the Jade programmer's guide ).</font></p>
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
         <td colspan="2" bgcolor="#CCCCFF"><a name="target1"><font
-        size="5"><b>SimpleAgent</b></font></a></td>
+        size="5"><b>PingAgent</b></font></a></td>
     </tr>
     <tr>
         <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
     </tr>
     <tr>
-        <td><font face="Arial,Helvetica">This example shows the basic usage of JADE behaviours.<br>
-   More in details this agent executes a <code>CyclicBehaviour</code> that shows 
-   a printout at each round and a generic behaviour that performs four successive
-   "dummy" operations. The second operation in particular involves adding a
-   <code>OneShotBehaviour</code>. When the generic behaviour completes the
-   agent terminates.
-.</font> </td>
+        <td><font face="Arial,Helvetica">
+        This example shows an agent able to respond to other agents wishing
+        to know if it is alive. More in details we use a 
+        <code>CyclicBehaviour</code> that receives only messages of type 
+        <code>QUERY_IF</code> and using the <code>presence</code> ontology.
+        All other messages are ignored. This is acheved by specifying a 
+        proper <code>MessageTemplate</code>. Whenever such a message is 
+        received an <code>INFORM</code> message is sent back as reply.
+        <br><br>
+        In order to run this example, start the JADE runtime (with the management 
+        GUI) and launch a PingAgent on it. Then starts the DummyAgent from
+        the JADE management GUI. From the DummyAgent send a message of 
+        type <code>QUERY_IF</code> with ontology "presence" and "alive" as 
+        content to the PingAgent. Use the DummyAgent again to inspect the response.
+.				</font> </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>Behaviour, CyclicBehaviour, OneShotBehaviour</td>
+        <td>Agent, ACLMessage, MessageTemplate, CyclicBehaviour</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
     </tr>
     <tr>
-        <td>\src\examples\behaviours\SimpleAgent.java</td>
+        <td>\src\examples\messaging\PingAgent.java</td>
     </tr>
 </table>
 
@@ -129,30 +126,38 @@ for further information, see the Jade programmer's guide ).</font></p>
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
         <td colspan="2" bgcolor="#CCCCFF"><a name="target2"><font
-        size="5"><b>TimeAgent</b></font></a></td>
+        size="5"><b>BlockingReceiveAgent</b></font></a></td>
     </tr>
     <tr>
         <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
     </tr>
     <tr>
-        <td><font face="Arial,Helvetica">This example shows the usage of the 
-        <code>WakerBehaviour</code> and <code>TickerBehaviour</code> that allow 
-        scheduling actions at given points in time.<br> 
-        More in details this agent executes a <code>TickerBehaviour</code> that prints the agent name every second and a <code>WakerBehaviour</code> 
-        that kills the agent after 10 seconds.
-.</font> </td>
+        <td><font face="Arial,Helvetica">
+        This example shows how to receive messages in blocking mode
+        by means of the <code>blockingReceive()</code> method. Note that 
+        this method blocks the whole agent. If you call it from within
+        a behaviour you have to take into account that all other behaviours
+        will not be able to run until the call to <code>blockingReceive()</code>
+        returns.
+        <br><br>
+        In order to run this example, start the JADE runtime (with the management 
+        GUI) and launch a BlockingReceiveAgent on it. Then starts the DummyAgent from
+        the JADE management GUI. From the DummyAgent send a message of 
+        type <code>REQUEST</code> to the BlockingReceiveAgent. 
+        Use the DummyAgent again to inspect the response.
+        </font> </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>TickerBehaviour, WakerBehaviour</td>
+        <td>Agent, ACLMessage, MessageTemplate</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
     </tr>
     <tr>
-        <td>\src\examples\behaviours\TimeAgent.java</td>
+        <td>\src\examples\messaging\BlockingReceiveAgent.java</td>
     </tr>
 </table>
 
@@ -161,73 +166,38 @@ for further information, see the Jade programmer's guide ).</font></p>
 <table border="1" cellpadding="3" cellspacing="0" width="100%">
     <tr>
         <td colspan="2" bgcolor="#CCCCFF"><a name="target3"><font
-        size="5"><b>ComplexBehaviourAgent</b></font></a></td>
+        size="5"><b>BlockingReceiveAgent</b></font></a></td>
     </tr>
     <tr>
         <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
     </tr>
     <tr>
-        <td><font face="Arial,Helvetica">An agent with a
-        behaviour made of many&nbsp; steps with some steps that
-        have sub-steps themselves. This example shows how
-        jade.core.behaviours.SequentialBehaviour class allows the
-        construction of aggregate behaviours starting from simple
-        ones, even with recursive aggregations. The </font><a
-        href="javascript:void(null)"
-        onclick="window.open ('images/ComplexBehaviourAgent_1.gif', 'ExampleBehaviourStructure','status=yes,height=540,width=720')"><font
-        face="Arial,Helvetica">figure</font></a><font
-        face="Arial,Helvetica"> shows the nested structure of the
-        behaviours of this example agent</font>. <font
-        face="Arial,Helvetica">Besides, it shows the cooperative
-        multitasking presently used for intra-agent behaviour
-        scheduling.</font>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-    </tr>
-    <tr>
-        <td><strong>Jade classes used: </strong></td>
-    </tr>
-    <tr>
-        <td>SequentialBehaviour, OneShotBehaviour</td>
-    </tr>
-    <tr>
-        <td><strong>Source</strong></td>
-    </tr>
-    <tr>
-        <td>\src\examples\behaviours\ComplexBehaviourAgent.java</td>
-    </tr>
-</table>
-
-<p>&nbsp;</p>
-
-<table border="1" cellpadding="3" cellspacing="0" width="100%">
-    <tr>
-        <td colspan="2" bgcolor="#CCCCFF"><a name="target4"><font
-        size="5"><b>FSMAgent</b></font></a></td>
-    </tr>
-    <tr>
-        <td bgcolor="#FFFFFF"><strong>Description:</strong></td>
-    </tr>
-    <tr>
-        <td><font face="Arial,Helvetica">This example shows the usage of the <code>FSMBehavior</code> that allows
-   composing behaviours according to a Finite State Machine.<br>
-        In this case we present an agent executing one <code>FSMBehaviour</code> acting as the finite state machine represented 
-        <a href="javascript:void(null)"
-           onclick="window.open ('images/FSMAgent_1.html', 'ExampleBehaviourStructure','status=yes,height=640,width=720')">
-        <font face="Arial,Helvetica">here</font></a>, where each state corresponds
-        to the execution of a simple behaviour.
+        <td><font face="Arial,Helvetica">
+		    This example shows how to create a custom <code>MessageTemplate</code>.
+		    In this case in particular we define a template matching only REQUEST 
+		    messages where the ontology starts with "X".
+        <br><br>
+        In order to run this example, start the JADE runtime (with the management 
+        GUI) and launch a CustomTemplateAgent on it. Then starts the DummyAgent from
+        the JADE management GUI. From the DummyAgent send a message of 
+        type <code>REQUEST</code> to the CustomTemplateAgent specifying a value starting with "X" (e.g. 
+        "X-onto") in the <code>:ontology</code> slot: the CustomTemplateAgent
+        will catch the message. Then try to send another message with a value not 
+        starting with "X" in the ontology field: the CustomTemplateAgent will
+        ignore the message.
         </font> </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>
     </tr>
     <tr>
-        <td>FSMBehaviour, OneShotBehaviour</td>
+        <td>Agent, ACLMessage, MessageTemplate, MessageTemplate.MatchExpression</td>
     </tr>
     <tr>
         <td><strong>Source</strong></td>
     </tr>
     <tr>
-        <td>\src\examples\behaviours\FSMAgent.java</td>
+        <td>\src\examples\messaging\BlockingReceiveAgent.java</td>
     </tr>
 </table>
 
