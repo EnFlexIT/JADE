@@ -20,6 +20,7 @@
 package jade.security;
 
 import java.util.Enumeration;
+import java.io.IOException;
 
 /**
  * This is a collection of Objects that can be used in order 
@@ -29,17 +30,30 @@ import java.util.Enumeration;
    @version $Date$ $Revision$
  */
 public interface Credentials extends jade.util.leap.Serializable {
-
+  
   /**
-   *  Used to retrieve each contained credential object.
-   * 
+   *  Used to retrieve all the contained credentials. 
    */
-  public Enumeration elements();
-
-  /** look into the various credentials, if there is one that
+  Enumeration elements();
+  
+  /** 
+   * Look into the various credentials, if there is one that
    * certify the ownership for this credentials, return the JADEPrincipal
    * of the owner. Otherwise return null.
    */
-  public JADEPrincipal getOwner();
+  JADEPrincipal getOwner();
+   
+  /**
+   * Encode the Credentials into a byte array, so that it can be transported in an ACLMessage.
+   * The encoding format is:
+   * Credential class | Encoding size | Encoding 
+   */
+  byte[] encode() throws IOException;
+  
+  /**
+   * Returns a new Credentials from the encoded information. 
+   */
+  Credentials decode(byte[] enc) throws IOException;
+  
 
 }

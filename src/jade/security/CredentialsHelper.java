@@ -53,5 +53,5 @@ public interface CredentialsHelper {
 	/**
 	   Retrieve the credentials of the sender of a signed ACLMessage.
 	 */
-	Credentials getCredentials(ACLMessage msg);
+	Credentials getCredentials(ACLMessage msg) throws JADESecurityException;
 }
