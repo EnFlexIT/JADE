@@ -42,8 +42,8 @@ import jade.core.ServiceException;
  */
 class NodeAdapter extends BaseNode {
 
-    public NodeAdapter(String name, CommandDispatcher disp) {
-	super(name);
+    public NodeAdapter(String name, CommandDispatcher disp, boolean hasSM) {
+	super(name, hasSM);
 	NodeSkel skel = new NodeSkel(this);
 	adaptee = skel;
 	disp.registerSkeleton(skel, this);
