@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.26  1999/03/09 13:18:32  rimassa
+  Minor changes.
+
   Revision 1.25  1999/02/25 08:34:57  rimassa
   Changed direct access to 'myName' and 'myAddress' instance variables
   to accessor methods call.
@@ -429,25 +432,29 @@ public class ams extends Agent {
 	// Send all agent names, along with their container name.
 	e = myPlatform.AMSAgentNames();
 	while(e.hasMoreElements()) {
-	  String agentName = (String)e.nextElement();
-	  String containerName = myPlatform.AMSGetContainerName(agentName);
-	  String agentAddress = myPlatform.AMSGetAddress(agentName);
-	  AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
-	  amsd.setName(agentName + '@' + agentAddress); // FIXME: 'agentName' should contain the address, too.
-	  amsd.setAddress(agentAddress);
-	  amsd.setAPState(Agent.AP_ACTIVE);
+          try {
+	    String agentName = (String)e.nextElement();
+	    String containerName = myPlatform.AMSGetContainerName(agentName);
+	    String agentAddress = myPlatform.AMSGetAddress(agentName);
+	    AgentManagementOntology.AMSAgentDescriptor amsd = new AgentManagementOntology.AMSAgentDescriptor();
+	    amsd.setName(agentName + '@' + agentAddress); // FIXME: 'agentName' should contain the address, too.
+	    amsd.setAddress(agentAddress);
+	    amsd.setAPState(Agent.AP_ACTIVE);
 
-	  AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
-	  ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
-	  ev.setContainerName(containerName);
-	  ev.setAgentDescriptor(amsd);
-	  StringWriter w = new StringWriter();
-	  ev.toText(w);
+	    AgentManagementOntology.AMSAgentEvent ev = new AgentManagementOntology.AMSAgentEvent();
+	    ev.setKind(AgentManagementOntology.AMSContainerEvent.NEWAGENT);
+	    ev.setContainerName(containerName);
+	    ev.setAgentDescriptor(amsd);
+	    StringWriter w = new StringWriter();
+	    ev.toText(w);
 
-	  RMANotification.setContent(w.toString());
-	  RMANotification.setDest(newRMA);
-	  send(RMANotification);
-	  
+	    RMANotification.setContent(w.toString());
+	    RMANotification.setDest(newRMA);
+	    send(RMANotification);
+	  }
+	  catch(FIPAException fe) {
+	    fe.printStackTrace();
+	  }
 	}
 
 	// Add the new RMA to RMAs agent group.
@@ -556,6 +563,7 @@ public class ams extends Agent {
 	StringWriter w = new StringWriter();
 	ev.toText(w);
 	RMANotification.setContent(w.toString());
+
 	send(RMANotification, RMAs);
 	deadAgentsBuffer.removeElement(ad);
       }
@@ -797,12 +805,12 @@ public class ams extends Agent {
   // Methods to be called from AgentPlatform to notify AMS of special events
 
   public synchronized void postNewContainer(String name) {
-    newContainersBuffer.addElement(name);
+    newContainersBuffer.addElement(new String(name));
     doWake();
   }
 
   public synchronized void postDeadContainer(String name) {
-    deadContainersBuffer.addElement(name);
+    deadContainersBuffer.addElement(new String(name));
     doWake();
   }
 
