@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.42  1999/07/19 00:04:01  rimassa
+  Added an empty implementation of moveAgent() method.
+
   Revision 1.41  1999/06/24 12:27:08  rimassa
   Added a new line.
 
@@ -303,6 +306,11 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     if(agent==null)
       throw new NotFoundException("WaitAgent failed to find " + agentName);
     agent.doWake();
+  }
+
+  public void moveAgent(String agentName, AgentContainer where) throws RemoteException {
+    // Detach yourself as a listener from the departing agent
+    // Send agent code and data to the destination with a remote creation
   }
 
   public void killAgent(String agentName) throws RemoteException, NotFoundException {
