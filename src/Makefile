@@ -6,16 +6,16 @@
 export MAKE = make
 export STUBGEN = rmic
 export PARSERGEN = javacc
-export LIBGEN = jar
 
 export JC = javac
 export JFLAGS = -deprecation
 
 
-PARSERS = 	fipa/lang/acl/ACLParser.jj
-EXECS = 	fipa/core/StartPlatform.java fipa/core/StartContainer.java
-STUBDIR =	fipa/core
-STUBS = 	fipa.core.AgentContainerImpl \
+PARSERS     = 	fipa/lang/acl/ACLParser.jj
+EXECS       = 	fipa/core/StartPlatform.java fipa/core/StartContainer.java
+ROOTCLASSES =	fipa/core/ComplexBehaviour.java fipa/core/SimpleBehaviour.java
+STUBDIR     =	.
+STUBS       = 	fipa.core.AgentContainerImpl \
 		fipa.core.MessageDispatcherImpl \
 		fipa.core.AgentPlatformImpl
 
@@ -30,11 +30,11 @@ parsers:
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
+	$(JC) $(JFLAGS) $(ROOTCLASSES)
 
 stubs:
+	@export CLASSPATH=$(SRCDIR);       \
 	$(STUBGEN) -d $(STUBDIR) $(STUBS)
-
-
 
 clean:
 	rm -f `find . -name '*~' -print`
