@@ -60,6 +60,7 @@ import jade.onto.basic.Action;
 import jade.onto.basic.BasicOntology;
 import jade.onto.basic.ResultPredicate;
 import jade.onto.basic.DonePredicate;
+import jade.onto.basic.TrueProposition;
 
 import jade.mtp.MTPException;
 
@@ -88,28 +89,78 @@ public class ams extends Agent implements AgentManager.Listener {
       super(ams.this,req);
     }
 
+
+    /**
+     * Create the content for the AGREE message
+     * @param a is the action that has been agreed to perform
+     * @return a String with the content ready to be set into the message
+     **/
+    protected String createAgreeContent(Action a) {
+	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
+	temp.setLanguage(SL0Codec.NAME);
+	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	List l = new ArrayList(2);
+	if (a == null) {
+	    a = new Action();
+	    a.set_0(getAID());
+	    a.set_1("UnknownAction");
+	}
+	l.add(a);
+	l.add(new TrueProposition());
+	try {
+	    fillContent(temp,l);
+	} catch (Exception ee) { // in any case try to return some good content
+	    return "( true )";
+	} 
+	return temp.getContent();
+    }
+
+    /**
+     * Create the content for a so-called "exceptional" message, i.e.
+     * one of NOT_UNDERSTOOD, FAILURE, REFUSE message
+     * @param a is the Action that generated the exception
+     * @param e is the generated Exception
+     * @return a String containing the content to be sent back in the reply
+     * message; in case an exception is thrown somewhere, the method
+     * try to return anyway a valid content with a best-effort strategy
+     **/
+    protected String createExceptionalMsgContent(Action a, FIPAException e) {
+	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
+	temp.setLanguage(SL0Codec.NAME);
+	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	List l = new ArrayList(2);
+	if (a == null) {
+	    a = new Action();
+	    a.set_0(getAID());
+	    a.set_1("UnknownAction");
+	}
+	l.add(a);
+	l.add(e);
+	try {
+	    fillContent(temp,l);
+	} catch (Exception ee) { // in any case try to return some good content
+	    return e.getMessage();
+	} 
+	return temp.getContent();
+    }
+
+
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
     protected abstract void processAction(Action a) throws FIPAException;
 
     public void action() {
-
-      try {
-
+	Action a = null;
+	try {
 	ACLMessage msg = getRequest();
-
 	List l = myAgent.extractContent(msg);
-	Action a = (Action)l.get(0);
-
+	a = (Action)l.get(0);
 	// Do real action, deferred to subclasses
 	processAction(a);
-
-      }
-      catch(FIPAException fe) {
-      	System.out.println("FIPA Exception: " + fe.getMessage());
-	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
-      }
-
+	} catch(FIPAException fe) {
+	    System.out.println("FIPA Exception: " + fe.getMessage());
+	    sendReply(ACLMessage.REFUSE,createExceptionalMsgContent(a, fe));
+	}
     }
 
     /**
@@ -134,6 +185,7 @@ public class ams extends Agent implements AgentManager.Listener {
       }
 
     }
+
 
     public boolean done() {
       return true;
@@ -184,7 +236,7 @@ public class ams extends Agent implements AgentManager.Listener {
       try {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
-	//sendReply(ACLMessage.AGREE,"( true )");
+	sendReply(ACLMessage.AGREE,createAgreeContent(a));
 	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
 
 	// Inform agent creator that registration was successful.
@@ -195,13 +247,12 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
       }
       catch(AlreadyRegistered are) {
-	//sendReply(ACLMessage.AGREE, "( true )");
-	sendReply(ACLMessage.FAILURE,"("+are.getMessage()+")");
-
+	sendReply(ACLMessage.AGREE, createAgreeContent(a));
+	sendReply(ACLMessage.FAILURE,createExceptionalMsgContent(a, are));
 	// Inform agent creator that registration failed.
 	if(informCreator != null) {
 	  informCreator.setPerformative(ACLMessage.FAILURE);
-	  // informCreator.setContent("( ( action " + getLocalName() + " " + a.getName() + " ) " + aare.getMessage() + ")");
+	  informCreator.setContent(createExceptionalMsgContent(a, are));
 	  send(informCreator);
 	}
       }
@@ -221,7 +272,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Deregister d = (Deregister)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
-      //sendReply(ACLMessage.AGREE, "( true )");
+      sendReply(ACLMessage.AGREE, createAgreeContent(a));
       sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
     }
 
@@ -239,7 +290,7 @@ public class ams extends Agent implements AgentManager.Listener {
       Modify m = (Modify)a.getAction();
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
-      //sendReply(ACLMessage.AGREE, "( true)");
+      sendReply(ACLMessage.AGREE, createAgreeContent(a));
       sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
     }
 
@@ -258,7 +309,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = AMSSearch(amsd, constraints, getReply());
-      //sendReply(ACLMessage.AGREE,"( true)");
+      sendReply(ACLMessage.AGREE,createAgreeContent(a));
       ACLMessage msg = getRequest().createReply();
       msg.setPerformative(ACLMessage.INFORM);
       ResultPredicate r = new ResultPredicate();
@@ -283,7 +334,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
     protected void processAction(Action a) throws FIPAException {
 
-      //sendReply(ACLMessage.AGREE, "( true )");
+      sendReply(ACLMessage.AGREE, createAgreeContent(a));
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
       List l = new ArrayList(1);

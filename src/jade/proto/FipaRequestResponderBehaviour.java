@@ -161,6 +161,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
     }
 
 
+
   } // End of ActionHandler class
 
   /**
@@ -246,7 +247,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
 	Factory actionFactory = (Factory)actions.get(actionName);
 	if(actionFactory == null) {
 	  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-	  reply.setContent("( (unsupported-function "+ actionName+"))");
+	  reply.setContent("( "+msg.getContent()+ "  "+(new UnsupportedFunction(actionName)).getMessage()+")");
 	  myAgent.send(reply);
 	  return;
 	} else {
@@ -257,7 +258,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       } catch(FIPAException fe) {
 	fe.printStackTrace();
 	reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-	reply.setContent("("+fe.getMessage()+")");
+	reply.setContent("( "+msg.getContent()+ "  "+fe.getMessage()+")");
 	myAgent.send(reply);
 	return;
       }

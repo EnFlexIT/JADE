@@ -44,6 +44,8 @@ import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
+import jade.domain.FIPAAgentManagement.Unauthorised;
+import jade.onto.basic.TrueProposition;
 import jade.domain.JADEAgentManagement.*;
 
 import jade.domain.DFGUIManagement.*;
@@ -95,23 +97,17 @@ public class df extends GuiAgent implements DFGUIAdapter {
     protected abstract void processAction(Action a) throws FIPAException;
 
     public void action() {
-
-      try {
-      	
-      	ACLMessage msg = getRequest();
-
-	// Extract the Action object from the message content
-	List l = extractContent(msg);
-	Action a = (Action)l.get(0);
-
-      	// Do real action, deferred to subclasses
-      	processAction(a);
-      
-      }
-      catch(FIPAException fe) {	
-      	sendReply(ACLMessage.REFUSE,fe.getMessage());
-      }
-
+	Action a = null;
+	try {
+	    ACLMessage msg = getRequest();
+	    // Extract the Action object from the message content
+	    List l = extractContent(msg);
+	    a = (Action)l.get(0);
+	    // Do real action, deferred to subclasses
+	    processAction(a);
+	} catch(FIPAException fe) {	
+	    sendReply(ACLMessage.REFUSE, createExceptionalMsgContent(a, fe));
+	}
     }
 
       public boolean done() {
@@ -142,28 +138,19 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Register r = (Register)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)r.get_0();
       //to avoid autoregistration
-      if(dfd.getName().equals(getAID()) || dfd.getName().equals(getLocalName()))
+      if ((dfd.getName()!=null) && ((dfd.getName().equals(getAID()) || dfd.getName().equals(getLocalName())))) 
       	{
       		//send a refuse
       	  getReply().setPerformative(ACLMessage.REFUSE);
+	  getReply().setContent(createExceptionalMsgContent(a, new Unauthorised()));
       	  myAgent.send(getReply());
       	} 
       	else
       	
       {
       	DFRegister(dfd);
-      //sendReply(ACLMessage.AGREE,"( true )");
-      //ACLMessage reply = getReply();
-      //reply.setSender(getDescriptionOfThisDF().getName());
-      //setReply(reply);
-      DonePredicate d = new DonePredicate();
-      d.set_0(a);
-      ArrayList tupla = new ArrayList(1);
-      tupla.add(d);
-      myAgent.fillContent(getReply(),tupla);
-      getReply().setPerformative(ACLMessage.INFORM);
-      myAgent.send(getReply());
-      //sendReply(ACLMessage.INFORM,"( (done (action ( Agent-Identifier :name "+getAID().getName()+") register)))");
+        sendReply(ACLMessage.AGREE,createAgreeContent(a));
+        sendReply(ACLMessage.INFORM,createInformDoneContent(a));
       }
     }
 
@@ -181,16 +168,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Deregister dereg = (Deregister)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)dereg.get_0();
       DFDeregister(dfd);
-      //sendReply(ACLMessage.AGREE,"( true )");
-      DonePredicate d = new DonePredicate();
-      d.set_0(a);
-      ArrayList tupla = new ArrayList(1);
-      tupla.add(d);
-      myAgent.fillContent(getReply(),tupla);
-      getReply().setPerformative(ACLMessage.INFORM);
-      myAgent.send(getReply());
-
-      //sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") deregister))");
+      sendReply(ACLMessage.AGREE,createAgreeContent(a));
+      sendReply(ACLMessage.INFORM,createInformDoneContent(a));
     }
 
   } // End of DeregBehaviour class
@@ -207,16 +186,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
       Modify m = (Modify)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)m.get_0();
       DFModify(dfd);
-      //sendReply(ACLMessage.AGREE,"( true )");
-      DonePredicate d = new DonePredicate();
-      d.set_0(a);
-      ArrayList tupla = new ArrayList(1);
-      tupla.add(d);
-      myAgent.fillContent(getReply(),tupla);
-      getReply().setPerformative(ACLMessage.INFORM);
-      myAgent.send(getReply());
-
-      //sendReply(ACLMessage.INFORM,"( (done (action (Agent-Identifier :name "+getAID().getName()+") modify))");
+      sendReply(ACLMessage.AGREE,createAgreeContent(a)); 
+      sendReply(ACLMessage.INFORM,createInformDoneContent(a));
     }
 
   } // End of ModBehaviour class
@@ -274,8 +245,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
     }
 
     protected void processAction(Action a) throws FIPAException {
-      sendReply(ACLMessage.AGREE,"( true )");
-    	Search s = (Search)a.getAction();
+      sendReply(ACLMessage.AGREE,createAgreeContent(a)); 
+      Search s = (Search)a.getAction();
       DFAgentDescription dfd = (DFAgentDescription)s.get_0();
       SearchConstraints constraints = s.get_1();
       List l = DFSearch(dfd, constraints, getReply());
@@ -423,7 +394,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    //sendReply(ACLMessage.AGREE,"( true )");
 	    if (((df)myAgent).showGui())
 	      sendReply(ACLMessage.INFORM,"( )");
-	    else
+	    else //FIXME no exception predicate in the Jade-Extension ontology
 	      sendReply(ACLMessage.FAILURE,"(Gui_is_being_shown_already)");
   	}
       
@@ -472,8 +443,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	      send(inform);
 	      
 	    }
-	    catch(FIPAException e) {
-	     sendReply(ACLMessage.FAILURE,"Impossible to provide the needed information");}
+	    catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	     sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");}
       }
 
       public boolean done()
@@ -521,8 +492,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	        list.add(rp);
 	        fillContent(inform,list);
 	        send(inform);
-       }catch(FIPAException e) {
-	       sendReply(ACLMessage.FAILURE,"Impossible to provide the needed information");
+       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
        }
       }
 
@@ -577,7 +548,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				token = action;
  				request = msg;
  			}
- 			
+ 
  			public void action()
  			{
  				ACLMessage reply = request.createReply();
@@ -602,12 +573,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	            result.clear();
 	            result.add(rp);
 	            fillContent(reply,result);
- 					  }catch(FIPAException e){
+ 					  }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
             	reply.setPerformative(ACLMessage.FAILURE);
- 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action not possible )");
+ 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
  					  }catch(RequestFIPAServiceBehaviour.NotYetReady nyr){
  					    reply.setPerformative(ACLMessage.FAILURE);
- 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action not possible )");
+ 					    reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
  					  }
  					
  					else
@@ -619,11 +590,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				else
  				{
  					reply.setPerformative(ACLMessage.FAILURE);
- 					reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action not possible )");
+ 					reply.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +" action_not_possible )");
  				}
  				send(reply);
  				finished = true;
- 			}
+ 			}			
+
  			
  			public boolean done()
  			{
@@ -729,8 +701,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	        list.add(rp);
 	        fillContent(inform,list);
 	        send(inform);
-       }catch(FIPAException e) {
-	       sendReply(ACLMessage.FAILURE,"Impossible to provide the needed information");
+       }catch(FIPAException e) { //FIXME no exception predicate in the DFAppletManagement ontology
+	       sendReply(ACLMessage.FAILURE,"Impossible_to_provide_the_needed_information");
        }
       }
 
@@ -760,9 +732,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				addSubBehaviour(new FirstStep(df.this,msg));
  				
  				//extract content from request message
+				Action a = null;
  		    try{
  		    	List l = extractContent(msg);
-	        Action a = (Action)l.get(0);
+			a = (Action)l.get(0);
 
 	        DeregisterFrom f = (DeregisterFrom)a.getAction(); 	
 	        AID parentDF = (AID)f.getParentDF();
@@ -773,12 +746,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
       
 	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	        
- 		    }catch(FIPAException e){
+ 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
  		    	//FIXME: send a failure
  		    	msg.createReply();
  		    	msg.setPerformative(ACLMessage.FAILURE);
- 		    	msg.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +"defederation not possible )");
-	        send(msg); 
+			msg.setContent(createExceptionalMsgContent(a, e)); 
+			send(msg); 
  		    	System.err.println(e.getMessage());
  		    }
 	     	
@@ -823,9 +796,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				addSubBehaviour(new FirstStep(df.this,msg));
  				
  				//extract content from request message
+				Action a = null;
  		    try{
  		    	List l = extractContent(msg);
-	        Action a = (Action)l.get(0);
+			a = (Action)l.get(0);
 
 	        RegisterWith rf = (RegisterWith)a.getAction(); 	
 	        AID df = rf.getDf();
@@ -836,12 +810,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
       
 	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	        
- 		    }catch(FIPAException e){
+ 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
  		    	//FIXME: send a failure
  		    	msg.createReply();
  		    	msg.setPerformative(ACLMessage.FAILURE);
- 		    	msg.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +"registration not possible )");
-	        send(msg); 
+			msg.setContent(createExceptionalMsgContent(a, e)); 
+			send(msg); 
  		    	System.err.println(e.getMessage());
  		    }
 	     	
@@ -886,9 +860,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
  				addSubBehaviour(new FirstStep(df.this,msg));
  				
  				//extract content from request message
+				Action a = null;
  		    try{
  		    	List l = extractContent(msg);
-	        Action a = (Action)l.get(0);
+			a = (Action)l.get(0);
 
 	        ModifyOn mod = (ModifyOn)a.getAction(); 	
 	        AID df = mod.getDf();
@@ -899,12 +874,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
       
 	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	        
- 		    }catch(FIPAException e){
+ 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
  		    	// send a failure
  		    	msg.createReply();
  		    	msg.setPerformative(ACLMessage.FAILURE);
- 		    	msg.setContent("( ( action " + myAgent.getLocalName() + " "+ token + " )" +"registration not possible )");
-	        send(msg); 
+			msg.setContent(createExceptionalMsgContent(a, e)); 
+			send(msg); 
  		    	System.err.println(e.getMessage());
  		    }
 	     	
@@ -965,7 +940,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
       
 	        addSubBehaviour(new ThirdStep(secondStep,token,msg));
 	        
- 		    }catch(FIPAException e){
+ 		    }catch(FIPAException e){ //FIXME no exception predicate in the DFAppletManagement ontology
  		    	//FIXME: send a failure
  		    	System.err.println(e.getMessage());
  		    }
@@ -1212,6 +1187,85 @@ public class df extends GuiAgent implements DFGUIAdapter {
     appletExtensionDispatcher.registerFactory(DFAppletManagementOntology.MODIFYON, new ModifyOnBehaviour(null));
     
   }
+
+
+    /**
+     * Create the content for the INFORM done message
+     * @param a is the action that has been performed
+     * @return a String with the content ready to be set into the message
+     **/
+    private String createInformDoneContent(Action a) {
+	ACLMessage temp = new ACLMessage(ACLMessage.INFORM); 
+	temp.setLanguage(SL0Codec.NAME);
+	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	DonePredicate d = new DonePredicate();
+	d.set_0(a);
+	ArrayList tupla = new ArrayList(1);
+	tupla.add(d);
+	try {
+	    fillContent(temp,tupla);
+	} catch (Exception e) {
+	    return "( (done unknownAction) )";
+	}
+	return temp.getContent();
+    }
+
+    /**
+     * Create the content for the AGREE message
+     * @param a is the action that has been agreed to perform
+     * @return a String with the content ready to be set into the message
+     **/
+    //FIXME. Maybe we can find a better place for this method (e.g. in the interaction protocol class)
+    private String createAgreeContent(Action a) {
+	ACLMessage temp = new ACLMessage(ACLMessage.AGREE); 
+	temp.setLanguage(SL0Codec.NAME);
+	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	List l = new ArrayList(2);
+	if (a == null) {
+	    a = new Action();
+	    a.set_0(getAID());
+	    a.set_1("UnknownAction");
+	}
+	l.add(a);
+	l.add(new TrueProposition());
+	try {
+	    fillContent(temp,l);
+	} catch (Exception ee) { // in any case try to return some good content
+	    return "( true )";
+	} 
+	return temp.getContent();
+    }
+
+    /**
+     * Create the content for a so-called "exceptional" message, i.e.
+     * one of NOT_UNDERSTOOD, FAILURE, REFUSE message
+     * @param a is the Action that generated the exception
+     * @param e is the generated Exception
+     * @return a String containing the content to be sent back in the reply
+     * message; in case an exception is thrown somewhere, the method
+     * try to return anyway a valid content with a best-effort strategy
+     **/
+    //FIXME. Maybe we can find a better place for this method (e.g. in the interaction protocol class)
+    private String createExceptionalMsgContent(Action a, FIPAException e) {
+	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
+	temp.setLanguage(SL0Codec.NAME);
+	temp.setOntology(FIPAAgentManagementOntology.NAME);
+	List l = new ArrayList(2);
+	if (a == null) {
+	    a = new Action();
+	    a.set_0(getAID());
+	    a.set_1("UnknownAction");
+	}
+	l.add(a);
+	l.add(e);
+	try {
+	    fillContent(temp,l);
+	} catch (Exception ee) { // in any case try to return some good content
+	    return e.getMessage();
+	} 
+	return temp.getContent();
+    }
+
 
   /**
     This method starts all behaviours needed by <em>DF</em> agent to
