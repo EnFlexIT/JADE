@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.43  1999/08/10 15:28:41  rimassa
+  Added support for agent cloning, both agent-initiated and AMS-initiated.
+
   Revision 1.42  1999/07/19 00:04:01  rimassa
   Added an empty implementation of moveAgent() method.
 
@@ -277,7 +280,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
 
     if(startIt)
-      instance.doStart(agentName, platformAddress, agentThreads);
+      instance.powerUp(agentName, platformAddress, agentThreads);
   }
 
   public void suspendAgent(String agentName) throws RemoteException, NotFoundException {
@@ -311,6 +314,13 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   public void moveAgent(String agentName, AgentContainer where) throws RemoteException {
     // Detach yourself as a listener from the departing agent
     // Send agent code and data to the destination with a remote creation
+  }
+
+  public void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException {
+    Agent agent = (Agent)localAgents.get(agentName.toLowerCase());
+    if(agent == null)
+      throw new NotFoundException("CopyAgent failed to find " + agentName);
+    agent.doClone(where, newName);
   }
 
   public void killAgent(String agentName) throws RemoteException, NotFoundException {
@@ -391,7 +401,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     while(nameList.hasNext()) {
       currentName = (String)nameList.next();
       Agent agent = (Agent)localAgents.get(currentName.toLowerCase());
-      agent.doStart(currentName, platformAddress, agentThreads);
+      agent.powerUp(currentName, platformAddress, agentThreads);
     }
   }
 
@@ -476,6 +486,26 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
+  public void moveSource(String name, String where) {
+    // FIXME: Not implemented
+  }
+
+  public void copySource(String name, String where, String newName) {
+    try {
+      AgentContainer ac = myPlatform.lookup(where);
+      Agent a = (Agent)localAgents.get(name.toLowerCase());
+      if(a == null)
+	throw new NotFoundException("Internal error: copySource() called with a wrong name !!!");
+
+      ac.createAgent(newName, a, START);
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+    }
+  }
 
   // Private methods
 
