@@ -130,11 +130,13 @@ images:
 	mkdir -p $(CLSDIR)/jade/tools/DummyAgent
 	mkdir -p $(CLSDIR)/jade/tools/rma
 	mkdir -p $(CLSDIR)/jade/tools/sniffer
+	mkdir -p $(CLSDIR)/jade/tools/dfgui
 	cp -R $(SRCDIR)/jade/tools/DummyAgent/images $(CLSDIR)/jade/tools/DummyAgent
 	cp -R $(SRCDIR)/jade/tools/sniffer/images $(CLSDIR)/jade/tools/sniffer
 	cp -R $(SRCDIR)/jade/gui/images $(CLSDIR)/jade/gui
+	cp -R $(SRCDIR)/jade/tools/dfgui/images $(CLSDIR)/jade/tools/dfgui
 	mkdir -p $(CLSDIR)/jade/gui/help
-	cp $(SRCDIR)/jade/gui/DFGUI.html $(CLSDIR)/jade/gui/DFGUI.html
+	cp $(SRCDIR)/jade/tools/dfgui/DFGUI.html $(CLSDIR)/jade/tools/dfgui/DFGUI.html
 
 idlclean:
 	rm -f $(IDLSTUBS)
@@ -160,11 +162,12 @@ batch:
 	echo >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
+	echo 'xcopy /E /I jade\tools\dfgui\images ..\classes\jade\tools\dfgui\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\gui\images ..\classes\jade\gui\images' >> $(BATCH_ALL)
 
 	echo >> $(BATCH_ALL)
 
-	echo 'xcopy /I jade\gui\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
+	echo 'xcopy /I jade\tools\dfgui\*.html ..\classes\jade\tools\dfgui\help' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 
 	echo '$(STUBGEN) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
