@@ -37,6 +37,7 @@ import jade.core.*;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
+import jade.domain.FIPAServiceCommunicator;
 import jade.domain.introspection.*;
 
 // FIXME: These three imports will not be needed anymore, when
@@ -272,6 +273,31 @@ public class Introspector extends ToolAgent {
    agent and closing down the platform administration <em>GUI</em>.
   */
   public void toolTakeDown() {
+    // Stop debugging all the agents
+    if(!windowMap.isEmpty()) {
+      ACLMessage msg = getRequest();
+      DebugOff dbgOff = new DebugOff();
+      dbgOff.setDebugger(getAID());
+      Iterator it = windowMap.keySet().iterator();
+      while(it.hasNext()) {
+	AID id = (AID)it.next();
+	dbgOff.addDebuggedAgents(id);
+      }
+
+      Action a = new Action();
+      a.set_0(getAMS());
+      a.set_1(dbgOff);
+      List l = new ArrayList(1);
+      l.add(a);
+      try {
+	fillContent(msg, l);
+	FIPAServiceCommunicator.doFipaRequestClient(this, msg);
+      }
+      catch(FIPAException fe) {
+	fe.printStackTrace();
+      }
+    }
+
     send(getCancel());
     myGUI.setVisible(false);
     myGUI.disposeAsync();
