@@ -75,6 +75,7 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 
 	    // AgentActions definitions
 	    add(new AgentActionSchema(LOADAGENT), LoadAgent.class);
+	    add(new AgentActionSchema(RELOADAGENT), ReloadAgent.class);
 	    add(new AgentActionSchema(SAVEAGENT), SaveAgent.class);
 	    add(new AgentActionSchema(DELETEAGENT), DeleteAgent.class);
 	    add(new AgentActionSchema(FREEZEAGENT), FreezeAgent.class);
@@ -98,6 +99,7 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 
 	    // AgentActions definitions
 	    add(new AgentActionSchema(LOADAGENT));
+	    add(new AgentActionSchema(RELOADAGENT));
 	    add(new AgentActionSchema(SAVEAGENT));
 	    add(new AgentActionSchema(DELETEAGENT));
 	    add(new AgentActionSchema(FREEZEAGENT));
@@ -125,7 +127,7 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    cs.add(LOCATION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 	    cs.add(LOCATION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 	    cs.add(LOCATION_ADDRESS, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
-    	
+
 	    cs = (ConceptSchema) getSchema(CONTAINERID);
 	    cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
 
@@ -137,7 +139,11 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    as.add(LOADAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));
 	    as.add(LOADAGENT_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING)); 
 	    as.add(LOADAGENT_WHERE, (ConceptSchema)getSchema(CONTAINERID));
-    	
+
+	    as = (AgentActionSchema)getSchema(RELOADAGENT);
+	    as.add(RELOADAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));
+	    as.add(RELOADAGENT_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+
 	    as = (AgentActionSchema) getSchema(DELETEAGENT);
 	    as.add(DELETEAGENT_AGENT, (ConceptSchema) getSchema(BasicOntology.AID));
 	    as.add(DELETEAGENT_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));

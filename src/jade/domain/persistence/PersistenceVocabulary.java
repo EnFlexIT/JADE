@@ -58,7 +58,11 @@ public interface PersistenceVocabulary extends ExceptionVocabulary {
     public static final String LOADAGENT_AGENT = "agent";
     public static final String LOADAGENT_REPOSITORY = "repository";
     public static final String LOADAGENT_WHERE = "where";
-	
+
+    public static final String RELOADAGENT = "reload-agent";
+    public static final String RELOADAGENT_AGENT = "agent";
+    public static final String RELOADAGENT_REPOSITORY = "repository";
+
     public static final String DELETEAGENT = "delete-agent";
     public static final String DELETEAGENT_AGENT = "agent";
     public static final String DELETEAGENT_REPOSITORY = "repository";
