@@ -162,7 +162,7 @@ protected Person getPersonbyAgentName(String agentname) {
 protected void fixAppointment(Appointment a) {
   System.err.println("fix Appointment" + a.toString());
     
-    ACLMessage cfp = new ACLMessage("cfp");
+    ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
     //FIXME only for Seoul 
     // cfp.setContent(a.toString());
     cfp.setSource(getName());
@@ -256,15 +256,15 @@ protected void cancelAppointment(Date date) {
     Enumeration e = a.getInvitedPersons();
     int numberOfInvited = 0;
     String name;
-    ACLMessage cancel = new ACLMessage("cancel");
+    ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
     cancel.setSource(getName());
     while (e.hasMoreElements()) {
       name = ((Person)e.nextElement()).getAgentName();
-      cancel.setDest(name);
+      cancel.addDest(name);
       //FIXME only for Seoul 
       // cfp.setContent(a.toString());
       cancel.setContent("(action " + name + " (possible-appointments (list " + (a.getDate()).getDate() + ")))");   
-      cancel.dump();
+      System.out.println(cancel.toString());
       send(cancel);
     }
     removeAppointment(date);
@@ -300,10 +300,7 @@ protected Appointment getAppointment(Date date) {
 }
 
 protected void setUser(String username) {
-    user = username;
-    mf = new mainFrame(this,user + " - Appointment Scheduler" );
-    DFregistration("df");  // register with the default DF
-    mf.setVisible(true);
+  addBehaviour(new DFRegistrationBehaviour(this,username));
 }
 
 protected String getUser() {
@@ -311,6 +308,18 @@ protected String getUser() {
 }
 
 
+  class DFRegistrationBehaviour extends jade.core.behaviours.OneShotBehaviour {
+
+    DFRegistrationBehaviour(Agent a, String username){
+      super(a);
+      user = username;
+      mf = new mainFrame((MeetingSchedulerAgent)a,user + " - Appointment Scheduler" );
+    }
+    public void action(){
+      DFregistration("df");  // register with the default DF
+      mf.setVisible(true);
+    }
+  }
 
 } // end Agent.java
 
