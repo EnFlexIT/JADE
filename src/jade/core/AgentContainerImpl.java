@@ -973,13 +973,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    svc.init(this, myProfile);
 
 	    myServiceManager.activateService(new ServiceDescriptor(svc.getName(), svc));
-	    svc.boot(myProfile);
 
 	    // If this service extends BaseService, attach it to the container Command Processor
 	    if(svc instanceof BaseService) {
 		BaseService bs = (BaseService)svc;
 		bs.setCommandProcessor(myCommandProcessor);
 	    }
+
+	    svc.boot(myProfile);
 
 	}
 	catch(ServiceException se) {
