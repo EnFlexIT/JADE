@@ -98,7 +98,9 @@ class AIDTranslator {
   }
 
   public void translateRouted(ACLMessage msg) {
-
+    // For now, no ACC routing is supported, so just use the
+    // translations for an incoming message.
+    translateIncoming(msg);
   }
 
 }
