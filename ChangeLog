@@ -1,46 +1,94 @@
 MAJOR CHANGES since JADE 2.3 ($Date$ $Name$)
 ==========================================================================
+GENERAL IMPROVEMENTS AND NEW FUNCTIONALITIES
 - Modified the deprecated constructor of jade.core.AID in order to ensure
   better compatibility with JADE 2.2 and earlier versions. (David Bell, HP)
-- If an RMIRegistry can be located on the given port, that registry is then 
-  used, otherwise a new Registry is created. (David Bell, HP)
+- If an RMIRegistry can be located on the given port at Boot time, 
+  that registry is then used without creating a new one. (David Bell, HP)
 - It is now possible to pass an array of Object (i.e. Object[]) as arguments
   of the Agent and no more just an array of String. The method 
   setArguments(String[] args) has been deprecated and  the method
   Object[] getArguments() should be used instead.
-- JADE-LEAP integration
-  - added package jade.util.leap with the Java classes of the Java collection
-    framework that are not present in low-profiles of JRE
-  - made pluggable the internal inter-container message transport protocol
-    via the IMTPManager.
-    The package jade.imtp.rmi provides the default RMI-based implementation
-  - removed the class jade.core.Starter
-  - added the classes Profile and ProfileImpl that allow the JADE Runtime to 
-    get the Boot arguments. Modified, as a consequence, also the Boot class. 
-  - jade.core.acc is now an interface and two implementations (FullAcc and
-    LightAcc) have been provided.
-  - modified the signature of the method forwardMessage() in
-    public void forwardMessage(ACLMessage msg, AID receiver, String address)
-  - preparation of the Envelope and payload coding  are now responsibility
-    of the ACC and no more of the ACCProxy
-  - improved the shutdown and the termination of the JVM
-  - removed inheritance between MainContainer and AgentContainer
-  - encapsulated the code concerning Mobility into the class MobilityManager
-  - encapsulated the code concerning Event Notification into the class 
-    NotificationManager
+- improved the shutdown and the termination of the JVM
+- removed inheritance between MainContainer and AgentContainer
+SUPPORT FOR J2ME AND JADE-LEAP INTEGRATION
+- added new package jade.util.leap that contains all those java.util classes 
+  that are not supported in J2ME, in particular the Java collection framework.
+  In this way JADE does not use internally the Java collection framework and
+  it can be easily compiled and ported to J2ME and CLDC.
+  All the APIs of JADE that had a parameter of type java.util.List have been
+  deprecated, they are not supported on J2ME and they will be definitevely
+  removed also in the next version of JADE.
+- the internal inter-container message transport protocol (IMTP) of JADE
+  has been made pluggable via the IMTPManager.
+  The package jade.imtp.rmi provides the default RMI-based implementation
+- removed the class jade.core.Starter and added the classes Profile and 
+  ProfileImpl that allow the JADE Runtime to 
+  get the Boot arguments. Modified, as a consequence, also the Boot class. 
+- jade.core.acc is now an interface and two implementations (FullAcc and
+  LightAcc) have been provided.
+- modified the signature of the method forwardMessage() in
+  public void forwardMessage(ACLMessage msg, AID receiver, String address)
+- preparation of the Envelope and payload coding  are now responsibility
+  of the ACC and no more of the ACCProxy
+- encapsulated the code concerning Mobility into the class MobilityManager
+- encapsulated the code concerning Event Notification into the class 
+  NotificationManager
+BUG FIX
 - fixed bug in the HTTP-MTP (Ion Constantinescu)
 - fixed bug in ACLMessage.createReply. The createdEnvelope was not correct
   as reported by Tianning Zhang
 - fixed bug in Behaviour.block(long) that generated a NullPointerException
-- removed the deprecated constructor of ACLMessage: ACLMessage(String type)
-- added TestReceiverBehaviourAgent in the examples/behaviours
 - fixed bug in ReceiverBehaviour, removed 2 bugged constructors and added
   getMessage method.
+- fixed bug in ams.java and in InternalError.java: they did not send
+  proper failure/refuse messages (reported by Alfredo Ricchi)
+EXAMPLES
+- added TestReceiverBehaviourAgent in the examples/behaviours
 - added ThanksAgent in examples/thanksAgent
+- added Initiator/Responder examples in examples/protocols that shows
+  how to use AchieveREInitiator/Responder and HandlerSelector classes
+- added Sender/Receiver example in examples/content that shows how
+  to use the new support for message content and ontologies
+BEHAVIOURS AND INTERACTION PROTOCOLS
+- added 2 new classes AchieveREInitiator/Responder that provides support
+  for all the FIPA-Request like interaction protocols, such as Fipa-query,
+  Fipa-propose, Fipa-proxy, ...
+- added 2 new classes in the package jade.proto.states to support the
+  implementation of interaction protocols, in particular the HandlerSelector
+  to select between a set of handlers
+- added a new class DataStore in jade.core.behaviours that represents a
+  private datastore of a behaviour
+DEPRECATED
+- removed the deprecated constructor of ACLMessage: ACLMessage(String type)
 - deprecated all the toText() methods, replaced by toString()
+- Agent.setArguments(String[] args) replaced by 
+  Object[] Agent.getArguments()
+- FipaRequestInitiator/Responder and FipaQueryInitiator/Responder have
+  been deprecated and should be replaced by AchieveREInitiator/Responder
+- All the APIs of JADE that had a parameter of type java.util.List have been
+  deprecated, they are not supported on J2ME and they will be definitevely
+  removed also in the next version of JADE. In particular, the followings:
+  - DF/AMS ServiceCommunicator and replaced by DF/AMS Service
+    that are CLDC-compliant because they do not use java.util.List
+  - Agent.fillContent/extractContent have been deprecated. They will be
+    replaced in the next version of JADE by the new content support (see below)
+  - ACLMessage.getAllPerformatives() and replaced by 
+    ACLMessage.getAllPerformativeNames()
+  - MessageTemplate.MatchReceiver and MessageTemplate.MatchReplyTo
+COMPLIANCE TO FIPA
 - Improved compliance with FIPA2000 about the usage of singular names
   for some slots whose type value is a set. 
   In particular for "ontologies","languages","protocols".	
+DOCUMENTATION
+- Programmer's Guide: added description of AchieveREInitiator/Responder
+  and removed the description of fipaRequest and fipaQuery interaction
+  protocols. Added appendix on new support for message content 
+SUPPORT FOR MESSAGE CONTENT
+- The old jade.onto support for content languages and ontologies is going
+  to be deprecated and then definitevely removed in the next versions of JADE
+  It will be replaced by the new support in the package jade.content
+
 	
 MAJOR CHANGES in JADE 2.3 (11 July 2001) 
 ==========================================================================
