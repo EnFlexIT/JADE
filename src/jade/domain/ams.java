@@ -403,6 +403,32 @@ public class ams extends Agent implements AgentManager.Listener {
     	throw new InternalError("Unexpected exception. "+e.getMessage());   
     }
 	}
+
+	// SHUTDOWN PLATFORM
+	void shutdownPlatformAction(ShutdownPlatform sp, AID requester) throws FIPAException {
+	    log("Agent "+requester+" requesting Shutdown-platform ", 2);
+	    CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
+		
+	    try{
+		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
+			public Object run() throws AuthException, NotFoundException {
+			    myPlatform.shutdownPlatform();
+			    return null;
+			}
+		    }, requesterCredentials);
+	    }
+	    catch(AuthException ae) {
+		log("Agent "+requester.getName()+" does not have permission to perform action Shutdown-Platform", 0);
+		throw new Unauthorised();
+	    }
+	    catch(NotFoundException nfe) {
+		throw new InternalError("Container not found. "+nfe.getMessage());   
+	    }
+	    catch(Exception e) {
+		e.printStackTrace();
+		throw new InternalError("Unexpected exception. "+e.getMessage());   
+	    }
+	}
 	
 	// INSTALL MTP
 	MTPDescriptor installMTPAction(InstallMTP im, AID requester) throws FIPAException {
