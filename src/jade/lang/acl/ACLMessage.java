@@ -302,7 +302,7 @@ private int performative; // keeps the performative type of this object
    * the method <code>ACLMessage.setContentObject()</code> instead. 
    * @param content The new value for the slot.
    * @see jade.lang.acl.ACLMessage#getContent()
-   * @see jade.lang.acl.ACLMessage#setContentObject(Serializable)
+   * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
    */
   public void setContent( String content ) {
     if (content != null)
@@ -336,7 +336,7 @@ private int performative; // keeps the performative type of this object
    * 
    * @see jade.lang.acl.ACLMessage#getContentBase64()
    * @see jade.lang.acl.ACLMessage#getContent()
-   * @see java.io.ObjectOutputStream#writeObject(Object)
+   * @see java.io.ObjectOutputStream#writeObject(Object o)
    * @param bytes is the the sequence of bytes to be appended to the content of this message
    */
   private void setContentBase64(byte[] bytes) {
@@ -668,8 +668,8 @@ private int performative; // keeps the performative type of this object
    * getContentObject(). 
    * @return The value of <code>:content</code> slot.
    * @see jade.lang.acl.ACLMessage#setContent(String).
-   * @see jade.lang.acl.ACLMessage#getContentObject(Serializable).
-   * @see java.io.ObjectInputStream
+   * @see jade.lang.acl.ACLMessage#getContentObject().
+   * @see java.io.ObjectInputStream.
   */
   public String getContent() {
     return new String(content);
