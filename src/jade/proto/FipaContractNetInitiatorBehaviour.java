@@ -28,7 +28,6 @@ import jade.core.*;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.domain.FIPAAgentManagement.AID;
 
 import java.util.*;
 
