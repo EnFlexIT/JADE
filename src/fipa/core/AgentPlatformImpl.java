@@ -32,7 +32,7 @@ class AgentPlatformImpl extends UnicastRemoteObject implements AgentPlatform {
 
   public void bornAgent(AgentDescriptor desc) throws RemoteException {
     System.out.println("Born agent " + desc.getName());
-    agentMap.put(desc.getName(), desc.getDemux());
+    agentMap.put(desc.getName(), desc);
   }
 
   public void deadAgent(String name) throws RemoteException {
