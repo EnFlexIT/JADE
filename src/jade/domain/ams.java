@@ -450,19 +450,22 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	    send(toolNotification);
 	  }
-	  /*
+	  
 	  //Notification to the RMA of the APDescription
 	   PlatformDescription ap = new PlatformDescription();
 	   ap.setPlatform(theProfile);
-	   EventOccurred eo = new EventOccurred();
-	   eo.setEvent(ap);
+	   
+	   EventRecord er = new EventRecord(ap,here());
+	   Occurred o = new Occurred();
+	   o.set_0(er);
+	   
 	   List l = new ArrayList(1);
-	   l.add(eo);
+	   l.add(o);
 	   toolNotification.clearAllReceiver();
 	   toolNotification.addReceiver(newTool);
 	   fillContent(toolNotification, l);
 	   send(toolNotification);
-	  */
+	 
 	  // Add the new tool to tools list.
 	  tools.add(newTool);
 

@@ -89,6 +89,8 @@ public class JADEIntrospectionOntology {
   public static final String RECEIVEDOBJECT = "received-object";
   public static final String CHANNEL = "channel";
 
+  public static final String PLATFORMDESCRIPTION = "platform-description";
+  
   // Actions
   public static final String STARTNOTIFY = "start-notify";
   public static final String STOPNOTIFY = "stop-notify";
@@ -268,6 +270,10 @@ public class JADEIntrospectionOntology {
 	  new SlotDescriptor(Ontology.FRAME_SLOT, EVENTRECORD, Ontology.M)
 	}, Occurred.class);
 
+	theInstance.addRole(PLATFORMDESCRIPTION, new SlotDescriptor[]{
+		new SlotDescriptor("platform",Ontology.FRAME_SLOT,BasicOntology.APDESCRIPTION,Ontology.M)
+	}, PlatformDescription.class); 
+    
     }
     catch(OntologyException oe) {
       oe.printStackTrace();

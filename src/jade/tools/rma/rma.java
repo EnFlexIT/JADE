@@ -265,7 +265,7 @@ public class rma extends ToolAgent {
 	    myGUI.removeAddress(address, where.getName());
 	  }
 	});
-	/*
+	
 	//handle the APDescription provided by the AMS 
 	handlersTable.put(JADEIntrospectionOntology.PLATFORMDESCRIPTION, new EventHandler(){
 	  public void handle(Event ev){
@@ -275,7 +275,7 @@ public class rma extends ToolAgent {
 	    myGUI.refreshLocalPlatformName(myPlatformProfile.getName());
 	  }
         });
-	*/
+
       } // End of installHandlers() method
 
     });
