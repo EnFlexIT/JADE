@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.29  1999/03/07 22:50:12  rimassa
+  Added support for ACL messages with more than one receiver.
+
   Revision 1.28  1999/03/03 16:09:34  rimassa
   Implemented new methods from AgentContainer interface to remotely
   suspend and resume agents.
@@ -375,18 +378,25 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Get ACL message from the event.
     ACLMessage msg = event.getMessage();
 
-    // FIXME: Must use multicast also when more than a recipient is
-    // present in ':receiver' field.
+    AgentGroup group = null;
     if(event.isMulticast()) {
-      AgentGroup group = event.getRecipients();
+      group = event.getRecipients();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-	msg.setDest((String)e.nextElement());
-	unicastPostMessage(msg);
+	String dest = (String)e.nextElement();
+	msg.removeAllDests();
+	msg.addDest(dest);
+	unicastPostMessage(msg, dest);
       }
     }
-    else
-      unicastPostMessage(msg);
+    else {
+      group = msg.getDests();
+      Enumeration e = group.getMembers();
+      while(e.hasMoreElements()) {
+	String dest = (String)e.nextElement();
+	unicastPostMessage(msg, dest);
+      }
+    }
   }
 
   public void endSource(String name) {
@@ -431,11 +441,9 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     return (AgentPlatform)o;
   }
 
-  private void unicastPostMessage(ACLMessage msg) {
+  private void unicastPostMessage(ACLMessage msg, String completeName) {
     String receiverName = null;
     String receiverAddr = null;
-
-    String completeName = msg.getDest();
 
     int atPos = completeName.indexOf('@');
     if(atPos == -1) {
