@@ -30,5 +30,7 @@ public void set_0(String a){s1=a;}
 public String get_0() {return s1;}
 public void set_1(String a){s2=a;}
 public String get_1() {return s2;}
-
+public UnexpectedParameter() {
+  super("Unexpected-Parameter");
+}
 }
