@@ -69,7 +69,7 @@ class DFGUIModifyAction extends AbstractAction
 			AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(dfd);
 			if (editedDfd != null)
 			{
-				gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getName(), editedDfd);
+				gui.myAgent.postModifyEvent((Object) gui, gui.myAgent.getLocalName(), editedDfd);
 			}
 		}
 	}

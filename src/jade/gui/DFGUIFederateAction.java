@@ -50,26 +50,29 @@ class DFGUIFederateAction extends AbstractAction
 	
 	public void actionPerformed(ActionEvent e) 
 	{
-		//System.out.println("FEDERATE");
+	
 		gui.setTab("Federate");
-		//System.out.println("Not yet implemented");
 	
 	  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-		
+		AgentManagementOntology.DFAgentDescriptor editedDfd ;
 		dfd = gui.myAgent.getDescriptionOfThisDF();
 		StringDlg insertDlg = new StringDlg((Frame)gui, "Insert the full name of the DF with which federate");
 		String parent = insertDlg.editString("");
-		if ( parent != null)
+		if (parent != null)
 		{
 			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-			AgentManagementOntology.DFAgentDescriptor editedDfd = dlg.editDFD(dfd);
+			if(gui.isApplet())
+				{
+					dlg.viewDFD(dfd);
+				  editedDfd = dfd;
+				}
+			else
+			  editedDfd = dlg.editDFD(dfd);
 		
 		  if (editedDfd != null)
 			  gui.myAgent.postFederateEvent((Object)gui, parent, editedDfd);
 	   	  gui.setTab("Federate");
 		}
-		else 
-		System.out.println("Please enter the name of the DF  with which to federate");
 	
 	}
 }
