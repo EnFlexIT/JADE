@@ -502,7 +502,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
 		    MessagingSlice slice = (MessagingSlice)slices[i];
-		    if(!localSlice.equals(slice)) {
+		    String sliceName = slice.getNode().getName();
+		    if(!sliceName.equals(cid.getName())) {
 			slice.removeRoute(mtp, cid.getName());
 		    }
 		}
