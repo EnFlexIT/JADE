@@ -75,9 +75,9 @@ public class MessagePanel extends JPanel {
     outMessagesPending.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
     outMessagesDone.setDefaultRenderer(ACLMessage.class, new ACLMessageRenderer());
     listener = new TableMouseListener();
-    // inMessagesPending.addMouseListener(listener);
+    inMessagesPending.addMouseListener(listener);
     inMessagesDone.addMouseListener(listener);
-    // outMessagesPending.addMouseListener(listener);
+    outMessagesPending.addMouseListener(listener);
     outMessagesDone.addMouseListener(listener);
     build();
   }
@@ -105,22 +105,7 @@ public class MessagePanel extends JPanel {
     outgoing.setBorder(BorderFactory.createTitledBorder(line, "Outgoing Messages", TitledBorder.CENTER, TitledBorder.TOP));
     outgoing.add(outScrollPending, "Pending");
     outgoing.add(outScrollDone, "Sent");
-    /*
-    Font titleFont = new Font("Monospaced", Font.BOLD, 16);
-    Box in = Box.createVerticalBox();
-    JLabel inTitle = new JLabel("Incoming Messages");
-    inTitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    inTitle.setFont(titleFont);
-    in.add(inTitle);
-    in.add(incoming);
 
-    Box out = Box.createVerticalBox();
-    JLabel outTitle = new JLabel("Outgoing Messages");
-    outTitle.setFont(titleFont);
-    outTitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    out.add(outTitle);
-    out.add(outgoing);
-    */
     setLayout(new GridLayout(1,2));
     add(incoming);
     add(outgoing);
