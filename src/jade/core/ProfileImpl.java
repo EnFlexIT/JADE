@@ -68,7 +68,6 @@ public class ProfileImpl extends Profile {
 	//#MIDP_EXCLUDE_END
 
   private static final String IMTP = "imtp";
-  private static final String LOCAL_PORT = "local-port";
 
   //#APIDOC_EXCLUDE_BEGIN
   public static final int DEFAULT_PORT = 1099;
@@ -183,39 +182,65 @@ public class ProfileImpl extends Profile {
 
     // Set default values
 
+    setPropertyIfNot(MAIN, "true");
+
     String host = props.getProperty(MAIN_HOST);
     if(host == null) {
-	try {
-	    //#MIDP_EXCLUDE_BEGIN
-	    host = InetAddress.getLocalHost().getHostName();
-	    //#MIDP_EXCLUDE_END
-	    /*#MIDP_INCLUDE_BEGIN
-	      host = "localhost";
-	      #MIDP_INCLUDE_END*/
-	    props.setProperty(MAIN_HOST, host);
-	}
-	catch(Exception e) {
-	    // FIXME: Should throw!!!
-	    //		throw new ProfileException("Could not retrieve the default local host name");
-	}
+	host = getDefaultNetworkName();
+	props.setProperty(MAIN_HOST, host);
     }
 
     String p = props.getProperty(MAIN_PORT);
     if(p == null) {
 	String localPort = props.getProperty(LOCAL_PORT);
-	if(localPort != null) {
-	    p = localPort;
+
+	// Default for a sole main container: use the local port, or
+	// the default port if also the local port is null.
+	if(isFirstMain()) {
+
+	    if(localPort != null) {
+		p = localPort;
+	    }
+	    else {
+		p = Integer.toString(DEFAULT_PORT);
+	    }
 	}
 	else {
+	    // All other cases: use the default port.
 	    p = Integer.toString(DEFAULT_PORT);
 	}
 	props.setProperty(MAIN_PORT, p);
     }
 
+    String localHost = props.getProperty(LOCAL_HOST);
+    if(localHost == null) {
 
-	//      setPropertyIfNot(MAIN_PROTO, "rmi");
+	if(isFirstMain()) {
+	    // Default for a sole main container: use the MAIN_HOST property
+	    localHost = host;
+	}
+	else {
+	    // Default for a peripheral container or an added main container: use the local host
+	    localHost = getDefaultNetworkName();
+	}
 
-    setPropertyIfNot(MAIN, "true");
+	props.setProperty(LOCAL_HOST, localHost);
+    }
+
+    String lp = props.getProperty(LOCAL_PORT);
+    if(lp == null) {
+	if(isFirstMain()) {
+	    // Default for a sole main container: use the MAIN_PORT property
+	    lp = p;
+	}
+	else {
+	    // Default for a peripheral container or an added main container: use the default port
+	    lp = Integer.toString(DEFAULT_PORT);
+	}
+	props.setProperty(LOCAL_PORT, lp);
+
+    }
+
     setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
     String platformID = props.getProperty(PLATFORM_ID);
     if(platformID == null) {
@@ -447,8 +472,7 @@ public class ProfileImpl extends Profile {
 	    // Make sure the Command Processor is initialized
 	    myCommandProcessor = getCommandProcessor();
 
-	    String isMain = props.getProperty(MAIN);
-	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+	    if(isMain()) {
 		// This is a main container: create a real Service Manager and export it
 		myMain = new MainContainerImpl(this);
 		myServiceManager = new ServiceManagerImpl(this, myMain);
@@ -472,8 +496,7 @@ public class ProfileImpl extends Profile {
 	    // Make sure the IMTP manager is initialized
 	    myIMTPManager = getIMTPManager();
 
-	    String isMain = props.getProperty(MAIN);
-	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
+	    if(isMain()) {
 		// This is a main container: use the real
 		// implementation of the Service Manager as the
 		// service finder.
@@ -546,6 +569,34 @@ public class ProfileImpl extends Profile {
   public String getParameter(String key, String aDefault) {
     String v = props.getProperty(key);
     return (v != null ? v.trim() : aDefault);
+  }
+
+  /**
+   * Retrieve a boolean value for a configuration property.  If no
+   * corresponding property is found or if its string value cannot
+   * be converted to a boolean one, a default value is returned.
+   * @param key The key identifying the parameter to be retrieved
+   * among the configuration properties.
+   * @param aDefault The value to return when there is no property
+   * set for the given key, or its value cannot be converted to a
+   * boolean value.
+   */
+  public boolean getParameter(String key, boolean aDefault) {
+      String v = props.getProperty(key);
+      if(v == null) {
+	  return aDefault;
+      }
+      else {
+	  if(CaseInsensitiveString.equalsIgnoreCase(v, "true")) {
+	      return true;
+	  }
+	  else if(CaseInsensitiveString.equalsIgnoreCase(v, "false")) {
+	      return false;
+	  }
+	  else {
+	      return aDefault;
+	  }
+      }
   }
 
   /**
@@ -647,6 +698,50 @@ public class ProfileImpl extends Profile {
     }
 
 
+    //#APIDOC_EXCLUDE_BEGIN
+
+    protected boolean isMain() {
+	String result = props.getProperty(MAIN);
+	if(result == null || CaseInsensitiveString.equalsIgnoreCase(result, "true")) {
+	    return true;
+	}
+	else {
+	    return false;
+	}
+    }
+
+    // True if this is a Main Container and there are no other,
+    // already existing Main Containers in the platform.
+    protected boolean isFirstMain() {
+	if(isMain()) {
+	    String result = props.getProperty(LOCAL_SERVICE_MANAGER);
+	    if(result == null || CaseInsensitiveString.equalsIgnoreCase(result, "false")) {
+		return true;
+	    }
+	    else {
+		return false;
+	    }
+	}
+	else {
+	    return false;
+	}
+    }
+
+    protected String getDefaultNetworkName() {
+	try {
+	    //#MIDP_EXCLUDE_BEGIN
+	    return InetAddress.getLocalHost().getHostName();
+	    //#MIDP_EXCLUDE_END
+	    /*#MIDP_INCLUDE_BEGIN
+	      return "localhost";
+	      #MIDP_INCLUDE_END*/
+	}
+	catch(Exception e) {
+	    return "localhost";
+	}
+    }
+
+    //#APIDOC_EXCLUDE_END
 
 }
 
