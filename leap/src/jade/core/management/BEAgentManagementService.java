@@ -421,7 +421,6 @@ public class BEAgentManagementService extends BaseService {
 
 	private void handleKillContainer(VerticalCommand cmd) {
 	    myContainer.shutDown();
-	    //exitContainer();
 	}
 
 	/**
@@ -435,16 +434,6 @@ public class BEAgentManagementService extends BaseService {
 	private void createAgent(AID agentID, String className, Object[] args, JADEPrincipal ownership, Credentials creds) throws IMTPException {
 
 	    BackEndContainer.AgentImage image = myContainer.createAgentImage(agentID);
-	    /* Set security information 
-	    if (certs != null) {
-		image.setPrincipal(certs);
-	    }
-	    if(ownership != null) {
-		image.setOwnership(ownership);
-	    }
-	    else if (certs.getIdentityCertificate() != null) {
-		image.setOwnership(((AgentPrincipal) certs.getIdentityCertificate().getSubject()).getOwnership());
-	    }*/
 
 	    // Store the image so that it can be retrieved when the new agent starts
 	    BackEndContainer.AgentImage previous = (BackEndContainer.AgentImage) pendingImages.put(agentID, image);
