@@ -109,7 +109,7 @@ class ActionProcessor {
        		JOptionPane.showMessageDialog(new JFrame(),"You must select an agent in the Tree","Start Procedure Error",JOptionPane.ERROR_MESSAGE);
 				else
 				if
-				 (action instanceof DummyAgentAction)	
+				 (action instanceof DummyAgentAction || action instanceof SnifferAction)	
 				 	containerAct(null);
 				else
 				  JOptionPane.showMessageDialog(new JFrame(), "You must select an agent-platform or a agent-container in the Tree","Start Procedure Error", JOptionPane.ERROR_MESSAGE);
@@ -136,7 +136,7 @@ class ActionProcessor {
  private void containerAct(AgentTree.Node node){
   ContainerAction ac=(ContainerAction) action;
   AgentTree.ContainerNode nod;
-  if (ac instanceof DummyAgentAction && (node == null || node instanceof AgentTree.SuperContainer))
+  if ((ac instanceof DummyAgentAction || ac instanceof SnifferAction) && (node == null || node instanceof AgentTree.SuperContainer))
   	ac.doAction(null);
   else	
   try{

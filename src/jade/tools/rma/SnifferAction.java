@@ -25,13 +25,14 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
+import jade.gui.AgentTree;
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
-class SnifferAction extends FixedAction {
-
+//class SnifferAction extends FixedAction {
+class SnifferAction extends ContainerAction {
   private static int progressiveNumber = 0;
   private rma myRMA;
 
@@ -40,8 +41,12 @@ class SnifferAction extends FixedAction {
     myRMA = anRMA;
   }
 
-  public void doAction() {
-    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer",new String[0], new String());
+  public void doAction(AgentTree.ContainerNode node) {
+  	String containerName = new String();
+   	if(node != null)
+   	  	containerName = node.getName();
+
+    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer",new String[0], containerName);
     progressiveNumber++;
   }
 
