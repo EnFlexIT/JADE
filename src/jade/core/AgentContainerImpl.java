@@ -51,6 +51,7 @@ import java.util.Set;
 import jade.lang.acl.ACLMessage;
 
 import jade.domain.MobilityOntology;
+import jade.domain.FIPAAgentManagement.InternalError;
 
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
@@ -856,6 +857,30 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
   }
 
+    /**
+     * This private method is used internally by the platform in order
+     * to notify the sender of a message that a failure was reported by
+     * the Message Transport Service.
+     **/
+    private void notifyFailureToSender(ACLMessage msg, InternalError ie) {
+	//if (the sender is not the AMS and the performative is not FAILURE)
+	if ( (msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE) ) // sanity check to avoid infinte loops
+	    return;
+	// else send back a failure message
+	ACLMessage failure = msg.createReply();
+	failure.setPerformative(ACLMessage.FAILURE);
+	//System.err.println(failure.toString());
+	failure.setSender(Agent.getAMS());
+	// FIXME the content is not completely correct, but that should
+	// also avoid creating wrong content
+	StringWriter content = new StringWriter();
+	content.write("( (action ");
+	msg.getSender().toText(content); 
+	content.write(" ACLMessage ) "+ie.getMessage()+")");
+	failure.setContent(content.toString());
+	handleSend(failure);
+    }
+
   private void dispatchUntilOK(ACLMessage msg, AID receiverID) {
     boolean ok;
     int i = 0;
@@ -867,6 +892,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
       catch(NotFoundException nfe) { // Agent not found in GADT: error !!!
 	System.err.println("Agent " + receiverID.getLocalName() + " was not found on agent platform.");
 	System.err.println("Message from platform was: " + nfe.getMessage());
+	notifyFailureToSender(msg, new InternalError("LocalAgentNotFound"));
 	return;
       }
       try {
@@ -876,6 +902,7 @@ private List getSniffer(AID id, java.util.Map theMap) {
       }
       catch(acc.NoMoreAddressesException nmae) { // The AID has no more valid addresses
 	System.err.println("Agent " + receiverID.getLocalName() + " has no valid addresses.");
+	notifyFailureToSender(msg, new InternalError("RemoteAgentNotFound"));
 	return;
       }
       catch(NotFoundException nfe) { // Agent not found in destination LADT: need to recheck GADT
