@@ -98,6 +98,13 @@ public class Boot {
       System.exit(-1);
     }
   }
+
+  /**
+     Default constructor.
+  */
+  public Boot() {
+  }
+
   
   private static Properties parseCmdLineArgs(String[] args) throws IllegalArgumentException {
   	Properties props = new Properties();
