@@ -103,10 +103,10 @@ class JICPClient {
       
       // Send the request
       JICPPacket request = new JICPPacket(dataType, dataInfo, ta.getFile(), data);
-      request.writeTo(connection.getOutputStream());
+      connection.writePacket(request);
 
       // Read the reply
-      JICPPacket reply = JICPPacket.readFrom(connection.getInputStream());
+      JICPPacket reply = connection.readPacket();
 	    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
 	      throw new ICPException(new String(reply.getData()));
 	    } 

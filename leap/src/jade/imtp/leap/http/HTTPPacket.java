@@ -49,7 +49,10 @@ import java.util.Enumeration;
  */
 public class HTTPPacket {
 	private static final CaseInsensitiveString CONTENT_LENGTH_KEY = new CaseInsensitiveString("content-length");
-	
+  private static final int CR = 13;
+  private static final int LF = 10;
+  private static final String DELIMITER = new String(new byte[] {CR, LF});
+
 	protected String firstLine = null;
 	protected String httpType = null;
 	protected Hashtable fields = new Hashtable();
@@ -112,8 +115,10 @@ public class HTTPPacket {
   	ByteArrayOutputStream baos = new ByteArrayOutputStream();
   	int[] bb = new int[] {0,0,0};
   	int pos = 0;
+  	//System.out.println("HTTP packet header -----------");
 		do {
 			bb[pos] = is.read();
+			//System.out.print(bb[pos]+" ");
 			if (bb[pos] == -1) {
 				throw new EOFException("Unexpected EOF");
 			}
@@ -121,7 +126,8 @@ public class HTTPPacket {
 			if (pos >= 3) pos = 0;
 		}
 		while (!endOfHeader(bb, pos));
-		
+  	//System.out.println("\n------------------------------");
+    
   	// Parse the Header from the temporary buffer
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
     BufferedReader inpReader = new BufferedReader(new InputStreamReader(bais));
@@ -162,8 +168,6 @@ public class HTTPPacket {
   	}
   } 
 
-  private static final int CR = 13;
-  private static final int LF = 10;
   private static final boolean endOfHeader(int[] bb, int pos) {
   	if (bb[pos] == LF) {
   		if ((++pos) >= 3) pos = 0;
@@ -184,19 +188,20 @@ public class HTTPPacket {
   	ByteArrayOutputStream baos = new ByteArrayOutputStream();
   	BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(baos)); 
   	outWriter.write(firstLine);
-  	outWriter.newLine();
+  	outWriter.write(DELIMITER);
   	Enumeration e = fields.keys();
   	while (e.hasMoreElements()) {
   		CaseInsensitiveString key = (CaseInsensitiveString) e.nextElement();
 			String value = (String) fields.get(key);
   	 	outWriter.write(key.toString()+": "+value);
-   		outWriter.newLine();
+  	 	outWriter.write(DELIMITER);
   	}
-    outWriter.newLine();
+	 	outWriter.write(DELIMITER);
     outWriter.flush();
     
     // Payload
-    baos.write(payload);    
+    baos.write(payload); 
+    
     os.write(baos.toByteArray());
     os.flush();
   } 
@@ -211,7 +216,7 @@ public class HTTPPacket {
   	while (e.hasMoreElements()) {
   		CaseInsensitiveString key = (CaseInsensitiveString) e.nextElement();
   		String value = (String) fields.get(key);
-     	sb.append(key.toString()+": "+value);
+     	sb.append(key.toString()+"="+value);
   		sb.append("\n");
   	}
   	if (payload != null) {

@@ -66,14 +66,12 @@ public class JICPServer extends Thread {
   private int maxHandlers;
 
   private ConnectionFactory connFactory;
-  private String localHost;
-
-  private static int     verbosity = 1;
+  
+  private static int     verbosity = 2;
+  private InetAddress localHost;
 
   /**
    * Constructor declaration
-   * @param port
-   * @param cmdHandler
    */
   public JICPServer(int port, boolean changePortIfBusy, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
     cmdListener = l;
@@ -81,6 +79,7 @@ public class JICPServer extends Thread {
 		maxHandlers = max;
 		
     try {
+    	localHost = InetAddress.getLocalHost(); 
       server = new ServerSocket(port);
     } 
     catch (IOException ioe) {
@@ -98,13 +97,6 @@ public class JICPServer extends Thread {
     	}
     } 
 
-    try {
-	localHost = InetAddress.getLocalHost().getCanonicalHostName();
-    }
-    catch(UnknownHostException uhe) {
-	localHost = "localhost";
-    }
-    
     setDaemon(true);
     setName("Main");
   }
@@ -139,6 +131,9 @@ public class JICPServer extends Thread {
 
   private boolean paused = false;
 
+  /**
+     Temporarily stop this JICPServer from accepting connections
+   */
   private synchronized void pause() {
   	log("Pausing JICPServer...", 2);
   	try {
@@ -150,6 +145,9 @@ public class JICPServer extends Thread {
   	}
   }
   
+  /**
+     Resume this JICPServer from the paused state
+   */
   private synchronized void restart(int port) {
   	log("Restarting JICPServer...", 2);
   	while (true) {
@@ -170,6 +168,12 @@ public class JICPServer extends Thread {
   	}
   }
   	
+  /**
+     Send a fake TCP packet to a given address and port. This can 
+     be used as an extreme remedy 
+     to unblock a thread on a remote terminal that is blocked in
+     a read() on a socket previously opened with this JICPServer
+   */
   public void fakeReply(InetAddress addr, int port) {
   	if (addr != null) {
 	  	int oldPort = getLocalPort();
@@ -181,7 +185,7 @@ public class JICPServer extends Thread {
 					try {
 		  			pause();
 						log("Sending fake reply to "+addr+":"+port, 2);
-			  		s = new Socket(addr, port, InetAddress.getLocalHost(), oldPort);
+			  		s = new Socket(addr, port, localHost, oldPort);
 					}
 					catch (BindException be) {
 						log("Local port "+oldPort+" still busy", 2);
@@ -205,7 +209,9 @@ public class JICPServer extends Thread {
   	}
   }
   
-  	
+  /**
+     Wait for a given amount of time
+   */
 	private void waitABit(long time) {
     try {
       Thread.sleep(time);
@@ -216,8 +222,8 @@ public class JICPServer extends Thread {
 	}
 	
   /**
-   * Method declaration
-   * @see
+   * JICPServer thread entry point. Accept incoming connections 
+   * and for each of them start a ConnectionHandler that handles it. 
    */
   public void run() {
     while (listen) {
@@ -226,7 +232,9 @@ public class JICPServer extends Thread {
         Socket s = server.accept();
         InetAddress addr = s.getInetAddress();
         int port = s.getPort();
-        log("Incoming connection from "+addr+":"+port, 3);
+        if (!addr.equals(localHost)) {
+	        log("Incoming connection from "+addr+":"+port, 3);
+        }
         Connection c = connFactory.createConnection(s);
         new ConnectionHandler(c, addr, port).start();    // start a handler and go back to listening
       } 
@@ -286,8 +294,8 @@ public class JICPServer extends Thread {
   } 
 
   /**
-   * Class declaration
-   * @author LEAP
+     Inner class ConnectionHandler.
+     Handle a connection accepted by this JICPServer
    */
   class ConnectionHandler extends Thread {
     private Connection c;
@@ -310,20 +318,21 @@ public class JICPServer extends Thread {
     public void run() {
     	handlersCnt++;
     	
-      OutputStream out = null;
-      InputStream  inp = null;
+      //OutputStream out = null;
+      //InputStream  inp = null;
       boolean closeConnection = true;
       int status = 0;
       byte type = (byte) 0;
       try {
         // Get input and output stream from the connection
-        inp = c.getInputStream();
-        out = c.getOutputStream();
+        //inp = c.getInputStream();
+        //out = c.getOutputStream();
 	
 	      boolean loop = false;
       	do {
 	        // Read the input
-	        JICPPacket pkt = JICPPacket.readFrom(inp);
+	        //JICPPacket pkt = JICPPacket.readFrom(inp);
+	        JICPPacket pkt = c.readPacket();
 	        status = 1;
 	        
 	        // Reply packet
@@ -382,14 +391,15 @@ public class JICPServer extends Thread {
 		  String id = p.getProperty(Profile.BE_MEDIATOR_ID);
 		  if(id == null) {
 		      // The string representation of the server's TCP endpoint is used to build an unique mediator ID
-		      id = localHost + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
+		      id = localHost.getHostName() + ':' + server.getLocalPort() + '-' + String.valueOf(mediatorCnt++);
 		  }
 
 	          log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
 	          JICPMediator m = startMediator(id, p);
-		  m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
+		  			m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
 	          mediators.put(id, m);
+	          // Create an ad-hoc reply including the assigned mediator-id
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
 	        	closeConnection = false;
 	        	break;
@@ -420,7 +430,8 @@ public class JICPServer extends Thread {
 	
 	        // Send the actual response data
 	        if (reply != null) {
-		        reply.writeTo(out);
+		        //reply.writeTo(out);
+	        	c.writePacket(reply);
 	        }
 	        status = 3;
       	} while (loop); 
@@ -436,9 +447,9 @@ public class JICPServer extends Thread {
         	e.printStackTrace();
 	      	// If the incoming packet was a command, try 
         	// to send back a generic error response
-	        if (type == JICPProtocol.COMMAND_TYPE && out != null) {
+	        if (type == JICPProtocol.COMMAND_TYPE && c != null) {
 	          try {
-	            new JICPPacket("Unexpected error", e).writeTo(out);
+	            c.writePacket(new JICPPacket("Unexpected error", e));
 	          } 
 	          catch (IOException ioe) {   
 	          	// Just print a warning
@@ -464,7 +475,9 @@ public class JICPServer extends Thread {
         try {
           if (closeConnection) {
             // Close connection
-          	log("Closing connection with "+addr+":"+port, 3);
+		        if (!addr.equals(localHost)) {
+	          	log("Closing connection with "+addr+":"+port, 3);
+		        }
           	c.close();
           } 
         } 
@@ -475,8 +488,7 @@ public class JICPServer extends Thread {
       	handlersCnt--;
       } 
     } 
-
-  }
+  } // END of inner class ConnectionHandler
 
   private Properties parseProperties(String s) throws ICPException {
   	StringTokenizer st = new StringTokenizer(s, "=#");

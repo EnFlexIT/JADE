@@ -36,10 +36,6 @@ import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-/*#MIDP_INCLUDE_BEGIN
-import javax.microedition.midlet.*;
-import javax.microedition.lcdui.*;
-#MIDP_INCLUDE_END*/
 
 import java.io.*;
 
@@ -255,9 +251,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   protected void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
   	log("Opening connection to the BackEnd", 2);
-    Connection c = new Connection(mediatorTA);
-    OutputStream out = c.getOutputStream();
-    InputStream inp = c.getInputStream();
+    Connection c = new JICPConnection(mediatorTA);
 
     log("Sending CREATE/CONNECT_MEDIATOR packet", 2);
     JICPPacket pkt = null;
@@ -280,11 +274,11 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	}
     	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
     }
-    pkt.writeTo(out);
+    c.writePacket(pkt);
 
     log("Packet sent. Read response", 2);
     // Read the response
-    pkt = JICPPacket.readFrom(inp);
+    pkt = c.readPacket();
     log("Response read", 2);
     if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
@@ -385,11 +379,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	protected synchronized void handleConnectionError() {
 		notifyAll();		
 		if (mediatorAlive) {
-			/*#MIDP_INCLUDE_BEGIN
-			// We cannot re-connected --> Notify the user (MIDP specific) 
-			Display d = Display.getDisplay(jade.core.Agent.midlet);
-			d.setCurrent(new Form("Cannot reconnect. Try again later"));
-			#MIDP_INCLUDE_END*/
+			// We cannot re-connected 
 		}
 	}
 }

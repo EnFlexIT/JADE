@@ -213,13 +213,11 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	  String host = addr.substring(0, colonPos);
 	  String port = addr.substring(colonPos + 1, addr.length());
 	  JICPAddress targetAddress = new JICPAddress(host, port, "", "");
-	  Connection c = new Connection(targetAddress);
-	  OutputStream out = c.getOutputStream();
-	  InputStream inp = c.getInputStream();
-	  pkt.writeTo(out);
+	  Connection c = new JICPConnection(targetAddress);
+	  c.writePacket(pkt);
 
 	  // Read back the response
-	  pkt = JICPPacket.readFrom(inp);
+	  pkt = c.readPacket();
 	  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 	      // The JICPServer refused to create the Mediator or didn't find myMediator anymore
 	      byte[] data = pkt.getData();

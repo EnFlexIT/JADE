@@ -33,143 +33,39 @@
  * **************************************************************
  */
 
-
 package jade.imtp.leap.JICP;
 
-import jade.mtp.TransportAddress;
-import jade.imtp.leap.*;
-import java.io.*;
+import java.io.IOException;
 //#MIDP_EXCLUDE_BEGIN
 import java.net.*;
 //#MIDP_EXCLUDE_END
-/*#MIDP_INCLUDE_BEGIN
-import javax.microedition.io.*;
-#MIDP_INCLUDE_END*/
-import jade.util.Logger;
+
 
 /**
- * Class declaration
- * @author Steffen Rusitschka - Siemens
+   Abstract base class representing a generic connection that can be used
+   to send/receive JICP packets over the network.
+   @author Giovanni Caire - TILAB
  */
-public class Connection {
-
-	//#MIDP_EXCLUDE_BEGIN
-  private Socket       sc;
-	//#MIDP_EXCLUDE_END
-	/*#MIDP_INCLUDE_BEGIN
-  private StreamConnection sc;
-	#MIDP_INCLUDE_END*/
-  private InputStream  is;
-  private OutputStream os;
-  private ByteArrayOutputStream bos;
-
-  protected Connection() {
-  }
-  
-  /**
-   * Constructor declaration
-   */
-  public Connection(TransportAddress ta) throws IOException {
-		//#MIDP_EXCLUDE_BEGIN
-  	// For some reason the local address or port may be in use
-  	while (true) {
-  		try {  		
-  			sc = new Socket(ta.getHost(), Integer.parseInt(ta.getPort()));
-    		break;
-  		}
-  		catch (BindException be) {
-  			// Do nothing and try again
-  		}
-  	}
-		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
-    String url = "socket://"+ta.getHost()+":"+ta.getPort();
-    sc = (StreamConnection) Connector.open(url, Connector.READ_WRITE, false);
-		#MIDP_INCLUDE_END*/
-  }
-
+public abstract class Connection {
+	/**
+	   Read a JICPPacket from the connection
+	 */
+	public abstract JICPPacket readPacket() throws IOException;
+	
+	/**
+	   Write a JICPPacket on the connection
+	 */
+	public abstract int writePacket(JICPPacket pkt) throws IOException;
+	
+	/**
+	   Close the connection
+	 */
+	public abstract void close() throws IOException;
+	
   //#MIDP_EXCLUDE_BEGIN
-  /**
-   * Constructor declaration
-   */
-  public Connection(Socket s) {
-  	sc = s;
-  }
-  //#MIDP_EXCLUDE_END
-
-  /**
-   */
-  public OutputStream getOutputStream() throws IOException {
-    if (sc == null) {
-      throw new IOException("connection not open");
-    } 
-    if (bos == null) {
-  		bos = new ByteArrayOutputStream() {
-  			public void flush() throws IOException {
-  				if (os == null) {
-			    	//#MIDP_EXCLUDE_BEGIN
-			      os = sc.getOutputStream();
-			    	//#MIDP_EXCLUDE_END
-			    	/*#MIDP_INCLUDE_BEGIN
-			      os = sc.openOutputStream();
-			    	#MIDP_INCLUDE_END*/
-  				}
-  				os.write(buf, 0, count);
-  				os.flush();
-  				reset();
-  			}
-  		};
-    } 
-    return bos;
-  } 
-
-  /**
-   */
-  public InputStream getInputStream() throws IOException {
-    if (sc == null) {
-      throw new IOException("connection not open");
-    } 
-    if (is == null) {
-    	//#MIDP_EXCLUDE_BEGIN
-      is = sc.getInputStream();
-    	//#MIDP_EXCLUDE_END
-    	/*#MIDP_INCLUDE_BEGIN
-      is = sc.openInputStream();
-    	#MIDP_INCLUDE_END*/
-    } 
-    return is;
-  } 
-
-  /**
-   */
-  public void close() throws IOException {
-    if (sc == null) {
-      throw new IOException("connection not open");
-    } 
-    if (is != null) {
-      is.close();
-      is = null;
-    } 
-    if (os != null) {
-      os.close();
-      os = null;
-    } 
-    sc.close();
-    sc = null;
-  } 
-
-  //#MIDP_EXCLUDE_BEGIN
-  /**
-   */
-  public String getRemoteHost() throws Exception {
-    return sc.getInetAddress().getHostAddress();
-  }
-  //#MIDP_EXCLUDE_END
+  public abstract String getRemoteHost() throws Exception;
   
-  /**
-   */
   public static String getLocalHost() throws Exception {
-  	//#MIDP_EXCLUDE_BEGIN
     String host = InetAddress.getLocalHost().getHostAddress();
 
     if ("127.0.0.1".equals(host)) {
@@ -182,10 +78,7 @@ public class Connection {
     } 
 
     return host;
-  	//#MIDP_EXCLUDE_END
-    /*#MIDP_INCLUDE_BEGIN
-    throw new Exception("Not supported");
-    #MIDP_INCLUDE_END*/
-  } 
+  }
+  //#MIDP_EXCLUDE_END
 }
 

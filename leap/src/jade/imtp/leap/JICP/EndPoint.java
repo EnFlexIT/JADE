@@ -178,7 +178,7 @@ public abstract class EndPoint extends Thread {
 		log("Waiting for a command...", 3);
 
 		// Read JICPPacket
-		JICPPacket pkt = JICPPacket.readFrom(inp);
+		JICPPacket pkt = theConnection.readPacket();
 		servePacket(pkt);          
 	    }
 	    catch (Throwable t) {
@@ -265,7 +265,6 @@ public abstract class EndPoint extends Thread {
   					pkt.setTerminatedInfo();
   				}
 			    // Write the session id and the packet
-			    //out.write(id);
   				pkt.setSessionID(id);
 				  return deliver(pkt);
 		    }
@@ -285,7 +284,7 @@ public abstract class EndPoint extends Thread {
      make it possible to customize it
    */
   protected int deliver(JICPPacket pkt) throws IOException {
-  	return pkt.writeTo(out);
+  	return theConnection.writePacket(pkt);
   }
 
   /**
@@ -322,8 +321,6 @@ public abstract class EndPoint extends Thread {
   protected final void setConnection(Connection c) throws IOException {
   	synchronized (connectionLock) {
 			theConnection = c;
-	    out = theConnection.getOutputStream();
-	    inp = theConnection.getInputStream();
 			connected = true;
   	}
   }

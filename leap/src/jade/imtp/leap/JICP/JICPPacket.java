@@ -219,46 +219,41 @@ public class JICPPacket {
    */
   public int writeTo(OutputStream out) throws IOException {
   	int cnt = 2;
-    try {
-      // Write the packet type
-      out.write(type);
+    // Write the packet type
+    out.write(type);
 
-      // Write the packet info
-      out.write(info);
+    // Write the packet info
+    out.write(info);
 
-      // Write the session ID if present
-      if (sessionID >= 0) {
-	      out.write(sessionID);
-	      cnt++;
-      }
+    // Write the session ID if present
+    if (sessionID >= 0) {
+      out.write(sessionID);
+      cnt++;
+    }
 
-      // Write recipient ID only if != null
-      if (recipientID != null) {
-      	out.write(recipientID.length());
-      	out.write(recipientID.getBytes());
-      	cnt += (1 + recipientID.length());
-      } 
-
-      // Write data only if != null
-      if (data != null) {
-	      // Size
-      	int size = data.length;
-      	out.write(size);
-      	out.write(size >> 8);      	
-      	cnt += 2;
-      	// Payload
-      	if (size > 0) {
-        	out.write(data, 0, size);
-        	cnt += size;
-      	}
-      }
-    	// DEBUG
-    	//System.out.println(getLength()+" bytes written");
-      return cnt;
+    // Write recipient ID only if != null
+    if (recipientID != null) {
+    	out.write(recipientID.length());
+    	out.write(recipientID.getBytes());
+    	cnt += (1 + recipientID.length());
     } 
-    finally {
-      out.flush();
-    } 
+
+    // Write data only if != null
+    if (data != null) {
+      // Size
+    	int size = data.length;
+    	out.write(size);
+    	out.write(size >> 8);      	
+    	cnt += 2;
+    	// Payload
+    	if (size > 0) {
+      	out.write(data, 0, size);
+      	cnt += size;
+    	}
+    }
+  	// DEBUG
+  	//System.out.println(getLength()+" bytes written");
+    return cnt;
   } 
 
   /**
@@ -334,6 +329,5 @@ public class JICPPacket {
   public int getLength() {      
   	return (2 + (sessionID >= 0 ? 1 : 0) + (recipientID != null ? 1+recipientID.length() : 0) + (data != null ? 2+data.length : 0));
   }
-  
 }
 

@@ -37,9 +37,8 @@ package jade.imtp.leap.http;
 //#MIDP_EXCLUDE_FILE
 
 import jade.mtp.TransportAddress;
-import jade.imtp.leap.*;
-import jade.util.Logger;
 import jade.imtp.leap.JICP.Connection;
+import jade.imtp.leap.JICP.JICPPacket;
 
 import java.io.*;
 import java.net.*;
@@ -58,8 +57,6 @@ public class HTTPServerConnection extends Connection {
   private Socket sc;
   private InputStream  is;
   private OutputStream os;
-  private OutputStream bos;
-  private InputStream bis;
   private boolean readAvailable;
   private boolean writeAvailable;
 
@@ -69,69 +66,51 @@ public class HTTPServerConnection extends Connection {
   public HTTPServerConnection(Socket s) {
   	sc = s;
 		readAvailable = true;
-		writeAvailable = true;
-		
-		// Create the output stream
-		bos = new ByteArrayOutputStream() {
-			public void flush() throws IOException {
-				if (writeAvailable) {
-					// Create an HTTPResponse having buf as payload 
-					HTTPResponse response = new HTTPResponse();
-					response.setCode("200");
-					response.setMessage("OK");
-					response.setHttpType("HTTP/1.0");
-					response.setPayload(buf, 0, count);
-					// Write the HTTPResponse to os and close the connection
-  				os = sc.getOutputStream();
-					response.writeTo(os);
-  				HTTPServerConnection.this.close();
-				}
-				else {
-					throw new IOException("Write not available");
-				}
-			}
-		};
-		
-		// Create the input stream. Note that we do not extend 
-		// ByteArrayInputStream as its read() method does not 
-		// throw IOException.
-		bis = new InputStream() {
-			private byte[] buf;
-			private int count = 0;
-			private int pos = 0;
-			public int read() throws IOException {
-				if (pos == count) {
-					// Fill the buffer
-			    if (readAvailable) {
-				    HTTPRequest request = new HTTPRequest();
-  					is = sc.getInputStream();
-				    request.readFrom(is);
-				    buf = request.getPayload();
-				    count = buf.length;
-				    pos = 0;
-				    readAvailable = false;
-			    }
-			    else {
-						throw new IOException("Read not available");
-					}
-				}
-				return (buf[pos++] & 0x000000ff);
-			}
-		};
+		writeAvailable = false;
   }
-
-  /**
-   */
-  public OutputStream getOutputStream() throws IOException {
-    return bos;
-  } 
-
-  /**
-   */
-  public InputStream getInputStream() throws IOException {
-    return bis;
-  } 
-
+  
+  public JICPPacket readPacket() throws IOException {
+    if (readAvailable) {
+    	// Read an HTTP request from the network
+	    HTTPRequest request = new HTTPRequest();
+			is = sc.getInputStream();
+	    request.readFrom(is);
+	    readAvailable = false;
+	    writeAvailable = true;
+	    // Read the JICPPacket from the HTTP request payload
+	    ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
+	    return JICPPacket.readFrom(bis);
+    }
+    else {
+			throw new IOException("Read not available");
+		}
+  }
+  
+  public int writePacket(JICPPacket pkt) throws IOException {
+		if (writeAvailable) {
+			// Transform the JICPPacket into a sequence of bytes
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			int ret = pkt.writeTo(bos);
+			// Create an HTTPResponse and set the serialized JICPPacket as payload 
+			HTTPResponse response = new HTTPResponse();
+			response.setCode("200");
+			response.setMessage("OK");
+			response.setHttpType("HTTP/1.1");
+			response.setPayload(bos.toByteArray());
+			// Write the HTTPResponse to os and close the connection
+			os = sc.getOutputStream();
+			response.writeTo(os);
+			os.flush();
+	    readAvailable = true;
+	    writeAvailable = false;
+			close();
+			return ret;
+		}
+		else {
+			throw new IOException("Write not available");
+		}
+  }
+		
   /**
    */
   public void close() throws IOException {

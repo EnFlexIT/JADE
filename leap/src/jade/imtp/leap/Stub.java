@@ -99,7 +99,7 @@ class Stub {
    */
   protected int checkResult(Command result, String[] expectedExceptions) throws IMTPException {
     if (result.getCode() == Command.ERROR) {
-
+    	
       // An exception was thrown in the remote container.
       // Check if it is one of the expected exceptions.
       String exceptionName = (String) result.getParamAt(0);

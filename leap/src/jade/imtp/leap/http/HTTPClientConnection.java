@@ -35,8 +35,8 @@
 package jade.imtp.leap.http;
 
 import jade.mtp.TransportAddress;
-import jade.imtp.leap.*;
 import jade.imtp.leap.JICP.Connection;
+import jade.imtp.leap.JICP.JICPPacket;
 
 import java.io.*;
 //#MIDP_EXCLUDE_BEGIN
@@ -61,8 +61,6 @@ public class HTTPClientConnection extends Connection {
   private String url;
   private InputStream  is;
   private OutputStream os;
-  private OutputStream bos;
-  private InputStream bis;
   private boolean opened;
   
   /**
@@ -70,104 +68,68 @@ public class HTTPClientConnection extends Connection {
    */
   public HTTPClientConnection(TransportAddress ta) {
     url = "http://"+ta.getHost()+":"+ta.getPort()+"/jade";
-  	opened = false;
-		
-		// Create the output stream
-		bos = new ByteArrayOutputStream() {
-			public void flush() throws IOException {
-				try {
-					// Be sure the connection is closed
-					if (!opened) {
-			    	//#MIDP_EXCLUDE_BEGIN
-						hc = (HttpURLConnection) (new URL(url)).openConnection();
-						hc.setDoOutput(true);
-						hc.setRequestMethod("POST");
-						hc.connect();
-						os = hc.getOutputStream();
-			    	//#MIDP_EXCLUDE_END
-			    	/*#MIDP_INCLUDE_BEGIN
-						hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
-						hc.setRequestMethod(HttpConnection.POST);
-			      os = hc.openOutputStream();
-			      #MIDP_INCLUDE_END*/
-						os.write(buf, 0, count);
-						opened = true;
-					}
-					else {
-						throw new IOException("Can't write on an opened connection");
-					}
-				}
-				finally {
-					// Reset the ByteArrayOutputStream even if flush() failed
-					reset();
-				}
-			}
-		};
-		
-		// Create the input stream. Note that we do not extend 
-		// ByteArrayInputStream as its read() method does not 
-		// throw IOException.
-		bis = new InputStream() {
-			private byte[] buf;
-			private int count = 0;
-			private int pos = 0;
-			public int read() throws IOException {
-				if (pos >= count) {
-					// Fill the buffer
-			    if (opened) {
-			    	try {
-					    //#MIDP_EXCLUDE_BEGIN
-							is = hc.getInputStream();
-							int length = hc.getContentLength();
-					    //#MIDP_EXCLUDE_END
-					    /*#MIDP_INCLUDE_BEGIN
-							is = hc.openInputStream();
-				    	int length = (int) hc.getLength();
-					    #MIDP_INCLUDE_END*/
-					    buf = new byte[length];
-					    int n = 0;
-					    while (n < length) {
-				    		n += is.read(buf, n, buf.length-n);
-					    }
-					    count = buf.length;
-					    pos = 0;
-			    	}
-			    	finally {
-		  				HTTPClientConnection.this.close();
-			    	}
-			    }
-			    else {
-						throw new IOException("Can't read from a closed connection");
-			    }
-				}
-				return (buf[pos++] & 0x000000ff);
-			}
-		};
+    opened = false;
   }
-
-  /**
-   */
-  public OutputStream getOutputStream() throws IOException {
-    return bos;
-  } 
-
-  /**
-   */
-  public InputStream getInputStream() throws IOException {
-    return bis;
-  } 
-
+  
+  public int writePacket(JICPPacket pkt) throws IOException {
+  	if (!opened) {
+	  	//#MIDP_EXCLUDE_BEGIN
+			hc = (HttpURLConnection) (new URL(url)).openConnection();
+			hc.setDoOutput(true);
+			hc.setRequestMethod("POST");
+			hc.connect();
+			os = hc.getOutputStream();
+	  	//#MIDP_EXCLUDE_END
+			
+	  	/*#MIDP_INCLUDE_BEGIN
+			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
+			hc.setRequestMethod(HttpConnection.POST);
+	    os = hc.openOutputStream();
+	    #MIDP_INCLUDE_END*/
+	    
+	    int ret = pkt.writeTo(os);
+	    opened = true;
+	    return ret;
+  	}
+  	else {
+  		throw new IOException("Write not available");
+  	}
+  }
+  
+  public JICPPacket readPacket() throws IOException {
+    if (opened) {
+    	try {
+		    //#MIDP_EXCLUDE_BEGIN
+				is = hc.getInputStream();
+				//int length = hc.getContentLength();
+		    //#MIDP_EXCLUDE_END
+		    /*#MIDP_INCLUDE_BEGIN
+				is = hc.openInputStream();
+	    	//int length = (int) hc.getLength();
+		    #MIDP_INCLUDE_END*/
+		    
+		    return JICPPacket.readFrom(is);
+    	}
+    	finally {
+    		close();
+    	}
+    }
+    else {
+			throw new IOException("Can't read from a closed connection");
+    }
+  }
+						
   /**
    */
   public void close() throws IOException {
   	opened = false;
-    if (is != null) {
-      is.close();
-      is = null;
-    } 
     if (os != null) {
       os.close();
       os = null;
+    } 
+    if (is != null) {
+      is.close();
+      is = null;
     } 
     if (hc != null) {
     	//#MIDP_EXCLUDE_BEGIN

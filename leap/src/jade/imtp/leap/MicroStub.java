@@ -85,6 +85,10 @@ public class MicroStub {
 	private void postpone(Command c) {
 		//Logger.println(Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		pendingCommands.addElement(c);
+		int size = pendingCommands.size();
+  	if (size > 100 && size < 110) {
+  		jade.util.Logger.println(size+" postponed commands");
+  	}
 	}
 	
 	

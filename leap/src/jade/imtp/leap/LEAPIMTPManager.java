@@ -686,6 +686,7 @@ public class LEAPIMTPManager implements IMTPManager {
    */
   private String getMainHost() {
   	String host = theProfile.getParameter(Profile.MAIN_HOST, null);
+  	//#MIDP_EXCLUDE_BEGIN
   	if (host == null) {
 	    try {
       	host = Connection.getLocalHost();
@@ -693,6 +694,7 @@ public class LEAPIMTPManager implements IMTPManager {
     	catch (Exception e) {
     	}
   	}
+  	//#MIDP_EXCLUDE_END
     return host;
   }
   

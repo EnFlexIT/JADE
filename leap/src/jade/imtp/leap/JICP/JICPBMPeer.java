@@ -221,9 +221,9 @@ public class JICPBMPeer extends EndPoint implements ICP {
 
   private void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
-    Connection c = new Connection(mediatorServerTA);
-    DataOutputStream out = new DataOutputStream(c.getOutputStream());
-    DataInputStream inp = new DataInputStream(c.getInputStream());
+    Connection c = new JICPConnection(mediatorServerTA);
+    //DataOutputStream out = new DataOutputStream(c.getOutputStream());
+    //DataInputStream inp = new DataInputStream(c.getInputStream());
 
     JICPPacket pkt = null;
     if (mediatorAlive) {
@@ -239,10 +239,12 @@ public class JICPBMPeer extends EndPoint implements ICP {
     	sb.append(maxDisconnectionTime);
     	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 		}    	
-    pkt.writeTo(out);
+    //pkt.writeTo(out);
+		c.writePacket(pkt);
 
     // Read the response
-    pkt = JICPPacket.readFrom(inp);
+    //pkt = JICPPacket.readFrom(inp);
+		pkt = c.readPacket();
     if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();

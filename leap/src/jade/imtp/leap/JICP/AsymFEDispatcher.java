@@ -47,10 +47,10 @@ public class AsymFEDispatcher extends FrontEndDispatcher {
    */
 	protected int deliver(JICPPacket pkt) throws IOException {
 		pkt.setRecipientID(mediatorTA.getFile());
-    Connection c = new Connection(mediatorTA);
-    OutputStream o = c.getOutputStream();
-		int cnt = pkt.writeTo(o);
-		o.close();
+    Connection c = new JICPConnection(mediatorTA);
+    //OutputStream o = c.getOutputStream();
+		//int cnt = pkt.writeTo(o);
+		int cnt = c.writePacket(pkt);
 		c.close();
 		return cnt;
 	}		

@@ -86,7 +86,6 @@ public class JICPPeer implements ICP {
 		host = p.getParameter(sb.toString(), null);
 		if (host == null) {
 			// Local host not specified --> try to get it using JICP GET_ADDRESS
-			//sb.delete(idLength, sb.length());
 			sb.setLength(idLength);
 			sb.append(JICPProtocol.REMOTE_URL_KEY);
 			String remoteURL = p.getParameter(sb.toString(), null);
@@ -113,8 +112,7 @@ public class JICPPeer implements ICP {
       port = Integer.parseInt(strPort);
     } 
     catch (Exception e) {
-      // Use default unless busy 
-    	//changePortIfBusy = ("false".equalsIgnoreCase(p.getParameter(Profile.MAIN, "true")));
+      // Keep default  
     } 
 			
     // Start listening for connections
@@ -190,10 +188,10 @@ public class JICPPeer implements ICP {
   protected ConnectionFactory getConnectionFactory() {
     return new ConnectionFactory() {
 			public Connection createConnection(Socket s) {
-				return new Connection(s);
+				return new JICPConnection(s);
 			}
 			public Connection createConnection(TransportAddress ta) throws IOException {
-				return new Connection(ta);
+				return new JICPConnection(ta);
 			}
     };
   }  

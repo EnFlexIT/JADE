@@ -88,6 +88,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
+  	verbosity = 3;
   	
   	// Max disconnection time
     long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -164,12 +165,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	  String port = addr.substring(colonPos + 1, addr.length());
 	  JICPAddress targetAddress = new JICPAddress(host, port, "", "");
 	  Connection c = new HTTPClientConnection(targetAddress);
-	  OutputStream out = c.getOutputStream();
-	  pkt.writeTo(out);
-
+		c.writePacket(pkt);
+		
 	  // Read back the response
-	  InputStream inp = c.getInputStream();
-	  pkt = JICPPacket.readFrom(inp);
+		pkt = c.readPacket();
 	  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 	      // The JICPServer refused to create the Mediator or didn't find myMediator anymore
 	      byte[] data = pkt.getData();
@@ -447,11 +446,12 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	}
 
   	/**
-  	   Dispatch a response from the FrontEnd to the issuer of the command
-  	   this response refers to.
+  	   Dispatch a response received from the FrontEnd to the issuer of the command
+  	   this response refers to. 
   	   If no one is waiting for this response (the frontEndStatus must be
   	   different from REACHABLE), set the frontEndStatus to REACHABLE.
-  	   @return the next outgoing command to be delivered to the FrontEnd 
+  	   Then wait for the next command to transfer to the FrontEnd.
+  	   @return the next outgoing command to be transferred to the FrontEnd 
   	   or null if the OutgoingsHandler is reset.
   	   Called by HTTPBEDispatcher#handleJICPPacket()
   	 */
@@ -469,7 +469,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     		// initial dummy response or a response that arrives after 
   			// the timeout has expired. 
   			if (frontEndStatus == CONNECTING) {
-		    	log("Initial dummy response received", 2);
+		    	log("Initial dummy response received "+rsp.getSessionID(), 2);
 		    	notifyInitialResponseReceived();
   			}
   			else {

@@ -306,7 +306,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
                                  Command command) throws DispatcherException, UnreachableException {
 
     // DEBUG
-    //System.out.println("Dispatching command of type " + command.getCode());
+    //TransportAddress ta = (TransportAddress) destTAs.get(0);
+    //System.out.println("Dispatching command of type " + command.getCode() + " to "+ta.getHost()+":"+ta.getPort());
     Command response = null;
     if (isLocal(destTAs)) {
     	Integer id = new Integer(command.getObjectID());
