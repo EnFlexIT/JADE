@@ -62,9 +62,6 @@ public class ShowOnlyAction extends AgentAction {
   if (!mainPanel.panelcan.canvAgent.isPresent(realName))
        mainPanel.panelcan.canvAgent.addAgent(agent);   // add Agent in the Canvas
   mainPanel.panelcan.canvAgent.repaintNoSniffedAgent(agent);
- }
-
- public void sendAgentVector() {
   mySniffer.sniffMsg(noSniffedAgents,Sniffer.SNIFF_OFF);   // Sniff the Agents
   noSniffedAgents.removeAllElements();
  }
