@@ -92,7 +92,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 	catch (Exception e) {
 		// Ignore and keep defaults
-		e.printStackTrace();
 	}
 		
 	myConnectionManager = cm;
