@@ -24,6 +24,7 @@
  */
 package jade.content.lang.leap;
 
+import jade.core.CaseInsensitiveString;
 import jade.content.lang.*;
 import jade.content.onto.*;
 import jade.content.abs.*;
@@ -37,8 +38,10 @@ import java.io.*;
  */
 public class LEAPCodec extends Codec {
     public static final String NAME = "LEAP";
+    
     private Vector             references = null;
     private int                counter = 0;
+    
     private static final byte  REFERENCE = 0;
     private static final byte  OBJECT = 1;
     private static final byte  ATTRIBUTE = 2;
@@ -54,15 +57,115 @@ public class LEAPCodec extends Codec {
     private static final byte  CONTENT_ELEMENT_LIST = 13;
     private static final byte  END_CONTENT_ELEMENT_LIST = 14;
 
+    // LEAP Language operators
+    public static final String INSTANCEOF = "INSTANCEOF";
+    public static final String INSTANCEOF_ENTITY = "entity";
+    public static final String INSTANCEOF_TYPE = "type";
+
+    public static final String IOTA = "IOTA";
+    
     /**
-     * Method declaration
-     *
-     * @param stream
-     * @param abs
-     *
-     * @throws IOException
-     *
-     * @see
+     * Construct a LEAPCodec object i.e. a Codec for the LEAP language
+     */
+    public LEAPCodec() {
+        super(NAME);
+    }
+
+    /**
+     * @return the ontology containing the schemas of the operator
+     * defined i this language
+     */
+    public Ontology getInnerOntology() {
+    	return LEAPOntology.getInstance();
+    }
+    
+    /**
+     * Encodes an abstract descriptor holding a content element
+     * into a byte array.
+     * @param content the content as an abstract descriptor.
+     * @return the content as a byte array.
+     * @throws CodecException
+     */
+    public byte[] encode(AbsContentElement content) throws CodecException {
+        try {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            DataOutputStream      stream = new DataOutputStream(buffer);
+
+            references = new Vector();
+            counter = 0;
+
+            write(stream, content);
+            stream.close();
+
+            return buffer.toByteArray();
+        } 
+        catch (IOException ioe) {
+            throw new CodecException(ioe.getMessage());
+        } 
+    } 
+
+    /**
+     * Encodes a content into a byte array.
+     * @param ontology the ontology 
+     * @param content the content as an abstract descriptor.
+     * @return the content as a byte array.
+     * @throws CodecException
+     */
+    public byte[] encode(Ontology ontology, AbsContentElement content) throws CodecException {
+        // FIXME: check content against ontology.getSchema(content.getTypeName())
+        return encode(content);
+    } 
+
+    /**
+     * Decodes the content to an abstract descriptor.
+     * @param content the content as a byte array.
+     * @return the content as an abstract description.
+     * @throws CodecException
+     */
+    public AbsContentElement decode(byte[] content) throws CodecException {
+        throw new CodecException("Not supported");
+    } 
+
+    /**
+     * Decodes the content to an abstract description.
+     * @param ontology the ontology.
+     * @param content the content as a byte array.
+     * @return the content as an abstract description.
+     * @throws CodecException
+     */
+    public AbsContentElement decode(Ontology ontology, 
+                                    byte[] content) throws CodecException {
+        try {
+            ByteArrayInputStream buffer = new ByteArrayInputStream(content);
+            DataInputStream      stream = new DataInputStream(buffer);
+
+            references = new Vector();
+            counter = 0;
+
+            if (content.length == 0) {
+                return null;
+            } 
+
+            AbsObject obj = read(stream, ontology);
+
+            // TODO: check obj against ontology.getSchema(obj.getTypeName());
+            stream.close();
+
+            return (AbsContentElement) obj;
+        } 
+        catch (OntologyException oe) {
+            throw new CodecException(oe.getMessage());
+        } 
+        catch (IOException ioe) {
+            throw new CodecException(ioe.getMessage());
+        } 
+        catch (ClassCastException cce) {
+            throw new CodecException(cce.getMessage());
+        } 
+    } 
+
+    /**
+     * Synchronized so that it can possibly be executed by different threads
      */
     private synchronized void write(DataOutputStream stream, 
                                     AbsObject abs) throws IOException {
@@ -92,9 +195,11 @@ public class LEAPCodec extends Codec {
                 stream.writeByte(INTEGER);
             } 
 
+            //__CLDC_UNSUPPORTED__BEGIN
             if (obj instanceof Float) {
                 stream.writeByte(FLOAT);
             } 
+            //__CLDC_UNSUPPORTED__END
 
             stream.writeUTF(obj.toString());
 
@@ -107,9 +212,9 @@ public class LEAPCodec extends Codec {
 
             AbsAggregate aggregate = (AbsAggregate) abs;
 
-            for (int i = 0; i < aggregate.getElementCount(); i++) {
+            for (int i = 0; i < aggregate.size(); i++) {
                 stream.writeByte(ELEMENT);
-                write(stream, aggregate.getElement(i));
+                write(stream, aggregate.get(i));
             } 
 
             stream.writeByte(END_AGGREGATE);
@@ -122,7 +227,7 @@ public class LEAPCodec extends Codec {
 
             AbsContentElementList acel = (AbsContentElementList) abs;
 
-            for (Iterator i = acel.getAll(); i.hasNext(); ) {
+            for (Iterator i = acel.iterator(); i.hasNext(); ) {
                 stream.writeByte(ELEMENT);
                 write(stream, (AbsObject) i.next());
             } 
@@ -151,22 +256,10 @@ public class LEAPCodec extends Codec {
     } 
 
     /**
-     * Method declaration
-     *
-     * @param stream
-     * @param ontology
-     *
-     * @return
-     *
-     * @throws IOException
-     * @throws OntologyException
-     *
-     * @see
+     * Synchronized so that it can possibly be executed by different threads
      */
     private synchronized AbsObject read(DataInputStream stream, 
-                                        Ontology onto) throws IOException, 
-                                        OntologyException {
-	FullOntology ontology = (FullOntology)onto;
+                                        Ontology ontology) throws IOException, OntologyException {
         try {
             byte kind = stream.readByte();
 
@@ -188,23 +281,33 @@ public class LEAPCodec extends Codec {
                 AbsPrimitive abs = null;
 
                 if (type == STRING) {
-                    abs = new AbsPrimitive(BasicOntology.STRING, value);
+                    abs = AbsPrimitive.wrap(value);
                 } 
 
                 if (type == BOOLEAN) {
-                    abs = new AbsPrimitive(BasicOntology.BOOLEAN, 
-                                           new Boolean(value));
+                		boolean b;
+                		if (CaseInsensitiveString.equalsIgnoreCase(value, "true")) {
+                			b = true;
+                		}
+                		else if (CaseInsensitiveString.equalsIgnoreCase(value, "false")) {
+                			b = false;
+                		}
+                		else {
+                			throw new CodecException("Wrong boolean value "+value);
+                		}
+                    abs = AbsPrimitive.wrap(b);
                 } 
 
                 if (type == INTEGER) {
-                    abs = new AbsPrimitive(BasicOntology.INTEGER, 
-                                           new Integer(value));
+                    abs = AbsPrimitive.wrap(Integer.parseInt(value));
                 } 
 
+                //__CLDC_UNSUPPORTED__BEGIN
                 if (type == FLOAT) {
-                    abs = new AbsPrimitive(BasicOntology.FLOAT, 
-                                           new Float(value));
+                		// Note that Float.parseFloat() is not available in PJAVA
+                    abs = AbsPrimitive.wrap((new Float(value)).floatValue());
                 } 
+                //__CLDC_UNSUPPORTED__END
 
                 return abs;
             } 
@@ -219,7 +322,12 @@ public class LEAPCodec extends Codec {
                         AbsObject elementValue = read(stream, ontology);
 
                         if (elementValue != null) {
+                        	try {
                             abs.add((AbsTerm) elementValue);
+                        	}
+                        	catch (ClassCastException cce) {
+                        		throw new CodecException("Non term element in aggregate"); 
+                        	}
                         } 
 
                         marker = stream.readByte();
@@ -239,7 +347,12 @@ public class LEAPCodec extends Codec {
                         AbsObject elementValue = read(stream, ontology);
 
                         if (elementValue != null) {
+                        	try {
                             abs.add((AbsContentElement) elementValue);
+                        	}
+                        	catch (ClassCastException cce) {
+                        		throw new CodecException("Non content-element element in content-element-list"); 
+                        	}
                         } 
 
                         marker = stream.readByte();
@@ -251,7 +364,9 @@ public class LEAPCodec extends Codec {
             } 
 
             String       typeName = stream.readUTF();
+            System.out.println("Type is "+typeName);
             ObjectSchema schema = ontology.getSchema(typeName);
+            System.out.println("Schema is "+schema);
             AbsObject    abs = schema.newInstance();
 
             references.addElement(abs);
@@ -262,11 +377,11 @@ public class LEAPCodec extends Codec {
 
             do {
                 if (marker == ATTRIBUTE) {
-                    String    slotName = stream.readUTF();
-                    AbsObject slotValue = read(stream, ontology);
+                    String    attributeName = stream.readUTF();
+                    AbsObject attributeValue = read(stream, ontology);
 
-                    if (slotValue != null) {
-                        abs.set(slotName, slotValue);
+                    if (attributeValue != null) {
+                        Ontology.setAttribute(abs, attributeName, attributeValue);
                     } 
 
                     marker = stream.readByte();
@@ -286,120 +401,5 @@ public class LEAPCodec extends Codec {
             throw new IOException("Corrupted stream");
         } 
     } 
-
-    /**
-     * Method declaration
-     *
-     * @param ontology
-     * @param content
-     *
-     * @return
-     *
-     * @throws CodecException
-     *
-     * @see
-     */
-    public byte[] encode(Ontology ontology, 
-                         AbsContentElement content) throws CodecException {
-
-        // TODO: check content against ontology.getElementSchema(content.getTypeName())
-        return encode(content);
-    } 
-
-    /**
-     * Method declaration
-     *
-     * @param ontology
-     * @param content
-     *
-     * @return
-     *
-     * @throws CodecException
-     *
-     * @see
-     */
-    public AbsContentElement decode(Ontology ontology, 
-                                    byte[] content) throws CodecException {
-        try {
-            ByteArrayInputStream buffer = new ByteArrayInputStream(content);
-            DataInputStream      stream = new DataInputStream(buffer);
-
-            references = new Vector();
-            counter = 0;
-
-            if (content.length == 0) {
-                return null;
-            } 
-
-            AbsObject obj = read(stream, ontology);
-
-            // TODO: check obj against ontology.getElementSchema(obj.getTypeName());
-            stream.close();
-
-            return (AbsContentElement) obj;
-        } 
-        catch (OntologyException oe) {
-            throw new CodecException(oe.getMessage());
-        } 
-        catch (IOException ioe) {
-            throw new CodecException(ioe.getMessage());
-        } 
-        catch (ClassCastException cce) {
-            throw new CodecException(cce.getMessage());
-        } 
-    } 
-
-    /**
-     * Method declaration
-     *
-     * @param content
-     *
-     * @return
-     *
-     * @throws CodecException
-     *
-     * @see
-     */
-    public AbsContentElement decode(byte[] content) throws CodecException {
-        throw new CodecException("Not supported");
-    } 
-
-    /**
-     * Method declaration
-     *
-     * @param content
-     *
-     * @return
-     *
-     * @throws CodecException
-     *
-     * @see
-     */
-    public byte[] encode(AbsContentElement content) throws CodecException {
-        try {
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            DataOutputStream      stream = new DataOutputStream(buffer);
-
-            references = new Vector();
-            counter = 0;
-
-            write(stream, content);
-            stream.close();
-
-            return buffer.toByteArray();
-        } 
-        catch (IOException ioe) {
-            throw new CodecException(ioe.getMessage());
-        } 
-    } 
-
-    /**
-     * Constructor declaration
-     *
-     */
-    public LEAPCodec() {
-        super(NAME);
-    }
-
 }
 

@@ -30,68 +30,86 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ActionPredicateSchema extends PropositionSchema {
+    public static final String         BASE_NAME = "ActionPredicate";
+    private static ActionPredicateSchema baseSchema = new ActionPredicateSchema();
 
     /**
-     * Constructor
-     *
-     * @param name name of the schema.
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * action predicate
      */
-    public ActionPredicateSchema(String name) {
-        super(name);
+    private ActionPredicateSchema() {
+        super(BASE_NAME);
     }
 
     /**
-     * Add parameters to the schema.
+     * Creates an <code>ActionPredicateSchema</code> with a given type-name.
      *
-     * @param name name of the parameter.
-     * @param actionSchema the schema of the parameter.
-     *
+     * @param typeName The name of this <code>ActionPredicateSchema</code>.
      */
-    public void add(String name, GenericActionSchema actionSchema) {
-        addElement(name, actionSchema);
+    public ActionPredicateSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for all action predicates.
+     *
+     * @return the generic base schema for all action predicates.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
+    
+    /**
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>GenericActionSchema</code>.
+     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     */
+    public void add(String name, GenericActionSchema slotSchema) {
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Add parameters to the schema.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>GenericActionSchema</code>.
      *
-     * @param name name of the parameter.
-     * @param actionSchema the schema of the parameter.
-     * @param cardinality the cardinality, i.e., optional or mandatory.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
-    public void add(String name, GenericActionSchema actionSchema, int cardinality) {
-        addElement(name, actionSchema, cardinality);
+    public void add(String name, GenericActionSchema slotSchema, int cardinality) {
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Add parameters to the schema.
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the parameter.
-     * @param termSchema schema of the parameter.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
-    public void add(String name, TermSchema termSchema) {
-        addElement(name, termSchema);
+    public void add(String name, TermSchema slotSchema) {
+        super.add(name, slotSchema);
     } 
 
    /**
-     * Add parameters to the schema.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the parameter.
-     * @param actionSchema the schema of the parameter.
-     * @param cardinality the cardinality, i.e., optional or mandatory.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
-    public void add(String name, TermSchema termSchema, int cardinality) {
-        addElement(name, termSchema, cardinality);
+    public void add(String name, TermSchema slotSchema, int cardinality) {
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Creates a new instance. 
-     *
-     * @return teh new instance.
-     *
+     * Creates an Abstract descriptor to hold an action predicate of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsActionPredicate(getTypeName());

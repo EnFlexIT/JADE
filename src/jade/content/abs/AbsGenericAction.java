@@ -24,30 +24,28 @@
  */
 package jade.content.abs;
 
-import jade.content.schema.GenericActionSchema;
+import jade.content.GenericAction;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsGenericAction extends AbsContentElement {
+public class AbsGenericAction extends AbsContentElement implements GenericAction {
 
     /**
-     * Constructor
-     *
+     * Construct an Abstract descriptor to hold a generic action of
+     * the proper type.
+     * @param typeName The name of the type of the generic action held by 
+     * this abstract descriptor.
      */
-    private AbsGenericAction() {
-        super(GenericActionSchema.BASE_NAME);
+    public AbsGenericAction(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Constructor
-     *
-     * @param name the name of the action.
-     *
      */
-    public AbsGenericAction(String name) {
-        super(name);
-    }
+    //private AbsGenericAction() {
+    //    super(GenericActionSchema.BASE_NAME);
+    //}
 
     /**
      * Retrieves the name of the action.
@@ -55,9 +53,9 @@ public class AbsGenericAction extends AbsContentElement {
      * @return the name of the action.
      *
      */
-    public String getName() {
-        return getTypeName();
-    } 
+    //public String getName() {
+    //    return getTypeName();
+    //} 
 
 }
 

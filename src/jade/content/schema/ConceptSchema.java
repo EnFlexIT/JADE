@@ -34,73 +34,71 @@ public class ConceptSchema extends TermSchema {
     private static ConceptSchema baseSchema = new ConceptSchema();
 
     /**
-     * Creates a schema with a name.
-     *
-     * @param name
-     *
-     */
-    public ConceptSchema(String name) {
-        super(name);
-
-        addBaseSchema(baseSchema);
-    }
-
-    /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * concept
      */
     private ConceptSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Retrieves the base schema of this schema.
+     * Creates a <code>ConceptSchema</code> with a given type-name.
      *
-     * @return the base schema.
-     *
+     * @param typeName The name of this <code>ConceptSchema</code>.
      */
-    public static TermSchema getBaseSchema() {
+    public ConceptSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for all concepts.
+     *
+     * @return the generic base schema for all concepts.
+     */
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Adds a slot to the schema.
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the slot.
-     * @param slotSchema schema of the slot.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
     public void add(String name, TermSchema slotSchema) {
-        addElement(name, slotSchema);
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Adds a slot to the schema.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the slot.
-     * @param slotSchema schema of the slot.
-     * @param cardinality cardinality of the slot, i.e., optional or mandatory.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
     public void add(String name, TermSchema slotSchema, int cardinality) {
-        addElement(name, slotSchema, cardinality);
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Adds a superclass to this schema.
+     * Adds a super-schema to this schema. This allows defining 
+     * inheritance relationships between ontological concepts.
+     * It must be noted that a concept always inherits from another 
+     * concept --> A super-schemas of a <code>ConceptSchema</code>
+     * must be a <code>ConceptSchema</code> too.
      *
-     * @param superClassSchema
-     *
+     * @param superClassSchema The super-schema to be added.
      */
     public void addSuperSchema(ConceptSchema superClassSchema) {
-        addBaseSchema(superClassSchema);
+        super.addSuperSchema(superClassSchema);
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a concept of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsConcept(getTypeName());

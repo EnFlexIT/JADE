@@ -32,11 +32,5 @@ import jade.util.leap.Iterator;
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface CommunicativeAct extends GenericAction {
-    void setSender(AID sender);
-    AID  getSender();
-
-    void clearAllReceiver();
-    Iterator getAllReceiver();
-    void addReceiver(AID aid);
 }
 

@@ -24,30 +24,30 @@
  */
 package jade.content.abs;
 
-import jade.content.schema.*;
+import jade.content.Term;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsTerm extends AbsObject {
+public class AbsTerm extends AbsObject implements Term {
 
     /**
-     * Constructor
-     *
-     * @param name the name of the term.
-     *
+     * Construct an Abstract descriptor to hold a term of
+     * the proper type.
+     * @param typeName The name of the type of the term held by this
+     * abstract descriptor.
      */
-    protected AbsTerm(String name) {
-        super(name);
+    public AbsTerm(String typeName) {
+        super(typeName);
     }
 
     /**
      * Constructor
      *
      */
-    public AbsTerm() {
-        super(TermSchema.BASE_NAME);
-    }
+    //public AbsTerm() {
+    //    super(TermSchema.BASE_NAME);
+    //}
 
 }
 

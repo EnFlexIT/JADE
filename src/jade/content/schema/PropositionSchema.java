@@ -34,40 +34,34 @@ public class PropositionSchema extends ContentElementSchema {
     private static PropositionSchema baseSchema = new PropositionSchema();
 
     /**
-     * Returns the base schema of this schema.
-     *
-     * @return the base schema of this schema.
-     *
-     */
-    public static ContentElementSchema getBaseSchema() {
-        return baseSchema;
-    } 
-
-    /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * proposition
      */
     private PropositionSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates the proposition `<code>proposition</code>'.
+     * Creates a <code>PropositionSchema</code> with a given type-name.
      *
-     * @param proposition the proposition.
-     *
+     * @param typeName The name of this <code>PropositionSchema</code>.
      */
-    public PropositionSchema(String proposition) {
-        super(proposition);
-
-        addBaseSchema(baseSchema);
+    protected PropositionSchema(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Creates a new instance.
+     * Retrieve the generic base schema for all propositions.
      *
-     * @return the new instance.
-     *
+     * @return the generic base schema for all propositions.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
+
+    /**
+     * Creates an Abstract descriptor to hold a proposition of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsProposition(getTypeName());

@@ -24,19 +24,21 @@
  */
 package jade.content.abs;
 
+import jade.content.ContentElement;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsContentElement extends AbsObject {
+public class AbsContentElement extends AbsObject implements ContentElement {
 
     /**
-     * Constructor.
-     *
-     * @param name name of the content element.
-     *
+     * Construct an Abstract descriptor to hold a content element of
+     * the proper type.
+     * @param typeName The name of the type of the content element held by 
+     * this abstract descriptor.
      */
-    public AbsContentElement(String name) {
-        super(name);
+    public AbsContentElement(String typeName) {
+        super(typeName);
     }
 
 }

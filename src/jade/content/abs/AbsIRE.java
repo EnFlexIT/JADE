@@ -26,75 +26,53 @@ package jade.content.abs;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import jade.content.Term;
 
 /**
+ * Note that an IRE is both a content element (as in the case of
+ * a QUERY-REF communicative act) and a Term (as in the case of
+ * (== (X) (iota ?x P(?x))
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsIRE extends AbsProposition {
+public class AbsIRE extends AbsContentElement implements Term {
 
     /**
-     * Constructor
-     *
+     * Construct an Abstract descriptor to hold a IRE of
+     * the proper type (e.g. ANY, IOTA, ALL...).
+     * @param typeName The name of the type of the IRE held by 
+     * this abstract descriptor.
      */
-    public AbsIRE() {
-        super(IRESchema.BASE_NAME);
+    public AbsIRE(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets the kind of the IRE, i.e., the cardinality of the query.
-     *
-     * @param kind the kind of the IRE.
-     *
-     */
-    public void setKind(String kind) {
-        set(IRESchema.KIND, AbsPrimitive.wrap(kind));
-    } 
-
-    /**
-     * Sets the variable.
-     *
-     * @param variable the variable.
-     *
+     * Sets the variable of this IRE.
+     * @param variable The abstract descriptor holding the variable.
      */
     public void setVariable(AbsVariable variable) {
         set(IRESchema.VARIABLE, variable);
     } 
 
     /**
-     * Sets the proposition.
-     *
-     * @param proposition the proposition.
-     *
+     * Sets the proposition of this IRE.
+     * @param proposition The abstract descriptor holding the proposition.
      */
     public void setProposition(AbsProposition proposition) {
         set(IRESchema.PROPOSITION, proposition);
     } 
 
     /**
-     * Gets the kind of the IRE, i.e., the cardinality of the query.
-     *
-     * @return the kind of the IRE.
-     *
+     * Gets the variable of this IRE.
+     * @return the abstract descriptor holding the variable of this IRE.
      */
-    public String getKind() {
-        return ((AbsPrimitive) getAbsObject(IRESchema.KIND)).getString();
+    public AbsVariable getVariable() {
+        return (AbsVariable) getAbsObject(IRESchema.VARIABLE);
     } 
 
     /**
-     * Gets the variable.
-     *
-     * @return the variable.
-     *
-     */
-    public AbsAggregate getVariable() {
-        return (AbsAggregate) getAbsObject(IRESchema.VARIABLE);
-    } 
-
-    /**
-     * Gets the proposition.
-     *
-     * @return the proposition.
-     *
+     * Gets the proposition of this IRE.
+     * @return the abstract descriptor holding the proposition of this IRE.
      */
     public AbsProposition getProposition() {
         return (AbsProposition) getAbsObject(IRESchema.PROPOSITION);

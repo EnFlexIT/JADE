@@ -30,45 +30,38 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ContentElementSchema extends ObjectSchema {
-    public static final String          BASE_NAME = "ContentElement";
-    private static ContentElementSchema baseSchema = 
-        new ContentElementSchema();
+    public static final String         BASE_NAME = "ContentElement";
+    private static ContentElementSchema baseSchema = new ContentElementSchema();
 
     /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * content element
      */
     private ContentElementSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates a schema with a name.
+     * Creates a <code>ContentElementSchema</code> with a given type-name.
      *
-     * @param name the name of the schema.
-     *
+     * @param typeName The name of this <code>ContentElementSchema</code>.
      */
-    protected ContentElementSchema(String name) {
-        super(name);
-
-        addBaseSchema(baseSchema);
+    protected ContentElementSchema(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Gets the base schema of this schema.
+     * Retrieve the generic base schema for all content elements.
      *
-     * @return the base schema.
-     *
+     * @return the generic base schema for all content elements.
      */
-    public static ContentElementSchema getBaseSchema() {
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a content element of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsContentElement(getTypeName());

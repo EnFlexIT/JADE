@@ -24,60 +24,113 @@
  */
 package jade.content;
 
-import jade.content.onto.*;
-import jade.content.abs.*;
-import jade.util.leap.*;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ContentElementList implements ContentElement {
-    private List elements = new ArrayList();
-
+  	private List elements = new ArrayList();
+	
+  	/**
+   	 * Construct a ContentElementList object 
+   	 */
+  	public ContentElementList() {
+  	}
+  
     /**
-     * Constructor
-     *
+     * Adds a new element (that must be a content element) to this 
+     * content element list.
+     * @param element The element to add.
      */
-    public ContentElementList() {}
-
-    /**
-     * Adds a new element to the list. 
-     *
-     * @param t the new element.
-     *
-     */
-    public void addElement(ContentElement t) {
-        elements.add(t);
+    public void add(ContentElement element) {
+        elements.add(element);
     } 
 
     /**
-     * Retrieves the <code>i</code>-th element of the list. 
-     *
-     * @param i index of the element
-     *
-     * @return the element to retrieve
-     *
+     * Retrieves the number of elements in this content element list.
+     * @return The number of elements.
      */
-    public ContentElement getElement(int i) {
+    public int size() {
+        return elements.size();
+    } 
+
+    /**
+     * Retrieves the <code>i</code>-th element in this content element list.
+     * @param i The index of the element to retrieve.
+     * @return The element.
+     */
+    public ContentElement get(int i) {
         return (ContentElement) elements.get(i);
     } 
 
     /**
-     * Clears all elements..
-     *
+     * @return An <code>Iterator</code> over the elements of this
+     * content element list.
      */
-    public void clearAllElements() {
-        elements.clear();
+    public Iterator iterator() {
+        return elements.iterator();
     } 
 
     /**
-     * Retrieves the element in this list.
-     *
-     * @return an iterator to the list of elements.
-     *
+     * Clear all the elements in this content element list.
      */
-    public Iterator getAllElement() {
-        return elements.iterator();
-    } 
-}
+    public void clear() {
+			elements.clear();
+    }
 
+   	/**
+     * Test if a given content element is contained in this 
+     * content element list.
+     * @return <code>true</code> if the given content element is contained
+     * in this content element list.
+     */
+    public boolean contains (ContentElement element) {
+			return elements.contains(element);
+    }
+
+   	/**
+     * Returns the position of an element within this content element list.
+     * @return The position of an element within this content element list
+     * or -1 if the given element is not contained in this content element 
+     * list.
+     */
+    public int indexOf (ContentElement element) {
+			return elements.indexOf(element);
+    }
+
+   	/**
+     * Removes the element at the given position from this content
+     * element list.
+     * @return The removed element.
+     */
+    public ContentElement remove (int index) {
+			return (ContentElement)elements.remove(index);
+    }
+
+   	/**
+     * Test if the content element list is empty.
+     * @return <code>true</code> if this content element list does 
+     * not contain any element.
+     */
+    public boolean isEmpty () {
+			return elements.isEmpty();
+    }
+
+   	/**
+     * Retrieve all elements in this content element list in the form of 
+     * an array.
+     * @return An array containing all elements in this content element 
+     * list.
+     */
+    public ContentElement[] toArray () {
+			int size = elements.size();
+      ContentElement[] tmp = new ContentElement[size];
+      for (int i = 0; i < size; i++)
+      	tmp[i] = (ContentElement)elements.get(i);
+      return tmp;
+    }
+
+}

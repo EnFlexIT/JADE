@@ -31,55 +31,49 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class IRESchema extends ContentElementSchema {
-    public static final String ANY = ACLOntology.ANY;
-    public static final String IOTA = ACLOntology.IOTA;
-    public static final String ALL = ACLOntology.ALL;
     public static final String BASE_NAME = "IRE";
-    public static final String QUANTIFIED_VARIABLE = 
-        BasicOntology.QUANTIFIED_VARIABLE;
-    public static final String KIND = BasicOntology.KIND;
-    public static final String VARIABLE = BasicOntology.VARIABLE;
-    public static final String PROPOSITION = BasicOntology.PROPOSITION;
     private static IRESchema   baseSchema = new IRESchema();
+    
+    public static final String VARIABLE = "Variable";
+    public static final String PROPOSITION = "Proposition";
 
     /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * ire
      */
     private IRESchema() {
         super(BASE_NAME);
-
-        BasicOntology basicOntology = BasicOntology.getInstance();
-
-        try {
-            addElement(KIND, 
-                basicOntology.getSchema(BasicOntology.STRING));
-            addElement(VARIABLE, 
-                basicOntology.getSchema(BasicOntology.SET));
-            addElement(PROPOSITION, PropositionSchema.getBaseSchema());
-        } 
-        catch (OntologyException oe) {
-            oe.printStackTrace();
-        } 
     }
 
     /**
-     * Retrieves the base schema.
+     * Creates a <code>IRESchema</code> with a given type-name.
+     * All ire-s have a variable and a proposition.
      *
-     * @return the base schema.
-     *
+     * @param typeName The name of this <code>IRESchema</code> 
+     * (e.g. IOTA, ANY, ALL).
      */
-    public static ContentElementSchema getBaseSchema() {
+    public IRESchema(String typeName) {
+        super(typeName);
+
+        // FIXME It should be possible to specify a set of variables
+        add(VARIABLE, VariableSchema.getBaseSchema()); 
+        add(PROPOSITION, PropositionSchema.getBaseSchema());
+    }
+
+    /**
+     * Retrieve the generic base schema for all ire-s.
+     *
+     * @return the generic base schema for all ire-s.
+     */
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a ire of
+     * the proper type.
      */
     public AbsObject newInstance() {
-        return new AbsIRE();
+        return new AbsIRE(getTypeName());
     } 
 }

@@ -30,45 +30,62 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AgentActionSchema extends GenericActionSchema {
+    public static final String         BASE_NAME = "AgentAction";
+    private static AgentActionSchema baseSchema = new AgentActionSchema();
 
     /**
-     * Constructor
-     *
-     * @param name name of the schema.
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * agent action
      */
-    public AgentActionSchema(String name) {
-        super(name);
+    private AgentActionSchema() {
+        super(BASE_NAME);
     }
 
     /**
-     * Add a parameter to the schema.
+     * Creates an <code>AgentActionSchema</code> with a given type-name.
      *
-     * @param name name of the parameter.
-     * @param parameterSchema schema of the parameter.
-     *
+     * @param typeName The name of this <code>AgentActionSchema</code>.
      */
-    public void add(String name, TermSchema parameterSchema) {
-        addElement(name, parameterSchema);
+    public AgentActionSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for all agent actions.
+     *
+     * @return the generic base schema for all agent actions.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
     } 
 
     /**
-     * Add a parameter to the schema.
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the parameter.
-     * @param parameterSchema schema of the parameter.
-     * @param cardinality
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
-    public void add(String name, TermSchema parameterSchema, int cardinality) {
-        addElement(name, parameterSchema, cardinality);
+    public void add(String name, TermSchema slotSchema) {
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Creates a new instance.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @return the new instance.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
+     */
+    public void add(String name, TermSchema slotSchema, int cardinality) {
+        super.add(name, slotSchema, cardinality);
+    } 
+
+    /**
+     * Creates an Abstract descriptor to hold an agent action of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsAgentAction(getTypeName());

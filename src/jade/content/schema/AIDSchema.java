@@ -25,38 +25,51 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
+import jade.content.onto.BasicOntology;
+import jade.content.onto.OntologyException;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ContentElementListSchema extends ContentElementSchema {
-    public static final String BASE_NAME = "ContentElementList";
-    private static ContentElementListSchema baseSchema = new ContentElementListSchema();
+public class AIDSchema extends ConceptSchema {
+    public static final String BASE_NAME = "AID";
+    private static AIDSchema  baseSchema = new AIDSchema();
 
     /**
-     * Construct a schema that vinculates an entity to be a content element 
-     * list. Note that there are no different types of content element 
-     * list as it 
+     * Construct a schema that vinculates an entity to be an AID
+     * Note that there are no different types of AID as it 
      * happens for concepts (e.g. Person, Address...), IREs (e.g. IOTA,
-     * ANY, ALL...) and the like. Therefore there is no ContentElementListSchema
+     * ANY, ALL...) and the like. Therefore there is no AIDSchema
      * constructor that takes a String parameter.
      */
-    private ContentElementListSchema() {
+    private AIDSchema() {
         super(BASE_NAME);
+        
+        try {
+        	add(BasicOntology.AID_NAME, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
+        	add(BasicOntology.AID_ADDRESSES, BasicOntology.getInstance().getSchema(BasicOntology.SET));
+        	add(BasicOntology.AID_RESOLVERS, BasicOntology.getInstance().getSchema(BasicOntology.SET));
+        } 
+        catch (OntologyException oe) {
+            oe.printStackTrace();
+        } 
     }
 
     /**
-     * Retrieve the generic base schema for all content element lists.
-     * @return the generic base schema for all content element lists.
+     * Retrieve the generic base schema for AIDs.
+     *
+     * @return the generic base schema for AIDs.
      */
     public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates an Abstract descriptor to hold a content element list 
+     * Creates an Abstract descriptor to hold an AID      
      */
     public AbsObject newInstance() {
-        return new AbsContentElementList();
+        return new AbsAID();
     } 
+
 }
+

@@ -32,49 +32,30 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 import jade.core.AID;
+import jade.core.CaseInsensitiveString;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsHelper {
     /**
-     * Converts to a <code>List</code> using the specified ontology.
-     *
-     * @param onto the ontology
-     *
-     * @return the list
-     *
-     * @throws OntologyException
-     *
-     */
-    public static List toListObject(AbsAggregate aggregate, FullOntology onto) throws OntologyException {
-        List ret = new ArrayList();
-
-        for (int i = 0; i < aggregate.getElementCount(); i++) {
-            ret.add((Term) (onto.toObject((AbsObject) aggregate.getElement(i))));
-        }
-
-        return ret;
-    } 
-
-    /**
      * Converts a <code>List</code> into a <code>AbsAggregate</code> using
      * the specified ontology.
-     *
      * @param obj the <code>List</code>
      * @param onto the ontology.
-     *
      * @return the abstract descriptor.
-     *
      * @throws OntologyException
-     *
      */
-    public static AbsAggregate fromObject(List obj, FullOntology onto) 
-            throws OntologyException {
+    public static AbsAggregate externaliseList(List obj, Ontology onto) throws OntologyException {
         AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
 
-        for (int i = 0; i < obj.size(); i++) {
+        try {
+        	for (int i = 0; i < obj.size(); i++) {
             ret.add((AbsTerm) (onto.fromObject(obj.get(i))));
+        	}
+        }
+        catch (ClassCastException cce) {
+        	throw new OntologyException("Non term object in aggregate");
         }
 
         return ret;
@@ -83,116 +64,148 @@ public class AbsHelper {
     /**
      * Converts an <code>Iterator</code> into a <code>AbsAggregate</code> using
      * the specified ontology.
-     *
      * @param obj the <code>Iterator</code>
      * @param onto the ontology.
-     *
      * @return the abstract descriptor.
-     *
      * @throws OntologyException
-     *
      */
-    public static AbsAggregate fromObject(Iterator obj, FullOntology onto)
-            throws OntologyException {
+    public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto) throws OntologyException {
         AbsAggregate ret = new AbsAggregate(BasicOntology.SEQUENCE);
 
-        while(obj.hasNext())
+        try {
+        	while(obj.hasNext())
             ret.add((AbsTerm) (onto.fromObject(obj.next())));
-
+        }
+        catch (ClassCastException cce) {
+        	throw new OntologyException("Non term object in aggregate");
+        }
         return ret;
     }
 
     /**
-     * Converts to an <code>AID</code> using the specified ontology.
-     *
-     * @param onto the ontology
-     *
-     * @return the AID
-     *
+     * Converts an <code>AID</code> into a <code>AbsAID</code> using
+     * the specified ontology.
+     * @param obj the <code>AID</code>
+     * @param onto the ontology.
+     * @return the abstract descriptor.
      * @throws OntologyException
-     *
      */
-    public static AID toAIDObject(AbsAID aid, FullOntology onto) throws OntologyException {
-        AID ret = new AID();
+    public static AbsAID externaliseAID(AID obj) {
+      // Name
+      String name = obj.getName();
+      
+      // Addresses
+			AbsAggregate addresses = new AbsAggregate(BasicOntology.SET);
+			for(Iterator i = obj.getAllAddresses(); i.hasNext(); ) {
+				String addr = (String) i.next();
+	    	addresses.add(AbsPrimitive.wrap(addr));
+			}
 
-	String name = (String)(onto.toObject(aid.getAbsObject(BasicOntology.NAME)));
+			// Resolvers
+			AbsAggregate resolvers = new AbsAggregate(BasicOntology.SET);
+			for(Iterator i = obj.getAllResolvers(); i.hasNext(); ) {
+				AID res = (AID) i.next();
+	    	resolvers.add(externaliseAID(res));
+			}
+			
+      return new AbsAID(name, addresses, resolvers);
+    } 
 
-	List addresses = (List)(onto.toObject(aid.getAbsObject(BasicOntology.ADDRESSES)));
-	for(Iterator i = addresses.iterator(); i.hasNext();)
-	    ret.addAddresses((String)i.next());
+    /**
+     * Converts a <code>ContentElementList</code> into an
+     * <code>AbsContentElementList</code> using
+     * the specified ontology.
+     * @param obj the <code>ContentElementList</code>
+     * @param onto the ontology.
+     * @return the abstract descriptor.
+     * @throws OntologyException
+     */
+    public static AbsContentElementList externaliseContentElementList(ContentElementList obj, Ontology onto) throws OntologyException {
+        AbsContentElementList ret = new AbsContentElementList();
 
-	List resolvers = (List)(onto.toObject(aid.getAbsObject(BasicOntology.RESOLVERS)));
-	for(Iterator i = resolvers.iterator(); i.hasNext();)
-	    ret.addResolvers((AID)i.next());
-
-        ret.setName(name);
+        try {
+        	for (int i = 0; i < obj.size(); i++) {
+            ret.add((AbsContentElement) (onto.fromObject(obj.get(i))));
+        	}
+        }
+        catch (ClassCastException cce) {
+        	throw new OntologyException("Non content element object in content element list");
+        }
 
         return ret;
     } 
 
+            
     /**
-     * Converts an <code>AID</code> into a <code>AbsAggregate</code> using
-     * the specified ontology.
-     *
-     * @param obj the <code>AID</code>
-     * @param onto the ontology.
-     *
-     * @return the abstract descriptor.
-     *
-     * @throws OntologyException
-     *
-     */
-    public static AbsAID fromObject(AID obj, FullOntology onto) 
-            throws OntologyException {
-	AbsAggregate addresses = new AbsAggregate(BasicOntology.SET);
-
-	for(Iterator i = obj.getAllAddresses(); i.hasNext(); )
-	    addresses.add((AbsTerm)i.next());
-
-	AbsAggregate resolvers = new AbsAggregate(BasicOntology.SET);
-	for(Iterator i = obj.getAllResolvers(); i.hasNext(); )
-	    resolvers.add((AbsTerm)i.next());
-
-        return new AbsAID(obj.getName(), addresses, resolvers);
-    } 
-
-    /**
-     * Converts to a <code>List</code> using a specified ontology.
-     *
+     * Converts to an <code>AbsAggregate</code> into a List using the 
+     * specified ontology.
      * @param onto the ontology
-     *
-     * @return the <code>List</code>
-     *
+     * @return the List
      * @throws OntologyException
-     *
      */
-    public static List toListObject(AbsContentElementList abs, FullOntology onto) throws OntologyException {
+    public static List internaliseList(AbsAggregate aggregate, Ontology onto) throws OntologyException {
         List ret = new ArrayList();
 
-        for (Iterator i = abs.getAll(); i.hasNext(); ) {
-            ret.add(onto.toObject((AbsObject) i.next()));
+        for (int i = 0; i < aggregate.size(); i++) {
+        	Object element = onto.toObject(aggregate.get(i));
+        	// Check if the element is a Term, a primitive an AID or a List
+        	Ontology.checkIsTerm(element);
+          ret.add(element);
         }
 
         return ret;
     } 
 
     /**
-     * Converts to an abstract descriptor using the specified ontology.
-     *
-     * @param obj the <code>List</code> to convert.
-     * @param onto the ontology to use for the conversion.
-     *
-     * @return the abstract descriptor.
-     *
+     * Converts to an <code>AbsAID</code> into an OntoAID using the 
+     * specified ontology.
+     * @param onto the ontology
+     * @return the OntoAID
      * @throws OntologyException
-     *
      */
-    public static AbsContentElementList fromContentElementListObject(List obj, 
-            FullOntology onto) throws OntologyException {
-        AbsContentElementList ret = new AbsContentElementList();
+    public static OntoAID internaliseAID(AbsAID aid) {
+        OntoAID ret = new OntoAID();
 
-        for (Iterator i = obj.iterator(); i.hasNext(); ) {
-            ret.add((AbsContentElement) (onto.fromObject(i.next())));
+        // Name
+				String name = ((AbsPrimitive)(aid.getAbsObject(BasicOntology.AID_NAME))).getString();   
+				ret.setName(name);
+
+        // Addresses
+				AbsAggregate addresses = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_ADDRESSES);
+				for (int i = 0; i < addresses.size(); ++i) {
+					String addr = ((AbsPrimitive) addresses.get(i)).getString();
+	    		ret.addAddresses(addr);
+				}
+				
+        // Resolvers
+				AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
+				for (int i = 0; i < resolvers.size(); ++i) {
+					OntoAID res = internaliseAID((AbsAID) resolvers.get(i));
+	    		ret.addResolvers(res);
+				}
+
+        return ret;
+    } 
+
+    /**
+     * Converts to an <code>AbsContentElementList</code> into a 
+     * ContentElementList using the 
+     * specified ontology.
+     * @param onto the ontology
+     * @return the ContentElementList
+     * @throws OntologyException
+     */
+    public static ContentElementList internaliseContentElementList(AbsContentElementList l, Ontology onto) throws OntologyException {
+        ContentElementList ret = new ContentElementList();
+
+        try {
+        	for (int i = 0; i < l.size(); i++) {
+        		ContentElement element = (ContentElement) onto.toObject(l.get(i));
+          	ret.add(element);
+        	}
+        }
+        catch (ClassCastException cce) {
+        	throw new OntologyException("Non content element object in content element list");
         }
 
         return ret;

@@ -30,41 +30,38 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class PrimitiveSchema extends TermSchema {
+    public static final String         BASE_NAME = "Primitive";
     private static PrimitiveSchema baseSchema = new PrimitiveSchema();
 
     /**
-     * Creates a primitive schema of type <code>kind</code>.
-     *
-     * @param kind
-     *
-     */
-    public PrimitiveSchema(String kind) {
-        super(kind);
-    }
-
-    /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * primitive element
      */
     private PrimitiveSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Gets the base of this schema.
+     * Creates a <code>PrimitiveSchema</code> with a given type-name.
      *
-     * @return the base of this schema.
-     *
+     * @param typeName The name of this <code>PrimitiveSchema</code>.
      */
-    public static TermSchema getBaseSchema() {
+    public PrimitiveSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for all primitives.
+     *
+     * @return the generic base schema for all primitives.
+     */
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a primitive of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsPrimitive(getTypeName());

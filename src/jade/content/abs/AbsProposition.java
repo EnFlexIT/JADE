@@ -24,20 +24,21 @@
  */
 package jade.content.abs;
 
+import jade.content.Proposition;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsProposition extends AbsContentElement {
+public class AbsProposition extends AbsContentElement implements Proposition {
 
     /**
-     * Constructor
-     *
-     * @param name the name of the proposition.
-     *
+     * Construct an Abstract descriptor to hold a proposition of
+     * the proper type.
+     * @param typeName The name of the type of the proposition held by 
+     * this abstract descriptor.
      */
-    public AbsProposition(String name) {
-        super(name);
+    public AbsProposition(String typeName) {
+        super(typeName);
     }
-
 }
 

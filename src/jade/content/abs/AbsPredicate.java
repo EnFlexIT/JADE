@@ -24,33 +24,41 @@
  */
 package jade.content.abs;
 
-import java.util.Hashtable;
+import jade.content.Predicate;
 
 /**
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
-public class AbsPredicate extends AbsProposition {
+public class AbsPredicate extends AbsProposition implements Predicate {
 
     /**
-     * Constructor
-     *
-     * @param name of the predicate.
-     *
+     * Construct an Abstract descriptor to hold a predicate of
+     * the proper type.
+     * @param typeName The name of the type of the predicate held by 
+     * this abstract descriptor.
      */
-    public AbsPredicate(String name) {
-        super(name);
+    public AbsPredicate(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets the value of an argument.
-     *
-     * @param name of the argument.
-     * @param value of the argument.
-     *
+     * Sets an attribute of the predicate held by this
+     * abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, AbsTerm value) {
         super.set(name, value);
     } 
 
+    /**
+     * Gets the value of an attribute of the predicate 
+     * held by this abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
+     */
+    public AbsTerm getAbsTerm(String name) {
+        return (AbsTerm) getAbsObject(name);
+    } 
 }
 

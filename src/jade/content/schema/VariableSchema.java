@@ -32,36 +32,45 @@ import jade.content.abs.*;
  */
 public class VariableSchema extends TermSchema {
     public static final String    BASE_NAME = "Variable";
-    public static final String    NAME = BasicOntology.NAME;
-    public static final String    TYPE_NAME = BasicOntology.TYPE_NAME;
     private static VariableSchema baseSchema = new VariableSchema();
+    
+    public static final String    NAME = "Name";
+    public static final String    VALUE_TYPE = "ValueType";
 
     /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * variable.
+     * Note that there are no different types of variable as it 
+     * happens for concepts (e.g. Person, Address...), IREs (e.g. IOTA,
+     * ANY, ALL...) and the like. Therefore there is no VariableSchema
+     * constructor that takes a String parameter.
+     * Not also that the type of the values that can be assumed by
+     * the variable is another story and is defined by the 
+     * VARIABLE_VALUE_TYPE slot of the VariableSchema
      */
     private VariableSchema() {
         super(BASE_NAME);
 
-        addElement(NAME, new PrimitiveSchema(BasicOntology.STRING));
-        addElement(TYPE_NAME, new PrimitiveSchema(BasicOntology.STRING));
+        try {
+        	add(NAME, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
+        	add(VALUE_TYPE, BasicOntology.getInstance().getSchema(BasicOntology.STRING));
+        } 
+        catch (OntologyException oe) {
+            oe.printStackTrace();
+        } 
     }
 
     /**
-     * Retrieves the base schema.
+     * Retrieve the generic base schema for all variables.
      *
-     * @return the base schema.
-     *
+     * @return the generic base schema for all variables.
      */
-    public static TermSchema getBaseSchema() {
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a variable
      */
     public AbsObject newInstance() {
         return new AbsVariable();

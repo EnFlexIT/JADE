@@ -32,70 +32,86 @@ import java.util.Enumeration;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class HigherOrderPredicateSchema extends PropositionSchema {
+    public static final String         BASE_NAME = "HigherOrderPredicate";
+    private static HigherOrderPredicateSchema baseSchema = new HigherOrderPredicateSchema();
 
     /**
-     * Constructor
-     *
-     * @param name
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * higher order predicate
      */
-    public HigherOrderPredicateSchema(String name) {
-        super(name);
+    private HigherOrderPredicateSchema() {
+        super(BASE_NAME);
     }
 
     /**
-     * Adds an argument schema.
+     * Creates a <code>HigherOrderPredicateSchema</code> with a given type-name.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema to add.
+     * @param typeName The name of this <code>HigherOrderPredicateSchema</code>.
+     */
+    public HigherOrderPredicateSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for all higher order predicates.
      *
+     * @return the generic base schema for all higher order predicates.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
+
+    /**
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>PropositionSchema</code>.
+     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
     public void add(String name, PropositionSchema slotSchema) {
-        addElement(name, slotSchema);
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Adds an argument schema.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>PropositionSchema</code>.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema to add.
-     * @param cardinality cardinality of the argument, i.e., optional or
-     *        mandatory.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
     public void add(String name, PropositionSchema slotSchema, int cardinality) {
-        addElement(name, slotSchema, cardinality);
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Adds an argument schema.
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema to add.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
     public void add(String name, TermSchema slotSchema) {
-        addElement(name, slotSchema);
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Adds an argument schema.
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema to add.
-     * @param cardinality cardinality of the argument, i.e., mandatory or
-     *        optional.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
     public void add(String name, TermSchema slotSchema, int cardinality) {
-        addElement(name, slotSchema, cardinality);
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a higher oredr predicate of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsHigherOrderPredicate(getTypeName());

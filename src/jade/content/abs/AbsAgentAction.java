@@ -24,30 +24,41 @@
  */
 package jade.content.abs;
 
+import jade.content.AgentAction;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAgentAction extends AbsGenericAction {
+public class AbsAgentAction extends AbsGenericAction implements AgentAction {
 
     /**
-     * Constructor
-     *
-     * @param name name of the action
-     *
+     * Construct an Abstract descriptor to hold an agent action of
+     * the proper type.
+     * @param typeName The name of the type of the agent action held by 
+     * this abstract descriptor.
      */
-    public AbsAgentAction(String name) {
-        super(name);
+    public AbsAgentAction(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets the parameter of the action.
-     *
-     * @param name name of the parameter.
-     * @param value value of the parameter.
-     *
+     * Sets an attribute of the agent action held by this
+     * abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, AbsTerm value) {
         super.set(name, value);
+    } 
+
+    /**
+     * Gets the value of an attribute of the agent action 
+     * held by this abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
+     */
+    public AbsTerm getAbsTerm(String name) {
+        return (AbsTerm) getAbsObject(name);
     } 
 
 }

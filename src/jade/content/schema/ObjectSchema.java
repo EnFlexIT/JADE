@@ -34,20 +34,15 @@ import java.util.Enumeration;
  * @author Federico Bergenti - Universita` di Parma
  */
 public abstract class ObjectSchema {
-    private class AttributeDescriptor {
+    private class SlotDescriptor {
         private String       name = null;
         private ObjectSchema schema = null;
         private int          cardinality = 0;
 
         /**
-         * Constructor declaration
-         *
-         * @param name
-         * @param schema
-         * @param cardinality
-         *
+           Construct a SlotDescriptor
          */
-        private AttributeDescriptor(String name, ObjectSchema schema, 
+        private SlotDescriptor(String name, ObjectSchema schema, 
                                     int cardinality) {
             this.name = name;
             this.schema = schema;
@@ -58,148 +53,156 @@ public abstract class ObjectSchema {
 
     public static final int MANDATORY = 0;
     public static final int OPTIONAL = 1;
-    private Hashtable       attributeDescriptors = new Hashtable();
-    private Vector          baseSchemas = new Vector();
+    private Hashtable       slots = new Hashtable();
+    private Vector          superSchemas = new Vector();
     private String          typeName = null;
 
     /**
-     * Constructor
-     *
-     * @param typeName
-     *
+     * Construct an empty schema with only the type-name specified
+     * @param typeName 
      */
     protected ObjectSchema(String typeName) {
         this.typeName = typeName;
     }
 
     /**
-     * Add an attribute to the schema.
+     * Add a slot to the schema.
      *
-     * @param name name of the attribute.
-     * @param elementSchema schema of the attribute.
-     * @param cardinality cardinality, i.e., optional or mandatory
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema defining the type of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
-    protected void addElement(String name, ObjectSchema elementSchema, int cardinality) {
-        attributeDescriptors.put(name.toUpperCase(), 
-                                 new AttributeDescriptor(name, elementSchema, 
-                                 cardinality));
+    protected void add(String name, ObjectSchema slotSchema, int cardinality) {
+        slots.put(name.toUpperCase(), new SlotDescriptor(name, slotSchema, cardinality));
     } 
 
-  /**
-     * Add an attribute to the schema.
+  	/**
+     * Add a mandatory attribute to the schema.
      *
      * @param name name of the attribute.
-     * @param elementSchema schema of the attribute.
-     *
+     * @param slotSchema schema of the attribute.
      */
-    protected void addElement(String name, ObjectSchema elementSchema) {
-        addElement(name, elementSchema, MANDATORY);
+    protected void add(String name, ObjectSchema slotSchema) {
+        add(name, slotSchema, MANDATORY);
     } 
 
     /**
-     * Adds a base schema.
+     * Add a super schema tho this schema, i.e. this schema will
+     * inherit all characteristics from the super schema
      *
-     * @param base the base schema.
-     *
+     * @param superSchema the super schema.
      */
-    protected void addBaseSchema(ObjectSchema base) {
-        baseSchemas.addElement(base);
-    } 
-
-    private void getAttributeDescriptorNames(Vector v) {
-        for (Enumeration e = baseSchemas.elements(); e.hasMoreElements(); ) {
-            ObjectSchema base = (ObjectSchema) e.nextElement();
-
-            base.getAttributeDescriptorNames(v);
-        } 
-
-        for (Enumeration e = attributeDescriptors.keys(); 
-                e.hasMoreElements(); ) {
-            v.addElement(e.nextElement());
-        }
+    protected void addSuperSchema(ObjectSchema superSchema) {
+        superSchemas.addElement(superSchema);
     } 
 
     /**
-     * Returns the names of all attributes.
+     * Retrieves the name of the type of this schema.
      *
-     * @return the names of all attributes.
+     * @return the name of the type of this schema.
+     */
+    public String getTypeName() {
+        return typeName;
+    } 
+
+    /**
+     * Returns the names of all the slots in this <code>Schema</code> 
+     * (including slots defined in super schemas).
      *
+     * @return the names of all slots.
      */
     public String[] getNames() {
-        Vector allAttributeDescriptors = new Vector();
+        Vector allSlotDescriptors = new Vector();
 
-        getAttributeDescriptorNames(allAttributeDescriptors);
+        getAllSlotDescriptors(allSlotDescriptors);
 
-        String[] ret = new String[allAttributeDescriptors.size()];
+        String[] names = new String[allSlotDescriptors.size()];
         int      counter = 0;
-
-        for (Enumeration e = allAttributeDescriptors.elements(); 
-                e.hasMoreElements(); ) {
-            ret[counter++] = (String) e.nextElement();
+        for (Enumeration e = allSlotDescriptors.elements(); e.hasMoreElements(); ) {
+            names[counter++] = (String) e.nextElement();
         }
 
-        return ret;
+        return names;
     } 
 
     /**
-     * Is the attribute <code>name</code> mandatory?
+     * Retrieves the schema of a slot of this <code>Schema</code>.
      *
-     * @param name name of the attribute.
+     * @param name The name of the slot.
+     * @return the <code>Schema</code> of slot <code>name</code>
+     * @throws OntologyException If no slot with this name is present
+     * in this schema.
+     */
+    public ObjectSchema getSchema(String name) throws OntologyException {
+        name = name.toUpperCase();
+        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
+
+        if (slot == null) {
+            for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+                try {
+                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+                    return superSchema.getSchema(name);
+                } 
+                catch (OntologyException oe) {
+                	// Do nothing. Maybe the slot is defined in another super-schema
+                }
+            } 
+
+            throw new OntologyException("No slot named: " + name);
+        } 
+
+        return slot.schema;
+    } 
+
+    /**
+     * Indicate whether a slot is mandatory or not.
      *
-     * @return <code>true</code> if the attribute is mandatory.
-     *
-     * @throws OntologyException
-     *
+     * @param name The name of the slot.
+     * @return <code>true</code> if the slot is mandatory.
+     * @throws OntologyException If no slot with this name is present
+     * in this schema.
      */
     public boolean isMandatory(String name) throws OntologyException {
         name = name.toUpperCase();
+        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
 
-        AttributeDescriptor ad = 
-            (AttributeDescriptor) attributeDescriptors.get(name);
-
-        if (ad == null) {
-            for (Enumeration e = baseSchemas.elements(); 
-                    e.hasMoreElements(); ) {
+        if (slot == null) {
+            for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
                 try {
-                    ObjectSchema base = (ObjectSchema) e.nextElement();
-
-                    return base.isMandatory(name);
+                    ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+                    return superSchema.isMandatory(name);
                 } 
-                catch (OntologyException oe) {}
+                catch (OntologyException oe) {
+                	// Do nothing. Maybe the slot is defined in another super-schema
+                }
             } 
-
-            throw new OntologyException("No element named: " + name);
+            throw new OntologyException("No slot named: " + name);
         } 
 
-        return (ad.cardinality == MANDATORY);
+        return (slot.cardinality == MANDATORY);
     } 
 
     /**
-     * Is <code>name</code> an attribute?
+     * Indicate whether a given <code>String</code> is the name of a
+     * slot defined in this <code>Schema</code>
      *
-     * @param name name to test.
-     *
-     * @return <code>true</code> if <code>name</code> is an attribute.
-     *
-     * @throws OntologyException
-     *
+     * @param name The <code>String</code> to test.
+     * @return <code>true</code> if <code>name</code> is the name of a
+     * slot defined in this <code>Schema</code>.
      */
-    public boolean isAttribute(String name) throws OntologyException {
+    public boolean isSlot(String name) {
         name = name.toUpperCase();
+        SlotDescriptor slot = (SlotDescriptor) slots.get(name);
 
-        AttributeDescriptor ad = 
-            (AttributeDescriptor) attributeDescriptors.get(name);
-
-        if (ad != null) {
+        if (slot != null) {
             return true;
         } 
 
-        for (Enumeration e = baseSchemas.elements(); e.hasMoreElements(); ) {
-            ObjectSchema base = (ObjectSchema) e.nextElement();
-
-            if (base.isAttribute(name)) {
-                return true;
+	      for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+  	        ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+            if (superSchema.isSlot(name)) {
+               	return true;
             } 
         } 
 
@@ -207,55 +210,27 @@ public abstract class ObjectSchema {
     } 
 
     /**
-     * Retrieves an attribute's schema.
-     *
-     * @param name name of the attribute.
-     *
-     * @return the schema of attribute <code>name</code>
-     *
-     * @throws OntologyException
-     *
-     */
-    public ObjectSchema getSchema(String name) 
-            throws OntologyException {
-        name = name.toUpperCase();
-
-        AttributeDescriptor ad = 
-            (AttributeDescriptor) attributeDescriptors.get(name);
-
-        if (ad == null) {
-            for (Enumeration e = baseSchemas.elements(); 
-                    e.hasMoreElements(); ) {
-                try {
-                    ObjectSchema base = (ObjectSchema) e.nextElement();
-
-                    return base.getSchema(name);
-                } 
-                catch (OntologyException oe) {}
-            } 
-
-            throw new OntologyException("No element named: " + name);
-        } 
-
-        return ad.schema;
-    } 
-
-    /**
-     * Retrieves the name of the type of this schema.
-     *
-     * @return the name of the type.
-     *
-     */
-    public String getTypeName() {
-        return typeName;
-    } 
-
-    /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold an object compliant to 
+     * this <code>Schema</code>.
      */
     public abstract AbsObject newInstance();
+
+    private void getAllSlotDescriptors(Vector v) {
+    		// Get slot descriptors of super schemas
+        for (Enumeration e = superSchemas.elements(); e.hasMoreElements(); ) {
+            ObjectSchema superSchema = (ObjectSchema) e.nextElement();
+
+            superSchema.getAllSlotDescriptors(v);
+        } 
+
+        // Get slot descriptors directly defined in this schema
+        for (Enumeration e = slots.keys(); e.hasMoreElements(); ) {
+            v.addElement(e.nextElement());
+        }
+    } 
+
+    public String toString() {
+    	return getClass().getName()+"-"+getTypeName();
+    }
 }
 

@@ -24,31 +24,61 @@
  */
 package jade.content.abs;
 
+import jade.content.HigherOrderPredicate;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsHigherOrderPredicate extends AbsProposition {
+public class AbsHigherOrderPredicate extends AbsProposition implements HigherOrderPredicate {
 
     /**
-     * Constructor
-     *
-     * @param name
-     *
+     * Construct an Abstract descriptor to hold a higher order predicate of
+     * the proper type (e.g. BELIEF, AND...).
+     * @param typeName The name of the type of the agent action held by 
+     * this abstract descriptor.
      */
-    public AbsHigherOrderPredicate(String name) {
-        super(name);
+    public AbsHigherOrderPredicate(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets an argument of the predicate.
-     *
-     * @param name the name of the argument.
-     * @param value the value of the argument.
-     *
+     * Sets a proposition attribute of the higher order predicate held 
+     * by this abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, AbsProposition value) {
         super.set(name, value);
     } 
 
+    /**
+     * Sets a term attribute of the higher order predicate held 
+     * by this abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
+     */
+    public void set(String name, AbsTerm value) {
+        super.set(name, value);
+    } 
+
+    /**
+     * Gets the value of a proposition attribute of the higher order predicate 
+     * held by this abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
+     */
+    public AbsProposition getAbsProposition(String name) {
+        return (AbsProposition) getAbsObject(name);
+    } 
+
+    /**
+     * Gets the value of a term attribute of the higher order predicate 
+     * held by this abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
+     */
+    public AbsTerm getAbsTerm(String name) {
+        return (AbsTerm) getAbsObject(name);
+    } 
 }
 

@@ -30,46 +30,41 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AggregateSchema extends TermSchema {
-    public static final String     BASE_NAME = "Aggregate";
+    public static final String         BASE_NAME = "Aggregate";
     private static AggregateSchema baseSchema = new AggregateSchema();
 
     /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * aggregate
      */
     private AggregateSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates an aggregate whose elements are of type <code>typeName</code>
+     * Creates an <code>AggregateSchema</code> with a given type-name.
      *
-     * @param typeName name of the type of the elements.
-     *
+     * @param typeName The name of this <code>AggregateSchema</code>.
      */
     public AggregateSchema(String typeName) {
         super(typeName);
-
-        addBaseSchema(baseSchema);
     }
 
     /**
-     * Creates a new instance.
+     * Retrieve the generic base schema for all aggregates.
      *
-     * @return the new instance.
-     *
+     * @return the generic base schema for all aggregates.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
+    
+    /**
+     * Creates an Abstract descriptor to hold an aggregate of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsAggregate(getTypeName());
     } 
 
-    /**
-     * Returns the base schema of this schema.
-     *
-     * @return the base schema.
-     *
-     */
-    public static TermSchema getBaseSchema() {
-        return baseSchema;
-    } 
 }

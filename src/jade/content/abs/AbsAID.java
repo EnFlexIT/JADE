@@ -37,29 +37,32 @@ import java.util.Enumeration;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsAID extends AbsTerm {
+public class AbsAID extends AbsConcept {
     // FIXME: AbsAID does not support user-defined slots because 
     // there's no way for enumerating the slots contained in an AID.
+	
     /**
-     * Constructor
-     *
-     * @param name the name
-     * @param addresses the list of addresses
-     * @param resolvers the list of resolvers
-     *
+     * Construct an Abstract descriptor to hold an AID      
      */
-    public AbsAID(String name, AbsAggregate addresses, 
-                  AbsAggregate resolvers) {
-        super(BasicOntology.AID);
+    public AbsAID() {
+    	super(AIDSchema.BASE_NAME);
+    }
+    
+    /**
+     * Construct an Abstract descriptor to hold an AID and set its
+     * name, addresses and resolvers.
+     */
+    public AbsAID(String name, AbsAggregate addresses, AbsAggregate resolvers) {
+        super(AIDSchema.BASE_NAME);
 
-        set(BasicOntology.NAME, AbsPrimitive.wrap(name));
+        set(BasicOntology.AID_NAME, AbsPrimitive.wrap(name));
 
         if (addresses != null) {
-            set(BasicOntology.ADDRESSES, addresses);
+            set(BasicOntology.AID_ADDRESSES, addresses);
         } 
 
         if (resolvers != null) {
-            set(BasicOntology.RESOLVERS, resolvers);
+            set(BasicOntology.AID_RESOLVERS, resolvers);
         }
     }
 
@@ -70,14 +73,14 @@ public class AbsAID extends AbsTerm {
 
         System.out.println("(AID ");
 
-	AbsObject abs = getAbsObject(BasicOntology.NAME);
-	abs.dump(indent+1);
+				AbsObject abs = getAbsObject(BasicOntology.AID_NAME);
+				abs.dump(indent+1);
 
-	abs = getAbsObject(BasicOntology.ADDRESSES);
-	abs.dump(indent+1);
+				abs = getAbsObject(BasicOntology.AID_ADDRESSES);
+				abs.dump(indent+1);
 
-	abs = getAbsObject(BasicOntology.RESOLVERS);
-	abs.dump(indent+1);
+				abs = getAbsObject(BasicOntology.AID_RESOLVERS);
+				abs.dump(indent+1);
 
         for (int i = 0; i < indent; i++) {
             System.out.print("  ");

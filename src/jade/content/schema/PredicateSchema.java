@@ -25,53 +25,68 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
-import java.util.Vector;
-import java.util.Enumeration;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
 public class PredicateSchema extends PropositionSchema {
+    public static final String         BASE_NAME = "Predicate";
+    private static PredicateSchema baseSchema = new PredicateSchema();
 
     /**
-     * Constructor
-     *
-     * @param name name of the predicate.
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * predicate
      */
-    public PredicateSchema(String name) {
-        super(name);
+    private PredicateSchema() {
+        super(BASE_NAME);
+    }
+
+
+    /**
+     * Creates a <code>PredicateSchema</code> with a given type-name.
+     *
+     * @param typeName The name of this <code>PredicateSchema</code>.
+     */
+    public PredicateSchema(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Adds an argument to the predicate. 
+     * Retrieve the generic base schema for all predicates.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema of the new argument.
+     * @return the generic base schema for all predicates.
+     */
+    public static ObjectSchema getBaseSchema() {
+        return baseSchema;
+    } 
+
+    /**
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
      */
     public void add(String name, TermSchema slotSchema) {
-        addElement(name, slotSchema);
+        super.add(name, slotSchema);
     } 
 
     /**
-     * Adds an argument to the predicate. 
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>TermSchema</code>.
      *
-     * @param name name of the argument.
-     * @param slotSchema schema of the new argument.
-     * @param cardinality cardinality of the attribute, i.e., mandatory or
-     *        optional.
-     *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
      */
     public void add(String name, TermSchema slotSchema, int cardinality) {
-        addElement(name, slotSchema, cardinality);
+        super.add(name, slotSchema, cardinality);
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a predicate of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsPredicate(getTypeName());

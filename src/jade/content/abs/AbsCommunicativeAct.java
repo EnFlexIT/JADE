@@ -26,34 +26,30 @@ package jade.content.abs;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
-import java.util.Hashtable;
+import jade.content.CommunicativeAct;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsCommunicativeAct extends AbsGenericAction {
+public class AbsCommunicativeAct extends AbsGenericAction implements CommunicativeAct {
 
     /**
-     * Constructor
-     *
-     * @param name name of the communicative act.
-     *
+     * Construct an Abstract descriptor to hold a communicative act of
+     * the proper type.
+     * @param typeName The name of the type of the communicative act held by 
+     * this abstract descriptor.
      */
     public AbsCommunicativeAct(String name) {
         super(name);
     }
 
     /**
-     * Sets a parameter of the communicative act.
-     *
-     * @param name the name of the paramter.
-     * @param value the value of the paramter.
-     *
-     * @throws UngroundedException
-     *
+     * Sets a piece of content of the communicative act held by this
+     * abstract descriptor.
+     * @param name The name of the piece of content to be set.
+     * @param value The new value of the piece of content.
      */
-    public void set(String name, AbsContentElement value) 
-            throws UngroundedException {
+    public void set(String name, AbsContentElement value) throws UngroundedException {
         if (!value.isGrounded()) {
             throw new UngroundedException();
         } 
@@ -62,12 +58,10 @@ public class AbsCommunicativeAct extends AbsGenericAction {
     } 
 
     /**
-     * Gets the value of a parameter.
-     *
-     * @param name the name of the parameter.
-     *
-     * @return the value of the parameter.
-     *
+     * Gets the value of a piece of content of the communicative act 
+     * held by this abstract descriptor.
+     * @param name The name of the piece of content.
+     * @return value The value of the piece of content.
      */
     public AbsContentElement getAbsContentElement(String name) {
         return (AbsContentElement) getAbsObject(name);
@@ -75,42 +69,34 @@ public class AbsCommunicativeAct extends AbsGenericAction {
 
     /**
      * Sets the sender of the communicative act.
-     *
-     * @param sender the sender
-     *
+     * @param sender The sender
      */
     public void setSender(AbsAID sender) {
-        set(ACLOntology.SENDER, sender);
+        set(CommunicativeActSchema.SENDER, sender);
     } 
 
     /**
      * Sets the receivers of the communicative act.
-     *
      * @param receivers the list of receivers.
-     *
      */
     public void setReceivers(AbsAggregate receivers) {
-        set(ACLOntology.RECEIVERS, receivers);
+        set(CommunicativeActSchema.RECEIVERS, receivers);
     } 
 
     /**
      * Gets the sender of the communicative act.
-     *
      * @return the sender.
-     *
      */
     public AbsAID getSender() {
-        return (AbsAID) getAbsObject(ACLOntology.SENDER);
+        return (AbsAID) getAbsObject(CommunicativeActSchema.SENDER);
     } 
 
     /**
      * Gets the receivers of the communicative act.
-     *
      * @return the list of receivers.
-     *
      */
     public AbsAggregate getReceivers() {
-        return (AbsAggregate) getAbsObject(ACLOntology.RECEIVERS);
+        return (AbsAggregate) getAbsObject(CommunicativeActSchema.RECEIVERS);
     } 
 
 }

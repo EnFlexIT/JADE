@@ -31,36 +31,35 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class CommunicativeActSchema extends GenericActionSchema {
-    private static CommunicativeActSchema baseSchema = 
-        new CommunicativeActSchema();
     public static final String            BASE_NAME = "CommunicativeAct";
-    public static final String            SENDER = ACLOntology.SENDER;
-    public static final String            RECEIVERS = ACLOntology.RECEIVERS;
+    private static CommunicativeActSchema baseSchema = new CommunicativeActSchema();
+    
+    public static final String            SENDER = "Sender";
+    public static final String            RECEIVERS = "Receiver";
 
     /**
-     * Constructor
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * communicative act
      */
     private CommunicativeActSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates a new schema with a name.
+     * Creates a <code>CommunicativeActSchema</code> with a given type-name.
+     * All communicative acts have a sender (AID) a list of receivers and
+     * a variable number of slots of type content element. These (not being 
+     * fixed) have to be added depending
+     * on the actual type of communicative act (i.e. INFORM, REQUEST...)
      *
-     * @param name the name of the schema.
-     *
+     * @param typeName The name of this <code>CommunicativeActSchema</code>.
      */
-    public CommunicativeActSchema(String name) {
-        super(name);
-
-        FullOntology basicOntology = (FullOntology)BasicOntology.getInstance();
+    public CommunicativeActSchema(String typeName) {
+        super(typeName);
 
         try {
-            addElement(SENDER, 
-                       basicOntology.getSchema(BasicOntology.AID));
-            addElement(RECEIVERS, 
-                       basicOntology.getSchema(BasicOntology.SET));
+            add(SENDER, BasicOntology.getInstance().getSchema(BasicOntology.AID));
+            add(RECEIVERS, BasicOntology.getInstance().getSchema(BasicOntology.SET));
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -68,44 +67,41 @@ public class CommunicativeActSchema extends GenericActionSchema {
     }
 
     /**
-     * Add a parameter to the schema.
+     * Retrieve the generic base schema for all communicative acts.
      *
-     * @param name name of the paramter.
-     * @param elementSchema schema of the parameter.
-     *
+     * @return the generic base schema for all communicative acts.
      */
-    public void add(String name, ContentElementSchema elementSchema) {
-        addElement(name, elementSchema);
-    } 
-
-    /**
-     * Add a parameter to the schema.
-     *
-     * @param name name of the paramter.
-     * @param elementSchema schema of the parameter.
-     * @param cardinality cardinality of the paramter, i.e., 
-     *        optional or mandatory
-     *
-     */
-    public void add(String name, ContentElementSchema elementSchema, int cardinality) {
-        add(name, elementSchema, cardinality);
-    } 
-
-    /**
-     * Gets the base schema of this schema.
-     *
-     * @return the base schema.
-     *
-     */
-    public static ContentElementSchema getBaseSchema() {
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
+     * Add a mandatory slot to the schema. The schema for this slot must 
+     * be a <code>ContentElementSchema</code>.
      *
-     * @return teh new instance.
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     */
+    public void add(String name, ContentElementSchema slotSchema) {
+        super.add(name, slotSchema);
+    } 
+
+    /**
+     * Add a slot to the schema. The schema for this slot must 
+     * be a <code>ContentElementSchema</code>.
      *
+     * @param name The name of the slot.
+     * @param slotSchema The schema of the slot.
+     * @param cardinality The cardinality, i.e., <code>OPTIONAL</code> 
+     * or <code>MANDATORY</code>
+     */
+    public void add(String name, ContentElementSchema slotSchema, int cardinality) {
+        super.add(name, slotSchema, cardinality);
+    } 
+
+    /**
+     * Creates an Abstract descriptor to hold an agent action of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsCommunicativeAct(getTypeName());

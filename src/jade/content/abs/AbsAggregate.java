@@ -38,137 +38,107 @@ public class AbsAggregate extends AbsTerm {
     private List elements = new ArrayList();
 
     /**
-     * Constructor
-     *
-     * @param typeName name of the type of the elements.
-     *
+     * Construct an Abstract descriptor to hold an aggregate of
+     * the proper type (i.e. SET, SEQUENCE...).
+     * @param typeName The name of the type of the aggregate held by 
+     * this abstract descriptor.
      */
     public AbsAggregate(String typeName) {
         super(typeName);
     }
 
     /**
-     * Adds a new element.
-     *
-     * @param element the element to add.
-     *
+     * Adds a new element (that must be a term) to this aggregate.
+     * @param element The element to add.
      */
     public void add(AbsTerm element) {
         elements.add(element);
     } 
 
     /**
-     * Retrieves the number of elements.
-     *
-     * @return the number of elements.
-     *
+     * Retrieves the number of elements in this aggregate.
+     * @return The number of elements.
      */
-    public int getElementCount() {
+    public int size() {
         return elements.size();
     } 
 
     /**
-     * Retrieves the <code>i</code>-th element.
-     *
-     * @param i index of the element to retrieve.
-     *
-     * @return the element.
-     *
+     * Retrieves the <code>i</code>-th element in this aggregate.
+     * @param i The index of the element to retrieve.
+     * @return The element.
      */
-    public AbsTerm getElement(int i) {
+    public AbsTerm get(int i) {
         return (AbsTerm) elements.get(i);
     } 
 
     /**
-     * Retrieves all elements.
-     *
-     * @return the elements.
-     *
+     * @return An <code>Iterator</code> over the elements of this
+     * aggregate.
      */
-    public Iterator getAllElement() {
+    public Iterator iterator() {
         return elements.iterator();
     } 
 
     /**
-     * Returns an iterator to all elements.
-     *
-     * @return the elements.
-     *
+     * Clear all the elements in this aggregate.
      */
-    public Iterator getAllElements () {
-	return elements.iterator();
+    public void clear() {
+			elements.clear();
     }
 
-   /**
-     * Clear the aggregate.
-     *
+   	/**
+     * Test if a given term is contained in this aggregate.
+     * @return <code>true</code> if the given term is contained
+     * in this aggregate.
      */
-    public void clearAllElement () {
-	elements.clear();
+    public boolean contains (AbsTerm element) {
+			return elements.contains(element);
     }
 
-   /**
-     * Test if the aggregate contains an element.
-     *
-     * @return the result of the test.
-     *
+   	/**
+     * Returns the position of an element within this aggregate.
+     * @return The position of an element within this aggregate.
      */
-    public boolean containsElement (AbsTerm element) {
-	return elements.contains(element);
+    public int indexOf (AbsTerm element) {
+			return elements.indexOf(element);
     }
 
-   /**
-     * Returns the position of an element.
-     *
-     * @return the position.
-     *
+   	/**
+     * Removes the element at the given position from this aggregate.
+     * @return The removed element.
      */
-    public int indexOfElement (AbsTerm element) {
-	return elements.indexOf(element);
+    public AbsTerm remove (int index) {
+			return (AbsTerm)elements.remove(index);
     }
 
-   /**
-     * Removes an element.
-     *
-     * @return the removed element.
-     *
+    /**
+     * Removes an element from this aggregate.
+     * @return The removed element.
      */
-    public AbsTerm removeElement (int index) {
-	return (AbsTerm)elements.remove(index);
+    public boolean remove (AbsTerm element) {
+			return elements.remove(element);
     }
 
-   /**
-     * Removes an element.
-     *
-     * @return if the element has been removed.
-     *
-     */
-    public boolean removeElement (AbsTerm element) {
-	return elements.remove(element);
-    }
-
-   /**
+   	/**
      * Test if the aggregate is empty.
-     *
-     * @return the result of the test.
-     *
+     * @return <code>true</code> if this aggregate does not contain
+     * any element.
      */
     public boolean isEmpty () {
-	return elements.isEmpty();
+			return elements.isEmpty();
     }
 
-   /**
-     * Converts the aggregate to an array.
-     *
-     * @return the converted array.
-     *
+   	/**
+     * Retrieve all elements in this aggregate in the form of an array.
+     * @return An array containing all elements in this aggregate.
      */
     public AbsTerm[] toArray () {
-	int size = elements.size();
-       	AbsTerm[] tmp = new AbsTerm[size];
-       	for (int i = 0; i < size; i++)
-       		tmp[i] = (AbsTerm)elements.get(i);
-       	return tmp;
+			int size = elements.size();
+      AbsTerm[] tmp = new AbsTerm[size];
+      for (int i = 0; i < size; i++)
+      	tmp[i] = (AbsTerm)elements.get(i);
+      return tmp;
     }
 
     protected void dump(int indent) {

@@ -30,44 +30,38 @@ import jade.content.abs.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class GenericActionSchema extends ContentElementSchema {
-    public static final String         BASE_NAME = "Action";
+    public static final String         BASE_NAME = "GenericAction";
     private static GenericActionSchema baseSchema = new GenericActionSchema();
 
     /**
-     * Constructor.
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * action
      */
-    public GenericActionSchema() {
+    private GenericActionSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Creates a new schema with a given <code>name</code>.
+     * Creates a <code>GenericActionSchema</code> with a given type-name.
      *
-     * @param name
-     *
+     * @param typeName The name of this <code>GenericActionSchema</code>.
      */
-    public GenericActionSchema(String name) {
-        super(name);
-
-        addBaseSchema(baseSchema);
+    protected GenericActionSchema(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Retrieves the base schema of this schema.
+     * Retrieve the generic base schema for generic actions.
      *
-     * @return the base schema.
-     *
+     * @return the generic base schema for generic actions.
      */
-    public static ContentElementSchema getBaseSchema() {
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a generic action of
+     * the proper type.
      */
     public AbsObject newInstance() {
         return new AbsGenericAction(getTypeName());

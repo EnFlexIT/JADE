@@ -24,31 +24,61 @@
  */
 package jade.content.abs;
 
+import jade.content.ActionPredicate;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsActionPredicate extends AbsProposition {
+public class AbsActionPredicate extends AbsProposition implements ActionPredicate {
 
     /**
-     * Constructor
-     *
-     * @param name the name of the predicate.
-     *
+     * Construct an Abstract descriptor to hold an action predicate of
+     * the proper type.
+     * @param typeName The name of the type of the action predicate held by 
+     * this abstract descriptor.
      */
-    public AbsActionPredicate(String name) {
-        super(name);
+    public AbsActionPredicate(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets the argument of the predicate.
-     *
-     * @param name name of the argument.
-     * @param value value of the argument.
-     *
+     * Sets a generic action argument of the action predicate held by 
+     * this abstract descriptor.
+     * @param name The name of the argument to be set.
+     * @param value The new value of the argument.
      */
-    public void set(String name, AbsContentElement value) {
+    public void set(String name, AbsGenericAction value) {
         super.set(name, value);
     } 
 
+    /**
+     * Sets a term argument of the action predicate held by 
+     * this abstract descriptor.
+     * @param name The name of the argument to be set.
+     * @param value The new value of the argument.
+     */
+    public void set(String name, AbsTerm value) {
+        super.set(name, value);
+    } 
+
+    /**
+     * Gets the value of a generic action argument of the action predicate 
+     * held by this abstract descriptor.
+     * @param name The name of the argument.
+     * @return value The value of the argument.
+     */
+    public AbsGenericAction getAbsGenericAction(String name) {
+        return (AbsGenericAction) getAbsObject(name);
+    } 
+    
+    /**
+     * Gets the value of a term argument of the action predicate 
+     * held by this abstract descriptor.
+     * @param name The name of the argument.
+     * @return value The value of the argument.
+     */
+    public AbsTerm getAbsTerm(String name) {
+        return (AbsTerm) getAbsObject(name);
+    } 
 }
 

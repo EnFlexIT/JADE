@@ -41,33 +41,27 @@ public class ContentManager implements Serializable {
     private Map ontologies = new HashMap();
 
     /**
-     * Registers a codec <code>c</code>.
-     *
+     * Registers a codec <code>c</code> with its default name (i.e.
+     * the name returned by its <code>getName()</code> method.
      * @param c the codec.
-     *
      */
     public void registerLanguage(Codec c) {
         registerLanguage(c, c.getName());
     }
 
     /**
-     * Registers a language, i.e., a codec <code>c</code> plus
-     * a <code>name</code>.
-     *
+     * Registers a codec <code>c</code> with a given name 
      * @param c the codec.
      * @param name the name.
-     *
-     *
      */
     public void registerLanguage(Codec c, String name) {
         languages.put(name, c);
     }
 
     /**
-     * Registers an ontology.
-     *
+     * Registers an ontology <code>o</code> with its default name (i.e.
+     * the name returned by its <code>getName()</code> method.
      * @param o the ontology.
-     *
      */
     public void registerOntology(Ontology o) {
         registerOntology(o, o.getName());
@@ -75,10 +69,8 @@ public class ContentManager implements Serializable {
 
     /**
      * Registers an ontology with a given <code>name</code>.
-     *
      * @param o the ontology.
      * @param name the name.
-     *
      */
     public void registerOntology(Ontology o, String name) {
         ontologies.put(name, o);
@@ -86,11 +78,8 @@ public class ContentManager implements Serializable {
 
     /**
      * Retrieves a codec with a given <code>name</code>.
-     *
      * @param name the name.
-     *
      * @return the codec.
-     *
      */
     private Codec lookupLanguage(String name) {
         return (Codec) languages.get(name);
@@ -98,11 +87,8 @@ public class ContentManager implements Serializable {
 
     /**
      * Retrieves an ontology with a given name.
-     *
      * @param name the name.
-     *
      * @return the ontology.
-     *
      */
     private Ontology lookupOntology(String name) {
         return (Ontology) ontologies.get(name);
@@ -110,83 +96,33 @@ public class ContentManager implements Serializable {
 
    /**
      * Fills the content of a message.
-     * 
      * @param msg the message
      * @param content the content.
-     *
      * @throws CodecException
      * @throws OntologyException
-     * 
      */
     public void fillContent(ACLMessage msg, AbsContentElement content) 
             throws CodecException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology ontology = lookupOntology(msg.getOntology());
+        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
-        msg.setByteSequenceContent(encodeContent(codec, ontology, content));
+        msg.setByteSequenceContent(codec.encode(onto, content));
     } 
-
-    /**
-     * Fills the content of a message.
-     * 
-     * @param msg the message
-     * @param language the codec to use.
-     * @param o the ontology.
-     * @param content the content.
-     * 
-     * @throws CodecException
-     * @throws OntologyException
-     * 
-     */  
-    /*******
-    public void fillContent(ACLMessage msg, Codec language, Ontology o, 
-                            AbsContentElement content) throws CodecException, 
-                            OntologyException {
-        msg.setByteSequenceContent(encodeContent(language, o, content));
-    }
-    ***********/
-
-     /**
-     * Fills the content of a message.
-     * 
-     * @param msg the message
-     * @param language the codec to use.
-     * @param o the name of the ontology.
-     * @param content the content.
-     * 
-     * @throws CodecException
-     * @throws OntologyException
-     * 
-     */ 
-    /***************
-    public void fillContent(ACLMessage msg, String language, String onto, 
-                            AbsContentElement content) throws CodecException, 
-                            OntologyException {
-        Codec    codec = lookupLanguage(language);
-        Ontology ontology = lookupOntology(onto);
-
-        msg.setByteSequenceContent(encodeContent(codec, ontology, content));
-    } 
-    ****************/
 
     /**
      * Extracts an abstract descriptor of the content from a message.
-     * 
      * @param msg the message
-     * 
      * @return the content as an abstract descriptor.
-     * 
      * @throws CodecException
      * @throws OntologyException
-     * 
      * @see jade.content.Ontology
      */
     public AbsContentElement extractAbsContent(ACLMessage msg) 
             throws CodecException, OntologyException {
-        Ontology onto = lookupOntology(msg.getOntology());
         Codec    codec = lookupLanguage(msg.getLanguage());
+        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
-        return decodeContent(codec, onto, msg.getByteSequenceContent());
+        return codec.decode(onto, msg.getByteSequenceContent());
     } 
 
     /**
@@ -202,111 +138,45 @@ public class ContentManager implements Serializable {
     public void fillContent(ACLMessage msg, ContentElement content) 
             throws CodecException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
-        Ontology ontology = lookupOntology(msg.getOntology());
+        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 
-        msg.setByteSequenceContent(encodeContent(codec, ontology, 
-						 (AbsContentElement) (ontology).fromObject(content)));
+        AbsContentElement abs = (AbsContentElement) onto.fromObject(content);
+				msg.setByteSequenceContent(codec.encode(onto, abs));
     } 
 
     /**
-     * Fills the content of a message.
-     * 
-     * @param msg the message
-     * @param language the codec to use.
-     * @param o the ontology.
-     * @param content the content.
-     * 
-     * @throws CodecException
-     * @throws OntologyException
-     * 
-     */ 
-    /****************
-    public void fillContent(ACLMessage msg, Codec language, Ontology o, 
-                            ContentElement content) throws CodecException, 
-                            OntologyException {
-        msg.setByteSequenceContent(encodeContent(language, o, 
-	(AbsContentElement) o.fromObject(content)));
-    }
-    ****************/
-
-    /**
-     * Fills the content of a message.
-     * 
-     * @param msg the message
-     * @param language the name of the codec to use.
-     * @param o the ontology.
-     * @param content the content.
-     * 
-     * @throws CodecException
-     * @throws OntologyException
-     * 
-     */
-    /****************
-    public void fillContent(ACLMessage msg, String language, String onto, 
-                            ContentElement content) throws CodecException, 
-                            OntologyException {
-        Codec    codec = lookupLanguage(language);
-        Ontology ontology = lookupOntology(onto);
-
-        msg.setByteSequenceContent(encodeContent(codec, ontology, 
-                                                (AbsContentElement) ontology.fromObject(content)));
-     }
-    ***************/
-
-    /**
      * Retrieves the content of a message as a concrete object.
-     * 
      * @param msg the message
-     * 
      * @return the content.
-     * 
      * @throws CodecException
      * @throws OntologyException
-     * 
      * @see jade.content.Ontology
      */
     public ContentElement extractContent(ACLMessage msg) 
             throws CodecException, OntologyException {
-        Ontology onto = lookupOntology(msg.getOntology());
         Codec    codec = lookupLanguage(msg.getLanguage());
-
-        return (ContentElement) (onto.toObject(decodeContent(codec, onto, 
-                msg.getByteSequenceContent())));
+        Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
+				byte[] content = msg.getByteSequenceContent();
+				
+				AbsContentElement abs = codec.decode(onto, content);
+				return (ContentElement) onto.toObject(abs);
     } 
 
-    /**
-     * Encodes a content.
-     * 
-     * @param language the language to use.
-     * @param ontology the ontology to use.
-     * @param content  the content to encode.
-     * 
-     * @return the encoded byte array.
-     * 
-     * @throws CodecException
-     * 
-     */
-    private byte[] encodeContent(Codec language, Ontology ontology, 
-                                AbsContentElement content) throws CodecException {
-        return language.encode(ontology, content);
-    } 
-
-    /**
-     * Decodes a content.
-     * 
-     * @param language the language to use.
-     * @param ontology the ontology to use.
-     * @param content  the content to decode.
-     * 
-     * @return the content as an abstract descriptor.
-     * 
-     * @throws CodecException
-     * 
-     */
-    private AbsContentElement decodeContent(Codec language, Ontology ontology, 
-                                           byte[] content) throws CodecException {
-        return language.decode(ontology, content);
-    } 
-
+		/**
+		 * Merge the reference ontology with the inner ontology of the 
+		 * content language
+		 */
+    private Ontology getMergedOntology(Codec c, Ontology o) {
+				Ontology ontology = null;
+				Ontology langOnto = c.getInnerOntology();
+				if (langOnto == null) {
+					ontology = o;
+				}
+				else {
+					ontology = new Ontology(null, new Ontology[]{langOnto, o}, null);
+				}
+				return ontology;
+    }
+    
 }
 

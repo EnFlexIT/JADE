@@ -34,139 +34,160 @@ public class AbsPrimitive extends AbsTerm {
     private Object value = null;
 
     /**
-     * Constructor.
-     *
-     * @param kind name of the type of the primitive.
-     * @param value value of the primitive.
-     *
+     * Construct an Abstract descriptor to hold a primitive of
+     * the proper type (e.g. String, int, boolean...) and set its value.
      */
-    public AbsPrimitive(String kind, Object value) {
-        super(kind);
-
+    private AbsPrimitive(String typeName, Object value) {
+        super(typeName);
         this.value = value;
     }
 
     /**
-     * Constructor.
-     *
-     * @param kind name of the type of the primitive.
-     *
+     * Construct an Abstract descriptor to hold a primitive of
+     * the proper type (e.g. String, int, boolean...).
+     * @param typeName The name of the type of the primitive held by 
+     * this abstract descriptor.
      */
-    public AbsPrimitive(String kind) {
-        super(kind);
+    public AbsPrimitive(String typeName) {
+        super(typeName);
     }
 
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.STRING</code>
+     * containing a given <code>String</code> value.
+     */
     public static AbsPrimitive wrap(String value) {
         AbsPrimitive ret = new AbsPrimitive(BasicOntology.STRING, value);
-
         return ret;
-    } 
-
-    public static AbsPrimitive wrap(boolean value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.BOOLEAN, 
-                                            new Boolean(value));
-
-        return ret;
-    } 
-
-    public static AbsPrimitive wrap(int value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, 
-                                            new Integer(value));
-
-        return ret;
-    } 
-
-    public static AbsPrimitive wrap(float value) {
-        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, 
-                                            new Float(value));
-
-        return ret;
-    } 
-
-    public static Object toObject(AbsPrimitive abs) {
-        return abs.value;
     } 
 
     /**
-     * Sets a string value.
-     *
-     * @param value the value to set.
-     *
+     * Create an AbsPrimitive of type <code>BasicOntology.BOOLEAN</code>
+     * containing a given <code>boolean</code> value.
+     */
+    public static AbsPrimitive wrap(boolean value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.BOOLEAN, new Boolean(value));
+        return ret;
+    } 
+
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.INTEGER</code>
+     * containing a given <code>int</code> value.
+     */
+    public static AbsPrimitive wrap(int value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Integer(value));
+        return ret;
+    } 
+
+    //__CLDC_UNSUPPORTED__BEGIN
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.FLOAT</code>
+     * containing a given <code>float</code> value.
+     */
+    public static AbsPrimitive wrap(float value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Float(value));
+        return ret;
+    } 
+    //__CLDC_UNSUPPORTED__END
+
+    //public static Object toObject(AbsPrimitive abs) {
+    //    return abs.value;
+    //} 
+
+    /**
+     * Set the value of this AbsPrimitive to the given String.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.STRING</code>
      */
     public void set(String value) {
-        this.value = value;
+    	if (!getTypeName().equals(BasicOntology.STRING))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = value;
     } 
 
     /**
-     * Sets a boolean value.
-     *
-     * @param value the value to set.
-     *
+     * Set the value of this AbsPrimitive to the given boolean value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.BOOLEAN</code>
      */
     public void set(boolean value) {
-        this.value = new Boolean(value);
+    	if (!getTypeName().equals(BasicOntology.BOOLEAN))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = new Boolean(value);
     } 
 
     /**
-     * Sets an integer value.
-     *
-     * @param value the value to set.
-     *
+     * Set the value of this AbsPrimitive to the given int value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.INTEGER</code>
      */
     public void set(int value) {
-        this.value = new Integer(value);
+    	if (!getTypeName().equals(BasicOntology.INTEGER))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = new Integer(value);
     } 
 
+    //__CLDC_UNSUPPORTED__BEGIN
     /**
-     * Sets a float value.
-     *
-     * @param value the value to set.
-     *
+     * Set the value of this AbsPrimitive to the given float value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.FLOAT</code>
      */
     public void set(float value) {
-        this.value = new Float(value);
+    	if (!getTypeName().equals(BasicOntology.FLOAT))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = new Float(value);
     } 
+    //__CLDC_UNSUPPORTED__END
 
     /**
-     * Gets a string value.
-     *
-     * @return the string.
-     *
+     * @return the value of this AbsPrimitive as a String.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.STRING</code>
      */
     public String getString() {
         return (String) value;
     } 
 
     /**
-     * Gets an integer value.
-     *
-     * @return the integer.
-     *
-     */
-    public int getInteger() {
-        return ((Integer) value).intValue();
-    } 
-
-    /**
-     * Gets a float value.
-     *
-     * @return the float.
-     *
-     */
-    public float getFloat() {
-        return ((Float) value).floatValue();
-    } 
-
-    /**
-     * Get a boolean value.
-     *
-     * @return the boolean.
-     *
+     * @return the value of this AbsPrimitive as a boolean.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.BOOLEAN</code>
      */
     public boolean getBoolean() {
         return ((Boolean) value).booleanValue();
     } 
 
+    /**
+     * @return the value of this AbsPrimitive as an int.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.INTEGER</code>
+     */
+    public int getInteger() {
+        return ((Integer) value).intValue();
+    } 
+
+    //__CLDC_UNSUPPORTED__BEGIN
+    /**
+     * @return the value of this AbsPrimitive as a float.
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.FLOAT</code>
+     */
+    public float getFloat() {
+        return ((Float) value).floatValue();
+    } 
+    //__CLDC_UNSUPPORTED__END
+
+    /**
+     * @return the value of this AbsPrimitive as an Object.
+     * If the type of this AbsPrimitive is <code>BasicOntology.BOOLEAN
+     * BasicOntology.INTEGER or BasicOntology.FLOAT</code> a
+     * <code>Boolean, Integer or Float</code> object is returned.
+     */
     public Object getObject() {
         return value;
     } 

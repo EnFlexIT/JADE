@@ -34,39 +34,37 @@ public class TermSchema extends ObjectSchema {
     private static TermSchema  baseSchema = new TermSchema();
 
     /**
-     * Creates a term schema with a given <code>name</code>
-     *
-     * @param name
-     *
+     * Construct a schema that vinculates an entity to be a generic
+     * term
      */
-    protected TermSchema(String name) {
-        super(name);
-
-        addBaseSchema(baseSchema);
-    }
-
     private TermSchema() {
         super(BASE_NAME);
     }
 
     /**
-     * Retrieves the base of this schema.
+     * Creates a <code>TermSchema</code> with a given type-name.
      *
-     * @return the base schema.
-     *
+     * @param typeName The name of this <code>TermSchema</code>.
      */
-    public static TermSchema getBaseSchema() {
+    protected TermSchema(String typeName) {
+        super(typeName);
+    }
+
+    /**
+     * Retrieve the generic base schema for terms.
+     *
+     * @return the generic base schema for terms.
+     */
+    public static ObjectSchema getBaseSchema() {
         return baseSchema;
     } 
 
     /**
-     * Creates a new instance.
-     *
-     * @return the new instance.
-     *
+     * Creates an Abstract descriptor to hold a term of
+     * the proper type.
      */
     public AbsObject newInstance() {
-        return new AbsTerm();
+        return new AbsTerm(getTypeName());
     } 
 
 }

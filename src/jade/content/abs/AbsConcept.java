@@ -24,129 +24,133 @@
  */
 package jade.content.abs;
 
+import jade.content.Concept;
+
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class AbsConcept extends AbsTerm {
+public class AbsConcept extends AbsTerm implements Concept {
 
     /**
-     * Constructor
-     *
-     * @param name the name of the concept.
-     *
+     * Construct an Abstract descriptor to hold a concept of
+     * the proper type (e.g. PERSON, ADDRESS...).
+     * @param typeName The name of the type of the concept held by 
+     * this abstract descriptor.
      */
-    public AbsConcept(String name) {
-        super(name);
+    public AbsConcept(String typeName) {
+        super(typeName);
     }
 
     /**
-     * Sets a slot of the concept.
-     *
-     * @param name name of the slot.
-     * @param value value of the slot.
-     *
+     * Sets an attribute of the concept held by this
+     * abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, AbsTerm value) {
         super.set(name, value);
     } 
 
     /**
-     * Sets a string slot.
-     *
-     * @param name name of the slot.
-     * @param value value of the slot.
-     *
+     * Utility method that allows setting attributes of type
+     * <code>String</code> without the need of wrapping the new value
+     * into an <code>AbsTerm</code>.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, String value) {
         set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
-     * Sets a boolean slot.
-     *
-     * @param name name of the slot.
-     * @param value value of the slot.
-     *
+     * Utility method that allows setting attributes of type
+     * <code>boolean</code> without the need of wrapping the new value
+     * into an <code>AbsTerm</code>.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, boolean value) {
         set(name, AbsPrimitive.wrap(value));
     } 
 
     /**
-     * Sets an integer slot.
-     *
-     * @param name name of the slot.
-     * @param value value of the slot.
-     *
+     * Utility method that allows setting attributes of type
+     * <code>int</code> without the need of wrapping the new value
+     * into an <code>AbsTerm</code>.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, int value) {
         set(name, AbsPrimitive.wrap(value));
     } 
 
+    //__CLDC_UNSUPPORTED__BEGIN
     /**
-     * Sets a float slot.
-     *
-     * @param name name of the slot.
-     * @param value value of the slot.
-     *
+     * Utility method that allows setting attributes of type
+     * <code>float</code> without the need of wrapping the new value
+     * into an <code>AbsTerm</code>.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
     public void set(String name, float value) {
         set(name, AbsPrimitive.wrap(value));
     } 
+    //__CLDC_UNSUPPORTED__END
 
     /**
-     * Retrieves the value of a slot.
-     *
-     * @param name.
-     * @return the value.
-     *
+     * Gets the value of an attribute of the concept 
+     * held by this abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
      */
     public AbsTerm getAbsTerm(String name) {
         return (AbsTerm)getAbsObject(name);
     }
 
    /**
-     * Retrieves the value of a String slot.
-     *
-     * @param name.
-     * @return the value.
-     *
+     * Utility method that allows getting the value of attributes 
+     * of type <code>String</code> directly as a <code>String</code>
+     * i.e. not wrapped into an <code>AbsTerm/code>.
+     * @param name The name of the attribute to be retrieved.
+     * @param value The value of the attribute.
      */
     public String getString(String name) {
         return ((AbsPrimitive)getAbsTerm(name)).getString();
     }
 
     /**
-     * Retrieves the value of a boolean slot.
-     *
-     * @param name.
-     * @return the value.
-     *
+     * Utility method that allows getting the value of attributes 
+     * of type <code>boolean</code> directly as a <code>boolean</code>
+     * i.e. not wrapped into an <code>AbsTerm/code>.
+     * @param name The name of the attribute to be retrieved.
+     * @param value The value of the attribute.
      */
     public boolean getBoolean(String name) {
       	return ((AbsPrimitive)getAbsTerm(name)).getBoolean();
     }
 
     /**
-     * Retrieves the value of an integer slot.
-     *
-     * @param name.
-     * @return the value.
-     *
+     * Utility method that allows getting the value of attributes 
+     * of type <code>int</code> directly as an <code>int</code>
+     * i.e. not wrapped into an <code>AbsTerm/code>.
+     * @param name The name of the attribute to be retrieved.
+     * @param value The value of the attribute.
      */
     public int getInteger(String name) {
     	return ((AbsPrimitive)getAbsTerm(name)).getInteger();
     }
 
+    //__CLDC_UNSUPPORTED__BEGIN
     /**
-     * Retrieves the value of a float slot.
-     *
-     * @param name.
-     * @return the value.
-     *
+     * Utility method that allows getting the value of attributes 
+     * of type <code>float</code> directly as a <code>float</code>
+     * i.e. not wrapped into an <code>AbsTerm/code>.
+     * @param name The name of the attribute to be retrieved.
+     * @param value The value of the attribute.
      */
     public float getFloat(String name) {
     	return ((AbsPrimitive)getAbsTerm(name)).getFloat();
     }
+    //__CLDC_UNSUPPORTED__END
 }
 

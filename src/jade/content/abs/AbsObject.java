@@ -37,83 +37,71 @@ public class AbsObject implements Serializable {
     private String    typeName = null;
 
     /**
-     * Constructor
-     *
-     * @param typeName name of the type of the object.
-     *
+     * Construct an Abstract descriptor to hold an object of
+     * the proper type.
+     * @param typeName The name of the type of the object held by this
+     * abstract descriptor.
      */
     protected AbsObject(String typeName) {
         this.typeName = typeName;
     }
 
     /**
-     * Returns the name of the type.
-     *
-     * @return the name of the type.
-     *
+     * @return The name of the type of the object held by this
+     * abstract descriptor.
      */
     public String getTypeName() {
         return typeName;
     } 
 
     /**
-     * Sets an attribute of the object.
-     *
-     * @param name name of the attribute.
-     * @param value value of the attribute.
-     *
+     * Sets an attribute of the object held by this
+     * abstract descriptor.
+     * @param name The name of the attribute to be set.
+     * @param value The new value of the attribute.
      */
-    public void set(String name, AbsObject value) {
+    protected void set(String name, AbsObject value) {
         elements.put(name.toUpperCase(), value);
     } 
 
     /**
-     * Gets the value of an attribute of the object.
-     *
-     * @param name name of the attribute.
-     *
-     * @return value of the attribute.
-     *
+     * Gets the value of an attribute of the object held by this
+     * abstract descriptor.
+     * @param name The name of the attribute.
+     * @return value The value of the attribute.
      */
     public AbsObject getAbsObject(String name) {
         return (AbsObject) elements.get(name.toUpperCase());
     } 
 
     /**
-     * Retrieves the names of all attributes.
-     *
-     * @return the name of the attributes.
-     *
+     * @return the name of all attributes.
      */
     public String[] getNames() {
-        String[] ret = new String[getCount()];
+        String[] names = new String[getCount()];
         int      count = 0;
 
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
-            ret[count++] = (String) e.nextElement();
+            names[count++] = (String) e.nextElement();
         }
 
-        return ret;
+        return names;
     } 
 
     /**
-     * Tests if the object is grounded, i.e., if its attributes are not
-     * associated with variables.
-     *
-     * @return if the object is grounded.
-     *
+     * Tests if the object is grounded, i.e., if no one of its attributes 
+     * is associated with a variable
+     * @return <code>true</code> if the object is grounded.
      */
     public boolean isGrounded() {
 
-        // TODO: Implement
+        // FIXME: Implement
         return true;
     } 
 
     /**
      * Gets the number of attributes.
-     *
      * @return the number of attributes.
-     *
      */
     public int getCount() {
         return elements.size();
@@ -145,5 +133,8 @@ public class AbsObject implements Serializable {
         dump(0);
     } 
 
+    public String toString() {
+    	return getClass().getName()+"-"+getTypeName();
+    }
 }
 

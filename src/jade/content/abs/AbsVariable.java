@@ -33,71 +33,70 @@ import jade.content.schema.*;
 public class AbsVariable extends AbsTerm {
 
     /**
-     * Constructor
-     *
+     * Construct an Abstract descriptor to hold a variable
      */
     public AbsVariable() {
         super(VariableSchema.BASE_NAME);
     }
 
     /**
-     * Construct a variable with a <code>name</code> and a 
-     * type of name <code>typeName</code>.
-     *
-     * @param name name of the variable.
-     * @param typeName name of the type of the variable.
+     * Construct an AbsVariable with the given name and value type 
+     * @param name The name of the variable.
+     * @param valueType The type of values that can be assigned to 
+     * this variable.
      *
      */
-    public AbsVariable(String name, String typeName) {
+    public AbsVariable(String name, String valueType) {
         super(VariableSchema.BASE_NAME);
 
         setName(name);
-        setType(typeName);
+        setType(valueType);
     }
 
     /**
-     * Sets the name of the variable.
-     *
-     * @param name name of the variable.
-     *
+     * Sets the name of this variable.
+     * @param name The new name of this variable.
      */
     public void setName(String name) {
-        set(BasicOntology.NAME, AbsPrimitive.wrap(name));
+        set(VariableSchema.NAME, AbsPrimitive.wrap(name));
     } 
 
     /**
-     * Sets the name of the type of the variable.
-     *
-     * @param name the name of the type of the variable.
-     *
+     * Sets the value type of this variable.
+     * @param valueType The type of values that can be assigned to 
+     * this variable.
      */
-    public void setType(String name) {
-        set(BasicOntology.TYPE_NAME, AbsPrimitive.wrap(name));
+    public void setType(String valueType) {
+        set(VariableSchema.VALUE_TYPE, AbsPrimitive.wrap(valueType));
     } 
 
     /**
-     * Gets the name of the variable.
-     *
-     * @return the name of the variable.
-     *
+     * Gets the name of this variable.
+     * @return The name of this variable.
      */
     public String getName() {
-        AbsPrimitive abs = (AbsPrimitive) getAbsObject(BasicOntology.NAME);
-
-        return abs.getString();
+        AbsPrimitive abs = (AbsPrimitive) getAbsObject(VariableSchema.NAME);
+        if (abs != null) {
+        	return abs.getString();
+        }
+        else {
+        	return null;
+        }
     } 
 
     /**
-     * Gets the name of the type of the variable.
-     *
-     * @return the name of the type.
-     *
+     * Gets the value type of this variable.
+     * @return The type of values that can be assigned to 
+     * this variable.
      */
     public String getType() {
-        AbsPrimitive abs = 
-            (AbsPrimitive) getAbsObject(BasicOntology.TYPE_NAME);
-
-        return abs.getString();
+        AbsPrimitive abs = (AbsPrimitive) getAbsObject(VariableSchema.VALUE_TYPE);
+        if (abs != null) {
+        	return abs.getString();
+        }
+        else {
+        	return null;
+        }
     } 
 
 }
