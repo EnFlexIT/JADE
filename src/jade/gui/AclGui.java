@@ -495,7 +495,7 @@ public class AclGui extends JPanel
 	/**
 		Displays the specified ACL message into the AclGui panel 
 		@param msg The ACL message to be displayed
-		@see getMsg()
+		@see AclGui#getMsg()
 	*/
 	public void setMsg(ACLMessage msg)
 	{
@@ -554,7 +554,7 @@ public class AclGui extends JPanel
 	/**
 		Get the ACL message currently displayed by the AclGui panel 
 		@return The ACL message currently displayed by the AclGui panel as an ACLMessage object
-		@see setMsg()
+		@see AclGui#setMsg(ACLMessage msg)
 	*/
 	public ACLMessage getMsg()
 	{
@@ -618,7 +618,7 @@ public class AclGui extends JPanel
 	/** 
 		Enables/disables the editability of all the controls in an AclGui panel (default is enabled)
 		@param enabledFlag If true enables editability 
-		@see setSenderEnabled()
+		@see AclGui#setSenderEnabled(boolean enabledFlag)
 	*/
 	public void setEnabled(boolean enabledFlag)
 	{
@@ -629,7 +629,7 @@ public class AclGui extends JPanel
 	/** 
 		Enables/disables the editability of the sender field of an AclGui panel (default is enabled)
 		@param enabledFlag If true enables editability 
-		@see setEnabled()
+		@see AclGui#setEnabled(boolean enabledFlag)
 	*/
 	public void setSenderEnabled(boolean enabledFlag)
 	{
@@ -672,7 +672,7 @@ public class AclGui extends JPanel
 		ACL message in it. 
 		@param m The ACL message to be displayed
 		@param parent The parent window of the dialog window
-		@see editMsgInDlg()
+		@see AclGui#editMsgInDialog(ACLMessage msg, Frame parent)
 	*/
 	public static void showMsgInDialog(ACLMessage m, Frame parent)
 	{
@@ -714,7 +714,7 @@ public class AclGui extends JPanel
 		@param parent The parent window of the dialog window
 		@return The ACL message displayed in the dialog window or null depending on whether the user close the window
 		by clicking the OK or Cancel button 
-		@see showMsgInDlg()
+		@see AclGui#showMsgInDialog(ACLMessage m, Frame parent)
 	*/
 	public static ACLMessage editMsgInDialog(ACLMessage m, Frame parent)
 	{
