@@ -4,15 +4,160 @@
 	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
 	]>
 -->
-	<TestsList> 
-		<Test name="Success with 2 responders" skip="false">
-			<TestClassName>test.proto.tests.twoPh.TestSuccessWithTwoResponders
+	<TestsList>
+        <!-- PHASE 0 -->
+        <Test name="Ph0 doesn't send any message" skip="false">
+			<TestClassName>
+                test.proto.tests.twoPh.TestPh0End
 			</TestClassName>
-			<WhatTest>Test the Two phase commit protocol support in the case that all responders reply successfully in all steps.
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                the initiator doesn't send any message.
 			</WhatTest>
 			<HowWorkTest>
 			</HowWorkTest>
 			<WhenTestPass>
 			</WhenTestPass>
-		</Test>		
-	</TestsList>
+		</Test>
+        <Test name="Failure in ph0 with 2 responders" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh0FailureWithTwoResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                a responder replies FAILURE in phase 0.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Timeout in ph0 with 2 responders" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh0TimeoutWithTwoResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                a responder doesn't respond PROPOSE within the phase0's timeout.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Out of Sequence in ph0" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh0OutOfSeqWithThreeResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that the
+                initiator receives a message out of sequence, a NOT_UNDERSTOOD or a FAILURE
+                in phase 0.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Ph0's failure for initiator's decision" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh0FailureByInitiator
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                the initiator decides to abort in phase 0 even if all responders send PROPOSE.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <!-- PHASE 1 -->
+        <Test name="Failure in ph1 with 2 responders" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh1DisconfirmWithTwoResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                a responder replies DISCONFIRM in phase 1.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Out of Sequence in ph1" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh1OutOfSeqWithThreeResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that the
+                initiator receives a message out of sequence, a NOT_UNDERSTOOD or a FAILURE
+                in phase 1.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Timeout in ph1 with 2 responders" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh1TimeoutWithTwoResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that
+                a responder doesn't respond CONFIRM within the phase1's timeout.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <!-- PHASE 2 -->
+        <Test name="Out of Sequence in ph2" skip="false">
+			<TestClassName>test.proto.tests.twoPh.TestPh2OutOfSeqWithThreeResponders
+			</TestClassName>
+			<WhatTest>
+                Test the Two phase commit protocol support in the case that the
+                initiator receives a message out of sequence, a NOT_UNDERSTOOD or a FAILURE 
+                in phase 2.
+			</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>
+        <Test name="Success with read-only partecipant" skip="false">
+            <TestClassName>
+                test.proto.tests.twoPh.TestSuccessWithReadOnlyResponder
+            </TestClassName>
+            <WhatTest>
+                Test the Two phase commit protocol support in the case that
+                all responders reply successfully in all steps and in particular one of them
+                partecipates in read-only mode (replies with INFORM in phase 1).
+            </WhatTest>
+            <HowWorkTest>
+            </HowWorkTest>
+            <WhenTestPass>
+            </WhenTestPass>
+        </Test>
+        <Test name="Failure with read-only partecipant" skip="false">
+            <TestClassName>
+                test.proto.tests.twoPh.TestFailureWithReadOnlyResponder
+            </TestClassName>
+            <WhatTest>
+                Test the Two phase commit protocol support in the case that
+                a responder replies with CONFIRM, a responder replies with DISCONFIRM and another one partecipates in
+                read-only mode.
+            </WhatTest>
+            <HowWorkTest>
+            </HowWorkTest>
+            <WhenTestPass>
+            </WhenTestPass>
+        </Test>
+        <Test name="Success with 2 responders" skip="false">
+            <TestClassName>test.proto.tests.twoPh.TestSuccessWithTwoResponders
+            </TestClassName>
+            <WhatTest>
+                Test the Two phase commit protocol support in the case that
+                all responders reply successfully in all steps.
+            </WhatTest>
+            <HowWorkTest>
+            </HowWorkTest>
+            <WhenTestPass>
+            </WhenTestPass>
+        </Test>
+    </TestsList>
