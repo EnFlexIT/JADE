@@ -288,4 +288,20 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="JADE-bin-${version}.zip"/>
     </jar>
   </target>
+  
+  <target name="dist_redoc" depends="init">
+    <jar jarfile="${dist}/JADE-doc-${version}.zip">
+      <fileset dir="${dist}" includes="jade/doc/**"/>
+      <fileset dir="${dist}" includes="jade/README"/>
+      <fileset dir="${dist}" includes="jade/COPYNG"/>
+      <fileset dir="${dist}" includes="jade/ChangeLog"/>
+      <fileset dir="${dist}" includes="jade/License"/>
+    </jar>
+    <jar jarfile="${dist}/JADE-all-${version}.zip">
+      <fileset dir="${dist}" includes="JADE-src-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-examples-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-doc-${version}.zip"/>
+      <fileset dir="${dist}" includes="JADE-bin-${version}.zip"/>
+    </jar>
+  </target>
 </project>
