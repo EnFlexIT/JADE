@@ -1,76 +1,26 @@
-/*
-  $Log$
-  Revision 1.23  2000/01/21 15:12:23  rimassaJade
-  Date update for JADE 1.25.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.22  1999/10/06 14:56:25  rimassa
-  Committed for 1.1 version.
+GNU Lesser General Public License
 
-  Revision 1.21  1999/09/03 10:44:07  rimassa
-  Removed obsolete '-name' option.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.20  1999/07/02 12:02:53  rimassa
-  Touched this file fot release 1.0
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.19  1999/06/04 07:41:05  rimassa
-  Removed any direct relation with AgentContainer and AgentPLatform
-  classes. Now class jade.core.Starter is used instead.
-
-  Revision 1.18  1999/05/20 15:41:41  rimassa
-  Moved RMA agent from jade.domain package to jade.tools.rma package.
-
-  Revision 1.17  1999/04/06 00:09:19  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
-
-  Revision 1.16  1999/03/29 10:31:18  rimassa
-  Maintained a singleton for the current AgentContainer, to allow
-  calling createAgent() from Agent class (for agent factories).
-
-  Revision 1.15  1999/02/25 08:03:26  rimassa
-  Removed older, commented out code.
-
-  Revision 1.14  1999/02/14 22:57:23  rimassa
-  Put back System.runFinalizersOnExit() call, for now.
-
-  Revision 1.13  1999/02/03 09:38:41  rimassa
-  Commented out deprecated method call 'System.runFinalizersOnExit(true)'.
-  Delegated IIOP platform address creation to AgentPlatform class.
-
-  Revision 1.12  1998/12/20 02:03:49  rimassa
-  Modified '-version' command line option handling. Now some better
-  formatting is used on CVS strings before printing them.
-
-  Revision 1.11  1998/12/08 00:27:44  rimassa
-  Updated version number.
-
-  Revision 1.10  1998/11/09 22:10:08  Giovanni
-  Added explanation of '-version' option in usage() method.
-
-  Revision 1.9  1998/11/07 23:05:08  rimassa
-  Removed explicit "localhost" default value for platformHost; now
-  InetAddress.getLocalHost() is used to get local host name implicitly.
-  In '-version' command line option handling, CVS keywords are used to
-  express JADE version and build date.
-
-  Revision 1.8  1998/10/30 18:17:17  rimassa
-  Added a '-version' command-line option to print out JADE version name.
-
-  Revision 1.7  1998/10/25 23:52:46  rimassa
-  Added '-gui' command line option to start a Remote Agent Management
-  GUI.
-
-  Revision 1.6  1998/10/18 12:40:41  rimassa
-  Added code to create an RMI registry embedded within the Agent
-  Platform; now you don't need to run rmiregistry anymore.
-  Removed some older, commented out code.
-
-  Revision 1.5  1998/10/04 18:00:41  rimassa
-  Added a 'Log:' field to every source file.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade;
-
 
 
 import java.net.InetAddress;
@@ -81,6 +31,7 @@ import java.util.Vector;
 /**
    Boots <B><em>JADE</em></b> system, parsing command line arguments.
 
+   Javadoc documentation for the file 
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 
