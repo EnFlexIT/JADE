@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/11/09 00:29:28  rimassa
+  Changed preferred window size from (400, 400) to (600, 400).
+  Removed older, commented out code.
+
   Revision 1.6  1998/11/05 23:39:47  rimassa
   Some minor changes. Added a static method getRMA(), returning a static
   reference to RMA agent. Probably a better solution would be useful.
@@ -75,7 +79,7 @@ public class AMSMainFrame extends JFrame {
   */
   public void ShowCorrect() {
     pack();
-    setSize(400,400);
+    setSize(600,400);
     setVisible(true);
   }
 
@@ -126,8 +130,6 @@ public class AMSMainFrame extends JFrame {
       if(contName.equalsIgnoreCase(containerName)) {
 	// Add this new agent to this container and return
 	model.insertNodeInto(node, container, container.getChildCount());
-	//	tree.expandPath(new TreePath(container.getPath()));
-	//	tree.scrollPathToVisible(new TreePath(node.getPath()));
 	return;
       }
     }
