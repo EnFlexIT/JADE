@@ -1,7 +1,8 @@
 /*
   $Log$
-  Revision 1.4  1998/11/09 22:19:09  Giovanni
-  Changed code indentation to comply with JADE coding style.
+  Revision 1.5  1998/11/14 14:11:20  rimassa
+  Fixed a major bug: the static Vector of all GUI icons was removed by
+  mistake.
 
   Revision 1.3  1998/10/10 19:37:15  rimassa
   Imported a newer version of JADE GUI from Fabio.
@@ -22,6 +23,31 @@ public class GuiProperties {
   protected static UIDefaults MyDefaults;
   protected static GuiProperties foo = new GuiProperties();
   public static final String ImagePath = "";
+  static {
+    Object[] icons = {
+      "AMSAbstractAction.AddAgentPlatformActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/connect.gif"),
+      "AMSAbstractAction.AddAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/cervello.gif"),
+      "AMSAbstractAction.CustomActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/custom.gif"),
+      "AMSAbstractAction.ExitActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/kill.gif"),
+      "AMSAbstractAction.getPropertiesActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/properties.gif"),
+      "AMSAbstractAction.OpenScriptFileActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/open.gif"),
+      "AMSAbstractAction.KillActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/kill.gif"),
+      "AMSAbstractAction.PingActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/ping.gif"),
+      "AMSAbstractAction.ReloadActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/reload.gif"),
+      "AMSAbstractAction.RemoveActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/ex.gif"),
+      "AMSAbstractAction.ResumeActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/sveglia.gif"),
+      "AMSAbstractAction.SnifferActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/sniffer.gif"),
+      "AMSAbstractAction.StartActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/start.gif"),
+      "AMSAbstractAction.StartNewAgentActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/baby.gif"),
+      "AMSAbstractAction.SuspendActionIcon",LookAndFeel.makeIcon(foo.getClass(), "images/suspend.gif"),
+      "TreeData.SuspendedIcon",LookAndFeel.makeIcon(foo.getClass(), "images/stopTree.gif"),
+      "TreeData.RunningIcon",LookAndFeel.makeIcon(foo.getClass(), "images/fg.gif"),
+      "TreeData.FolderIcon",LookAndFeel.makeIcon(foo.getClass(), "images/TreeClosed.gif")
+  
+    };
+
+    MyDefaults = new UIDefaults (icons);
+  }
 
   public static final Icon getIcon(String key) {
     Icon i = MyDefaults.getIcon(key);
