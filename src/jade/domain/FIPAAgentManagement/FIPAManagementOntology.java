@@ -153,27 +153,27 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	
 	  	ConceptSchema cs = (ConceptSchema)getSchema(DFAGENTDESCRIPTION);
 	  	cs.add(DFAGENTDESCRIPTION_NAME, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
-	  	cs.add(DFAGENTDESCRIPTION_SERVICES, (ConceptSchema)getSchema(SERVICEDESCRIPTION), 0, ObjectSchema.UNLIMITED);
-	  	cs.add(DFAGENTDESCRIPTION_PROTOCOLS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
-	  	cs.add(DFAGENTDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+	  	cs.add(DFAGENTDESCRIPTION_SERVICES, (ConceptSchema)getSchema(SERVICEDESCRIPTION), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_PROTOCOLS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
   		// For FIPA 2000 compatibility
-	  	cs.add(DFAGENTDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
-	  	cs.add(DFAGENTDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+	  	cs.add(DFAGENTDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
 
 	  	cs = (ConceptSchema)getSchema(SERVICEDESCRIPTION);
 	  	cs.add(SERVICEDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 	  	cs.add(SERVICEDESCRIPTION_TYPE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 	  	cs.add(SERVICEDESCRIPTION_OWNERSHIP, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
-	  	cs.add(SERVICEDESCRIPTION_PROTOCOLS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-	  	cs.add(SERVICEDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
-	  	cs.add(SERVICEDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
-	  	cs.add(SERVICEDESCRIPTION_PROPERTIES, (ConceptSchema)getSchema(PROPERTY), 0, ObjectSchema.UNLIMITED);
+	  	cs.add(SERVICEDESCRIPTION_PROTOCOLS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(SERVICEDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(SERVICEDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(SERVICEDESCRIPTION_PROPERTIES, (ConceptSchema)getSchema(PROPERTY), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
   		// For FIPA 2000 compatibility
-	  	cs.add(SERVICEDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-	  	cs.add(SERVICEDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
-	  	cs.add(SERVICEDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED);
+	  	cs.add(SERVICEDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(SERVICEDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(SERVICEDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
 
 	  	cs = (ConceptSchema)getSchema(SEARCHCONSTRAINTS);
 	  	cs.add(SEARCHCONSTRAINTS_MAX_DEPTH, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
@@ -214,7 +214,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(APDESCRIPTION_TRANSPORTPROFILE, (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION));
 
 	  	cs = (ConceptSchema)getSchema(APTRANSPORTDESCRIPTION);
-	  	cs.add(APTRANSPORTDESCRIPTION_AVAILABLEMTPS, (ConceptSchema)getSchema(MTPDESCRIPTION), 0, ObjectSchema.UNLIMITED);
+	  	cs.add(APTRANSPORTDESCRIPTION_AVAILABLEMTPS, (ConceptSchema)getSchema(MTPDESCRIPTION), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
 	  	
 	  	cs = (ConceptSchema)getSchema(MTPDESCRIPTION);
 	  	cs.add(MTPDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
