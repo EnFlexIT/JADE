@@ -52,6 +52,11 @@ class ACCProxy implements AgentProxy {
   public void dispatch(ACLMessage msg) throws NotFoundException {
 
     AID aid = msg.getSender();
+    if(aid == null) {
+      System.out.println("ERROR: null message sender. Aborting message dispatch...");
+      return;
+    }
+
     // if has no address set, then adds the addresses of this platform
     if(!aid.getAllAddresses().hasNext())
       myACC.addPlatformAddresses(aid);
