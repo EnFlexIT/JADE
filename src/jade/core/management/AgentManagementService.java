@@ -570,6 +570,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 	    String newState = (String)params[1];
+	    String oldState = (String)params[2];
 
 	    if (newState.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED)) {
 		suspendedAgent(agentID);
@@ -577,7 +578,6 @@ public class AgentManagementService extends BaseService {
 	    else if(newState.equals(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE)) {
 		resumedAgent(agentID);
 	    }
-
 	}
 
 	private void handleKillContainer(VerticalCommand cmd) {
@@ -838,6 +838,7 @@ public class AgentManagementService extends BaseService {
 		    AID agentID = (AID)params[0];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED);
+		    gCmd.addParam("*");
 
 		    result = gCmd;
 		}
@@ -846,6 +847,7 @@ public class AgentManagementService extends BaseService {
 		    AID agentID = (AID)params[0];
 		    gCmd.addParam(agentID);
 		    gCmd.addParam(jade.domain.FIPAAgentManagement.AMSAgentDescription.ACTIVE);
+		    gCmd.addParam(jade.domain.FIPAAgentManagement.AMSAgentDescription.SUSPENDED);
 
 		    result = gCmd;
 		}
