@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package jade.core.behaviours;
 
 //#MIDP_EXCLUDE_FILE
-//#APIDOC_EXCLUDE_FILE
 
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -34,6 +33,8 @@ import jade.content.lang.Codec;
 import jade.content.lang.leap.LEAPCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 import jade.domain.mobility.*;
 import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
 import jade.util.leap.List;
@@ -47,12 +48,17 @@ import java.io.*;
    This behaviour serves behaviour-loading requests
    according to the Behaviour-loading ontology.
    When an agent runs an instance of this behaviour it becomes able
-   to load and execute completely new behaviours i.e. behaviours
+   to load and execute completely new behaviours, i.e. behaviours
    whose code is not included in the classpath of the JVM where the 
    agent lives.
    Loading behaviour requests must have the <code>ACLMessage.REQUEST</code>
    performative and must use the BehaviourLoading ontology and the
    LEAP language.
+   
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
+      
    @see jade.domain.mobility.LoadBehaviour
    @see jade.domain.mobility.BehaviourLoadingOntology
    @see jade.content.lang.leap.LEAPCodec
@@ -73,17 +79,26 @@ public class LoaderBehaviour extends Behaviour {
 	
 	private boolean finished = false;
 	
+	/**
+	   Construct a LoaderBehaviour.
+	 */
 	public LoaderBehaviour() {
 		super();
 		init();
 	}
 	
+	/**
+	   Construct a LoaderBehaviour to be executed by the given agent.
+	 */
 	public LoaderBehaviour(Agent a) {
 		super(a);
 		init();
 	}
 	
-	public void action() {
+	/**
+	   The action() method is redefined to serve behaviour loading requests
+	 */
+	public final void action() {
 		if (!finished) {
 			ACLMessage msg = myAgent.receive(myTemplate);
 			if (msg != null) {
@@ -91,7 +106,8 @@ public class LoaderBehaviour extends Behaviour {
 				
 				if (accept(msg)) {
 					try {
-						LoadBehaviour lb = (LoadBehaviour) myContentManager.extractContent(msg);
+						Action actionExpr = (Action) myContentManager.extractContent(msg);
+						LoadBehaviour lb = (LoadBehaviour) actionExpr.getAction();
 						
 						// Load the behaviour
 						String className = lb.getClassName();
@@ -112,11 +128,15 @@ public class LoaderBehaviour extends Behaviour {
 						}
 						
 						// Set parameters
-						setParameters(b, lb.getParameters());
+						List params = lb.getParameters();
+						setInputParameters(b, params);
 						
 						// Start the behaviour and prepare a positive reply
-						addBehaviour(b, msg);
-						reply.setPerformative(ACLMessage.INFORM);
+						SequentialBehaviour sb = new SequentialBehaviour(myAgent);
+						sb.addSubBehaviour(b);
+						sb.addSubBehaviour(new ResultCollector(b, params, actionExpr, msg));
+						myAgent.addBehaviour(sb);
+						reply.setPerformative(ACLMessage.AGREE);
 					}
 					catch (Codec.CodecException ce) {
 						ce.printStackTrace();
@@ -145,12 +165,16 @@ public class LoaderBehaviour extends Behaviour {
 		}
 	}
 	
+	/**
+	   The done() method is redefined to make this behaviour terminate
+	   when its <code>stop()</code> method is called.
+	 */
 	public boolean done() {
 		return finished;
 	}
 
 	/**
-	   Make this behaviour terminate.
+	   Make this behaviour terminate. 
 	 */
 	public void stop() {
 		finished = true;
@@ -158,6 +182,7 @@ public class LoaderBehaviour extends Behaviour {
 	}
 
 	/**
+	   Add a loaded behaviour to the agent.
 	   Subclasses may redefine this method to handle the behaviour 
 	   addition operation in an application specific way.
 	   @param b The <code>Behaviour</code> to be added.
@@ -169,8 +194,9 @@ public class LoaderBehaviour extends Behaviour {
 	}
 
 	/**
-	   Suclasses myredefine this method to prevent the behaviour 
-	   loading operation under specific conditions
+	   Suclasses may redefine this method to prevent the behaviour 
+	   loading operation under specific conditions.
+	   This default implementation always returns <code>true</code>
 	 */
 	protected boolean accept(ACLMessage msg) {
 		return true;
@@ -224,15 +250,6 @@ public class LoaderBehaviour extends Behaviour {
 		return (Behaviour) c.newInstance();
 	}
 	
-	private void setParameters(Behaviour b, List params) {
-		DataStore ds = b.getDataStore();
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-			Parameter p = (Parameter) it.next();
-			ds.put(p.getName(), p.getValue());
-		}
-	}
-	
 	/**
 	   Inner class HashClassLoader
 	 */
@@ -253,7 +270,6 @@ public class LoaderBehaviour extends Behaviour {
 	    String fileName = name.replace('.', '/') + ".class";
     	byte[] code = (byte[]) classes.get(fileName);
     	if (code != null) {
-    		System.out.println("Definig class "+name+". code is "+code.length);
 		  	return defineClass(name, code, 0, code.length);
     	}
     	else {
@@ -288,4 +304,72 @@ public class LoaderBehaviour extends Behaviour {
     }
 		#PJAVA_INCLUDE_END*/
 	}  // END of inner class HashClassLoader		
+	
+
+	private void setInputParameters(Behaviour b, List params) {
+		DataStore ds = b.getDataStore();
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+			Parameter p = (Parameter) it.next();
+			if (p.getMode() == Parameter.IN_MODE || p.getMode() == Parameter.INOUT_MODE) {
+				ds.put(p.getName(), p.getValue());
+			}
+		}
+	}
+	
+	private void getOutputParameters(Behaviour b, List params) {
+		DataStore ds = b.getDataStore();
+		Iterator it = params.iterator();
+		while (it.hasNext()) {
+			Parameter p = (Parameter) it.next();
+			if (p.getMode() == Parameter.OUT_MODE || p.getMode() == Parameter.INOUT_MODE) {
+				p.setValue(ds.get(p.getName()));
+			}
+		}
+	}
+	
+	
+	/**
+	   Inner class ResultCollector.
+	   This behaviour restores the output parameters at the end of
+	   the execution of the loaded behaviour and sends back the 
+	   result notification to the requester.
+	 */
+	private class ResultCollector extends OneShotBehaviour {
+		private Behaviour myBehaviour;
+		private List myParams;
+		private Action actionExpr;
+		private ACLMessage request;
+		
+		ResultCollector(Behaviour b, List l, Action a, ACLMessage m) {
+			super();
+			myBehaviour = b;
+			myParams = l;
+			actionExpr = a;
+			request = m;
+		}
+		
+		public void action() {
+			// Avoid sending back the behaviour code
+			LoadBehaviour lb = (LoadBehaviour) actionExpr.getAction();
+			lb.setCode(null);
+			lb.setZip(null);
+			
+			// Restore output parameters
+			getOutputParameters(myBehaviour, myParams);
+			
+			Result r = new Result(actionExpr, myParams);
+			ACLMessage notification = request.createReply();
+			try {
+				myContentManager.fillContent(notification, r);
+				notification.setPerformative(ACLMessage.INFORM);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				notification.setPerformative(ACLMessage.FAILURE);
+				notification.setContent("((internal-error \""+e.toString()+"\"))");
+			}
+			myAgent.send(notification);	
+		}
+	} // END of inner class ResultCollector			
 }
