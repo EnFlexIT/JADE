@@ -113,7 +113,7 @@ classes:
 	$(JC) -classpath $(CLSDIR):$(SRCDIR) $(JFLAGS) $(ROOTCLASSES)
 
 stubs:
-	$(STUBGEN) -d $(CLSDIR) $(STUBS)
+	$(STUBGEN) -classpath $(CLSDIR):$(SRCDIR) -d $(CLSDIR) $(STUBS)
 
 images:
 	mkdir -p $(CLSDIR)/jade/tools/DummyAgent
