@@ -26,7 +26,8 @@ package jade.tools.rma;
 import java.awt.Frame;
 import jade.lang.acl.ACLMessage;
 import jade.gui.*;
-
+import jade.core.AID;
+	
 /**
    
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -49,6 +50,9 @@ import jade.gui.*;
     AgentTree.Node node=(AgentTree.Node) nod;
     ACLMessage msg2 = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
     // msg2.addDest(node.getName());
+    AID rec = new AID();
+    rec.setName(node.getName());
+    msg2.addReceiver(rec);
     ACLMessage msg = jade.gui.AclGui.editMsgInDialog(msg2, mainWnd);
       if (msg != null)
 	  myRMA.send(msg);
