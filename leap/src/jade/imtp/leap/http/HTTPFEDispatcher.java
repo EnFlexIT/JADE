@@ -37,6 +37,7 @@ import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.ConnectionListener;
+import jade.imtp.leap.JICP.Connection; // To avoid ambiguity with microedition.io
 import jade.imtp.leap.JICP.*;
 
 import jade.util.leap.Properties;
@@ -62,11 +63,13 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private BackEndStub myStub;
   
   private Thread terminator;
-  private boolean active = false;
   private DisconnectionManager myDisconnectionManager;
+  private KeepAliveManager myKeepAliveManager;
+  private InputManager myInputManager;
   private int outCnt;
   private boolean waitingForFlush = false;
   private long maxDisconnectionTime;
+  private long keepAliveTime;
   private Properties props;
   
   private TransportAddress mediatorTA;
@@ -108,7 +111,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
       // Use default
   	}
 
-	log("Creating the BackEnd: ", 2);
+		log("Creating the BackEnd: ", 2);
 		
   	// Host
   	String host = props.getProperty("host");
@@ -131,9 +134,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 			
 		// Read re-connection retry time
 	  long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
-		String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
     try {
-      retryTime = Long.parseLong(tmp);
+      retryTime = Long.parseLong(props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY));
     } 
     catch (Exception e) {
       // Use default
@@ -142,16 +144,27 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 			
 		// Read Max disconnection time
 	  maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
-		tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
     try {
-      maxDisconnectionTime = Long.parseLong(tmp);
+      maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
     } 
     catch (Exception e) {
       // Use default
     } 
 		log("Max disconnection time is "+maxDisconnectionTime, 2);
 
+		// Read Keep-alive time
+	  keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+    try {
+      keepAliveTime = Long.parseLong(props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+    } 
+    catch (Exception e) {
+      // Use default
+    } 
+		log("Keep-alive time is "+keepAliveTime, 2);
+
 		myDisconnectionManager = new DisconnectionManager(retryTime, maxDisconnectionTime);
+		myKeepAliveManager = new KeepAliveManager(keepAliveTime);
+		myInputManager = new InputManager();
 		
 		// Read the owner if any
 		owner = props.getProperty("owner");
@@ -160,9 +173,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		myStub = new BackEndStub(this);
 		mySkel = new FrontEndSkel(fe);
 
-		// Start the embedded Thread
-		active = true;
-		start();
+		// Start the InputManager
+		myInputManager.start();
 				
 		// Create the remote BackEnd
 		createBackEnd();
@@ -176,33 +188,30 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
      Note that when the BackEnd receives the termination notification
      (explicitly sent in case of a self-initiated shutdown or 
      attached to the response to the EXIT command), it closes the 
-     input connection. The local embedded thread gets an exception and,
-     since active has been set to false, terminates.
+     input connection. The InputManager gets an exception and,
+     since it has been killed, terminates.
 	 */
   public void shutdown() {
-  	active = false;
+  	myInputManager.kill();
   	
   	terminator = Thread.currentThread();
   	if (terminator != this) {
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd. 
   		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
-  		// Avoid sending the termination notification while dispatching a command
-  		synchronized (this) {
-  			// If we are disconnected don't even send the termination notification
-  			if (myDisconnectionManager.isReachable()) {
-		  		log("Pushing termination notification", 2);
-		  		try {
-		  			deliver(pkt);
-		  		}
-		  		catch (IOException ioe) {
-		  			// When the BackEnd receives the termination notification,
-		  			// it just closes the connection --> we always have this
-		  			// exception
-		  			log("BackEnd closed", 2);
-		  		}
-  			}
-  		}
+			// If we are disconnected don't even send the termination notification
+			if (myDisconnectionManager.isReachable()) {
+	  		log("Pushing termination notification", 2);
+	  		try {
+	  			deliver(pkt, null);
+	  		}
+	  		catch (IOException ioe) {
+	  			// When the BackEnd receives the termination notification,
+	  			// it just closes the connection --> we always have this
+	  			// exception
+	  			log("BackEnd closed", 2);
+	  		}
+			}
   	} 		
   }
 
@@ -217,6 +226,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
       appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
       appendProp(sb, "verbosity", String.valueOf(verbosity));
       appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
+      appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
       if(beAddrsText != null) {
 	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
       }
@@ -238,8 +248,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  }
 
 	  try {
-	      log("Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
-	      pkt = deliver(pkt);
+	      log("Connecting to http://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	      pkt = deliver(pkt, null);
 
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
@@ -295,23 +305,18 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  	try {
 		  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
 		  	pkt.setSessionID((byte) sid);
-		  	pkt = deliver(pkt);
+		  	pkt = deliver(pkt, null);
 	  		log("Response received "+pkt.getSessionID(), 3); 
 		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		    	// Communication OK, but there was a JICP error on the peer
 		      throw new ICPException(new String(pkt.getData()));
 		    }
-		    if ((pkt.getInfo() & JICPProtocol.REFRESH_INFO) != 0) {
-  				log("Refresh request from BackEnd.", 2);
-		    	myDisconnectionManager.setUnreachable();
-		    }
 		    return pkt.getData();
 	  	}
 	  	catch (IOException ioe) {
-	  		// Can't reach the BackEnd. Assume we are unreachable and start
-	  		// a reachability checker
+	  		// Can't reach the BackEnd. Assume we are unreachable 
   			log("IOException on output connection. "+ioe, 2);
-	  		myDisconnectionManager.setUnreachable();
+	  		myDisconnectionManager.setUnreachable(false);
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
   	}
@@ -319,114 +324,122 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		throw new ICPException("Unreachable");
   	}
   } 
+
+  // These variables are only used within the InputManager class,
+  // but are declared externally since they must "survive" when 
+  // an InputManager is replaced
+  private JICPPacket lastResponse = null;
+  private byte lastSid = 0x10;
+  private int cnt = 0;
   
-  /////////////////////////////////////////////
-  // Embedded Thread handling incoming commands
-  /////////////////////////////////////////////
-  public void run() {
-  	// Give precedence to the Thread that is creating the BackEnd
-  	Thread.yield();
+  /**
+     Inner class InputManager
+     This class deals with incoming commands (possibly keep-alive packets)
+   */
+  private class InputManager extends Thread {
+	  
+  	private boolean active = true;
+	  private Connection myConnection = null;
+  	private int myId;
   	
-    // In the meanwhile load the ConnectionListener if any
-    try {
-    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
-    }
-    catch (Exception e) {
-    	// Just ignore it
-    }
-    
-  	JICPPacket lastResponse = null;
-  	byte lastSid = 0x10;
-  	
-		// Prepare a dummy response
-		JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-  	
-  	while (active) {  			
-  		try {
-				while (true) {
-					myDisconnectionManager.waitUntilReachable();
-  				JICPPacket cmd = deliver(rsp);
-  				byte sid = cmd.getSessionID();
-  				if (sid == lastSid) {
-  					log("Duplicated command received "+sid, 2);
-  					rsp = lastResponse;
-  				}
-  				else {
-	      		log("Incoming command received "+sid, 3);
-						byte[] rspData = mySkel.handleCommand(cmd.getData());
-	      		log("Incoming command served "+ sid, 3);
-					  rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
-					  rsp.setSessionID(sid);
-					  lastSid = sid;
-					  lastResponse = rsp;
-  				}
-  			}
-  		}
-  		catch (IOException ioe) {
-				if (active) {
-  				log("IOException on input connection. "+ioe, 2);
-					myDisconnectionManager.setUnreachable();
-				}
-  		}
-  	}
-    log("HTTPFEDispatcher Thread terminated", 1);
-  }
+	  public void run() {
+	  	if (cnt == 0) {
+		  	// Give precedence to the Thread that is creating the BackEnd
+		  	Thread.yield();
+		  	
+		    // In the meanwhile load the ConnectionListener if any 
+		    try {
+		    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
+		    }
+		    catch (Exception e) {
+		    	// Just ignore it
+		    }
+	  	}
+	  	myId = cnt++;
+  		log("IM-"+myId+" started", 1);
+	  	
+	  	while (active) {
+	  		// Open the connection for incoming commands
+				myConnection = new HTTPClientConnection(mediatorTA);
+				// Prepare a dummy response
+				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+	  		try {
+					while (true) {
+						myDisconnectionManager.waitUntilReachable();
+						if (myConnection == null || (!active)) {
+							break;
+						}
+						JICPPacket cmd = deliver(rsp, myConnection);
+						myKeepAliveManager.update();
+						if (cmd.getType() == JICPProtocol.KEEP_ALIVE_TYPE) {
+							// Keep-alive 
+						  rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.OK_INFO, null);
+						  continue;
+						}						
+	  				byte sid = cmd.getSessionID();
+	  				if (sid == lastSid) {
+	  					log("Duplicated command received "+sid, 2);
+	  					rsp = lastResponse;
+	  				}
+	  				else {
+		      		log("Incoming command received "+sid, 3);
+							byte[] rspData = mySkel.handleCommand(cmd.getData());
+		      		log("Incoming command served "+ sid, 3);
+						  rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+						  rsp.setSessionID(sid);
+						  lastSid = sid;
+						  lastResponse = rsp;
+	  				}
+	  			}
+	  		}
+	  		catch (IOException ioe) {
+					if (active) {
+	  				log("IOException on input connection. "+ioe, 2);
+						myDisconnectionManager.setUnreachable(false);
+					}
+	  		}
+	  	}
+	    log("IM-"+myId+" terminated", 1);
+	  }
+	  
+	  private void kill() {
+	  	active = false;
+	  	/*try {
+	  		myConnection.close();
+	  	}
+	  	catch (Exception e) {}
+	  	myConnection = null;*/
+	  }
+  } // END of inner class InputManager
+	  		
 
   /**
      Deliver a packet to the BackEnd TransportAddress and get back 
      a response
    */
-  private JICPPacket deliver(JICPPacket pkt) throws IOException {
+  private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
   	if (Thread.currentThread() == terminator) {
-  		log("Setting TERMINATED_INFO", 2);
   		pkt.setTerminatedInfo();
   	}
   	pkt.setRecipientID(mediatorTA.getFile());
+    byte type = pkt.getType();
   	
-		//#MIDP_EXCLUDE_BEGIN
-	  HttpURLConnection hc = null;
-		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
-	  HttpConnection hc = null;
-		#MIDP_INCLUDE_END*/
-  	OutputStream os = null;
-  	InputStream is = null;
+    if (c == null) {
+    	c = new HTTPClientConnection(mediatorTA);
+    }
   	int status = 0;
   	try {
-  		String url = "http://"+mediatorTA.getHost()+":"+mediatorTA.getPort()+"/jade";
-	  	//#MIDP_EXCLUDE_BEGIN
-			hc = (HttpURLConnection) (new URL(url)).openConnection();
-			hc.setDoOutput(true);
-			hc.setRequestMethod("POST");
-			hc.connect();
-			os = hc.getOutputStream();
-			status = 1;
-	    pkt.writeTo(os);
-	    status = 2;
-			is = hc.getInputStream();
-	  	//#MIDP_EXCLUDE_END
-			/*#MIDP_INCLUDE_BEGIN
-			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
-			hc.setRequestMethod(HttpConnection.POST);
-	    os = hc.openOutputStream();
-			status = 1;			
-	    pkt.writeTo(os);
-	    status = 2;
+  		c.writePacket(pkt);
+	    status = 1;
   		
+	    /*#MIDP_INCLUDE_BEGIN
 	    lock();
-	    if (pkt.getType() == JICPProtocol.RESPONSE_TYPE) {
+	    if (type == JICPProtocol.RESPONSE_TYPE) {
 	    	TimerDispatcher.getTimerDispatcher().add(new Timer(System.currentTimeMillis()+5000, this));
-				is = hc.openInputStream();
-  		}
-  		else {
-				is = hc.openInputStream();
-				unlock();
   		}
 			#MIDP_INCLUDE_END*/
-  		
-	    status = 3;
-		  pkt = JICPPacket.readFrom(is);
-		  status = 4;
+  		pkt = c.readPacket();
+	    status = 2;
 	  	return pkt;
   	}
   	catch (IOException ioe) {
@@ -434,17 +447,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		throw new IOException(ioe.getMessage()+'['+status+']');
   	}
   	finally {
-  		try {if (is != null) is.close();} catch(Exception e) {}
-  		try {if (os != null) os.close();} catch(Exception e) {}
+	    /*#MIDP_INCLUDE_BEGIN
+	    if (type != JICPProtocol.RESPONSE_TYPE) {
+	    	// If we delivered a RESPONSE unlock() is already called by the TimerDispatcher
+	    	unlock();
+	    }
+			#MIDP_INCLUDE_END*/
   		try {
-  			if (hc != null) {
-		    	//#MIDP_EXCLUDE_BEGIN
-		    	hc.disconnect();
-		    	//#MIDP_EXCLUDE_END
-    			/*#MIDP_INCLUDE_BEGIN
-  				hc.close();
-    			#MIDP_INCLUDE_END*/
-  			}
+  			c.close();
   		}
   		catch (Exception e) {}
   	}
@@ -498,31 +508,43 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	   a separate thread that periodically ping the back-end to 
   	   detect when the device is reachable again
   	 */
-  	private synchronized void setUnreachable() {
-  		if (reachable && !pingOK) {
-  			if (myConnectionListener != null) {
-  				myConnectionListener.handleDisconnection();
+  	private synchronized void setUnreachable(boolean missingKA) {
+  		if (reachable) {
+  			if (missingKA || !pingOK) {
+	  			if (myConnectionListener != null) {
+	  				myConnectionListener.handleDisconnection();
+	  			}
+	  			log("Starting DM ("+System.currentTimeMillis()+").", 2);
+	  			reachable = false;
+	  			myThread = new Thread(this);
+	  			myThread.start();
+	  			if (pingOK) {
+	  				// The InputManager is blocked waiting for data that will never arrive
+	  				// Kill it and create a new one
+	  				myInputManager.kill();
+	  				myInputManager = new InputManager();
+	  				myInputManager.start();
+	  			}
   			}
-  			log("Starting DM ("+System.currentTimeMillis()+").", 2);
-  			reachable = false;
-  			myThread = new Thread(this);
-  			myThread.start();
   		}
   	}
   	
   	/**
   	   Set the reachability state as "reachable" and notify
-  	   the embedded thread
+  	   the InputManager thread in case it is waiting in waitUntilReachable()
   	 */
   	private synchronized void setReachable() {
   		reachable = true;
+			if (myConnectionListener != null) {
+				myConnectionListener.handleReconnection();
+			}
   		notifyAll();
+			myKeepAliveManager.update();
   	}
   	
   	/**
   	   Wait until the device is reachable again. This is
-  	   executed by the HTTPFEDispatcher embedded thread before 
-  	   re-opening the input connection.
+  	   executed by the InputManager thread before sending a response
   	 */
   	private synchronized void waitUntilReachable() {
   		while (!reachable) {
@@ -540,8 +562,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		   BackEnd to detect when the device is reachable again.
 		   When the BackEnd receives a CONNECT_MEDIATOR packet it
 		   resets the input connection --> If blocked waiting for incoming 
-		   commands, the HTTPFEDispatcher embedded thread should get an 
-		   IOException.
+		   commands, the InputManager thread should get an IOException.
 		 */
   	public void run() {
   		int attemptCnt = 0;
@@ -563,12 +584,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 				// Ping succeeded
 				log("Ping OK.", 2);
 	  		synchronized (this) {
-	  			if (myConnectionListener != null) {
-	  				myConnectionListener.handleReconnection();
-	  			}
 	  			pingOK = true;
-	  			// Notify the thread handling incoming commands in case
-	  			// it is waiting in waitUntilReachable()
 	  			setReachable();
 	  			// Activate postponed commands flushing
 	  			waitingForFlush = myStub.flush();
@@ -596,6 +612,37 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   
   
   /**
+     Inner class KeepAliveManager
+     This class is responsible for taking track of keep-alive packets
+     and detect problems when they miss.
+   */
+  private class KeepAliveManager implements TimerListener {
+  	private long kaTimeout;
+  	private Timer kaTimer;
+  	
+  	private KeepAliveManager(long keepAliveTime) {
+  		kaTimeout = keepAliveTime*2;
+  	}
+  	
+  	public synchronized void doTimeOut(Timer t) {
+  		if (t == kaTimer) {
+  			// Missing keep-alive --> Try to reconnect
+  			log("Missing KA", 2);
+  			myDisconnectionManager.setUnreachable(true);
+  		}
+  	}
+  	
+  	private synchronized void update() {
+			TimerDispatcher td = TimerDispatcher.getTimerDispatcher();
+  		if (kaTimer != null) {
+  			td.remove(kaTimer);
+  		}
+			kaTimer = td.add(new Timer(System.currentTimeMillis() + kaTimeout, this));
+  	}
+  } // END of inner class KeepAliveManager
+  
+  
+  /**
      Send a CONNECT_MEDIATOR packet to the BackEnd to check if it is reachable
    */
   private boolean ping(int cnt) throws ICPException {
@@ -610,14 +657,13 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		  String host = addr.substring(0, colonPos);
 		  String port = addr.substring(colonPos + 1, addr.length());
 		  mediatorTA = new JICPAddress(host, port, myMediatorID, "");
-		  ///outConnection = new HTTPClientConnection(mediatorTA);
 	      }
 
 	      try {
 
 		  log("Ping "+mediatorTA.getHost()+":"+mediatorTA.getPort()+"("+cnt+")", 2);
 		  JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null);
-		  pkt = deliver(pkt);
+		  pkt = deliver(pkt, null);
 		  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		      // The JICPServer didn't find my Mediator.  
 		      throw new ICPException("Mediator expired.");

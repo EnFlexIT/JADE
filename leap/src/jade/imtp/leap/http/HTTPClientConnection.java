@@ -36,6 +36,7 @@ package jade.imtp.leap.http;
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.JICP.Connection;
+import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.JICPPacket;
 
 import java.io.*;
@@ -50,8 +51,10 @@ import javax.microedition.io.*;
  * Class declaration
  * @author Giovanni Caire - TILAB
  */
-public class HTTPClientConnection extends Connection {
+class HTTPClientConnection extends Connection {
 
+	static final String RECIPIENT_ID_FIELD = "recipient-id";
+	
 	//#MIDP_EXCLUDE_BEGIN
   private HttpURLConnection hc;
 	//#MIDP_EXCLUDE_END
@@ -73,21 +76,29 @@ public class HTTPClientConnection extends Connection {
   
   public int writePacket(JICPPacket pkt) throws IOException {
   	if (!opened) {
+  		int ret = 0;
 	  	//#MIDP_EXCLUDE_BEGIN
 			hc = (HttpURLConnection) (new URL(url)).openConnection();
 			hc.setDoOutput(true);
 			hc.setRequestMethod("POST");
 			hc.connect();
 			os = hc.getOutputStream();
+	    ret = pkt.writeTo(os);
 	  	//#MIDP_EXCLUDE_END
 			
 	  	/*#MIDP_INCLUDE_BEGIN
 			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
-			hc.setRequestMethod(HttpConnection.POST);
-	    os = hc.openOutputStream();
+			if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
+				hc.setRequestMethod(HttpConnection.GET);
+				hc.setRequestProperty(RECIPIENT_ID_FIELD, pkt.getRecipientID());
+  		}
+  		else {
+				hc.setRequestMethod(HttpConnection.POST);
+		    os = hc.openOutputStream();
+	    	ret = pkt.writeTo(os);
+  		}
 	    #MIDP_INCLUDE_END*/
 	    
-	    int ret = pkt.writeTo(os);
 	    opened = true;
 	    return ret;
   	}
@@ -101,11 +112,9 @@ public class HTTPClientConnection extends Connection {
     	try {
 		    //#MIDP_EXCLUDE_BEGIN
 				is = hc.getInputStream();
-				//int length = hc.getContentLength();
 		    //#MIDP_EXCLUDE_END
 		    /*#MIDP_INCLUDE_BEGIN
 				is = hc.openInputStream();
-	    	//int length = (int) hc.getLength();
 		    #MIDP_INCLUDE_END*/
 		    
 		    return JICPPacket.readFrom(is);
@@ -127,23 +136,20 @@ public class HTTPClientConnection extends Connection {
    */
   public void close() throws IOException {
   	opened = false;
-    if (os != null) {
-      os.close();
-      os = null;
-    } 
-    if (is != null) {
-      is.close();
-      is = null;
-    } 
-    if (hc != null) {
+		try {is.close();} catch (Exception e) {}
+    is = null;
+		try {os.close();} catch (Exception e) {}
+    os = null;
+    try {
     	//#MIDP_EXCLUDE_BEGIN
     	hc.disconnect();
     	//#MIDP_EXCLUDE_END
     	/*#MIDP_INCLUDE_BEGIN
 	    hc.close();
     	#MIDP_INCLUDE_END*/
-	    hc = null;
     }
+    catch (Exception e) {}
+    hc = null;
   } 
 
   //#MIDP_EXCLUDE_BEGIN

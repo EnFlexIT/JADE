@@ -53,8 +53,7 @@ import java.net.*;
  * request/response session.
  * @author Giovanni Caire - TILAB
  */
-public class HTTPServerConnection extends Connection {
-	private static byte[] serializedOK = new byte[] {(byte) jade.imtp.leap.Command.OK, (byte) 0};
+class HTTPServerConnection extends Connection {
 
   private Socket sc;
   private InputStream  is;
@@ -80,13 +79,9 @@ public class HTTPServerConnection extends Connection {
 	    readAvailable = false;
 	    writeAvailable = true;
 	    if (request.getMethod().equals("GET")) {
-	    	// This is an OK response
-	    	String sessionID = request.getField("jicp-ssn");
-	    	String recipientID = request.getField("jicp-rcp");
-	    	JICPPacket pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, serializedOK); 
-	    	if (sessionID != null) {
-	    		pkt.setSessionID((byte) Integer.parseInt(sessionID));
-	    	}
+	    	// This is a CONNECT_MEDIATOR
+	    	String recipientID = request.getField(HTTPClientConnection.RECIPIENT_ID_FIELD);
+	    	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, null); 
 	    	return pkt;
 	    }
 	    else {
@@ -138,27 +133,12 @@ public class HTTPServerConnection extends Connection {
   public void close() throws IOException {
 		readAvailable = false;
 		writeAvailable = false;
-		try {
-	    if (is != null) {
-	      is.close();
-	      is = null;
-	    }
-		}
-		catch (Exception e) {}
-		try {
-	    if (os != null) {
-	      os.close();
-	      os = null;
-	    }
-		}
-		catch (Exception e) {}
-		try {
-	    if (sc != null) {
-		    sc.close();
-		    sc = null;
-	    }
-		}
-		catch (Exception e) {}
+		try {is.close();} catch (Exception e) {}
+    is = null;
+		try {os.close();} catch (Exception e) {}
+    os = null;
+		try {sc.close();} catch (Exception e) {}
+    sc = null;
   } 
 
   /**

@@ -69,6 +69,8 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	private OutgoingsHandler myOutgoingsHandler;
 	private InetAddress lastRspAddr;
 	private int lastRspPort;
+  private	JICPPacket lastResponse = null;
+  private	byte lastSid = 0x10;
   
 	private Logger myLogger;
 
@@ -91,7 +93,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
       // Use default (1)
   	}
   	/*#CUSTOMJ2SE_INCLUDE_BEGIN
-  	verbosity = 3;
+  	verbosity = 4;
   	#CUSTOMJ2SE_INCLUDE_END*/
   	myLogger = new Logger(myID, verbosity, "HH:mm:ss", true);
   	
@@ -104,7 +106,16 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     	// Keep default
     }
     
-    myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime);
+  	// Max disconnection time
+    long keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
+    try {
+    	keepAliveTime = Long.parseLong(props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+    
+    myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime, keepAliveTime);
   	
     myLogger.log("Created HTTPBEDispatcher V2.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
   	
@@ -118,6 +129,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 
     	props.setProperty(Profile.MAIN, "false");
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
+    	props.setProperty(Profile.CONTAINER_NAME, myID);
 	String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
 
 	// Add the mediator ID to the profile (it's used as a token
@@ -224,16 +236,19 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     		// NORMAL COMMAND
     		// Serve the incoming command and send back the response
     		byte sid = pkt.getSessionID();
-      	myLogger.log("Incoming command received "+sid+from, 3);
-		  	byte[] rspData = mySkel.handleCommand(pkt.getData());
-      	myLogger.log("Incoming command served "+sid, 3);
-      	byte info = JICPProtocol.DEFAULT_INFO;
-      	if (myOutgoingsHandler.frontEndUnreachable()) {
-      		myLogger.log("Notify the FrontEnd that it looks like disconnected", 2);
-      		info |= JICPProtocol.REFRESH_INFO;
-      	}
-		    pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, info, rspData);
-		    pkt.setSessionID(sid);
+    		if (sid == lastSid) {
+	      	myLogger.log("Duplicated command received "+sid+from, 2);
+  				pkt = lastResponse;
+    		}
+    		else {
+	      	myLogger.log("Incoming command received "+sid+from, 3);
+			  	byte[] rspData = mySkel.handleCommand(pkt.getData());
+	      	myLogger.log("Incoming command served "+sid, 3);
+			    pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+			    pkt.setSessionID(sid);
+				  lastSid = sid;
+				  lastResponse = pkt;
+    		}
 		    return pkt;
     	}
   	}
@@ -388,8 +403,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	private JICPPacket currentResponse = null;
   	private boolean commandReady = false;
   	private boolean responseReady = false;
+  	private boolean connectionReset = false;
   	
   	private long maxDisconnectionTime;
+  	private long keepAliveTime;
   	private Timer disconnectionTimer = null;
   	
   	private boolean waitingForFlush = false;
@@ -397,8 +414,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	private Object initialResponseLock = new Object();
   	private boolean initialResponseReceived;
   	
-  	public OutgoingsHandler(long maxDisconnectionTime) {
+  	public OutgoingsHandler(long maxDisconnectionTime, long keepAliveTime) {
   		this.maxDisconnectionTime = maxDisconnectionTime;
+  		this.keepAliveTime = keepAliveTime;
   	}
   	
   	public boolean frontEndUnreachable() {
@@ -478,25 +496,33 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	 */
   	public synchronized JICPPacket dispatchResponse(JICPPacket rsp, String from) {
   		// 1) Handle the response
-  		if (responseWaiter != null) {
-  			// There was someone waiting for this response. Dispatch it
-	    	myLogger.log("Response received "+rsp.getSessionID()+from, 3);
-	    	responseReady = true;
-	    	currentResponse = rsp;
-  			notifyAll();
-  		}
-  		else {
-  			// No one was waiting for this response. It must be the
-    		// initial dummy response or a response that arrives after 
-  			// the timeout has expired. 
-  			if (frontEndStatus == CONNECTING) {
-		    	myLogger.log("Initial dummy response received "+rsp.getSessionID()+from, 2);
-		    	notifyInitialResponseReceived();
-  			}
-  			else {
-  				myLogger.log("Out of time respose received "+rsp.getSessionID()+from, 2);
-  			}
-  		}
+			if ((rsp.getInfo() & JICPProtocol.OK_INFO) != 0) {
+				// Keep-alive response
+				myLogger.log("Keep-alive response received", 4);
+				// Maybe there is someone waiting to deliver a command
+				notifyAll();
+			}
+			else {
+	  		if (responseWaiter != null) {
+	  			// There was someone waiting for this response. Dispatch it
+		    	myLogger.log("Response received "+rsp.getSessionID()+from, 3);
+		    	responseReady = true;
+		    	currentResponse = rsp;
+	  			notifyAll();
+	  		}
+	  		else {
+	  			// No one was waiting for this response. It must be the
+	    		// initial dummy response or a response that arrives after 
+	  			// the timeout has expired. 
+	  			if (frontEndStatus == CONNECTING) {
+			    	myLogger.log("Initial dummy response received "+rsp.getSessionID()+from, 2);
+			    	notifyInitialResponseReceived();
+	  			}
+	  			else {
+	  				myLogger.log("Out of time respose received "+rsp.getSessionID()+from, 2);
+	  			}
+	  		}
+			}
   		if (frontEndStatus != REACHABLE) {
   			frontEndStatus = REACHABLE;
   			resetTimer();
@@ -516,12 +542,19 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 			while (!commandReady) {
   			try {
 					commandWaiter = Thread.currentThread();
-  				wait();
+  				wait(keepAliveTime);
   				commandWaiter = null;
   				if (!commandReady) {
-  					// The connection was reset
-			  		myLogger.log("Return with no command to deliver ", 2);
-  					return null;
+  					if (connectionReset) {
+	  					// The connection was reset
+				  		myLogger.log("Return with no command to deliver", 2);
+	  					return null;
+  					}
+  					else {
+  						// Keep alive timeout expired --> send a keep-alive packet
+				  		myLogger.log("Sending keep-alive packet", 4);
+				  		return new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+  					}
   				}
   			}
   			catch (InterruptedException ie) {}
