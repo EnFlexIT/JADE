@@ -27,6 +27,7 @@ ant dist - to create the distribution files
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
   <property name="demo" location="demo"/>
+  <property name="SubWCRev.exe" value="c:\Program Files\TortoiseSVN\bin\SubWCRev.exe"/>
   
   <target name="init">
     <!-- Create the time stamp -->
@@ -48,6 +49,9 @@ ant dist - to create the distribution files
     <condition property="EXECidlj.is.set">
       <equals arg1="${EXECidlj}" arg2="true"/>
     </condition>
+    <condition property="EXECSubWCRev">
+      <available file="${SubWCRev.exe}"/>
+    </condition>
   </target>
   <target name="check_javacc" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
@@ -58,10 +62,14 @@ ant dist - to create the distribution files
   <target name="check_execIdlj" unless="EXECidlj.is.set">
     <echo>Default behaviour: IDLJ task is being skipped.</echo>
   </target>
+  <target name="check_execSubWCRev" depends="init" unless="EXECSubWCRev">
+    <echo>WARNING: SubWCRev is being skipped. The copyright notice of JADE Runtime might be wrong!</echo>
+  </target>
+
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
-  <target name="jade" depends="init,parser,idlj" description="compile the source ">
+  <target name="jade" depends="init,parser,idlj,SubWCRev" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
@@ -115,6 +123,16 @@ ant dist - to create the distribution files
     <echo>WARNING: Executing the idlj task might create wrong java files</echo>
     <exec dir="${src}" executable="idlj.exe">
       <arg line="-fall fipa.idl"/>
+    </exec>
+  </target>
+
+  <!--     _______________________________________________
+                                SubWCRev
+          _______________________________________________ -->
+  <target name="SubWCRev" depends="init,check_execSubWCRev" if="EXECSubWCRev" description="Set the value of the latest revision number and date for this checkout of JADE">
+    <echo>eseguo SUBWCRev</echo>
+    <exec dir="." executable="${SubWCRev.exe}">
+     <arg line=". src\jade\core\Runtime.java src\jade\core\Runtime.java"/>
     </exec>
   </target>
   <!--     _______________________________________________
