@@ -77,7 +77,11 @@ class DFGUIDeregisterAction extends AbstractAction
 
 			df = gui.getSelectedAgentInTable();
 			if (df != null)
-			    dfd = gui.myAgent.getDescriptionOfThisDF();
+			    {
+			    	dfd = gui.myAgent.getDescriptionOfThisDF(df);
+			      if(dfd == null)
+			    	  return; //should never happen
+			    }
 			else 
 			    return;
 		}

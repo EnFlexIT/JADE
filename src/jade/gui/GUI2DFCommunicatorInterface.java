@@ -76,9 +76,7 @@ public interface GUI2DFCommunicatorInterface {
   * This method federate the df with another df indicated
   */
   void postFederateEvent(Object source, AID dfName, DFAgentDescription dfd);
-  
-  
-  
+   
 
   /**
    * this method returns the agent description of an agent registered with the DF given the agent name
@@ -86,12 +84,13 @@ public interface GUI2DFCommunicatorInterface {
   DFAgentDescription getDFAgentDsc(AID name) throws FIPAException;
   
   
- 
-  
   /*
   * This method returns the description of this df used for federation with other dfs.
   */
   DFAgentDescription getDescriptionOfThisDF();
 
-
+  /**
+  * Returns the descriptions used by the df to federate with another df.
+  */
+  DFAgentDescription getDescriptionOfThisDF(AID parent);
 }
