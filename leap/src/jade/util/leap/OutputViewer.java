@@ -42,9 +42,13 @@ import javax.microedition.rms.*;
  */
 public class OutputViewer extends MIDlet implements CommandListener {
   private static final Command exitCommand = new Command("Exit", Command.EXIT, 1);
+  private static final Command downCommand = new Command("Down", Command.SCREEN, 1);
+  private static final Command upCommand = new Command("Up", Command.SCREEN, 0);
   private Display                       display;
   private String                        recordStoreName;
   private Form                          form;
+  private StringItem                    si;
+  private int                           offset = 0;
 
   /**
    */
@@ -56,13 +60,14 @@ public class OutputViewer extends MIDlet implements CommandListener {
    */
   public void startApp() {
     form = new Form("Output:");
-    String output = readOutput();
-    System.out.println("OUTPUT is: "+output);
-    StringItem si = new StringItem(null, output);
+    si = new StringItem(null, null);
     form.append(si);
     form.addCommand(exitCommand);
+    form.addCommand(downCommand);
+    form.addCommand(upCommand);
     form.setCommandListener(this);
     display.setCurrent(form);    
+    si.setText(readOutput());
   }
 
   /**
@@ -82,6 +87,14 @@ public class OutputViewer extends MIDlet implements CommandListener {
       if (c == exitCommand) {
         exit();
       }
+      else if (c == downCommand) {
+      	offset++;
+    		si.setText(readOutput());
+      }
+      else if (c == upCommand) {
+      	offset--;
+    		si.setText(readOutput());
+      }
     }
   }
   
@@ -93,13 +106,10 @@ public class OutputViewer extends MIDlet implements CommandListener {
   	StringBuffer sb = new StringBuffer();
   	try {
   		RecordStore rs = RecordStore.openRecordStore("OUTPUT", false);
-    	System.out.println("OUTPUT RecordStore found.");
   		int linesCnt = rs.getNumRecords();
-   		System.out.println("Number of output lines: "+linesCnt);
-   		for (int i = 0; i < linesCnt; ++i) {
+   		for (int i = offset; i < linesCnt; ++i) {
    			byte[] bb = rs.getRecord(i+1);
    			String line = new String(bb);
-   			System.out.println("Line "+i+": "+line);
    			sb.append(line);
    			sb.append('\n');
    		}
