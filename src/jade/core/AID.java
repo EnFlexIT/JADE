@@ -213,7 +213,9 @@ public Properties getAllUserDefinedSlot(){
 
   String getHap() {
     try {
-      return name.substring(name.lastIndexOf('@'),name.length());
+      String result = name.substring(name.lastIndexOf('@')+1);
+      System.out.println("getHAP="+result);
+      return result;
     } catch (Exception e) {
       return "";
     }
