@@ -174,7 +174,8 @@ Object Term():
 {
  ( obj = String() 
  | obj = Number() 
- | t = <DATETIME> { obj=new String(t.image);}
+ | t = <DATETIME> { try { obj=jade.lang.acl.ISO8601.toDate(t.image);}
+                    catch (Exception e) { obj = new String(t.image); } }
  | <LBRACE> ( s=String() {obj = new Frame(s);}
               (FunctionalTermParams((Frame)obj))?
             | obj=ActionExpression()

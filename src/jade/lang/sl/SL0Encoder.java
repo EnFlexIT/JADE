@@ -76,6 +76,11 @@ class SL0Encoder {
 	}
 	if (isFrame(slotValue))
 	  writeFrame((Frame)slotValue, w);
+	else if (slotValue.getClass().equals(java.util.Date.class))
+	  // if it is a Date then write a DateTimetoken
+	  // I wanted to use an SLDate that extends Date but, if I did
+	  // then the ontology would no more be language-independent!
+	  w.write(jade.lang.acl.ISO8601.toString((java.util.Date)slotValue)); 
 	else
 	  w.write(slotValue.toString());
 	w.write(" ");
