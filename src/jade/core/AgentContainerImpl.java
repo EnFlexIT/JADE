@@ -377,11 +377,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   public void dispatch(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException {
 		// DEBUG
-		Runtime.instance().debug(receiverID.getLocalName(), "incoming message received by container: "+Runtime.instance().stringify(msg));
+		//Runtime.instance().debug(receiverID.getLocalName(), "incoming message received by container: "+Runtime.instance().stringify(msg));
 
     Agent receiver = localAgents.acquire(receiverID);
     if(receiver == null) {
-			Runtime.instance().debug(receiverID.getLocalName(), "Not found on this container");
+			//Runtime.instance().debug(receiverID.getLocalName(), "Not found on this container");
 			throw new NotFoundException("DispatchMessage failed to find " + receiverID);
     }
     receiver.postMessage(msg);

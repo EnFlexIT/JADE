@@ -2258,7 +2258,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	public final void postMessage(final ACLMessage msg) {
 		//DEBUG
 		//Runtime.instance().debug(getLocalName(), "message posted: "+Runtime.instance().stringify(msg));
-		Runtime.instance().debug(getLocalName(), "message posted: "+msg);
+		//Runtime.instance().debug(getLocalName(), "message posted: "+msg);
 			
 		synchronized (waitLock) {
 			/*

@@ -167,9 +167,9 @@ class Scheduler implements Serializable {
     while(readyBehaviours.isEmpty()) {
       owner.doIdle();
 	  	//DEBUG
-	  	Runtime.instance().debug("Start waiting on the scheduler");
+	  	//Runtime.instance().debug("Start waiting on the scheduler");
       wait();
-	  	Runtime.instance().debug("Exit waiting on the scheduler");
+	  	//Runtime.instance().debug("Exit waiting on the scheduler");
     }
 
     Behaviour b = (Behaviour)readyBehaviours.get(currentIndex);
