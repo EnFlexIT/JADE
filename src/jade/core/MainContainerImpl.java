@@ -306,18 +306,18 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
-  private void postNewAddress(String address) {
+  private void postNewAddress(String address, String container) {
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleNewAddress(address);
+      l.handleNewAddress(address, container);
    } 
   }
 
-  private void postDeadAddress(String address) {
+  private void postDeadAddress(String address, String container) {
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleDeadAddress(address);
-   } 
+      l.handleDeadAddress(address, container);
+   }
   }
 
 
@@ -638,7 +638,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
 
       // Notify listeners (typically the AMS)
-      postNewAddress(mtpAddress);
+      postNewAddress(mtpAddress, containerName);
     }
     catch(NotFoundException nfe) {
       System.out.println("Error: the container " + containerName + " was not found.");
@@ -666,7 +666,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
 
       // Notify listeners (typically the AMS)
-      postDeadAddress(mtpAddress);
+      postDeadAddress(mtpAddress, containerName);
 
     }
     catch(NotFoundException nfe) {
