@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.12  1998/10/11 19:20:14  rimassa
+  Changed code to comply with new MessageDispatcher constructor.
+  Implemented invalidateCacheEntry() remote method.
+  New name clash exception handled properly.
+  Implemented a cache refresh on communication failures: when a cached
+  AgentDescriptor results in a RemoteException, main Agent Platform is
+  called to update remote agent cache and retry with the newer RMI
+  object reference before giving up for good with a NotFoundException.
+
   Revision 1.11  1998/10/05 20:13:51  Giovanni
   Made every agent name table is case insensitive, according to FIPA
   specification.
@@ -64,8 +73,17 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
 
   public AgentContainerImpl() throws RemoteException {
-    myDispatcher = new MessageDispatcherImpl(localAgents);
+    myDispatcher = new MessageDispatcherImpl(this, localAgents);
   }
+
+
+  // Interface AgentContainer implementation
+
+
+  public void invalidateCacheEntry(String key) throws RemoteException {
+    remoteAgentsCache.remove(key);
+  }
+
 
   public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
 
@@ -126,6 +144,10 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
       try {
 	myPlatform.bornAgent(agentName, desc); // RMI call
+      }
+      catch(NameClashException nce) {
+	System.out.println("Agent name already in use");
+	nce.printStackTrace();
       }
       catch(RemoteException re) {
 	System.out.println("Communication error while adding a new agent to the platform.");
@@ -198,7 +220,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     else
       // Search failed; look up in remote agents.
       postRemote(msg, receiverName);
-      
+
     // If it fails again, ask the Agent Platform.
     // If still fails, raise NotFound exception.
   }
@@ -214,15 +236,24 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
       }
       MessageDispatcher md = desc.getDemux();
-      md.dispatch(msg); // RMI call
+      try {
+	md.dispatch(msg); // RMI call
+      }
+      catch(RemoteException re) { // Communication error: retry with a newer object reference from the platform
+	remoteAgentsCache.remove(receiverName.toLowerCase());
+	desc = myPlatform.lookup(receiverName); // RMI call
+	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
+	md = desc.getDemux();
+	md.dispatch(msg); // RMI call
+      }
 
     }
     catch(NotFoundException nfe) {
-      System.err.println("Agent was not found on remote agent container");
+      System.err.println("Agent was not found on agent platform");
       nfe.printStackTrace();
     }
     catch(RemoteException re) {
-      System.out.println("Communication error while contacting remote agent container");
+      System.out.println("Communication error while contacting agent platform");
       re.printStackTrace();
     }
   }
