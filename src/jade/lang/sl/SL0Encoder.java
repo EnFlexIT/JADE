@@ -31,6 +31,7 @@ import java.util.*;
 
 import jade.onto.Frame;
 import jade.onto.OntologyException;
+import jade.lang.Codec;
 
 /**
   
@@ -54,38 +55,49 @@ class SL0Encoder {
     catch(OntologyException oe) {
       oe.printStackTrace();
     }
+    catch(Codec.CodecException ce) {
+      ce.printStackTrace();
+    }
     return out.toString();
   }
 
 
-  private void writeFrame(Frame f, Writer w) throws IOException, OntologyException {
-      w.write("(" + f.getName() + " ");
-      for (int i=0; i<f.size(); i++ ) {
-	String slotName = f.getSlotName(i); 
-	Object slotValue = f.getSlot(i);
-	if (!slotName.startsWith(Frame.UNNAMEDPREFIX)) {
-	  // if the slotName does not start with ':' then add ':'
-	  if (!slotName.startsWith(":"))
-	    w.write(":");
-	  // if the slotName is a String of words then quote it
-	  if (slotName.indexOf(" ")>-1) 
-	    w.write("\""+slotName+"\"");
-	  else
-	    w.write(slotName);
-	  w.write(" ");
-	}
-	if (isFrame(slotValue))
-	  writeFrame((Frame)slotValue, w);
-	else if (slotValue.getClass().equals(java.util.Date.class))
-	  // if it is a Date then write a DateTimetoken
-	  // I wanted to use an SLDate that extends Date but, if I did
-	  // then the ontology would no more be language-independent!
-	  w.write(jade.lang.acl.ISO8601.toString((java.util.Date)slotValue)); 
-	else
-	  w.write(slotValue.toString());
-	w.write(" ");
-      }
-      w.write(")");
+  private void writeFrame(Frame f, Writer w) throws IOException, OntologyException, Codec.CodecException {
+  	w.write("(" + f.getName() + " ");
+		for (int i=0; i<f.size(); i++ ) {
+			String slotName = f.getSlotName(i); 
+			Object slotValue = f.getSlot(i);
+			if (!slotName.startsWith(Frame.UNNAMEDPREFIX)) {
+	  		// if the slotName does not start with ':' then add ':'
+	  		if (!slotName.startsWith(":"))
+	    		w.write(":");
+	  		// if the slotName is a String of words then quote it
+	  		if (slotName.indexOf(" ")>-1) 
+	    		w.write("\""+slotName+"\"");
+	  		else
+	    		w.write(slotName);
+	  		w.write(" ");
+			}
+			if (isFrame(slotValue))
+	  		writeFrame((Frame)slotValue, w);
+			else if (slotValue.getClass().equals(java.util.Date.class))
+	  		// if it is a Date then write a DateTimetoken
+	  		// I wanted to use an SLDate that extends Date but, if I did
+	  		// then the ontology would no more be language-independent!
+	  		w.write(jade.lang.acl.ISO8601.toString((java.util.Date)slotValue));
+	  	else if (slotValue.getClass().equals(java.lang.Byte[].class))
+	  		throw new Codec.CodecException("SL0 does not support bynary fields", null);
+			else {
+	  		// If the stringified slot value is a String of words or is the empty string then quote it.
+	  		String stringifiedValue = slotValue.toString();
+	  		if (stringifiedValue.indexOf(" ") > -1 || stringifiedValue.equals("")) 
+	    		w.write("\""+stringifiedValue+"\"");
+	  		else
+					w.write(stringifiedValue);
+			}
+			w.write(" ");
+		}
+    w.write(")");
   }
 
 
