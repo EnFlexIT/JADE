@@ -28,15 +28,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import jade.content.*;
-import jade.content.abs.*;
-import jade.content.onto.*;
-import jade.content.lang.*;
-
-import test.content.testOntology.TestOntology;
-import test.common.TestUtility;
-
-public class Responder extends CyclicBehaviour {
+public class Responder extends Agent {
 	public static final String TEST_CONVERSATION = "_Test_";
 	public static final String TEST_RESPONSE_ID = "_Response_";
 	
@@ -44,54 +36,25 @@ public class Responder extends CyclicBehaviour {
   	MessageTemplate.MatchConversationId(TEST_CONVERSATION),
   	MessageTemplate.MatchReplyWith(TEST_RESPONSE_ID));
   	
-  public void onStart() {
-  	myAgent.getContentManager().registerOntology(TestOntology.getInstance()); 
-  }
-  
-  public void action() {
-  	ACLMessage msg = myAgent.receive(mt);
-  	if (msg != null) {
-  		ACLMessage reply = msg.createReply();
-  		try {
-  			handleContent(msg);
-  			// Content handling OK --> reply with an INFORM message with the same content
-  			reply.setPerformative(ACLMessage.INFORM);
-  			if (msg.hasByteSequenceContent()) {
-  				reply.setByteSequenceContent(msg.getByteSequenceContent());
+  public void setup() {
+  	addBehaviour(new CyclicBehaviour(this) {
+  		public void action() {
+  			ACLMessage msg = myAgent.receive(mt);
+  			if (msg != null) {
+  				ACLMessage reply = msg.createReply();
+	  			reply.setPerformative(msg.getPerformative());
+  				if (msg.hasByteSequenceContent()) { 
+  					reply.setByteSequenceContent(msg.getByteSequenceContent());
+  				}
+  				else {
+  					reply.setContent(msg.getContent());
+  				}
+  				myAgent.send(reply);
   			}
   			else {
-  				reply.setContent(msg.getContent());
+  				block();
   			}
   		}
-  		catch (Throwable t) {
-  			// Content handling FAILED --> reply with an empty FAILURE message
-	  		t.printStackTrace();
-  			reply.setPerformative(ACLMessage.FAILURE);
-  		}
-  		myAgent.send(reply);
-  	}
-  	else {
-  		block();
-  	}
-  }
-  	
-  private void handleContent(ACLMessage msg) throws Throwable {
-  	TestUtility.log("Received content is:");
-  	try {
-  		ContentElement ce = myAgent.getContentManager().extractContent(msg);
-  		TestUtility.log(ce);
-  		TestUtility.log("Its representation as an abstract descriptor is:");
-  		try {
-	  		Ontology o = myAgent.getContentManager().getOntology(msg);
-  			TestUtility.log(o.fromObject(ce));
-  		}
-  		catch (Exception e) {
-  			e.printStackTrace();
-  		}
-  	}
-  	catch (UngroundedException ue) {
-  		AbsContentElement ace = myAgent.getContentManager().extractAbsContent(msg);
-  		TestUtility.log(ace);
-  	}
+  	} );
   }
 }  

@@ -41,7 +41,6 @@ import test.content.testOntology.TestOntology;
 /**
  * @author Giovanni Caire - TiLab
  * @author Elisabetta Cortese - TiLab
- *
  */
 
 public class ContentTesterAgent extends TesterAgent {
@@ -49,7 +48,7 @@ public class ContentTesterAgent extends TesterAgent {
 	public static final String CODEC_CLASS_NAME = "codec";
 	private static final String CODEC_CLASS_DEFAULT = "jade.content.lang.sl.SLCodec";
 		
-	public static final String INFORM_MSG_NAME = "inform-msg";
+	public static final String MSG_NAME = "msg";
 	
 	private static final String RESPONDER_NAME = "responder";
 	
@@ -74,10 +73,8 @@ public class ContentTesterAgent extends TesterAgent {
     		a.getContentManager().registerLanguage(codec);
     		a.getContentManager().registerOntology(TestOntology.getInstance());
     		
-    		// Create and configure a responder agent
-				resp = TestUtility.createTarget(a, RESPONDER_NAME);
-				TestUtility.addBehaviour(a, resp, "test.content.Responder");
-				TestUtility.forceAction(a, resp, new LoadLanguage(null, codecClassName));
+    		// Create and configure the responder agent
+				resp = TestUtility.createAgent(a, RESPONDER_NAME, "test.content.Responder", null, a.getAMS(), a.here().getName());
 
 				// Prepare the message that will be used in all tests
 				ACLMessage msg  = new ACLMessage(ACLMessage.INFORM);
@@ -86,7 +83,7 @@ public class ContentTesterAgent extends TesterAgent {
   			msg.setOntology(TestOntology.getInstance().getName());
   			msg.setConversationId(Responder.TEST_CONVERSATION);
   			msg.setReplyWith(Responder.TEST_RESPONSE_ID);
-				setArgument(INFORM_MSG_NAME, msg);
+				setArgument(MSG_NAME, msg);
 			}
 			
 			public void shutdown(Agent a) {

@@ -34,15 +34,12 @@ import examples.content.ecommerceOntology.*;
 import java.util.Date;
 
 public class TestContentElementList extends Test{
-  public String getName() {
-  	return "Content-element-list";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				msg.setPerformative(ACLMessage.PROPOSE);
@@ -57,7 +54,18 @@ public class TestContentElementList extends Test{
   				cel.add(act);
   				cel.add(new TrueProposition());
   				myAgent.getContentManager().fillContent(msg, cel);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				ContentElementList cel = (ContentElementList) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Action act = (Action) cel.get(0);
+  				TrueProposition tp = (TrueProposition) cel.get(1);
+  				l.log("Content element list OK");
+  				return true;
   			}
   		};
   	}

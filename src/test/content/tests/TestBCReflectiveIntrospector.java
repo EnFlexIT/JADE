@@ -30,17 +30,15 @@ import jade.content.ContentManager;
 import test.common.*;
 import test.content.*;
 import test.content.testOntology.*;
+import jade.util.leap.Iterator;
 
 public class TestBCReflectiveIntrospector extends Test{
-  public String getName() {
-  	return "Backward-compatible-Reflective-Introspector";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Route r = new Route();
@@ -51,7 +49,29 @@ public class TestBCReflectiveIntrospector extends Test{
   				r.addElements(new Position(3, 3));
   				Exists e = new Exists(r);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Route r = (Route) e.getWhat();
+  				Iterator it = r.getAllElements();
+  				int i = 0;
+  				while (it.hasNext()) {
+  					Position p = (Position) it.next();
+  					i++;
+  				}
+  				if (i == 4) {
+	  				l.log("Content OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong content: expected 4 elements, found "+i);
+  					return false;
+  				}
   			}
   		};
   	}

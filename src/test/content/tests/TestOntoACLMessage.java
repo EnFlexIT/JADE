@@ -35,16 +35,13 @@ import test.content.*;
 import test.content.testOntology.Exists;
 import java.util.Date;
 
-public class TestOntoACLMessage extends Test{
-  public String getName() {
-  	return "OntoACLMessage-as-AgentAction";
-  }
+public class TestOntoACLMessage extends Test {
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				msg.setPerformative(ACLMessage.REQUEST);
@@ -57,11 +54,35 @@ public class TestOntoACLMessage extends Test{
   				act.setOntology(msg.getOntology());
   				Exists e = new Exists(OntoAID.wrap(myAgent.getAID()));
   				myAgent.getContentManager().fillContent(act, e);
-  				act.setReplyByDate(new Date((new Date()).getTime() + 10000));
+  				act.setReplyByDate(new Date(System.currentTimeMillis() + 10000));
   				
-  				Action action = new Action(OntoAID.wrap(recv), OntoACLMessage.wrap(act));
+  				Action action = new Action(recv, OntoACLMessage.wrap(act));
   				myAgent.getContentManager().fillContent(msg, action);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Action action = (Action) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				ACLMessage msg = (ACLMessage) action.getAction();
+  				// Check the performative
+  				if (msg.getPerformative() != ACLMessage.INFORM) {
+  					l.log("Wrong content: expected performative "+ACLMessage.INFORM+", found "+msg.getPerformative());
+  					return false;
+  				}
+  				// Check the content
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(msg);
+  				AID id = (AID) e.getWhat();
+  				if (id.equals(myAgent.getAID())) {
+  					l.log("Content OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong content: expected "+myAgent.getAID()+", found "+id);
+  					return false;
+  				}
   			}
   		};
   	}

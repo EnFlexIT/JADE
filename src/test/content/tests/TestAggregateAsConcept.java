@@ -37,15 +37,12 @@ import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
 
 public class TestAggregateAsConcept extends Test{
-  public String getName() {
-  	return "Aggregate-as-concept";
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new FailureExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);
@@ -54,7 +51,7 @@ public class TestAggregateAsConcept extends Test{
   				agg.add(t);
   		
   				AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
-  				// Compilation should allows that as AbsAggregate extends AbsConcept
+  				// Compilation should allows that since AbsAggregate extends AbsConcept
   				// However an OntologyException should be thrown as an 
   				// aggregate is not a concept
   				e.set(TestOntology.EXISTS_WHAT, agg);

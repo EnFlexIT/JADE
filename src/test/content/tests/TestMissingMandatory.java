@@ -34,15 +34,10 @@ import test.content.*;
 import test.content.testOntology.*;
 
 public class TestMissingMandatory extends Test{
-  public String getName() {
-  	return "Missing-mandatory-attribute";
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new FailureExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsConcept p = new AbsConcept(TestOntology.POSITION);

@@ -34,17 +34,12 @@ import examples.content.ecommerceOntology.*;
 import java.util.Date;
 
 public class TestAgentAction extends Test{
-	private Codec c = null;
-	
-  public String getName() {
-  	return "AgentAction-as-content";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Sell sell = new Sell();
@@ -55,17 +50,35 @@ public class TestAgentAction extends Test{
   				sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
   	
   				myAgent.getContentManager().fillContent(msg, sell);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
   			}
   			
-  			protected int getExpectedPerformative(ACLMessage sentMsg) {
-  				if (sentMsg.getLanguage().startsWith("FIPA-SL")) {
-  					return ACLMessage.FAILURE;
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				try {
+	  				Sell sell = (Sell) myAgent.getContentManager().extractContent(reply);
+	  				l.log("Content correctly decoded");
+	  				if (reply.getLanguage().startsWith("FIPA-SL")) {
+	  					l.log("AgentAction decoding succeeded while a failure was expected");
+	  					return false;
+	  				}
+	  				else {
+		  				l.log("AgentAction OK");
+		  				return true;
+	  				}
   				}
-  				else {
-  					return ACLMessage.INFORM;
+  				catch (Codec.CodecException ce) {
+	  				if (reply.getLanguage().startsWith("FIPA-SL")) {
+	  					l.log("AgentAction decoding failed as expected");
+	  					ce.printStackTrace();
+	  					return true;
+	  				}
+	  				else {
+	  					throw ce;
+	  				}
   				}
-  			}	
+  			}
   		};
   	}
   	catch (Exception e) {

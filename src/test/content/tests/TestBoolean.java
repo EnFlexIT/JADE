@@ -36,22 +36,37 @@ import test.content.testOntology.*;
    @author Giovanni Caire - TILAB
  */
 public class TestBoolean extends Test{
-  public String getName() {
-  	return "Boolean-attribute";
-  }
+	private static final boolean VALUE = true;
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Position p = new Position(1.0, 1.0);
-  				p.setPrecise(new Boolean(true));
+  				p.setPrecise(new Boolean(VALUE));
   				Exists e = new Exists(p);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Position p = (Position) e.getWhat();
+  				boolean value = p.getPrecise().booleanValue();
+  				if (value == VALUE) {
+  					l.log("Boolean value OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong boolean value: expected "+VALUE+", received "+value); 
+  					return false;
+  				}
   			}
   		};
   	}

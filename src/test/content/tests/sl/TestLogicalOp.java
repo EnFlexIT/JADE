@@ -39,16 +39,12 @@ import test.content.testOntology.*;
  * @author Giovanni Caire - TILAB
  */
 public class TestLogicalOp extends Test{
-  public String getName() {
-  	return "Test-Logical-operators";
-  }
-  
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Item i1 = new Item();
@@ -73,8 +69,27 @@ public class TestLogicalOp extends Test{
   				not.set(SLVocabulary.NOT_WHAT, or);
   				
   				myAgent.getContentManager().fillContent(msg, not);
-  				System.out.println("Encoded content is:\n"+msg.getContent());
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsPredicate not = (AbsPredicate) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsPredicate or = (AbsPredicate) not.getAbsObject(SLVocabulary.NOT_WHAT);
+  				AbsPredicate and = (AbsPredicate) or.getAbsObject(SLVocabulary.OR_RIGHT);
+  				AbsPredicate e = (AbsPredicate) and.getAbsObject(SLVocabulary.AND_LEFT);
+  				Exists ex = (Exists) TestOntology.getInstance().toObject(e);
+  				Item i = (Item) ex.getWhat();
+  				if (i.getSerialID() == 2000) {
+	  				l.log("Content OK");
+	  				return true;
+  				}
+  				else {
+	  				l.log("Wrong content: expected 2000, found "+i.getSerialID());
+	  				return false;
+  				}
   			}
   		};
   	}

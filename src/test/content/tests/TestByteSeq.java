@@ -33,47 +33,38 @@ import test.content.testOntology.*;
 import examples.content.musicShopOntology.*;
 
 public class TestByteSeq extends Test{
-	private byte[] bytes = new byte[] {0, 1, 0, -128, 0, 127, 0};
-  public String getName() {
-  	return "Byte-sequence-attribute";
-  }
+	private static final byte[] VALUE = new byte[] {0, 1, 0, -128, 0, 127, 0};
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		if (!msg.getLanguage().startsWith("FIPA-SL")) {
   			return new SuccessExpectedInitiator(a, ds, resultKey) {
   				protected ACLMessage prepareMessage() throws Exception {
   					Track t = new Track();
   					t.setName("Blowing in the wind");
   					t.setDuration(new Integer(240));
-  					t.setPcm(bytes);
+  					t.setPcm(VALUE);
   					Exists e = new Exists(t);
   					myAgent.getContentManager().fillContent(msg, e);
+  					l.log("Content correctly encoded");
   					return msg;
   				}
   				
-  				protected boolean check(ACLMessage reply) {
-  					if (super.check(reply)) {
-  						// Also check that the sequence of byte is exactly the same as 
-  						// the sent one.
-  						try {
-  							Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
-  							Track t = (Track) e.getWhat();
-  							byte[] returnedBytes = t.getPcm();
-  							return compare(bytes, returnedBytes);
-  						}
-  						catch (Exception ex) {
-  							TestUtility.log("Unexpected exception while extracting returned sequence of bytes");
-  							ex.printStackTrace();
-  							return false;
-  						}
-  					}
-  					else {
-  						return false;
-  					}
+  				protected boolean checkReply(ACLMessage reply) throws Exception {
+						Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+						Track t = (Track) e.getWhat();
+						byte[] value = t.getPcm();
+	  				if (compare(value, VALUE)) {
+	  					l.log("Byte[] value OK");
+	  					return true;
+	  				}
+	  				else {
+	  					l.log("Wrong byte[] value: expected "+VALUE+", received "+value); 
+	  					return false;
+	  				}
   				}		
   			};
   		}
@@ -83,7 +74,7 @@ public class TestByteSeq extends Test{
   					Track t = new Track();
   					t.setName("Blowing in the wind");
   					t.setDuration(new Integer(240));
-  					t.setPcm(bytes);
+  					t.setPcm(VALUE);
   					Exists e = new Exists(t);
   					myAgent.getContentManager().fillContent(msg, e);
   					return msg;

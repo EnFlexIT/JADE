@@ -34,23 +34,37 @@ import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestInt extends Test{
-  public String getName() {
-  	return "Int-attribute";
-  }
-  
-  
+	private static final int VALUE = 123456;
+    
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Item i = new Item();
-  				i.setSerialID(35624);
+  				i.setSerialID(VALUE);
   				Exists e = new Exists(i);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Item i = (Item) e.getWhat();
+  				int value = i.getSerialID();
+  				if (value == VALUE) {
+  					l.log("Int value OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong int value: expected "+VALUE+", received "+value); 
+  					return false;
+  				}
   			}
   		};
   	}

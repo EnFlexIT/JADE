@@ -37,15 +37,13 @@ import test.content.testOntology.Exists;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestSlotOrder extends Test{
-  public String getName() {
-  	return "Slot-order";
-  }
-  
+public class TestSlotOrder extends Test{  
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsConcept i = new AbsConcept(ECommerceOntology.ITEM);
@@ -61,7 +59,18 @@ public class TestSlotOrder extends Test{
   				c.set(ECommerceOntology.COSTS_ITEM, i);
   				
   				myAgent.getContentManager().fillContent(msg, c);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Costs c = (Costs) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Price p = c.getPrice();
+  				Item i = c.getItem();
+  				l.log("Content OK");
+  				return true;
   			}
   		};
   	}

@@ -46,7 +46,7 @@ import test.content.testOntology.TestOntology;
 
 public class SLOperatorsTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
-	public static final String INFORM_MSG_NAME = "inform-msg";
+	public static final String MSG_NAME = "msg";
 	
 	private static final String RESPONDER_NAME = "responder";
 	
@@ -69,10 +69,8 @@ public class SLOperatorsTesterAgent extends TesterAgent {
     		a.getContentManager().registerLanguage(codec);
     		a.getContentManager().registerOntology(TestOntology.getInstance());
     		
-    		// Create and configure a responder agent
-				resp = TestUtility.createTarget(a, RESPONDER_NAME);
-				TestUtility.addBehaviour(a, resp, "test.content.Responder");
-				TestUtility.forceAction(a, resp, new LoadLanguage(null, codecClassName));
+    		// Create and configure the responder agent
+				resp = TestUtility.createAgent(a, RESPONDER_NAME, "test.content.Responder", null, a.getAMS(), a.here().getName());
 
 				// Prepare the message that will be used in all tests
 				ACLMessage msg  = new ACLMessage(ACLMessage.INFORM);
@@ -81,7 +79,7 @@ public class SLOperatorsTesterAgent extends TesterAgent {
   			msg.setOntology(TestOntology.getInstance().getName());
   			msg.setConversationId(Responder.TEST_CONVERSATION);
   			msg.setReplyWith(Responder.TEST_RESPONSE_ID);
-				setArgument(INFORM_MSG_NAME, msg);
+				setArgument(MSG_NAME, msg);
 			}
 			
 			public void shutdown(Agent a) {

@@ -35,17 +35,12 @@ import test.content.*;
 import java.util.Date;
 
 public class TestAction2 extends Test{
-	private Codec c = null;
-	
-  public String getName() {
-  	return "BasicOntology.ACTION-with-Concept";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Move m = new Move(new Position(0.05, 13.25));
@@ -53,7 +48,17 @@ public class TestAction2 extends Test{
   				Action act = new Action(myAgent.getAID(), m);
   		
   				myAgent.getContentManager().fillContent(msg, act);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Action act = (Action) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Move m = (Move) act.getAction();
+  				l.log("Action operator applied on Concept OK");
+  				return true;
   			}
   		};
   	}

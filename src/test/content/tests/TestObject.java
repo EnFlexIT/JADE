@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package test.content.tests;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
@@ -37,20 +38,36 @@ import test.content.testOntology.*;
    @author Giovanni Caire - TILAB
  */
 public class TestObject extends Test{
-  public String getName() {
-  	return "Generic-object-slot";
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				msg.setPerformative(ACLMessage.INFORM);
   				AbsPredicate p = new AbsPredicate(TestOntology.ELEMENT);
   				p.set(TestOntology.ELEMENT_WHAT, BasicOntology.getInstance().fromObject(myAgent.getAID()));
   				myAgent.getContentManager().fillContent(msg, p);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsPredicate p = (AbsPredicate) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsTerm t = p.getAbsTerm(TestOntology.ELEMENT_WHAT);
+  				AID id = (AID) BasicOntology.getInstance().toObject(t);
+  				if (id.equals(myAgent.getAID())) {
+  					l.log("Content OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong content: expected "+myAgent.getAID()+", found "+id);
+  					return false;
+  				}
   			}
   		};
   	}

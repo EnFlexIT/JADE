@@ -37,14 +37,10 @@ import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
 
 public class TestTypedAggregate extends Test{
-  public String getName() {
-  	return "Wrong-type-in-typed-aggregate";
-  }
+	
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new FailureExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);

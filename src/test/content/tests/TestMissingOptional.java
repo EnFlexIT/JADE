@@ -27,28 +27,42 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
-import examples.content.ecommerceOntology.*;
 import test.common.*;
 import test.content.*;
-import test.content.testOntology.Exists;
+import test.content.testOntology.*;
 
 public class TestMissingOptional extends Test{
-  public String getName() {
-  	return "Missing-optional-attribute";
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				Item i = new Item();
-  				// Optional attribute serialID not set 
-  				Exists e = new Exists(i);
+  				Route r = new Route();
+  				r.addElements(new Position(0, 0));
+  				r.addElements(new Position(1, 1));
+  				// Optional attribute estimated-time not set 
+  				Exists e = new Exists(r);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Route r = (Route) e.getWhat();
+  				if (r.getEstimatedTime() == null) {
+	  				l.log("Optional slot not set as expected");
+  					return true;
+  				}
+  				else {
+	  				l.log("Unexpected value for optional slot: "+r.getEstimatedTime());
+	  				return false;
+  				}
   			}
   		};
   	}

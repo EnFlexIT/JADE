@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package test.content.tests;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
@@ -32,20 +33,33 @@ import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestOntoAID extends Test{
-  public String getName() {
-  	return "OntoAID-as-Concept";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Exists e = new Exists(OntoAID.wrap(myAgent.getAID()));
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AID id = (AID) e.getWhat();
+  				if (id.equals(myAgent.getAID())) {
+  					l.log("Content OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong content: expected "+myAgent.getAID()+", found "+id);
+  					return false;
+  				}
   			}
   		};
   	}

@@ -37,15 +37,12 @@ import test.content.testOntology.*;
    @author Giovanni Caire - TILAB
  */
 public class TestAbsDescriptorAsConcept extends Test{
-  public String getName() {
-  	return "AbsConcept-as-Java-class";
-  }
 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsConcept p = new AbsConcept(TestOntology.POSITION);
@@ -53,13 +50,29 @@ public class TestAbsDescriptorAsConcept extends Test{
   				p.set(TestOntology.POSITION_Y, 2.2);
   				p.set(TestOntology.POSITION_PRECISE, true);
   				
-  				AbsConcept l = new AbsConcept(TestOntology.LOCATION);
-  				l.set(TestOntology.LOCATION_NAME, "Office");
-  				l.set(TestOntology.LOCATION_POSITION, p);
+  				AbsConcept loc = new AbsConcept(TestOntology.LOCATION);
+  				loc.set(TestOntology.LOCATION_NAME, "Office");
+  				loc.set(TestOntology.LOCATION_POSITION, p);
   				
-  				Exists e = new Exists(l);
+  				Exists e = new Exists(loc);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsConcept loc = (AbsConcept) e.getWhat();
+  				if (loc.getTypeName().equals(TestOntology.LOCATION)) {
+	  				l.log("Content OK");
+	  				return true;
+  				}
+  				else {
+	  				l.log("Wrong content: type expected "+TestOntology.LOCATION+", found "+loc.getTypeName());
+	  				return false;
+  				}
   			}
   		};
   	}

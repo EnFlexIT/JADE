@@ -35,16 +35,15 @@ import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestSequence extends Test{
-  public String getName() {
-  	return "Sequence-attribute";
-  }
-
+	private static final String T1 = "Synchronicity";
+	private static final String T2 = "Every breath you take";
+	private static final String T3 = "King of pain";
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
 					CD cd = new CD();
@@ -52,20 +51,39 @@ public class TestSequence extends Test{
 					cd.setTitle("Synchronicity");
 					List tracks = new ArrayList();
 					Track t = new Track();
-					t.setName("Synchronicity");
+					t.setName(T1);
 					tracks.add(t);
 					t = new Track();
-					t.setName("Every breath you take");
+					t.setName(T2);
 					tracks.add(t);
 					t = new Track();
-					t.setName("King of pain");
+					t.setName(T3);
 					t.setDuration(new Integer(240));
 					tracks.add(t);
 					cd.setTracks(tracks);
   		
   				Exists e = new Exists(cd);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				CD cd = (CD) e.getWhat();
+  				List tracks = cd.getTracks();
+  				if (T1.equals(((Track) tracks.get(0)).getName()) &&
+  					  T2.equals(((Track) tracks.get(1)).getName()) &&
+  					  T3.equals(((Track) tracks.get(2)).getName()) ) {
+  					l.log("Sequence OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong sequence");
+  					return false;
+  				}
   			}
   		};
   	}

@@ -37,14 +37,12 @@ import test.content.testOntology.*;
    @author Giovanni Caire - TILAB
  */
 public class TestAbsDescriptorAsPredicate extends Test{
-  public String getName() {
-  	return "AbsPredicate-as-Java-class";
-  }
-  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+
+	public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsConcept p1 = new AbsConcept(TestOntology.POSITION);
@@ -69,7 +67,23 @@ public class TestAbsDescriptorAsPredicate extends Test{
   				c.set(TestOntology.CLOSE_WHERE, l1);
   				c.set(TestOntology.CLOSE_TO, l2);
   				myAgent.getContentManager().fillContent(msg, c);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsPredicate c = (AbsPredicate) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsConcept loc = (AbsConcept) c.getAbsTerm(TestOntology.CLOSE_WHERE);
+  				if (loc.getTypeName().equals(TestOntology.LOCATION)) {
+	  				l.log("Content OK");
+	  				return true;
+  				}
+  				else {
+	  				l.log("Wrong content: type expected "+TestOntology.LOCATION+", found "+loc.getTypeName());
+	  				return false;
+  				}
   			}
   		};
   	}

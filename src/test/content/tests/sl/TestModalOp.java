@@ -41,16 +41,12 @@ import test.content.testOntology.*;
  * @author Giovanni Caire - TILAB
  */
 public class TestModalOp extends Test{
-  public String getName() {
-  	return "Test-modal-operators";
-  }
-  
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Item it = new Item();
@@ -70,8 +66,27 @@ public class TestModalOp extends Test{
   				u.set(SLVocabulary.UNCERTAINTY_CONDITION, b);
   				
   				myAgent.getContentManager().fillContent(msg, u);
-  				System.out.println("Encoded content is:\n"+msg.getContent());
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsPredicate u = (AbsPredicate) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsPredicate b = (AbsPredicate) u.getAbsObject(SLVocabulary.UNCERTAINTY_CONDITION);
+  				AbsPredicate i = (AbsPredicate) b.getAbsObject(SLVocabulary.BELIEF_CONDITION);
+  				AbsPredicate e = (AbsPredicate) i.getAbsObject(SLVocabulary.INTENTION_CONDITION);
+  				Exists ex = (Exists) TestOntology.getInstance().toObject(e);
+  				Item it = (Item) ex.getWhat();
+  				if (it.getSerialID() == 1000) {
+	  				l.log("Content OK");
+	  				return true;
+  				}
+  				else {
+	  				l.log("Wrong content: expected 1000, found "+it.getSerialID());
+	  				return false;
+  				}
   			}
   		};
   	}

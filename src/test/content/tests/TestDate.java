@@ -34,21 +34,36 @@ import test.content.testOntology.Exists;
 import java.util.Date;
 
 public class TestDate extends Test{
-  public String getName() {
-  	return "Date-attribute";
-  }
-
+	private static final Date VALUE = new Date();
+ 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				CreditCard cc = new CreditCard("VISA", 999999999L, new Date());
+  				CreditCard cc = new CreditCard("VISA", 999999999L, VALUE);
   				Exists e = new Exists(cc);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				CreditCard cc = (CreditCard) e.getWhat();
+  				Date value = cc.getExpirationDate();
+  				if (value.equals(VALUE)) {
+  					l.log("Date value OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong date value: expected "+VALUE+", received "+value); 
+  					return false;
+  				}
   			}
   		};
   	}

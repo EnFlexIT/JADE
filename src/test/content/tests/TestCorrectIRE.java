@@ -33,15 +33,12 @@ import test.content.*;
 import examples.content.ecommerceOntology.*;
 
 public class TestCorrectIRE extends Test{
-  public String getName() {
-  	return "Correct-IRE";
-  }
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				msg.setPerformative(ACLMessage.QUERY_REF);
@@ -53,7 +50,24 @@ public class TestCorrectIRE extends Test{
   				ire.setVariable(x);
   				ire.setProposition(costs);
   				myAgent.getContentManager().fillContent(msg, ire);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsIRE ire = (AbsIRE) myAgent.getContentManager().extractAbsContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsPredicate costs = ire.getProposition();
+  				AbsVariable x = (AbsVariable) costs.getAbsTerm(ECommerceOntology.COSTS_PRICE);
+  				if (x.getName().equals("x")) {
+  					l.log("IRE OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong IRE: expected variable name x, found "+x.getName());
+  					return false;
+  				}
   			}
   		};
   	}

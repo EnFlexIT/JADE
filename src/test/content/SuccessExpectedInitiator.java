@@ -82,13 +82,18 @@ public abstract class SuccessExpectedInitiator extends FSMBehaviour {
 			public void action() {
 				ACLMessage msg = myAgent.receive(mt);
 				if (msg != null) {
-					//if (msg.getPerformative() == getExpectedPerformative(sentMsg)) {
-					if (check(msg)) {
-  					getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+					try {
+						if (checkReply(msg)) {
+	  					getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+						}
+						else {
+		  				getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
+						}
 					}
-					else {
+					catch (Exception e) {
+	  				e.printStackTrace();
 	  				getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
-					}
+					}	
 					finished = true;
 				}
 				else {
@@ -111,12 +116,5 @@ public abstract class SuccessExpectedInitiator extends FSMBehaviour {
 	}
 	
 	protected abstract ACLMessage prepareMessage() throws Exception;
-	
-	protected boolean check(ACLMessage reply) {
-		return (reply.getPerformative() == getExpectedPerformative(sentMsg));
-	}
-	
-	protected int getExpectedPerformative(ACLMessage sentMsg) {
-		return ACLMessage.INFORM;
-	}
+	protected abstract boolean checkReply(ACLMessage reply) throws Exception;
 }  

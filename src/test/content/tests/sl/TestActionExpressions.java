@@ -42,14 +42,12 @@ import java.util.Date;
  * @author Giovanni Caire - TILAB
  */
 public class TestActionExpressions extends Test{
-  public String getName() {
-  	return "Test-action-expressions";
-  }
-  
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				msg.setPerformative(ACLMessage.REQUEST);
@@ -58,7 +56,7 @@ public class TestActionExpressions extends Test{
   				AID bill = new AID("Bill", AID.ISLOCALNAME);
   				Sell s1 = new Sell(john, new Item(100), new CreditCard("VISA", 1000000, new Date()));
   				Sell s2 = new Sell(john, new Item(200), new CreditCard("VISA", 1000000, new Date()));
-  				Sell s3 = new Sell(john, new Item(200), new CreditCard("AMEX", 1000000, new Date()));
+  				Sell s3 = new Sell(john, new Item(300), new CreditCard("AMEX", 1000000, new Date()));
   				
   				Action a1 = new Action(bill, s1);
   				Action a2 = new Action(bill, s2);
@@ -73,8 +71,27 @@ public class TestActionExpressions extends Test{
   				sequence.set(SLVocabulary.ACTION_SEQUENCE_FIRST, (AbsAgentAction) ECommerceOntology.getInstance().fromObject(a1));
   				
   				myAgent.getContentManager().fillContent(msg, sequence);
-  				System.out.println("Encoded content is:\n"+msg.getContent());
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsAgentAction sequence = (AbsAgentAction) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsAgentAction alternative = (AbsAgentAction) sequence.getAbsTerm(SLVocabulary.ACTION_SEQUENCE_SECOND);
+  				AbsAgentAction a = (AbsAgentAction) alternative.getAbsTerm(SLVocabulary.ACTION_ALTERNATIVE_FIRST);
+  				Action act = (Action) TestOntology.getInstance().toObject(a);
+  				Sell s = (Sell) act.getAction();
+  				Item i = s.getItem();
+  				if (i.getSerialID() == 200) {
+	  				l.log("Content OK");
+	  				return true;
+  				}
+  				else {
+	  				l.log("Wrong content: expected 200, found "+i.getSerialID());
+	  				return false;
+  				}
   			}
   		};
   	}

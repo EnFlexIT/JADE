@@ -33,21 +33,36 @@ import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestFloat extends Test{
-  public String getName() {
-  	return "Float-attribute";
-  }
-
+	private static final float VALUE = 20.52F;
+ 
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(ContentTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
-  				Price p = new Price(20.52F, "EURO");
+  				Price p = new Price(VALUE, "EURO");
   				Exists e = new Exists(p);
   				myAgent.getContentManager().fillContent(msg, e);
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				Exists e = (Exists) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				Price p = (Price) e.getWhat();
+  				float value = p.getValue();
+  				if (value == VALUE) {
+  					l.log("Float value OK");
+  					return true;
+  				}
+  				else {
+  					l.log("Wrong float value: expected "+VALUE+", received "+value); 
+  					return false;
+  				}
   			}
   		};
   	}

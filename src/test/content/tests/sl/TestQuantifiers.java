@@ -39,16 +39,12 @@ import test.content.testOntology.*;
  * @author Giovanni Caire - TILAB
  */
 public class TestQuantifiers extends Test{
-  public String getName() {
-  	return "Test-quantifiers";
-  }
-  
   
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
+  	final Logger l = Logger.getLogger();
+  	
   	try {
-  		//Object[] args = getGroupArguments();
-  		//final ACLMessage msg = (ACLMessage) args[0];
-  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.INFORM_MSG_NAME);;
+  		final ACLMessage msg = (ACLMessage) getGroupArgument(SLOperatorsTesterAgent.MSG_NAME);
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsVariable x = new AbsVariable("x", TestOntology.LOCATION);
@@ -67,8 +63,25 @@ public class TestQuantifiers extends Test{
   				forall.set(SLVocabulary.FORALL_CONDITION, exists);
   				
   				myAgent.getContentManager().fillContent(msg, forall);
-  				System.out.println("Encoded content is:\n"+msg.getContent());
+  				l.log("Content correctly encoded");
+  				l.log(msg.getContent());
   				return msg;
+  			}
+  			
+  			protected boolean checkReply(ACLMessage reply) throws Exception {
+  				AbsPredicate forall = (AbsPredicate) myAgent.getContentManager().extractContent(reply);
+  				l.log("Content correctly decoded");
+  				AbsPredicate exists = (AbsPredicate) forall.getAbsObject(SLVocabulary.FORALL_CONDITION);
+  				AbsPredicate c = (AbsPredicate) exists.getAbsObject(SLVocabulary.EXISTS_CONDITION);
+  				AbsVariable y = (AbsVariable) c.getAbsTerm(TestOntology.CLOSE_TO);
+  				if (y.getName().equals("y")) {
+  					l.log("Content OK");
+  					return true;
+  				}
+  				else {
+	  				l.log("Wrong content: expected variable name y, found "+y.getName());
+  					return false;
+  				}
   			}
   		};
   	}
