@@ -418,38 +418,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	node.setName(name);
 
 	if(control) {
-	    // Set up a failure monitor using the blocking ping...
-	    NodeFailureMonitor monitor = new NodeFailureMonitor(node, new NodeEventListener() {
-
-		    // FIXME: Should notify all the interested service slices...
-
-		    public void nodeAdded(Node n) {
-			System.out.println("--- Node <" + n.getName() + "> ADDED ---");
-		    }
-
-		    public void nodeRemoved(Node n) {
-			System.out.println("--- Node <" + n.getName() + "> REMOVED ---");
-			try {
-			    removeRemoteNode(new NodeDescriptor(n.getName(), n), true);
-			}
-			catch(IMTPException imtpe) {
-			    imtpe.printStackTrace();
-			}
-		    }
-
-		    public void nodeUnreachable(Node n) {
-			System.out.println("--- Node <" + n.getName() + "> UNREACHABLE ---");
-		    }
-
-		    public void nodeReachable(Node n) {
-			System.out.println("--- Node <" + n.getName() + "> REACHABLE ---");
-		    }
-
-		});
-
-	    // Start a new node failure monitor
-	    Thread t = new Thread(monitor);
-	    t.start();
+	    monitor(n);
 	}
 
 	// Return the name given to the new container
@@ -770,5 +739,40 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
     }
 
+    public void monitor(Node target) {
+
+	// Set up a failure monitor using the blocking ping...
+	NodeFailureMonitor failureMonitor = new NodeFailureMonitor(target, new NodeEventListener() {
+
+		// FIXME: Should notify all the interested service slices...
+
+		public void nodeAdded(Node n) {
+		    System.out.println("--- Node <" + n.getName() + "> ADDED ---");
+		}
+
+		public void nodeRemoved(Node n) {
+		    System.out.println("--- Node <" + n.getName() + "> REMOVED ---");
+		    try {
+			removeRemoteNode(new NodeDescriptor(n.getName(), n), true);
+		    }
+		    catch(IMTPException imtpe) {
+			imtpe.printStackTrace();
+		    }
+		}
+
+		public void nodeUnreachable(Node n) {
+		    System.out.println("--- Node <" + n.getName() + "> UNREACHABLE ---");
+		}
+
+		public void nodeReachable(Node n) {
+		    System.out.println("--- Node <" + n.getName() + "> REACHABLE ---");
+		}
+
+	    });
+
+	// Start a new node failure monitor
+	Thread t = new Thread(failureMonitor);
+	t.start();
+    }
 
 }
