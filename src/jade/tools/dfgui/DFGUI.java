@@ -164,11 +164,11 @@ public class DFGUI extends JFrame implements DFGUIInterface
 	*/
 	DFGUIFederateAction         dfFedAction;
 	
-  /**
-  @serial
-  */
-  boolean isGUIForApplet = false;  // this variable is used to discriminate if the gui is of an applet or not
-  
+
+	JButton refreshB;
+    JMenuItem refreshItem;
+
+   
   HashMap lastSearchResults; // this HashMap mantains the result of the last search made on a df.
   AID lastDF = null;                // this AID is the AID of the DF on which the last search was made. 
   
@@ -207,9 +207,9 @@ to set the agent with which the gui interacts.
 		item = generalMenu.add(new DFGUICloseGuiAction(this));
 		
 		// feature only for applet
-		if(isGUIForApplet)
-			item = generalMenu.add(new DFGUIRefreshAppletAction(this));
-			
+		refreshItem = generalMenu.add(new DFGUIRefreshAppletAction(this));
+		refreshItem.setVisible(false);
+
 		jmb.add (generalMenu);
 
 		JMenu catalogueMenu = new JMenu ("Catalogue");
@@ -265,14 +265,14 @@ to set the agent with which the gui interacts.
 		closeB.setIcon(closeImg);
 		closeB.setToolTipText("Close the DF GUI");
 
-		if(isGUIForApplet)
-		{
-			Icon refreshImg = DFGuiProperties.getIcon("refreshapplet");
-			JButton refreshB = bar.add(new DFGUIRefreshAppletAction(this));
-			refreshB.setText("");
-			refreshB.setIcon(refreshImg);
-			refreshB.setToolTipText("Refresh the GUI");
-		}
+		// feature only for applets.
+		Icon refreshImg = DFGuiProperties.getIcon("refreshapplet");
+		refreshB = bar.add(new DFGUIRefreshAppletAction(this));
+		refreshB.setText("");
+		refreshB.setIcon(refreshImg);
+		refreshB.setToolTipText("Refresh the GUI");
+		refreshB.setVisible(false);
+	
 		
 		bar.addSeparator();
 
@@ -976,5 +976,13 @@ Refresh the search result.
 	  return (DFAgentDescription)lastSearchResults.get(name); 	
 	}
 
+    /*
+     *This method must be called after the constructor to enable the RefreshGui action.
+     It's necessary for the DFapplet.
+     */
+    public void enableRefreshButton(){
+	refreshB.setVisible(true);
+	refreshItem.setVisible(true);
+    }
 	
 }
