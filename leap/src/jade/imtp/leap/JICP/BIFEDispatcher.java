@@ -189,6 +189,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	  		try {
 	  			writePacket(pkt, outConnection);
+		    	myLogger.log(Logger.FINE, "Done.");
 	  		}
 	  		catch (Exception e) {
 	  			// When the BackEnd receives the termination notification,

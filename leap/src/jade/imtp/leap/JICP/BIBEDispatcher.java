@@ -76,8 +76,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   private FrontEndStub myStub = null;
   private BackEndContainer myContainer = null;
 
-	//private Logger myLogger;
-        private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
   /**
    * Constructor declaration
