@@ -1771,7 +1771,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 				final ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
 					try {
-						messages.remove(); //!!! msgQueue.remove(msg);
+						//messages.remove(); 
+						msgQueue.remove(msg);
 						//#MIDP_EXCLUDE_BEGIN
 						notifyReceived(cursor);
 						//#MIDP_EXCLUDE_END
@@ -1780,6 +1781,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 						break; // Exit while loop
 					}
 					catch (Exception e) {
+							e.printStackTrace();
 						// Continue loop, discard message
 					}
 				}
