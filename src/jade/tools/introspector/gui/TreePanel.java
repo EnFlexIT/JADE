@@ -94,8 +94,7 @@ class TreePanel extends JPanel implements TreeSelectionListener {
  }
 
   public void adjustDividerLocation() {
-    int rootSize = pane.getDividerLocation(); // This is the height of a single tree folder
-    pane.setDividerLocation(7*rootSize); // The initial agent tree has 6 elements; one more empty space
+    pane.setDividerLocation(getWidth() / 2);
   }
 
 
