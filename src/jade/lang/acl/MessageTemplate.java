@@ -185,25 +185,25 @@ public class MessageTemplate implements Serializable {
       public boolean match(ACLMessage msg) {
 	  switch(slotName){
 
-	  case(CONVERSATION_ID):
+	  case CONVERSATION_ID:
 	       return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getConversationId());
-	  case(ENCODING):
+	  case ENCODING:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getEncoding());
-	  case(IN_REPLY_TO):
+	  case IN_REPLY_TO:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getInReplyTo());
 	  case(LANGUAGE ):
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getLanguage());
-	  case(ONTOLOGY):
+	  case ONTOLOGY:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getOntology());
-	  case(PROTOCOL):
+	  case PROTOCOL:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getProtocol());
 	      //  case(REPLY_BY):
 	      // return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyBy());
-	  case (REPLY_BY_DATE):
+	  case REPLY_BY_DATE:
 	      return ((Date)matchValue).equals(msg.getReplyByDate());
-	  case(REPLY_WITH):
+	  case REPLY_WITH:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyWith());
-	  case(RECEIVER):
+	  case RECEIVER:
 	      if(matchValue != null){
 		  AID[] receivers = (AID[])matchValue;
 		  for(int i =0; i<receivers.length; i++){
@@ -223,7 +223,7 @@ public class MessageTemplate implements Serializable {
 	      }else
 		  return false;
 
-	  case(REPLY_TO):
+	  case REPLY_TO:
 	      if(matchValue != null){
 		  AID[] receivers = (AID[])matchValue;
 		  for(int i =0; i<receivers.length; i++){
@@ -242,11 +242,11 @@ public class MessageTemplate implements Serializable {
 		  return true;
 	      }else
 		  return false;
-	  case(PERFORMATIVE):
+	  case PERFORMATIVE:
 	      return (perfValue == msg.getPerformative());
-	  case(CONTENT)://FIXME: verificare il caso in cui il contenuto e'in byte.
+	  case CONTENT://FIXME: verificare il caso in cui il contenuto e'in byte.
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getContent());
-	  case(SENDER):
+	  case SENDER:
 	      if(matchValue != null)
 		  return ((AID)matchValue).equals(msg.getSender());
 	      else
@@ -260,25 +260,25 @@ public class MessageTemplate implements Serializable {
 
 	  switch(slotName){
 
-	  case(CONVERSATION_ID):
+	  case CONVERSATION_ID:
 	       return  "(ConversationId: " + (String)matchValue + ")";
-	  case(ENCODING):
+	  case ENCODING:
 	      return  "( Encoding: " +(String)matchValue + " )";
-	  case(IN_REPLY_TO):
+	  case IN_REPLY_TO:
 	      return  "( InReplyTo: " + (String)matchValue + " )";
-	  case(LANGUAGE ):
+	  case LANGUAGE:
 	      return  "( Language: " + (String)matchValue +  " )";
-	  case(ONTOLOGY):
+	  case ONTOLOGY:
 	      return  "( Ontology: " + (String)matchValue + " )";
-	  case(PROTOCOL):
+	  case PROTOCOL:
 	      return  "( Protocol: " + (String)matchValue+  " )";
 	      // case(REPLY_BY):
 	      // return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyBy());
-	  case(REPLY_BY_DATE):
+	  case REPLY_BY_DATE:
 	      return  "( ReplyByDate: "+ (Date)matchValue + " )";
-	  case(REPLY_WITH):
+	  case REPLY_WITH:
 	      return  "( ReplyWith: " + (String)matchValue + " )"; 
-	  case(RECEIVER): 
+	  case RECEIVER: 
 	      if(matchValue != null){
 		  AID[] receivers = (AID[])matchValue;
 		  String output =  "( Receivers: "; 
@@ -289,7 +289,7 @@ public class MessageTemplate implements Serializable {
 		  return output +  ")" ;}
 	      else
 		  return  "(Receivers: null)"; 
-	  case(REPLY_TO): //FIXME: da finire.
+	  case REPLY_TO: //FIXME: da finire.
 	      if(matchValue != null){
 		  AID[] receivers = (AID[])matchValue;
 		  String output =  "( ReplyTo: "; 
@@ -300,11 +300,11 @@ public class MessageTemplate implements Serializable {
 		  return output + " )" ;
 	      }else
 		  return  "(ReplyTo: null)" ;
-	  case(PERFORMATIVE):
+	  case PERFORMATIVE:
 	      return  "( Perfomative: " + ACLMessage.getPerformative(perfValue) + " )" ;
-	  case(CONTENT):
+	  case CONTENT:
 	      return  "( Content: " + (String)matchValue + ")";
-	  case(SENDER):
+	  case SENDER:
 	      if(matchValue != null)
 		  return  "( Sender AID: " +  ((AID)matchValue).toString()+ ")" ;
 	      else
