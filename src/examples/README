@@ -3,7 +3,7 @@ README file for JADE $Name$ - Example programs.
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
 examples, you must set CLASSPATH environment variable to contain the
-file jade.jar, jadeTools.jar and Base64.jar and the current directory ('.').
+file jade.jar, jadeTools.jar and Base64.jar,iiop.jar and the current directory ('.').
 Then change to 'src' directory and refer to the various example agents
 with a fully qualified package name; all example agent classes belong
 to subpackages of 'examples' package: for example, class ComplexBehaviourAgent
