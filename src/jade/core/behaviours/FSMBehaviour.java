@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.behaviours;
 
 import java.util.*;
+import java.io.Serializable;
 
 import jade.core.Agent;
 
@@ -189,7 +190,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   /** 
    * Inner class implementing the FSM transition table
    */
-  class TransitionTable {
+  class TransitionTable implements Serializable {
   	private Hashtable transitions = new Hashtable();
   	
   	void addTransition(String s1, String s2, int event) {
@@ -227,7 +228,7 @@ public class FSMBehaviour extends CompositeBehaviour {
   	}
   }
   
-  class Transition {
+  class Transition implements Serializable {
   	private String dest;
   	
   	public Transition(String d) {
