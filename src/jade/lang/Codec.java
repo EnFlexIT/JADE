@@ -68,6 +68,11 @@ public interface Codec {
       return nested;
     }
 
+    public void printStackTrace() {
+      if (nested != null)
+	nested.printStackTrace();
+      super.printStackTrace();
+    }
   }
 
   /**

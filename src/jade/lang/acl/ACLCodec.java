@@ -54,6 +54,7 @@ public interface ACLCodec {
     public CodecException(String msg, Throwable t) {
       super(msg);
       nested = t;
+      //this.fillInStackTrace();
     }
 
     /**
@@ -64,7 +65,12 @@ public interface ACLCodec {
     public Throwable getNested() {
       return nested;
     }
-
+   
+    public void printStackTrace() {
+      if (nested != null)
+	nested.printStackTrace();
+      super.printStackTrace();
+    }
   }
 
 
