@@ -82,15 +82,7 @@ public class MsgReceiver extends SimpleBehaviour {
 			return;
 		}
 		
-		ACLMessage msg = null;
-	    
-		if (template != null) {
-			msg = myAgent.receive(template);
-		}
-		else {
-			msg = myAgent.receive();
-		}
-		
+		ACLMessage msg = myAgent.receive(template);
 		if (msg != null) {
 			// DEBUG
 			//System.out.println("Agent "+myAgent.getName()+" has received message");
