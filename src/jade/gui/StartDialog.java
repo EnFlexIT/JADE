@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1998/11/09 00:33:11  rimassa
+  Changed dialog window size and some code indentation.
+
   Revision 1.4  1998/11/05 23:44:06  rimassa
   Dialog rewritten in order to make it comply with JADE agent
   descriptor; i.e. an Agent Container, an agent name and a class name.
@@ -93,7 +96,7 @@ public class StartDialog extends JDialog implements ActionListener {
   }
 
   public Dimension getPreferredSize () {
-    return (new Dimension(250,300));
+    return (new Dimension(450,150));
   }
 
   public void actionPerformed (ActionEvent evt) {
@@ -105,7 +108,7 @@ public class StartDialog extends JDialog implements ActionListener {
   }
 
   /**
-   * This method show a modal Dialog
+   * This method shows a modal Dialog
    * useful to set parameters to start
    * agents previously registered 
    */
@@ -116,13 +119,22 @@ public class StartDialog extends JDialog implements ActionListener {
   }
 
   /**
-   * This method show a modal Dialog
+   * This method shows a modal Dialog
    * useful to set parameters to start
    * new agents  
    */
-  public static int showStartNewDialog() {
+  public static int showStartNewDialog(String containerName) {
     agentName.setEditable(true);
-    StartDialog panel = new StartDialog("");
+    if(containerName == null) {
+      container.setEditable(true);
+      setContainer("");
+    }
+    else {
+      setContainer(containerName);
+      container.setEditable(false);
+    }
+
+    StartDialog panel = new StartDialog("New Agent");
     return choice;
   }
 
