@@ -80,16 +80,18 @@ public class ProfileImpl extends Profile {
     try {
       // Set default values
       String host = InetAddress.getLocalHost().getHostName();
-      props.setProperty(MAIN, "true");
-      props.setProperty(MAIN_PROTO, "rmi");
-      props.setProperty(MAIN_HOST, host);
-      props.setProperty(MAIN_PORT, Integer.toString(DEFAULT_PORT));
+      props.setPropertyIfNot(MAIN, "true");
+      props.setPropertyIfNot(MAIN_PROTO, "rmi");
+      props.setPropertyIfNot(MAIN_HOST, host);
+      props.setPropertyIfNot(MAIN_PORT, Integer.toString(DEFAULT_PORT));
       updatePlatformID();
-      Specifier s = new Specifier();
-      s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
-      List l = new ArrayList(1);
-      l.add(s);
-      props.put(MTPS, l);
+      if (!props.getBooleanProperty("nomtp", false)) {
+        Specifier s = new Specifier();
+        s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
+        List l = new ArrayList(1);
+        l.add(s);
+        props.put(MTPS, l);
+      }
     } 
     catch (UnknownHostException uhe) {
       uhe.printStackTrace();
