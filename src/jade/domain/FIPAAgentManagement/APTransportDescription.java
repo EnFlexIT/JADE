@@ -27,6 +27,8 @@ package jade.domain.FIPAAgentManagement;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.Writer;
+import java.io.IOException;
 
 /**
    Description of the transport services available on an agent
@@ -54,6 +56,28 @@ public class APTransportDescription {
 
   public Iterator getAllAvailableMtps() {
     return mtps.iterator();
+  
   }
+public void toText(Writer w) {
+  try {
+    w.write("( ap-transport-description ");
+    if(mtps.size() > 0)
+    	w.write(" :available-mtps (set ");
+    	
+    for(int i=0; i<mtps.size(); i++){
+    	try{
+    		((MTPDescription)mtps.get(i)).toText(w);
+    	}catch(IndexOutOfBoundsException iob){iob.printStackTrace();}
+    	w.write(" ");
+  	}
+  	if(mtps.size() >0)
+  		w.write(")");
+    
+    w.write(")");
+    w.flush();
+  } catch(IOException ioe) {
+    ioe.printStackTrace();
+  }
+}
 
 }

@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+import java.io.Writer;
+import java.io.IOException;
 /**
    Agent platform description.
    @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
@@ -67,5 +69,29 @@ public class APDescription {
   public APTransportDescription getTransportProfile() {
     return transportProfile;
   }
+  
+  public void toText(Writer w) {
+  try {
+    w.write("( ap-description ");
+    if ((name!=null)&&(name.length()>0))
+      w.write(" :name " + name);
+  
+    w.write(" :dynamic "+ dynamic);
+    	
+    w.write(" :mobility " + mobility);
+    
+    if(transportProfile != null)
+    	{
+    		w.write(" :transport-profile ");
+    	  transportProfile.toText(w);
+    	}
+    		
+    	
+    w.write(")");
+    w.flush();
+  } catch(IOException ioe) {
+    ioe.printStackTrace();
+  }
+	}
 
 }

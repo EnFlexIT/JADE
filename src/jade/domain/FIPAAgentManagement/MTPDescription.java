@@ -27,6 +27,8 @@ package jade.domain.FIPAAgentManagement;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.Writer;
+import java.io.IOException;
 
 /**
    Description of a message transport protocol.
@@ -72,5 +74,32 @@ public class MTPDescription {
   public Iterator getAllAddresses() {
     return addresses.iterator();
   }
+  
+  public void toText(Writer w) {
+  try {
+    w.write("( mtp-description ");
+    
+    if((profile != null) && (profile.length()>0))
+    	w.write(" :profile "+ profile);
+    	
+    if ((name!=null)&&(name.length()>0))
+      w.write(" :name " + name);
+    
+    if (addresses.size()>0)
+      w.write(" :addresses (sequence ");
+    for (int i=0; i<addresses.size(); i++)
+      try {
+				w.write((String)addresses.get(i) + " ");
+      } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+    if (addresses.size()>0)
+      w.write(")");
+    
+    w.write(")");
+    w.flush();
+  } catch(IOException ioe) {
+    ioe.printStackTrace();
+  }
+}
+
 
 }
