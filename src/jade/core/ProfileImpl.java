@@ -107,7 +107,7 @@ public class ProfileImpl extends Profile {
      	this(); // Call default constructor
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
-     	if(port < 0)
+     	if(port > 0)
        		props.setProperty(MAIN_PORT, Integer.toString(port));
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
