@@ -155,62 +155,82 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
      xCanvDim = otherCanv.al.size();
 
      Iterator it = ml.getMessages();
+     int AllReceiver = 0;  
+     int receiverForAMessage = 0;
      while(it.hasNext()) {
+  
        Message mess = (Message)it.next();
-       String senderName = mess.getSender().getName();
-       String receiverName = ((AID)mess.getAllReceiver().next()).getName();
+       String senderName = mess.getSender().getName();    
        xSource = otherCanv.al.getPos(senderName);
-       xDest = otherCanv.al.getPos(receiverName);
-       x1 = mess.getInitSeg(xSource);
-       x2 = mess.getEndSeg(xDest);
-       y = mess.getOrdSeg(yDim++);
+       receiverForAMessage = 0;
+       for(Iterator i = mess.getAllReceiver(); i.hasNext();)
+       {
+       	receiverForAMessage++;
+       	String receiverName = ((AID)i.next()).getName();
+        xDest = otherCanv.al.getPos(receiverName);
+       
+        x1 = mess.getInitSeg(xSource);
+        x2 = mess.getEndSeg(xDest);
+        y = mess.getOrdSeg(yDim++);
 
-       /* Were we fill the coordinate array for the arrow tip */
+        /* Were we fill the coordinate array for the arrow tip */
 
-       xCoords[0] = x2-6;
-       xCoords[1] = x2-6;
-       xCoords[2] = x2+2;
-       yCoords[0] = y-5;
-       yCoords[1] = y+5;
-       yCoords[2] = y;
+        xCoords[0] = x2-6;
+        xCoords[1] = x2-6;
+        xCoords[2] = x2+2;
+        yCoords[0] = y-5;
+        yCoords[1] = y+5;
+        yCoords[2] = y;
 
-       if(x1 > x2) {
-	 xCoords[0] = x2+10;
-	 xCoords[1] = x2+10;
-	 xCoords[2] = x2+2;
-       }
+        if(x1 > x2) {
+	        xCoords[0] = x2+10;
+	        xCoords[1] = x2+10;
+	        xCoords[2] = x2+2;
+        }
 
-       g.setColor(Color.blue);
-       g.drawRect(x1-3,y-4,4,8);
-       g.fillRect(x1-3,y-4,4,8);
+        g.setColor(Color.blue);
+        g.drawRect(x1-3,y-4,4,8);
+        g.fillRect(x1-3,y-4,4,8);
 
-       // disegno segmento messaggio
-       for(int k=-1; k<=1; k++) {
-         if(x2 > x1)
-	   g.drawLine(x1,y+k,x2,y+k);
-	 else
-	   g.drawLine(x1,y+k,x2+4,y+k);
-       }
+        // disegno segmento messaggio
+        for(int k=-1; k<=1; k++) {
+          if(x2 > x1)
+	         g.drawLine(x1,y+k,x2,y+k);
+	        else
+	         g.drawLine(x1,y+k,x2+4,y+k);
+        }
 
-       // disegno freccetta del receiver
-       g.drawPolygon(xCoords,yCoords,3);
-       g.fillPolygon(xCoords,yCoords,3);
-
-     } // for
+        // disegno freccetta del receiver
+        g.drawPolygon(xCoords,yCoords,3);
+        g.fillPolygon(xCoords,yCoords,3);
+        }
+        AllReceiver = AllReceiver+receiverForAMessage;
+     } // while
 
      int msgNum = ml.size();
-
      for(int num = 0; num < xCanvDim; num++) {
          // Here we update the green lines of the timeline
          int x =  jade.tools.sniffer.Agent.yRet/2+num*80;
          g.setColor(new Color(0,100,50));
-         g.drawLine(x+xOffset,1,x+xOffset,timeUnitWidth*(msgNum+1));
+         //g.drawLine(x+xOffset,1,x+xOffset,timeUnitWidth*(msgNum+1));
+         int counter = 0;
+         for(Iterator i = ml.getMessages(); i.hasNext(); )
+         {
+         	Message msg = (Message)i.next();
+         	int singleMsgCounter =0;
+         	for(Iterator j = msg.getAllReceiver(); j.hasNext(); )
+         	{  j.next();
+         	   singleMsgCounter++;
+         	}
+          counter = counter + singleMsgCounter;        
+         }
+         g.drawLine(x+xOffset,1,x+xOffset,timeUnitWidth*(counter+1));
        }
 
        g.setColor(new Color(150,50,50));
        Integer msgNumWrapped;
-         for (int t=0; t <= msgNum; t++) {
-                // Here we update the red numbers of the timeline
+         for (int t=0; t <=AllReceiver; t++) {
+          // Here we update the red numbers of the timeline
           msgNumWrapped = new Integer(t);
           g.drawString(msgNumWrapped.toString(),10,timeUnitWidth*(t)+15);
          }
@@ -291,23 +311,27 @@ public class MMCanvas extends JPanel implements MouseListener, Serializable {
    while(it.hasNext()) {
      Message mess = (Message)it.next();
      String senderName = mess.getSender().getName();
-     String receiverName = ((AID)mess.getAllReceiver().next()).getName();
-     x1 = mess.getInitSeg(otherCanv.al.getPos(senderName));
-     x2 = mess.getEndSeg(otherCanv.al.getPos(receiverName));
-     y = mess.getOrdSeg(j++);
-     if(x1 < x2) {
+     
+     for(Iterator i = mess.getAllReceiver();i.hasNext(); )
+     {
+     	String receiverName = ((AID)i.next()).getName();
+      x1 = mess.getInitSeg(otherCanv.al.getPos(senderName));
+      x2 = mess.getEndSeg(otherCanv.al.getPos(receiverName));
+      y = mess.getOrdSeg(j++);
+      if(x1 < x2) {
        if((evt.getX() >= x1+H_TOL) && (evt.getX() <= x2+H_TOL) &&
-	  (evt.getY() >= y - V_TOL) && (evt.getY() <= y + V_TOL)) {
-	   return mess;
+	    (evt.getY() >= y - V_TOL) && (evt.getY() <= y + V_TOL)) {
+	      return mess;
        }
-     }
-     else {
+      }
+      else {
        if((evt.getX() >= x2 - H_TOL) && (evt.getX() <= x1 + H_TOL) &&
-	  (evt.getY() >= y - V_TOL) && (evt.getY() <= y + V_TOL)) {
-	   return mess;
+	      (evt.getY() >= y - V_TOL) && (evt.getY() <= y + V_TOL)) {
+	       return mess;
        }
-     }
-   }
+      }
+     }//for
+   }//while
 
    return null;
 
