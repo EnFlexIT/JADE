@@ -201,8 +201,7 @@ public class MessageTransportProtocol implements MTP {
   }
 
   public void activate(InChannel.Dispatcher disp, TransportAddress ta) throws MTPException {
-    // throw new MTPException("User supplied transport address not supported.");
-    activate(disp); // FIXME: Temporary Hack
+    throw new MTPException("User supplied transport address not supported.");
   }
 
   public void deactivate(TransportAddress ta) throws MTPException {
@@ -223,7 +222,7 @@ public class MessageTransportProtocol implements MTP {
       // valid, i.e corresponds to a good object) (e.g. old IOR)
       // FIXME. To check if this call slows down performance
       if (objRef._non_existent()) 
-        throw new MTPException("Bad IIOP server object reference:"+objRef.toString());
+        throw new MTPException("Bad IIOP server object reference:" + objRef.toString());
 
       // Fill in the 'to' field of the IDL envelope
       Iterator itTo = env.getAllTo();
@@ -427,6 +426,39 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     private static final byte IIOP_MAJOR = 1;
     private static final byte IIOP_MINOR = 0;
 
+    private static final byte ASCII_PERCENT = getASCIIByte("%");
+    private static final byte ASCII_UPPER_A = getASCIIByte("A");
+    private static final byte ASCII_UPPER_Z = getASCIIByte("Z");
+    private static final byte ASCII_LOWER_A = getASCIIByte("a");
+    private static final byte ASCII_LOWER_Z = getASCIIByte("z");
+    private static final byte ASCII_ZERO = getASCIIByte("0");
+    private static final byte ASCII_NINE = getASCIIByte("9");
+
+    private static final byte ASCII_MINUS = getASCIIByte("-");
+    private static final byte ASCII_UNDERSCORE = getASCIIByte("_");
+    private static final byte ASCII_DOT = getASCIIByte(".");
+    private static final byte ASCII_BANG = getASCIIByte("!");
+    private static final byte ASCII_TILDE = getASCIIByte("~");
+    private static final byte ASCII_STAR = getASCIIByte("*");
+    private static final byte ASCII_QUOTE = getASCIIByte("'");
+    private static final byte ASCII_OPEN_BRACKET = getASCIIByte("(");
+    private static final byte ASCII_CLOSED_BRACKET = getASCIIByte("$");
+
+    private static final char[] HEX = {
+      '0','1','2','3','4','5','6','7',
+      '8','9','a','b','c','d','e','f'
+    };
+
+    private static final byte getASCIIByte(String ch) {
+      try {
+	return (ch.getBytes("US-ASCII"))[0];
+      }
+      catch(UnsupportedEncodingException uee) {
+	return 0;
+      }
+    }
+
+
     private ORB orb;
 
     private String ior;
@@ -455,6 +487,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 
     private void initFromIOR(String s) throws MTPException {
       parseIOR(s, FIPA_2000_TYPE_ID);
+      System.out.println("URL is: " + getURL());
       anchor = "";
     }
 
@@ -603,8 +636,24 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
 	    // Read 'sequence<octet> object_key' field and convert it
 	    // into a String object
 	    byte[] keyBuffer = profileBodyCodec.readOctetSequence();
-	    objectKey = new String(keyBuffer);
+	    ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
+	    // Escape every forbidden character, as for RFC 2396 (URI: Generic Syntax)
+	    for(int ii = 0; ii < keyBuffer.length; ii++) {
+	      byte b = keyBuffer[ii];
+	      if(isUnreservedURIChar(b)) {
+		// Write the character 'as is'
+		buf.write(b);
+	      }
+	      else {
+		// Escape it using '%'
+		buf.write(ASCII_PERCENT);
+		buf.write(HEX[(b & 0xF0) >> 4]); // High nibble
+		buf.write(HEX[b & 0x0F]); // Low nibble
+	      }
+	    }
+
+	    objectKey = buf.toString("US-ASCII");
 	    codecStrategy = null;
 
 	  }
@@ -667,19 +716,73 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       profileBodyCodec.writeOctet(IIOP_MINOR);
       profileBodyCodec.writeString(host);
       profileBodyCodec.writeShort(port);
-      byte[] objKey = objectKey.getBytes();
-      profileBodyCodec.writeOctetSequence(objKey);
+      try {
+	byte[] objKey = objectKey.getBytes("US-ASCII");
 
-      byte[] encapsulatedProfile = profileBodyCodec.writtenBytes();
+	// Remove all the RFC 2396 escape sequences...
+	ByteArrayOutputStream buf = new ByteArrayOutputStream();
+	for(int i = 0; i < objKey.length; i++) {
+	  byte b = objKey[i];
+	  if(b != ASCII_PERCENT)
+	    buf.write(b);
+	  else {
+	    // Get the hex value represented by the two bytes after '%'
+	    try {
+	      String hexPair = new String(objKey, i + 1, 2, "US-ASCII");
+	      short sh = Short.parseShort(hexPair, 16);
+	      if(sh > Byte.MAX_VALUE)
+		b = (byte)(sh + 2*Byte.MIN_VALUE); // Conversion from unsigned to signed
+	      else
+		b = (byte)sh;
+	    }
+	    catch(UnsupportedEncodingException uee) {
+	      b = 0;
+	    }
+	    buf.write(b);
+	    i += 2;
+	  }
+	}
 
-      // Write encapsulated profile to main IOR codec
-      codecStrategy.writeOctetSequence(encapsulatedProfile);
+	profileBodyCodec.writeOctetSequence(buf.toByteArray());
 
-      String hexString = codecStrategy.writtenString();
-      ior = "IOR:" + hexString;
+	byte[] encapsulatedProfile = profileBodyCodec.writtenBytes();
 
-      codecStrategy = null;
+	// Write encapsulated profile to main IOR codec
+	codecStrategy.writeOctetSequence(encapsulatedProfile);
 
+	String hexString = codecStrategy.writtenString();
+	ior = "IOR:" + hexString;
+
+	codecStrategy = null;
+
+      }
+      catch(UnsupportedEncodingException uee) {
+	// It should never happen
+	uee.printStackTrace();
+      }
+
+    }
+
+    // This method returns true if and only if the supplied byte,
+    // interpreted as an US-ASCII encoded character, corresponds to an
+    // unreserved URI character. See RFC 2396 for details.
+    private boolean isUnreservedURIChar(byte b) {
+      // An upper case letter?
+      if((ASCII_UPPER_A <= b)&&(ASCII_UPPER_Z >= b))
+	return true;
+      // A lower case letter?
+      if((ASCII_LOWER_A <= b)&&(ASCII_LOWER_Z >= b))
+	return true;
+      // A decimal digit?
+      if((ASCII_ZERO <= b)&&(ASCII_NINE >= b))
+	return true;
+      // An unreserved, but not alphanumeric character?
+      if((b == ASCII_MINUS)||(b == ASCII_UNDERSCORE)||(b == ASCII_DOT)||(b == ASCII_BANG)||(b == ASCII_TILDE)||
+	 (b == ASCII_STAR)||(b == ASCII_QUOTE)||(b == ASCII_OPEN_BRACKET)||(b == ASCII_CLOSED_BRACKET))
+	return true;
+
+      // Anything else is not allowed
+      return false;
     }
 
     public String getURL() {
@@ -698,11 +801,6 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     }
 
     private static abstract class CDRCodec {
-
-      private static final char[] HEX = {
-	'0','1','2','3','4','5','6','7',
-	'8','9','a','b','c','d','e','f'
-      };
 
       protected byte[] readBuffer;
       protected StringBuffer writeBuffer;
