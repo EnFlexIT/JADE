@@ -145,7 +145,7 @@ public class LEAPIMTPManager implements IMTPManager {
       Logger.println("Listening for intra-platform commands on address:");
 
       while (it.hasNext()) {
-        Logger.println((String) it.next());
+        Logger.println("- "+(String) it.next());
       }
     }
 
