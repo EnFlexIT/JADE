@@ -1,5 +1,12 @@
 /*
   $Log$
+  Revision 1.15  1999/02/03 11:50:18  rimassa
+  Some 'private' instance variables made 'protected', to allow code
+  compilation under jdk 1.2.
+  Changed some FIPA exceptions thrown by DF agent.
+  Added some missing parentheses and modified message content of several
+  DF response messages.
+
   Revision 1.14  1998/12/08 00:21:09  rimassa
   Removed handmade parsing of message content. Now updated fromText()
   method from DFAction and DFSearchAction classes is used.
@@ -72,8 +79,8 @@ public class df extends Agent {
     private AgentManagementOntology.DFAction myAction;
 
     private String myActionName;
-    private ACLMessage myRequest;
-    private ACLMessage myReply;
+    protected ACLMessage myRequest;
+    protected ACLMessage myReply;
 
     protected DFBehaviour(String name) {
       super(df.this);
@@ -94,12 +101,12 @@ public class df extends Agent {
     // reference
     private void checkAttribute(String attributeName, String attributeValue) throws FIPAException {
       if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (attributeValue == null))
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE);
     }
 
     private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
       if(myOntology.isMandatoryForDF(myAction.getName(), attributeName) && (!attributeValue.hasMoreElements()))
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+	throw myOntology.getException(AgentManagementOntology.Exception.MISSINGATTRIBUTE);
     }
 
     // This method parses the message content and puts
@@ -115,11 +122,13 @@ public class df extends Agent {
       }
       catch(ParseException pe) {
 	// pe.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+ 	System.out.println("DF ParseException with: " + content);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
       catch(TokenMgrError tme) {
 	// tme.printStackTrace();
-	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+  System.out.println("DF TokenMgrError with: " + content);
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
       }
 
       // Finally, assign each attribute value to an instance variable,
@@ -171,21 +180,21 @@ public class df extends Agent {
     // Send a 'not-understood' message back to the requester
     protected void sendNotUnderstood(ACLMessage msg) {
       msg.setType("not-understood");
-      msg.setContent("");
       send(msg);
     }
     
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( action df " + myActionName + " ) " + reason);
+      // FIXME. Fipa97 version 2 is different
+      msg.setContent("(:fipa-man-exception (" + reason + "))");
       send(msg);
     }
-    
+
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
     msg.setType("failure");
-    msg.setContent("( action df " + myActionName + " ) " + reason);
+    msg.setContent("(:fipa-man-exception (" + reason + "))");
     send(msg);
     }
     
@@ -571,6 +580,12 @@ public class df extends Agent {
   private Hashtable descriptors = new Hashtable();
   private Hashtable subDFs = new Hashtable();
 
+  private DFGUI gui;
+
+  protected Enumeration getDFAgentDescriptors() {
+    return descriptors.elements();
+  }
+
   public df() {
 
     myOntology = AgentManagementOntology.instance();
@@ -587,11 +602,12 @@ public class df extends Agent {
     dispatcher.registerPrototype(AgentManagementOntology.DFAction.DEREGISTER, new DeregBehaviour());
     dispatcher.registerPrototype(AgentManagementOntology.DFAction.MODIFY, new ModBehaviour());
     dispatcher.registerPrototype(AgentManagementOntology.DFAction.SEARCH, new SrchBehaviour());
-
   }
 
   protected void setup() {
-
+    // Show GUI
+    gui = new DFGUI(this);
+    gui.setVisible(true);
     // add a message dispatcher behaviour
     addBehaviour(dispatcher);
   }
@@ -601,7 +617,8 @@ public class df extends Agent {
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
-
+    System.out.println("REGISTERED NEW AGENT DESCRIPTOR");
+    
     // Update sub-DF table if needed
     Enumeration e = dfd.getAgentServices();
     while(e.hasMoreElements()) {
@@ -609,8 +626,10 @@ public class df extends Agent {
       String type = current.getType();
       if(type == null)
 	return;
-      if(type.equalsIgnoreCase("fipa-df"))
-	subDFs.put(dfd.getName(), dfd);
+      if(type.equalsIgnoreCase("fipa-df") || type.equalsIgnoreCase("df")) {
+      	subDFs.put(dfd.getName(), dfd);
+      	System.out.println("Registered New SUB-DF");
+      }
     }
   }
 
@@ -678,8 +697,7 @@ public class df extends Agent {
 						 "DFState"
   };
 
-  private static final String[] vectorFields = { "Addresses",
-						 "AgentServices",
+  private static final String[] vectorOfStringFields = { "Addresses",
 						 "InteractionProtocols"
   };
 
@@ -696,6 +714,7 @@ public class df extends Agent {
        + FOR EACH Vector-valued attribute V of the template
          + FOR EACH element E of template.getV()
 	   - dfd.getV().contains(E)
+       + Service Descriptors list of dfd matches Service Descriptor list of template
 
       Now we will use Reflection API to code the algorithm above.
       This method returns false as soon as a mismatch is detected.
@@ -733,14 +752,14 @@ public class df extends Agent {
       Enumeration templateValues = null;
       Enumeration dfdValues = null;
 
-      for(int i = 0; i<vectorFields.length; i++) {
-	methodName = "get" + vectorFields[i];
+      for(int i = 0; i<vectorOfStringFields.length; i++) {
+	methodName = "get" + vectorOfStringFields[i];
 	m = dfdClass.getMethod(methodName, noClass);
 
-	// This means: templateValues = template.get<vectorFields[i]>()
+	// This means: templateValues = template.get<vectorOfStringFields[i]>()
 	templateValues = (Enumeration)m.invoke(template, noParams);
 	while(templateValues.hasMoreElements()) {
-	  // This means: dfdValues = dfd.get<vectorFields[i]>()
+	  // This means: dfdValues = dfd.get<vectorOfStringFields[i]>()
 	  dfdValues = (Enumeration)m.invoke(dfd, noParams);
 	  templateValue = (String)templateValues.nextElement();
 	  if(!contains(dfdValues, templateValue))
@@ -755,6 +774,20 @@ public class df extends Agent {
       return false;
     }
 
+    /* Match Service Descriptors: the following algorithm is used:
+      + FOR EACH ServiceDescriptor templSD contained in the template
+        + EXISTS a ServiceDescriptor sd contained in dfd SUCH THAT
+          + FOR EACH String-valued attribute A of the ServiceDescriptor
+            - ( templSD.getA() == null ) OR ( templSD.getA() == sd.getA() )
+    */
+    Enumeration templateSDs = template.getAgentServices();
+    while(templateSDs.hasMoreElements()) {
+      java.lang.Object o = templateSDs.nextElement();
+      AgentManagementOntology.ServiceDescriptor templSD = (AgentManagementOntology.ServiceDescriptor)o;
+      if(noMatchingService(dfd, templSD))
+        return false;
+    }
+
     return true;
   }
 
@@ -765,6 +798,65 @@ public class df extends Agent {
 	return true;
     }
     return false;
+  }
+
+  private static final String[] sdFields = {
+    "Name",
+    "Type",
+    "Ontology",
+    "FixedProps",
+    "NegotiableProps",
+    "CommunicationProps"
+  };
+
+  private boolean noMatchingService(
+    AgentManagementOntology.DFAgentDescriptor dfd,
+    AgentManagementOntology.ServiceDescriptor templSD) {
+
+    Class sdClass = templSD.getClass();
+    String methodName = null;
+    Method m = null;
+    String templSDValue = null;
+    String sdValue = null;
+
+    Enumeration services = dfd.getAgentServices();
+    while(services.hasMoreElements()) {
+      java.lang.Object o = services.nextElement();
+      AgentManagementOntology.ServiceDescriptor sd = (AgentManagementOntology.ServiceDescriptor)o;
+      try {
+        boolean sdMatches = true;
+        for(int i = 0; i<sdFields.length; i++) {
+        	methodName = "get" + sdFields[i];
+        	m = sdClass.getMethod(methodName, noClass);
+
+        	// This means: templSDValue = templSD.get<sdFields[i]>()
+  	      templSDValue = (String)m.invoke(templSD, noParams);
+  	      if(templSDValue != null) {
+        	  // This means: sdValue = sd.get<sdFields[i]>()
+        	  sdValue = (String)m.invoke(sd, noParams);
+        	  if(sdValue == null) {
+        	    sdMatches = false;
+              break; // Out of for loop
+            }
+        	  if(!sdValue.equalsIgnoreCase(templSDValue)) {
+        	    sdMatches = false;
+              break; // Out of for loop
+            }
+          }
+        }
+
+        if(sdMatches)
+          return false;
+      }
+
+      catch(Exception e) {
+        e.printStackTrace();
+        return true;
+      }
+
+    }
+
+    return true;
   }
 
 }
