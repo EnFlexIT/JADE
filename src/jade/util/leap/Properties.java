@@ -146,7 +146,10 @@ public class Properties extends Hashtable {
 
     while (enum.hasMoreElements()) {
       String key = (String) enum.nextElement();
-      p.setProperty(key, getProperty(key));
+      String value = getProperty(key);
+      if(value != null) {
+	  p.setProperty(key, value);
+      }
     }
 		/*#MIDP_INCLUDE_BEGIN
     p.fromJad = fromJad;
