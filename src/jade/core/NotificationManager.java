@@ -41,6 +41,7 @@ interface NotificationManager {
 	public static final int RECEIVED_MESSAGE = 3;
 	public static final int ROUTED_MESSAGE = 4;
 	public static final int CHANGED_AGENT_STATE = 5;
+	public static final int CHANGED_AGENT_PRINCIPAL = 6;
 
   void initialize(AgentContainerImpl ac, LADT ladt);
   

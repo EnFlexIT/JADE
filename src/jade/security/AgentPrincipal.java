@@ -21,19 +21,24 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.security;
 
-package jade.core.event;
 
-import java.util.EventListener;
+/**
 
-public interface PlatformListener extends EventListener
-{
-  void addedContainer(PlatformEvent ev);
-  void removedContainer(PlatformEvent ev);
-  void bornAgent(PlatformEvent ev);
-  void deadAgent(PlatformEvent ev);
-  void movedAgent(PlatformEvent ev);
-  void suspendedAgent(PlatformEvent ev);
-  void resumedAgent(PlatformEvent ev);
-  void changedAgentPrincipal(PlatformEvent ev);
+  This class represents principals associated to agents.
+
+  @author Michele Tomaiuolo - Universita` di Parma
+  @version $Date$ $Revision$
+*/
+public class AgentPrincipal extends JADEPrincipal {
+
+  public AgentPrincipal() {
+    super();
+  }
+
+  public AgentPrincipal(String n) {
+    super(n);
+  }
+
 }

@@ -241,6 +241,16 @@ public class rma extends ToolAgent {
 	        }
         });
 
+        handlersTable.put(JADEIntrospectionOntology.CHANGEDAGENTPRINCIPAL, new EventHandler() {
+          public void handle(Event ev) {
+      	    ChangedAgentPrincipal cap = (ChangedAgentPrincipal)ev;
+      	    ContainerID cid = cap.getWhere();
+      	    String container = cid.getName();
+      	    AID agent = cap.getAgent();
+      	    myGUI.modifyAgent(container, agent, null, cap.getNewPrincipal().getName());
+	        }
+        });
+
         handlersTable.put(JADEIntrospectionOntology.MOVEDAGENT, new EventHandler() {
           public void handle(Event ev) {
 	    MovedAgent ma = (MovedAgent)ev;
@@ -431,6 +441,34 @@ public class rma extends ToolAgent {
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillMsgContent(requestMsg, l);
       addBehaviour(new AMSClientBehaviour("ResumeAgent", requestMsg));
+    }
+    catch(FIPAException fe) {
+      fe.printStackTrace();
+    }
+  }
+
+  /**
+   Callback method for platform management <em>GUI</em>.
+   */
+  public void changeAgentPrincipal(AID name, String principal) {
+    AMSAgentDescription amsd = new AMSAgentDescription();
+    amsd.setName(name);
+    amsd.setState(AMSAgentDescription.ACTIVE);//SUSPENDED);
+    amsd.setOwnership(principal);
+    Modify m = new Modify();
+    m.set_0(amsd);
+
+    try {
+      Action a = new Action();
+      a.set_0(getAMS());
+      a.set_1(m);
+      List l = new ArrayList(1);
+      l.add(a);
+
+      ACLMessage requestMsg = getRequest();
+      requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
+      fillMsgContent(requestMsg, l);
+      addBehaviour(new AMSClientBehaviour("ChangeAgentPrincipal", requestMsg));
     }
     catch(FIPAException fe) {
       fe.printStackTrace();

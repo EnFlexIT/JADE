@@ -30,6 +30,8 @@ import jade.mtp.MTPDescriptor;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 
+import jade.security.AgentPrincipal;
+
 /**
  
   This class acts as a Smart Proxy for the Main Container, transparently
@@ -135,6 +137,10 @@ class MainContainerProxy implements Platform {
 
     public void resumedAgent(AID name) throws IMTPException, NotFoundException {
       adaptee.resumedAgent(name);
+    }
+
+    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
+      adaptee.changedAgentPrincipal(name, from, to);
     }
 
     public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {

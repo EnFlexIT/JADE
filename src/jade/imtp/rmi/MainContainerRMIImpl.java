@@ -37,6 +37,8 @@ import jade.core.AgentProxy;
 
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -96,6 +98,10 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
     
     public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
       impl.resumedAgent(name);
+    }
+    
+    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws RemoteException, NotFoundException, IMTPException {
+      impl.changedAgentPrincipal(name, from, to);
     }
     
     public void newMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException {

@@ -38,6 +38,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -58,6 +60,7 @@ interface AgentContainerRMI extends Remote {
     public void disableSniffer(AID snifferName, AID notToBeSniffed) throws RemoteException, IMTPException;
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException;
+    public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws RemoteException, NotFoundException, IMTPException;
     public void copyAgent(AID agentID, Location where, String newName) throws RemoteException, NotFoundException, IMTPException;
     public void enableSniffer(AID snifferName, AID toBeSniffed) throws RemoteException, IMTPException;
     public void enableDebugger(AID debuggerName, AID toBeDebugged) throws RemoteException, IMTPException;

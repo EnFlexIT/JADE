@@ -30,6 +30,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.MTPException;
 
+import jade.security.AgentPrincipal;
+
 /**
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
@@ -55,6 +57,8 @@ public interface AgentContainer {
 
   void waitAgent(AID agentID) throws IMTPException, NotFoundException;
   void wakeAgent(AID agentID) throws IMTPException, NotFoundException;
+
+  void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException;
 
   void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
   void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;

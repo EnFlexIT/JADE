@@ -25,6 +25,7 @@ package jade.core.event;
 
 import jade.core.AID;
 import jade.core.ContainerID;
+import jade.security.AgentPrincipal;
 
 /**
  * This class represents an event related to the platform life cycle
@@ -49,6 +50,8 @@ public class PlatformEvent extends JADEEvent {
   private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
   private AID agent = null;
+  private AgentPrincipal oldPrincipal = null;
+  private AgentPrincipal newPrincipal = null;
 
   /**
    * This constructor is used to create a PlatformEvent when a container is
@@ -147,6 +150,14 @@ public class PlatformEvent extends JADEEvent {
     newContainer = to;
   }
 
+  public PlatformEvent(AID aid, ContainerID eventSource, AgentPrincipal from, AgentPrincipal to) {
+    super(eventSource);
+    myID = CHANGED_AGENT_PRINCIPAL;
+    agent = aid;
+    oldPrincipal = from;
+    newPrincipal = to;
+  }
+
   /**
    * Returns the {@link jade.core.ContainerID ContainerID} of the event source.
    * <p>
@@ -199,6 +210,14 @@ public class PlatformEvent extends JADEEvent {
    */
   public AID getAgent() {
     return agent;
+  }
+
+  public AgentPrincipal getOldPrincipal() {
+    return oldPrincipal;
+  }
+
+  public AgentPrincipal getNewPrincipal() {
+    return newPrincipal;
   }
 
   /**
@@ -282,6 +301,12 @@ public class PlatformEvent extends JADEEvent {
               buf.append("moved agent: ").append(agent)
               .append(" from: ").append(getSource())
               .append(" to: ").append(newContainer);
+              break;
+          case CHANGED_AGENT_PRINCIPAL:
+              buf.append("changed agent principal: ").append(agent)
+              .append(" in: ").append(getSource())
+              .append(" from: ").append(oldPrincipal)
+              .append(" to: ").append(newPrincipal);
               break;
           default:
               // This should never happen, but just in case...

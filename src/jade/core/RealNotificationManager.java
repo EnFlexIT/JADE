@@ -40,6 +40,8 @@ import jade.lang.acl.ACLMessage;
 
 import jade.tools.ToolNotifier; // FIXME: This should not be imported
 
+import jade.security.AgentPrincipal;
+
 /** 
    Full implementation of the <code>NotificationManager</code> 
    interface
@@ -170,6 +172,9 @@ class RealNotificationManager implements NotificationManager {
   		case CHANGED_AGENT_STATE:
   			fireChangedAgentState((AID) param[0], (AgentState) param[1], (AgentState) param[2]);
   			break;
+  		case CHANGED_AGENT_PRINCIPAL:
+  			fireChangedAgentPrincipal((AID) param[0], (AgentPrincipal) param[1], (AgentPrincipal) param[2]);
+  			break;
   		}
   	}
   	catch (ClassCastException cce) {
@@ -229,6 +234,18 @@ class RealNotificationManager implements NotificationManager {
     }
   }
 
+  private void fireChangedAgentPrincipal(AID agentID, AgentPrincipal from, AgentPrincipal to) {
+    synchronized(messageListenersLock) {
+      if(agentListeners != null) {
+        AgentEvent ev = new AgentEvent(agentID, myID(), from, to);
+          for(int i = 0; i < agentListeners.size(); i++) {
+    	    AgentListener l = (AgentListener)agentListeners.get(i);
+  	      l.changedAgentPrincipal(ev);
+	      }
+      }
+    }
+  }
+
   private void fireChangedAgentState(AID agentID, AgentState from, AgentState to) {
     synchronized(messageListenersLock) {
       if(agentListeners != null) {
@@ -240,7 +257,6 @@ class RealNotificationManager implements NotificationManager {
       }
     }
   }
-
   
   private ToolNotifier findNotifier(AID observerName) {
     if(messageListeners == null)

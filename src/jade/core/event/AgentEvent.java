@@ -28,6 +28,8 @@ import jade.core.BehaviourID;
 import jade.core.ContainerID;
 import jade.core.AgentState;
 
+import jade.security.AgentPrincipal;
+
 /**
    This class represents an event related to the agent life-cycle and
    configuration.
@@ -41,13 +43,16 @@ public class AgentEvent extends JADEEvent {
   public static final int ADDED_BEHAVIOUR = 2;
   public static final int REMOVED_BEHAVIOUR = 3;
   public static final int CHANGED_BEHAVIOUR_STATE = 4;
+  public static final int CHANGED_AGENT_PRINCIPAL = 5;
 
   private int myID;
 
   private AID agent;
-  private BehaviourID behaviour;
-  private AgentState from;
-  private AgentState to;
+  private BehaviourID behaviour = null;
+  private AgentState from = null;
+  private AgentState to = null;
+  private AgentPrincipal oldPrincipal = null;
+  private AgentPrincipal newPrincipal = null;
 
   public AgentEvent(int id, AID aid, AgentState f, AgentState t, ContainerID cid) {
     super(cid);
@@ -59,6 +64,14 @@ public class AgentEvent extends JADEEvent {
     behaviour = null;
     from = f;
     to = t;
+  }
+
+  public AgentEvent(AID aid, ContainerID cid, AgentPrincipal from, AgentPrincipal to) {
+    super(cid);
+    myID = CHANGED_AGENT_PRINCIPAL;
+    agent = aid;
+    oldPrincipal = from;
+    newPrincipal = to;
   }
 
   public AgentEvent(int id, AID aid, BehaviourID bid, ContainerID cid) {
@@ -100,6 +113,18 @@ public class AgentEvent extends JADEEvent {
 
   public AgentState getTo() {
     return to;
+  }
+
+  public AgentPrincipal getOldPrincipal() {
+    return oldPrincipal;
+  }
+
+  public AgentPrincipal getNewPrincipal() {
+    return newPrincipal;
+  }
+
+  private boolean isChangedAgentPrincipal() {
+    return myID == CHANGED_AGENT_PRINCIPAL; 
   }
 
   private boolean isChangedAgentState() {

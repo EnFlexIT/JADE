@@ -30,5 +30,6 @@ public interface AgentListener {
   void addedBehaviour(AgentEvent ev);
   void removedBehaviour(AgentEvent ev);
   void changedBehaviourState(AgentEvent ev);
+  void changedAgentPrincipal(AgentEvent ev);
 
 }

@@ -39,6 +39,8 @@ import jade.core.IMTPException;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -126,6 +128,15 @@ public class MainContainerAdapter implements MainContainer, Serializable {
   public void resumedAgent(AID name) throws IMTPException, NotFoundException {
     try {
       adaptee.resumedAgent(name);
+    }
+    catch(RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+
+  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws NotFoundException, IMTPException {
+    try {
+      adaptee.changedAgentPrincipal(name, from, to);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

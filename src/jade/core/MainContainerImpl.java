@@ -53,6 +53,8 @@ import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 
 /**
    This class is a concrete implementation of the JADE main container,
@@ -355,6 +357,15 @@ class MainContainerImpl implements Platform, AgentManager {
     }
   }
 
+  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
+    PlatformEvent ev = new PlatformEvent(agentID, cid, oldPrincipal, newPrincipal);
+
+    for(int i = 0; i < platformListeners.size(); i++) {
+      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
+      l.changedAgentPrincipal(ev);
+    }
+  }
+
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
     PlatformEvent ev = new PlatformEvent(agentID, from, to);
 
@@ -501,6 +512,16 @@ class MainContainerImpl implements Platform, AgentManager {
     fireResumedAgent(cid, name);
   }
 
+  public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException {
+    AgentDescriptor ad = platformAgents.get(name);
+    if(ad == null)
+      throw new NotFoundException("ChangedAgentPrincipal failed to find " + name);
+    ContainerID cid = ad.getContainerID();
+
+    // Notify listeners
+    fireChangedAgentPrincipal(cid, name, from, to);
+  }
+
   public AgentProxy getProxy(AID agentID) throws IMTPException, NotFoundException {
     AgentProxy ap;
     AgentDescriptor ad = platformAgents.get(agentID);
@@ -572,6 +593,16 @@ class MainContainerImpl implements Platform, AgentManager {
     try {
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.resumeAgent(agentID);
+    }
+    catch(IMTPException re) {
+      throw new UnreachableException(re.getMessage());
+    }
+  }
+
+  public void changeAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) throws NotFoundException, UnreachableException {
+    try {
+      AgentContainer ac = getContainerFromAgent(agentID);
+      ac.changeAgentPrincipal(agentID, newPrincipal);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());

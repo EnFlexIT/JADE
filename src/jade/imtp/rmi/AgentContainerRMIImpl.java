@@ -39,6 +39,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -72,6 +74,10 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
     
     public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException, IMTPException {
       impl.uninstallMTP(address);
+    }
+    
+    public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws RemoteException, NotFoundException, IMTPException {
+      impl.changeAgentPrincipal(agentID, newPrincipal);
     }
     
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {

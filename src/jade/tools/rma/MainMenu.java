@@ -71,6 +71,7 @@ import jade.gui.AboutJadeAction;
     paintM(true,(RMAAction)actPro.actions.get(actPro.KILL_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.RESUME_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.CHANGE_AGENT_PRINCIPAL_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));

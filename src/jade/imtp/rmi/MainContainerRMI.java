@@ -35,6 +35,8 @@ import jade.core.NameClashException;
 
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -48,6 +50,7 @@ public interface MainContainerRMI extends Remote {
     public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
     public void suspendedAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
     public void resumedAgent(AID name) throws RemoteException, NotFoundException, IMTPException;
+    public void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws RemoteException, NotFoundException, IMTPException;
     public String addContainer(AgentContainerRMI ac, ContainerID cid) throws RemoteException, IMTPException;
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws RemoteException, IMTPException;
     public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException, IMTPException;

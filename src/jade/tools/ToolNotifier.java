@@ -59,6 +59,8 @@ import jade.lang.sl.SL0Codec;
 
 import jade.tools.ToolAgent;
 
+import jade.security.AgentPrincipal;
+
 
 public class ToolNotifier extends ToolAgent implements MessageListener, AgentListener {
 
@@ -292,6 +294,12 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
       informObserver(l);
 
     }
+  }
+
+  public void changedAgentPrincipal(AgentEvent ev) {
+    // Do nothing
+    if (closingDown)
+      return;
   }
 
   public void addedBehaviour(AgentEvent ev) {

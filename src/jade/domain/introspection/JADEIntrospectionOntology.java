@@ -42,6 +42,8 @@ import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.onto.basic.*;  // to import Done, Action, ...
 import jade.onto.*;
 
+import jade.security.AgentPrincipal;
+
 
 /**
    This class represents the ontology <code>jade-introspection</code>,
@@ -74,6 +76,7 @@ public class JADEIntrospectionOntology {
   public static final String DEADAGENT = "dead-agent";
   public static final String SUSPENDEDAGENT = "suspended-agent";
   public static final String RESUMEDAGENT = "resumed-agent";
+  public static final String CHANGEDAGENTPRINCIPAL = "changed-agent-principal";
   public static final String MOVEDAGENT = "moved-agent";
   public static final String CHANGEDAGENTSTATE = "changed-agent-state";
   public static final String ADDEDBEHAVIOUR = "added-behaviour";
@@ -85,6 +88,7 @@ public class JADEIntrospectionOntology {
   public static final String ROUTEDMESSAGE = "routed-message";
   public static final String CONTAINERID = "container-ID";
   public static final String AGENTSTATE = "agent-state";
+  public static final String AGENTPRINCIPAL = "agent-principal";
   public static final String BEHAVIOURID = "behaviour-ID";
   public static final String ACLMESSAGE = "acl-message";
   public static final String ENVELOPE = "envelope";
@@ -169,6 +173,13 @@ public class JADEIntrospectionOntology {
 	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.O)
 	}, ResumedAgent.class); 
 
+	theInstance.addRole(CHANGEDAGENTPRINCIPAL, new SlotDescriptor[] {
+	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("where", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
+	  new SlotDescriptor("old-principal", Ontology.FRAME_SLOT, AGENTPRINCIPAL, Ontology.M),
+	  new SlotDescriptor("new-principal", Ontology.FRAME_SLOT, AGENTPRINCIPAL, Ontology.M)
+	}, ChangedAgentPrincipal.class); 
+
 	theInstance.addRole(MOVEDAGENT, new SlotDescriptor[] {
 	  new SlotDescriptor("agent", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("from", Ontology.FRAME_SLOT, CONTAINERID, Ontology.M),
@@ -227,6 +238,10 @@ public class JADEIntrospectionOntology {
 	theInstance.addRole(AGENTSTATE, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 	}, AgentState.class);
+
+	theInstance.addRole(AGENTPRINCIPAL, new SlotDescriptor[] {
+	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
+	}, AgentPrincipal.class);
 
 	theInstance.addRole(BEHAVIOURID, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),

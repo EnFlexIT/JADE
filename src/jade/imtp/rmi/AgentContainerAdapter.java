@@ -40,6 +40,8 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 
+import jade.security.AgentPrincipal;
+
 /**
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
@@ -175,6 +177,15 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
   public void suspendAgent(AID agentID) throws IMTPException, NotFoundException {
     try {
       adaptee.suspendAgent(agentID);
+    }
+    catch(RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+  
+  public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException {
+    try {
+      adaptee.changeAgentPrincipal(agentID, newPrincipal);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

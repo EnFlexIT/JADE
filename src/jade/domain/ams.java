@@ -69,6 +69,8 @@ import jade.mtp.MTPException;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
+import jade.security.AgentPrincipal;
+
 /**
   Standard <em>Agent Management System</em> agent. This class
   implements <em><b>FIPA</b></em> <em>AMS</em> agent. <b>JADE</b>
@@ -1084,15 +1086,17 @@ public class ams extends Agent implements AgentManager.Listener {
 
   private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
-    Object old = agentDescriptions.deregister(amsd.getName());
-    if(old == null)
+    AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
+    if (old == null)
       throw new NotRegistered();
     agentDescriptions.register(amsd.getName(), amsd);
     try {
-      if (!((AMSAgentDescription)old).getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
+      if (!old.getState().equals(amsd.SUSPENDED) && amsd.getState().equals(amsd.SUSPENDED))
         myPlatform.suspend(amsd.getName(),  "");
-      if (((AMSAgentDescription)old).getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
+      if (old.getState().equals(amsd.SUSPENDED) && !amsd.getState().equals(amsd.SUSPENDED))
         myPlatform.activate(amsd.getName(),  "");
+      if (!old.getOwnership().equalsIgnoreCase(amsd.getOwnership()))
+        myPlatform.changeAgentPrincipal(amsd.getName(), new AgentPrincipal(old.getOwnership()), new AgentPrincipal(amsd.getOwnership()));
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -1278,6 +1282,28 @@ public class ams extends Agent implements AgentManager.Listener {
     ra.setWhere(cid);
 
     EventRecord er = new EventRecord(ra, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+    doWake();
+  }
+
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
+  public synchronized void changedAgentPrincipal(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
+    // Registry needs an update here!
+    
+    ChangedAgentPrincipal cap = new ChangedAgentPrincipal();
+    cap.setAgent(agentID);
+    cap.setWhere(cid);
+    cap.setOldPrincipal(ev.getOldPrincipal());
+    cap.setNewPrincipal(ev.getNewPrincipal());
+
+    EventRecord er = new EventRecord(cap, here());
     er.setWhen(ev.getTime());
     eventQueue.add(er);
     doWake();

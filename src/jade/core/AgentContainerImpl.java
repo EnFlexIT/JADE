@@ -41,6 +41,8 @@ import jade.mtp.MTPException;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
+import jade.security.AgentPrincipal;
+
 
 /**
    This class is a concrete implementation of the JADE agent
@@ -187,6 +189,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     if(agent == null)
       throw new NotFoundException("ResumeAgent failed to find " + agentID);
     agent.doActivate();
+  }
+
+  public void changeAgentPrincipal(AID agentID, AgentPrincipal newPrincipal) throws IMTPException, NotFoundException {
+    Agent agent = localAgents.get(agentID);
+    if (agent == null)
+      throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
+    agent.setPrincipal(newPrincipal);
   }
 
   public void waitAgent(AID agentID) throws IMTPException, NotFoundException {
@@ -650,6 +659,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //fireReceivedMessage(msg, agentID);
     myNotificationManager.fireEvent(NotificationManager.RECEIVED_MESSAGE,
     	new Object[]{msg, agentID});
+  }
+
+  public void handleChangedAgentPrincipal(AID agentID, AgentPrincipal oldPrincipal, AgentPrincipal newPrincipal) {
+    myNotificationManager.fireEvent(NotificationManager.CHANGED_AGENT_PRINCIPAL,
+    	new Object[]{agentID, oldPrincipal, newPrincipal});
+    try {
+      myPlatform.changedAgentPrincipal(agentID, oldPrincipal, newPrincipal);
+    }
+    catch(IMTPException re) {
+      re.printStackTrace();
+    }
+    catch(NotFoundException nfe) {
+      nfe.printStackTrace();
+    }
   }
 
   public void handleChangedAgentState(AID agentID, AgentState from, AgentState to) {
