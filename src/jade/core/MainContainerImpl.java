@@ -195,8 +195,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	// Notify the AMS about the main container existence
 	fireAddedContainer(cid);
-	// FIXME: To be removed
-	fireChangedContainerPrincipal(cid, null, null);
 
 	// Start the Default DF
 	defaultDF = new df();
@@ -1379,14 +1377,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     }
   }
 
-  private void fireChangedContainerPrincipal(ContainerID cid, String from, String to) {
-    PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_CONTAINER_PRINCIPAL, null, cid, from, to);
-    for (int i = 0; i < platformListeners.size(); i++) {
-      AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.changedContainerPrincipal(ev);
-    }
-  }
-
   private void fireBornAgent(ContainerID cid, AID agentID, String ownership) {
     PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid, null, ownership);
 
@@ -1439,15 +1429,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
       l.thawedAgent(ev);
     }
-  }
-
-  private void fireChangedAgentPrincipal(ContainerID cid, AID agentID, String from, String to) {
-      PlatformEvent ev = new PlatformEvent(PlatformEvent.CHANGED_AGENT_PRINCIPAL, agentID, cid, from, to);
-
-      for (int i = 0; i < platformListeners.size(); i++) {
-	  AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-	  l.changedAgentPrincipal(ev);
-      }
   }
 
   private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
