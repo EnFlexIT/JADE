@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.9  1998/11/07 23:05:08  rimassa
+  Removed explicit "localhost" default value for platformHost; now
+  InetAddress.getLocalHost() is used to get local host name implicitly.
+  In '-version' command line option handling, CVS keywords are used to
+  express JADE version and build date.
+
   Revision 1.8  1998/10/30 18:17:17  rimassa
   Added a '-version' command-line option to print out JADE version name.
 
@@ -23,6 +29,9 @@ package jade;
 import java.rmi.*;
 import java.rmi.registry.*;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import java.util.Vector;
 
 
@@ -45,7 +54,17 @@ public class Boot {
   public static void main(String args[]) {
 
     // Default values for looking RMI registry bind/lookup
-    String platformHost = "localhost";
+
+    String platformHost = null;
+    try {
+      platformHost = InetAddress.getLocalHost().getHostName();
+    }
+    catch(UnknownHostException uhe) {
+      System.out.print("Unknown host exception in getLocalHost(): ");
+      System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
+      System.exit(1);
+    }
+
     String platformPort = "1099";
     String platformName = "JADE";
     boolean isPlatform = false;
@@ -68,6 +87,8 @@ public class Boot {
        -platform When specified, an Agent Platform is started.
                  Otherwise, an Agent Container is added to an
 		 existing Agent Platform.
+
+       -version  Prints out version information and exits.
 
        -help     Prints out usage informations.
 
@@ -101,7 +122,7 @@ public class Boot {
 	  hasGUI = true;
 	}
 	else if(args[n].equals("-version") || args[n].equals("-v")) {
-	  System.out.println("JADE Version 0.84 - October 1998");
+	  System.out.println("JADE Version $Name$ - $Date$");
 	  System.exit(0);
 	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
