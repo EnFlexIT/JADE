@@ -46,6 +46,8 @@ public interface MainContainer {
     void deadAgent(AID name) throws NotFoundException;
     void suspendedAgent(AID name) throws NotFoundException;
     void resumedAgent(AID name) throws NotFoundException;
+    void frozenAgent(AID name, ContainerID bufferContainer) throws NotFoundException;
+    void thawedAgent(AID name, ContainerID bufferContainer) throws NotFoundException;
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
