@@ -122,8 +122,6 @@ public class Runtime {
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();
-      if (enableDefaultToolkit)
-	  		setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
 		  return new jade.wrapper.AgentContainer(impl, impl.getPlatformID());
   }
 
@@ -140,8 +138,6 @@ public class Runtime {
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();
-      if (enableDefaultToolkit)
-	  setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
       return new jade.wrapper.MainContainer(impl, impl.getPlatformID());
   }
 
@@ -251,30 +247,6 @@ public class Runtime {
     return theDispatcher;
   }
 
-  /********** FIXME: This is just to support the JSP example *************/
-  private boolean enableDefaultToolkit = false; 
-  private AgentToolkit defaultToolkit;
-
-  private void setDefaultToolkit(AgentToolkit tk) {
-    defaultToolkit = tk;
-  }
-
-  AgentToolkit getDefaultToolkit() {
-    return defaultToolkit;
-  }
-
-    /**
-     * @deprecated This method should not be used. It has been temporarily
-     * introduced for the JSP example and it will be removed in the next
-     * version of JADE
-     **/
-    public void enableDefaultToolkit() {
-	enableDefaultToolkit=true;
-    }
-
-
-
-
 
   /**
    * Return a String with copyright Notice, Name and Version of this version of JADE
@@ -302,4 +274,3 @@ public class Runtime {
 
   /************************************************************************/
 }
- 
