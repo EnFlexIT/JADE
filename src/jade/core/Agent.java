@@ -327,7 +327,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // These two variables are used as temporary buffers for
   // mobility-related parameters
-  private transient String myDestination;
+  private transient Location myDestination;
   private transient String myNewName;
 
   // Temporary buffer for agent suspension
@@ -403,7 +403,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      <code>null</code> if no translator was found.
    */
   public Codec lookupLanguage(String languageName) {
-    return (Codec)languages.get(languageName);
+    return (Codec)languages.get(new Name(languageName));
   }
 
   /**
@@ -439,7 +439,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      ontology was found.
    */
   public Ontology lookupOntology(String ontologyName) {
-    return (Ontology)ontologies.get(ontologyName);
+    return (Ontology)ontologies.get(new Name(ontologyName));
   }
 
   /**
@@ -478,9 +478,33 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       return o.createObject(f);
     }
     catch(Codec.CodecException cce) {
+      // cce.printStackTrace();
       throw new FIPAException("Codec error: " + cce.getMessage());
     }
     catch(OntologyException oe) {
+      // oe.printStackTrace();
+      throw new FIPAException("Ontology error: " + oe.getMessage());
+    }
+
+  }
+
+  /**
+     
+   */
+  public void fillContent(ACLMessage msg, Object content, String roleName) throws FIPAException {
+    Codec c = lookupLanguage(msg.getLanguage());
+    if(c == null)
+      throw new FIPAException("Unknown Content Language");
+    Ontology o = lookupOntology(msg.getOntology());
+    if(o == null)
+      throw new FIPAException("Unknown Ontology");
+    try {
+      Frame f = o.createFrame(content, roleName);
+      String s = c.encode(f, o);
+      msg.setContent(s);
+    }
+    catch(OntologyException oe) {
+      oe.printStackTrace();
       throw new FIPAException("Ontology error: " + oe.getMessage());
     }
 
@@ -562,7 +586,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      Agent Platform or by the agent itself to start a migration process.
      <em>This method is currently not implemented.</em>
   */
-  public void doMove(String destination) {
+  public void doMove(Location destination) {
     synchronized(stateLock) {
       if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
 	myBufferedState = myAPState;
@@ -583,7 +607,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a clonation process.
   */
-  public void doClone(String destination, String newName) {
+  public void doClone(Location destination, String newName) {
     synchronized(stateLock) {
       if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
 	myBufferedState = myAPState;
@@ -1368,6 +1392,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      through <code>fromText()</code> method.
      @see jade.lang.acl.ACLMessage#fromText(Reader r)
   */
+    /*
   public ACLMessage parse(Reader text) {
     ACLMessage msg = null;
     try {
@@ -1381,7 +1406,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
     return msg;
   }
-
+    */
   private ACLMessage FipaRequestMessage(String dest, String replyString) {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 
@@ -1829,7 +1854,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  // Notify listeners of the need to copy the current agent
+  // Notify listeners of the need to move the current agent
   private void notifyMove() {
     Iterator i = listeners.iterator();
     while(i.hasNext()) {
