@@ -64,8 +64,7 @@ public class MessageTransportProtocol implements MTP {
       FIPA.Envelope[] envelopes = aFipaMessage.messageEnvelopes;
       byte[] payload = aFipaMessage.messageBody;
       
-      System.out.println("\n\n"+(new java.util.Date()).toString()+" RECEIVED IIOP MESSAGE"+
-      	new String(payload));
+      //      System.out.println("\n\n"+(new java.util.Date()).toString()+" RECEIVED IIOP MESSAGE"+new String(payload));
     
       Envelope env = new Envelope();
 
@@ -252,8 +251,7 @@ public class MessageTransportProtocol implements MTP {
 
       FipaMessage msg = new FipaMessage(new FIPA.Envelope[] { IDLenv }, payload);
       objRef.message(msg);
-      System.out.println("\n\n"+(new java.util.Date()).toString()+" SENT IIOP MESSAGE TO ADDRESS iiop://"+
-      	addr.getHost()+":"+addr.getPort()+".\n"+ new String(payload));
+      //      System.out.println("\n\n"+(new java.util.Date()).toString()+" SENT IIOP MESSAGE TO ADDRESS iiop://"+addr.getHost()+":"+addr.getPort()+".\n"+ new String(payload));
     }
     catch(ClassCastException cce) {
       cce.printStackTrace();
@@ -354,9 +352,9 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       String s = orb.object_to_string(objRef);
       if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop://ior:"))
-	initFromIOR(s.substring(7));
       else if(s.toLowerCase().startsWith("iiop:"))
+	initFromURL(s, BIG_ENDIAN);
+      else if(s.toLowerCase().startsWith("corbaloc:"))
 	initFromURL(s, BIG_ENDIAN);
       else
 	throw new MTP.MTPException("Invalid string prefix");
@@ -366,9 +364,9 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       orb = anOrb;
       if(s.toLowerCase().startsWith("ior:"))
 	initFromIOR(s);
-      else if(s.toLowerCase().startsWith("iiop://ior:"))
-	initFromIOR(s.substring(7));
       else if(s.toLowerCase().startsWith("iiop:"))
+	initFromURL(s, BIG_ENDIAN);
+      else if(s.toLowerCase().startsWith("corbaloc:"))
 	initFromURL(s, BIG_ENDIAN);
       else
 	throw new MTP.MTPException("Invalid string prefix");
