@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.22  1998/10/31 16:27:36  rimassa
+  Completed doDelete() method: now an Agent can be explicitly terminated
+  from outside or end implicitly when one of its Behaviours calls
+  doDelete(). Besides, when an agent dies informs its CommListeners.
+
   Revision 1.21  1998/10/25 23:54:30  rimassa
   Added an 'implements Serializable' clause to support Agent code
   downloading through RMI.
@@ -231,7 +236,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       wait(); // Blocks on its monitor
     }
     catch(InterruptedException ie) {
-      // Do nothing
+      myThread.interrupt();
     }
   }
 
@@ -240,8 +245,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     notify(); // Wakes up the embedded thread
   }
 
+  // This method handles both the case when the agents decides to exit
+  // and the case in which someone else kills him from outside.
   public void doDelete() { // Transition to destroy the agent
-    myAPState = AP_DELETED; // FIXME: Should do something more
+    myAPState = AP_DELETED;
+    if(!myThread.equals(Thread.currentThread()))
+       myThread.interrupt();
   }
 
   public final void run() {
@@ -255,6 +264,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
       destroy();
     }
+    catch(InterruptedException ie) {
+      destroy();
+    }
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
@@ -265,7 +277,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   protected void setup() {}
 
-  private void mainLoop() {
+  private void mainLoop() throws InterruptedException {
     while(myAPState != AP_DELETED) {
 
       // Select the next behaviour to execute
@@ -293,7 +305,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     }
   }
 
-  private void destroy() { // FIXME: Should remove the agent from all agents tables.
+  private void destroy() {
+    System.out.println("Agent " + myName + " is dead.");
+    notifyDestruction();
   }
 
   public void addBehaviour(Behaviour b) {
@@ -650,6 +664,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   // Remove a registered listener
   public final void removeCommListener(CommListener l) {
     listeners.removeElement(l);
+  }
+
+  // Notify listeners of the destruction of the current agent
+  private void notifyDestruction() {
+    Enumeration e = listeners.elements();
+    while(e.hasMoreElements()) {
+      CommListener l = (CommListener)e.nextElement();
+      l.endSource(myName);
+    }
   }
 
   private void activateAllBehaviours() {
