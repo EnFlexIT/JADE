@@ -42,8 +42,9 @@ public class MicroStub {
 		myDispatcher = d;
 	}
 	
-	protected Command executeRemotely(Command c) throws IMTPException, ICPException {
+	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
 		try {
+  		disableFlush();
 			byte[] cmd = SerializationEngine.serialize(c);
 			byte[] rsp = myDispatcher.dispatch(cmd);
 			Command r = SerializationEngine.deserialize(rsp);
@@ -60,14 +61,30 @@ public class MicroStub {
 			}
 			return r;
 		}
+		catch (ICPException icpe) {
+			// The destination is unreachable. 
+			if (timeout == 0) {
+				// The command can't be postponed
+				throw new IMTPException("Destination unreachable", icpe);
+			}
+			else {
+				// FIXME: if timeout > 0 we should add a timer
+				postpone(c);
+				return null;
+			}
+		}
 		catch (LEAPSerializationException lse) {
 			throw new IMTPException("Serialization error", lse);
 		}
+		finally {
+			enableFlush();
+		}
 	}
 	
-	protected void store(Command c) {
+	private void postpone(Command c) {
 		pendingCommands.addElement(c);
 	}
+	
 	
 	public void flush() {
 		if (pendingCommands.size() > 0) {
@@ -97,13 +114,13 @@ public class MicroStub {
 						// was delayed for disconnection problems can and must not
 						// be handled!!!
 						try {
-							Command r = executeRemotely(c);
+							Command r = executeRemotely(c, 0);
 							if (r.getCode() == Command.ERROR) {
-								Logger.println("WARNING: Exception in command asynchronous delivery. "+r.getParamAt(2));
+								Logger.println("WARNING: Remote exception in command asynchronous delivery. "+r.getParamAt(2));
 							}
 						}
 						catch (Exception ex) {
-							Logger.println("WARNING: Error in command asynchronous delivery. "+ex.getMessage());
+							Logger.println("WARNING: Exception in command asynchronous delivery. "+ex.getMessage());
 						}
 					}
 					pendingCommands.removeAllElements();
@@ -119,7 +136,13 @@ public class MicroStub {
 		}
 	}
 	
-	protected void disableFlush() {
+	/**
+	   Note that normal command-dispatching and postponed command
+	   flushing can't occur at the same time, but different commands
+	   can be dispatched in parallel. This is the reason for this
+	   lock/unlock mechanism instead of a simple synchronization.
+	 */
+	private void disableFlush() {
 		synchronized (pendingCommands) {
 			while (flushing) {
 				try {
@@ -132,7 +155,7 @@ public class MicroStub {
 		}
 	}
 		
-	protected void enableFlush() {
+	private void enableFlush() {
 		synchronized (pendingCommands) {
 			activeCnt--;
 			if (activeCnt == 0) {

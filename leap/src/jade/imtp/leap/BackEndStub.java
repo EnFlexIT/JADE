@@ -47,117 +47,69 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	/**
 	 */
   public String[] bornAgent(String name) throws IMTPException {
+		//Logger.println("Executing BORN_AGENT");
   	Command c = new Command(BORN_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		//Logger.println("Executing BORN_AGENT");
-  		Command r = executeRemotely(c);
-  		if (r.getParamCnt() > 0) {
-  			return (String[]) r.getParamAt(0);
-  		}
-  		else {
-  			return null;
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable
-  		// The BORN_AGENT command must not be buffered
-  		throw new IMTPException("Destination unreachable", icpe);
-  	}		  			  			
-  	finally {
-  		enableFlush();
-  	}
+		// The BORN_AGENT command must not be postponed
+		Command r = executeRemotely(c, 0);
+		if (r.getParamCnt() > 0) {
+			return (String[]) r.getParamAt(0);
+		}
+		else {
+			return null;
+		}
   }
 
   /**
 	 */
   public void deadAgent(String name) throws IMTPException {
+  	//Logger.println("Executing DEAD_AGENT");
   	Command c = new Command(DEAD_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		//Logger.println("Executing DEAD_AGENT");
-  		Command r = executeRemotely(c);
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		executeRemotely(c, -1);
   }
   
   /**
 	 */
   public void suspendedAgent(String name) throws NotFoundException, IMTPException {
+  	//Logger.println("Executing SUSPENDED_AGENT");
   	Command c = new Command(SUSPENDED_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote BackEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote BackEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
 	 */
   public void resumedAgent(String name) throws NotFoundException, IMTPException {
+  	//Logger.println("Executing RESUMED_AGENT");
   	Command c = new Command(RESUMED_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote BackEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote BackEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
 	 */
   public void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException {
+  	//Logger.println("Executing MESSAGE_OUT");
   	Command c = new Command(MESSAGE_OUT);
   	c.addParam(msg);
   	c.addParam(sender);
-  	try {
-  		disableFlush();
-  		//Logger.println("Executing MESSAGE_OUT");
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote BackEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote BackEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
 }
 

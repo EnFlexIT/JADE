@@ -45,18 +45,8 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	c.addParam(name);
   	c.addParam(className);
   	c.addParam(args);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable
-  		// The CREATE_AGENT command must not be buffered
-  		throw new IMTPException("Destination unreachable", icpe);
-  	}
-  	finally {
-  		enableFlush();
-  	}
+  	// The CREATE_AGENT command must not be postponed
+  	executeRemotely(c, 0);
   }
 
   /**
@@ -64,22 +54,12 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public void killAgent(String name) throws NotFoundException, IMTPException {
   	Command c = new Command(FrontEndSkel.KILL_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote FrontEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote FrontEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
@@ -87,22 +67,12 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public void suspendAgent(String name) throws NotFoundException, IMTPException {
   	Command c = new Command(FrontEndSkel.SUSPEND_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote FrontEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote FrontEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
@@ -110,22 +80,12 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public void resumeAgent(String name) throws NotFoundException, IMTPException {
   	Command c = new Command(FrontEndSkel.RESUME_AGENT);
   	c.addParam(name);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote FrontEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote FrontEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
@@ -134,22 +94,12 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	Command c = new Command(FrontEndSkel.MESSAGE_IN);
   	c.addParam(msg);
   	c.addParam(receiver);
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  		if (r.getCode() == Command.ERROR) {
-  			// One of the expected exceptions occurred in the remote FrontEnd
-  			// --> It must be a NotFoundException --> throw it
-  			throw new NotFoundException((String) r.getParamAt(2));
-  		}
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable. Store the command for later delivery
-  		store(c);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		Command r = executeRemotely(c, -1);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote FrontEnd
+			// --> It must be a NotFoundException --> throw it
+			throw new NotFoundException((String) r.getParamAt(2));
+		}
   }
   
   /**
@@ -157,18 +107,8 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public void exit(boolean self) throws IMTPException {
   	Command c = new Command(FrontEndSkel.EXIT);
   	c.addParam(new Boolean(self));
-  	try {
-  		disableFlush();
-  		Command r = executeRemotely(c);
-  	}
-  	catch (ICPException icpe) {
-  		// Destination unreachable
-  		// The EXIT command must not be buffered
-  		throw new IMTPException("Destination unreachable", icpe);
-  	}		  			
-  	finally {
-  		enableFlush();
-  	}
+		// The EXIT command must not be postponed
+		Command r = executeRemotely(c, 0);
   }
 }
 
