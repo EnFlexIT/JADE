@@ -323,7 +323,7 @@ public class MessageTemplate implements Serializable {
     return new MessageTemplate(msg, false);
   }
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__JADE_ONLY__BEGIN
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
@@ -342,7 +342,7 @@ public class MessageTemplate implements Serializable {
       }
     return MatchReceiver(v);
   }
-  //__BACKWARD_COMPATIBILITY__END
+  //__JADE_ONLY__END
 
   /**
      This <em>Factory Method</em> returns a message template that
@@ -400,7 +400,7 @@ public class MessageTemplate implements Serializable {
     return new MessageTemplate(msg, false);
   }
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__JADE_ONLY__BEGIN
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:reply-to</code> slot.
@@ -419,7 +419,7 @@ public class MessageTemplate implements Serializable {
       }
     return MatchReplyTo(v);
   }
-  //__BACKWARD_COMPATIBILITY__END
+  //__JADE_ONLY__END
 
   /**
      This <em>Factory Method</em> returns a message template that

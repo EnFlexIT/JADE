@@ -748,12 +748,12 @@ public final class DefaultOntology implements Ontology {
 	      setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
 	    else
 	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
-  		//__BACKWARD_COMPATIBILITY__BEGIN
+  		//__JADE_ONLY__BEGIN
 	    // If the getAllXXX() method of the user defined class returns a
 	    // java.util.Iterator --> OK. If it returns a jade.util.leap.Iterator 
 	    // the cast works in any case as jade.util.leap.Iterator extends java.util.Iterator
 	    java.util.Iterator i = (java.util.Iterator) value;
-  		//__BACKWARD_COMPATIBILITY__END
+  		//__JADE_ONLY__END
   		/*__J2ME_COMPATIBILITY__BEGIN If we are on J2ME the getAllXXX method definitely returns a jade.util.leap.Iterator
 	    // The getAllXXX() method of the user defined class must return 
 	    // a jade.util.leap.Iterator

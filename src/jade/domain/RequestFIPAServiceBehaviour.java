@@ -239,7 +239,7 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
     return lastMsg;
   }
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__JADE_ONLY__BEGIN
   /**
     This public method allows to get the results of a search operation. 
     @return the List of Objects received an a result of the search. 
@@ -257,7 +257,7 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
 		}
 		return l;
   }
-  //__BACKWARD_COMPATIBILITY__END
+  //__JADE_ONLY__END
     
   /**
     This public method allows to get the results of a search operation. 

@@ -221,7 +221,7 @@ private int performative; // keeps the performative type of this object
 
   private Envelope messageEnvelope;
 
-  //__BACKWARD_COMPATIBILITY__BEGIN
+  //__JADE_ONLY__BEGIN
   /**
   Returns the list of the communicative acts.
   @deprecated Use getAllPerformativeNames() instead
@@ -230,7 +230,7 @@ private int performative; // keeps the performative type of this object
   {
   	return ((ArrayList) performatives).toList();
   }
-  //__BACKWARD_COMPATIBILITY__END
+  //__JADE_ONLY__END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.
