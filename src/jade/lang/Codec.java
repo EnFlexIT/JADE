@@ -25,6 +25,8 @@ package jade.lang;
 
 import jade.onto.Frame;
 import jade.onto.Ontology;
+
+import jade.util.WrapperException;
 import jade.util.leap.List;
 
 /**
@@ -43,11 +45,7 @@ public interface Codec {
     underlying parser, it is wrapped with a <code>Codec.CodecException</code>,
     which is then rethrown.
   */
-  public static class CodecException extends Exception {
-    /**
-    @serial
-    */
-    private Throwable nested;
+  public static class CodecException extends WrapperException {
 
     /**
       Construct a new <code>CodecException</code>
@@ -55,24 +53,9 @@ public interface Codec {
       @param t The exception wrapped by this object.
     */
     public CodecException(String msg, Throwable t) {
-      super(msg);
-      nested = t;
+      super(msg, t);
     }
 
-    /**
-      Reads the exception wrapped by this object.
-      @return the <code>Throwable</code> object that is the exception thrown by
-      the concrete parsing subsystem.
-    */
-    public Throwable getNested() {
-      return nested;
-    }
-
-    public void printStackTrace() {
-      if (nested != null)
-	nested.printStackTrace();
-      super.printStackTrace();
-    }
   }
 
   /**
