@@ -61,7 +61,7 @@ public class ArrayList implements List, Serializable {
     }
 
     /**
-     * Private constructor used for cloning.
+     * Constructs an ArrayList from a java.util.ArrayList.
      */
     public ArrayList(java.util.ArrayList toBeHiddenList) {
         realHiddenList = toBeHiddenList;
@@ -200,6 +200,14 @@ public class ArrayList implements List, Serializable {
         return realHiddenList;
     } 
 
+    public void fromList(java.util.List l) {
+    	clear();
+    	java.util.Iterator it = l.iterator();
+    	while (it.hasNext()) {
+    		realHiddenList.add(it.next());
+    	}
+    }
+    
     /**
        A customized writeObject() method is needed to ensure compatibility with  
        the J2ME version of this class in serialization/deserialization 
