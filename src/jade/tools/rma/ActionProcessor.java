@@ -63,6 +63,8 @@ class ActionProcessor {
      public static final String  LOADAGENT_ACTION="Load Agent";
      public static final String  FREEZEAGENT_ACTION="Freeze Agent";
      public static final String  THAWAGENT_ACTION="Thaw Agent";
+     public static final String  SAVECONTAINER_ACTION="Save Container";
+     public static final String  LOADCONTAINER_ACTION="Load Container";
      public static final String  ADDREMOTEPLATFORM_ACTION ="Add Platform via AMS AID";
      public static final String  ADDREMOTEPLATFORMFROMURL_ACTION = "Add Platform via URL"; 
      public static final String  VIEWPLATFORM_ACTION ="View AP Description";
@@ -97,6 +99,8 @@ class ActionProcessor {
       actions.put(LOADAGENT_ACTION, new LoadAgentAction(anRma, this, mWnd));
       actions.put(FREEZEAGENT_ACTION, new FreezeAgentAction(anRma, this));
       actions.put(THAWAGENT_ACTION, new ThawAgentAction(anRma, this, mWnd));
+      actions.put(SAVECONTAINER_ACTION, new SaveContainerAction(anRma, this));
+      actions.put(LOADCONTAINER_ACTION, new LoadContainerAction(anRma, this));
       actions.put(ADDREMOTEPLATFORM_ACTION, new AddRemotePlatformAction(anRma,this,mWnd));
       actions.put(VIEWPLATFORM_ACTION, new ViewAPDescriptionAction(anRma,this));
       actions.put(REFRESHAPDESCRIPTION_ACTION, new RefreshAPDescriptionAction(anRma,this));
