@@ -237,12 +237,33 @@ public class AgentManagementOntology extends DefaultOntology {
     // Table of allowed keywords in 'FIPA-AMS-description' objects
     private static Hashtable keywords = new Hashtable(7, 1.0f);
 
+    /**
+    @serial
+    */
     private String name;
+    /**
+    @serial
+    */
     private String address;
+    /**
+    @serial
+    */
     private String signature;
+    /**
+    @serial
+    */
     private int APState;
+    /**
+    @serial
+    */
     private String delegateAgentName;
+    /**
+    @serial
+    */
     private String forwardAddress;
+    /**
+    @serial
+    */
     private String ownership;
 
     /**

@@ -472,8 +472,17 @@ public class MobilityOntology {
   */
   public static class Location implements jade.core.Location {
 
-    private String name;
+    /**
+    @serial
+    */
+  	private String name;
+  	/**
+  	@serial
+  	*/
     private String protocol;
+    /**
+    @serial
+    */
     private String address;
 
     public void setName(String n) {

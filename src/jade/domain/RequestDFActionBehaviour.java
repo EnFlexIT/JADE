@@ -56,8 +56,14 @@ public class RequestDFActionBehaviour extends FipaRequestInitiatorBehaviour {
     MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			MessageTemplate.MatchOntology("fipa-agent-management"));
 
-  private AgentManagementOntology.DFSearchResult result = null;
-  private AgentManagementOntology.DFAction  action = null;
+  /**
+  @serial
+  */
+	private AgentManagementOntology.DFSearchResult result = null;
+  /**
+  @serial
+  */
+	private AgentManagementOntology.DFAction  action = null;
   
   private static ACLMessage msgtemp = new ACLMessage(ACLMessage.REQUEST); 
   
@@ -97,7 +103,8 @@ public class RequestDFActionBehaviour extends FipaRequestInitiatorBehaviour {
     String sender = myAgent.getLocalName();
     AgentManagementOntology o = AgentManagementOntology.instance();
     if(dfName == null)
-      throw o.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
+      
+      	throw o.getException(AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
     
     msg.setLanguage("SL0");
     msg.setOntology("fipa-agent-management");

@@ -922,23 +922,50 @@ public class df extends GuiAgent implements GUI2DFCommunicatorInterface {
  }
  
   private static int NUMBER_OF_AGENT_FOUND = 1000;
+  /**
+  @serial
+  */
   private AgentManagementOntology myOntology;
+  /**
+  @serial
+  */
   private FipaRequestResponderBehaviour dispatcher;
+  /**
+  @serial
+  */
   private FipaRequestResponderBehaviour jadeExtensionDispatcher;
-  
+  /**
+  @serial
+  */
   private Hashtable descriptors = new Hashtable();
+  /**
+  @serial
+  */
   private AgentManagementOntology.DFSearchResult found;
   	
   //OLD Version: private Hashtable subDFs = new Hashtable();
+  /**
+  @serial
+  */
   Vector subDFs = new Vector();
-  
+  /**
+  @serial
+  */
   private AgentGroup parents = new AgentGroup();
-
+  /**
+  @serial
+  */
   private DFGUI gui;
   // Current description of the df
+  /**
+  @serial
+  */
   private AgentManagementOntology.DFAgentDescriptor thisDF = null;
   
-  //Vector to maintain the constrait for the search inserted by the user. 
+  //Vector to maintain the constrait for the search inserted by the user.
+  /**
+  @serial
+  */
   private Vector searchConstraint = null;
   
   

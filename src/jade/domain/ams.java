@@ -692,44 +692,92 @@ public class ams extends Agent {
   }
 
   // The AgentPlatform where information about agents is stored 
+  /**
+  @serial
+  */
   private AgentManager myPlatform;
 
   // The table of 'AMS-Agent-Description' data for all the agents
+  /**
+  @serial
+  */
   private Map descrTable;
 
   // Maintains an association between action names and behaviours
+  /**
+  @serial
+  */
   private FipaRequestResponderBehaviour dispatcher;
 
   // Contains a main Behaviour and some utilities to handle JADE mobility
+  /**
+  @serial
+  */
   private MobilityManager mobilityMgr;
 
   // Behaviour to listen to incoming 'subscribe' messages from Remote
   // Management Agents.
+  /**
+  @serial
+  */
   private RegisterRMABehaviour registerRMA;
 
   // Behaviour to broadcats AgentPlatform notifications to each
   // registered Remote Management Agent.
+  /**
+  @serial
+  */
   private NotifyRMAsBehaviour notifyRMAs;
 
   // Behaviour to listen to incoming 'cancel' messages from Remote
   // Management Agents.
+  /**
+  @serial
+  */
   private DeregisterRMABehaviour deregisterRMA;
 
   // Group of Remote Management Agents registered with this AMS
+  /**
+  @serial
+  */
   private AgentGroup RMAs;
 
   // ACL Message to use for RMA notification
+  /**
+  @serial
+  */
   private ACLMessage RMANotification = new ACLMessage(ACLMessage.INFORM);
 
   // Buffers for AgentPlatform notifications
+  /**
+  @serial
+  */
   private List newContainersBuffer = new ArrayList();
+  /**
+  @serial
+  */
   private List deadContainersBuffer = new ArrayList();
+  /**
+  @serial
+  */
   private List newAgentsBuffer = new ArrayList();
+  /**
+  @serial
+  */
   private List deadAgentsBuffer = new ArrayList();
+  /**
+  @serial
+  */
   private List movedAgentsBuffer = new ArrayList();
 
+  /**
+  @serial
+  */
   private Map pendingInforms = new HashMap();
 
+  /**
+  @serial
+  */
   private AgentManagementOntology.PlatformProfile theProfile = new AgentManagementOntology.PlatformProfile();
 
   /**
