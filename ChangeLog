@@ -1,128 +1,171 @@
-MAJOR CHANGES in JADE Snapshot (25 February 2003) 
+MAJOR CHANGES in JADE 3.0b1 (19 March 2003)  
 ==========================================================================
 GENERAL IMPROVEMENTS:
-- removed a set of unused constants and replaced with the constants in the class 
-  FIPANames
-- removed jade.core.MobilityManager because no longer used, added logging mechanism
-  to RealMobilityManager
-- improved management of persistent DF
-- adjusted ontology herarchy in MIDP
-
-BUG FIXES:
-- ISO8601 in managing relative time
-- jade.core.LADT fixed a bug that generated a deadlock
-
-MAJOR CHANGES in JADE Snapshot (15 February 2003) 
-==========================================================================
-GENERAL IMPROVEMENTS:
-- update of FipaManagement Ontology according to FIPA Standard
-- implemented new features of DF for FIPA Standard: search-id and lease-time
-- jade.misc.DFFederatorAgent added visualization capability and fixed minor bug
-- improved performance of SLCodec, ISO8601
-- DFService: Methods register and modify return now the lease_time
-- DFService: Added DFRegistrationRenewer behaviour
-- DFFipaAgentManagementBehaviour: The AGREE message is not sent anymore.
-- leap add-on: can now read configuration properties from a file (-conf option)
-
-POSSIBLE BACKWARD INCOMPATIBILITIES:
-- according to the new FIPA Standard:
-  - default value of SearchConstraints.maxResults is 1 instead of infinite
-  - updated definition of APDescription
-- df, ams, and MessageManager: modified property keys to use '_' instead of '.'
-- Renamed key for Main container host and port to "host" and "port" for consistency
-  with command line options
-- leap add-on: Properties source set to JAD by default
-
-BUG FIXES:
-- Fixed bug related to handling null keys and values in serialization of HashMap
-- jade.content 
-  - bug fix to correctly handle and externalize communicative acts as agent actions 
-  - result predicate modified to get a generic value (possibly a List) instead of
-    just a List
-- ams: Corrected bug in tools notification related to container crash
-- leap add-on:
-  - fixed bug in the reconnection mechanism. Improved logs
-  - Modified response timeout
-- XMLACLCodec add-on: Fixed bug on dealing with a null reply-by (Giovanni Barone)
-- BlueJADE: Bug fix on agent mobility (Dick Cowan, reported by Arunanthisivam Vimalathithen.)
-
-
-
-MAJOR CHANGES in JADE Snapshot (14 January 2003) 
-==========================================================================
-GENERAL IMPROVEMENTS:
-- persistent DF: added capability to store the KB into a DB and 
-  implemented DF lease-time (still under testing)
+- integrated JADE and LEAP. LEAP is now managed by the JADE team as
+  an add-on of JADE that allows to port JADE on Java J2ME profile.
+  Further to the re-harmonization with JADE, this is the list of main
+  improvements we did to LEAP:
+  - added command-line options with the same style and syntax of JADE 
+    command-line options
+  - the container functionalities have been split between a front-end and 
+    a back-end in order to reduce the footprint and to increase the 
+    performance in J2ME and wireless. 
+  - MIDP agents can also be sniffed and introspected now.
+  - added support for .NET compilation (experimental and undocumented)
+  - added a multi-party chat demo on J2ME MIDP
+  - Improved and simplified shutdown procedure
+- updated JADE to the new set of FIPA Standards, approved by FIPA at end 2002.
+  This new set of standards includes a number of modifications that required
+  changes also to the API's exposed by JADE to the applications. That is the
+  main motivation for the change of major release from 2.X to 3.X. 
+  For the full list of FIPA modifications see the FIPA X2S page
+  http://www.fipa.org/activities/experimental_to_standard.html
+  The following is instead the list of modifications that we did to JADE:
+  - Fipa-Agent-Management Ontology: 
+    - Removed the slots named ontology, language, protocol.
+    - Added the slot search-id in SearchConstraints.
+    - Added 3 exceptions that were missing: MissingArgument, 
+      UnexpectedArgument, UnexpectedArgumentCount.
+    - Added the slot lease_time in the DFAgentDescription
+    - Removed the encrypted field from envelope
+    - Removed class and action Quit
+  - because sending the AGREE message is now optional in the Fipa-request 
+    interaction protocol, we avoid now to send this message when the execution
+    of an action requires a short time
+  - jade.domain.DFService: 
+    - the methods register and modify return now the registered 
+      DFAgentDescription, where the assigned lease-time might be different
+      from the requested one.
+    - added method keepRegistered() that allows to renew 
+      the registration with a DF when the lease-time expires
+    - deprecated methods getSubscriptionMessage() and getNonBlockingBehaviour()
+  Notice that we have not yet modified the IDL interface of the IIOP-MTP. 
+  Based on our knowledge, this should be the only incompliance to FIPA of 
+  JADE3.0b1. The reason for that is that we believe (and we will propose)
+  that FIPA should add an errata corrige to this specs and avoid this unusefull
+  and strong source of backward incompatibility with previous versions of FIPA.
+- Directory Facilitator:
+  - added the capability of storing the DFAgentDescriptions on a persistent DB
+  - added the capability of managing lease time of registrations
+  - added the capability of managing subscriptions through the fipa-subscribe
+    interaction protocol
+- added the misc add-on with some miscellaneous classes, in particular:
+  - jade.misc.DFFederatorAgent, that simplifies the management and
+    visualization of a network of federated DFs
+  - a utility program to check if JADE main-container is up and 
+    running (by Stelios Gerogiannakis)
+- added new add-on XMLCodec, an XML-based content language codec
+- added new jade2xback add-on. 
+  This add-on includes a number of packages and classes from JADE 2.61 that 
+  have been removed because considered obsolete. It allows users to have a 
+  smooth transition by guaranteeing backward compatibility. 
+  (see also BACKWARD INCOMPATIBILIES section and a special tutorial on that)
+- slight improvement of performance of SLCodec and ISO8601
 - added method getProperty in the class Agent in order to get the properties
   passed in the Profile or in the configuration file
 - any pararameter passed on the command line is now retrievable via the
   method getProperty
-- Fipa-Agent-Management Ontology: started update to new FIPA standard.
-  - Updated the ontology by removing the slots named ontology, language, protocol.
-  - Added the slot search-id in SearchConstraints.
-  - Added 3 exceptions that were missing: MissingArgument, UnexpectedArgument,            UnexpectedArgumentCount.
-- added new class jade.util.Logger to print log messages in a device dependent way
-- added new add-on XMLCodec
-- LEAP add-on: 
-  - added -conf option as in JADE
-  - Container functionalities have been split between front-end and back-end
-    in order to reduce its size and increase its performance. Now MIDP agents
-    can also be sniffed.
-- misc add-on: added a program to check if JADE main-container is up and 
-  running (Stelios Gerogiannakis)
-
-POSSIBLE BACKWARD INCOMPATIBILITIES:
-- Fipa-Agent-Management Ontology and the classes of jade.domain.FipaAgentManagement 
-  because of update to new FIPA standard
-
-BUG FIXES:
-- LEAP add-on: 
-  - Set timeouts flag of Connection to false do avoid EOFException
-- jade.content.schema.ObjectSchemaImpl: metod getFacets() - Managed the case of no      facet associated with the slot name specified.
-- security add-on: Bugfix for SSL imtp was not starting. SSL key files are now called   like Sun default names: keystore and truststore.
-
-OTHERS:
-- TickerBehaviour: modified so that getTickCount() returns 1 at first tick	
-
-
-MAJOR CHANGES in JADE Snapshot (13 December 2002) 
-==========================================================================
-GENERAL IMPROVEMENTS:
-- added leap add-on and started integration of JADE with leap
-- added misc add-on with miscellaneous classes
+- added new class jade.util.Logger to print log messages in a device dependent
+  way
+- removed jade.core.MobilityManager because no longer used 
+  and added logging mechanism to RealMobilityManager
+- jade.proto.SubscriptionResponder has been improved in order to use a single 
+  ACLMessage object for several notifications
+- added method getTickCount() in jade.core.behaviours.TickerBehaviour
+- jade.gui.ACLGui. Called the SLFormatter to pretty-print all content in
+  SL language.
+- jade.content: 
+  - Added method to get facets associated to a schema.
+  - Added method to get the type of entities in an aggregate.
+  - Some classes of this package have been made serializable.
+- internal reorganization of the AMS and the MainContainer classes which 
+  improves performance of AMS interaction (e.g. registering and deregistering 
+  agents)
+- added jade.util.InputQueue class
+- added an initial support to canceling a fipa-subscribe interaction protocol
+- added timeout support in 
+  jade.domain.FipaServiceCommunicator.doFipaRequestClient
+- a new set of icons has been used in the RMA, provided by Itai Shirav.
+- jade.proto.FIPAProtocolNames has been deprecated and will be soon removed
 
 	
-MAJOR CHANGES in JADE Snapshot (27 November 2002) 
-==========================================================================
-GENERAL IMPROVEMENTS:
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- default value of SearchConstraints.maxResults is 1 instead of infinite
+  (according to the new FIPA Standard)
+- updated definition of APDescription according to the new Fipa Standard
+- df, ams, and MessageManager: modified the names of property keys 
+  by replacing '_' with '.'
+- renamed key for Main container host and port to "host" and "port" for 
+  consistency with command line options
+- leap add-on: The properties source has been set to JAD by default
+- removed the old support to content and ontologies (jade.lang.sl, jade.onto)
+  including the methods fill/extractContent of the class jade.core.Agent
+- removed the old-style interaction protocols from jade.proto, i.e. the
+  following classes: FipaContractNetInitiator/ResponderBehaviour,
+  FipaQueryInitiator/ResponderBehaviour,FipaRequestInitiator/ResponderBehaviour
+  NonDeterministicBehaviour
+- removed deprecated classes AMSServiceCommunicator.java and 
+  DFServiceCommunicator.java  from jade.domain
+- removed all old-style classes that defined ontologies.
+- removed the old class Quit.java (according to the new FIPA Standard)
+- all methods get_0,set_0,get_1,set_1,etc. in the ontology classes 
+  have been removed 
 - new jade2xback add-on. This add-on includes a number of packages and classes
   from JADE 2.61 that have been removed because considered obsolete. It allows
   users to have a smooth transition by guaranteeing backward compatibility.
-  - removed the old support to content and ontologies (jade.lang.sl and jade.onto).
-  - removed the old-style interaction protocols from jade.proto
-  - removed deprecated classes AMSServiceCommunicator.java DFServiceCommunicator.java
-    from jade.domain
-  - removed all old-style classes that defined ontologies.
-- updated jade.proto.SubscriptionResponder in order to use a single ACLMessage object
-  for several notifications
-- Added method getTickCount() in jade.core.behaviours.TickerBehaviour
-- jade.gui.ACLGui. Called the SLFormatter to pretty-print all content in SL language.
-- jade.content. 
-  Added method to get facets associated to a schema.
-  Added method to get the type of entities in an aggregate.
-- internal reorganization of the AMS and the MainContainer classes which improves
-  performance of AMS interaction (e.g. registering and deregistering agents)
-- added jade.util.InputQueue class
+- jade.domain.FIPANames has been transformed into an interface
+- the signature or SubscriptionManager.deregister() has a different return 
+  value and different exceptions
 
 BUG FIXES:
-- security add-on.
-  - fixed bug in using SSL
-  - improved example 
+- management of relative time in ISO8601 
+- fixed a bug that generated a deadlock in jade.core.LADT
+- handling of null keys and values in serialization of jade.util.leap.HashMap
+- jade.content: 
+  - handling and externalization of communicative acts as agent actions 
+  - result predicate modified to accept a generic value (possibly a List) 
+    instead of just a List
+  - managed the case of no facet associated with the slot name specified in
+    method getFacet() of jade.content.schema.ObjectSchemaImpl
+- ams: Corrected bug in tools notification related to container crash
 - updated jade.util.ExpandedProperties for Windows XP support (Dick Cowan)
 - fixed bug about the imtp option on the command line
 - messages for FIPAExceptions have been quoted
 - fixed bug in jade.core.ProfileImpl on handling parameters
+- fixed bug in the remote class fetching mechanism and in mobility from a
+  personalJava to a J2SE container
+- method toString of jade.lang.acl.MessageTemplate
+- sniffer: Fixed bug in painting a conversation-id shorter than 3 chars. 
+  (Bug reported by Juan C. Martinez)
+- leap add-on:
+  - fixed bug in the reconnection mechanism. Improved logs
+  - Modified response timeout
+  - Set timeouts flag of Connection to false do avoid EOFException
+- XMLACLCodec add-on: 
+  - Fixed bug on dealing with a null reply-by (Giovanni Barone)
+- BlueJADE: 
+  - agent mobility (Dick Cowan, reported by Arunanthisivam Vimalathithen.)
+- security add-on: 
+  - usage of SSL as the SSL-based IMTP did not work.  
+  - SSL key files are now named after the Sun default names: 
+    keystore and truststore.
+  - improved example 
 
+OTHERS:
+- TickerBehaviour: modified so that getTickCount() returns 1 at first tick
+- added new tutorial: "How to use arguments or properties to configure your 
+  agent", Dick Cowan
+- added new tutorial about the usage of the new XML Codec
+- updated the Programmer's and Administrator's Guide
+- updated the LEAP User Guide
+- bit-efficient add-on (Heikki Helin):
+  - DateTimeToken parsing exceptions thrown to user (previously they were
+    silently discarded...)
+  - Fixed String handling in slot values (escaping, etc.)
+  - Improved documentation
+- http MTP add-on (Edward Curry):
+  - added a properties file for setting the size of the codec and thread
+    pools.  Default value are for 10 codecs and 50 threads
 
 
 MAJOR CHANGES in JADE 2.61 (23 September 2002) 
