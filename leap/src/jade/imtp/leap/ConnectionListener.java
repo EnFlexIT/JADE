@@ -59,24 +59,32 @@ public interface ConnectionListener {
 	public static final int RECONNECTED = 3;
 
 	/**
+	   This event is raised whenever a the FrontEnd drops down the 
+	   connection with the BackEnd since no data has been transferred 
+	   over the connection since a while. This can only happen if the
+	   <code>drop-down-time</code> option is set to a value > 0.
+	 */
+	public static final int DROPPED = 4;
+
+	/**
 	   This event is raised when the device detects it is no longer
 	   possible to reconnect (e.g. because the maximum disconnection 
 	   timeout expired) 
 	 */
-	public static final int RECONNECTION_FAILURE = 4;
+	public static final int RECONNECTION_FAILURE = 5;
 
 	/**
 	   This event is raised when the mediator replies with a BE Not Found
 	   to a CONNECT_MEDIATOR request.
 	 */
-	public static final int BE_NOT_FOUND = 5;
+	public static final int BE_NOT_FOUND = 6;
 	
 	/**
 	   This event is raised when the mediator replies with an error
 	   response of type Not Authorized to a CREATE_MEDIATOR or 
 	   CONNECT_MEDIATOR request.
 	 */
-	public static final int NOT_AUTHORIZED = 6;
+	public static final int NOT_AUTHORIZED = 7;
 
 	/**
 	   This callback method is called by the JADE runtime (front-end of 
