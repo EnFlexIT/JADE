@@ -1,5 +1,10 @@
 MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
 ==========================================================================
+- fixed some bugs in the SocketProxyAgent (David Bell, HP Palo Alto)
+- implemented the InProcessInterface (jade.wrapper and jade.core.Runtime)
+- added the inprocess example
+- implemented the IntrospectorAgent
+- improved the support for ToolAgents and implemented a new event ontology
 - fixed bug in run.bat of the demo because it did not include iiop.jar in
   the CLASSPATH
 - Added a sanity check in notifyFailureToSender to avoid NullPointerException 
