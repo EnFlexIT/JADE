@@ -129,30 +129,31 @@ public class ACLMessage implements Serializable {
 @serial
 */
 private int performative; // keeps the performative type of this object
-  private static List performatives = new ArrayList(22);
+    /** This array of Strings keeps the names of the performatives **/
+  private static final String[] performatives = new String[22];
   static { // initialization of the Vector of performatives
-    performatives.add("ACCEPT-PROPOSAL");
-    performatives.add("AGREE");
-    performatives.add("CANCEL");
-    performatives.add("CFP");
-    performatives.add("CONFIRM");
-    performatives.add("DISCONFIRM");
-    performatives.add("FAILURE");
-    performatives.add("INFORM");
-    performatives.add("INFORM-IF");
-    performatives.add("INFORM-REF");
-    performatives.add("NOT-UNDERSTOOD");
-    performatives.add("PROPOSE");
-    performatives.add("QUERY-IF");
-    performatives.add("QUERY-REF");
-    performatives.add("REFUSE");
-    performatives.add("REJECT-PROPOSAL");
-    performatives.add("REQUEST");
-    performatives.add("REQUEST-WHEN");
-    performatives.add("REQUEST-WHENEVER");
-    performatives.add("SUBSCRIBE");
-    performatives.add("PROXY");
-    performatives.add("PROPAGATE");
+    performatives[ACCEPT_PROPOSAL]="ACCEPT-PROPOSAL";
+    performatives[AGREE]="AGREE";
+    performatives[CANCEL]="CANCEL";
+    performatives[CFP]="CFP";
+    performatives[CONFIRM]="CONFIRM";
+    performatives[DISCONFIRM]="DISCONFIRM";
+    performatives[FAILURE]="FAILURE";
+    performatives[INFORM]="INFORM";
+    performatives[INFORM_IF]="INFORM-IF";
+    performatives[INFORM_REF]="INFORM-REF";
+    performatives[NOT_UNDERSTOOD]="NOT-UNDERSTOOD";
+    performatives[PROPOSE]="PROPOSE";
+    performatives[QUERY_IF]="QUERY-IF";
+    performatives[QUERY_REF]="QUERY-REF";
+    performatives[REFUSE]="REFUSE";
+    performatives[REJECT_PROPOSAL]="REJECT-PROPOSAL";
+    performatives[REQUEST]="REQUEST";
+    performatives[REQUEST_WHEN]="REQUEST-WHEN";
+    performatives[REQUEST_WHENEVER]="REQUEST-WHENEVER";
+    performatives[SUBSCRIBE]="SUBSCRIBE";
+    performatives[PROXY]="PROXY";
+    performatives[PROPAGATE]="PROPAGATE";
   }
 
 
@@ -162,15 +163,19 @@ private int performative; // keeps the performative type of this object
   */
   private AID source = null;
 
+    /** These constants represent the expected size of the 2 array lists
+    * used by this class **/
+    private static final int RECEIVERS_EXPECTED_SIZE = 2;
+    private static final int REPLYTO_EXPECTED_SIZE = 1;
   /**
   @serial
   */
-  private ArrayList dests = new ArrayList();
+  private ArrayList dests = new ArrayList(RECEIVERS_EXPECTED_SIZE);
 
   /**
   @serial
   */
-  private ArrayList reply_to = new ArrayList();
+  private ArrayList reply_to = new ArrayList(REPLYTO_EXPECTED_SIZE);
 
   /**
   @serial
@@ -223,35 +228,17 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private Properties userDefProps = new Properties();
+  private final Properties userDefProps = new Properties();
 
   private Envelope messageEnvelope;
 
-  //#ALL_EXCLUDE_BEGIN
-  /**
-  Returns the list of the communicative acts.
-  @deprecated Use getAllPerformativeNames() instead
-  *
-  public static java.util.List getAllPerformatives()
-  {
-  	return ((ArrayList) performatives).toList();
-  }*/
-  //#ALL_EXCLUDE_END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.
   */
   public static String[] getAllPerformativeNames()
   {
-  	// FIXME: performatives should become an array and this method should
-  	// just return it.
-  	String[] names = new String[performatives.size()];
-  	int i = 0;
-  	Iterator it = performatives.iterator();
-  	while (it.hasNext()) {
-  		names[i++] = (String) it.next();
-  	}
-  	return names;
+      return performatives;
   }
   
   /**
@@ -616,9 +603,9 @@ private int performative; // keeps the performative type of this object
   */
   public static String getPerformative(int perf){
     try {
-      return new String((String)performatives.get(perf));
+      return performatives[perf];
     } catch (Exception e) {
-      return new String((String)performatives.get(NOT_UNDERSTOOD));
+      return performatives[NOT_UNDERSTOOD];
     }
   }
     
@@ -628,7 +615,11 @@ private int performative; // keeps the performative type of this object
   */
   public static int getInteger(String perf)
   {
-    return performatives.indexOf(perf.toUpperCase());
+      String tmp = perf.toUpperCase();
+      for (int i=0; i<performatives.length; i++)
+	  if (performatives[i].equals(tmp))
+	      return i;
+      return -1;
     }
 
   /**
