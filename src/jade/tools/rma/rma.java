@@ -404,7 +404,7 @@ public class rma extends ToolAgent {
       myGUI.ShowCorrect();
   }
 
-  protected void afterLoad() {
+  public void afterLoad() {
       super.afterLoad();
 
       getContentManager().registerOntology(MobilityOntology.getInstance());
@@ -417,14 +417,14 @@ public class rma extends ToolAgent {
       myGUI.ShowCorrect();
   }
 
-  protected void beforeReload() {
+  public void beforeReload() {
       super.beforeReload();
 
       myGUI.disposeAsync();
       send(getCancel());
   }
 
-  protected void afterReload() {
+  public void afterReload() {
       super.afterReload();
 
       getContentManager().registerOntology(MobilityOntology.getInstance());
@@ -437,14 +437,14 @@ public class rma extends ToolAgent {
       send(getSubscribe());
   }
 
-  protected void beforeFreeze() {
+  public void beforeFreeze() {
       super.beforeFreeze();
 
       myGUI.disposeAsync();
       send(getCancel());
   }
 
-  protected void afterThaw() {
+  public void afterThaw() {
       super.afterThaw();
 
       getContentManager().registerOntology(MobilityOntology.getInstance());
