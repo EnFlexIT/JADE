@@ -81,7 +81,7 @@ public class AgentReceiver extends Agent {
     	
     	if (msg!= null){
     		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.1: ");
-    		msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+		System.out.println(msg.toString());
     		return true;
     	}
     	else 
@@ -101,7 +101,7 @@ public class AgentReceiver extends Agent {
     	ACLMessage msg = blockingReceive(5000);
     	if(msg != null) {
     		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.2: ");
-	  		msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+		System.out.println(msg.toString());
     	}
 	  	else{
 	  		System.out.println("\nNo message received in state 1.2");
@@ -126,7 +126,8 @@ public class AgentReceiver extends Agent {
     	
     	if (msg!= null){
     		System.out.println("\nAgent "+ getLocalName() + " received the following message in state 1.3: ");
-    		msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+		System.out.println(msg.toString());
+
     	}
     	else 
     	  System.out.println("\nNo message received in state 1.3");

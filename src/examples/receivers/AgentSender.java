@@ -35,6 +35,7 @@ import java.io.IOException;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
 A simple agent that can send  custom messages to another agent.
@@ -56,9 +57,11 @@ public class AgentSender extends Agent {
         		System.out.println("\nEnter responder agent name: ");
         		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
         		String responder = buff.readLine();
+			AID r = new AID();
+			r.setName(responder);
         		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        		msg.setSource(getLocalName());
-        		msg.addDest(responder);
+        		msg.setSender(getAID());
+        		msg.addReceiver(r);
         		msg.setContent("FirstInform");
         		send(msg);
         		System.out.println("\nFirst INFORM sent");
