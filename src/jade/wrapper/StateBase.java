@@ -20,7 +20,8 @@
  */
 package jade.wrapper;
 
-import java.io.Serializable;
+import jade.util.leap.Serializable;
+import jade.util.leap.Comparable;
 
 /**
  * Provides an abstract base class for implementations of state.
