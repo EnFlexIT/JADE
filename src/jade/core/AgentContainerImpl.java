@@ -312,7 +312,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
      Add the node to the platform with the basic services
    */
   protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
-	  // Start all the container fundamental services (without activating them)
+	  // Start all container fundamental services (without activating them)
   	List basicServices = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
 	  basicServices.add(dsc);
@@ -330,11 +330,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     while(serviceSpecifiers.hasNext()) {
 		  Specifier s = (Specifier) serviceSpecifiers.next();
 		  String serviceClass = s.getClassName();
-		  if (serviceClass.equals("jade.core.security.SecurityService")) {
-		  	l.remove(s);
+		  if (serviceClass.equals("jade.core.security.SecurityService") || serviceClass.equals("jade.core.security.permission.PermissionService")) {
 		  	dsc = startService(serviceClass, false);
 			  basicServices.add(dsc);
-			  break;
 		  }
     }			  	
 
@@ -370,7 +368,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      try {
 				  s = (Specifier) serviceSpecifiers.next();
 				  String serviceClass = s.getClassName();
-				  startService(serviceClass, true);
+				  if (!(serviceClass.equals("jade.core.security.SecurityService") || serviceClass.equals("jade.core.security.permission.PermissionService"))) {
+				  	startService(serviceClass, true);
+				  }
 	      }
 	      catch(Exception e) {
 		  		System.out.println("Error starting service "+s.getClassName());
