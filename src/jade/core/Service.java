@@ -292,4 +292,21 @@ public interface Service {
     */
     void boot(Profile p) throws ServiceException;
 
+
+    /**
+       Allows submitting a vertical command for processing.
+       The given vertical command must be owned by this service
+       (i.e. its name must be one of the constants contained in the
+       array returned by <code>getOwnedCommands()</code>, or an
+       exception is thrown
+
+       @param cmd The command to submit to the service.
+       @return The result of the command, or <code>null</code> if this
+       command produced no result. If an exception was produced, it
+       will not be thrown, but will be returned as well.
+       @throws ServiceException If the passed command does not belong
+       to this service.
+    */
+    Object submit(VerticalCommand cmd) throws ServiceException;
+
 }
