@@ -27,7 +27,7 @@ import jade.content.*;
 @author Federico Bergenti - Universita` di Parma
 */
 
-public class Address extends Concept {
+public class Address implements Concept {
 	private String city   = null;
 	private String street = null;
 	private int    number = 0;

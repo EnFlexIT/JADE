@@ -31,7 +31,7 @@ public class Sender extends Agent {
 				System.out.println( "[" + getLocalName() + "] Creating the message...");
 
 			    	ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-				AID        receiver = new AID("receiver");
+				AID        receiver = new AID("receiver", false);
 				
 				msg.setSender(getAID());
 				msg.addReceiver(receiver);
@@ -43,30 +43,30 @@ public class Sender extends Agent {
 
 				// Create the concept for filling the attribute :address
 				AbsConcept absAddress = new AbsConcept(PeopleOntology.ADDRESS);
-				absAddress.setSlot(PeopleOntology.CITY, "London");
+				absAddress.set(PeopleOntology.CITY, "London");
 
 				// Create the concept "John"
 				AbsConcept absJohn = new AbsConcept(PeopleOntology.MAN);
-				absJohn.setSlot(PeopleOntology.NAME,    "John");
-				absJohn.setSlot(PeopleOntology.ADDRESS, absAddress);
+				absJohn.set(PeopleOntology.NAME,    "John");
+				absJohn.set(PeopleOntology.ADDRESS, absAddress);
 
 				// Create the concept for filling the attribute :address
 				absAddress = new AbsConcept(PeopleOntology.ADDRESS);
-				absAddress.setSlot(PeopleOntology.CITY, "Paris");
+				absAddress.set(PeopleOntology.CITY, "Paris");
 
 				// Create the concept "Ronnie"
 				AbsConcept absRonnie = new AbsConcept(PeopleOntology.MAN);
-				absRonnie.setSlot(PeopleOntology.NAME,    "Ronnie");
-				absRonnie.setSlot(PeopleOntology.ADDRESS, absAddress);
+				absRonnie.set(PeopleOntology.NAME,    "Ronnie");
+				absRonnie.set(PeopleOntology.ADDRESS, absAddress);
 
 				// Create the list of children
 				AbsAggregate absChildren = new AbsAggregate(BasicOntology.SET);
-				absChildren.addElement(absRonnie);
+				absChildren.add(absRonnie);
 
 				// Create the predicate
 				AbsPredicate absFatherOf = new AbsPredicate(PeopleOntology.FATHER_OF);
-				absFatherOf.setArgument(PeopleOntology.FATHER,   absJohn);
-				absFatherOf.setArgument(PeopleOntology.CHILDREN, absChildren);
+				absFatherOf.set(PeopleOntology.FATHER,   absJohn);
+				absFatherOf.set(PeopleOntology.CHILDREN, absChildren);
 
 				// Fill the message content
 				manager.fillContent(msg, absFatherOf);
@@ -79,7 +79,7 @@ public class Sender extends Agent {
 				// fatherOf(?FATHER, [man :name "Ronnie" :address "Paris"])
 				AbsVariable absX = new AbsVariable("?FATHER", PeopleOntology.MAN);
 
-				absFatherOf.setArgument(PeopleOntology.FATHER, absX);
+				absFatherOf.set(PeopleOntology.FATHER, absX);
 
 				// Create the IRE
 				AbsIRE absIRE = new AbsIRE();

@@ -31,6 +31,7 @@ import jade.content.lang.*;
 import jade.content.lang.j.*;
 
 import jade.util.leap.List;
+import jade.util.leap.Iterator;
 
 import jade.core.AID;
 
@@ -38,7 +39,7 @@ import jade.core.AID;
 @author Federico Bergenti - Universita` di Parma
 */
 
-public class PeopleOntology extends Ontology {
+public class PeopleOntology extends FullOntology {
 	//A symbolic constant, containing the name of this ontology.
 	public static final String ONTOLOGY_NAME = "PEOPLE_ONTOLOGY";
 
@@ -80,46 +81,46 @@ public class PeopleOntology extends Ontology {
 		super(ONTOLOGY_NAME, base);
 
 		try {
-			PrimitiveSchema stringSchema  = (PrimitiveSchema)getElementSchema(BasicOntology.STRING);
-			PrimitiveSchema integerSchema = (PrimitiveSchema)getElementSchema(BasicOntology.INTEGER);
+			PrimitiveSchema stringSchema  = (PrimitiveSchema)getSchema(BasicOntology.STRING);
+			PrimitiveSchema integerSchema = (PrimitiveSchema)getSchema(BasicOntology.INTEGER);
 
 			ConceptSchema addressSchema = new ConceptSchema(ADDRESS);
-			addressSchema.addSlot(STREET, stringSchema,  ObjectSchema.OPTIONAL);
-			addressSchema.addSlot(NUMBER, integerSchema, ObjectSchema.OPTIONAL);
-			addressSchema.addSlot(CITY,   stringSchema);
+			addressSchema.add(STREET, stringSchema,  ObjectSchema.OPTIONAL);
+			addressSchema.add(NUMBER, integerSchema, ObjectSchema.OPTIONAL);
+			addressSchema.add(CITY,   stringSchema);
 
 			ConceptSchema personSchema = new ConceptSchema(PERSON);
-			personSchema.addSlot(NAME,    stringSchema);
-			personSchema.addSlot(ADDRESS, addressSchema, ObjectSchema.OPTIONAL);
+			personSchema.add(NAME,    stringSchema);
+			personSchema.add(ADDRESS, addressSchema, ObjectSchema.OPTIONAL);
 
 			ConceptSchema manSchema = new ConceptSchema(MAN);
-			manSchema.addSuperClass(personSchema);
+			manSchema.addSuperSchema(personSchema);
 
 			ConceptSchema womanSchema = new ConceptSchema(WOMAN);
-			womanSchema.addSuperClass(personSchema);
+			womanSchema.addSuperSchema(personSchema);
 
-			addElement(personSchema, Person.class);
-			addElement(manSchema, Man.class);
-			addElement(womanSchema, Woman.class);
-			addElement(addressSchema, Address.class);
+			add(personSchema, Person.class);
+			add(manSchema, Man.class);
+			add(womanSchema, Woman.class);
+			add(addressSchema, Address.class);
 
 			AggregateSchema childrenSchema = new AggregateSchema(BasicOntology.SET);
 
 			PredicateSchema fatherOfSchema = new PredicateSchema(FATHER_OF);
-			fatherOfSchema.addArgument(FATHER,   manSchema);
-			fatherOfSchema.addArgument(CHILDREN, personSchema);
+			fatherOfSchema.add(FATHER,   manSchema);
+			fatherOfSchema.add(CHILDREN, personSchema);
 
 			PredicateSchema motherOfSchema = new PredicateSchema(MOTHER_OF);
-			motherOfSchema.addArgument(CHILDREN, personSchema);
+			motherOfSchema.add(CHILDREN, personSchema);
 
-			addElement(fatherOfSchema, FatherOf.class);
-			addElement(motherOfSchema, MotherOf.class);
+			add(fatherOfSchema, FatherOf.class);
+			add(motherOfSchema, MotherOf.class);
 
 			AgentActionSchema marrySchema = new AgentActionSchema(MARRY);
-			marrySchema.addParameter(HUSBAND, manSchema);
-			marrySchema.addParameter(WIFE,    womanSchema);
+			marrySchema.add(HUSBAND, manSchema);
+			marrySchema.add(WIFE,    womanSchema);
 
-			addElement(marrySchema);
+			add(marrySchema);
 		} catch(OntologyException oe) { oe.printStackTrace(); }
 	}
 
@@ -128,11 +129,11 @@ public class PeopleOntology extends Ontology {
 			PeopleOntology po = new PeopleOntology(ACLOntology.getInstance());
 
 			AbsConcept absAddress = new AbsConcept(ADDRESS);
-			absAddress.setSlot(CITY, "London");
+			absAddress.set(CITY, "London");
 
 			AbsConcept absJohn = new AbsConcept(MAN);
-			absJohn.setSlot(NAME,    "John");
-			absJohn.setSlot(ADDRESS, absAddress);
+			absJohn.set(NAME,    "John");
+			absJohn.set(ADDRESS, absAddress);
 
 			System.out.println("1 - abstract descriptor created:");
 			absJohn.dump();
@@ -157,23 +158,23 @@ public class PeopleOntology extends Ontology {
 			absRonnie.dump();
 
 			AbsAggregate absChildren = new AbsAggregate(BasicOntology.SET);
-			absChildren.addElement(absRonnie);
+			absChildren.add(absRonnie);
 
 			System.out.println("6 - abstract descriptor created:");
 			absChildren.dump();
 
 			AbsPredicate absFatherOf = new AbsPredicate(FATHER_OF);
-			absFatherOf.setArgument(FATHER,   absJohn);
-			absFatherOf.setArgument(CHILDREN, absChildren);
+			absFatherOf.set(FATHER,   absJohn);
+			absFatherOf.set(CHILDREN, absChildren);
 
 			System.out.println("7 - abstract descriptor created:");
 			absFatherOf.dump();
 
-			AbsAID absSender   = new AbsAID("senderName", null, null, null);
-			AbsAID absReceiver = new AbsAID("receiverName", null, null, null);
+			AbsAID absSender   = new AbsAID("senderName", null, null);
+			AbsAID absReceiver = new AbsAID("receiverName", null, null);
 
 			AbsAggregate absReceivers = new AbsAggregate(BasicOntology.SET);
-			absReceivers.addElement(absReceiver);
+			absReceivers.add(absReceiver);
 
 			AID  sender    = (AID)po.toObject(absSender);
 			List receivers = (List)po.toObject(absReceivers);
@@ -182,12 +183,14 @@ public class PeopleOntology extends Ontology {
 
 			Inform inform = new Inform();
 			inform.setSender(sender);
-			inform.setReceivers(receivers);
+			for (Iterator i=receivers.iterator(); i.hasNext(); )
+			    inform.addReceiver((AID)i.next());
 			inform.setProposition(fatherOf);
 
 			Request request = new Request();
 			request.setSender(sender);
-			request.setReceivers(receivers);
+			for (Iterator i=receivers.iterator(); i.hasNext(); )
+			    request.addReceiver((AID)i.next());
 			request.setAction(inform);
 			
 			System.out.println("8 - Java object created.");
@@ -209,7 +212,7 @@ public class PeopleOntology extends Ontology {
 			absRequest.dump();
 
 			AbsVariable absX = new AbsVariable("X", BasicOntology.STRING);
-			absRonnie.setSlot(NAME, absX);
+			absRonnie.set(NAME, absX);
 
 			System.out.println("12- abstract descriptor changed:");
 			absFatherOf.dump();
@@ -222,7 +225,7 @@ public class PeopleOntology extends Ontology {
 			AbsCommunicativeAct absQueryRef = new AbsCommunicativeAct(ACLOntology.QUERY_REF);
 			absQueryRef.setSender(absSender);
 			absQueryRef.setReceivers(absReceivers);
-			absQueryRef.setParameter(ACLOntology.IRE, absIRE);
+			absQueryRef.set(ACLOntology.IRE, absIRE);
 
 			System.out.println("13- abstract descriptor created:");
 			absQueryRef.dump();			

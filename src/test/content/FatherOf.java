@@ -30,7 +30,7 @@ import jade.util.leap.List;
 @author Federico Bergenti - Universita` di Parma
 */
 
-public class FatherOf extends Predicate {
+public class FatherOf implements Predicate {
 	private List children = null;
 	private Man  father   = null;
 

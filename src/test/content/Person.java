@@ -28,7 +28,7 @@ import jade.content.*;
 @author Federico Bergenti - Universita` di Parma
 */
 
-public class Person extends Concept {
+public class Person implements Concept {
 	private String  name    = null;
 	private Address address =  null;
 
