@@ -92,7 +92,7 @@ public class Agent implements Runnable, Serializable {
    * The default is that everything is allowed until it is not
    * explicitly disallowed.
   **/
-  private class SecurityManager {
+  private class SecurityManager implements Serializable {
     private Vector unpermissions = new Vector(1);
     /**
       adds a new permission
@@ -448,6 +448,7 @@ public class Agent implements Runnable, Serializable {
 	  this();
 	  
   }
+  
 
   /**
      Method to query the agent local name.
