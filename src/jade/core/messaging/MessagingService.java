@@ -350,7 +350,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 
 	private void handleNewMTP(VerticalCommand cmd) throws IMTPException, ServiceException {
-	    Object[] params = cmd.getParams();
+		  Object[] params = cmd.getParams();
 	    MTPDescriptor mtp = (MTPDescriptor)params[0];
 	    ContainerID cid = (ContainerID)params[1];
 
@@ -415,6 +415,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		else if(name.equals(MessagingSlice.SET_PLATFORM_ADDRESSES)) {
 		    handleSetPlatformAddresses(cmd);
 		}
+		else if(name.equals(Service.NEW_SLICE)) {
+		    handleNewSlice(cmd);
+		}
 	    }
 	    catch(IMTPException imtpe) {
 		cmd.setReturnValue(imtpe);
@@ -471,6 +474,44 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	private void handleSetPlatformAddresses(VerticalCommand cmd) {
 
+	}
+
+	private void handleNewSlice(VerticalCommand cmd) {
+    MainContainer impl = myContainer.getMain();
+    if(impl != null) {		
+    	Object[] params = cmd.getParams();
+    	String newSliceName = (String) params[0];
+    	try {
+	    	MessagingSlice newSlice = (MessagingSlice) getSlice(newSliceName);
+	    	
+				// Send all possible routes to the new slice 
+				ContainerID[] cids = impl.containerIDs();
+				for(int i = 0; i < cids.length; i++) {
+					ContainerID cid = cids[i];
+					
+					try {
+						List mtps = impl.containerMTPs(cid);
+						Iterator it = mtps.iterator();
+						while(it.hasNext()) {
+							MTPDescriptor mtp = (MTPDescriptor)it.next();
+				    	newSlice.addRoute(mtp, cid.getName());
+						}
+					}
+					catch(NotFoundException nfe) {
+						// Should never happen
+						nfe.printStackTrace();
+					}
+				}
+    	}
+    	catch (ServiceException se) {
+    		// Should never happen since getSlice() should always work on the Main container
+    		se.printStackTrace();
+    	}
+    	catch (IMTPException imtpe) {
+    		// Should never happen since the new slice should be always valid at this time
+    		imtpe.printStackTrace();
+    	}
+    }
 	}
 
 	private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
@@ -577,16 +618,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		routes.addLocalMTP(address, proto);
 		MTPDescriptor result = new MTPDescriptor(proto.getName(), className, new String[] {address}, proto.getSupportedProtocols());
 
-		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-
-		try {
-		    mainSlice.newMTP(result, myContainer.getID());
-		}
-		catch(IMTPException imtpe) {
-		    // Try to get a newer slice and repeat...
-		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
-		    mainSlice.newMTP(result, myContainer.getID());
-		}
+    String[] pp = result.getSupportedProtocols();
+    for (int i = 0; i < pp.length; ++i) {
+	    log("Added Route-Via-MTP for protocol "+pp[i], 1);
+    }
+    
+    GenericCommand gCmd = new GenericCommand(MessagingSlice.NEW_MTP, MessagingSlice.NAME, null);
+    gCmd.addParam(result);
+    gCmd.addParam(myContainer.getID());
+    submit(gCmd);
 
 		return result;
 	    }
@@ -609,16 +649,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		proto.deactivate(ta);
 		MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
 
-		MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
-
-		try {
-		    mainSlice.deadMTP(desc, myContainer.getID());
-		}
-		catch(IMTPException imtpe) {
-		    // Try to get a newer slice and repeat...
-		    mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
-		    mainSlice.deadMTP(desc, myContainer.getID());
-		}
+    GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
+    gCmd.addParam(desc);
+    gCmd.addParam(myContainer.getID());
+    submit(gCmd);
+    
 	    }
 	    else {
 		throw new MTPException("No such address was found on this container: " + address);
@@ -630,6 +665,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	    if(impl != null) {
 
+	  // We are on the Main -->
 		// Update the routing tables of all the other slices
 		Service.Slice[] slices = getAllSlices();
 		for(int i = 0; i < slices.length; i++) {
@@ -936,6 +972,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	    MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
 	    routes.addRemoteMTP(mtp, sliceName, slice);
+	    
+	    String[] pp = mtp.getSupportedProtocols();
+	    for (int i = 0; i < pp.length; ++i) {
+		    log("Added Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+	    }
 
 	    String[] addresses = mtp.getAddresses();
 	    for(int i = 0; i < addresses.length; i++) {

@@ -291,10 +291,12 @@ class RoutingTable {
     String proto = extractProto(url);
     CaseInsensitiveString protoTmp = new CaseInsensitiveString(proto);
     OutPortList l = (OutPortList)outPorts.get(protoTmp);
-    if(l != null)
+    if(l != null) {
       return l.get();
-    else
+    }
+    else {
       return null;
+    }
   }
 
   public synchronized Iterator getAddresses() {
