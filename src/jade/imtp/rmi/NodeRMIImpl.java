@@ -72,7 +72,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
 	if(slice != null) {
 
-	    slice.serve((jade.core.VerticalCommand)cmd);
+	    slice.serve(cmd);
 	    return cmd.getReturnValue();
 	}
 	else {
