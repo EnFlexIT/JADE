@@ -41,6 +41,11 @@ public interface Node extends Serializable {
     void setName(String name);
     String getName();
 
+    void exportSlice(String serviceName, Service.Slice localSlice);
+    void unexportSlice(String serviceName);
+
+    Object accept(HorizontalCommand cmd) throws IMTPException;
+
     void ping(boolean hang) throws IMTPException;
     void exit() throws IMTPException;
 
