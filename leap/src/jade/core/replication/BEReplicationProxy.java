@@ -94,10 +94,11 @@ public class BEReplicationProxy extends Service.SliceProxy implements BEReplicat
 	}
     }
 
-    public void setReplicas(String[] replicas) throws IMTPException {
+    public void setReplicas(String[] replicas, boolean[] status) throws IMTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_SETREPLICAS, NAME, null);
 	    cmd.addParam(replicas);
+	    cmd.addParam(status);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -116,32 +117,10 @@ public class BEReplicationProxy extends Service.SliceProxy implements BEReplicat
 	}
     }
 
-    public String getLabel() throws IMTPException {
+    public void replicaUp(int index) throws IMTPException {
 	try {
-	    GenericCommand cmd = new GenericCommand(H_GETLABEL, NAME, null);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
-
-	    return (String)result;
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
-
-    public void addReplica(String sliceName) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_ADDREPLICA, NAME, null);
-	    cmd.addParam(sliceName);
+	    GenericCommand cmd = new GenericCommand(H_REPLICAUP, NAME, null);
+	    cmd.addParam(new Integer(index));
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -159,10 +138,10 @@ public class BEReplicationProxy extends Service.SliceProxy implements BEReplicat
 	}
     }
 
-    public void removeReplica(String sliceName) throws IMTPException { 
+    public void replicaDown(int index) throws IMTPException { 
 	try {
-	    GenericCommand cmd = new GenericCommand(H_REMOVEREPLICA, NAME, null);
-	    cmd.addParam(sliceName);
+	    GenericCommand cmd = new GenericCommand(H_REPLICADOWN, NAME, null);
+	    cmd.addParam(new Integer(index));
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

@@ -46,6 +46,8 @@ import java.util.StringTokenizer;
 public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     public static final String BE_REPLICAS_SIZE = "be-replicas-size";
+    public static final Long REPLICA_CHECK_DELAY = new Long(5000); // new Long(5*60*1000); // 5 Minutes
+
 
     private static final String OUTGOING_NAME = "out";
     private static final String ADDR_LIST_DELIMITERS = ", \n\t\r";
@@ -54,8 +56,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     // The FrontEnd this BackEndContainer is connected to
     private FrontEnd myFrontEnd;
-
-    private Profile myProfile;
 
     // The manager of the connection with the FrontEnd
     private BEConnectionManager myConnectionManager;
@@ -67,19 +67,22 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     private String[] replicasAddresses;
 
-    public BackEndContainer(Profile p, BEConnectionManager cm) {
-	super(p);
-	myProfile = p;
+    // The original properties passed to this container when it was created
+    private Properties creationProperties;
+
+    public BackEndContainer(Properties props, BEConnectionManager cm) throws ProfileException {
+	super(new ProfileImpl(props));
+	creationProperties = props;
 	myConnectionManager = cm;
 
 	try {
 
 	    myCommandProcessor = myProfile.getCommandProcessor();
 
-	    String beAddrs = p.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
+	    String beAddrs = myProfile.getParameter(FrontEnd.REMOTE_BACK_END_ADDRESSES, null);
 	    if(beAddrs != null) {
 		replicasAddresses = parseAddressList(beAddrs);
-		p.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
+		myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
 	    }
 
 	    myFrontEnd = cm.getFrontEnd(this, null);
@@ -89,10 +92,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	catch (IMTPException imtpe) {
 	    // Should never happen
 	    imtpe.printStackTrace();
-	}
-	catch(ProfileException pe) {
-	    // Should never happen
-	    pe.printStackTrace();
 	}
     }
 
@@ -347,8 +346,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
   }
 
-  public void activateReplicas(Properties props) {
-      Properties newProps = (Properties)props.clone();
+  public void activateReplicas() {
+      creationProperties.setProperty(Profile.BE_BASE_NAME, getID().getName());
+      Properties newProps = (Properties)creationProperties.clone();
       newProps.setProperty(Profile.MASTER_NODE_NAME, getID().getName());
       if(replicasAddresses != null) {
 	  for(int i = 0; i < replicasAddresses.length; i++) {
@@ -361,6 +361,35 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		  System.out.println("--- Replica activation failed [" + replicasAddresses[i] + "] ---");
 	      }
 	  }
+      }
+  }
+
+  public void restartReplica(int index) throws IMTPException {
+      Properties newProps = (Properties)creationProperties.clone();
+
+      String baseName = creationProperties.getProperty(Profile.BE_BASE_NAME);
+      String masterNodeName = getMasterName();
+      if(masterNodeName == null) {
+	  masterNodeName = getID().getName();
+      }
+
+      // Set the master node property anyway
+      newProps.setProperty(Profile.MASTER_NODE_NAME, masterNodeName);
+
+      if(index == 0) {
+	  // Original master replica, at array index zero
+	  String replicaZeroAddr = creationProperties.getProperty(Profile.BE_REPLICA_ZERO_ADDRESS);
+	  newProps.setProperty(Profile.CONTAINER_NAME, baseName);
+	  newProps.setProperty(Profile.BE_REPLICA_INDEX, "0");
+
+	  myConnectionManager.activateReplica(replicaZeroAddr, newProps);
+      }
+      else {
+	  // One of the other replicas
+	  newProps.setProperty(Profile.CONTAINER_NAME, baseName + "-Replica-" + index);
+	  newProps.setProperty(Profile.BE_REPLICA_INDEX, Integer.toString(index));
+
+	  myConnectionManager.activateReplica(replicasAddresses[index - 1], newProps);
       }
   }
 
@@ -395,7 +424,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   /**
    */
   public void shutDown() {
-      // Forward the exit command to the FrontEnd
+
+      // Stop monitoring replicas, if active
+      stopReplicaMonitor();
+
+      // Forward the exit command to the FrontEnd only if this is the master replica
       try {
 	  if(isMaster()) {
 	      myFrontEnd.exit(false);
@@ -406,15 +439,21 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  myConnectionManager.shutdown();
       }
 
-  	// "Kill" all agent images
-		AID[] ids = getAgentImages();
-		for (int i = 0; i < ids.length; ++i) {
-			handleEnd(ids[i]);
-		}
-		agentImages.clear();
+      // "Kill" all agent images
+      AID[] ids = getAgentImages();
+      for (int i = 0; i < ids.length; ++i) {
+	  handleEnd(ids[i]);
+      }
+
+      agentImages.clear();
 		
       super.shutDown();
   }
+
+    private void stopReplicaMonitor() {
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.STOP_MONITOR, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+    }
 
     /**
      */
@@ -532,8 +571,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	    return;
 	}
 
-	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
-	myCommandProcessor.processOutgoing(cmd);
+	GenericCommand cmd1 = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd1);
+
+	GenericCommand cmd2 = new GenericCommand(jade.core.replication.BEReplicationSlice.START_MONITOR, jade.core.replication.BEReplicationSlice.NAME, null);
+	cmd2.addParam(REPLICA_CHECK_DELAY);
+	myCommandProcessor.processOutgoing(cmd2);
+
 
 	// Make all agent images known to the rest of the platform
 	AID[] imgs = getAgentImages();
@@ -559,6 +603,18 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	}
 	else { // Some exception was thrown
 	    return false;
+	}
+    }
+
+    public String getMasterName() {
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.GET_MASTER_NAME, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+	Object result = cmd.getReturnValue();
+	if(result instanceof String) {
+	    return (String)result;
+	}
+	else {
+	    return null;
 	}
     }
 

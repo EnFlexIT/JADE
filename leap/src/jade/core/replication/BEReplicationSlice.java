@@ -69,38 +69,45 @@ public interface BEReplicationSlice extends Service.Slice {
     */
     static final String IS_MASTER = "Is-Master";
 
+    /**
+       This command name represents the <code>get-master-name</code>
+       query. It asks for the name of the replica slice which is
+       currently serving as master replica (i.e. the one the Front-End
+       container is connected to).
+    */
+    static final String GET_MASTER_NAME = "Get-Master-Name";
 
     /**
-       This command name represents the <code>create-agent</code>
-       action. The target agent identifier in this command is set to
-       <code>null</code>, because no agent exists yet.
-       This command object represents only the <i>first half</i> of
-       the complete agent creation process. Even if this command is
-       accepted by the kernel, there is no guarantee that the
-       requested creation will ever happen. Only when the
-       <code>InformCreated</code> command is issued can one assume
-       that the agent creation has taken place.
+       This command name represents the <code>start-monitor</code>
+       action. This action activates a periodical check that tries to
+       restart any dead Back-End containers at their former addresses.
     */
+    static final String START_MONITOR = "Start-Monitor";
+
+    /**
+       This command name represents the <code>stop-monitor</code>
+       action. This action deactivates any periodical check for dead
+       Back-End containers that might be active at the time.
+    */
+    static final String STOP_MONITOR = "Stop-Monitor";
 
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_ACCEPTREPLICA = "1";
     static final String H_SETMASTER = "2";
     static final String H_SETREPLICAS = "3";
-    static final String H_GETLABEL = "4";
-    static final String H_ADDREPLICA = "5";
-    static final String H_REMOVEREPLICA = "6";
-    static final String H_EXITREPLICA = "7";
-    static final String H_BORNAGENT = "8";
-    static final String H_DEADAGENT = "9";
+    static final String H_REPLICAUP = "4";
+    static final String H_REPLICADOWN = "5";
+    static final String H_EXITREPLICA = "6";
+    static final String H_BORNAGENT = "7";
+    static final String H_DEADAGENT = "8";
 
     void acceptReplica(String sliceName, String replicaIndex) throws IMTPException;
     void setMaster(String name) throws IMTPException;
-    void setReplicas(String[] replicas) throws IMTPException;
+    void setReplicas(String[] replicas, boolean[] status) throws IMTPException;
 
-    String getLabel() throws IMTPException;
-    void addReplica(String sliceName) throws IMTPException;
-    void removeReplica(String sliceName) throws IMTPException;
+    void replicaUp(int index) throws IMTPException;
+    void replicaDown(int index) throws IMTPException;
     void exitReplica() throws IMTPException;
 
     void bornAgent(AID name) throws IMTPException;

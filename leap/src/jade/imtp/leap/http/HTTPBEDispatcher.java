@@ -124,7 +124,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 	// to keep related replicas together)
 	props.setProperty(Profile.BE_MEDIATOR_ID, myID);
 
-    	myContainer = new BackEndContainer(new ProfileImpl(props), this);
+    	myContainer = new BackEndContainer(props, this);
 			// Check that the BackEndContainer has successfully joined the platform
 			ContainerID cid = (ContainerID) myContainer.here();
 			if (cid == null || cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
@@ -133,7 +133,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     	mySkel = new BackEndSkel(myContainer);
 
 	if(masterNode == null) {
-	    myContainer.activateReplicas(props);
+	    String masterAddr = InetAddress.getLocalHost().getHostName() + ':' + myJICPServer.getLocalPort();
+	    props.put(Profile.BE_REPLICA_ZERO_ADDRESS, masterAddr);
+	    myContainer.activateReplicas();
 	}
 
     	myLogger.log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
@@ -143,6 +145,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     	pe.printStackTrace();
 	throw new ICPException("Error creating profile");
     }
+    catch(UnknownHostException uhe) {
+	uhe.printStackTrace();
+    }
+
   }
 
   public void activateReplica(String addr, Properties props) throws IMTPException {

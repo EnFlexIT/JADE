@@ -82,7 +82,9 @@ public class BEReplicationService extends BaseService {
 
     private static final String[] OWNED_COMMANDS = new String[] {
 	BEReplicationSlice.BECOME_MASTER,
-	BEReplicationSlice.IS_MASTER
+	BEReplicationSlice.IS_MASTER,
+	BEReplicationSlice.START_MONITOR,
+	BEReplicationSlice.STOP_MONITOR
     };
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
@@ -91,7 +93,7 @@ public class BEReplicationService extends BaseService {
 	myContainer = (BackEndContainer)ac;
 
 	myMediatorID = p.getParameter(Profile.BE_MEDIATOR_ID, null);
-	myReplicaIndex = p.getParameter(Profile.BE_REPLICA_INDEX, "0");
+	myReplicaIndex = Integer.parseInt(p.getParameter(Profile.BE_REPLICA_INDEX, "0"));
 
 	// Create a local slice
 	localSlice = new ServiceComponent(p);
@@ -154,33 +156,38 @@ public class BEReplicationService extends BaseService {
 	    // Create a singleton list 
 	    excludeMyself = new LinkedList();
 	    excludeMyself.add(getLocalNode().getName());
-	    if(myReplicaIndex.equals("0")) {
+
+	    myMonitoredReplicaIndex = -1;
+
+	    masterSliceName = p.getParameter(Profile.MASTER_NODE_NAME, null);
+	    if(masterSliceName == null) {
 
 		// This is the master slice: initialize the replicas
 		// array and wait for it to be filled by registering
 		// replicas through acceptReplica() calls...
 
 		expectedReplicas = Integer.parseInt(p.getParameter(BackEndContainer.BE_REPLICAS_SIZE, "0"));
-		myReplicasArray = new String[expectedReplicas + 1];
+		myReplicaNames = new String[expectedReplicas + 1];
 		masterSliceName = getLocalNode().getName();
-		myReplicasArray[0] = masterSliceName;
+		myReplicaNames[0] = masterSliceName;
 	    }
 	    else {
 
-		// Attach to the master node
+		// Attach to the master slice
 		String localNodeName = getLocalNode().getName();
-		masterSliceName = p.getParameter(Profile.MASTER_NODE_NAME, null);
+
 		BEReplicationSlice masterSlice = (BEReplicationSlice)getSlice(masterSliceName);
 		try {
-		    masterSlice.acceptReplica(localNodeName, myReplicaIndex);
+		    masterSlice.acceptReplica(localNodeName, Integer.toString(myReplicaIndex));
 		}
 		catch(IMTPException imtpe) {
 		    // Try again with a newer slice
 		    masterSlice = (BEReplicationSlice)getFreshSlice(masterSliceName);
-		    masterSlice.acceptReplica(localNodeName, myReplicaIndex);
+		    masterSlice.acceptReplica(localNodeName, Integer.toString(myReplicaIndex));
 		}
-	    }
 
+		booting = false;
+	    }
 	}
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("An error occurred during service startup.", imtpe);
@@ -199,6 +206,15 @@ public class BEReplicationService extends BaseService {
 		}
 		else if(name.equals(BEReplicationSlice.IS_MASTER)) {
 		    cmd.setReturnValue(new Boolean(handleIsMaster(cmd)));
+		}
+		else if(name.equals(BEReplicationSlice.GET_MASTER_NAME)) {
+		    cmd.setReturnValue(handleGetMasterName(cmd));
+		}
+		else if(name.equals(BEReplicationSlice.START_MONITOR)) {
+		    handleStartMonitor(cmd);
+		}
+		else if(name.equals(BEReplicationSlice.STOP_MONITOR)) {
+		    handleStopMonitor(cmd);
 		}
 	    }
 	    catch(IMTPException imtpe) {
@@ -220,6 +236,21 @@ public class BEReplicationService extends BaseService {
 
 	private boolean handleIsMaster(VerticalCommand cmd) throws IMTPException, ServiceException {
 	    return masterSliceName.equals(getLocalNode().getName());
+	}
+
+	private String handleGetMasterName(VerticalCommand cmd) throws IMTPException, ServiceException {
+	    return masterSliceName;
+	}
+
+	private void handleStartMonitor(VerticalCommand cmd) {
+	    Object[] params = cmd.getParams();
+
+	    long delay = ((Long)params[0]).longValue();
+	    startMonitor(delay);
+	}
+
+	private void handleStopMonitor(VerticalCommand cmd) {
+	    stopMonitor();
 	}
 
 
@@ -376,6 +407,40 @@ public class BEReplicationService extends BaseService {
 
 	}
 
+	private void updateMonitoredSlice() throws IMTPException, ServiceException {
+	    // Select the first 'up' slice, counting down from the
+	    // immediate preceding neighbor in the ring
+	    int monitoredIndex = mod(myReplicaIndex - 1, myReplicas.length);
+	    for(int i = 0; i < myReplicas.length - 1; i++) {
+		ReplicaInfo info = myReplicas[monitoredIndex];
+		if(info.isReachable()) {
+		    if(myMonitoredReplicaIndex != monitoredIndex) {
+			myMonitoredReplicaIndex = monitoredIndex;
+			attachTo(info.getSlice());
+		    }
+		    return;
+		}
+
+		monitoredIndex = mod(monitoredIndex - 1, myReplicas.length);
+	    }
+
+	    // All slices are unreachable: stop the previous monitor, if any
+	    myMonitoredReplicaIndex = -1;
+	    if(nodeMonitor != null) {
+		nodeMonitor.stop();
+	    }
+
+	}
+
+	// Modulo operation, correctly extended for negative integers.
+	public int mod(int num, int radix) {
+	    while(num < 0) {
+		num += radix;
+	    }
+
+	    return num % radix;
+	}
+
 	// Implementation of the Service.Slice interface
 
 	public Service getService() {
@@ -408,18 +473,16 @@ public class BEReplicationService extends BaseService {
 		}
 		else if(cmdName.equals(BEReplicationSlice.H_SETREPLICAS)) {
 		    String[] replicas = (String[])params[0];
-		    setReplicas(replicas);
+		    boolean[] status = (boolean[])params[1];
+		    setReplicas(replicas, status);
 		}
-		else if(cmdName.equals(BEReplicationSlice.H_GETLABEL)) {
-		    cmd.setReturnValue(getLabel());
+		else if(cmdName.equals(BEReplicationSlice.H_REPLICAUP)) {
+		    int index = ((Integer)params[0]).intValue();
+		    replicaUp(index);
 		}
-		else if(cmdName.equals(BEReplicationSlice.H_ADDREPLICA)) {
-		    String sliceName = (String)params[0];
-		    addReplica(sliceName);
-		}
-		else if(cmdName.equals(BEReplicationSlice.H_REMOVEREPLICA)) {
-		    String name = (String)params[0];
-		    removeReplica(name);
+		else if(cmdName.equals(BEReplicationSlice.H_REPLICADOWN)) {
+		    int index = ((Integer)params[0]).intValue();
+		    replicaDown(index);
 		}
 		else if(cmdName.equals(BEReplicationSlice.H_EXITREPLICA)) {
 		    exitReplica();
@@ -445,29 +508,55 @@ public class BEReplicationService extends BaseService {
 	}
 
 
-	private void acceptReplica(String sliceName, String replicaIndex) throws IMTPException, ServiceException {
-	    int idx = Integer.parseInt(replicaIndex);
-	    myReplicasArray[idx] = sliceName;
-	    expectedReplicas--;
+	private synchronized void acceptReplica(String sliceName, String replicaIndex) throws IMTPException, ServiceException {
+	    if(booting) { try {
+		int idx = Integer.parseInt(replicaIndex);
+		myReplicaNames[idx] = sliceName;
+		expectedReplicas--;
 
-	    // Are all replicas registered?
-	    if(expectedReplicas == 0) {
+		// Are all replicas registered?
+		if(expectedReplicas == 0) {
+		    booting = false;
 
-		// Store the replica list
-		setReplicas(myReplicasArray);
-
-		// Broadcast the replica list to all of them
-		for(int i = 1; i < myReplicasArray.length; i++) {
-		    BEReplicationSlice slice = (BEReplicationSlice)getSlice(myReplicasArray[i]);
-		    try {
-			slice.setReplicas(myReplicasArray);
+		    // Store the replica list, setting all reachability flags to true
+		    boolean[] allTrue = new boolean[myReplicaNames.length];
+		    for(int i = 0; i < allTrue.length; i++) {
+			allTrue[i] = true;
 		    }
-		    catch(IMTPException imtpe) {
-			// Retry with a newer slice
-			slice = (BEReplicationSlice)getFreshSlice(myReplicasArray[i]);
-			slice.setReplicas(myReplicasArray);
+		    setReplicas(myReplicaNames, allTrue);
+
+		    boolean[] status = getReplicasReachability();
+
+		    // Broadcast the replica list to all of them
+		    for(int i = 1; i < myReplicaNames.length; i++) {
+			BEReplicationSlice slice = (BEReplicationSlice)getSlice(myReplicaNames[i]);
+			try {
+			    slice.setReplicas(myReplicaNames, status);
+			}
+			catch(IMTPException imtpe) {
+			    // Retry with a newer slice
+			    slice = (BEReplicationSlice)getFreshSlice(myReplicaNames[i]);
+			    slice.setReplicas(myReplicaNames, status);
+			}
 		    }
+
+		    // Start the replica monitor
+		    startMonitor(myContainer.REPLICA_CHECK_DELAY.longValue());
+
 		}
+	    }catch(Throwable t) { t.printStackTrace();} }
+	    else {
+
+		// Update the replica array for the new slice
+		BEReplicationSlice slice = (BEReplicationSlice)getFreshSlice(sliceName);
+		slice.setReplicas(myReplicaNames, getReplicasReachability());
+
+		// Notify all other slices (yourself included) that the replica is up again
+		GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_REPLICAUP, BEReplicationSlice.NAME, null);
+		hCmd.addParam(new Integer(replicaIndex));
+		List l = new LinkedList();
+		l.add(sliceName);
+		broadcastToReplicas(hCmd, l);
 	    }
 	}
 
@@ -475,13 +564,14 @@ public class BEReplicationService extends BaseService {
 	    masterSliceName = name;
 	}
 
-	private void setReplicas(String[] replicas) throws IMTPException {
+	private void setReplicas(String[] replicas, boolean[] status) throws IMTPException, ServiceException {
 
-	    // Fill the slice list...
-	    myReplicas.clear();
+	    myReplicas = new ReplicaInfo[replicas.length];
 	    for(int i = 0; i < replicas.length; i++) {
 		try {
-		    myReplicas.add(getSlice(replicas[i]));
+		    BEReplicationSlice s = (BEReplicationSlice)getSlice(replicas[i]);
+		    myReplicas[i] = new ReplicaInfo(replicas[i], s);
+		    myReplicas[i].setReachable(status[i]);
 		}
 		catch(ServiceException se) {
 		    se.printStackTrace();
@@ -489,55 +579,26 @@ public class BEReplicationService extends BaseService {
 	    }
 
 	    // Start monitoring your neighbour for failure...
-	    int idx = Integer.parseInt(myReplicaIndex);
-	    BEReplicationSlice targetSlice;
-	    try {
-		switch(idx) {
-		case 0:
-		    // First replica: monitor the last replica
-		    targetSlice = (BEReplicationSlice)myReplicas.get(myReplicas.size() - 1);
-		    break;
-		default:
-		    // Any other: monitor the immediately previous one
-		    targetSlice = (BEReplicationSlice)myReplicas.get(idx - 1);
-		    break;
-		}
+	    updateMonitoredSlice();
 
-		attachTo(targetSlice);
-	    }
-	    catch(ServiceException se) {
-		throw new IMTPException("Failure in slice lookup", se);
-	    }
+	    myReplicaNames = replicas;
+	}
+
+	private void replicaUp(int index) throws IMTPException, ServiceException {
+
+	    myReplicas[index].setReachable(true);
+
+	    // Check and adjust the monitored slice if necessary...
+	    updateMonitoredSlice();
 
 	}
 
-	private String getLabel() throws IMTPException {
-	    return "<" + myMediatorID + ";" + myReplicaIndex + ">" ;
-	}
+	private void replicaDown(int index) throws IMTPException, ServiceException {
 
-	private void addReplica(String sliceName) throws IMTPException, ServiceException {
+	    myReplicas[index].setReachable(false);
 
-	    BEReplicationSlice slice = (BEReplicationSlice)getSlice(sliceName);
-	    myReplicas.add(slice);
-
-	    // If first in line, close the ring by monitoring the newly arrived slice
-	    if(myReplicaIndex.equals("0")) {
-		attachTo(slice);
-	    }
-
-	}
-
-	private void removeReplica(String name) throws IMTPException {
-
-	    // A replica slice is dead
-	    int index = findReplicaIndex(name);
-	    myReplicas.remove(index);
-
-	    int myIndex = Integer.parseInt(myReplicaIndex);
-	    if(index < myIndex) {
-		myIndex--;
-		myReplicaIndex = Integer.toString(myIndex);
-	    }
+	    // Check and adjust the monitored slice if necessary...
+	    updateMonitoredSlice();
 
 	}
 
@@ -559,9 +620,8 @@ public class BEReplicationService extends BaseService {
 		System.out.println("--- " + getLocalNode().getName() + "[" + myReplicaIndex + "] ---");
 		System.out.println("--- Master replica is: " + masterSliceName + " ---");
 		System.out.println("--- Replica list ---");
-		Object[] slices = myReplicas.toArray();
-		for(int i = 0; i < slices.length; i++) {
-		    BEReplicationSlice slice = (BEReplicationSlice)slices[i];
+		for(int i = 0; i < myReplicas.length; i++) {
+		    BEReplicationSlice slice = myReplicas[i].getSlice();
 		    System.out.println("----- " + slice.getNode().getName() + "[" + i + "] -----");
 		}
 		System.out.println("--- End ---");
@@ -580,40 +640,19 @@ public class BEReplicationService extends BaseService {
 	public void nodeRemoved(Node n) {
 	    try {
 
+		int deadIndex = myMonitoredReplicaIndex;
+		replicaDown(deadIndex);
+
 		String sliceName = n.getName();
 
 		List l = new LinkedList();
 		l.add(getLocalNode().getName());
 		l.add(n.getName());
 
-		// Broadcast a 'removeReplica()' method (exclude yourself and the dead node from bcast)
-		GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_REMOVEREPLICA, BEReplicationSlice.NAME, null);
-		hCmd.addParam(sliceName);
+		// Broadcast a 'replicaDown()' method (exclude yourself from bcast)
+		GenericCommand hCmd = new GenericCommand(BEReplicationSlice.H_REPLICADOWN, BEReplicationSlice.NAME, null);
+		hCmd.addParam(new Integer(deadIndex));
 		broadcastToReplicas(hCmd, l);
-
-		removeReplica(sliceName);
-
-
-		// -- Attach to the new neighbour slice...
-		int idx = Integer.parseInt(myReplicaIndex);
-		BEReplicationSlice targetSlice;
-
-		switch(idx) {
-		case 0:
-		    // First replica: monitor the last replica, if there is one
-		    if(myReplicas.isEmpty()) {
-			return;
-		    }
-		    targetSlice = (BEReplicationSlice)myReplicas.get(myReplicas.size() - 1);
-		    break;
-		default:
-		    // Any other: monitor the immediately previous one
-		    targetSlice = (BEReplicationSlice)myReplicas.get(idx - 1);
-		    break;
-		}
-
-		attachTo(targetSlice);
-
 	    }
 	    catch(IMTPException imtpe) {
 		imtpe.printStackTrace();
@@ -632,22 +671,6 @@ public class BEReplicationService extends BaseService {
 	    // Do nothing...
 	}
 
-	private int findReplicaIndex(String name) {
-	    for(int i = 0; i < myReplicas.size(); i++) {
-		try {
-		    BEReplicationSlice slice = (BEReplicationSlice)myReplicas.get(i);
-		    String sliceName = slice.getNode().getName();
-		    if(sliceName.equals(name)) {
-			return i;
-		    }
-		}
-		catch(ServiceException se) {
-		    se.printStackTrace();
-		}
-	    }
-
-	    return -1;
-	}
 
 	// The active object monitoring the remote node
 	private NodeFailureMonitor nodeMonitor;
@@ -656,6 +679,105 @@ public class BEReplicationService extends BaseService {
     } // End of ServiceComponent class
 
 
+    private class ReplicaInfo {
+
+	public ReplicaInfo(String n, BEReplicationSlice s) {
+	    name = n;
+	    slice = s;
+	    reachable = true;
+	}
+
+	public String getName() {
+	    return name;
+	}
+
+	public void setReachable(boolean b) {
+	    reachable = b;
+
+	    // Refresh the slice proxy if is reachable again
+	    if(reachable) {
+		try {
+		    slice = (BEReplicationSlice)getFreshSlice(name);
+		}
+		catch(ServiceException se) {
+		    reachable = false;
+		}
+	    }
+	}
+
+	public boolean isReachable() {
+	    return reachable;
+	}
+
+	public void setSlice(BEReplicationSlice s) {
+	    slice = s;
+	}
+
+	public BEReplicationSlice getSlice() {
+	    return slice;
+	}
+
+	private String name;
+	private boolean reachable;
+	private BEReplicationSlice slice;
+
+    } // End of ReplicaInfo class
+
+
+    private class ReplicaMonitor implements Runnable {
+
+	public ReplicaMonitor(long millis) {
+	    active = true;
+	    delayTime = millis;
+	}
+
+	public void run() {
+
+	    while(active) {
+
+		// Try to restart all 'down' replicas
+		for(int i = 0; i < myReplicas.length; i++) {
+		    ReplicaInfo info = myReplicas[i];
+		    if(!info.isReachable()) {
+			try {
+			    System.out.println("### Restarting replica <" + info.getName() + "> ###");
+			    myContainer.restartReplica(i);
+			}
+			catch(IMTPException imtpe) {
+			    // Ignore it, and retry later...
+			}
+		    }
+		}
+
+		// Wait for a bit...
+		try {
+		    synchronized(this) {
+			wait(delayTime);
+		    }
+		}
+		catch(InterruptedException ie) {
+		    active = false;
+		}
+	    }
+
+	}
+
+	public void start() {
+	    myThread = new Thread(this);
+	    myThread.start();
+	}
+
+	public synchronized void stop() {
+	    active = false;
+	    notifyAll();
+	}
+
+	private long delayTime;
+	private boolean active;
+	private Thread myThread;
+
+
+    } // End of ReplicaMonitor class
 
     private BackEndContainer myContainer;
 
@@ -669,28 +791,40 @@ public class BEReplicationService extends BaseService {
 
     // Service specific data
 
-    private final List myReplicas = new LinkedList();
+    private ReplicaInfo[] myReplicas;
+    private ReplicaMonitor myMonitor;
+
     private List includeAll;
     private List excludeMyself;
 
     private String myMediatorID;
-    private String myReplicaIndex;
+    private int myReplicaIndex;
+    private int myMonitoredReplicaIndex;
     private String masterSliceName;
 
+    private boolean booting = true;
     private int expectedReplicas;
-    private String[] myReplicasArray;
+    private String[] myReplicaNames;
 
+
+    private boolean[] getReplicasReachability() {
+	boolean[] result = new boolean[myReplicas.length];
+	for(int i = 0; i < myReplicas.length; i++) {
+	    result[i] = myReplicas[i].isReachable();
+	}
+
+	return result;
+    }
 
     private void broadcastToReplicas(HorizontalCommand cmd, List excludeList) throws IMTPException, ServiceException {
 
-	Object[] slices = myReplicas.toArray();
-
 	String localNodeName = getLocalNode().getName();
-	for(int i = 0; i < slices.length; i++) {
-	    BEReplicationSlice slice = (BEReplicationSlice)slices[i];
+	for(int i = 0; i < myReplicas.length; i++) {
+	    BEReplicationSlice slice = myReplicas[i].getSlice();
+	    boolean reachable = myReplicas[i].isReachable();
 
 	    String sliceName = slice.getNode().getName();
-	    if(excludeList.indexOf(sliceName) == -1) {
+	    if(reachable && (excludeList.indexOf(sliceName) == -1)) {
 		slice.serve(cmd);
 
 		// Check the command return value for exceptions
@@ -702,6 +836,20 @@ public class BEReplicationService extends BaseService {
 	    }
 	}
 
+    }
+
+    private void startMonitor(long delay) {
+	stopMonitor();
+
+	myMonitor = new ReplicaMonitor(delay);
+	myMonitor.start();
+    }
+
+    private void stopMonitor() {
+	if(myMonitor != null) {
+	    myMonitor.stop();
+	    myMonitor = null;
+	}
     }
 
 }
