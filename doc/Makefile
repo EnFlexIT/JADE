@@ -67,12 +67,14 @@ API_FILES2 =	jade/domain/DFGUIManagement/*.java \
 		jade/domain/FIPAServiceCommunicator.java \
 		jade/domain/MobilityOntology.java \
 		jade/domain/mobility/*.java \
+		jade/domain/mobility/package.html \
 		jade/domain/RequestFIPAServiceBehaviour.java
 
 API_FILES3 =	jade/domain/FIPAAgentManagement/package.html \
 		jade/domain/FIPAAgentManagement/*.java 
 
 API_FILES4 =	jade/domain/JADEAgentManagement/*.java \
+		jade/domain/JADEAgentManagement/package.html \
 		jade/domain/introspection/package.html \
 		jade/domain/introspection/*.java \
 		jade/domain/AMSService.java \
@@ -114,29 +116,12 @@ API_FILES5 =	jade/gui/package.html \
 		jade/lang/acl/MessageTemplate.java \
 		jade/lang/acl/StringACLCodec.java \
 		jade/lang/acl/UnreadableException.java \
-		jade/lang/sl/package.html \
-		jade/lang/sl/SL0Codec.java \
-		jade/lang/sl/SL0Encoder.java \
-		jade/lang/package.html \
-		jade/lang/Codec.java \
 		jade/mtp/iiop/MessageTransportProtocol.java \
 		jade/mtp/InChannel.java \
 		jade/mtp/MTP.java \
 		jade/mtp/MTPException.java \
 		jade/mtp/OutChannel.java \
-		jade/mtp/TransportAddress.java \
-		jade/onto/package.html \
-		jade/onto/JADEMetaOntology/AnOntology.java \
-		jade/onto/JADEMetaOntology/JADEMetaOntology.java \
-		jade/onto/JADEMetaOntology/Role.java \
-		jade/onto/JADEMetaOntology/Slot.java \
-		jade/onto/DefaultOntology.java \
-		jade/onto/Frame.java \
-		jade/onto/FrameSchema.java \
-		jade/onto/Ontology.java \
-		jade/onto/OntologyException.java \
-		jade/onto/SlotDescriptor.java \
-		jade/onto/basic/*.java 
+		jade/mtp/TransportAddress.java 
 
 API_FILES6 =	jade/proto/package.html \
 		jade/proto/states/package.html \
@@ -324,9 +309,9 @@ API_FILES10 =	jade/content/acl/Inform.java \
 API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FILES5) \
 		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
 
-API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang jade.lang.acl jade.lang.sl jade.domain \
-		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.domain.mobility jade.proto jade.onto jade.onto.basic \
-		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
+API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang.acl jade.domain \
+		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.domain.mobility jade.proto \
+		jade.gui jade.mtp jade.mtp.iiop jade.wrapper jade.domain.DFGUIManagement \
 		jade.domain.introspection jade.content jade.content.abs jade.content.acl jade.content.lang \
 		jade.content.lang.j jade.content.lang.leap jade.content.lang.sl jade.content.onto jade.content.onto.basic jade.content.schema jade.content.schema.facets jade.util jade.util.leap
 
