@@ -11,7 +11,7 @@ ant dist - to create the distribution files
 <!-- set properties for this project -->
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
-  <property name="version" value="3.2"/>
+  <property name="version" value="3.3"/>
   <property name="build.compiler" value="modern"/>
   <property name="javac.optimize" value="on"/>
   <property name="javac.debug" value="off"/>
@@ -65,9 +65,13 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**" >
+    <!--
+    Why do we need the "target" option?
     <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**" >
 	  <compilerarg value="-source" />
 	  <compilerarg value="1.2" />
+	  -->
 	</javac>
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
