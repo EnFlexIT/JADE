@@ -69,9 +69,9 @@ class NodeStub extends Stub implements Node {
   */
   public Object accept(HorizontalCommand cmd) throws IMTPException {
 		try {
-	    Command wrapperCmd = new Command(Command.ACCEPT_COMMAND, remoteID);
-	    wrapperCmd.addParam(cmd);
-	    Command result = theDispatcher.dispatchCommand(remoteTAs, wrapperCmd);
+	    Command leapCmd = new Command(Command.ACCEPT_COMMAND, remoteID);
+	    leapCmd.addParam(cmd);
+	    Command result = theDispatcher.dispatchCommand(remoteTAs, leapCmd);
 
 	    // Check whether an exception occurred in the remote container
 	    checkResult(result, new String[] { });

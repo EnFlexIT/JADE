@@ -55,7 +55,7 @@ abstract class Skeleton {
 
       resp.addParam(tr.getClass().getName());
       resp.addParam(tr.getMessage());
-      tr.printStackTrace();
+      //tr.printStackTrace();
     } 
 
     return resp;

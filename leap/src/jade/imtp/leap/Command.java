@@ -81,7 +81,6 @@ public class Command {
     public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
 
 
-  static final int        NO_OPERATION = 0;
   static final int        OK = 1;
   static final int        ERROR = 2;
   static final int        FORWARD = 37;
@@ -147,14 +146,6 @@ public class Command {
   private List            commandParameters;
 
   /**
-   * Construct a default NO_OPERATION command.
-   */
-  Command() {
-    commandCode = NO_OPERATION;
-    objectID = DUMMY_ID;
-  }
-
-  /**
    */
   Command(int code) {
     commandCode = code;
@@ -168,6 +159,18 @@ public class Command {
     objectID = id;
   }
 
+	/**
+	   Allows reusing the same object to deal with another command.
+	   Generally used to build a response to an incoming command.
+	 */
+	void reset(int code) {
+		commandCode = code;
+		objectID = DUMMY_ID;
+		if (commandParameters != null) {
+			commandParameters.clear();
+		}
+	}
+  
   /**
    * Return the command identifier code of this command.
    * @return the command identifier code specifying the type of command
@@ -261,17 +264,6 @@ public class Command {
    * @see
    */
   public static byte[] getSerializedOk() {
-    /*DeliverableDataOutputStream ddos = new DeliverableDataOutputStream(null);
-    try {
-      ddos.serializeCommand(new Command(OK));
-    } 
-    catch (LEAPSerializationException lse) {
-      lse.printStackTrace();
-
-      return null;
-    } 
-
-    return ddos.getSerializedByteArray();*/
   	ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(baos);
     try {

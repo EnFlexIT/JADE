@@ -787,7 +787,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       } 
       catch (ICPException icpe) {
         // Print a warning and try next address
-      	System.out.println("Warning: can't deliver command to "+ta+". "+icpe.getMessage());
+      	//System.out.println("Warning: can't deliver command to "+ta+". "+icpe.getMessage());
       } 
     } 
 
@@ -801,11 +801,10 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     Iterator peersKeys = icps.keySet().iterator();
 
     while (peersKeys.hasNext()) {
-      List list = (List) icps.remove(peersKeys.next());
+      List list = (List) icps.get(peersKeys.next());
 
       for (int i = 0; i < list.size(); i++) {
         try {
-
           // This call interrupts the listening thread of this peer
           // and waits for its completion.
           ((ICP) list.get(i)).deactivate();
@@ -814,12 +813,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
           // System.out.println("ICP deactivated.");
         } 
         catch (ICPException icpe) {
-
           // Do nothing as this means that this peer had never been
           // activated.
         } 
-      } 
+      }
+      list.clear();
     } 
+    icps.clear();
   } 
 
   // /////////////////////////////////////////

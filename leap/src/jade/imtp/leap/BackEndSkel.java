@@ -47,72 +47,71 @@ public class BackEndSkel extends MicroSkeleton {
 	   Call the method of the local BackEnd corresponding to command <code>c</code>.
    */
   Command executeCommand(Command c) throws Throwable {
-  	Command r = null;
   	switch (c.getCode()) {
   	case BackEndStub.MESSAGE_OUT:
   		try {
   			//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_OUT");
   			myBackEnd.messageOut((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
   			//Logger.println(Thread.currentThread().getName()+": MESSAGE_OUT executed");
-      	r = new Command(Command.OK);
+  			c.reset(Command.OK);
   		}
   		catch (NotFoundException nfe) {
-  			r = createErrorRsp(nfe, true);
+  			c = createErrorRsp(nfe, true);
   		}
   		catch (IMTPException imtpe) {
-  			r = createErrorRsp(imtpe, true);
+  			c = createErrorRsp(imtpe, true);
   		}
   		break;
   	case BackEndStub.BORN_AGENT:
   		try {
   			String[] info = myBackEnd.bornAgent((String) c.getParamAt(0));
-      	r = new Command(Command.OK);
+  			c.reset(Command.OK);
       	if (info != null) {
-      		r.addParam(info);
+      		c.addParam(info);
       	}
   		}
   		catch (IMTPException imtpe) {
-  			r = createErrorRsp(imtpe, true);
+  			c = createErrorRsp(imtpe, true);
   		}
   		break;
   	case BackEndStub.DEAD_AGENT:
   		try {
   			myBackEnd.deadAgent((String) c.getParamAt(0));
-      	r = new Command(Command.OK);
+  			c.reset(Command.OK);
   		}
   		catch (IMTPException imtpe) {
-  			r = createErrorRsp(imtpe, true);
+  			c = createErrorRsp(imtpe, true);
   		}
   		break;
   	case BackEndStub.SUSPENDED_AGENT:
   		try {
   			myBackEnd.suspendedAgent((String) c.getParamAt(0));
-      	r = new Command(Command.OK);
+  			c.reset(Command.OK);
   		}
   		catch (NotFoundException nfe) {
-  			r = createErrorRsp(nfe, true);
+  			c = createErrorRsp(nfe, true);
   		}
   		catch (IMTPException imtpe) {
-  			r = createErrorRsp(imtpe, true);
+  			c = createErrorRsp(imtpe, true);
   		}
   		break;
   	case BackEndStub.RESUMED_AGENT:
   		try {
   			myBackEnd.resumedAgent((String) c.getParamAt(0));
-      	r = new Command(Command.OK);
+  			c.reset(Command.OK);
   		}
   		catch (NotFoundException nfe) {
-  			r = createErrorRsp(nfe, true);
+  			c = createErrorRsp(nfe, true);
   		}
   		catch (IMTPException imtpe) {
-  			r = createErrorRsp(imtpe, true);
+  			c = createErrorRsp(imtpe, true);
   		}
   		break;
   	default:
   		throw new IMTPException("Unsupported command "+c.getCode());
   	}
   	
-  	return r;
+  	return c;
   }
 }
 

@@ -44,15 +44,14 @@ class NodeSkel extends Skeleton {
   }
 
   public Command executeCommand(Command command) throws Throwable {
-		Command resp = null;
 	
 		switch (command.getCode()) {
 			case Command.ACCEPT_COMMAND: {
 		    HorizontalCommand cmd = (HorizontalCommand)command.getParamAt(0);
 		    Object result = myNode.accept(cmd);
 	
-		    resp = new Command(Command.OK);
-		    resp.addParam(result);
+		    command.reset(Command.OK);
+		    command.addParam(result);
 		    break;
 			}
 			case Command.PING_NODE_BLOCKING:
@@ -60,89 +59,22 @@ class NodeSkel extends Skeleton {
 		    Boolean hang = (Boolean)command.getParamAt(0);
 		    Boolean result = new Boolean(myNode.ping(hang.booleanValue()));
 	
-		    resp = new Command(Command.OK);
-		    resp.addParam(result);
+		    command.reset(Command.OK);
+		    command.addParam(result);
 		    break;
 			} 
 			case Command.EXIT_NODE: {
 		    myNode.exit();
-		    resp = new Command(Command.OK);
+		    command.reset(Command.OK);
 		    break;
 			} 
 			case Command.INTERRUPT_NODE: {
 		    myNode.interrupt();
-		    resp = new Command(Command.OK);
+		    command.reset(Command.OK);
 		    break;
 			}
 		}
 
-		return resp;
+		return command;
   }
-
-
-    //public Object accept(HorizontalCommand cmd, String itfName, String[] formalParameterTypes) throws IMTPException {
-
-	/***
-	System.out.println("--- Command Received ---");
-	System.out.println("Name: <" + cmd.getName() + ">");
-	System.out.println("Service: <" + cmd.getService() + ">");
-
-	Object[] args = cmd.getParams();
-	for(int i = 0; i < args.length; i++) {
-	    System.out.println("param[" + i + "] = " + args[i]);
-	}
-
-	System.out.println("--- ================ ---");
-
-	***/
-/*
-	try {
-	    return myNode.serve(cmd);
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Service Error", se);
-	}
-    }
-
-    public boolean ping(boolean hang) throws IMTPException {
-      if(hang) {
-	  waitTermination();
-      }
-      return terminating;
-    }
-
-    public void exit() throws IMTPException {
-	// Unblock threads hung in ping() method (this will deregister the container)
-	terminating = true;
-	notifyTermination();
-    }
-
-    public void interrupt() throws IMTPException {
-	notifyTermination();
-    }
-
-    private void waitTermination() {
-	synchronized(terminationLock) {
-	    try {
-		terminationLock.wait();
-	    }
-	    catch(InterruptedException ie) {
-		System.out.println("PING wait interrupted");
-		// Do nothing
-	    }
-	}
-    }
-
-    private void notifyTermination() {
-      synchronized(terminationLock) {
-	  terminationLock.notifyAll();
-      }
-    }
-
-
-    // This monitor is used to hang a remote ping() call in order to
-    // detect node failures.
-    //private Object terminationLock = new Object();
-    //private boolean terminating = false;
-*/
 }

@@ -58,7 +58,6 @@ class ServiceManagerSkel extends Skeleton {
     }
 
     public Command executeCommand(Command command) throws Throwable {
-	Command resp = null;
 
 	switch (command.getCode()) {
 
@@ -67,9 +66,8 @@ class ServiceManagerSkel extends Skeleton {
 	    // Execute command...
 	    String name = impl.getPlatformName();
 
-	    resp = new Command(Command.OK);
-	    resp.addParam(name);
-
+	    command.reset(Command.OK);
+	    command.addParam(name);
 	    break;
 	} 
 
@@ -82,9 +80,8 @@ class ServiceManagerSkel extends Skeleton {
 	    // Execute command...
 	    String name = addNode(desc, svcNames, svcInterfaceNames, propagate);
 
-	    resp = new Command(Command.OK);
-	    resp.addParam(name);
-
+	    command.reset(Command.OK);
+	    command.addParam(name);
 	    break;
 	} 
 
@@ -95,8 +92,7 @@ class ServiceManagerSkel extends Skeleton {
 	    // Execute command...
 	    removeNode(desc, propagate);
 
-	    resp = new Command(Command.OK);
-
+	    command.reset(Command.OK);
 	    break;
 	} 
 
@@ -110,8 +106,7 @@ class ServiceManagerSkel extends Skeleton {
 	    Class itf = Class.forName(itfName);
 	    activateService(svcName, itf, where, propagate);
 
-	    resp = new Command(Command.OK);
-
+	    command.reset(Command.OK);
 	    break;
 	} 
 
@@ -122,9 +117,8 @@ class ServiceManagerSkel extends Skeleton {
 	    // Execute command...
 	    Node n = findSliceNode(serviceKey, sliceKey);
       
-	    resp = new Command(Command.OK);
-	    resp.addParam(n);
-
+	    command.reset(Command.OK);
+	    command.addParam(n);
 	    break;
 	} 
 
@@ -134,9 +128,8 @@ class ServiceManagerSkel extends Skeleton {
 	    // Do something...
 	    Node[] nodes = findAllNodes(serviceKey);
 
-	    resp = new Command(Command.OK);
-	    resp.addParam(nodes);
-
+	    command.reset(Command.OK);
+	    command.addParam(nodes);
 	    break;
 	}
 
@@ -146,8 +139,7 @@ class ServiceManagerSkel extends Skeleton {
 	    Node n = (Node)command.getParamAt(0);
 	    adopt(n);
 
-	    resp = new Command(Command.OK);
-
+	    command.reset(Command.OK);
 	    break;
 	}
 
@@ -157,9 +149,8 @@ class ServiceManagerSkel extends Skeleton {
 	    // Do something...
 	    String[] addresses = addReplica(addr);
 
-	    resp = new Command(Command.OK);
-	    resp.addParam(addresses);
-
+	    command.reset(Command.OK);
+	    command.addParam(addresses);
 	    break;
 	}
 
@@ -170,14 +161,13 @@ class ServiceManagerSkel extends Skeleton {
 	    // Do something...
 	    updateCounters(nodeCnt, mainCnt);
 
-	    resp = new Command(Command.OK);
-
+	    command.reset(Command.OK);
 	    break;
 	}
 
 	}
 
-	return resp;
+	return command;
     }
 
     private void activateService(String name, Class itf, NodeDescriptor desc, boolean propagate) throws ServiceException, IMTPException {
