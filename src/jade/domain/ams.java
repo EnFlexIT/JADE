@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.15  1998/11/01 14:59:56  rimassa
+  Added a new Behaviour to support Remote Management Agent registration.
+
   Revision 1.14  1998/10/31 16:43:10  rimassa
   Implemented 'kill-agent' action through a suitable Behaviour; now both
   an agent name and a password are recognized in action
@@ -25,6 +28,10 @@
 package jade.domain;
 
 import java.io.StringReader;
+
+// FIXME: For debug only
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 
 import java.util.NoSuchElementException;
 
@@ -327,6 +334,41 @@ public class ams extends Agent {
   } // End of ModBehaviour class
 
 
+  // These Behaviours handle interactions with Remote Management Agent.
+
+  private class RegisterRMABehaviour extends CyclicBehaviour {
+
+    private MessageTemplate subscriptionTemplate;
+
+    RegisterRMABehaviour() {
+
+      MessageTemplate mt1 = MessageTemplate.MatchLanguage("SL");
+      MessageTemplate mt2 = MessageTemplate.MatchOntology("jade-agent-management");
+      MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
+
+      mt1 = MessageTemplate.MatchReplyWith("RMA-subscription");
+      mt2 = MessageTemplate.MatchType("subscribe");
+      subscriptionTemplate = MessageTemplate.and(mt1, mt2);
+      subscriptionTemplate = MessageTemplate.and(subscriptionTemplate, mt12);
+
+    }
+
+    public void action() {
+
+      // Receive 'subscribe' ACL messages.
+      ACLMessage current = receive(subscriptionTemplate);
+      if(current != null)
+	current.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+      else
+	block();
+
+      // Send back the whole container list.
+      // Add the new RMA to RMAs agent group.
+    }
+
+  }
+
+
   private class CreateBehaviour extends AMSBehaviour {
 
     CreateBehaviour() {
@@ -408,6 +450,13 @@ public class ams extends Agent {
   // Maintains an association between action names and behaviours
   private FipaRequestServerBehaviour dispatcher;
 
+  // Behaviour to listen to incomin 'subscribe' messages from Remote
+  // Management Agents.
+  private RegisterRMABehaviour registerRMA;
+
+  // Group of Remote Management Agents registered with this AMS
+  private AgentGroup RMAs;
+
   public ams(AgentPlatformImpl ap, String name) {
     myPlatform = ap;
     myName = name;
@@ -416,6 +465,10 @@ public class ams extends Agent {
       MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
 			  MessageTemplate.MatchOntology("fipa-agent-management"));
     dispatcher = new FipaRequestServerBehaviour(this, mt);
+
+    registerRMA = new RegisterRMABehaviour();
+
+    RMAs = new AgentGroup();
 
 
     // Associate each AMS action name with the behaviour to execute
@@ -435,6 +488,7 @@ public class ams extends Agent {
 
     // Add a dispatcher behaviour
     addBehaviour(dispatcher);
+    addBehaviour(registerRMA);
 
   }
 
