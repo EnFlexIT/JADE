@@ -30,7 +30,7 @@ import jade.lang.acl.MessageTemplate;
     (Agent)
 
 ****************************************************************/
-public class ams extends Agent { // FIXME: Must become a Singleton
+public class ams extends Agent {
 
   private abstract class AMSBehaviour extends OneShotBehaviour implements BehaviourPrototype {
 
@@ -86,6 +86,10 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 	//	pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
+      catch(TokenMgrError tme) {
+	//      tme.printStackTrace();
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+      }
 
       // Finally, make sure mandatory attributes for the current AMS
       // action are non-null
@@ -103,7 +107,7 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd);
+    protected abstract void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException;
 
     public void action() {
 
@@ -111,19 +115,17 @@ public class ams extends Agent { // FIXME: Must become a Singleton
 	// Convert message from untyped keyword/value list to a Java
 	// object throwing a FIPAException in case of errors
 	crackMessage();
+
+	// Do real action, deferred to subclasses
+	processArgs(myAction.getArg());
+
       }
       catch(FIPAException fe) {
-	//	fe.printStackTrace();
 	sendRefuse(myReply, fe.getMessage());
-	return;
       }
       catch(NoSuchElementException nsee) {
 	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
-	return;
       }
-
-      // Do real action, deferred to subclasses
-      processArgs(myAction.getArg());
 
     }
 
@@ -143,21 +145,21 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      msg.setContent("( action ams " + myActionName + " ) " + reason);
       send(msg);
     }
 
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
       msg.setType("failure");
-      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      msg.setContent("( action ams " + myActionName + " ) " + reason);
       send(msg);
     }
 
     // Send an 'agree' message back to the requester
     protected void sendAgree(ACLMessage msg) {
       msg.setType("agree");
-      msg.setContent("( ams action " + myActionName + " )");
+      msg.setContent("( action ams " + myActionName + " )");
       send(msg);
     }
 
@@ -191,15 +193,14 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       return new AuthBehaviour(msg, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
-      sendRefuse(myReply, AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
       String agentName = amsd.getName();
       if(agentName != null)
 	myPlatform.AMSDumpData(agentName);
       else
 	myPlatform.AMSDumpData();
     }
+    throw myOntology.getException(AgentManagementOntology.Exception.UNWILLING); // FIXME: Not Implemented
 
   } // End of AuthBehaviour class
 
@@ -218,25 +219,19 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       return new RegBehaviour(msg, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
       // Write new agent data in Global Agent Descriptor Table
       try {
 	myPlatform.AMSNewData(amsd.getName(), amsd.getAddress(), amsd.getSignature(),amsd.getAPState(),
 			      amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
+	sendAgree(myReply);
+	sendInform(myReply);
       }
       catch(AgentAlreadyRegisteredException aare) {
 	sendAgree(myReply);
 	sendFailure(myReply, aare.getMessage());
-	return;
-      }
-      catch(FIPAException fe) {
-	//	fe.printStackTrace();
-	sendRefuse(myReply, fe.getMessage());
-	return;
       }
 
-      sendAgree(myReply);
-      sendInform(myReply);
     }
 
   } // End of RegBehaviour class
@@ -256,18 +251,10 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       return new DeregBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
-      try {
-	// Remove the agent data from Global Descriptor Table
-	myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
-				 amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
-      }
-      catch(FIPAException fe) {
-	//	fe.printStackTrace();
-	sendRefuse(myReply, fe.getMessage());
-	return;
-      }
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+      // Remove the agent data from Global Descriptor Table
+      myPlatform.AMSRemoveData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
+			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       sendAgree(myReply);
       sendInform(myReply);
 
@@ -290,21 +277,12 @@ public class ams extends Agent { // FIXME: Must become a Singleton
       return new ModBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) {
-      try {
-	// Modify agent data from Global Descriptor Table
-	myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
-				 amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
-      }
-      catch(FIPAException fe) {
-	//	fe.printStackTrace();
-	sendRefuse(myReply, fe.getMessage());
-	return;
-      }
-
+    protected void processArgs(AgentManagementOntology.AMSAgentDescriptor amsd) throws FIPAException {
+      // Modify agent data from Global Descriptor Table
+      myPlatform.AMSChangeData(amsd.getName(), amsd.getAddress(), amsd.getSignature(), amsd.getAPState(),
+			       amsd.getDelegateAgentName(), amsd.getForwardAddress(), amsd.getOwnership());
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
   } // End of ModBehaviour class
