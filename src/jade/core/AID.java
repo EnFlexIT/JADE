@@ -129,7 +129,7 @@ public class AID implements Comparable, Serializable {
   */
   public void setLocalName(String n){
     name = n.trim();
-    if ((name != null) && (!name.endsWith(atHAP))) 
+    if ((name != null) && (!name.toLowerCase().endsWith(atHAP.toLowerCase()))) 
 	name = name.concat(atHAP); 
   }
 
