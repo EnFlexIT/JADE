@@ -38,7 +38,7 @@ import jade.lang.acl.ACLMessage;
 
    @author Andrea Squeri,Corti Denis,Ballestracci Paolo -  Universita` di Parma
 */
-public class MessagePanel extends JSplitPane{
+public class MessagePanel extends JSplitPane {
   private JScrollPane inScroll;
   private JScrollPane outScroll;
   private JTable inMessage;
@@ -46,7 +46,7 @@ public class MessagePanel extends JSplitPane{
   private MessageTableModel inModel,outModel;
   private TableMouseListener listener;
 
-  public MessagePanel(MessageTableModel in,MessageTableModel out){
+  public MessagePanel(MessageTableModel in,MessageTableModel out) {
     super();
     inModel =in;
     outModel=out;
@@ -62,7 +62,7 @@ public class MessagePanel extends JSplitPane{
     build();
   }
 
-  public void build(){
+  public void build() {
     inScroll=new JScrollPane();
     inScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     inScroll.setAutoscrolls(true);
@@ -80,11 +80,11 @@ public class MessagePanel extends JSplitPane{
     this.setDividerLocation(200);
   }
 
-  public MessageTableModel getModelIn(){
+  public MessageTableModel getModelIn() {
     return inModel;
   }
 
-  public MessageTableModel getModelOut(){
+  public MessageTableModel getModelOut() {
     return outModel;
   }
 
