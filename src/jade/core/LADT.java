@@ -35,6 +35,43 @@ import jade.util.leap.HashMap;
  */
 class LADT {
 
+  private static class Row {
+    private boolean locked;
+    private Agent value;
+
+    public Row(Agent a) {
+      value = a;
+    }
+
+    public synchronized Agent get() {
+      return value;
+    }
+
+    public synchronized void clear() {
+      value = null;
+    }
+
+    public synchronized void lock() {
+      try {
+	while(locked)
+	  wait();
+
+	locked = true;
+      }
+      catch(InterruptedException ie) {
+	return;
+      }
+
+    }
+
+    public synchronized void unlock() {
+      locked = false;
+      notifyAll();
+    }
+
+  } // End of Row class
+
+
   // Initial size of agent hash table
   //private static final int MAP_SIZE = 50;
 
@@ -45,30 +82,90 @@ class LADT {
   //private Map agents = new HashMap(MAP_SIZE, MAP_LOAD_FACTOR);
   private Map agents = new HashMap();
 
-  public synchronized Agent put(AID aid, Agent a) {
-    return (Agent)agents.put(aid, a);
+  public Agent put(AID aid, Agent a) {
+      Row r;
+      synchronized(agents) {
+	  r = (Row)agents.get(aid);
+      }
+      if(r == null) {
+	  agents.put(aid, new Row(a));
+	  return null;
+      }
+      else {
+	  r.lock();
+
+	  agents.put(aid, new Row(a));
+	  Agent old = r.get();
+
+	  r.unlock();
+	  return old;
+      }
   }
 
-  public synchronized Agent get(AID key) {
-    return (Agent)agents.get(key);
+  public Agent remove(AID key) {
+    Row r;
+    synchronized(agents) {
+	r = (Row)agents.get(key);
+    }
+    if(r == null)
+	return null;
+    else {
+	r.lock();
+
+	agents.remove(key);
+	Agent a = r.get();
+	// Clear the row value, to avoid pending acquire() using the
+	// removed agent...
+	r.clear();
+
+	r.unlock();
+	return a;
+    }
   }
 
-  public synchronized Agent remove(AID key) {
-    return (Agent)agents.remove(key);
+  // The caller must call release() after it has finished with the row
+  public Agent acquire(AID key) {
+    Row r;
+    synchronized(agents) {
+	r = (Row)agents.get(key);
+    }
+    if(r == null)
+	return null;
+    else {
+	r.lock();
+	return r.get();
+    }
   }
 
-  public synchronized AID[] keys() {
-    Object[] objs = agents.keySet().toArray();
-    AID[] result = new AID[objs.length];
-    System.arraycopy(objs, 0, result, 0, result.length);
-    return result;
+  public void release(AID key) {
+    Row r;
+    synchronized(agents) {
+	r = (Row)agents.get(key);
+    }
+    if(r != null)
+      r.unlock();
   }
 
-  public synchronized Agent[] values() {
-    Object[] objs = agents.values().toArray();
-    Agent[] result = new Agent[objs.length];
-    System.arraycopy(objs, 0, result, 0, result.length);
-    return result;
+  public AID[] keys() {
+    synchronized(agents) {
+      Object[] objs = agents.keySet().toArray();
+      AID[] result = new AID[objs.length];
+      System.arraycopy(objs, 0, result, 0, result.length);
+      return result;
+    }
+  }
+
+  public Agent[] values() {
+    synchronized(agents) {
+	Object[] objs = agents.values().toArray();
+	Agent[] result = new Agent[objs.length];
+	for(int i = 0; i < objs.length; i++) {
+	    Row r = (Row)objs[i];
+	    result[i] = r.get();
+	}
+	return result;
+    }
+
   }
 
 }
