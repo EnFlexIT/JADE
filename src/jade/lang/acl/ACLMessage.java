@@ -161,7 +161,7 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private AID source = new AID();
+  private AID source = null;
 
   /**
   @serial

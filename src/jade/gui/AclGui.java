@@ -317,7 +317,7 @@ public class AclGui extends JPanel
 		// Sender  (line # 0)
 		l = new JLabel("Sender:");
 		put(l, 0, 0, 1, 1, false); 
-		senderEnabledFlag = false; // The sender field is disabled by default, but can be enabled with the setSenderEnabled() method.
+		senderEnabledFlag = true; // The sender field is enabled by default, but can be disabled with the setSenderEnabled() method.
 		sender = new JTextField();
 		sender.setPreferredSize(new Dimension(80,26));
     sender.setMinimumSize(new Dimension(80,26));
@@ -766,10 +766,11 @@ public class AclGui extends JPanel
 		if(newAIDSender != null)
 			SenderAID = newAIDSender;
 		
-		if ( ((param = sender.getText()).trim()).length() > 0 )
-			SenderAID.setName(param);
-	
-		msg.setSender(SenderAID);
+		/*if ( ((param = sender.getText()).trim()).length() > 0 )
+			SenderAID.setName(param);*/
+		// check if SenderAID has a guid. SenderAID is surely not null here
+		if (SenderAID.getName().length() > 0)
+		   msg.setSender(SenderAID);
 
 		Enumeration rec_Enum = receiverListPanel.getContent();
 		while(rec_Enum.hasMoreElements())
