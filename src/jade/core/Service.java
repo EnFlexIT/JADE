@@ -351,6 +351,13 @@ public interface Service {
     */
     void boot(Profile p) throws ServiceException;
 
+    /**
+       Performs the shutdown step of a kernel-level service.
+       The JADE kernel calls this method just before uninstalling
+       this service
+    */
+    void shutdown();
+
 
     /**
        Allows submitting a vertical command for processing.

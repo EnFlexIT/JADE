@@ -237,6 +237,10 @@ public abstract class BaseService implements Service {
 	// Empty placeholder method
     }
 
+    public void shutdown() {
+	// Empty placeholder method
+    }
+
     public Object submit(VerticalCommand cmd) throws ServiceException {
     	String cmdName = cmd.getName();
 	String[] ownedCommands = getOwnedCommands();

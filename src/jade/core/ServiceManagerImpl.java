@@ -342,11 +342,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
   private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
 		Service svc = (Service)localServices.get(name);
-		localServices.remove(name);
-		localNode.unexportSlice(name);
 
-		// Uninstall the service filters
 		if (svc != null) {
+			// Stop the service
+			svc.shutdown();
+			
+			// Uninstall the service filters 
 			Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
 			if(fOut != null) {
 			    myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
@@ -366,6 +367,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			    myCommandProcessor.deregisterSink(Sink.COMMAND_TARGET, svc.getName());
 			}
 		}
+		
+		// Unexport the service slice
+		localNode.unexportSlice(name);
+		
+		// Remove the service
+		localServices.remove(name);
   }
 
 
