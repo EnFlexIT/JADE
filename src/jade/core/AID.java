@@ -251,35 +251,43 @@ public class AID implements Comparable, Serializable {
      * @return the String full representation of this AID
      **/
     public String toString() {
-	String s = "( agent-identifier ";
-	if ((name!=null)&&(name.length()>0))
-	    s = s + " :name " + name;
+	StringBuffer s = new StringBuffer("( agent-identifier ");
+	if ((name!=null)&&(name.length()>0)) {
+	    s.append(" :name ");
+			s.append(name);
+	}
 	if (addresses.size()>0)
-	    s = s + " :addresses (sequence ";
+	    s.append(" :addresses (sequence ");
 	for (int i=0; i<addresses.size(); i++)
 	    try {
-		s = s + (String)addresses.get(i) + " ";
-	    } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+				s.append((String)addresses.get(i));
+				s.append(" ");
+	    } 
+	    catch (IndexOutOfBoundsException e) {e.printStackTrace();}
 	if (addresses.size()>0)
-	    s = s + ")";
+	    s.append(")");
 	if (resolvers.size()>0)
-	    s = s + " :resolvers (sequence ";
+	    s.append(" :resolvers (sequence ");
 	for (int i=0; i<resolvers.size(); i++) { 
 	    try {
-		s = s + resolvers.get(i).toString();
-	    } catch (IndexOutOfBoundsException e) {e.printStackTrace();}
-	    s = s + " ";
+				s.append(resolvers.get(i).toString());
+	    } 
+	    catch (IndexOutOfBoundsException e) {e.printStackTrace();}
+	    s.append(" ");
 	}
 	if (resolvers.size()>0)
-	    s = s + ")";
+	    s.append(")");
 	Enumeration e = userDefSlots.propertyNames();
 	String tmp;
 	while (e.hasMoreElements()) {
 	    tmp = (String)e.nextElement();
-	    s = s + " " + tmp + " " + userDefSlots.getProperty(tmp);
+	    s.append(" ");
+	    s.append(tmp);
+	    s.append(" ");
+	    s.append(userDefSlots.getProperty(tmp));
 	}
-	s = s + ")";
-	return s;
+	s.append(")");
+	return s.toString();
     }
 
   /**
