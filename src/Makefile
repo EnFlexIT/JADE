@@ -26,15 +26,15 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/domain/MobilityOntology.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
+		jade/proto/FipaContractNetInitiatorBehaviour.java \
+		jade/proto/FipaContractNetResponderBehaviour.java \
+		jade/proto/FipaQueryInitiatorBehaviour.java \
+		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/tools/rma/rma.java \
 		jade/tools/DummyAgent/DummyAgent.java \
-#		jade/proto/FipaContractNetInitiatorBehaviour.java \
-#		jade/proto/FipaContractNetResponderBehaviour.java \
-#		jade/proto/FipaQueryInitiatorBehaviour.java \
-#		jade/proto/FipaQueryResponderBehaviour.java \
-#		jade/tools/rma/rma.java \
+		jade/mtp/iiop/MessageTransportProtocol.java
+
 #		jade/tools/sniffer/Sniffer.java \
-#		jade/tools/DummyAgent/DummyAgent.java \
 #		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
 #		jade/tools/applet/DFApplet.java \
 #		starlight/util/Base64.java
@@ -74,6 +74,14 @@ IDLSTUBS    =   FIPA/AgentID.java \
 		FIPA/MTS.java \
 		FIPA/MTSHelper.java \
 		FIPA/MTSHolder.java \
+		FIPA/OptAgentIDHelper.java \
+		FIPA/OptAgentIDHolder.java \
+		FIPA/OptDateTimeHelper.java \
+		FIPA/OptDateTimeHolder.java \
+		FIPA/OptReceivedObjectHelper.java \
+		FIPA/OptReceivedObjectHolder.java \
+		FIPA/OptTransportBehaviourTypeHelper.java \
+		FIPA/OptTransportBehaviourTypeHolder.java \
 		FIPA/PayloadHelper.java \
 		FIPA/PayloadHolder.java \
 		FIPA/Property.java \
