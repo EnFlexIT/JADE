@@ -482,7 +482,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         Object[] params = cmd.getParams();
         String newSliceName = (String) params[0];
         try {
-          MessagingSlice newSlice = (MessagingSlice) getSlice(newSliceName);
+        	// Be sure to get the new (fresh) slice --> Bypass the service cache  
+          MessagingSlice newSlice = (MessagingSlice) getFreshSlice(newSliceName);
 	    	
           // Send all possible routes to the new slice 
           ContainerID[] cids = impl.containerIDs();
@@ -969,8 +970,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     private void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
-
-	    MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
+	    // Be sure the slice is fresh --> bypass the service cache
+    	MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
 	    routes.addRemoteMTP(mtp, sliceName, slice);
 	    
 	    String[] pp = mtp.getSupportedProtocols();
@@ -985,8 +986,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     private void removeRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
-	    MessagingSlice slice = (MessagingSlice)getSlice(sliceName);
+	    // Don't care about whether or not the slice is fresh. Only the name matters.
+    	MessagingSlice slice = (MessagingSlice)getSlice(sliceName);
 	    routes.removeRemoteMTP(mtp, sliceName, slice);
+
+	    String[] pp = mtp.getSupportedProtocols();
+	    for (int i = 0; i < pp.length; ++i) {
+		    log("Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
+	    }
 
 	    String[] addresses = mtp.getAddresses();
 	    for(int i = 0; i < addresses.length; i++) {
