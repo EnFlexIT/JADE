@@ -204,6 +204,10 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.CERTIFICATEFOLDER_ID);
                     serializeCertificateFolder((CertificateFolder) o);
                 }
+		else if(o instanceof Throwable) {                   // Throwable
+		    writeByte(Serializer.THROWABLE_ID);
+		    serializeThrowable((Throwable) o);
+		}
                 // Delegate serialization of other classes 
                 // to a proper Serializer object
                 else {
@@ -817,6 +821,11 @@ class DeliverableDataOutputStream extends DataOutputStream {
     	writeVector(v);
     } 
     
+    private void serializeThrowable(Throwable t) throws LEAPSerializationException {
+	writeString(t.getClass().getName());
+	writeString(t.getMessage());
+    }
+
     
     /**
      */
