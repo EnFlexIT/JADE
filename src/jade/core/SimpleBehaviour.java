@@ -16,13 +16,6 @@ public abstract class SimpleBehaviour extends Behaviour {
     super(a);
   }    
 
-  // This method must be implemented by subclasses
-  protected abstract void action();
-
-  public final void execute() {
-    action();
-  }
-
   /*
   final void setRunnable(boolean runnable) {
     // No-op
