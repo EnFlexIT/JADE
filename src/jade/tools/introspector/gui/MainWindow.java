@@ -33,6 +33,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Vector;
 
+import jade.core.AID;
+import jade.util.Sensor;
 import jade.tools.introspector.Introspector;
 
 /**
@@ -44,7 +46,8 @@ import jade.tools.introspector.Introspector;
 public class MainWindow extends JInternalFrame implements InternalFrameListener
 {
 
-  private Introspector debugger;
+  private Sensor debuggerSensor;
+  private AID debuggedID;
   private JSplitPane splitPanel;
   private MainBar mainBar;
   private MessagePanel messagePanel;
@@ -53,9 +56,10 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
   private MainBarListener list;
   private int lastDividerLocation;
 
-  public MainWindow(Introspector da,String title){
-    super(title);
-    debugger = da;
+  public MainWindow(Sensor sn, AID id){
+    super(id.getName());
+    debuggerSensor = sn;
+    debuggedID = id;
     MessageTableModel mi1 = new MessageTableModel(new Vector(), "Incoming Messages -- Pending");
     MessageTableModel mi2 = new MessageTableModel(new Vector(), "Incoming Messages --  Received");
     MessageTableModel mo1 = new MessageTableModel(new Vector(), "Outgoing Messages -- Pending");
@@ -63,7 +67,7 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
     DefaultTreeModel r = new DefaultTreeModel(new DefaultMutableTreeNode("Behaviours"));
     int s = 1;
 
-    list = new MainBarListener(this);
+    list = new MainBarListener(this, debuggerSensor);
     mainBar = new MainBar(list);
     messagePanel = new MessagePanel(mi1, mi2, mo1, mo2);
     statePanel = new StatePanel(list);
@@ -74,6 +78,10 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
   }
 
+  public AID getDebugged() {
+  	return debuggedID;
+  }
+  
   public void build() {
 
     /*layout*/

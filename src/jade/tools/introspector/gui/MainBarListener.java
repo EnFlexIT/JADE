@@ -27,6 +27,10 @@ package jade.tools.introspector.gui;
 import javax.swing.*;
 import java.awt.event.*;
 
+import jade.tools.introspector.Introspector;
+import jade.util.Sensor;
+import jade.util.Event;
+
 /**
    This class listens to the events fired by the main menu bar.
 
@@ -35,9 +39,11 @@ import java.awt.event.*;
 */
 public class MainBarListener implements ActionListener{
   private MainWindow mainWnd;
+  private Sensor introspectorSensor;
 
-  public MainBarListener(MainWindow main){
+  public MainBarListener(MainWindow main, Sensor s){
     mainWnd=main;
+    introspectorSensor = s;
   }
 
   public void actionPerformed(ActionEvent e){
@@ -68,6 +74,18 @@ public class MainBarListener implements ActionListener{
       case 7://wait
         System.out.println("wait agent: Not yet implemented");
         break;
+      case 8://Step
+      	introspectorSensor.post(new Event(Introspector.STEP_EVENT, mainWnd));
+      	break;
+      case 9://Break
+      	introspectorSensor.post(new Event(Introspector.BREAK_EVENT, mainWnd));
+      	break;
+      case 10://Slow
+      	introspectorSensor.post(new Event(Introspector.SLOW_EVENT, mainWnd));
+      	break;
+      case 11://Go
+      	introspectorSensor.post(new Event(Introspector.GO_EVENT, mainWnd));
+      	break;
     }
   }
 }

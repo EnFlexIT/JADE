@@ -63,10 +63,10 @@ public class BehaviourPanel extends JSplitPane{
     treePanel=new JPanel();
 
     treePanel.setLayout(new BorderLayout());
-
-    readyIcon = new ImageIcon(getClass().getResource("images/behaviour.gif"));
-    blockedIcon = new ImageIcon(getClass().getResource("images/blocked.gif"));
-    runningIcon = new ImageIcon(getClass().getResource("images/running.gif"));
+    
+    readyIcon = new ImageIcon(getClass().getResource("images"+java.io.File.separator+"behaviour.gif"));
+    blockedIcon = new ImageIcon(getClass().getResource("images"+java.io.File.separator+"blocked.gif"));
+    runningIcon = new ImageIcon(getClass().getResource("images"+java.io.File.separator+"running.gif"));
     
     //behaviorTree.addMouseListener(new TreeListener);
     behaviourTree.putClientProperty("JTree.lineStyle","Angled");
@@ -132,11 +132,6 @@ public class BehaviourPanel extends JSplitPane{
             else {
             	changeIcon(readyIcon);
             }
-            /*if (node.isBlocked()) {
-                changeIcon(blockedIcon);
-            } else {
-                changeIcon(runningIcon);
-            }*/
         }
         catch(Exception e)
         {

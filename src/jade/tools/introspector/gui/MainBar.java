@@ -31,9 +31,9 @@ import javax.swing.*;
    @version $Date$ $Revision$
 */
 public class MainBar extends JMenuBar {
-  private JMenu fileMenu;
-  private JMenu actionMenu;
+  private JMenu stateMenu;
   private JMenu viewMenu;
+  private JMenu debugMenu;
 
   private JCheckBoxMenuItem viewMessageItem;
   private JCheckBoxMenuItem vewBehaviourItem;
@@ -42,6 +42,10 @@ public class MainBar extends JMenuBar {
   private JMenuItem suspendItem;
   private JMenuItem wakeUpItem;
   private JMenuItem waitItem;
+  private JMenuItem stepItem;
+  private JMenuItem breakItem;
+  private JMenuItem slowItem;
+  private JMenuItem goItem;
 
   private MainBarListener listener;
 
@@ -55,7 +59,8 @@ public class MainBar extends JMenuBar {
   public void build() {
 
     viewMenu=new JMenu("View");
-    actionMenu= new JMenu("Action");
+    stateMenu= new JMenu("State");
+    debugMenu= new JMenu("Debug");
 
     viewMessageItem=new JCheckBoxMenuItem("View Messages");
     vewBehaviourItem=new JCheckBoxMenuItem("View Behaviours");
@@ -67,6 +72,10 @@ public class MainBar extends JMenuBar {
     suspendItem=new JMenuItem("suspend");
     wakeUpItem=new JMenuItem("WakeUp");
     waitItem=new JMenuItem("Wait");
+    goItem=new JMenuItem("Go");
+    stepItem=new JMenuItem("Step");
+    breakItem=new JMenuItem("Break");
+    slowItem=new JMenuItem("Slow");
 
 
     viewMessageItem.setMnemonic(2);
@@ -75,7 +84,10 @@ public class MainBar extends JMenuBar {
     suspendItem.setMnemonic(5);
     wakeUpItem.setMnemonic(6);
     waitItem.setMnemonic(7);
-
+    stepItem.setMnemonic(8);
+    breakItem.setMnemonic(9);
+    slowItem.setMnemonic(10);
+    goItem.setMnemonic(11);
 
 
     viewMessageItem.addActionListener(listener);
@@ -84,19 +96,27 @@ public class MainBar extends JMenuBar {
     suspendItem.addActionListener(listener);
     wakeUpItem.addActionListener(listener);
     waitItem.addActionListener(listener);
-
+    stepItem.addActionListener(listener);
+    breakItem.addActionListener(listener);
+    goItem.addActionListener(listener);
+    slowItem.addActionListener(listener);
 
 
     viewMenu.add(viewMessageItem);
     viewMenu.add(vewBehaviourItem);
-    actionMenu.add(killItem);
-    actionMenu.add(suspendItem);
-    actionMenu.add(waitItem);
-    actionMenu.add(wakeUpItem);
+    stateMenu.add(killItem);
+    stateMenu.add(suspendItem);
+    stateMenu.add(waitItem);
+    stateMenu.add(wakeUpItem);
+    debugMenu.add(stepItem);
+    debugMenu.add(breakItem);
+    debugMenu.add(slowItem);
+    debugMenu.add(goItem);
 
 
     this.add(viewMenu);
-    this.add(actionMenu);
+    this.add(stateMenu);
+    this.add(debugMenu);
 
   }
 
