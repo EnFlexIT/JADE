@@ -230,9 +230,9 @@ public class TestRecursiveSearch extends Test {
         
         
         Behaviour b = new OneShotBehaviour() {
+            private boolean testPassed = false;
             public void action() {
                 try {
-                    boolean testPassed = true;
                     
                     // Send queries to df6
                     AID aidDF6 = new AID("df6",AID.ISLOCALNAME);
@@ -248,63 +248,93 @@ public class TestRecursiveSearch extends Test {
                     srcCstr.setMaxDepth(new Long(0));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 1",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,1);
+                    if (!checkResults(dfs,1) ) {
+                    	return;
+                    }
+                    
                     // test 2
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(-1));
                     srcCstr.setMaxDepth(new Long(0));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 2",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,1);
+                    if (!checkResults(dfs,1) ) {
+                    	return;
+                    }
+                    
                     // test 3
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(-1));
                     srcCstr.setMaxDepth(new Long(1));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 3",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,2);
+                    if (!checkResults(dfs,2) ) {
+                    	return;
+                    }
+                    
                     // test 4
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(-1));
                     srcCstr.setMaxDepth(new Long(2));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 4",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,4);
+                    if (!checkResults(dfs,4) ) {
+                    	return;
+                    }
+                    
                     // test 5
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(-1));
                     srcCstr.setMaxDepth(new Long(4));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 5",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,5);
+                    if (!checkResults(dfs,5) ) {
+                    	return;
+                    }
+                    
                     // test 6
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(2));
                     srcCstr.setMaxDepth(new Long(20));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 6",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,2);
+                    if (!checkResults(dfs,2) ) {
+                    	return;
+                    }
+                    
                     // test 7
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(3));
                     srcCstr.setMaxDepth(new Long(20));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 7",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,3);
+                    if (!checkResults(dfs,3) ) {
+                    	return;
+                    }
+                    
                     // test 8
+                    srcCstr.renewSearchId();
                     srcCstr.setMaxResults(new Long(-1));
                     srcCstr.setMaxDepth(new Long(20));
                     dfs = DFService.search(finalA,aidDF6,dfAgent,srcCstr);
                     printResults(dfs,"Query 8",srcCstr,aidDF6);
-                    testPassed = testPassed & checkResults(dfs,8);
-                    if(testPassed) {
-                        store.put(key, new Integer(Test.TEST_PASSED));
-                    } else
-                    {
-                        store.put(key, new Integer(Test.TEST_FAILED));
+                    if (!checkResults(dfs,8) ) {
+                    	return;
                     }
                     
-                    
+                    // Only if we get here the test is passed
+                    testPassed = true;
                 }catch(Exception e) {
                     e.printStackTrace();
                 }
                 
             }
             public int onEnd() {
+                if(testPassed) {
+                    store.put(key, new Integer(Test.TEST_PASSED));
+                } else {
+                    store.put(key, new Integer(Test.TEST_FAILED));
+                }
                 return 0;
             }
             
