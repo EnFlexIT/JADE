@@ -73,7 +73,7 @@ public class Mediator extends EndPoint implements JICPMediator {
   public Mediator() { 
   }
 
-  public String getId() {
+  public String getID() {
   	return myID;
   }
   

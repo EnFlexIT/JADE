@@ -48,7 +48,7 @@ public interface JICPMediator {
 	/**
 	   Retrieve the ID of this mediator
 	 */
-	String getId();
+	String getID();
 	
   /**
      Initialize this JICPMediator

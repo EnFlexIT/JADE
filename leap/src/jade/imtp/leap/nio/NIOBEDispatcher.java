@@ -52,7 +52,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	   Retrieve the ID of this mediator. Returns null if this mediator
 	   is not active
 	 */
-	public String getId() {
+	public String getID() {
 		return (active ? myID : null);
 	}
 	

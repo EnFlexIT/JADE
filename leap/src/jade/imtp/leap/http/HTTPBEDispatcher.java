@@ -78,7 +78,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
-  public String getId() {
+  public String getID() {
   	return myID;
   }
   

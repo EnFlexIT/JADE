@@ -395,7 +395,7 @@ public class BEManagementService extends BaseService {
 	    mediators.clear();
 	  } 
 		
-	  final String getId() {
+	  final String getID() {
 	  	return myID;
 	  }
 	  
@@ -524,7 +524,7 @@ public class BEManagementService extends BaseService {
 			        // Create and start the new mediator
 			        mediator = startMediator(id, p);
 			  			closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
-			  			mediators.put(mediator.getId(), mediator);
+			  			mediators.put(mediator.getID(), mediator);
 			  			
 							if (!closeConnection) {
 								// The mediator wants to keep this connection open --> associate 
@@ -601,7 +601,7 @@ public class BEManagementService extends BaseService {
 		        
 		        if (mediator != null) {
 		        	if(myLogger.isLoggable(Logger.FINEST)) {
-		        		myLogger.log(Logger.FINEST, myLogPrefix+"Passing packet of type "+type+" to mediator "+mediator.getId());
+		        		myLogger.log(Logger.FINEST, myLogPrefix+"Passing packet of type "+type+" to mediator "+mediator.getID());
 		        	}
 		          reply = mediator.handleJICPPacket(connection, pkt, address, port);
 		        } 
@@ -731,10 +731,10 @@ public class BEManagementService extends BaseService {
 	  	for (int i = 0; i < dms.length; ++i) {
 	  		synchronized (mediators) {
 		  		NIOMediator m = (NIOMediator) mediators.remove(dms[i]); 
-		  		if (m.getId() != null) {
+		  		if (m.getID() != null) {
 		  			// A new mediator with the same ID started in the meanwhile.
 		  			// It must not be removed.
-		  			mediators.put(m.getId(), m);
+		  			mediators.put(m.getID(), m);
 		  		}
 	  		}
   		}
@@ -835,7 +835,7 @@ public class BEManagementService extends BaseService {
 		public LoopManager(IOEventServer server, int index) {
 			myServer = server;
 			myIndex = index;
-			String id = myServer.getId();
+			String id = myServer.getID();
 			displayId = "BEManagementService"+(PREFIX.startsWith(id) ? "" : "-"+id);			
 			
 			try {
@@ -848,7 +848,7 @@ public class BEManagementService extends BaseService {
 		
 		public void start() {
 			state = ACTIVE_STATE;
-			String id = myServer.getId();
+			String id = myServer.getID();
 			String serverId = (PREFIX.startsWith(id) ? "" : "-"+id);
 			myThread = new Thread(this);
 			myThread.setName(displayId+"-T"+myIndex);

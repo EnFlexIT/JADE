@@ -87,7 +87,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
-  public String getId() {
+  public String getID() {
   	return myID;
   }
   

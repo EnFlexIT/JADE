@@ -82,7 +82,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
-  public String getId() {
+  public String getID() {
   	return myID;
   }
   
