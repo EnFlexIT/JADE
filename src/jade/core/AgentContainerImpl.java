@@ -900,8 +900,17 @@ private List getSniffer(AID id, java.util.Map theMap) {
 	}
 	catch(RemoteException re) {
 	  System.out.println("Communication error while contacting agent platform");
-	  re.printStackTrace();
+	  System.out.print("Trying to reconnect... ");
+	  try {
+	    restoreMainContainer();
+	    result = myPlatform.getProxy(id); // RMI call
+	    System.out.println("OK.");
+	  }
+	  catch(RemoteException rex) {
+	    throw new NotFoundException("The Main Container is unreachable (again).");
+	  }
 	}
+
       }
     }
     else { // It lives outside: then it's a job for the ACC...
@@ -910,6 +919,66 @@ private List getSniffer(AID id, java.util.Map theMap) {
 
     return result;
 
+  }
+
+  private void restoreMainContainer() throws NotFoundException {
+    try {
+      myPlatform = lookup3("rmi://" + platformID);
+
+      // Register again with the Main Container.
+      InetAddress netAddr = InetAddress.getLocalHost();
+      myName = myPlatform.addContainer(this, netAddr); // RMI call
+
+      ACLMessage regMsg = new ACLMessage(ACLMessage.REQUEST);
+      regMsg.setSender(Agent.getAMS());
+      regMsg.addReceiver(Agent.getAMS());
+      regMsg.setLanguage(jade.lang.sl.SL0Codec.NAME);
+      regMsg.setOntology(jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NAME);
+      regMsg.setProtocol("fipa-request");
+
+      // Restore Main Container state of agents and containers
+      AID[] agentIDs = localAgents.keys();
+      for(int i = 0; i < agentIDs.length; i++) {
+
+	AID agentID = agentIDs[i];
+
+	// Register again the agent with the Main Container.
+	RemoteProxyRMI rp = new RemoteProxyRMI(this, agentID);
+	try {
+	  myPlatform.bornAgent(agentID, rp, myName); // RMI call
+	}
+	catch(NameClashException nce) {
+	  throw new NotFoundException("Agent name already in use: "+ nce.getMessage());
+	}
+
+	String content = "((action (agent-identifier :name " + Agent.getAMS().getName() + " ) (register (ams-agent-description :name (agent-identifier :name " + agentID.getName() + " ) :ownership JADE :state active ) ) ))";
+	// Register again the agent with the AMS
+	regMsg.setContent(content);
+	unicastPostMessage(regMsg, Agent.getAMS());
+
+      }
+
+      // Register again all MTPs with the Main Container
+      List localAddresses = theACC.getLocalAddresses();
+      for(int i = 0; i < localAddresses.size(); i++) {
+	myPlatform.newMTP((String)localAddresses.get(i), myName);
+      }
+
+    }
+    catch(RemoteException re) {
+      System.out.println("The Main Container is down again. Aborting this send operation.");
+      throw new NotFoundException("The Main Container is unreachable.");
+    }
+    catch(NotBoundException nbe) {
+      nbe.printStackTrace();
+      throw new NotFoundException("The Main Container is not bound with the RMI registry.");
+    }
+    catch(MalformedURLException murle) {
+      murle.printStackTrace();
+    }
+    catch(java.net.UnknownHostException jnue) {
+      jnue.printStackTrace();
+    }
   }
 
 }
