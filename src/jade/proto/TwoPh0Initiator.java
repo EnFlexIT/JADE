@@ -118,14 +118,9 @@ public class TwoPh0Initiator extends Initiator {
         super(a, cfp, store);
         //this.conversationId = conversationId;
         this.outputKey = outputKey;
-        /* Register the FSM transitions specific to the Two-Phase0-Commit protocol */
+        // Register the FSM transitions specific to the Two-Phase0-Commit protocol
         registerTransition(CHECK_IN_SEQ, HANDLE_PROPOSE, ACLMessage.PROPOSE);
         registerDefaultTransition(HANDLE_PROPOSE, CHECK_SESSIONS);
-        /* update1
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_PROPOSE);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, SOME_FAILURE);
-        registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, PH0_TIMEOUT_EXPIRED);
-        */
         registerTransition(CHECK_SESSIONS, HANDLE_ALL_RESPONSES, ALL_RESPONSES_RECEIVED); // update1
         registerDefaultTransition(HANDLE_ALL_RESPONSES, DUMMY_FINAL);
 
@@ -168,35 +163,6 @@ public class TwoPh0Initiator extends Initiator {
         };
         b.setDataStore(getDataStore());
         registerState(b, HANDLE_ALL_RESPONSES);
-
-        /* DUMMY_FINAL state returns ALL_PROPOSE, SOME_FAILURE or
-        PH0_TIMEOUT_EXPIRED code. 
-        b = new OneShotBehaviour(myAgent) {
-            public void onStart() {
-                Logger.log("(TwoPh0Initiator, TwoPh0Initiator(), DUMMY_FINAL, " + myAgent.getName() + "): " +
-                        "dummy started", logging);
-                super.onStart();
-            }
-            public void action() {
-            }
-            public int onEnd() {
-                int result;
-                Vector responses = (Vector) getDataStore().get(TwoPh0Initiator.this.outputKey); // update1
-                Logger.log("(TwoPh0Initiator, TwoPh0Initiator(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                    "responses = " + responses, currentLogging);
-                // update1 return getState(CHECK_SESSIONS).onEnd();
-                // fix:
-                if(responses.size() != 0)
-                    result = ((ACLMessage) responses.get(0)).getPerformative(); // update1
-                else
-                    result = 0;
-                Logger.log("(TwoPh0Initiator, TwoPh0Initiator(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                    "return " + result, currentLogging);
-                return result;
-            }
-        };
-        b.setDataStore(getDataStore());
-        registerLastState(b, DUMMY_FINAL);*/
     }
     
     public int onEnd() {
@@ -412,26 +378,6 @@ public class TwoPh0Initiator extends Initiator {
           }
           updatePendings(inReplyTo);
           
-          /*switch(perf) {
-              case ACLMessage.PROPOSE: {
-                  Logger.log("\n\n(TwoPh0Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                      "before add proposes = " + getDataStore().get(ALL_PROPOSES_KEY), logging);
-                  ((Vector) getDataStore().get(ALL_PROPOSES_KEY)).add(reply);
-                  Logger.log("(TwoPh0Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                      "PROPOSE message", logging);
-                  Logger.log("\n\n(TwoPh0Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                      "after add proposes = " + getDataStore().get(ALL_PROPOSES_KEY), logging);
-                  break;
-              }
-              case ACLMessage.FAILURE: {
-                  ((Vector) getDataStore().get(ALL_FAILURES_KEY)).add(reply);
-                  Logger.log("(TwoPh0Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                      "FAILURE message", logging);
-                  break;
-              }
-          }
-          Logger.log("(TwoPh0Initiator, checkInSequence(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                  "reply = " + reply.getInReplyTo(), logging);*/
           ret = true;
         }
         if(s.isCompleted()) {
@@ -478,80 +424,6 @@ public class TwoPh0Initiator extends Initiator {
     		// We are still waiting for some responses
     		return -1;
     	}
-        /*Logger.log("\n\n(TwoPh0Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-            "before proposes = " + getDataStore().get(ALL_PROPOSES_KEY), currentLogging);
-        int ret = ALL_RESPONSES_RECEIVED; // update1
-        Vector nextPhMsgs = (Vector) getDataStore().get(outputKey);
-        if(reply != null) {
-            if(sessions.size() > 0) {
-                // We are still waiting for some responses --> the protocol has not completed yet
-                ret = -1;
-                Logger.log("(TwoPh0Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                        "still active sessions, ret = -1", currentLogging);
-            } 
-            else {
-                // All responses have been received
-                Vector proposes = (Vector) getDataStore().get(ALL_PROPOSES_KEY);
-                if(((Vector) getDataStore().get(ALL_FAILURES_KEY)).size() == 0) {
-                		// All responders replied with PROPOSE --> Fill the vector 
-                		// of initiation messages for next phase with QUERY_IF
-                    for(int i=0; i<proposes.size(); i++) {
-                        ACLMessage msg = (ACLMessage) proposes.get(i);
-                        ACLMessage queryIf = msg.createReply();
-                        queryIf.setPerformative(ACLMessage.QUERY_IF);
-                        nextPhMsgs.add(queryIf);
-                    }
-                }
-                else {
-                		// At least one responder replied with FAILURE or NOT_UNDERSTOOD 
-                		// --> Fill the vector of initiation messages for next phase with REJECT_PROPOSAL
-                    for(int i=0; i<proposes.size(); i++) {
-                        ACLMessage msg = (ACLMessage) proposes.get(i);
-                        ACLMessage reject = msg.createReply();
-                        reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
-                        responses.add(reject);
-                    }
-                }
-            }
-        }
-        else {
-            // Timeout was expired or we were interrupted, so clear all remaining
-            //sessions, prepare vector containing reject messages stored in the datastore
-            //at outputKey and returns PH0_TIMEOUT_EXPIRED. Receivers of reject messages
-            //are all proposes or pendings. Content of reject messages is replaced by
-            //the user during handleAllResponses method call. 
-            sessions.clear();
-            // fix: va bene creare un msg con createReply ai proposes, ma non va bene
-            //farlo con le cfp.
-            //Vector proposesAndPendings = (Vector) getDataStore().get(ALL_PROPOSES_KEY);
-            //Vector proposesAndPendings = new Vector((Vector) getDataStore().get(ALL_PROPOSES_KEY));
-            //proposesAndPendings.addAll(ph0Pendings);
-            //for(int i=0; i<proposesAndPendings.size(); i++) {
-            //    ACLMessage msg = (ACLMessage) proposesAndPendings.get(i);
-            //    ACLMessage reject = msg.createReply();
-            //    reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
-            //    responses.add(reject);
-            //} 
-            Vector proposes = (Vector) getDataStore().get(ALL_PROPOSES_KEY);
-            for(int i=0; i<proposes.size(); i++) {
-                ACLMessage msg = (ACLMessage) proposes.get(i);
-                ACLMessage reject = msg.createReply();
-                reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
-                responses.add(reject);
-            }
-            for(int i=0; i<ph0Pendings.size(); i++) {
-                ACLMessage msg = (ACLMessage) ph0Pendings.get(i);
-                ACLMessage reject = (ACLMessage) msg.clone();
-                reject.setPerformative(ACLMessage.REJECT_PROPOSAL);
-                responses.add(reject);
-            }
-            // update1 ret = PH0_TIMEOUT_EXPIRED;
-        }
-        Logger.log("\n\n(TwoPh0Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-            "after proposes = " + getDataStore().get(ALL_PROPOSES_KEY), logging);
-        Logger.log("\n\n(TwoPh0Initiator, checkSessions(), " + getCurrent().getBehaviourName() + ", " + myAgent.getName() + "): " +
-                "ret (ALL_PROPOSE = 1, SOME_FAILURE = 2, PH0_TIMEOUT_EXPIRED = -1001, -1) = " + ret, logging);
-        return ret;*/
     }
     
     private void fillNextPhInitiations(Vector nextPhMsgs, Vector proposes, Vector pendings) {
