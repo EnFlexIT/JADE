@@ -37,6 +37,7 @@ import javax.swing.border.TitledBorder;
 
 import jade.core.Agent;
 import jade.core.AgentState;
+import jade.core.mobility.AgentMobilityService;
 
 /**
    This is a panel, with a top part containing state
@@ -139,7 +140,7 @@ public class StatePanel extends JPanel {
     movingLed.setDisabledIcon(ledOff);
     movingLed.setEnabled(false);
     leds.add(movingLed);
-    ledMap.put(AgentState.getInstance(Agent.AP_TRANSIT), movingLed);
+    ledMap.put(AgentState.getInstance(AgentMobilityService.AP_TRANSIT), movingLed);
     ledPanel.add(movingLed);
 
     deletedLed = new JRadioButton("Dead", ledOff);
