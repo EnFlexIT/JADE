@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.18  1998/10/07 22:13:12  Giovanni
+  Added a correct prototype to DF access methods in Agent class.
+
   Revision 1.17  1998/10/05 20:09:02  Giovanni
   Fixed comment indentation.
 
@@ -538,19 +541,31 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   // Register yourself with a DF
-  public void registerWithDF() {
+  public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    String replyString = myName + "-df-register";
+
   }
 
-  // Deregister yourself with a DF
-  public void deregisterWithDF() {
+  // Deregister yourself with a DF 
+  public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    String replyString = myName + "-df-deregister";
+
   }
 
   // Modify registration data with a DF
-  public void modifyDFRegistration() {
+  public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    String replyString = myName + "-df-modify";
+
   }
 
   // Search a DF for information
-  public void searchDF() {
+  public void searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    String replyString = myName + "-df-search";
+
   }
 
 
