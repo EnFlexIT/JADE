@@ -119,28 +119,14 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // end, in order to detect container failures.
   private java.lang.Object pingLock = new java.lang.Object();
 
-  private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
-  private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
+  protected ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
 
   // Package scoped constructor, so that only the Runtime and Starter
   // classes can actually create a new Agent Container.
   AgentContainerImpl() throws RemoteException {
 
-
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
-
-    // Set up attributes for time critical threads
-    criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
-
-    // Initialize timer dispatcher
-    TimerDispatcher td = new TimerDispatcher();
-    Thread t = new Thread(criticalThreads, td);
-    t.setPriority(criticalThreads.getMaxPriority());
-
-    td.setThread(t);
-    // This call starts the timer dispatcher thread
-    Agent.setDispatcher(td);
 
   }
 
@@ -626,9 +612,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Close down the ACC
     theACC.shutdown();
 
-    // Shuts down the Timer Dispatcher
-    Agent.stopDispatcher();
-
     // Remove all agents
     Agent[] allLocalAgents = localAgents.values();
 
@@ -652,6 +635,19 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Unblock threads hung in ping() method (this will deregister the container)
     synchronized(pingLock) {
       pingLock.notifyAll();
+    }
+
+    // Destroy the (now empty) thread groups
+
+    try {
+      agentThreads.destroy();
+    }
+    catch(IllegalThreadStateException itse) {
+      System.out.println("Active threads in 'JADE-Agents' thread group:");
+      agentThreads.list();
+    }
+    finally {
+      agentThreads = null;
     }
 
     // Notify the JADE Runtime that the container has terminated
