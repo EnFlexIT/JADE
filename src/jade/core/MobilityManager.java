@@ -21,6 +21,7 @@
 package jade.core;
 
 import jade.util.leap.List;
+import jade.security.AuthException;
 
 /**
  * Interface declaration
@@ -74,12 +75,12 @@ interface MobilityManager {
     /**
        Move the specified Agent to the specified Location
      */
-    public void handleMove(AID agentID, Location where); 
+    public void handleMove(AID agentID, Location where) throws AuthException; 
 
     /**
        Clone the specified Agent to the specified Location
      */
-    public void handleClone(AID agentID, Location where, String newName); 
+    public void handleClone(AID agentID, Location where, String newName) throws AuthException; 
                             
 }
 
