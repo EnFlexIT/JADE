@@ -530,16 +530,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
 
-  public void fillContent(ACLMessage msg, List content) throws FIPAException, OntologyException {
-    Ontology o = lookupOntology(msg.getOntology());
-    if(o == null)
-      throw new FIPAException("Unknown Ontology");
-    List roles = new ArrayList();
-    for (int i=0; i<content.size(); i++) 
-      roles.add(o.getRoleName(content.get(i).getClass()));
-    fillContent(msg,content,roles);
-  }
-
   /**
     Fills the <code>:content</code> slot of an ACL message with the string
     representation of a t-uple of user defined ontological objects. Each 
@@ -549,17 +539,15 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     <code>Frame</code> is translated into a <code>String</code> using the codec
     for the content language indicated by the <code>:language</code> message
     slot.
+    <p>
+    Notice that this method works properly only if in the Ontology each
+    Java class has been registered to play just one role, otherwise
+    ambiguity of role playing cannot be solved automatically.
     @param msg The ACL message whose content will be filled.
     @param content A list of Java objects that will be converted into a string and
     written into the <code>:content</code> slot. This object must be an instance
     of a class registered into the ontology named in the <code>:ontology</code>
     message slot.
-    @param roleNames The list of String representing the
-    names of the roles, played by the class of 
-    each object of the
-    <code>content</code> list, 
-    into the ontology indicated by the <code>:ontology
-    </code> message slot.
     @exception jade.domain.FIPAException This exception is thrown if the
     <code>:language</code> or <code>:ontology</code> message slots contain an
     unknown name, or if some problem occurs during the various translation steps.
@@ -567,7 +555,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
-  public void fillContent(ACLMessage msg, List content, List roleNames) throws FIPAException {
+  public void fillContent(ACLMessage msg, List content) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
     if(c == null)
       throw new FIPAException("Unknown Content Language");
@@ -578,7 +566,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       List l = new ArrayList();
       Frame f;
       for (int i=0; i<content.size(); i++) {
-	f = o.createFrame(content.get(i), (String)roleNames.get(i));
+	f = o.createFrame(content.get(i), o.getRoleName(content.get(i).getClass()));
 	l.add(f);
       }
       String s = c.encode(l, o);
