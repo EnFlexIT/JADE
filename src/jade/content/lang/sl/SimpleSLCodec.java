@@ -36,11 +36,14 @@ import jade.content.lang.sl.SLVocabulary;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.Iterator;
 import java.util.Date;
+import jade.util.Logger;
 /**
  * @version $Date$ $Revision$
  **/
 class SimpleSLCodec extends StringCodec {
 	private int indent = 0;
+	
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	public SimpleSLCodec() {
 		super(jade.domain.FIPANames.ContentLanguage.FIPA_SL);
@@ -218,7 +221,7 @@ class SimpleSLCodec extends StringCodec {
   	AbsObject abs = null;
   	p.consumeChar('(');
   	String name = p.getElement();
-  	log("Parse complex descriptor: "+name);
+  	logger.log(Logger.FINE,"Parse complex descriptor: "+name);
   	++indent;
   	try {
 	  	ObjectSchema s = o.getSchema(name);
@@ -241,7 +244,7 @@ class SimpleSLCodec extends StringCodec {
   	}
   	indent--;
   	p.consumeChar(')');
-  	log(abs.toString());
+  	logger.log(Logger.FINE,abs.toString());
   	return abs;
   }
   		
@@ -289,7 +292,7 @@ class SimpleSLCodec extends StringCodec {
 
   private AbsObject parseSimple(SimpleSLTokenizer p) throws CodecException {
   	String val = p.getElement();
-  	log("Parse simple descriptor: "+val+". Next is "+p.nextToken());
+  	logger.log(Logger.FINE,"Parse simple descriptor: "+val+". Next is "+p.nextToken());
   	try {
   		return AbsPrimitive.wrap(Long.parseLong(val));
   	}
@@ -415,12 +418,6 @@ class SimpleSLCodec extends StringCodec {
   }
   */
   
-  private void log(String s) {
-  	/*for (int i = 0; i < indent; ++i) {
-  		System.out.print("  ");
-  	}
-  	System.out.println(s);*/
-  }
   
   public Ontology getInnerOntology() {
     return SLOntology.getInstance();
