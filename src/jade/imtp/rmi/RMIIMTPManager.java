@@ -496,7 +496,18 @@ public class RMIIMTPManager implements IMTPManager {
 			  return result;
 		      }
 		      else if(result instanceof Throwable) {
-			  throw (Throwable)result;
+
+			  // If this is a declared exception of the method, let it through
+			  Class[] declaredExceptions = meth.getExceptionTypes();
+			  for(int i = 0; i < declaredExceptions.length; i++) {
+			      if(declaredExceptions[i].equals(result.getClass())) {
+				  throw (Throwable)result; // A declared exception: fine
+			      }
+			  }
+
+			  // Unknown or runtime exception: just print it for now...
+			  ((Throwable)result).printStackTrace();
+			  return null;
 		      }
 		      else {
 			  throw new IMTPException("Incorrect type returned from a remote call: " + result.getClass().getName() + " [expected " + retType.getName() + " ]");
