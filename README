@@ -18,7 +18,8 @@ As you know already, this is still an on-going project.
 We are still working on the framework and new versions will be distributed asap.
 Your feedback as users is very important to us. Please, if you have new 
 requirements that you would like to see implemented or if you have examples 
-of usage or if you discover some bugs, send me information. 
+of usage or if you discover some bugs, send us information.
+Check the website http:sharon.cselt.it/projects/jade for how to report bugs and send suggestions.  
 
 
 
@@ -33,59 +34,83 @@ needed. At least a Java Development Kit version 1.2 is required.
 INSTALLATION AND TEST
 ==============================
 
-After uncompressing the archive, you will have a directory tree
-starting with JADE.
+First of all, you can download JADE in source form and recompile it yourself, or get the pre-compiled binaries (actually they are JAR files). 
 
-After compiling, one can run the example programs in 'src/examples'
-subdirectory; remember to set CLASSPATH environment variable to
-include the file jade.jar in 'lib' directory and the current directory,
-then change to 'src' directory.
 
-Be careful to set a suitable CLASSPATH (i.e. including both the
-jade.jar file with compiled classes and the current directory)
-otherwise you will get a 'ClassNotFoundException' during
-'Naming.bind()' operation.
+	Running JADE from the binary distribution
+        -----------------------------------------
 
+After uncompressing the archive, you will have a directory tree starting with jade with a lib subdirectory, containing some JAR files.  You just have to add all the JAR files to your CLASSPATH, and you are ready to start JADE.
 To run the Agent Platform, one must issue the command:
 
         java jade.Boot -platform [options] [Agent list]
 
 Use -h option to get a list of command line arguments.
-
-To start some agents on additional hosts, one must create and run more
-Agent Containers; these components connect themselves with the main
-Agent Platform, resulting in a distributed system that seems a single
-Agent Platform from outside.
-
+To start some agents on additional hosts, one must create and run more Agent Containers; these components connect themselves with the main Agent Platform, resulting in a distributed system that seems a single Agent Platform from the outside.
 An Agent Container can be started using the command:
 
         java jade.Boot [options] [Agent list]
 
-Again, using -h command-line option explains program usage. As can be
-seen from above, the same command is issued in the two cases, with the
-'-platform' command-line switch used to choose between an ordinary
-Agent Container and the global Agent Platform.
+Again, using -h command-line option explains program usage. 
+As can be seen from above, the same command is issued in the two cases, with the -platform command-line switch used to choose between an ordinary Agent Container and the global Agent Platform. Using command-line options, users can state host name and port number where the main Agent Platform resides, and the name with which it is registered in RMI Registry. This way, multiple platforms can be executed on a single host.
+The agent list is a sequence of character strings; each of them must be broken in two parts by a colon ':'. The substring before the colon is taken as the agent name, whereas the substring after the colon is the name of the Java class implementing the agent. This class will be dynamically loaded by the Agent Container.
+For example, a string Peter:myAgent means "create a new agent named Peter whose implementation is an object of class myAgent". The name of the class must be fully qualified, (e.g. Peter:myPackage.myAgent) and will be searched for according to CLASSPATH definition.
+Refer to the README file in src/examples directory to get some explanations of each example program behaviour.
 
-Using command-line options, users can state host name and port number
-where the main Agent Platform resides, and the name with which it is
-registered in RMI Registry. This way, multiple platform can be
-executed on a single host.
 
-The agent list is a sequence of character strings; each one of them
-must be broken in two parts by a colon ':'. The substring before the
-colon is taken as the agent name, whereas the substring after the
-colon is the name of the Java class implementing the agent. This class
-will be dynamically loaded by the Agent Container.
 
-For example, a string 'Peter:myAgent' means "create a new agent named
-Peter whose implementation is an object of class myAgent". The name of
-the class must be fully qualified, (e.g. Peter:myPackage.myAgent) and
-will be searched for according to CLASSPATH definition.
+	Building JADE from the source distribution
+        ------------------------------------------
 
-After compilation, some simple agents (just to test the basic platform
-mechanisms) can be found in test subdirectory. Please refer to the
-'README' file in 'src/examples' directory to get some explanations of
-each example program behaviour:
+If you downloaded JADE in source form and want to compile it, you basically have two methods: either you use the provided makefiles (for GNU make), or you run the Win32 .BAT files you can find in the root directory of the package. Of course, using makefiles yields more flexibility because they just build what is needed; JADE makefiles have been tested under Sun Solaris 7 with JDK 1.2.0 and under Linux under JDK 1.2.2 RC4. The batch files have been tested under Windows NT 4.0 and under Windows 95, both with JDK 1.2.2.
+You can perform the following build operations:
+
+Building JADE platform
+
+If you use the makefiles, just type
+make all
+in the root directory; if you use the batch files, type
+makejade
+in the root directory. Beware that the batch file will not be able to check whether IDL stubs and parser classes already exist, so either you have idltojava and JavaCC installed, or you comment out them in the batch file.
+You will end up with all JADE classes in a classes subdirectory. You can add that directory to your CLASSPATH and make sure that everything is OK by running JADE, as described in the previous section.
+
+Building JADE libraries
+
+With makefiles, type
+make lib
+With batch files, type
+makelib
+This will remove the content of the classes directory and will create some JAR files in the lib directory. These JAR files are just the same you get from the binary distribution. See section 5.2 for running JADE when you have built the JAR files. Beware that, both with makefiles and batches, you must first build the classes and then the libraries, otherwise you will end up wuth empty JAR files.
+
+Building JADE HTML documentation
+
+With makefiles, type
+make doc
+With batch files, type
+makedoc
+
+You will end up with Javadoc generated HTML pages, integrated within the overall documentation. Beware that the Programmer’s Guide is a PDF file that cannot be generated at your site, but you must download it (it is, of course, in the JADE documentation distribution).
+
+Building JADE examples and demo application
+
+If you downloaded the examples/demo archive and have unpacked it within the same source tree, you will have to set your CLASSPATH to contain either the classes directory or the JAR files in the lib directory, depending on your JADE distribution, and then type:
+make examples
+with makefiles, or
+makeexamples
+with batch files.
+
+Cleaning up the source tree
+
+If you type
+make clean
+with makefiles, or if you type
+clean
+with batch files, you will remove all generated files (classes, HTML pages, JAR files, etc.) from the source tree. If you use makefiles, you will find some other make targets you can use. Feel free to try them, especially if you are modifying JADE source code, but be aware that these other make targets are for internal use only, so they have not been documented.
+
+
+NOTE: jade/lib/Base64.jar is only needed if you want to use the support for JADE 
+      serialization and trasmitting sequences of bytes within an ACLMessage. In all
+      other cases, it is not necessary adding it to CLASSPATH .
 
 BUGS
 ====
@@ -107,27 +132,21 @@ BUGS
 
 
 
-TODO
-====
-
- - Add support for agent mobility.
-
- - Add support for message content language parsing.
-
- - Add support for message ontology checking.
-
-
 CONTACT
 =======
 Fabio Bellifemine - CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
 e-mail: bellifemine@cselt.it
 
+Tiziana Trucco - CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
+e-mail tiziana.trucco@cselt.it
+
 EXAMPLE
 =======
-#first of all set the CLASSPATH to include also jade.jar and the current directory
-# (WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar
+#first of all set the CLASSPATH to include also jade.jar, jade.tools.jar and 
+#the current directory
+#(WindowsNT: set CLASSPATH=%CLASSPATH%;.;c:\jade\lib\jade.jar
 
-java jade.Boot -name facts -platform -host kim.cselt.it 
+java jade.Boot -platform -host kim.cselt.it 
         # start the platform on another shell on the same host
 java jade.Boot -name facts -host kim.cselt.it sender1:examples.ex2.AgentSender 
         # start an agent container on another shell and tell to join the AgentPlatform
