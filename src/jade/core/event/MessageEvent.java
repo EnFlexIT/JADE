@@ -42,7 +42,7 @@ public class MessageEvent extends JADEEvent {
   public static final int RECEIVED_MESSAGE = 3;
   public static final int ROUTED_MESSAGE = 4;
 
-  private int myID;
+  //private int myID;
 
   private ACLMessage message;
   private AID agent;
@@ -50,8 +50,8 @@ public class MessageEvent extends JADEEvent {
   private Channel to;
 
   public MessageEvent(int id, ACLMessage msg, AID aid, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(isRouting()) {
       throw new InternalError("Bad event kind: it must not be a 'message-routed' event.");
     }
@@ -62,8 +62,8 @@ public class MessageEvent extends JADEEvent {
   }
 
   public MessageEvent(int id, ACLMessage msg, Channel f, Channel t, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isRouting()) {
       throw new InternalError("Bad event kind: it must be a 'message-routed' event.");
     }
@@ -90,7 +90,7 @@ public class MessageEvent extends JADEEvent {
   }
 
   public boolean isRouting() {
-    return myID == ROUTED_MESSAGE;
+    return type == ROUTED_MESSAGE;
   }
 
 }

@@ -41,14 +41,14 @@ public class MTPEvent extends JADEEvent {
   public static final int MESSAGE_IN = 3;
   public static final int MESSAGE_OUT = 4;
 
-  private int myID; // The actual type of the event
+  //private int myID; // The actual type of the event
   private Channel chan;
   private Envelope env;
   private byte[] payload;
 
   public MTPEvent(int id, ContainerID cid, Channel ch) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isInstall()) {
       throw new InternalError("Bad event kind: it must be an MTP installation related kind.");
     }
@@ -58,8 +58,8 @@ public class MTPEvent extends JADEEvent {
   }
 
   public MTPEvent(int id, ContainerID cid, Envelope e, byte[] pl) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isCommunication()) {
       throw new InternalError("Bad event kind: it must be a communication related kind.");
     }
@@ -81,11 +81,11 @@ public class MTPEvent extends JADEEvent {
   }
 
   public boolean isInstall() {
-    return (myID == ADDED_MTP) || (myID == REMOVED_MTP);
+    return (type == ADDED_MTP) || (type == REMOVED_MTP);
   }
 
   public boolean isCommunication() {
-    return (myID == MESSAGE_IN) || (myID == MESSAGE_OUT);
+    return (type == MESSAGE_IN) || (type == MESSAGE_OUT);
   }
 
   // Nothing to add to superclass

@@ -50,7 +50,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
   public static final int CHANGED_AGENT_PRINCIPAL = 8;
   public static final int CHANGED_CONTAINER_PRINCIPAL = 9;
 
-  private int myID; // The actual type of the event
+  //private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
   private String myPlatformName = null;  // the name of the platform that generated this event
   private AID agent = null;
@@ -85,8 +85,8 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * @see #getContainer()
    */
   public PlatformEvent(int id, ContainerID eventSource) {
-    super(eventSource);
-    myID = id;
+    super(id, eventSource);
+    //myID = id;
     if(!isContainerBD()) {
       throw new InternalError("Bad event kind: it must be a container related kind.");
     }
@@ -123,8 +123,8 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * @see #getAgent()
    */
   public PlatformEvent(int id, AID aid, ContainerID eventSource) {
-    super(eventSource);
-    myID = id;
+    super(id, eventSource);
+    //myID = id;
     if(!isAgentBD()) {
       throw new InternalError("Bad event kind: it must be an agent related kind.");
     }
@@ -150,16 +150,16 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * @see #getAgent()
    */
   public PlatformEvent(AID aid, ContainerID eventSource, ContainerID to) {
-    super(eventSource);
-    myID = MOVED_AGENT;
+    super(MOVED_AGENT, eventSource);
+    //myID = MOVED_AGENT;
     agent = aid;
     newContainer = to;
   }
 
 //__SECURITY__BEGIN
   public PlatformEvent(int id, AID aid, ContainerID eventSource, JADEPrincipal from, JADEPrincipal to) {
-    super(eventSource);
-    myID = id;
+    super(id, eventSource);
+    //myID = id;
     agent = aid;
     oldPrincipal = from;
     newPrincipal = to;
@@ -241,7 +241,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * otherwise, false is returned.
    */
   public boolean isContainerBD() {
-    return (myID == ADDED_CONTAINER) || (myID == REMOVED_CONTAINER);
+    return (type == ADDED_CONTAINER) || (type == REMOVED_CONTAINER);
   }
 
   /**
@@ -254,8 +254,8 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * {@link #DEAD_AGENT DEAD_AGENT}, otherwise, false is returned.
    */
   public boolean isAgentBD() {
-    return (myID == BORN_AGENT) || (myID == DEAD_AGENT) ||
-        (myID == SUSPENDED_AGENT) || (myID == RESUMED_AGENT);
+    return (type == BORN_AGENT) || (type == DEAD_AGENT) ||
+        (type == SUSPENDED_AGENT) || (type == RESUMED_AGENT);
   }
   
   /**
@@ -271,7 +271,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
    * @return The event type.
    */
   public int getEventType() {
-      return myID;
+      return type;
   }
   
   /**
@@ -307,7 +307,7 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
       StringBuffer buf = new StringBuffer(128);
       
       buf.append("PlatformEvent[");
-      switch (myID) {
+      switch (type) {
           case ADDED_CONTAINER:
               buf.append("add container: ").append(getSource());
               break;

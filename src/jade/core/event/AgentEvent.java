@@ -47,7 +47,7 @@ public class AgentEvent extends JADEEvent {
   public static final int CHANGED_BEHAVIOUR_STATE = 4;
   public static final int CHANGED_AGENT_PRINCIPAL = 5;
 
-  private int myID;
+  //private int myID;
 
   private AID agent;
   private BehaviourID behaviour = null;
@@ -61,8 +61,8 @@ public class AgentEvent extends JADEEvent {
 //__SECURITY__END
 
   public AgentEvent(int id, AID aid, AgentState f, AgentState t, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isChangedAgentState()) {
       throw new InternalError("Bad Event kind: it must be a 'changed-agent-state' event.");
     }
@@ -74,8 +74,8 @@ public class AgentEvent extends JADEEvent {
 
 //__SECURITY__BEGIN
   public AgentEvent(int id, AID aid, AgentPrincipal f, AgentPrincipal t, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isChangedAgentPrincipal()) {
       throw new InternalError("Bad Event kind: it must be a 'changed-agent-principal' event.");
     }
@@ -86,8 +86,8 @@ public class AgentEvent extends JADEEvent {
 //__SECURITY__END
 
   public AgentEvent(int id, AID aid, BehaviourID bid, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(isChangedAgentState() || isChangedBehaviourState()) {
       throw new InternalError("Bad Event kind: it must be an 'added/removed-behaviour' event.");
     }
@@ -98,8 +98,8 @@ public class AgentEvent extends JADEEvent {
   }
 
   public AgentEvent(int id, AID aid, BehaviourID bid, String strFrom, String strTo, ContainerID cid) {
-    super(cid);
-    myID = id;
+    super(id, cid);
+    //myID = id;
     if(!isChangedBehaviourState()) {
       throw new InternalError("Bad Event kind: it must be a 'changed-behaviour-state' event.");
     }
@@ -150,15 +150,15 @@ public class AgentEvent extends JADEEvent {
 //__SECURITY__END
 
   private boolean isChangedAgentPrincipal() {
-    return myID == CHANGED_AGENT_PRINCIPAL; 
+    return type == CHANGED_AGENT_PRINCIPAL; 
   }
 
   private boolean isChangedAgentState() {
-    return myID == CHANGED_AGENT_STATE; 
+    return type == CHANGED_AGENT_STATE; 
   }
 
   private boolean isChangedBehaviourState() {
-    return myID == CHANGED_BEHAVIOUR_STATE;
+    return type == CHANGED_BEHAVIOUR_STATE;
   }
 
 }

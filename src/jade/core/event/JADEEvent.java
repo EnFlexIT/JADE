@@ -24,8 +24,8 @@ Boston, MA  02111-1307, USA.
 package jade.core.event;
 
 import java.util.Date;
-import java.util.EventObject;
 
+import jade.util.Event;
 import jade.core.ContainerID;
 
 /**
@@ -36,12 +36,12 @@ import jade.core.ContainerID;
  *
  * @version $Date$ $Revision$
  */
-public class JADEEvent extends EventObject {
+public class JADEEvent extends Event {
 
   private Date time;
 
-  public JADEEvent(ContainerID cid) {
-      super(cid);
+  public JADEEvent(int type, ContainerID cid) {
+      super(type, cid);
       time = new Date(); // Now
   }
 
