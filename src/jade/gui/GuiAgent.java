@@ -66,6 +66,8 @@ the Agent thread to execute the method <code>onGuiEvent</code>.
 
 public abstract class GuiAgent extends Agent
 {
+  private static final long     serialVersionUID = 3487495895819010L;
+	
 	/**
 	@serial
 	*/
@@ -79,6 +81,7 @@ public abstract class GuiAgent extends Agent
 	// GUI HANDLER BEHAVIOUR
 	private class GuiHandlerBehaviour extends SimpleBehaviour
 	{
+  	private static final long     serialVersionUID = 3487495895819011L;
 		protected GuiHandlerBehaviour()
 		{
 			super(GuiAgent.this);

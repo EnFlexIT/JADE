@@ -100,7 +100,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 
     /**
      * Constructor of the behaviour that creates a new empty DataStore
-     * @see jade.proto.SubscriptionResponder#SubscriptionResponder(Agent , MessageTemplate , SubscriptionManager , DataStore ) 
+     * @see #SubscriptionResponder(Agent, MessageTemplate, SubscriptionManager, DataStore) 
      **/
     public SubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm){
 			this(a, mt, sm, new DataStore());

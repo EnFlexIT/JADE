@@ -12,9 +12,6 @@ ant testsuite - to compile test Suite
   <property name="classpath" value="classes"/>
   <property name="src" value="src"/>
   <property name="dest" value="classes"/>
-  <!--
-  <property name="separate-classpath" value="add-ons/leap/pjava/lib/JadeLeap.jar"/>
-	-->
 	
   <target name="init">
     <!-- Create the time stamp -->
@@ -58,6 +55,7 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/domain/ams/amsTestsList.xml" todir="${dest}/test/domain/ams"/>
     <copy file="${src}/test/domain/df/dfTestsList.xml" todir="${dest}/test/domain/df"/>
     <copy file="${src}/test/domain/df/persistentDFTestsList.xml" todir="${dest}/test/domain/df"/>
+    <copy file="${src}/test/domain/df/df.properties" todir="${dest}/test/domain/df"/>
     <copy file="${src}/test/interPlatform/interPlatformTestsList.xml" todir="${dest}/test/interPlatform"/>
     <copy file="${src}/test/mobility/mobilityTestsList.xml" todir="${dest}/test/mobility"/>
     <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
@@ -96,8 +94,8 @@ ant testsuite - to compile test Suite
   	       target="1.1"
 	         compiler="javac1.1"
   	       deprecation="off"/>
-  	       
-		<delete file="${src}/test/separate.jar" quiet="true"/>
+
+  	<delete file="${src}/test/separate.jar" quiet="true"/>
 		<jar jarfile="${src}/test/separate.jar">
 			<fileset dir="${dest}">
   			<include name="**/test/mobility/separate/**"/>

@@ -110,7 +110,8 @@ public class MobilityOntology extends Ontology implements MobilityVocabulary {
 	as.add(MOVE_MOBILE_AGENT_DESCRIPTION, (ConceptSchema)getSchema(MOBILE_AGENT_DESCRIPTION));
 	
 	as = (AgentActionSchema)getSchema(CLONE);
-	as.add(CLONE_MOBILE_AGENT_DESCRIPTION, (ConceptSchema)getSchema(MOBILE_AGENT_DESCRIPTION));
+	as.addSuperSchema((AgentActionSchema)getSchema(MOVE));
+	//as.add(CLONE_MOBILE_AGENT_DESCRIPTION, (ConceptSchema)getSchema(MOBILE_AGENT_DESCRIPTION));
 	as.add(CLONE_NEW_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 	
 	
