@@ -45,7 +45,7 @@ export JFLAGS
 all: src examples demo
 	@echo JADE project built
 
-doc: clean
+doc: $(DOCDIR) clean
 	cd $(DOCDIR); $(MAKE) all
 	@echo HTML documentation built
 
@@ -53,15 +53,15 @@ lib:
 	cd $(LIBDIR); $(MAKE) all
 	@echo Libraries built
 
-src:
+src: $(CLSDIR)
 	cd $(SRCDIR); $(MAKE) all
 	@echo Sources built
 
-examples:
+examples: $(CLSDIR)
 	cd $(EXAMPLESDIR); $(MAKE) all
 	@echo Examples built.
 
-demo:
+demo: $(CLSDIR)
 	cd $(DEMODIR); $(MAKE) all
 	@echo Demo applications built.
 
