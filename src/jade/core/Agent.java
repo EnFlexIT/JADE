@@ -217,10 +217,9 @@ public class Agent implements Runnable, Serializable
 
   } // End of inner class AssociationTB 
 
-  
-    /**
-       Inner class TBPair
-     */
+/** Inner class TBPair
+ *
+ */
     private static class TBPair {
 
 	public TBPair() {

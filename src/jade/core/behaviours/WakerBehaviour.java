@@ -132,7 +132,7 @@ public final void action() {
   return;
 } //end of action
 
-  /**
+/**
    * This method is called by this subclass only after the given timeout is
    * elapsed.
    * The method has available the class variable <code>myAgent</code> that

@@ -266,12 +266,13 @@ public class Sniffer extends ToolAgent {
 
   } // End of SniffListenerBehaviour
 
-    /**
-     * Search keys in preload for a string which matches (using isMatch method)
-     * the agent name.
-     * @param agentName The agent name.
-     * @return String The key which matched.
-     */
+//
+//
+//    * Search keys in preload for a string which matches (using isMatch method)
+//     * the agent name.
+//     * @param agentName The agent name.
+//     * @return String The key which matched.
+//
     protected String preloadContains(String agentName) {
         for (Enumeration enum = preload.keys(); enum.hasMoreElements() ;) {
             String key = (String)enum.nextElement();
