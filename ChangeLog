@@ -10,8 +10,9 @@ GENERAL IMPROVEMENTS:
   - the container functionalities have been split between a front-end and 
     a back-end in order to reduce the footprint and to increase the 
     performance in J2ME and wireless. 
-  - MIDP agents can also be sniffed and introspected now.
-  - added support for .NET compilation (experimental and undocumented)
+  - MIDP agents can also be sniffed now.
+  - added support for .NET compilation (experimental and undocumented; by 
+  	Steffen Rusitschka & Robert Kessler)
   - added a multi-party chat demo on J2ME MIDP
   - Improved and simplified shutdown procedure
 - updated JADE to the new set of FIPA Standards, approved by FIPA at end 2002.
@@ -67,8 +68,8 @@ GENERAL IMPROVEMENTS:
   method getProperty
 - added new class jade.util.Logger to print log messages in a device dependent
   way
-- removed jade.core.MobilityManager because no longer used 
-  and added logging mechanism to RealMobilityManager
+- removed jade.domain.MobilityManager because no longer used. 
+- Added logging mechanism to RealMobilityManager
 - jade.proto.SubscriptionResponder has been improved in order to use a single 
   ACLMessage object for several notifications
 - added method getTickCount() in jade.core.behaviours.TickerBehaviour
@@ -87,6 +88,8 @@ GENERAL IMPROVEMENTS:
   jade.domain.FipaServiceCommunicator.doFipaRequestClient
 - a new set of icons has been used in the RMA, provided by Itai Shirav.
 - jade.proto.FIPAProtocolNames has been deprecated and will be soon removed
+- added possibility to start a Sniffer agent automatically sniffing a set 
+	of agents indicated as arguments (by Karl-Heinz Krempels) 
 
 	
 POSSIBLE BACKWARD INCOMPATIBILITIES:
