@@ -43,11 +43,11 @@ String s;
     this("unknown-value");
   }
 public UnsupportedValue(String value) {
-    super("(Unsupported-value "+value+")");
+    super("(Unsupported-value \""+value+"\")");
     s=value;
 }
 
-public void setValue(String a){s=a;setMessage("(Unsupported-value "+a+")"); }
+public void setValue(String a){s=a;setMessage("(Unsupported-value \""+a+"\")"); }
 public String getValue() {return s;}
 
 public void set_0(String a){setValue(a); }

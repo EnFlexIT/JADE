@@ -36,7 +36,7 @@ import jade.content.Predicate;
 public class InternalError extends FailureException implements Predicate {
 
   public InternalError(String msg) {
-    super("(internal-error "+msg+")");
+    super("(internal-error \""+msg+"\")");
     s1=msg;
   }
 
@@ -48,7 +48,7 @@ public class InternalError extends FailureException implements Predicate {
   @serial
   */
   String s1;
-public void setErrorMessage(String s){ s1=s; setMessage("(internal-error "+s1+")");}
+public void setErrorMessage(String s){ s1=s; setMessage("(internal-error \""+s1+"\")");}
 public String getErrorMessage() {return s1;}
 
 public void set_0(String s){ setErrorMessage(s);}

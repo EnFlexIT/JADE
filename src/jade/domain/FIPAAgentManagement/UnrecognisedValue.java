@@ -39,14 +39,14 @@ public class UnrecognisedValue extends NotUnderstoodException implements Predica
     this("unknown-value");
   }
 public UnrecognisedValue(String value) {
-  super("(Unrecognised-value " + value+")");
+  super("(unrecognised-value \""+value+"\")");
   s=value;
 }
 /**
   @serial
   */
 String s;
-public void setValue(String a){s=a;}
+public void setValue(String a){s=a; setMessage("(unrecognised-value \""+s+"\")");}
 public String getValue() {return s;}
 
 public void set_0(String a){setValue(a);}
