@@ -30,6 +30,8 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JOptionPane;
@@ -79,7 +81,11 @@ public class MainWindow extends JFrame {
      Image image = getToolkit().getImage(getClass().getResource(snifferLogo));
      setIconImage(image);
 
-     addWindowListener(new ProgramCloser());
+     addWindowListener(new WindowAdapter() {
+	     public void windowClosing(WindowEvent e) {
+		 MainWindow.this.mySniffer.doDelete();
+	     }
+     });
      mainPanel.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
      mainPanel.treeAgent.register("FIPACONTAINER",null,"images/foldergreen.gif");
      getContentPane().add(new ToolBar(actPro),"North");
