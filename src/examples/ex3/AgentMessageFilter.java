@@ -15,7 +15,7 @@ public class AgentMessageFilter extends Agent {
 
     addBehaviour(new CyclicBehaviour(this) {
 
-      protected void action() {
+      public void action() {
 	System.out.println("Now receiving messages with :reply-with alt.agents.fipa");
 	ACLMessage msg = blockingReceive(MessageTemplate.MatchReplyWith("alt.agents.fipa"));
 	String source = msg.getSource();
