@@ -57,7 +57,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
   	state = 0;
 	}
 	
-	public final void onStart() {
+	public void onStart() {
 		wakeupTime = System.currentTimeMillis() + period;
 	}
 	
