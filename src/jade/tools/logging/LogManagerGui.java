@@ -24,6 +24,7 @@ package jade.tools.logging;
 
 // Import required Java classes 
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.util.logging.*;
@@ -45,30 +46,32 @@ public class LogManagerGui extends javax.swing.JFrame {
 	private static final int HEIGHT = 500;
 	
 	private static int NAME_COLUMN  		= 0;
-	private static int LEVEL_COLUMN 		= 1;					
-	private static int SET_LEVEL_COLUMN 	= 2;		
-	private static int HANDLER_COLUMN 		= 3;		
-	private static int FILE_HANDLER_COLUMN 	= 4;
+	private static int SET_LEVEL_COLUMN 	= 1;		
+	private static int HANDLER_COLUMN 		= 2;		
+	private static int FILE_HANDLER_COLUMN 	= 3;
 	
 	LogManager logManager = LogManager.getLogManager();
-	
+	JComboBox levelCombo;
+
 	public LogManagerGui(LogManagerAgent agent){
 		this.myAgent = agent;
 		init();
 		}
 
 	public void init(){
-		setTitle("Logging service configuration");
+		// set the icon for this frame
+		setIconImage(getToolkit().getImage(getClass().getResource("/jade/gui/images/logosmall.jpg")));
+		setTitle(myAgent.getLocalName()+" - Log Manager Agent");
 		setSize(WIDTH,HEIGHT);
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
 		
-		TableModel model = new LogTable(getLoggers()-1,5);
+		TableModel model = new LogTable(getLoggers(),4);
 		JTable table = new JTable(model);
 		getContentPane().add(new JScrollPane(table),"Center");
 		
 		//Allows the modification of the value in the cell
 		
-		JComboBox levelCombo = new JComboBox();
+		levelCombo = new JComboBox();
 		levelCombo.addItem("SEVERE");
 		levelCombo.addItem("WARNING");
 		levelCombo.addItem("INFO");
@@ -82,16 +85,33 @@ public class LogManagerGui extends javax.swing.JFrame {
 		TableCellEditor levelEditor = new DefaultCellEditor(levelCombo);	
 		
 		TableColumnModel columnModel = table.getColumnModel();
-		TableColumn setLevelColumn = columnModel.getColumn(2); 	
+		TableColumn setLevelColumn = columnModel.getColumn(SET_LEVEL_COLUMN); 	
 		
 		setLevelColumn.setCellEditor(levelEditor);
+
+		addWindowListener(new WindowAdapter() {
+						public void windowClosing(WindowEvent e) {
+								System.out.println("closing");
+								dispose();
+								myAgent.doDelete();
+	     }
+     });
 		}
 		
 	private int getLoggers(){
 		for(Enumeration e = logManager.getLoggerNames();e.hasMoreElements();){
-			LogElem logElem= new LogElem(e.nextElement()," ", " ");
-			loggers.add(logElem);
+			String logName = (String)e.nextElement();
+			LogElem logElem= new LogElem(logName," ", " ");
+			// add the logger into the vector at the proper position, given the
+			// lexical order
+			// FIXME. This should be improved in performance
+			int i;
+			for (i=0; (i<loggers.size() 
+								 && ( ((LogElem)loggers.elementAt(i)).getLogger().toString().compareTo(logName) <= 0)); i++) {
 			}
+			//System.out.println(logName+" "+i+" "+loggers.size());
+			loggers.add(i, logElem);
+			} 
 		return loggers.size();
 		}
 	  /**
@@ -210,10 +230,9 @@ public class LogManagerGui extends javax.swing.JFrame {
 
 			switch (column){
 				case 0:result = ((LogElem)loggers.elementAt(row)).getLogger();	break;	
-				case 1:result = theLevel;										break;
-				case 2:result = ((LogElem)loggers.elementAt(row)).getLevel();	break;
-				case 3:result =  handler;										break;
-				case 4:result =	fileHandler;									break;
+			  case 1:result = theLevel.toString(); break;
+				case 2:result =  handler;										break;
+				case 3:result =	fileHandler;									break;
 				}
 			return result;
 			}
@@ -221,7 +240,7 @@ public class LogManagerGui extends javax.swing.JFrame {
 		public void setValueAt(Object value, int row, int column){
 			java.util.logging.Logger logger = logManager.getLogger(((LogElem)loggers.elementAt(row)).getLogger().toString());						
 			switch(column){
-				case 2:{
+				case 1:{
 					Level level = Level.parse(value.toString());
 					logger.setLevel(level);
 					((LogElem)loggers.elementAt(row)).setLevel(value.toString());
@@ -230,7 +249,7 @@ public class LogManagerGui extends javax.swing.JFrame {
 					System.out.println("Set log level for "+logger.getName() +" to: "+logger.getLevel().toString());
 					}
 				break;
-				case 4:	{
+				case 3:	{
 					try{
 						((LogElem)loggers.elementAt(row)).setFileName(value.toString());
 						if (((LogElem)loggers.elementAt(row)).getFileName().length()>1)
@@ -248,10 +267,9 @@ public class LogManagerGui extends javax.swing.JFrame {
 			String columnName = null;
 			switch (column){
 				case 0: columnName = "Logger Name"; break;
-				case 1: columnName = "Level";		break;
-				case 2: columnName = "Set Level";	break;												
-				case 3: columnName = "Handlers";	break;				
-				case 4: columnName = "Log to file";	break;	
+				case 1: columnName = "Set Level";	break;												
+				case 2: columnName = "Handlers";	break;				
+				case 3: columnName = "Set log file";	break;	
 				}
 			return columnName;
 			}
