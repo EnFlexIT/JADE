@@ -19,9 +19,10 @@
 package jade.core;
 
 import java.util.Vector;
+import java.util.Stack;
 
 
-public abstract class ComplexBehaviour implements Behaviour {
+public abstract class ComplexBehaviour extends Behaviour {
 
   // Inner class to implement a singly linked list of behaviours
   private class BehaviourList {
@@ -35,6 +36,8 @@ public abstract class ComplexBehaviour implements Behaviour {
     Node last = null;
     Node current = null;
 
+    Stack nodeStack = new Stack();
+
     // Node counter
     int length = 0;
 
@@ -46,7 +49,7 @@ public abstract class ComplexBehaviour implements Behaviour {
     }
 
     // Add a new Node to the end of the list, with b in it.
-    public final synchronized void addElement(Behaviour b) {
+    public void addElement(Behaviour b) {
       Node n = new Node();
       n.item = b;
       n.next = null;
@@ -58,7 +61,7 @@ public abstract class ComplexBehaviour implements Behaviour {
       ++length;
     }
 
-    public final synchronized boolean removeElement(Behaviour b) {
+    public boolean removeElement(Behaviour b) {
       // Remove b from the list; if b was in the list, return true
       // otherwise return false
       Node i = first;
@@ -83,6 +86,14 @@ public abstract class ComplexBehaviour implements Behaviour {
 	--length;
 	return true;
       }
+    }
+
+    public void pushCurrent() {
+      nodeStack.push(current);
+    }
+
+    public void popCurrent() {
+      current = (Node)nodeStack.pop();
     }
 
     public Behaviour getCurrent() {
@@ -114,7 +125,6 @@ public abstract class ComplexBehaviour implements Behaviour {
 
   }
 
-  protected Agent myAgent;
   protected BehaviourList subBehaviours = new BehaviourList();
 
   // This variables mark the states when no sub-behaviour has been run
@@ -123,11 +133,11 @@ public abstract class ComplexBehaviour implements Behaviour {
   private boolean finished = false;
 
   public ComplexBehaviour() {
-    myAgent = null;
+    super();
   }
 
   public ComplexBehaviour(Agent a) {
-    myAgent = a;
+    super(a);
   } 
 
   protected void preAction() {
@@ -159,14 +169,60 @@ public abstract class ComplexBehaviour implements Behaviour {
 
   public void addBehaviour(Behaviour b) {
     subBehaviours.addElement(b);
+    b.setParent(this);
     //    b.setAgent(myAgent); // FIXME: Forcing the same agent in all behaviours tree ?
   }
 
   public void removeBehaviour(Behaviour b) {
     boolean rc = subBehaviours.removeElement(b);
-    if(!rc) {
+    if(rc) {
+      b.setParent(null);
+    }
+    else {
       // The specified behaviour was not found
     }
   }
 
+  // This method handles notification by simply forwarding it
+  // according to its original direction
+  protected void handle(RunnableChangedEvent rce) {
+
+    // Pass downwards events to children
+    if(!rce.isUpwards()) {
+      subBehaviours.pushCurrent(); // Save cursor
+
+      // Iterate over the entire list and call handle() for each
+      // sub-behaviour
+      subBehaviours.begin();
+      Behaviour b = subBehaviours.getCurrent();
+      while(b != null) {
+	b.handle(rce);
+	subBehaviours.next();
+	b = subBehaviours.getCurrent();
+      }
+
+      subBehaviours.popCurrent(); // Restore cursor
+    }
+    // Copy runnable state and pass it to parent, if the event is
+    // going upwards and a parent is present
+    super.handle(rce);
+
+  }
+
+
+  // block()/restart() are the public interface to Behaviour
+  // scheduling subsystem. A ComplexBehaviour blocks just like its
+  // Behaviour superclass, but when restart() is called sub-behaviours
+  // are notified, too.
+
+  public void restart() {
+    // Notify upwards
+    super.restart();
+
+    // Then notify downwards
+    myEvent.init(true, NOTIFY_DOWN);
+    handle(myEvent);
+  }
+
 }
+
