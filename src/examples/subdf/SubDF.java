@@ -28,12 +28,14 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import jade.core.*;
 import jade.core.behaviours.*;
 
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;
-
+import jade.domain.RequestDFActionBehaviour;
+import jade.lang.acl.ACLMessage;
 /**
 This is an example of an agent that plays the role of a sub-df by 
 registering with a parent DF.
@@ -43,7 +45,26 @@ registering with a parent DF.
 
 public class SubDF extends jade.domain.df {
 
-  public void setup() {
+  // This behaviour implements the RequestDFActionBehaviour in order to perform a register action with a DF
+	private class myRegisterWithDFBehaviour extends RequestDFActionBehaviour
+  {
+  	jade.domain.df mySelf;
+  	
+  	myRegisterWithDFBehaviour(jade.domain.df a,String dfName,AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException
+  	{
+  		super(a,dfName,AgentManagementOntology.DFAction.REGISTER, dfd);
+  		mySelf = a;
+  	}
+  	
+  	public void handleInform(ACLMessage msg)
+  	{
+  	
+  		addParent(msg.getSource());
+  		mySelf.showGui();
+  	}
+  }
+  
+	public void setup() {
 
     // Input df name
     int len = 0;
@@ -77,18 +98,18 @@ public class SubDF extends jade.domain.df {
       sd.setType("fipa-df");
 
       dfd.addAgentService(sd);
-
-      try {
-      	registerWithDF(parentName, dfd);
-      }catch(FIPAException fe) {
-       fe.printStackTrace();
-      }
+      
+      addBehaviour(new myRegisterWithDFBehaviour(this,parentName,dfd));
 		
       //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
       //(i.e. register, unregister,modify, and search).
      super.setup();
+     
+     //Use this method to modify the current description of this df. 
+     setDescriptionOfThisDF(getDescription());
+     
      //Show the default Gui of a df.
-     super.showGui();
+     //super.showGui();
     
     }catch(InterruptedIOException iioe) {
       doDelete();
@@ -96,8 +117,31 @@ public class SubDF extends jade.domain.df {
     catch(IOException ioe) {
       ioe.printStackTrace();
     }
-
+    catch(FIPAException fe){fe.printStackTrace();}
   }
-
+  
+  private AgentManagementOntology.DFAgentDescriptor getDescription()
+  {
+  	AgentManagementOntology.DFAgentDescriptor out = new AgentManagementOntology.DFAgentDescriptor();
+  	
+		out.setName(getName());
+		out.addAddress(getAddress());
+		try{
+		  	out.setOwnership(InetAddress.getLocalHost().getHostName());
+		}catch (java.net.UnknownHostException uhe){
+		 out.setOwnership("unknown");}
+		 out.setType("fipa-df");
+		 out.setDFState("active");
+		 out.setOntology("fipa-agent-management");
+		  //thisDF.setLanguage("SL0"); not exist method setLanguage() for dfd in Fipa97
+		 out.addInteractionProtocol("fipa-request");
+		 out.addInteractionProtocol("fipa-contract-net");
+		 AgentManagementOntology.ServiceDescriptor sd = new 	AgentManagementOntology.ServiceDescriptor();
+	   sd.setType("fipa-df");
+	   sd.setName("federate-df");
+	   sd.setOntology("fipa-agent-management");
+		 out.addAgentService(sd);
+		 return out;
+  }
 
 }
