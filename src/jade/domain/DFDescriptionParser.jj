@@ -80,17 +80,13 @@ void FIPA_DF_description() :
 }
 {
    <AGENT_NAME> AgentName()
- | <AGENT_ADDRESS> ( CommAddress() )+
+ | <AGENT_ADDRESS> ( s = CommAddress() { desc.addAddress(s); } )+
  | <AGENT_SERVICES> ( FIPA_Service_Desc() )+
  | <AGENT_TYPE> t = <WORD>
    {
      desc.setType(t.image);
    }
-   // FIXME: Should be (<WORD>)+
- | <INTERACTION_PROTOCOLS> "(" t = <WORD> ")"
-   {
-     desc.setInteractionProtocols(t.image);
-   }
+ | <INTERACTION_PROTOCOLS> "(" ( t = <WORD> { desc.addInteractionProtocol(t.image); } )+ ")"
  | <ONTOLOGY> s = SL1Term()
    {
      desc.setOntology(s);
@@ -108,36 +104,74 @@ void FIPA_DF_description() :
 void AgentName() :
 {
   Token t;
+  String s;
 }
 {
-  t = <WORD> "@" CommAddress()
+  t = <WORD> "@" s = CommAddress()
   {
-    desc.setName(t.image);
+    desc.setName(t.image + "@" + s);
   }
 }
 
-void CommAddress() :
+String CommAddress() :
+{
+  Token proto;
+  String addr;
+  Token port;
+  String acc;
+}
+{
+  proto = <COMM_PROTOCOL> "://" (addr = IPAddress()|addr = DNSName()) ":" port = <INTEGER> "/" acc = ACCObj()
+  {
+    String s = proto.image + "://" + addr + ":" + port + "/" + acc;
+    return s;
+  }
+}
+
+String IPAddress() :
+{
+  Token t1;
+  Token t2;
+  Token t3;
+  Token t4;
+}
+{
+  t1 = <INTEGER> "." t2 = <INTEGER> "." t3 = <INTEGER> "." t4 = <INTEGER>
+  {
+    return t1.image + "." + t2.image + "." + t3.image + "." + t4.image;
+  }
+}
+
+String DNSName() :
 {
   Token t;
 }
 {
-  //  t = CommProtocol() "://" (IPAddress()|DNSName()) ":" Integer() "/" ACCObj()
   t = <WORD>
   {
-    desc.setAddress(t.image);
+    return t.image;
   }
 }
 
-
+String ACCObj() :
+{
+  Token t;
+}
+{
+  t = <WORD>
+  {
+    return t.image;
+  }
+}
 
 void FIPA_Service_Desc() :
 {
   sd = new ServiceDescriptor();
 }
 {
-  "(" <SERVICE_DESCRIPTION> ( "(" FIPA_Service_Desc_Item() ")" ) +  ")"
+  "(" <SERVICE_DESCRIPTION> ( "(" FIPA_Service_Desc_Item() ")" )+  ")"
   {
-    desc.setServices(sd);
+    desc.addService(sd);
   }
 }
 
@@ -147,11 +181,11 @@ void FIPA_Service_Desc_Item() :
   Token t;
 }
 {
-   <SERVICE_NAME> t = <ServiceTypes>
+   <SERVICE_NAME> (t = <ServiceTypes> | t = <WORD>)
     {
       sd.setName(t.image);
     }
-|  <SERVICE_TYPE> t = <ServiceTypes>
+|  <SERVICE_TYPE> (t = <ServiceTypes> | t = <WORD>)
     {
       sd.setType(t.image);
     }
@@ -205,6 +239,8 @@ TOKEN:
   <DF_DESCRIPTION : ":df-description">
 | <AGENT_NAME : ":agent-name">
 | <AGENT_ADDRESS : ":agent-address">
+| <COMM_PROTOCOL : ["A"-"Z", "a"-"z"](["A"-"Z", "a"-"z", "0"-"9", "_"])*>
+| <INTEGER : ["0"-"9"](["0"-"9"])*>
 | <AGENT_SERVICES : ":agent-services">
 | <AGENT_TYPE : ":agent-type">
 | <INTERACTION_PROTOCOLS : ":interaction-protocols">
@@ -219,8 +255,8 @@ TOKEN:
 | <NEGOTIABLE_PROPERTIES : ":negotiable-properties">
 | <COMMUNICATION_PROPERTIES : ":communication-properties">
 | <STATES : "active" | "suspended" | "retired">
-| <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" | <WORD> >
-| < WORD :   ["!", "\"", "$"-"'", "*", "+", ",", ".", "/", ":"-"~"] (["*"-"~","!"-"'"])* >
+| <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
+| <WORD :   ["!", "\"", "$"-"'", "*", "+", ",", ".", ";"-"?", "A"-"~"] (["*"-".", "0"-"9", ";"-"?","A"-"~","!"-"'"])* >
 
 }
 
