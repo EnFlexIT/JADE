@@ -665,7 +665,7 @@ public class ams extends Agent implements AgentManager.Listener {
 					delegation.decode(ca.getDelegation());
 				}
 				else {
-					DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator);
+					DelegationCertificate creatorDelegation = (DelegationCertificate)delegations.get(creator.getName());
 					delegation.setSubject(agent);
 					if (creatorDelegation != null)
 						for (Iterator i = creatorDelegation.getPermissions().iterator(); i.hasNext(); )
@@ -677,7 +677,7 @@ public class ams extends Agent implements AgentManager.Listener {
 			sendReply(ACLMessage.AGREE, createAgreeContent(a));
 
 			try {
-				authority.checkAction(Authority.AGENT_CREATE, agent, getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(creator)});
+				authority.checkAction(Authority.AGENT_CREATE, agent, getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(creator.getName())});
 
 				myPlatform.create(agentName, className, arguments, container, ownership);
 				// An 'inform Done' message will be sent to the requester only
@@ -1115,8 +1115,8 @@ public class ams extends Agent implements AgentManager.Listener {
 		return myPlatform.getAuthority();
 	}
 
-	public void setDelegation(AID agentID, DelegationCertificate delegation) {
-		delegations.put(agentID, delegation);
+	public void setDelegation(AID agent, DelegationCertificate delegation) {
+		delegations.put(agent.getName(), delegation);
 	}
 
   /**
@@ -1225,13 +1225,8 @@ public class ams extends Agent implements AgentManager.Listener {
 		AMSAgentDescription old = (AMSAgentDescription)agentDescriptions.deregister(amsd.getName());
 		if (old == null)
 			throw new NotRegistered();
-		try {
-			AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
-		}
-		catch (AuthException ae) {
-			agentDescriptions.register(old.getName(), old);
-			throw ae;
-		}
+		agentDescriptions.register(old.getName(), old);
+		AMSModify(Authority.AMS_MODIFY, old, amsd, sender, null);
 	}
 
 	private void AMSModify(String action, AMSAgentDescription old, AMSAgentDescription amsd, AID sender, CreationInfo creation) throws FIPAException, AuthException {
@@ -1284,7 +1279,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		else {
 			// we use sender's delegation to ams
 			actorIdentity = getIdentity();
-			actorDelegation = (DelegationCertificate)delegations.get(sender);
+			actorDelegation = (DelegationCertificate)delegations.get(sender.getName());
 		}
 
 		try {
@@ -1307,27 +1302,25 @@ public class ams extends Agent implements AgentManager.Listener {
 				}
 				myPlatform.changeAgentPrincipal(name, agentIdentity, agentDelegation);
 				old.setOwnership(newUser.getName());
-				agentDescriptions.register(old.getName(), old);
 			}
 			else if (creation != null) {
 				myPlatform.changeAgentPrincipal(name, creation.getIdentity(), creation.getDelegation());
 				old.setOwnership(creation.getOwnership());
-				agentDescriptions.register(old.getName(), old);
 			}
+			agentDescriptions.register(old.getName(), old);
 
 			// change agent state
 			if (!oldState.equals(old.SUSPENDED) && newState.equals(old.SUSPENDED)) {
 				authority.checkAction(Authority.AGENT_SUSPEND, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
 				myPlatform.suspend(name, "");
 				old.setState(newState);
-				agentDescriptions.register(old.getName(), old);
 			}
 			if (oldState.equals(old.SUSPENDED) && !newState.equals(old.SUSPENDED)) {
 				authority.checkAction(Authority.AGENT_RESUME, newAgent, actorIdentity, new DelegationCertificate[] {actorDelegation});
 				myPlatform.activate(name, "");
 				old.setState(newState);
-				agentDescriptions.register(old.getName(), old);
 			}
+			agentDescriptions.register(old.getName(), old);
 		}
 		catch (NotFoundException nfe) {
 			nfe.printStackTrace();
@@ -1389,7 +1382,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	}
 
 	void checkAction(String action, AID agent, AID sender) throws AuthException {
-		getAuthority().checkAction(action, getAgentPrincipal(agent), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender)});
+		getAuthority().checkAction(action, getAgentPrincipal(agent), getIdentity(), new DelegationCertificate[] {(DelegationCertificate)delegations.get(sender.getName())});
 	}
 	
 	AgentPrincipal getAgentPrincipal(AID agent) {
