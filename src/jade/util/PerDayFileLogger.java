@@ -34,6 +34,8 @@ import java.util.Date;
 /**
    This class is an OutputStream whose output is stored in 
    in different files according to the day it is produced.
+	 Existing files, if any, are not rewritten as output is appended
+	 at the end of the file. 
    @author Giovanni Caire - TILab 
  */
 public class PerDayFileLogger extends PrintStream {
@@ -49,7 +51,7 @@ public class PerDayFileLogger extends PrintStream {
        @throws IOException If some filesystem operation fails.
     */
 	public PerDayFileLogger(String file) throws IOException {
-		super(new FileOutputStream(file+"."+df.format(new Date())), true);
+		super(new FileOutputStream(file+"."+df.format(new Date()), true), true);
 		
 		this.file = file;
 		dayCnt = System.currentTimeMillis() / DAY;
@@ -61,7 +63,7 @@ public class PerDayFileLogger extends PrintStream {
 			dayCnt = n;
 			try {
 				out.close();
-				out = new FileOutputStream(file+"."+df.format(new Date()));
+				out = new FileOutputStream(file+"."+df.format(new Date()), true);
 			}
 			catch (Exception e) {}
 		}
