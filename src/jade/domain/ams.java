@@ -136,10 +136,8 @@ public class ams extends Agent implements AgentManager.Listener {
     	// Keep default (0)
     }
     
-    // Fill Agent Platform Description. 
+    // Agent Platform Description. 
     theProfile.setName("\"" + getHap() + "\"");
-    APService mtp = new APService();
-    theProfile.addAPServices(mtp);
     writeAPDescription(theProfile);
     
     // Register the supported ontologies
@@ -758,7 +756,9 @@ public class ams extends Agent implements AgentManager.Listener {
 
   // GET_DESCRIPTION
   APDescription getDescriptionAction(AID requester) {
-    log("Agent "+requester+" requesting AMS-get-description", 2);
+  	if (requester != null) {
+	    log("Agent "+requester+" requesting AMS-get-description", 2);
+  	}
     theProfile.clearAllAPServices(); // clear all the services and recreate the new APDescription
     MTPDescriptor dr;
     for (Iterator mtps = platformMTPs().iterator(); mtps.hasNext(); ) {
@@ -1129,9 +1129,15 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 			er = new EventRecord(amtp, here());
 			eventQueue.put(er);
-		    }
+		    }		    
 		}
 
+    // The PlatformDescription has changed --> Generate a suitable event
+    PlatformDescription ap = new PlatformDescription();
+    ap.setPlatform(getDescriptionAction(null));
+    er = new EventRecord(ap, here());
+		eventQueue.put(er);
+		
 		// Send all agent names, along with their container name.
 		AID[] agents = myPlatform.agentNames();
 		for (int j = 0; j < agents.length; j++) {
