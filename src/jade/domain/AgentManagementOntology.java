@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.19  1998/12/07 23:57:31  rimassa
+  Changed toText() method of all the inner classes representing Actions;
+  now the complete action representation is written, included the prefix
+  "( action <AGENT_NAME> <ACTION_NAME>". So no more handcrafted parsing
+  is needed.
+
   Revision 1.18  1998/12/01 23:40:04  rimassa
   Modified DFSearchResult class to hold a FIPAException object when a
   search goes wrong and throw it when someone tries to read the result.
@@ -643,14 +649,15 @@ public class AgentManagementOntology {
   public static interface PropertyContainer {
     void addProperty(String name, String value);
     String getProperty(String name);
-    public void removeProperty(String name);
+    void removeProperty(String name);
   }
 
   public static interface Action {
-
-    public void setName(String name);
-    public String getName();
-    public void toText(Writer w);
+    void setName(String name);
+    String getName();
+    void setActor(String name);
+    String getActor();
+    void toText(Writer w);
 
   }
 
@@ -670,11 +677,16 @@ public class AgentManagementOntology {
 
     private static Hashtable actions = new Hashtable(7, 1.0f);
     private String name;
+    private String actor;
     private AMSAgentDescriptor arg;
 
 
     public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSAction(r);
+    }
+
+    public AMSAction() {
+      actor = "ams";
     }
 
     public void setName(String s) {
@@ -683,6 +695,14 @@ public class AgentManagementOntology {
 
     public String getName() {
       return name;
+    }
+
+    public void setActor(String name) {
+      actor = name;
+    }
+
+    public String getActor() {
+      return actor;
     }
 
     public void setArg(AMSAgentDescriptor amsd) {
@@ -695,9 +715,11 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + actor + " ");
 	w.write("( " + name + " ");
 	w.write("( " + ARGNAME + " ");
 	arg.toText(w);
+	w.write(" )");
 	w.write(" )");
 	w.write(" )");
 	w.flush();
@@ -728,8 +750,10 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + actor + " ");
 	w.write("( " + name + " ");
 	w.write(containerName + " )");
+	w.write(" )");
 	w.flush();
       }
       catch(IOException ioe) {
@@ -776,6 +800,7 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + getActor() + " ");
 	w.write("( " + name + " ");
 	w.write("( " + ARGNAME + " ");
 	arg.toText(w);
@@ -790,6 +815,7 @@ public class AgentManagementOntology {
 	}
 
 	w.write(" ) ");
+	w.write(" )");
 	w.write(" )");
 	w.flush();
       }
@@ -830,10 +856,12 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + getActor() + " ");
 	w.write("( " + name + " ");
 	w.write("( " + AGENTNAME + " " + agentName + " )");
 	if(password != null)
 	  w.write("( " + PASSWORD + " " + password + " )");
+	w.write(" )");
 	w.write(" )");
 	w.flush();
       }
@@ -957,6 +985,7 @@ public class AgentManagementOntology {
 
     private static Hashtable actions = new Hashtable(4, 1.0f);
     private String name;
+    private String actor;
     private DFAgentDescriptor arg;
 
 
@@ -972,6 +1001,14 @@ public class AgentManagementOntology {
       return name;
     }
 
+    public void setActor(String name) {
+      actor = name;
+    }
+
+    public String getActor() {
+      return actor;
+    }
+
     public void setArg(DFAgentDescriptor dfd) {
       arg = dfd;
     }
@@ -982,9 +1019,11 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + actor + " ");
 	w.write("( " + name + " ");
 	w.write("( " + ARGNAME + " ");
 	arg.toText(w);
+	w.write(" )");
 	w.write(" )");
 	w.write(" )");
 	w.flush();
@@ -1020,6 +1059,7 @@ public class AgentManagementOntology {
     public void toText(Writer w) {
       try {
 	Constraint c = null;
+	w.write("( action " + getActor() + " ");
 	w.write("( " + getName() + " ");
 	w.write("( " + ARGNAME + " ");
 	getArg().toText(w);
@@ -1031,6 +1071,7 @@ public class AgentManagementOntology {
 	  w.write(c.getName() + " " + c.getFn() + " " + c.getArg());
 	  w.write(" )");
 	}
+	w.write(" )");
 	w.write(" )");
 	w.flush();
       }
@@ -1047,8 +1088,12 @@ public class AgentManagementOntology {
 
     private static Hashtable actions = new Hashtable(1, 1.0f);
     private String name;
+    private String actor;
     private ACLMessage arg;
 
+    public ACCAction() {
+      actor = "acc";
+    }
 
     public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseACCAction(r);
@@ -1062,6 +1107,14 @@ public class AgentManagementOntology {
       return name;
     }
 
+    public void setActor(String name) {
+      actor = name;
+    }
+
+    public String getActor() {
+      return actor;
+    }
+
     public void setArg(ACLMessage msg) {
       arg = msg;
     }
@@ -1072,8 +1125,10 @@ public class AgentManagementOntology {
 
     public void toText(Writer w) {
       try {
+	w.write("( action " + actor + " ");
 	w.write("( " + name + " ");
 	arg.toText(w);
+	w.write(" )");
 	w.write(" )");
 	w.flush();
       }
