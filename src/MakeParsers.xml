@@ -7,12 +7,12 @@
         
     </target>
     <target name="MakeACLParser">
-        <javacc javacchome="C:\Programmi\jdk1.3\JavaCC\bin\lib" outputdirectory="jade\lang\acl" target="jade\lang\acl\ACLParser.jj"/>
+        <javacc javacchome="C:\Programmi\j2sdk1.4.0\JavaCC\bin\lib" outputdirectory="jade\lang\acl" target="jade\lang\acl\ACLParser.jj"/>
     </target>
     <target name="MakeSL0Parser">
-        <javacc javacchome="C:\Programmi\jdk1.3\JavaCC\bin\lib" outputdirectory="jade\lang\sl" target="jade\lang\sl\SL0Parser.jj"/>
+        <javacc javacchome="C:\Programmi\j2sdk1.4.0\JavaCC\bin\lib" outputdirectory="jade\lang\sl" target="jade\lang\sl\SL0Parser.jj"/>
     </target>
     <target name="MakeSLParser">
-        <javacc javacchome="C:\Programmi\jdk1.3\JavaCC\bin\lib" outputdirectory="jade\content\lang\sl" target="jade\content\lang\sl\SLParser.jj"/>
+        <javacc javacchome="C:\Programmi\j2sdk1.4.0\JavaCC\bin\lib" outputdirectory="jade\content\lang\sl" target="jade\content\lang\sl\SLParser.jj"/>
     </target>
 </project>
