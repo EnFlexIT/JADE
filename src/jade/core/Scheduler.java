@@ -141,7 +141,7 @@ class Scheduler implements Serializable {
      the ready queue --> we must copy all behaviours into a temporary
      buffer to avoid concurrent modification exceptions).
      Why not restarting only blocked behaviours?
-     Some ready behaviour can be a NDBehaviour with some of its
+     Some ready behaviour can be a ParallelBehaviour with some of its
      children blocked. These children must be restarted too.
    */
   public synchronized void restartAll() {
