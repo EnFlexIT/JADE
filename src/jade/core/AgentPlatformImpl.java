@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.17  1998/11/02 01:58:23  rimassa
+  Removed every reference to deleted MessageDispatcher class; now
+  AgentContainer is directly responsible for message dispatching.
+  Added AMS notifications when an AgentContainer is created or
+  deleted.
+
   Revision 1.16  1998/10/31 16:33:36  rimassa
   Changed AMSKillAgent() prototype, since now it accept also a password
   String (ignored for now).
@@ -84,7 +90,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put("ams", theAMS);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setDemux(myDispatcher);
+    desc.setContainer(this);
 
     platformAgents.put("ams", desc);
     System.out.println("AMS OK");
@@ -101,7 +107,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put("acc", theACC);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setDemux(myDispatcher);
+    desc.setContainer(this);
 
     platformAgents.put("acc", desc);
 
@@ -119,7 +125,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     localAgents.put("df", defaultDF);
 
     AgentDescriptor desc = new AgentDescriptor();
-    desc.setDemux(myDispatcher);
+    desc.setContainer(this);
 
     platformAgents.put("df", desc);
     System.out.println("DF OK");
@@ -133,11 +139,20 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void addContainer(AgentContainer ac) throws RemoteException {
+    
+    String name = "Container-" + new Integer(containers.size()).toString();
     containers.addElement(ac);
+
+    // Notify AMS
+    theAMS.postNewContainer(name);
   }
 
   public void removeContainer(AgentContainer ac) throws RemoteException {
+    String name = "Container-" + new Integer(containers.indexOf(ac)).toString();
     containers.removeElement(ac);
+
+    // Notify AMS
+    theAMS.postDeadContainer(name);
   }
 
   public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
@@ -148,9 +163,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     // exception unless the old agent's container is dead.
     if(old != null) {
       AgentDescriptor ad = (AgentDescriptor)old;
-      MessageDispatcher md = ad.getDemux();
+      AgentContainer ac = ad.getContainer();
       try {
-	md.ping(); // Make sure container is alive, then raise a name clash exception
+	ac.ping(); // Make sure container is alive, then raise a name clash exception
 	platformAgents.put(name.toLowerCase(), ad);
 	throw new NameClashException("Agent " + name + " already present in the platform ");
       }
@@ -170,9 +185,9 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     if(ad == null)
       throw new NotFoundException("Failed to find " + agentName);
     else {
-      MessageDispatcher md = ad.getDemux();
+      AgentContainer ac = ad.getContainer();
       try {
-	md.ping(); // RMI call
+	ac.ping(); // RMI call
       }
       catch(RemoteException re) {
 	throw new NotFoundException("Container for " + agentName + " is unreachable");
@@ -221,7 +236,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     if(ad == null)
       throw new NoCommunicationMeansException();
     try {
-      AgentContainer ac = ad.getDemux().getContainer();
+      AgentContainer ac = ad.getContainer();
       ac.killAgent(simpleName);
     }
     catch(NotFoundException nfe) {
