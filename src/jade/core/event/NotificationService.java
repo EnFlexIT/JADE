@@ -24,6 +24,9 @@ Boston, MA  02111-1307, USA.
 package jade.core.event;
 
 
+//#J2ME_EXCLUDE_FILE
+
+
 import jade.core.ServiceFinder;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
@@ -71,79 +74,6 @@ import jade.util.leap.LinkedList;
 */
 public class NotificationService extends BaseService {
 
-    /**
-       The name of this service.
-    */
-    public static final String NAME = "jade.core.event.Notification";
-
-    /**
-       This command name represents the action of activating an
-       instance of the Sniffer agent.
-    */
-    public static final String SNIFF_ON = "Sniff-On";
-
-    /**
-       This command name represents the action of deactivating a
-       previously started instance of the Sniffer agent.
-    */
-    public static final String SNIFF_OFF = "Sniff-Off";
-
-    /**
-       This command name represents the action of activating an
-       instance of the Introspector agent.
-    */
-    public static final String DEBUG_ON = "Debug-On";
-
-    /**
-       This command name represents the action of deactivating a
-       previously started instance of the Introspector agent.
-    */
-    public static final String DEBUG_OFF = "Debug-Off";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>MessagePosted</code> event.
-    */
-    public static final String NOTIFY_POSTED = "Notify-Posted";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>MessageReceived</code> event.
-    */
-    public static final String NOTIFY_RECEIVED = "Notify-Received";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>ChangedAgentState</code> event.
-    */
-    public static final String NOTIFY_CHANGED_AGENT_STATE = "Notify-Changed-Agent-State";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>ChangedAgentPrincipal</code> event.
-    */
-    public static final String NOTIFY_CHANGED_AGENT_PRINCIPAL = "Notify-Changed-Agent-Principal";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>BehaviourAdded</code> event.
-    */
-    public static final String NOTIFY_BEHAVIOUR_ADDED = "Notify-BehaviourAdded";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>BehaviourRemoved</code> event.
-    */
-    public static final String NOTIFY_BEHAVIOUR_REMOVED = "Notify-Behaviour-Removed";
-
-    /**
-       This command name represents the action of submitting to the
-       Notification Service a <code>ChangedBehaviourState</code> event.
-    */
-    public static final String NOTIFY_CHANGED_BEHAVIOUR_STATE = "Notify-Changed-Behaviour-State";
-
-
-
 
     public static final String MAIN_SLICE = "Main-Container";
 
@@ -161,7 +91,7 @@ public class NotificationService extends BaseService {
     }
 
     public String getName() {
-	return NAME;
+	return NotificationSlice.NAME;
     }
 
     public Class getHorizontalInterface() {

@@ -938,7 +938,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Activate sniffing on a given agent
   */
   public void sniffOn(AID snifferName, List toBeSniffed) throws NotFoundException, UnreachableException  {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.SNIFF_ON, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_ON, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(snifferName);
       cmd.addParam(toBeSniffed);
 
@@ -958,7 +958,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Deactivate sniffing on a given agent
   */
   public void sniffOff(AID snifferName, List notToBeSniffed) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.SNIFF_OFF, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.SNIFF_OFF, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(snifferName);
       cmd.addParam(notToBeSniffed);
 
@@ -977,7 +977,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Activate debugging on a given agent
   */
   public void debugOn(AID debuggerName, List toBeDebugged) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.DEBUG_ON, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_ON, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(debuggerName);
       cmd.addParam(toBeDebugged);
 
@@ -996,7 +996,7 @@ class MainContainerImpl implements MainContainer, Platform, AgentManager {
      Deactivate debugging on a given agent
   */
   public void debugOff(AID debuggerName, List notToBeDebugged) throws NotFoundException, UnreachableException {
-      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationService.DEBUG_OFF, jade.core.event.NotificationService.NAME, "");
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.DEBUG_OFF, jade.core.event.NotificationSlice.NAME, "");
       cmd.addParam(debuggerName);
       cmd.addParam(notToBeDebugged);
 
