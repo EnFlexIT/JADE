@@ -166,7 +166,9 @@ import java.util.EventObject;
 	public synchronized void reset() {
 		processed = false;
 		processingResult = null;
-		param.removeAllElements();
+		if (param != null) {
+			param.removeAllElements();
+		}
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
