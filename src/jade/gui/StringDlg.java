@@ -38,25 +38,25 @@ class StringDlg extends JDialog
 {
 	String     hint;
 	JTextField txtString;
-
+  String out;
+  
 	// CONSTRUCTORS
 	StringDlg(Frame parent, String hint) 
 	{
 		super(parent);
 		this.hint = new String(hint);
+		this.out = null;
 	}
 
 	StringDlg(Dialog parent, String hint) 
 	{
 		super(parent);
 		this.hint = new String(hint);
+		this.out = null;
 	}
 
 	String editString(String value)
 	{
-		final IntRetValue ret = new IntRetValue();
-		ret.setValue(0);
-
 		setTitle("Edit");
 
 		JPanel p = new JPanel();
@@ -85,8 +85,17 @@ class StringDlg extends JDialog
 								String param = (String) e.getActionCommand();
 								if (param.equals("OK"))
 								{
-									ret.setValue(1);
-									dispose();
+									String insertedValue = (txtString.getText()).trim();
+                  if(insertedValue.length() == 0)
+                  		{
+                  			JOptionPane.showMessageDialog(null,"Must have non-empty fields !","Error Message",JOptionPane.ERROR_MESSAGE);
+									      return;
+                  		}
+									else 
+									{
+										out = insertedValue;
+									  dispose();
+									}
 								}
 							} 
 		                           } );
@@ -96,28 +105,85 @@ class StringDlg extends JDialog
 							{    
 								String param = (String) e.getActionCommand();
 								if (param.equals("Cancel"))
-								{
-									ret.setValue(0);
 									dispose();
-								}
+								
 							} 
 		                           } );
 		getContentPane().add(p, BorderLayout.SOUTH);
 
 		setModal(true);
 		setResizable(false);
-		setLocation(100, 100);
-		pack();
-		show();
+		//setLocation(100, 100);
+		//pack();
+		//show();
+		ShowCorrect();
 
-		if (ret.getValue() == 1)
-		{	
-			String out = txtString.getText();
-			if (out.length() == 0)
-				out = null;
-			return(out);
- 		}
-		return(null);		
+	
+		return out;
 	}
+	
+	void viewString(String value)
+	{
+		
+		setTitle("View");
+
+		JPanel p = new JPanel();
+		//p.setLayout(new GridLayout(2, 1));
+		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+		JLabel l = new JLabel(hint);
+		p.add(Box.createRigidArea(new Dimension(0,6)));
+		p.add(l);
+		txtString = new JTextField();
+		txtString.setEditable(false);
+		txtString.setText(value);
+		txtString.setPreferredSize(new Dimension(300, txtString.getPreferredSize().height));
+		p.add(txtString);
+		p.add(Box.createRigidArea(new Dimension(0,15)));
+		getContentPane().add(p, BorderLayout.CENTER);
+
+		p = new JPanel();
+		JButton bOK = new JButton("OK");
+		
+	
+		p.add(bOK);
+		
+		bOK.addActionListener( new ActionListener()
+		                           {
+						   	public void actionPerformed(ActionEvent e)
+							{    
+								String param = (String) e.getActionCommand();
+								if (param.equals("OK"))
+								{
+									dispose();
+								}
+							} 
+		                           } );
+	
+		getContentPane().add(p, BorderLayout.SOUTH);
+
+		setModal(true);
+		setResizable(false);
+		//setLocation(100, 100);
+		//pack();
+		//show();
+		ShowCorrect();
+	
+	}
+
+	private void ShowCorrect() 
+ 	 {
+    pack();
+    //setSize(300, 300);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int centerX = (int)screenSize.getWidth() / 2;
+    int centerY = (int)screenSize.getHeight() / 2;
+    Dimension sizePanel = getSize();
+    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
+    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
+    setLocation(centerX - x, centerY - y);
+    
+    setVisible(true);
+    toFront();
+ 	 }
 
 }
