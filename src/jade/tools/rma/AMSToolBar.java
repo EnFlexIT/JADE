@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/11/08 15:27:33  rimassaJade
+  Added a button to start the message sniffer; rearranged the buttons.
+
   Revision 1.3  1999/06/09 13:01:08  rimassa
   Added support for dialog centering with respect to RMA main window.
 
@@ -62,12 +65,13 @@ public final class AMSToolBar extends JToolBar implements ActionListener {
     addAction(new KillAction("Kill Selected Items", anRMA));
     addAction(new SuspendAction(anRMA));
     addAction(new ResumeAction(anRMA));
+    addAction(new CustomAction(anRMA, mainWnd));
+
     // addAction(new PingAction());
 		
     addSeparator();
 
-    // addAction(new SnifferAction());
-    addAction(new CustomAction(anRMA, mainWnd));
+    addAction(new SnifferAction(anRMA));
     addAction(new DummyAgentAction(anRMA));
 
     addSeparator();
