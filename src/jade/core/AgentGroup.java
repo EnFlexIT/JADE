@@ -41,7 +41,10 @@ import java.util.Vector;
 */
 public class AgentGroup implements Cloneable, Serializable {
 
-  private Vector memberNames = new Vector();
+  /**
+  @serial
+  */
+	private Vector memberNames = new Vector();
 
   /**
      Adds an agent to this AgentGroup.
@@ -149,4 +152,3 @@ public String toString() {
 }
   
 }
-

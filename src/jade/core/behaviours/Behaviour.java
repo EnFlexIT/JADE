@@ -42,11 +42,13 @@ public abstract class Behaviour implements Serializable {
 
   /**
      A constant for child-to-parent notifications.
+     @serial
    */
   protected final int NOTIFY_UP = -1;
 
   /**
      A constant for parent-to-child notifications.
+     @serial
    */
   protected final int NOTIFY_DOWN = 1;
 
@@ -58,7 +60,14 @@ public abstract class Behaviour implements Serializable {
      children (<em>downward notification</em>).
   */
   protected class RunnableChangedEvent implements Serializable {
+    /**
+    @serial
+    */
     private boolean runnable;
+    
+    /**
+    @serial
+    */
     private int direction;
 
     /**
@@ -111,7 +120,9 @@ public abstract class Behaviour implements Serializable {
 
   } // End of RunnableChangedEvent class
 
-
+  /**
+  @serial
+  */
   private boolean runnableState = true;
 
   /**
@@ -124,18 +135,21 @@ public abstract class Behaviour implements Serializable {
      available. Of course, remind to use the appropriate constructor,
      i.e. the one that accepts an agent object as argument; otherwise,
      this variable is set to <code>null</code>.
+     @serial
   */
   protected Agent myAgent;
 
   /**
      This event object will be re-used for every state change
      notification.
+     @serial
    */
   protected RunnableChangedEvent myEvent = new RunnableChangedEvent();
 
   /**
      Back pointer to the enclosing Behaviour (if present).
      @see jade.core.behaviours.ComplexBehaviour
+     @serial
   */
   protected ComplexBehaviour parent;
 
