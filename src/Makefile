@@ -23,7 +23,8 @@ ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/SequentialBehaviour.java \
 		jade/core/SimpleBehaviour.java \
 		jade/proto/ProtocolDrivenBehaviour.java \
-		jade/proto/Standard.java
+		jade/proto/Standard.java \
+		jade/gui/AMSMainFrame.java
 STUBDIR     =	.
 STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.MessageDispatcherImpl \
