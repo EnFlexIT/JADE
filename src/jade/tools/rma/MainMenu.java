@@ -83,6 +83,14 @@ import jade.gui.AboutJadeAction;
     paintM(true,(RMAAction)actPro.actions.get(actPro.SHOWDF_ACTION));
     add(menu);
     
+    menu =new JMenu("Remote Platforms");
+    paintM(true,(RMAAction)actPro.actions.get(actPro.ADDREMOTEPLATFORM_ACTION));
+    menu.addSeparator();
+    paintM(true,(RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.REFRESHAPDESCRIPTION_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.REMOVEREMOTEAMS_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.REFRESHAMSAGENT_ACTION));
+    add(menu);
     menu = new JMenu("Help");
     tmp = menu.add(new AboutJadeAction((JFrame)mainWnd));
     add(menu);
