@@ -275,3 +275,5 @@ automatically includes this platform IOR that should be distributed to remote
 platforms in order to allow remote agents to send messages to your JADE 
 agents. The distribution mechanism is not specified by FIPA and is 
 application dependent. 
+
+
