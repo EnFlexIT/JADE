@@ -33,4 +33,14 @@
 			<Argument key="period" value="5000"> The time interval (in ms) between sending two successive messages </Argument>
 		</Test>	
 		
+		<Test name="Message transmission performances" skip="false">
+			<TestClassName>test.leap.tests.TestPerformances</TestClassName>
+			<WhatTest> Measures the performances of the communication mechanism (the round-trip time) in the wireless environment.</WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>
+			<WhenTestPass> 
+			</WhenTestPass>
+			<Argument key="n-iterations" value="30"> The number of iterations over which the average round-trip-time is computed.</Argument>
+		</Test>	
+		
 	</TestsList>
