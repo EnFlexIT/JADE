@@ -33,6 +33,8 @@ import java.util.Date;
 
 
 import jade.core.ServiceFinder;
+
+import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -110,8 +112,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	String platformID = myContainer.getPlatformID();
 	accID = "fipa-mts://" + platformID + "/acc";
 
-	myMessageManager = new MessageManager();
-	myMessageManager.initialize(p, this);
+	myMessageManager = MessageManager.instance(p);
 
 	// Create a local slice
 	localSlice = new ServiceComponent();
@@ -135,7 +136,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	return localSlice;
     }
 
-    public Filter getCommandFilter() {
+    public Filter getCommandFilter(boolean direction) {
 	return localSlice;
     }
 
@@ -294,7 +295,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	}
 
-	public void serve(VerticalCommand cmd) {
+	public VerticalCommand serve(HorizontalCommand cmd) {
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -355,6 +356,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+	    }
+	    finally {
+		if(cmd instanceof VerticalCommand) {
+		    return (VerticalCommand)cmd;
+		}
+		else {
+		    return null;
+		}
 	    }
 	}
 
@@ -459,7 +468,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 				    boolean found = myContainer.postMessageToLocalAgent(msg, receiver);
 				    if(!found) {
-					myMessageManager.deliver(msg, receiver);
+					myMessageManager.deliver(msg, receiver, MessagingService.this);
 				    }
 				}
 
@@ -862,7 +871,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 		boolean found = myContainer.postMessageToLocalAgent(copy, dest);
 		if(!found) {
-		    myMessageManager.deliver(copy, dest);
+		    myMessageManager.deliver(copy, dest, this);
 		}
 	    }
 	    catch (AuthException ae) {
