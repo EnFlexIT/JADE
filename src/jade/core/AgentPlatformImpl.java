@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.15  1998/10/26 00:00:30  rimassa
+  Added some methods for AMS to use in platform administration. When the
+  AMS wants to create or kill an agent it relies on methods such as
+  AMSCreateAgent() and AMSKillAgent() to actually do the job.
+
   Revision 1.14  1998/10/14 21:24:11  Giovanni
   Added a line to restore platform state when a new agent has a name
   clashing with a previous agent's name.
@@ -43,6 +48,7 @@ import jade.domain.df;
 import jade.domain.AgentManagementOntology;
 
 import jade.domain.FIPAException;
+import jade.domain.NoCommunicationMeansException;
 import jade.domain.AgentAlreadyRegisteredException;
 
 public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform {
@@ -160,7 +166,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     else {
       MessageDispatcher md = ad.getDemux();
       try {
-	md.ping();
+	md.ping(); // RMI call
       }
       catch(RemoteException re) {
 	throw new NotFoundException("Container for " + agentName + " is unreachable");
@@ -172,6 +178,53 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   // These methods are to be used only by AMS agent.
 
+
+  // This is called in response to a 'create-agent' action
+  public void AMSCreateAgent(String agentName, String className, int containerID) throws NoCommunicationMeansException {
+    String simpleName = agentName.substring(0,agentName.indexOf('@'));
+    try {
+      AgentContainer ac = (AgentContainer)containers.elementAt(containerID);
+      ac.createAgent(simpleName, className, START); // RMI call
+    }
+    catch(ArrayIndexOutOfBoundsException aioobe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void AMSCreateAgent(String agentName, Agent instance, int containerID) throws NoCommunicationMeansException {
+    String simpleName = agentName.substring(0,agentName.indexOf('@'));
+    try {
+      AgentContainer ac = (AgentContainer)containers.elementAt(containerID);
+      ac.createAgent(simpleName, instance, START); // RMI call, 'instance' is serialized
+    }
+    catch(ArrayIndexOutOfBoundsException aioobe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  // This one is called in response to a 'kill-agent' action
+  public void AMSKillAgent(String agentName) throws NoCommunicationMeansException {
+    String simpleName = agentName.substring(0,agentName.indexOf('@'));
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null)
+      throw new NoCommunicationMeansException();
+    try {
+      AgentContainer ac = ad.getDemux().getContainer();
+      ac.killAgent(simpleName);
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
 
   // This one is called in response to a 'register-agent' action
   public void AMSNewData(String agentName, String address, String signature, String APState,
