@@ -130,9 +130,9 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] arguments, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
     try {
-      adaptee.createAgent(agentID, className, arguments, startIt);
+      adaptee.createAgent(agentID, className, arguments, identity, delegation, startIt);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -187,6 +187,15 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
   public void changeAgentPrincipal(AID agentID, IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException, NotFoundException {
     try {
       adaptee.changeAgentPrincipal(agentID, identity, delegation);
+    }
+    catch(RemoteException re) {
+      throw new IMTPException("Communication Failure", re);
+    }
+  }
+  
+  public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
+    try {
+      adaptee.changeContainerPrincipal(identity, delegation);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);

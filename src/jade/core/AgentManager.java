@@ -38,8 +38,9 @@ import jade.mtp.MTPDescriptor;
 import jade.security.AgentPrincipal;
 import jade.security.UserPrincipal;
 //__JADE_ONLY__END
-import jade.security.AuthenticationException;
-import jade.security.AuthorizationException;
+import jade.security.JADESecurityException;
+import jade.security.IdentityCertificate;
+import jade.security.DelegationCertificate;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -71,7 +72,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   ContainerID getContainerID(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[], ContainerID cid) throws UnreachableException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, JADESecurityException;
 
   void killContainer(ContainerID cid);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
@@ -80,7 +81,7 @@ public interface AgentManager {
   void activate(AID agentID, String password) throws NotFoundException, UnreachableException;
 
 //__JADE_ONLY__BEGIN
-  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException;
+  void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException;
 //__JADE_ONLY__END
 
   void wait(AID agentID, String password) throws NotFoundException, UnreachableException;

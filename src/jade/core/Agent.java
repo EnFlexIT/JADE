@@ -434,6 +434,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   
 //__JADE_ONLY__BEGIN
   private AgentPrincipal principal = new AgentPrincipal();
+  private IdentityCertificate identity = null;
+  private DelegationCertificate delegation = null;
 //__JADE_ONLY__END
   
   /**
@@ -928,6 +930,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   //__JADE_ONLY__BEGIN
 	public void setPrincipal(IdentityCertificate identity, DelegationCertificate delegation) {
     synchronized(principalLock) {
+      this.identity = identity;
+      this.delegation = delegation;
       AgentPrincipal old = principal;
       principal = (AgentPrincipal)identity.getSubject();
       notifyChangedAgentPrincipal(old, principal);
@@ -1423,7 +1427,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     try {
       AMSAgentDescription amsd = new AMSAgentDescription();
       amsd.setName(myAID);
-      amsd.setOwnership("JADE");
+      amsd.setOwnership("JADE"); //!!!
       amsd.setState(AMSAgentDescription.ACTIVE);
       switch(myAPState) {
       case AP_INITIATED:

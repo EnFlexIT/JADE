@@ -108,7 +108,7 @@ public class PlatformAuthority extends Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public void sign(JADECertificate cert) throws AuthorizationException, AuthenticationException {
+	public void sign(JADECertificate certificate, JADESubject subject) throws AuthorizationException, AuthenticationException {
 	}
 	
 	public IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException {

@@ -46,6 +46,19 @@ public class JADECertificate implements java.io.Serializable {
 	byte[] key;
 	byte[] signature;
 	
+	public JADECertificate() {
+  }
+
+	public JADECertificate(JADECertificate cert) {
+		this.subject = cert.subject;
+		this.issuer = cert.issuer;
+		this.notBefore = cert.notBefore;
+		this.notAfter = cert.notAfter;
+		this.key = cert.key;
+		this.serial = cert.serial;
+		this.signature = cert.signature;
+	}
+	
   //methods to (un)marshall
 
 	public JADEPrincipal getSubject() { return subject; }
@@ -101,7 +114,13 @@ public class JADECertificate implements java.io.Serializable {
 	}
 	
 	public byte[] getEncoded() {
-		return toString().getBytes();
+		StringBuffer str = new StringBuffer();
+		str.append(subject.getName()).append('\n');
+		str.append(issuer.getName()).append('\n');
+		str.append(notBefore).append('\n');
+		str.append(notAfter).append('\n');
+		str.append(serial).append('\n');
+		return str.toString().getBytes();
 	}
 	
 	/*
@@ -133,17 +152,7 @@ public class JADECertificate implements java.io.Serializable {
 	}
 	
 	public Object clone() {
-		JADECertificate cert = new JADECertificate();
-		
-		cert.subject = this.subject;
-		cert.issuer = this.issuer;
-		cert.notBefore = this.notBefore;
-		cert.notAfter = this.notAfter;
-		cert.key = this.key;
-		cert.serial = this.serial;
-		cert.signature = this.signature;
-
-		return cert;
+		return new JADECertificate(this);
 	}
 	
 	/*public void checkValidity() throws CertificateExpiredException, CertificateNotYetValidException {

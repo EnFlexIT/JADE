@@ -32,7 +32,11 @@ import jade.util.leap.LinkedList;
 
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.UserPrincipal;
 //__JADE_ONLY__END
+import jade.security.JADESecurityException;
+import jade.security.JADECertificate;
+import jade.security.JADESubject;
 
 /**
  
@@ -63,11 +67,11 @@ class MainContainerProxy implements Platform {
       adaptee = myProfile.getIMTPManager().getMain(true);
     }
 
-    public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
+    public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
       localContainer = ac;
 
       // The Main Container initialization of a peripheral container is just adding it to the platform.
-      String name = adaptee.addContainer(ac, cid);
+      String name = adaptee.addContainer(ac, cid, user, passwd);
       cid.setName(name);
     }
 
@@ -140,8 +144,8 @@ class MainContainerProxy implements Platform {
     }
 //__JADE_ONLY__END
 
-    public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
-      return adaptee.addContainer(ac, cid);
+    public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
+      return adaptee.addContainer(ac, cid, user, passwd);
     }
 
     public void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException {
@@ -243,7 +247,7 @@ class MainContainerProxy implements Platform {
 
       // Register again with the Main Container.
       ContainerID myID = (ContainerID) localContainer.here();
-      String name = adaptee.addContainer(localContainer, myID); // Remote call
+      String name = adaptee.addContainer(localContainer, myID, null, null); //!!! Remote call
       myID.setName(name);
 
       // Restore registration of local agents
@@ -282,7 +286,14 @@ class MainContainerProxy implements Platform {
     catch(ProfileException pe) {
       throw new NotFoundException("Profile error trying to reconnect to the Main container: "+pe.getMessage());
     }
+    catch(JADESecurityException se) {
+      se.printStackTrace();
+    }
   }
   
+  public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException {
+    return adaptee.sign(certificate, subject);
+  }
+
 }
 

@@ -81,6 +81,10 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.changeAgentPrincipal(agentID, identity, delegation);
     }
     
+    public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws RemoteException, IMTPException {
+      impl.changeContainerPrincipal(identity, delegation);
+    }
+    
     public void suspendAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {
       impl.suspendAgent(agentID);
     }
@@ -101,8 +105,8 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
       impl.disableSniffer(snifferName, notToBeSniffed);
     }
     
-    public void createAgent(AID agentID, String className, Object[] arguments, boolean startIt) throws RemoteException, IMTPException {
-      impl.createAgent(agentID, className, arguments, startIt);
+    public void createAgent(AID agentID, String className, Object[] arguments, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws RemoteException, IMTPException {
+      impl.createAgent(agentID, className, arguments, identity, delegation, startIt);
     }
     
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {

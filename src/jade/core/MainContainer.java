@@ -29,7 +29,11 @@ import jade.mtp.MTPDescriptor;
 
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
+import jade.security.UserPrincipal;
 //__JADE_ONLY__END
+import jade.security.JADESecurityException;
+import jade.security.JADECertificate;
+import jade.security.JADESubject;
 
 
 /**
@@ -47,7 +51,7 @@ public interface MainContainer {
 
     String getPlatformName() throws IMTPException;
 
-    String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException;
+    String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException;
     void removeContainer(ContainerID cid) throws IMTPException;
 
     AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
@@ -60,6 +64,7 @@ public interface MainContainer {
 
 //__JADE_ONLY__BEGIN
     void changedAgentPrincipal(AID name, AgentPrincipal from, AgentPrincipal to) throws IMTPException, NotFoundException;
+    JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException;
 //__JADE_ONLY__END
 
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;

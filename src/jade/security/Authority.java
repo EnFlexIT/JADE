@@ -111,7 +111,7 @@ public abstract class Authority {
 		@throws AuthenticationException if the certificates have some
 			inconsistence or are out of validity.
 	*/
-	public abstract void sign(JADECertificate cert) throws AuthorizationException, AuthenticationException;
+	public abstract void sign(JADECertificate cert, JADESubject subject) throws AuthorizationException, AuthenticationException;
 
 	public abstract IdentityCertificate authenticateUser(UserPrincipal user, byte[] passwd) throws AuthorizationException, AuthenticationException;
 }

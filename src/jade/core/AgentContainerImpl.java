@@ -42,9 +42,13 @@ import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
 
 //__JADE_ONLY__BEGIN
+import jade.security.JADESecurityException;
 import jade.security.AgentPrincipal;
 import jade.security.IdentityCertificate;
 import jade.security.DelegationCertificate;
+import jade.security.UserPrincipal;
+import jade.security.JADESubject;
+import jade.security.Authority;
 //__JADE_ONLY__END
 
 
@@ -98,6 +102,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private static String platformID;
   private ContainerID myID;
 
+  private UserPrincipal user = null;
+  private byte[] passwd = null;
+  private JADESubject subject;
+
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
   private Object pingLock = new Object();
@@ -111,13 +119,23 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     // Set up attributes for agents thread group
     //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
+
+	  /*try {
+	    Authority authority = (Authority)Class.forName("jade.security.ContainerAuthority").newInstance();
+	    authority.setName("container-authority");
+	    //authority.setSigner(...); //!!!
+  	  Authority.setAuthority(authority);
+	  }
+	  catch (Exception e) {
+	    //e.printStackTrace();
+	  }*/
   }
 
 
   // /////////////////////////////////////////
   // AgentContainer INTERFACE
   // /////////////////////////////////////////
-  public void createAgent(AID agentID, String className, Object[] args, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, String className, Object[] args, IdentityCertificate identity, DelegationCertificate delegation, boolean startIt) throws IMTPException {
 
     Agent agent = null;
     try {
@@ -205,6 +223,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     if (agent == null)
       throw new NotFoundException("ChangeAgentPrincipal failed to find " + agentID);
     agent.setPrincipal(identity, delegation);
+  }
+
+  public void changeContainerPrincipal(IdentityCertificate identity, DelegationCertificate delegation) throws IMTPException {
+    subject = new JADESubject(identity, new DelegationCertificate[] {delegation});
   }
 //__JADE_ONLY__END
 
@@ -477,7 +499,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       
       // Register to the platform. If myPlatform is the real MainContainerImpl
       // this call also starts the AMS and DF
-      myPlatform.register(this, myID);
+      String ownership = System.getProperty("jade.security.ownership");
+      if (ownership == null) {
+        myPlatform.register(this, myID, null, null);
+      }
+      else {
+        int dot2 = ownership.indexOf(':');
+        if (dot2 != -1) {
+          user = new UserPrincipal(ownership.substring(0, dot2));
+          passwd = ownership.substring(dot2 + 1, ownership.length()).getBytes();
+          myPlatform.register(this, myID, user, passwd);
+        }
+        else {
+          user = new UserPrincipal(ownership.substring(0, dot2));
+          myPlatform.register(this, myID, user, null);
+        }
+      }
 
       // Install MTPs and ACLCodecs. Must be done after registering with the Main
       myACC.initialize(this, myProfile);
@@ -485,6 +522,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     catch(IMTPException re) {
       System.err.println("Communication failure while contacting agent platform.");
       re.printStackTrace();
+      Runtime.instance().endContainer();
+      return;
+    }
+    catch (JADESecurityException se) {
+      se.printStackTrace();
       Runtime.instance().endContainer();
       return;
     }
@@ -503,9 +545,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  Specifier s = (Specifier) agentSpecifiers.next();
       
 	  AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+	  Authority authority = Authority.getAuthority();
+
 	  try {
+	    /*IdentityCertificate identity = new IdentityCertificate();
+	    identity.init(new AgentPrincipal(user, agentID), 0, 0);
+	    authority.sign(identity, subject);
+	    
+	    DelegationCertificate delegation = new DelegationCertificate();
+	    delegation.init(new AgentPrincipal(user, agentID), 0, 0);
+	    //delegation.addPermission(...);
+	    authority.sign(delegation, subject);*/
+	    
 	    try {
-	      createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
+	      createAgent(agentID, s.getClassName(), s.getArgs(), null, null, NOSTART); //!!!
 	    }
 	    catch (IMTPException imtpe) {
 	      // The call to createAgent() in this case is local --> no need to
@@ -530,6 +583,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    System.out.println("This container does not appear to be registered with the main container.");
 	    localAgents.remove(agentID);
 	  }
+	  /*catch(JADESecurityException se) {
+	    se.printStackTrace();
+	    localAgents.remove(agentID);
+	  }*/
     	}
 
     	// Now activate all agents (this call starts their embedded threads)

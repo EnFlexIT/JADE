@@ -37,7 +37,11 @@ import jade.core.AgentProxy;
 
 import jade.mtp.MTPDescriptor;
 
+import jade.security.JADESecurityException;
 import jade.security.AgentPrincipal;
+import jade.security.UserPrincipal;
+import jade.security.JADECertificate;
+import jade.security.JADESubject;
 
 /**
    @author Giovanni Rimassa - Universita` di Parma
@@ -83,9 +87,9 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.removeContainer(cid);
     }
     
-    public String addContainer(AgentContainerRMI ac, ContainerID cid) throws RemoteException, IMTPException {
+    public String addContainer(AgentContainerRMI ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws RemoteException, IMTPException, JADESecurityException {
       AgentContainer cont = manager.getAdapter(ac);
-      return impl.addContainer(cont, cid);
+      return impl.addContainer(cont, cid, user, passwd);
     }
 
     public void deadAgent(AID name) throws RemoteException, NotFoundException, IMTPException {
@@ -108,4 +112,7 @@ public class MainContainerRMIImpl extends UnicastRemoteObject implements MainCon
       impl.newMTP(mtp, cid);
     }
     
+    public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws RemoteException, IMTPException, JADESecurityException {
+      return impl.sign(certificate, subject);
+    }
 }

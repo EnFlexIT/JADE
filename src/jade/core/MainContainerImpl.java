@@ -56,12 +56,13 @@ import jade.mtp.MTPDescriptor;
 //__JADE_ONLY__BEGIN
 import jade.security.AgentPrincipal;
 import jade.security.Authority;
+import jade.security.JADECertificate;
+import jade.security.JADESubject;
 import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.UserPrincipal;
 //__JADE_ONLY__END
-import jade.security.AuthenticationException;
-import jade.security.AuthorizationException;
+import jade.security.JADESecurityException;
 
 
 /**
@@ -92,6 +93,8 @@ class MainContainerImpl implements Platform, AgentManager {
   private List platformAddresses = new LinkedList();
   private ContainerTable containers = new ContainerTable();
   private GADT platformAgents = new GADT();
+  
+  private Authority authority;
 
 
   MainContainerImpl(Profile p) throws ProfileException {
@@ -111,18 +114,18 @@ class MainContainerImpl implements Platform, AgentManager {
 //__JADE_ONLY__BEGIN
 	  //PlatformAuthority auth = new PlatformAuthority("main-auth", System.getProperty("jade.security.passwd"));
 	  try {
-	    Authority auth = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
-	    auth.setName("main-auth");
-	    auth.readPasswdFile(System.getProperty("jade.security.passwd"));
-  	  Authority.setAuthority(auth);
+	    authority = (Authority)Class.forName("jade.security.PlatformAuthority").newInstance();
+	    authority.setName("main-authority");
+	    authority.readPasswdFile(System.getProperty("jade.security.passwd"));
+  	  Authority.setAuthority(authority);
 	  }
 	  catch (Exception e) {
-	    e.printStackTrace();
+	    //e.printStackTrace();
 	  }
 //__JADE_ONLY__END
   }
 
-  public void register(AgentContainerImpl ac, ContainerID cid) throws IMTPException {
+  public void register(AgentContainerImpl ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException, JADESecurityException {
 
     // Add the calling container as the main container and set its name
     cid.setName(MAIN_CONTAINER_NAME);
@@ -416,7 +419,7 @@ class MainContainerImpl implements Platform, AgentManager {
     return platformID;
   }
 
-  public String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException {
+  public String addContainer(AgentContainer ac, ContainerID cid, UserPrincipal user, byte[] passwd) throws IMTPException {
 
     // Send all platform addresses to the new container
     ContainerID[] containerNames = containers.names();
@@ -617,12 +620,12 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
 //__JADE_ONLY__BEGIN
-  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, AuthenticationException, AuthorizationException {
+  public void changeAgentPrincipal(AID agentID, UserPrincipal user, byte[] passwd) throws NotFoundException, UnreachableException, JADESecurityException {
     try {
       Authority auth = Authority.getAuthority();
       IdentityCertificate cert = auth.authenticateUser(user, passwd);
       // ottenere IC e DC per agente !!!
-      cert.setSubject(new AgentPrincipal((UserPrincipal)cert.getSubject(), agentID));
+      cert.init(new AgentPrincipal((UserPrincipal)cert.getSubject(), agentID), 0, 0);
       AgentContainer ac = getContainerFromAgent(agentID);
       ac.changeAgentPrincipal(agentID, cert, null);
     }
@@ -807,7 +810,7 @@ class MainContainerImpl implements Platform, AgentManager {
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(String agentName, String className, String args[], ContainerID cid) throws UnreachableException {
+  public void create(String agentName, String className, String args[], ContainerID cid, IdentityCertificate identity, DelegationCertificate delegation) throws UnreachableException, JADESecurityException {
     try {
       String containerName = cid.getName();
       AgentContainer ac;
@@ -828,7 +831,7 @@ class MainContainerImpl implements Platform, AgentManager {
       }
 
       AID id = new AID(agentName, AID.ISLOCALNAME);
-      ac.createAgent(id, className, args, AgentContainer.START);
+      ac.createAgent(id, className, args, identity, delegation, AgentContainer.START);
     }
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
@@ -922,6 +925,11 @@ class MainContainerImpl implements Platform, AgentManager {
     catch(IMTPException re) {
       throw new UnreachableException(re.getMessage());
     }
+  }
+
+  public JADECertificate sign(JADECertificate certificate, JADESubject subject) throws IMTPException, JADESecurityException {
+    authority.sign(certificate, subject);
+    return certificate;
   }
 
 }
