@@ -95,7 +95,6 @@ public class Boot {
    *                            the platform is.</em>
    * <li>  <b>-file <file name></b>     <em>File name to retrieve agent names from.</em>
    * <li>  <b>-gui</b>      <em>Starts the Remote Management Agent.</em>
-   * <li>  <b>-platform</b> <em>If specified, a new Agent Platform is created.</em>
    * <li>  <b>-container</b> <em>If specified, a new Agent Container is added to an existing platform</em>
    *                         <em>Otherwise a new Agent Platform is created.</em>
    * <li>  <b>-conf</b>     <em>Shows the gui to set the configuration properties to start JADE.</em>
@@ -134,13 +133,11 @@ public class Boot {
     List propertyVector = new ArrayList();
     PropertyType HostProperty = new PropertyType("host",PropertyType.STRING_TYPE,platformHost, "Host Name", false);
     PropertyType GuiProperty = new PropertyType("gui",PropertyType.BOOLEAN_TYPE,"false", "to view the RMA Gui", false);
-    PropertyType PlatformProperty = new PropertyType("platform",PropertyType.BOOLEAN_TYPE,"true", "to start a platform", false);
     PropertyType PortProperty = new PropertyType("port",PropertyType.STRING_TYPE,"1099", "port number", false);
     PropertyType ContainerProperty = new PropertyType("container", PropertyType.BOOLEAN_TYPE, "false", "to start a container",false);
     
     propertyVector.add(HostProperty);
     propertyVector.add(GuiProperty);
-    propertyVector.add(PlatformProperty);
     propertyVector.add(PortProperty);
     propertyVector.add(ContainerProperty);
     
@@ -222,12 +219,9 @@ public class Boot {
 	      ++n;
 	  // FIXME: Add reading agent names from a file
       	}
-      	else if(args[n].equals("-platform")) {
-      		PlatformProperty.setCommandLineValue("true");
-	      }
+      
 	      else if(args[n].equals("-container")){
 	        ContainerProperty.setCommandLineValue("true");
-	        PlatformProperty.setDefaultValue("false");
 	      }
 	      else if(args[n].equals("-gui")) {
 	      	GuiProperty.setCommandLineValue("true");
@@ -326,14 +320,11 @@ public class Boot {
     platformPort = p.getProperty("port");
     arguments.add("-port");
     arguments.add(platformPort);
+        
+    isPlatform = !((Boolean.valueOf(p.getProperty("container"))).booleanValue());
     
-    isPlatform = (Boolean.valueOf(p.getProperty("platform"))).booleanValue();
-    
-    if(isPlatform)
-      arguments.add("-platform");
-    else
-      arguments.add("-container");
-    
+    if(!isPlatform)
+    	arguments.add("-container");
     
     if(fromFile)
     {
@@ -379,7 +370,6 @@ public class Boot {
     System.out.println("  -port <port number>\tThe port where RMI registry for the platform resides");
     System.out.println("  -file <file name>\tA file name containing tne agent specifiers");
     System.out.println("  -gui\t\t\tIf specified, a new Remote Management Agent is created.");
-    System.out.println("  -platform\t\tIf specified, a new Agent Platform is created.");
     System.out.println("  -container\t\tIf specified, a new Agent Container is added to an existing platform");
     System.out.println("  \t\t\tOtherwise a new Agent Platform is created");
     System.out.println("  -conf\t\t\tShows the gui to set the configuration properties to start JADE.");
@@ -435,29 +425,12 @@ public class Boot {
   */
   public static void checkProperties(Properties p) throws BootException
   {
-  	
-  	String platform = p.getProperty("platform");
-  	boolean isPlatform = (Boolean.valueOf(platform)).booleanValue();
-  	
+  
   	String container = p.getProperty("container");
     boolean isContainer = (Boolean.valueOf(container)).booleanValue();	
   
-  	if(isPlatform && isContainer)
-  	{
-  		p.remove("container");
-  		p.put("container", "false");
-  		throw new BootException("WARNING:Not possible to lunch at the same \ntime a platform and a container.");
-  	}
-  	else
-  	if(!isPlatform && !isContainer)
-  		{
-  			p.remove("platform");
-  			p.put("platform","true");
-  			isPlatform = true;
-  			throw new BootException("Please, specify if to start a platform or a container.");
-  		}
-  		
-    if(isPlatform)
+  	
+  	if(!isContainer) //is a platform
   	   {
   	   	String host = p.getProperty("host");
   	   	try {
