@@ -52,6 +52,9 @@ public interface DFGUIAdapter {
   public static final int MODIFY = 1003;
   public static final int SEARCH = 1004;
   public static final int FEDERATE = 1005;
+  
+  //only used by applet
+  public static final int REFRESHAPPLET = 1006;
 
   
   /**
@@ -74,4 +77,6 @@ public interface DFGUIAdapter {
   * Returns the descriptions used by the df to federate with another df.
   */
   DFAgentDescription getDescriptionOfThisDF(AID parent);
+  
+  
 }

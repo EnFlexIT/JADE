@@ -42,7 +42,7 @@ import jade.onto.OntologyException;
 import jade.onto.basic.Action;
 import jade.onto.basic.ResultPredicate;
 
-class FIPAServiceCommunicator {
+public class FIPAServiceCommunicator {
 
   /**
    * create a REQUEST message with the following slots:
@@ -66,6 +66,8 @@ class FIPAServiceCommunicator {
     request.setConversationId("conv"+sender.getName()+(new Date()).getTime());
     return request;
   }
+  
+  
 
   /**
    * @return the INFORM message received in the final state of the protocol, if
@@ -91,7 +93,7 @@ class FIPAServiceCommunicator {
    * this method is here to avoid any agent using this class to register before
    * the SL-0 codec and the fipa-agent-management ontology
    */
-  static String encode(Action act, Codec c, Ontology o) throws FIPAException {
+  public static String encode(Action act, Codec c, Ontology o) throws FIPAException {
     // Write the action in the :content slot of the request
     List l = new ArrayList();
     try {
@@ -107,7 +109,7 @@ class FIPAServiceCommunicator {
    * this method is here to avoid any agent using this class to register before
    * the SL-0 codec and the fipa-agent-management ontology
    */
-  static ResultPredicate extractContent(String content, Codec c, Ontology o) throws FIPAException {
+  public static ResultPredicate extractContent(String content, Codec c, Ontology o) throws FIPAException {
     try {
       List tuple = c.decode(content,o);
       tuple = o.createObject(tuple);

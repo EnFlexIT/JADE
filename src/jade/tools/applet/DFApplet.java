@@ -23,18 +23,17 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.applet;
 
-import jade.gui.*;
+import jade.tools.dfgui.*;
 import java.applet.Applet;
-
-/**
-@author Fabio Bellifemine - CSELT S.p.A
-@version $Date$ $Revision$
-*/
 
 /**
  * This applet is a client of SocketProxyAgent and executes an applet
  * showing the GUI of the default DF.
+ *
  * @see jade.applet.DFAppletCommunicator
+ * @author Fabio Bellifemine - CSELT S.p.A
+ * @version $Date$ $Revision$
+ *
  */
  
  //to start the applet the dfproxy agent must be launched on the platform 
@@ -42,14 +41,16 @@ import java.applet.Applet;
  //if the platform was launched from that directory).
  //HTML Code:
  //<applet code = DFApplet.class width = 200 height=100></applet>
-public class DFApplet extends Applet {
+
+ public class DFApplet extends Applet {
 
   public void init() {
+  
     DFAppletCommunicator dfc = new DFAppletCommunicator(this);
     DFGUI gui = new DFGUI(dfc,true);
-    dfc.setGUI(gui);  
+    dfc.setGUI(gui);
+    dfc.refreshDFGUI();
     gui.setVisible(true); 
-    gui.refresh();
+   
   }
 }
-

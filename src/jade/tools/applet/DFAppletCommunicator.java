@@ -23,19 +23,23 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.applet;
 
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.ACLParser;
-import jade.lang.acl.ParseException;
-import jade.domain.AgentManagementOntology;
-import jade.domain.FIPAException;
-import jade.gui.GUI2DFCommunicatorInterface;
-import jade.gui.DFGUI;
-
-import java.util.*;
 import java.applet.Applet;
+import java.io.DataInputStream;
+import java.io.PrintStream;
+import java.io.IOException;
 import java.net.*;
-import java.io.*;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
+import jade.domain.DFGUIAdapter;
+import jade.lang.acl.ACLParser;
+import jade.tools.dfgui.DFGUI;
+import jade.gui.GuiEvent;
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPAException;
+import jade.tools.dfgui.onto.*;
 
 /**
  * This class is used by DFApplet in order to communicate with the DF agent
@@ -48,36 +52,38 @@ import java.io.*;
  */
 
 
-public class DFAppletCommunicator implements GUI2DFCommunicatorInterface {
-  private Applet a;
+public class DFAppletCommunicator implements DFGUIAdapter{
+  
+	private Applet a;
   private DataInputStream in;
   private PrintStream out;
   private final static int DEFAULT_PORT = 6789;
   private ACLParser parser;
   private DFGUI gui;
   private String address;
+  private String hap;
+ 
   
-  private Vector searchConstraint = null;
-  
-  private AgentManagementOntology.DFSearchResult found = new AgentManagementOntology.DFSearchResult();
-  
-  private AgentManagementOntology.DFAgentDescriptor thisDF = null;
+  //default description of the df. 
+  private DFAgentDescription thisDF = null;
+   
+ 
   /**
    * Create a socket to communicate with a server on port 6789 of the
    * host that the applet's code is on. Create streams to use with the socket.
    * Finally, gets the value of the parameter <code>JADEAddress</code>
    * from the HTML file.
    */
-public DFAppletCommunicator(Applet applet) {
-  try {
+  public DFAppletCommunicator(Applet applet) {
+    try {
+
     a = applet;
-    
     Socket s = new Socket(a.getCodeBase().getHost(), DEFAULT_PORT);
     System.out.println("DFAppletClient connected to local port "+s.getLocalPort()+" and remote port "+s.getPort());
     in = new DataInputStream(s.getInputStream());
     parser = new ACLParser(in);
     out = new PrintStream(s.getOutputStream(),true);
-    address=a.getParameter("JADEAddress");
+   
   } catch (IOException e) {e.printStackTrace(); a.stop();}
 }
 
@@ -88,21 +94,12 @@ public DFAppletCommunicator(Applet applet) {
   void setGUI(DFGUI g){
     gui = g;
   }
-
-  /**
-   * writes a String on the socket
-   */
-   private void sendMessage(String msg){
-     out.println(msg);
-   }
-
-  /**
-   * reads an ACLMessage from the socket, passes it through the parser,
-   * and returns it.
-   */
-   private ACLMessage receiveMessage() throws ParseException {
-     return parser.Message();
-   }
+  
+  //return the gui for this applet
+  DFGUI getGUI()
+  {
+  	return gui;
+  }
 
   /**
    * shows the message not authorized and does nothing.
@@ -112,519 +109,330 @@ public DFAppletCommunicator(Applet applet) {
    }
 
   /**
-   * returns the full name of the default DF
+   * returns "df" that is the name of the  default DF.
+   * In fact, so far this applet can be used only to interact
+   * with the default DF.
    */
 public String getName() {
-  return "df@"+ address; 
+	return "df";
 }
 
-  /**
-   * returns the address of the default DF
-   */
-public String getAddress() {
-  return address; 
-} 
-
-  /**
-   * returns "DF" that is the name of the default DF. In fact, so far,
-   * this applet can be used only to interact with the default DF.
-   */
-public String getLocalName() {
-  return "df";
-}
-
-  public void postCloseGuiEvent(Object g) {
-    gui.dispose();
-    a.destroy(); 
-  }
-
-  public void postExitEvent(Object g) {
-    gui.dispose();
-    a.destroy(); 
-  }
-
-  /*
-  This method refresh the gui for the applet
-  */
-  public void postRefreshAppletGuiEvent(Object g)
-  {
-  	gui.refresh();
-  }
-  /**
-   * registers an agent descriptor with the DF
-   * @param parentName is not used
-   * @param dfd is the agent descriptor
-   */
-public void postRegisterEvent(Object source, String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
   
-  sendRequestForAction(getLocalName(),AgentManagementOntology.DFAction.REGISTER, dfd);
-    
-}
-
-  /**
-   * deregisters an agent descriptor with the DF
-   * @param parentName is not used
-   * @param dfd is the agent descriptor
-   */
-public void postDeregisterEvent(Object source, String parentName, AgentManagementOntology.DFAgentDescriptor dfd) {
-  
-	if(getLocalName().equalsIgnoreCase(parentName))
-		//deregister the an agent from the df
-	  sendRequestForAction(getLocalName(),AgentManagementOntology.DFAction.DEREGISTER, dfd);
-  else
-  {//deregister thd df from a parent
-    gui.showStatusMsg("Waiting...process request");
-     
-  	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-    msg.addDest(getLocalName());
-    msg.setOntology("jade-extensions");
-    msg.setProtocol("fipa-request");
-    msg.setContent("(action df (DEREGISTER_FROM "+ parentName +"))");
-    sendMessage(msg.toString());
-    //System.out.println(msg.toString());
-     
-    try
-    {
-     	ACLMessage reply = receiveMessage(); 
-      //System.out.println(msg.toString());
-
-      if (ACLMessage.AGREE == (reply.getPerformative())) 
-      {
-     	  reply = receiveMessage();
-        if (! (ACLMessage.INFORM == reply.getPerformative())) 
-          gui.showStatusMsg("Deregistration unsucceeded because received"+ reply.toString());
-        else
-        {
-           gui.refreshFederation();
-           gui.showStatusMsg("Deregistration succeeded");
-        }
-       }
-       else
-         gui.showStatusMsg("Deregistration unsucceeded because received"+ reply.toString());
-     }catch(jade.lang.acl.ParseException e){
-     	gui.showStatusMsg("Deregistration unsucceeded because "+e.getMessage());}
-
-  }
-}
-/**
-Modify the descriptor of an agent
-*/
-  public void postModifyEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
-    
-    sendRequestForAction(getLocalName(),AgentManagementOntology.DFAction.MODIFY,dfd);
-  
-  }
-
-  /**
-   * Returns all the agent descriptors registered with the DF.
-   * So far, there is a bug and only the agents in "active" state are
-   * returned.
-   */
-public Enumeration getAllDFAgentDsc() {
-  AgentManagementOntology.DFSearchResult found = new AgentManagementOntology.DFSearchResult();
-  try{
-  	AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-    dfd.setDFState("active");
-    AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-    c.setFn(AgentManagementOntology.Constraint.MAX);
-    c.setArg(1);
-    Vector constraint = new Vector();
-    constraint.add(c);
-    
-    found = sendRequestForSearch(getLocalName(),dfd,constraint);
-	  return found.elements();
-  }catch(FIPAException e){
-  	gui.showStatusMsg("Search unsucceeded because "+ e.getMessage());
-  }
-  
-	return (new Hashtable()).elements();
-}
-	
-
-/**
-Returns the agent descriptor of the agent with the given name  
-*/  
-public AgentManagementOntology.DFAgentDescriptor getDFAgentDsc(String name) throws FIPAException {
-	
-	AgentManagementOntology.DFAgentDescriptor out = null;
-	try{
-		AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-    dfd.setName(name);
-	  AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-    c.setFn(AgentManagementOntology.Constraint.MAX);
-    c.setArg(1);
-    Vector constraint = new Vector();
-    constraint.add(c);
-    AgentManagementOntology.DFSearchResult found = sendRequestForSearch(getLocalName(),dfd,constraint);
-    Enumeration e = found.elements();
-    out = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
-	}catch(FIPAException e){
-		gui.showStatusMsg("Search unsucceeded because "+ e.getMessage());
-	}
-	return out;
-}
-  
-  
-  /**
-  Finds all the agent descriptors that match the given agent descriptor
-  */
-  public void postSearchEvent(Object source, String parentname, AgentManagementOntology.DFAgentDescriptor dfd)
-  {
-    try 
-  	  {
-      
-  		  AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-        c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-        c.setFn(AgentManagementOntology.Constraint.MAX);
-        c.setArg(1);
-        Vector constraints = new Vector();
-        constraints.add(c);
-        AgentManagementOntology.DFSearchResult found = sendRequestForSearch(parentname,dfd,constraints);
-        gui.refreshLastSearch(found.elements()); 
-     } catch (FIPAException e1) { 
-      gui.showStatusMsg("Search unsucceeded because "+ e1.getMessage()); 
-      }
-   
-  }
-  
-  
-  /*
-  Returns the agent descriptor of an agent result of a search operation (these results are maintented in a private variable).
-  */
-  public AgentManagementOntology.DFAgentDescriptor getDFAgentSearchDsc(String value) throws FIPAException
-  {
-  	AgentManagementOntology.DFAgentDescriptor out = null;
-  	Enumeration el = found.elements();
-  	while (el.hasMoreElements())
-  	{
-  	  	AgentManagementOntology.DFAgentDescriptor dfd = (AgentManagementOntology.DFAgentDescriptor)el.nextElement();
-  	  	if(dfd.getName().equalsIgnoreCase(value))
-  	  		out = dfd;  	  	
-  	}
-  	if(out == null)
-  		throw new FIPAException("No agent found");
-    return out;
-  }
-  
-  /*
-  This method allows the applet to required the df to federate with another df
-  */
-  public void postFederateEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd)
-  {	
-     gui.showStatusMsg("Waiting...process request");
-     
-     if(dfName.equalsIgnoreCase(getName())||dfName.equalsIgnoreCase(getLocalName()))
-     	gui.showStatusMsg("Self Federation not allowed");
-     	
-     else
-     {
-  	   ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-       msg.addDest(getLocalName());
-       msg.setOntology("jade-extensions");
-       msg.setProtocol("fipa-request");
-       msg.setContent("(action df (FEDERATE_WITH "+ dfName +"))");
-       sendMessage(msg.toString());
-       //System.out.println(msg.toString());
-     
-       try
-       {
-     	   ACLMessage reply = receiveMessage(); 
-         //System.out.println(msg.toString());
-
-         if (ACLMessage.AGREE == (reply.getPerformative())) 
-         {
-     	     reply = receiveMessage();
-           if (! (ACLMessage.INFORM == reply.getPerformative())) 
-             gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
-           else
-           {
-           	 gui.refreshFederation();
-           	 gui.showStatusMsg("Federation succeeded");
-           }
-         }
-         else
-          gui.showStatusMsg("Federation unsucceeded because received"+ reply.toString());
-       }catch(jade.lang.acl.ParseException e){
-     	 gui.showStatusMsg("Federation unsucceeded because "+e.getMessage());}
-     }
-  }
-  
-  /*
-  return the constraints used by the search with constraint feature
-  */
-  public Vector getConstraints()
-  { 
-  	return searchConstraint;
-  }
-  
-  //This methods send a request to the df to know the name of the parent with which he is federated.
-  public Enumeration getParents()
-  {  
-  	Vector out = new Vector();
-  	try
-  	{
-  		gui.showStatusMsg("Waiting...process request");
-  		
-  		ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-      msg.addDest(getLocalName());
-      msg.setOntology("jade-extensions");
-      msg.setProtocol("fipa-request");
-      msg.setContent("(action "+ getLocalName() +" (GETPARENTS))");
-      sendMessage(msg.toString());
-      //System.out.println(msg.toString());
-      
-      ACLMessage reply = receiveMessage(); 
-      
-      if (ACLMessage.AGREE == (reply.getPerformative())) 
-      {
-        reply=receiveMessage();
-        
-        if (! (ACLMessage.INFORM == reply.getPerformative())) 
-      	  gui.showStatusMsg("Search unsucceeded because received "+msg.toString());
-        else 
-        { 
-        	StringReader textIn = new StringReader(reply.getContent());
-      	  AgentManagementOntology.DFSearchResult found = AgentManagementOntology.DFSearchResult.fromText(textIn);
-      	  
-      	  Enumeration el = found.elements();
-      	  while(el.hasMoreElements())
-      	  {
-      	  
-      	  	AgentManagementOntology.DFAgentDescriptor a = (AgentManagementOntology.DFAgentDescriptor) el.nextElement();
-      	  	out.addElement(a.getName());
-      	  }
-      	  gui.showStatusMsg("Search succeeded");
-        }
-     }
-     else
-      gui.showStatusMsg("Search with DF unsucceeded because received "+ reply.toString());
-  	}catch(FIPAException e){
-  		gui.showStatusMsg("Search unsucceeded because "+e.getMessage());
-  	}catch(jade.domain.ParseException e1) { 
-      gui.showStatusMsg("Search unsucceeded because "+e1.getMessage()); 
-  	}catch(jade.lang.acl.ParseException e2){
-  		gui.showStatusMsg("Search unsucceeded because "+e2.getMessage());}
-
-  	return out.elements();
-  }
-  
-  
-  /** 
-  This method requires the df the description of the children (df-agent register with him) 
-  */
-  public Enumeration getChildren()
-  { 
-    Vector out = new Vector();   
-  	
-    AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-    dfd.setType("fipa-df");
-      
-    AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-    c.setFn(AgentManagementOntology.Constraint.MAX);
-    c.setArg(1);
-    
-    Vector constraints = new Vector();
-    constraints.add(c);
-    
-    AgentManagementOntology.DFSearchResult found = sendRequestForSearch(getLocalName(),dfd,constraints);
-      
-    try{
-    	Enumeration en = found.elements();
-      while (en.hasMoreElements())
-      {
-        AgentManagementOntology.DFAgentDescriptor desc = (AgentManagementOntology.DFAgentDescriptor) en.nextElement();
-        out.add(desc.getName());
-     }
-    }catch (FIPAException e){
-    	gui.showStatusMsg("Search unsucceeded because "+ e.getMessage());
-    }
-      
-    return out.elements();
-}
- /*
- this method allows the applet to make a search specifing the constraints to use
+ /**
+ * According to the event generatated by the applet, 
+ * this method performes the needed actions.
  */
-  
- public void postSearchWithConstraintEvent(Object source, String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraint)
-  {
-  	try
-  	{
-  	  searchConstraint = constraint;
-  		AgentManagementOntology.DFSearchResult found = sendRequestForSearch(dfName,dfd,constraint);
-      gui.refreshLastSearch(found.elements());
-  	}catch(FIPAException e){
-  		  gui.showStatusMsg("Search unsucceeded because "+ e.getMessage());
-  	  }
-  }
-  
-  /*
-  this method requires the df his description.
-  */
-  public AgentManagementOntology.DFAgentDescriptor getDescriptionOfThisDF()
-  {
-  	if (thisDF == null)
-  	{
-  		  //initialization the variable thisDF
-  			try
-  	    {
-  		    gui.showStatusMsg("Waiting...process request to DF");
-  	    	ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-          msg.addDest(getLocalName());
-          msg.setOntology("jade-extensions");
-          msg.setProtocol("fipa-request");
-          msg.setContent("(action "+ getName() + " (GETDEFAULTDESCRIPTION))");
-          sendMessage(msg.toString());
-          
-          ACLMessage reply = receiveMessage(); 
-          if (ACLMessage.AGREE == (reply.getPerformative())) 
-          {
-            reply = receiveMessage();
-            //System.out.println("Received the message" + reply.toString());
-            if (! (ACLMessage.INFORM == reply.getPerformative())) 
-      	      gui.showStatusMsg("Request unsucceeded because received "+ reply.toString());
-            else 
-            {
-        	   StringReader textIn = new StringReader(reply.getContent());
-      	     thisDF = AgentManagementOntology.DFAgentDescriptor.fromText(textIn);
-      	     gui.showStatusMsg("Request succeeded");
-            }
-          }
-          else
-           gui.showStatusMsg("Request unsucceeded because received "+ reply.toString());
-  	    }catch(jade.domain.ParseException e1) { 
-         gui.showStatusMsg("Request unsucceeded because "+e1.getMessage()); 
-  	    }catch(jade.lang.acl.ParseException e2){
-  		   gui.showStatusMsg("Request unsucceeded because "+e2.getMessage());
-  	  }
-  	}	
-  	
-  	return thisDF;
-  }
 
-  // This method send a request for a search to the stated df according to the dfd and the constraints and returns the agent description found 
-  private AgentManagementOntology.DFSearchResult sendRequestForSearch(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector c)
-  {
-  	Vector out = new Vector();
-    String warning = "";
-  	
-    // only search on  the DF allowed
-    
-    if(!(getLocalName().equalsIgnoreCase(dfName)))
+public void postGuiEvent(GuiEvent event)
+{
+	switch(event.getType())
+	{
+		case DFGUIAdapter.EXIT:
+			gui.dispose();
+			a.destroy();
+			break;
+		case DFGUIAdapter.CLOSEGUI:
+			gui.dispose();
+			a.destroy();
+			break;
+	  case DFGUIAdapter.REFRESHAPPLET:
+	  	refreshDFGUI();
+	  	break;
+		case DFGUIAdapter.REGISTER:
+			RegisterNewAgent(event);
+			break;
+		case DFGUIAdapter.DEREGISTER:
+		  DeregisterAgent(event);
+		  break;
+		case DFGUIAdapter.SEARCH:
+			SearchAgents(event);
+			break;
+		case DFGUIAdapter.MODIFY:
+			Modify(event);
+			break;
+		case DFGUIAdapter.FEDERATE:
+			Federate(event);
+			break;
+	}
+}
+
+ 
+/**
+* Refresh the gui of the applet. 
+* First of all makes a search for all agent registered with the df, 
+* then updates the federate view, requesting the parents to the df. 
+*/
+
+public void refreshDFGUI()
+{
+	//first: make a search on the df of all the agents registered.
+	AID df = getDescriptionOfThisDF().getName();
+	DFAgentDescription dfd = new DFAgentDescription();
+	SearchConstraints sc = new SearchConstraints();
+	try{
+		
+		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+    arp.doProto();
+    Iterator result = arp.getSearchResult().iterator();
+    ArrayList listOfAID = new ArrayList();
+    ArrayList listOfChildren = new ArrayList();
+    while(result.hasNext())
     	{
-    		warning = "WARNING:Only search on itself allowed";
-    		dfName = getLocalName();
+    		DFAgentDescription next = (DFAgentDescription)result.next();
+    		listOfAID.add(next.getName());
+    	  if(isADF(next))
+    	  	listOfChildren.add(next.getName());
     	}
-    	
-  	try 
-  	{
-      gui.showStatusMsg("Waiting...process request");
-      
-  		StringWriter textOut = new StringWriter();
-      ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-      request.addDest(dfName);
-      request.setOntology("fipa-agent-management");
-      request.setLanguage("SL0");
-      request.setProtocol("fipa-request");
-      AgentManagementOntology.DFSearchAction dfsa = new AgentManagementOntology.DFSearchAction();
-      dfsa.setActor(dfName);
-      dfsa.setArg(dfd);
-      
-      Enumeration el = c.elements();
-      while(el.hasMoreElements())
-      {
-        	AgentManagementOntology.Constraint con = (AgentManagementOntology.Constraint)el.nextElement();
-        	dfsa.addConstraint(con);
-      }
-      
-      dfsa.toText(textOut);
-      
-      request.setContent(textOut.toString());
-      //System.out.println(request.toString());
-      sendMessage(request.toString());
-      
-      ACLMessage msg=receiveMessage(); 
-      
-      //System.out.println(msg.toString());
-      
-      if (ACLMessage.AGREE == (msg.getPerformative())) 
-      {
-        msg=receiveMessage();
-        
-        if (! (ACLMessage.INFORM == msg.getPerformative())) 
-      	  gui.showStatusMsg("Search unsucceeded because received "+msg.toString());
-         
+  
+    //second request the df the parent
+    JADEAppletRequestProto getParent = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.GETPARENT,null,null);
+    getParent.doProto();
+    Iterator parents = getParent.getResult().iterator();
+  
+    gui.refresh(listOfAID.iterator(), parents, listOfChildren.iterator());
+	}catch(FIPAAppletRequestProto.NotYetReady nyr){
+		nyr.printStackTrace();
+  }catch(JADEAppletRequestProto.NotYetReady ex){
+   ex.printStackTrace();  
+  }
+  catch(FIPAException e){
+  	e.printStackTrace();}
+
 	
-        else {
-      	  
-        	StringReader textIn = new StringReader(msg.getContent());
-      	  found = AgentManagementOntology.DFSearchResult.fromText(textIn);
-      	  StringBuffer st = new StringBuffer(warning);
-          st.append(" Search succeeded");
-      	  gui.showStatusMsg(st.toString());
-        } 
-      } 
-      else 
-        gui.showStatusMsg("Search with DF unsucceeded because received "+msg.toString());
-  	  } catch (ParseException e) { 
-        gui.showStatusMsg("Search unsucceeded because "+e.getMessage()); 
-  	  } catch (jade.domain.ParseException e2) { 
-        gui.showStatusMsg("Search unsucceeded because "+e2.getMessage()); 
-  	  }
-  	  return found;
+}
+
+/**
+Register an agent with a given df.
+*/
+private void RegisterNewAgent(GuiEvent event)
+{
+	
+	AID df = (AID)event.getParameter(0);
+	DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
+	
+	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
+	  try{
+	  	//register an agent with this df.
+		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.REGISTER,dfd,null);
+	    rf.doProto();
+	  }catch(FIPAException e){
+	  e.printStackTrace();
+	  }
+	else
+	//request the df to register an agent with another df.
+	try{
+		JADEAppletRequestProto requestBehav = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.REGISTERWITH,dfd,df);
+    requestBehav.doProto();
+	}catch(FIPAException e){
+		e.printStackTrace();
+	}
+}
+
+/**
+Deregister an agent with a df.
+*/
+private void DeregisterAgent(GuiEvent event)
+{
+	AID df = (AID)event.getParameter(0);
+	DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
+	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
+	  try{
+		  FIPAAppletRequestProto  rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.DEREGISTER,dfd,null);
+	    rf.doProto();
+	  }catch(FIPAException e){
+	  e.printStackTrace();
+	  }
+  else
+    //deregister the df from a parent
+  	try
+	  {
+		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.DEREGISTERFROM,dfd,df);
+      rf.doProto();
+	  }catch(FIPAException e){
+	  e.printStackTrace();
+	  }
+  
+}
+
+/**
+Finds all the agent descriptors that match the given agent descriptor
+*/
+private void SearchAgents(GuiEvent event)
+{
+	
+	AID df = (AID)event.getParameter(0);
+	DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
+	SearchConstraints sc = (SearchConstraints)event.getParameter(2);
+	if(df.getName().equalsIgnoreCase(thisDF.getName().getName()))
+	try{
+		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+    rf.doProto();
+	}catch(FIPAException e){
+	e.printStackTrace();
+	}
+  else
+  	try{
+  		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(),DFAppletManagementOntology.SEARCHON,dfd,df,sc);
+  		rf.doProto();
+  	}catch(FIPAException e){
+  	e.printStackTrace();
+  	}
+}
+
+/**
+Modifies the DFAgent description of an agent.
+*/
+private void Modify(GuiEvent event)
+{
+	AID df = (AID)event.getParameter(0);
+	DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
+	
+	if(df.equals(thisDF.getName()))
+	try{
+		FIPAAppletRequestProto rf = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.MODIFY,dfd,null);
+    rf.doProto();
+	}catch(FIPAException e){
+	e.printStackTrace();
+	}
+	else
+	try{
+		JADEAppletRequestProto rf = new JADEAppletRequestProto(this,thisDF.getName(),DFAppletManagementOntology.MODIFYON,dfd,df);
+		rf.doProto();
+	}catch(FIPAException e){
+	e.printStackTrace();
+	}
+	
+}
+
+/**
+This method requests the df to perform a federate action. 
+*/
+private void Federate(GuiEvent event)
+{
+	AID parentDF = (AID)event.getParameter(0);
+	if(parentDF.equals(thisDF.getName()))
+	{
+	 gui.showStatusMsg("Self federation not allowed.");
+	 return;
+	}
+	else
+	{
+		DFAgentDescription dfd = (DFAgentDescription)event.getParameter(1);
+	  try
+	  {
+		  JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.FEDERATEWITH,dfd,parentDF);
+      rf.doProto();
+	  }catch(FIPAException e){
+	  e.printStackTrace();
+	  }
+	}
+  
+}
+ 
+ 
+/**
+This method requests the df the DFAgentDescription of a specific agent.
+@param name The AID of the agent.
+*/  
+public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
+	
+	DFAgentDescription outDesc = null;
+	
+	AID df = getDescriptionOfThisDF().getName();
+	DFAgentDescription dfd = new DFAgentDescription();
+	dfd.setName(name);
+	SearchConstraints sc = new SearchConstraints();
+	
+	try{
+		FIPAAppletRequestProto arp = new FIPAAppletRequestProto(this,df,FIPAAgentManagementOntology.SEARCH,dfd,sc);
+    arp.doProto();
+    Iterator result = arp.getSearchResult().iterator();
+    if(result.hasNext())
+     outDesc = (DFAgentDescription)result.next();
+	}catch(FIPAAppletRequestProto.NotYetReady nyr){
+		nyr.printStackTrace();
+	}catch(FIPAException e){
+	e.printStackTrace();
+	}
+
+	return outDesc;
+}
+  
+   
+  /*
+  This method requests the df its default description.
+  */
+  public DFAgentDescription getDescriptionOfThisDF()
+  {
+    if(thisDF == null)
+  	{
+  	  AID df = new AID(getName());
+    
+	    try
+ 	    {
+		    JADEAppletRequestProto rf = new JADEAppletRequestProto(this,df, DFAppletManagementOntology.GETDEFAULTDESCRIPTION,null,null);
+        rf.doProto();
+	    }catch(FIPAException e){
+	    e.printStackTrace();
+	    }
+
+  	}
+
+  	return thisDF; 
   }
   
   /*
-  this method can be used to send a request for a generic action to the df
+  This method requests the df the DFAgentDescription used to federate with a parent df. 
+  @param df  The AID of the parent df.
   */
-  private void sendRequestForAction(String dfName,String action,AgentManagementOntology.DFAgentDescriptor dfd)
+  public DFAgentDescription getDescriptionOfThisDF(AID df)
   {
-  	try
-  	{
-  		gui.showStatusMsg("Waiting....process request");
-  		
-  		StringWriter textOut = new StringWriter();
-      ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-      request.addDest(dfName);
-      request.setOntology("fipa-agent-management");
-      request.setLanguage("SL0");
-      request.setProtocol("fipa-request");
-      AgentManagementOntology.DFAction dfa = new AgentManagementOntology.DFAction();
-      dfa.setName(action);
-      dfa.setActor(dfName);
-      dfa.setArg(dfd);
-    
-      dfa.toText(textOut);
-      
-      request.setContent(textOut.toString());
-      
-      //System.out.println(request.toString());
-      sendMessage(request.toString());
-      
-      ACLMessage msg=receiveMessage(); 
-    
-      if (ACLMessage.AGREE == (msg.getPerformative())) 
-      {
-        msg=receiveMessage();
-         
-        if (! (ACLMessage.INFORM == msg.getPerformative())) 
-      	  gui.showStatusMsg(action + " unsucceeded because received "+msg.toString());
-        
-        else 
-        if( !(AgentManagementOntology.DFAction.MODIFY.equalsIgnoreCase(action)))
-          {
-          	gui.refresh();
-          	gui.showStatusMsg(action + " succeeded");
-          }
-      } 
-      else 
-        gui.showStatusMsg(action + " unsucceeded because received "+msg.toString());
-  	}catch (ParseException e) { 
-        gui.showStatusMsg(action +" unsucceeded because "+e.getMessage()); 
-  	  } 
+    DFAgentDescription output = null;
+  	try{
+    	
+    	JADEAppletRequestProto rf = new JADEAppletRequestProto(this,getDescriptionOfThisDF().getName(), DFAppletManagementOntology.GETDESCRIPTIONUSED,null,df);
+    	rf.doProto();                                           
+    	List result = rf.getResult();
+    	
+    	output = (DFAgentDescription)result.get(0);
+    	
+    }catch(FIPAException e){
+      e.printStackTrace();
+    }catch(JADEAppletRequestProto.NotYetReady nyr){
+      nyr.printStackTrace();    
+    }
+    return output;
+  }
 
+ 	/**
+ 	Verifies if an agent is a DF.
+ 	*/
+  boolean isADF(DFAgentDescription dfd)
+   	{
+   		try{
+   			ServiceDescription sd = (ServiceDescription)((DFAgentDescription)dfd).getAllServices().next();
+        return(sd.getType().equalsIgnoreCase("fipa-df"));
+   		}catch(Exception e){return false;}
+   	}
+   	
+  /*
+  set the description of the df.
+  */
+  void setDescription(DFAgentDescription dfd)
+  {
+  	thisDF = dfd;
+  } 
+  
+  //get the stream used to communicate with the dfproxy
+  PrintStream getStream()
+  {
+  	return out;
+  }
+  
+  //get the parser used to communicate to the dfproxy
+  ACLParser getParser()
+  {
+  	return parser;
   }
 
 }
