@@ -83,8 +83,16 @@ class Stub {
    * object this is a stub of
    */
   protected void addTA(TransportAddress ta) {
-    remoteTAs.add(ta);
+      remoteTAs.add(ta);
   } 
+
+  protected void removeTA(TransportAddress ta) {
+      boolean found = remoteTAs.remove(ta);
+      if(!found) {
+	  System.out.println(">>> Address not found [" + ta.toString() + "] <<<");
+      }
+      System.out.println(">>> There are " + remoteTAs.size() + " addresses left <<<");
+  }
 
   /**
    * Check whether an exception occurred in the remote site
