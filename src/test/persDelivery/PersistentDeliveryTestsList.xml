@@ -17,7 +17,7 @@
 			</WhenTestPass>
 		</Test>
 		
-		<Test name="Timeout" skip="true">
+		<Test name="Storage timeout" skip="false">
 			<TestClassName>test.persDelivery.tests.TestTimeout</TestClassName>
 			<WhatTest>Tests the case of a message that is stored for a limited
 			amount of time.
