@@ -9,7 +9,7 @@
 
 <p><i>Author: Ion Constantinescu (EPFL)</i><br></p>
 
-<p><i>Date: March 2, 2001 </i><br></p>
+<p><i>Date: May 31, 2001 </i><br></p>
 
 <p><i>Java platform: Sun JDK 1.2 Windows </i><br></p>
 
@@ -27,8 +27,7 @@ HTTP MTP with JADE. </p>
 <p> In order to install HTTP the following steps must be performed:</p>
 <ul>
       <li>The HTTP MTP must be downloaded from the <a target=new href="http://sharon.cselt.it/projects/jade">JADE</a> download page.
-      <li>after downloading you <b>MUST</b> unzip the HTTP MTP package under the root of the jade
-	distribution tree. You should end having a hierarchy like jade/http.
+      <li>after downloading you <b>MUST</b> unzip the HTTP MTP package under the root of the jade distribution tree. You should end having a hierarchy like jade/add-ons/http.
       <li>A <a target=new  href="http://www.megginson.com/SAX/">SAX</a> parser must be downloaded and installed into the system.  See below a list of known parsers and configuration options.
       <li>The xml parser jar file must be added to the CLASSPATH or specified in the -classpath argument when starting the virtual machine
 </ul>
@@ -39,14 +38,14 @@ HTTP MTP with JADE. </p>
       handling the compilation process of the HTTP MTP you have to use the Makefile
       located in the http directory. The following rules are available:</p>
     <ul>
-      <li>make http - compiles the http classes 
-      <li>make httplib - creates the http.jar archive 
-      <li>make httpclean - removes the compiled classes and the http.jar archive
+      <li>make  - compiles the http classes 
+      <li>make lib - creates the http.jar archive in the lib directory 
+      <li>make clean - removes the compiled classes and the http.jar archive
       <li>make batch - creates batch files equivalent to make rules:
 	<ul>
-	  <li>makehttp.bat - on windows same as make http
-	  <li>makehttplib.bat - on windows same as make httplib
-	  <li>makehttpclean.bat - on windows same as make httpclean
+	  <li>make.bat - on windows same as make
+	  <li>makelib.bat - on windows same as make lib
+	  <li>makeclean.bat - on windows same as make clean
 	</ul>
     </ul>
 
@@ -121,7 +120,7 @@ is a trademark of
 <A HREF="http://www.cselt.it">CSELT</A>. <A HREF="http://sharon.cselt.it/projects/jade/">JADE</A>
 has been developed jointly by <A HREF="http://www.cselt.it">CSELT</A> and
 the <A HREF="http://www.ce.unipr.it">Computer Engineering Group</A> of
-the <A HREF="http://www.unipr.it">University of Parma</A>.</FONT></CENTER></CENTER><CENTER><FONT SIZE=-1>The HTTP MTP implementation  was developed in the <a href="http://liawww.epfl.ch/">Artificial Inteligence Laboratory ( LIA )</a> at the <a href="http://www.epfl.ch/">Swiss Federal Institute of Technology Lausanne ( EPFL )</a>.
+the <A HREF="http://www.unipr.it">University of Parma</A>.</FONT></CENTER></CENTER><CENTER><FONT SIZE=-1>The HTTP MTP implementation  was developed in the <a href="http://liawww.epfl.ch/">Artificial Inteligence Laboratory ( LIA )</a> at the <a href="http://www.epfl.ch/">Swiss Federal Institute of Technology Lausanne ( EPFL )</a> by <a href="mailto:ion.constantinescu@epfl.ch">Ion Constantinescu</a>.
 </FONT></CENTER>
 <BR>&nbsp;
   </body>
