@@ -169,7 +169,7 @@ public class AbsHelper {
   			absMsg.set(BasicOntology.ACLMSG_RECEIVERS, recvs);
   			// Reply_to
   			AbsAggregate repls = new AbsAggregate(BasicOntology.SEQUENCE);
-  			it = obj.getAllReceiver();
+  			it = obj.getAllReplyTo();
   			while (it.hasNext()) {
   				repls.add((AbsTerm) onto.fromObject(it.next()));
   			}
