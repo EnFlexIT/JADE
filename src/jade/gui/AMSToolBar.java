@@ -1,0 +1,70 @@
+package jade.gui;
+
+import java.awt.*;
+import java.awt.event.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
+
+/**
+ * The ToolBar 
+ */
+public final class AMSToolBar extends JToolBar implements ActionListener
+{
+	/** 
+	 * The ComboBox to choice between Yellow and White pages
+	 */
+	protected JComboBox ShowChoice = new JComboBox ();
+	protected AMSTree tree;
+
+	public AMSToolBar (AMSTree treeP)
+	{
+		super();
+		tree = treeP;
+		setBorderPainted(true);
+		
+		addAction(new OpenScriptFileAction());
+
+		addSeparator();
+	
+		addAction(new StartNewAgentAction());
+		addAction(new StartAction());
+		addAction(new KillAction());
+		addAction(new SuspendAction());
+		addAction(new ResumeAction());
+		addAction(new PingAction());
+		
+		addSeparator();
+
+		addAction(new SnifferAction());
+		addAction(new CustomAction());
+		
+		addSeparator();
+
+		ShowChoice.setToolTipText("Show Agent as...");
+        ShowChoice.addItem("White Pages");
+       	ShowChoice.addItem("Yellow Pages");
+		ShowChoice.addActionListener(this);
+		add(ShowChoice);
+	}
+
+	private void addAction(AMSAbstractAction act)
+	{
+		JButton b = add(act);
+		b.setToolTipText(act.getActionName());
+		b.setText("");
+        b.setRequestFocusEnabled(false);
+        b.setMargin(new Insets(1,1,1,1));
+	}
+	
+	/**
+	 * This method is messaged when the user modifies the choice 
+	 * in the ComboBox (White pages|Yellow Pages)
+	 * When others actions are fired the method actionPerformed of
+	 * the corresponding action is messaged.
+	 */
+	public void actionPerformed (ActionEvent evt)
+	{
+		TreeIconRenderer.setShowType(ShowChoice.getSelectedIndex());
+		tree.repaint();
+	}
+}
