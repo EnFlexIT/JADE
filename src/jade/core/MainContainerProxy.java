@@ -144,7 +144,17 @@ class MainContainerProxy implements Platform {
       adaptee.changedAgentPrincipal(name, certs);
     }
     
-    public AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
+		/**
+	     This method is synchronized because, since it is executed by the agent
+	     thread, when there are a lot of agents running at the same time,
+	     it can happen that a lot of remote calls to the
+	     Main are performed at the same time causing problems to RMI.
+	     FIXME: The same should be done for all methods that are executed 
+	     by the agent thread (suspendedAgent, resumedAgent, bornAgent, 
+	     deadAgent...). However this a temporary patch. A better solution will
+	     be introduced when we will migrate to the command-based interface.
+	 	*/
+    public synchronized AgentPrincipal getAgentPrincipal(AID name) throws IMTPException, NotFoundException {
       return adaptee.getAgentPrincipal(name);
     }
 //__SECURITY__END
