@@ -186,7 +186,7 @@ public class ReflectiveIntrospector implements Introspector {
             throw oe;
         } 
         catch (Throwable t) {
-            throw new OntologyException("Schema and Java class do not match");
+            throw new OntologyException("Schema and Java class do not match", t);
         } 
     } 
 

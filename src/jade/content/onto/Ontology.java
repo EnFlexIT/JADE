@@ -227,10 +227,11 @@ public class Ontology {
             throw new OntologyException("Invalid schema identifier");
         } 
 
-        elements.put(schema.getTypeName(), schema);
+        CaseInsensitiveString s = new CaseInsensitiveString(schema.getTypeName());
+        elements.put(s, schema);
 
         if (javaClass != null) {
-            classes.put(schema.getTypeName(), javaClass);
+            classes.put(s, javaClass);
             schemas.put(javaClass, schema);
         } 
     } 
@@ -309,25 +310,25 @@ public class Ontology {
             throw new OntologyException("Null schema identifier");
         } 
 
-        ObjectSchema ret = (ObjectSchema) elements.get(name);
+        ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
 
         if (ret == null) {
         	//System.out.println("Schema for "+name+" not found in "+getName());
-            if (searchInBase) {
-            	for (int i = 0; i < base.length; ++i) {
-            		try {
-            			if (base[i] == null)
-            				System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
-                	ret = base[i].getSchema(name);
-                	if (ret != null) {
-                		return ret;
-                	}
+          if (searchInBase) {
+            for (int i = 0; i < base.length; ++i) {
+            	try {
+            		if (base[i] == null)
+            			System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
+                ret = base[i].getSchema(name);
+                if (ret != null) {
+                	return ret;
                 }
-                catch (OntologyException oe) {
-                	// Ignore and try next one
-                }
-            	}
-            } 
+              }
+              catch (OntologyException oe) {
+                // Ignore and try next one
+              }
+            }
+          } 
         } 
 
         return ret;
@@ -359,7 +360,7 @@ public class Ontology {
             throw new OntologyException("Null schema identifier");
         } 
 
-        return (Class) classes.get(name);
+        return (Class) classes.get(name.toLowerCase());
     } 
     
     /**
@@ -485,8 +486,8 @@ public class Ontology {
 					((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
 					return;
 				}
-				if (attrValue instanceof AbsContentElement) {
-					((AbsAgentAction) abs).set(attrName, (AbsContentElement) attrValue);
+				if (attrValue instanceof AbsPredicate) {
+					((AbsAgentAction) abs).set(attrName, (AbsPredicate) attrValue);
 					return;
 				}
 			}
