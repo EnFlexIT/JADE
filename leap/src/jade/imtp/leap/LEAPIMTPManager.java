@@ -34,9 +34,13 @@
 
 package jade.imtp.leap;
 
+// FIXME: Temporary Hack
+import java.lang.reflect.*;
+
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.mtp.TransportAddress;
+import jade.security.AuthException;
 import jade.util.leap.*;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.Connection;
@@ -48,13 +52,14 @@ import java.io.IOException;
  */
 public class LEAPIMTPManager implements IMTPManager {
 
-	/**
-	 * Profile keys for LEAP-IMTP specific parameters
-	 */
-	static final String MAIN_URL = "main-url";
-  private static final String LOCAL_PORT = "local-port";
-	private static final String ICPS = "icps";
-	private static final String ROUTER_URL = "router-url";
+    /**
+     * Profile keys for LEAP-IMTP specific parameters
+     */
+    static final String MAIN_URL = "main-url";
+
+    private static final String LOCAL_PORT = "local-port";
+    private static final String ICPS = "icps";
+    private static final String ROUTER_URL = "router-url";
 	
   /**
    * Local pointer to the singleton command dispatcher in this JVM
@@ -66,12 +71,16 @@ public class LEAPIMTPManager implements IMTPManager {
    */
   private Profile           theProfile = null;
 
+
+  private BaseServiceManagerProxy myServiceManagerProxy;
+  private NodeAdapter localNode;
+
   /**
    * Default constructor used to dynamically instantiate a new
    * LEAPIMTPManager object
    */
   public LEAPIMTPManager() {
-  } 
+  }
 
   // ////////////////////////////////
   // IMTPManager Interface
@@ -89,6 +98,8 @@ public class LEAPIMTPManager implements IMTPManager {
 
     // Get the singleton CommandDispatcher
     theDispatcher = CommandDispatcher.getDispatcher();
+
+
 
     // Add to the CommandDispatcher the ICPs specified in the Profile
     try {
@@ -109,7 +120,11 @@ public class LEAPIMTPManager implements IMTPManager {
         catch (Exception e) {
           Logger.println("Error adding ICP. "+e);
         } 
-      } 
+      }
+
+      // Initialize the local node
+      localNode = new NodeAdapter("No-Name", theDispatcher);
+ 
     } 
     catch (ProfileException pe) {
       // Just print a warning
@@ -138,57 +153,182 @@ public class LEAPIMTPManager implements IMTPManager {
     theDispatcher.setRouterAddress(theProfile.getParameter(ROUTER_URL, null));
   } 
 
-  /**
-   */
-  public void remotize(AgentContainer ac) throws IMTPException {
+  public void connect(ContainerID id) throws IMTPException {
+      String containerName = id.getName();
+      localNode.setName(containerName);
+  }
 
-    // Create a skeleton for the container and register it to the
-    // CommandDispatcher
-    Skeleton skel = new AgentContainerSkel(ac);
+  public void disconnect(ContainerID id) throws IMTPException {
+      // Simply exit the local node...
+      localNode.exit();
+      theDispatcher.deregisterSkeleton(localNode);
+  }
 
-    theDispatcher.registerSkeleton(skel, ac);
-  } 
+  public Node getLocalNode() throws IMTPException {
+      return localNode;
+  }
 
-  /**
-   */
-  public void remotize(MainContainer mc) throws IMTPException {
+  public void exportServiceManager(ServiceManager mgr) throws IMTPException {
+      Skeleton skel = new ServiceManagerSkel((ServiceManagerImpl)mgr, this);
+      theDispatcher.registerSkeleton(skel, mgr);
+  }
 
-    // Create a skeleton for the main container and register it to the
-    // CommandDispatcher
-    Skeleton skel = new MainContainerSkel(mc);
+  public void unexportServiceManager(ServiceManager sm) throws IMTPException {
+      if(sm instanceof ServiceManagerImpl) {
+	  theDispatcher.deregisterSkeleton(sm);
+      }
+  }
 
-    theDispatcher.registerSkeleton(skel, mc);
-  } 
+  public ServiceManager createServiceManagerProxy(CommandProcessor proc) throws IMTPException {
+      try {
 
-  /**
-   */
-  public void unremotize(AgentContainer ac) throws IMTPException {
+	  // Look up the actual remote object in the LEAP profile
+	  final ServiceManagerStub remoteSvcMgr = theDispatcher.getServiceManagerStub(theProfile);
 
-    // Deregister the agent container from the CommandDispatcher
-    theDispatcher.deregisterSkeleton(ac);
-  } 
+	  myServiceManagerProxy = new BaseServiceManagerProxy(this, proc) {
 
-  /**
-   */
-  public void unremotize(MainContainer mc) throws IMTPException {
+	      public String getPlatformName() throws IMTPException {
+		  return remoteSvcMgr.getPlatformName();
+	      }
 
-    // Deregister the agent container from the CommandDispatcher
-    theDispatcher.deregisterSkeleton(mc);
-  } 
+	      protected String addRemoteNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
+		  String[] svcNames = new String[services.length];
+		  String[] svcInterfaces = new String[services.length];
 
-  /**
-   * Creates a proxy for the given agent, on the given container.
-   */
-  public AgentProxy createAgentProxy(AgentContainer ac, AID id) throws IMTPException {
-    return new RemoteContainerProxy(ac, id);
-  } 
+		  // Fill the parameter arrays
+		  for(int i = 0; i < services.length; i++) {
+		      svcNames[i] = services[i].getName();
+		      svcInterfaces[i] = services[i].getService().getHorizontalInterface().getName();
+		  }
 
-  /**
-   * Return a MainContainerStub to call remote methods on the Main container
-   */ 
-  public MainContainer getMain(boolean reconnect) throws IMTPException {
-  	return theDispatcher.getMain(theProfile);
-  } 
+		  // Now register this node and all its services with the Service Manager
+		  return remoteSvcMgr.addNode(desc, svcNames, svcInterfaces);
+	      }
+
+	      protected void removeRemoteNode(NodeDescriptor desc) throws IMTPException, ServiceException {
+		  // First, deregister this node with the service manager
+		  remoteSvcMgr.removeNode(desc);
+	      }
+
+	      protected void addRemoteSlice(String svcName, Class itf, NodeDescriptor where) throws IMTPException, ServiceException {
+		  remoteSvcMgr.activateService(svcName, itf, where);
+	      }
+
+	      protected void removeRemoteSlice(String svcName, NodeDescriptor where) throws IMTPException, ServiceException {
+		  remoteSvcMgr.deactivateService(svcName, where);
+	      }
+
+	      protected Node findSliceNode(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
+		  return remoteSvcMgr.findSliceNode(serviceKey, sliceKey);
+	      }
+
+	      protected Node[] findAllNodes(String serviceKey) throws IMTPException, ServiceException {
+		  return remoteSvcMgr.findAllNodes(serviceKey);
+	      }
+
+	  };
+
+	  return myServiceManagerProxy;
+      }
+      catch (Exception e) {
+	  throw new IMTPException("Exception while looking up the Service Manager in the RMI Registry", e);
+      }
+  }
+
+  public ServiceFinder createServiceFinderProxy() throws IMTPException {
+      return myServiceManagerProxy;
+  }
+
+  public void exportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
+      localNode.exportSlice(serviceName, localSlice);
+  }
+
+  public void unexportSlice(String serviceName, Service.Slice localSlice) throws IMTPException {
+      localNode.unexportSlice(serviceName);
+  }
+
+  public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
+
+	  ClassLoader myCL = getClass().getClassLoader();
+
+	  if(itf == null) {
+	      throw new IMTPException("No proxy interface specified");
+	  }
+
+	  // Make sure that the first element of the array is a sub-interface of Service.Slice
+	  if(!itf.isInterface() || !Service.Slice.class.isAssignableFrom(itf)) {
+	      throw new IMTPException("The first proxy interface must extend Service.Slice [" + itf.getName() + "]");
+	  }
+
+	  // Recover the RMI stub from the node where the slice represented by this proxy resides.
+	  final String svcName = serviceName;
+	  final Class intface = itf;
+	  final NodeAdapter target = (NodeAdapter)where;
+
+	  // Build and return a Dynamic Proxy for the remote Slice
+	  return (Service.Slice)Proxy.newProxyInstance(myCL, new Class[] {itf}, new InvocationHandler() {
+
+	      // Reflective invocation handler, creating a
+	      // GenericCommand object from the method name and
+	      // parameters, and then dispatching it to the remote
+	      // slice over the NodeRMI remote interface, wrapping any
+	      // thrown RemoteException into an IMTPException.
+	      //
+	      // Notice: For this proxy to work, every parameter must be Serializable.
+	      //
+	      public Object invoke(Object proxy, Method meth, Object[] args) throws Throwable {
+
+		  GenericCommand cmd = new GenericCommand(meth.getName(), svcName, "");
+		  if(args != null) {
+		      for(int i = 0; i < args.length; i++) {
+			  cmd.addParam(args[i]);
+		      }
+		  }
+
+		  Class[] classes = meth.getParameterTypes();
+		  String[] classNames = new String[classes.length];
+
+		  // Fill the class names array
+		  for(int i = 0; i < classNames.length; i++) {
+		      classNames[i] = classes[i].getName();
+		  }
+
+		  Class retType = meth.getReturnType();
+		  Object result = target.getAdaptee().accept(cmd, intface.getName(), classNames);
+
+		  if(result == null) {
+		      return result;
+		  }
+
+		  // Check for:
+		  // a. A legitimate result, instance of the declared return type
+		  // b. A thrown exception of a declared type
+		  // c. A thrown exception of an unknown type
+		  // The 'isPrimitive()' clause is needed to cope with wrapper types (e.g. boolean vs. java.lang.Boolean)
+		  if(retType.isInstance(result) || (retType.isPrimitive() && !(result instanceof Throwable))) {
+		      return result;
+		  }
+		  else if(result instanceof Throwable) {
+
+		      // If this is a declared exception of the method, let it through
+		      Class[] declaredExceptions = meth.getExceptionTypes();
+		      for(int i = 0; i < declaredExceptions.length; i++) {
+			  if(declaredExceptions[i].equals(result.getClass())) {
+			      throw (Throwable)result; // A declared exception: fine
+			  }
+		      }
+
+		      // Unknown or runtime exception: just print it for now...
+		      ((Throwable)result).printStackTrace();
+		      return null;
+		  }
+		  else {
+		      throw new IMTPException("Incorrect type returned from a remote call: " + result.getClass().getName() + " [expected " + retType.getName() + " ]");
+		  }
+	      }
+	  });
+
+  }
 
   /**
    * Release all resources of this LEAPIMTPManager
