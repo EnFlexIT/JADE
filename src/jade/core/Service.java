@@ -1,4 +1,4 @@
-    /*****************************************************************
+/*****************************************************************
 JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
@@ -168,32 +168,6 @@ public interface Service {
 	private Node myNode;
 	private transient Service myService;
 
-	/*
-	//#MIDP_EXCLUDE_BEGIN
-  private String serviceClass;
-  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-		if (myService != null) {
-			serviceClass = myService.getClass().getName();
-		}
-    out.defaultWriteObject();
-  }
-
-  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-    in.defaultReadObject();
-		if (serviceClass != null) {
-  		try {
-  			myService = (Service) Class.forName(serviceClass).newInstance();
-  		}
-  		catch (ClassNotFoundException cnfe) {
-  			throw cnfe;
-  		}
-  		catch (Throwable t) {
-  			throw new java.io.IOException("Can't create service "+serviceClass+". "+t.getMessage());
-  		}
-		}			
-  }
-	//#MIDP_EXCLUDE_END
-	*/
     }
 
     /**
