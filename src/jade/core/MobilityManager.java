@@ -41,7 +41,7 @@ interface MobilityManager {
      * @param startIt A boolean flag indicating whether the agent must be started now or later
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
-                            AgentContainer classSite, boolean startIt);
+                            AgentContainer classSite, boolean startIt) throws Exception;
 
     /**
      * This method accepts the fully qualified class name as parameter and searches

@@ -45,15 +45,15 @@ public class DummyMobilityManager implements MobilityManager {
                             AgentContainer classSite, boolean startIt)
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
-                            AgentContainer classSite, boolean startIt) {
-    	return;
+                            AgentContainer classSite, boolean startIt) throws Exception {
+    	throw new Exception("Unsupported operation");
     } 
 
     /**
        @see jade.core.MobilityManager#fetchClassFile(String)
      */
     public byte[] fetchClassFile(String name) throws ClassNotFoundException {
-    	return null;
+    	throw new ClassNotFoundException("Unsupported operation");
     } 
 
     /**

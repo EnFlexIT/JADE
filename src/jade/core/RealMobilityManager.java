@@ -133,29 +133,17 @@ class RealMobilityManager implements MobilityManager {
        @see jade.core.MobilityManager#createAgent()
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
-                            AgentContainer classSite, boolean startIt) {
-        try {
+                            AgentContainer classSite, boolean startIt) throws Exception {
+        // Reconstruct the serialized agent
+        ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSite);
+        Agent             instance = (Agent) in.readObject();
 
-            // Reconstruct the serialized agent
-            ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSite);
-            Agent             instance = (Agent) in.readObject();
+        // Store the container where the classes for this agent can be
+        // retrieved
+        sites.put(instance, classSite);
 
-            // Store the container where the classes for this agent can be
-            // retrieved
-            sites.put(instance, classSite);
-
-            // Make the container initialize the reconstructed agent
-            myContainer.initAgent(agentID, instance, startIt);
-        } 
-        catch (IOException ioe) {
-            ioe.printStackTrace();
-        } 
-        catch (ClassNotFoundException cnfe) {
-            cnfe.printStackTrace();
-        } 
-        catch (ClassCastException cce) {
-            cce.printStackTrace();
-        } 
+        // Make the container initialize the reconstructed agent
+        myContainer.initAgent(agentID, instance, startIt);
     } 
 
     /**
