@@ -36,6 +36,11 @@
 			<Description> This item includes tests that measures the performances of the behaviour scheduling (including addition/remotion) mechanism </Description>
 			<TestsListRif>test\\behaviours\\performanceTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="AMS" skip="false">
+			<ClassName>test.domain.ams.AMSTesterAgent</ClassName>
+			<Description> This item includes tests related to the actions that can be requested to the AMS </Description>
+			<TestsListRif>test\\domain\\ams\\amsTestsList.xml</TestsListRif>
+		</Tester>
 		<Tester name="DF" skip="false">
 			<ClassName>test.domain.df.DFTesterAgent</ClassName>
 			<Description> This item includes tests related to the Yellow Pages service provided by the DF agent according to the FIPA specifications </Description>

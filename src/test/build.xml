@@ -46,6 +46,7 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/content/SLOperatorTestsList.xml" todir="${dest}/test/content"/>
     <copy file="${src}/test/domain/jadeManagementOntoTestsList.xml" todir="${dest}/test/domain"/>
     <copy file="${src}/test/domain/df/dfTestsList.xml" todir="${dest}/test/domain/df"/>
+    <copy file="${src}/test/domain/ams/amsTestsList.xml" todir="${dest}/test/domain/ams"/>
     <copy file="${src}/test/interPlatform/interPlatformTestsList.xml" todir="${dest}/test/interPlatform"/>
     <copy file="${src}/test/mobility/mobilityTestsList.xml" todir="${dest}/test/mobility"/>
     <copy file="${src}/test/proto/achieveRETestsList.xml" todir="${dest}/test/proto"/>
