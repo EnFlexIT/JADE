@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1999/06/16 00:19:11  rimassa
+  Added a root() method to retrieve the root behaviour (i.e. the one
+  directly scheduled by the agent) for a given behaviour object.
+
   Revision 1.4  1999/06/15 14:32:25  rimassa
   Added support for timeouts in block() and restart() methods.
 
@@ -205,6 +209,22 @@ public abstract class Behaviour {
     }
   }
 
+  /**
+     Returns the root for this <code>Behaviour</code> object. That is,
+     the top-level behaviour this one is a part of. Agents apply
+     scheduling only to top-level behaviour objects, so they just call
+     <code>restart()</code> on root behaviours.
+     @return The top-level behaviour this behaviour is a part of. If
+     this one is a top level behaviour itself, then simply
+     <code>this</code> is returned.
+     @see jade.core.behaviours.Behaviour#restart()
+   */
+  public Behaviour root() {
+    if(parent != null)
+      return parent.root();
+    else
+      return this;
+  }
 
   // Sets the runnable/not-runnable state
   void setRunnable(boolean runnable) {
@@ -241,15 +261,18 @@ public abstract class Behaviour {
      behaviour will be restarted when among the three following
      events happens.
      <ul>
-
      <li> <em>A time of <code>millis</code> milliseconds has passed
      since the call to <code>block()</code>.</em>
      <li> <em>An ACL message is received by the agent this behaviour
      belongs to.</em>
      <li> <em>Method <code>restart()</code> is called explicitly on
      this behaviour object.</em>
-
-     </ul> 
+     </ul>
+     @param millis The amount of time to block, in
+     milliseconds. <em><b>Notice:</b> a value of 0 for
+     <code>millis</code> is equivalent to a call to
+     <code>block()</code> without arguments.</em>
+     @see jade.core.behaviours.Behaviour#block()
   */
   public void block(long millis) {
     myAgent.restartLater(this, millis);
