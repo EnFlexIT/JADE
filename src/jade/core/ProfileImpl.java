@@ -73,7 +73,6 @@ public class ProfileImpl extends Profile {
   private CommandProcessor myCommandProcessor = null;
   private Platform        myPlatform = null;
   private IMTPManager     myIMTPManager = null;
-  private NotificationManager myNotificationManager = null;
   private ResourceManager myResourceManager = null;
 
   public ProfileImpl(BasicProperties aProp) {
@@ -265,16 +264,6 @@ public class ProfileImpl extends Profile {
     return myResourceManager;
   }
 
-  /**
-   */
-  protected NotificationManager getNotificationManager() throws ProfileException {
-    if (myNotificationManager == null) {
-      createNotificationManager();
-    } 
-
-    return myNotificationManager;
-  }
-
 
 
   /**
@@ -414,9 +403,6 @@ public class ProfileImpl extends Profile {
   	myResourceManager = new FullResourceManager();
   } 
 
-  private void createNotificationManager() throws ProfileException {
-  	myNotificationManager = new RealNotificationManager();
-  } 
 
   /**
    * Retrieve a String value from the configuration properties.

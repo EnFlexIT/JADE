@@ -170,10 +170,6 @@ public abstract class Profile {
     public abstract ResourceManager getResourceManager() throws ProfileException;
 
     /**
-     */
-    protected abstract NotificationManager getNotificationManager() throws ProfileException;
-
-    /**
      * Retrieve a String value from the configuration properties.
      * If no parameter corresponding to the specified key is found,
      * return the provided default.
