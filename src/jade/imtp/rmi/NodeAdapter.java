@@ -27,63 +27,49 @@ package jade.imtp.rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import jade.core.Node;
+import jade.core.BaseNode;
 import jade.core.Service;
+import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
 
-import jade.util.leap.Serializable;
 
 
 /**
    This class wraps an RMI endpoint representing the local platform
-   node. When this node is sent over the network, the RMI stub 
+   node. When this node is sent over the network, the RMI stub is
+   transferred, too.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l
 
  */
-class NodeAdapter implements Node, Serializable {
+class NodeAdapter extends BaseNode {
 
     public NodeAdapter(String name) throws RemoteException {
-	this(name, new NodeRMIImpl());
+	super(name);
+	adaptee = new NodeRMIImpl(this);
     }
 
     public NodeAdapter(String name, NodeRMI node) {
-	myName = name;
+	super(name);
 	adaptee = node;
     }
 
-    public void exportSlice(String serviceName, Service.Slice localSlice) {
-	// FIXME: Temporary hack. This cast should not be needed
-	((NodeRMIImpl)adaptee).exportSlice(serviceName, localSlice);
-    }
-
-    public void unexportSlice(String serviceName) {
-	// FIXME: Temporary hack. This cast should not be needed
-	((NodeRMIImpl)adaptee).unexportSlice(serviceName);
+    public Object accept(HorizontalCommand cmd) throws IMTPException {
+	try {
+	    return adaptee.accept(cmd, null, null);
+	}
+	catch(RemoteException re) {
+	    throw new IMTPException("An RMI error occurred", re);
+	}
     }
 
     public NodeRMI getRMIStub() {
 	return adaptee;
     }
 
-    public void setName(String name) {
-	myName = name;
+    public Service.Slice getSlice(String serviceName) {
+	return super.getSlice(serviceName);
     }
-
-    public String getName() {
-	return myName;
-    }
-
-    /***
-    void changeNodePrincipal(CertificateFolders certs) throws IMTPException {
-	try {
-	    adaptee.changeNodePrincipal(certs);
-	}
-	catch(RemoteException re) {
-	    throw new IMTPException("RMI exception", re);
-	}
-    }
-    ***/
 
     public void ping(boolean hang) throws IMTPException {
 	try {
@@ -103,8 +89,6 @@ class NodeAdapter implements Node, Serializable {
 	}
     }
 
-
-    private String myName;
     private NodeRMI adaptee;
 
 }
