@@ -103,12 +103,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private static String platformID;
   private ContainerID myID;
 
-  private ContainerPrincipal principal = null;
   private String username = null;
   private byte[] password = null;
   private CertificateFolder certs;
   private Authority authority;
   private Map principals = new HashMap();
+  private Map containerPrincipals = new HashMap();
 
   private AID theAMS;
   private AID theDefaultDF;
@@ -172,17 +172,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
 
-  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
+  public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException, AuthException {
   	// Delegate the operation to the MobilityManager
   	try {
 	  	myMobilityManager.createAgent(agentID, serializedInstance, classSite, startIt);
   	}
+  	catch (AuthException e) {
+  		throw e;
+  	}
   	catch (Exception e) {
   		e.printStackTrace();
-  		throw new IMTPException("Exception in createAgent",e); 
+  		//throw new IMTPException("Exception in createAgent",e); 
+  		
   	}
   }
-  
+
   // Accepts the fully qualified class name as parameter and searches
   // the class file in the classpath
   public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
@@ -265,7 +269,24 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	public void changeContainerPrincipal(CertificateFolder certs) throws IMTPException {
 		this.certs = certs;
 	}
-	
+
+	public ContainerPrincipal getContainerPrincipal() {
+		ContainerPrincipal cp = null;
+		cp = (ContainerPrincipal) certs.getIdentityCertificate().getSubject();
+		return cp;
+	}
+
+
+	public ContainerPrincipal getContainerPrincipal(ContainerID cid) throws IMTPException, NotFoundException {
+		// FIXME: manage the HashMap 'containerPrincipals' as done for 'principals'
+		// see getAgentPrincipal()
+		return myPlatform.getContainerPrincipal(cid);
+	}
+
+	public ContainerPrincipal getContainerPrincipal(Location loc) throws IMTPException, NotFoundException {
+		return myPlatform.getContainerPrincipal((ContainerID)loc);
+	}
+
 	public AgentPrincipal getAgentPrincipal(final AID agentID) {
 		AgentPrincipal principal = (AgentPrincipal)principals.get(agentID);
 		if (principal == null) {
@@ -916,14 +937,14 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
   }
 
-  public void handleMove(AID agentID, Location where) {
+  public void handleMove(AID agentID, Location where) throws AuthException, NotFoundException, IMTPException {
   	// Delegate the operation to the MobilityManager
     myMobilityManager.handleMove(agentID, where);
   }
 
-  public void handleClone(AID agentID, Location where, String newName) {
+  public void handleClone(AID agentID, Location where, String newName) throws AuthException {
   	// Delegate the operation to the MobilityManager
-  	myMobilityManager.handleClone(agentID, where, newName);
+	myMobilityManager.handleClone(agentID, where, newName);
   }
 
   public void setPlatformAddresses(AID id) {
