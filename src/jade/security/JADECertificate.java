@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.security;
 
 import java.util.Date;
-
+import jade.util.leap.Serializable;
 
 /**
 	The <code>JADECeritificate</code> interface has to be implemented
@@ -34,7 +34,7 @@ import java.util.Date;
 	@author Michele Tomaiuolo - Universita` di Parma
 	@version $Date$ $Revision$
 */
-public interface JADECertificate {
+public interface JADECertificate extends Serializable {
 	
 	/**
 		Sets the subject of this certificate, i.e. the principal which
