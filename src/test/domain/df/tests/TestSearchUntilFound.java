@@ -97,7 +97,7 @@ public class TestSearchUntilFound extends Test {
 	  			
 	  			// Third search
 	  			DFAgentDescription template = new DFAgentDescription();
-	  			template.addOntologies("Non-matching-ontology");
+	  			template.addOntologies("Non matching ontology");
 	  			result = DFService.searchUntilFound(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints(), 5000);
 	  			if (result == null) {
 	  				l.log("Search 3 successful (No result found)");
