@@ -46,6 +46,6 @@ class DFGUIRefreshAppletAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("Refresh GUI");
-		gui.myAgent.postRefreshAppletGuiEvent((Object) gui);
+	//FIXME:	gui.myAgent.postRefreshAppletGuiEvent((Object) gui);
 	}
 }
