@@ -156,7 +156,8 @@ public abstract class Behaviour implements Serializable {
   private DataStore myStore;
   
   final void setParent(CompositeBehaviour cb) {
-    parent = cb;
+  	parent = cb;
+  	myAgent = parent.myAgent;
   }
 
   /**
