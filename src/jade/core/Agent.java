@@ -63,6 +63,7 @@ import jade.domain.FIPAException;
 import jade.content.ContentManager;
 
 //__SECURITY__BEGIN
+import jade.security.AuthException;
 import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
@@ -1107,8 +1108,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  myThread.interrupt();
       }
     }
-
   }
+  
 
   /**
      Make a state transition from <em>active</em> to
@@ -1553,6 +1554,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
     catch(InterruptedIOException iioe) {
       // Do nothing, since this is a killAgent from outside
     }
+    catch(AuthException e) {
+	  // FIXME:  Should a message be sent to the agent 
+	  //         to notify this ?
+      System.err.println(" Authorization exception. Agent " + myName + " does not have the permission.");
+    }
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
@@ -1701,7 +1707,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  waitUntilActivate();
 	  break;
 	case AP_TRANSIT:
-	  notifyMove();
+	  try {
+		notifyMove();
+	  } catch (Exception e) {
+	  	// something went wrong
+	  	setState(myBufferedState);
+		myDestination = null;
+		throw e;
+	  }  
 	  if(myAPState == AP_GONE) {
 	    beforeMove();
 	    return;
@@ -1709,7 +1722,14 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	  break;
 	case AP_COPY:
 	  beforeClone();
+	  try {
 	  notifyCopy();
+	  } catch (Exception e) {
+	  	// something went wrong
+	  	setState(myBufferedState);
+		myDestination = null;
+		throw e;
+	  }  
 	  doExecute();
 	  break;
 	case AP_ACTIVE:
@@ -1773,7 +1793,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName() + " in AP_IDLE state.");
 	      break;
 	    }
-	  }
+	  } // end catch
 	  break;
 	}  // END of switch on agent atate
 
@@ -1782,7 +1802,15 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
       catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
-      }
+      } catch(AuthException e) {
+		  // FIXME: maybe should send a message to the agent
+		  System.out.println("AuthException: "+e.getMessage() );
+	} catch(Exception ie) {
+		  // shouuld never happen
+		  ie.printStackTrace();
+	}
+
+
     }
 
   }
@@ -2201,12 +2229,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   // Notify toolkit of the need to move the current agent
-  private void notifyMove() {
+  private void notifyMove() throws AuthException, IMTPException, NotFoundException {
     myToolkit.handleMove(myAID, myDestination);
   }
 
   // Notify toolkit of the need to copy the current agent
-  private void notifyCopy() {
+  private void notifyCopy() throws AuthException, IMTPException, NotFoundException {
     myToolkit.handleClone(myAID, myDestination, myNewName);
   }
 
