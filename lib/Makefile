@@ -4,19 +4,20 @@
 .PHONY: all clean
 
 AR = jar
-ARFLAGS1 = c0vf
-ARFLAGS2 = *.class jade/*.class jade/core/*.class jade/core/behaviours/*.class jade/domain/*.class jade/lang/acl/*.class jade/proto/*.class jade/tools/DummyAgent/*.class jade/tools/DummyAgent/images/*.gif jade/tools/rma/*.class jade/tools/rma/images/*.gif jade/tools/sniffer/*.class jade/tools/sniffer/images/*.gif jade/tools/SocketProxyAgent/*.class jade/gui/*.class
+ARFLAGS = c0vf
 
-all: 
+all:
 	@echo Making library ...
-	cd $(SRCDIR); \
-	$(AR) $(ARFLAGS1) $(LIBDIR)/$(LIBNAME) $(ARFLAGS2); \
+	cd $(CLSDIR); \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
+	rm -rf jade/tools; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) *.class jade; \
+	rm -rf jade *.class; \
 	cd $(LIBDIR)
 
 clean:
+	rm -f $(LIBDIR)/$(LIBTOOLSNAME)
 	rm -f $(LIBDIR)/$(LIBNAME)
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
-
-
