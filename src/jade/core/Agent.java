@@ -2068,7 +2068,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	 */
 	public String getProperty(String key, String aDefault) {
 		String val = myToolkit.getProperty(key, aDefault);
-		if (val.equals(aDefault)) {
+		if (val == null || val.equals(aDefault)) {
 			// Try among the System properties
 			String sval = System.getProperty(key);
 			if (sval != null) {
