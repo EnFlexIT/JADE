@@ -47,6 +47,8 @@ import javax.microedition.lcdui.*;
 //#MIDP_EXCLUDE_BEGIN
 public class MicroBoot {
 
+  private static Logger logger = Logger.getMyLogger("jade.MicroBoot");
+
     /**
        Default constructor.
     */
@@ -81,19 +83,19 @@ public class MicroBoot {
 		    	}
 		    	catch (InterruptedException ie) {
 		    	}
-		      Logger.println("Exiting now!");
+		      logger.log(Logger.INFO,"Exiting now!");
 		      System.exit(0);
 		    } 
 		  });
     }
     catch (IllegalArgumentException iae) {
-      Logger.println("Error reading command line configuration properties. "+iae.getMessage());
+      logger.log(Logger.SEVERE,"Error reading command line configuration properties. "+iae.getMessage());
       iae.printStackTrace();
       printUsage();
       System.exit(-1);
     }
     catch (IOException ioe) {
-      Logger.println("Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
+      logger.log(Logger.SEVERE,"Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
       ioe.printStackTrace();
       printUsage();
       System.exit(-1);
@@ -119,17 +121,17 @@ public class MicroBoot {
   		else {
   			// Get agents at the end of command line
   			if (props.getProperty(MicroRuntime.AGENTS_KEY) != null) {
-  				Logger.println("WARNING: overriding agents specification set with the \"-agents\" option");
+  				logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
   			}
   			String agents = args[i];
   			props.setProperty(MicroRuntime.AGENTS_KEY, args[i]);
   			if (++i < args.length) {
-  				Logger.println("WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+  				logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
 					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
-						Logger.println("Note that agent arguments specifications must not contain spaces");
+						logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
 					}
   				if (args[i].indexOf(':') != -1) {
-						Logger.println("Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+						logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
 					}
   			}
   			break;
@@ -140,16 +142,15 @@ public class MicroBoot {
   }
   
   private static void printUsage() {
-  	Logger.println("Usage:");
-  	Logger.println("java -cp <classpath> jade.MicroBoot [options] [agents]");
-  	Logger.println("Options:");
-  	Logger.println("    -conf <file-name>. Read configuration properties from the specified file name");
-  	Logger.println("    -host <host-name>. The name/address of the host where the BackEnd has to be created");
-  	Logger.println("    -port <port-number>. The port of the J2SE container active on \"host\"");
-  	Logger.println("    -<key> <value>");
-  	Logger.println("Agents: [-agents] <semicolon-separated agent-specifiers>");
-  	Logger.println("     where agent-specifier = <agent-name>:<agent-class>[(comma separated args)]"); 
-  	Logger.println();
+  	logger.log(Logger.ALL,"Usage:");
+  	logger.log(Logger.ALL,"java -cp <classpath> jade.MicroBoot [options] [agents]");
+  	logger.log(Logger.ALL,"Options:");
+  	logger.log(Logger.ALL,"    -conf <file-name>. Read configuration properties from the specified file name");
+  	logger.log(Logger.ALL,"    -host <host-name>. The name/address of the host where the BackEnd has to be created");
+  	logger.log(Logger.ALL,"    -port <port-number>. The port of the J2SE container active on \"host\"");
+  	logger.log(Logger.ALL,"    -<key> <value>");
+  	logger.log(Logger.ALL,"Agents: [-agents] <semicolon-separated agent-specifiers>");
+  	logger.log(Logger.ALL,"     where agent-specifier = <agent-name>:<agent-class>[(comma separated args)]\n"); 
   }
 
 }
@@ -157,15 +158,23 @@ public class MicroBoot {
 /*#MIDP_INCLUDE_BEGIN
 public class MicroBoot extends MIDlet implements Runnable {
 
+  private Logger logger;
+   
   // Start-up the JADE runtime system
   public void startApp() throws MIDletStateChangeException {
-  	if (Agent.midlet != null) {
-  		// This can happen when the MIDlet is paused and then resumed
-  		Logger.println("JADE runtime already active");
-  		return;
-  	}
-  	    
+    boolean quit = false;
+    if (Agent.midlet != null) {
+      // This can happen when the MIDlet is paused and then resumed
+      quit = true;
+    }
+
     Agent.midlet = this;
+    
+    logger = Logger.getMyLogger(this.getClass().getName());
+    if (quit) {
+      logger.log(Logger.SEVERE,"JADE runtime already active");
+  		return; 
+    }
     
     try {
     	String source = getAppProperty("MIDlet-LEAP-conf");
@@ -197,7 +206,7 @@ public class MicroBoot extends MIDlet implements Runnable {
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      Logger.println("Error reading configuration properties");
+      logger.log(Logger.SEVERE,"Error reading configuration properties");
       e.printStackTrace();
       Agent.midlet = null;
       notifyDestroyed();
@@ -205,11 +214,11 @@ public class MicroBoot extends MIDlet implements Runnable {
   } 
 
   public void pauseApp() {
-		Logger.println("pauseApp() called");
+		logger.log(Logger.INFO,"pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-		Logger.println("destroyApp() called");
+		logger.log(Logger.INFO,"destroyApp() called");
 		// When the MIDlet is killed, kill JADE too
   	MicroRuntime.stopJADE();
   } 
@@ -217,7 +226,7 @@ public class MicroBoot extends MIDlet implements Runnable {
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
-  		Logger.println("Destroying MIDlet now");
+  		logger.log(Logger.INFO,"Destroying MIDlet now");
     	Agent.midlet.notifyDestroyed();
     }
     Agent.midlet = null;

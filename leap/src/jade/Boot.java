@@ -49,11 +49,13 @@ import java.io.*;
  * @author Giovanni Rimassa - Universita' di Parma
  * @author Giovanni Caire - TILAB
  * @author Nicolas Lhuillier - Motorola
+ * @author Jerome Picault - Motorola
  * @version $Date$ $Revision$
  *
  */
 public class Boot {
   private static final String DEFAULT_FILENAME = "leap.properties";
+  private static Logger logger = Logger.getMyLogger("jade.Boot");
 
   /**
    * Fires up the <b><em>JADE</em></b> system.
@@ -171,7 +173,7 @@ public class Boot {
 		  				}
 	  				}
 	  				catch (Exception e) {
-	  					Logger.println("WARNING: error loading properties from file "+args[i]+". "+e);
+	  					logger.log(Logger.SEVERE, "WARNING: error loading properties from file "+args[i]+". "+e);
 	  				}	
 	  			}
 	  			else {
@@ -186,13 +188,13 @@ public class Boot {
 	  				throw new IllegalArgumentException("No mtps specified after \"-mtp\" option");
 	  			}
 	  			if (props.getProperty("nomtp") != null) {
-	  				Logger.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-nomtp")) {
 	  			props.setProperty("nomtp", "true");
 	  			if (props.getProperty(Profile.MTPS) != null) {
-	  				Logger.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				logger.log(Logger.WARNING,"WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-agents")) {
@@ -217,17 +219,17 @@ public class Boot {
   		else {
   			// Get agents at the end of command line
   			if (props.getProperty(Profile.AGENTS) != null) {
-  				Logger.println("WARNING: overriding agents specification set with the \"-agents\" option");
+  				logger.log(Logger.WARNING,"WARNING: overriding agents specification set with the \"-agents\" option");
   			}
   			String agents = args[i];
   			props.setProperty(Profile.AGENTS, args[i]);
   			if (++i < args.length) {
-  				Logger.println("WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+  				logger.log(Logger.WARNING,"WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
 					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
-						Logger.println("Note that agent arguments specifications must not contain spaces");
+						logger.log(Logger.WARNING,"Note that agent arguments specifications must not contain spaces");
 					}
   				if (args[i].indexOf(':') != -1) {
-						Logger.println("Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+						logger.log(Logger.WARNING,"Note that agent specifications must be separated by a semicolon character \";\" without spaces");
 					}
   			}
   			break;
@@ -271,16 +273,25 @@ import jade.core.Agent;
 
 public class Boot extends MIDlet implements Runnable {
   public static MIDlet midlet;
+  private Logger logger ;
 
   public void startApp() throws MIDletStateChangeException {
-  	if (Agent.midlet != null) {
-  		// This can happen when the MIDlet is paused and then resumed
-  		Logger.println("JADE runtime already active");
-  		return;
-  	}
-  	    
+
+    boolean quit = false;
+    if (Agent.midlet != null) {
+      // This can happen when the MIDlet is paused and then resumed
+      quit = true;
+    }
+
     Agent.midlet = this;
     midlet = this;
+    
+    logger = Logger.getMyLogger(this.getClass().getName());
+    if (quit) {
+      logger.log(Logger.SEVERE,"JADE runtime already active");
+  		return; 
+    }
+    
     
     try {
     	String source = getAppProperty("MIDlet-LEAP-conf");
@@ -309,7 +320,7 @@ public class Boot extends MIDlet implements Runnable {
 			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      Logger.println("Error creating the Profile Manager ["+e.getMessage()+"]");
+      logger.log(Logger.SEVERE,"Error creating the Profile Manager ["+e.getMessage()+"]");
       e.printStackTrace();
       Agent.midlet = null;
       midlet = null;
@@ -318,11 +329,11 @@ public class Boot extends MIDlet implements Runnable {
   } 
 
   public void pauseApp() {
-		Logger.println("pauseApp() called");
+		logger.log(Logger.INFO,"pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-		Logger.println("destroyApp() called");
+		logger.log(Logger.INFO,"destroyApp() called");
 		// If the MIDlet is killed, kill JADE too
   	Runtime.instance().shutDown();
   } 
@@ -330,7 +341,7 @@ public class Boot extends MIDlet implements Runnable {
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
-  		Logger.println("Destroying MIDlet now");
+  		logger.log(Logger.INFO, "Destroying MIDlet now");
 	    Agent.midlet.notifyDestroyed();
 		}
   	Agent.midlet = null;
@@ -338,7 +349,7 @@ public class Boot extends MIDlet implements Runnable {
   }
   
   protected void customize(Profile p) {
-    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.0"));
+    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.1"));
   }
 #MIDP_INCLUDE_END*/
 }
