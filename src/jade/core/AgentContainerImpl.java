@@ -86,7 +86,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_BEGIN
 
   // The agent platform this container belongs to
-  private MainContainerImpl myMainContainer; // FIXME: It should go away
+  protected MainContainerImpl myMainContainer; // FIXME: It should go away
 
   //#MIDP_EXCLUDE_END
 
@@ -398,6 +398,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);
+      // Register with the platform 
+      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
   }
 
   /**
@@ -430,8 +432,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  }
     }
 			  	
-	  // Register with the platform 
-    myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
     ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
@@ -1162,6 +1162,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 //#ALL_EXCLUDE_END  
   
   private void initCredentials(Command cmd, AID id) {
+    //#MIDP_EXCLUDE_BEGIN
   	Agent agent = localAgents.acquire(id);
   	if (agent != null) {
   		try {
@@ -1174,5 +1175,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  	}
   	}  
   	localAgents.release(id);
+    //#MIDP_EXCLUDE_END
   }
+
 }
