@@ -46,6 +46,10 @@ import java.util.Enumeration;
    This class also provides methods to control the termination of 
    the threads dedicated to the execution of wrapped behaviours
    
+   <br>
+   <b>NOT available in MIDP</b>
+   <br>
+   
    @author Giovanni Caire - TILAB
  */
 public class ThreadedBehaviourFactory {
