@@ -379,7 +379,7 @@ public class LEAPCodec extends ByteArrayCodec {
     	int index = stringReferences.indexOf(s);
     	if (index >= 0) {
     		// Write the tag modified and just put the index
-    		System.out.println("String "+s+" already encoded");
+    		//System.out.println("String "+s+" already encoded");
     		stream.writeByte(tag|MODIFIER);
     		stream.writeByte(index);
     	}
