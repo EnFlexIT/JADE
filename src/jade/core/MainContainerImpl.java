@@ -634,20 +634,23 @@ class MainContainerImpl implements Platform, AgentManager {
 			ContainerID cid = ad.getContainerID();
 
 			// Notify containers
+			/* FIXME. This block of code creates a deadlock when launching
+			   the party example on a remote container.
 			AgentContainer[] allContainers = containers.containers();
 			for (int i = 0; i < allContainers.length; i++) {
 				AgentContainer ac = allContainers[i];
 				// FIXME: If some container is temporarily disconnected it will not be
 				// notified. We should investigate the sideeffects
 				try {
-					ac.changeAgentPrincipal(name, to, null, null);
+				    ac.changeAgentPrincipal(name, to, null, null);
 				}
 				catch (IMTPException imtpe) {
+				    imtpe.printStackTrace();
 				}
-			}
+				}
 
 			// Notify listeners
-			fireChangedAgentPrincipal(cid, name, from, to);
+			fireChangedAgentPrincipal(cid, name, from, to); FIXME */
 		}
 		catch (AuthException ae) {
 			ae.printStackTrace();
