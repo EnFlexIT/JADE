@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.30  1998/12/07 23:42:35  rimassa
+  Added a getAddress() method.
+  Fixed by-hand parsing of message content beginning "( action ams ";
+  now this is embedded within a suitable AgentManagementOntology inner
+  class.
+
   Revision 1.29  1998/12/01 23:35:55  rimassa
   Changed a method name from 'modifyDFRegistration()' to
   'modifyDFData()'.
@@ -245,6 +251,10 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   public String getName() {
     return myName;
+  }
+
+  public String getAddress() {
+    return myAddress;
   }
 
   // This is used by the agent container to wait for agent termination
@@ -551,7 +561,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action ams " + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -583,7 +593,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action ams " + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -614,7 +624,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action ams " + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -634,7 +644,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action acc " + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -650,12 +660,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Build a DF action object for the request
     AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
     a.setName(AgentManagementOntology.DFAction.REGISTER);
+    a.setActor(dfName);
     a.setArg(dfd);
 
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -671,12 +682,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Build a DF action object for the request
     AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
     a.setName(AgentManagementOntology.DFAction.DEREGISTER);
+    a.setActor(dfName);
     a.setArg(dfd);
 
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -692,12 +704,13 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Build a DF action object for the request
     AgentManagementOntology.DFAction a = new AgentManagementOntology.DFAction();
     a.setName(AgentManagementOntology.DFAction.MODIFY);
+    a.setActor(dfName);
     a.setArg(dfd);
 
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + text + " )");
+    request.setContent(text.toString());
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -706,7 +719,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // Search a DF for information
 
-  // FIXME: Constraints still missing
   public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {
 
     String replyString = myName + "-df-search";
@@ -715,6 +727,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Build a DF action object for the request
     AgentManagementOntology.DFSearchAction a = new AgentManagementOntology.DFSearchAction();
     a.setName(AgentManagementOntology.DFAction.SEARCH);
+    a.setActor(dfName);
     a.setArg(dfd);
 
     if(constraints == null) {
@@ -736,7 +749,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter textOut = new StringWriter();
     a.toText(textOut);
-    request.setContent("( action " + dfName + textOut + " )");
+    request.setContent(textOut.toString());
 
     // Send message and collect reply
     String content = doFipaRequestClient(request, replyString);
