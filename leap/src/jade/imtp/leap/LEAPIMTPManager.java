@@ -94,7 +94,7 @@ public class LEAPIMTPManager implements IMTPManager {
 
     // Add to the CommandDispatcher the ICPs specified in the Profile
     try {
-    	// Set defaults if not explicitly set
+    	// Set defaults if not explicitly set. 
     	setDefaults();
     	
       List     l = theProfile.getSpecifiers(ICPS);
@@ -244,6 +244,24 @@ public class LEAPIMTPManager implements IMTPManager {
   // /////////////////////////
 
   /**
+     In the Profile ICPS can be specified as follows.
+     1) If there is only one ICP -->
+     icps = <icp-class-name>
+     <param-key> = <param-value>
+     .......
+     2) In general (typically used when there are 2 or more ICPs)
+     icps = <icp1-class-name>(<icp1-id>);<icp2-class-name>(<icp2-id>)...
+     <icp1-id>-<param-key> = <param-value>
+     .......
+     <icp2-id>-<param-key> = <param-value>
+     .......
+     
+     If there is no ICP indication set it as follows. 
+     a) Peripheral container / J2SE 
+        - There is at least 1 ICP already active --> Nothing
+        - There are no ICPs already active --> JICPPeer
+     b) Peripheral container / PJAVA or MIDP --> JICPBMPeer
+     c) Main container / J2SE or PJAVA --> JICPPeer
    */
   private void setDefaults() throws ProfileException {
     if ("false".equals(theProfile.getParameter(Profile.MAIN, null))) {
@@ -268,11 +286,9 @@ public class LEAPIMTPManager implements IMTPManager {
       	String jvm = theProfile.getParameter(Profile.JVM, null);
       	if (Profile.J2SE.equals(jvm)) {
       		// Set default ICPS for J2SE
-        	theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
-        	/*String localPort = theProfile.getParameter(LOCAL_PORT, null);
-        	if (localPort != null) {
-        		theProfile.setParameter(new String("p1-"+JICPProtocol.LOCAL_PORT_KEY), localPort);
-        	}*/
+    			if (theDispatcher.getLocalURLs().size() == 0) {
+        		theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
+    			}
       	}
       	else {
       		// Set default ICPS for PJAVA and MIDP (same)
@@ -287,10 +303,6 @@ public class LEAPIMTPManager implements IMTPManager {
       // This is the Main Container
       if (theProfile.getParameter(ICPS, null) == null) {
         theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
-        /*String localPort = theProfile.getParameter(LOCAL_PORT, theProfile.getParameter(Profile.MAIN_PORT, null));
-        if (localPort != null) {
-        	theProfile.setParameter(JICPProtocol.LOCAL_PORT_KEY, localPort);
-        }*/
       }
     }  
   }
