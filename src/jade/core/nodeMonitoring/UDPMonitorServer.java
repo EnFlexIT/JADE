@@ -24,7 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.nodeMonitoring;
 
 //#APIDOC_EXCLUDE_FILE
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import jade.core.Profile;
 
