@@ -10,7 +10,7 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
 	  ontology/EngagerAgent.java ontology/RequesterAgent.java \
 	  mobile/MobileAgent.java \
-          jsp/Snooper.java jsp/Client.java jsp/Buffer.java PingAgent/PingAgent.java
+          jsp/Snooper.java jsp/Client.java jsp/Buffer.java PingAgent/PingAgent.java MessageTemplate/WaitAgent.java
 
 all: 
 	@echo Making test examples

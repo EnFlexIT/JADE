@@ -245,12 +245,13 @@ CSELT
 Via Reiss Romoli 274
 Turin
 
-	
+
 	
 'jsp' subdirectory
 ==================
 This is an example of integration of JADE and JSP kindly provided by Daniel
 Le Berre. Look at the tutorial in the documentation.
+
 
 'PingAgent' subdirectory
 ========================
@@ -259,3 +260,16 @@ the DF and the waits for ACLMessages. If a QUERY_REF message arrives with conten
 "ping" then it replies with an INFORM message whose content will be "pong".
 For every other message received, except for NOT-UNDERSTOOD, 
 it replies with a NOT_UNDERSTOOD message. 
+	
+	
+'MessageTemplate' subdirectory
+==============================
+This example shows the user the way to define an application specific MessageTemplate.
+The WaitAgent agent waits for a REQUEST message from a set of agents the user must provide.
+Since the default method in class MessageTemplate does not provide a way to define such a
+pattern, the example shows how to create this application specific pattern.
+To try the example, the user can start the WaitAgent (from command line when launching 
+the platform or via RMA gui ) and  then enters the name of the agents that will 
+send messages to this agent (for example start a DummyAgent from the RMA gui and use 
+it as sender).
+If an REQUEST message will be sent (from one of the expected agent) than the WaitAgent will reply with a INFORM message otherwise no reply message will be sent.
