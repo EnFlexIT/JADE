@@ -397,11 +397,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
   
   private Service.Slice checkLocal(Service.Slice slice) throws ServiceException {
-  	// If the slice is for the local node be sure it includes the real local
-  	// node and not a proxy
-  	Node n = slice.getNode();
-  	if (n.getName().equals(localNode.getName()) && !n.equals(localNode)) {
-  		((Service.SliceProxy) slice).setNode(localNode);
+  	if (slice != null) {
+	  	// If the slice is for the local node be sure it includes the real local
+	  	// node and not a proxy
+	  	Node n = slice.getNode();
+	  	if (n.getName().equals(localNode.getName()) && !n.equals(localNode)) {
+	  		((Service.SliceProxy) slice).setNode(localNode);
+	  	}
   	}
   	return slice;
   }	
