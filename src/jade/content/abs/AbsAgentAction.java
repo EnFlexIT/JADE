@@ -40,12 +40,12 @@ public class AbsAgentAction extends AbsConcept implements AbsContentElement {
     }
 
     /**
-     * Sets an attribute of the agent action held by this
+     * Set an attribute of the agent action held by this
      * abstract descriptor.
      * @param name The name of the attribute to be set.
      * @param value The new value of the attribute.
      */
-    public void set(String name, AbsContentElement value) {
+    public void set(String name, AbsPredicate value) {
         super.set(name, value);
     } 
 
