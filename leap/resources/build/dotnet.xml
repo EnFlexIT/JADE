@@ -25,6 +25,7 @@
 				<include name="**/jade/**"/>
 				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
+				<exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/jade/tools/**"/>
 			</fileset>
 		</copy>
@@ -33,13 +34,12 @@
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
-				<exclude name="**/jade/core/MainContainerProxy.java"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole as if it were for PJAVA -->
 	  <pproc basedir="${src}" type="pjava"/>
-	  <!-- 4) Preprocess SL stuff as if it were for MIDP -->
-	  <pproc basedir="${src}/jade/content/lang/sl" type="midp"/>
+	  <!-- 4) Preprocess specific for .NET -->
+	  <pproc basedir="${src}" type="dotnet"/>
 	</target>
 
 	
@@ -71,11 +71,11 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" depends="do-reset, do-setup, do-parsers"
+	<target name="do-compile" depends="do-setup, do-parsers"
 	  description="Compile sources">
-	  <exec executable="vjc.exe">
-	    <arg line="/recurse:${src}/*.java" /> <!--jade"
-	    <arg line="/recurse:${src}/starlight/util" /-->
+	  <echo>Visual J# compiler is: ${vjc}</echo>
+	  <exec executable="${vjc}">
+	    <arg line="/recurse:${src}/*.java" /> 
 	    <arg line="/t:library" />
 	    <!-- arg line="/main:jade.Boot" /-->
 	    <arg line="/out:${lib}/JadeLeap.dll" />
