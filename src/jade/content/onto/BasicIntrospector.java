@@ -29,28 +29,26 @@ import jade.content.abs.*;
 import jade.content.schema.*;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
-import java.lang.reflect.*;
+import jade.content.onto.basic.*;
+import jade.core.CaseInsensitiveString;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class BasicIntrospector implements Introspector {
+class BasicIntrospector implements Introspector {
 
     /**
-     * Externalize
-     *
-     * @param ontology
-     * @param obj
-     *
-     * @return
-     *
-     * @throws OntologyException
-     *
+     * Translate an object of a class representing an element in an
+     * ontology into a proper abstract descriptor 
+     * @param onto The reference ontology 
+     * @param obj The Object to be translated
+     * @return The Abstract descriptor produced by the translation 
+		 * @throws UnknownSchemaException If no schema for the object to be
+		 * translated is defined in the ontology that uses this Introspector
+		 * @throws OntologyException If some error occurs during the translation
      */
-    public AbsObject externalise(Ontology ontology, 
-                                 Object obj) throws OntologyException {
-	FullOntology onto = (FullOntology)ontology;
-
+    public AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
+    			throws UnknownSchemaException, OntologyException {
         try {
             if (obj == null) {
                 return null;
@@ -59,38 +57,64 @@ public class BasicIntrospector implements Introspector {
             if (obj instanceof String) {
                 return AbsPrimitive.wrap((String) obj);
             } 
-
             if (obj instanceof Boolean) {
                 return AbsPrimitive.wrap(((Boolean) obj).booleanValue());
             } 
-
-            if (obj instanceof Float) {
-                return AbsPrimitive.wrap(((Float) obj).floatValue());
-            } 
-
             if (obj instanceof Integer) {
                 return AbsPrimitive.wrap(((Integer) obj).intValue());
             } 
+            //__CLDC_UNSUPPORTED__BEGIN
+            if (obj instanceof Float) {
+                return AbsPrimitive.wrap(((Float) obj).floatValue());
+            } 
+            //__CLDC_UNSUPPORTED__END
+
 
             if (obj instanceof List) {
-                return AbsHelper.fromObject((List) obj, onto);
+              return AbsHelper.externaliseList((List) obj, referenceOnto);
             }
 
-	    if(obj instanceof jade.core.AID) {
-		return AbsHelper.fromObject((jade.core.AID)obj, onto);
-	    }
+	    			if (obj instanceof Iterator) {
+							return AbsHelper.externaliseIterator((Iterator) obj, referenceOnto);
+	    			}
+	    
+	    			if(obj instanceof jade.core.AID) {
+							return AbsHelper.externaliseAID((jade.core.AID)obj);
+	    			}
 
             if (obj instanceof ContentElementList) {
-                return AbsHelper.fromContentElementListObject((List) obj, onto);
+            	return AbsHelper.externaliseContentElementList((ContentElementList) obj, referenceOnto);
             } 
 	    
-	    if (obj instanceof Iterator) {
-		return AbsHelper.fromObject((Iterator) obj, onto);
-	    }
-	    
-	    return null;
+	    			if(obj instanceof TrueProposition) {
+	    				AbsPredicate absTrueProp = new AbsPredicate(BasicOntology.TRUE_PROPOSITION);
+							return absTrueProp;
+	    			}
+
+	    			if(obj instanceof Done) {
+	    				AbsActionPredicate absDone = new AbsActionPredicate(BasicOntology.DONE);
+  						absDone.set(BasicOntology.DONE_ACTION, (AbsGenericAction) onto.fromObject(((Done) obj).getAction()));
+							return absDone;
+	    			}
+
+	    			if(obj instanceof Result) {
+	    				AbsActionPredicate absResult = new AbsActionPredicate(BasicOntology.RESULT);
+  						absResult.set(BasicOntology.RESULT_ACTION, (AbsGenericAction) onto.fromObject(((Result) obj).getAction()));
+  						absResult.set(BasicOntology.RESULT_ITEMS, (AbsTerm) onto.fromObject(((Result) obj).getItems()));
+							return absResult;
+	    			}
+
+	    			if(obj instanceof Equals) {
+	    				AbsPredicate absEquals = new AbsPredicate(BasicOntology.EQUALS);
+  						absEquals.set(BasicOntology.EQUALS_LEFT, (AbsTerm) onto.fromObject(((Equals) obj).getLeft()));
+  						absEquals.set(BasicOntology.EQUALS_RIGHT, (AbsTerm) onto.fromObject(((Equals) obj).getRight()));
+							return absEquals;
+	    			}
+
+            throw new UnknownSchemaException();
         } 
         catch (OntologyException oe) {
+        		// Forward the exception
             throw oe;
         } 
         catch (Throwable t) {
@@ -99,20 +123,20 @@ public class BasicIntrospector implements Introspector {
     } 
 
     /**
-     * Internalize
+     * Translate an abstract descriptor into an object of a proper class 
+     * representing an element in an ontology 
+     * @param onto The reference ontology 
+     * @param abs The abstract descriptor to be translated
      *
-     * @param ontology
-     * @param abs
-     *
-     * @return
-     *
-     * @throws OntologyException
-     * @throws UngroundedException
-     *
+     * @return The Java object produced by the translation 
+     * @throws UngroundedException If the abstract descriptor to be translated 
+     * contains a variable
+		 * @throws UnknownSchemaException If no schema for the abstract descriptor
+		 * to be translated is defined in the ontology that uses this Introspector
+     * @throws OntologyException If some error occurs during the translation
      */
-    public Object internalise(Ontology ontology, AbsObject abs) 
-            throws UngroundedException, OntologyException {
-	FullOntology onto = (FullOntology)ontology;
+    public Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
+    			throws UngroundedException, UnknownSchemaException, OntologyException {
 
         try {
             if (abs == null) {
@@ -120,24 +144,51 @@ public class BasicIntrospector implements Introspector {
             } 
 
             if (abs instanceof AbsPrimitive) {
-                return AbsPrimitive.toObject((AbsPrimitive) abs);
+                return ((AbsPrimitive) abs).getObject();
             } 
-
             if (abs instanceof AbsAggregate) {
-                return AbsHelper.toListObject((AbsAggregate) abs, onto);
+                return AbsHelper.internaliseList((AbsAggregate) abs, referenceOnto);
             } 
-
-	    if (abs instanceof AbsAID) {
-		return AbsHelper.toAIDObject((AbsAID) abs, onto);
-	    }
+	    			if (abs instanceof AbsAID) {
+							return AbsHelper.internaliseAID((AbsAID) abs);
+	    			}
 
             if (abs instanceof AbsContentElementList) {
-                return AbsHelper.toListObject((AbsContentElementList) abs, onto);
+            	return AbsHelper.internaliseContentElementList((AbsContentElementList) abs, referenceOnto);
             } 
 
-            return null;
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.TRUE_PROPOSITION)) { 
+							TrueProposition t = new TrueProposition();
+							return t;
+	    			}
+	    			
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
+							Done d = new Done();
+  						AbsActionPredicate absDone = (AbsActionPredicate) abs;
+  						d.setAction((GenericAction) onto.toObject(absDone.getAbsTerm(BasicOntology.DONE_ACTION))); 
+							return d;
+	    			}
+	    			
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
+							Result r = new Result();
+  						AbsActionPredicate absResult = (AbsActionPredicate) abs;
+  						r.setAction((GenericAction) onto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ACTION))); 
+  						r.setItems((List) onto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ITEMS))); 
+							return r;
+	    			}
+	    			
+	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.EQUALS)) { 
+							Equals e = new Equals();
+  						AbsPredicate absEquals = (AbsPredicate) abs;
+  						e.setLeft(onto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_LEFT))); 
+  						e.setRight(onto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_RIGHT))); 
+							return e;
+	    			}
+	    			
+	    			throw new UnknownSchemaException();
         } 
         catch (OntologyException oe) {
+        		// Forward the exception
             throw oe;
         } 
         catch (Throwable t) {

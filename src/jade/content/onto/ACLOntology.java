@@ -35,54 +35,37 @@ import jade.content.schema.*;
  *
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ACLOntology extends FullOntology {
-    public static final String       INFORM = "Inform";
-    public static final String       PROPOSITION = "Proposition";
-    public static final String       QUERY_REF = "QueryRef";
-    public static final String       IRE = "IRE";
-    public static final String       REQUEST = "Request";
-    public static final String       ACTION = "Action";
-    public static final String       SENDER = "Sender";
-    public static final String       RECEIVERS = "Receivers";
-    public static final String       ANY = "Any";
-    public static final String       IOTA = "Iota";
-    public static final String       ALL = "All";
-    public static final String       VARIABLES = "Variables";
-    public static final String       CONCEPT = "Concept";
-    public static final String       EQUALS = "Equals";
+public class ACLOntology extends Ontology {
+    public static final String       INFORM = "INFORM";
+    public static final String       INFORM_PROPOSITION = "proposition";
+    
+    public static final String       REQUEST = "REQUEST";
+    public static final String       REQUEST_ACTION = "action";
+    
+    public static final String       QUERYREF = "QUERYREF";
+    public static final String       QUERYREF_IRE = "ire";
+    
     private static final ACLOntology theInstance = new ACLOntology();
 
     /**
      * Constructor
-     *
      */
     private ACLOntology() {
-        super("ACL_ONTOLOGY", BasicOntology.getInstance());
+        super("ACL_ONTOLOGY", BasicOntology.getInstance(), new ReflectiveIntrospector());
 
         try {
-            add(IRESchema.getBaseSchema());
-            add(ContentElementSchema.getBaseSchema());
-            add(CommunicativeActSchema.getBaseSchema());
-	    add(EqualsSchema.getBaseSchema());
-
-            CommunicativeActSchema informSchema = 
-                new CommunicativeActSchema(INFORM);
-
-            informSchema.add(PROPOSITION, 
-                             PropositionSchema.getBaseSchema());
+            CommunicativeActSchema informSchema = new CommunicativeActSchema(INFORM);
+            informSchema.add(INFORM_PROPOSITION, (PropositionSchema) PropositionSchema.getBaseSchema());
             add(informSchema, Inform.class);
 
-            CommunicativeActSchema queryRefSchema = 
-                new CommunicativeActSchema(QUERY_REF);
-
-            queryRefSchema.add(IRE, IRESchema.getBaseSchema());
-            add(queryRefSchema, QueryRef.class);
-
-            CommunicativeActSchema requestSchema = 
-                new CommunicativeActSchema(REQUEST);
-
-            requestSchema.add(ACTION, new GenericActionSchema());
+            CommunicativeActSchema requestSchema = new CommunicativeActSchema(REQUEST);
+            requestSchema.add(REQUEST_ACTION, (GenericActionSchema) GenericActionSchema.getBaseSchema());
             add(requestSchema, Request.class);
+            
+            CommunicativeActSchema queryRefSchema = new CommunicativeActSchema(QUERYREF);
+            queryRefSchema.add(QUERYREF_IRE, (IRESchema) IRESchema.getBaseSchema());
+            add(queryRefSchema); // As the content of a QUERYREF is an IRE a concrete QueryRef class makes no sense
+
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -90,12 +73,10 @@ public class ACLOntology extends FullOntology {
     }
 
     /**
-     * Returns the singleton instance of the <code>BasicOntology</code>.
-     *
-     * @return the <code>BasicOntology</code>
-     *
+     * Returns the singleton instance of the <code>ACLOntology</code>.
+     * @return the <code>ACLOntology</code>
      */
-    public static ACLOntology getInstance() {
+    public static Ontology getInstance() {
         return theInstance;
     } 
 }

@@ -33,31 +33,37 @@ import jade.content.schema.*;
 public interface Introspector {
 
     /**
-     * Externalize
-     *
-     * @param onto
-     * @param obj
-     *
-     * @return
-     *
-     * @throws OntologyException
-     *
+     * Translate an object of a class representing an element in an
+     * ontology into a proper abstract descriptor 
+     * @param onto The ontology that uses this Introspector.
+     * @param referenceOnto The reference ontology in the context of
+     * this translation i.e. the most extended ontology that extends 
+     * <code>onto</code> (directly or indirectly). 
+     * @param obj The Object to be translated
+     * @return The Abstract descriptor produced by the translation 
+		 * @throws UnknownSchemaException If no schema for the object to be
+		 * translated is defined in the ontology that uses this Introspector
+		 * @throws OntologyException If some error occurs during the translation
      */
-    AbsObject externalise(Ontology onto, Object obj) throws OntologyException;
+    AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
+    				throws UnknownSchemaException, OntologyException;
 
     /**
-     * Internalize
-     *
-     * @param onto
-     * @param abs
-     *
-     * @return
-     *
-     * @throws OntologyException
-     * @throws UngroundedException
-     *
+     * Translate an abstract descriptor into an object of a proper class 
+     * representing an element in an ontology 
+     * @param onto The ontology that uses this Introspector.
+     * @param referenceOnto The reference ontology in the context of
+     * this translation i.e. the most extended ontology that extends 
+     * <code>onto</code> (directly or indirectly). 
+     * @param abs The abstract descriptor to be translated
+     * @return The Java object produced by the translation 
+     * @throws UngroundedException If the abstract descriptor to be translated 
+     * contains a variable
+		 * @throws UnknownSchemaException If no schema for the abstract descriptor
+		 * to be translated is defined in the ontology that uses this Introspector
+     * @throws OntologyException If some error occurs during the translation
      */
-    Object internalise(Ontology onto, AbsObject abs) 
-            throws UngroundedException, OntologyException;
+    Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
+    				throws UngroundedException, UnknownSchemaException, OntologyException;
 }
 

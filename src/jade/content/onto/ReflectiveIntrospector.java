@@ -34,51 +34,57 @@ import java.lang.reflect.*;
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class ReflectiveIntrospector extends BasicIntrospector {
+public class ReflectiveIntrospector implements Introspector {
 
     /**
-     * Externalize
-     *
-     * @param ontology
-     * @param obj
-     *
-     * @return
-     *
-     * @throws OntologyException
-     *
+     * Translate an object of a class representing an element in an
+     * ontology into a proper abstract descriptor 
+     * @param onto The ontology that uses this Introspector.
+     * @param referenceOnto The reference ontology in the context of
+     * this translation i.e. the most extended ontology that extends 
+     * <code>onto</code> (directly or indirectly). 
+     * @param obj The Object to be translated
+     * @return The Abstract descriptor produced by the translation 
+		 * @throws UnknownSchemaException If no schema for the object to be
+		 * translated is defined in the ontology that uses this Introspector
+		 * @throws OntologyException If some error occurs during the translation
      */
-    public AbsObject externalise(Ontology ontology, 
-                                 Object obj) throws OntologyException {
-	FullOntology onto = (FullOntology)ontology;
-
+    public AbsObject externalise(Ontology onto, Ontology referenceOnto, Object obj) 
+    				throws UnknownSchemaException, OntologyException {
         try {
-            AbsObject ret = super.externalise(ontology, obj);
-
-	    if(ret != null) return ret;
-
-            Class        javaClass = obj.getClass();
+            Class        javaClass = obj.getClass();            
             ObjectSchema schema = onto.getSchema(javaClass);
+            if (schema == null) {
+            	throw new UnknownSchemaException();
+            }
+            //DEBUG System.out.println("Schema is: "+schema);
+            System.out.println("Schema is: "+schema);
             AbsObject    abs = schema.newInstance();
             Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
 
+            //FIXME: The correct way to do this would be to loop on
+            // slot names and call related get methods.
             for (int i = 0; i < methods.length; i++) {
-                String name = methods[i].getName();
+            	Method m = methods[i];
+              String methodName = m.getName();
 
-                if (name.startsWith("get")) {
-                    String attributeName = 
-                        (name.substring(3, name.length())).toUpperCase();
+              if (methodName.startsWith("get")) {
+                String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
-                    if (schema.isAttribute(attributeName)) {
-                        AbsObject attributeValue = invokeGetMethod(onto, 
-                                                                   methods[i], 
-                                                                   obj);
+                if (schema.isSlot(attributeName)) {
+            			//DEBUG System.out.println("Handling attribute "+attributeName);
+            			System.out.println("Handling attribute "+attributeName);
+                  AbsObject attributeValue = invokeGetMethod(referenceOnto, m, obj);
+            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
+            			System.out.println("Attribute value is: "+attributeValue);
 
-                        if (attributeValue != null) {
-                            abs.set(attributeName, attributeValue);
-                        } 
-                    } 
+                  if (attributeValue != null) {
+                    //abs.set(attributeName, attributeValue);
+                  	Ontology.setAttribute(abs, attributeName, attributeValue);
+                  } 
                 } 
+              } 
             } 
 
             return abs;
@@ -91,66 +97,84 @@ public class ReflectiveIntrospector extends BasicIntrospector {
         } 
     } 
 
-    private AbsObject invokeGetMethod(FullOntology onto, Method method, 
+    private AbsObject invokeGetMethod(Ontology onto, Method method, 
                                       Object obj) throws OntologyException {
+        Object result = null;
         try {
-            Object result = method.invoke(obj, null);
+            result = method.invoke(obj, null);
 
             if (result == null) {
                 return null;
             } 
 
-            return externalise(onto, result);
+            return onto.fromObject(result);
+        } 
+        catch (OntologyException oe) {
+        		// Forward the exception
+            throw oe;
         } 
         catch (Exception e) {
-            throw new OntologyException("Schema and Java class do not match");
+            throw new OntologyException("Error invoking get method");
         } 
     } 
 
     /**
-     * Internalize
-     *
-     * @param ontology
-     * @param abs
-     *
-     * @return
-     *
-     * @throws OntologyException
-     * @throws UngroundedException
-     *
+     * Translate an abstract descriptor into an object of a proper class 
+     * representing an element in an ontology 
+     * @param onto The ontology that uses this Introspector.
+     * @param referenceOnto The reference ontology in the context of
+     * this translation i.e. the most extended ontology that extends 
+     * <code>onto</code> (directly or indirectly). 
+     * @param abs The abstract descriptor to be translated
+     * @return The Java object produced by the translation 
+     * @throws UngroundedException If the abstract descriptor to be translated 
+     * contains a variable
+		 * @throws UnknownSchemaException If no schema for the abstract descriptor
+		 * to be translated is defined in the ontology that uses this Introspector
+     * @throws OntologyException If some error occurs during the translation
      */
-    public Object internalise(Ontology ontology, AbsObject abs) 
-            throws UngroundedException, OntologyException {
-	FullOntology onto = (FullOntology)ontology;
+    public Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
+            throws UngroundedException, UnknownSchemaException, OntologyException {
 
         try {
-            Object ret = super.internalise(ontology, abs);
-
-            if (ret != null) return ret;
-
-            Class        javaClass = onto.getClass(abs.getTypeName());
+        		String type = abs.getTypeName();
+        		// Retrieve the schema
+            ObjectSchema schema = onto.getSchema(type, false);
+            if (schema == null) {
+            	throw new UnknownSchemaException();
+            }
+            //DEBUG System.out.println("Schema is: "+schema);
+            System.out.println("Schema is: "+schema);
+            
+            Class        javaClass = onto.getClassForElement(type);
+            //DEBUG System.out.println("Class is: "+javaClass.getName());
+            System.out.println("Class is: "+javaClass.getName());
             Object       obj = javaClass.newInstance();
-            ObjectSchema schema = onto.getSchema(javaClass);
+            //DEBUG System.out.println("Object created");
+            System.out.println("Object created");
+            
             Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
 
             for (int i = 0; i < methods.length; i++) {
-                String name = methods[i].getName();
+            	Method m = methods[i];
+              String methodName = m.getName();
 
-                if (name.startsWith("set")) {
-                    String attributeName = 
-                        (name.substring(3, name.length())).toUpperCase();
+              if (methodName.startsWith("set")) {
+                String attributeName = (methodName.substring(3, methodName.length())).toUpperCase();
 
-                    if (schema.isAttribute(attributeName)) {
-                        AbsObject attributeValue = 
-                            abs.getAbsObject(attributeName);
+                if (schema.isSlot(attributeName)) {
+            			//DEBUG System.out.println("Handling attribute "+attributeName);
+            			System.out.println("Handling attribute "+attributeName);
+                	AbsObject attributeValue = abs.getAbsObject(attributeName);
+            			//DEBUG System.out.println("Attribute value is: "+attributeValue);
+            			System.out.println("Attribute value is: "+attributeValue);
 
-                        if (attributeValue != null) {
-                            invokeSetMethod(onto, methods[i], obj, 
-                                            attributeValue);
-                        } 
-                    } 
+                  if (attributeValue != null) {
+                  	invokeSetMethod(referenceOnto, m, obj, attributeValue);
+                  } 
                 } 
+              } 
             } 
 
             return obj;
@@ -163,10 +187,10 @@ public class ReflectiveIntrospector extends BasicIntrospector {
         } 
     } 
 
-    private void invokeSetMethod(FullOntology onto, Method method, Object obj, 
+    private void invokeSetMethod(Ontology onto, Method method, Object obj, 
                                  AbsObject value) throws OntologyException {
         try {
-            Object objValue = internalise(onto, value);
+            Object objValue = onto.toObject(value);
 
             if (objValue == null) {
                 return;
@@ -178,8 +202,12 @@ public class ReflectiveIntrospector extends BasicIntrospector {
 
             method.invoke(obj, params);
         } 
+        catch (OntologyException oe) {
+        		// Forward the exception
+            throw oe;
+        } 
         catch (Exception e) {
-            throw new OntologyException("Schema and Java class do not match");
+            throw new OntologyException("Error invoking set method");
         } 
     } 
 

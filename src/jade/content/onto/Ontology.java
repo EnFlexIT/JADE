@@ -25,8 +25,12 @@
 package jade.content.onto;
 
 import java.util.Hashtable;
+import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
+import jade.util.leap.List;
+import jade.util.leap.Iterator;
+import jade.core.CaseInsensitiveString;
 
 /**
  *  An application-specific ontology describes the elements that agents
@@ -138,86 +142,85 @@ import jade.content.schema.*;
  * <code>ACLOntology</code>. 
 
  * @see jade.content.Concept
- * @see jade.content.abs.Concept
+ * @see jade.content.abs.AbsConcept
+ * @see jade.content.schema.ConceptSchema
  * @see jade.content.onto.ACLOntology
  * @see jade.content.onto.BasicOntology
- * @see jade.content.schema.ConceptSchema
  * @author Federico Bergenti - Universita` di Parma
  */
-public abstract class Ontology {
-    protected Ontology     base = null;
-    protected String       name = null;
-    //protected Introspector introspector = null;
+public class Ontology {
+    private Ontology[]   base = null;
+    private String       name = null;
+    private Introspector introspector = null;
+    
+    private Hashtable    elements = new Hashtable();
+    private Hashtable    classes  = new Hashtable();
+    private Hashtable    schemas  = new Hashtable();
+    
 
     /**
-     * Construct an ontology with a given <code>name</code>
-     *
-     * @param name identifier of the ontology.
+     * Construct an Ontology object with a given <code>name</code> 
+     * that uses a given Introspector to
+     * convert between Java objects and abstract descriptors.
+     * @param name The identifier of the ontology.
+     * @param introspector The introspector.
      */
-    public Ontology(String name) {
-        this.name = name;
+    public Ontology(String name, Introspector introspector) {
+      this(name, new Ontology[0], introspector);
     }
 
     /**
-     * Construct an ontology with a given <code>name</code> that extends 
-     * <code>base</code>.
-     *
-     * @param name identifier of the ontology.
-     * @param base base ontology.
-     *
+     * Construct an Ontology object with a given <code>name</code> 
+     * that extends a given ontology and that uses a given Introspector to
+     * convert between Java objects and abstract descriptors.
+     * @param name The identifier of the ontology.
+     * @param base The base ontology.
+     * @param introspector The introspector.
      */
-    public Ontology(String name, Ontology base) {
-        this.name = name;
-        this.base = base;
-        //introspector = new ReflectiveIntrospector();
+    public Ontology(String name, Ontology base, Introspector introspector) {
+      this(name, (base != null ? new Ontology[]{base} : new Ontology[0]), introspector); 
     }
 
     /**
-     * Construct an ontology with a given <code>name</code> that extends 
-     * <code>base</code>. The object will use <code>introspector</code>
-     * for serialization and de-serialization.
-     *
-     * @param name identifier of the ontology.
-     * @param base base ontology.
-     * @param introspector the introspector.
-     *
+     * Construct an Ontology object with a given <code>name</code> 
+     * that extends a given set of ontologies and that uses a given Introspector to
+     * convert between Java objects and abstract descriptors.
+     * @param name The identifier of the ontology.
+     * @param base The base ontology.
+     * @param introspector The introspector.
      */
-    //public Ontology(String name, Ontology base, Introspector introspector) {
-    //    this.name = name;
-    //    this.base = base;
-    //    this.introspector = introspector;
-    //}
+    public Ontology(String name, Ontology[] base, Introspector introspector) {
+        this.name = name;
+        this.introspector = introspector;
+        this.base = (base != null ? base : new Ontology[0]);
+    }
 
     /**
-     * Retrieves the name of the ontology.
-     * @return the name of the ontology.
+     * Retrieves the name of this ontology.
+     * @return the name of this ontology.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Adds a schema to the ontology
-     * @param schema the schema to add
+     * Adds a schema to this ontology
+     * @param schema The schema to add
      * @throws OntologyException
      */
-    public abstract void add(ObjectSchema schema) throws OntologyException;
-    /*{
+    public void add(ObjectSchema schema) throws OntologyException {
         add(schema, null);
-    } */
+    } 
+
 
     /**
      * Adds a schema to the ontology and associates it to the class
      * <code>javaClass</code>
-     *
      * @param schema the schema.
      * @param javaClass the concrete class.
-     *
      * @throws OntologyException
      */
-    public abstract void add(ObjectSchema schema, 
-                    Class javaClass) throws OntologyException;
-    /*{
+    public void add(ObjectSchema schema, Class javaClass) throws OntologyException {
         if (schema.getTypeName() == null) {
             throw new OntologyException("Invalid schema identifier");
         } 
@@ -228,17 +231,70 @@ public abstract class Ontology {
             classes.put(schema.getTypeName(), javaClass);
             schemas.put(javaClass, schema);
         } 
-    } */
+    } 
+
+    /**
+     * Retrieves the schema associated with <code>name</code>. The 
+     * search is extended to the base ontologies if the schema is not
+     * found.
+     * @param name the name of the schema in the vocabulary.
+     * @return the schema or <code>null</code> if the schema is not found.
+     * @throws OntologyException 
+     */
+    public ObjectSchema getSchema(String name) throws OntologyException {
+    	return getSchema(name, true);
+		}		
+            
+    /**
+     * Converts an abstract descriptor to a Java object of the proper class.
+     * @param abs the abstract descriptor.
+     * @return the object
+     * @throws UngroundedException if the abstract descriptor contains a 
+     * variable
+     * @throws OntologyException if some mismatch with the schema is found
+     * @see fromObject(Object)
+     */
+  	public Object toObject(AbsObject abs) throws OntologyException, UngroundedException {
+  		try {
+  			return toObject(abs, this);
+  		}
+      catch (UnknownSchemaException use) {
+      	// If we get this exception here, the schema is globally unknown 
+      	// (i.e. is unknown in the reference ontology and all its base
+      	// ontologies) --> throw a generic OntologyException
+      	throw new OntologyException("No schema found for type "+abs.getTypeName());
+      } 
+  	}
+  	
+    /**
+     * Converts a Java object into a proper abstract descriptor.
+     * @param obj the object
+     * @return the abstract descriptor.
+     * @throws OntologyException if some mismatch with the schema is found
+     * @see toObject(AbsObject)
+     */
+    public AbsObject fromObject(Object obj) throws OntologyException {
+    	try {
+    		return fromObject(obj, this);
+    	}
+      catch (UnknownSchemaException use) {
+      	// If we get this exception here, the schema is globally unknown 
+      	// (i.e. is unknown in the reference ontology and all its base
+      	// ontologies) --> throw a generic OntologyException
+      	throw new OntologyException("No schema found for class "+obj.getClass().getName());
+      } 
+    }
 
     /**
      * Retrieves the schema associated with <code>name</code>.
      * @param name the name of the schema in the vocabulary.
+     * @param searchInBase If <code>true</code> the 
+     * search is extended to the base ontologies if the schema is not
+     * found.
      * @return the schema.
      * @throws OntologyException
      */
-    public abstract ObjectSchema getSchema(String name) 
-            throws OntologyException;
-    /*{
+    ObjectSchema getSchema(String name, boolean searchInBase) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
         } 
@@ -246,119 +302,248 @@ public abstract class Ontology {
         ObjectSchema ret = (ObjectSchema) elements.get(name);
 
         if (ret == null) {
-            if (base != null) {
-                return base.getSchema(name);
+            if (searchInBase) {
+            	for (int i = 0; i < base.length; ++i) {
+            		try {
+                	ret = base[i].getSchema(name);
+                	if (ret != null) {
+                		return ret;
+                	}
+                }
+                catch (OntologyException oe) {
+                	// Ignore and try next one
+                }
+            	}
             } 
-
-            throw new OntologyException("Invalid schema identifier");
         } 
 
         return ret;
-    } */
+    } 
 
     /**
      * Retrieves the schema associated with <code>javaClass</code>
-     *
+     * The search is not extended to the base ontologies
      * @param javaClass the Java class
-     *
      * @return the schema
-     *
      * @throws OntologyException
-     *
      */
-    public abstract ObjectSchema getSchema(Class javaClass) 
-            throws OntologyException;
-    /*{
+    ObjectSchema getSchema(Class javaClass) throws OntologyException {
         if (javaClass == null) {
             throw new OntologyException("Null schema identifier");
         } 
-
-        ObjectSchema ret = (ObjectSchema) schemas.get(javaClass);
-
-        if (ret == null) {
-            if (base != null) {
-                return ((FullOntology)base).getSchema(javaClass);
-            } 
-
-            return null;
-        } 
-
-        return ret;
-    } */
+        return (ObjectSchema) schemas.get(javaClass);
+    } 
 
     /**
      * Retrieves the concrete class associated with <code>name</code> in
-     * the vocabulary.
-     *
+     * the vocabulary. The search is not extended to the base ontologies
      * @param name the name of the schema.
-     *
      * @return the Java class.
-     *
      * @throws OntologyException
-     *
      */
-    public abstract Class getClass(String name) throws OntologyException;
-    /*{
+    Class getClassForElement(String name) throws OntologyException {
         if (name == null) {
             throw new OntologyException("Null schema identifier");
         } 
 
-        Class ret = (Class) classes.get(name);
-
-        if (ret == null) {
-            if (base != null) {
-                return ((FullOntology)base).getClass(name);
-            } 
-
-            return null;
-        } 
-
-        return ret;
-    } */
+        return (Class) classes.get(name);
+    } 
     
-   /**
-     * Converts an abstract descriptor to an object.
+    /**
+     * Converts an abstract descriptor to a Java object of the proper class.
      * @param abs the abstract descriptor.
+     * @param globalOnto The ontology this ontology is part of (i.e. the 
+     * ontology that extends this ontology).
      * @return the object
-     * @throws OntologyException
-     * @throws UngroundedException
-     * @see fromObject(Object)
-     */
-    public abstract Object toObject(AbsObject abs)
-            throws OntologyException, UngroundedException;
-    /*{
-        return introspector.internalise(this, abs);
-    } */
+     * @throws OntologyException if some mismatch with the schema is found
+     * @throws UngroundedException if the abstract descriptor contains a 
+     * variable
+     */ 
+    private Object toObject(AbsObject abs, Ontology globalOnto) throws UngroundedException, OntologyException {
+    		try {
+    			if (introspector != null) {
+        		//DEBUG System.out.println("Try to internalise "+abs+" through "+introspector);
+        		System.out.println("Try to internalise "+abs+" through "+introspector);
+        		return introspector.internalise(this, globalOnto, abs);
+    			}
+    			else {
+    				// If the introspector is not set all schemas are unknown
+    				throw new UnknownSchemaException();
+    			}
+        }
+        catch (UnknownSchemaException use1) {
+        	// Try to convert the abstract descriptor using the base ontologies
+        	for (int i = 0; i < base.length; ++i) {
+        		try {
+        			return base[i].toObject(abs, globalOnto);
+        		}
+        		catch (UnknownSchemaException use2) {
+        			// Try the next one
+        		}	
+        	}
+        	throw use1;
+        }    		
+    } 
 
     /**
-     * Converts an object to an abstract descriptor.
+     * Converts a Java object into a proper abstract descriptor.
      * @param obj the object
+     * @param globalOnto The ontology this ontology is part of (i.e. the 
+     * ontology that extends this ontology).
      * @return the abstract descriptor.
-     * @throws OntologyException
-     * @see toObject(AbsObject)
+		 * @throws UnknownSchemaException If no schema for the object to be
+		 * translated is defined in this ontology.
+     * @throws OntologyException if some mismatch with the schema is found
      */
-    public abstract AbsObject fromObject(Object obj) throws OntologyException;
-    /*{
-        return introspector.externalise(this, obj);
-    } */
+    private AbsObject fromObject(Object obj, Ontology globalOnto) 
+    			throws UnknownSchemaException, OntologyException {
+    				
+        // If the object is already an abstract descriptor, just return it
+    		if (obj instanceof AbsObject) {
+    			return (AbsObject) obj;
+    		}
+    		
+    		try {
+    			if (introspector != null) {
+        		//DEBUG System.out.println("Try to externalise "+obj+" through "+introspector);
+        		System.out.println("Try to externalise "+obj+" through "+introspector);
+        		return introspector.externalise(this, globalOnto, obj);
+    			}
+    			else {
+    				throw new UnknownSchemaException();
+    			}
+    		}
+        catch (UnknownSchemaException use1) {
+        	// Try to convert the object using the base ontologies
+        	for (int i = 0; i < base.length; ++i) {
+        		try {
+	        		return base[i].fromObject(obj, globalOnto);
+        		}
+        		catch (UnknownSchemaException use2) {
+        			// Try the next one
+        		}
+        	}
+        	throw use1;
+        }
+    } 
 
-    /**
-       Creates an instance of the proper subclass of 
-       <code>AbsObject</code>
-       @param typeName the type of <code>AbsObject</code> to be
-       returned
-       @throws OntologyException if the given name does not represent
-       a valid type of <code>AbsObject</code>
-     */
-    //public abstract AbsObject getAbsObject(String typeName) throws OntologyException; 
+    
+    /////////////////////////
+    // Utility static methods
+    /////////////////////////
     
     /**
-       Checks that a given <code>AbsObject</code> is consistent
-       with this <code>Ontology</code>
-       @param abs the <code>AbsObject</code> that has to be checked
-       @throws OntologyException if the given <code>AbsObject</code>
-       is not consistent with this <code>Ontology</code>
+     * Check whether a given object is a valid term.
+     * If it is an Aggregate (i.e. a <code>List</code>) it also check
+     * the elements.
+     * @throws OntologyException if the given object is not a valid term
      */
-    //public abstract check(AbsObject abs) throws OntologyException; 
+    public static void checkIsTerm(Object obj) throws OntologyException {
+    	if (obj instanceof String ||
+    		  obj instanceof Boolean ||
+    		  obj instanceof Integer ||
+    		  //__CLDC_UNSUPPORTED__BEGIN
+    		  obj instanceof Float ||
+    		  //__CLDC_UNSUPPORTED__END
+    		  obj instanceof Term) {
+    		return;
+    	}
+    	if (obj instanceof List) {
+    		Iterator it = ((List) obj).iterator();
+    		while (it.hasNext()) {
+    			checkIsTerm(it.next());
+    		}
+    		return;
+    	}
+    	
+    	// If we reach this point the object is not a term
+    	throw new OntologyException("Object "+obj+" is not a term");
+    }
+ 
+    /**
+     * Set an attribute in an abstract descriptor performing all 
+     * necessary type checks.
+     * @throws OntologyException if a type mismatch is detected
+     */
+    public static void setAttribute(AbsObject abs, String attrName, AbsObject attrValue) throws OntologyException { 
+			if (abs instanceof AbsConcept) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsConcept) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsPredicate) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsPredicate) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsAgentAction) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsAgentAction) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+			}
+			else if (attrValue instanceof AbsCommunicativeAct) {
+				if (attrValue instanceof AbsContentElement) {
+					((AbsCommunicativeAct) abs).set(attrName, (AbsContentElement) attrValue);
+					return;
+				}
+				else if (attrValue instanceof AbsAID && CaseInsensitiveString.equalsIgnoreCase(attrName, CommunicativeActSchema.SENDER)) {
+					((AbsCommunicativeAct) abs).setSender((AbsAID) attrValue);
+					return;
+				}
+				else if (attrValue instanceof AbsAggregate && CaseInsensitiveString.equalsIgnoreCase(attrName, CommunicativeActSchema.RECEIVERS)) {
+					((AbsCommunicativeAct) abs).setReceivers((AbsAggregate) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsActionPredicate) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsActionPredicate) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+				else if (attrValue instanceof AbsGenericAction) {
+					((AbsActionPredicate) abs).set(attrName, (AbsGenericAction) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsHigherOrderPredicate) {
+				if (attrValue instanceof AbsTerm) {
+					((AbsHigherOrderPredicate) abs).set(attrName, (AbsTerm) attrValue);
+					return;
+				}
+				else if (attrValue instanceof AbsProposition) {
+					((AbsHigherOrderPredicate) abs).set(attrName, (AbsProposition) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsIRE) {
+				if (attrValue instanceof AbsVariable && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.VARIABLE)) {
+					((AbsIRE) abs).setVariable((AbsVariable) attrValue);
+					return;
+				}
+				else if (attrValue instanceof AbsProposition && CaseInsensitiveString.equalsIgnoreCase(attrName, IRESchema.PROPOSITION)) {
+					((AbsIRE) abs).setProposition((AbsProposition) attrValue);
+					return;
+				}
+			}
+			else if (abs instanceof AbsVariable) {
+				System.out.println(abs);
+				System.out.println(attrValue);
+				if (attrValue instanceof AbsPrimitive && CaseInsensitiveString.equalsIgnoreCase(attrName, VariableSchema.NAME)) {
+					((AbsVariable) abs).setName(((AbsPrimitive) attrValue).getString());
+					return;
+				}
+				else if (attrValue instanceof AbsPrimitive && CaseInsensitiveString.equalsIgnoreCase(attrName, VariableSchema.VALUE_TYPE)) {
+					((AbsVariable) abs).setType(((AbsPrimitive) attrValue).getString());
+					return;
+				}
+			}
+									
+			// If we reach this point there is a type incompatibility
+			throw new OntologyException("Type incompatibility: attribute "+attrName+" of "+abs+" is of type "+attrValue); 
+    }
+			
     
 }
