@@ -11,7 +11,7 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  ontology/EngagerAgent.java ontology/RequesterAgent.java \
 	  mobile/MobileAgent.java \
 	  inprocess/InProcessTest.java \
-          jsp/Snooper.java jsp/Client.java jsp/Buffer.java PingAgent/PingAgent.java MessageTemplate/WaitAgent.java \
+          PingAgent/PingAgent.java MessageTemplate/WaitAgent.java \
 	  thanksAgent/ThanksAgent.java \
 	  content/Sender.java content/Receiver.java \
           party/HostAgent.java
