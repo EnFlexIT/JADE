@@ -1,16 +1,25 @@
-/*
-  $Log$
-  Revision 1.3  1999/05/20 13:43:19  rimassa
-  Moved all behaviour classes in their own subpackage.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.2  1999/04/06 00:10:19  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+GNU Lesser General Public License
 
-  Revision 1.1  1999/03/10 07:01:10  rimassa
-  This file contains former FipaRequestClientBehaviour class of jade.domain
-  package.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-*/
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 package jade.proto;
 
@@ -26,6 +35,8 @@ import jade.lang.acl.MessageTemplate;
   defining an abstract method for each message type expected from a
   <code>fipa-request</code> interaction.
   @see jade.proto.FipaRequestResponderBehaviour
+  
+  Javadoc documentation for the file
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */

@@ -1,25 +1,25 @@
-/*
-  $Log$
-  Revision 1.6  2000/01/31 10:52:31  rimassaJade
-  Commented out a check for agent identity in action expressions.
 
-  Revision 1.5  1999/06/22 13:15:11  rimassa
-  Removed a redundant instance variable.
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
 
-  Revision 1.4  1999/06/16 11:18:05  rimassa
-  Fixed a bug, causing a NullPointerException when a received ACL
-  message had null content.
+GNU Lesser General Public License
 
-  Revision 1.3  1999/05/20 13:43:19  rimassa
-  Moved all behaviour classes in their own subpackage.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
 
-  Revision 1.2  1999/04/06 00:10:20  rimassa
-  Documented public classes with Javadoc. Reduced access permissions wherever possible.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-  Revision 1.1  1999/03/14 17:54:45  rimassa
-  This class models the Responder role within standard 'fipa-request' interaction protocol.
-
-*/
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package jade.proto;
 
@@ -62,6 +62,8 @@ import jade.lang.acl.*;
   </ol>
 
   @see jade.proto.FipaRequestInitiatorBehaviour
+  
+  Javadoc documentation for the file  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
