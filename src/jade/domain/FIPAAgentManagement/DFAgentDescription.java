@@ -25,6 +25,7 @@ package jade.domain.FIPAAgentManagement;
 
 import java.util.*;
 
+import jade.onto.basic.AID;
 
   /**
     Models a DF agent descriptor.  This class provides platform-level

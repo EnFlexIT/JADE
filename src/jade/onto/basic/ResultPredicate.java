@@ -22,37 +22,13 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-package jade.domain.FIPAAgentManagement;
+package jade.onto.basic;
 
-import jade.onto.basic.AID;
-
-public class AMSAgentDescription {
-
-private AID name;
-private String ownership;
-private String state;
-
-public void setName(AID n){
-  name = n;
-}
-
-public void setOwnership(String n) {
-  ownership = n;
-}
-
-public void setState(String n) {
-  state = n;
-}
-
-public AID getName(){
-  return name;
-}
-
-public String getOwnership(){
-  return ownership;
-}
-
-public String getState(){
-  return state;
-}
+public class ResultPredicate {
+Action s;
+Object result;
+public void set_0(Action a){s=a;}
+public Action get_0() {return s;}
+public void set_1(Object o){result=o;}
+public Object get_1() {return result;}
 }

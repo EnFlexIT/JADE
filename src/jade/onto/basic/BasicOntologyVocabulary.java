@@ -22,37 +22,23 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 
-package jade.domain.FIPAAgentManagement;
+package jade.onto.basic;
 
-import jade.onto.basic.AID;
+/**
+   Javadoc documentation for the file
+   @author Giovanni Caire - CSELT S.p.A.
+   @version $Date$ $Revision$
+*/
 
-public class AMSAgentDescription {
+public class BasicOntologyVocabulary {
 
-private AID name;
-private String ownership;
-private String state;
+  // Concepts
+  public static final String ACTION = "action";
+  public static final String AGENTIDENTIFIER = "agent-identifier";
 
-public void setName(AID n){
-  name = n;
-}
-
-public void setOwnership(String n) {
-  ownership = n;
-}
-
-public void setState(String n) {
-  state = n;
-}
-
-public AID getName(){
-  return name;
-}
-
-public String getOwnership(){
-  return ownership;
-}
-
-public String getState(){
-  return state;
-}
+  // Propositions
+  public static final String TRUE = "true";
+  public static final String FALSE = "false";
+  public static final String DONE = "done";
+  public static final String RESULT = "result";
 }

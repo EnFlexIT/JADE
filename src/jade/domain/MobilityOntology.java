@@ -36,12 +36,8 @@ import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
 import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
-import jade.onto.Action;
 
-import jade.domain.FIPAAgentManagement.AID;
-import jade.domain.FIPAAgentManagement.DonePredicate;
-import jade.domain.FIPAAgentManagement.ResultPredicate;
-
+import jade.onto.basic.*;
 
 /**
 Javadoc documentation for the file
@@ -64,10 +60,10 @@ public class MobilityOntology {
   /**
     The symbolic constant that identifies an AgentIdentifier
     **/
-  public static final String AGENTIDENTIFIER = "agent-identifier";
+  //public static final String AGENTIDENTIFIER = "agent-identifier";
 
-  public static final String DONE = "done"; 
-  public static final String RESULT = "result"; 
+  //public static final String DONE = "done"; 
+  //public static final String RESULT = "result"; 
   /**
     A symbolic constant, containing the name of the concept.
   */
@@ -143,40 +139,11 @@ public class MobilityOntology {
   }
 
   private static void initInstance() {
-    try {
-	theInstance.addRole(Ontology.NAME_OF_ACTION_FRAME, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
-	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new jade.onto.Action(); }
-	     public Class getClassForRole() { return jade.onto.Action.class; }
-	   });
+  	try{
+			// Adds the roles of the basic ontology (ACTION, AID,...)
+    	theInstance.joinOntology(BasicOntologyManager.instance());
 
-	theInstance.addRole(AGENTIDENTIFIER, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("resolvers", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AID(); }
-	     public Class getClassForRole() { return AID.class; }
-	   });
-
-	theInstance.addRole(DONE, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.NAME_OF_ACTION_FRAME, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new DonePredicate(); }
-	     public Class getClassForRole() {return DonePredicate.class;}
-	   });
-
-	theInstance.addRole(RESULT, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.NAME_OF_ACTION_FRAME, Ontology.M),
-	  new SlotDescriptor(Ontology.ANY_SLOT, Ontology.ANY_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new ResultPredicate(); }
-	     public Class getClassForRole() {return ResultPredicate.class;}
-	   });
-
-	theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
+  		theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  new SlotDescriptor("destination", Ontology.FRAME_SLOT, LOCATION, Ontology.M),

@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop
+JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -21,38 +21,18 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+package jade.onto.basic;
 
-package jade.domain.FIPAAgentManagement;
+public class Action {
+AID actor;
+Object action;
+public void set_0(AID a) { actor=a;}
+public AID get_0() {return actor;}
+public void set_1(Object a) { action=a;}
+public Object get_1() {return action;}
+public AID getActor() { return get_0(); }
+public void setActor(AID a) {set_0(a); }
+public Object getAction() { return get_1();}
+public void setAction(Object a) {set_1(a);}
 
-import jade.onto.basic.AID;
-
-public class AMSAgentDescription {
-
-private AID name;
-private String ownership;
-private String state;
-
-public void setName(AID n){
-  name = n;
-}
-
-public void setOwnership(String n) {
-  ownership = n;
-}
-
-public void setState(String n) {
-  state = n;
-}
-
-public AID getName(){
-  return name;
-}
-
-public String getOwnership(){
-  return ownership;
-}
-
-public String getState(){
-  return state;
-}
 }

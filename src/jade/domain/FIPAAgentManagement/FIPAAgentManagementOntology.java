@@ -36,6 +36,9 @@ import jade.onto.SlotDescriptor;
 import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
 
+import jade.onto.basic.*;
+import java.util.Iterator;
+
 /**
    Javadoc documentation for the file
    @author Fabio Bellifemine - CSELT S.p.A.
@@ -66,7 +69,7 @@ public class FIPAAgentManagementOntology {
   private static Ontology theInstance = new DefaultOntology();
 
   // Concepts
-  public static final String AGENTIDENTIFIER = "agent-identifier";
+  //public static final String AGENTIDENTIFIER = "agent-identifier";
   public static final String DFAGENTDESCRIPTION = "df-agent-description";
   public static final String SERVICEDESCRIPTION = "service-description";
   public static final String SEARCHCONSTRAINTS = "search-constraints";
@@ -97,7 +100,7 @@ public class FIPAAgentManagementOntology {
   public static final String UNEXPECTEDARGUMENTCOUNT = "unexpected-argument-count";
   public static final String MISSINGPARAMETER = "missing-parameter";
   public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
-  public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
+	public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
 
   // Failure Exception Propositions
   public static final String ALREADYREGISTERED = "already-registered";
@@ -105,10 +108,10 @@ public class FIPAAgentManagementOntology {
   public static final String INTERNALERROR = "internal-error";  
 
   // Other Propositions
-  public static final String TRUE = "true";
-  public static final String FALSE = "false";
-  public static final String DONE = "done";
-  public static final String RESULT = "result";
+  //public static final String TRUE = "true";
+  //public static final String FALSE = "false";
+  //public static final String DONE = "done";
+  //public static final String RESULT = "result";
 
   static {
     initInstance();
@@ -129,25 +132,11 @@ public class FIPAAgentManagementOntology {
 
   private static void initInstance() {
     try {
-			theInstance.addRole(Ontology.NAME_OF_ACTION_FRAME, new SlotDescriptor[] {
-	  		new SlotDescriptor(Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
-	  		new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M)
-			}, new RoleEntityFactory() {
-	     	public Object create(Frame f) { return new jade.onto.Action(); }
-	     	public Class getClassForRole() { return jade.onto.Action.class; }
-	   });
-
-	theInstance.addRole(AGENTIDENTIFIER, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
-	  new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O),
-	  new SlotDescriptor("resolvers", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.O)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) { return new AID(); }
-	     public Class getClassForRole() { return AID.class; }
-	   });
-
+			// Adds the roles of the basic ontology (ACTION, AID,...)
+    	theInstance.joinOntology(BasicOntologyManager.instance());
+    	
 	theInstance.addRole(DFAGENTDESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
           new SlotDescriptor("services", Ontology.SET_SLOT, SERVICEDESCRIPTION, Ontology.O),
 	  new SlotDescriptor("protocols", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("ontologies", Ontology.SET_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -179,7 +168,7 @@ public class FIPAAgentManagementOntology {
 	   });
 
 	theInstance.addRole(AMSAGENTDESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("ownership", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  new SlotDescriptor("state", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	}, new RoleEntityFactory() {
@@ -261,7 +250,7 @@ public class FIPAAgentManagementOntology {
 	   });
 
 	theInstance.addRole(QUIT, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M) 
+	  new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M) 
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new Quit(); } 
 	     public Class getClassForRole() { return Quit.class; }
@@ -373,33 +362,13 @@ public class FIPAAgentManagementOntology {
 	     public Class getClassForRole() { return InternalError.class; }
 	   });
 
-	theInstance.addRole(TRUE, new SlotDescriptor[]{
-	}, new RoleEntityFactory() {
-             public Object create(Frame f) { return new TrueProposition(); } 
-	     public Class getClassForRole() { return TrueProposition.class; }
-	});
-
-	theInstance.addRole(FALSE, new SlotDescriptor[]{
-	}, new RoleEntityFactory() {
-             public Object create(Frame f) { return new FalseProposition(); } 
-	     public Class getClassForRole() { return FalseProposition.class; }
-	});
-
-	theInstance.addRole(DONE, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.NAME_OF_ACTION_FRAME, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new DonePredicate(); }
-	     public Class getClassForRole() {return DonePredicate.class;}
-	   });
-
-	theInstance.addRole(RESULT, new SlotDescriptor[] {
-	  new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.NAME_OF_ACTION_FRAME, Ontology.M),
-	  new SlotDescriptor(Ontology.ANY_SLOT, Ontology.ANY_TYPE, Ontology.M)
-	}, new RoleEntityFactory() {
-	     public Object create(Frame f) {return new ResultPredicate(); }
-	     public Class getClassForRole() {return ResultPredicate.class;}
-	   });
-
+	   	   
+		// DEBUG: PRINT VOCABULARY
+	  List voc = theInstance.getVocabulary();
+	  Iterator i = voc.iterator();
+	  while (i.hasNext())
+	  	System.out.println((String) (i.next()));
+	  	
     }
     catch(OntologyException oe) {
       oe.printStackTrace();

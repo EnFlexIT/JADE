@@ -25,7 +25,6 @@ Boston, MA  02111-1307, USA.
 package jade.onto;
 
 import java.lang.reflect.*;
-
 import java.util.*;
 
 /**

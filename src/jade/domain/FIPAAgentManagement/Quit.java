@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
+import jade.onto.basic.AID;
+
 public class Quit {
 AID aid;
 public void set_0(AID a){aid=a;}

@@ -206,7 +206,7 @@ public interface Ontology {
 
 
   /** Symbolic constant identifying a frame representing an action **/ 
-  public static String NAME_OF_ACTION_FRAME = "action";
+  //public static String NAME_OF_ACTION_FRAME = "action";
   /** Symbolic constant identifying a slot representing an actor **/ 
   public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
   /** Symbolic constant identifying a slot representing an action **/ 
