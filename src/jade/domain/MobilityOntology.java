@@ -138,10 +138,10 @@ public class MobilityOntology {
   private static void initInstance() {
   	try{
 			// Adds the roles of the basic ontology (ACTION, AID,...)
-    	theInstance.joinOntology(BasicOntologyManager.instance());
+    	theInstance.joinOntology(BasicOntology.instance());
 
   		theInstance.addRole(MOBILE_AGENT_DESCRIPTION, new SlotDescriptor[] {
-	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("name", Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("destination", Ontology.FRAME_SLOT, LOCATION, Ontology.M),
 	  new SlotDescriptor("agent-profile", Ontology.FRAME_SLOT, MOBILE_AGENT_PROFILE, Ontology.O),
 	  new SlotDescriptor("agent-version", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O),
@@ -215,7 +215,7 @@ public class MobilityOntology {
 	   });
 
 	theInstance.addRole(WHERE_IS, new SlotDescriptor[] {
-	    new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntologyVocabulary.AGENTIDENTIFIER , Ontology.M)
+	    new SlotDescriptor(Ontology.FRAME_SLOT, BasicOntology.AGENTIDENTIFIER , Ontology.M)
 	}, new RoleEntityFactory() {
 	     public Object create(Frame f) { return new WhereIsAgentAction(); }
 	     public Class getClassForRole() { return WhereIsAgentAction.class; }

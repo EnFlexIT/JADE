@@ -100,7 +100,7 @@ public class JADEAgentManagementOntology {
   private static void initInstance() {
     try {
 	  // Adds the roles of the basic ontology (ACTION, AID,...)
-    	theInstance.joinOntology(BasicOntologyManager.instance());
+    	theInstance.joinOntology(BasicOntology.instance());
 
 	theInstance.addRole(KILLCONTAINER, new SlotDescriptor[] {
 	  new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
