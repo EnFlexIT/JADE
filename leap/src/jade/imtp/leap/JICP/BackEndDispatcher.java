@@ -95,7 +95,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
-  	
+
   	// Max disconnection time
     maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
     try {
@@ -105,8 +105,10 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	// Keep default
     }
     
-    // Start the EndPoint embedded thread
-    start();
+    // Start the EndPoint embedded thread only on the master copy
+    if(props.getProperty(Profile.MASTER_NODE_NAME) == null) {
+	start();
+    }
 
     //initCnt();
     
@@ -227,6 +229,8 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	      String errorMsg = (data != null ? new String(data) : null);
 	      throw new IMTPException(errorMsg);
 	  }
+
+	  c.close();
       }
       catch(IOException ioe) {
 	  throw new IMTPException("An I/O error occurred", ioe);
@@ -328,7 +332,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
    * attached to as soon as the FrontEnd container (re)connects.
    * @param c the connection to the FrontEnd container
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port, byte pktKind) {
    	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
@@ -336,6 +340,13 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     } 
     conn = c;
     newConnectionReady = true;
+
+    // On reconnections, a back end container becomes the master node
+    if((pktKind == JICPProtocol.CONNECT_MEDIATOR_TYPE) && (!myContainer.isMaster())) {
+	myContainer.becomeMaster();
+	start();
+    }
+
     notifyAll();
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
