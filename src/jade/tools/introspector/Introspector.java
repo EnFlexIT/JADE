@@ -357,6 +357,18 @@ public class Introspector extends ToolAgent {
 
       });
 
+      handlers.put(JADEIntrospectionOntology.CHANGEDAGENTSTATE, new EventHandler() {
+	public void handle(Event ev) {
+	  ChangedAgentState cas = (ChangedAgentState)ev;
+	  AID agent = cas.getAgent();
+
+	  MainWindow wnd = (MainWindow)windowMap.get(agent);
+	  if(wnd != null)
+	    myGUI.changedAgentState(wnd, cas);
+	}
+
+      });
+
     }
 
     public void action() {
