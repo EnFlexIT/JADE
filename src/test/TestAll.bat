@@ -175,6 +175,10 @@ pause Please SHUTDOWN any platform running
 echo starting one sender and one receiver.
 %JAVA% -cp %CLASSPATH% jade.Boot sender:Sender receiver:Receiver
 
+echo Running the MessageTemplate test
+pause Please SHUTDOWN any platform running
+%JAVA% -cp %CLASSPATH% test.MessageTemplate.MessageTester
+
 echo Testing the orbacus add-on
 pause Please SHUTDOWN any platform running
 echo starting two platform using ORBacusMTP. Try to send messages between the two platforms using the DummyAgents
