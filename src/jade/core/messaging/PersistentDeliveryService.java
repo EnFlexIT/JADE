@@ -51,6 +51,7 @@ import jade.core.UnreachableException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
@@ -316,7 +317,7 @@ public class PersistentDeliveryService extends BaseService {
 */
 
     /**
-       Outgoing commanf FILTER.
+       Outgoing command FILTER.
        Processes the NOTIFY_FAILURE command
      */
     private class CommandOutgoingFilter extends Filter {
@@ -341,42 +342,30 @@ public class PersistentDeliveryService extends BaseService {
 	    return true;
 	}
 
-	public void setBlocking(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-    	public boolean isBlocking() {
-	    return false; // Blocking and Skipping not implemented
-	}
-
-	public void setSkipping(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-	public boolean isSkipping() {
-	    return false; // Blocking and Skipping not implemented
-	}
-
 	private boolean handleNotifyFailure(VerticalCommand cmd) throws IMTPException, ServiceException {
 	    Object[] params = cmd.getParams();
 	    GenericMessage msg = (GenericMessage)params[0];//FIXME: check object type
 	    AID receiver = (AID)params[1];
+    	ACLMessage acl = msg.getACLMessage();
+		  log("Processing failed message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName(), 2);
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
 	    
 	    // Ask all slices whether the failed message should be stored
 	    Service.Slice[] slices = getAllSlices();
 	    for(int i = 0; i < slices.length; i++) {
+		PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 		try {
-		    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 		    boolean accepted = slice.storeMessage(null, msg, receiver);
 
 		    if(accepted) {
+		    	log("Message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" stored on node "+slice.getNode().getName(), 1);
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
+			log("Error trying to store message "+ACLMessage.getPerformative(acl.getPerformative())+" from "+acl.getSender().getName()+" to "+receiver.getName()+" on node "+slice.getNode().getName(), 1);
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -421,11 +410,12 @@ public class PersistentDeliveryService extends BaseService {
 	    		try {
 				    Service.Slice[] slices = getAllSlices();
 				    for(int i = 0; i < slices.length; i++) {
+					    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 							try {
-							    PersistentDeliverySlice slice = (PersistentDeliverySlice)slices[i];
 							    slice.flushMessages(agentID);
 							}
 							catch(Exception e) {
+								log("Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName(), 1);
 							    // Ignore it and try other slices...
 							}
 				    }
@@ -436,22 +426,6 @@ public class PersistentDeliveryService extends BaseService {
 	    	}
 	    };
 	    t.start();
-	}
-
-	public void setBlocking(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-	public boolean isBlocking() {
-	    return false; // Blocking and Skipping not implemented
-	}
-
-	public void setSkipping(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
-	}
-
-	public boolean isSkipping() {
-	    return false; // Blocking and Skipping not implemented
 	}
 
     } // End of CommandIncomingFilter class
@@ -517,8 +491,14 @@ public class PersistentDeliveryService extends BaseService {
 		}*/
 		if (cmdName.equals(PersistentDeliverySlice.H_STOREMESSAGE)) {
 		    String storeName = (String)params[0];
-		    GenericMessage msg = (GenericMessage)params[1];
-		    AID receiver = (AID)params[2];
+		    // NOTE that we can't send the GenericMessage directly as a parameter
+		    // since we would loose the embedded ACLMessage
+		    ACLMessage acl = (ACLMessage) params[1];
+		    Envelope env = (Envelope) params[2];
+		    byte[] payload = (byte[]) params[3];
+		    GenericMessage msg = new GenericMessage();
+		    msg.update(acl, env, payload);
+		    AID receiver = (AID)params[4];
 
 		    boolean stored = storeMessage(storeName, msg, receiver);
 		    cmd.setReturnValue(new Boolean(stored));

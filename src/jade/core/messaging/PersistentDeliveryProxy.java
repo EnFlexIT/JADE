@@ -38,6 +38,7 @@ import jade.core.NameClashException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPAAgentManagement.Envelope;
 
 
 /**
@@ -153,7 +154,11 @@ public class PersistentDeliveryProxy extends Service.SliceProxy implements Persi
 	try {
 	    GenericCommand cmd = new GenericCommand(H_STOREMESSAGE, NAME, null);
 	    cmd.addParam(storeName);
-	    cmd.addParam(msg);
+	    // NOTE that we can't send the GenericMessage directly as a parameter
+	    // since we would loose the embedded ACLMessage
+	    cmd.addParam(msg.getACLMessage());
+	    cmd.addParam(msg.getEnvelope());
+	    cmd.addParam(msg.getPayload());
 	    cmd.addParam(receiver);
 
 	    Node n = getNode();
