@@ -32,7 +32,9 @@ import java.rmi.server.UnicastRemoteObject;
 
 import jade.core.HorizontalCommand;
 import jade.core.Service;
+import jade.core.ServiceException;
 import jade.core.Node;
+import jade.core.IMTPException;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
@@ -47,7 +49,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	myNode = impl;
     }
 
-    public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException {
+    public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException, IMTPException {
 
 	/***
 	System.out.println("--- Command Received ---");
@@ -63,26 +65,13 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
 	***/
 
-	String serviceName = cmd.getService();
-	String commandName = cmd.getName();
-	Object[] commandParams = cmd.getParams();
 
-	// Look up in the local slices table and find the slice to dispatch to
-	Service.Slice slice = myNode.getSlice(serviceName);
-
-	if(slice != null) {
-
-	    slice.serve(cmd);
-	    return cmd.getReturnValue();
+	try {
+	    return myNode.serve(cmd);
 	}
-	else {
-	    // FIXME: Throw something to mean 'Service Unknown'
-	    System.out.println("-- Service Unknown --");
+	catch(ServiceException se) {
+	    throw new IMTPException("Service Error", se);
 	}
-
-	// FIXME: Make it so that the execution never reaches here (i.e. throw in every catch clause)
-	return null;
-
     }
 
     public void ping(boolean hang) throws RemoteException {

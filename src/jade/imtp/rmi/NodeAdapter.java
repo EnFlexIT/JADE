@@ -29,9 +29,11 @@ import java.rmi.RemoteException;
 
 import jade.core.BaseNode;
 import jade.core.Service;
+import jade.core.CommandProcessor;
 import jade.core.HorizontalCommand;
+import jade.core.VerticalCommand;
 import jade.core.IMTPException;
-
+import jade.core.ServiceException;
 
 
 /**
@@ -51,7 +53,12 @@ class NodeAdapter extends BaseNode {
 
     public NodeAdapter(String name, NodeRMI node) {
 	super(name);
+	processor = null;
 	adaptee = node;
+    }
+
+    public void setCommandProcessor(CommandProcessor cp) {
+	processor = cp;
     }
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
@@ -61,6 +68,14 @@ class NodeAdapter extends BaseNode {
 	catch(RemoteException re) {
 	    throw new IMTPException("An RMI error occurred", re);
 	}
+    }
+
+    public Object serve(VerticalCommand cmd) throws ServiceException {
+	if(processor == null) {
+	    throw new ServiceException("No command processor for node <" + getName() + ">");
+	}
+
+	return processor.processIncoming(cmd);
     }
 
     public NodeRMI getRMIStub() {
@@ -90,5 +105,6 @@ class NodeAdapter extends BaseNode {
     }
 
     private NodeRMI adaptee;
+    private transient CommandProcessor processor;
 
 }

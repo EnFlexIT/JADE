@@ -74,13 +74,13 @@ public class RMIIMTPManager implements IMTPManager {
 
   /**
    */
-  public void initialize(Profile p) throws IMTPException {
+  public void initialize(Profile p, CommandProcessor cp) throws IMTPException {
       myProfile = p;
       mainHost = myProfile.getParameter(Profile.MAIN_HOST, null);
       if (mainHost == null) {
       	// Use the local host by default
       	try {
-	  			mainHost= InetAddress.getLocalHost().getHostName();      
+	    mainHost= InetAddress.getLocalHost().getHostName();      
       	} 
       	catch(UnknownHostException uhe) {
       		throw new IMTPException("Unknown main host");
@@ -91,15 +91,17 @@ public class RMIIMTPManager implements IMTPManager {
       String mainPortStr = myProfile.getParameter(Profile.MAIN_PORT, null);
       if (mainPortStr != null) {
       	try {
-      		mainPort = Integer.parseInt(mainPortStr);
+	    mainPort = Integer.parseInt(mainPortStr);
       	}
       	catch (NumberFormatException nfe) {
-      		// Do nothing. The DEFAULT_RMI_PORT is used 
+	    // Do nothing. The DEFAULT_RMI_PORT is used 
       	}
       }
 
       baseRMI = "rmi://" + mainHost + ":" + mainPort + "/";
       platformRMI = baseRMI + "JADE";
+
+      localNode.setCommandProcessor(cp);
 
   }
 
