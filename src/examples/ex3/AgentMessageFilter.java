@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.7  1999/03/09 12:52:01  rimassa
   Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
   calls.
@@ -21,6 +24,7 @@
 package examples.ex3;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 

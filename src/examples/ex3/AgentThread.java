@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.6  1998/10/18 16:10:29  rimassa
   Some code changes to avoid deprecated APIs.
 
@@ -20,6 +23,7 @@ import java.io.StringReader;
 import java.io.IOException;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 // This agent starts a conversation thread and collect the reply.

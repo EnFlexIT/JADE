@@ -1,6 +1,9 @@
 /*
 
   $Log$
+  Revision 1.18  1999/05/20 14:12:40  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.17  1999/02/25 08:02:46  rimassa
   Added a correct InterruptedIOException handler; the agent is
   terminated.
@@ -67,6 +70,7 @@ import java.util.Vector;
 
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import jade.domain.SearchDFBehaviour;
 import jade.domain.AgentManagementOntology;

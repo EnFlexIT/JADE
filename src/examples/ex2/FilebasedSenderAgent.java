@@ -9,6 +9,7 @@ import java.io.StringReader;
 
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 

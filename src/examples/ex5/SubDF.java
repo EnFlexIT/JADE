@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.3  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.2  1999/02/25 08:00:10  rimassa
   Removed direct usage of 'myName' and 'myAddress' variables.
   Added a correct handling of InterruptedIOException; it now terminates
@@ -20,6 +23,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 import jade.domain.AgentManagementOntology;
 import jade.domain.FIPAException;

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/05/20 14:12:38  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.7  1999/03/09 12:50:29  rimassa
   Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
   calls.
@@ -28,6 +31,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 // An agents which sends a message to three other agents, collects the

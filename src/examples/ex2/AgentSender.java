@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.11  1999/03/31 15:54:30  rimassa
   Added correct handling of IOException.
 
@@ -29,6 +32,7 @@ import java.io.InterruptedIOException;
 import java.io.IOException;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.11  1999/05/20 14:12:40  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.10  1999/02/25 08:01:27  rimassa
   Changed direct access to 'myName' and 'myAddress' variables to
   accessor method calls.
@@ -29,6 +32,7 @@ package examples.ex5;
 import java.io.*;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 

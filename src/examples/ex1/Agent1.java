@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/05/20 14:12:32  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.3  1998/10/04 18:00:10  rimassa
   Added a 'Log:' field to every source file.
 
@@ -8,6 +11,7 @@
 package examples.ex1;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 
 // Simple example of an agent.
 public class Agent1 extends Agent {

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.7  1999/03/09 12:52:36  rimassa
   Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
   calls.
@@ -28,6 +31,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 // This agent plays the responder role in fipa-request protocol.

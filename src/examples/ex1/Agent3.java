@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1999/05/20 14:12:32  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.6  1999/02/14 22:46:20  rimassa
   Renamed addBehaviour() calls to addSubBehaviour() calls.
 
@@ -15,7 +18,7 @@
 package examples.ex1;
 
 import jade.core.*;
-
+import jade.core.behaviours.*;
 
 // An example of recursive aggregation of complex agent behaviours.
 public class Agent3 extends Agent {

@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.9  1999/05/20 14:12:39  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.8  1999/03/09 12:51:05  rimassa
   Removed deprecated 'ACLMessage.getDest()' and 'ACLMessage.setDest()'
   calls.
@@ -24,6 +27,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 // An agent who continuously receives messages and sends back replies.

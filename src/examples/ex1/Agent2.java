@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/05/20 14:12:32  rimassa
+  Updated import clauses to reflect JADE package structure changes.
+
   Revision 1.7  1998/11/01 14:54:21  rimassa
   Added a 'doDelete()' call to make the Agent terminate at the end of
   its Behaviour.
@@ -23,6 +26,7 @@ package examples.ex1;
 import java.io.*;
 
 import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
 
