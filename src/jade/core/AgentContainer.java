@@ -54,8 +54,8 @@ interface AgentContainer extends Remote {
   void waitAgent(String agentName) throws RemoteException, NotFoundException;
   void wakeAgent(String agentName) throws RemoteException, NotFoundException;
 
-  void moveAgent(String agentName, String where) throws RemoteException, NotFoundException;
-  void copyAgent(String agentName, String where, String newName) throws RemoteException, NotFoundException;
+  void moveAgent(String agentName, Location where) throws RemoteException, NotFoundException;
+  void copyAgent(String agentName, Location where, String newName) throws RemoteException, NotFoundException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;

@@ -57,8 +57,8 @@ public interface AgentManager {
   void sniffOn(String SnifferName, Map ToBeSniffed) throws UnreachableException;
   void sniffOff(String SnifferName, Map ToBeSniffed) throws UnreachableException;
 
-  void move(String agentName, String containerName, String password ) throws NotFoundException, UnreachableException;
-  void copy(String agentName, String containerName, String newAgentName, String password) throws NotFoundException, UnreachableException;
+  void move(String agentName, Location where, String password ) throws NotFoundException, UnreachableException;
+  void copy(String agentName, Location where, String newAgentName, String password) throws NotFoundException, UnreachableException;
 
 }
 
