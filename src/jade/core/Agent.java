@@ -185,8 +185,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
     if(millis == 0)
       return;
     Timer t = new Timer(System.currentTimeMillis() + millis, this);
+    t = theDispatcher.add(t);
     pendingTimers.addPair(b, t);
-    theDispatcher.add(t);
   }
 
   /**
