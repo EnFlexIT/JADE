@@ -93,25 +93,25 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 		}	
 		catch (CodecException ce) {
 			// Error decoding request --> NOT_UNDERSTOOD
-		        response = request.createReply();
+		  response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
 		}	
 		catch (RefuseException re) {
 			// RefuseException thrown during action execution --> REFUSE
-		        response = request.createReply();
+		  response = request.createReply();
 			response.setPerformative(ACLMessage.REFUSE);
-			response.setContent(request.getContent()+" ("+re.getMessage()+")");
+			response.setContent(prepareErrorContent(request.getContent(), re.getMessage()));
 		}	
 		catch (FailureException fe) {
 			// FailureException thrown during action execution --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
-			notification.setContent(request.getContent()+" ("+fe.getMessage()+")");
+			notification.setContent(prepareErrorContent(request.getContent(), fe.getMessage()));
 		}	
 		catch(FIPAException fe){
 			// Malformed request --> NOT_UNDERSTOOD
-		        response = request.createReply();
+		  response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+fe.getMessage()+")");
 		}
@@ -120,7 +120,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 			// Generic error --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
-			notification.setContent(request.getContent()+" ("+ExceptionVocabulary.INTERNALERROR+" \""+t.getMessage()+"\")");
+			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+t.getMessage()+"\""));
 		}
 		return response;
   }
@@ -146,5 +146,11 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 	     	 (!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL, language))) {
 			throw new UnsupportedValue("language");
     }
+  }
+
+  private String prepareErrorContent(String content, String e) {
+  	String tmp = content.trim();
+  	tmp = tmp.substring(1, tmp.length()-1);
+  	return "("+tmp+" "+e+")";
   }
 }
