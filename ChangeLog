@@ -1,3 +1,29 @@
+Changes in the snapshot of the 23/11/04
+==========================================================================
+GENERAL IMPROVEMENTS:
+- TickerBehaviour,WakerBehaviour: Made uniform. Added method onWake() 
+- keep the MessageManager queue size under control
+- ContaineTable: Added timeout in waitUntilEmpty()
+- Improved threaded behaviour interruption mechanism
+
+ADD-ONS:
+- LEAP
+  - Fixed bug on BEManager re-creation
+  - modified JICPMediator interface 
+  - Added mutual SSL authentication
+  - Changed PDPContextManager interface
+
+DOCUMENTATION:
+- Added links to 2 new tutorials: FIPA specifications and slides on Programming with JADE
+- Added new tutorial on how to setup an SSL-based mutual authenticated connection between JADE containers
+
+BUG FIXES:
+- Fixed bug about containers with the same name
+- ACLMessage: Fixed bug # 42: Null content object caused ACLMessage.getContentObject to throw NullPointerException
+- Fixed deadlock bug reported by Pavel Vrba (19/11/2004) between restartLater and notifyRestarted
+
+
+
 Changes in the snapshot of the 07/10/04
 ==========================================================================
 BUG FIXES:
