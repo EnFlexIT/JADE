@@ -159,6 +159,9 @@ public class Agent implements Runnable, CommBroadcaster {
 	myScheduler.remove(b);
       }
 
+      // Now give CPU control to other agents
+      Thread.yield();
+
     }
   }
 
