@@ -45,13 +45,15 @@ Server s;
 
 protected void setup() {
   try {
-  	System.out.println( "getLocalName(): "+getLocalName());
+  
     in = new BufferedReader(new FileReader(getLocalName()+".inf"));
     logFile = new BufferedWriter(new FileWriter(getLocalName()+".log"));
     int portNumber = Integer.parseInt(in.readLine());
     Vector agentNames = new Vector();
     StringTokenizer st = new StringTokenizer(in.readLine());
-    while (st.hasMoreTokens()) agentNames.add(st.nextToken());
+    while (st.hasMoreTokens()) 
+    		agentNames.add(st.nextToken());
+    
     s = new Server(portNumber, this, agentNames);
   } catch(Exception e) {
     System.err.println(getLocalName()+" NEEDS THE FILE "+getLocalName()+".inf IN THE WORKING DIRECTORY WITH ITS PARAMETERS (port number and agent names)");
@@ -113,11 +115,20 @@ class Server extends Thread {
     try { listen_socket = new ServerSocket(port); }
     catch (IOException e) {e.printStackTrace(); myAgent.doDelete(); return;}
     String str = myAgent.getLocalName()+" is listening on port "+port+" to proxy messages to agents (";
+    StringBuffer st = new StringBuffer(str);
+    
     for (int i=0; i<myOnlyReceivers.size(); i++)
-      str.concat((String)myOnlyReceivers.elementAt(i)+" ");
-    str.concat(")");
-    System.out.println(str);
-    ((SocketProxyAgent)myAgent).log(str);
+    {
+      st.append((String)myOnlyReceivers.elementAt(i));
+      st.append(" ");
+      //str.concat((String)myOnlyReceivers.elementAt(i)+" ");
+    }
+    //str.concat(")");
+    st.append(")");
+    //System.out.println(str);
+    System.out.println(st.toString());
+    //((SocketProxyAgent)myAgent).log(str);
+    ((SocketProxyAgent)myAgent).log(st.toString());
     start();
   }
 
@@ -166,6 +177,7 @@ class Connection extends Thread {
   private Socket client;
   private DataInputStream in;
   private PrintStream out;
+  
   /** Name of the agents who intend to receive any message from this agent */
   private Vector myOnlyReceivers; 
 
@@ -187,8 +199,11 @@ class Connection extends Thread {
 
   private boolean myOnlyReceiversContains(String aName) {
     for (int i=0; i<myOnlyReceivers.size(); i++)
+    { 
+    
       if ( ((String)myOnlyReceivers.elementAt(i)).equalsIgnoreCase(aName) )
-	return true;
+      	return true;
+    }
     return false;
   }
 
@@ -198,18 +213,22 @@ class Connection extends Thread {
       //ACLParser parser = new ACLParser(in);
       ACLMessage msg;
       while (true) {
-	msg = ACLMessage.fromText(new InputStreamReader(in)); // parser.Message();
-	if (myOnlyReceiversContains(msg.getFirstDest())) {
-	  msg.setSource(myAgent.getLocalName());
-	  if ((msg.getReplyWith() == null) || (msg.getReplyWith().length()<1))
-	    msg.setReplyWith(myAgent.getLocalName()+"."+getName()+"."+java.lang.System.currentTimeMillis()); 
-	  myAgent.send(msg);
-	  myAgent.addBehaviour(new WaitAnswersBehaviour(myAgent,msg,out));
-	} else { 
-	  out.println("(refuse :content unauthorised)");
-	  close(null); 
-	  return; 
-	}
+      	msg = ACLMessage.fromText(new InputStreamReader(in)); // parser.Message();
+     
+      	if (myOnlyReceiversContains(msg.getFirstDest())) 
+      	{
+      		msg.setSource(myAgent.getLocalName());
+	        if ((msg.getReplyWith() == null) || (msg.getReplyWith().length()<1))
+	          msg.setReplyWith(myAgent.getLocalName()+"."+getName()+"."+java.lang.System.currentTimeMillis()); 
+	        myAgent.send(msg);
+	        myAgent.addBehaviour(new WaitAnswersBehaviour(myAgent,msg,out));
+	      } 
+	      else 
+	      { 
+	        out.println("(refuse :content unauthorised)");
+	        close(null); 
+	        return; 
+	      }
       }
     } catch(ParseException e) {
       close(e); return;
