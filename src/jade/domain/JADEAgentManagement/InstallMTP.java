@@ -23,10 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.JADEAgentManagement;
 
+import jade.core.ContainerID;
+
 public class InstallMTP {
 
   private String address;
-  private String container;
+  private ContainerID container;
   private String className;
 
   public void setAddress(String a) {
@@ -37,11 +39,11 @@ public class InstallMTP {
     return address;
   }
 
-  public void setContainer(String c) {
-    container = c;
+  public void setContainer(ContainerID cid) {
+    container = cid;
   }
 
-  public String getContainer() {
+  public ContainerID getContainer() {
     return container;
   }
 

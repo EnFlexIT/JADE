@@ -34,11 +34,13 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import jade.core.ContainerID;
+
 public class CreateAgent {
 
   private String agentName;
   private String className;
-  private String containerName;
+  private ContainerID container;
   private String password;
   private List arguments = new ArrayList();
   
@@ -58,12 +60,12 @@ public class CreateAgent {
     return className;
   }
 
-  public void setContainerName(String cn) {
-    containerName = cn;
+  public void setContainer(ContainerID cid) {
+    container = cid;
   }
 
-  public String getContainerName() {
-    return containerName;
+  public ContainerID getContainer() {
+    return container;
   }
 
   public void setPassword(String p) {

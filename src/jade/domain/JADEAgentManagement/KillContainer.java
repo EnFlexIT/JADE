@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.JADEAgentManagement;
 
+import jade.core.ContainerID;
+
 /**
   
    @author Giovanni Rimassa -  Universita` di Parma
@@ -32,15 +34,15 @@ package jade.domain.JADEAgentManagement;
 
 public class KillContainer {
 
-  private String name;
+  private ContainerID container;
   private String password;
 
-  public void setName(String n) {
-    name = n;
+  public void setContainer(ContainerID cid) {
+    container = cid;
   }
 
-  public String getName() {
-    return name;
+  public ContainerID getContainer() {
+    return container;
   }
 
   public void setPassword(String p) {
