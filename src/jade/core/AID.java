@@ -527,12 +527,13 @@ public class AID implements Comparable, Serializable {
   }
 
   /**
-  * Returns the HAP of the agent.
+     Returns the HAP of the agent or null if the GUID of this 
+     <code>AID</code> is not of the form <local-name>@<platform-name>
   */
-  String getHap() {
+  public String getHap() {
     int atPos = name.lastIndexOf('@');
     if(atPos == -1)
-      return name;
+      return null;
     else
       return name.substring(atPos + 1);
   }
