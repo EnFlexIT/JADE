@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.6  1998/11/05 23:45:59  rimassa
+  Changed Agent default state in the GUI from 'suspended' to 'active'.
+
   Revision 1.5  1998/11/03 00:43:25  rimassa
   Added automatic GUI tree updating in response to AMS 'inform' messages to
   Remote Management Agent.
@@ -59,7 +62,7 @@ public class TreeData extends DefaultMutableTreeNode {
   protected String name	= "Name";
   protected String type	= "Type";
 	
-  protected int currentState = SUSPENDED;
+  protected int currentState = RUNNING;
   protected int Level = AGENT; 
   protected String[] addresses ;
   protected boolean hasLoaded = false;	
