@@ -255,6 +255,10 @@ public class Ontology {
      * @see fromObject(Object)
      */
   	public Object toObject(AbsObject abs) throws OntologyException, UngroundedException {
+			if (abs == null) {
+				return null;
+			}
+			
   		try {
   			return toObject(abs, this);
   		}
@@ -274,6 +278,10 @@ public class Ontology {
      * @see toObject(AbsObject)
      */
     public AbsObject fromObject(Object obj) throws OntologyException {
+    	if (obj == null) {
+    		return null;
+    	}
+    	
     	try {
     		return fromObject(obj, this);
     	}
@@ -398,9 +406,9 @@ public class Ontology {
     			throws UnknownSchemaException, OntologyException {
     				
         // If the object is already an abstract descriptor, just return it
-    		if (obj instanceof AbsObject) {
-    			return (AbsObject) obj;
-    		}
+    		//if (obj instanceof AbsObject) {
+    		//	return (AbsObject) obj;
+    		//}
     		
     		try {
     			if (introspector != null) {

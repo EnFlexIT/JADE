@@ -59,6 +59,7 @@ public class ReflectiveIntrospector implements Introspector {
             }
             //DEBUG System.out.println("Schema is: "+schema);
             AbsObject    abs = schema.newInstance();
+            
             Method[]     methods = javaClass.getMethods();
             String[]     names = schema.getNames();
 
@@ -134,15 +135,23 @@ public class ReflectiveIntrospector implements Introspector {
 
         try {
         		String type = abs.getTypeName();
+        		//DEBUG System.out.println("Abs is "+abs);
         		// Retrieve the schema
             ObjectSchema schema = onto.getSchema(type, false);
             if (schema == null) {
             	throw new UnknownSchemaException();
             }
             //DEBUG System.out.println("Schema is: "+schema);
+        		if (schema instanceof IRESchema || schema instanceof VariableSchema) {
+        			throw new UngroundedException();
+        		}
             
             Class        javaClass = onto.getClassForElement(type);
+        		if (javaClass == null) {
+        			throw new OntologyException("No java class associated to type "+type);
+        		}
             //DEBUG System.out.println("Class is: "+javaClass.getName());
+            
             Object       obj = javaClass.newInstance();
             //DEBUG System.out.println("Object created");
             

@@ -93,21 +93,21 @@ class BasicIntrospector implements Introspector {
 
 	    			if(obj instanceof Done) {
 	    				AbsActionPredicate absDone = new AbsActionPredicate(BasicOntology.DONE);
-  						absDone.set(BasicOntology.DONE_ACTION, (AbsGenericAction) onto.fromObject(((Done) obj).getAction()));
+  						absDone.set(BasicOntology.DONE_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Done) obj).getAction()));
 							return absDone;
 	    			}
 
 	    			if(obj instanceof Result) {
 	    				AbsActionPredicate absResult = new AbsActionPredicate(BasicOntology.RESULT);
-  						absResult.set(BasicOntology.RESULT_ACTION, (AbsGenericAction) onto.fromObject(((Result) obj).getAction()));
-  						absResult.set(BasicOntology.RESULT_ITEMS, (AbsTerm) onto.fromObject(((Result) obj).getItems()));
+  						absResult.set(BasicOntology.RESULT_ACTION, (AbsGenericAction) referenceOnto.fromObject(((Result) obj).getAction()));
+  						absResult.set(BasicOntology.RESULT_ITEMS, (AbsTerm) referenceOnto.fromObject(((Result) obj).getItems()));
 							return absResult;
 	    			}
 
 	    			if(obj instanceof Equals) {
 	    				AbsPredicate absEquals = new AbsPredicate(BasicOntology.EQUALS);
-  						absEquals.set(BasicOntology.EQUALS_LEFT, (AbsTerm) onto.fromObject(((Equals) obj).getLeft()));
-  						absEquals.set(BasicOntology.EQUALS_RIGHT, (AbsTerm) onto.fromObject(((Equals) obj).getRight()));
+  						absEquals.set(BasicOntology.EQUALS_LEFT, (AbsTerm) referenceOnto.fromObject(((Equals) obj).getLeft()));
+  						absEquals.set(BasicOntology.EQUALS_RIGHT, (AbsTerm) referenceOnto.fromObject(((Equals) obj).getRight()));
 							return absEquals;
 	    			}
 
@@ -165,23 +165,23 @@ class BasicIntrospector implements Introspector {
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.DONE)) { 
 							Done d = new Done();
   						AbsActionPredicate absDone = (AbsActionPredicate) abs;
-  						d.setAction((GenericAction) onto.toObject(absDone.getAbsTerm(BasicOntology.DONE_ACTION))); 
+  						d.setAction((GenericAction) referenceOnto.toObject(absDone.getAbsTerm(BasicOntology.DONE_ACTION))); 
 							return d;
 	    			}
 	    			
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
 							Result r = new Result();
   						AbsActionPredicate absResult = (AbsActionPredicate) abs;
-  						r.setAction((GenericAction) onto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ACTION))); 
-  						r.setItems((List) onto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ITEMS))); 
+  						r.setAction((GenericAction) referenceOnto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ACTION))); 
+  						r.setItems((List) referenceOnto.toObject(absResult.getAbsTerm(BasicOntology.RESULT_ITEMS))); 
 							return r;
 	    			}
 	    			
 	    			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.EQUALS)) { 
 							Equals e = new Equals();
   						AbsPredicate absEquals = (AbsPredicate) abs;
-  						e.setLeft(onto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_LEFT))); 
-  						e.setRight(onto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_RIGHT))); 
+  						e.setLeft(referenceOnto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_LEFT))); 
+  						e.setRight(referenceOnto.toObject(absEquals.getAbsTerm(BasicOntology.EQUALS_RIGHT))); 
 							return e;
 	    			}
 	    			

@@ -65,5 +65,6 @@ public interface Introspector {
      */
     Object internalise(Ontology onto, Ontology referenceOnto, AbsObject abs) 
     				throws UngroundedException, UnknownSchemaException, OntologyException;
+    				
 }
 
