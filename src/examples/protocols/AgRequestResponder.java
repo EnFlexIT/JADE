@@ -28,9 +28,10 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.proto.FipaRequestResponderBehaviour;
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 
 /**
@@ -45,81 +46,76 @@ responder in a Fipa-request protocol.
 
 public class AgRequestResponder extends Agent {
 
-	private AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
+   private DFAgentDescription dfd = new DFAgentDescription();    
+  
+  private class responderBehav extends FipaRequestResponderBehaviour.ActionHandler implements FipaRequestResponderBehaviour.Factory {
+    
+    responderBehav(Agent a){
+      super(a);
+    }
 
+    /** 
+      this is the factory method
+      **/
+   public FipaRequestResponderBehaviour.ActionHandler create(){
+     return new responderBehav(myAgent);
+   }
+			
+   public void action(){
+     double chance = Math.random();
+     System.out.println("\n Chance: "+chance);
+     if (chance <0.2)
+       sendNotUnderstood();
+     else if (chance < 0.5)
+       sendRefuse("\"I.m too busy at the moment. Retry later\"");
+     else {
+       sendAgree();
+       chance = Math.random();
+       if (chance<0.4)
+	 sendFailure("\"Something went wrong with the teleport\"");
+       else
+	 sendInform();
+     }
+   }
+			
+    /** one shot only, therefore it returns always trues **/
+   public boolean done() {
+     return true;
+   }
+			
+    /** there is nothing to reset in this simple sample behaviour **/
+   public void reset() {
+   }
+  }//End of class responderBehav
+		
+		
+  protected void setup(){
 
-	
-	private class responderBehav extends FipaRequestResponderBehaviour.Action implements FipaRequestResponderBehaviour.Factory{
-		
-		
-		responderBehav(Agent a){
-			super(a);
-		}
+    /** Registration with the DF */
+    ServiceDescription sd = new ServiceDescription();   
+    sd.setType("RequestResponderAgent"); 
+    sd.setName(getName());
+    sd.setOwnership("ExampleprotocolsOfJADE");
+    sd.addOntologies("Test_Example");
+    dfd.setName(getAID());
+    dfd.addServices(sd);
+    try {
+      registerWithDF(getDefaultDF(),dfd);
+    } catch (FIPAException e) {
+      System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
+      doDelete();
+    }
+    /** End registration with the DF **/
+    System.out.println(getLocalName()+ " succeeded in registration with DF");
 
-		/** 
-		this is the factory method
-		**/
-		public FipaRequestResponderBehaviour.Action create(){
-			
-			return new responderBehav(myAgent);
-			}
-			
-			
-		public void action(){
-			
-			double chance = Math.random();
-			
-			System.out.println("\n Chance: "+chance);
-			if (chance <0.2)
-				sendNotUnderstood();
-				else if (chance < 0.5)
-					sendRefuse("\"I.m too busy at the moment. Retry later\"");
-					else
-					{
-						sendAgree();
-						chance = Math.random();
-						if (chance<0.4)
-							sendFailure("\"Something went wrong with the teleport\"");
-						else
-							sendInform();
-					}
-				
-			}
-			
-			/** one shot only, therefore it returns always trues **/
-			public boolean done() {
-					return true;
-			}
-			
-			/** there is nothing to reset in this simple sample behaviour **/
-			public void reset() {
-			}
-		}//End of class responderBehav
-		
-		
-	protected void setup(){
-		
-		/** Registration with the DF */
-       
-  	dfd.setType("RequestResponderAgent"); 
-  	dfd.setName(getName());
-  	dfd.addAddress(getAddress());
-  	dfd.setOwnership("ExampleprotocolsOfJADE");
-  	dfd.setOntology("Test_Example");
-  	dfd.setDFState("active");
-  	try {
-    	registerWithDF("DF",dfd);
-  	} catch (FIPAException e) {
-    	System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
-    	doDelete();
-  	}
-  	/** End registration with the DF **/
-  	System.out.println(getLocalName()+ " succeeded in registration with DF");
-
-		FipaRequestResponderBehaviour requester = new FipaRequestResponderBehaviour(this);
-		requester.registerFactory("ExampleRequest",new responderBehav(this));
-		addBehaviour(requester);
-		
-	}
+    FipaRequestResponderBehaviour requester = new FipaRequestResponderBehaviour(this);
+    requester.registerFactory("ExampleRequest",new responderBehav(this));
+    addBehaviour(requester);
+  }
 	
 } // End of class AgentResponder
+
+
+
+
+

@@ -25,7 +25,8 @@ package examples.Base64;
 
 import jade.lang.acl.ACLMessage;
 import jade.core.Agent;
-import jade.domain.AgentManagementOntology;
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.*;
 
 import java.util.*;
 import java.io.*;
@@ -47,26 +48,21 @@ protected void setup() {
   System.out.println(getLocalName()+" agent sends an ACLMessage whose content is a Java object");
 
   /** Search with the DF for the name of the ObjectReaderAgent **/
-  String reader = new String();
-  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
-  dfd.setType("ObjectReaderAgent"); 
+  AID reader = new AID();
+  DFAgentDescription dfd = new DFAgentDescription();  
+  ServiceDescription sd = new ServiceDescription();
+  sd.setType("ObjectReaderAgent"); 
+  dfd.addServices(sd);
   try {
     while (true) {
       System.out.println(getLocalName()+ " waiting for an ObjectReaderAgent registering with the DF");
-      AgentManagementOntology.DFSearchResult result;
-      Vector vc = new Vector(1);
-      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-      c.setFn(AgentManagementOntology.Constraint.MAX); // MIN
-      c.setArg(3);
-      vc.addElement(c);
-      result = searchDF("DF",dfd,vc);
-      Enumeration e = result.elements();
-      if (e.hasMoreElements()) {
-	dfd = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
+      SearchConstraints c = new SearchConstraints();
+      List result = searchDF(getDefaultDF(),dfd,c);
+      if (result.size() > 0) {
+	dfd = (DFAgentDescription)result.get(0);
 	reader = dfd.getName();
 	break;
-      } 
+      }
       Thread.sleep(10000);
     }
   } catch (Exception fe) {
@@ -77,7 +73,7 @@ protected void setup() {
    try {
       ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
-      msg.addDest(reader);
+      msg.addReceiver(reader);
 
       Person p = new Person("JADE", "CSELT", new Date(), 2);
       msg.setContentObject(p);

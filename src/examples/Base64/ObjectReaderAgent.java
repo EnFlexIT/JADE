@@ -26,7 +26,7 @@ package examples.Base64;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.core.Agent;
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 
 import java.util.*;
@@ -45,20 +45,20 @@ This agent makes the following task:
 
 public class ObjectReaderAgent extends Agent {
 
-private AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();    
+private DFAgentDescription dfd = new DFAgentDescription();    
 
 protected void setup() {
 
   /** Registration with the DF */
-
-  dfd.setType("ObjectReaderAgent"); 
-  dfd.setName(getName());
-  dfd.addAddress(getAddress());
-  dfd.setOwnership("Example7OfJADE");
-  dfd.setOntology("Test_Example");
-  dfd.setDFState("active");
+  ServiceDescription sd = new ServiceDescription();
+  sd.setType("ObjectReaderAgent"); 
+  sd.setName(getName());
+  sd.setOwnership("ExampleOfJADE");
+  dfd.addServices(sd);
+  dfd.setName(getAID());
+  dfd.addOntologies("Test_Example");
   try {
-    registerWithDF("DF",dfd);
+    registerWithDF(getDefaultDF(),dfd);
   } catch (FIPAException e) {
     System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
     doDelete();
@@ -82,7 +82,7 @@ protected void setup() {
 
   public void takeDown() {
     try {
-      deregisterWithDF("DF", dfd);
+      deregisterWithDF(getDefaultDF(), dfd);
     }
     catch (FIPAException e) {
       System.err.println(getLocalName()+" deregistration with DF unsucceeded. Reason: "+e.getMessage());
