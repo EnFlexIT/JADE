@@ -28,7 +28,7 @@ import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JToolBar;
-//import javax.swing.JComboBox;
+import javax.swing.Box;
 import javax.swing.JButton;
 import jade.gui.JadeLogoButton;
 
@@ -54,10 +54,10 @@ final class ToolBar  extends JToolBar  implements ActionListener {
     this.actPro=actPro;
     addSeparator();
     addAction();
-    
-    addSeparator(new java.awt.Dimension(174,30));
-    
-	  JadeLogoButton logo = new JadeLogoButton();	
+
+
+    add(Box.createHorizontalGlue());
+    JadeLogoButton logo = new JadeLogoButton();	
     add(logo);
     
     //ShowChoice.setToolTipText("Show Agent as...");

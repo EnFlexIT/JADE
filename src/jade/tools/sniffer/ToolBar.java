@@ -24,6 +24,7 @@ package jade.tools.sniffer;
 
 import javax.swing.JToolBar;        
 import javax.swing.JButton;
+import javax.swing.Box;
 import java.awt.Insets;
 import java.awt.Dimension;
 
@@ -52,7 +53,7 @@ final public class ToolBar extends JToolBar {
   this.actPro=actPro;
   addSeparator();
   addAction();
-  addSeparator(new Dimension(350,30));
+  add(Box.createHorizontalGlue());
   JadeLogoButton logo = new JadeLogoButton();
   add(logo);
  }

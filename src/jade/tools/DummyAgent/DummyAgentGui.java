@@ -494,7 +494,7 @@ class DummyAgentGui extends JFrame
 		deleteB.addActionListener(deleteAction);
 		bar.add(deleteB);
 
-		bar.addSeparator(new Dimension(180,30));
+		bar.add(Box.createHorizontalGlue());
 		JadeLogoButton logo = new JadeLogoButton();
 		bar.add(logo);
 		getContentPane().add("North", bar);
