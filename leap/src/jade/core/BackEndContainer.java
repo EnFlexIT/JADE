@@ -120,15 +120,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
 
       protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
-        /*
-	  // Register with the platform 
-	  // This call can modify the name of this container
-	  getServiceManager().addNode(getNodeDescriptor(), new ServiceDescriptor[0]);
-
-	  // Activate all the container fundamental services
-	  startService("jade.core.management.BEAgentManagementService", false);
-	  startService("jade.core.messaging.MessagingService", false);
-    */
 	  // Start all the container fundamental services (without activating them)
   	List basicServices = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
@@ -162,14 +153,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i].getService().boot(myProfile);
     }
-	  	
-	  //#MIDP_EXCLUDE_BEGIN
-	  // If we are the master main container --> start the AMS and DF
-	  if(myMainContainer != null) {
-	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
-	      myMainContainer.initSystemAgents(this, startThem);
-	  }
-	  //#MIDP_EXCLUDE_END
       }
 
     /////////////////////////////////////
@@ -271,6 +254,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		handleSend(msg, id);
   }
 
+  
+  	///////////////////////////////////////////////
+  	// Methods called by the BEManagementService
+  	///////////////////////////////////////////////
     public void createAgentOnFE(String name, String className, String[] args) throws IMTPException {
 	if(!isMaster()) {
 	    throw new IMTPException("This is not the active back-end replica.");
@@ -304,6 +291,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	myFrontEnd.resumeAgent(name);
     }
 
+    
+  /////////////////////////////////////////////////////
+  // Redefined methods of the AgentContainer interface
+  /////////////////////////////////////////////////////
   /**
      Dispatch a message to an agent in the FrontEnd.
      If this method is called by a thread that is serving a message 
@@ -331,34 +322,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 				  return true;
 	      }
 
-	      // FIXME: The right way to do things should be i) check permission
-	      // ii) call messageIn() iii) notify listeners. On the other hand 
-	      // handlePosted() currently does i) and iii). 
-	      /*try {
-				  final ACLMessage msgFinal = msg;
-				  final AID receiverIDFinal = receiverID;
-		
-				  // An AuthException will be thrown if the receiver does not have
-				  // the permission to receive messages from the sender of this message
-				  getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
-					  public Object run() throws AuthException {
-					      handlePosted(receiverIDFinal, msgFinal);
-					      return null;
-					  }
-		      }, image.getCertificateFolder());
-	      }
-	      catch (AuthException ae) {
-				  String errorMsg = new String("\"Agent "+receiverID.getName()+" not authorized to receive messages from agent "+msg.getSender().getName());
-				  System.out.println(errorMsg+". "+ae.getMessage());
-				  notifyFailureToSender(msg, receiverID, new InternalError(errorMsg));
-	      }
-	      catch (Exception e) {
-				  // Should never happen
-				  e.printStackTrace();
-	      }*/
 	      try {
 				  // Forward the message to the FrontEnd
-		
 				  if(isMaster()) {
 			      myFrontEnd.messageIn(msg, receiverID.getLocalName());
 			      handlePosted(receiverID, msg);
@@ -386,6 +351,59 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
   }
 
+  /**
+     This method is re-defined to avoid NullPointerException. In fact
+     a search in the LADT would be done for the agent to be debugged, but
+     the LADT is obviously empty.
+   */
+  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
+  	throw new IMTPException("Unsupported operation");
+  }
+
+  /**
+     This method is re-defined to avoid NullPointerException. In fact
+     a search in the LADT would be done for the agent to be debugged, but
+     the LADT is obviously empty.
+   */
+  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
+  	throw new IMTPException("Unsupported operation");
+  }
+
+  /**
+   */
+  public void shutDown() {
+      // Stop monitoring replicas, if active
+      stopReplicaMonitor();
+
+      // Forward the exit command to the FrontEnd only if this is the master replica
+      try {
+	  if(isMaster()) {
+	      myFrontEnd.exit(false);
+	  }
+      }
+      catch (IMTPException imtpe) {
+	  // The FrontEnd is disconnected. Force the shutdown of the connection
+	  myConnectionManager.shutdown();
+      }
+
+      // "Kill" all agent images
+      AID[] ids = getAgentImages();
+      for (int i = 0; i < ids.length; ++i) {
+	  handleEnd(ids[i]);
+      }
+
+      if (agentImages.size() > 0) {
+      	System.out.println("WARNING: Zombie agent images found");
+      }
+      //agentImages.clear();
+		
+      super.shutDown();
+  }
+
+  
+  //////////////////////////////////////////////////////////
+  // Methods related to the back-end replication mechanism
+  //////////////////////////////////////////////////////////
   public void activateReplicas() {
       creationProperties.setProperty(Profile.BE_BASE_NAME, getID().getName());
       Properties newProps = (Properties)creationProperties.clone();
@@ -433,67 +451,60 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
   }
 
-  /**
-   */
-  //  public void changeAgentPrincipal(AID agentID, CertificateFolder certs) throws IMTPException, NotFoundException {
-  //      throw new IMTPException("Unsupported operation");
-  //  }
-  
-  /**
-     This method is re-defined to avoid NullPointerException. In fact
-     a search in the LADT would be done for the agent to be debugged, but
-     the LADT is obviously empty.
-   */
-  public void enableDebugger(AID debuggerName, AID toBeDebugged) throws IMTPException {
-  	throw new IMTPException("Unsupported operation");
-  }
+    public void becomeMaster() {
 
-  /**
-     This method is re-defined to avoid NullPointerException. In fact
-     a search in the LADT would be done for the agent to be debugged, but
-     the LADT is obviously empty.
-   */
-  public void disableDebugger(AID debuggerName, AID notToBeDebugged) throws IMTPException {
-  	throw new IMTPException("Unsupported operation");
-  }
+	// Do nothing if already a master back-end container
+	if(isMaster()) {
+	    return;
+	}
 
-  /*
-    public CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
-    return null; //super.createCertificateFolder(agentID);
+	GenericCommand cmd1 = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd1);
+
+	// Make all agent images known to the rest of the platform
+	AID[] imgs = getAgentImages();
+	for(int i = 0; i < imgs.length; i++) {
+	    String name = imgs[i].getLocalName();
+	    try {
+		bornAgent(name);
+	    }
+	    catch(Exception e) {
+		// Ignore it and try the next agent...
+		e.printStackTrace();
+	    }
+	}
+
     }
-  */
 
-  /**
-   */
-  public void shutDown() {
-      // Stop monitoring replicas, if active
-      stopReplicaMonitor();
+    public boolean isMaster() {
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.IS_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+	Object result = cmd.getReturnValue();
+	if (result instanceof Boolean) {
+	    return ((Boolean)result).booleanValue();
+	}
+	else if (result == null) { 
+		// The replication service is not installed --> behave as if it were a master
+		return true;
+	}
+	else {
+		// Some exception was thrown
+		return false;
+	}
+    }
 
-      // Forward the exit command to the FrontEnd only if this is the master replica
-      try {
-	  if(isMaster()) {
-	      myFrontEnd.exit(false);
-	  }
-      }
-      catch (IMTPException imtpe) {
-	  // The FrontEnd is disconnected. Force the shutdown of the connection
-	  myConnectionManager.shutdown();
-      }
-
-      // "Kill" all agent images
-      AID[] ids = getAgentImages();
-      for (int i = 0; i < ids.length; ++i) {
-	  handleEnd(ids[i]);
-      }
-
-      if (agentImages.size() > 0) {
-      	System.out.println("WARNING: Zombie agent images found");
-      }
-      //agentImages.clear();
-		
-      super.shutDown();
-  }
-
+    public String getMasterName() {
+	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.GET_MASTER_NAME, jade.core.replication.BEReplicationSlice.NAME, null);
+	myCommandProcessor.processOutgoing(cmd);
+	Object result = cmd.getReturnValue();
+	if(result instanceof String) {
+	    return (String)result;
+	}
+	else {
+	    return null;
+	}
+    }
+    
     private void stopReplicaMonitor() {
 	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.STOP_MONITOR, jade.core.replication.BEReplicationSlice.NAME, null);
 	myCommandProcessor.processOutgoing(cmd);
@@ -519,6 +530,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     }
 
+    
+    
     /**
        Inner class AgentImage
     */
@@ -571,64 +584,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	return result;
     }
 
-    public void becomeMaster() {
-
-	// Do nothing if already a master back-end container
-	if(isMaster()) {
-	    return;
-	}
-
-	GenericCommand cmd1 = new GenericCommand(jade.core.replication.BEReplicationSlice.BECOME_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
-	myCommandProcessor.processOutgoing(cmd1);
-
-	GenericCommand cmd2 = new GenericCommand(jade.core.replication.BEReplicationSlice.START_MONITOR, jade.core.replication.BEReplicationSlice.NAME, null);
-	cmd2.addParam(REPLICA_CHECK_DELAY);
-	myCommandProcessor.processOutgoing(cmd2);
-
-
-	// Make all agent images known to the rest of the platform
-	AID[] imgs = getAgentImages();
-	for(int i = 0; i < imgs.length; i++) {
-	    String name = imgs[i].getLocalName();
-	    try {
-		bornAgent(name);
-	    }
-	    catch(Exception e) {
-		// Ignore it and try the next agent...
-		e.printStackTrace();
-	    }
-	}
-
-    }
-
-    public boolean isMaster() {
-	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.IS_MASTER, jade.core.replication.BEReplicationSlice.NAME, null);
-	myCommandProcessor.processOutgoing(cmd);
-	Object result = cmd.getReturnValue();
-	if (result instanceof Boolean) {
-	    return ((Boolean)result).booleanValue();
-	}
-	else if (result == null) { 
-		// The replication service is not installed --> behave as if it were a master
-		return true;
-	}
-	else {
-		// Some exception was thrown
-		return false;
-	}
-    }
-
-    public String getMasterName() {
-	GenericCommand cmd = new GenericCommand(jade.core.replication.BEReplicationSlice.GET_MASTER_NAME, jade.core.replication.BEReplicationSlice.NAME, null);
-	myCommandProcessor.processOutgoing(cmd);
-	Object result = cmd.getReturnValue();
-	if(result instanceof String) {
-	    return (String)result;
-	}
-	else {
-	    return null;
-	}
-    }
 
 
   ////////////////////////////////////////////////////////////
