@@ -37,6 +37,11 @@ This agent makes the following task:
 1. searches in the DF for an ObjectReaderAgent;
 2. sends an ACLMessage with a content encoded in Base64 to the 
    ObjectReaderAgent.
+3. sends the same message by using the BitEfficient ACLCodec (notice that
+   the message is actually coded only and only if the receiver belongs
+   to another platform) first, and the XML ACLCodec then
+4. sends an ACLMessage with a content encoded as a String
+5. sends the same message by using again BitfficientACLCodec and XMLACLCodec
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
 */
@@ -78,11 +83,35 @@ protected void setup() {
 
       msg.addReceiver(reader);
 
-      Person p = new Person("JADE", "CSELT", new Date(), 2);
+      Person p = new Person("Name1", "Surname1", new Date(), 1);
       msg.setContentObject(p);
-    
+      msg.setLanguage("JavaSerialization");
       send(msg);
-      System.out.println(getLocalName()+" sent message "+msg.toString()+" to "+reader);
+      System.out.println(getLocalName()+" sent 1st msg "+msg);
+
+      msg.setDefaultEnvelope();
+      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.bitefficient.std"); 
+      send(msg);
+      System.out.println(getLocalName()+" sent 1st msg with bit-efficient aclCodec "+msg);
+
+      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.xml.std"); 
+      send(msg);
+      System.out.println(getLocalName()+" sent 1st msg with xml aclCodec "+msg);
+
+      p = new Person("Name2", "Surname2", new Date(), 2);
+      msg.setContent(p.toString());
+      msg.setLanguage("StringLanguage");
+      msg.setDefaultEnvelope(); //reset the envelope to default ACLCodec
+      send(msg);
+      System.out.println(getLocalName()+" sent 2nd msg "+msg);
+
+      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.bitefficient.std"); 
+      send(msg);
+      System.out.println(getLocalName()+" sent 2nd msg with bit-efficient aclCodec "+msg);
+      
+      msg.getEnvelope().setAclRepresentation("fipa.acl.rep.xml.std"); 
+      send(msg);
+      System.out.println(getLocalName()+" sent 2nd msg with xml aclCodec "+msg);
   } catch (IOException e ) {
     e.printStackTrace();}
    //doDelete();

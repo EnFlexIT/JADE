@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type"
 content="text/html; charset=iso-8859-1">
 <meta name="ProgId" content="FrontPage.Editor.Document">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
 <title>Base64</title>
 <link rel="stylesheet" type="text/css" href="stylesheet.css"
 title="Style">
@@ -51,7 +51,8 @@ Date: 17/09/2001</p>
 <p><span lang="EN-GB"> </p>
 
 <p><font face="Arial,Helvetica">This example shows how to
-transport serialized Java object over an ACLMessage.</font> <br>
+transport serialized Java object over an ACLMessage, both with the default
+ACLCodec and with the XML-based and bit-efficient based ACLCodecs.</font> <br>
 <font face="Arial,Helvetica">You can execute it, for instance,
 with the following command:</font></p>
 
@@ -83,8 +84,9 @@ agents.</font> <br>
         a message from its companion, the ObjectWriterAgent;</font>
         <br>
         <font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 3. reads
-        the content of the message, knowing a-priori that&nbsp;
-        it is encoded in Base64 and contains a Java object;</font>
+        the content of the message. If the language was set to &quot;JavaSerialization&quot;
+        it assumes, by a-priori knowledge, that the content&nbsp;
+        it is encoded in Base64 and contains a Java object.</font>
         <br>
         </td>
     </tr>
@@ -119,7 +121,16 @@ agents.</font> <br>
         <font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 2. sends
         an ACLMessage with a content encoded in Base64 to
         the&nbsp; ObjectReaderAgent.</font> <font
-        face="Arial,Helvetica">&nbsp;</font></td>
+        face="Arial,Helvetica">&nbsp;</font> <br>
+        <font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp;
+          3. sends the same message by using the BitEfficient ACLCodec (notice that
+        the message is actually coded only and only if the receiver belongs to another platform) first, and the XML ACLCodec then<br>
+        &nbsp;&nbsp;&nbsp; 4. sends an ACLMessage with a content encoded as a String<br>
+        &nbsp;&nbsp;&nbsp; 5. sends the same message by using again BitfficientACLCodec and XMLACLCodec</font> <font>
+
+          </font>
+
+        </td>
     </tr>
     <tr>
         <td><strong>Jade classes used: </strong></td>

@@ -37,7 +37,9 @@ import java.io.*;
 This agent makes the following task: 
 1. registers itself with the df as a reader;
 2. waits a message from its companion, the ObjectWriterAgent; 
-3. reads the content of the message, knowing a-priori that 
+3. reads the content of the message;
+   if the language was set to "JavaSerialization", then
+  the agent knows a-priori that 
    it is encoded in Base64 and contains a Java object;
 @author Fabio Bellifemine - CSELT S.p.A
 @version $Date$ $Revision$
@@ -71,9 +73,12 @@ protected void setup() {
       System.out.println(getLocalName()+" is waiting for a message");
       ACLMessage msg = blockingReceive(); 
       System.out.println(getLocalName()+ " rx msg"+msg); 
-  
-      Person p = (Person)msg.getContentObject();
-      System.out.println(getLocalName()+ " read Java Object " + p.getClass().getName() + p.toString());
+      
+      if ("JavaSerialization".equals(msg.getLanguage())) {
+	  Person p = (Person)msg.getContentObject();
+	  System.out.println(getLocalName()+ " read Java Object " + p.getClass().getName() + p.toString());
+      } else
+	  System.out.println(getLocalName()+ " read Java String " + msg.getContent()); 
       
     } catch(UnreadableException e3){
     	  System.err.println(getLocalName()+ " catched exception "+e3.getMessage());

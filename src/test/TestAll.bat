@@ -77,8 +77,13 @@ REM goto :STARTHERE
 
 echo Each example will be executed into a remote container. To pass to the
 echo next example, just kill the container (NOT the platform) from the RMA GUI
-echo Running Base64 example
-%JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.Base64.ObjectReaderAgent b:examples.Base64.ObjectWriterAgent
+echo Running Base64 example. Federate the DF where the reader is running
+echo with the DF where the writer is running.
+echo Test: DFFederation, DFSearch and registration, inter-platform IIOP Sun
+echo communication, XML,bit-efficient,and String ACLCodecs, ACLMessage.content
+echo both for setContentObject and setContent
+%JAVA% -cp %CLASSPATH% jade.Boot -container reader:examples.Base64.ObjectReaderAgent 
+START %JAVA% -cp %CLASSPATH% jade.Boot -gui -port 1200 writer:examples.Base64.ObjectWriterAgent
 
 echo Running behaviours example
 %JAVA% -cp %CLASSPATH% jade.Boot -container a:examples.behaviours.ComplexBehaviourAgent
