@@ -97,10 +97,10 @@ public class TestBlockTimeout extends Test {
   	  	String receiverName = new String("r"+i);
     		// Launch the sender on the main
     		String[] agentArgs = new String[] {receiverName, String.valueOf(nMessages), String.valueOf(shortestPeriod*(i+1))}; 
-    		TestUtility.createAgent(a, senderName, SENDER_CLASS, agentArgs, Agent.getAMS(), AgentManager.MAIN_CONTAINER_NAME); 
+    		TestUtility.createAgent(a, senderName, SENDER_CLASS, agentArgs, a.getAMS(), AgentManager.MAIN_CONTAINER_NAME); 
 				// Launch the receiver on container-1 (it exists for sure)
     		agentArgs = new String[] {a.getLocalName()};
-    		TestUtility.createAgent(a, receiverName, RECEIVER_CLASS, agentArgs, Agent.getAMS(), "Container-1");
+    		TestUtility.createAgent(a, receiverName, RECEIVER_CLASS, agentArgs, a.getAMS(), "Container-1");
     		// Prepare the message to start the senders
     		startMsg.addReceiver(new AID(senderName, AID.ISLOCALNAME));
   	  }
