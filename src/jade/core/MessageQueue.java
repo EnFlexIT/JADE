@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/30 12:24:54  rimassa
+  Fixed a bug dealing with unlimited message queues.
+
   Revision 1.1  1999/03/25 16:50:44  rimassa
   This class implements a message queue for an agent, that can be either bounded
   or unbounded and adopts a FIFO replacement policy.
@@ -38,13 +41,13 @@ class MessageQueue {
   }
 
   public void addFirst(ACLMessage msg) {
-    if(list.size() >= maxSize)
+    if((maxSize != 0) && (list.size() >= maxSize))
       list.removeFirst(); // FIFO replacement policy
     list.addFirst(msg);
   }
 
   public void addLast(ACLMessage msg) {
-    if(list.size() >= maxSize)
+    if((maxSize != 0) && (list.size() >= maxSize))
       list.removeFirst(); // FIFO replacement policy
     list.addLast(msg);
   }
