@@ -419,7 +419,7 @@ API_PACKAGES = 	jade jade.core jade.core.behaviours jade.core.event jade.lang ja
 		jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic \
 		jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.domain.DFGUIManagement \
 		jade.domain.introspection jade.content jade.content.abs jade.content.acl jade.content.lang \
-		jade.content.lang.j jade.content.lang.leap jade.content.onto jade.content.schema jade.util.leap
+		jade.content.lang.j jade.content.lang.leap jade.content.lang.sl jade.content.onto jade.content.schema jade.util.leap
 
 API_FLAGS = -d $(DOC_OUTDIR) -overview $(DOC_MAIN) -author -windowtitle $(DOC_WINTITLE)
 
