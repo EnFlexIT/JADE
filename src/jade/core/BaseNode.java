@@ -28,7 +28,7 @@ package jade.core;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.Serializable;
-
+import jade.util.Logger;
 
 /**
    This class provides a partial implementation of the
@@ -41,10 +41,13 @@ import jade.util.leap.Serializable;
  */
 public abstract class BaseNode implements Node, Serializable {
 
+	private Logger myLogger;
+	
     public BaseNode(String name, boolean hasPM) {
 	myName = name;
 	hasLocalPM = hasPM;
 	localSlices = new HashMap(5);
+	myLogger = Logger.getMyLogger(getClass().getName());
     }
 
     public void setName(String name) {
@@ -86,27 +89,42 @@ public abstract class BaseNode implements Node, Serializable {
 	String serviceName = cmd.getService();
 	String commandName = cmd.getName();
 	Object[] commandParams = cmd.getParams();
+	
+	if (myLogger.isLoggable(Logger.FINE)) {
+		myLogger.log(Logger.FINE, "Node "+myName+" serving incoming H-Command "+commandName+" of Service "+serviceName);
+	}
 
 	// Look up in the local slices table and find the slice to dispatch to
 	Service.Slice slice = getSlice(serviceName);
 
 	if(slice != null) {
-	    VerticalCommand vCmd = slice.serve(cmd);
+		Object ret = null;
+    VerticalCommand vCmd = slice.serve(cmd);
 
-	    if(vCmd != null) {
-	  vCmd.setPrincipal(cmd.getPrincipal());
-	  vCmd.setCredentials(cmd.getCredentials());
-		// Hand it to the command processor
-		serveVerticalCommand(vCmd);
-		return vCmd.getReturnValue();
-	    }
-	    else {
-		return cmd.getReturnValue();
-	    }
+    if(vCmd != null) {
+		  vCmd.setPrincipal(cmd.getPrincipal());
+		  vCmd.setCredentials(cmd.getCredentials());
+			// Hand it to the command processor
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Node "+myName+" issuing incoming V-Command "+vCmd.getName()+" of Service "+vCmd.getService());
+			}
+			serveVerticalCommand(vCmd);
+			ret = vCmd.getReturnValue();
+    }
+    else {
+			ret = cmd.getReturnValue();
+    }
+    
+    if (ret != null) {
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Node "+myName+" return value for incoming H-Command "+commandName+" of Service "+serviceName+" = "+ret);
+			}
+    }
+    return ret;
 	}
 	else {
-		String s = new String("Node "+getName()+": Service "+serviceName+" Unknown. Command = "+commandName);
-	    throw new ServiceException("-- "+s+" --");
+		String s = new String("Node "+myName+": Service "+serviceName+" Unknown. Command = "+commandName);
+	  throw new ServiceException("-- "+s+" --");
 	}
     }
 
