@@ -871,12 +871,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private DFSubscriptionResponder dfSubscriptionResponder;
   
   // Configuration parameter keys
-  private static final String VERBOSITY = "jade.domain.df.verbosity";
-  private static final String DB_DRIVER = "jade.domain.df.db-driver";
-  private static final String DB_URL = "jade.domain.df.db-url";
-  private static final String DB_USERNAME = "jade.domain.df.db-username";
-  private static final String DB_PASSWORD = "jade.domain.df.db-password";
-	private static final String MAX_RESULTS = "jade.domain.df.maxres";
+  private static final String VERBOSITY = "jade_domain_df_verbosity";
+  private static final String DB_DRIVER = "jade_domain_df_db-driver";
+  private static final String DB_URL = "jade_domain_df_db-url";
+  private static final String DB_USERNAME = "jade_domain_df_db-username";
+  private static final String DB_PASSWORD = "jade_domain_df_db-password";
+	private static final String MAX_RESULTS = "jade_domain_df_maxres";
 
   // limit of searchConstraints.maxresult
   // FIPA Agent Management Specification doc num: SC00023J (6.1.4 Search Constraints)
@@ -967,6 +967,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			}
 			catch (Exception e) {
 				log("Error creating persistent KB ["+e+"]. Use a volatile KB.", 0);
+				e.printStackTrace();
 			}
 		}
 		if (agentDescriptions == null) {

@@ -64,7 +64,7 @@ public class TestDFSubscriptionKill extends Test {
   	String pippo = null;
   	
   	// Start a new "persistent" DF on a separated container
-	jc = TestUtility.launchJadeInstance("Persistent", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -jade.domain.df.verbosity 2 -jade.domain.df.db-url "+url+" -jade.domain.df.db-driver "+driver, new String[] {});
+		jc = TestUtility.launchJadeInstance("Persistent", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -jade_domain_df_verbosity 2 -jade_domain_df_db-url "+url+" -jade_domain_df_db-driver "+driver, new String[] {});
   	df1 = TestUtility.createAgent(a, "df1", "jade.domain.df", null, a.getAMS(), jc.getContainerName());
 	  
   	// Register a DFD on df1

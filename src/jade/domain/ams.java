@@ -89,7 +89,7 @@ import jade.security.PrivilegedExceptionAction;
   @version $Date$ $Revision$
 */
 public class ams extends Agent implements AgentManager.Listener {
-
+	private static final String VERBOSITY_KEY = "jade_domain_ams_verbosity";
 	private int verbosity = 0;
   
   // The AgentPlatform where information about agents is stored
@@ -131,7 +131,7 @@ public class ams extends Agent implements AgentManager.Listener {
    */
   protected void setup() {
     try {
-    	verbosity = Integer.parseInt(getProperty("jade.domain.ams.verbosity", "0"));
+    	verbosity = Integer.parseInt(getProperty(VERBOSITY_KEY, "0"));
     }
     catch (Exception e) {
     	// Keep default (0)
