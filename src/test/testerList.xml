@@ -11,11 +11,6 @@
 		<!ELEMENT TestsListRif (#PCDATA)>
 	]>
 	<TesterList> 
-		<Tester name="Ping" skip="true">
-			<ClassName>test.pingAgent.PingTesterAgent</ClassName>
-			<Description> Implements a simple intaraction between 2 agents </Description>
-			<TestsListRif>test\\pingAgent\\pingTestsList.xml</TestsListRif>
-		</Tester>		
 		<Tester name="Content" skip="false">
 			<ClassName>test.content.ContentTesterAgent</ClassName>
 			<Description> FIXME TO WRITE.... </Description>
@@ -26,15 +21,20 @@
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\content\\SLOperatorTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Inter Platform Communication" skip="false">
+		<Tester name="Inter Platform Communication" skip="true">
 			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\interPlatform\\interPlatformTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Behaviours" skip="false">
+		<Tester name="Behaviours block/restart" skip="false">
 			<ClassName>test.behaviours.BlockTimeoutTesterAgent</ClassName>
 			<Description> FIXME TO WRITE.... </Description>
 			<TestsListRif>test\\behaviours\\blockTimeOutTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Behaviour performance" skip="false">
+			<ClassName>test.behaviours.PerformanceTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\behaviours\\performanceTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="DF" skip="false">
 			<ClassName>test.domain.df.DFTesterAgent</ClassName>
