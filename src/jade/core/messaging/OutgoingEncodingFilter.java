@@ -55,10 +55,12 @@ public class OutgoingEncodingFilter extends Filter {
   
   private Map messageEncodings;
   private AgentContainer myAgentContainer;
+  private MessagingService myService; 
 
-  public OutgoingEncodingFilter(Map m, AgentContainer ac){
+  public OutgoingEncodingFilter(Map m, AgentContainer ac, MessagingService ms){
     messageEncodings = m;
     myAgentContainer = ac;
+    myService = ms;
     setPreferredPosition(10);
   }
 
@@ -107,7 +109,7 @@ public class OutgoingEncodingFilter extends Filter {
           return true;
         } else {
           // add necessary fields to the envelope
-          prepareEnvelope(msg,receiver);
+          prepareEnvelope(msg, receiver, gmsg);
 
         }
       }
@@ -138,14 +140,30 @@ public class OutgoingEncodingFilter extends Filter {
   /**
    * This method puts into the envelope the missing information
    */
-  public void prepareEnvelope(ACLMessage msg, AID receiver) {
+  public void prepareEnvelope(ACLMessage msg, AID receiver, GenericMessage gmsg) {
     Envelope env = msg.getEnvelope();
-    if ((env == null)&&(myAgentContainer.livesHere(receiver))){
-      return;
-    }
-    else if(env == null) {
-	    msg.setDefaultEnvelope();
-	    env = msg.getEnvelope();
+    String defaultRepresentation = null;
+  	//if (myAgentContainer.livesHere(receiver)) {
+  	if (myService.livesHere(receiver)) {
+  		// The agent lives in the platform
+	    if (env == null) {
+	    	// Nothing to do
+	      return;
+	    }
+	    else {
+	    	defaultRepresentation = LEAPACLCodec.NAME;
+	    }
+  	}
+    else {
+  		gmsg.setForeignReceiver(true);
+    	if (env == null) {
+	    	// The agent lives outside the platform
+		    msg.setDefaultEnvelope();
+		    env = msg.getEnvelope();
+    	}
+	    else {
+	    	defaultRepresentation = StringACLCodec.NAME;
+	    }
     }
 
     // If no 'to' slot is present, copy the 'to' slot from the
@@ -173,7 +191,7 @@ public class OutgoingEncodingFilter extends Filter {
     // representation
     String rep = env.getAclRepresentation();
     if(rep == null)
-	    env.setAclRepresentation(StringACLCodec.NAME);
+	    env.setAclRepresentation(defaultRepresentation);
 
     // Write 'intended-receiver' slot as per 'FIPA Agent Message
     // Transport Service Specification': this ACC splits all

@@ -54,7 +54,8 @@ public class GenericMessage implements Serializable {
   private byte[] payload;
   private transient JADEPrincipal senderPrincipal;
   private transient Credentials senderCredentials;
-  private boolean isAMSFailure;
+  private boolean isAMSFailure = false;
+  private transient boolean foreignReceiver = false;
 
   public GenericMessage(){
   }
@@ -108,6 +109,14 @@ public class GenericMessage implements Serializable {
 
   public void setAMSFailure(boolean b) {
     isAMSFailure=b;
+  }
+  
+  boolean hasForeignReceiver() {
+  	return foreignReceiver;
+  }
+  
+  void setForeignReceiver(boolean b) {
+  	foreignReceiver = b;
   }
   
 	//#MIDP_EXCLUDE_BEGIN

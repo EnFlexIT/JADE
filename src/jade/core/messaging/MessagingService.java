@@ -92,10 +92,16 @@ import jade.util.leap.List;
  * @author Jerome Picault - Motorola Labs
  */
 public class MessagingService extends BaseService implements MessageManager.Channel {
-
+	
   // The profile passed to this object
   private Profile myProfile;
-
+  
+  // A flag indicating whether or not we must accept foreign agents
+  private boolean acceptForeignAgents = false;
+ 
+  // The ID of the PLatformthis service belongs to
+  private String platformID;
+  
   // The concrete agent container, providing access to LADT, etc.
   private AgentContainer myContainer;
 
@@ -179,20 +185,24 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     this.myProfile = p;
     myContainer = ac;
 
+    // Look in the profile and check whether we must accept foreign agents
+    acceptForeignAgents = myProfile.getBooleanProperty(Profile.ACCEPT_FOREIGN_AGENTS, false);
+    
     // Initialize its own ID
-    String platformID = myContainer.getPlatformID();
+    platformID = myContainer.getPlatformID();
     accID = "fipa-mts://" + platformID + "/acc";
 
-    // Activate the default ACL String codec anyway
+    /* Activate the default ACL String codec anyway
     ACLCodec stringCodec = new StringACLCodec();
     messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
     
     // Activate the efficient encoding for intra-platform encoding
     ACLCodec efficientCodec = new LEAPACLCodec();
     messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
+    */
     
     // create the command filters related to the encoding of ACL messages
-    encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer);
+    encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer, this);
     encInFilter = new IncomingEncodingFilter(messageEncodings);
 
     myMessageManager = MessageManager.instance(p);
@@ -341,6 +351,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
       // as a temporary holder for the sender principal and credentials to the 
       msg.setSenderPrincipal(cmd.getPrincipal());
       msg.setSenderCredentials(cmd.getCredentials());
+      log("Enqueuing message for "+dest.getName()+" to MessageManager", 4);
       myMessageManager.deliver(msg, dest, MessagingService.this);
     }
     
@@ -585,6 +596,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
 
     private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
+    	log("Posting message from "+msg.getSender().getName()+" to "+receiverID, 4);
 	    boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
 	    if(!found) { 
         throw new NotFoundException("Messaging service slice failed to find " + receiverID);
@@ -785,6 +797,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     // Entry point for the ACL message dispatching process
     public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException, NotFoundException {
+      log("Delivering message for "+receiverID.getName(), 4);
 	    try {
         MainContainer impl = myContainer.getMain();
         if(impl != null) {
@@ -835,10 +848,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               cachedSlice.dispatchLocally(msg.getSender(), msg, receiverID);
             }
             catch(IMTPException imtpe) {
+            	log("Cached slice for agent "+receiverID.getName()+" unreachable. Remove it.", 3);
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
             }
             catch(NotFoundException nfe) {
+            	log("Cached slice does not contain agent "+receiverID.getName()+". Remove it.", 3);
               cachedSlices.remove(receiverID); // Eliminate stale cache entry
               deliverUntilOK(msg, receiverID);
             }
@@ -878,8 +893,17 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           }
           catch (IMTPException imtpe) {
             // Try to get a newer slice and repeat...
-            targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
+          	log("Slice "+targetSlice+" for agent "+receiverID.getName()+" unreachable. Try to get a fresh slice.", 3);
+          	try {
+	            targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
+          	}
+          	catch (Throwable t) {
+          		t.printStackTrace();
+          		throw ((IMTPException) t);
+          	}
+          	log("Fresh slice is "+targetSlice, 4);
             targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
+          	log("Dispatch successful", 4);
           }
           // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
           // On successful message dispatch, put the slice into the slice cache
@@ -1174,7 +1198,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
   public void deliverNow(GenericMessage msg, AID receiverID) throws UnreachableException {
     try {
-	    if(myContainer.livesHere(receiverID)) {
+	    if (!msg.hasForeignReceiver()) {
         localSlice.deliverNow(msg, receiverID);
 	    }
 	    else {
@@ -1281,6 +1305,75 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     }
   }
 
+  // Package scoped since it is accessed by the OutgoingEncoding filter
+  final boolean livesHere(AID id) {
+  	if (!acceptForeignAgents) {
+  		// All agents in the platform must have a name with the form
+  		// <local-name>@<platform-name>
+			String hap = id.getHap();
+			return CaseInsensitiveString.equalsIgnoreCase(hap, platformID);
+  	}
+  	else {
+	  	String[] addresses = id.getAddressesArray();
+	  	if (addresses.length == 0) {
+	  		return true;
+	  	}
+	  	else {
+	  		boolean allLocalAddresses = true;
+	    	for (int i = 0; i < addresses.length; ++i) {
+	    		if (!isPlatformAddress(addresses[i])) {
+	    			allLocalAddresses = false;
+	    			break;
+	    		}
+	    	}
+	    	if (allLocalAddresses) {
+		    	return true;
+	    	}
+	    	else {
+	    		// Check in the GADT
+	    		try {
+	        	MainContainer impl = myContainer.getMain();
+		        if(impl != null) {
+		          // Directly use the GADT on the main container
+		          impl.getContainerID(id);
+		        }
+		        else {
+		        	// Use the main slice
+			        MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
+			        try {
+			          mainSlice.getAgentLocation(id);
+			        }
+			        catch(IMTPException imtpe) {
+			          // Try to get a newer slice and repeat...
+			          mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+			          mainSlice.getAgentLocation(id);
+			        }
+		        }
+		        return true;
+	    		}
+	    		catch (NotFoundException nfe) {
+	    			// The agent does not live in the platform
+	    			return false;
+	    		}
+		      catch (Exception e) {  	
+		      	// Intra-platform delivery would fail, so try inter-platform
+		      	return false;
+		      }
+	    	}
+	  	}
+  	}
+  }
+  
+  private final boolean isPlatformAddress(String addr) {
+    Iterator it = localSlice.getAddresses();
+    while(it.hasNext()) {
+	    String ad = (String)it.next();
+	    if (CaseInsensitiveString.equalsIgnoreCase(ad, addr)) {
+	    	return true;
+	    }
+    }
+    return false;
+  }
 
   // Work-around for PJAVA compilation
   protected Service.Slice getFreshSlice(String name) throws ServiceException {
