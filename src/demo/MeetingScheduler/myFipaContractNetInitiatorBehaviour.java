@@ -21,14 +21,14 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package demo.MeetingScheduler;
-import java.util.Vector;
-import java.util.Date;
 
+import java.util.*;
 import java.io.*;
 
 import jade.lang.acl.ACLMessage;
 import jade.core.*;
 import jade.proto.FipaContractNetInitiatorBehaviour;
+import jade.domain.FIPAAgentManagement.AID;
 
 import demo.MeetingScheduler.CLP.*;
 
@@ -40,23 +40,22 @@ Javadoc documentation for the file
 
 public class myFipaContractNetInitiatorBehaviour extends FipaContractNetInitiatorBehaviour {
 
-    public myFipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
+    public myFipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, List group) {
       super(a,msg,group);
-      System.err.println("myFipaContractNetInitiatorBehaviour with these agents: " + group.toString());
+      //System.err.println("myFipaContractNetInitiatorBehaviour with these agents: " + group.toString());
     }
 
   // FIXME This method is called to handle message different from proposal
   public void handleOtherMessages(ACLMessage msg) {
-    System.err.println("!!! FipaContractNetInitiator handleOtherMessages");
-    msg.dump();
+    System.err.println("!!! FipaContractNetInitiator handleOtherMessages: "+msg.toString());
   }
   
 
-public String createCfpContent(String basicContent, String receiver) {
+public String createCfpContent(String basicContent, AID receiver) {
   int p = basicContent.indexOf('*');
   if (p != -1) 
     //replace with the actual actor name that is 1 actor for each message.
-    return basicContent.substring(0,p-1) + receiver + basicContent.substring(p+1,basicContent.length());
+    return basicContent.substring(0,p-1) + receiver.getName() + basicContent.substring(p+1,basicContent.length());
   else
     return basicContent;
 }  
@@ -79,7 +78,7 @@ public Vector handleProposeMessages(Vector proposals) {
   
   try {
     parser = SL0Parser.create();
-    mv = (MultiValue)parser.parse(new StringReader(cfpMsg.getContent()), cfpMsg.getType());
+    mv = (MultiValue)parser.parse(new StringReader(cfpMsg.getContent()), ACLMessage.getPerformative(cfpMsg.getPerformative()));
     a = (Action)mv.getValue(0);
     possApp = (Proposition)a.getActionParameter("list");
     if ( (a==null) || (possApp == null) ) {
@@ -105,12 +104,11 @@ public Vector handleProposeMessages(Vector proposals) {
   for (int i=0; i<proposals.size(); i++) {
     //System.err.println("EvaluateProposals, start round "+i+" acceptableDates = "+acceptableDates.toString());
     msg = (ACLMessage)proposals.elementAt(i);
-    //msg.dump();
-    if (msg.getType().equalsIgnoreCase("propose")) {
+    if (msg.getPerformative() == ACLMessage.PROPOSE) {
       try {
 	acceptedDates = new Vector();
 	parser = SL0Parser.create();
-	mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), msg.getType());
+	mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), ACLMessage.getPerformative(msg.getPerformative()));
 	a = (Action)mv.getValue(0);
 	possApp = (Proposition)a.getActionParameter("list");
 	for (int ii=0; ii<possApp.getNumberOfTerms(); ii++) {
@@ -120,8 +118,9 @@ public Vector handleProposeMessages(Vector proposals) {
 	}
 	acceptableDates = acceptedDates;
 	if (msg.getReplyWith() != null)
-	  msg.setReplyTo(msg.getReplyWith());
-	msg.setDest(msg.getSource());
+	  msg.setInReplyTo(msg.getReplyWith());
+	msg.clearAllReceiver();
+	msg.addReceiver(msg.getSender());
 	retMsgs.addElement(msg);
       } catch (ParseException e) {
 	e.printStackTrace();
@@ -131,7 +130,7 @@ public Vector handleProposeMessages(Vector proposals) {
   //System.err.println("EvaluateProposals, end rounds acceptableDates = "+acceptableDates.toString());
   
   String content = "( (action "+ " * " +" (possible-appointments (list ";
-  String msgType;
+  int msgType;
   if (acceptableDates.size() > 0) {
     pendingAppointment = new Appointment(myAgent.getName());
     Date d = new Date();
@@ -141,17 +140,17 @@ public Vector handleProposeMessages(Vector proposals) {
     //FIXME I should here also add the invited Persons otherwise the cancel
     // does not work.
     content = content + acceptableDates.elementAt(0) + "))) true )";
-    msgType = "accept-proposal";
+    msgType = ACLMessage.ACCEPT_PROPOSAL;
   } else {
     content = content + "))) false )";
-    msgType = "reject-proposal";
+    msgType = ACLMessage.REJECT_PROPOSAL;
   }
   
   int p = content.indexOf('*'); // the actor name '*' must be replaced with 
   // the actual actor name (1 actor for each message)
   for (int i=0; i<retMsgs.size(); i++) {
-    ((ACLMessage)retMsgs.elementAt(i)).setType(msgType);
-    ((ACLMessage)retMsgs.elementAt(i)).setContent(content.substring(0,p-1) + ((ACLMessage)retMsgs.elementAt(i)).getSource() + content.substring(p+1,content.length())); // for each message replace '*' with the right actor name
+    ((ACLMessage)retMsgs.elementAt(i)).setPerformative(msgType);
+    ((ACLMessage)retMsgs.elementAt(i)).setContent(content.substring(0,p-1) + ((ACLMessage)retMsgs.elementAt(i)).getSender().getName() + content.substring(p+1,content.length())); // for each message replace '*' with the right actor name
   }
   
   return retMsgs;
@@ -164,11 +163,11 @@ public Vector handleFinalMessages(Vector messages) {
   Person p;
   for (int i=0; i<messages.size(); i++) {    
     msg = (ACLMessage)messages.elementAt(i);
-    if (msg.getType().equalsIgnoreCase("inform")) {
+    if (msg.getPerformative() == ACLMessage.INFORM) {
       accepted = true;
-      p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSource());
+      p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSender());
       if (p == null) 
-	p = new Person(msg.getSource());
+	p = new Person(msg.getSender().getName());
       pendingAppointment.addInvitedPerson(p);
     }
   }

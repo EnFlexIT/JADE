@@ -27,6 +27,7 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import demo.MeetingScheduler.CLP.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 import java.io.*;
 import java.util.Date;
@@ -38,7 +39,7 @@ Javadoc documentation for the file
 */
 public class CancelAppointmentBehaviour extends CyclicBehaviour {
 
-  MessageTemplate mt=MessageTemplate.MatchType("cancel");
+  MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
   ACLMessage cancel; 
   SL0Parser parser;
   MultiValue mv;
@@ -55,11 +56,10 @@ public class CancelAppointmentBehaviour extends CyclicBehaviour {
       block();
       return;
     }
-    System.err.println("CancelAppointmentBehaviour: received");
-    cancel.dump();
+    System.err.println("CancelAppointmentBehaviour: received "+cancel.toString());
     try {
       parser = SL0Parser.create();
-      a = (Action)parser.parse(new StringReader(cancel.getContent()), cancel.getType());
+      a = (Action)parser.parse(new StringReader(cancel.getContent()), ACLMessage.getPerformative(cancel.getPerformative()));
       // a = (Action)mv.getValue(0);
       app = (Proposition)a.getActionParameter("list");
       for (int i=0; i<app.getNumberOfTerms(); i++) {

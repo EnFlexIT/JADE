@@ -23,10 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler;
 
-import java.util.Vector;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Date;
+import java.util.*;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -35,7 +32,7 @@ import jade.core.Agent;
 import jade.core.AgentGroup;
 import jade.lang.acl.ACLMessage;
 
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.*;
 
 /**
 Javadoc documentation for the file
@@ -49,40 +46,78 @@ public class MeetingSchedulerAgent extends Agent {
     mainFrame mf; // pointer to the main frame of the GUI
     Hashtable knownPersons = new Hashtable(10, 0.8f); // list of known persons: (String)name -> Person
     Hashtable appointments = new Hashtable(10, 0.8f); // list of appointments:  (String)date -> Appointment
-    final static String REPLYBY = "+00000000T000059000Z"; // 59 seconds
+    final static long REPLYBY = 59000; // 59 seconds
     
 protected void setup() {
   (new PasswordDialog(this, "Enter your name and password")).setVisible(true);
-  addBehaviour(new myFipaContractNetResponderBehaviour(this));
-  addBehaviour(new CancelAppointmentBehaviour(this));
+}
+
+  void startTasks(){
+    addBehaviour(new myFipaContractNetResponderBehaviour(this));
+    addBehaviour(new CancelAppointmentBehaviour(this));
+  }
+
+
+protected void searchPerson(AID dfname, String personName) {
+  ServiceDescription sd = new ServiceDescription();
+  sd.setType("personal-agent");
+    Property p = new Property();
+    p.setName("represents");
+    p.setValue(personName);
+    sd.addProperties(p);
+  DFAgentDescription dfd = new DFAgentDescription();
+  dfd.addOntologies("pa-ontology");
+  //dfd.addAgentService(sd);
+  //dfd.setDFState("active");
+  //dfd.setOwnership(user);
+  try {
+    //dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    DFSearchResult result;
+    SearchConstraints c = new SearchConstraints();
+    c.setMaxDepth(new Long(3));
+    result = searchDF(dfname,dfd,c);
+    //System.err.println("\nSearch DF results:");
+    //result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    
+    // add values to knownPersons
+    Enumeration e = result.elements();
+    while (e.hasMoreElements()) {
+      dfd = (DFAgentDescription)e.nextElement();
+      try {
+	Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd,dfname); 
+	addKnownPerson(prs);
+      } catch (Exception exc) { } 
+    }
+  } catch (FIPAException fe) {
+    fe.printStackTrace();
+    mf.showErrorMessage(fe.getMessage());
+  }
 }
 
 
-protected void searchPerson(String dfname, String personName) {
-  addBehaviour(new SearchPersonBehaviour(this, dfname, personName));
-}
 
-protected void DFregistration(String dfname) {
-    AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
+  void DFregistration(AID dfAID) {
+    ServiceDescription sd = new ServiceDescription();
     sd.setName("AppointmentScheduling");
     sd.setType("personal-agent");
-    sd.setOntology("pa-ontology");
-    sd.setFixedProps("(represents " + user + ")");
-    AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-    dfd.setName(getName());
-    dfd.addAddress(getAddress());
-    dfd.addAgentService(sd);
-    dfd.setType("fipa-agent");
-    dfd.setOntology("pa-ontology");
-    dfd.addInteractionProtocol("fipa-request fipa-Contract-Net");
-    dfd.setDFState("active");
-    dfd.setOwnership(user);
+    sd.addOntologies("pa-ontology");
+    Property p = new Property();
+    p.setName("represents");
+    p.setValue(user);
+    sd.addProperties(p);
+    sd.setOwnership(user);
+    DFAgentDescription dfd = new DFAgentDescription();
+    dfd.setName(getAID());
+    dfd.addServices(sd);
+    dfd.addOntologies("pa-ontology");
+    dfd.addProtocols("fipa-request fipa-Contract-Net");
+
     try {
       //dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-      registerWithDF(dfname,dfd);
-      knownDF.addElement(dfname);
-      Person p = new Person(user,dfd,dfname); 
-      addKnownPerson(p);
+      registerWithDF(dfAID,dfd);
+      knownDF.addElement(dfAID);
+      Person prs = new Person(user,dfd,dfAID); 
+      addKnownPerson(prs);
     } catch (jade.domain.FIPAException fe) {
       fe.printStackTrace();
       mf.showErrorMessage(fe.getMessage());
@@ -114,14 +149,12 @@ protected Person getPerson(String name) {
   return (Person)knownPersons.get(name);
 }
 
-protected Person getPersonbyAgentName(String agentname) {
-  //System.err.println("getPersonbyAgentName: "+agentname);
+protected Person getPersonbyAgentName(AID agentname) {
   Enumeration e = knownPersons.elements();
   Person p;
   while (e.hasMoreElements()) {
     p = (Person)e.nextElement();
-    //System.err.println(p.toString());
-    if (p.getAgentName().startsWith(agentname)) 
+    if (p.getAgentName().equals(agentname)) 
       return p;
   }
   return null;
@@ -133,22 +166,17 @@ protected void fixAppointment(Appointment a) {
     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
     //FIXME only for Seoul 
     // cfp.setContent(a.toString());
-    cfp.setSource(getName());
-    cfp.setReplyBy(REPLYBY);
-    AgentGroup ag = new AgentGroup();
+    //cfp.setSource(getName());
+    cfp.setReplyByDate(new Date(System.currentTimeMillis()+REPLYBY));
+    List ag = new ArrayList();
     Enumeration e = a.getInvitedPersons();
     int numberOfInvited = 0;
-    String name;
+    AID name;
     String listOfNames = "";
     while (e.hasMoreElements()) {
       numberOfInvited++;
       name = ((Person)e.nextElement()).getAgentName();
-      //if (name.endsWith(getAddress())) 
-	/* it belongs to my platform. so remove platform name otherwise 
-	   fipacontractnetinitiatorbheaviour does not work */
-      //ag.addMember(name.substring(0,name.indexOf('@')));
-      //else 
-      ag.addMember(name);
+      ag.add(name);
       listOfNames = listOfNames + name + " ";
     }
     
@@ -223,12 +251,12 @@ protected void cancelAppointment(Date date) {
     //System.err.println("Cancel Appointment: " + a.toString());
     Enumeration e = a.getInvitedPersons();
     int numberOfInvited = 0;
-    String name;
+    AID name;
     ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
-    cancel.setSource(getName());
+    //cancel.setSource(getName());
     while (e.hasMoreElements()) {
       name = ((Person)e.nextElement()).getAgentName();
-      cancel.addDest(name);
+      cancel.addReceiver(name);
       //FIXME only for Seoul 
       // cfp.setContent(a.toString());
       cancel.setContent("(action " + name + " (possible-appointments (list " + (a.getDate()).getDate() + ")))");   
@@ -268,7 +296,11 @@ protected Appointment getAppointment(Date date) {
 }
 
 protected void setUser(String username) {
-  addBehaviour(new DFRegistrationBehaviour(this,username));
+    user = username;
+    mf = new mainFrame(this,user + " - Appointment Scheduler" );
+    DFregistration(DEFAULT_DF);  // register with the default DF
+    mf.setVisible(true);
+    startTasks();
 }
 
 protected String getUser() {
@@ -276,62 +308,6 @@ protected String getUser() {
 }
 
 
-  class DFRegistrationBehaviour extends jade.core.behaviours.OneShotBehaviour {
-
-    DFRegistrationBehaviour(Agent a, String username){
-      super(a);
-      user = username;
-      mf = new mainFrame((MeetingSchedulerAgent)a,user + " - Appointment Scheduler" );
-    }
-    public void action(){
-      DFregistration("df");  // register with the default DF
-      mf.setVisible(true);
-    }
-  }
-
-  class SearchPersonBehaviour extends jade.core.behaviours.OneShotBehaviour {
-    String dfname, personName;
-    SearchPersonBehaviour(Agent a, String dfName, String personname) {
-      super(a);
-      this.dfname=dfName;
-      this.personName=personname;
-    }
-  public void action(){
-    AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
-    sd.setType("personal-agent");
-    if (personName != null)
-      sd.setFixedProps("(represents " + personName + ")");
-    AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-    dfd.setOntology("pa-ontology");
-    //dfd.addAgentService(sd);
-    //dfd.setDFState("active");
-    //dfd.setOwnership(user);
-    try {
-      //dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-      AgentManagementOntology.DFSearchResult result;
-      Vector vc = new Vector(1);
-      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-      c.setFn(AgentManagementOntology.Constraint.MAX); // MIN
-      c.setArg(3);
-      vc.addElement(c);
-      result = searchDF(dfname,dfd,vc);
-      //System.err.println("\nSearch DF results:");
-      //result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-      
-      // add values to knownPersons
-      Enumeration e = result.elements();
-      while (e.hasMoreElements()) {
-	dfd = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
-	Person p = new Person(dfd.getOwnership(),dfd,dfname); 
-	addKnownPerson(p);
-      }
-    } catch (jade.domain.FIPAException fe) {
-      fe.printStackTrace();
-      mf.showErrorMessage(fe.getMessage());
-    }
-  }
-  }
 
 } // end Agent.java
 

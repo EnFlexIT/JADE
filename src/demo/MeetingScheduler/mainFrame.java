@@ -37,7 +37,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 import jade.core.Agent;
-import jade.domain.AgentManagementOntology; 
+import jade.domain.FIPAAgentManagement.*; 
 
 /**
 Javadoc documentation for the file
@@ -378,12 +378,12 @@ public mainFrame(MeetingSchedulerAgent a, String title) {
 	void menuItem4_ActionPerformed(java.awt.event.ActionEvent event)
 	{
 		// to do: code goes here.
-		String dfName; 
+		AID dfName; 
 		Enumeration e = myAgent.getKnownDF();
 		clearFrame();
         while (e.hasMoreElements()) {
-            dfName=(String)e.nextElement();
-            showErrorMessage("Updating with DF: "+dfName+" ...");
+            dfName=(AID)e.nextElement();
+            showErrorMessage("Updating with DF: "+dfName.getName()+" ...");
             myAgent.searchPerson(dfName, null);
         } 
 	}

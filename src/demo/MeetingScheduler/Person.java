@@ -25,7 +25,8 @@ import java.io.StringWriter;
 
 import java.lang.System;
 
-import jade.domain.AgentManagementOntology;
+import jade.domain.FIPAAgentManagement.*; 
+import jade.core.Agent;
 
 /**
 Javadoc documentation for the file
@@ -36,19 +37,19 @@ Javadoc documentation for the file
 class Person 
 {
     String name;   // name of the person
-    String dfName; // name of the DF with which this person is known
-    AgentManagementOntology.DFAgentDescriptor dfd; // description registered with the DF
+    AID dfName; // name of the DF with which this person is known
+    DFAgentDescription dfd; // description registered with the DF
     
     public Person (String username) {
         name=username;
-        dfName = "df";  // default DF
-        dfd = new AgentManagementOntology.DFAgentDescriptor();
-        dfd.setName(name);
+        dfName = Agent.DEFAULT_DF;  // default DF
+        dfd = new DFAgentDescription();
+        dfd.setName(new AID(name));
 		//{{INIT_CONTROLS
 		//}}
 	}
     
-    public Person (String username, AgentManagementOntology.DFAgentDescriptor d, String df) {
+    public Person (String username, DFAgentDescription d, AID df) {
         this(username);
         dfd = d;
         dfName = df;
@@ -58,17 +59,11 @@ class Person
         return name;
     }
 
-protected String getAgentName(){
-  //  if (dfd.getAddresses().hasMoreElements()) 
-  //  return dfd.getName() + "@" + (String)dfd.getAddresses().nextElement();
-  //else 
+protected AID getAgentName(){
   return dfd.getName();
 }
 	public String toString() {
-      StringWriter text = new StringWriter();
-      dfd.toText(text);
-      return name + " - " + dfName + " - " + text.toString();
+      return name + " - " + dfName + " - " + dfd.toString();
     }
-		//{{DECLARE_CONTROLS
-		//}}
+
 }

@@ -22,10 +22,8 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package demo.MeetingScheduler;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Date;
-import java.lang.Exception;
+import java.util.*;
+import jade.domain.FIPAAgentManagement.AID;
 
 /**
 Javadoc documentation for the file
@@ -40,17 +38,17 @@ public class Appointment {
     private Date endingWith;
     private Vector invited = new Vector(); // Vector of Persons
     private Date fixedDate;
-    private String invitingAgent;
+    private AID invitingAgent;
     
     /**
     * constructor
     * @param agentName is the name of the Agent who called the appointment
     */
-    Appointment(String agentName) {
+    Appointment(AID agentName) {
         invitingAgent = agentName;
         startingOn = new Date();
         endingWith = new Date();
-        description = "Appointment called by "+invitingAgent;
+        description = "Appointment called by "+invitingAgent.toString();
     }
 
     /* 
@@ -92,7 +90,7 @@ public class Appointment {
     */
     
 
-  String getInvitingAgent(){
+  AID getInvitingAgent(){
     return invitingAgent;
   }
 
@@ -149,17 +147,17 @@ public void setFixedDate(Date date) {
         
     
     public String toString() {
-        String str = "(appointment ";
+        String str = "(Appointment ";
         if (description.length() > 0)
-            str = str + "(:description \"" + description + "\") ";
+            str = str + ":description \"" + description + "\" ";
         if (fixedDate == null) {
-            str = str + "(:starting-on \"" + startingOn.toString() + "\") (:ending-with \"" + endingWith.toString() + "\") ";
-        } else str = str + "(:fixed-on \"" + fixedDate.toString() + "\") ";
-        str = str + "(:invited (list ";
+            str = str + ":starting-on \"" + startingOn.toString() + "\" :ending-with \"" + endingWith.toString() + "\" ";
+        } else str = str + ":fixed-on \"" + fixedDate.toString() + "\" ";
+        str = str + ":invited (set ";
         for (int i=0; i<invited.size(); i++)
                 str = str + ((Person)invited.elementAt(i)).getName() + " ";
-        str = str + "))";
-        str = str + "(:called-by " +invitingAgent + ")";
+        str = str + ") ";
+        str = str + ":called-by " +invitingAgent;
         return str + ")";        
     }
     

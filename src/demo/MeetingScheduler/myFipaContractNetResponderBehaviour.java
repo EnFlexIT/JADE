@@ -42,16 +42,15 @@ super(a);
 }
 
 public void handleOtherMessages(ACLMessage msg) {
- System.err.println(myAgent.getLocalName()+":myFipaContractNetResponderBehaviour. handleOtherMessages:");
- msg.dump();
+ System.err.println(myAgent.getLocalName()+":myFipaContractNetResponderBehaviour. handleOtherMessages:"+msg.toString());
 }
 
  public ACLMessage handleAcceptProposalMessage(ACLMessage msg) {
     Person p;
-    ACLMessage inform = new ACLMessage("inform");
+    ACLMessage inform = new ACLMessage(ACLMessage.INFORM);
     try {
         SL0Parser parser = SL0Parser.create();
-        MultiValue mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), msg.getType());
+        MultiValue mv = (MultiValue)parser.parse(new StringReader(msg.getContent()), ACLMessage.getPerformative(msg.getPerformative()));
         Action a = (Action)mv.getValue(0);
         Proposition possApp = (Proposition)a.getActionParameter("list");
         
@@ -61,22 +60,22 @@ public void handleOtherMessages(ACLMessage msg) {
                 d.setDate(dateNumber);
                 if ((Appointment)((MeetingSchedulerAgent)myAgent).getAppointment(d) == null) {
                     // is free
-                    Appointment app = new Appointment(msg.getSource());
+                    Appointment app = new Appointment(msg.getSender().getName());
                     app.setFixedDate(d);
-		    p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSource());
-		    if (p == null) p = new Person(msg.getSource());
+		    p = ((MeetingSchedulerAgent)myAgent).getPersonbyAgentName(msg.getSender());
+		    if (p == null) p = new Person(msg.getSender().getName());
 		    app.addInvitedPerson(p);
                     ((MeetingSchedulerAgent)myAgent).addAppointment(app);
                     inform.setContent("(done (action " +myAgent.getName() + 
                         " (possible-appointments (list " + dateNumber + "))))");
                 } else {
-                    inform.setType("failure");
+                    inform.setPerformative(ACLMessage.FAILURE);
                     inform.setContent("(action " + myAgent.getName() + 
                         " (possible-appointments (list " + dateNumber + "))) (busy-date))");
                 }
         } else {
-            inform.setType("failure");
-            inform.setContent("(action " + myAgent.getName() + 
+	  inform.setPerformative(ACLMessage.FAILURE);
+	  inform.setContent("(action " + myAgent.getName() + 
                         " (possible-appointments (list" + dateNumber + "))) (invalid-date))");
         }
     } catch (ParseException e) {
@@ -89,18 +88,17 @@ public void handleOtherMessages(ACLMessage msg) {
 
 
  public void handleRejectProposalMessage(ACLMessage msg) {
-    System.err.println(myAgent.getLocalName()+":FipaContractNetResponder: the proposal has been rejected with this message");
-    msg.dump();
+    System.err.println(myAgent.getLocalName()+":FipaContractNetResponder: the proposal has been rejected with this message"+msg.toString());
  }
 
 
  public ACLMessage handleCfpMessage(ACLMessage cfp) {
    boolean isacceptable = false;
-   ACLMessage propose = new ACLMessage("propose");
-   propose.setDest(cfp.getSource());
+   ACLMessage propose = new ACLMessage(ACLMessage.PROPOSE);
+   propose.addReceiver(cfp.getSender());
    try {
      SL0Parser parser = SL0Parser.create();
-     MultiValue mv = (MultiValue)parser.parse(new StringReader(cfp.getContent()), cfp.getType());
+     MultiValue mv = (MultiValue)parser.parse(new StringReader(cfp.getContent()), ACLMessage.getPerformative(cfp.getPerformative()));
      Action a = (Action)mv.getValue(0);
      Proposition possApp = (Proposition)a.getActionParameter("list");
      String proposeContent = "( (action "+myAgent.getName()+" (possible-appointments (list ";
@@ -118,14 +116,14 @@ public void handleOtherMessages(ACLMessage msg) {
      if (isacceptable)
        propose.setContent(proposeContent + "))) true)");
      else {
-       propose.setType("refuse");
+       propose.setPerformative(ACLMessage.REFUSE);
        propose.setContent(proposeContent + "))) noavailabledate)");
      }
      return propose;
     }
     catch (demo.MeetingScheduler.CLP.ParseException pe) {
         pe.printStackTrace();
-        propose.setType("not-understood");
+        propose.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         propose.setContent("(parser error)");
         myAgent.send(propose);
         return null;
