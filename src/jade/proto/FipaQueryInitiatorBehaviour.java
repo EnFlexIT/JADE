@@ -14,7 +14,7 @@ import java.io.*;
 /**
 * This abstract behaviour implements the Fipa Query Interaction Protocol
 * from the point of view of the agent initiating the protocol, that is the
-* agent that sends the Query-ref to a set of agents.
+* agent that sends the query-ref/query-if to a set of agents.
 * In order to use correctly this behaviour, the programmer should do the following:
 * <ul>
 * <li> implements a class that extends FipaQueryInitiatorBehaviour.
@@ -37,24 +37,14 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
   protected ACLMessage queryMsg;
 
   private int state = 0;  // state of the protocol
-  long timeout;
-  MessageTemplate template;
-  Vector msgInforms = new Vector(); // vector of the inform ACLMessages received
-  Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
-  AgentGroup informerAgents;
+  private long timeout, blockTime, endingTime;
+  private MessageTemplate template;
+  private Vector msgInforms = new Vector(); // vector of the inform ACLMessages received
+  private Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
+  private AgentGroup informerAgents;
   private AgentGroup waitedAgents;
-  /**
-   * this variable should be set to true when the behaviour should terminate
-   */
-  public boolean finished; // true when done()
-  /**
-   * default timeout in milliseconds to wait for proposals.
-   * This timeout is overriden by
-   * the reply-by parameter of the <code>query-ref</code> message, if set.
-   */
-  public static final long DEFAULTTIMEOUT = 30000;
-  ACLMessage wakeMsg;
-  Waker waker;
+  private boolean finished;
+
 
   /**
    * constructor of the behaviour.
@@ -68,22 +58,16 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
    * @param group is the group of agents to which the query-ref must be sent
    */
     public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
-      this(a);
+      super(a);
       queryMsg = msg;
       informerAgents = (AgentGroup)group.clone();
+      finished = false;
     }
 
 
-  /** 
-   * Constructor.
-   * @param a is the <code>Agent</code> that runs the behaviour.
-   */
-   public FipaQueryInitiatorBehaviour(Agent a){ // default constructor
-     super(a);
-     queryMsg = new ACLMessage("query-ref");
-     informerAgents = new AgentGroup(); 
-     finished = true;
-   }
+public FipaQueryInitiatorBehaviour(Agent a, ACLMessage msg) {
+  this(a,msg,msg.getDests());
+}
 
   /**
    * action method of the behaviour. This method cannot be overriden by
@@ -94,7 +78,7 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
     case 0: {
       /* This is executed only when the Behaviour is started*/
       state = 1;
-      queryMsg.setType("query-ref");
+      //queryMsg.setType("query-ref");
       queryMsg.setProtocol("FIPA-Query");
       queryMsg.setSource(myAgent.getName());
       if (queryMsg.getReplyWith() == null)
@@ -102,56 +86,53 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
       if (queryMsg.getConversationId() == null)
 	      queryMsg.setConversationId("Query"+(new Date()).getTime());
       timeout = queryMsg.getReplyByDate().getTime()-(new Date()).getTime();
-      if (timeout <= 1000) timeout = DEFAULTTIMEOUT; // at least 1 second
-      //start a thread with the timeout
-      wakeMsg = new ACLMessage("inform");
-      wakeMsg.setReplyTo(queryMsg.getReplyWith());
-      wakeMsg.setConversationId("WAKEUP"+queryMsg.getReplyWith());
-      wakeMsg.setContent("(timeout " + timeout + ")");
-      waker = new Waker(myAgent,wakeMsg,timeout);
-      waker.start();
-
-    	myAgent.send(queryMsg,informerAgents);
+      if (timeout <= 1000) timeout = -1; // infinite timeout
+      endingTime = System.currentTimeMillis() + timeout;
+      //      System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis());
+      myAgent.send(queryMsg,informerAgents);
 
       template = MessageTemplate.MatchReplyTo(queryMsg.getReplyWith());
       waitedAgents = (AgentGroup)informerAgents.clone();
-      //System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      //      System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       break;
     }
     case 1: { // waiting for "inform"
-      // remains in this state
+      // remains in this state until all the inform arrive or timeout expires
       ACLMessage msg=myAgent.receive(template);
-
       if (msg == null) {
-       	block();
-       	return;
+	if (timeout > 0) {
+	  blockTime = endingTime - System.currentTimeMillis();
+	  //	  System.err.println("FipaQueryInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
+	  if (blockTime <= 0) { //timeout expired
+	    state=2;
+	    return;
+	  } else {
+	    block(blockTime);
+	    return;
+	  }
+	} else { // query without timeout
+	  block();
+	  return;
+	}
       }
-      if (msg.getConversationId() != null)
-         if (msg.getConversationId().equalsIgnoreCase(wakeMsg.getConversationId())) {
-     	        // wake-up message
-              state = 2;
-              break;
-         }
 
-
-      //System.err.println("FipaQueryInitiatorBehaviour: receive");
-//      msg.dump();
+      //      System.err.println("FipaQueryInitiatorBehaviour: receive");
+      //msg.dump();
 
       waitedAgents.removeMember(msg.getSource());
-      //System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      //      System.err.println("FipaQueryInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
-	      waker.stop();
       	state=2;
       }
       if (msg.getType().equalsIgnoreCase("inform")) {
         // msg contains an inform ACLMessage
-    	    msgInforms.addElement(msg);
+	msgInforms.addElement(msg);
       } else	handleOtherMessages(msg);
       break;
     }
     case 2: {
       handleInformMessages(msgInforms);
-     	finished = true;
+      finished = true;
       break;
     }
     } // end of switch
@@ -185,12 +166,16 @@ public abstract class FipaQueryInitiatorBehaviour extends SimpleBehaviour {
    * After having sent the <code>queryMsg</code> messages,
    * the protocol waits for the maximum timeout specified in those messages
    * (reply-by parameter), or until all the answers are received.
-   * If no reply-by parameter was set, <code>
-   * DEFAULTTIMEOUT</code> is used, instead.
+   * If no reply-by parameter was set, an infinite timeout
+   * is used, instead.
    * After this timeout, this method is called to react to all the received
    * messages.
    * @param messages is the Vector of ACLMessage received so far
    */
    public abstract void handleInformMessages(Vector messages);
 }
+
+
+
+
 

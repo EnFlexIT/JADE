@@ -11,7 +11,7 @@ import jade.lang.acl.MessageTemplate;
  * protocol.  The behaviour is cyclic so it remains active forever.
  * Its usage is the following: A class must be instantiated that
  * extends this one. This new class must implement the method
- * <code>processQuery()</code>.  The instantiated class must then be
+ * <code>handleQueryMessage()</code>.  The instantiated class must then be
  * added to the <code>Agent</code> object by using the method
  * <code>Agent.addBehaviour()</code>
  * @author Fabio Bellifemine - CSELT
@@ -87,7 +87,7 @@ public boolean done() {
 	  SendNotUnderstood(msg, "unexpected Communicative Act");
 	state = 0;
       } else { 
-	reply = processQuery(msg.getContent());
+	reply = handleQueryMessage(msg);
 	state++;
       }
       break;
@@ -97,7 +97,7 @@ public boolean done() {
 	      reply.getType().equalsIgnoreCase("not-understood") ||
 	      reply.getType().equalsIgnoreCase("failure") ||
 	      reply.getType().equalsIgnoreCase("refuse")))
-	SendFailure(msg,"ill-formed return in processQuery");
+	SendFailure(msg,"ill-formed return in handleQueryMessage");
       else 
 	SendReply(msg,reply);
       state=0;
@@ -109,15 +109,14 @@ public boolean done() {
      * This abstract method must be implemented by all sub-classes.
      * The method is called whenever a new <code>query-if</code> or
      * <code>query-ref</code> message arrives.
-     * @param content is the <code>String</code> with the received
-     * message content.
+     * @param msg is the received message.
      * @return the method must return the <code>ACLMessage</code> to
      * be sent as a reply.  In particular, the <code>ACLMessage</code>
      * must have valid type (i.e. it must be <code>failure</code> or
      * <code>inform</code> or <code>refuse</code> or
      * <code>not-understood</code>) and valid message content.
      */
-public abstract ACLMessage processQuery(String content);
+public abstract ACLMessage handleQueryMessage(ACLMessage msg);
 
 private void SendFailure(ACLMessage msg, String reason) {
   String content = "(" + msg.toString() + " \""+reason+"\")"; 
