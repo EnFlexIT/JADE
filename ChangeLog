@@ -1,18 +1,24 @@
-MAJOR CHANGES in JADE 3.2 (EXPECTED 17 July 2004)  (LAST UPDATE 5th July, Fabio)
+MAJOR CHANGES in JADE 3.2 (EXPECTED 17 July 2004)  (LAST UPDATE 18th July, Fabio)
 ==========================================================================
 GENERAL IMPROVEMENTS:
-- Added new security add-on
+- Added new security add-on 
+Behaviours:
 - Added ThreadedBehaviour, a behaviour that is executed in itw own thread of execution
 - FSMBehaviour: Added method to handle FSM inconsistencies
-- Reimplemented the logging support by using java.logging.
+Logging:
+- Reimplemented the logging support based upon java.util.logging
 - Added new tool, LoggerManager, launchable via RMA GUI. It allows to 
-  modify the logging level at run-time.
+  modify the logging level at run-time on a per-class basis.
+Transport:
 - HTTP is now the default MTP instead of IIOP (Joan Amedtler)
-- Added support for byte[ ] in SL codec
+- Added support for RMI over SSL
+- introduction of the PLatformManager and restructuration of the IMTPManager
+- Added support for byte[ ] in SL codec 
+- Added support for transporting multi-byte charset (Denso IT Labs)
+Persistence:
 - Added PersistenceService with support for agent save, load, reload, 
   freeze and thaw on relational database. The PersistenceService is based
   on Hybernate and is included in the Persistence add-on.
-  Documentation is still missing.
   - Added doXXX methods in the Agent class to support persistence-related 
     actions.
   - Added proper buttons and menu items in the RMA to activate the 
@@ -20,20 +26,19 @@ GENERAL IMPROVEMENTS:
   - Modified jade.util.leap classes to be persistent.
   - JADE tools made persistent
   - Added persistence ontology
+Others:
 - Added a new generic ontology, called SerializableOntology, that allows to manage
   generic serializable objects. As a consequence, the DF is now able to deal with
   generic serializable properties.
 - Improved the fault-tolerance of a split container
 - ProfileImpl handles both dots '.' and underscores '_' in config parameter keys.
-- introduction of the PLatformManager and the restructuration of the IMTPManager
-- Added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
+- Kernel: added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
 
  
 BUG FIXES:
-- migrated the bug tracking system from jitter-bug to mantis
 - Contract-net example: fixed bug on handleRejectProposal()
 - Fixed a bug related to envelopes in inter-container communication.
-- fix to blockingReceive(): when executed from a separate Thread generated an infinte loop
+- fix to blockingReceive(): when executed from a separate Thread, it generated an infinite loop
 - Fixed bug #122 reported by Carl Timmer: bad dealing of numerical ServiceDescription 
   properties.
 - Fixed bug #108 reported by Ian Dickinson: bad dealing of numerical expressions in
@@ -60,7 +65,6 @@ ADD-ONS:
   - Added LEAP BackEnd configuration support through property file.	
 - Released the Test Suite Framework as a new add-on
 - HTTP MTP: Various bug fixing
-- Improved the JADE-Servlet tutorial (Fabien Gandon)
 - Released new security add-on
 - Improved the Protege bean-generator by adding support for OWL (Chris Van Aart)
   and by fixing a bug that generated bad ontology java class with some slot names.
@@ -68,9 +72,12 @@ ADD-ONS:
   Santa Cruz and the University of Utah)
 
 DOCUMENTATION:
-- Programmer's Guide: Added section on fipa-subscribe IP (Edward Curry)
+- Programmer's Guide: Added sections on: fipa-subscribe IP (Edward Curry), threaded behaviour.
+- Updated the tutorial of David Grimshaw
+- Improved the JADE-Servlet tutorial (Fabien Gandon)
 
 OTHERS:
+- migrated the bug tracking system from jitter-bug to mantis
 - SLParser made transient since it is not serializable
 - Filter base class modified to support pre and post processing of Commands. 
   Added get/setPreferredPosition() methods to support dinamic filter positioning mechanism
@@ -90,12 +97,12 @@ OTHERS:
 
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
-- removed the default no-arg constructor of ProfileImpl. All calls must be replaced
-  with new ProfileImpl(<boolean>)
 - Moved MAIN_CONTAINER_NAME constant in AgentContainer interface
 - jade.proto.ContractNetResponder: replaced PROPOSE_KEY with RESPONSE_KEY
 - reorganized package jade.wrapper by removing some unused interfaces:
-  - the signature of the method Runtime.createMainContainer() now returns an Agentcontainer instead of a MainContainer
+- the signature of the method Runtime.createMainContainer() now returns an 
+  Agentcontainer instead of a MainContainer
+
 
 
 MAJOR CHANGES in JADE 3.1 (16 December 2003)  
