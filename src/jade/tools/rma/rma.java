@@ -462,9 +462,16 @@ public class rma extends ToolAgent {
   }
 
   /**
+  Callback method for platform management <em>GUI</em>.
+  */
+  public void newAgent(String agentName, String className, Object arg[], String containerName) {
+    newAgent (agentName, className, arg, null, containerName);
+  }
+  
+  /**
    Callback method for platform management <em>GUI</em>.
    */
-  public void newAgent(String agentName, String className, Object arg[], String containerName) {
+  public void newAgent(String agentName, String className, Object arg[], String ownerName, String containerName) {
 
     CreateAgent ca = new CreateAgent();
 
@@ -474,9 +481,6 @@ public class rma extends ToolAgent {
     // fill the create action with the intended agent owner
     jade.security.JADEPrincipal intendedOwner = null;
     jade.security.Credentials initialCredentials = null;
-
-    // the ownerName (this can come from the GUI)
-    final String ownerName="alice"; // TOFIX: AR, please replace this
 
     if ((ownerName==null) || (ownerName.trim().length()==0)) {
       // it is requested the creation of an agent 
