@@ -170,6 +170,7 @@ public class PersistenceOntology extends Ontology implements PersistenceVocabula
 	    as = (AgentActionSchema)getSchema(DELETECONTAINER);
 	    as.add(DELETECONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
 	    as.add(DELETECONTAINER_REPOSITORY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+	    as.add(DELETECONTAINER_WHERE, (ConceptSchema)getSchema(CONTAINERID));
 
 	    as = (AgentActionSchema) getSchema(SAVEAGENTGROUP);
 	    as.add(SAVEAGENTGROUP_GROUP, (ConceptSchema)getSchema(AGENTGROUP));

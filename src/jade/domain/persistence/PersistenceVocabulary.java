@@ -89,6 +89,7 @@ public interface PersistenceVocabulary extends ExceptionVocabulary {
     public static final String DELETECONTAINER = "delete-container";
     public static final String DELETECONTAINER_CONTAINER = "container";
     public static final String DELETECONTAINER_REPOSITORY = "repository";
+    public static final String DELETECONTAINER_WHERE = "where";
 
     public static final String SAVEAGENTGROUP = "save-agent-group";
     public static final String SAVEAGENTGROUP_GROUP = "group";
