@@ -58,64 +58,19 @@ public class JICPPeer implements ICP {
   private JICPServer   server;
   private Ticker       ticker;
 
+  private String myID;
+  
   /**
    * Start listening for internal platform messages on the specified port
    */
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
-    client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE);
-  	
-    String host = null;
-    int    port = JICPProtocol.DEFAULT_PORT;
+    myID = peerID;
     
-  	StringBuffer sb = null;
-		int idLength;
-		if (peerID != null) {
-  		sb = new StringBuffer(peerID);
-			sb.append('-');
-			idLength = sb.length();
-		}
-		else {
-			sb = new StringBuffer();
-			idLength = 0;
-		}
-			
-		// Local host
-		sb.append(JICPProtocol.LOCAL_HOST_KEY);
-		host = p.getParameter(sb.toString(), null);
-		if (host == null) {
-			// Local host not specified --> try to get it using JICP GET_ADDRESS
-			sb.setLength(idLength);
-			sb.append(JICPProtocol.REMOTE_URL_KEY);
-			String remoteURL = p.getParameter(sb.toString(), null);
-			if (remoteURL != null) {
-				host = getAddress(remoteURL);
-			}
-  		else {
-  			// Retrieve local host automatically
-  			host = Profile.getDefaultNetworkName();
-  		}
-		}
-			
-		// Local port: a peripheral container can change it if busy...
-		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true);
-		sb.setLength(idLength);
-		sb.append(JICPProtocol.LOCAL_PORT_KEY);
-		String strPort = p.getParameter(sb.toString(), null);
-    try {
-      port = Integer.parseInt(strPort);
-    } 
-    catch (Exception e) {
-      // Try to use the Peer-ID as the port number
-    	try {
-    		port = Integer.parseInt(peerID);
-    	}
-    	catch (Exception e1) {
-    		// Keep default
-    	}
-    } 
-			
-    // Start listening for connections
-    server = new JICPServer(port, changePortIfBusy, l, getConnectionFactory(), POOL_SIZE);
+  	// Start the client
+  	client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE);
+  			
+    // Start the server listening for connections
+    server = new JICPServer(p, this, l, getConnectionFactory(), POOL_SIZE);
     server.start();
 
     // Start the Ticker
@@ -123,7 +78,7 @@ public class JICPPeer implements ICP {
     ticker.start();
     
     // Creates the local transport address
-    TransportAddress localTA = getProtocol().buildAddress(host, String.valueOf(server.getLocalPort()), null, null);
+    TransportAddress localTA = getProtocol().buildAddress(server.getLocalHost(), String.valueOf(server.getLocalPort()), null, null);
 
     return localTA;
   } 
@@ -151,6 +106,10 @@ public class JICPPeer implements ICP {
     return (respPayload);
   } 
 
+  final String getID() {
+  	return myID;
+  }
+  
   /**
    * Pings the specified transport address in order to obtain
    * the local hostname or IP address.
@@ -161,7 +120,7 @@ public class JICPPeer implements ICP {
    * 
    * @throws ICPException
    */
-  private String getAddress(String pingURL) throws ICPException {
+  String getAddress(String pingURL) throws ICPException {
     byte[] respPayload = null;
 
     try {
@@ -199,6 +158,27 @@ public class JICPPeer implements ICP {
 			}
     };
   }  
+  
+  protected ServerSocket getServerSocket(String host, int port, boolean changePortIfBusy) throws ICPException {
+    try {
+      ServerSocket s = new ServerSocket(port);
+      return s;
+    } 
+    catch (IOException ioe) {
+    	if (changePortIfBusy) {
+    		// The specified port is busy. Let the system find a free one
+    		try {
+      		return new ServerSocket(0);
+    		}
+    		catch (IOException ioe2) {
+      		throw new ICPException("Problems initializing server socket. No free port found");
+				}
+    	}
+    	else {
+	      throw new ICPException("I/O error opening server socket on port "+port);
+    	}
+    } 
+  }
   
   /**
      Inner class Ticker
