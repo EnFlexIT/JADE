@@ -257,8 +257,6 @@ public class AchieveREInitiator extends FSMBehaviour {
 			    // get the miminum  
 			    Date d = request.getReplyByDate();
 			    if (d != null) {
-				//long deadline = d.getTime();
-				//long timeout = deadline - currentTime;
 				long timeout = d.getTime()- currentTime;
 				if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
 				    minTimeout = timeout;
