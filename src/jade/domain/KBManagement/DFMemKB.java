@@ -258,38 +258,4 @@ public class DFMemKB extends MemKB{
 	
 	    return true;
 	  }
-
-/*************** Main method, for testing purposes ******************************/
-  public static void main(String[] args) {
-  	
-  		DFMemKB db = new DFMemKB();
-  		db.setLeaseManager(new DFLeaseManager());
-
-		long startTime = System.currentTimeMillis();  	
-
-//		// CREO IL DFD
-	    for(int i = 0; i<60000; i++){
-		    DFAgentDescription dfd = new DFAgentDescription();
-			AID aidAgent;
-		    ServiceDescription sd = new ServiceDescription();
-		    aidAgent = new AID("rosalba@napoli.it"+i, true);
-		    aidAgent.addAddresses("http://cit.it");
-		    dfd.setName(aidAgent);
-		    dfd.setLeaseTime(new Date(System.currentTimeMillis()+(600000*24)));
-		    dfd.addLanguages("potentino");
-		    dfd.addLanguages("kif");
-		    dfd.addProtocols("tlc-application-protocol");
-		    sd.setName("wireless");
-		    sd.setType("web-services");
-		    sd.setOwnership("Free");
-		    sd.addLanguages("SQL");
-		    sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
-		    dfd.addServices(sd);
-		   	// REGISTRO
-		    db.register("rosalba@napoli.it"+i, dfd);
-	    }
-		
-		long endTime = System.currentTimeMillis();
-		System.out.println("Registration time Mem: "+(endTime-startTime));
-  }
 }
