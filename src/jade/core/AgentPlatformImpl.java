@@ -250,10 +250,52 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     return platformAddress;
   }
 
+  // Inner class to detect agent container failures
+  private class FailureMonitor implements Runnable {
+
+    private AgentContainer target;
+    private String targetName;
+    private boolean active = true;
+
+    public FailureMonitor(AgentContainer ac, String name) {
+      target = ac;
+      targetName = name;
+    }
+
+    public void run() {
+      while(active) {
+	try {
+	  target.ping(true); // Hang on this RMI call
+	}
+	catch(RemoteException re1) { // Connection down
+	  try {
+	    target.ping(false); // Try a non blocking ping to check
+	  }
+	  catch(RemoteException re2) { // Object down
+	    System.out.println("ERROR: Container " + targetName + " is dead.");
+
+	    containers.remove(targetName);
+	    theAMS.postDeadContainer(targetName);
+
+	    active = false;
+	  }
+	}
+	catch(Throwable t) {
+	  t.printStackTrace();
+	}
+      }
+    }
+  }
+
   public String addContainer(AgentContainer ac) throws RemoteException {
 
     String name = AgentManagementOntology.PlatformProfile.AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
     containers.put(name, ac);
+
+    // Spawn a blocking RMI call to the remote container in a separate
+    // thread. This is a failure notification technique.
+    Thread t = new Thread(new FailureMonitor(ac, name));
+    t.start();
 
     // Notify AMS
     theAMS.postNewContainer(name);
@@ -343,8 +385,8 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     AgentContainer srcAC = lookup(src);
     AgentContainer destAC = lookup(dest);
     try {
-      srcAC.ping();
-      destAC.ping();
+      srcAC.ping(false);
+      destAC.ping(false);
     }
     catch(RemoteException re) {
       // Abort transaction
