@@ -127,7 +127,7 @@ public class Boot {
         // (the security settings contained into this profile
         //  will be used for all containers into this JVM in
         //  despite of settings into profile of other future containers)
-        SecurityFactory sf = SecurityFactory.getSecurityFactory(profile);
+        //SecurityFactory sf = SecurityFactory.getSecurityFactory(profile);
 
 
         // Exit the JVM when there are no more containers around
