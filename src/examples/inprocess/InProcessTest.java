@@ -39,7 +39,7 @@ import jade.wrapper.*;
 public class InProcessTest {
 
   // Simple class behaving as a Condition Variable
-  private static class CondVar {
+  public static class CondVar {
     private boolean value = false;
 
     synchronized void waitOn() throws InterruptedException {
