@@ -1,0 +1,124 @@
+<!-- ANT BUILD FILE FOR THE JADE PROJECT -->
+
+<!-- set properties for this project -->
+<project name="JADE" default="jade" basedir=".">
+  <description>JADE build file</description>
+
+  <!-- set global properties for this build -->
+  <!--- set location of javacc program -->
+  <property name="javaccHome" 
+                location="/MyPrograms/JavaCC/"/> 
+  <property name="lib" 
+                location="lib"/>
+  <property name="src" 
+                location="src"/>
+  <property name="dist"
+                location=".."/>
+  <property name="doc" 
+                location="doc"/>
+  <property name="build" 
+                location="classes"/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the directory structure -->
+    <mkdir dir="${doc}"/>
+    <mkdir dir="${lib}"/>
+    <mkdir dir="${build}"/>
+  </target>
+
+
+<!--     _______________________________________________
+                               compile
+         _______________________________________________ -->
+
+
+  <target name="jade" depends="init,parser"
+                description="compile the source " >
+     <!-- Compile the java code from ${src} into ${build} -->
+     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" excludes="demo/**, examples/**, test/**"/>
+     <copy todir="${build}/jade/tools/DummyAgent/images">
+       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/sniffer/images">
+       <fileset dir="${src}/jade/tools/sniffer/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/dfgui/images">
+       <fileset dir="${src}/jade/tools/dfgui/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/rma/images">
+       <fileset dir="${src}/jade/tools/rma/images"/>
+     </copy>
+     <copy todir="${build}/jade/gui/images">
+       <fileset dir="${src}/jade/gui/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/introspector/gui/images">
+       <fileset dir="${src}/jade/tools/introspector/gui/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/testagent/images">
+       <fileset dir="${src}/jade/tools/testagent/images"/>
+     </copy>
+     <copy todir="${build}/jade/tools/gui/images">
+       <fileset dir="${src}/jade/tools/gui/images"/>
+     </copy>
+     <copy todir="${build}/jade/gui/help">
+       <fileset dir="${src}/jade/gui/help">
+        <include name="*.html"/>
+       </fileset>
+     </copy>
+     <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
+     <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
+  </target>
+
+
+
+<!--     _______________________________________________
+                              parser
+         _______________________________________________ -->
+
+  <target name="parser" depends="MakeACLParser, MakeSL0Parser, MakeSLParser"
+		description = "generate parser with javacc">
+  </target>
+
+    <target name="MakeACLParser">
+        <javacc javacchome="${javaccHome}" outputdirectory="src\jade\lang\acl" target="src\jade\lang\acl\ACLParser.jj"/>
+    </target>
+    <target name="MakeSL0Parser">
+        <javacc javacchome="${javaccHome}" outputdirectory="src\jade\lang\sl" target="src\jade\lang\sl\SL0Parser.jj"/>
+    </target>
+    <target name="MakeSLParser">
+        <javacc javacchome="${javaccHome}" outputdirectory="src\jade\content\lang\sl" target="src\jade\content\lang\sl\SLParser.jj"/>
+    </target>
+
+
+<!--     ________________________________________________
+                             jar
+         ________________________________________________ -->
+
+  <target name="lib" depends="jade"
+               description="generate jar archive" >
+    <!-- Create the jade.jar file -->
+    <jar jarfile="${lib}/jadeTools.jar" basedir="${build}" includes="${build}/jade/gui/**, ${build}/jade/tools/**">
+    </jar>
+<!--
+    <delete includeEmptyDirs="true" > 
+	<fileset dir="${build}/jade/tools"/>
+    </delete>
+-->
+  </target>
+
+
+<!--    __________________________________________________
+                            clean
+        __________________________________________________ -->
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} directory tree -->
+    <delete includeEmptyDirs="true" > 
+	<fileset dir="${build}" excludes="**/*.mf"/>
+    </delete>
+
+  </target>
+</project>
+
