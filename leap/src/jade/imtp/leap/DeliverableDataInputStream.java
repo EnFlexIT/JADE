@@ -593,24 +593,25 @@ class DeliverableDataInputStream extends DataInputStream {
  
     private NodeDescriptor deserializeNodeDescriptor() throws LEAPSerializationException {
 	try {
-
-	    String name = readUTF();
+			NodeDescriptor dsc = null;
 	    Node node = deserializeNode();
-      JADEPrincipal principal = (JADEPrincipal) readObject();
-      Credentials creds = (Credentials) readObject();
-
-	    ContainerID cid = null;
-	    boolean present = readBoolean();
-	    if(present) {
-				cid = deserializeContainerID();
-	    }
-
-	    if(cid != null) {
-				return new NodeDescriptor(cid, node, principal, creds);
+	    if(readBoolean()) {
+				ContainerID cid = deserializeContainerID();
+				dsc = new NodeDescriptor(cid, node);
 	    }
 	    else {
-	    	return new NodeDescriptor(name, node);
+	    	dsc = new NodeDescriptor(node);
 	    }
+	    
+	    dsc.setUsername(readString());
+	    if (readBoolean()) {
+	    	dsc.setPassword(deserializeByteArray());
+	    }
+	    dsc.setPrincipal((JADEPrincipal) readObject());
+	    dsc.setOwnerPrincipal((JADEPrincipal) readObject());
+	    dsc.setOwnerCredentials((Credentials) readObject());
+	    
+	    return dsc;
 	}
 	catch(IOException ioe) {
 	    throw new LEAPSerializationException("Error deserializing NodeDescriptor");

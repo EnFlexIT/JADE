@@ -48,6 +48,7 @@ public interface AgentContainer {
 
     ContainerID getID();
     String getPlatformID();
+    NodeDescriptor getNodeDescriptor();
     MainContainer getMain();
     ServiceManager getServiceManager();
     ServiceFinder getServiceFinder();
@@ -78,9 +79,6 @@ public interface AgentContainer {
     boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID);
     boolean livesHere(AID id);
     Location here();
-
-    void setOwnerPrincipal(JADEPrincipal p);
-    void setOwnerCredentials(Credentials c);
 
     void shutDown();
 

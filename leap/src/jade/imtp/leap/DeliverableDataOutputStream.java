@@ -465,24 +465,13 @@ class DeliverableDataOutputStream extends DataOutputStream {
   } 
 
   private void serializeNodeDescriptor(NodeDescriptor desc) throws IOException, LEAPSerializationException {
-
-    // Write the mandatory name and node attributes
-    writeUTF(desc.getName());
     serializeNode(desc.getNode());
-
+    writeContainerID(desc.getContainer());
+		writeString(desc.getUsername());
+    writeObject(desc.getPassword());
+    writeObject(desc.getPrincipal());
     writeObject(desc.getOwnerPrincipal());
     writeObject(desc.getOwnerCredentials());
-
-    // Put boolean markers for optional attributes
-    ContainerID cid = desc.getContainer();
-    if(cid != null) {
-	    writeBoolean(true);
-	    serializeContainerID(cid);
-    }
-    else {
-	    writeBoolean(false);
-    }
-
   }
 
 

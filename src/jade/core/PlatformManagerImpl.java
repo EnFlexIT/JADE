@@ -684,9 +684,9 @@ public class PlatformManagerImpl implements PlatformManager {
     	for (int i = 0; i < ids.length; ++i) {
     		try {
 	    		Node n = myMain.getContainerNode(ids[i]);
-	    		JADEPrincipal principal = myMain.getPrincipal(ids[i]);
-	    		Credentials credentials = myMain.getCredentials(ids[i]);
-			    NodeDescriptor nodeDsc = new NodeDescriptor(ids[i], n, principal, credentials); 
+			    NodeDescriptor nodeDsc = new NodeDescriptor(ids[i], n); 
+			    nodeDsc.setOwnerPrincipal(myMain.getPrincipal(ids[i]));
+			    nodeDsc.setOwnerCredentials(myMain.getCredentials(ids[i]));
 			    infos.add(new NodeInfo(nodeDsc));
     		}
     		catch (NotFoundException nfe) {
@@ -808,7 +808,7 @@ public class PlatformManagerImpl implements PlatformManager {
     private void removeTerminatedNode(Node n) {
 	    myLogger.log("--- Node <" + n.getName() + "> TERMINATED ---", 1);
 	    try {
-				removeNode(new NodeDescriptor(n.getName(), n), false);
+				removeNode(new NodeDescriptor(n), false);
 	    }
 	    catch(IMTPException imtpe) {
 	    	// Should never happen since this is a local call

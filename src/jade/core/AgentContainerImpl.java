@@ -261,15 +261,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       }
   }
 
-  public void setOwnerPrincipal(JADEPrincipal p) {
-  	ownerPrincipal = p;
-  }
-  
-  public void setOwnerCredentials(Credentials c) {
-  	ownerCredentials = c;
-  }
-  
-  protected NodeDescriptor getNodeDescriptor() {
+  public NodeDescriptor getNodeDescriptor() {
       return myNodeDescriptor;
   }
 
@@ -307,6 +299,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // Initialize the Container ID
       TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, UNNAMED_CONTAINER_NAME), addr);   
+    	myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode());
   }
 
   /**
@@ -340,7 +333,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }			  	
 
     // Register with the platform 
-    myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);
     ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);

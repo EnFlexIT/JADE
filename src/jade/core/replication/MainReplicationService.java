@@ -694,7 +694,7 @@ public class MainReplicationService extends BaseService {
 	    log("Node <"+n.getName()+"> TERMINATED", 2);
 	    try {
 	    	myPlatformManager.removeReplica(monitoredSvcMgr, false);
-	    	myPlatformManager.removeNode(new NodeDescriptor(n.getName(), n), false);
+	    	myPlatformManager.removeNode(new NodeDescriptor(n), false);
 
 
 	  replicas.remove(monitoredLabel);

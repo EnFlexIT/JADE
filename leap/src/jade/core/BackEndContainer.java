@@ -141,7 +141,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 	
     // Register with the platform 
-    myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), ownerPrincipal, ownerCredentials);		  	
     ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
     for (int i = 0; i < descriptors.length; ++i) {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);

@@ -202,11 +202,11 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	    installServiceLocally(svc);
 	    // Notify the platform manager (add a slice for this service on this node)
 			try {
-				myPlatformManager.addSlice(desc, new NodeDescriptor(localNode.getName(), localNode), false);
+				myPlatformManager.addSlice(desc, new NodeDescriptor(localNode), false);
   		}
   		catch (IMTPException imtpe) {
   			if (reconnect()) {
-		  		myPlatformManager.addSlice(desc, new NodeDescriptor(localNode.getName(), localNode), false);
+		  		myPlatformManager.addSlice(desc, new NodeDescriptor(localNode), false);
   			}
   			else {
   				throw imtpe;
