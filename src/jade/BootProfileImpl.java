@@ -11,6 +11,7 @@
  * License as published by the Free Software Foundation,
  * version 2.1 of the License.
  *
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -72,6 +73,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String POLICY_KEY = "policy";
     public static final String PORT_KEY = "port";
     public static final String VERSION_KEY = "version";
+    public static final String NOMOBILITY_KEY = "nomobility";
 
     ExpandedProperties argProp = null;
     BootHelper helper = new BootHelper();
@@ -219,7 +221,13 @@ public class BootProfileImpl extends ProfileImpl {
         if (value != null) {
             setSpecifiers(Profile.MTPS, new ArrayList(0));
         }
-
+        
+        //NOMOBILITY
+        if(argProp.getBooleanProperty(NOMOBILITY_KEY,false))
+            setParameter(MOBILITYMGRCLASSNAME, "jade.core.DummyMobilityManager");
+        else
+            setParameter(MOBILITYMGRCLASSNAME, "jade.core.RealMobilityManager");
+        
         value = argProp.getProperty(ACLCODEC_KEY);
         if (value != null) {
             setSpecifiers(Profile.ACLCODECS, parseSpecifiers(value));

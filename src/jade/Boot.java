@@ -153,7 +153,7 @@ public class Boot {
      * -help          -help
      * -h             -help
      * -nomtp         -nomtp
-     *
+     * -nomobility    -nomobility
      * agent list     agents:agent list
      * </pre>
      * If the arguments contain either import:x or agents:x
@@ -271,6 +271,8 @@ public class Boot {
                 results.add("-help");
             } else if (theArg.equalsIgnoreCase("-nomtp")) {
                 results.add(theArg);
+            } else if(theArg.equalsIgnoreCase("-nomobility")){
+                results.add(theArg);
             } else if (theArg.equalsIgnoreCase(
                     "-dump")) {    // new form but useful for debugging
                 results.add(theArg);
@@ -357,6 +359,7 @@ public class Boot {
         out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
         out.println("  -name <platform name>\tThe symbolic platform name specified only for the main container.");
         out.println("  -ownership <username:password>\tThe owner of a container or platform.");
+	out.println("  -nomobility\t\tIf specified, disables the mobility and cloning support for the container.");
         out.println("  -help\t\t\tPrints out usage informations.");
         out.println("");
         out.print("An agent specifier is composed of an agent name and an agent class, separated by \"");

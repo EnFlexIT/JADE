@@ -151,11 +151,11 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
     catch(ClassNotFoundException cnfe) {
       System.err.println("Class " + className + " for agent " + agentID + " was not found.");
-  		throw new IMTPException("Remote exception is: " + cnfe.getClass().getName());
+  		throw new IMTPException("Exception in createAgent",cnfe); 
     }
     catch( Exception e ){
       e.printStackTrace();
-  		throw new IMTPException("Remote exception is: " + e.getClass().getName());
+  		throw new IMTPException("Exception in createAgent",e); 
     }
 
     initAgent(agentID, agent, startIt);
@@ -168,7 +168,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	}
   	catch (Exception e) {
   		e.printStackTrace();
-  		throw new IMTPException("Remote exception is: "+e.getClass().getName());
+  		throw new IMTPException("Exception in createAgent",e); 
   	}
   }
   

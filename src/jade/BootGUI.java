@@ -610,7 +610,11 @@ public class BootGUI extends JDialog {
                                 theProperties.getProperty(BootProfileImpl.AGENTS_KEY),
                                 "Agents to launch",
                                 false));
-
+        pv.add(new PropertyType(BootProfileImpl.NOMOBILITY_KEY,
+                                PropertyType.BOOLEAN_TYPE,
+                                new Boolean(theProperties.getBooleanProperty(BootProfileImpl.NOMOBILITY_KEY,false)).toString(),
+                                "Disable Mobility",
+                                false));
         return pv;
     }
 

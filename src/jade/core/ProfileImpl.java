@@ -61,6 +61,12 @@ public class ProfileImpl extends Profile {
   public static final int DEFAULT_PORT = 1099;
   // HP Patch end ------------------------------------------------------------------------------------
 
+    /**
+       This constant is the key of the property whose value is the class name of
+       the mobility manager.
+     **/
+  public static final String MOBILITYMGRCLASSNAME = "mobility";
+
 
   private Platform        myPlatform = null;
   private IMTPManager     myIMTPManager = null;
@@ -323,8 +329,11 @@ public class ProfileImpl extends Profile {
    * @see
    */
   private void createMobilityManager() throws ProfileException {
-    // Use the RealMobilityManager by default
-    String className = new String("jade.core.RealMobilityManager");
+     
+      String className = getParameter(MOBILITYMGRCLASSNAME);
+      if (className == null) // default is real mobility manager
+	  className = new String("jade.core.RealMobilityManager");
+   
     try {
       myMobilityManager = (MobilityManager) Class.forName(className).newInstance();
     } 

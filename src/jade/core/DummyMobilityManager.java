@@ -33,6 +33,7 @@ import jade.util.leap.List;
  */
 public class DummyMobilityManager implements MobilityManager {
 
+    private static String exceptionMsg = "Agent Mobility and Cloning not supported by this container.";    
     /**
      * Initialization method.
      */
@@ -46,14 +47,14 @@ public class DummyMobilityManager implements MobilityManager {
      */
     public void createAgent(AID agentID, byte[] serializedInstance, 
                             AgentContainer classSite, boolean startIt) throws Exception {
-    	throw new Exception("Unsupported operation");
+    	throw new Exception(exceptionMsg);
     } 
 
     /**
        @see jade.core.MobilityManager#fetchClassFile(String)
      */
     public byte[] fetchClassFile(String name) throws ClassNotFoundException {
-    	throw new ClassNotFoundException("Unsupported operation");
+    	throw new ClassNotFoundException(exceptionMsg);
     } 
 
     /**
@@ -62,7 +63,8 @@ public class DummyMobilityManager implements MobilityManager {
      */
     public void moveAgent(AID agentID, 
                           Location where) throws NotFoundException {
-    	return;
+	
+    	throw new NotFoundException(exceptionMsg);
     } 
 
     /**
@@ -71,7 +73,8 @@ public class DummyMobilityManager implements MobilityManager {
      */
     public void copyAgent(AID agentID, Location where, 
                           String newName) throws NotFoundException {
-    	return;
+	
+    	throw new NotFoundException(exceptionMsg);
     } 
 
     /**
@@ -79,21 +82,21 @@ public class DummyMobilityManager implements MobilityManager {
      */
     public void handleTransferResult(AID agentID, boolean result, 
                                      List messages) throws NotFoundException {
-    	return;
+    	throw new NotFoundException(exceptionMsg);
     } 
 
     /**
        @see jade.core.MobilityManager#handleMove(AID agentID, Location where)
      */
     public void handleMove(AID agentID, Location where) {
-    	return;
+	throw new RuntimeException(exceptionMsg); 
     } 
 
     /**
        @see jade.core.MobilityManager#handleClone(AID agentID, Location where, String newName)
      */
     public void handleClone(AID agentID, Location where, String newName) {
-    	return;
+	throw new RuntimeException(exceptionMsg); 
     } 
 
 }
