@@ -480,11 +480,11 @@ public class AclGui extends JPanel
 	l = new JLabel("Communicative act:");
 	new DropTarget(l, this);
 	put(aclPanel,l, 0, 3, 1, 1, false);  
-	communicativeAct = new JComboBox();
+	communicativeAct = new JComboBox(); 
     
-	Iterator comm_Act = ACLMessage.getAllPerformatives().iterator();
-	while(comm_Act.hasNext())
-	  communicativeAct.addItem(((String)comm_Act.next()).toLowerCase());
+	String[] comm_Act = ACLMessage.getAllPerformativeNames();
+	for (int ii=0; ii<comm_Act.length; ii++)
+	    communicativeAct.addItem(comm_Act[ii].toLowerCase());
       
 	communicativeAct.setSelectedIndex(0);
 	put(aclPanel,communicativeAct, 1, 3, 2, 1, true);
