@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.40  1999/11/09 16:48:38  rimassaJade
+  Fixed a protocol problem with action 'sniff-on' and 'sniff-off'.
+
   Revision 1.39  1999/11/08 15:26:16  rimassaJade
   Added AMS support for the message sniffer.
 
@@ -710,32 +713,14 @@ public class ams extends Agent {
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
-
-    }
-    
-    
-    public void action() {
-
+      AgentManagementOntology.SniffAgentOnAction saoa = (AgentManagementOntology.SniffAgentOnAction)a;
       try {
-
-	ACLMessage msg = getRequest();
-	AgentManagementOntology.SniffAgentOnAction myAction;
-	String content = msg.getContent();
-	try {
-	  myAction = (AgentManagementOntology.SniffAgentOnAction)
-	    AgentManagementOntology.SniffAgentOnAction.fromText(new StringReader(content));			
-	  sendAgree();
-	  myPlatform.sniffOn(myAction.getSnifferName(),myAction.getEntireList());		
-	}
-	catch (ParseException e) {
-	  sendRefuse(e.getMessage());       		
-	}
-	catch (TokenMgrError et) {
-	  sendRefuse(et.getMessage());       	       		
-	}
+	myPlatform.sniffOn(saoa.getSnifferName(), saoa.getEntireList());
+	sendAgree();
+	sendInform();
       }
-      catch (UnreachableException ue) {
-	sendRefuse(ue.getMessage()); 
+      catch(UnreachableException ue) {
+	throw new NoCommunicationMeansException();
       }
     }
 
@@ -748,30 +733,17 @@ public class ams extends Agent {
     }
 
     protected void processAction(AgentManagementOntology.AMSAction a) throws FIPAException {
+      AgentManagementOntology.SniffAgentOffAction saoa = (AgentManagementOntology.SniffAgentOffAction)a;
+      try {
+	myPlatform.sniffOff(saoa.getSnifferName(), saoa.getEntireList());
+	sendAgree();
+	sendInform();
+      }
+      catch(UnreachableException ue) {
+	throw new NoCommunicationMeansException();
+      }
     }
 
-    public void action() {
-      try {
-	ACLMessage msg = getRequest();
-	AgentManagementOntology.SniffAgentOffAction myAction;
-	String content = msg.getContent();
-	try {
-	  myAction = (AgentManagementOntology.SniffAgentOffAction)
-	    AgentManagementOntology.SniffAgentOffAction.fromText(new StringReader(content));
-	  sendAgree();
-	  myPlatform.sniffOff(myAction.getSnifferName(),myAction.getEntireList());
-      	}
-	catch (ParseException e) {
-	  sendRefuse(e.getMessage());
-      	}
-	catch (TokenMgrError et) {
-	  sendRefuse(et.getMessage());
-      	}
-      }
-      catch (UnreachableException ue) {
-	sendRefuse(ue.getMessage());
-      }
-    }
   } // End of SniffAgentOffBehaviour class
 
 
