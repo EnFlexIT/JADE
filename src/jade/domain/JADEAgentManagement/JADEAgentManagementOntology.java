@@ -80,6 +80,8 @@ public class JADEAgentManagementOntology {
   public static final String UNINSTALLMTP = "uninstall-mtp";
   public static final String SNIFFON = "sniff-on";
   public static final String SNIFFOFF = "sniff-off";
+  public static final String DEBUGON = "debug-on";
+  public static final String DEBUGOFF = "debug-off";
 
   //actions supported by the DF
   public static final String SHOWGUI = "showgui";
@@ -149,6 +151,18 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("sniffed-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, SniffOff.class);
+
+	theInstance.addRole(DEBUGON, new SlotDescriptor[] {
+	  new SlotDescriptor("debugger", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("debugged-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, DebugOn.class);
+
+	theInstance.addRole(DEBUGOFF, new SlotDescriptor[] {
+	  new SlotDescriptor("debugger", Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("debugged-agents", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.M),
+	  new SlotDescriptor("password", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
+	}, DebugOff.class);
 
 	theInstance.addRole(SHOWGUI, new SlotDescriptor[] {
 	}, ShowGui.class);
