@@ -41,12 +41,10 @@ class ACCProxy implements AgentProxy {
 
   private AID receiver;
   private acc myACC;
-  private Iterator addresses;
 
   public ACCProxy(AID id, acc anACC) {
     receiver = id;
     myACC = anACC;
-    addresses = receiver.getAllAddresses();
   }
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
@@ -79,6 +77,7 @@ class ACCProxy implements AgentProxy {
     Envelope env = msg.getEnvelope();
     byte[] payload = myACC.encodeMessage(msg);
 
+    Iterator addresses = receiver.getAllAddresses();
     while(addresses.hasNext()) {
       String address = (String)addresses.next();
       try {
@@ -89,7 +88,6 @@ class ACCProxy implements AgentProxy {
 	System.out.println("Bad address [" + address + "]: trying the next one...");
       }
     }
-
     throw new acc.NoMoreAddressesException("No valid address contained within the AID.");
   }
 
