@@ -23,14 +23,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-//import java.rmi.RemoteException; // FIXME: This will have to go away...
 
 import jade.core.AID;
 import jade.core.AgentContainerImpl;
 import jade.core.NotFoundException;
 import jade.core.IMTPException;
+import jade.core.AgentManager;
+
+import jade.core.event.*;
 
 import jade.mtp.MTPException;
+
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
    This class is a Proxy class, allowing access to a JADE agent
@@ -45,10 +50,13 @@ import jade.mtp.MTPException;
    @author Giovanni Rimassa - Universita` di Parma
 
  */
-public class AgentContainer {
+public class AgentContainer implements PlatformController {
 
   private AgentContainerImpl myImpl;
-
+  private String myPlatformName;
+  private State platformState = PlatformState.PLATFORM_STATE_VOID;
+	private ListenerManager myListenerManager = new ListenerManager();
+	
   /**
      Public constructor. This constructor requires a concrete
      implementation of a JADE agent container, which cannot be
@@ -58,9 +66,12 @@ public class AgentContainer {
      <code>Runtime.createContainer()</code> method.
      @see jade.core.Runtime#createAgentContainer(Profile)
      @param impl A concrete implementation of a JADE agent container.
+     @param platformName the name of the platform
    */
-  public AgentContainer(AgentContainerImpl impl) {
+  public AgentContainer(AgentContainerImpl impl, String platformName) {
     myImpl = impl;
+    myPlatformName = platformName;
+    platformState = PlatformState.PLATFORM_STATE_READY;
   }
 
   /**
@@ -103,6 +114,8 @@ public class AgentContainer {
      to pass to the new agent. 
      @return A proxy object, allowing to call state-transition forcing
      methods on the real agent instance.
+     @deprecated Use createNewAgent and (if needed) downcast the return
+     value from AgentController to Agent instead.
    */
   public Agent createAgent(String nickname, String className, Object[] args) throws NotFoundException, StaleProxyException {
     if(myImpl == null)
@@ -117,13 +130,40 @@ public class AgentContainer {
       return result;
     }
     catch(ClassNotFoundException cnfe) {
-      throw new NotFoundException("Class " + className + " for agent " + nickname + " was not found.");
+      throw new NotFoundException("Class "+className+" for agent "+nickname+" was not found."); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
-    catch(IllegalAccessException iae) {
-      throw new InternalError("IllegalAccessException"); // FIXME: Need to throw a more meaningful exception
+    catch(Exception e) {
+      throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
-    catch(InstantiationException ie) {
-      throw new InternalError("InstantiationException"); // FIXME: Need to throw a more meaningful exception
+
+  }
+
+  /**
+     Creates a new JADE agent, running within this container, 
+     @param nickname A platform-unique nickname for the newly created
+     agent. The agent will be given a FIPA compliant agent identifier
+     using the nickname and the ID of the platform it is running on.
+     @param className The fully qualified name of the class that
+     implements the agent.
+     @param args An object array, containing initialization parameters
+     to pass to the new agent. 
+     @return A proxy object, allowing to call state-transition forcing
+     methods on the real agent instance.
+   */
+  public AgentController createNewAgent(String nickname, String className, Object[] args) throws StaleProxyException {
+    if(myImpl == null)
+      throw new StaleProxyException();
+    try {
+      jade.core.Agent a = (jade.core.Agent)Class.forName(new String(className)).newInstance();
+      a.setArguments(args);
+      AID agentID = new AID(nickname, AID.ISLOCALNAME);
+      myImpl.initAgent(agentID, a, false);
+
+      Agent result = new Agent(agentID, a);
+      return result;
+    }
+    catch(Exception e) {
+      throw new StaleProxyException(e); // it would have been better throwing a ControllerException but that would have broken backward-compatibilityfor 
     }
 
   }
@@ -173,7 +213,11 @@ public class AgentContainer {
     if(myImpl == null)
       throw new StaleProxyException();
     myImpl.shutDown();
+    // release resources of this object
     myImpl = null;
+    myPlatformName = null;
+    platformState = PlatformState.PLATFORM_STATE_KILLED;
+    myListenerManager = null;
   }
 
 
@@ -222,4 +266,95 @@ public class AgentContainer {
     }
   }
 
+  /**
+   * return the name (i.e. the HAP) of this platform
+   **/
+  public String getName() { return myPlatformName; }
+    
+  public void start() throws ControllerException { 
+  };
+
+  public void suspend() throws ControllerException {
+		throw new ControllerException("Not_Yet_Implemented");
+  }
+
+  public void resume() throws ControllerException {
+		throw new ControllerException("Not_Yet_Implemented");
+  }
+
+  public State getState() { return platformState; }
+  
+  public synchronized void addPlatformListener(Listener aListener) throws ControllerException {
+  	if (myListenerManager.addListener(aListener) == 1) {
+  		myImpl.addPlatformListener(myListenerManager);
+  	}
+  }
+  public synchronized void removePlatformListener(Listener aListener) throws ControllerException {
+  	if (myListenerManager.removeListener(aListener) == 0) {
+  		myImpl.removePlatformListener(myListenerManager);
+  	}
+  }
+    
+  class ListenerManager implements AgentManager.Listener {
+    private Vector listeners = new Vector();
+    
+  	public int addListener(Listener l) {
+  		listeners.addElement(l);
+  		return listeners.size();
+  	}
+  	
+  	public int removeListener(Listener l) {
+  		listeners.removeElement(l);
+  		return listeners.size();
+  	}
+  	
+ 		public void addedMTP(MTPEvent ev) {
+ 			System.out.println("Added MTP");
+  	} 
+  	public void removedMTP(MTPEvent ev) {
+ 			System.out.println("Removed MTP");
+  	} 
+  	public void messageIn(MTPEvent ev) {
+ 			System.out.println("Message IN");
+  	} 
+  	public void messageOut(MTPEvent ev) {
+ 			System.out.println("Message OUT");
+  	} 
+  	public void addedContainer(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Added container");
+  	} 
+  	public void removedContainer(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Removed container");
+  	} 
+  	public void bornAgent(jade.core.event.PlatformEvent ev) {
+  		Enumeration e = listeners.elements();
+  		while (e.hasMoreElements()) {
+  			Listener l = (Listener) e.nextElement();
+  			ev.setSource(AgentContainer.this);
+  			l.bornAgent(ev);
+  		}
+  	} 
+  	public void deadAgent(jade.core.event.PlatformEvent ev) {
+  		Enumeration e = listeners.elements();
+  		while (e.hasMoreElements()) {
+  			Listener l = (Listener) e.nextElement();
+  			ev.setSource(AgentContainer.this);
+  			l.deadAgent(ev);
+  		}
+  	}
+  	public void movedAgent(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Moved agent");
+  	} 
+  	public void suspendedAgent(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Suspended agent");
+  	} 
+  	public void resumedAgent(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Resumed agent");
+  	} 
+//__JADE_ONLY__BEGIN  
+  	public void changedAgentPrincipal(jade.core.event.PlatformEvent ev) {
+ 			System.out.println("Changed agent principal");
+  	} 
+//__JADE_ONLY__END 
+  }
 }

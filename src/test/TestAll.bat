@@ -67,7 +67,7 @@ CALL makejadejessprotegeexample
 pause
 echo compile the Test code
 cd src\test
-javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java
+javac -d %JADECLASSES% -classpath %JADECLASSES%;%JADEJAR% TestAgent.java jsp\TestDanielExample.java content\*.java wrapper\*.java
 pause
 :SKIPCOMPILATION
 
@@ -161,6 +161,10 @@ echo Running the TestAgent (testing the messages)
 echo type as input file testmessages.msg
 cd test
 %JAVA% -cp %CLASSPATH% test.TestAgent
+
+echo Running the Test of the Wrapper
+%JAVA% -cp %CLASSPATH% test.wrapper.TestListener
+
 
 echo Running the LEAP Testsuite 
 cd ..\..\..\leapTestSuite

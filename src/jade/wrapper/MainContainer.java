@@ -49,9 +49,10 @@ public class MainContainer extends AgentContainer {
      <code>Runtime.createMainContainer()</code> method.
      @see jade.core.Runtime#createMainContainer(Profile p)
      @param impl A concrete implementation of a JADE main container.
+     @param platformName the name of this platform
    */
-  public MainContainer(AgentContainerImpl impl) {
-    super(impl);
+  public MainContainer(AgentContainerImpl impl, String platformName) {
+    super(impl, platformName);
   }
 
 }

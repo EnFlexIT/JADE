@@ -481,7 +481,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     */
    public final jade.wrapper.AgentContainer getContainerController() {
      if (myContainer == null) {  // first time called
-       myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit);
+       myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit, getHap());
      }
      return myContainer;
    }

@@ -38,12 +38,12 @@ import jade.security.AgentPrincipal;
  *
  * @version $Date$ $Revision$
  */
-public class PlatformEvent extends JADEEvent {
+public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEvent {
 
   public static final int ADDED_CONTAINER = 1;
   public static final int REMOVED_CONTAINER = 2;
-  public static final int BORN_AGENT = 3;
-  public static final int DEAD_AGENT = 4;
+  //public static final int BORN_AGENT = 3;
+  //public static final int DEAD_AGENT = 4;
   public static final int MOVED_AGENT = 5;
   public static final int SUSPENDED_AGENT = 6;
   public static final int RESUMED_AGENT = 7;
@@ -51,6 +51,7 @@ public class PlatformEvent extends JADEEvent {
 
   private int myID; // The actual type of the event
   private ContainerID newContainer = null;  // set with constructors which specify two container IDs
+  private String myPlatformName = null;  // the name of the platform that generated this event
   private AID agent = null;
 //__JADE_ONLY__BEGIN
   private AgentPrincipal oldPrincipal = null;
@@ -270,6 +271,29 @@ public class PlatformEvent extends JADEEvent {
    */
   public int getEventType() {
       return myID;
+  }
+  
+  /**
+   * 
+   */
+  public void setSource(Object s) {
+  	source = s;
+  	if (source instanceof jade.wrapper.PlatformController) {
+  		myPlatformName = ((jade.wrapper.PlatformController) source).getName();
+  	}
+  }
+  
+  public String getPlatformName() {
+  	return myPlatformName;
+  }
+  
+  public String getAgentGUID() {
+  	if (agent != null) {
+  		return agent.getName();
+  	}
+  	else {
+  		return null;
+  	}
   }
   
   /**

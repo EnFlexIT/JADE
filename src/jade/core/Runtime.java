@@ -76,8 +76,8 @@ public class Runtime {
       beginContainer();
       impl.joinPlatform();
       if (enableDefaultToolkit)
-	  setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
-      return new jade.wrapper.AgentContainer(impl);
+	  		setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
+		  return new jade.wrapper.AgentContainer(impl, impl.getPlatformID());
   }
 
   /**
@@ -95,7 +95,7 @@ public class Runtime {
       impl.joinPlatform();
       if (enableDefaultToolkit)
 	  setDefaultToolkit(impl); // FIXME: Temporary hack for JSP example
-      return new jade.wrapper.MainContainer(impl);
+      return new jade.wrapper.MainContainer(impl, impl.getPlatformID());
   }
 
 
@@ -261,7 +261,6 @@ public class Runtime {
 
   /************************************************************************/
 }
- 
  
  
  

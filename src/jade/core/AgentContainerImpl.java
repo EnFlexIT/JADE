@@ -884,5 +884,18 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   LADT getLocalAgents() {
   	return localAgents;
   }
-
+  
+  //FIXME: These methods have been added to support 
+  // PlatformListener registration from the In-process-interface
+  // with minimum effort. They will possibly be removed in a 
+  // future (more general) implementation
+  public void addPlatformListener(AgentManager.Listener l) throws ClassCastException {
+  	AgentManager m = (AgentManager) myPlatform;
+  	m.addListener(l);
+  }
+  
+  public void removePlatformListener(AgentManager.Listener l) throws ClassCastException {
+  	AgentManager m = (AgentManager) myPlatform;
+  	m.removeListener(l);
+  }
 }

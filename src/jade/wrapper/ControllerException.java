@@ -1,9 +1,9 @@
 /*
- * (c) Copyright Hewlett-Packard Company 2001
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
+ * Copyright (C) 2000 CSELT S.p.A. 
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,12 +25,12 @@ package jade.wrapper;
  * This exception class is thrown when an operation fails on any
  * of the agent controller methods.
  */
-public class AgentControllerException extends Exception {
+public class ControllerException extends Exception {
 
   /**
    * Creates a new exception object, with a default detail message.
    */
-  AgentControllerException() {
+  ControllerException() {
     super("Agent error.");
   }
 
@@ -38,7 +38,7 @@ public class AgentControllerException extends Exception {
    * Creates a new exception object, with a given detail message.
    * @param message The detail message for the new exception object.
    */
-  AgentControllerException(String message) {
+  ControllerException(String message) {
     super(message);
   }
 
@@ -46,7 +46,7 @@ public class AgentControllerException extends Exception {
    * Creates a new exception object, extracting message from another throwable.
    * @param aThrowable The original exception or error.
    */
-  AgentControllerException(Throwable aThrowable) {
+  ControllerException(Throwable aThrowable) {
     super(aThrowable.getMessage());
   }
 

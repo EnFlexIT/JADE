@@ -27,7 +27,7 @@ package jade.wrapper;
  This exception class is thrown when an attempt to use a stale
  (i.e. outdated) wrapper object is made.
  */
-public class StaleProxyException extends AgentControllerException {
+public class StaleProxyException extends ControllerException {
 
   /**
      Creates a new exception object, with a default detail message.

@@ -32,32 +32,32 @@ public interface AgentController
      * This name would be what the platform would use to uniquely reference this agent.
      * @return The agents name.
      */
-    public String getName() throws AgentControllerException;
+    public String getName() throws ControllerException;
     
     /**
      * Start the agent.
      */
-    public void start() throws AgentControllerException;
+    public void start() throws ControllerException;
 
     /**
      * Suspend the agent.
      */
-    public void suspend() throws AgentControllerException;
+    public void suspend() throws ControllerException;
     
     /**
      * Activate a suspended agent.
      */
-    public void activate() throws AgentControllerException;
+    public void activate() throws ControllerException;
 
     /**
      * Kill the agent.
      */
-    public void kill() throws AgentControllerException;
+    public void kill() throws ControllerException;
 
     /**
      * Get the agent's state.
      * @return The agent's state.
      */
-    public State getState() throws AgentControllerException;
+    public State getState() throws ControllerException;
 
 }
