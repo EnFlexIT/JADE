@@ -78,12 +78,10 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void addContainer(AgentContainer ac) throws RemoteException {
-    System.out.println("Adding container...");
     containers.addElement(ac);
   }
 
   public void removeContainer(AgentContainer ac) throws RemoteException {
-    System.out.println("Removing container...");
     containers.removeElement(ac);
   }
 
@@ -99,7 +97,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
-    System.out.println("Looking up " + agentName + " in agents table...");
     Object o = platformAgents.get(agentName);
     if(o == null)
       throw new NotFoundException("Failed to find " + agentName);
