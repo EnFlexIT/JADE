@@ -16,13 +16,34 @@ public class StartPlatform {
     String platformName = "FEPF";
     String platformHost = "localhost";
     String platformPort = "1099";
-    String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
 
-    /* FIXME: Add command line options handling.
-       -host host
-       -port port
-       -name name
-    */
+    try{
+
+      int n = 0;
+      while( n < args.length ){
+	if(args[n].equals("-host")) {
+	  if(++n  == args.length) usage();
+	  platformHost = args[n];
+	}
+	else if(args[n].equals("-port")) {
+	  if(++n  == args.length) usage();
+	  platformPort = args[n];
+	}
+	else if(args[n].equals("-name")) {
+	  if(++n  == args.length) usage();
+	  platformName = args[n];
+	}
+	else if(args[n].equals("-help") || args[n].equals("-h")) {
+	  usage();
+	}
+      }
+    } 
+    catch( Exception e ) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+
+    String platformURL = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
 
     try {
       thePlatform = new AgentPlatformImpl();
@@ -36,13 +57,27 @@ public class StartPlatform {
     catch(RemoteException re) {
       System.err.println("Communication failure while starting Agent Platform.");
       re.printStackTrace();
+      System.exit(1);
     }
     catch(Exception e) {
-      System.err.println("Some other error while starting AgentPlatform");
+      System.err.println("Some other error while starting Agent Platform");
       e.printStackTrace();
+      System.exit(1);
     }
 
     System.out.println("Agent Platform started.");
+  }
+
+  private static void usage() {
+    System.out.println("Usage: java StartPlatform [options]");
+    System.out.println("");
+    System.out.println("where options are:");
+    System.out.println("");
+    System.out.println("  -host\tHost where RMI registry for the platform is located");
+    System.out.println("  -port\tThe port where RMI registry for the platform resides");
+    System.out.println("  -name\tThe name with which the platform is bound in RMI registry");
+    System.out.println("");
+    System.exit(3);
   }
 
 }
