@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.10  1998/10/31 16:39:37  rimassa
+  Completed the definition of KillAgentAction inner class, to represent
+  'kill-agent' AMS action instances.
+
   Revision 1.9  1998/10/26 22:39:48  Giovanni
   Added a list of properties to CreateAgentAction class.
 
@@ -621,6 +625,26 @@ public class AgentManagementOntology {
   }
 
   public static class KillAgentAction extends AMSAction {
+
+    private String agentName = "";
+    private String password = "";
+
+    public void setAgentName(String an) {
+      agentName = an;
+    }
+
+    public String getAgentName() {
+      return agentName;
+    }
+
+    public void setPassword(String pwd) {
+      password = pwd;
+    }
+
+    public String getPassword() {
+      return password;
+    }
+
   }
 
   public static class DFAction implements Action {
