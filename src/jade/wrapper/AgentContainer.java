@@ -59,7 +59,7 @@ public class AgentContainer implements PlatformController {
   /**
      Public constructor. This constructor requires a concrete
      implementation of a JADE agent container, which cannot be
-     instantiated bt applications, so it cannot be meaningfully called
+     instantiated by applications, so it cannot be meaningfully called
      from application code. The proper way to create an agent
      container from an application is to call the
      <code>Runtime.createContainer()</code> method.

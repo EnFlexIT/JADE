@@ -37,6 +37,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 import java.util.StringTokenizer;
 import java.util.Stack;
 import java.io.*;
@@ -140,13 +141,13 @@ public class Boot {
 	  				throw new IllegalArgumentException("No mtps specified after \"-mtp\" option");
 	  			}
 	  			if (props.getProperty("nomtp") != null) {
-	  				System.out.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				Logger.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-nomtp")) {
 	  			props.setProperty("nomtp", "true");
 	  			if (props.getProperty(Profile.MTPS) != null) {
-	  				System.out.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
+	  				Logger.println("WARNING: both \"-mtp\" and \"-nomtp\" options specified. The latter will be ignored");
 	  			}
 	  		}
 	  		else if (args[i].equalsIgnoreCase("-agents")) {
@@ -171,11 +172,18 @@ public class Boot {
   		else {
   			// Get agents at the end of command line
   			if (props.getProperty(Profile.AGENTS) != null) {
-  				System.out.println("WARNING: overriding agents specification set with the \"-agents\" option");
+  				Logger.println("WARNING: overriding agents specification set with the \"-agents\" option");
   			}
+  			String agents = args[i];
   			props.setProperty(Profile.AGENTS, args[i]);
   			if (++i < args.length) {
-  				System.out.println("WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+  				Logger.println("WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
+						Logger.println("Note that agent arguments specifications must not contain spaces");
+					}
+  				if (args[i].indexOf(':') != -1) {
+						Logger.println("Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+					}
   			}
   			break;
   		}
@@ -210,6 +218,7 @@ import javax.microedition.midlet.*;
 import javax.microedition.lcdui.*;
 import java.io.*;
 import jade.util.leap.*;
+import jade.util.Logger;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.core.Agent;
@@ -225,7 +234,7 @@ public class Boot extends MIDlet {
   public void startApp() throws MIDletStateChangeException {
 
     // System.out.println(getCopyrightNotice());
-    System.out.println("This is JADE - LEAP J2ME kernel v2.1");
+    Logger.println("This is JADE - LEAP J2ME kernel v2.1");
 
     try {
       ProfileImpl p = new ProfileImpl();
@@ -253,11 +262,11 @@ public class Boot extends MIDlet {
   } 
 
   public void pauseApp() {
-    System.out.println("MIDlet paused");
+    Logger.println("MIDlet paused");
   } 
 
   public void destroyApp(boolean unconditional) {
-    System.out.println("MIDlet destroyed");
+    Logger.println("MIDlet destroyed");
   } 
 #MIDP_INCLUDE_END*/
 }

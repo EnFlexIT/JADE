@@ -103,9 +103,16 @@ public class MicroBoot {
   			if (props.getProperty(MicroRuntime.AGENTS_KEY) != null) {
   				Logger.println("WARNING: overriding agents specification set with the \"-agents\" option");
   			}
+  			String agents = args[i];
   			props.setProperty(MicroRuntime.AGENTS_KEY, args[i]);
   			if (++i < args.length) {
   				Logger.println("WARNING: ignoring command line argument "+args[i]+" occurring after agents specification");
+					if (agents != null && agents.indexOf('(') != -1 && !agents.endsWith(")")) {
+						Logger.println("Note that agent arguments specifications must not contain spaces");
+					}
+  				if (args[i].indexOf(':') != -1) {
+						Logger.println("Note that agent specifications must be separated by a semicolon character \";\" without spaces");
+					}
   			}
   			break;
   		}
