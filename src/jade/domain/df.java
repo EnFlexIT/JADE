@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.17  1999/02/14 23:24:20  rimassa
+  Changed addBehaviour() calls to addSubBehaviour() where appropriate.
+  Added an automatic management of DF federeation: now a DF agent
+  informs deregisters itself from parent DFs when it terminates
+  Removed some debug printouts.
+
   Revision 1.16  1999/02/04 13:19:14  rimassa
   Fixed a bug in the content of the search result.
   The FIPA-request protocol now complies with the FIPA specs. Also the
@@ -555,7 +561,7 @@ public class df extends Agent {
 	ACLMessage copy = (ACLMessage)request.clone();
 	copy.setDest(subDF);
 	try {
-	  searchThemAll.addBehaviour(new SearchDFBehaviour(df.this, copy, dfd, constraints, result));
+	  searchThemAll.addSubBehaviour(new SearchDFBehaviour(df.this, copy, dfd, constraints, result));
 	}
 	catch(FIPAException fe) {
 	  fe.printStackTrace();
@@ -593,6 +599,8 @@ public class df extends Agent {
   private Hashtable descriptors = new Hashtable();
   private Hashtable subDFs = new Hashtable();
 
+  private AgentGroup parents = new AgentGroup();
+
   private DFGUI gui;
 
   protected Enumeration getDFAgentDescriptors() {
@@ -625,12 +633,36 @@ public class df extends Agent {
     addBehaviour(dispatcher);
   }
 
+  protected void takeDown() {
+    AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+    dfd.setName(getName());
+    Enumeration e = parents.getMembers();
+    while(e.hasMoreElements()) {
+      String parentName = (String)e.nextElement();
+      try {
+        deregisterWithDF(parentName, dfd);
+      }
+      catch(FIPAException fe) {
+        fe.printStackTrace();
+      }
+    }
+  }
+
+  public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    super.registerWithDF(dfName, dfd);
+    parents.addMember(dfName);
+  }
+
+  public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+    super.deregisterWithDF(dfName, dfd);
+    parents.removeMember(dfName);
+  }
+
   protected void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     if(descriptors.containsKey(dfd.getName()))
       throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
-    System.out.println("REGISTERED NEW AGENT DESCRIPTOR");
     
     // Update sub-DF table if needed
     Enumeration e = dfd.getAgentServices();
@@ -640,7 +672,6 @@ public class df extends Agent {
       if(type == null)
 	return;
       if(type.equalsIgnoreCase("fipa-df") || type.equalsIgnoreCase("df")) {
-	System.err.println("FEDERATED NEW DF");
 	subDFs.put(dfd.getName(), dfd);
       }
     }
