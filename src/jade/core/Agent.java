@@ -372,8 +372,7 @@ public class Agent implements Runnable, Serializable
     // Did this restart() cause the root behaviour to become runnable ?
     // If so, put the root behaviour back into the ready queue.
     Behaviour root = b.root();
-    if(root.isRunnable())
-    {
+    if(root.isRunnable()) {
       myScheduler.restart(root);
     }
   }
@@ -2031,9 +2030,14 @@ public class Agent implements Runnable, Serializable
   	// is the helper already into the agent's helpersTable ?
     if (se == null) {
       // there isn't, request its creation
-      se = myToolkit.getHelper(this, serviceName);
-      se.init(this);
-      helpersTable.put(serviceName, se);	
+    	se = myToolkit.getHelper(this, serviceName);
+    	if (se != null) {
+	      se.init(this);
+	      helpersTable.put(serviceName, se);
+    	}
+    	else {
+    		throw new ServiceException("Null helper");
+    	}
     }
     return se;
   }
