@@ -162,7 +162,7 @@ public class LEAPCodec extends ByteArrayCodec {
                                     AbsObject abs) throws Throwable {
         // PRIMITIVE
         if (abs instanceof AbsPrimitive) {
-            stream.writeByte(PRIMITIVE);
+            //stream.writeByte(PRIMITIVE);
             
             Object obj = ((AbsPrimitive) abs).getObject();
 
@@ -256,44 +256,44 @@ public class LEAPCodec extends ByteArrayCodec {
         byte type = stream.readByte();
 
         // PRIMITIVE
-        if (type == PRIMITIVE) {
-            byte         primitiveType = stream.readByte();
-            AbsPrimitive abs = null;
+        //if (type == PRIMITIVE) {
+        //    byte         primitiveType = stream.readByte();
+        //    AbsPrimitive abs = null;
 
-            if ((primitiveType&UNMODIFIER) == STRING) {
-                abs = AbsPrimitive.wrap(readString(stream, primitiveType));
+            if ((type&UNMODIFIER) == STRING) {
+                return AbsPrimitive.wrap(readString(stream, type));
             } 
 
-            if (primitiveType == BOOLEAN) {
+            if (type == BOOLEAN) {
             		boolean value = stream.readBoolean();
-                abs = AbsPrimitive.wrap(value);
+                return AbsPrimitive.wrap(value);
             } 
 
-            if (primitiveType == INTEGER) {
+            if (type == INTEGER) {
             		long value = stream.readLong();
-                abs = AbsPrimitive.wrap(value);
+                return AbsPrimitive.wrap(value);
             } 
 
             //#MIDP_EXCLUDE_BEGIN
-            if (primitiveType == FLOAT) {
+            if (type == FLOAT) {
             		double value = stream.readDouble();
-                abs = AbsPrimitive.wrap(value);
+                return AbsPrimitive.wrap(value);
             } 
             //#MIDP_EXCLUDE_END
 
-            if (primitiveType == DATE) {
+            if (type == DATE) {
                 long value = stream.readLong();
-                abs = AbsPrimitive.wrap(new Date(value));
+                return AbsPrimitive.wrap(new Date(value));
             } 
 
-            if (primitiveType == BYTE_SEQUENCE) {
+            if (type == BYTE_SEQUENCE) {
                 byte[] value = new byte[stream.readInt()];
                 stream.read(value, 0, value.length);
-                abs = AbsPrimitive.wrap(value);
+                return AbsPrimitive.wrap(value);
             } 
 
-            return abs;
-        } 
+            //return abs;
+        //} 
 
         // AGGREGATE
         if ((type&UNMODIFIER) == AGGREGATE) {
