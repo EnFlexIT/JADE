@@ -5,7 +5,7 @@
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
   <!--- set location of javacc program -->
-  <property environment="env" />
+  <property environment="env"/>
   <property name="version" value="2.5"/>
   <!-- set global properties for this build -->
   <property name="lib" location="lib"/>
@@ -13,7 +13,6 @@
   <property name="dist" location=".."/>
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
-
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -21,22 +20,15 @@
     <mkdir dir="${doc}"/>
     <mkdir dir="${lib}"/>
     <mkdir dir="${build}"/>
-	<condition property="javacc.home.is.set">
-	   <not>                  
-	   		<equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}" />               
-	   </not>
-   </condition>   
+    <condition property="javacc.home.is.set">
+      <not>
+        <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
+      </not>
+    </condition>
   </target>
-  
   <target name="check_javacc" unless="javacc.home.is.set">
-    <echo>
-	 javacc task is being skipped and the pre-built parsers will be used.
-	 If you want to rebuild the parsers, set the environment variable 
-	 JAVACC_HOME to the home directory where your javacc program has
-	 been installed.
-	</echo>
+    <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
-  
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
@@ -78,26 +70,70 @@
   <!--     _______________________________________________
                               parser
          _______________________________________________ -->
-  <target name="parser" depends="init, check_javacc, MakeACLParser, MakeSL0Parser, MakeSLParser" description="generate parser with javacc" />
+  <target name="parser" depends="init, check_javacc, MakeACLParser, MakeSL0Parser, MakeSLParser" description="generate parser with javacc"/>
   <target name="MakeACLParser" depends="init, check_javacc" if="javacc.home.is.set">
-    <echo> prova </echo>
-    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src\jade\lang\acl" target="src\jade\lang\acl\ACLParser.jj"/>
+    <echo>prova</echo>
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
   </target>
   <target name="MakeSL0Parser" depends="init, check_javacc" if="javacc.home.is.set">
-    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src\jade\lang\sl" target="src\jade\lang\sl\SL0Parser.jj"/>
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/sl" target="src/jade/lang/sl/SL0Parser.jj"/>
   </target>
   <target name="MakeSLParser" depends="init, check_javacc" if="javacc.home.is.set">
-    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src\jade\content\lang\sl" target="src\jade\content\lang\sl\SLParser.jj"/>
+    <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
   </target>
   <!--     ________________________________________________
                              jar
          ________________________________________________ -->
   <target name="lib" depends="jade" description="generate jar archive">
-    <!-- Create the jade.jar file -->
-    <jar jarfile="${lib}/jadeTools.jar" basedir="${build}">
-      <fileset dir="${build}/jade/tools"/>
-      <fileset dir="${build}/jade/gui"/>
+    <!-- Create the jadeTools.jar file -->
+    <jar jarfile="${lib}/jadeTools.jar" >
+      <fileset dir="${build}" includes="**/jade/tools/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/applet/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/dfgui/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/dfgui/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/DummyAgent/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/DummyAgent/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/gui/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/gui/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/introspector/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/introspector/gui/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/introspector/gui/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/rma/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/rma/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/sl/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/sniffer/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/sniffer/images/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/SocketProxyAgent/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/testagent/*"/>
+      <fileset dir="${build}" includes="**/jade/tools/testagent/images/*"/>
+      <fileset dir="${build}" includes="**/jade/gui/*"/>
+      <fileset dir="${build}" includes="**/jade/gui/images/*"/>
+      <fileset dir="${build}" includes="**/jade/gui/help/*"/>
     </jar>
+	
+	<delete dir="${build}/jade/tools"/>
+
+    <!-- Create the iiop.jar file -->
+    <jar jarfile="${lib}/iiop.jar" >
+      <fileset dir="${build}" includes="**/FIPA/*"/>
+      <fileset dir="${build}" includes="**/jade/mtp/iiop/*"/>
+    </jar>
+
+	<delete dir="${build}/jade/mtp/iiop"/>
+	<delete dir="${build}/FIPA"/>
+
+    <!-- Create the Base64.jar file -->
+    <jar jarfile="${lib}/Base64.jar" >
+      <fileset dir="${build}" includes="**/starlight/util/*"/>
+    </jar>
+
+	<delete dir="${build}/starlight/util"/>
+
+    <!-- Create the jade.jar file -->
+	<jar jarfile="${lib}/jade.jar" 
+		 basedir="${build}"
+		 excludes="${build}/jade/tools/*,${build}/FIPA/*"
+    />	
     <!--
  includes="${build}/jade.mf, ${build}/jade/gui/**, ${build}/jade/tools/**" />
     <delete includeEmptyDirs="true" > 
@@ -105,6 +141,7 @@
     </delete>
 -->
   </target>
+
   <!--    __________________________________________________
                             clean
         __________________________________________________ -->
