@@ -54,78 +54,64 @@ public abstract class Codec {
     private String name = null;
 
     /**
-     * Decodes the content to an abstract description.
-     *
-     * @param content the content as a byte array.
-     *
-     * @return the content as an abstract description.
-     *
-     * @throws CodecException
-     *
-     */
-    public abstract AbsContentElement decode(byte[] content) 
-            throws CodecException;
-
-    /**
-     * Encodes a content into a byte array.
-     *
-     * @param content the content as an abstract descriptor.
-     *
-     * @return the content as a byte array.
-     *
-     * @throws CodecException
-     *
-     */
-    public abstract byte[] encode(AbsContentElement content) 
-            throws CodecException;
-
-    /**
-     * Encodes a content into a byte array.
-     *
-     * @param ontology the ontology 
-     * @param content the content as an abstract descriptor.
-     * 
-     * @return the content as a byte array.
-     *
-     * @throws CodecException
-     *
-     */
-    public abstract byte[] encode(Ontology ontology, AbsContentElement content) 
-            throws CodecException;
-
-    /**
-     * Decodes the content to an abstract description.
-     *
-     * @param ontology the ontology.
-     * @param content the content as a byte array.
-     *
-     * @return the content as an abstract description.
-     *
-     * @throws CodecException
-     *
-     */
-    public abstract AbsContentElement decode(Ontology ontology, byte[] content) 
-            throws CodecException;
-
-    /**
-     * Constructor
-     *
-     * @param name the name of the Codec.
-     *
+     * Construct a Codec object with the given name
      */
     public Codec(String name) {
         this.name = name;
     }
 
     /**
-     * Gets the name of the codec.
-     *
-     * @return the name of the codec.
-     *
+     * Gets the name of this codec.
+     * @return the name of this codec.
      */
     public String getName() {
         return name;
     } 
 
+    /**
+     * Encodes a content into a byte array.
+     * @param content the content as an abstract descriptor.
+     * @return the content as a byte array.
+     * @throws CodecException
+     */
+    public abstract byte[] encode(AbsContentElement content) 
+            throws CodecException;
+
+    /**
+     * Encodes a content into a byte array.
+     * @param ontology the ontology 
+     * @param content the content as an abstract descriptor.
+     * @return the content as a byte array.
+     * @throws CodecException
+     */
+    public abstract byte[] encode(Ontology ontology, AbsContentElement content) 
+            throws CodecException;
+
+    /**
+     * Decodes the content to an abstract description.
+     * @param content the content as a byte array.
+     * @return the content as an abstract description.
+     * @throws CodecException
+     */
+    public abstract AbsContentElement decode(byte[] content) 
+            throws CodecException;
+
+    /**
+     * Decodes the content to an abstract description.
+     * @param ontology the ontology.
+     * @param content the content as a byte array.
+     * @return the content as an abstract description.
+     * @throws CodecException
+     */
+    public abstract AbsContentElement decode(Ontology ontology, byte[] content) 
+            throws CodecException;
+
+    /**
+     * @return the ontology containing the schemas of the operator
+     * defined in this language
+     */
+    public Ontology getInnerOntology() {
+    	return null;
+    }
 }
 
