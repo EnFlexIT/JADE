@@ -156,8 +156,8 @@ public class AchieveREInitiator extends FSMBehaviour {
     
     private ACLMessage request;
 	
-	String conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
-	MessageTemplate mt = MessageTemplate.MatchConversationId(conversationID);
+	String conversationID = null; 
+	MessageTemplate mt = null; 
     
     /**
      * Construct for the class by creating a new empty DataStore
@@ -174,7 +174,10 @@ public class AchieveREInitiator extends FSMBehaviour {
      * Notice that the default implementation of the 
      * <code>prepareMessage</code>
      * method returns
-     * an array including that message only.
+     * an array composed of only this message.
+     * The values of the slot 
+     * <code>reply-with</code> is ignored and a different value is assigned
+     * automatically by this class for each receiver.
      * @param s The <code>DataStore</code> that will be used by this 
      * <code>AchieveREInitiator</code>
      */
@@ -246,7 +249,11 @@ public class AchieveREInitiator extends FSMBehaviour {
 			    // set the conversation-id. A single conv-id for all the messages in
 			    // this protocol must be used, such that the right MessageTemplate
 			    // can be later created.
-				
+			    if (request.getConversationId() == null) 
+				conversationID = "C"+hashCode()+"_"+System.currentTimeMillis();
+			    else
+				conversationID = request.getConversationId();
+			    mt = MessageTemplate.MatchConversationId(conversationID);
 			    request.setConversationId(conversationID);
 
 			    ACLMessage toSend = (ACLMessage)request.clone();
@@ -516,7 +523,10 @@ public class AchieveREInitiator extends FSMBehaviour {
      * this method in order to return a vector of objects for 1:N conversations
      * or also to prepare the messages during the execution of the behaviour.
      * @param request the ACLMessage object passed in the constructor
-     * @return a Vector of ACLMessage objects
+     * @return a Vector of ACLMessage objects.
+     * The values of the slot 
+     * <code>reply-with</code> is ignored and a different value is assigned
+     *  automatically by this class for each receiver.
      **/    
     protected Vector prepareRequests(ACLMessage request) {
 	Vector l = new Vector(1);
@@ -635,6 +645,9 @@ public class AchieveREInitiator extends FSMBehaviour {
        Vector of ACLMessage objects to be sent 
        into the datastore at the <code>ALL_REQUESTS_KEY</code>
        key.
+       The values of the slot 
+       <code>reply-with</code> is ignored and a different value is assigned
+       automatically by this class for each receiver.
        @param b the Behaviour that will handle this state
     */
     public void registerPrepareRequests(Behaviour b) {
@@ -789,9 +802,6 @@ public class AchieveREInitiator extends FSMBehaviour {
 	//initializeDataStore(msg);
 	request = msg;
 	allResponsesReceived = false;
-  conversationID = "C"+Integer.toString(hashCode())+Long.toString(System.currentTimeMillis());
-	mt = MessageTemplate.MatchConversationId(conversationID);
-    
   }
 
     /** 
