@@ -37,6 +37,7 @@ import java.util.Enumeration;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.Property;
+import jade.lang.acl.ISO8601;
 
 /**
 @author Giovanni Caire - Adriana Quinto- CSELT S.p.A.
@@ -198,7 +199,7 @@ public class ServiceDscDlg extends JDialog
 		while(temp.hasNext())
 		{
 			Property singleProp = (Property)temp.next();
-			props.setProperty(singleProp.getName(),singleProp.getValue().toString());
+			props.setProperty(singleProp.getName(),singleProp.getValue().toString()); 
 		}
     propertiesListPanel = new VisualPropertiesList(props,getOwner());
     propertiesListPanel.setDimension(new Dimension(350,40));
@@ -264,7 +265,22 @@ public class ServiceDscDlg extends JDialog
             		Property tp = new Property();
             		String key = (String)keys.nextElement();
             		tp.setName(key);
-            		tp.setValue(ps.getProperty(key));
+								Object val = ps.getProperty(key);
+								// try if the property is a long or a float or a datetime
+								try {
+										val = Long.valueOf(val.toString());
+								} catch (NumberFormatException e1) {
+										try {
+												val = Double.valueOf(val.toString());
+										} catch (NumberFormatException e2) {
+												try {
+														val = ISO8601.toDate(val.toString());
+												} catch (Exception e3) {
+												}
+										}
+								}
+								// set the value of this property
+            		tp.setValue(val);
             		out.addProperties(tp);
             	}
 
