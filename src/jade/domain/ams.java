@@ -61,6 +61,8 @@ import jade.onto.basic.BasicOntology;
 import jade.onto.basic.ResultPredicate;
 import jade.onto.basic.DonePredicate;
 
+import jade.mtp.MTPException;
+
 import jade.proto.FipaRequestResponderBehaviour;
 
 /**
@@ -602,6 +604,59 @@ public class ams extends Agent implements AgentManager.Listener {
 
   } // End of SniffAgentOffBehaviour class
 
+  private class InstallMTPBehaviour extends AMSBehaviour {
+    public InstallMTPBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new InstallMTPBehaviour(msg);
+    }
+
+    protected void processAction(Action a) throws FIPAException {
+      InstallMTP imtp = (InstallMTP)a.get_1();
+      try {
+	myPlatform.installMTP(imtp.getAddress(), imtp.getContainer(), imtp.getClassName());
+	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+      }
+      catch(NotFoundException nfe) {
+	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
+      }
+      catch(UnreachableException ue) {
+	throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
+      }
+      catch(MTPException mtpe) {
+	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", mtpe.getMessage());
+      }
+    }
+
+  } // End of InstallMTPBehaviour class
+
+  private class UninstallMTPBehaviour extends AMSBehaviour {
+    public UninstallMTPBehaviour(ACLMessage msg) {
+      super(msg);
+    }
+    public FipaRequestResponderBehaviour.ActionHandler create(ACLMessage msg) {
+      return new UninstallMTPBehaviour(msg);
+    }
+
+    protected void processAction(Action a) throws FIPAException {
+      UninstallMTP umtp = (UninstallMTP)a.get_1();
+      try {
+	myPlatform.uninstallMTP(umtp.getAddress(), umtp.getContainer());
+	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
+      }
+      catch(NotFoundException nfe) {
+	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
+      }
+      catch(UnreachableException ue) {
+	throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage());
+      }
+      catch(MTPException mtpe) {
+	throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", mtpe.getMessage());
+      }
+    }
+
+  } // End of UninstallMTPBehaviour class
 
 
 
@@ -733,6 +788,8 @@ public class ams extends Agent implements AgentManager.Listener {
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.KILLCONTAINER, new KillContainerBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFON, new SniffAgentOnBehaviour(null));
     extensionsDispatcher.registerFactory(JADEAgentManagementOntology.SNIFFOFF, new SniffAgentOffBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.INSTALLMTP, new InstallMTPBehaviour(null));
+    extensionsDispatcher.registerFactory(JADEAgentManagementOntology.UNINSTALLMTP, new UninstallMTPBehaviour(null));
 
   }
 
