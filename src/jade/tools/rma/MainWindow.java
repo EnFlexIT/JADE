@@ -61,6 +61,10 @@ class MainWindow extends JFrame {
     setJMenuBar(new MainMenu(this,actPro));
     popA = new PopupMenuAgent(actPro);
     popC = new PopupMenuContainer(actPro);
+
+    tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
+    tree.treeAgent.register("FIPACONTAINER",popC,"images/TreeClosed.gif");
+
     setForeground(Color.black);
     setBackground(Color.lightGray);
     addWindowListener(new WindowCloser(anRMA));
@@ -110,9 +114,8 @@ class MainWindow extends JFrame {
   public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {
-        MutableTreeNode node = tree.treeAgent.createNewNode(name,0);
-	tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER", addr);
-        tree.treeAgent.setParameter("FIPACONTAINER",popC);
+        MutableTreeNode node = tree.treeAgent.createNewNode(name, 0);
+        tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -135,10 +138,9 @@ class MainWindow extends JFrame {
     // Add an agent to the specified container
     Runnable addIt = new Runnable() {
       public void run() {
-	  String agentName = agentID.getName();
+	String agentName = agentID.getName();
        	AgentTree.Node node = tree.treeAgent.createNewNode(agentName, 1);
         tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
-        tree.treeAgent.setParameter("FIPAAGENT",popA);
       }
     };
     SwingUtilities.invokeLater(addIt);
