@@ -548,6 +548,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  Authority authority = Authority.getAuthority();
 
 	  try {
+	    /*
 	    IdentityCertificate identity = new IdentityCertificate();
 	    identity.init(new AgentPrincipal(user, agentID), 0, 0);
 	    authority.sign(identity, subject);
@@ -556,6 +557,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    delegation.init(new AgentPrincipal(user, agentID), 0, 0);
 	    //delegation.addPermission(...);
 	    authority.sign(delegation, subject);
+	    */
 	    
 	    try {
 	      createAgent(agentID, s.getClassName(), s.getArgs(), null, null, NOSTART); //!!!
@@ -583,10 +585,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	    System.out.println("This container does not appear to be registered with the main container.");
 	    localAgents.remove(agentID);
 	  }
-	  catch(JADESecurityException se) {
+	  /*catch(JADESecurityException se) {
 	    se.printStackTrace();
 	    localAgents.remove(agentID);
-	  }
+	  }*/
     	}
 
     	// Now activate all agents (this call starts their embedded threads)

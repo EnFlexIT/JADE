@@ -44,6 +44,9 @@ public class ContainerAuthority extends Authority {
     super(name);
   }
   
+  public void init(Object[] args) {
+  }
+    
 	/**
 		Checks the validity of a given certificate.
 		The period of validity is tested, as well as the integrity
