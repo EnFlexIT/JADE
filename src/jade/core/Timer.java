@@ -32,7 +32,7 @@ be used by application developers.
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-public class Timer implements Comparable {
+public class Timer /*implements Comparable*/ {
 
   private long expireTimeMillis;
   private boolean fired;
@@ -44,14 +44,14 @@ public class Timer implements Comparable {
     fired = false;
   }
 
-  public int compareTo(Object o) {
+  /*public int compareTo(Object o) {
     if(equals(o))
       return 0;
     else {
       Timer t = (Timer)o;
       return (expireTimeMillis <= t.expireTimeMillis) ? -1 : 1;
     }
-  }
+  }*/
 
   public boolean equals(Object o) {
     Timer t = (Timer)o;

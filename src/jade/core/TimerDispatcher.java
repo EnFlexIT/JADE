@@ -23,8 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-import jade.util.leap.SortedSet;
-import jade.util.leap.SortedSetImpl;
+//import jade.util.leap.SortedSet;
+//import jade.util.leap.SortedSetImpl;
+import java.util.Vector;
 
 /**
 This class implements the JADE internal timing system. It should not
@@ -38,7 +39,8 @@ public class TimerDispatcher implements Runnable {
 	private static TimerDispatcher theDispatcher;
 	
   private Thread myThread = null;
-  private SortedSet timers = new SortedSetImpl();
+  private Vector timers = new Vector();
+  //private SortedSet timers = new SortedSetImpl();
   private boolean active;
 
   TimerDispatcher() {
@@ -56,28 +58,24 @@ public class TimerDispatcher implements Runnable {
   		myThread = new Thread(this);
   		start();
   	}
-  	while (!timers.add(t)) {
+  	while (!addTimer(t)) {
   		t.setExpirationTime(t.expirationTime()+1);
   	}
     // If this is the first timer, wake up the dispatcher thread
-    if(timers.first() == t) {
+    if(timers.firstElement() == t) {
       notifyAll();
     }
     return t;
   }
 
   public synchronized void remove(Timer t) {
-    timers.remove(t);
+    timers.removeElement(t);
   }
 
   private synchronized boolean emptySet() {
     return timers.isEmpty();
   }
 
-  private synchronized Timer firstTimer() {
-    return (Timer)timers.first();
-  }
-  
   public void run() {
     try {
     	while (active) {
@@ -86,9 +84,9 @@ public class TimerDispatcher implements Runnable {
     			while (active) {
 	    			long timeToWait = 0;
 	    			if (!timers.isEmpty()) {
-	    				t = (Timer) timers.first();
+	    				t = (Timer) timers.firstElement();
 	    				if (t.isExpired()) {
-    						timers.remove(t);
+    						timers.removeElement(t);
 	    					break;
 	    				}
 	    				else {
@@ -120,23 +118,25 @@ public class TimerDispatcher implements Runnable {
   }
 
   void stop() {
-    synchronized(myThread) {
-      if(Thread.currentThread().equals(myThread)) {
-				System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
-      }
-      else {
-				active = false;
-				synchronized (this) {
-					notifyAll();
-				}
-				try {
-	  			myThread.join();
-				}
-				catch (InterruptedException ignore) {
-	  			// Do nothing
-				}
-      }
-    }
+  	if (myThread != null) {
+	    synchronized(myThread) {
+	      if(Thread.currentThread().equals(myThread)) {
+					System.out.println("Deadlock avoidance: TimerDispatcher thread calling stop on itself!");
+	      }
+	      else {
+					active = false;
+					synchronized (this) {
+						notifyAll();
+					}
+					try {
+		  			myThread.join();
+					}
+					catch (InterruptedException ignore) {
+		  			// Do nothing
+					}
+	      }
+	    }
+  	}
   }
 
   public static TimerDispatcher getTimerDispatcher() {
@@ -148,5 +148,21 @@ public class TimerDispatcher implements Runnable {
   
   static void setTimerDispatcher(TimerDispatcher td) {
   	theDispatcher = td;
+  }
+  
+  private boolean addTimer(Timer t) {
+  	if (!timers.contains(t)) {
+  		int size = timers.size();
+  		for (int i = 0; i < size; i++) {
+  			Timer t1 = (Timer) timers.elementAt(i);
+  			if (t.expirationTime() < t1.expirationTime()) {
+  				timers.insertElementAt(t, i);
+  				return true;
+  			}
+  		}
+  		timers.addElement(t);
+  		return true;
+  	}
+  	return false;
   }
 }
