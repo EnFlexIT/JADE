@@ -65,7 +65,7 @@ public class Runtime {
      @return A proxy object, through which services can be requested
      from the real JADE container.
    */
-  public AgentContainer createAgentContainer(Profile p) {
+  public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
     String host = p.getMainContainerHost();
     String port = p.getMainContainerPort();
 
@@ -74,7 +74,7 @@ public class Runtime {
     try {
       AgentContainerImpl impl = new AgentContainerImpl();
       impl.joinPlatform(platformRMI, new LinkedList().iterator(), empty, empty);
-      return new AgentContainer(impl);
+      return new jade.wrapper.AgentContainer(impl);
     }
     catch(RemoteException re) {
       throw new InternalError("Remote exception in a local call.");
