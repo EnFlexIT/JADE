@@ -469,9 +469,6 @@ public class Ontology {
       ObjectSchema schema = (ObjectSchema) elements.get(lcType);
       //DEBUG System.out.println("Ontology "+getName()+". Schema is: "+schema);
       if (schema != null) {
-      	/*if (schema instanceof IRESchema || schema instanceof VariableSchema) {
-        	throw new UngroundedException();
-        }*/
             
         // Retrieve the java class
         Class javaClass = (Class) classes.get(lcType);
