@@ -36,7 +36,8 @@ private Long max_depth = null;
 
 private Long max_results = null;
 
-    private String search_id = null;
+private String search_id = null;
+private int cnt = 0;
 
     /**
      * Constructor. Creates a new SearchConstraints by setting default value, as defined
@@ -55,10 +56,16 @@ private Long max_results = null;
     /** Regenerate the value of search_id as a globally unique identifier.
      * This call is recommended in order to reuse the same object for several
      * searches. Otherwise, the DF might reply with a FAILURe having received
-     * already the same search.
+     * already the same search_id.
      **/
     public void renewSearchId() {
-        search_id = "s" + hashCode() + "_" + System.currentTimeMillis();
+    	// We also use a counter since System.currentTimeMillis() is not precise --> 
+    	// Two calls to renewSearchId() may result in the same search_id value
+    	// if they occur very close.
+        search_id = "s" + hashCode() + "_" + System.currentTimeMillis() + String.valueOf(cnt++);
+        if (cnt >= 100) {
+        	cnt = 0;
+        }
     }
     
     public void setSearchId(String searchId) {
