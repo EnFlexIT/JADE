@@ -18,6 +18,9 @@ ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 AGENTMANFLAGS =	-OUTPUT_DIRECTORY:jade/domain
 AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
 
+SL0FLAGS    =   -OUTPUT_DIRECTORY:jade/lang/sl
+SL0SPEC     =   jade/lang/sl/SL0Parser.jj
+
 EXECS       = 	jade/Boot.java
 IDLSPEC     =   FIPA_Agent_97.idl
 ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
@@ -60,7 +63,7 @@ all: $(IDLSTUBS) parsers classes stubs
 _%Stub.java %.java %Holder.java %Helper.java _%ImplBase.java: %.idl
 	$(IDLCC) $<
 
-parsers: ACLParser AgentManParser
+parsers: ACLParser AgentManParser SL0Parser
 	@echo Parsers generated
 
 ACLParser:
@@ -68,6 +71,9 @@ ACLParser:
 
 AgentManParser:
 	$(PARSERGEN) $(AGENTMANFLAGS) $(AGENTMANSPEC)
+
+SL0Parser:
+	$(PARSERGEN) $(SL0FLAGS) $(SL0SPEC)
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
@@ -98,6 +104,14 @@ clean:
 	rm -f jade/lang/acl/ParseException.java
 	rm -f jade/lang/acl/Token.java
 	rm -f jade/lang/acl/TokenMgrError.java
+
+	rm -f jade/lang/sl/SL0Parser.java
+	rm -f jade/lang/sl/SL0ParserConstants.java
+	rm -f jade/lang/sl/SL0ParserTokenManager.java
+	rm -f jade/lang/sl/ASCII_UCodeESC_CharStream.java
+	rm -f jade/lang/sl/ParseException.java
+	rm -f jade/lang/sl/Token.java
+	rm -f jade/lang/sl/TokenMgrError.java
 
 	rm -f jade/domain/AgentManagementParser.java
 	rm -f jade/domain/AgentManagementParserConstants.java
