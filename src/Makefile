@@ -45,6 +45,8 @@ ROOTCLASSES =	jade/core/FullAcc.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
+		jade/proto/ContractNetInitiator.java \
+		jade/proto/ContractNetResponder.java \
 		jade/proto/states/HandlerSelector.java \
 		jade/security/DummyAuthority.java \
 		jade/tools/rma/rma.java \

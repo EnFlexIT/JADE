@@ -70,6 +70,7 @@ API_FILES2 =	jade/domain/DFGUIManagement/DFAppletManagementOntology.java \
 		jade/domain/DFGUIInterface.java \
 		jade/domain/DFServiceCommunicator.java \
 		jade/domain/FIPAException.java \
+		jade/domain/FIPANames.java \
 		jade/domain/FIPAServiceCommunicator.java \
 		jade/domain/MobilityOntology.java \
 		jade/domain/RequestFIPAServiceBehaviour.java
@@ -156,7 +157,6 @@ API_FILES5 =	jade/gui/package.html \
 		jade/gui/BrowserLauncher.java \
 		jade/gui/ConstraintDlg.java \
 		jade/gui/DFAgentDscDlg.java \
-		jade/gui/DescriptionNode.java \
 		jade/gui/GuiAgent.java \
 		jade/gui/GuiEvent.java \
 		jade/gui/GuiProperties.java \
@@ -216,14 +216,11 @@ API_FILES5 =	jade/gui/package.html \
 API_FILES6 =	jade/proto/package.html \
 		jade/proto/states/HandlerSelector.java \
 		jade/proto/states/MsgReceiver.java \
-		jade/proto/FipaContractNetInitiatorBehaviour.java \
-		jade/proto/FipaContractNetResponderBehaviour.java \
-		jade/proto/FipaQueryInitiatorBehaviour.java \
-		jade/proto/FipaQueryResponderBehaviour.java \
-		jade/proto/FipaRequestInitiatorBehaviour.java \
-		jade/proto/FipaRequestResponderBehaviour.java \
 		jade/proto/AchieveREInitiator.java \
 		jade/proto/AchieveREResponder.java \
+		jade/proto/ContractNetInitiator.java \
+		jade/proto/ContractNetResponder.java \
+		jade/proto/FipaRequestInitiatorBehaviour.java 
 		jade/proto/FIPAProtocolNames.java \
 		jade/tools/DummyAgent/package.html \
 		jade/tools/DummyAgent/DummyAgent.java \
@@ -306,7 +303,6 @@ API_FILES8 =	jade/tools/rma/MainMenu.java \
 		jade/tools/rma/PopupMenuPlatform.java \
 		jade/tools/rma/PopupMenuRemotePlatform.java \
 		jade/tools/rma/PopupMouser.java \
-		jade/tools/rma/Properties.java \
 		jade/tools/rma/RMAAction.java \
 		jade/tools/rma/RefreshAMSAgentAction.java \
 		jade/tools/rma/RefreshAPDescriptionAction.java \
@@ -385,78 +381,58 @@ API_FILES9 =	jade/tools/sniffer/PanelCanvas.java \
 		jade/wrapper/AgentContainer.java \
 		jade/wrapper/MainContainer.java \
 		jade/wrapper/StaleProxyException.java \
-		jade/content/abs/AbsAID.java \
-		jade/content/abs/AbsActionPredicate.java \
 		jade/content/abs/AbsAgentAction.java \
 		jade/content/abs/AbsAggregate.java \
-		jade/content/abs/AbsCommunicativeAct.java \
 		jade/content/abs/AbsConcept.java \
 		jade/content/abs/AbsContentElement.java \
 		jade/content/abs/AbsContentElementList.java \
-		jade/content/abs/AbsGenericAction.java \
-		jade/content/abs/AbsHigherOrderPredicate.java \
 		jade/content/abs/AbsIRE.java \
 		jade/content/abs/AbsObject.java \
 		jade/content/abs/AbsPredicate.java \
 		jade/content/abs/AbsPrimitive.java \
-		jade/content/abs/AbsProposition.java \
 		jade/content/abs/AbsTerm.java \
 		jade/content/abs/AbsVariable.java \
-		jade/content/abs/AbsEquals.java \
 		jade/content/abs/AbsHelper.java
 
 API_FILES10 =	jade/content/acl/Inform.java \
-		jade/content/acl/QueryRef.java \
 		jade/content/acl/Request.java \
 		jade/content/acl/CommunicativeActBase.java \
-		jade/content/ActionPredicate.java \
 		jade/content/AgentAction.java \
-		jade/content/CommunicativeAct.java \
 		jade/content/Concept.java \
 		jade/content/ContentElement.java \
 		jade/content/ContentElementList.java \
 		jade/content/ContentManager.java \
-		jade/content/GenericAction.java \
-		jade/content/HigherOrderPredicate.java \
-		jade/content/IRE.java \
-		jade/content/KeyValuePair.java \
 		jade/content/Predicate.java \
-		jade/content/Proposition.java \
-		jade/content/QuantifiedVariable.java \
-		jade/content/Quantifier.java \
 		jade/content/Term.java \
-		jade/content/Variable.java \
+		jade/content/OntoACLMessage.java \
+		jade/content/OntoAID.java \
 		jade/content/lang/j/JCodec.java \
 		jade/content/lang/leap/LEAPCodec.java \
 		jade/content/lang/Codec.java \
 		jade/content/lang/sl/SLCodec.java \
 		jade/content/onto/ACLOntology.java \
+		jade/content/onto/BasicIntrospector.java \
 		jade/content/onto/BasicOntology.java \
+		jade/content/onto/Introspectable.java \
 		jade/content/onto/Introspector.java \
+		jade/content/onto/MicroIntrospector.java \
 		jade/content/onto/Ontology.java \
 		jade/content/onto/OntologyException.java \
 		jade/content/onto/ReflectiveIntrospector.java \
 		jade/content/onto/UngroundedException.java \
-		jade/content/onto/FullOntology.java \
-		jade/content/onto/BasicIntrospector.java \
-		jade/content/schema/ActionPredicateSchema.java \
+		jade/content/onto/UnknownSchemaException.java \
 		jade/content/schema/AgentActionSchema.java \
 		jade/content/schema/AggregateSchema.java \
-		jade/content/schema/CommunicativeActSchema.java \
 		jade/content/schema/ConceptSchema.java \
 		jade/content/schema/ContentElementListSchema.java \
 		jade/content/schema/ContentElementSchema.java \
-		jade/content/schema/GenericActionSchema.java \
-		jade/content/schema/HigherOrderPredicateSchema.java \
+		jade/content/schema/Facet.java \
 		jade/content/schema/IRESchema.java \
 		jade/content/schema/ObjectSchema.java \
 		jade/content/schema/PredicateSchema.java \
 		jade/content/schema/PrimitiveSchema.java \
-		jade/content/schema/PropositionSchema.java \
 		jade/content/schema/TermSchema.java \
 		jade/content/schema/VariableSchema.java \
-		jade/content/schema/EqualsSchema.java \
-		jade/content/Equals.java
 
 API_CLASSES = 	$(API_FILES1) $(API_FILES2) $(API_FILES3) $(API_FILES4) $(API_FILES5) \
 		$(API_FILES6) $(API_FILES7) $(API_FILES8) $(API_FILES9) $(API_FILES10)
