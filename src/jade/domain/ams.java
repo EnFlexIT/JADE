@@ -380,18 +380,33 @@ public class ams extends Agent implements AgentManager.Listener {
 		log("Agent "+requester+" requesting Kill-container "+cid, 2);
     CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
-    try{
+    try {
 	    getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
 		    public Object run() throws AuthException, NotFoundException {
-	    		myPlatform.killContainer(cid);
-					return null;
+
+			Thread auxThread = new Thread() {
+			    public void run() {
+				try {
+				    myPlatform.killContainer(cid);
+				}
+				catch(AuthException ae) {
+				    log("Agent does not have permission to perform action Shutdown-Platform: " + ae, 0);
+				}
+				catch(NotFoundException nfe) {
+				    log("The ontainer to kill was not found: " + nfe, 0);
+				}
+			    }
+			};
+
+			auxThread.start();
+			return null;
 		    }
-			}, requesterCredentials);
-		}
-		catch(AuthException ae) {
-			log("Agent "+requester.getName()+" does not have permission to perform action KillContainer", 0);
-			throw new Unauthorised();
-		}
+		}, requesterCredentials);
+    }
+    catch(AuthException ae) {
+	log("Agent "+requester.getName()+" does not have permission to perform action KillContainer", 0);
+	throw new Unauthorised();
+    }
     catch(NotFoundException nfe) {
     	throw new InternalError("Container not found. "+nfe.getMessage());   
     }
@@ -409,7 +424,19 @@ public class ams extends Agent implements AgentManager.Listener {
 	    try{
 		getAuthority().doAsPrivileged(new PrivilegedExceptionAction() {
 			public Object run() throws AuthException, NotFoundException {
-			    myPlatform.shutdownPlatform();
+
+			    Thread auxThread = new Thread() {
+			        public void run() {
+				    try {
+					myPlatform.shutdownPlatform();
+				    }
+				    catch(AuthException ae) {
+					log("Agent does not have permission to perform action Shutdown-Platform: " + ae, 0);
+				    }
+				}
+			    };
+
+			    auxThread.start();
 			    return null;
 			}
 		    }, requesterCredentials);
