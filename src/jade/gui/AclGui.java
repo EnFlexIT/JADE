@@ -69,7 +69,7 @@ import jade.lang.acl.*;
  * acl.setMsg(msg);<br>
  * </code>
  * </li> 
- * <li> <b>Static Mode</b>. The AclGui class also provides the <em>editMsgInDlg()</em> and <em>showMsgInDlg()</em>
+ * <li> <b>Static Mode</b>. The AclGui class also provides the <em>editMsgInDialog()</em> and <em>showMsgInDlg()</em>
  * static methods that pop up a temporary dialog window (including an AclGui panel and the proper OK and
  * Cancel buttons) by means of which it is possible to edit and show a given ACL message.<br>
  * E.g.<br>
@@ -84,7 +84,7 @@ import jade.lang.acl.*;
  * {<br>
  *		public void actionPerformed(ActionEvent e)<br>
  *		{<br>
- *			msg = AclGui.editMsgInGui(new ACLMessage("", null);<br>
+ *			msg = AclGui.editMsgInDialog(new ACLMessage("", null);<br>
  *		}<br>
  * } );<br>
  * </code>
@@ -568,23 +568,29 @@ public class AclGui extends JPanel
 		// Destination: a group of agents
 		if (!(param = receiver.getText()).equals(""))
 		{
+			String s1 = param.trim();
+			// The list of destinations can be in the form (d1 d2 ...)
+			// If this is the case, skip the initial '(' and final ')'
+			int start = (s1.charAt(0) == '(' ? 1 : 0);
+			int end = (s1.charAt(s1.length() -1) == ')' ? s1.length()-1 : s1.length());
+			String s2 = s1.substring(start,end);
+			
 			char[] separator = new char[3];
 			separator[0] = ' ';
 			separator[1] = '\t';
 			separator[2] = '\n';
 			String dest;
-			int start = 0;
-			int end;
-			while ((end = StringParser.firstOccurrence(param, start, separator, 3)) > 0)
+			start = 0;
+			while ((end = StringParser.firstOccurrence(s2, start, separator, 3)) > 0)
 			{
-				dest = param.substring(start, end);
+				dest = s2.substring(start, end);
 				if (dest.length() > 0)
 				{
 					msg.addDest(dest);
 				}
-				start = end + StringParser.skip(param, end, separator, 3);
+				start = end + StringParser.skip(s2, end, separator, 3);
 			}
-			dest = param.substring(start);
+			dest = s2.substring(start);
 			if (dest.length() > 0)
 			{
 				msg.addDest(dest);
@@ -674,14 +680,14 @@ public class AclGui extends JPanel
 		@param parent The parent window of the dialog window
 		@see AclGui#editMsgInDialog(ACLMessage msg, Frame parent)
 	*/
-	public static void showMsgInDialog(ACLMessage m, Frame parent)
+	public static void showMsgInDialog(ACLMessage msg, Frame parent)
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
 
 		AclGui aclPanel = new AclGui();
 		aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
 		aclPanel.setEnabled(false);
-		aclPanel.setMsg(m);
+		aclPanel.setMsg(msg);
 
 		JButton okButton = new JButton("OK");
 		JPanel buttonPanel = new JPanel();
@@ -702,7 +708,9 @@ public class AclGui extends JPanel
 
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
-		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
+		if (parent != null)
+			tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, 
+			                       parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
 		tempAclDlg.show();
 	}
 
@@ -714,15 +722,15 @@ public class AclGui extends JPanel
 		@param parent The parent window of the dialog window
 		@return The ACL message displayed in the dialog window or null depending on whether the user close the window
 		by clicking the OK or Cancel button 
-		@see AclGui#showMsgInDialog(ACLMessage m, Frame parent)
+		@see AclGui#showMsgInDialog(ACLMessage msg, Frame parent)
 	*/
-	public static ACLMessage editMsgInDialog(ACLMessage m, Frame parent)
+	public static ACLMessage editMsgInDialog(ACLMessage msg, Frame parent)
 	{
 		final JDialog tempAclDlg = new JDialog(parent, "ACL Message", true);
 		final AclGui  aclPanel = new AclGui();
 		aclPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
 		aclPanel.setSenderEnabled(true);
-		aclPanel.setMsg(m);
+		aclPanel.setMsg(msg);
 
 		JButton okButton = new JButton("OK");
 		JButton cancelButton = new JButton("Cancel");
@@ -740,25 +748,34 @@ public class AclGui extends JPanel
 									   {
 											public void actionPerformed(ActionEvent e)
 											{
-												tempAclDlg.dispose();
+											  //System.out.println("OK pressed");
 												editedMsg = aclPanel.getMsg();
+												tempAclDlg.dispose();
 											}
 									   } );
 		cancelButton.addActionListener(new ActionListener()
 										   {
 												public void actionPerformed(ActionEvent e)
 												{
-													tempAclDlg.dispose();
+												  //System.out.println("OK pressed");
 													editedMsg = null;
+													tempAclDlg.dispose();
 												}
 										   } );
 		
 		tempAclDlg.pack();
 		tempAclDlg.setResizable(false);
-		tempAclDlg.setLocation(parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2, parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
+		if (parent != null)
+			tempAclDlg.setLocation( parent.getX() + (parent.getWidth() - tempAclDlg.getWidth()) / 2,
+			                        parent.getY() + (parent.getHeight() - tempAclDlg.getHeight()) / 2);
 		tempAclDlg.show();
 
-		return editedMsg;
+		ACLMessage m = null;
+		if (editedMsg != null)
+			m = (ACLMessage) editedMsg.clone();
+		//if (m == null)
+		//System.out.println("MERDA");
+		return m;
 	}
 
 }
