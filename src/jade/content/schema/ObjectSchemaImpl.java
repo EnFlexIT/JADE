@@ -497,7 +497,7 @@ class ObjectSchemaImpl extends ObjectSchema {
     	if (v!=null) {
     		Facet temp[] = new Facet[v.size()];
     		for (int i=0; i<v.size()-1; i++) 
-    		temp[i] = (Facet)v.get(i);
+    		temp[i] = (Facet)v.elementAt(i);
 	    	return temp;
 		} else return null;
 	}
