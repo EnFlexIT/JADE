@@ -52,7 +52,6 @@ import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-import jade.security.PrivilegedExceptionAction;
 import jade.security.JADESecurityException;
 
 import jade.lang.acl.ACLMessage;
