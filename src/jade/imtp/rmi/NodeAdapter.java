@@ -45,13 +45,14 @@ import jade.core.ServiceException;
  */
 class NodeAdapter extends BaseNode {
 
-    public NodeAdapter(String name, boolean hasSM) throws RemoteException {
+    public NodeAdapter(String name, boolean hasSM, int port) throws RemoteException {
 	super(name, hasSM);
-	adaptee = new NodeRMIImpl(this);
-    }
-
-    public NodeAdapter(String name) throws RemoteException {
-	this(name, false);
+	try {
+	    adaptee = new NodeRMIImpl(this, port);
+	}
+	catch(Exception e) {
+	    adaptee = new NodeRMIImpl(this, 0);
+	}
     }
 
     public NodeAdapter(String name, NodeRMI node) {
