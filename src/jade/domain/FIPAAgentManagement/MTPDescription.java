@@ -83,7 +83,7 @@ public class MTPDescription {
     	w.write(" :profile "+ profile);
     	
     if ((name!=null)&&(name.length()>0))
-      w.write(" :name " + name);
+      w.write(" :mtp-name " + name);
     
     if (addresses.size()>0)
       w.write(" :addresses (sequence ");
