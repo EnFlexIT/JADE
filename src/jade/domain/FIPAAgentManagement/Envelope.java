@@ -79,11 +79,12 @@ public class Envelope implements java.io.Serializable {
   /**
   @serial
   */
-  private ReceivedObject received;
-  /**
-  @serial
-  */
   private Properties transportBehaviour;
+
+  /**
+  serial
+  */
+  private List stamps = new ArrayList();
 
   public void addTo(AID id) {
     to.add(id);
@@ -182,11 +183,33 @@ public class Envelope implements java.io.Serializable {
   }
 
   public void setReceived(ReceivedObject ro) {
-    received = ro;
+    addStamp(ro);
   }
 
   public ReceivedObject getReceived() {
-    return received;
+    if(stamps.isEmpty())
+      return null;
+    else
+      return (ReceivedObject)stamps.get(stamps.size() - 1);
+  }
+
+  /**
+     Add a <code>received-object</code> stamp to this message
+     envelope. This method is used by the ACC to add a new stamp to
+     the envelope at every routing hop.
+     @param ro The <code>received-object</code> to add.
+  */
+  public void addStamp(ReceivedObject ro) {
+    stamps.add(ro);
+  }
+
+  /**
+     Access the list of all the stamps. The
+     <code>received-object</code> stamps are sorted according to the
+     routing path, from the oldest to the newest.
+  */
+  public ReceivedObject[] getStamps() {
+    return (ReceivedObject[])stamps.toArray(new ReceivedObject[0]);
   }
 
   // FIXME: Handle Properties
