@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.4  1998/11/09 00:40:47  rimassa
+  Modified callback method to terminate only the RMA agent when the GUI
+  window is closed and not the whole agent container.
+
   Revision 1.3  1998/10/10 19:37:31  rimassa
   Imported a newer version of JADE GUI from Fabio.
 
@@ -14,17 +18,15 @@ import java.awt.event.*;
 import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 
+import jade.domain.rma;
+
 /**
  * This class is useful to make MainFrame handle
  * the WindowCLose event.
  */
-public class WindowCloser extends WindowAdapter
-{
-    public void windowClosing(WindowEvent e)
-    {
-		Window win = e.getWindow();
-		win.setVisible(false);
-		win.dispose();
-		System.exit(0);
-    }
+public class WindowCloser extends WindowAdapter {
+  public void windowClosing(WindowEvent e) {
+      rma myRMA = AMSMainFrame.getRMA();
+      myRMA.doDelete();
+  }
 }
