@@ -30,6 +30,7 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
+import jade.security.AuthException;
 
 /**
  * Class declaration
@@ -69,6 +70,9 @@ public class BackEndSkel extends MicroSkeleton {
       	if (info != null) {
       		c.addParam(info);
       	}
+  		}
+  		catch (AuthException ae) {
+  			c = createErrorRsp(ae, true);
   		}
   		catch (IMTPException imtpe) {
   			c = createErrorRsp(imtpe, true);

@@ -28,6 +28,7 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
+import jade.security.AuthException;
 
 /**
  * Class declaration
@@ -46,12 +47,17 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	
 	/**
 	 */
-  public String[] bornAgent(String name) throws IMTPException {
+  public String[] bornAgent(String name) throws AuthException, IMTPException {
 		//Logger.println("Executing BORN_AGENT");
   	Command c = new Command(BORN_AGENT);
   	c.addParam(name);
 		// The BORN_AGENT command must not be postponed
 		Command r = executeRemotely(c, 0);
+		if (r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote BackEnd
+			// --> It must be an AuthException --> throw it
+			throw new AuthException((String) r.getParamAt(2));
+		}
 		if (r.getParamCnt() > 0) {
 			return (String[]) r.getParamAt(0);
 		}

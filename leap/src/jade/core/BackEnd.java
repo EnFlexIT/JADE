@@ -27,6 +27,7 @@ package jade.core;
 
 
 import jade.lang.acl.ACLMessage;
+import jade.security.AuthException;
 
 /**
 @author Giovanni Caire - TILAB
@@ -40,7 +41,7 @@ public interface BackEnd {
 	   platform addresses (packaged as an array of String) if the newly
 	   born agent is the first one. Null otherwise.
 	 */
-  String[] bornAgent(String name) throws IMTPException;
+  String[] bornAgent(String name) throws IMTPException, AuthException;
 
   /**
 	   Notify the BackEnd container that an agent has died. 
