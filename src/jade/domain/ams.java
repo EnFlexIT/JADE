@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.14  1998/10/31 16:43:10  rimassa
+  Implemented 'kill-agent' action through a suitable Behaviour; now both
+  an agent name and a password are recognized in action
+  content. Currently the password is ignored.
+
   Revision 1.13  1998/10/26 22:38:44  Giovanni
   Modified AMS Behaviour for action 'create-agent': now the syntax of
   the "Proposal for an extension of the Agent Management specifications"
@@ -383,9 +388,11 @@ public class ams extends Agent {
     if(!peerName.equalsIgnoreCase("RMA"))
        throw myOntology.getException(AgentManagementOntology.Exception.UNAUTHORISED);
 
-      // Create a new agent
-      AgentManagementOntology.AMSAgentDescriptor amsd = a.getArg();
-      myPlatform.AMSKillAgent(amsd.getName());
+      // Kill an agent
+      AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
+      String agentName = kaa.getAgentName();
+      String password = kaa.getPassword();
+      myPlatform.AMSKillAgent(agentName, password);
 
       sendAgree(myReply);
       sendInform(myReply);
