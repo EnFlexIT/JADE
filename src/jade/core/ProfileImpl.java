@@ -30,11 +30,16 @@ import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
-import jade.util.BasicProperties;
-import java.io.IOException;
+
+//#MIDP_EXCLUDE_BEGIN
 import java.net.*;
+//#MIDP_EXCLUDE_END
+
+
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Enumeration;
 
 /**
  * This class allows the JADE core to retrieve configuration-dependent classes
@@ -52,15 +57,18 @@ import java.util.Vector;
  */
 public class ProfileImpl extends Profile {
 
-  // HP Patch begin ----------------------------------------------------------------------------------
-  private BasicProperties  props = null;
-  // private Properties props = null;
+  private Properties props = null;
 
-  /**
-   * Default communication port number.
-   */
+
+	//#MIDP_EXCLUDE_BEGIN
+  // Keys to retrieve the implementation classes for configurable
+  // functionalities among the bootstrap properties.
+  private static final String RESOURCE = "resource";
+	//#MIDP_EXCLUDE_END
+
+  private static final String IMTP = "imtp";
+  private static final String LOCAL_PORT = "local-port";
   public static final int DEFAULT_PORT = 1099;
-  // HP Patch end ------------------------------------------------------------------------------------
 
     /**
        This constant is the key of the property whose value is the class name of
@@ -68,39 +76,28 @@ public class ProfileImpl extends Profile {
      **/
   public static final String MOBILITYMGRCLASSNAME = "mobility";
 
+  //#ALL_EXCLUDE_BEGIN
+  private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.rmi.RMIIMTPManager";
+  //#ALL_EXCLUDE_END
+
+  /*#ALL_INCLUDE_BEGIN
+  private static final String DEFAULT_IMTPMANAGER_CLASS = "jade.imtp.leap.LEAPIMTPManager";
+  #ALL_INCLUDE_END*/
+
+  //#MIDP_EXCLUDE_BEGIN
+  private MainContainerImpl myMain = null;
+  //#MIDP_EXCLUDE_END
+
 
   private ServiceManager myServiceManager = null;
   private ServiceFinder myServiceFinder = null;
   private CommandProcessor myCommandProcessor = null;
-  private MainContainerImpl myMain = null;
   private IMTPManager     myIMTPManager = null;
   private ResourceManager myResourceManager = null;
 
-  public ProfileImpl(BasicProperties aProp) {
+  public ProfileImpl(Properties aProp) {
     props = aProp;
-    try {
-      // Set default values
-      String host = InetAddress.getLocalHost().getHostName();
-      props.setPropertyIfNot(MAIN, "true");
-      props.setPropertyIfNot(MAIN_PROTO, "rmi");
-      props.setPropertyIfNot(MAIN_HOST, host);
-      props.setPropertyIfNot(MAIN_PORT, Integer.toString(DEFAULT_PORT));
-      props.setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
-      updatePlatformID();
-      if (!props.getBooleanProperty("nomtp", false)) {
-        Specifier s = new Specifier();
-        s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
-        List l = new ArrayList(1);
-        l.add(s);
-        props.put(MTPS, l);
-      }
-    } 
-    catch (UnknownHostException uhe) {
-      uhe.printStackTrace();
-    } 
-    catch (IOException ioe) {
-      ioe.printStackTrace();
-    } 
+    init();
   }
 
   /**
@@ -110,8 +107,33 @@ public class ProfileImpl extends Profile {
    * iiop MTP.
    */
   public ProfileImpl() {
-    this(new BasicProperties());
+
+      //#ALL_EXCLUDE_BEGIN
+      this(new jade.util.BasicProperties());
+      //#ALL_EXCLUDE_END
+
+      /*#ALL_INCLUDE_BEGIN
+	this(new Properties());
+      #ALL_INCLUDE_END*/
   }
+
+  /**
+   * Create a Profile object initialized with the settings specified
+   * in a given property file
+   */
+  public ProfileImpl(String fileName) throws ProfileException {
+  	props = new Properties();
+  	if (fileName != null) {
+	    try {
+  	  	props.load(fileName);
+	    }
+	    catch (IOException ioe) {
+		throw new ProfileException("Can't load properties: "+ioe.getMessage());
+	    }
+  	}
+
+  }
+
 
     /**
      * This constructor creates a default Profile for launching a platform.
@@ -130,12 +152,113 @@ public class ProfileImpl extends Profile {
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
      	if(port > 0)
-       		props.setIntProperty(MAIN_PORT, port);
+       		setIntProperty(MAIN_PORT, port);
      	if(platformID != null)
        		props.setProperty(PLATFORM_ID, platformID);
      	else 
 	    updatePlatformID();
  	}
+
+
+  private void init() {
+
+    // Set JVM parameter if not set
+    if(props.getProperty(JVM) == null) {
+	//#PJAVA_EXCLUDE_BEGIN
+	props.setProperty(JVM, J2SE);
+	//#PJAVA_EXCLUDE_END
+	/*#PJAVA_INCLUDE_BEGIN
+	  props.setProperty(JVM, PJAVA);
+	  #PJAVA_INCLUDE_END*/
+	/*#MIDP_INCLUDE_BEGIN
+	  props.setProperty(JVM, MIDP);
+	  props.setProperty(MAIN, "false");
+	  #MIDP_INCLUDE_END*/
+    }
+
+    // Set default values
+
+    String host = props.getProperty(MAIN_HOST);
+    if(host == null) {
+	try {
+	    //#MIDP_EXCLUDE_BEGIN
+	    host = InetAddress.getLocalHost().getHostName();
+	    //#MIDP_EXCLUDE_END
+	    /*#MIDP_INCLUDE_BEGIN
+	      host = "localhost";
+	      #MIDP_INCLUDE_END*/
+	    props.setProperty(MAIN_HOST, host);
+	}
+	catch(Exception e) {
+	    // FIXME: Should throw!!!
+	    //		throw new ProfileException("Could not retrieve the default local host name");
+	}
+    }
+
+    String p = props.getProperty(MAIN_PORT);
+    if(p == null) {
+	String localPort = props.getProperty(LOCAL_PORT);
+	if(localPort != null) {
+	    p = localPort;
+	}
+	else {
+	    p = Integer.toString(DEFAULT_PORT);
+	}
+	props.setProperty(MAIN_PORT, p);
+    }
+
+
+	//      setPropertyIfNot(MAIN_PROTO, "rmi");
+
+    setPropertyIfNot(MAIN, "true");
+    setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
+    String platformID = props.getProperty(PLATFORM_ID);
+    if(platformID == null) {
+	updatePlatformID();
+    }
+
+    //#MIDP_EXCLUDE_BEGIN
+    // Set agents as a list to handle the "gui" option
+    try {
+	List   agents = getSpecifiers(AGENTS);
+	String isGui = props.getProperty("gui");
+
+	if (isGui != null && CaseInsensitiveString.equalsIgnoreCase(isGui, "true")) {
+	    Specifier s = new Specifier();
+
+	    s.setName("rma");
+	    s.setClassName("jade.tools.rma.rma");
+	    agents.add(0, s);
+	    props.put(AGENTS, agents);
+	}
+    }
+    catch(ProfileException pe) {
+	// FIXME: Should throw?
+	pe.printStackTrace();
+    }
+    //#MIDP_EXCLUDE_END
+
+    //#J2ME_EXCLUDE_BEGIN
+    // Take proper adjustments in case this is the main
+    if (!("false".equalsIgnoreCase(props.getProperty(MAIN)))) {
+	// If no MTP is explicitly specified and the nomtp property is not set
+	// --> add the default IIOP MTP
+	if ((props.getProperty(MTPS) == null) && (props.getProperty("nomtp") == null)) {
+	    props.setProperty(MTPS, "jade.mtp.iiop.MessageTransportProtocol");
+	}
+    }
+
+    if (!getBooleanProperty("nomtp", false)) {
+	Specifier s = new Specifier();
+	s.setClassName("jade.mtp.iiop.MessageTransportProtocol"); 
+	List l = new ArrayList(1);
+	l.add(s);
+	props.put(MTPS, l);
+    }
+    //#J2ME_EXCLUDE_END
+
+  }
+
 
     public void updatePlatformID() {
 	String h = props.getProperty(MAIN_HOST);
@@ -144,39 +267,12 @@ public class ProfileImpl extends Profile {
     }
 
     /**
-     * Copy a collection of properties into this profile.
-     * @param source The collection to be copied.
-     */
-    void copyProperties(BasicProperties source) {
-        props.copyProperties(source);
-    }
-  
-    /**
      * Return the underlying properties collection.
-     * @return BasicProperties The properties collection.
+     * @return Properties The properties collection.
      */
-    public BasicProperties getProperties() {
+    public Properties getProperties() {
         return props;
     }      
-
-    /** HP.
-    private MainContainerImpl theMainContainer = null;
-
-    public void addPlatformListener(AgentManager.Listener aListener) throws NotFoundException {
-        if (theMainContainer == null) {
-            throw new NotFoundException("Unable to add listener, main container not set");
-        }
-        theMainContainer.addListener(aListener);
-    }
-
-    public void removePlatformListener(AgentManager.Listener aListener) throws NotFoundException {
-        if (theMainContainer == null) {
-            throw new NotFoundException("Unable to remove listener, main container not set");
-        }
-        theMainContainer.removeListener(aListener);
-    }
-    **/
-
 
   /**
    * Assign the given value to the given property name.
@@ -185,7 +281,7 @@ public class ProfileImpl extends Profile {
    * @param value is the property value
    */
     public void setParameter(String key, String value) {
-	props.put(key, value);
+	props.setProperty(key, value);
     }
 
   /**
@@ -195,24 +291,38 @@ public class ProfileImpl extends Profile {
    * @param value is the property value
    */
   public void setSpecifiers(String key, List value) {
-    props.put(key, value);
+      //#MIDP_EXCLUDE_BEGIN
+      props.put(key, value);
+      //#MIDP_EXCLUDE_END
   } 
 
 
-  /**
-     Access the platform service manager.
-     @return The platform service manager, either the real
-     implementation or a remote proxy object.
-     @throws ProfileException If some needed information is wrong or
-     missing from the profile.
-  */
-  protected ServiceManager getServiceManager() throws ProfileException {
-      if(myServiceManager == null) {
-	  createServiceManager();
+    /**
+       Access the platform service manager.
+       @return The platform service manager, either the real
+       implementation or a remote proxy object.
+       @throws ProfileException If some needed information is wrong or
+       missing from the profile.
+    */
+    protected ServiceManager getServiceManager() throws ProfileException {
+	if(myServiceManager == null) {
+	    //#MIDP_EXCLUDE_BEGIN
+	    createServiceManager();
+	    //#MIDP_EXCLUDE_END
+
+	    /*#MIDP_INCLUDE_BEGIN
+	    try {
+	        myServiceManager = myIMTPManager.createServiceManagerProxy(myCommandProcessor);
+	    }
+	    catch(IMTPException imtpe) {
+	        ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
+	        throw pe;
+	    }
+	    #MIDP_INCLUDE_END*/
       }
 
       return myServiceManager;
-  }
+    }
 
   /**
      Access the platform service finder.
@@ -223,7 +333,19 @@ public class ProfileImpl extends Profile {
   */
   protected ServiceFinder getServiceFinder() throws ProfileException {
       if(myServiceFinder == null) {
+	  //#MIDP_EXCLUDE_BEGIN
 	  createServiceFinder();
+	  //#MIDP_EXCLUDE_END
+
+	  /*#MIDP_INCLUDE_BEGIN
+	  try {
+	      myServiceFinder = myIMTPManager.createServiceFinderProxy();
+	  }
+	  catch(IMTPException imtpe) {
+	      ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Finder");
+	      throw pe;
+	  }
+	  #MIDP_INCLUDE_END*/
       }
 
       return myServiceFinder;
@@ -238,58 +360,76 @@ public class ProfileImpl extends Profile {
   }
 
 
-  /**
-   */
-  protected MainContainerImpl getMain() throws ProfileException {
-      return myMain;
-  }
+    //#MIDP_EXCLUDE_BEGIN
+    protected MainContainerImpl getMain() throws ProfileException {
+	return myMain;
+    }
+    //#MIDP_EXCLUDE_END
+
 
   /**
    */
   protected IMTPManager getIMTPManager() throws ProfileException {
     if (myIMTPManager == null) {
+  		//#MIDP_EXCLUDE_BEGIN
       createIMTPManager();
-    } 
+  		//#MIDP_EXCLUDE_END
+	  	/*#MIDP_INCLUDE_BEGIN
+	    String className = getParameter(IMTP, "jade.imtp.leap.LEAPIMTPManager");
+	    try {
+	      myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
+	    } 
+	    catch (Exception e) {
+	      throw new ProfileException("Error loading IMTPManager class"+className);
+	    }
+	  	#MIDP_INCLUDE_END*/
+    }
 
     return myIMTPManager;
+
   }
 
   /**
    */
   public ResourceManager getResourceManager() throws ProfileException {
+  	//#MIDP_EXCLUDE_BEGIN
     if (myResourceManager == null) {
       createResourceManager();
-    } 
+    }
 
     return myResourceManager;
+  	//#MIDP_EXCLUDE_END
+  	/*#MIDP_INCLUDE_BEGIN
+    return new LightResourceManager();
+  	#MIDP_INCLUDE_END*/
   }
 
 
-
-  /**
-   */
-  public jade.security.PwdDialog getPwdDialog() throws ProfileException {
+    //#J2ME_EXCLUDE_BEGIN
+    public jade.security.PwdDialog getPwdDialog() throws ProfileException {
           
-    //default is GUI swing password dialog
-    String className = getParameter(PWD_DIALOG_CLASS, "jade.security.impl.PwdDialogSwingImpl");
+	//default is GUI swing password dialog
+	String className = getParameter(PWD_DIALOG_CLASS, "jade.security.impl.PwdDialogSwingImpl");
 
 	jade.security.PwdDialog dialog=null;
-    try {
-      dialog = (jade.security.PwdDialog) Class.forName(className).newInstance();
-    } 
-    catch (Exception e) {
-      //throw new ProfileException("Error loading jade.security password dialog:"+className);
-      //e.printStackTrace();
-      System.out.println("\nError: Could not load jade.security password dialog class: '"+PWD_DIALOG_CLASS+"' ");
-      System.out.println("\n Check parameter: '"+Profile.PWD_DIALOG_CLASS+"' in your JADE config file." );
-      System.out.println("\n Its default value is: jade.security.impl.PwdDialogSwingImpl" );
-      System.exit(-1);
-    } 
-    return dialog;
-  }
+	try {
+	    dialog = (jade.security.PwdDialog) Class.forName(className).newInstance();
+	}
+	catch (Exception e) {
+	    //throw new ProfileException("Error loading jade.security password dialog:"+className);
+	    //e.printStackTrace();
+	    System.out.println("\nError: Could not load jade.security password dialog class: '"+PWD_DIALOG_CLASS+"' ");
+	    System.out.println("\n Check parameter: '"+Profile.PWD_DIALOG_CLASS+"' in your JADE config file." );
+	    System.out.println("\n Its default value is: jade.security.impl.PwdDialogSwingImpl" );
+	    System.exit(-1);
+	}
+	return dialog;
+    }
+    //#J2ME_EXCLUDE_END
 
 
 
+    //#MIDP_EXCLUDE_BEGIN
     private void createServiceManager() throws ProfileException {
 	try {
 	    // Make sure the IMTP manager is initialized
@@ -312,11 +452,12 @@ public class ProfileImpl extends Profile {
 	}
 	catch(IMTPException imtpe) {
 	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
-	    pe.initCause(imtpe);
 	    throw pe;
 	}
     }
+    //#MIDP_EXCLUDE_END
 
+    //#MIDP_EXCLUDE_BEGIN
     private void createServiceFinder() throws ProfileException {
 	try {
 	    // Make sure the IMTP manager is initialized
@@ -336,11 +477,10 @@ public class ProfileImpl extends Profile {
 	}
 	catch(IMTPException imtpe) {
 	    ProfileException pe = new ProfileException("Can't get a proxy for the platform Service Manager");
-	    pe.initCause(imtpe);
 	    throw pe;
 	}
     }
-
+    //#MIDP_EXCLUDE_END
 
     private void createCommandProcessor() throws ProfileException {
 	try {
@@ -348,48 +488,56 @@ public class ProfileImpl extends Profile {
 	}
 	catch(Exception e) {
 	    ProfileException pe = new ProfileException("Exception creating the Command Processor");
-	    pe.initCause(e);
 	    throw pe;
 	}
     }
 
-
-  /**
-   * Method declaration
-   *
-   * @throws ProfileException
-   *
-   * @see
-   */
+  //#MIDP_EXCLUDE_BEGIN
   private void createIMTPManager() throws ProfileException {
-    // Get the parameter from the profile, use the RMI IMTP by default
-    String className = getParameter(IMTP, "jade.imtp.rmi.RMIIMTPManager");
+
+    String className = getParameter(IMTP, DEFAULT_IMTPMANAGER_CLASS);
 
     try {
       myIMTPManager = (IMTPManager) Class.forName(className).newInstance();
     }
     catch (Exception e) {
-      e.printStackTrace();
+      throw new ProfileException("Error loading IMTPManager class"+className);
+    }
+  }
+  //#MIDP_EXCLUDE_END
 
-      throw new ProfileException("Error loading IMTPManager class "+className);
-    } 
-  } 
-
+  //#MIDP_EXCLUDE_BEGIN
   private void createResourceManager() throws ProfileException {
-  	myResourceManager = new FullResourceManager();
-  } 
+  	//#PJAVA_EXCLUDE_BEGIN
+    String className = getParameter(RESOURCE, "jade.core.FullResourceManager");
+  	//#PJAVA_EXCLUDE_END
+  	/*#PJAVA_INCLUDE_BEGIN
+    String className = getParameter(RESOURCE, "jade.core.LightResourceManager");
+  	#PJAVA_INCLUDE_END*/
+
+    try {
+      myResourceManager = (ResourceManager) Class.forName(className).newInstance();
+    }
+    catch (Exception e) {
+      throw new ProfileException("Error loading ResourceManager class"+className);
+    }
+  }
+  //#MIDP_EXCLUDE_END
 
 
   /**
    * Retrieve a String value from the configuration properties.
    * If no parameter corresponding to the specified key is found,
-   * return the provided default.
+   * <code>aDefault</code> is returned.
    * @param key The key identifying the parameter to be retrieved
    * among the configuration properties.
+   * @param aDefault The value that is returned if the specified 
+   * key is not found
    */
   public String getParameter(String key, String aDefault) {
-    return props.getProperty(key, aDefault);
-  } 
+    String v = props.getProperty(key);
+    return (v != null ? v.trim() : aDefault);
+  }
 
   /**
    * Retrieve a list of Specifiers from the configuration properties.
@@ -397,26 +545,25 @@ public class ProfileImpl extends Profile {
    * properties in this way.
    * If no list of Specifiers corresponding to the specified key is found,
    * an empty list is returned.
-   * @param key The key identifying the list of Specifiers to be retrieved
+   * @param key The key identifying the list of Specifires to be retrieved
    * among the configuration properties.
    */
   public List getSpecifiers(String key) throws ProfileException {
-    // Check if the list of specs is already in the properties as a list
+    //#MIDP_EXCLUDE_BEGIN
+  	// Check if the list of specs is already in the properties as a list
     List l = null;
-
     try {
       l = (List) props.get(key);
-      if (l == null) {
-      	l = new ArrayList(0);
-      }
-      return l;
     }
     catch (ClassCastException cce) {
     }
+    if (l != null) {
+      return l;
+    }
+    //#MIDP_EXCLUDE_END
 
-    // Otherwise the list should be present as a string --> parse it
+    // The list should be present as a string --> parse it
     String    specsLine = getParameter(key, null);
-
     try {
     	Vector v = Specifier.parseSpecifierList(specsLine);
 			// convert the vector into an arraylist (notice that using the vector allows to avoid class loading of ArrayList)
@@ -428,16 +575,61 @@ public class ProfileImpl extends Profile {
     catch (Exception e) {
     	throw new ProfileException("Error parsing specifier list "+specsLine+". "+e.getMessage());
     }
-  } 
+  }
 
     public String toString() {
 	StringBuffer str = new StringBuffer("(Profile");
-	String[] properties = props.toStringArray();
+	String[] properties = propsToStringArray();
 	if (properties != null)
 	    for (int i=0; i<properties.length; i++)
 		str.append(" "+properties[i]);
 	str.append(")");
 	return str.toString();
     }
+
+    private void setPropertyIfNot(String key, String value) {
+	String old = props.getProperty(key);
+	if(old == null) {
+	    props.setProperty(key, value);
+	}
+    }
+
+    //#J2ME_EXCLUDE_BEGIN
+    private boolean getBooleanProperty(String aKey, boolean aDefaultValue) {
+        boolean result = aDefaultValue;
+
+        try {
+            String value = props.getProperty(aKey);
+            result = (value != null) && value.equalsIgnoreCase("true");
+        }
+	catch (Exception e) {
+	}
+
+        return result;
+    }
+    //#J2ME_EXCLUDE_END
+
+    private void setIntProperty(String aKey, int aValue) {
+        props.setProperty(aKey, Integer.toString(aValue));
+    }
+
+    private String[] propsToStringArray() {
+        String[] result = new String[props.size()];
+        int i = 0;
+        for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
+            String key = (String) e.nextElement();
+            String value = props.getProperty(key);
+            if (value != null) {
+                result[i++] = key + "=" + value;
+            }
+	    else {
+                result[i++] = key + "=";
+            }
+        }
+        return result;
+    }
+
+
+
 }
 
