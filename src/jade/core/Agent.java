@@ -487,9 +487,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
     * @return jade.wrapper.AgentContainer The proxy container for this agent.
     */
    public final jade.wrapper.AgentContainer getContainerController() {
-     if (myContainer == null) {  // first time called
+     if (myContainer == null)  // first time called
        myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit, getHap());
-     }
      return myContainer;
    }
 
@@ -1040,20 +1039,12 @@ public class Agent implements Runnable, Serializable, TimerListener {
      used by application developers, unless creating some kind of
      agent factory. This method starts the embedded thread of the agent.
      <b> It is highly descouraged the usage of this method </b> because it
-     does not guarantee agent autonomy; soon this policy will
-     be enfored by removing or restricting the scope of the method
+     does not guarantee agent autonomy. It is expected that in the
+     next releases this method might be removed or its scope restricted.
      @param name The local name of the agent.
   */
   public void doStart(String name) {
-
-    // FIXME: Temporary hack for JSP example
-      if(myToolkit == null) {
-	  Runtime rt = Runtime.instance();
-	  setToolkit(rt.getDefaultToolkit());
-	  theDispatcher = rt.getTimerDispatcher();
-      }
-
-    if(myToolkit == null)
+   if(myToolkit == null)
       throw new InternalError("Trying to start an agent without proper runtime support.");
     myToolkit.handleStart(name, this);
   }

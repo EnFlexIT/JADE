@@ -80,13 +80,15 @@ public class ThanksAgent extends Agent {
 	    String t1AgentName = getLocalName()+"t1";
 	    String t2AgentName = getLocalName()+"t2";
 
-	    ThanksAgent t1 = new ThanksAgent();
-	    t1.doStart(t1AgentName);
-	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1.getLocalName());
-	    ThanksAgent t2 = new ThanksAgent();
-	    t2.doStart(t2AgentName);
-	    System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2.getLocalName()); 
-
+	    try {
+		PlatformController container = getContainerController(); // get a container controller for creating new agents
+		container.createNewAgent(t1AgentName, "examples.thanksAgent.ThanksAgent", null).start();
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName);
+		container.createNewAgent(t2AgentName, "examples.thanksAgent.ThanksAgent", null).start();
+		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName); 
+	    } catch (Exception any) {
+		any.printStackTrace();
+	    }
 
 
 	    /* THIS CODE WORKS AFTER JADE 2.3. 

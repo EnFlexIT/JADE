@@ -28,7 +28,8 @@ import jade.core.Agent;
 import jade.core.ProfileImpl;
 import jade.core.Profile;
 
-import jade.wrapper.AgentContainer;
+import jade.wrapper.PlatformController;
+import jade.wrapper.AgentController;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -211,15 +212,19 @@ public class HostAgent
 
         setPartyState( "Inviting guests" );
 
+	PlatformController container = getContainerController(); // get a container controller for creating new agents
         // create N guest agents
         try {
             for (int i = 0;  i < nGuests;  i++) {
                 // create a new agent
-                Agent guest = new GuestAgent();
-                guest.doStart( "guest_" + i );
+		String localName = "guest_"+i;
+		AgentController guest = container.createNewAgent(localName, "examples.party.GuestAgent", null);
+		guest.start();
+                //Agent guest = new GuestAgent();
+                //guest.doStart( "guest_" + i );
 
                 // keep the guest's ID on a local list
-                m_guestList.add( guest.getAID() );
+                m_guestList.add( new AID(localName, AID.ISLOCALNAME) );
             }
         }
         catch (Exception e) {
