@@ -5,7 +5,7 @@
 
 MAKE = make
 IDLCC = idlj -fall
-STUBGEN = rmic 
+STUBGEN = rmic
 PARSERGEN = javacc
 
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
@@ -168,8 +168,8 @@ batch:
 	echo 'call $(PARSERGEN) $(subst /,\,$(ACLFLAGS)) $(subst /,\,$(ACLSPEC))' >> $(BATCH_ALL)
 	echo 'call $(PARSERGEN) $(subst /,\,$(SL0FLAGS)) $(subst /,\,$(SL0SPEC))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
-	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
-	echo '$(JC) -classpath $(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
+	echo '$(JC) -classpath . $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(EXECS))' >> $(BATCH_ALL)
+	echo '$(JC) -classpath .;$(subst /,\,$(subst $(ROOTDIR),..,$(CLSDIR);$(SRCDIR))) $(subst /,\,$(subst $(ROOTDIR),..,$(JFLAGS))) $(subst /,\,$(ROOTCLASSES))' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\DummyAgent\images ..\classes\jade\tools\DummyAgent\images' >> $(BATCH_ALL)
 	echo 'xcopy /E /I jade\tools\sniffer\images ..\classes\jade\tools\sniffer\images' >> $(BATCH_ALL)
@@ -183,7 +183,7 @@ batch:
 	echo 'xcopy /I jade\gui\help\*.html ..\classes\jade\gui\help' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 
-	echo '$(STUBGEN) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
+	echo '$(STUBGEN) -classpath $(CLSDIR) -d ..\classes $(STUBS)' >> $(BATCH_ALL)
 	echo >> $(BATCH_ALL)
 	echo 'cd ..' >> $(BATCH_ALL)
 
