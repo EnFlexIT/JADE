@@ -76,7 +76,7 @@
 			<Description> This item includes tests related to the support for "FIPA-propose" interaction protocols </Description>
 			<TestsListRif>test/proto/proposeTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="Two-Phase-Commit Protocol" skip="true">
+		<Tester name="Two-Phase-Commit Protocol" skip="false">
 			<ClassName>test.proto.TwoPhTesterAgent</ClassName>
 			<Description> This item includes tests related to the support for the Two-phase-commit interaction protocols </Description>
 			<TestsListRif>test/proto/twoPhTestsList.xml</TestsListRif>
