@@ -53,7 +53,7 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
 	private static final String TEST_RESPONSE_ID = "Test-response";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\domain\\jadeManagementOntoTestsList.xml"){		
+		TestGroup tg = new TestGroup("test/domain/jadeManagementOntoTestsList.xml"){		
 			
 			private AID resp;
 			

@@ -32,8 +32,8 @@ ant testsuite - to compile test Suite
   	       destdir="${dest}" 
   	       excludes="**/TestAgent.java"
   	       classpath="${classpath}" 
-  	       nowarn="off" optimize="on" 
-  	       deprecation="on"/>
+  	       optimize="on" 
+  	       deprecation="off"/>
 
   	<!-- RMIC the TSDaemon -->
     <rmic classname="test.common.remote.TSDaemon" base="${dest}"/>
@@ -60,6 +60,21 @@ ant testsuite - to compile test Suite
     <copy file="${src}/test/roundTripTime/roundTripTimeTestsList.xml" todir="${dest}/test/roundTripTime"/>
   </target>
 
+  <!--  __________________________________________________
+                            jar
+        __________________________________________________ -->
+  <target name="jar" depends="compile" 
+          description="Create a jar file including all Jade tests and the necessary examples">
+		<delete file="${src}/test/test.jar" quiet="true"/>
+		<jar jarfile="${src}/test/test.jar">
+			<fileset dir="${dest}">
+				<include name="**/test/**"/>
+				<include name="**/examples/mobile/**"/>
+				<include name="**/examples/content/**"/>
+			</fileset>
+		</jar>
+	</target>
+	
   <!--  __________________________________________________
                             clean
         __________________________________________________ -->

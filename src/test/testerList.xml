@@ -14,61 +14,61 @@
 		<Tester name="Content languages and ontologies" skip="false">
 			<ClassName>test.content.ContentTesterAgent</ClassName>
 			<Description> This item includes tests related to the JADE support for user defined content languages and ontologies included in the jade.content package</Description>
-			<TestsListRif>test\\content\\contentTestsList.xml</TestsListRif>
+			<TestsListRif>test/content/contentTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="SL Operators" skip="false">
 			<ClassName>test.content.SLOperatorsTesterAgent</ClassName>
 			<Description> This item includes tests related to the usage of the SL operators such as logical operators (AND, OR, NOT) and modal operators (B, I, U).</Description>
-			<TestsListRif>test\\content\\SLOperatorTestsList.xml</TestsListRif>
+			<TestsListRif>test/content/SLOperatorTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Inter Platform Communication" skip="false">
 			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
 			<Description> This item includes tests related to agent communication across different platforms. </Description>
-			<TestsListRif>test\\interPlatform\\interPlatformTestsList.xml</TestsListRif>
+			<TestsListRif>test/interPlatform/interPlatformTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Behaviours block/restart" skip="false">
 			<ClassName>test.behaviours.BlockTimeoutTesterAgent</ClassName>
 			<Description> This item includes tests aimed at stressing the behaviour block/restart mechanism </Description>
-			<TestsListRif>test\\behaviours\\blockTimeOutTestsList.xml</TestsListRif>
+			<TestsListRif>test/behaviours/blockTimeOutTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Behaviour performance" skip="true">
 			<ClassName>test.behaviours.PerformanceTesterAgent</ClassName>
 			<Description> This item includes tests that measures the performances of the behaviour scheduling (including addition/remotion) mechanism </Description>
-			<TestsListRif>test\\behaviours\\performanceTestsList.xml</TestsListRif>
+			<TestsListRif>test/behaviours/performanceTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="AMS" skip="false">
 			<ClassName>test.domain.ams.AMSTesterAgent</ClassName>
 			<Description> This item includes tests related to the actions that can be requested to the AMS </Description>
-			<TestsListRif>test\\domain\\ams\\amsTestsList.xml</TestsListRif>
+			<TestsListRif>test/domain/ams/amsTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="DF" skip="false">
 			<ClassName>test.domain.df.DFTesterAgent</ClassName>
 			<Description> This item includes tests related to the Yellow Pages service provided by the DF agent according to the FIPA specifications </Description>
-			<TestsListRif>test\\domain\\df\\dfTestsList.xml</TestsListRif>
+			<TestsListRif>test/domain/df/dfTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="JADE Management Ontology" skip="false">
 			<ClassName>test.domain.JADEManagementOntologyTesterAgent</ClassName>
 			<Description> This item includes tests related to the actions included in the JADEManagementOntology such as CreateAgent and KillAgent </Description>
-			<TestsListRif>test\\domain\\jadeManagementOntotestsList.xml</TestsListRif>
+			<TestsListRif>test/domain/jadeManagementOntoTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Mobility" skip="false">
 			<ClassName>test.mobility.MobilityTesterAgent</ClassName>
 			<Description> This item includes tests related to agent mobility </Description>
-			<TestsListRif>test\\mobility\\mobilityTestsList.xml</TestsListRif>
+			<TestsListRif>test/mobility/mobilityTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="ContractNet Protocol" skip="false">
 			<ClassName>test.proto.ContractNetTesterAgent</ClassName>
 			<Description> This item includes tests related to the support for the Contract Net interaction protocol </Description>
-			<TestsListRif>test\\proto\\contractNetProtoTestsList.xml</TestsListRif>
+			<TestsListRif>test/proto/contractNetProtoTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="AchieveRE Protocol" skip="false">
 			<ClassName>test.proto.AchieveRETesterAgent</ClassName>
 			<Description> This item includes tests related to the support for "FIPA-request like" interaction protocols </Description>
-			<TestsListRif>test\\proto\\achieveRETestsList.xml</TestsListRif>
+			<TestsListRif>test/proto/achieveRETestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Communication performance and scalability" skip="true">
 			<ClassName>test.roundTripTime.RoundTripTimeTesterAgent</ClassName>
 			<Description> This item includes tests that measure the performances of the message transport mechanism for different types of communication (intra-container, inter-container, inter-platform...) </Description>
-			<TestsListRif>test\\roundTripTime\\roundTripTimeTestsList.xml</TestsListRif>
+			<TestsListRif>test/roundTripTime/roundTripTimeTestsList.xml</TestsListRif>
 		</Tester>
 	</TesterList>

@@ -51,7 +51,7 @@ public class SLOperatorsTesterAgent extends TesterAgent {
 	private static final String RESPONDER_NAME = "responder";
 	
 	protected TestGroup getTestGroup() {		
-		TestGroup tg = new TestGroup("test\\content\\SLOperatorTestsList.xml"){		
+		TestGroup tg = new TestGroup("test/content/SLOperatorTestsList.xml"){		
 			
 			private AID resp;
 			

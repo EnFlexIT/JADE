@@ -53,7 +53,7 @@ public class RoundTripTimeTesterAgent extends TesterAgent {
 	public static final String RECEIVER_CLASS = "benchmark.roundTripTime.RoundTripReceiver";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test//roundTripTime//roundTripTimeTestsList.xml");		
+		TestGroup tg = new TestGroup("test/roundTripTime/roundTripTimeTestsList.xml");		
 		
 		tg.specifyArgument(N_COUPLES_KEY, "Number of couples", String.valueOf(N_COUPLES_DEFAULT));
 		tg.specifyArgument(N_ITERATIONS_KEY, "Number of iterations", String.valueOf(N_ITERATIONS_DEFAULT));

@@ -40,7 +40,7 @@ public class PerformanceTesterAgent extends TesterAgent {
 	public static final int N_ITERATIONS_DEFAULT = 100;
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\behaviours\\performanceTestsList.xml");		
+		TestGroup tg = new TestGroup("test/behaviours/performanceTestsList.xml");		
 		tg.specifyArgument(N_ITERATIONS_KEY, "Number of iterations", String.valueOf(N_ITERATIONS_DEFAULT));
 		
 		return tg;

@@ -49,7 +49,7 @@ public class BlockTimeoutTesterAgent extends TesterAgent {
 	private static final long TIMEOUT_INCREASE_DEFAULT = 0;
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\behaviours\\blockTimeOutTestsList.xml");
+		TestGroup tg = new TestGroup("test/behaviours/blockTimeOutTestsList.xml");
 		
 		tg.specifyArgument(N_AGENTS_NAME, "Number of senders", String.valueOf(N_AGENTS_DEFAULT));
 		tg.specifyArgument(N_MESSAGES_NAME, "Number of messages", String.valueOf(N_MESSAGES_DEFAULT));

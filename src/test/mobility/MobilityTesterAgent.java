@@ -50,7 +50,7 @@ public class MobilityTesterAgent extends TesterAgent {
 	public static final String CONTAINER2_KEY = "C2";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\mobility\\mobilityTestsList.xml"){		
+		TestGroup tg = new TestGroup("test/mobility/mobilityTestsList.xml"){		
 			 
 			private JadeController jc1;
 			private JadeController jc2;

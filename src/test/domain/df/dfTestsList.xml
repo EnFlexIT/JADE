@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
 <!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
 	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
 	]>
+-->
 	<TestsList> 
 		<Test name="DF Service" skip="false">
 			<TestClassName>test.domain.df.tests.TestDFService</TestClassName>

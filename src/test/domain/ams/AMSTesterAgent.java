@@ -47,7 +47,7 @@ import test.common.*;
 public class AMSTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\domain\\ams\\amsTestsList.xml");		
+		TestGroup tg = new TestGroup("test/domain/ams/amsTestsList.xml");		
 		return tg;
 	}
 				

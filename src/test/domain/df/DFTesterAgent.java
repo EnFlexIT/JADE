@@ -48,7 +48,7 @@ import test.common.*;
 public class DFTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\domain\\df\\dfTestsList.xml");		
+		TestGroup tg = new TestGroup("test/domain/df/dfTestsList.xml");		
 		return tg;
 	}
 				

@@ -37,7 +37,7 @@ import test.common.*;
  */
 public class ContractNetTesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {		
-		TestGroup tg = new TestGroup("test\\proto\\contractNetProtoTestsList.xml");		
+		TestGroup tg = new TestGroup("test/proto/contractNetProtoTestsList.xml");		
 		return tg;
 	}
 		

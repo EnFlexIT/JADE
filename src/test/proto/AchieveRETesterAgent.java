@@ -37,7 +37,7 @@ import test.common.*;
  */
 public class AchieveRETesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {		
-		TestGroup tg = new TestGroup("test\\proto\\achieveRETestsList.xml");		
+		TestGroup tg = new TestGroup("test/proto/achieveRETestsList.xml");		
 		return tg;
 	}
 		

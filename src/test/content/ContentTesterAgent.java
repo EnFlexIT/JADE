@@ -54,7 +54,7 @@ public class ContentTesterAgent extends TesterAgent {
 	private static final String RESPONDER_NAME = "responder";
 	
 	protected TestGroup getTestGroup() {
-		TestGroup tg = new TestGroup("test\\content\\contentTestsList.xml"){		
+		TestGroup tg = new TestGroup("test/content/contentTestsList.xml"){		
 			
 			private AID resp;
 			
