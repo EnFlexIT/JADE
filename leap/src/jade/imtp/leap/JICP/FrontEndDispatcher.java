@@ -34,6 +34,7 @@ import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.ConnectionListener;
+import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -85,14 +86,18 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    backEndAddresses = parseBackEndAddresses(beAddrsText);
 
 	    // Verbosity
-	    try {
-		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
-	    }
-	    catch (NumberFormatException nfe) {
-		// Use default (1)
-	    }
-	  	
-	    log("Connecting to the BackEnd", 2);
+      /*
+        // Not available with new Logger
+        try {
+        verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_EndPoint_verbosity"));
+        }
+        catch (NumberFormatException nfe) {
+        // Use default (1)
+        }
+      */
+      
+
+	    log("Connecting to the BackEnd",Logger.INFO);
   		
 	    // Host
 	    String host = props.getProperty("host");
@@ -110,7 +115,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
 	    // Compose URL 
 	    mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	    log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
+	    log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA),Logger.INFO);
 
 	    // Read (re)connection retry time
 	    String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
@@ -120,7 +125,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    catch (Exception e) {
 		// Use default
 	    }
-	    log("Reconnection retry time is "+retryTime, 2);
+	    log("Reconnection retry time is "+retryTime,Logger.INFO);
 
 	    // Read Max disconnection time
 	    tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
@@ -130,7 +135,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    catch (Exception e) {
 		// Use default
 	    }
-	    log("Max disconnection time is "+maxDisconnectionTime, 2);
+	    log("Max disconnection time is "+maxDisconnectionTime,Logger.INFO);
 
 	    // Create the BackEnd stub and the FrontEnd skeleton
 	    myStub = new BackEndStub(this);
@@ -150,7 +155,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    	// Just ignore it
 	    }
 	    waitUntilConnected();
-	    log("Connection OK", 1);
+	    log("Connection OK",Logger.INFO);
 
 	    return myStub;
   	}
@@ -244,12 +249,12 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	      // Can't reconnect to the Mediator. Wait for a while before trying again
 	      // or PANIC if the max-disconnection timeout expired
 	      if(totalDisconnectionTime < maxDisconnectionTime) {
-		  log("Can't connect to the BackEnd. Wait a bit before retrying...", 2);
+		  log("Can't connect to the BackEnd. Wait a bit before retrying...",Logger.WARNING);
 		  try {
 		      Thread.sleep(retryTime);
 		  }
 		  catch (InterruptedException ie) {
-		      log("InterruptedException while waiting for next reconnection attempt", 1);
+		      log("InterruptedException while waiting for next reconnection attempt",Logger.WARNING);
 		  }
 		  totalDisconnectionTime += retryTime;
 	      }
@@ -267,10 +272,10 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
   protected void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
-  	log("Opening connection to the BackEnd", 2);
+  	log("Opening connection to the BackEnd",Logger.INFO);
     Connection c = new JICPConnection(mediatorTA);
 
-    log("Sending CREATE/CONNECT_MEDIATOR packet", 2);
+    log("Sending CREATE/CONNECT_MEDIATOR packet",Logger.FINEST);
     JICPPacket pkt = null;
     if (mediatorAlive) {
     	// This is a reconnection --> Send a CONNECT_MEDIATOR request
@@ -281,7 +286,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	// specify the proper Mediator class to instantiate and other parameters
     	StringBuffer sb = new StringBuffer();
     	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.JICP.BackEndDispatcher");
-    	appendProp(sb, "verbosity", String.valueOf(verbosity));
+    	//appendProp(sb, "verbosity", String.valueOf(verbosity));
     	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
 	if(beAddrsText != null) {
 	    appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
@@ -293,10 +298,10 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     }
     c.writePacket(pkt);
 
-    log("Packet sent. Read response", 2);
+    log("Packet sent. Read response",Logger.FINEST);
     // Read the response
     pkt = c.readPacket();
-    log("Response read", 2);
+    log("Response read",Logger.FINEST);
     if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
     	// The JICPServer refused to create the Mediator or didn't find myMediator anymore
     	byte[] data = pkt.getData();

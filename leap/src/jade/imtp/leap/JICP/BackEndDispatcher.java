@@ -41,6 +41,7 @@ import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
+import jade.util.Logger;
 import jade.util.leap.Properties;
 
 import jade.core.TimerDispatcher;
@@ -89,13 +90,16 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     myID = id;
     
 		// Verbosity
-  	try {
-  		verbosity = Integer.parseInt(props.getProperty("verbosity"));
-  	}
-  	catch (NumberFormatException nfe) {
+    /*
+      //Not available with new Logging mechanism
+      try {
+      verbosity = Integer.parseInt(props.getProperty("verbosity"));
+      }
+      catch (NumberFormatException nfe) {
       // Use default (1)
-  	}
-
+      }
+    */
+    
   	// Max disconnection time
     maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
     try {
@@ -112,7 +116,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 
     //initCnt();
     
-    log("Created BackEndDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);  	
+    log("Created BackEndDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime,Logger.INFO);  	
     startBackEndContainer(props);
   }
 
@@ -143,7 +147,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	    myContainer.activateReplicas();
 	}
 
-    	log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
+    	log("BackEndContainer successfully joined the platform: name is "+cid.getName(),Logger.FINEST);
     }
     catch (ProfileException pe) {
     	// should never happen
@@ -245,7 +249,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
      Make this BackEndDispatcher terminate.
    */
   public void shutdown() {
-    log("Initiate BackEndDispatcher shutdown", 2);
+    log("Initiate BackEndDispatcher shutdown",Logger.FINEST);
 
     // Deregister from the JICPServer
     if (myID != null) {
@@ -296,7 +300,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
         }
       } 
       catch (InterruptedException ie) {
-        log("InterruptedException while waiting for the FrontEnd container to (re)connect", 1);
+        log("InterruptedException while waiting for the FrontEnd container to (re)connect",Logger.WARNING);
       } 
     } 
     // If we get here there is a new connection ready --> Pass the connection to the EndPoint
@@ -307,7 +311,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     catch (IOException ioe) {
     	// The new connection is already down. Ignore it. The embedded thread
     	// will call setup() again.
-      log("New connection already down.", 1);
+      log("New connection already down",Logger.WARNING);
     }
   }
   

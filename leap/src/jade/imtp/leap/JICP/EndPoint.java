@@ -54,19 +54,21 @@ public abstract class EndPoint extends Thread {
   private InputStream  inp;
   private OutputStream out;
   private Thread terminator;
-  
+  private Logger myLogger = Logger.getMyLogger(getClass().getName());
+      
+
 	protected int pktCnt = 0;
   private OutgoingHandler[] outgoings = new OutgoingHandler[5];
   
   // The following variables are protected as they can be set by
   // subclasses
-  protected int verbosity = 1;
+  //protected int verbosity = 100;
   protected long respTimeout = 30000; // 30 sec
   protected int packetSize = 1024;  	
 
   /**
      Constructor declaration
-   */
+  */
   public EndPoint() {
   	super();
   }
@@ -75,7 +77,7 @@ public abstract class EndPoint extends Thread {
      Deliver a JICPPacket carrying a command to the remote
      EndPoint and get back another JICPPacket carrying the
      response
-   */
+  */
   public JICPPacket deliverCommand(JICPPacket cmd) throws ICPException {
   	OutgoingHandler h = new OutgoingHandler();
   	JICPPacket rsp = h.handle(cmd);
@@ -88,7 +90,7 @@ public abstract class EndPoint extends Thread {
   
   /**
      Make this EndPoint terminate
-	 */     
+  */     
   public void shutdown() {
   	active = false;
   	// Note that waking up OutgoingHandlers waiting for a response
@@ -104,7 +106,7 @@ public abstract class EndPoint extends Thread {
   	terminator = Thread.currentThread();
   	if ((terminator != this) && !(terminator instanceof IncomingHandler)) {
   		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, (byte) (JICPProtocol.DEFAULT_INFO), null);
-  		log("Pushing termination notification", 2);
+  		myLogger.log(Logger.INFO,"Pushing termination notification");
   		push((byte) 0, pkt);
   	} 		
   }
@@ -112,91 +114,91 @@ public abstract class EndPoint extends Thread {
   /**
      @return <code>true</code> if the connection to the remote
      EndPoint is currently up.
-   */
+  */
   public final boolean isConnected() {
   	return connected;
   }
   
   /** 
-     Set up the connection to the remote EndPoint. 
-     Subclasses are expected to implement this method
-   */   
+      Set up the connection to the remote EndPoint. 
+      Subclasses are expected to implement this method
+  */   
   protected abstract void setup() throws ICPException;
 
   /** 
-     Handle a JICPPacket carrying a command received from the
-     remote EndPoint.
-     Subclasses are expected to implement this method.
-     @return the JICPPacket carrying the response to be sent back
-   */   
+      Handle a JICPPacket carrying a command received from the
+      remote EndPoint.
+      Subclasses are expected to implement this method.
+      @return the JICPPacket carrying the response to be sent back
+  */   
   protected abstract JICPPacket handleCommand(JICPPacket cmd) throws Exception;
   
   /** 
-     This method is called as soon as (and each time) the 
-     connection to the remote EndPoint becomes up.
-     The default implementation of this method does nothing, but 
-     subclasses may redefine it to react to this event as needed.
-   */
+      This method is called as soon as (and each time) the 
+      connection to the remote EndPoint becomes up.
+      The default implementation of this method does nothing, but 
+      subclasses may redefine it to react to this event as needed.
+  */
 	protected void handleConnectionReady() {
 	}
 	
   /** 
-     This method is called when there is no way to (re)establish
-     the connection to the remote EndPoint.
-     The default implementation of this method does nothing, but 
-     subclasses may redefine it to react to this event as needed.
-   */
+      This method is called when there is no way to (re)establish
+      the connection to the remote EndPoint.
+      The default implementation of this method does nothing, but 
+      subclasses may redefine it to react to this event as needed.
+  */
 	protected void handleConnectionError() {
 	}
 	
   /** 
-     This method is called when the remote EndPoint exits
-     spontaneously.
-     The default implementation of this method does nothing, but 
-     subclasses may redefine it to react to this event as needed.
-   */
+      This method is called when the remote EndPoint exits
+      spontaneously.
+      The default implementation of this method does nothing, but 
+      subclasses may redefine it to react to this event as needed.
+  */
 	protected void handlePeerExited() {
 	}
-
+  
   /**
    * EndPoint thread entry point
    */
   public final void run() {
     while(active) {
-      log("Connection setup...", 2);
+      myLogger.log(Logger.INFO,"Connection setup...");
     	try {
-	    setup();
-	    log("Connection ready", 2);
-	    handleConnectionReady();
-	}
-	catch (ICPException icpe) {
-	    log("Connection cannot be (re)established. "+icpe.getMessage(), 0);
-	    handleConnectionError();
-	    break;
-	}
+        setup();
+        myLogger.log(Logger.INFO,"Connection ready");
+        handleConnectionReady();
+      }
+      catch (ICPException icpe) {
+        myLogger.log(Logger.WARNING,"Connection cannot be (re)established. "+icpe.getMessage());
+        handleConnectionError();
+        break;
+      }
+      
+      while (connected) {
+        try {
+          myLogger.log(Logger.INFO,"Waiting for a command...");
 
-	while (connected) {
-	    try {
-		log("Waiting for a command...", 3);
-
-		// Read JICPPacket
-		JICPPacket pkt = theConnection.readPacket();
-		servePacket(pkt);          
-	    }
-	    catch (Throwable t) {
-		if (active) {
-		    // Error reading from socket. The connection is no longer valid.
-		    log("Exception reading from connection: "+t, 1);
-		}
-		log("Wakeing up outgoings", 2);
-		wakeupOutgoings();
-		log("Resetting the connection", 2);
-		resetConnection();
-	    }
-	}   // End of loop on connected
+          // Read JICPPacket
+          JICPPacket pkt = theConnection.readPacket();
+          servePacket(pkt);          
+        }
+        catch (Throwable t) {
+          if (active) {
+            // Error reading from socket. The connection is no longer valid.
+            myLogger.log(Logger.WARNING,"Exception reading from connection: "+t);
+          }
+          myLogger.log(Logger.INFO,"Wakeing up outgoings");
+          wakeupOutgoings();
+          myLogger.log(Logger.INFO,"Resetting the connection");
+          resetConnection();
+        }
+      }   // End of loop on connected
     }     // End of loop on active
-
-    log("EndPoint thread terminated", 2);
+    
+    myLogger.log(Logger.INFO,"EndPoint thread terminated");
   }
   
   /**
@@ -207,14 +209,14 @@ public abstract class EndPoint extends Thread {
      OutgoingHandler that is waiting for it.
      - Otherwise (likely it is a KEEP_ALIVE) only the incoming
      packet counter is incremented.
-   */
+  */
   protected void servePacket(JICPPacket pkt) {
     byte id = pkt.getSessionID();
     byte type = pkt.getType();
     pktCnt = (pktCnt+1) & 0x0fff;
   	if (type == JICPProtocol.COMMAND_TYPE) {
     	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-      	log("Peer termination notification received", 2);
+      	myLogger.log(Logger.INFO,"Peer termination notification received");
     		// The remote EndPoint has terminated spontaneously -->
     		// close the connection, notify the local peer and exit
     		shutdown();
@@ -222,7 +224,7 @@ public abstract class EndPoint extends Thread {
     		handlePeerExited();
     	}
     	else {
-      	log("Command received. INC-SID="+id, 3);
+      	myLogger.log(Logger.INFO,"Command received. INC-SID="+id);
 
       	// Start a new IncomingHandler for the incoming connection
       	IncomingHandler h = new IncomingHandler(id, pkt);
@@ -230,12 +232,12 @@ public abstract class EndPoint extends Thread {
     	}
   	}
   	else if (type == JICPProtocol.RESPONSE_TYPE || type == JICPProtocol.ERROR_TYPE) {
-    	log("Response received. OUT-SID="+id, 3);
+    	myLogger.log(Logger.FINEST,"Response received. OUT-SID="+id);
     	
     	// Dispatch the response  to the OutgoingHandler that is waiting for it
     	OutgoingHandler h = deregisterOutgoing(id);
     	if (h == null) {
-    		log("WARNING: No OutgoingHandler for id "+id, 1);
+    		myLogger.log(Logger.WARNING,"WARNING: No OutgoingHandler for id "+id);
     	}
     	else {
 	    	h.setResponse(pkt);
@@ -244,7 +246,7 @@ public abstract class EndPoint extends Thread {
 	    		// The remote EndPoint has terminated as a consequence
 	    		// of a command issued by the local peer --> 
 	    		// just close the connection and exit
-	    		log("Last response received. Close connection", 2);
+	    		myLogger.log(Logger.INFO,"Last response received. Close connection");
 	    		shutdown();
 	    		resetConnection();
 	    	}
@@ -257,13 +259,13 @@ public abstract class EndPoint extends Thread {
      This is protected so that it can be directly called by 
      subclasses e.g. to send a KEEP_ALIVE packet.
      Mutual exclusion with setConnection() and resetConnection()
-   */
+  */
   protected int push(byte id, JICPPacket pkt) {
   	synchronized (connectionLock) {
   		if (connected) {
   			try {
   				if (Thread.currentThread() == terminator) {
-  					log("Setting TERMINATED_INFO", 2);
+  					myLogger.log(Logger.INFO,"Setting TERMINATED_INFO");
   					pkt.setTerminatedInfo();
   				}
 			    // Write the session id and the packet
@@ -273,7 +275,7 @@ public abstract class EndPoint extends Thread {
 		    catch (IOException ioe) {
 	        // The connection is down! Reset it so that the EndPoint thread
 	      	// detects the disconnection and handles it properly.
-		    	log("Exception delivering packet. "+ioe.toString(), 2);
+		    	myLogger.log(Logger.INFO,"Exception delivering packet. "+ioe.toString());
   				resetConnection();
 		    }
   		}
@@ -284,7 +286,7 @@ public abstract class EndPoint extends Thread {
   /**
      The following code is isolated in a separate protected method to
      make it possible to customize it
-   */
+  */
   protected int deliver(JICPPacket pkt) throws IOException {
   	return theConnection.writePacket(pkt);
   }
@@ -292,34 +294,34 @@ public abstract class EndPoint extends Thread {
   /**
      Reset the connection to the remote EndPoint
      Mutual exclusion with setConnection() and push()
-   */
+  */
   protected final void resetConnection() {
-      synchronized (connectionLock) {
-	  if (connected) {
+    synchronized (connectionLock) {
+      if (connected) {
 	      try {
-		  synchronized (inp) {
-		      inp.notifyAll();
-		  }
-		  inp.close();
-		  out.close();
-		  theConnection.close();
+          synchronized (inp) {
+            inp.notifyAll();
+          }
+          inp.close();
+          out.close();
+          theConnection.close();
 	      } 
 	      catch (Exception e) {
-		  log("Exception resetting the connection "+e.toString(), 2);
+          myLogger.log(Logger.WARNING,"Exception resetting the connection "+e.toString());
 	      }
 	      theConnection = null;
 	      inp = null;
 	      out = null;
 	      connected = false;
-	  }
       }
+    }
   }
     	
   /**
      Set <code>c</code> to be the connection to the remote
      EndPoint.
      Mutual exclusion with resetConnection() and push()
-   */
+  */
   protected final void setConnection(Connection c) throws IOException {
   	synchronized (connectionLock) {
 			theConnection = c;
@@ -334,7 +336,7 @@ public abstract class EndPoint extends Thread {
   /**
      Inner class IncomingHandler.
      This class handles an incoming command in a separated thread.
-   */
+  */
   class IncomingHandler extends Thread {
     private byte            id;
     private JICPPacket      cmd;
@@ -352,13 +354,13 @@ public abstract class EndPoint extends Thread {
      */
     public final void run() {
       JICPPacket rsp = null;
-      log("Start serving incoming command. INC-SID="+id, 3);
+      myLogger.log(Logger.FINEST,"Start serving incoming command. INC-SID="+id);
 
       // Extract the serialized command and passes it to the
       // listener for processing
     	try {
         rsp = handleCommand(cmd);
-        log("Command correctly handled. INC-SID="+id, 3);
+        myLogger.log(Logger.INFO,"Command correctly handled. INC-SID="+id);
     	}
     	catch (Exception e) {
     		rsp = new JICPPacket("IMTP Error", e);
@@ -368,10 +370,10 @@ public abstract class EndPoint extends Thread {
       if (push(id, rsp) == -1) {
       	// The connection went down while we were serving the command.
       	// This is the worst case as it may lead to inconsistencies.
-      	log("WARNING: Can't push back response. INC-SID="+id, 0);
+      	myLogger.log(Logger.WARNING,"Can't push back response. INC-SID="+id);
       }
       else {
-	      log("Response pushed back. INC-SID="+id, 3);
+	      myLogger.log(Logger.FINEST,"Response pushed back. INC-SID="+id);
       }
     } 
   }  // END of Inner class IncomingHandler
@@ -385,7 +387,7 @@ public abstract class EndPoint extends Thread {
      the connection and waits until the EndPoint thread gets the
      response from the peer. At that point the response is passed up to 
      the command originator.
-   */
+  */
   private class OutgoingHandler {
     private JICPPacket rsp = null;
     private boolean rspReceived = false;
@@ -402,19 +404,18 @@ public abstract class EndPoint extends Thread {
     private final JICPPacket handle(JICPPacket cmd) throws ICPException {
     	// Register as waiting for a response and acquire a free ID
 	  	byte myId = registerOutgoing(this);
-	    log("Start serving outgoing command. OUT-SID="+myId, 3);
-  	
-  		// Push the command
+	    myLogger.log(Logger.FINEST,"Start serving outgoing command. OUT-SID="+myId);
+      // Push the command
 	    oldPktCnt = pktCnt;
 	    int size = push(myId, cmd);
-    	if (size == -1) {  	
+      if (size == -1) {  	
     		// We are disconnected --> Deregister and throw an Exception
-    		log("WARNING: Can't push command. OUT-SID="+myId, 1);
+    		myLogger.log(Logger.INFO,"Can't push command. OUT-SID="+myId);
     		deregisterOutgoing(myId);
     		throw new ICPException("Disconnected");
     	}
     	else {
-    		log("Command pushed. OUT-SID="+myId, 3);
+    		myLogger.log(Logger.INFO,"Command pushed. OUT-SID="+myId);
     	}
     	
 			// Wait until the EndPoint thread receives the response
@@ -437,13 +438,13 @@ public abstract class EndPoint extends Thread {
           	// Timeout expired and no packet (including the response we 
           	// are waiting for) were received --> The connection is 
           	// probably down
-          	log("Response timeout expired. Reset the connection", 1);
+          	myLogger.log(Logger.INFO,"Response timeout expired. Reset the connection");
           	resetConnection();
           	break;
           }
         } 
         catch (InterruptedException ie) {
-          log("Interruption while waiting for response", 1);
+          myLogger.log(Logger.INFO,"Interruption while waiting for response");
         } 
       } 
 
@@ -471,7 +472,7 @@ public abstract class EndPoint extends Thread {
      peer.
      @return an ID that will identify the session managed by the 
      calling OutgoingHandler.
-   */
+  */
   private final byte registerOutgoing(OutgoingHandler h) throws ICPException {
   	synchronized (outgoings) {
   		try {
@@ -502,7 +503,7 @@ public abstract class EndPoint extends Thread {
      that the connection is no longer valid. 
      All OutgoingHandlers waiting for a response
      will return an error to the command originator.
-   */
+  */
   private final void wakeupOutgoings() {
   	synchronized (outgoings) {
 	    for (int i = 0; i < outgoings.length; ++i) {
@@ -517,19 +518,24 @@ public abstract class EndPoint extends Thread {
 
   /**
    */
+  /*
   void log(String s) {
     log(s, 3);
   } 
+  */
 
   /**
    */
-  void log(String s, int level) {
-    if (verbosity >= level) {
-      String name = Thread.currentThread().toString();
-      Logger logger = Logger.getMyLogger(this.getClass().getName());
-      logger.log(Logger.INFO,name+": "+s);
-    } 
+  //#J2ME_EXCLUDE_BEGIN
+  protected void log(String s, java.util.logging.Level level) {
+    //#J2ME_EXCLUDE_END 
+    /*#J2ME_INCLUDE_BEGIN
+    protected void log(String s, int level) {
+    #J2ME_INCLUDE_END*/
+    String name = Thread.currentThread().toString();
+    myLogger.log(level,name+": "+s);
+    //System.out.println(name+": "+s);
   } 
-
+  
 }
 

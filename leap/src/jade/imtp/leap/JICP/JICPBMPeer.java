@@ -41,6 +41,7 @@ import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.TransportProtocol;
 import jade.mtp.TransportAddress;
+import jade.util.Logger;
 import jade.util.leap.*;
 import java.io.*;
 
@@ -89,7 +90,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {  	
 		cmdListener = l;
   	
-  	log("Activating JICPBMPeer", 2);
+  	log("Activating JICPBMPeer", Logger.INFO);
   	StringBuffer sb = null;
 		int idLength;
 		if (peerID != null) {
@@ -106,7 +107,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 		sb.append(JICPProtocol.REMOTE_URL_KEY);
 		String remoteURL = p.getParameter(sb.toString(), null);
   	mediatorServerTA = JICPProtocol.getInstance().stringToAddr(remoteURL);
-		log("Remote URL for Mediator is "+remoteURL, 2);
+		log("Remote URL for Mediator is "+remoteURL,Logger.INFO);
 			
 		// Read (re)connection retry time
 		sb.setLength(idLength);
@@ -118,7 +119,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     catch (Exception e) {
       // Use default
     } 
-		log("Reconnection retry time is "+retryTime, 2);
+		log("Reconnection retry time is "+retryTime,Logger.INFO);
 			
 		// Read Max disconnection time
 		sb.setLength(idLength);
@@ -130,7 +131,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     catch (Exception e) {
       // Use default
     } 
-		log("Max disconnection time is "+maxDisconnectionTime, 2);
+		log("Max disconnection time is "+maxDisconnectionTime,Logger.INFO);
     sb = null;
 			
     // Start the embedded Thread
@@ -139,7 +140,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 
     // Wait for the embedded Thread to create/connect to the Mediator
     waitUntilConnected();
-		log("Peer activation OK ", 1);
+		log("Peer activation OK ",Logger.INFO);
 		
     return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);
   } 
@@ -202,7 +203,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 	            Thread.sleep(retryTime);
 	          } 
 	          catch (InterruptedException ie) {
-	            log("InterruptedException while waiting for next reconnection attempt", 1);
+	            log("InterruptedException while waiting for next reconnection attempt",Logger.WARNING);
 	          } 
 	          totalDisconnectionTime += retryTime;
 	        }
@@ -252,7 +253,12 @@ public class JICPBMPeer extends EndPoint implements ICP {
     	throw new ICPException(errorMsg);
     } 
 		if (!mediatorAlive) {
-			mediatorId = new String(pkt.getData());
+      // Added by NL
+      String replyMsg = new String(pkt.getData());
+      int index = replyMsg.indexOf('#');
+      mediatorId = replyMsg.substring(0, index);
+      // Removed by NL
+      //mediatorId = new String(pkt.getData());
 			mediatorAlive = true;
 		}
 		setConnection(c);
@@ -279,5 +285,6 @@ public class JICPBMPeer extends EndPoint implements ICP {
 	protected synchronized void handleConnectionError() {
 		notifyAll();		
 	}
+
 }
 

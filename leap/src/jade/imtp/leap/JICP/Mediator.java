@@ -43,6 +43,7 @@ import jade.imtp.leap.Command;
 import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
 import jade.core.TimerListener;
@@ -82,21 +83,21 @@ public class Mediator extends EndPoint implements JICPMediator {
 	    maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
     }
     catch (NumberFormatException nfe) {
-    	log("Error parsing max-disconnection-time.");
-    	throw new ICPException("Error parsing max-disconnection-time.");
+    	log("Error parsing max-disconnection-time", Logger.WARNING);
+    	throw new ICPException("Error parsing max-disconnection-time");
     }
 
     start();
 
     //initCnt();
-    log("Created Mediator v5.1. ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
+    log("Created Mediator v5.1. ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime,Logger.INFO);
   }  
   
   /**
      Make this Mediator terminate.
    */
   public void shutdown() {
-    log("Initiate Mediator shutdown");
+    log("Initiate Mediator shutdown",Logger.INFO);
 
     // Deregister from the JICPServer
     if (myID != null) {
@@ -163,12 +164,12 @@ public class Mediator extends EndPoint implements JICPMediator {
       // The JICPPacket carries a blocking PING command
       synchronized (pingLock) {
         try {
-          log("Handling blocking PING command --> go to sleep");
+          log("Handling blocking PING command --> go to sleep",Logger.INFO);
           pingLock.wait();
-          log("Resumed from sleeping on PING lock");
+          log("Resumed from sleeping on PING lock",Logger.INFO);
         } 
         catch (InterruptedException ie) {
-          log("Interrupted while sleeping on PING lock"+ie, 1);
+          log("Interrupted while sleeping on PING lock"+ie,Logger.WARNING);
           ie.printStackTrace();
         } 
       } 
@@ -176,7 +177,7 @@ public class Mediator extends EndPoint implements JICPMediator {
     } 
     else if (code == Command.PING_NODE_NONBLOCKING) {
       // The JICPPacket carries a NON-blocking PING command
-      log("Handling NON-blocking PING command --> reply directly");
+      log("Handling NON-blocking PING command --> reply directly",Logger.INFO);
       return true;
     } 
 
@@ -195,7 +196,7 @@ public class Mediator extends EndPoint implements JICPMediator {
     Socket s = null;
     DataInputStream inp = null;
     DataOutputStream out = null;
-    log("Start forwarding command");
+    log("Start forwarding command",Logger.INFO);
 
     // Extract the serialized command and forwards it to the
     // actual destination
@@ -208,7 +209,8 @@ public class Mediator extends EndPoint implements JICPMediator {
 			// Adjust the recipient ID
 			cmd.setRecipientID(destTa.getFile());
 			// Notify the server that this connection is not reusable
-			cmd.setTerminatedInfo();
+			// Changed by NL
+      //cmd.setTerminatedInfo();
 			
 			// Open a connection to the destination
       s = new Socket(destTa.getHost(), Integer.parseInt(destTa.getPort()));
@@ -253,7 +255,7 @@ public class Mediator extends EndPoint implements JICPMediator {
         }
       } 
       catch (InterruptedException ie) {
-        log("InterruptedException while waiting for mediated container to (re)connect", 1);
+        log("InterruptedException while waiting for mediated container to (re)connect",Logger.INFO);
       } 
     } 
     // If we get here there is a new connection ready --> Pass the connection to the EndPoint
