@@ -36,8 +36,17 @@ package jade.core;
 
    @see jade.core.CommandProcessor
 */
-public interface Filter extends Sink {
+public interface Filter {
 
+    /**
+       A constant indicating a filter for incoming commands
+    */
+    static final boolean INCOMING = false;
+
+    /**
+       A constant indicating a filter for outgoing commands
+    */
+    static final boolean OUTGOING = true;
 
     /**
        Sets the blocking state of this filter. A blocked filter does
@@ -55,7 +64,7 @@ public interface Filter extends Sink {
 
        @return The current blocking state of this filter.
     */
-    public boolean isBlocking();
+    boolean isBlocking();
 
     /**
        Sets the skipping state of this filter. A skipped filter does
@@ -64,7 +73,7 @@ public interface Filter extends Sink {
 
        @param blocked The boolean value to set the skipping state to.
     */
-    public void setSkipping(boolean newState);
+    void setSkipping(boolean newState);
 
     /**
        Inquires the skipping state of this filter. A skipped filter
@@ -73,7 +82,16 @@ public interface Filter extends Sink {
 
        @return The current skipping state of this filter.
     */
-    public boolean isSkipping();
+    boolean isSkipping();
+
+    /**
+       Receive a command object for processing.
+
+       @param cmd A <code>Command</code> describing what operation has
+       been requested from previous layers (that can be the actual
+       prime source of the command or previous filters in the chain.
+    */
+    void accept(VerticalCommand cmd);
 
 
 }
