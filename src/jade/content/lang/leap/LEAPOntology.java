@@ -56,11 +56,6 @@ class LEAPOntology extends Ontology {
     	instanceofSchema.add(LEAPCodec.INSTANCEOF_TYPE, (PrimitiveSchema) getSchema(BasicOntology.STRING));
     	add(instanceofSchema, (new InstanceOf()).getClass());
 
-    	HigherOrderActionSchema actionSchema = new HigherOrderActionSchema(LEAPCodec.SLACTION);
-    	actionSchema.add(LEAPCodec.SLACTION_ACTOR, (AIDSchema) getSchema(BasicOntology.AID));
-    	actionSchema.add(LEAPCodec.SLACTION_ACTION, (TermSchema) TermSchema.getBaseSchema());
-    	add(actionSchema, (new Action()).getClass());
-
     	IRESchema iotaSchema = new IRESchema(LEAPCodec.IOTA);
     	add(iotaSchema);
     	

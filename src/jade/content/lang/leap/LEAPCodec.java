@@ -31,12 +31,13 @@ import jade.content.abs.*;
 import jade.content.schema.*;
 import jade.util.leap.*;
 import java.util.Vector;
+import java.util.Date;
 import java.io.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
  */
-public class LEAPCodec extends Codec {
+public class LEAPCodec extends ByteArrayCodec {
     public static final String NAME = "LEAP";
     
     private Vector             references = null;
@@ -54,6 +55,7 @@ public class LEAPCodec extends Codec {
     private static final byte  BOOLEAN = 9;
     private static final byte  INTEGER = 10;
     private static final byte  FLOAT = 11;
+    private static final byte  DATE = 12;
     private static final byte  CONTENT_ELEMENT_LIST = 13;
     private static final byte  END_CONTENT_ELEMENT_LIST = 14;
 
@@ -62,10 +64,6 @@ public class LEAPCodec extends Codec {
     public static final String INSTANCEOF_ENTITY = "entity";
     public static final String INSTANCEOF_TYPE = "type";
 
-    public static final String SLACTION = "SLACTION";
-    public static final String SLACTION_ACTOR = "actor";
-    public static final String SLACTION_ACTION = "action";
-    
     public static final String IOTA = "IOTA";
     
     /**
@@ -205,6 +203,11 @@ public class LEAPCodec extends Codec {
             } 
             //__CLDC_UNSUPPORTED__END
 
+            if (obj instanceof Date) {
+                stream.writeByte(DATE);
+                obj = new Long(((Date) obj).getTime());
+            } 
+
             stream.writeUTF(obj.toString());
 
             return;
@@ -303,15 +306,20 @@ public class LEAPCodec extends Codec {
                 } 
 
                 if (type == INTEGER) {
-                    abs = AbsPrimitive.wrap(Integer.parseInt(value));
+                    abs = AbsPrimitive.wrap(Long.parseLong(value));
                 } 
 
                 //__CLDC_UNSUPPORTED__BEGIN
                 if (type == FLOAT) {
                 		// Note that Float.parseFloat() is not available in PJAVA
-                    abs = AbsPrimitive.wrap((new Float(value)).floatValue());
+                    abs = AbsPrimitive.wrap((new Double(value)).doubleValue());
                 } 
                 //__CLDC_UNSUPPORTED__END
+
+                if (type == DATE) {
+                		long l = Long.parseLong(value);
+                    abs = AbsPrimitive.wrap(new Date(l));
+                } 
 
                 return abs;
             } 

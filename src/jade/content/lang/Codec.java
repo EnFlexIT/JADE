@@ -29,6 +29,7 @@ import jade.content.abs.*;
 import jade.util.WrapperException;
 
 /**
+ * Generic base class for al content language codecs
  * @author Federico Bergenti - Universita` di Parma
  */
 public abstract class Codec {
@@ -50,14 +51,14 @@ public abstract class Codec {
             super(message);
         }
 
-	/**
-	   Construct a new <code>CodecException</code>
-	   @param msg The message for this exception.
-	   @param t The exception wrapped by this object.
-	*/
-	public CodecException(String msg, Throwable t) {
-	    super(msg, t);
-	}
+	 			/**
+	   			 Construct a new <code>CodecException</code>
+	         @param msg The message for this exception.
+	         @param t The exception wrapped by this object.
+				 */
+				public CodecException(String msg, Throwable t) {
+	    		super(msg, t);
+				}		
 
     }
 
@@ -69,7 +70,7 @@ public abstract class Codec {
     /**
      * Construct a Codec object with the given name
      */
-    public Codec(String name) {
+    protected Codec(String name) {
         this.name = name;
     }
 
@@ -80,44 +81,6 @@ public abstract class Codec {
     public String getName() {
         return name;
     } 
-
-    /**
-     * Encodes a content into a byte array.
-     * @param content the content as an abstract descriptor.
-     * @return the content as a byte array.
-     * @throws CodecException
-     */
-    public abstract byte[] encode(AbsContentElement content) 
-            throws CodecException;
-
-    /**
-     * Encodes a content into a byte array.
-     * @param ontology the ontology 
-     * @param content the content as an abstract descriptor.
-     * @return the content as a byte array.
-     * @throws CodecException
-     */
-    public abstract byte[] encode(Ontology ontology, AbsContentElement content) 
-            throws CodecException;
-
-    /**
-     * Decodes the content to an abstract description.
-     * @param content the content as a byte array.
-     * @return the content as an abstract description.
-     * @throws CodecException
-     */
-    public abstract AbsContentElement decode(byte[] content) 
-            throws CodecException;
-
-    /**
-     * Decodes the content to an abstract description.
-     * @param ontology the ontology.
-     * @param content the content as a byte array.
-     * @return the content as an abstract description.
-     * @throws CodecException
-     */
-    public abstract AbsContentElement decode(Ontology ontology, byte[] content) 
-            throws CodecException;
 
     /**
      * @return the ontology containing the schemas of the operator
