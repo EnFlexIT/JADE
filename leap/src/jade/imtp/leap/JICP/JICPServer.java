@@ -57,9 +57,16 @@ import java.util.StringTokenizer;
  * @author Steffen Rusitschka - Siemens
  */
 public class JICPServer extends Thread {
-  protected ServerSocket server;
-  protected ICP.Listener cmdListener;
-  protected boolean      listen = true;
+	private static final int LISTENING = 0;
+	private static final int PAUSING = 1;
+	private static final int PAUSED = 2;
+	private static final int TERMINATING = 3;
+ 
+	private int      state = LISTENING;
+	
+  private ServerSocket server;
+  private ICP.Listener cmdListener;
+  
   private int            mediatorCnt = 1;
   private Hashtable      mediators = new Hashtable();
   
@@ -112,14 +119,17 @@ public class JICPServer extends Thread {
    * Method declaration
    * @see
    */
-  public void shutdown() {
-    listen = false;
+  public synchronized void shutdown() {
+	  myLogger.log("Shutting down JICPServer...", 2);
+    state = TERMINATING;
 
     try {
       // Force the listening thread (this) to exit from the accept()
       // Calling this.interrupt(); should be the right way, but it seems
       // not to work...so do that by closing the server socket.
       server.close();
+      // Wakeup the JICPServer thread in case it has been paused
+      notifyAll();
 
       // Wait for the listening thread to complete
       this.join();
@@ -132,45 +142,59 @@ public class JICPServer extends Thread {
     } 
   } 
 
-  private boolean paused = false;
-
   /**
      Temporarily stop this JICPServer from accepting connections
    */
-  private synchronized void pause() {
-  	myLogger.log("Pausing JICPServer...", 2);
-  	try {
-  		paused = true;
-  		server.close();
+  private synchronized boolean pause() {
+  	if (state == LISTENING) {
+	  	myLogger.log("Pausing JICPServer...", 2);
+	  	try {
+	  		state = PAUSING;
+	  		server.close();
+	  		while (state == PAUSING) {
+	  			try {
+	  				wait();
+	  			}
+	  			catch (Exception e) {
+	  			}
+	  		}
+	  	}
+	  	catch (IOException ioe) {
+	  		ioe.printStackTrace();
+	  	}
   	}
-  	catch (IOException ioe) {
-  		ioe.printStackTrace();
-  	}
+  	return (state == PAUSED);
   }
   
   /**
-     Resume this JICPServer from the paused state
+     Restart this JICPServer from the paused state
    */
-  private synchronized void restart(int port) {
-  	myLogger.log("Restarting JICPServer...", 2);
-  	while (true) {
-	    try {
-	      server = new ServerSocket(port);
-	      paused = false;
-	      return;
-	    } 
-			catch (BindException be) {
-				// The port is still busy. Wait a bit
-				myLogger.log("Local port "+port+" still busy. Wait a bit before retrying...", 2);
-				waitABit(10000);
-			}					
-			catch (Exception e) {
-				myLogger.log("PANIC: Cannot restart JICPServer", 1);
-				break;
-			}
+  private synchronized boolean restart(int port) {
+  	if (state == PAUSED || state == PAUSING) {
+	  	myLogger.log("Restarting JICPServer...", 2);
+	  	while (true) {
+		    try {
+		      server = new ServerSocket(port);
+		      state = LISTENING;
+		      notifyAll();
+		      return true;
+		    } 
+				catch (BindException be) {
+					// The port is still busy. Wait a bit
+					myLogger.log("Local port "+port+" still busy for listening. Wait a bit before retrying...", 2);
+					waitABit(10000);
+				}					
+				catch (Exception e) {
+					myLogger.log("PANIC: Cannot restart JICPServer", 1);
+					break;
+				}
+	  	}
   	}
+  	return false;
   }
   	
+  private Object fakeReplyLock = new Object();
+  
   /**
      Send a fake TCP packet to a given address and port. This can 
      be used as an extreme remedy 
@@ -179,12 +203,13 @@ public class JICPServer extends Thread {
    */
   public void fakeReply(InetAddress addr, int port) {
   	if (addr != null) {
-	  	int oldPort = getLocalPort();
 	  		
 			// Send the fake reply
 	  	Socket s = null;
 	  	while (true) {
-	  		synchronized (this) {
+	  		// Only one thread at a time can execute this block
+	  		synchronized (fakeReplyLock) {
+			  	int oldPort = getLocalPort();
 					try {
 		  			pause();
 						myLogger.log("Sending fake reply to "+addr+":"+port, 2);
@@ -205,6 +230,7 @@ public class JICPServer extends Thread {
 						restart(oldPort);
 					}
 	  		}
+				
 				// If we get here the local port is still busy. Wait a bit
 				myLogger.log("Wait a bit before retrying...", 2);
 				waitABit(30000);
@@ -229,46 +255,57 @@ public class JICPServer extends Thread {
    * and for each of them start a ConnectionHandler that handles it. 
    */
   public void run() {
-    while (listen) {
+    while (state != TERMINATING) {
       try {
       	// Accept connection
         Socket s = server.accept();
         InetAddress addr = s.getInetAddress();
         int port = s.getPort();
-        if (!addr.equals(localHost)) {
+        //if (!addr.equals(localHost)) {
 	        myLogger.log("Incoming connection from "+addr+":"+port, 3);
-        }
+        //}
         Connection c = connFactory.createConnection(s);
         new ConnectionHandler(c, addr, port).start();    // start a handler and go back to listening
       } 
       catch (InterruptedIOException e) {
         // These can be generated by socket timeout (just ignore
         // the exception) or by a call to the shutdown()
-        // method (the listen flag has been set to false and the
+        // method (the state has been set to TERMINATING and the
         // server will exit).
       } 
       catch (Exception e) {
-      	if (paused) {
-      		myLogger.log("JICPServer paused", 2);
-    			synchronized (this) {
-    				myLogger.log("JICPServer resumed ", 2);
-    			}
-    		}
-      	else {
-	        // If the listen flag is false then this exception has
-	        // been forced by the shutdown() method --> do nothing.
-	        // Otherwise some error occurred
-	        if (listen) {
+  			synchronized (this) {
+	      	if (state == PAUSING) {
+						// This exception has been forced by a call to pause()
+						myLogger.log("JICPServer paused", 2);
+    				state = PAUSED;
+    				// Notify the thread that requested the pause
+    				notifyAll();
+  					// Wait for restart (or shutdown)
+    				while (state == PAUSED) {
+	    				try {
+	    					wait();
+	    				}
+	    				catch (Exception e1) {
+	    				}
+    				}
+    				if (state != TERMINATING) {
+	    				myLogger.log("JICPServer restarted", 2);
+    				}
+	    		}
+	      	else if (state == LISTENING) {
 	          myLogger.log("Problems accepting a new connection", 1);
 	          e.printStackTrace();
 	
 	          // Stop listening
-	          listen = false;
-	        }
-      	}
+	          state = TERMINATING;
+	      	}
+  			}
       } 
-    } 
+    } // END of while(listen) 
 
+		myLogger.log("JICPServer terminated", 2);
+		
     // release socket
     try {
       server.close();
@@ -283,7 +320,7 @@ public class JICPServer extends Thread {
     // Close all mediators
     Enumeration e = mediators.elements();
     while (e.hasMoreElements()) {
-      Mediator m = (Mediator) e.nextElement();
+      JICPMediator m = (JICPMediator) e.nextElement();
       m.kill();
     } 
     mediators.clear();
@@ -400,7 +437,7 @@ public class JICPServer extends Thread {
 	          myLogger.log("Received a CREATE_MEDIATOR request from "+ addr + ":" + port + ". ID is [" + id + "]", 2);
 
 	          JICPMediator m = startMediator(id, p);
-		  			m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
+		  			m.handleIncomingConnection(c, pkt, addr, port);
 	          mediators.put(id, m);
 	          // Create an ad-hoc reply including the assigned mediator-id
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
@@ -416,7 +453,7 @@ public class JICPServer extends Thread {
 	          	// Don't close the connection, but pass it to the proper 
 	          	// mediator. Use the response (if any) prepared by the 
 	          	// Mediator itself
-	          	reply = m.handleIncomingConnection(c, addr, port, JICPProtocol.CONNECT_MEDIATOR_TYPE);
+	          	reply = m.handleIncomingConnection(c, pkt, addr, port);
 	          	closeConnection = false;
 	          }
 	          else {
