@@ -149,6 +149,16 @@ class MainWindow extends JFrame {
     return tree.treeAgent.getModel();
   }
 
+  public void resetTree() {
+      Runnable resetIt = new Runnable() {
+
+	  public void run() {
+	      tree.treeAgent.clearLocalPlatform();
+          }
+      };
+      SwingUtilities.invokeLater(resetIt);
+  }
+
   public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {
