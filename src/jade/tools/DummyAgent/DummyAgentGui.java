@@ -38,7 +38,6 @@ import java.io.*;
 import jade.core.*;
 import jade.lang.acl.*;
 import jade.gui.*;
-import jade.domain.FIPAAgentManagement.AID;
 
 /**
 @author Giovanni Caire - CSELT S.p.A

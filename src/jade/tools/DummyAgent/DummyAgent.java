@@ -40,6 +40,10 @@ public class DummyAgent extends Agent
 {
 	private DummyAgentGui myGui;
 
+public static void main(String args[]) {
+ DummyAgent d = new DummyAgent();
+ d.setup();
+}
 	// Extends the Agent setup method
 	protected void setup()
 	{
