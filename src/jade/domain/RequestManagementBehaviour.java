@@ -66,11 +66,11 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
   protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws AuthException, FIPAException; 
 
   /**
+   * @return null when the AGREE message can be skipper, the AGREE message
+   * otherwise.
    */
   protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-  	//System.out.println("Request received");
-  	//System.out.println(request);		
-  	ACLMessage response = request.createReply();
+  	ACLMessage response = null;  
 		try{	
 			// Check the language is SL0, SL1, SL2 or SL. 
 	    isAnSLRequest(request);
@@ -81,27 +81,29 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	    // Perform the action
 	    notification = performAction(slAction, request);
 	    
-	    // Action OK --> AGREE
-	    response.setPerformative(ACLMessage.AGREE);
-	    response.setContent(request.getContent()+" (true)");
+	    // Action OK 
 		} 
 		catch (OntologyException oe) {
 			// Error decoding request --> NOT_UNDERSTOOD
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
 		}	
 		catch (CodecException ce) {
 			// Error decoding request --> NOT_UNDERSTOOD
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
 		}	
 		catch (RefuseException re) {
 			// RefuseException thrown during action execution --> REFUSE
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.REFUSE);
 			response.setContent(request.getContent()+" ("+re.getMessage()+")");
 		}	
 		catch (FailureException fe) {
 			// FailureException thrown during action execution --> AGREE+FAILURE
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.AGREE);
 			response.setContent(request.getContent()+" (true)");
 			notification = request.createReply();
@@ -110,20 +112,20 @@ abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 		}	
 		catch(FIPAException fe){
 			// Malformed request --> NOT_UNDERSTOOD
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+fe.getMessage()+")");
 		}
 		catch(Throwable t){
 			t.printStackTrace();
 			// Generic error --> AGREE+FAILURE
+		        response = request.createReply();
 			response.setPerformative(ACLMessage.AGREE);
 			response.setContent(request.getContent()+" (true)");
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 			notification.setContent(request.getContent()+" ("+ExceptionVocabulary.INTERNALERROR+" \""+t.getMessage()+"\")");
 		}
-  	//System.out.println("Response is");		
-  	//System.out.println(response);		
 		return response;
   }
     
