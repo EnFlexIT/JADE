@@ -4,7 +4,7 @@
 .PHONY: all clean
 
 TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
-	  protocols/Initiator.java protocols/Responder.java protocols/ProtocolTester.java \
+	  protocols/Initiator.java protocols/Responder.java protocols/ProtocolTester.java protocols\ComplexInitiator.java \
 	  behaviours/ComplexBehaviourAgent.java behaviours/FSMAgent.java behaviours/WakerAgent.java behaviours/TestReceiverBehaviourAgent.java \
 	  subdf/SubDF.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
