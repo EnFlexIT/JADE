@@ -38,11 +38,11 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 
 /**
-This agent implements a simple Ping Agent. 
+This agent implements a simple Ping Agent for the AgentCities project.
 First of all the agent registers itself with the DF of the platform and 
 then waits for ACLMessages.
-If  a QUERY_REF or QUER_IF message arrives that contains the string "ping" within the content 
-then it replies with an INFORM message whose content will be the string "(pong)". 
+If  a QUERY_REF message arrives that contains the string "ping" within the content 
+then it replies with an INFORM message whose content will be the string "alive". 
 If it receives a NOT_UNDERSTOOD message no reply is sent. 
 For any other message received it replies with a NOT_UNDERSTOOD message.
 The exchanged message are written in a log file whose name is the local name of the agent.
@@ -78,20 +78,22 @@ public class PingAgent extends Agent {
       		log("Received the following message: "+ msg.toString());
       		ACLMessage reply = msg.createReply();
       	
-      		if((msg.getPerformative()== ACLMessage.QUERY_REF)||(msg.getPerformative()== ACLMessage.QUERY_IF))
+      		//if((msg.getPerformative()== ACLMessage.QUERY_REF)||(msg.getPerformative()== ACLMessage.QUERY_IF))
+      		if(msg.getPerformative()== ACLMessage.QUERY_REF)
       		{
       		  String content = msg.getContent();
-      	    if ((content != null) && (content.indexOf("ping") != -1))
-      					{
-      						reply.setPerformative(ACLMessage.INFORM);
-      				  	reply.setContent("(pong)");
-      					}
-      				else
-      			  	{
-      			  		reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-      			  		reply.setContent("( UnexpectedContent (expected ping))");
-      			  	}
-      			
+		  if ((content != null) && (content.indexOf("ping") != -1))
+		      {
+			  reply.setPerformative(ACLMessage.INFORM);
+			  //reply.setContent("(pong)");
+			  reply.setContent("alive");
+		      }
+		  else
+		      {
+			  reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+			  reply.setContent("( UnexpectedContent (expected ping))");
+		      }
+		  
       		}
       		else
       		{
@@ -116,37 +118,37 @@ public class PingAgent extends Agent {
   
   protected void setup() {
   	
-    	/** Registration with the DF */
-  	  DFAgentDescription dfd = new DFAgentDescription();
-    	ServiceDescription sd = new ServiceDescription();   
-    	sd.setType("PingAgent"); 
-    	sd.setName(getName());
-    	sd.setOwnership("ExampleReceiversOfJADE");
-    	sd.addOntologies("PingAgent");
-    	dfd.setName(getAID());
-    	dfd.addServices(sd);
-    	try {
-      	DFService.register(this,dfd);
-    	} catch (FIPAException e) {
-      	System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
-      	doDelete();
-    	}
-
-    	try{
-    		logFile = new PrintWriter(new FileWriter(getLocalName()+".log",true));
-    		log("Agent: " + getName() + " born");
-  			WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
-    		addBehaviour(PingBehaviour);
-    	}catch(IOException e){
-    		System.out.println("WARNING: The agent needs the "+ getLocalName()+".log file.");
-    		e.printStackTrace();
-    	}
+      /** Registration with the DF */
+      DFAgentDescription dfd = new DFAgentDescription();
+      ServiceDescription sd = new ServiceDescription();   
+      sd.setType("AgentcitiesPingAgent"); 
+      sd.setName(getName());
+      sd.setOwnership("TILAB");
+      //sd.addOntologies("PingAgent");
+      dfd.setName(getAID());
+      dfd.addServices(sd);
+      try {
+	  DFService.register(this,dfd);
+      } catch (FIPAException e) {
+	  System.err.println(getLocalName()+" registration with DF unsucceeded. Reason: "+e.getMessage());
+	  doDelete();
+      }
+      
+      try{
+	  logFile = new PrintWriter(new FileWriter(getLocalName()+".txt",true));
+	  log("Agent: " + getName() + " born");
+	  WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
+	  addBehaviour(PingBehaviour);
+      }catch(IOException e){
+	  System.out.println("WARNING: The agent needs the "+ getLocalName()+".txt file.");
+	  e.printStackTrace();
+      }
   }
 
-	public synchronized void log(String str) {
+    public synchronized void log(String str) {
       	
-		logFile.println((new Date()).toString()+ " - " + str);
-    logFile.flush();
-	}
-
+	logFile.println((new Date()).toString()+ " - " + str);
+	logFile.flush();
+    }
+    
 }//end class PingAgent
