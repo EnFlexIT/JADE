@@ -81,25 +81,46 @@ public class TestMessageReception extends Test {
 		
 		msg.addReceiver(receiver); 
 		msg.setByteSequenceContent(new byte[size]);
-			
-		TickerBehaviour b = new TickerBehaviour(a, period) {
+		
+		ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ANY);
+		
+		TickerBehaviour senderB = new TickerBehaviour(a, period) {
 			protected void onTick() {
 				if (getTickCount() <= nMessages) {
+					msg.setContent(String.valueOf(getTickCount()));
 					myAgent.send(msg);
 					log("Message "+getTickCount()+" sent.");
 				}
-				else {
-					msg = myAgent.receive();
-					if (msg != null && msg.getPerformative() == ACLMessage.INFORM && msg.getSender().equals(receiver)) {
+			}
+		};		
+		pb.addSubBehaviour(senderB);
+		
+		Behaviour receiverB = new Behaviour(a) {
+			private boolean finished = false;
+			
+			public void action() {
+				ACLMessage reply = myAgent.receive();
+				if (reply != null) {
+					if (reply.getPerformative() == ACLMessage.INFORM && reply.getSender().equals(receiver)) {
 						passed("Completion notification received from "+RECEIVER_AGENT);
 					}
 					else {
-						failed("Missing completion notification");
+						failed("Unexpected message: "+reply);
 					}
+					finished = true;
+				}
+				else {
+					block();
 				}
 			}
+			
+			public boolean done() {
+				return finished;
+			}
 		};
-		return b;
+		pb.addSubBehaviour(receiverB);
+		
+		return pb;
   }
   
   public void clean(Agent a) {

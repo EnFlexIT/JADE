@@ -29,12 +29,15 @@ import jade.lang.acl.*;
 import jade.util.Logger;
 
 /**
+   This agent is used by the TestMessageReception test. It 
+   receives a number of messages and checks that they are in order.
+   Each message includes its index (first = 1) as the content.
    @author Giovanni Caire - TILAB
  */
 public class ReceiverAgent extends Agent {
-	int cnt = 0;
-	int nMessages = 100;
-	int period = 60000;
+	private int cnt = 0;
+	private int nMessages = 100;
+	private int period = 60000;
 	
 	protected void setup() {
 		Object[] args = getArguments();
@@ -53,25 +56,34 @@ public class ReceiverAgent extends Agent {
 		
 		addBehaviour(new CyclicBehaviour(this) {
 			public void action() {
-				final ACLMessage msg = myAgent.receive();
+				ACLMessage msg = myAgent.receive();
 				if (msg != null) {
-					cnt++;
-					if (cnt == nMessages) {
-						ACLMessage reply = msg.createReply();
-						reply.setPerformative(ACLMessage.INFORM);
-						myAgent.send(reply);
-					}
-					else {
-						final int previousCnt = cnt; 
-						myAgent.addBehaviour(new WakerBehaviour(myAgent, System.currentTimeMillis()+period*2) {
-							protected void handleElapsedTimeout() {
-								if (cnt == previousCnt) {
-									ACLMessage reply = msg.createReply();
-									reply.setPerformative(ACLMessage.REQUEST);
-									myAgent.send(reply);
-								}
+					int index = -1;
+					try {
+						// Check message order
+						index = Integer.parseInt(msg.getContent());
+						if (index == cnt+1) {
+							cnt = index;
+							
+							// Check test completion
+							if (cnt == nMessages) {
+								ACLMessage reply = msg.createReply();
+								reply.setPerformative(ACLMessage.INFORM);
+								myAgent.send(reply);
 							}
-						} );
+						}
+						else {
+							ACLMessage reply = msg.createReply();
+							reply.setPerformative(ACLMessage.FAILURE);
+							reply.setContent("Expected #"+(cnt+1)+" received #"+index);
+							myAgent.send(reply);
+						}
+					}
+					catch (Exception e) {
+						ACLMessage reply = msg.createReply();
+						reply.setPerformative(ACLMessage.FAILURE);
+						reply.setContent("Unexpected message content: "+msg.getContent());
+						myAgent.send(reply);
 					}
 				}
 				else { 
