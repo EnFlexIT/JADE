@@ -74,6 +74,18 @@ public interface PersistenceVocabulary extends ExceptionVocabulary {
     public static final String THAWAGENT_REPOSITORY = "repository";
     public static final String THAWAGENT_NEWCONTAINER = "new-container";
 
+    public static final String SAVECONTAINER = "save-container";
+    public static final String SAVECONTAINER_CONTAINER = "container";
+    public static final String SAVECONTAINER_REPOSITORY = "repository";
+
+    public static final String LOADCONTAINER = "load-container";
+    public static final String LOADCONTAINER_CONTAINER = "container";
+    public static final String LOADCONTAINER_REPOSITORY = "repository";
+
+    public static final String DELETECONTAINER = "delete-container";
+    public static final String DELETECONTAINER_CONTAINER = "container";
+    public static final String DELETECONTAINER_REPOSITORY = "repository";
+
     public static final String SAVEAGENTGROUP = "save-agent-group";
     public static final String SAVEAGENTGROUP_GROUP = "group";
     public static final String SAVEAGENTGROUP_REPOSITORY = "repository";
