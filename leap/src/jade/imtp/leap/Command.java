@@ -76,14 +76,17 @@ public class Command {
     public static final int PING_NODE_NONBLOCKING = 10;
     public static final int EXIT_NODE = 11;
     public static final int INTERRUPT_NODE = 12;
-
-
-
+    public static final int SERVICE_MANAGER_PING = 13;
+    public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
+    public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
 
 
   static final int        NO_OPERATION = 0;
   static final int        OK = 1;
   static final int        ERROR = 2;
+  static final int        FORWARD = 37;
+
+    /******************************************
     //  static final int        GET_PLATFORM_NAME = 3;
   static final int        ADD_CONTAINER = 4;
   static final int        REMOVE_CONTAINER = 5;
@@ -126,7 +129,7 @@ public class Command {
   static final int        CHANGE_CONTAINER_PRINCIPAL = 42;
   static final int        GET_PUBLIC_KEY = 43;
   static final int        GET_AGENT_PRINCIPAL = 44;
-
+    ************************************************************************/
 
   /**
    * Code defining the type of command.
