@@ -203,19 +203,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
     id = 1;
   }
 
-    /***
-  public MainContainer getMain(Profile p) throws IMTPException {
-
-    TransportAddress mainTA = initMainTA(p);
-    return null;
-
-    // Create a stub to access the Main Container
-    return createMainContainerStub(mainTA);
-
-  } 
-
-    ***/
-
     public ServiceManagerStub getServiceManagerStub(Profile p) throws IMTPException {
 	ServiceManagerStub stub = new ServiceManagerStub();
 	TransportAddress mainTA = initMainTA(p);
