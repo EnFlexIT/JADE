@@ -502,7 +502,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      the content language or to the ontology is detected.
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
-     @see jade.core.Agent#fillContent(ACLMessage msg, Object content, String roleName)
+     @see jade.core.Agent#fillContent(ACLMessage msg, List content, List roleNames)
    */
   public List extractContent(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
@@ -513,17 +513,31 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       throw new FIPAException("Unknown Ontology");
     try {
       List tuple = c.decode(msg.getContent(), o);
+      //System.err.println("extractContent:");
+      //for (int i=0; i<tuple.size(); i++)
+      //System.err.println(((Frame)tuple.get(i)).toString());
       return o.createObject(tuple);
     }
     catch(Codec.CodecException cce) {
       // cce.printStackTrace();
-      throw new FIPAException("Codec error: " + cce.getMessage());
+      throw new FIPAException("Codec error: " + cce.getMessage()+" "+cce.getNested().getMessage());
     }
     catch(OntologyException oe) {
       // oe.printStackTrace();
       throw new FIPAException("Ontology error: " + oe.getMessage());
     }
 
+  }
+
+
+  public void fillContent(ACLMessage msg, List content) throws FIPAException, OntologyException {
+    Ontology o = lookupOntology(msg.getOntology());
+    if(o == null)
+      throw new FIPAException("Unknown Ontology");
+    List roles = new ArrayList();
+    for (int i=0; i<content.size(); i++) 
+      roles.add(o.getRoleName(content.get(i).getClass()));
+    fillContent(msg,content,roles);
   }
 
   /**
@@ -537,11 +551,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     slot.
     @param msg The ACL message whose content will be filled.
     @param content A list of Java objects that will be converted into a string and
-    written inti the <code>:content</code> slot. This object must be an instance
+    written into the <code>:content</code> slot. This object must be an instance
     of a class registered into the ontology named in the <code>:ontology</code>
     message slot.
-    @param roleName The name of the role played by the class of the object
-    <code>content</code> into the ontology indicated by the <code>:ontology
+    @param roleNames The list of String representing the
+    names of the roles, played by the class of 
+    each object of the
+    <code>content</code> list, 
+    into the ontology indicated by the <code>:ontology
     </code> message slot.
     @exception jade.domain.FIPAException This exception is thrown if the
     <code>:language</code> or <code>:ontology</code> message slots contain an
@@ -550,7 +567,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
     @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
    */
-  public void fillContent(ACLMessage msg, List content, String roleName) throws FIPAException {
+  public void fillContent(ACLMessage msg, List content, List roleNames) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());
     if(c == null)
       throw new FIPAException("Unknown Content Language");
@@ -561,7 +578,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       List l = new ArrayList();
       Frame f;
       for (int i=0; i<content.size(); i++) {
-	f = o.createFrame(content.get(i), roleName);
+	f = o.createFrame(content.get(i), (String)roleNames.get(i));
 	l.add(f);
       }
       String s = c.encode(l, o);
