@@ -1238,6 +1238,46 @@ public class ams extends Agent implements AgentManager.Listener {
     Post an event to the AMS agent. This method must not be used by
     application agents.
   */
+  public synchronized void suspendedAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
+    // Registry needs an update here!
+    
+    SuspendedAgent sa = new SuspendedAgent();
+    sa.setAgent(agentID);
+    sa.setWhere(cid);
+
+    EventRecord er = new EventRecord(sa, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+    doWake();
+  }
+
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
+  public synchronized void resumedAgent(PlatformEvent ev) {
+    ContainerID cid = ev.getContainer();
+    AID agentID = ev.getAgent();
+
+    // Registry needs an update here!
+    
+    SuspendedAgent ra = new SuspendedAgent();
+    ra.setAgent(agentID);
+    ra.setWhere(cid);
+
+    EventRecord er = new EventRecord(ra, here());
+    er.setWhen(ev.getTime());
+    eventQueue.add(er);
+    doWake();
+  }
+
+  /**
+    Post an event to the AMS agent. This method must not be used by
+    application agents.
+  */
   public synchronized void movedAgent(PlatformEvent ev) {
     ContainerID from = ev.getContainer();
     ContainerID to = ev.getNewContainer();
