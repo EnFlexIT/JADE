@@ -184,7 +184,7 @@ public class amsTester extends Agent {
     // If agree is received, also receive inform or failure messages.
     mainBehaviour.addBehaviour(new OneShotBehaviour(this) {
 
-      protected void action() {
+      public void action() {
 	amsTester a = (amsTester)myAgent;
 	if(a.agreed()) {
 	  
