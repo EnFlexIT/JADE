@@ -76,7 +76,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	// Flag indicating that the shutdown procedure is in place
 	private boolean exiting = false;
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	private Authority authority = new DummyAuthority();
 	//#MIDP_EXCLUDE_END
@@ -100,7 +100,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			
 			myConnectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
-			System.out.println(configProperties.getProperty("local-hosy")+"  "+configProperties.getProperty("mediator-id"));
 		}
 		catch (IMTPException imtpe) {
 		  Logger.println("IMTP error "+imtpe);
@@ -185,8 +184,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
     	throw new NotFoundException("KillAgent failed to find " + name);
   	}
   	agent.doDelete();
-  	// Note that the agent will be removed from the local table when its 
-  	// handleEnd() is called.
+  	// Wait for the killed agent to complete. Note that the agent will be 
+  	// removed from the local table in the handleEnd() method.
+  	agent.join();
   }
   
   /**
@@ -249,7 +249,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  		localAgents.clear();
 	  	}
 	  	Logger.println("Local agents terminated");
-	
+	  	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
@@ -263,6 +263,29 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	}
   }
   
+  /**
+	   Request the FrontEnd container to synch.
+	 */
+  public final void synch() throws IMTPException {
+		synchronized (this) {
+			Enumeration e = localAgents.keys();
+			while (e.hasMoreElements()) {
+				String name = (String) e.nextElement();
+		    try {
+		      // Notify the BackEnd (get back platform info if this is the first agent) 
+		      String[] info = myBackEnd.bornAgent(name);
+					if (info != null) {
+						initInfo(info);
+					}
+				}
+				catch (Exception ex) {
+					// An agent with the same name has come up in the meanwhile.
+					// Notify a warning
+		    }
+			}
+		}
+  }
+  	
   
 	/////////////////////////////////////
 	// AgentToolkit interface implementation
@@ -276,11 +299,21 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
   
   public final void handleEnd(AID agentID) {
+  	String name = agentID.getLocalName();
+  	// Wait for messages (if any) sent by this agent to be transmitted
+  	synchronized (pending) {
+  		while (pending.contains(name)) {
+  			try {
+	  			pending.wait();
+  			}
+  			catch (Exception e) {}
+  		}
+  	}
+  	
   	if (!exiting) {
   		// If this agent is ending because the container is exiting
   		// just do nothing. The BackEnd will notify the main.
 	    try {
-	    	String name = agentID.getLocalName();
 	    	synchronized (this) {
 		      localAgents.remove(name);
 	    	}
@@ -468,6 +501,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  		// Should never happen. Note that "NotFound" here is referred 
 	  		// to the sender.
 	  		Logger.println(e.toString());
+	  	}
+	  	// Notify terminating agents (if any) waiting for their messages to be delivered
+	  	synchronized (pending) {
+	  		pending.notifyAll();
 	  	}
   	}
   }
