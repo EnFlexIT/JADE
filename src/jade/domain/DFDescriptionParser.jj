@@ -30,7 +30,7 @@ class DFDescriptionParser {
     
     while (true) {
       try {
-	DFAgentDescriptor result = parser.FIPA_DF_description();
+	DFAgentDescriptor result = parser.DF_description();
 	result.dump(); 
       }
       catch(ParseException pe) {
@@ -46,7 +46,7 @@ class DFDescriptionParser {
 
   public DFAgentDescriptor parse(Reader r) throws ParseException {
     ReInit(r);
-    return FIPA_DF_description();
+    return DF_description();
   }
 
 }
@@ -58,12 +58,12 @@ PARSER_END(DFDescriptionParser)
 // JavaCC grammar productions
 
 
-DFAgentDescriptor FIPA_DF_description() :
+DFAgentDescriptor DF_description() :
 {
   desc = new DFAgentDescriptor();
 }
 {
- "(" DescBody() ")"
+ "(" <DF_DESCRIPTION> ( "(" FIPA_DF_description() ")" )+ ")"
  {
    DFAgentDescriptor result = desc;
    desc = null;
@@ -73,28 +73,29 @@ DFAgentDescriptor FIPA_DF_description() :
 }
 
 
-void DescBody() :
+void FIPA_DF_description() :
 {
   String s;
   Token t;
 }
 {
    <AGENT_NAME> AgentName()
- | <AGENT_ADDRESS> CommAddress()
- | <AGENT_SERVICES> "(" FIPA_SerDesc() ")"
+ | <AGENT_ADDRESS> ( CommAddress() )+
+ | <AGENT_SERVICES> ( FIPA_Service_Desc() )+
  | <AGENT_TYPE> t = <WORD>
    {
      desc.setType(t.image);
    }
+   // FIXME: Should be (<WORD>)+
  | <INTERACTION_PROTOCOLS> "(" t = <WORD> ")"
    {
      desc.setInteractionProtocols(t.image);
    }
- | <ONTOLOGY> s = SLTerm()
+ | <ONTOLOGY> s = SL1Term()
    {
      desc.setOntology(s);
    }
- | <OWNERSHIP> s = SLTerm()
+ | <OWNERSHIP> s = SL1Term()
    {
      desc.setOwnership(s);
    }
@@ -109,7 +110,7 @@ void AgentName() :
   Token t;
 }
 {
-  t = <WORD>
+  t = <WORD> "@" CommAddress()
   {
     desc.setName(t.image);
   }
@@ -120,48 +121,62 @@ void CommAddress() :
   Token t;
 }
 {
+  //  t = CommProtocol() "://" (IPAddress()|DNSName()) ":" Integer() "/" ACCObj()
   t = <WORD>
   {
     desc.setAddress(t.image);
   }
 }
 
-void FIPA_SerDesc() :
+
+
+void FIPA_Service_Desc() :
 {
   sd = new ServiceDescriptor();
 }
 {
-  "(" SDBody() ")"
+  "(" <SERVICE_DESCRIPTION> ( "(" FIPA_Service_Desc_Item() ")" ) +  ")"
   {
     desc.setServices(sd);
   }
 }
 
-void SDBody() :
+void FIPA_Service_Desc_Item() :
 {
   String s;
   Token t;
 }
 {
-   <SERVICE_TYPE> ( t = <SERVICES> | t = <WORD> )
+   <SERVICE_NAME> t = <ServiceTypes>
+    {
+      sd.setName(t.image);
+    }
+|  <SERVICE_TYPE> t = <ServiceTypes>
     {
       sd.setType(t.image);
     }
- | <SERVICE_ONTOLOGY> s = SLTerm() ")"
+ | <SERVICE_ONTOLOGY> s = SL1Term() ")"
     {
       sd.setOntology(s);
     }
- | <SERVICE_DESCRIPTION> s = SLTerm()
+ | <FIXED_PROPERTIES> s = SL1Term()
     {
-      sd.setDescription(s);
+      sd.setFixedProps(s);
     }
- | <SERVICE_CONDITIONS> s = SLTerm()
+ | <NEGOTIABLE_PROPERTIES> s = SL1Term()
     {
-      sd.setConditions(s);
+      sd.setNegotiableProps(s);
     }
+ | <COMMUNICATION_PROPERTIES> s = SL1Term()
+    {
+      sd.setCommunicationProps(s);
+    }
+
 }
 
-String SLTerm() :
+// FIXME: This should be an almighty SL1 term
+// instead of an humble Word
+String SL1Term() :
 {
   Token t;
 }
@@ -187,7 +202,8 @@ SKIP :
 TOKEN: 
 {
 
-  <AGENT_NAME : ":agent-name">
+  <DF_DESCRIPTION : ":df-description">
+| <AGENT_NAME : ":agent-name">
 | <AGENT_ADDRESS : ":agent-address">
 | <AGENT_SERVICES : ":agent-services">
 | <AGENT_TYPE : ":agent-type">
@@ -195,12 +211,15 @@ TOKEN:
 | <ONTOLOGY : ":ontology">
 | <OWNERSHIP : ":ownership">
 | <DF_STATE : ":df-state">
+| <SERVICE_DESCRIPTION : ":service-description">
+| <SERVICE_NAME : ":service-name">
 | <SERVICE_TYPE : ":service-type">
 | <SERVICE_ONTOLOGY : ":service-ontology"> 
-| <SERVICE_DESCRIPTION : ":service-description">
-| <SERVICE_CONDITIONS : ":service-conditions">
+| <FIXED_PROPERTIES : ":fixed-properties">
+| <NEGOTIABLE_PROPERTIES : ":negotiable-properties">
+| <COMMUNICATION_PROPERTIES : ":communication-properties">
 | <STATES : "active" | "suspended" | "retired">
-| <SERVICES : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" >
+| <ServiceTypes : "fipa-df" | "fipa-ams" | "fipa-acc" | "fipa-agent" | <WORD> >
 | < WORD :   ["!", "\"", "$"-"'", "*", "+", ",", ".", "/", ":"-"~"] (["*"-"~","!"-"'"])* >
 
 }

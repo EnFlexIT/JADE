@@ -6,11 +6,20 @@ package jade.domain;
 
 class ServiceDescriptor {
 
+  private String name;
   private String type;
   private String ontology;
-  private String description;
-  private String conditions;
+  private String fixedProperties;
+  private String negotiableProperties;
+  private String communicationProperties;
 
+  public void setName(String n) {
+    name = n;
+  }
+
+  public String getName() {
+    return name;
+  }
 
   public void setType(String t) {
     type = t;
@@ -28,20 +37,28 @@ class ServiceDescriptor {
     return ontology;
   }
 
-  public void setDescription(String d) {
-    description = d;
+  public void setFixedProps(String fp) {
+    fixedProperties = fp;
   }
 
-  public String getDescription() {
-    return description;
+  public String getFixedProps() {
+    return fixedProperties;
   }
 
-  public void setConditions(String c) {
-    conditions = c;
+  public void setNegotiableProps(String np) {
+    negotiableProperties = np;
   }
 
-  public String getConditions() {
-    return conditions;
+  public String getNegotiableProps() {
+    return negotiableProperties;
+  }
+
+  public void setCommunicationProps(String cp) {
+    communicationProperties = cp;
+  }
+
+  public String getCommunicationProps() {
+    return communicationProperties;
   }
 
 

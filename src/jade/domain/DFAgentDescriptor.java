@@ -80,9 +80,9 @@ class DFAgentDescriptor {
     return DFState;
   }
 
-  public void dump() {
+  public void dump() { 
     System.out.println("(");
-    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.NAME + " " + name + ")");
+    /*    System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.NAME + " " + name + ")");
     System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ADDRESS + " " + address + ")");
 
     System.out.println("  (" + AgentManagementOntology.DFAgentDescription.SERVICES);
@@ -97,6 +97,7 @@ class DFAgentDescriptor {
     System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.ONTOLOGY + " " + ontology + ")");
     System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.OWNERSHIP + " " + ownership + ")");
     System.out.println("  ( " + AgentManagementOntology.DFAgentDescription.DFSTATE + " " + DFState + ")");
+    */
     System.out.println(")");
 
   }
