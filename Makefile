@@ -10,14 +10,14 @@ export SRCDIR  = $(ROOTDIR)/src
 export LIBDIR  = $(ROOTDIR)/lib
 export LIBNAME = JADE.zip
 
-export TESTDIR = $(ROOTDIR)/test
+export EXAMPLESDIR = $(SRCDIR)/examples
 
 export MAKE = make
 
 # The following targets are not file names
-.PHONY: all clean archive src lib test
+.PHONY: all clean archive src lib examples
 
-all: lib test
+all: lib examples
 	@echo JADE project built
 
 lib: src
@@ -28,15 +28,15 @@ src:
 	cd $(SRCDIR); $(MAKE) all
 	@echo Sources built
 
-test:
-	cd $(TESTDIR); $(MAKE) all
-	@echo Test examples built
+examples:
+	cd $(EXAMPLESDIR); $(MAKE) all
+	@echo Examples built.
 
 clean:
 	rm -f *~ "#*#"
 	cd $(SRCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
-	cd $(TESTDIR); $(MAKE) clean
+	cd $(EXAMPLESDIR); $(MAKE) clean
 
 archive: clean
 	cd $(ROOTDIR)/..; \

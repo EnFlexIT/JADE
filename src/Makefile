@@ -27,7 +27,7 @@ STUBS       = 	jade.core.AgentContainerImpl \
 		jade.core.AgentPlatformImpl
 
 
-all: parsers classes stubs 
+all: parsers classes stubs
 	@echo
 	@echo Build complete.
 	@echo
@@ -57,5 +57,6 @@ clean:
 	rm -f jade/lang/acl/ParseException.java
 	rm -f jade/lang/acl/Token.java
 	rm -f jade/lang/acl/TokenMgrError.java
+
 
 
