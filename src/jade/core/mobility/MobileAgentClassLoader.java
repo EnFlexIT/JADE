@@ -128,7 +128,7 @@ class MobileAgentClassLoader extends ClassLoader {
 	
     private void log(String s, int level) {
   	if(verbosity >= level) {
-	    System.out.println("JCC-log: "+s);
+	    System.out.println("MACC-log: "+s);
   	}
     }
 }

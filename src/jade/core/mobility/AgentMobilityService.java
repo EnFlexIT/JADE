@@ -113,6 +113,12 @@ public class AgentMobilityService extends BaseService {
 	super.init(ac, p);
 
 	myContainer = ac;
+	try {
+		verbosity = Integer.parseInt(p.getParameter(VERBOSITY_KEY, null));
+	}
+	catch (Exception e) {
+		// Ignore and keep default (0)
+	}
     }
 
     public String getName() {
@@ -775,6 +781,10 @@ public class AgentMobilityService extends BaseService {
 	    catch(ClassNotFoundException cnfe) {
 		throw new IMTPException("A class was not found during de-serialization", cnfe);
 	    }
+	    catch(Throwable t) {
+	    	t.printStackTrace();
+		throw new IMTPException("Unexpected error.", t);
+	    }
 	}
 
 	private byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
@@ -967,7 +977,7 @@ public class AgentMobilityService extends BaseService {
 
     private void log(String s, int level) {
 	if (verbosity >= level) {
-	    System.out.println("MobilityService-log: " + s);
+	    System.out.println("Mobility-log: " + s);
 	}
     }
 
@@ -985,7 +995,7 @@ public class AgentMobilityService extends BaseService {
     // The ResourceManager of the local container
     //private ResourceManager myResourceManager;
     
-    private static final String VERBOSITY_KEY = "jade_core_RealMobilityManager_verbosity";
+    private static final String VERBOSITY_KEY = "jade_core_AgentMobilityService_verbosity";
     private int verbosity = 0;
 
     // The local slice for this service
