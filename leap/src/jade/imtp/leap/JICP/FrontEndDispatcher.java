@@ -138,7 +138,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	    // Start the embedded Thread and wait until it connects to the BackEnd
 	    start();
 	    waitUntilConnected();
-			log("Connection OK", 2);
+			log("Connection OK", 1);
 	
 			return myStub;
   	}
@@ -178,7 +178,8 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   private synchronized void waitUntilConnected() throws ICPException {
     while (!isConnected()) {
       try {
-        wait();
+      	errorMsg = "Connection timeout expired";
+        wait(respTimeout);
         if (!isConnected()) {
         	throw new ICPException(errorMsg);
         }
@@ -234,8 +235,8 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
       	}
       	else {
       		// Can't reach the JICPServer to create my Mediator. Notify and exit
-      		errorMsg = ioe.toString();
-	        throw new ICPException("Can't contact remote host");
+      		errorMsg = "Can't connect to "+mediatorServerTA+". "+ioe.toString();
+	        throw new ICPException(errorMsg);
       	}
       }
     }

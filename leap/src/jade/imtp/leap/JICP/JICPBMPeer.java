@@ -89,7 +89,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {  	
 		cmdListener = l;
   	
-  	log("Activating JICPBMPeer");
+  	log("Activating JICPBMPeer", 2);
   	StringBuffer sb = null;
 		int idLength;
 		if (peerID != null) {
@@ -106,7 +106,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 		sb.append(JICPProtocol.REMOTE_URL_KEY);
 		String remoteURL = p.getParameter(sb.toString(), null);
   	mediatorServerTA = JICPProtocol.getInstance().stringToAddr(remoteURL);
-		log("Remote URL for Mediator is "+remoteURL);
+		log("Remote URL for Mediator is "+remoteURL, 2);
 			
 		// Read (re)connection retry time
 		sb.setLength(idLength);
@@ -118,7 +118,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     catch (Exception e) {
       // Use default
     } 
-		log("Reconnection retry time is "+retryTime);
+		log("Reconnection retry time is "+retryTime, 2);
 			
 		// Read Max disconnection time
 		sb.setLength(idLength);
@@ -130,7 +130,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     catch (Exception e) {
       // Use default
     } 
-		log("Max disconnection time is "+maxDisconnectionTime);
+		log("Max disconnection time is "+maxDisconnectionTime, 2);
     sb = null;
 			
     // Start the embedded Thread
@@ -139,7 +139,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
 
     // Wait for the embedded Thread to create/connect to the Mediator
     waitUntilConnected();
-		log("Peer activation OK ");
+		log("Peer activation OK ", 1);
 		
     return new JICPAddress(mediatorServerTA.getHost(), mediatorServerTA.getPort(), mediatorId, null);
   } 
@@ -172,7 +172,8 @@ public class JICPBMPeer extends EndPoint implements ICP {
   private synchronized void waitUntilConnected() throws ICPException {
     while (!isConnected()) {
       try {
-        wait();
+      	errorMsg = "Connection timeout expired";
+        wait(respTimeout);
         if (!isConnected()) {
         	throw new ICPException(errorMsg);
         }
@@ -211,8 +212,8 @@ public class JICPBMPeer extends EndPoint implements ICP {
       	}
       	else {
       		// Can't reach the JICPServer to create my Mediator. Notify and exit
-      		errorMsg = ioe.toString();
-	        throw new ICPException("Can't contact remote host");
+      		errorMsg = "Can't connect to "+mediatorServerTA+". "+ioe.toString();
+	        throw new ICPException(errorMsg);
       	}
       }
     }
