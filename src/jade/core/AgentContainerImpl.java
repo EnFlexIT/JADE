@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.52  1999/11/08 15:18:15  rimassaJade
+  Added support for the message sniffer.
+
   Revision 1.51  1999/11/04 09:54:56  rimassaJade
   Removed flawed retry scheme. Now a fully synchronized solution is
   used, with a retry on a LADT miss and an error on GADT miss.
@@ -231,6 +234,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   protected ORB myORB;
 
+  public Map SniffedAgents = new HashMap();
+  public String theSniffer;           
+
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
   private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
 
@@ -382,6 +388,101 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
+  protected String getCorrectName(String name) {
+    String correctName = null;
+
+    int atPos = name.indexOf('@');
+    if ( atPos == -1 ) {
+      // it is a local name: we simply force lowercase
+      correctName = name.toLowerCase();
+    }
+    else {
+      String agentAddress = name.substring(atPos+1,name.length());
+      // System.out.println("Address: "+agentAddress);
+      if (agentAddress.equalsIgnoreCase(platformAddress)) {
+	correctName = name.substring(0,atPos).toLowerCase();
+      }
+      else {
+	correctName = name.toLowerCase();
+      }
+    }
+
+    return correctName;
+  }
+
+  public void enableSniffer(String SnifferName, Map ToBeSniffed) throws RemoteException {
+    /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
+       containing the sniffer names for that agent */
+
+    String currentAgent = null;
+	
+    Set sniffedAgentsSet = ToBeSniffed.keySet();
+    Iterator sniffedAgentsIt = sniffedAgentsSet.iterator();
+
+    if (SniffedAgents.size() > 0) {
+      // the list is not empty
+      while (sniffedAgentsIt.hasNext()){
+	currentAgent = (String)sniffedAgentsIt.next();
+	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
+	  // there is at least one sniffer name for this agent
+	  Vector curVector = (Vector)SniffedAgents.get(getCorrectName(currentAgent));
+	  if (!curVector.contains(getCorrectName(SnifferName))) {
+	    // we add it only if there isn't one
+	    curVector.add(getCorrectName(SnifferName));
+	  }
+	}
+	else {
+	  // there is no sniffer for that agent
+	  Vector curVector = new Vector(3);
+	  curVector.add(getCorrectName(SnifferName));
+	  SniffedAgents.put(getCorrectName(currentAgent),curVector);
+	}				
+      }
+    }
+    else {
+      // the list is empty
+      while (sniffedAgentsIt.hasNext()) {
+	currentAgent = (String)sniffedAgentsIt.next();
+	Vector curVector = new Vector(3);
+	curVector.add(getCorrectName(SnifferName));
+	SniffedAgents.put(getCorrectName(currentAgent),curVector);
+      }	
+    }
+
+  }
+
+
+  public void disableSniffer(String SnifferName, Map NotToBeSniffed) throws RemoteException {
+    /* In the SniffedAgents hashmap the key is the agent name and the value is a vector
+       containing the sniffer names for that agent */
+
+    String currentAgent = null;
+	
+    Set sniffedAgentsSet = NotToBeSniffed.keySet();
+    Iterator sniffedAgentsIt = sniffedAgentsSet.iterator();	
+
+    if (SniffedAgents.size() > 0) {
+      // the list is not empty
+      while (sniffedAgentsIt.hasNext()){
+	currentAgent = (String)sniffedAgentsIt.next();
+			
+	if (SniffedAgents.containsKey(getCorrectName(currentAgent))) {
+	  // there is at least one sniffer name for this agent
+	  Vector curVector = (Vector)SniffedAgents.get(getCorrectName(currentAgent));
+	  if (curVector.contains(getCorrectName(SnifferName))) {
+	    // we add it only if there isn't one
+	    curVector.remove(getCorrectName(SnifferName));
+	    if (curVector.size() == 0)
+	      SniffedAgents.remove(getCorrectName(currentAgent));
+	  }
+	}
+
+      }
+    }
+  }
+
+
+
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
     String completeName = msg.getFirstDest(); // FIXME: Not necessarily the first one is the right one
     String receiverName = null;
@@ -493,6 +594,61 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
 
+
+/*
+ * This method returns the vector of the sniffers registered for 
+ * theAgent
+ */
+private Vector getSniffer(String theAgent, java.util.Map theMap) {
+	
+  Vector theSniffer = null;
+
+  int atPos = theAgent.indexOf('@');
+  if ( atPos == -1 ) {
+    // theAgent is a local name
+    theSniffer = (Vector)theMap.get(theAgent);
+
+    // if the search fails let's add the platform address and see if it works
+    if ( theSniffer == null ) {
+      theSniffer = (Vector)theMap.get(theAgent+"@"+platformAddress);
+    }
+  } 
+  else { 
+    // theAgent is an absolute name
+    theSniffer = (Vector)theMap.get(theAgent);
+
+    // if the search fails let's remove the platform address ad see if it works
+    if ( theSniffer == null ) {
+      theSniffer = (Vector)theMap.get(theAgent.substring(0,atPos));
+    }
+  }
+  return theSniffer;
+}
+
+  /*
+   * Creates the message to be sent to the sniffer. The ontology must be set to 
+   * "sniffed-message" otherwise the sniffer doesn't recognize it. The sniffed 
+   * message is put in the content field of this message.
+   *
+   * @param theMsg handler of the sniffed message
+   * @param theDests vector of the destination (sniffers)
+   */
+  private void sendMsgToSniffers(ACLMessage theMsg, Vector theDests){
+
+    String currentSniffer;
+
+    for (int z = 0; z < theDests.size(); z++) {
+      currentSniffer = (String)theDests.elementAt(z);
+      ACLMessage SniffedMessage = new ACLMessage("inform");
+      SniffedMessage.removeAllDests();
+      SniffedMessage.addDest(currentSniffer);
+      SniffedMessage.setSource("ams");
+      SniffedMessage.setContent(theMsg.toString());
+      SniffedMessage.setOntology("sniffed-message");
+      unicastPostMessage(SniffedMessage,currentSniffer);	    
+    }
+}
+
   // Implementation of CommListener interface
 
   public void CommHandle(CommEvent event) {
@@ -501,23 +657,70 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     ACLMessage msg = event.getMessage();
 
     AgentGroup group = null;
+    
+    String currentSniffer;
+    Vector currentSnifferVector;
 
     if(event.isMulticast()) {
+    	
+      String msgSource = msg.getSource();
+          	
       group = event.getRecipients();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();
+	String dest = (String)e.nextElement();				
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
 	unicastPostMessage(copy, dest);
       }
+
+      currentSnifferVector = getSniffer(msgSource,SniffedAgents);
+      if(currentSnifferVector != null){
+      	/* Sniffed sender: don't care about receivers */
+      	ACLMessage cloned = (ACLMessage)msg.clone();
+      	e = group.getMembers();
+      	while(e.hasMoreElements()){
+	  String dest = (String)e.nextElement();
+	  cloned.removeAllDests();
+	  cloned.addDest(dest);
+	  sendMsgToSniffers(cloned,currentSnifferVector);
+      	}
+      }
+      else {
+      	/* The sender is not sniffed: let's look at all the receivers */
+      	ACLMessage cloned = (ACLMessage)msg.clone();
+      	e = group.getMembers();
+      	while(e.hasMoreElements()) {
+	  String dest = (String)e.nextElement();
+	  currentSnifferVector = getSniffer(dest,SniffedAgents);
+	  if (currentSnifferVector != null) {
+	    cloned.removeAllDests();
+	    cloned.addDest(dest);
+	    sendMsgToSniffers(cloned,currentSnifferVector);
+	  }
+      	}
+      }
     }
     else {  // FIXME: This is probably not compliant
       group = msg.getDests();
+      
+      boolean sniffedSource = false;
+      String msgSource = msg.getSource();
+      currentSnifferVector = getSniffer(msgSource, SniffedAgents);
+      if (currentSnifferVector != null) {
+	sniffedSource = true;
+	sendMsgToSniffers(msg,currentSnifferVector);		
+      }
+            	
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
-	String dest = (String)e.nextElement();
+	String dest = (String)e.nextElement();		
+	currentSnifferVector = getSniffer(dest, SniffedAgents);	    
+	if((currentSnifferVector != null) && (!sniffedSource)) {
+	  sendMsgToSniffers(msg,currentSnifferVector);	    		
+	}
+
 	ACLMessage copy = (ACLMessage)msg.clone();
 	copy.removeAllDests();
 	copy.addDest(dest);
