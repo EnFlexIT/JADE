@@ -111,6 +111,9 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   }
 
+  // this variable holds a progressive number just used to name new containers
+  private static int containersProgNo = 0;
+
   public void joinPlatform(String pID, List agentNamesAndClasses) {
 
     // This string will be used to build the GUID for every agent on
@@ -136,6 +139,7 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
     }
 
     containers.put(MAIN_CONTAINER_NAME, this);
+    containersProgNo++;
 
     // Notify platform listeners
     try {
@@ -260,8 +264,9 @@ class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatform, Age
 
   public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
 
-    String name = AUX_CONTAINER_NAME + new Integer(containers.size()).toString();
+    String name = AUX_CONTAINER_NAME + containersProgNo;
     containers.put(name, ac);
+    containersProgNo++;
 
     // Spawn a blocking RMI call to the remote container in a separate
     // thread. This is a failure notification technique.
