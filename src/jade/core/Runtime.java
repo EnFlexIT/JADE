@@ -150,11 +150,16 @@ public class Runtime {
   /**
      Causes the local JVM to be closed when the last container in this
      JVM terminates.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
    */
   public void setCloseVM(boolean flag) {
   	if (flag) {
 	    terminators.addLast(new Runnable() {
   	  	public void run() {
+  	  		// Give one more chance to other threads to complete
+  	  		Thread.yield();
     			System.out.println("JADE is closing down now.");
     			System.exit(0);
  	   		}
