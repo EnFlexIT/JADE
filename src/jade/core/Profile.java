@@ -69,6 +69,7 @@ public abstract class Profile {
   public static final String PASSWD_FILE = "jade.security.passwd";
   public static final String OWNER = "owner";
   public static final String PWD_HASH_ALGORITHM = "jade.security.impl.pwdHashAlgorithm";
+  public static final String PWD_DIALOG_CLASS = "jade.security.PwdDialog";
 
   /**
      This constant is the name of the property whose value contains
