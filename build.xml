@@ -1,4 +1,6 @@
+
 <!-- ANT BUILD FILE FOR THE JADE PROJECT -->
+
 <!-- The following targets are expected to be used by users:
 ant jade - to compile JADE
 ant lib - to create the JADE libraries (i.e. all the .jar files)
@@ -9,16 +11,12 @@ ant dist - to create the distribution files
 <!-- set properties for this project -->
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
-
-
   <property name="version" value="2.6"/>
-  <property name="build.compiler" value="javac1.2"/> 
-  <property name="EXECidlj" value="false"/>
+  <property name="build.compiler" value="javac1.2"/>
+
+ <property name="EXECidlj" value="false"/> 
   <!-- by default idlj is not executed, set to true the value for the
        previous property if you want to execute idlj -->
-
-
-
   <property environment="env"/>
   <!-- set global properties for this build -->
   <property name="root" location="."/>
@@ -27,52 +25,46 @@ ant dist - to create the distribution files
   <property name="dist" location=".."/>
   <property name="doc" location="doc"/>
   <property name="build" location="classes"/>
-
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
-
     <!-- Create the directory structure -->
     <mkdir dir="${doc}"/>
     <mkdir dir="${lib}"/>
     <mkdir dir="${build}"/>
-
     <condition property="javacc.home.is.set">
       <not>
         <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
       </not>
     </condition>
-
     <condition property="jess.home.is.set">
       <not>
         <equals arg1="${env.JESS_HOME}" arg2="$${env.JESS_HOME}"/>
       </not>
     </condition>
-
     <condition property="EXECidlj.is.set">
-     <equals arg1="${EXECidlj}" arg2="true"/>
+      <equals arg1="${EXECidlj}" arg2="true"/>
     </condition>
-	
   </target>
-
   <target name="check_javacc" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
-
   <target name="check_jess" unless="jess.home.is.set">
     <echo>jess task is being skipped. If you want to compile the examples based on JESS, set the environment variable JESS_HOME to the home directory where your jess program has been installed.</echo>
   </target>
-
+  <target name="check_execIdlj" unless="EXECidlj.is.set">
+    <echo>Default behaviour: IDLJ task is being skipped.</echo>
+  </target>
+  
+ 
   <!--     _______________________________________________
                                compile
          _______________________________________________ -->
   <target name="jade" depends="init,parser,idlj" description="compile the source ">
     <!-- Compile the java code from ${src} into ${build} -->
- <!--   <delete dir="${build}/examples"/>
+    <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
-
-   <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" excludes="demo/**,examples/**,test/**"  />
-
+    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="on" deprecation="on" excludes="demo/**,examples/**,test/**"/>
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>
     </copy>
@@ -105,17 +97,16 @@ ant dist - to create the distribution files
     <rmic classname="jade.imtp.rmi.AgentContainerRMIImpl" base="${build}"/>
     <rmic classname="jade.imtp.rmi.MainContainerRMIImpl" base="${build}"/>
   </target>
-
+  
   <!--     _______________________________________________
                                 idlj
           _______________________________________________ -->
-   <target name="idlj" depends="init" if="EXECidlj.is.set">
-     <echo> WARNING: Executing the idlj task might create wrong java files </echo>
-     <exec dir="${src}" executable="idlj.exe">
-       <arg line="-fall fipa.idl"/>
-     </exec>
-   </target>
-
+  <target name="idlj" depends="init,check_execIdlj" if="EXECidlj.is.set">
+    <echo>WARNING: Executing the idlj task might create wrong java files</echo>
+    <exec dir="${src}" executable="idlj.exe">
+      <arg line="-fall fipa.idl"/>
+    </exec>
+  </target>
   <!--     _______________________________________________
                               parser
          _______________________________________________ -->
@@ -129,7 +120,6 @@ ant dist - to create the distribution files
   <target name="MakeSLParser" depends="init, check_javacc" if="javacc.home.is.set">
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
   </target>
-
   <!--     ________________________________________________
                              jar
          ________________________________________________ -->
@@ -160,7 +150,6 @@ ant dist - to create the distribution files
       <fileset dir="${build}" includes="**/jade/gui/help/*"/>
     </jar>
     <delete dir="${build}/jade/tools"/>
-
     <!-- Create the iiop.jar file -->
     <jar jarfile="${lib}/iiop.jar">
       <fileset dir="${build}" includes="**/FIPA/*"/>
@@ -168,23 +157,19 @@ ant dist - to create the distribution files
     </jar>
     <delete dir="${build}/jade/mtp/iiop"/>
     <delete dir="${build}/FIPA"/>
-
     <!-- Create the Base64.jar file -->
     <jar jarfile="${lib}/Base64.jar">
       <fileset dir="${build}" includes="**/starlight/util/*"/>
     </jar>
     <delete dir="${build}/starlight"/>
-
     <!-- Create the jade.jar file -->
     <jar jarfile="${lib}/jade.jar" manifest="${build}/jade.mf">
-     <fileset dir="${build}" excludes="**/examples/**,**/demo/**,**/test/**" />
+      <fileset dir="${build}" excludes="**/examples/**,**/demo/**,**/test/**"/>
     </jar>
-    <delete includeEmptyDirs="true" >
-     <fileset dir="${build}/jade" />
+    <delete includeEmptyDirs="true">
+      <fileset dir="${build}/jade"/>
     </delete>
-
   </target>
-
   <!--    __________________________________________________
                             clean
         __________________________________________________ -->
@@ -194,7 +179,6 @@ ant dist - to create the distribution files
       <fileset dir="${build}" excludes="**/*.mf"/>
     </delete>
   </target>
-
   <!--    __________________________________________________
                             doc
         __________________________________________________ -->
@@ -202,7 +186,6 @@ ant dist - to create the distribution files
     <javadoc destdir="${doc}/api" author="true" windowtitle="JADE ${version} API Reference" sourcepath="${src}" packagenames="jade.core, jade.core.behaviours, jade.core.event, jade.lang.acl, jade.domain, jade.domain.FIPAAgentManagement, jade.domain.JADEAgentManagement, jade.domain.mobility, jade.proto, jade.gui, jade.wrapper, jade.domain.DFGUIManagement, jade.domain.introspection, jade.content, jade.content.abs, jade.content.acl, jade.content.lang, jade.content.lang.j, jade.content.lang.leap, jade.content.lang.sl, jade.content.onto, jade.content.onto.basic, jade.content.schema, jade.content.schema.facets, jade.util, jade.util.leap"/>
     <javadoc destdir="${doc}/tools/sniffer/html/jdoc" author="true" windowtitle="JADE ${version} Sniffer Reference" sourcepath="${src}" packagenames="jade.tools.sniffer"/>
   </target>
-
   <!--     _______________________________________________
                                test
          _______________________________________________ -->
@@ -210,8 +193,6 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="test/**" classpath="${lib}/jade.jar"/>
   </target>
-
-  
   <!--     _______________________________________________
                                examples
          _______________________________________________ -->
@@ -223,7 +204,6 @@ ant dist - to create the distribution files
   <target name="demo" depends="lib" description="compile the demo">
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="demo/**" classpath="${lib}/jade.jar,${root}/demo/CalendarBean.jar"/>
   </target>
-  
   <!--     _______________________________________________
                                JESS-based examples
          _______________________________________________ -->
@@ -232,17 +212,14 @@ ant dist - to create the distribution files
     <echo>Trying to compile the examples based on JESS. If the JESS library is not included into the CLASSPATH, a number of errors will be generated by the compiler but the task will contine.</echo>
     <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="on" deprecation="on" includes="examples/jess/** examples/JadeJessProtege/**" classpath="${lib}/jade.jar,${env.JESS_HOME}/jess.jar,${env.JESS_HOME}/JessTab.jar" failonerror="false"/>
   </target>
-
   <!--     _______________________________________________
                                dist
          _______________________________________________ -->
   <!-- Make distribution zip file and put in ${dist} -->
   <target name="dist" depends="check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
-
   <target name="check_javacc_dist" unless="javacc.home.is.set">
     <echo>javacc task is being skipped and THE DISTRIBUTION FILES MIGHT NOT BE PROPERLY GENERATED. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
-  
   <target name="dist_src" depends="init,parser">
     <jar jarfile="${dist}/JADE-src-${version}.zip">
       <fileset dir="${dist}" includes="jade/src/FIPA/**"/>
@@ -258,11 +235,10 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/src/*.html"/>
       <fileset dir="${dist}" includes="jade/classes/*.mf"/>
       <!-- fileset dir="${dist}" includes="jade/lib/Makefile"/ -->
-	</jar>
+    </jar>
   </target>
-
   <target name="dist_examples" depends="init">
-    <jar jarfile="${dist}/JADE-examples-${version}.zip">  
+    <jar jarfile="${dist}/JADE-examples-${version}.zip">
       <fileset dir="${dist}" includes="jade/src/examples/**"/>
       <fileset dir="${dist}" includes="jade/src/demo/**"/>
       <fileset dir="${dist}" includes="jade/demo/**"/>
@@ -270,41 +246,36 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-	</jar>
+    </jar>
   </target>
-
   <target name="dist_doc" depends="init,doc">
-    <jar jarfile="${dist}/JADE-doc-${version}.zip"> 
+    <jar jarfile="${dist}/JADE-doc-${version}.zip">
       <fileset dir="${dist}" includes="jade/doc/**"/>
       <fileset dir="${dist}" includes="jade/README"/>
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-	</jar>
-  </target>
-  
-  <target name="dist_bin" depends="init,lib,examples">
-    <jar jarfile="demo/MeetingScheduler.jar" manifest="demo/demo.mf">
-      <fileset dir="${build}" includes="**/demo/*"/>
     </jar>
-    <jar jarfile="${dist}/JADE-bin-${version}.zip"> 
+  </target>
+  <target name="dist_bin" depends="init,examples">
+    <jar jarfile="demo/MeetingScheduler.jar" manifest="demo/demo.mf">
+      <fileset dir="${build}" includes="**/demo/**"/>
+    </jar>
+    <jar jarfile="${dist}/JADE-bin-${version}.zip">
       <fileset dir="${dist}" includes="jade/lib/**"/>
       <fileset dir="${dist}" includes="jade/demo/*"/>
       <fileset dir="${dist}" includes="jade/README"/>
       <fileset dir="${dist}" includes="jade/COPYNG"/>
       <fileset dir="${dist}" includes="jade/ChangeLog"/>
       <fileset dir="${dist}" includes="jade/License"/>
-	</jar>
+    </jar>
   </target>
-  
   <target name="dist_all" depends="init,dist_src,dist_examples,dist_doc,dist_bin">
-    <jar jarfile="${dist}/JADE-all-${version}.zip"> 
+    <jar jarfile="${dist}/JADE-all-${version}.zip">
       <fileset dir="${dist}" includes="JADE-src-${version}.zip"/>
       <fileset dir="${dist}" includes="JADE-examples-${version}.zip"/>
       <fileset dir="${dist}" includes="JADE-doc-${version}.zip"/>
       <fileset dir="${dist}" includes="JADE-bin-${version}.zip"/>
-	</jar>
+    </jar>
   </target>
-  
-  </project>
-
+</project>

@@ -62,11 +62,12 @@ The only software requirement to execute the system is the Java Run Time
 Environment version 1.2
 Further to the Java Compiler version 1.2, to build the system, the JavaCC 
 parser generator (version 0.8pre or version 1.1; available from 
-http://www.metamata.com), and the IDL to Java translator idltojava 
+http://www.metamata.com), the IDL to Java translator idltojava 
 (available from the Sun Developer Connection) are also needed. However, 
 pre-built IDL stubs and Java parser classes are included with the JADE 
 source distribution such that the Java compiler is sufficient to build 
-the full system.
+the full system, finally the ANT program to compile the source code of 
+JADE with build.xml file, ANT is available from http://jakarta.apache.org.
 
 5.2 Getting the software
 ========================
@@ -150,50 +151,38 @@ implemented by the class examples.receivers.AgentReceiver.
 
 5.4 Building JADE from the source distribution
 ==============================================
-If you downloaded JADE in source form and want to compile it, you basically 
-have two methods: either you use the provided makefiles (for GNU make), or 
-you run the Win32 .BAT files that you find in the root directory of the 
-package. Of course, using makefiles yields more flexibility because they 
-just build what is needed; JADE makefiles have been tested under Sun 
-Solaris 7 with JDK 1.2.0 and under Linux under JDK 1.2.2 RC4. The batch 
-files have been tested under Windows NT 4.0 and under Windows 95, both with 
-JDK 1.2.2.
+If you downloaded the source code of JADE, you can compile it by using the 
+"ant" program, a platform independent version of make.
+The file "build.xml" in the JADE root directory is the input file for ant. 
+The "ant" program must 
+be installed on your computer, it can be downloaded from the Jakarta Project 
+at the Apache web site: <http://jakarta.apache.org/>.
 
 5.4.1 Building the JADE framework
 =================================
-If you use the makefiles, just type
-make all
-in the root directory; if you use the batch files, type
-makejade
-in the root directory. Beware that the batch file will not be able to check 
-whether IDL stubs and parser classes already exist, so either you have 
-idltojava and JavaCC installed, or you comment out them in the batch file.
+Just type
+ant jade
+you run ant on build.xml file in the root directory.
 You will end up with all JADE classes in a classes subdirectory. You can add 
 that directory to your CLASSPATH and make sure that everything is OK by 
 running JADE, as described in the previous section.
 
 5.4.2 Building JADE libraries
 ============================
-With makefiles, type
-make lib
-With batch files, type
-makelib
+Type:
+ant lib
 This will remove the content of the classes directory and will create some 
 JAR files in the lib directory. These JAR files are just the same you get 
 from the binary distribution. See section 5.3 for a description on how to 
-run JADE when you have built the JAR files. Beware that, both with makefiles 
-and batches, you must first build the classes and then the libraries, 
-otherwise you will end up with empty JAR files.
+run JADE when you have built the JAR files. 
 NOTE: jade/lib/Base64.jar is only needed if you want to use the support for JADE 
       serialization and trasmitting sequences of bytes within an ACLMessage. In all
       other cases, it is not necessary adding it to CLASSPATH .
 
 5.4.3 Building JADE HTML documentation
 ======================================
-With makefiles, type
-make doc
-With batch files, type
-makedoc
+Type:
+ant doc
 You will end up with Javadoc generated HTML pages, integrated within the 
 overall documentation. Beware that the Programmer's Guide is a PDF file that 
 cannot be generated at your site, but you must download it (it is, of course,
@@ -205,29 +194,21 @@ If you downloaded the examples/demo archive and have unpacked it within the
 same source tree, you will have to set your CLASSPATH to contain either the 
 classes directory or the JAR files in the lib directory, depending on your 
 JADE distribution, and then type:
-make examples
-with makefiles, or
-makeexamples
-with batch files.
+ant examples
 In order to compile the Jess-based example, it is necessary to have the JESS 
-system and to set the CLASSPATH to include it. The example can be compiled 
-by typing:
-make jessexample
-with makefiles, or
-makejessexample
-with batch files.
+system, to set the CLASSPATH to include it and to set JESS_HOME. The example 
+can be compiled by typing:
+ant jessexample
 
 5.4.5 Cleaning up the source tree
 =================================
-If you type
-make clean
-with makefiles, or if you type
-clean
-with batch files, you will remove all generated files (classes, HTML pages, 
-JAR files, etc.) from the source tree. If you use makefiles, you will find 
-some other make targets you can use. Feel free to try them, especially if 
-you are modifying JADE source code, but be aware that these other make 
-targets are for internal use only, so they have not been documented.
+If you type:
+ant clean
+you will remove all generated files (classes, HTML pages, JAR files, etc.) 
+from the source tree. If you use makefiles, you will find some other make 
+targets you can use. Feel free to try them, especially if you are modifying 
+JADE source code, but be aware that these other make targets are for internal 
+use only, so they have not been documented.
 
 5.5 IIOP support and inter-platform messaging
 =============================================
