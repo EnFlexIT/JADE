@@ -28,6 +28,7 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.util.leap.Properties;
 import jade.util.leap.Iterator;
+import jade.util.Logger;
 
 import java.util.Date;
 import java.util.Enumeration;
@@ -55,7 +56,7 @@ class SerializationEngine {
       	serializeObject(cmd.getParamAt(i), dos);
       }
       byte[] bb = baos.toByteArray();
-      System.out.println("Serialized command. Type = "+cmd.getCode()+". Length = "+(bb != null ? bb.length : 0));
+      //Logger.println("Serialized command. Type = "+cmd.getCode()+". Length = "+(bb != null ? bb.length : 0));
       return bb;
     } 
     catch (IOException ioe) {
@@ -71,6 +72,7 @@ class SerializationEngine {
       for (int i = 0; i < paramCnt; ++i) {
         cmd.addParam(deserializeObject(dis));
       } 
+      //Logger.println("De-serialized command. Type = "+cmd.getCode()+". Length = "+(data != null ? data.length : 0));
       return cmd;
     } 
     catch (IOException ioe) {
