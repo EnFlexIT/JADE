@@ -8,6 +8,7 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 import jade.domain.ams;
+import jade.domain.df;
 import jade.domain.AgentManagementOntology;
 
 import jade.domain.FIPAException;
@@ -22,6 +23,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   private static final float GLOBALMAP_LOAD_FACTOR = 0.25f;
 
   private ams theAMS;
+  private df defaultDF;
 
   private Vector containers = new Vector();
   private Hashtable platformAgents = new Hashtable(GLOBALMAP_SIZE, GLOBALMAP_LOAD_FACTOR);
@@ -50,6 +52,23 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   private void initDF() {
+    System.out.print("Starting Default DF... ");
+    defaultDF = new df();
+
+    // Subscribe as a listener for the AMS agent
+    defaultDF.addCommListener(this);
+
+    // Insert AMS into local agents table
+    localAgents.put("df", defaultDF);
+
+    AgentDescriptor desc = new AgentDescriptor();
+    desc.setAll("df", myDispatcher, "df@" + platformAddress, null, null, null, Agent.AP_INITIATED);
+    desc.setName("df");
+    desc.setDemux(myDispatcher);
+
+    platformAgents.put(desc.getName(), desc);
+    System.out.println("DF OK");
+
   }
 
   public AgentPlatformImpl() throws RemoteException {
