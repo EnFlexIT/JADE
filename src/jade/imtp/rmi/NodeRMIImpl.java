@@ -43,14 +43,14 @@ import jade.util.leap.HashMap;
 /**
    @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
-public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
+class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
     public NodeRMIImpl(NodeAdapter impl, int port) throws RemoteException {
 	super(port);
 	myNode = impl;
     }
 
-    public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException, IMTPException {
+    public Object accept(HorizontalCommand cmd) throws RemoteException, IMTPException {
 
 	try {
 	    if(terminating) {
@@ -63,6 +63,13 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	}
     }
 
+    public void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws RemoteException, IMTPException {
+	    if(terminating) {
+				throw new IMTPException("Dead node");
+	    }
+	    myNode.platformManagerDead(deadPmAddress, notifyingPmAddr);
+    }
+    	
     public boolean ping(boolean hang) throws RemoteException {
       if(hang) {
 	  waitTermination();

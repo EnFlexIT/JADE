@@ -55,14 +55,14 @@ class NodeAdapter extends BaseNode {
 	}
     }
 
-    public NodeAdapter(String name, NodeRMI node) {
+    /*public NodeAdapter(String name, NodeRMI node) {
 	super(name);
 	adaptee = node;
-    }
+    }*/
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
 	try {
-	    return adaptee.accept(cmd, null, null);
+	    return adaptee.accept(cmd);
 	}
 	catch(RemoteException re) {
 	    throw new IMTPException("An RMI error occurred", re);
@@ -73,9 +73,9 @@ class NodeAdapter extends BaseNode {
 	return adaptee;
     }
 
-    public Service.Slice getSlice(String serviceName) {
+    /*public Service.Slice getSlice(String serviceName) {
 	return super.getSlice(serviceName);
-    }
+    }*/
 
     public boolean ping(boolean hang) throws IMTPException {
 	try {
@@ -104,7 +104,22 @@ class NodeAdapter extends BaseNode {
 	}
     }
 
-
+    public void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws IMTPException {
+    	if (myServiceManager != null) {
+    		// Local call
+    		super.platformManagerDead(deadPmAddress, notifyingPmAddr);
+    	}
+    	else {
+    		// Remote call
+				try {
+				    adaptee.platformManagerDead(deadPmAddress, notifyingPmAddr);
+				}
+				catch(RemoteException re) {
+				    throw new IMTPException("RMI exception", re);
+				}
+    	}
+    }
+    
     private NodeRMI adaptee;
 
 }

@@ -28,34 +28,33 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 import jade.core.Service;
+import jade.core.ServiceDescriptor;
 import jade.core.Node;
 import jade.core.NodeDescriptor;
 import jade.core.ServiceException;
 
 import jade.security.AuthException;
 
-
+import java.util.Vector;
 
 /**
    @author Giovanni Rimassa - FRAMeTech s.r.l
 
  */
-public interface ServiceManagerRMI extends Remote {
+interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
     String getPlatformName() throws RemoteException;
-    void activateService(String name, Class itf, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
-    void deactivateService(String name, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
-    String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, boolean propagate) throws ServiceException, AuthException, RemoteException;
-    void removeNode(NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
+    String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws RemoteException, ServiceException, AuthException;
+    void removeNode(NodeDescriptor dsc, boolean propagated) throws RemoteException, ServiceException;
+    void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)  throws RemoteException, ServiceException;
+    void removeSlice(String serviceKey, String sliceKey, boolean propagated)  throws RemoteException, ServiceException;
+    void addReplica(String newAddr, boolean propagated)  throws RemoteException, ServiceException;
+    void removeReplica(String address, boolean propagated)  throws RemoteException, ServiceException;
 
-    // Added ServiceFinder-like method
-    Node[] findAllNodes(String serviceKey) throws ServiceException, RemoteException;
-    Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException;
-
-    // Service methods
+    Service.Slice findSlice(String serviceKey, String sliceKey) throws RemoteException, ServiceException;
+    Vector findAllSlices(String serviceKey) throws RemoteException, ServiceException;
+   
     void adopt(Node n) throws RemoteException;
-    String[] addReplica(String addr) throws RemoteException;
-    void updateCounters(int nodeCnt, int mainCnt) throws RemoteException;
-
+    void ping() throws RemoteException;    
 }

@@ -44,7 +44,7 @@ interface NodeRMI extends Remote {
        this horizontal command.
        @throws RemoteException If a network problem occurs.
     */
-    Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException, IMTPException;
+    Object accept(HorizontalCommand cmd) throws RemoteException, IMTPException;
 
     /**
        Check whether this node is reachable.
@@ -71,4 +71,5 @@ interface NodeRMI extends Remote {
     */
     void interrupt() throws RemoteException;
 
+    void platformManagerDead(String deadPmAddress, String notifyingPmAddr) throws RemoteException, IMTPException;
 }
