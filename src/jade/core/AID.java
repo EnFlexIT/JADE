@@ -102,9 +102,9 @@ public class AID implements Cloneable, Comparable, Serializable {
     }
 
     /** constant to be used in the constructor of the AID **/
-    public static boolean ISGUID = true;
+    public static final boolean ISGUID = true;
     /** constant to be used in the constructor of the AID **/
-    public static boolean ISLOCALNAME = false;
+    public static final boolean ISLOCALNAME = false;
 
     /** private variable containing the right part of a local name **/
     private static String atHAP = null; 
