@@ -317,13 +317,17 @@ public class FSMBehaviour extends SerialBehaviour {
   			}
   		}
   		catch (NullPointerException npe) {
-  			throw new RuntimeException("Inconsistent FSM. State: "+previousName+" event: "+currentResult);
+  			handleInconsistentFSM(previousName, currentResult);
   		}
   		// DEBUG
   		//System.out.println(myAgent.getLocalName()+ " is Executing state "+currentName);
   	}
   }
-  
+
+  protected void handleInconsistentFSM(String current, int event) {
+		throw new RuntimeException("Inconsistent FSM. State: "+current+" event: "+event);
+  }
+  	
   /**
      Check whether this <code>FSMBehaviour</code> must terminate.
      @return true when the last child has terminated and it 
