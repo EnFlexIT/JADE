@@ -3,77 +3,90 @@
 <META http-equiv=Content-Type content="text/html; charset=windows-1252">
 <META content="MSHTML 6.00.2600.0" name=GENERATOR></HEAD>
 <BODY text=#000000 vLink=#0000ff aLink=#0000ff link=#0000ff bgColor=#ffffff>
+<FONT face=Arial,Helvetica size=3>
+
 <H1>How to use arguments or properties to configure your agent.</H1>
 <P><I>Author: Dick Cowan, Menehune Software Inc.</I></P>
-<P><I>Email: <A 
-href="mailto:rm.cowan@verizon.net">rm.cowan@verizon.net</A></I></P>
-<P><I>Date: February 22, 2003</I></P>
-<P><I><FONT size=2>Java platform: J2SE</FONT></I></P>
-<FONT size=2> 
-<P><I><A href="http://jade.cselt.it/">JADE</A> version 2.5 and above</I></P>
-<FONT face=Arial,Helvetica size=3> 
+<P><I>Email: <A href="mailto:rm.cowan@verizon.net">rm.cowan@verizon.net</A></I></P>
+<P><I>Date: February 22, 2003. Revised: June 3, 2003</I></P>
+<P><I>Java platform: J2SE</I></P>
+<P><I><A href="http://jade.cselt.it/">JADE</A> version 2.5 and above.</I></P>
 <P>JADE provides a simple mechanism to pass arguments to agents via the command-line 
-  or via the in-process interface. 
+  or via the in-process interface.
 <P>For instance, the following <U>command line</U> passes 3 arguments to the agent 
-  FooAgent: 
-<PRE>	java jade.Boot foo:FooAgent(1 arg2 "This is argument 3")
+  FooAgent:
+<PRE>
+    java jade.Boot foo:FooAgent(1 arg2 "This is argument 3")
 </PRE>
-<P>the 3 arguments can then be extracted by the FooAgent code via a simple call 
-  to the method <CODE>getArguments()</CODE> that returns an array of java <CODE>Object</CODE>: 
-<PRE>  public void setup() {
-   Object[] args = getArguments();
-   String arg1 = (String)args[0]; // this returns the String 1
-   String arg2 = (String)args[1]; // this returns the String arg2
-   String arg3 = (String)args[2]; // this returns the String This is argument 3
-  }
-  </PRE>
-<P>The same arguments can be passed <U>via the in-process</U> interface as follows: 
-<PRE> Object args = new Object[3];
- args[0] = "1";
- args[1] = "arg2";
- args[3] = "This is argument 3";
- AgentController dummy = ac.createNewAgent("foo", "FooAgent", args);
+<P>
+the three arguments can then be extracted by the FooAgent code via a simple call 
+to the Agent method <CODE>getArguments()</CODE> that returns an array of type <CODE>java.lang.Object</CODE>.
+<PRE>
+    public void setup() {
+        Object[] args = getArguments();
+        String arg1 = args[0].toString(); // this returns the String "1"
+        String arg2 = args[1].toString(); // this returns the String "arg2"
+        String arg3 = args[2].toString(); // this returns the String "This is argument 3"
+    }
+</PRE>
+<P>The same arguments can be passed <U>via the in-process</U> interface as follows:
+<PRE>
+    Object args = new Object[3];
+    args[0] = "1";
+    args[1] = "arg2";
+    args[3] = "This is argument 3";
+    AgentController dummy = ac.createNewAgent("foo", "FooAgent", args);
 </PRE>
 <P>Because of the usage of an array of <CODE>Object</CODE> rather than an array 
   of <CODE>String</CODE>, the in-process interface can also pass complex arguments 
-  to an agent, such as the reference to another Java object. 
+  to an agent, such as the reference to another Java object. If you want a String
+  argument, it is best to use the object argument's toString() method to fetch a
+  string representation of the object rather than simply casting it as a String.
 <P> The command line can also be effectively used in order to pass general properties 
   to all the agents in the system. For instance, the following command line sets 
   to 3 the value of the property named verbosity:
-</FONT></FONT> 
-<pre><font face="Arial,Helvetica" size="2">	java jade.Boot -verbosity 3 foo:FooAgent(1 arg2 "This is argument 3")</font></pre>
-<p><FONT size=2><font size=2><font face=Arial,Helvetica size=3>The same property 
-  can be set also via the in-process interface, in particular by setting that 
-  value in the Profile object:</font></font></FONT></p>
-<p><font face="Arial,Helvetica" size="2"> Profile p = new ProfileImpl();<br>
-  p.setParameter(&quot;verbosity&quot;,&quot;3&quot;);<br>
-  </font><font face="Arial,Helvetica" size="2">AgentContainer ac = rt.createAgentContainer(p);</font></p>
-<p><font size="3" face="Arial,Helvetica">In both cases, all agents can then get 
-  that value via the <code><a href="../api/jade/core/Agent.html#getProperty(java.lang.String, java.lang.String)">getProperty</a></code> 
-  method call provided by the <code>jade.core.Agent </code> class: </font></p>
-<pre><font face="Arial,Helvetica" size="2">	String verbosity = getProperty(&quot;verbosity&quot;, &quot;0&quot;); </font></pre>
-<FONT size=2><FONT face=Arial,Helvetica size=3>
+<pre>
+    java jade.Boot -verbosity 3 foo:FooAgent(1 arg2 "This is argument 3")
+</pre>
+<p>
+The same property can be set also via the in-process interface, in particular by setting that 
+value in the Profile object:
+<pre>
+    Profile p = new ProfileImpl();
+    p.setParameter(&quot;verbosity&quot;,&quot;3&quot;);
+    AgentContainer ac = rt.createAgentContainer(p);
+</pre>
+<p>In both cases, all agents can then get that value via the 
+<code><a href="../api/jade/core/Agent.html#getProperty(java.lang.String, java.lang.String)">getProperty</a></code> 
+method call provided by the <code>jade.core.Agent </code> class:
+<pre>
+    String verbosity = getProperty(&quot;verbosity&quot;, &quot;0&quot;);
+</pre>
 <P>However, attempting to pass other than a few simple arguments via the command 
-  line is difficult. Particularly trying to do so in a platform neutral manner. 
+  line is difficult. Particularly trying to do so in a platform neutral manner.
   LEAP also makes use of properties in lieu of passing arguments directly to the 
-  agent. 
+  agent.
 <P>While working with the Agents for Mobility group at HP Labs, we recognized 
   the need to provide agents with a richer and more flexible method of passing 
   arguments to our agents than could be done from the command line. The classes 
-  we created became part of the JADE 2.5 release. 
+  we created became part of the JADE 2.5 release.
 <P>The classes of interest are <A 
 href="../api/jade/util/BasicProperties.html">BasicProperties</A>, <A 
 href="../api/jade/util/EnhancedProperties.html">EnhancedProperties</A>, and <A 
 href="../api/jade/util/ExpandedProperties.html">ExpandedProperties</A>. The preceding 
   links should take you to the API documentation for these classes. Briefly they 
-  are: 
+  are:
 <OL>
   <LI><TT><B>jade.util.BasicProperties</B></TT> - Provides the foundation class 
     for property management. It is designed to be usable in the restrictive J2ME 
     CLDC environment. It provides enhanced property management as well as providing 
-    support for values containing strings of the form <TT><B>${key}</B></TT>. 
+    support for values containing strings of the form <TT><B>${key}</B></TT>.
+    <br>
+    A property may be set such that it can't be altered by ending the key value
+    with an exclamation point; e.g. <tt>agentClass!</tt>. One still references this
+    property with its basic name without the exclamation point.
   <LI><TT><B>jade.util.EnhancedProperties</B></TT> - Provides a concrete implementation 
-    of ImportableProperties useable in the J2SE (desktop) world. 
+    of ImportableProperties useable in the J2SE (desktop) world.
   <LI><TT><B>jade.util.ExpandedProperties</B></TT> - Extends EnhancedProperties 
     and adds support for fetching system environment variables (those usable from 
     the OS shell). This class would need to be carefully considered in other than 
@@ -81,19 +94,20 @@ href="../api/jade/util/ExpandedProperties.html">ExpandedProperties</A>. The prec
 </OL>
 By using property files you can include all the arguments you wish. From the command 
 line to initialize an agents properties from a file named "myprop.properties", 
-you would use: 
-<PRE>	java jade.Boot foo:DemoAgent(import:myprop.properties)
+you would use:
+<PRE>
+    java jade.Boot foo:DemoAgent(import:myprop.properties)
 </PRE>
 One property file may import from another, so inside myprop.properties you could 
 include an import to another file. You can get at your environment variables using 
 a key like <TT><B>${CLASSPATH}</B></TT>. There are many convenient getter methods 
 provided in <A 
-href="../api/jade/util/BasicProperties.html">BasicProperties</A>. 
-<P>Shown below are: 
+href="../api/jade/util/BasicProperties.html">BasicProperties</A>.
+<P>Shown below are:
 <OL>
   <LI><TT><B>BasicAgent.java</B></TT> - Intended to provide basic property support 
     for all agents. You could extend this class rather than jade.Agent for your 
-    custom agents. Of particular interest in this class is the method <TT><B>getProperties()</B></TT> 
+    custom agents. Of particular interest in this class is the method <TT><B>getProperties()</B></TT>
     as it attempts to initialize the starting property collection by having the 
     class loader load properties from a file called "setup.properties". This initial 
     collection may then be altered by any properties supplied at run time. Loading 
@@ -101,26 +115,41 @@ href="../api/jade/util/BasicProperties.html">BasicProperties</A>.
     you to place the property file in the same jar as your class files - simplifying 
     installation and usage by others. This could be where you provide all the 
     default values for infrequently modified things such as class names or GUI 
-    settings. 
+    settings.
   <LI><TT><B>DemoAgent.java</B></TT> - Provides a simple example agent which uses 
-    BasicAgent. You can run this agent. 
+    BasicAgent. You can run this agent.
   <LI><TT><B>setup.properties</B></TT> - An example property file. </LI>
 </OL>
-<P>The two java files contain additional comments on implementation and usage. 
-<P>Testing: 
+<P>The two java files contain additional comments on implementation and usage.
+<P>Testing:
 <OL>
   <LI>Copy the text in each section below and save to a file whose name is the 
-    same as the header. Place these three files in the same directory. 
-  <LI>Change to the directory where you saved the files. 
-  <LI>Compile the two Java files. 
+    same as the header. Place these three files in the same directory.
+  <LI>Change to the directory where you saved the files.
+  <LI>Compile the two Java files.
   <LI>With jade.jar as well the current directory on your classpath run the demo 
     with: <BR>
-    <TT>java jade.Boot demo:DemoAgent</TT> 
+    <TT>java jade.Boot demo:DemoAgent</TT>
   <LI>DemoAgent simply displays its properties every N seconds, where N is specifed 
     by the property "delay.seconds". </LI>
 </OL>
+<P>Optional testing:
+<OL>
+  <LI>Modify some of the attributes provided by the setup.properties
+    file at run time. As set in that file the delay time is 10 seconds. You could
+    change it to 20 from the command line with:<br>
+    <TT>java jade.Boot demo:DemoAgent(delay.seconds:20)</TT><br>
+    This will change the attribute at run time but not modify the value in the file.
+  <LI>Create another property file, called <tt>test.properties</tt> and
+    have its properties add to or overlay those in <tt>setup.properties</tt> with:<br>
+    <TT>java jade.Boot demo:DemoAgent(import:test.properties)</TT>
+  <LI>Add an import statement to test.properties to import another
+    property file. Use some system environment variable (e.g. ${JADE_HOME}) to set some property
+    or locate the property file.
+</OL>
 <H2>BasicAgent.java</H2>
-<PRE>import java.io.InputStream;
+<PRE>
+import java.io.InputStream;
 import java.io.IOException;
 
 import jade.core.Agent;
@@ -136,7 +165,6 @@ public class BasicAgent extends Agent {
      public static String PROP_NAME = "setup.properties";
 
      private BasicProperties properties = null;
-     private String[] presentedArgs = null;
 
      /**
       * Sets the agents properties.
@@ -196,38 +224,27 @@ public class BasicAgent extends Agent {
      }
 
      /**
-      * Called by Jade to set the agents arguments so we use it to
-      * initialize our properties. It calls getProperties to
-      * get the starting properties, copies them into a new instance
-      * of ExpandedProperties, calls its parseArgs method of handle
-      * the presented arguments, and then replaces our starting
-      * properties with this result. This ensures that empty setting
-      * in the arguments will overlay those in starting.
-      * arguments.
-      * @param args The arguments passed to the agent.
-      */
-     public void setArguments(String[] args) {
-         presentedArgs = args;
-         ExpandedProperties newProperties = new ExpandedProperties();
-         newProperties.copyProperties(getProperties());
-         newProperties.parseArgs(args);
-         setProperties(newProperties);
-     }
-
-     /**
-      * Fetch the String[] which was given to setArguments.
-      * @return The value given to setArguments - may be null;
-      */
-     public Object[] getArguments() {
-         return presentedArgs;
-     }
-
-     /**
-      * Jade calls this method on startup (after calling setArguments) so 
-      * we use it to initialize. If the agents properties contains
-      * "dump=true", the properties will be displayed.
+      * Jade calls this method on startup so we use it to initialize the
+      * agents properties. First, it will call getArguments() to get
+      * the arguments as an array of objects. Second, it creates a similar
+      * size array of strings by calling toString() on each object.
+      * Finally, it will call getProperties() to get the initial property set
+      * and then add those provided as arguments. If the properties contain
+      * "dump=true", the properties will be listed to standard out.
       */
      protected void setup() {
+         Object[] args = getArguments();  // JADE's getArguments
+         if (args != null) {
+             int len = args.length;
+             String sargs[] = new String[len];
+             for (int i=0; i &lt len; i++) {
+                 sargs[i] = args[i].toString();
+             }
+             ExpandedProperties newProperties = new ExpandedProperties();
+             newProperties.copyProperties(getProperties());
+             newProperties.parseArgs(sargs);
+             setProperties(newProperties);
+         }
          if (getProperties().getBooleanProperty("dump", false)) {
              System.out.println("----- " + getLocalName() + "'s properties:");
              getProperties().list(System.out);
@@ -242,40 +259,39 @@ import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 
 /**
-  * Example to show usage of BasicAgent.
-  * All it currently does is display its properties every N seconds
-  * where N is specified by the property "delay.seconds".
-  */
+ * Example to show usage of BasicAgent.
+ * All it currently does is display its properties every N seconds
+ * where N is specified by the property "delay.seconds".
+ */
 public class DemoAgent extends BasicAgent {
-     int delaySeconds;
-        
-     class MyBehaviour extends CyclicBehaviour {
+    int delaySeconds;
 
-         public MyBehaviour( Agent a ) {
-             super(a);
-         }
+    class MyBehaviour extends CyclicBehaviour {
+        public MyBehaviour( Agent a ) {
+            super(a);
+        }
 
-         public void action() {
-             while (true) {
+        public void action() {
+            while (true) {
                 System.out.println("----- " + getLocalName() + "'s properties:");
                 getProperties().list(System.out);
                 doWait(delaySeconds * 1000);
-             }
-         }
-     }
+            }
+        }
+    }
 
-     /**
-      * This method is called by the agent container as part of the
-      * agent intialization after the agent's contructor is called.
-      */
-     protected void setup() {
+    /**
+     * This method is called by the agent container as part of the
+     * agent intialization after the agent's contructor is called.
+     */
+    protected void setup() {
         super.setup();  // To initialize our properties
-         MyBehaviour b = new MyBehaviour(this);
-         addBehaviour(b);
-         System.out.println("Agent "+getLocalName()+" is running.");
-         delaySeconds = getProperties().getIntProperty("delay.seconds", 10);
-         System.out.println("Delay seconds=" + delaySeconds);
-     }
+        MyBehaviour b = new MyBehaviour(this);
+        addBehaviour(b);
+        System.out.println("Agent "+getLocalName()+" is running.");
+        delaySeconds = getProperties().getIntProperty("delay.seconds", 10);
+        System.out.println("Delay seconds=" + delaySeconds);
+    }
 }
 </PRE>
 <H2>setup.properties</H2>
@@ -307,16 +323,14 @@ weather.zonecode=HIZ002
 class.path=${CLASSPATH}
 
 </PRE>
-</FONT> 
 <HR>
-<P> 
+<P>
   <CENTER>
     <FONT face=Arial size="-1"><A href="http://jade.cselt.it/">JADE</A> is a trademark 
-    of <A href="http://www.cselt.it/">CSELT</A>. </FONT> 
+    of <A href="http://www.cselt.it/">CSELT</A>. </FONT>
   </CENTER>
   <BR>
-  &nbsp; 
+  &nbsp;
 <P><BR>
 </P>
-</FONT> 
 </BODY></HTML>
