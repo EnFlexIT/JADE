@@ -51,22 +51,10 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 
     public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException, IMTPException {
 
-	/***
-	System.out.println("--- Command Received ---");
-	System.out.println("Name: <" + cmd.getName() + ">");
-	System.out.println("Service: <" + cmd.getService() + ">");
-
-	Object[] args = cmd.getParams();
-	for(int i = 0; i < args.length; i++) {
-	    System.out.println("param[" + i + "] = " + args[i]);
-	}
-
-	System.out.println("--- ================ ---");
-
-	***/
-
-
 	try {
+	    if(terminating) {
+		throw new IMTPException("Dead node");
+	    }
 	    return myNode.serve(cmd);
 	}
 	catch(ServiceException se) {
