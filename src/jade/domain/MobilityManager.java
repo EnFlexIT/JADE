@@ -209,7 +209,6 @@ class MobilityManager {
     }
     protected void doAction(Action a) throws FIPAException {
       MobilityOntology.QueryPlatformLocationsAction action = (MobilityOntology.QueryPlatformLocationsAction)a.get_1();
-      Iterator locations = theAMS.AMSGetPlatformLocations();
 
       ACLMessage reply = getReply();
       reply.setPerformative(ACLMessage.INFORM);
@@ -217,8 +216,13 @@ class MobilityManager {
       reply.setOntology(MobilityOntology.NAME);
       ResultPredicate r = new ResultPredicate();
       r.set_0(a);
-      for (; locations.hasNext(); )
-      	r.add_1(locations.next());
+
+      // Mutual exclusion with addLocation() and removeLocation() methods
+      synchronized(locations) {
+	Iterator it = locations.values().iterator();
+	while(it.hasNext())
+	  r.add_1(it.next());
+      }
       List l = new ArrayList();
       l.add(r);
       theAMS.fillMsgContent(reply,l); 
@@ -228,19 +232,19 @@ class MobilityManager {
   }
 
   public void addLocation(String name, Location l) {
-    locations.put(new CaseInsensitiveString(name), l);
+    synchronized(locations) {
+      locations.put(new CaseInsensitiveString(name), l);
+    }
   }
 
   public void removeLocation(String name) {
-    locations.remove(new CaseInsensitiveString(name));
+    synchronized(locations) {
+      locations.remove(new CaseInsensitiveString(name));
+    }
   }
 
   public Location getLocation(String containerName) {
     return (Location)locations.get(new CaseInsensitiveString(containerName));
-  }
-
-  public Iterator getLocations() {
-    return locations.values().iterator();
   }
 
 }

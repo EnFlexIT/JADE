@@ -1183,12 +1183,6 @@ public class ams extends Agent implements AgentManager.Listener {
     }
   }
 
-  // This one is called in response to a 'query-platform-locations' action
-  Iterator AMSGetPlatformLocations() {
-    return mobilityMgr.getLocations();
-  }
-
-
   // Methods to be called from AgentPlatform to notify AMS of special events
 
   /**
