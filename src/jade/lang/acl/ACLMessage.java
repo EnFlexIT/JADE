@@ -42,7 +42,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Enumeration;
 
-import jade.domain.FIPAAgentManagement.AID;
+import jade.onto.basic.AID;
 
 import starlight.util.Base64;
 

@@ -57,7 +57,7 @@ PARSER_BEGIN(ACLParser)
 package jade.lang.acl;
 
 import java.io.*;
-import jade.domain.FIPAAgentManagement.AID;
+import jade.onto.basic.AID;
 
 /**
 Javadoc documentation for the file

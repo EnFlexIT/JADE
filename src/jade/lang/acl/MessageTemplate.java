@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 
-import jade.domain.FIPAAgentManagement.AID;
+import jade.onto.basic.AID;
 
 /**
    A pattern for matching incoming ACL messages. This class allows to
