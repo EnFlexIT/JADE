@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.lang.*;
+import test.common.*;
+import test.content.*;
 import examples.content.ecommerceOntology.*;
 import java.util.Date;
 
@@ -43,38 +45,36 @@ public class TestAgentAction extends Test{
   	sb.append("NOTE: When using the SL language this test is PASSED if the above operation fails"); 
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
-  	c = a.getContentManager().lookupLanguage(msg.getLanguage());
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Sell sell = new Sell();
-  		Item i = new Item();
-  		i.setSerialID(35624);
-  		sell.setItem(i);
-  		sell.setBuyer(a.getAID());
-  		sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Sell sell = new Sell();
+  				Item i = new Item();
+  				i.setSerialID(35624);
+  				sell.setItem(i);
+  				sell.setBuyer(myAgent.getAID());
+  				sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
   	
-  		a.getContentManager().fillContent(msg, sell);
-  		return SEND_MSG;
+  				myAgent.getContentManager().fillContent(msg, sell);
+  				return msg;
+  			}
+  			
+  			protected int getExpectedPerformative(ACLMessage sentMsg) {
+  				if (sentMsg.getLanguage().startsWith("FIPA-SL")) {
+  					return ACLMessage.FAILURE;
+  				}
+  				else {
+  					return ACLMessage.INFORM;
+  				}
+  			}	
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
   
-  public int checkResponse(ACLMessage rsp) {
-  	if (c.getName().startsWith("FIPA-SL")) {
-  		if (rsp.getPerformative() == ACLMessage.INFORM) {
-  			return DONE_FAILED;
-  		}
-  		else {
-  			return DONE_PASSED;
-  		}
-  	}
-  	else {
-  		return super.checkResponse(rsp);
-  	}
-  }
 }

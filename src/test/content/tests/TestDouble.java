@@ -23,10 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.*;
 
 public class TestDouble extends Test{
@@ -37,18 +39,22 @@ public class TestDouble extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content including a concept with an attribute of type double");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Position p = new Position(0.05, 18923.345);
-  		Exists e = new Exists(p);
-  		a.getContentManager().fillContent(msg, e);
-  		return SEND_MSG;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Position p = new Position(0.05, 18923.345);
+  				Exists e = new Exists(p);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

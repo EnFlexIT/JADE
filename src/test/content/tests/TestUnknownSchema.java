@@ -23,8 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
@@ -32,6 +32,8 @@ import jade.content.onto.*;
 import jade.content.onto.basic.*;
 import jade.util.leap.*;
 import test.content.testOntology.*;
+import test.common.*;
+import test.content.*;
 import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
 
@@ -43,28 +45,25 @@ public class TestUnknownSchema extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content that is a Predicate of an unknown type");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		AbsPredicate p = new AbsPredicate("pippo");
-  		a.getContentManager().fillContent(msg, p);
-  		// Even if for some CL this is not a problem, the fillContent() 
-  		// method gets the schema to validate the AbsContentElement 
-  		// to be serialized --> As there is no schema defined for 
-  		// "pippo", this should always fail.  
-  		return DONE_FAILED;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				AbsPredicate p = new AbsPredicate("pippo");
+  				myAgent.getContentManager().fillContent(msg, p);
+  				// Even if for some CL this is not a problem, the fillContent() 
+  				// method gets the schema to validate the AbsContentElement 
+  				// to be serialized --> As there is no schema defined for 
+  				// "pippo", this should always fail.  
+  				return msg;
+  			}
+  		};
   	}
-  	catch (OntologyException oe) {
-  		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
-  		if (verbose) {
-  			oe.printStackTrace();
-  		}
-  		return DONE_PASSED;
-  	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

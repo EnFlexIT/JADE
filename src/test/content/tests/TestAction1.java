@@ -23,13 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
+import jade.core.behaviours.*;
 import jade.content.*;
 import jade.content.lang.*;
 import jade.content.onto.basic.*;
 import examples.content.ecommerceOntology.*;
+import test.common.*;
+import test.content.*;
 import java.util.Date;
 
 public class TestAction1 extends Test{
@@ -42,26 +44,29 @@ public class TestAction1 extends Test{
   	StringBuffer sb = new StringBuffer("Tests sending an AgentAction within a BasicOntology.ACTION");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
-  	c = a.getContentManager().lookupLanguage(msg.getLanguage());
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Sell sell = new Sell();
-  		Item i = new Item();
-  		i.setSerialID(35624);
-  		sell.setItem(i);
-  		sell.setBuyer(a.getAID());
-  		sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Sell sell = new Sell();
+  				Item i = new Item();
+  				i.setSerialID(35624);
+  				sell.setItem(i);
+  				sell.setBuyer(myAgent.getAID());
+  				sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
   	
-  		Action act = new Action(a.getAID(), sell);
+  				Action act = new Action(myAgent.getAID(), sell);
   		
-  		a.getContentManager().fillContent(msg, act);
-  		return SEND_MSG;
+  				myAgent.getContentManager().fillContent(msg, act);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

@@ -24,29 +24,47 @@ Boston, MA  02111-1307, USA.
 package test.content.tests;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
+import jade.content.onto.basic.*;
+import jade.util.leap.Iterator;
 import test.common.*;
 import test.content.*;
 import test.content.testOntology.Exists;
+import java.util.Date;
 
-public class TestOntoAID extends Test{
+public class TestOntoACLMessage extends Test{
   public String getName() {
-  	return "OntoAID-as-Concept";
+  	return "OntoACLMessage-as-AgentAction";
   }
+  
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Test the usage of an OntoAID where a Concept is required");
+  	StringBuffer sb = new StringBuffer("Test the usage of an OntoACLMessage where an AgentAction is required");
   	return sb.toString();
   }
+  
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
   		Object[] args = getGroupArguments();
   		final ACLMessage msg = (ACLMessage) args[0];
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
+  				msg.setPerformative(ACLMessage.REQUEST);
+  				ACLMessage act = new ACLMessage(ACLMessage.INFORM);
+  				Iterator it = msg.getAllReceiver();
+  				AID recv = (AID) it.next();
+  				act.setSender(recv);
+  				act.addReceiver(myAgent.getAID());
+  				act.setLanguage(msg.getLanguage());
+  				act.setOntology(msg.getOntology());
   				Exists e = new Exists(OntoAID.wrap(myAgent.getAID()));
-  				myAgent.getContentManager().fillContent(msg, e);
+  				myAgent.getContentManager().fillContent(act, e);
+  				act.setReplyByDate(new Date((new Date()).getTime() + 10000));
+  				
+  				Action action = new Action(OntoAID.wrap(recv), OntoACLMessage.wrap(act));
+  				myAgent.getContentManager().fillContent(msg, action);
   				return msg;
   			}
   		};

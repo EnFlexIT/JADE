@@ -23,13 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.*;
 import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
@@ -42,34 +44,31 @@ public class TestAggregateAsConcept extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content with an aggregate where a concept is required");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);
-  		AbsConcept t = new AbsConcept(MusicShopOntology.TRACK);
-  		t.set(MusicShopOntology.TRACK_NAME, "Every breath you take");
-  		agg.add(t);
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				AbsAggregate agg = new AbsAggregate(BasicOntology.SEQUENCE);
+  				AbsConcept t = new AbsConcept(MusicShopOntology.TRACK);
+  				t.set(MusicShopOntology.TRACK_NAME, "Every breath you take");
+  				agg.add(t);
   		
-  		AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
-  		// Compilation should allows that as AbsAggregate extends AbsConcept
-  		// However an OntologyException should be thrown as an 
-  		// aggregate is not a concept
-  		e.set(TestOntology.EXISTS_WHAT, agg);
-  		a.getContentManager().fillContent(msg, e);
-  		// We should get an exception here
-  		return DONE_FAILED;
+  				AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
+  				// Compilation should allows that as AbsAggregate extends AbsConcept
+  				// However an OntologyException should be thrown as an 
+  				// aggregate is not a concept
+  				e.set(TestOntology.EXISTS_WHAT, agg);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (OntologyException oe) {
-  		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
-  		if (verbose) {
-  			oe.printStackTrace();
-  		}
-  		return DONE_PASSED;
-  	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
+import test.common.*;
+import test.content.*;
 import examples.content.ecommerceOntology.*;
 
 public class TestCorrectIRE extends Test{
@@ -38,24 +40,29 @@ public class TestCorrectIRE extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content that is a correct IRE");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		msg.setPerformative(ACLMessage.QUERY_REF);
-  		AbsIRE ire = new AbsIRE("iota");
-  		AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
-  		AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
-  		costs.set(ECommerceOntology.COSTS_ITEM, new AbsConcept(ECommerceOntology.ITEM));
-  		costs.set(ECommerceOntology.COSTS_PRICE, x);
-  		ire.setVariable(x);
-  		ire.setProposition(costs);
-  		a.getContentManager().fillContent(msg, ire);
-  		return SEND_MSG;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				msg.setPerformative(ACLMessage.QUERY_REF);
+  				AbsIRE ire = new AbsIRE("iota");
+  				AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
+  				AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
+  				costs.set(ECommerceOntology.COSTS_ITEM, new AbsConcept(ECommerceOntology.ITEM));
+  				costs.set(ECommerceOntology.COSTS_PRICE, x);
+  				ire.setVariable(x);
+  				ire.setProposition(costs);
+  				myAgent.getContentManager().fillContent(msg, ire);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

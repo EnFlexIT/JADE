@@ -23,12 +23,14 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.*;
 
 public class TestMissingMandatory extends Test{
@@ -39,28 +41,26 @@ public class TestMissingMandatory extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content including a concept with a missing mandatory attribute");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		AbsConcept p = new AbsConcept(TestOntology.POSITION);
-  		p.set(TestOntology.POSITION_X, 0.005);
-  		AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
-  		e.set(TestOntology.EXISTS_WHAT, p);
-  		a.getContentManager().fillContent(msg, e);
-  		// We should get an exception here
-  		return DONE_FAILED;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				AbsConcept p = new AbsConcept(TestOntology.POSITION);
+  				p.set(TestOntology.POSITION_X, 0.005);
+  				// POSITION_Y attribute not set
+  				AbsPredicate e = new AbsPredicate(TestOntology.EXISTS);
+  				e.set(TestOntology.EXISTS_WHAT, p);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (OntologyException oe) {
-  		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
-  		if (verbose) {
-  			oe.printStackTrace();
-  		}
-  		return DONE_PASSED;
-  	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

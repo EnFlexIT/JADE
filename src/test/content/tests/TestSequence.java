@@ -23,13 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
 import jade.util.leap.*;
 import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestSequence extends Test{
@@ -40,33 +42,38 @@ public class TestSequence extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content including a concept with an aggregate attribute of type SEQUENCE");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-			CD cd = new CD();
-			cd.setSerialID(11111);
-			cd.setTitle("Synchronicity");
-			List tracks = new ArrayList();
-			Track t = new Track();
-			t.setName("Synchronicity");
-			tracks.add(t);
-			t = new Track();
-			t.setName("Every breath you take");
-			tracks.add(t);
-			t = new Track();
-			t.setName("King of pain");
-			t.setDuration(240);
-			tracks.add(t);
-			cd.setTracks(tracks);
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+					CD cd = new CD();
+					cd.setSerialID(11111);
+					cd.setTitle("Synchronicity");
+					List tracks = new ArrayList();
+					Track t = new Track();
+					t.setName("Synchronicity");
+					tracks.add(t);
+					t = new Track();
+					t.setName("Every breath you take");
+					tracks.add(t);
+					t = new Track();
+					t.setName("King of pain");
+					t.setDuration(240);
+					tracks.add(t);
+					cd.setTracks(tracks);
   		
-  		Exists e = new Exists(cd);
-  		a.getContentManager().fillContent(msg, e);
-  		return SEND_MSG;
+  				Exists e = new Exists(cd);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

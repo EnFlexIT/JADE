@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.onto.basic.*;
+import test.common.*;
+import test.content.*;
 import examples.content.ecommerceOntology.*;
 import java.util.Date;
 
@@ -41,27 +43,31 @@ public class TestContentElementList extends Test{
   	sb.append("NOTE: This also tests the usage of the BasicOntology Action element"); 
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		msg.setPerformative(ACLMessage.PROPOSE);
-  		ContentElementList cel = new ContentElementList();
-  		Sell sell = new Sell();
-  		Item i = new Item();
-  		i.setSerialID(35624);
-  		sell.setItem(i);
-  		sell.setBuyer(a.getAID());
-  		sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
-  		Action act = new Action(a.getAID(), sell);
-  		cel.add(act);
-  		cel.add(new TrueProposition());
-  		a.getContentManager().fillContent(msg, cel);
-  		return SEND_MSG;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				msg.setPerformative(ACLMessage.PROPOSE);
+  				ContentElementList cel = new ContentElementList();
+  				Sell sell = new Sell();
+  				Item i = new Item();
+  				i.setSerialID(35624);
+  				sell.setItem(i);
+  				sell.setBuyer(myAgent.getAID());
+  				sell.setCreditCard(new CreditCard("VISA", 987453457, new Date()));
+  				Action act = new Action(myAgent.getAID(), sell);
+  				cel.add(act);
+  				cel.add(new TrueProposition());
+  				myAgent.getContentManager().fillContent(msg, cel);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
 import examples.content.ecommerceOntology.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.Exists;
 
 public class TestMissingOptional extends Test{
@@ -38,19 +40,24 @@ public class TestMissingOptional extends Test{
   	StringBuffer sb = new StringBuffer("Tests a content including a concept with a missing optional attribute");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Item i = new Item();
-  		// Optional attribute serialID not set 
-  		Exists e = new Exists(i);
-  		a.getContentManager().fillContent(msg, e);
-  		return SEND_MSG;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Item i = new Item();
+  				// Optional attribute serialID not set 
+  				Exists e = new Exists(i);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

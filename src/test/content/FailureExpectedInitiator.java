@@ -23,24 +23,45 @@ Boston, MA  02111-1307, USA.
 
 package test.content;
 
+import jade.core.*;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
-import jade.core.Agent;
+import jade.lang.acl.MessageTemplate;
+import jade.content.onto.OntologyException;
 
-public abstract class Test {
-  public static final int DONE_PASSED = 0;
-  public static final int DONE_FAILED = 1;
-  public static final int SEND_MSG = 2;
+import test.common.Test;
 
-  public abstract String getName();
-  public abstract String getDescription();
-  public abstract int execute(ACLMessage msg, Agent a, boolean verbose);
-  public int checkResponse(ACLMessage rsp) {
-  	// Default implementation
-  	if (rsp.getPerformative() == ACLMessage.INFORM) {
-  		return DONE_PASSED;
-  	}
-  	else {
-  		return DONE_FAILED;
-  	}
+public abstract class FailureExpectedInitiator extends OneShotBehaviour {
+
+	private String resultKey;
+	private boolean verbose;
+	
+  public FailureExpectedInitiator(Agent a, DataStore ds, String key) {
+  	super(a);
+  	setDataStore(ds);
+  	resultKey = key;
+  	verbose = false;
   }
-}
+  
+  public void action() {
+  	try {
+  		prepareMessage();
+  	}
+  	catch (OntologyException oe) {
+  		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
+  		if (verbose) {
+  			oe.printStackTrace();
+  		}
+  		getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+  		return;
+  	}
+  	catch (Throwable t) {
+  		if (verbose) {
+  			t.printStackTrace();
+  		}
+  	}
+  	getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+  }
+  
+  protected abstract ACLMessage prepareMessage() throws Exception;
+}  

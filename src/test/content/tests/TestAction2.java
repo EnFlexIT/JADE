@@ -23,13 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.lang.*;
 import jade.content.onto.basic.*;
 import test.content.testOntology.*;
+import test.common.*;
+import test.content.*;
 import java.util.Date;
 
 public class TestAction2 extends Test{
@@ -42,21 +44,24 @@ public class TestAction2 extends Test{
   	StringBuffer sb = new StringBuffer("Tests sending a Concept that represents an action but is not an AgentAction within a BasicOntology.ACTION");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
-  	c = a.getContentManager().lookupLanguage(msg.getLanguage());
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		Move m = new Move(new Position(0.05, 13.25));
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+  				Move m = new Move(new Position(0.05, 13.25));
   	
-  		Action act = new Action(a.getAID(), m);
+  				Action act = new Action(myAgent.getAID(), m);
   		
-  		a.getContentManager().fillContent(msg, act);
-  		return SEND_MSG;
+  				myAgent.getContentManager().fillContent(msg, act);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

@@ -23,14 +23,16 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.onto.*;
 import jade.content.onto.basic.*;
 import jade.util.leap.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.*;
 import examples.content.ecommerceOntology.*;
 import examples.content.musicShopOntology.*;
@@ -45,42 +47,38 @@ public class TestCardinality extends Test{
   	sb.append("NOTE: This also tests adding a facet in a class for a slot defined in a superclass");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-			Single s = new Single();
-			s.setSerialID(11111);
-			// A Single only has 2 tracks, but we add 3
-			s.setTitle("Synchronicity");
-			List tracks = new ArrayList();
-			Track t = new Track();
-			t.setName("Synchronicity");
-			tracks.add(t);
-			t = new Track();
-			t.setName("Every breath you take");
-			tracks.add(t);
-			t = new Track();
-			t.setName("King of pain");
-			t.setDuration(240);
-			tracks.add(t);
-			s.setTracks(tracks);
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new FailureExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+					Single s = new Single();
+					s.setSerialID(11111);
+					// A Single only has 2 tracks, but we add 3 of them
+					s.setTitle("Synchronicity");
+					List tracks = new ArrayList();
+					Track t = new Track();
+					t.setName("Synchronicity");
+					tracks.add(t);
+					t = new Track();
+					t.setName("Every breath you take");
+					tracks.add(t);
+					t = new Track();
+					t.setName("King of pain");
+					t.setDuration(240);
+					tracks.add(t);
+					s.setTracks(tracks);
   		
-  		Exists e = new Exists(s);
-  		a.getContentManager().fillContent(msg, e);
-  		// We should get an exception here
-  		return DONE_FAILED;
+  				Exists e = new Exists(s);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (OntologyException oe) {
-  		System.out.println("Ontology exception thrown as expected: "+oe.getMessage());
-  		if (verbose) {
-  			oe.printStackTrace();
-  		}
-  		return DONE_PASSED;
-  	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }

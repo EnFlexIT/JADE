@@ -23,11 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package test.content.tests;
 
-import test.content.Test;
 import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 import jade.content.ContentManager;
 import examples.content.ecommerceOntology.*;
+import test.common.*;
+import test.content.*;
 import test.content.testOntology.Exists;
 import java.util.Date;
 
@@ -41,18 +43,22 @@ public class TestLong extends Test{
   	sb.append("NOTE: This test uses the same content as the Date-attribute test");
   	return sb.toString();
   }
-  public int execute(ACLMessage msg,  Agent a, boolean verbose) {
+  public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	try {
-  		CreditCard cc = new CreditCard("VISA", 999999999L, new Date());
-  		Exists e = new Exists(cc);
-  		a.getContentManager().fillContent(msg, e);
-  		return SEND_MSG;
+  		Object[] args = getGroupArguments();
+  		final ACLMessage msg = (ACLMessage) args[0];
+  		return new SuccessExpectedInitiator(a, ds, resultKey) {
+  			protected ACLMessage prepareMessage() throws Exception {
+		  		CreditCard cc = new CreditCard("VISA", 999999999L, new Date());
+  				Exists e = new Exists(cc);
+  				myAgent.getContentManager().fillContent(msg, e);
+  				return msg;
+  			}
+  		};
   	}
-  	catch (Throwable t) {
-  		if (verbose) {
-  			t.printStackTrace();
-  		}
-  		return DONE_FAILED;
+  	catch (Exception e) {
+  		throw new TestException("Wrong group argument", e);
   	}
   }
+
 }
