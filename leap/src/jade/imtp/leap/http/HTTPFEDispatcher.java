@@ -194,7 +194,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	 */
   public void shutdown() {
   	myInputManager.kill();
-  	System.out.println("Shutdown() called. Terminator thread set");
   	terminator = Thread.currentThread();
   	if (terminator != this) {
 	  	// This is a self-initiated shut down --> we must explicitly
@@ -225,7 +224,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private void createBackEnd() throws IMTPException {
       StringBuffer sb = new StringBuffer();
       appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
-      appendProp(sb, "verbosity", String.valueOf(verbosity));
       appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
       appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
       if(beAddrsText != null) {
@@ -249,17 +247,25 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  }
 
 	  try {
-	      log("Connecting to http://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	      log("Creating BackEnd on http://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
 	      pkt = deliver(pkt, null);
 
+		    String replyMsg = new String(pkt.getData());
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
-		      myMediatorID = new String(pkt.getData());
+		      int index = replyMsg.indexOf('#');
+		      myMediatorID = replyMsg.substring(0, index);
+		      props.setProperty(JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
+		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		      myDisconnectionManager.setReachable();
 					myKeepAliveManager.update();
+		      log("BackEnd OK. Mediator ID is "+myMediatorID, 1);
 				  return;
+	      }
+	      else {
+		      log("Mediator error: "+replyMsg, 1);
 	      }
 	  }
 	  catch (IOException ioe) {
@@ -421,7 +427,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
    */
   private JICPPacket deliver(JICPPacket pkt, Connection c) throws IOException {
   	if (Thread.currentThread() == terminator) {
-  		System.out.println("SETTING terminated info");
   		pkt.setTerminatedInfo(true);
   	}
   	pkt.setRecipientID(mediatorTA.getFile());
