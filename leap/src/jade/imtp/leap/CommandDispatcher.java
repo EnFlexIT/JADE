@@ -283,20 +283,18 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       // The default router must be directly reachable -->
       // Its URL can be converted into a TransportAddress by
       // the ICP registered to this CommandDispatcher
-      Logger logger = Logger.getMyLogger(this.getClass().getName());
-
     	try {
 	      TransportAddress ta = stringToAddr(url);
     		if (routerTA != null && !routerTA.equals(ta)) {
-      		if(logger.isLoggable(Logger.WARNING))
-      			logger.log(Logger.WARNING,"WARNING : transport address of current router has been changed");
+      		if(myLogger.isLoggable(Logger.WARNING))
+      			myLogger.log(Logger.WARNING,"Transport address of current router has been changed");
     		} 
     		routerTA = ta;
     	}
     	catch (Exception e) {
 	      // Just print a warning: default (i.e. main TA) will be used
-	      if(logger.isLoggable(Logger.SEVERE))
-	      	logger.log(Logger.SEVERE,"Can't initialize router address");
+	      if(myLogger.isLoggable(Logger.WARNING))
+	      	myLogger.log(Logger.WARNING,"Can't initialize router address");
     	}
     }    		
   } 
@@ -618,11 +616,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 
       // Activate the peer.
       TransportAddress  ta = peer.activate(this, peerID, p);
-
+      
       // Add the listening address to the list of local addresses.
       TransportProtocol tp = peer.getProtocol();
       String            url = tp.addrToString(ta);
-
+      if (myLogger.isLoggable(Logger.FINE)) {
+	      myLogger.log(Logger.FINE, "ICP "+peerID+" of class "+peer.getClass().getName()+" activated. Address is: "+url);
+      }
       addresses.add(ta);
       urls.add(url);
 
@@ -739,6 +739,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   	else {
 	    id = new Integer(nextID++);
   	}
+		if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Registering skeleton "+skeleton+" for remotized object "+remotizedObject+". ID is "+id);
+		}
 		skeletons.put(id, skeleton);
 		ids.put(remotizedObject, id);
   }
@@ -750,36 +753,46 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * skeleton.
    */
   public void deregisterSkeleton(final Object remoteObject) {
+		if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Deregistering skeleton for remotized object "+remoteObject);
+		}
     try {
       if (skeletons.size() == 1) {
-        // This is the only skeleton
+        // This is the only skeleton --> The problem described below
+      	// can't happen. Moreover the JVM is going to exit --> 
+      	// We can't delay the skeleton deregistration
       	Object id = ids.remove(remoteObject);
         skeletons.remove(id);
       }
-      else {
-        
+      else {        
         // Hack: If the PlatformManager monitoring this node is in the same 
         // JVM it needs some time to broadcast the termination of this node
         // to its replicas --> asynchronously deregister the skeleton after 
         // a while
         Thread t = new Thread() {
-            public void run() {
-              try {
-                Thread.sleep(1000);
-              }
-              catch (InterruptedException ie) {}
-			      	Object id = ids.remove(remoteObject);
-			        skeletons.remove(id);
+          public void run() {
+            try {
+              Thread.sleep(1000);
             }
-          };
+            catch (InterruptedException ie) {}
+		      	Object id = ids.remove(remoteObject);
+						if (myLogger.isLoggable(Logger.FINE)) {
+							myLogger.log(Logger.FINE, "Asynchronous deregisteration of skeleton for remotized object "+remoteObject+". ID is "+id);
+						}
+		        skeletons.remove(id);
+          }
+        };
         t.start();
       } 
     }
     catch (NullPointerException npe) {
     } 
-    
+
+    // When there are no more skeletons, close all ICPs
     if (ids.isEmpty()) {
-      //System.out.println("CommandDispatcher shutting down");
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "All skeletons deregistered. Shutting down.");
+			}
       shutDown();
     } 
   } 

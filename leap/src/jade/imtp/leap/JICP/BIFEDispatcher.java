@@ -82,11 +82,10 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   private int outCnt = 0;
   private Thread terminator;
   
-  private int verbosity = 1;
-
   private String beAddrsText;
   private String[] backEndAddresses;
   
+  private Logger myLogger = Logger.getMyLogger(getClass().getName());
   
   //////////////////////////////////////////////
   // FEConnectionManager interface implementation
@@ -102,19 +101,12 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    beAddrsText = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
 	    backEndAddresses = parseBackEndAddresses(beAddrsText);
 
-	    // Verbosity
-	    try {
-				verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_JICP_BIFEDispatcher_verbosity"));
-	    }
-	    catch (NumberFormatException nfe) {
-				// Use default (1)
-	    }
-	  		    
 	    // Host
 	    String host = props.getProperty(MicroRuntime.HOST_KEY);
 	    if (host == null) {
 				host = "localhost";
 	    }
+	    
 	    // Port
 	    int port = JICPProtocol.DEFAULT_PORT;
 	    try {
@@ -126,7 +118,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
 	    // Compose URL 
 	    mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	    log("Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
+	    if (myLogger.isLoggable(Logger.FINE)) {
+	    	myLogger.log(Logger.FINE, "Remote URL="+JICPProtocol.getInstance().addrToString(mediatorTA));
+	    }
 
 	    // Read (re)connection retry time
 	    String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
@@ -136,7 +130,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    log("Recon. time="+retryTime, 2);
+	    if (myLogger.isLoggable(Logger.FINE)) {
+	    	myLogger.log(Logger.FINE, "Reconnection time="+retryTime);
+	    }
 
 	    // Read Max disconnection time
 	    tmp = props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
@@ -146,7 +142,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    log("Max discon. time="+maxDisconnectionTime, 2);
+	    if (myLogger.isLoggable(Logger.FINE)) {
+	    	myLogger.log(Logger.FINE, "Max discon. time="+maxDisconnectionTime);
+	    }
 
 	    // Read Keep-alive time
 	    tmp = props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY);
@@ -156,7 +154,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    catch (Exception e) {
 				// Use default
 	    }
-	    log("Keep-alive time="+keepAliveTime, 2);
+	    if (myLogger.isLoggable(Logger.FINE)) {
+	    	myLogger.log(Logger.FINE, "Keep-alive time="+keepAliveTime);
+	    }
 
 	    // Create the BackEnd stub and the FrontEnd skeleton
 	    myStub = new BackEndStub(this);
@@ -185,7 +185,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	// This is a self-initiated shut down --> we must explicitly
 	  	// notify the BackEnd.
   		if (outConnection != null) {
-		  	log("Sending termination notification", 2);
+	    	myLogger.log(Logger.FINE, "Sending termination notification");
 	  		JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.TERMINATED_INFO, null);
 	  		try {
 	  			writePacket(pkt, outConnection);
@@ -194,7 +194,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  			// When the BackEnd receives the termination notification,
 	  			// it just closes the connection --> we always have this
 	  			// exception
-	  			log("BackEnd closed", 2);
+		    	myLogger.log(Logger.FINE, "BackEnd closed");
 	  		}
   		}
   	} 		
@@ -236,7 +236,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  }
 	
 		  try {
-	      log("Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort(), 1);
+	    	myLogger.log(Logger.INFO, "Creating BackEnd on jicp://"+mediatorTA.getHost()+":"+mediatorTA.getPort());
 
 	      JICPConnection con = new JICPConnection(mediatorTA);
 
@@ -253,16 +253,16 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
-	    		log("BackEnd OK", 1);
+		    	myLogger.log(Logger.INFO, "BackEnd OK");
 				  return con;	      
 	      }
 	      else {
-		      log("Mediator error: "+replyMsg, 1);
+		    	myLogger.log(Logger.INFO, "Mediator error: "+replyMsg);
 	      }
 		  }
 		  catch (IOException ioe) {
 	      // Ignore it, and try the next address...
-		  	log("Connection error. "+ioe.toString(), 1);
+	    	myLogger.log(Logger.INFO, "Connection error. "+ioe.toString());
 		  }
     }
 
@@ -295,7 +295,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		waitingForFlush = false;
   
   		int status = 0;
-	  	log("Issuing outgoing command "+outCnt, 3);
+  		if (myLogger.isLoggable(Logger.FINEST)) {
+  			myLogger.log(Logger.FINEST, "Issuing outgoing command "+outCnt);
+  		}
 	  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.DEFAULT_INFO, payload);
 	  	pkt.setSessionID((byte) outCnt);
 	  	try {
@@ -303,7 +305,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	status = 1;
 		  	pkt = outConnection.readPacket();
 		  	status = 2;
-	  		log("Response received "+pkt.getSessionID(), 3); 
+	  		if (myLogger.isLoggable(Logger.FINEST)) {
+	  			myLogger.log(Logger.FINEST, "Response received "+pkt.getSessionID());
+	  		}
 		    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
 		    	// Communication OK, but there was a JICP error on the peer
 		      throw new ICPException(new String(pkt.getData()));
@@ -317,7 +321,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	  	catch (IOException ioe) {
 	  		// Can't reach the BackEnd. 
-  			log("IOException OC["+status+"]"+ioe, 2);
+	  		if (myLogger.isLoggable(Logger.FINE)) {
+	  			myLogger.log(Logger.FINE, "IOException OC["+status+"]"+ioe);
+	  		}
   			refreshOut();
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
@@ -356,7 +362,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	    
 	  	myId = cnt++;
-	    log("IM-"+myId+" started", 2);
+  		if (myLogger.isLoggable(Logger.FINE)) {
+  			myLogger.log(Logger.FINE, "IM-"+myId+" started");
+  		}
 	  	
 	  	int status = 0;
 			connect(INP);
@@ -368,7 +376,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   				byte sid = pkt.getSessionID();
   				if (sid == lastSid) {
   					// Duplicated packet
-  					log("Duplicated packet received "+sid, 2);
+			  		if (myLogger.isLoggable(Logger.FINE)) {
+			  			myLogger.log(Logger.FINE, "Duplicated packet received "+sid);
+			  		}
   					pkt = lastResponse;
   				}
   				else {
@@ -378,9 +388,13 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 						}
 						else {
 							// Incoming command
-		      		log("Incoming command received "+sid+" pkt-type="+pkt.getType(), 3);
+				  		if (myLogger.isLoggable(Logger.FINEST)) {
+				  			myLogger.log(Logger.FINEST, "Incoming command received "+sid+" pkt-type="+pkt.getType());
+				  		}
 							byte[] rspData = mySkel.handleCommand(pkt.getData());
-		      		log("Incoming command served "+ sid, 3);
+				  		if (myLogger.isLoggable(Logger.FINEST)) {
+				  			myLogger.log(Logger.FINEST, "Incoming command served "+ sid);
+				  		}
 						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
 						}
 					  pkt.setSessionID(sid);
@@ -398,12 +412,16 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		}
   		catch (IOException ioe) {
 				if (active) {
-  				log("IOException IC["+status+"]"+ioe, 2);
+		  		if (myLogger.isLoggable(Logger.FINE)) {
+		  			myLogger.log(Logger.FINE, "IOException IC["+status+"]"+ioe);
+		  		}
   				refreshInp();
 				}
   		}
   		
-	    log("IM-"+myId+" terminated", 2);
+  		if (myLogger.isLoggable(Logger.FINE)) {
+  			myLogger.log(Logger.FINE, "IM-"+myId+" terminated");
+  		}
 	  }
 	  
 	  private void close() {
@@ -486,7 +504,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	long startTime = System.currentTimeMillis();
   	while (active) {
 	  	try {
-		  	log("Connect to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")", 2);
+	  		if (myLogger.isLoggable(Logger.FINE)) {
+	  			myLogger.log(Logger.FINE, "Connect to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")");
+	  		}
 		  	Connection c = new JICPConnection(mediatorTA);
 		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
 		  	writePacket(pkt, c);
@@ -520,13 +540,17 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  else {
 				  // The local-host address may have changed
 				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-				  log("Connect OK",2);
+		  		if (myLogger.isLoggable(Logger.FINE)) {
+		  			myLogger.log(Logger.FINE, "Connect OK");
+		  		}
 				  handleReconnection(c, type);
 			  }
 			  return;
 	  	}
 	  	catch (IOException ioe) {
-	  		log("Connect failed "+ioe.toString(), 2);
+	  		if (myLogger.isLoggable(Logger.FINE)) {
+	  			myLogger.log(Logger.FINE, "Connect failed "+ioe.toString());
+	  		}
 	  		cnt++;
 	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
 	  			handleError();
@@ -566,7 +590,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	}
 	
 	private void handleError() {
-		log("Can't reconnect ("+System.currentTimeMillis()+")", 0);
+		myLogger.log(Logger.SEVERE, "Can't reconnect ("+System.currentTimeMillis()+")");
+
 		if (myConnectionListener != null) {
 			myConnectionListener.handleReconnectionFailure();
 		}
@@ -676,21 +701,10 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   			}	  				
 			}
 			catch (IOException ioe) {
-				log("KA error "+ioe.toString(), 2);
+				myLogger.log(Logger.FINE, "KA error "+ioe.toString());
 				refreshOut();
 			}
 		}
-  }
-  	
-  /**
-   */
-  protected void log(String s, int level) {
-    if (verbosity >= level) {
-      String name = Thread.currentThread().toString();
-      Logger logger = Logger.getMyLogger(this.getClass().getName());
-      if(logger.isLoggable(Logger.INFO))
-      	logger.log(Logger.INFO,name+": "+s);
-    } 
-  } 
+  }  	
 }
 
