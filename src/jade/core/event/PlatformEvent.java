@@ -358,4 +358,4 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
       return buf.toString();
   } // END toString()
 
-} // END class PlatformEvent
+} 

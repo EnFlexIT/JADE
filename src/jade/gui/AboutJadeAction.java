@@ -267,5 +267,5 @@ private class MouseClick implements MouseListener
 	public void mousePressed(MouseEvent event){}
 	
 }	
-} //Ends AboutJadeAction class
+} 
 	

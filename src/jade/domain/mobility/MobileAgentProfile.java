@@ -33,4 +33,4 @@ public class MobileAgentProfile implements Concept {
       return os;
     }
 
-  } // End of MobileAgentProfile class
+  }

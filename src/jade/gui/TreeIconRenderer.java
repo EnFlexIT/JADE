@@ -79,4 +79,4 @@ public class TreeIconRenderer extends JLabel implements TreeCellRenderer {
     return this;
  }
 
-} // End of GuiProperties
+}

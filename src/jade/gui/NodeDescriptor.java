@@ -53,4 +53,4 @@ class NodeDescriptor {
   protected void setNewPopupMenu(JPopupMenu p){
   this.popupMenu =p;
   }
-} // End Of NodeDescriptor
+} 

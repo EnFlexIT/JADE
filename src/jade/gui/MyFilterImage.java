@@ -63,8 +63,4 @@ public class MyFilterImage extends RGBImageFilter {
    return (alpha + redComponent + greenComponent + bluComponent);
   }
 
-} // End Of MyFilterImage
-
-
-
-
+}

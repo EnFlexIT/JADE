@@ -131,4 +131,4 @@ public Iterator getAllServices(){
       public Iterator getAllProtocol() { return getAllProtocols();}
       public void addLanguage(String ip) { addLanguages(ip); }
       public Iterator getAllLanguage() { return getAllLanguages();}
-  } // End of DFAgentDescriptor class
+  } 

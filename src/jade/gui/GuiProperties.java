@@ -80,5 +80,4 @@ import java.util.Properties;
     else return MyDefaults.getIcon(key);
   }
 
-} // End of GuiProperties
-
+} 

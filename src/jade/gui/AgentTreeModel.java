@@ -46,4 +46,4 @@ public class AgentTreeModel extends DefaultTreeModel {
     return root;
   }
 
-} // End of AgentTreeModel
+}

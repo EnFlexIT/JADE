@@ -334,4 +334,4 @@ public final class ReceiverBehaviour extends Behaviour {
     public ACLMessage getMessage() throws TimedOut, NotYetReady {
 	return future.getMessage();
     }
-} // End of ReceiverBehaviour class
+} 
