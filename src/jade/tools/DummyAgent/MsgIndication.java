@@ -77,11 +77,11 @@ class MsgIndication
 		Iterator destAG = msg.getAllReceiver();
 		
 		while(destAG.hasNext())
-			dest = dest + destAG.next().toString() + " ";
+			dest = dest + ((AID)destAG.next()).getName() + " ";
 
 		String tmpDir = (direction == OUTGOING ? "sent to  " : "recv from");
 	
-		String tmpPeer = (direction == OUTGOING ? dest : msg.getSender().toString());
+		String tmpPeer = (direction == OUTGOING ? dest : msg.getSender().getName());
 		return(df.format(date) + ":  " + tmpType + " " + tmpDir + "   " + tmpPeer);
 	}
 
