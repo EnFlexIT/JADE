@@ -290,6 +290,14 @@ public class Boot {
                 } else {
                     results.add("name:" + args[n]);
                 }
+            } else if (theArg.equalsIgnoreCase("-imtp")) {
+                if (++n == args.length) {
+                    System.err.println("Missing IMTP class");
+
+                    printUsageInfo = true;
+                } else {
+                    results.add("imtp:" + args[n]);
+                }
             } else if (theArg.equalsIgnoreCase("-port")) {
                 if (++n == args.length) {
                     System.err.println("Missing port number");
