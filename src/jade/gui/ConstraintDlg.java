@@ -43,6 +43,9 @@ import jade.domain.FIPAAgentManagement.SearchConstraints;
 */
 class ConstraintDlg extends JDialog
 {
+	JTextField maxDepth,	maxResult ;
+	SearchConstraints constraints = new SearchConstraints();
+	
 	//CONSTRUCTORS
 	ConstraintDlg(Frame parent)
 	{
@@ -54,253 +57,147 @@ class ConstraintDlg extends JDialog
 		super(parent);
 	}
 	
-	class SingleConstraint extends JPanel
+	/**
+	This method display a gui to insert the search constraints. Return a <code>SearchConstraints </code> if the OK button is pressed null otherwise.
+	*/
+	SearchConstraints setConstraint()
 	{
-	  SingleConstraint()
-		{
-			super();
-		
-		}
-		
-		JPanel newSingleConstraint(SearchConstraints c)
-		{
-			Border etched = BorderFactory.createEtchedBorder();
-			JPanel tempPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			/*
-			String[] sel = {"df-depth","resp-req"};
-			JComboBox tempCombo = new JComboBox(sel);
-			tempCombo.setBorder(etched);
-			tempPanel.add(tempCombo);
-			String[] sel2 ={"MIN", "MAX", "EXACTLY"}; 
-			JComboBox tempCombo2 = new JComboBox(sel2);
-			tempCombo2.setBorder(etched);
-			tempPanel.add(tempCombo2);
-			JTextField val = new JTextField("1");
-			val.setBorder(etched);
-			val.setPreferredSize(new Dimension(40,26));
-			val.setMinimumSize(new Dimension(40,26));
-			val.setMaximumSize(new Dimension(40,26));
 			
-			if (c != null)
-			{
-				//Initialization of elements
-				if (c.getName() == AgentManagementOntology.Constraint.DFDEPTH)
-					tempCombo.setSelectedIndex(0);
-				else
-					tempCombo.setSelectedIndex(1);
-				if(c.getFn() == AgentManagementOntology.Constraint.MIN)
-					tempCombo2.setSelectedIndex(0);
-				else 
-				if(c.getFn() == AgentManagementOntology.Constraint.MAX)
-				  tempCombo2.setSelectedIndex(1);
-				else
-				  tempCombo2.setSelectedIndex(2);
-				  
-				val.setText(Integer.toString(c.getArg()));
-				
-			}
-			
-			tempPanel.add(val);
-			*/
-			return tempPanel;
-		}
-	}
-	
-	List viewConstraint(List initialValue)
-	{
-		final IntRetValue ret = new IntRetValue();
-		int counter = 0;
-		
-		List constraint = null;
-		/*
-		Border bevelBorder = BorderFactory.createRaisedBevelBorder();
-		
-		ret.setValue(0);
-		
-		setTitle("Search Constraints");
-		
+		setTitle("Insert Search Constraints");
 		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-		
-		JLabel text = new JLabel("Search with the following constraints: ");
-		text.setAlignmentX(Component.CENTER_ALIGNMENT);
-		mainPanel.add(text);
-		mainPanel.add(Box.createRigidArea(new Dimension(10,10)));
-		
-		 
-		final JPanel constraintPanel = new JPanel();
-		constraintPanel.setLayout(new BoxLayout(constraintPanel, BoxLayout.Y_AXIS));
-    
-		if(initialValue != null)
-		{
-			//add new constraintpanel according to the constraint already inserted 
-			Enumeration e = initialValue.elements();
-			while(e.hasMoreElements())
-			{
-				SearchConstraints c = (SearchConstraints) e.nextElement();
-				SingleConstraint single = new SingleConstraint();
-				JPanel singleConstraintPanel = single.newSingleConstraint(c);
-				constraintPanel.add(singleConstraintPanel);
-				counter++;
-		}
-		}
-		else
-		constraintPanel.add(new SingleConstraint().newSingleConstraint(null));
-		
-		JPanel buttonConstraintPanel = new JPanel();
-		buttonConstraintPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		
-		JButton moreButton = new JButton("More");
-		moreButton.setBorder(bevelBorder);
-		
-		final JButton resetButton = new JButton("Reset");
-		resetButton.setBorder(bevelBorder);
-		
-		moreButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				String param = (String) e.getActionCommand();
-				if (param.equals("More"))
-				{
-						SingleConstraint panel = new SingleConstraint();
-						JPanel tempPanel = panel.newSingleConstraint(null);
-						constraintPanel.add(tempPanel);
-						resetButton.setEnabled(true);
-						pack();
-						show();
-						
-				}
-			}
-		}	);
-		
-		resetButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				String param = (String)e.getActionCommand();
-				if (param.equals("Reset"))
-				{
-					int component = constraintPanel.getComponentCount();
-				  if (component != 1)
-						constraintPanel.remove(--component);
-				
-					if (component == 1)
-						resetButton.setEnabled(false);
-					pack();
-					show();
-						
-				}
-			}
-		}
-			);
-		
-		if(counter >1)
-			resetButton.setEnabled(true);
-		else
-		  resetButton.setEnabled(false); 
-		
-		buttonConstraintPanel.add(moreButton);
-		buttonConstraintPanel.add(resetButton);
-		
-	
-		mainPanel.add(constraintPanel);
-		mainPanel.add(buttonConstraintPanel);
-		
-		JPanel dialogButtonPanel = new JPanel(new FlowLayout());
-		JButton okButton = new JButton("OK");
-		
-		okButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				String param = (String)e.getActionCommand();
-				if (param.equals("OK"))
-				{
-					ret.setValue(1);
-					dispose();
-				}
-			}	
-		});
-		
-		dialogButtonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		
-		cancelButton.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				String param = (String)e.getActionCommand();
-				if (param.equals("Cancel"))
-				{
-					ret.setValue(0);
-					dispose();
-				}
-			}
-		});
-		
-		dialogButtonPanel.add(cancelButton);
-		
-		mainPanel.add(dialogButtonPanel);
-		
-		getContentPane().add(mainPanel, BorderLayout.SOUTH);
-		setModal(true);
-		setResizable(false);
-		setLocation(100,100);
-		
-		pack();
-		show();
-	
-		if (ret.getValue() == 1)
-			{
-				String st = null;
-				Integer value;
-				constraint = new Vector();
-			  int size = constraintPanel.getComponentCount();
-				for(int i = 0; i<size; i++)
-				{
-					JPanel p = (JPanel)constraintPanel.getComponent(i);
-					SearchConstraints c = new SearchConstraints();
-					JComboBox temp = (JComboBox)p.getComponent(0);
-					JComboBox minMax = (JComboBox)p.getComponent(1);
-					JTextField tx = (JTextField)p.getComponent(2);
-					int comboSel = temp.getSelectedIndex();
-					if (comboSel == 0)
-						c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-				  else
-						c.setName(AgentManagementOntology.Constraint.RESPREQ);
-					
-					comboSel = minMax.getSelectedIndex();
-					if (comboSel == 0)
-						c.setFn(AgentManagementOntology.Constraint.MIN);
-					else
-					if(comboSel == 1)
-						c.setFn(AgentManagementOntology.Constraint.MAX);
-					else
-					c.setFn(AgentManagementOntology.Constraint.EXACTLY);
-					
-					try{
-						st = tx.getText();
-						value = Integer.valueOf(st);
-						
-						//Not possible search with value < 1.
-						//FIXME:give a warning to the user.
-						if (value.intValue() < 1)
-							value = new Integer(1);
-					}catch(Exception ex)
-						{
-						value = new Integer(1);
-						}
-					c.setArg(value.intValue());
-					constraint.add(c);
-				}
-				
-			}
-			else 
-			constraint = null;
-		*/			
-		return constraint;
-	}
+		mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.Y_AXIS));
 
+		JPanel p = new JPanel();
+		p.setLayout(new BoxLayout(p,BoxLayout.X_AXIS));
+		
+		JLabel label = new JLabel("Max propagation depth:");
+		label.setPreferredSize(new Dimension(160,26));
+		label.setMinimumSize(new Dimension(160,26));
+	  label.setMaximumSize(new Dimension(160,26));
+
+		p.add(label);
+		maxDepth = new JTextField();
+		maxDepth.setPreferredSize(new Dimension(30,26));
+		maxDepth.setMinimumSize(new Dimension(30,26));
+	  maxDepth.setMaximumSize(new Dimension(30,26));
+
+		p.add(maxDepth);
+		mainPanel.add(p);
+		
+		p = new JPanel();
+		label= new JLabel("Max number of results:");
+		label.setPreferredSize(new Dimension(155,26));
+		label.setMinimumSize(new Dimension(155,26));
+	  label.setMaximumSize(new Dimension(155,26));
+		p.add(label);
+		maxResult = new JTextField("");
+		maxResult.setPreferredSize(new Dimension(30,26));
+		maxResult.setMinimumSize(new Dimension(30,26));
+	  maxResult.setMaximumSize(new Dimension(30,26));
+
+		p.add(maxResult);
+		
+		mainPanel.add(p);
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+	
+		// Ok Button
+		JButton okB = new JButton("OK");
+		okB.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+ 				{
+ 					String param = e.getActionCommand();
+ 					if(param == "OK")
+ 					{
+            String depth = maxDepth.getText().trim();
+            String result = maxResult.getText().trim();
+            try
+            {
+            	//if no values inserted use the default ones.
+            	if(depth.length() != 0)
+            	{
+            		Long d = Long.valueOf(depth);
+            		
+            		if(d.compareTo(new Long(0)) >= 0)
+            		  constraints.setMaxDepth(d);
+            		else
+            			{
+            				JOptionPane.showMessageDialog(null,"The propagation depth must be positive !!!.","Error Message",JOptionPane.ERROR_MESSAGE); 
+								    return;
+            			}    
+            	}
+            	
+            	if(result.length() !=0)
+            	{
+            		Long r = Long.valueOf(result);
+            		if(r.compareTo(new Long(0)) >= 0)
+            	  	constraints.setMaxResults(r);
+            	  else
+            	  {
+            	  	JOptionPane.showMessageDialog(null,"The number of results must be positive !!!.","Error Message",JOptionPane.ERROR_MESSAGE); 
+								  return;
+            	  }  
+            	
+            	}
+            
+            	dispose();
+
+            }	catch(Exception e1){
+            		JOptionPane.showMessageDialog(null,"The inserted values must be numbers !!!.","Error Message",JOptionPane.ERROR_MESSAGE); 
+								return;
+            }			 
+ 					}
+ 				}
+		});
+		
+		buttonPanel.add(okB);
+		
+		// Cancel Button
+		JButton cancelB = new JButton("Cancel");
+		cancelB.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+ 				{
+ 					String param = e.getActionCommand();
+ 					if(param == "Cancel")
+ 					{
+            constraints = null; 
+ 						dispose(); 
+ 					}
+ 				}
+		});
+		
+		buttonPanel.add(cancelB);
+		mainPanel.add(buttonPanel);
+		getContentPane().add(mainPanel);
+		
+		setSize(new Dimension(200,200));
+		setResizable(false);
+		setModal(true);	
+		//pack();
+		//show();
+		ShowCorrect();
+		
+		return constraints;
+	}
+	
+	private void ShowCorrect() 
+ 	 {
+    pack();
+    //setSize(300, 300);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int centerX = (int)screenSize.getWidth() / 2;
+    int centerY = (int)screenSize.getHeight() / 2;
+    Dimension sizePanel = getSize();
+    int x = (new Double(sizePanel.getWidth())).intValue() / 2;
+    int y = (new Double(sizePanel.getHeight())).intValue() / 2;
+    setLocation(centerX - x, centerY - y);
+    
+    setVisible(true);
+    toFront();
+ 	 }
+
+	
 }
