@@ -42,8 +42,9 @@ public interface AgentManager {
   String getContainerName(String agentName) throws NotFoundException;
   String getAddress(String agentName);
 
+  void setDelegateAgent(String agentName, String delegateName) throws NotFoundException;
+
   void create(String agentName, String className, String containerName) throws UnreachableException;
-  void create(String agentName, Agent instance, String containerName) throws UnreachableException;
 
   void killContainer(String containerName);
   void kill(String agentName, String password) throws NotFoundException, UnreachableException;
