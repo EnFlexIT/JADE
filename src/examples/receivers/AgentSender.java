@@ -53,7 +53,7 @@ public class AgentSender extends Agent {
     	public void action() {
          	
         	try{
-        		System.out.println("\nEnter responder agent name: ");
+        		System.out.println("\nEnter responder agent name (e.g. da0@myhost:1099/JADE): ");
         		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
         		String responder = buff.readLine();
 			AID r = new AID();
