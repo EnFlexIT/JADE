@@ -23,6 +23,15 @@ public class Agent2 extends Agent {
       MessageTemplate mt2 = MessageTemplate.MatchOntology("fipa-agent-management");
       MessageTemplate mtAnd = MessageTemplate.and(mt1, mt2);
 
+      System.out.println("Message Template 1:");
+      mt1.dump();
+
+      System.out.println("Message Template 2:");
+      mt2.dump();
+
+      System.out.println("Message Template 1 AND Message Template 2:");
+      mtAnd.dump();
+
       ACLMessage msg = new ACLMessage();
       msg.setType("inform");
       msg.setProtocol("fipa-request");
