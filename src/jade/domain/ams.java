@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 
 /**************************************************************
@@ -349,7 +350,11 @@ public class ams extends Agent { // FIXME: Must become a Singleton
     myPlatform = ap;
     myName = name;
 
-    dispatcher = new FipaRequestServerBehaviour(this);
+    MessageTemplate mt = 
+      MessageTemplate.and(MessageTemplate.MatchLanguage("SL0"),
+			  MessageTemplate.MatchOntology("fipa-agent-management"));
+    dispatcher = new FipaRequestServerBehaviour(this, mt);
+
 
     // Associate each AMS action name with the behaviour to execute
     // when the action is requested in a 'request' ACL message
