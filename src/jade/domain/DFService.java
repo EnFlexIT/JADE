@@ -153,17 +153,24 @@ public class DFService extends FIPAServiceCommunicator {
     // get the effective lease time assigne the current request
     
     Date retLeaseTime = null;
+    Done doneRegister = null;
     try{
-        Done doneRegister = (Done) cm.extractContent(reply);
+        
+        synchronized (cm) {
+            doneRegister = (Done) cm.extractContent(reply);
+        }
+    }catch(Exception e) {
+        throw new FIPAException("Error decoding REQUEST content. "+e);
+    }
+    if(doneRegister!= null) {
         Action replyAction = (Action) doneRegister.getAction();
         Register replyRegister = (Register) replyAction.getAction();
         //Register replyRegister = (Register) doneRegister.getAction();
         DFAgentDescription replyDFA = (DFAgentDescription)replyRegister.getDescription();
         retLeaseTime = replyDFA.getLeaseTime();
-        
-    }catch(Exception e) {
-        e.printStackTrace();
     }
+        
+    
     return retLeaseTime;
   }
 
@@ -292,17 +299,20 @@ public class DFService extends FIPAServiceCommunicator {
     ACLMessage reply = doFipaRequestClient(a,request);
     // get the effective lease time assigne the current request
     Date retLeaseTime = null;
+    Done doneModify = null;
     try{
-        Done doneModify = (Done) cm.extractContent(reply);
+        synchronized(cm) {
+            doneModify = (Done) cm.extractContent(reply);
+        }
+    }catch(Exception e) {
+        throw new FIPAException("Error dencoding INFORM content. "+e);
+    }
+    if(doneModify!=null) {
         Action replyAction = (Action) doneModify.getAction();
         Modify replyModify = (Modify) replyAction.getAction();
         DFAgentDescription replyDFA = (DFAgentDescription)replyModify.getDescription();
         retLeaseTime = replyDFA.getLeaseTime();
-        
-    }catch(Exception e) {
-        e.printStackTrace();
     }
-    
     return retLeaseTime;
     
   }
