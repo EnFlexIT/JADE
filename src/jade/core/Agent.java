@@ -745,8 +745,11 @@ public class Agent implements Runnable, Serializable {
   public void doStart(String name) {
 
     // FIXME: Temporary hack for JSP example
-    if(myToolkit == null)
-      setToolkit(Runtime.instance().getDefaultToolkit());
+      if(myToolkit == null) {
+	  Runtime rt = Runtime.instance();
+	  setToolkit(rt.getDefaultToolkit());
+	  theDispatcher = rt.getTimerDispatcher();
+      }
 
     if(myToolkit == null)
       throw new InternalError("Trying to start an agent without proper runtime support.");
