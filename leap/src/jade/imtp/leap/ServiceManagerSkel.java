@@ -140,9 +140,11 @@ class ServiceManagerSkel extends Skeleton {
 	    break;
 	}
 
-	case Command.SERVICE_MANAGER_PING: {
+	case Command.SERVICE_MANAGER_ADOPT: {
 
-	    // Do nothing...
+	    // Do something...
+	    Node n = (Node)command.getParamAt(0);
+	    adopt(n);
 
 	    resp = new Command(Command.OK);
 
@@ -183,7 +185,7 @@ class ServiceManagerSkel extends Skeleton {
 	String sliceName = desc.getName();
 	Node remoteNode = desc.getNode();
 
-	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
+	//	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
 
 	// Create a slice proxy for the new node
 	Service.Slice slice = manager.createSliceProxy(name, itf, remoteNode);
@@ -288,10 +290,15 @@ class ServiceManagerSkel extends Skeleton {
 	}
     }
 
+    private void adopt(Node n) throws IMTPException {
+	impl.monitor(n);
+    }
+
     public String[] addReplica(String addr) throws IMTPException {
 	try {
+
 	    // Retrieve the RMI object for the replica...
-	    ServiceManagerStub replica = null; // FIXME: Temporary Hack
+	    ServiceManagerStub replica = manager.lookupRemoteServiceManager(addr);
 
 	    // Send all nodes with their installed services...
 	    List infos = impl.getAllNodesInfo();
