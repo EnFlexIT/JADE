@@ -81,6 +81,7 @@ import jade.gui.AboutJadeAction;
     paintM(true,(RMAAction)actPro.actions.get(actPro.SNIFFER_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.DUMMYAG_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.SHOWDF_ACTION));
+    paintM(true,(RMAAction)actPro.actions.get(actPro.INTROSPECTOR_ACTION));
     add(menu);
     
     menu =new JMenu("Remote Platforms");

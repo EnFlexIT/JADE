@@ -59,7 +59,7 @@ class TreePanel extends JPanel implements TreeSelectionListener {
     pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,new JScrollPane(treeAgent.tree),new JScrollPane(selArea));
     pane.setContinuousLayout(true);
 
-
+   
     treeAgent.listenerTree(this);
     popM=new PopUpMouser(treeAgent.tree,treeAgent);
     treeAgent.tree.addMouseListener(popM);
@@ -94,7 +94,7 @@ class TreePanel extends JPanel implements TreeSelectionListener {
  }
 
   public void adjustDividerLocation() {
-    pane.setDividerLocation(getWidth() / 2);
+      pane.setDividerLocation(0.8);
   }
 
 

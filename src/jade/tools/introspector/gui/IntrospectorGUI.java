@@ -62,7 +62,9 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
   private JMenuItem item;
   private JMenuItem about;
 
-  public IntrospectorGUI(Introspector i) {
+  private String logoIntrospector =  "images/bug.gif";
+  
+public IntrospectorGUI(Introspector i) {
 
     debugger = i;
 
@@ -87,6 +89,9 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
   public void build(){
     String title = debugger.getAID().getName();
     this.setTitle(title);
+
+    Image image = getToolkit().getImage(getClass().getResource(logoIntrospector));
+    setIconImage(image);
     Font f = new Font("Monospaced", 0, 10);
 
     split.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
@@ -120,7 +125,7 @@ public class IntrospectorGUI extends JFrame implements WindowListener {
 
     split.add(panel, JSplitPane.LEFT);
     split.add(scroll,JSplitPane.RIGHT);
-    split.setDividerLocation(250);
+    split.setDividerLocation(180);
     this.addWindowListener(this);
     this.pack();
     this.setSize(new Dimension(680, 435));
