@@ -57,7 +57,7 @@ class Scheduler {
   // This can change the index of the current behaviour, so a check is
   // made: if the just removed behaviour has an index lesser than the
   // current one, then the current index must be decremented.
-  public void remove(Behaviour b) {
+  public synchronized void remove(Behaviour b) {
     int index = behaviours.indexOf(b);
     behaviours.removeElement(b);
     if(index < currentIndex)
