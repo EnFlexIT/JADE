@@ -4,6 +4,8 @@
 
 package jade.proto;
 
+import jade.lang.acl.ACLMessage;
+
 /**************************************************************
 
   Name: MessageHandler
