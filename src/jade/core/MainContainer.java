@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+import jade.lang.acl.ACLMessage;
 
 /**
 @author Giovanni Rimassa - Universita` di Parma
@@ -35,6 +36,8 @@ public interface MainContainer {
 
     void deregister(AgentContainer ac) throws IMTPException;
 
+    void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
+
     String getPlatformName() throws IMTPException;
 
     String addContainer(AgentContainer ac, ContainerID cid) throws IMTPException;
@@ -42,7 +45,7 @@ public interface MainContainer {
 
     AgentContainer lookup(ContainerID cid) throws IMTPException, NotFoundException;
 
-    void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws IMTPException, NameClashException;
+    void bornAgent(AID name, ContainerID cid) throws IMTPException, NameClashException, NotFoundException;
     void deadAgent(AID name) throws IMTPException, NotFoundException;
 
     void newMTP(String mtpAddress, ContainerID cid) throws IMTPException;
