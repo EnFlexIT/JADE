@@ -187,9 +187,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
     	throw new NotFoundException("KillAgent failed to find " + name);
   	}
   	agent.doDelete();
-  	// Wait for the killed agent to complete. Note that the agent will be 
-  	// removed from the local table in the handleEnd() method.
-  	agent.join();
+  	// Note that the agent will be removed from the local table in the 
+  	// handleEnd() method.
   }
   
   /**
@@ -336,8 +335,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	  }
 	    }
 	    catch(IMTPException re) {
-			  if(logger.isLoggable(Logger.SEVERE))
-			  	logger.log(Logger.SEVERE,re.toString());
+		  	logger.log(Logger.SEVERE,re.toString());
 	    }
   	}
   }
