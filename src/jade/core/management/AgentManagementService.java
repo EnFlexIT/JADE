@@ -199,6 +199,7 @@ public class AgentManagementService extends BaseService {
 	    String ownership = (String)params[4];
 	    CertificateFolder certs = (CertificateFolder)params[5];
 
+	    log("Source Sink consuming command REQUEST_CREATE. Name is "+name, 3);
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 				AID agentID = new AID(name, AID.ISLOCALNAME);
@@ -227,6 +228,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 
+	    log("Source Sink consuming command REQUEST_START. Name is "+target.getName(), 3);
 	    Agent instance = myContainer.acquireLocalAgent(target);
 
 	    if(instance == null)
@@ -275,6 +277,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
+	    log("Source Sink consuming command REQUEST_KILL. Name is "+agentID.getName(), 3);
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
 		ContainerID cid = impl.getContainerID(agentID);
@@ -337,6 +340,7 @@ public class AgentManagementService extends BaseService {
 	    Agent instance = (Agent)params[1];
 	    boolean startIt = ((Boolean)params[2]).booleanValue();
 
+    	log("Source Sink consuming command INFORM_CREATED. Name is "+target.getName(), 3);
 	    initAgent(target, instance, startIt);
 	}
 
@@ -344,6 +348,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID target = (AID)params[0];
 
+    	log("Source Sink consuming command INFORM_KILLED. Name is "+target.getName(), 3);
 	    // Remove the dead agent from the LADT of the container
 	    myContainer.removeLocalAgent(target);
 
@@ -422,10 +427,12 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    ContainerID cid = (ContainerID)params[0];
 
+    	log("Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName(), 3);
 	    // Forward to the correct slice
 	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
 	    try {
 	    	if (targetSlice != null) {
+	    		// If target slice is null the container has already exited in the meanwhile
 					targetSlice.exitContainer();
 	    	}
 	    }
@@ -479,9 +486,6 @@ public class AgentManagementService extends BaseService {
 		if(name.equals(AgentManagementSlice.REQUEST_CREATE)) { 
 		    handleRequestCreate(cmd);
 		}
-		else if(name.equals(AgentManagementSlice.REQUEST_START)) {
-		    handleRequestStart(cmd);
-		}
 		else if(name.equals(AgentManagementSlice.REQUEST_KILL)) {
 		    handleRequestKill(cmd);
 		}
@@ -534,15 +538,9 @@ public class AgentManagementService extends BaseService {
 	    String ownership = (String)params[3];
 	    CertificateFolder certs = (CertificateFolder)params[4];
 	    boolean startIt = ((Boolean)params[5]).booleanValue();
+	    
+			log("Target sink consuming command REQUEST_CREATE: Name is "+agentID.getName(), 2);
 	    createAgent(agentID, className, arguments, ownership, certs, startIt);
-	}
-
-	private void handleRequestStart(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
-
-	    Object[] params = cmd.getParams();
-	    AID target = (AID)params[0];
-
-
 	}
 
 	private void handleRequestKill(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
@@ -550,6 +548,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
+			log("Target sink consuming command REQUEST_KILL: Name is "+agentID.getName(), 2);
 	    killAgent(agentID);
 	}
 
@@ -570,6 +569,7 @@ public class AgentManagementService extends BaseService {
 	    ContainerID cid = (ContainerID)params[1];
 	    CertificateFolder certs = (CertificateFolder)params[2];
 
+			log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
 	    bornAgent(agentID, cid, certs);
 	}
 
@@ -578,6 +578,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    AID agentID = (AID)params[0];
 
+			log("Target sink consuming command INFORM_KILLED: Name is "+agentID.getName(), 2);
 	    deadAgent(agentID);
 	}
 
@@ -597,6 +598,7 @@ public class AgentManagementService extends BaseService {
 	}
 
 	private void handleKillContainer(VerticalCommand cmd) {
+			log("Target sink consuming command KILL_CONTAINER", 2);
 	    exitContainer();
 	}
 
@@ -878,8 +880,7 @@ public class AgentManagementService extends BaseService {
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
 	    }
-
-            return result;
+      return result;
 	}
 
     } // End of AgentManagementSlice class

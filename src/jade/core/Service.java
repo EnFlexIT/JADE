@@ -26,7 +26,7 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 import jade.core.behaviours.Behaviour;
-
+import jade.util.leap.Serializable;
 
 /**
 
@@ -43,15 +43,40 @@ public interface Service {
 	
 	/**
 	   Service independent vertical command issued on the Main 
+	   container whenever a new node is added
+	 */
+	public static final String NEW_NODE = "New-Node";
+	/**
+	   Service independent vertical command issued on the Main 
+	   container whenever a node is removed
+	 */
+	public static final String DEAD_NODE = "Dead-Node";
+	/**
+	   Service independent vertical command issued on the Main 
 	   container whenever a new slice of a given service is added
 	 */
-	public static final String NEW_SLICE = "Added-Slice";
+	public static final String NEW_SLICE = "New-Slice";
+	/**
+	   Service independent vertical command issued on the Main 
+	   container whenever a slice of a given service is removed
+	 */
+	public static final String DEAD_SLICE = "Dead-Slice";
+	/**
+	   Service independent vertical command issued on the Main 
+	   container whenever a new main replica is added
+	 */
+	public static final String NEW_REPLICA = "New-Replica";
+	/**
+	   Service independent vertical command issued on the Main 
+	   container whenever a main replica is removed
+	 */
+	public static final String DEAD_REPLICA = "Dead-Replica";
 	
     /**
        The <code>Slice</code> nested interface represents that part of
        a service that is deployed at a given network node.
     */
-    public interface Slice {
+    public interface Slice extends Serializable {
 
 	/**
 	   Access the service object which this slice is a part of.
@@ -112,7 +137,7 @@ public interface Service {
 	}
 
 	public Service getService() {
-	    return myService;
+		return myService;
 	}
 
 	public Node getNode() throws ServiceException {
@@ -136,14 +161,39 @@ public interface Service {
 	    catch(IMTPException imtpe) {
 		cmd.setReturnValue(new ServiceException("An error occurred while routing the command to the remote implementation", imtpe));
 	    }
-
-            // No local processing of this command is required
-            return null;
+      // No local processing of this command is required
+      return null;
 	}
 
 	private Node myNode;
-	private Service myService;
+	private transient Service myService;
 
+	/*
+	//#MIDP_EXCLUDE_BEGIN
+  private String serviceClass;
+  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+		if (myService != null) {
+			serviceClass = myService.getClass().getName();
+		}
+    out.defaultWriteObject();
+  }
+
+  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+    in.defaultReadObject();
+		if (serviceClass != null) {
+  		try {
+  			myService = (Service) Class.forName(serviceClass).newInstance();
+  		}
+  		catch (ClassNotFoundException cnfe) {
+  			throw cnfe;
+  		}
+  		catch (Throwable t) {
+  			throw new java.io.IOException("Can't create service "+serviceClass+". "+t.getMessage());
+  		}
+		}			
+  }
+	//#MIDP_EXCLUDE_END
+	*/
     }
 
     /**
