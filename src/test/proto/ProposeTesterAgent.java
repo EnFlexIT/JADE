@@ -50,7 +50,7 @@ public class ProposeTesterAgent extends TesterAgent {
 
       Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
 
-      MainContainer mc = rt.createMainContainer(pMain);
+      AgentContainer mc = rt.createMainContainer(pMain);
 
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();

@@ -60,7 +60,7 @@ class TestListener implements PlatformController.Listener {
       Profile pMain = new ProfileImpl(null, 8888, null);
 
       System.out.println("Launching a whole in-process platform..."+pMain);
-      MainContainer mc = rt.createMainContainer(pMain);
+      AgentContainer mc = rt.createMainContainer(pMain);
       mc.addPlatformListener(new TestListener());
 
       // set now the default Profile to start a container
@@ -69,7 +69,7 @@ class TestListener implements PlatformController.Listener {
       AgentContainer cont = rt.createAgentContainer(pContainer);
 
       System.out.println("Launching the rma agent on the main container ...");
-      Agent rma = (Agent) mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
+      AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();
 
     }

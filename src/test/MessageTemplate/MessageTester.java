@@ -62,7 +62,7 @@ public class MessageTester {
 	  Profile pMain = new ProfileImpl(null, 8888, null);
 	  
 	  System.out.println("Launching a whole in-process platform..."+pMain);
-	  MainContainer mc = rt.createMainContainer(pMain);
+	  AgentContainer mc = rt.createMainContainer(pMain);
 
 	  System.out.println( "START MessageTemplate TEST." );
 	  waitInput();

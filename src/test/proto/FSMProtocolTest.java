@@ -53,7 +53,7 @@ public class FSMProtocolTest {
       Profile pMain = new ProfileImpl(null, 8888, null);
 
       System.out.println("Launching a whole in-process platform..."+pMain);
-      MainContainer mc = rt.createMainContainer(pMain);
+      AgentContainer mc = rt.createMainContainer(pMain);
 
       //System.out.println("Launching the rma agent on the main container ...");
       //Agent rma = mc.createAgent("rma", "jade.tools.rma.rma", new Object[0]);
@@ -65,15 +65,15 @@ public class FSMProtocolTest {
 	  Object[] arguments = new Object[args.length];
 	  for(int i=0;i<args.length;i++){
 	      System.out.println( "Launching the FIPARequestResponderTest: " + args[i]);
-	      Agent responder = (Agent) mc.createNewAgent(args[i], "test.proto.FIPARequestResponderTest",new Object[0]);
+	      AgentController responder = mc.createNewAgent(args[i], "test.proto.FIPARequestResponderTest",new Object[0]);
 	      responder.start();
 	      arguments[i]=args[i];
 	  }
-	  Agent requester = (Agent) mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",arguments);
+	  AgentController requester = mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",arguments);
 	  requester.start();
       }else{
 	  System.out.println( "Launching the FIPARequestInitiatorTest" );
-	  Agent requester = (Agent) mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",new Object[0]);
+	  AgentController requester = mc.createNewAgent( "requester", "test.proto.FIPARequestInitiatorTest",new Object[0]);
 	  requester.start();
       }
       //requester.start();

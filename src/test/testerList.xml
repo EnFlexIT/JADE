@@ -97,4 +97,10 @@
 			The execution of this group of tests requires the user to i) load the testleap.jar file on the MIDP device used for the tests and ii) manualy start JADE containers on it when requested. </Description>
 			<TestsListRif>test/leap/LEAPTestsList.xml</TestsListRif>
 		</Tester>
+		<Tester name="jade.wrapper in-process interface" skip="false">
+			<ClassName>test.inProcess.TesterAgent</ClassName>
+			<Description> This item includes tests for the APIs defined in the jade.wrapper package. The list of tests is still under construction. 
+      </Description>
+			<TestsListRif>test/inProcess/inProcessTestsList.xml</TestsListRif>
+		</Tester>
 	</TesterList>
