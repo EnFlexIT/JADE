@@ -1,5 +1,23 @@
 /*
   $Log$
+  Revision 1.26  1999/02/25 08:26:12  rimassa
+  Removed useless FIXME.
+  Clarified various error messages appearing when an agent was not
+  found.
+  Completely redesigned platform shutdown procedure. Now it works like
+  this:
+    - Remove front end container from container list.
+    - Shutdown all other container.
+    - Kill all non system agents on front end container.
+    - Kill default DF.
+    - Kill ACC.
+    - Kill AMS.
+    - Disconnect platform IIOP server.
+
+  Fixed a nasty deadlock problem: now AMSKillContainer spawns a separate
+  thread calling RMI method AgentContainer.exit(), so the AMS is free to
+  answer to 'deregister' messages from about-to-die agents.
+
   Revision 1.25  1999/02/15 11:43:21  rimassa
   Fixed a bug: a case sensitive comparison was incorrectly made on agent
   name during deregistration with AMS agent.
@@ -148,7 +166,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   private void initAMS() {
 
-    theAMS = new ams(this, "ams");
+    theAMS = new ams(this);
 
     // Subscribe as a listener for the AMS agent
     theAMS.addCommListener(this);
@@ -186,7 +204,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       OutGoingIIOP dummyChannel = new OutGoingIIOP(myORB, frontEndACC);
       platformAddress = dummyChannel.getIOR();
       System.out.println(platformAddress);
-      // FIXME: for Seoul we have decided to write the IOR on a file
+
       try {
       	FileWriter f = new FileWriter("JADE.IOR");
       	f.write(platformAddress,0,platformAddress.length());
@@ -287,7 +305,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     // Notify AMS
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(name.toLowerCase());
     if(ad == null)
-      throw new NotFoundException("Failed to find " + name);
+      throw new NotFoundException("DeadAgent failed to find " + name);
     AgentContainer ac = ad.getContainer();
     String containerName = getContainerName(ac);
     AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
@@ -299,7 +317,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
     if(ad == null)
-      throw new NotFoundException("Failed to find " + agentName);
+      throw new NotFoundException("Lookup failed to find " + agentName);
     else {
       AgentContainer ac = ad.getContainer();
       try {
@@ -312,18 +330,68 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
   }
 
-  // This method overrides AgentContainerImpl.shutDown(); first it
-  // behaves like the normal AgentContainer version, then makes all
+  // This method overrides AgentContainerImpl.shutDown(); besides
+  // behaving like the normal AgentContainer version, it makes all
   // other agent containers exit.
   public void shutDown() {
-    // Remove yourself from container list
-    super.shutDown();
 
-    // Then kill every other container
+    // Deregister yourself as a container
+    containers.remove("Container-0"); // FIXME: Hardwired front end container name
+
+    // Kill every other container
     Enumeration e = containers.keys();
     while(e.hasMoreElements()) {
       String containerName = (String)e.nextElement();
-      AMSKillContainer(containerName);
+      AgentContainer ac = (AgentContainer)containers.get(containerName);
+      killContainer(ac);
+    }
+
+    // Kill all non-system agents
+    Enumeration agentNames = localAgents.keys();
+    String dfName = "df"; // FIXME: need to get default DF name from platform properties
+    while(agentNames.hasMoreElements()) {
+      String name = (String)agentNames.nextElement();
+      if(name.equalsIgnoreCase(theAMS.getLocalName()) || 
+	 name.equalsIgnoreCase(theACC.getLocalName()) ||
+	 name.equalsIgnoreCase(dfName))
+	  continue;
+
+      // Kill agent and wait for its termination
+      Agent a = (Agent)localAgents.get(name);
+      a.doDelete();
+      a.join();
+    }
+
+    // Kill system agents, at last
+
+    Agent systemAgent = (Agent)localAgents.get(dfName);
+    systemAgent.doDelete();
+    systemAgent.join();
+
+    systemAgent = theACC;
+    systemAgent.doDelete();
+    systemAgent.join();
+
+    theAMS.removeCommListener(this);
+    systemAgent = theAMS;
+    systemAgent.doDelete();
+    systemAgent.join();
+
+    // Now, close CORBA link to outside world
+    myORB.disconnect(frontEndACC);
+
+  }
+
+  public void killContainer(AgentContainer ac) {
+    try {
+      ac.exit(); // RMI call
+    }
+    catch(UnmarshalException ue) {
+      // FIXME: This is ignored, since we'd need oneway calls to
+      // perform exit() remotely
+    }
+    catch(RemoteException re) {
+      re.printStackTrace();
     }
   }
 
@@ -376,17 +444,16 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   }
 
   public void AMSKillContainer(String containerName) {
-    AgentContainer ac = (AgentContainer)containers.get(containerName);
-    try {
-      ac.exit(); // RMI call
-    }
-    catch(UnmarshalException ue) {
-      // FIXME: This is ignored, since we'd need oneway calls to
-      // perform exit() remotely
-    }
-    catch(RemoteException re) {
-      re.printStackTrace();
-    }
+
+    // This call spawns a separate thread in order to avoid deadlock.
+
+    final AgentContainer ac = (AgentContainer)containers.get(containerName);
+    Thread auxThread = new Thread(new Runnable() {
+      public void run() {
+	killContainer(ac);
+      }
+    });
+    auxThread.start();
   }
 
   public void AMSCreateAgent(String agentName, Agent instance, String containerName) throws NoCommunicationMeansException {
@@ -432,7 +499,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       String simpleName = agentName.substring(0,agentName.indexOf('@'));
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
       if(ad == null)
-	throw new NotFoundException("Failed to find " + agentName);
+	throw new NotFoundException("AMSNewData failed to find " + agentName);
 
       if(ad.getDesc() != null) {
 	throw new AgentAlreadyRegisteredException();
@@ -474,7 +541,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       String simpleName = agentName.substring(0,agentName.indexOf('@'));
       AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
       if(ad == null)
-	throw new NotFoundException("Failed to find " + agentName);
+	throw new NotFoundException("AMSChangeData ailed to find " + agentName);
 
       AgentManagementOntology.AMSAgentDescriptor amsd = ad.getDesc();
       
@@ -505,7 +572,6 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   public void AMSRemoveData(String agentName, String address, String signature, String APState,
 			    String delegateAgentName, String forwardAddress, String ownership)
     throws FIPAException {
-
     // Extract the agent name from the beginning to the '@'
     agentName = agentName.substring(0,agentName.indexOf('@'));
     AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
