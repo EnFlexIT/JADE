@@ -1,4 +1,4 @@
-idltojava FIPA_Agent_97.idl
+idltojava -fno-cpp FIPA_Agent_97.idl
 call javacc -OUTPUT_DIRECTORY:jade\lang\acl jade\lang\acl\ACLParser.jj
 call javacc -OUTPUT_DIRECTORY:jade\domain jade\domain\AgentManagementParser.jj
 javac -deprecation jade\Boot.java
