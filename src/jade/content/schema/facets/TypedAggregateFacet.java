@@ -46,6 +46,9 @@ public class TypedAggregateFacet implements Facet {
 		type = s;
 	}
 	
+	/**
+	  Get the schema associated to this facet
+	*/
 	public ObjectSchema getType() {
 		return type;
 	}
