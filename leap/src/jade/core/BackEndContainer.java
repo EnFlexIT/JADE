@@ -120,7 +120,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       protected void startNode() throws IMTPException, ProfileException, ServiceException, AuthException, NotFoundException {
 	  // Register with the platform 
 	  // This call can modify the name of this container
-	  myServiceManager.addNode(myNodeDescriptor, new ServiceDescriptor[0]);
+	  getServiceManager().addNode(getNodeDescriptor(), new ServiceDescriptor[0]);
 
 	  // Activate all the container fundamental services
 	  startService("jade.core.management.BEAgentManagementService");
