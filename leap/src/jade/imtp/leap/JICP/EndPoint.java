@@ -160,42 +160,42 @@ public abstract class EndPoint extends Thread {
    * EndPoint thread entry point
    */
   public final void run() {
-    while (active) {
+    while(active) {
       log("Connection setup...", 2);
     	try {
-      	setup();
-      	log("Connection ready", 2);
-	    	handleConnectionReady();
-	    }
-	    catch (ICPException icpe) {
-      	log("Connection cannot be (re)established. "+icpe.getMessage(), 0);
-	    	handleConnectionError();
-	    	break;
-	    }
+	    setup();
+	    log("Connection ready", 2);
+	    handleConnectionReady();
+	}
+	catch (ICPException icpe) {
+	    log("Connection cannot be (re)established. "+icpe.getMessage(), 0);
+	    handleConnectionError();
+	    break;
+	}
 
-      while (connected) {
-        try {
-          log("Waiting for a command...", 3);
+	while (connected) {
+	    try {
+		log("Waiting for a command...", 3);
 
-          // Read JICPPacket
-          JICPPacket pkt = JICPPacket.readFrom(inp);
-          servePacket(pkt);          
-        } 
-        catch (Throwable t) {
-          if (active) {
-            // Error reading from socket. The connection is no longer valid.
-            log("Exception reading from connection: "+t, 1);
-          } 
-          log("Wakeing up outgoings", 2);
-          wakeupOutgoings();
-          log("Resetting the connection", 2);
-          resetConnection();
-        } 
-      }    // End of loop on connected
+		// Read JICPPacket
+		JICPPacket pkt = JICPPacket.readFrom(inp);
+		servePacket(pkt);          
+	    }
+	    catch (Throwable t) {
+		if (active) {
+		    // Error reading from socket. The connection is no longer valid.
+		    log("Exception reading from connection: "+t, 1);
+		}
+		log("Wakeing up outgoings", 2);
+		wakeupOutgoings();
+		log("Resetting the connection", 2);
+		resetConnection();
+	    }
+	}   // End of loop on connected
     }     // End of loop on active
- 
+
     log("EndPoint thread terminated", 2);
-  } 
+  }
   
   /**
      Serve an incoming packet:
@@ -293,25 +293,25 @@ public abstract class EndPoint extends Thread {
      Mutual exclusion with setConnection() and push()
    */
   protected final void resetConnection() {
-  	synchronized (connectionLock) {
-  		if (connected) {
-			 	try {
-			 		synchronized (inp) {
-			 			inp.notifyAll();
-			 		}
-			    inp.close();
-			    out.close();
-			    theConnection.close();
-			  } 
-			  catch (Exception e) {
-			  	log("Exception resetting the connection "+e.toString(), 2);
-			  }
-			  theConnection = null;
-		  	inp = null;
-		  	out = null;
-		  	connected = false;
-  		}
-  	}
+      synchronized (connectionLock) {
+	  if (connected) {
+	      try {
+		  synchronized (inp) {
+		      inp.notifyAll();
+		  }
+		  inp.close();
+		  out.close();
+		  theConnection.close();
+	      } 
+	      catch (Exception e) {
+		  log("Exception resetting the connection "+e.toString(), 2);
+	      }
+	      theConnection = null;
+	      inp = null;
+	      out = null;
+	      connected = false;
+	  }
+      }
   }
     	
   /**
