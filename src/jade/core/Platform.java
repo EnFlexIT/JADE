@@ -40,7 +40,7 @@ import jade.security.AuthException;
    @see MainContainerProxy
    @author Giovanni Caire - TILAB
  */
-interface Platform extends MainContainer { // FIXME: The interface extension must be removed
+interface Platform {
 
     void addLocalContainer(NodeDescriptor desc) throws IMTPException, AuthException;
     void removeLocalContainer() throws IMTPException;
