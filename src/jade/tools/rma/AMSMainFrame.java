@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.2  1999/06/06 17:49:29  rimassa
+  Made this class package scoped instead of public.
+  Added a call to AMSTree to adjust initial separator position for
+  three-pane window.
+
   Revision 1.1  1999/05/20 15:42:07  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -71,7 +76,7 @@ import javax.swing.tree.*;
  * @version %I%, %G%
  * @see     javax.swing.JFrame
  */
-public class AMSMainFrame extends JFrame {
+class AMSMainFrame extends JFrame {
   // FIXME: Static Vector 'listeners' prevents two or more rma within the same JVM 
   private AMSTree tree;
 
@@ -96,6 +101,7 @@ public class AMSMainFrame extends JFrame {
   public void ShowCorrect() {
     pack();
     setSize(600,400);
+    tree.adjustDividerLocation();
     setVisible(true);
     toFront();
   }
