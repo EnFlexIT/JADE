@@ -752,8 +752,6 @@ public class ams extends Agent implements AgentManager.Listener {
     void installMTPAction(InstallMTP imtp) throws FailureException, RefuseException{
 	try {
 	    myPlatform.installMTP(imtp.getAddress(), imtp.getContainer(), imtp.getClassName());
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
 	}
 	catch(NotFoundException nfe) {
 	    // throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());
@@ -772,8 +770,6 @@ public class ams extends Agent implements AgentManager.Listener {
     void unistallMTPAction(UninstallMTP umtp) throws FailureException, RefuseException{
 	try {
 	    myPlatform.uninstallMTP(umtp.getAddress(), umtp.getContainer());
-	    //sendReply(ACLMessage.AGREE, createAgreeContent(a));
-	    //sendReply(ACLMessage.INFORM, doneAction(a));
 	}
 	catch(NotFoundException nfe) {
 	    throw new jade.domain.FIPAAgentManagement.UnrecognisedParameterValue("MTP", nfe.getMessage());	  
