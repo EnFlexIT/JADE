@@ -30,9 +30,9 @@ import java.io.Serializable;
 @version $Date$ $Revision$
 */
 
-abstract class RemoteProxy implements AgentProxy, Serializable {
+interface RemoteProxy extends AgentProxy, Serializable {
 
-  public abstract void ping() throws UnreachableException;
+  void ping() throws UnreachableException;
 
 }
 
