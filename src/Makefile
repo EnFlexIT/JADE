@@ -14,9 +14,6 @@ export JFLAGS = -deprecation
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
 ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 
-DFDESCFLAGS =	-OUTPUT_DIRECTORY:jade/domain
-DFDESCSPEC  =	jade/domain/DFDescriptionParser.jj
-
 AGENTMANFLAGS =	-OUTPUT_DIRECTORY:jade/domain
 AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
 
@@ -38,14 +35,11 @@ all: parsers classes stubs
 	@echo Build complete.
 	@echo
 
-parsers: ACLParser DFDescParser AgentManParser
+parsers: ACLParser AgentManParser
 	@echo Parsers generated
 
 ACLParser:
 	$(PARSERGEN) $(ACLFLAGS) $(ACLSPEC)
-
-DFDescParser:
-	$(PARSERGEN) $(DFDESCFLAGS) $(DFDESCSPEC)
 
 AgentManParser:
 	$(PARSERGEN) $(AGENTMANFLAGS) $(AGENTMANSPEC)
@@ -62,6 +56,7 @@ clean:
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
+
 	rm -f jade/lang/acl/ACLParser.java
 	rm -f jade/lang/acl/ACLParserConstants.java
 	rm -f jade/lang/acl/ACLParserTokenManager.java
@@ -70,9 +65,9 @@ clean:
 	rm -f jade/lang/acl/Token.java
 	rm -f jade/lang/acl/TokenMgrError.java
 
-	rm -f jade/domain/DFDescriptionParser.java
-	rm -f jade/domain/DFDescriptionParserConstants.java
-	rm -f jade/domain/DFDescriptionParserTokenManager.java
+	rm -f jade/domain/AgentManagementParser.java
+	rm -f jade/domain/AgentManagementParserConstants.java
+	rm -f jade/domain/AgentManagementParserTokenManager.java
 	rm -f jade/domain/ASCII_CharStream.java
 	rm -f jade/domain/ParseException.java
 	rm -f jade/domain/Token.java
