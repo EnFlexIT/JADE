@@ -3,6 +3,7 @@ package jade.imtp.leap.nio;
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.Profile;
+import jade.core.Specifier;
 import jade.core.BaseService;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
@@ -541,7 +542,7 @@ public class BEManagementService extends BaseService {
 			        }
 			        else {
 		          	myLogger.log(Logger.WARNING, myLogPrefix+"Mediator "+recipientID+" not found");
-			        	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
+			        	reply = new JICPPacket("Mediator not found", null);
 			        }
 		      	}
 		      	else {
@@ -566,7 +567,7 @@ public class BEManagementService extends BaseService {
 		        else {
 		      		myLogger.log(Logger.WARNING, myLogPrefix+" No mediator for incoming packet of type "+type);
 		        	if (type == JICPProtocol.COMMAND_TYPE) {
-			        	reply = new JICPPacket(myLogPrefix+"Mediator not found", null);
+			        	reply = new JICPPacket("Mediator not found", null);
 		        	}
 		        }
 		      }
@@ -975,7 +976,10 @@ public class BEManagementService extends BaseService {
   } // END of inner class Ticker
 
 	
-			
+	///////////////////////////////////////
+  // Utility methods
+  ///////////////////////////////////////
+  
   protected Properties parseProperties(String s) throws ICPException {
   	StringTokenizer st = new StringTokenizer(s, "=#");
   	Properties p = new Properties();
@@ -1005,11 +1009,43 @@ public class BEManagementService extends BaseService {
   	}
   }
   
+  // FIXME: This method should be moved to jade.core.Specifier
   private Vector parseStringList(String strList, char separator) {
-  	// FIXME: to be implemented
-  	Vector v = new Vector();
-  	v.addElement(strList);
-  	return v;
+  	Vector elements = new Vector();
+    if (strList != null && !strList.equals("") && !strList.equals(Specifier.NULL_SPECIFIER_LIST)) {
+	    // Copy the string into an array of char
+  	  char[] chars = new char[strList.length()];
+    	strList.getChars(0, strList.length(), chars, 0);
+    	String tmp = null;
+
+    	StringBuffer sb = new StringBuffer();
+    	int          i = 0;
+    	while (i < chars.length) {
+      	char c = chars[i];
+
+      	if (c != separator) {
+        	sb.append(c);
+      	} 
+      	else {
+        	// The element is terminated
+		    	tmp = sb.toString().trim();
+		    	if (tmp.length() > 0) {
+	        	elements.addElement(tmp);
+		    	}
+		    	
+        	// Renew the string buffer 
+        	sb = new StringBuffer();
+      	} 
+      	++i;
+    	} 
+
+    	// Handle the last element
+    	tmp = sb.toString().trim();
+    	if (tmp.length() > 0) {
+      	elements.addElement(tmp);
+    	} 
+    }
+  	return elements;
   }
   
   /**
