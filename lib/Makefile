@@ -9,7 +9,7 @@ ARFLAGS = cvf
 all:
 	@echo Making library ...
 	cd $(CLSDIR); \
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade\tools\applet\*.class jade\gui\*.class jade\core\IIOPFormatException*.class jade\lang\acl\ACLParser.class jade\lang\acl\ACLMessage.class jade\lang\acl\ACLParserConstants.class jade\lang\acl\ACLParserTokenManager.class jade\lang\acl\ASCII_CharStream.class jade\lang\acl\ISO8601.class jade\lang\acl\ParseException.class jade\lang\acl\Token.class jade\lang\acl\TokenMgrError.class jade\core\AgentGroup.class jade\domain\AgentManagementOntology*.class jade\domain\FIPAException.class jade\domain\AgentManagementParser.class jade\domain\AgentManagementParserConstants.class jade\domain\AgentManagementParserTokenManager.class jade\domain\ASCII_CharStream.class jade\domain\ParseException.class jade\domain\Token.class jade\domain\TokenMgrError.class jade\domain\*Exception.class \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
 	rm -rf jade/tools/applet; \
 	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
 	rm -rf jade/tools; \
@@ -34,9 +34,12 @@ batch:
 	echo '@REM ===============================================================' >> $(BATCH_LIB)
 	echo >> $(BATCH_LIB)
 	echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
+	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBAPPLETNAME) jade\core\AgentGroup.class jade\core\IIOPAddress*.class jade\core\IIOPFormatException.class jade\domain\AgentManagementOntology*.class jade\domain\AgentManagementParser*.class jade\domain\*Exception.class jade\domain\ASCII_CharStream.class jade\domain\Token*.class jade\gui\AboutJadeAction*.class jade\gui\AgentNameTableModel.class jade\gui\ConstraintDlg*.class jade\gui\DFAgentDscDlg*.class jade\gui\DFGUI*.class jade\gui\GUI2DFCommunicatorInterface.class jade\gui\IntRetValue.class jade\gui\ServiceDsc*.class jade\gui\StringDlg*.class jade\gui\TreeHelp*.class jade\gui\GuiEvent.class jade\gui\images jade\gui\help\*.html jade\lang\acl\*.class jade\onto\*.class jade\tools\applet\*.class ' >> $(BATCH_LIB)
+	echo >> $(BATCH_LIB)
+	# echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
 	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBTOOLSNAME) jade\tools' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q jade\tools' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y jade\tools' >> $(BATCH_LIB)  # For Win 95/98
+	echo 'deltree /Y jade\tools' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBNAME) *.class jade' >> $(BATCH_LIB)
 	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
