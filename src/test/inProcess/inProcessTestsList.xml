@@ -26,4 +26,14 @@ create a new agent on the same container, and a new agent on a new container. Th
 			<WhenTestPass> The test passes if the 3 agents are created and they have received all the exepected messages and, at then end, the number of containers is still the same than it was initially.</WhenTestPass>
 		</Test>
 		
+		<Test name="Test load container from config file" skip="false">
+			<TestClassName>test.inProcess.test.TestCreateFromConfFile</TestClassName>
+			<WhatTest> 
+      </WhatTest>
+			<HowWorkTest>
+			</HowWorkTest>			
+			<WhenTestPass> 
+			</WhenTestPass>
+		</Test>
+		
 	</TestsList>
