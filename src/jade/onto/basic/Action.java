@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package jade.onto.basic;
+import jade.core.AID;
 
 public class Action {
 AID actor;

@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.onto.basic;
 
+import jade.core.AID;
+
 import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
