@@ -37,7 +37,6 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.domain.DFServiceCommunicator;
 import jade.lang.acl.ACLMessage;
-import jade.gui.AIDGui;
 
 /**
 This is an example of an agent that plays the role of a sub-df by 
@@ -61,23 +60,12 @@ public class SubDF extends jade.domain.df {
 
    try {
 
-     AID parentName;
-     
-     AIDGui gui = new AIDGui();
-     gui.setTitle("SubDF - Insert Parent AID");
-     parentName = gui.ShowAIDGui(getDefaultDF(),true,true);
+     AID parentName = getDefaultDF(); 
      
      //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
      //(i.e. register, unregister,modify, and search).
      super.setup();
-     
-     //If pressed the cancel button the agent distroy itself and exit.
-     if (parentName == null)
-     	{
-     		doDelete();
-     		return;
-     	}
-     
+    
      //Use this method to modify the current description of this df. 
      setDescriptionOfThisDF(getDescription());
      
@@ -86,7 +74,8 @@ public class SubDF extends jade.domain.df {
 
      DFServiceCommunicator.register(this,parentName,getDescription());
      addParent(parentName,getDescription());
-		
+		 System.out.println("Agent: " + getName() + " federated with default df.");
+     
     }catch(FIPAException fe){fe.printStackTrace();}
   }
   
