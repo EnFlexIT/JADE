@@ -615,9 +615,6 @@ class MainContainerImpl implements Platform, AgentManager {
       }
     }
 
-    // Notify listeners
-    fireBornAgent(cid, name, (AgentPrincipal)certs.getIdentityCertificate().getSubject());
-
     // Delegate ams
     AgentPrincipal amsPrincipal = theAMS.getPrincipal();
     DelegationCertificate amsDelegation = authority.createDelegationCertificate();
@@ -627,6 +624,9 @@ class MainContainerImpl implements Platform, AgentManager {
     }
     authority.sign(amsDelegation, certs);
     theAMS.setDelegation(name, amsDelegation);
+    
+    // Notify listeners
+    fireBornAgent(cid, name, (AgentPrincipal)certs.getIdentityCertificate().getSubject());
   }
 
   public void deadAgent(AID name) throws IMTPException, NotFoundException {
@@ -674,25 +674,6 @@ class MainContainerImpl implements Platform, AgentManager {
 			ad.setPrincipal(to);
 			ContainerID cid = ad.getContainerID();
 			
-			// Notify containers
-			/* FIXME. This block of code creates a deadlock when launching
-			   the party example on a remote container.
-			AgentContainer[] allContainers = containers.containers();
-			for (int i = 0; i < allContainers.length; i++) {
-				AgentContainer ac = allContainers[i];
-				// FIXME: If some container is temporarily disconnected it will not be
-				// notified. We should investigate the sideeffects
-				try {
-					ac.changedAgentPrincipal(name, to);
-				}
-				catch (IMTPException imtpe) {
-					imtpe.printStackTrace();
-				}
-			}
-			
-			// Notify listeners
-			fireChangedAgentPrincipal(cid, name, from, to); FIXME */
-			
 			AgentContainer[] allContainers = containers.containers();
 			for (int i = 0; i < allContainers.length; i++) {
 				AgentContainer ac = allContainers[i];
@@ -709,7 +690,7 @@ class MainContainerImpl implements Platform, AgentManager {
 			// Notify listeners
 			fireChangedAgentPrincipal(cid, name, from, to);
     
-			// Delegate ams
+			// Delegate to the ams all the permissions associated to the new principal
 			AgentPrincipal amsPrincipal = theAMS.getPrincipal();
 			DelegationCertificate amsDelegation = authority.createDelegationCertificate();
 			amsDelegation.setSubject(amsPrincipal);
