@@ -92,12 +92,17 @@ public class GenericActionSchema extends ContentElementSchema {
   	   descends from s)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			if (super.descendsFrom(s)) {
+  				return true;
+  			}
+  			return TermSchema.getBaseSchema().descendsFrom(s);
   		}
-  		if (super.descendsFrom(s)) {
-  			return true;
+  		else {
+  			return false;
   		}
-  		return TermSchema.getBaseSchema().descendsFrom(s);
   	}
 }

@@ -76,6 +76,37 @@ public class VariableSchema extends TermSchema {
         return new AbsVariable();
     } 
 
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// Check the type of the abstract descriptor
+  		if (!(abs instanceof AbsVariable)) {
+				throw new OntologyException(abs+" is not an AbsVariable");
+			}
+			
+			// Check the slots
+			validateSlots(abs, onto);
+  	}
+  	
+  	/**
+  	   A variable can be put whereever a term of whatever type is
+  	   required --> A VariableSchema is
+  	   compatible with s if s descends from TermSchema.getBaseSchema()
+  	 */
+  	public boolean isCompatibleWith(ObjectSchema s) {
+  		if (s != null) {
+  			return s.descendsFrom(TermSchema.getBaseSchema());
+  		}
+  		else {
+  			return false;
+  		}
+  	}
+  		
   	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
@@ -86,10 +117,15 @@ public class VariableSchema extends TermSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }
 

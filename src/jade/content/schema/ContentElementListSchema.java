@@ -70,6 +70,7 @@ public class ContentElementListSchema extends ContentElementSchema {
 	     complies with this schema
 	   */
   	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+  		// Check the type of the abstract descriptor
   		if (!(abs instanceof AbsContentElementList)) {
   			throw new OntologyException(abs+" is not an AbsContentElementList");
   		}
@@ -98,9 +99,14 @@ public class ContentElementListSchema extends ContentElementSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }

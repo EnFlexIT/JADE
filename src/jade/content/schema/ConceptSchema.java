@@ -25,7 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
-import jade.content.onto.OntologyException;
+import jade.content.onto.*;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -105,6 +105,23 @@ public class ConceptSchema extends TermSchema {
         return new AbsConcept(getTypeName());
     } 
 
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// Check the type of the abstract descriptor
+  		if (!(abs instanceof AbsConcept)) {
+				throw new OntologyException(abs+" is not an AbsConcept");
+			}
+			
+			// Check the slots
+			validateSlots(abs, onto);
+  	}
+  	
   	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
@@ -115,9 +132,14 @@ public class ConceptSchema extends TermSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }

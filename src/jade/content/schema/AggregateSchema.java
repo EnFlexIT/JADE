@@ -77,6 +77,7 @@ public class AggregateSchema extends TermSchema {
 	     complies with this schema
 	   */
   	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// Check the type of the abstract descriptor
   		if (!(abs instanceof AbsAggregate)) {
   			throw new OntologyException(abs+" is not an AbsAggregate");
   		}
@@ -104,9 +105,14 @@ public class AggregateSchema extends TermSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }

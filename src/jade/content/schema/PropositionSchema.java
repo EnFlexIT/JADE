@@ -78,10 +78,15 @@ public class PropositionSchema extends ContentElementSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }
 

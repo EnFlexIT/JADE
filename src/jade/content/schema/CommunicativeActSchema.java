@@ -59,7 +59,7 @@ public class CommunicativeActSchema extends GenericActionSchema {
 
         try {
             add(SENDER, BasicOntology.getInstance().getSchema(BasicOntology.AID));
-            add(RECEIVERS, BasicOntology.getInstance().getSchema(BasicOntology.SET));
+            add(RECEIVERS, BasicOntology.getInstance().getSchema(BasicOntology.SEQUENCE));
         } 
         catch (OntologyException oe) {
             oe.printStackTrace();
@@ -107,6 +107,23 @@ public class CommunicativeActSchema extends GenericActionSchema {
         return new AbsCommunicativeAct(getTypeName());
     } 
 
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// Check the type of the abstract descriptor
+  		if (!(abs instanceof AbsCommunicativeAct)) {
+				throw new OntologyException(abs+" is not an AbsCommunicativeAct");
+			}
+			
+			// Check the slots
+			validateSlots(abs, onto);
+  	}
+  	
   	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
@@ -117,9 +134,14 @@ public class CommunicativeActSchema extends GenericActionSchema {
   	     and this schema is an instance of ConceptSchema)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
+  		if (s != null) {
+  			if (s.equals(getBaseSchema())) {
+	  			return true;
+  			}
+  			return super.descendsFrom(s);
   		}
-  		return super.descendsFrom(s);
+  		else {
+  			return false;
+  		}
   	}
 }

@@ -25,7 +25,7 @@
 package jade.content.schema;
 
 import jade.content.abs.*;
-import jade.content.onto.OntologyException;
+import jade.content.onto.*;
 
 /**
  * Note that an AgentActionSchema should also be a ConceptSchema, but
@@ -100,6 +100,23 @@ public class AgentActionSchema extends GenericActionSchema {
         return new AbsAgentAction(getTypeName());
     } 
 
+		/**
+	     Check whether a given abstract descriptor complies with this 
+	     schema.
+	     @param abs The abstract descriptor to be checked
+	     @throws OntologyException If the abstract descriptor does not 
+	     complies with this schema
+	   */
+  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+			// Check the type of the abstract descriptor
+  		if (!(abs instanceof AbsAgentAction)) {
+				throw new OntologyException(abs+" is not an AbsAgentAction");
+			}
+			
+			// Check the slots
+			validateSlots(abs, onto);
+  	}
+  	
   	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
@@ -116,12 +133,17 @@ public class AgentActionSchema extends GenericActionSchema {
   	   descends from s)
   	 */
   	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s.equals(getBaseSchema())) {
-	  		return true;
-  		}
-  		if (super.descendsFrom(s)) {
-  			return true;
-  		}
-  		return ConceptSchema.getBaseSchema().descendsFrom(s);
+			if (s != null) {
+	  	 	if (s.equals(getBaseSchema())) {
+		  		return true;
+  			}
+  			if (super.descendsFrom(s)) {
+  				return true;
+  			}
+  			return ConceptSchema.getBaseSchema().descendsFrom(s);
+			}
+			else {
+				return false;
+			}
   	}
 }
