@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.8  1998/11/09 22:11:07  Giovanni
+ * Added exit() method to allow shutting down an AgentContainer from a
+ * remote host.
+ *
  * Revision 1.7  1998/11/01 19:12:25  rimassa
  * Added two methods from now-removed MessageDispatcher interface.
  *
@@ -30,6 +34,7 @@ public interface AgentContainer extends Remote {
   void createAgent(String agentName, Agent instance, boolean startIt) throws RemoteException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
+  void exit() throws RemoteException;
 
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
   void ping() throws RemoteException;
@@ -37,4 +42,3 @@ public interface AgentContainer extends Remote {
   void invalidateCacheEntry(String key) throws RemoteException;
 
 }
-
