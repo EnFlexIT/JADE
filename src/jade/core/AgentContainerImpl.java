@@ -375,30 +375,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // This call can modify the name of this container
 	  myServiceManager.addNode(myNodeDescriptor, baseServices);
 
-	  // Start the Service Manager address notification service
-	  startService("jade.core.replication.AddressNotificationService");
-
-
-	  //#MIDP_EXCLUDE_BEGIN
-
-	  // FIXME: It should be already set in the profile as a boolean value
-	  boolean disableMobility = myProfile.getParameter("mobility", "").equals("jade.core.DummyMobilityManager");
-
-	  if(!disableMobility) {
-	      startService("jade.core.mobility.AgentMobilityService");
-	  }
-
-	  //#MIDP_EXCLUDE_END
-
-
-	  //#J2ME_EXCLUDE_BEGIN
-
-
-	  startService("jade.core.event.NotificationService");
-
-	  //#J2ME_EXCLUDE_END
-
-
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
 
@@ -409,14 +385,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
 
-	  // Install the main container replication service, if needed
-	  String isMain = myProfile.getParameter(Profile.MAIN, null);
-	  if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
-	      startService("jade.core.replication.MainReplicationService");
-	  }
-
 	  //#MIDP_EXCLUDE_END
 
+
+	  // Start all the additional services mentioned in the profile
+          List l = myProfile.getSpecifiers(Profile.SERVICES);
+          Iterator serviceSpecifiers = l.iterator();
+          while(serviceSpecifiers.hasNext()) {
+	      try {
+		  Specifier s = (Specifier)serviceSpecifiers.next();
+		  String serviceClass = s.getClassName();
+		  startService(serviceClass);
+	      }
+	      catch(ServiceException se) {
+		  se.printStackTrace();
+	      }
+	  }
   }
 
   protected NodeDescriptor getNodeDescriptor() {
@@ -475,7 +459,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           Iterator agentSpecifiers = l.iterator();
           while(agentSpecifiers.hasNext()) {
               Specifier s = (Specifier) agentSpecifiers.next();
-              
+
               AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
               
               try {
