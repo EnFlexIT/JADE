@@ -32,41 +32,59 @@ import jade.domain.FIPAAgentManagement.*;
  */
 public class TestDFHelper {
 	
-	public static DFAgentDescription getSampleDFD(Agent a) {
+	public static DFAgentDescription getSampleDFD(AID id) {
 		DFAgentDescription dfd = new DFAgentDescription();
-		dfd.setName(a.getAID());
+		dfd.setName(id);
 		dfd.addOntologies("Test-ontology");
 		dfd.addLanguages("Test-language");
 		dfd.addProtocols("Test-protocol");
 		
-		// Service 1
-		ServiceDescription sd1 = new ServiceDescription();
-		sd1.setName("Test-service-1");
-		sd1.setType("Test-type-1");
-		sd1.addOntologies("Test-ontology-1.1");
-		sd1.addOntologies("Test-ontology-1.2");
-		sd1.addLanguages("Test-language-1.1");
-		sd1.addLanguages("Test-language-1.2");
-		sd1.addProtocols("Test-protocol-1");
+		// Services
+		ServiceDescription sd1 = getSampleSD1();
+		ServiceDescription sd2 = getSampleSD2();
 		dfd.addServices(sd1);
-		
-		// Service 2
-		ServiceDescription sd2 = new ServiceDescription();
-		sd2.setName("Test-service-2");
-		sd2.setType("Test-type-2");
-		sd2.addOntologies("Test-ontology-2");
-		sd2.addLanguages("Test-language-2");
-		sd2.addProtocols("Test-protocol-2.1");
-		sd2.addProtocols("Test-protocol-2.2");
 		dfd.addServices(sd2);
 		
 		return dfd;
+	}
+	
+	public static ServiceDescription getSampleSD1() {
+		ServiceDescription sd = new ServiceDescription();
+		sd.setName("Test-service-1");
+		sd.setType("Test-type-1");
+		sd.addOntologies("Test-ontology-1.1");
+		sd.addOntologies("Test-ontology-1.2");
+		sd.addLanguages("Test-language-1.1");
+		sd.addLanguages("Test-language-1.2");
+		sd.addProtocols("Test-protocol-1");
+		
+		return sd;
+	}
+	
+	public static ServiceDescription getSampleSD2() {
+		ServiceDescription sd = new ServiceDescription();
+		sd.setName("Test-service-2");
+		sd.setType("Test-type-2");
+		sd.addOntologies("Test-ontology-2");
+		sd.addLanguages("Test-language-2");
+		sd.addProtocols("Test-protocol-2.1");
+		sd.addProtocols("Test-protocol-2.2");
+		
+		return sd;
 	}
 	
 	public static DFAgentDescription getSampleTemplate1() {
 		DFAgentDescription dfd = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("Test-type-1");
+		dfd.addServices(sd);
+		return dfd;
+	}
+	
+	public static DFAgentDescription getSampleTemplate2() {
+		DFAgentDescription dfd = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType("Test-type-2");
 		dfd.addServices(sd);
 		return dfd;
 	}

@@ -34,14 +34,14 @@ import test.domain.df.*;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestLightDFService extends Test {
+public class TestDFService extends Test {
 	
   public String getName() {
-  	return "Test LightDFService";
+  	return "Test DFService";
   }
   
   public String getDescription() {
-  	StringBuffer sb = new StringBuffer("Tests accessing the DF agent by means of the LightDFService utility class\n");
+  	StringBuffer sb = new StringBuffer("Tests accessing the DF agent by means of the DFService utility class\n");
   	sb.append("More in details there is an agent that\n");
   	sb.append("- registers with the DF\n");
   	sb.append("- searches the DF (he should find himself)\n");
@@ -58,13 +58,13 @@ public class TestLightDFService extends Test {
   		int ret;
   		
   		public void action() {
-  			/*Logger l = Logger.getLogger();
+  			Logger l = Logger.getLogger();
   			ret = Test.TEST_PASSED;
   			
   			// Register with the DF
   			DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent.getAID());
   			try {
-	  			LightDFService.register(myAgent, null, dfd);
+	  			DFService.register(myAgent, myAgent.getDefaultDF(), dfd);
   			}
   			catch (FIPAException fe) {
   				l.log("DF registration failed");
@@ -78,7 +78,7 @@ public class TestLightDFService extends Test {
   			DFAgentDescription template = TestDFHelper.getSampleTemplate1();
   			DFAgentDescription[] result = null;
   			try {
-	  			result = LightDFService.search(myAgent, null, template, null);
+	  			result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
   			}
   			catch (FIPAException fe) {
   				l.log("DF search-1 failed");
@@ -96,7 +96,7 @@ public class TestLightDFService extends Test {
   			
   			// Deregister with the DF
   			try {
-	  			LightDFService.deregister(myAgent, null, new DFAgentDescription());
+	  			DFService.deregister(myAgent, myAgent.getDefaultDF(), new DFAgentDescription());
   			}
   			catch (FIPAException fe) {
   				l.log("DF de-registration failed");
@@ -108,7 +108,7 @@ public class TestLightDFService extends Test {
   			
   	  	// Search again with the DF
   			try {
-  				result = LightDFService.search(myAgent, null, template, null);
+  				result = DFService.search(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints());
   			}
   			catch (FIPAException fe) {
   				l.log("DF search-2 failed");
@@ -122,7 +122,7 @@ public class TestLightDFService extends Test {
  					ret = Test.TEST_FAILED;
   				return;
   			}
-  			l.log("DF search-2 result OK"); */
+  			l.log("DF search-2 result OK");
   		}
   		
   		public int onEnd() {

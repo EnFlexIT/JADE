@@ -86,7 +86,7 @@ public class TestFIPAManagementOntology_DF extends Test {
  				// Prepare registration message
  				Vector v = new Vector();
  				try {
-  				DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent);
+  				DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent.getAID());
   				Register r = new Register();
   				r.setDescription(dfd);
   				Action act = new Action(myAgent.getDefaultDF(), r);
@@ -100,6 +100,13 @@ public class TestFIPAManagementOntology_DF extends Test {
  			}
  			protected void handleInform(ACLMessage inform) {
  				// Decode registration confirmation. If this succeeds set OK return code
+ 				try {
+ 					Done d = (Done) myAgent.getContentManager().extractContent(inform);
+ 					ret = Test.TEST_PASSED;
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
  			}
  			public int onEnd() {
  				if (ret == Test.TEST_FAILED) {
@@ -119,10 +126,35 @@ public class TestFIPAManagementOntology_DF extends Test {
  			int ret = Test.TEST_FAILED;
  			protected Vector prepareRequests(ACLMessage request) {
  				// Prepare search message
- 				return null;
+ 				Vector v = new Vector();
+  			try {
+  				DFAgentDescription template = TestDFHelper.getSampleTemplate1();
+  				Search s = new Search();
+  				s.setDescription(template);
+  				s.setConstraints(new SearchConstraints());
+  				Action act = new Action(myAgent.getDefaultDF(), s);
+  				myAgent.getContentManager().fillContent(request, act);
+  				v.add(request);
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
+ 				return v;
  			}
  			protected void handleInform(ACLMessage inform) {
  				// Decode search result. If 1 agent was found set OK return code
+ 				try {
+ 					Result r = (Result) myAgent.getContentManager().extractContent(inform);
+ 					if (r.getItems().size() == 1) {
+	 					ret = Test.TEST_PASSED;
+ 					}
+ 					else {
+  					l.log(r.getItems().size()+" items found while 1 was expected.");
+ 					}	
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
  			}
  			public int onEnd() {
  				if (ret == Test.TEST_FAILED) {
@@ -142,10 +174,30 @@ public class TestFIPAManagementOntology_DF extends Test {
  			int ret = Test.TEST_FAILED;
  			protected Vector prepareRequests(ACLMessage request) {
  				// Prepare deregistration message
- 				return null;
+ 				Vector v = new Vector();
+ 				try {
+  				DFAgentDescription dfd = new DFAgentDescription();
+  				dfd.setName(myAgent.getAID());
+  				Deregister d = new Deregister();
+  				d.setDescription(dfd);
+  				Action act = new Action(myAgent.getDefaultDF(), d);
+  				myAgent.getContentManager().fillContent(request, act);
+  				v.add(request);
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
+ 				return v;
  			}
  			protected void handleInform(ACLMessage inform) {
  				// Decode deregistration confirmation. If this succeeds set OK return code
+ 				try {
+ 					Done d = (Done) myAgent.getContentManager().extractContent(inform);
+ 					ret = Test.TEST_PASSED;
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
  			}
  			public int onEnd() {
  				if (ret == Test.TEST_FAILED) {
@@ -165,10 +217,35 @@ public class TestFIPAManagementOntology_DF extends Test {
  			int ret = Test.TEST_FAILED;
  			protected Vector prepareRequests(ACLMessage request) {
  				// Prepare search message
- 				return null;
+ 				Vector v = new Vector();
+  			try {
+  				DFAgentDescription template = TestDFHelper.getSampleTemplate1();
+  				Search s = new Search();
+  				s.setDescription(template);
+  				s.setConstraints(new SearchConstraints());
+  				Action act = new Action(myAgent.getDefaultDF(), s);
+  				myAgent.getContentManager().fillContent(request, act);
+  				v.add(request);
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
+ 				return v;
  			}
  			protected void handleInform(ACLMessage inform) {
  				// Decode search result. If NO agent was found set OK return code
+ 				try {
+ 					Result r = (Result) myAgent.getContentManager().extractContent(inform);
+ 					if (r.getItems().size() == 0) {
+	 					ret = Test.TEST_PASSED;
+ 					}
+ 					else {
+  					l.log(r.getItems().size()+" items found while 0 was expected.");
+ 					}	
+ 				}
+ 				catch (Exception e) {
+ 					e.printStackTrace();
+ 				}
  			}
  			public int onEnd() {
  				if (ret == Test.TEST_FAILED) {

@@ -47,8 +47,11 @@ public class DFTesterAgent extends TesterAgent {
 	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup(new String[] {
+  		"test.domain.df.tests.TestDFService",
+  		"test.domain.df.tests.TestLightDFService",
   		"test.domain.df.tests.TestFIPAManagementOntology_DF",
-  		"test.domain.df.tests.TestLightDFService"
+  		"test.domain.df.tests.TestFederation",
+  		"test.domain.df.tests.TestDFSubscription"
 		} ); 				
 		return tg;
 	}
