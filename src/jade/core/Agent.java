@@ -32,6 +32,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 
 import jade.core.behaviours.Behaviour;
+
 import jade.lang.acl.*;
 import jade.domain.FIPAException;
 
@@ -44,6 +45,8 @@ import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+
+import jade.core.mobility.AgentMobilityHelper;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -110,46 +113,191 @@ public class Agent implements Runnable, Serializable
   }
  	//#MIDP_EXCLUDE_END
 
+
   // This class manages bidirectional associations between Timer and
   // Behaviour objects, using hash tables. This class is fully
   // synchronized because is accessed both by agent internal thread
   // and high priority Timer Dispatcher thread.
-  private static class AssociationTB {
-    private Hashtable BtoT = new Hashtable();
-    private Hashtable TtoB = new Hashtable();
+  private class AssociationTB {
+      private Hashtable BtoT = new Hashtable();
+      private Hashtable TtoB = new Hashtable();
 
-    public synchronized void addPair(Behaviour b, Timer t) {
-      BtoT.put(b, t);
-      TtoB.put(t, b);
-    }
+      public void clear() {
 
-    public synchronized void removeMapping(Behaviour b) {
-      Timer t = (Timer)BtoT.remove(b);
-      if(t != null) {
-	TtoB.remove(t);
+	  Enumeration e = timers();
+	  while (e.hasMoreElements()) {
+	      Timer t = (Timer) e.nextElement();
+	      theDispatcher.remove(t);
+	  }
+
+	  BtoT.clear();
+	  TtoB.clear();
+
+	  //#MIDP_EXCLUDE_BEGIN
+
+	  // For persistence service
+	  persistentPendingTimers.clear();
+
+	  //#MIDP_EXCLUDE_END
+
       }
-    }
 
-    public synchronized void removeMapping(Timer t) {
-      Behaviour b = (Behaviour)TtoB.remove(t);
-      if(b != null) {
-	BtoT.remove(b);
+      public synchronized void addPair(Behaviour b, Timer t) {
+	  TBPair pair = new TBPair(Agent.this, t, b);
+	  addPair(pair);
       }
-    }
 
-    public synchronized Timer getPeer(Behaviour b) {
-      return (Timer)BtoT.get(b);
-    }
+      public synchronized void addPair(TBPair pair) {
+	  if(pair.getOwner() == null) {
+	      pair.setOwner(Agent.this);
+	  }
 
-    public synchronized Behaviour getPeer(Timer t) {
-      return (Behaviour)TtoB.get(t);
-    }
+	  pair.setTimer(theDispatcher.add(pair.getTimer()));
+	  TBPair old = (TBPair)BtoT.put(pair.getBehaviour(), pair);
+	  if(old != null) {
+	      theDispatcher.remove(old.getTimer());
+	      //#MIDP_EXCLUDE_BEGIN
+	      persistentPendingTimers.remove(old);
+	      //#MIDP_EXCLUDE_END
+	  }
+	  old = (TBPair)TtoB.put(pair.getTimer(), pair);
+	  if(old != null) {
+	      theDispatcher.remove(old.getTimer());
+	      //#MIDP_EXCLUDE_BEGIN
+	      persistentPendingTimers.remove(old);
+	      //#MIDP_EXCLUDE_END
+	  }
 
-    public synchronized Enumeration timers() {
-      return TtoB.keys();
-    }
+	  //#MIDP_EXCLUDE_BEGIN
+
+	  // For persistence service
+	  persistentPendingTimers.add(pair);
+
+	  //#MIDP_EXCLUDE_END
+      }
+
+      public synchronized void removeMapping(Behaviour b) {
+	  TBPair pair = (TBPair)BtoT.remove(b);
+	  if(pair != null) {
+	      TtoB.remove(pair.getTimer());
+
+	      //#MIDP_EXCLUDE_BEGIN
+
+	      // For persistence service
+	      persistentPendingTimers.remove(pair);
+
+	      //#MIDP_EXCLUDE_END
+
+	      theDispatcher.remove(pair.getTimer());
+	  }
+      }
+
+      public synchronized void removeMapping(Timer t) {
+	  TBPair pair = (TBPair)TtoB.remove(t);
+	  if(pair != null) {
+	      BtoT.remove(pair.getBehaviour());
+
+	      //#MIDP_EXCLUDE_BEGIN
+
+	      // For persistence service
+	      persistentPendingTimers.remove(pair);
+
+	      //#MIDP_EXCLUDE_END
+
+	      theDispatcher.remove(pair.getTimer());
+	  }
+      }
+
+      public synchronized Timer getPeer(Behaviour b) {
+	  TBPair pair = (TBPair)BtoT.get(b);
+	  if(pair != null) {
+	      return pair.getTimer();
+	  }
+	  else {
+	      return null;
+	  }
+      }
+
+      public synchronized Behaviour getPeer(Timer t) {
+	  TBPair pair = (TBPair)TtoB.get(t);
+	  if(pair != null) {
+	      return pair.getBehaviour();
+	  }
+	  else {
+	      return null;
+	  }
+      }
+
+      public synchronized Enumeration timers() {
+	  return TtoB.keys();
+      }
 
   } // End of AssociationTB class
+
+    private static class TBPair {
+
+	public TBPair() {
+	    expirationTime = -1;
+	}
+
+	public TBPair(Agent a, Timer t, Behaviour b) {
+	    owner = a;
+	    myTimer = t;
+	    expirationTime = t.expirationTime();
+	    myBehaviour = b;
+	}
+
+	public void setTimer(Timer t) {
+	    myTimer = t;
+	}
+
+	public Timer getTimer() {
+	    return myTimer;
+	}
+
+	public Behaviour getBehaviour() {
+	    return myBehaviour;
+	}
+
+	public void setBehaviour(Behaviour b) {
+	    myBehaviour = b;
+	}
+
+
+	public Agent getOwner() {
+	    return owner;
+	}
+
+	public void setOwner(Agent o) {
+	    owner = o;
+	    createTimerIfNeeded();
+	}
+
+	public long getExpirationTime() {
+	    return expirationTime;
+	}
+
+	public void setExpirationTime(long when) {
+	    expirationTime = when;
+	    createTimerIfNeeded();
+	}
+
+	// If both the owner and the expiration time have been set,
+	// but the Timer object is still null, create one
+	private void createTimerIfNeeded() {
+	    if(myTimer == null) {
+		if((owner != null) && (expirationTime > 0)) {
+		    myTimer = new Timer(expirationTime, owner);
+		}
+	    }
+	}
+
+	private Timer myTimer;
+	private long expirationTime;
+	private Behaviour myBehaviour;
+	private Agent owner;
+
+    } // End of TBPair class
 
 
 	//#MIDP_EXCLUDE_BEGIN
@@ -194,8 +342,7 @@ public class Agent implements Runnable, Serializable
     // restart the behaviour before the pair (b, t) is added to the 
     // pendingTimers of this agent.
   	synchronized (theDispatcher) {
-	    t = theDispatcher.add(t);
-  	  pendingTimers.addPair(b, t);
+	    pendingTimers.addPair(b, t);
     }
   }
 
@@ -230,7 +377,6 @@ public class Agent implements Runnable, Serializable
     Timer t = pendingTimers.getPeer(b);
     if(t != null) {
       pendingTimers.removeMapping(b);
-      theDispatcher.remove(t);
     }
 
     // Did this restart() cause the root behaviour to become runnable ?
@@ -296,12 +442,36 @@ public class Agent implements Runnable, Serializable
      transaction successfully commits.
   */
   static final int AP_GONE = 9;
+
+  /**
+     Represents the <code>saving</code> agent state. This is the state
+     an agent goes into when its actual storage within a persistent
+     data repository takes place.
+  */
+  static final int AP_SAVING = 10;
+
+  /**
+     Represents the <code>loading</code> agent state. This is the
+     state an agent goes into when its current state is about to be
+     replaced with a new one retrieved from a persistent data
+     repository.
+  */
+  static final int AP_LOADING = 11;
+
+  /**
+     Represents the <code>frozen</code> agent state. This is similar
+     to the suspended state, but the agent is actually removed from
+     its container and kept on a persistent store.
+  */
+  static final int AP_FROZEN = 12;
+
+
   //#MIDP_EXCLUDE_END
 
   /**
      Out of band value for Agent Platform Life Cycle states.
   */
-  public static final int AP_MAX = 10;    // Hand-made type checking
+  public static final int AP_MAX = 13;    // Hand-made type checking
 
   //#MIDP_EXCLUDE_BEGIN  
 
@@ -453,6 +623,13 @@ public class Agent implements Runnable, Serializable
   // mobility-related parameters
   private transient Location myDestination;
   private transient String myNewName;
+
+
+  // This variables are used as a temporary buffer for
+  // persistence-related parameters
+  private transient String myRepository;
+  private transient ContainerID myBufferContainer;
+
   //#MIDP_EXCLUDE_END
 
   // Temporary buffer for agent suspension
@@ -581,8 +758,8 @@ public class Agent implements Runnable, Serializable
     return myAID;
   }
 
-  // For persistence service
-  private void setAID(AID id) {
+  // FIXME: Must become private (or package scoped at least)
+  public void setAID(AID id) {
       myAID = id;
   }
 
@@ -881,17 +1058,26 @@ public class Agent implements Runnable, Serializable
      @param destination The <code>Location</code> to migrate to.
   */
   public void doMove(Location destination) {
-    synchronized(stateLock) {
-      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	myBufferedState = myAPState;
-	changeStateTo(AP_TRANSIT);
-	myDestination = destination;
-
-	// Real action will be executed in the embedded thread
-	if(!myThread.equals(Thread.currentThread()))
-	  myThread.interrupt();
+      // Do nothing if the mobility service is not installed
+      try {
+	  getHelper(jade.core.mobility.AgentMobilityHelper.NAME);
       }
-    }
+      catch(ServiceException se) {
+	  // Do nothing
+	  return;
+      }
+
+      synchronized(stateLock) {
+	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
+	      myBufferedState = myAPState;
+	      changeStateTo(AP_TRANSIT);
+	      myDestination = destination;
+
+	      // Real action will be executed in the embedded thread
+	      if(!myThread.equals(Thread.currentThread()))
+		  myThread.interrupt();
+	  }
+      }
   }
   
 
@@ -907,19 +1093,88 @@ public class Agent implements Runnable, Serializable
      @param newName The name that will be given to the copy agent.
   */
   public void doClone(Location destination, String newName) {
-    synchronized(stateLock) {
-      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	myBufferedState = myAPState;
-	changeStateTo(AP_COPY);
-	myDestination = destination;
-	myNewName = newName;
 
-	// Real action will be executed in the embedded thread
-	if(!myThread.equals(Thread.currentThread()))
-	  myThread.interrupt();
+      // Do nothing if the mobility service is not installed
+      try {
+	  getHelper(jade.core.mobility.AgentMobilityHelper.NAME);
       }
-    }
+      catch(ServiceException se) {
+	  // Do nothing
+	  return;
+      }
+
+      synchronized(stateLock) {
+	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
+	      myBufferedState = myAPState;
+	      changeStateTo(AP_COPY);
+	      myDestination = destination;
+	      myNewName = newName;
+
+	      // Real action will be executed in the embedded thread
+	      if(!myThread.equals(Thread.currentThread()))
+		  myThread.interrupt();
+	  }
+      }
   }
+
+  //#APIDOC_EXCLUDE_BEGIN
+
+  // External method, is to be called from other threads
+  public void requestSave(String repository) {
+      // Do nothing if the persistence service is not installed
+      try {
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+      }
+      catch(ServiceException se) {
+	  // Do nothing
+	  return;
+      }
+
+      synchronized(stateLock) {
+	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
+	      myBufferedState = myAPState;
+	      changeStateTo(AP_SAVING);
+	      myRepository = repository;
+
+	      // Real action will be executed in the embedded thread
+	      if(!myThread.equals(Thread.currentThread()))
+		  myThread.interrupt();
+	  }
+      }      
+  }
+
+
+  // External method, is to be called from other threads
+  public void requestFreeze(String repository, ContainerID bufferContainer) {
+      // Do nothing if the persistence service is not installed
+      try {
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+      }
+      catch(ServiceException se) {
+	  // Do nothing
+	  return;
+      }
+      synchronized(stateLock) {
+	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
+	      myBufferedState = myAPState;
+	      changeStateTo(AP_FROZEN);
+
+	      myRepository = repository;
+	      myBufferContainer = bufferContainer;
+
+	      // Real action will be executed in the embedded thread
+	      if(!myThread.equals(Thread.currentThread()))
+		  myThread.interrupt();
+	  }
+      }      
+  }
+
+
+
+
+  //#APIDOC_EXCLUDE_END
   
   /**
      Make a state transition from <em>transit</em> or
@@ -1110,7 +1365,9 @@ public class Agent implements Runnable, Serializable
     // scheduler itself in the synchronized schedule() method
     waitOn(myScheduler, 0);
     synchronized(stateLock) {
-			changeStateTo(AP_ACTIVE);
+	if(myAPState == AP_IDLE) {
+	    changeStateTo(AP_ACTIVE);
+	}
     }
   }
 
@@ -1363,6 +1620,14 @@ public class Agent implements Runnable, Serializable
 	doExecute();
 	afterClone();
 	break;
+      case AP_SAVING:
+	  doExecute();
+	  afterLoad();
+	  break;
+      case AP_FROZEN:
+	  doExecute();
+	  afterThaw();
+	  break;
 			//#MIDP_EXCLUDE_END
       }
 
@@ -1405,6 +1670,8 @@ public class Agent implements Runnable, Serializable
 	break;
       case AP_GONE:
 	break;
+      case AP_FROZEN:
+	  break;
       default:
       	terminating = true;
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
@@ -1431,7 +1698,6 @@ public class Agent implements Runnable, Serializable
       changeStateTo(savedState);
 			#MIDP_INCLUDE_END*/
     }
-
   }
 
     //#APIDOC_EXCLUDE_END
@@ -1511,6 +1777,51 @@ public class Agent implements Runnable, Serializable
     <br>
   */
   protected void afterClone() {}
+
+  /**
+     Actions to perform before saving an agent. This empty placeholder
+     method can be overridden by user defined agents to execute some
+     actions just before the current agent is saved to a persistent
+     store.
+     <br>
+     <b>Not available in MIDP. Requires the Persistence JADE add-on</b>
+     <br>
+  */
+  protected void beforeSave() {}
+
+  /**
+     Actions to perform after loading an agent. This empty placeholder
+     method can be overridden by user defined agents to execute some
+     actions just after the current agent is loaded from a persistent
+     store.
+     <br>
+     <b>Not available in MIDP. Requires the Persistence JADE add-on</b>
+     <br>
+  */
+  protected void afterLoad() {}
+
+
+  /**
+    Actions to perform before freezing. This empty placeholder method can be
+    overridden by user defined agents to execute some actions just before
+    an agent is frozen on a persistent store and its thread terminates.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
+  */
+  protected void beforeFreeze() {}
+
+  /**
+    Actions to perform after thawing. This empty placeholder method
+    can be overridden by user defined agents to execute some actions
+    just after a previously frozen agent is thawed and its thread is
+    started on the proper agent container.
+    <br>
+    <b>NOT available in MIDP</b>
+    <br>
+  */
+  protected void afterThaw() {}
+
 	//#MIDP_EXCLUDE_END
 
   // This method is used by the Agent Container to fire up a new agent for the first time
@@ -1519,6 +1830,8 @@ public class Agent implements Runnable, Serializable
     // Set this agent's name and address and start its embedded thread
     if ( (myAPState == AP_INITIATED) 
 			//#MIDP_EXCLUDE_BEGIN
+	|| (myAPState == AP_SAVING)
+        || (myAPState == AP_FROZEN)
     	|| (myAPState == AP_TRANSIT) 
     	|| (myAPState == AP_COPY)
 			//#MIDP_EXCLUDE_END
@@ -1560,7 +1873,13 @@ public class Agent implements Runnable, Serializable
 	o2aQueue = new ArrayList(o2aQueueSize);
     o2aLocks = new HashMap();
     myToolkit = DummyToolkit.instance();
+
+     //For persistence service
+     persistentPendingTimers = new java.util.HashSet();
+
   }
+
+
 	//#MIDP_EXCLUDE_END
 
   private void mainLoop() throws InterruptedException, InterruptedIOException {
@@ -1586,7 +1905,7 @@ public class Agent implements Runnable, Serializable
 	  	changeStateTo(myBufferedState);
 			myDestination = null;
 			if (e instanceof AuthException) {
-				// Will be catched together with all other AuthException-s
+				// Will be caught together with all other AuthException-s
 				throw (AuthException) e;
 	  	}
 	  	else {
@@ -1613,8 +1932,39 @@ public class Agent implements Runnable, Serializable
 	  	else {
 	  		e.printStackTrace();
 	  	}
-	  }  
+	  }
 	  doExecute();
+	  break;
+	case AP_SAVING:
+	    try {
+		beforeSave();
+		notifySave();
+	    }
+	    catch(Exception e) {
+		// Something went wrong
+		e.printStackTrace();
+	    }
+	    finally {
+		doExecute();
+		myRepository = null;
+	    }
+	    // FIXME: Should an user-defined afterSave() method be called?
+	    break;
+	case AP_LOADING:
+	    // FIXME: To be implemented
+	    doExecute();
+	    break;
+	case AP_FROZEN:
+	  try {
+	      beforeFreeze();
+	      notifyFreeze();
+	      return;
+	  }
+	  catch (Exception e) {
+	      // something went wrong
+	      e.printStackTrace();
+	      doExecute();
+	  }
 	  break;
 	//#MIDP_EXCLUDE_END
 	case AP_ACTIVE:
@@ -1684,7 +2034,7 @@ public class Agent implements Runnable, Serializable
     }
     catch(AgentInMotionError aime) {
 	// Do nothing, since this is a doMove() or doClone() from the outside.
-    } 
+    }
     catch(AuthException e) {
     	// If there is an AuthException we don't want the agent to be killed
     	// as for other unexpected exceptions.
@@ -1724,6 +2074,8 @@ public class Agent implements Runnable, Serializable
 	  //#MIDP_EXCLUDE_BEGIN
 	  case AP_TRANSIT:
 	  case AP_COPY:
+	  case AP_FROZEN:
+	  case AP_SAVING:
 	    throw new AgentInMotionError();
 	  //#MIDP_EXCLUDE_END
 	  }
@@ -1755,14 +2107,9 @@ public class Agent implements Runnable, Serializable
   }
 
 	private void destroy() { 
-		// Remove all pending timers
-		Enumeration e = pendingTimers.timers();
-		while (e.hasMoreElements()) {
-			Timer t = (Timer) e.nextElement();
-			theDispatcher.remove(t);
-		}
-
-		notifyDestruction();
+	    // Remove all pending timers
+	    pendingTimers.clear();
+	    notifyDestruction();
 	}
 
   /**
@@ -2075,13 +2422,62 @@ public class Agent implements Runnable, Serializable
 
   // Notify toolkit of the need to move the current agent
   private void notifyMove() throws AuthException, IMTPException, NotFoundException {
-    myToolkit.handleMove(myAID, myDestination);
+      try {
+	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
+	  h.informMoved(myAID, myDestination);
+      }
+      catch(ServiceNotActiveException snae) {
+	  // The mobility service is not installed. Abort migration.
+	  doExecute();
+      }
+      catch(ServiceException se) {
+	  // Some other error occurred. Dump the exception and abort migration.
+	  se.printStackTrace();
+	  doExecute();
+      }
   }
 
   // Notify toolkit of the need to copy the current agent
   private void notifyCopy() throws AuthException, IMTPException, NotFoundException, NameClashException {
-    myToolkit.handleClone(myAID, myDestination, myNewName);
+      try {
+	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
+	  h.informCloned(myAID, myDestination, myNewName);
+      }
+      catch(ServiceNotActiveException snae) {
+	  // The mobility service is not installed. Abort migration.
+	  doExecute();
+      }
+      catch(ServiceException se) {
+	  // Some other error occurred. Dump the exception and abort migration.
+	  se.printStackTrace();
+	  doExecute();
+      }
   }
+
+  private void notifySave() throws ServiceException, NotFoundException, IMTPException {
+      try {
+
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+	  myToolkit.handleSave(myAID, myRepository);
+      }
+      catch(ServiceException se) {
+	  // Do nothing...
+      }
+  }
+
+  private void notifyFreeze() throws ServiceException, NotFoundException, IMTPException {
+      try {
+
+	  // FIXME: There should be a constant defined somewhere in the JADE distribution
+	  getHelper("jade.core.persistence.Persistence");
+	  myToolkit.handleFreeze(myAID, myRepository, myBufferContainer);
+      }
+      catch(ServiceException se) {
+	  // Do nothing...
+      }
+  }
+
 
   // Notify toolkit of the added behaviour
   // Package scooped as it is called by the Scheduler
@@ -2193,14 +2589,14 @@ public class Agent implements Runnable, Serializable
 			theContentManager = new jade.content.ContentManager();
 		}
 		return theContentManager;
-	} 
-
-	
-
-  // all the agent's service helper
-private transient Hashtable helpersTable;
+	}
 
 //#APIDOC_EXCLUDE_BEGIN
+
+//#MIDP_EXCLUDE_BEGIN
+
+  // all the agent's service helper
+  private transient Hashtable helpersTable;
 
   /**
   * Retrieves the agent's service helper
@@ -2208,10 +2604,12 @@ private transient Hashtable helpersTable;
   */
   public ServiceHelper getHelper( String serviceName ) throws ServiceException {
 
+      ServiceHelper se = null;
+
   	if (helpersTable == null) {
   		helpersTable = new Hashtable();
   	}
-          ServiceHelper se = null;
+
           try {
           // is the helper already into the agent's helpersTable ?
           if (helpersTable.get(serviceName)!=null) {
@@ -2225,14 +2623,14 @@ private transient Hashtable helpersTable;
 
           }
           } catch(Exception e ) {
-                  //#MIDP_EXCLUDE_BEGIN
                   System.out.println(" ServiceHelper could not be created:"+ serviceName);
                   e.printStackTrace();
-                  //#MIDP_EXCLUDE_END
           }
 
-          return se;
+      return se;
   }
+
+//#MIDP_EXCLUDE_END
 
 //#APIDOC_EXCLUDE_END
 
@@ -2316,7 +2714,17 @@ private transient Hashtable helpersTable;
   	#MIDP_INCLUDE_END*/
   }
 
-    //#J2ME_EXCLUDE_BEGIN
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private void setBufferedState(int bs) {
+	myBufferedState = bs;
+    }
+
+    // For persistence service
+    private int getBufferedState() {
+	return myBufferedState;
+    }
 
     // For persistence service -- Hibernate needs java.util collections
     private java.util.Set getBehaviours() {
@@ -2330,9 +2738,45 @@ private transient Hashtable helpersTable;
     // For persistence service -- Hibernate needs java.util collections
     private void setBehaviours(java.util.Set behaviours) {
 	Behaviour[] arr = new Behaviour[behaviours.size()];
-	myScheduler.setBehaviours((Behaviour[])behaviours.toArray(arr));
+
+	arr = (Behaviour[])behaviours.toArray(arr);
+
+	// Reconnect all the behaviour -> agent pointers
+	for(int i = 0; i < arr.length; i++) {
+	    arr[i].setAgent(this);
+	}
+
+	myScheduler.setBehaviours(arr);
     }
 
-    //#J2ME_EXCLUDE_END
+
+    // For persistence service -- Hibernate needs java.util collections
+    private transient java.util.Set persistentPendingTimers = new java.util.HashSet();
+
+
+    // For persistence service -- Hibernate needs java.util collections
+    private java.util.Set getPendingTimers() {
+	return persistentPendingTimers;
+    }
+
+    // For persistence service -- Hibernate needs java.util collections
+    private void setPendingTimers(java.util.Set timers) {
+
+	if(!persistentPendingTimers.equals(timers)) {
+	    // Clear the timers table, and install the new timers.
+	    pendingTimers.clear();
+
+	    java.util.Iterator it = timers.iterator();
+	    while(it.hasNext()) {
+		TBPair pair = (TBPair)it.next();
+		pendingTimers.addPair(pair);
+	    }
+	}
+
+	persistentPendingTimers = timers;
+	
+    }
+
+    //#MIDP_EXCLUDE_END
 
 }
