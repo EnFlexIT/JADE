@@ -34,8 +34,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 import jade.core.Agent;
 import jade.core.AID;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
 import jade.gui.DFAgentDscDlg;
+import jade.gui.GuiEvent;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -79,49 +80,22 @@ class DFGUIModifyAction extends AbstractAction
     			dfd = gui.getDFAgentSearchDsc(name); // the dsc is maintained in a variable of the gui
     			df = gui.getLastDF();
     		}
-    		/*else
-    		if(kind == DFGUI.PARENT_VIEW)
-    		{}
-    		else
-    		if(kind == DFGUI.CHILDREN_VIEW)
-    		{}*/
+    	
 
     		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 			  DFAgentDescription editedDfd = dlg.ShowDFDGui(dfd,true,true);
         
 			  if (editedDfd != null)
-        	gui.myAgent.postModifyEvent((Object) gui, df, editedDfd);    
+			  {
+			    GuiEvent ev = new GuiEvent((Object)gui, DFGUIAdapter.MODIFY);
+	        ev.addParameter(df);
+		      ev.addParameter(editedDfd);
+		      gui.myAgent.postGuiEvent(ev);
+
+			  } 
     
     }
-	/*	int i = gui.registeredTable.getSelectedRow();
-		if (i != -1)
-		{
-			DFAgentDescription dfd;
-			AID name = gui.registeredModel.getElementAt(i);
-			AID df = gui.getLastDF();
-			
-			try
-			{
-				dfd = gui.myAgent.getDFAgentDsc(name);
-			}
-			catch (FIPAException fe)
-			{
-				System.out.println("WARNING! No agent called " + name + " is currently registered with this DF");
-				return;
-			}
-			DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
-			DFAgentDescription editedDfd = dlg.ShowDFDGui(dfd,true,true);
-			
-			if (editedDfd != null)
-			{
-			  if(!editedDfd.getName().equals(dfd.getName()))
-			     {
-			     	JOptionPane.showMessageDialog(null,"The agent name cannot be modified.","Error Message",JOptionPane.ERROR_MESSAGE);
-			     	return;
-			     }
-				gui.myAgent.postModifyEvent((Object) gui, df, editedDfd);
-			}
-		}*/
+	
 	}
 }
 	

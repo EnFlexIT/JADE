@@ -27,6 +27,8 @@ package jade.tools.dfgui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import jade.gui.GuiEvent;
+import jade.domain.DFGUIAdapter;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -46,7 +48,9 @@ class DFGUICloseGuiAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("CLOSE GUI");
-		gui.myAgent.postCloseGuiEvent((Object) gui);
+		//gui.myAgent.postCloseGuiEvent((Object) gui);
+		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.CLOSEGUI);
+		gui.myAgent.postGuiEvent(ev);
 	}
 }
 	

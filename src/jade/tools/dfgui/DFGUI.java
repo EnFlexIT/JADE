@@ -40,7 +40,7 @@ import java.applet.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.core.AID;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
 import jade.gui.AboutJadeAction;
 
 /**
@@ -111,7 +111,7 @@ public class DFGUI extends JFrame
 	/**
 	@serial
 	*/
-	GUI2DFCommunicatorInterface myAgent;
+	DFGUIAdapter myAgent;
 	/**
 	@serial
 	*/
@@ -174,7 +174,7 @@ public class DFGUI extends JFrame
   AID lastDF = null;                // this AID is the AID of the DF on which the last search was made. 
   
 	// CONSTRUCTORS
-	public DFGUI(GUI2DFCommunicatorInterface a, boolean isApplet) 
+	public DFGUI(DFGUIAdapter a, boolean isApplet) 
 	{
 		//////////////////////////
 		// Initialization

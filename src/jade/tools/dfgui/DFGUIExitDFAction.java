@@ -28,6 +28,10 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+
+import jade.gui.GuiEvent;
+import jade.domain.DFGUIAdapter;
+
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
@@ -46,7 +50,9 @@ class DFGUIExitDFAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{
 		//System.out.println("EXIT DF");
-		gui.myAgent.postExitEvent((Object) gui);
+		//gui.myAgent.postExitEvent((Object) gui);
+		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.EXIT);
+		gui.myAgent.postGuiEvent(ev);
 	}
 }
 	

@@ -34,7 +34,9 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
+import jade.gui.GuiEvent;
+
 /**
 @author Tiziana Trucco - CSELT S.p.A
 @version $Date$ $Revision$
@@ -98,7 +100,12 @@ class DFGUIDeregisterAction extends AbstractAction
 			else
 			  return;
 		}
-		gui.myAgent.postDeregisterEvent((Object) gui, df, dfd);
+			
+		GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.DEREGISTER);
+		ev.addParameter(df);
+		ev.addParameter(dfd);
+		gui.myAgent.postGuiEvent(ev);
+
 	}
 }
 	

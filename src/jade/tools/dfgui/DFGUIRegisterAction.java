@@ -33,8 +33,9 @@ import javax.swing.*;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.core.Agent;
 import jade.core.AID;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
 import jade.gui.DFAgentDscDlg;
+import jade.gui.GuiEvent;
 
 /**
 @author Giovanni Caire - CSELT S.p.A
@@ -54,7 +55,7 @@ class DFGUIRegisterAction extends AbstractAction
 	public void actionPerformed(ActionEvent e) 
 	{	
 		AID df; 
-		System.out.println("REGISTER NEW AGENT");
+		//System.out.println("REGISTER NEW AGENT");
 		DFAgentDscDlg dlg = new DFAgentDscDlg((Frame) gui);
 		DFAgentDescription editedDfd = dlg.ShowDFDGui(null,true,true);
 	
@@ -72,7 +73,11 @@ class DFGUIRegisterAction extends AbstractAction
 			else
 			df = gui.myAgent.getDescriptionOfThisDF().getName();
 
-			gui.myAgent.postRegisterEvent((Object) gui, df, editedDfd);
+			GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.REGISTER);
+		  ev.addParameter(df);
+		  ev.addParameter(editedDfd);
+		  gui.myAgent.postGuiEvent(ev);
+
 		}
 	}
 }

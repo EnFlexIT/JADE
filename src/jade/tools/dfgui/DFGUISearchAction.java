@@ -34,10 +34,10 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
 import jade.gui.ConstraintDlg;
 import jade.gui.DFAgentDscDlg;
-
+import jade.gui.GuiEvent;
 /**
 @author Tiziana Trucco - CSELT S.p.A.
 @version $Date$ $Revision$
@@ -84,7 +84,11 @@ class DFGUISearchAction extends AbstractAction
 		//If no df is selected, the df of the platform is used. 
 		if (editedDfd != null)
 		{	
-			gui.myAgent.postSearchEvent((Object) gui, df, editedDfd,constraints);
+			GuiEvent ev = new GuiEvent((Object)gui,DFGUIAdapter.SEARCH);
+	    ev.addParameter(df);
+	    ev.addParameter(editedDfd);
+	    ev.addParameter(constraints);
+		  gui.myAgent.postGuiEvent(ev);
 			gui.setTab("Search",df);
 		}
 	}

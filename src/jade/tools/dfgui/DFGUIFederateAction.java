@@ -31,9 +31,10 @@ import javax.swing.*;
 // Import required JADE classes
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.core.AID;
-import jade.gui.GUI2DFCommunicatorInterface;
+import jade.domain.DFGUIAdapter;
 import jade.gui.AIDGui;
 import jade.gui.DFAgentDscDlg;
+import jade.gui.GuiEvent;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A
@@ -75,8 +76,13 @@ class DFGUIFederateAction extends AbstractAction
 			  editedDfd = dlg.ShowDFDGui(dfd,true,true);
 		
 		  if (editedDfd != null)
-			  gui.myAgent.postFederateEvent((Object)gui, parent, editedDfd);
-	   	  gui.setTab("Federate",null);
+			  {
+			  	GuiEvent ev = new GuiEvent((Object)gui, DFGUIAdapter.FEDERATE);
+		      ev.addParameter(parent);
+		      ev.addParameter(editedDfd);
+		      gui.myAgent.postGuiEvent(ev);
+	   	    gui.setTab("Federate",null);
+			  }
 		}
 	
 	}
