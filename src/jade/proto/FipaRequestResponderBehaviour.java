@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.5  1999/06/22 13:15:11  rimassa
+  Removed a redundant instance variable.
+
   Revision 1.4  1999/06/16 11:18:05  rimassa
   Fixed a bug, causing a NullPointerException when a received ACL
   message had null content.
@@ -85,7 +88,6 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   */
   public static abstract class Action extends Behaviour {
 
-    private Agent myAgent;
     private String myActionName;
     private ACLMessage myRequest;
     private ACLMessage myReply;
@@ -95,7 +97,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       @param a The agent this <code>Action</code> belongs to.
      */
     protected Action(Agent a) {
-      myAgent = a;
+      super(a);
     }
 
     final void setActionName(String an) {
@@ -219,9 +221,8 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       myAgent.send(myReply);
     }
 
-  }
+  } // End of Action class
 
-  private Agent myAgent;
 
   private MessageTemplate requestTemplate;
   private Hashtable actions;
