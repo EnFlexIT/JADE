@@ -64,7 +64,7 @@ public class HTTPClientConnection extends Connection {
   private OutputStream bos;
   private InputStream bis;
   private boolean opened;
-
+  
   /**
    * Constructor declaration
    */
@@ -86,10 +86,10 @@ public class HTTPClientConnection extends Connection {
 						os = hc.getOutputStream();
 			    	//#MIDP_EXCLUDE_END
 			    	/*#MIDP_INCLUDE_BEGIN
-				    hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
+						hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
 						hc.setRequestMethod(HttpConnection.POST);
 			      os = hc.openOutputStream();
-			    	#MIDP_INCLUDE_END*/
+			      #MIDP_INCLUDE_END*/
 						os.write(buf, 0, count);
 						opened = true;
 					}
@@ -115,19 +115,23 @@ public class HTTPClientConnection extends Connection {
 				if (pos >= count) {
 					// Fill the buffer
 			    if (opened) {
-				    //#MIDP_EXCLUDE_BEGIN
-						is = hc.getInputStream();
-						int length = hc.getContentLength();
-				    //#MIDP_EXCLUDE_END
-				    /*#MIDP_INCLUDE_BEGIN
-						is = hc.openInputStream();
-			    	int length = (int) hc.getLength();
-				    #MIDP_INCLUDE_END*/
-			    	buf = new byte[length];
-			    	is.read(buf);
-				    count = buf.length;
-				    pos = 0;
-	  				HTTPClientConnection.this.close();
+			    	try {
+					    //#MIDP_EXCLUDE_BEGIN
+							is = hc.getInputStream();
+							int length = hc.getContentLength();
+					    //#MIDP_EXCLUDE_END
+					    /*#MIDP_INCLUDE_BEGIN
+							is = hc.openInputStream();
+				    	int length = (int) hc.getLength();
+					    #MIDP_INCLUDE_END*/
+				    	buf = new byte[length];
+				    	is.read(buf);
+					    count = buf.length;
+					    pos = 0;
+			    	}
+			    	finally {
+		  				HTTPClientConnection.this.close();
+			    	}
 			    }
 			    else {
 						throw new IOException("Can't read from a closed connection");
