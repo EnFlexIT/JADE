@@ -70,8 +70,12 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   protected ORB myORB;
 
-  public Map SniffedAgents = new HashMap();
-  public String theSniffer;           
+  private Map SniffedAgents = new HashMap();
+  private String theSniffer;           
+
+  // This monitor is used to hang a remote ping() call from the front
+  // end, in order to detect container failures.
+  private java.lang.Object pingLock = new java.lang.Object();
 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
   private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
@@ -341,7 +345,17 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
   }
 
-  public void ping() throws RemoteException {
+  public void ping(boolean hang) throws RemoteException {
+    if(hang) {
+      synchronized(pingLock) {
+	try {
+	  pingLock.wait();
+	}
+	catch(InterruptedException ie) {
+	  // Do nothing
+	}
+      }
+    }
   }
 
   public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
@@ -418,6 +432,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 			a.doDelete();
 			a.join();
 		}
+
+    // Unblock threads hung in ping() method
+    pingLock.notifyAll();
 
     try {
 			// Deregister itself as a container
