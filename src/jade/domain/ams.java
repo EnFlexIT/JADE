@@ -496,23 +496,23 @@ public class ams extends Agent implements AgentManager.Listener {
     }
 
     protected void processAction(Action a) throws FIPAException {
-	/*
       // Kill an agent
-      AgentManagementOntology.KillAgentAction kaa = (AgentManagementOntology.KillAgentAction)a;
-      String agentName = kaa.getAgentName();
-      String password = kaa.getPassword();
+      KillAgent ka = (KillAgent)a.get_1();
+      AID agentID = ka.getAgent();
+      String password = ka.getPassword();
+
       try {
-	myPlatform.kill(agentName, password);
-	sendReply(ACLMessage.AGREE, "(true)");
+	myPlatform.kill(agentID, password);
+	sendReply(ACLMessage.AGREE, "FIXME");
 	sendReply(ACLMessage.INFORM,"FIXME");
       }
       catch(UnreachableException ue) {
-	throw new NoCommunicationMeansException();
+	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
       }
       catch(NotFoundException nfe) {
-	throw new AgentNotRegisteredException();
+	throw new NotRegistered();
       }
-	*/
+
     }
 
   } // End of KillBehaviour class
@@ -712,7 +712,7 @@ public class ams extends Agent implements AgentManager.Listener {
     registerOntology(MobilityOntology.NAME, MobilityOntology.instance());
     
     // register the supported languages
-    registerLanguage(SL0Codec.NAME,new SL0Codec());	
+    registerLanguage(SL0Codec.NAME, new SL0Codec());	
 
     // Add a dispatcher Behaviour for all ams actions following from a
     // 'fipa-request' interaction with 'fipa-agent-management' ontology.
@@ -746,7 +746,8 @@ public class ams extends Agent implements AgentManager.Listener {
   **/
   private void checkMandatorySlots(String actionName, AMSAgentDescription amsd) throws MissingParameter {
     try {
-      if (amsd.getName().getName().length() == 0)
+      AID name = amsd.getName();
+      if ((name == null)||(name.getName().length() == 0))
 	throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "name");
     } catch (Exception e) {
       e.printStackTrace();
@@ -754,7 +755,8 @@ public class ams extends Agent implements AgentManager.Listener {
     }
     if (!actionName.equalsIgnoreCase(FIPAAgentManagementOntology.DEREGISTER))
       try {
-	if (amsd.getState().length() == 0)
+	String state = amsd.getState();
+	if((state == null)||(state.length() == 0))
 	  throw new MissingParameter(FIPAAgentManagementOntology.AMSAGENTDESCRIPTION, "state");
       } catch (Exception e) {
 	e.printStackTrace();
@@ -762,35 +764,68 @@ public class ams extends Agent implements AgentManager.Listener {
       }
   }
   
-private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
+  private KB agentDescriptions = new KBAbstractImpl() {
+      protected boolean match(Object template, Object fact) {
+	try {
+	  AMSAgentDescription templateDesc = (AMSAgentDescription)template;
+	  AMSAgentDescription factDesc = (AMSAgentDescription)fact;
+
+	  String o1 = templateDesc.getOwnership();
+	  if(o1 != null) {
+	    String o2 = factDesc.getOwnership();
+	    if((o2 == null) || (!o1.equalsIgnoreCase(o2)))
+	      return false;
+	  }
+
+	  String s1 = templateDesc.getState();
+	  if(s1 != null) {
+	    String s2 = factDesc.getState();
+	    if((s2 == null) || (!s1.equalsIgnoreCase(s2)))
+	      return false;
+	  }
+
+	  AID id1 = templateDesc.getName();
+	  if(id1 != null) {
+	    AID id2 = factDesc.getName();
+	    if((id2 == null) || (!matchAID(id1, id2)))
+	      return false;
+	  }
+
+	  return true;
+	}
+	catch(ClassCastException cce) {
+	  return false;
+	}
+      }
+    };
+
   /** it is called also by Agent.java **/
   public void AMSRegister(AMSAgentDescription amsd) throws FIPAException {
-    System.out.println("ams::AMSRegister() called");
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, amsd);
-    if (PROVA.containsKey(amsd.getName()))
-	throw new AlreadyRegistered();
-    PROVA.put(amsd.getName(),amsd);
+    Object old = agentDescriptions.register(amsd.getName(), amsd);
+    if(old != null)
+      throw new AlreadyRegistered();
   }
 
   /** it is called also by Agent.java **/
   public void AMSDeregister(AMSAgentDescription amsd) throws FIPAException {
-    System.out.println("ams::AMSDeregister() called");
     checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, amsd);
-    if (PROVA.remove(amsd.getName()) == null)
-    	throw new NotRegistered();
+    Object old = agentDescriptions.deregister(amsd.getName());
+    if(old == null)
+      throw new NotRegistered();
   }
 
   private void AMSModify(AMSAgentDescription amsd) throws FIPAException {
-    System.out.println("ams::AMSModify() called");
     checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, amsd);
-    if (PROVA.put(amsd.getName(),amsd) == null)
-    	throw new NotRegistered();
+    Object old = agentDescriptions.deregister(amsd.getName());
+    if(old == null)
+      throw new NotRegistered();
+    agentDescriptions.register(amsd.getName(), amsd);
   }
 
   private List AMSSearch(AMSAgentDescription amsd, SearchConstraints constraints, ACLMessage reply) throws FIPAException {
-    System.out.println("ams::AMSSearch() called");
-    // Search has no mandatory slot!
-    return new ArrayList(PROVA.values());
+    // Search has no mandatory slots
+    return agentDescriptions.search(amsd);
   }
 
   // This one is called in response to a 'move-agent' action
@@ -833,36 +868,11 @@ private HashMap PROVA = new HashMap(); // solo qui come prova. DA RIMUOVERE
   }
 
   // This one is called in response to a 'query-platform-locations' action
-  Iterator AMSGetPlatformLocations() {
+  MobilityOntology.PlatformLocations AMSGetPlatformLocations() {
     return mobilityMgr.getLocations();
   }
 
-  /**
-   The AMS must have a special version for this method, or a deadlock will occur.
-  
-  public void registerWithAMS(AMSAgentDescription amsd) {
 
-    // Skip all fipa-request protocol and go straight to the target
-    
-    try {
-      AMSRegister(amsd);
-    }
-    // No exception should occur since this is a special case ...
-    catch(FIPAException fe) {
-      fe.printStackTrace();
-    }
-
-  }
-  */
-  /** 
-    The AMS must have a special version for this method, or a deadlock will occur.
-  
-  public void deregisterWithAMS() throws FIPAException {
-    AMSAgentDescription amsd = new AMSAgentDescription(); // Get the standard AMS AID.
-    amsd.setName(getAID());
-    AMSDeregister(amsd);
-  }
-  */
   // Methods to be called from AgentPlatform to notify AMS of special events
 
   /**
