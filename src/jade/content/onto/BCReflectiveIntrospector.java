@@ -82,7 +82,7 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
         	if (slotValue != null) {
         		// Directly call AbsHelper.externaliseIterator() to properly handle different types of aggregate
         		Iterator it = (Iterator) slotValue;
-        		if (it.hasNext()) {
+        		if (it.hasNext() || schema.isMandatory(slotName)) {
 	        		AbsObject absSlotValue = AbsHelper.externaliseIterator(it, referenceOnto, slotSchema.getTypeName());
           		AbsHelper.setAttribute(abs, slotName, absSlotValue);
         		}

@@ -71,7 +71,7 @@ public class ReflectiveIntrospector implements Introspector {
       					ObjectSchema slotSchema = schema.getSchema(slotName);
       					if (slotSchema instanceof AggregateSchema) {
       						List l = (List) slotValue;
-      						if (!l.isEmpty()) {
+      						if (!l.isEmpty() || schema.isMandatory(slotName)) {
         						AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
           					AbsHelper.setAttribute(abs, slotName, absSlotValue);
       						}
