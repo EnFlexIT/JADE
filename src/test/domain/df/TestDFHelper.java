@@ -76,7 +76,7 @@ public class TestDFHelper {
 		sd.addProperties(p);
 		p = new Property();
 		p.setName("pname2");
-		p.setValue("pvalue2");
+		p.setValue("pvalue 2");
 		sd.addProperties(p);
 		
 		return sd;
@@ -104,7 +104,7 @@ public class TestDFHelper {
 		sd.setType("Test-type-2");
 		Property p = new Property();
 		p.setName("pname2");
-		p.setValue("pvalue2");
+		p.setValue("pvalue 2");
 		sd.addProperties(p);
 		dfd.addServices(sd);
 		return dfd;
