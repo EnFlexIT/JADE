@@ -138,7 +138,7 @@ public class BEManagementService extends BaseService {
 		}
 		
 		// Activate the ticker
-		long tickTime = 60000;
+		long tickTime = 30000;
 		try {
 			tickTime = Long.parseLong(p.getParameter(PREFIX+"ticktime", null));
 		}
@@ -829,6 +829,12 @@ public class BEManagementService extends BaseService {
 	      	// Wait for the next IO events 
 	      	//System.out.println(Thread.currentThread().getName()+": Selecting on "+mySelector);
 	      	n = mySelector.select();
+	      }
+	      // There seems to be a bug in java.nio (http://www.limewire.org/techdocs/nio2.html).
+	      // Just retry.
+	      catch (NullPointerException npe) {
+	        myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"NullPointerException in select. Ignore and retry.");
+	      	continue;
 	      }
 	      catch (Exception e) {
 	      	if (state == ACTIVE_STATE) {
