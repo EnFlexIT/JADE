@@ -1619,6 +1619,7 @@ public class Agent implements Runnable, Serializable {
 
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(myAID);
+    amsd.setState(AMSAgentDescription.ACTIVE); //mandatory slot
     d.set_0(amsd);
 
     Action a = new Action();
