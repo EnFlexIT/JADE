@@ -120,7 +120,7 @@ public class DFService extends FIPAServiceCommunicator {
      received from the DF to indicate some error condition or when
      the method locally discovers that the DFDescription is not valid.
    */
-  public static long register(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
+  public static Date register(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     ACLMessage request = createRequestMessage(a, dfName);
 
     if (dfd.getName() == null)
@@ -164,10 +164,7 @@ public class DFService extends FIPAServiceCommunicator {
     }catch(Exception e) {
         e.printStackTrace();
     }
-    if (retLeaseTime!=null)
-        return retLeaseTime.getTime();
-    else 
-        return 0;
+    return retLeaseTime;
   }
 
 
@@ -175,7 +172,7 @@ public class DFService extends FIPAServiceCommunicator {
    * registers a <code>DFAgentDescription</code> with the default DF
    * @see #register(Agent,AID,DFAgentDescription)
    **/
-  public static long register(Agent a, DFAgentDescription dfd) throws FIPAException {
+  public static Date register(Agent a, DFAgentDescription dfd) throws FIPAException {
     return register(a,a.getDefaultDF(),dfd);
   }
 
@@ -265,7 +262,7 @@ public class DFService extends FIPAServiceCommunicator {
      a <code>refuse</code> or <code>failure</code> messages are
      received from the DF to indicate some error condition.
   */
-  public static long modify(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
+  public static Date modify(Agent a, AID dfName, DFAgentDescription dfd) throws FIPAException {
     ACLMessage request = createRequestMessage(a, dfName);
 
     if (dfd.getName() == null)
@@ -305,17 +302,16 @@ public class DFService extends FIPAServiceCommunicator {
     }catch(Exception e) {
         e.printStackTrace();
     }
-    if (retLeaseTime!=null)
-        return retLeaseTime.getTime();
-    else 
-        return 0;
+    
+    return retLeaseTime;
+    
   }
 
   /**
    * The default DF of the platform is used.
 @see #modify(Agent a, AID dfName, DFAgentDescription dfd)
   **/
-  public static long modify(Agent a, DFAgentDescription dfd) throws FIPAException {
+  public static Date modify(Agent a, DFAgentDescription dfd) throws FIPAException {
     return modify(a,a.getDefaultDF(),dfd);
   }
 

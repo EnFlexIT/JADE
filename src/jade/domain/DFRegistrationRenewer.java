@@ -60,8 +60,9 @@ public class DFRegistrationRenewer extends jade.core.behaviours.TickerBehaviour 
      * @param a is the pointer to the agent
      * @param renewerTime expire date of the registration
      */
-    public DFRegistrationRenewer(Agent a,long renewerTime,DFAgentDescription dfd) {
-        super(a,renewerTime - System.currentTimeMillis() - OFFSET_LT > 0 ? renewerTime - System.currentTimeMillis() - OFFSET_LT : 1);
+    public DFRegistrationRenewer(Agent a,Date renewerTime,DFAgentDescription dfd) {
+        super(a,((renewerTime != null) && (renewerTime.getTime() - System.currentTimeMillis() - OFFSET_LT > 0) ? renewerTime.getTime() - System.currentTimeMillis() - OFFSET_LT : 1));
+        
         this.dfd = dfd;
         this.a = a;
         this.OFFSET_LTModifable = OFFSET_LT;
@@ -69,24 +70,38 @@ public class DFRegistrationRenewer extends jade.core.behaviours.TickerBehaviour 
     // Modify the registration, if the agent is not register it register the agent
     // this behaviour stops when the remaining lease time is =< 0
     protected void onTick() {
+        if(dfd.getLeaseTime() == null) {
+            stop();
+            return;
+        }
         long exactLeaseTime = 0;
         long remainingLeaseTime = dfd.getLeaseTime().getTime() - System.currentTimeMillis();
         if(remainingLeaseTime > 0) {
             try { 
-                exactLeaseTime = DFService.modify(a,dfd);
-                if(exactLeaseTime < dfd.getLeaseTime().getTime()) {
-                    reset(exactLeaseTime - System.currentTimeMillis() - OFFSET_LTModifable);
-                }
-                else {
+                Date dateLeaseTime = DFService.modify(a,dfd);
+                // if leasetime is null then it means that the exipire date is infinite
+                if(dateLeaseTime != null) {
+                    exactLeaseTime = dateLeaseTime.getTime();
+                    if(exactLeaseTime < dfd.getLeaseTime().getTime()) {
+                        reset(exactLeaseTime - System.currentTimeMillis() - OFFSET_LTModifable);
+                    }
+                    else {
+                        stop();
+                    }
+                }else {
                     stop();
                 }
             }catch(Exception e) {
                 try {
-                    exactLeaseTime = DFService.register(a,dfd);
-                    if(exactLeaseTime < dfd.getLeaseTime().getTime()) {
-                        reset(exactLeaseTime - System.currentTimeMillis() - OFFSET_LTModifable);
-                    }
-                    else
+                    Date dateLeaseTime = DFService.register(a,dfd);
+                    if(dateLeaseTime != null) {
+                        exactLeaseTime = dateLeaseTime.getTime();
+                        if(exactLeaseTime < dfd.getLeaseTime().getTime()) {
+                            reset(exactLeaseTime - System.currentTimeMillis() - OFFSET_LTModifable);
+                        }
+                        else
+                            stop();
+                    } else
                         stop();
                 } catch(Exception er) {
                     er.printStackTrace();
@@ -95,6 +110,7 @@ public class DFRegistrationRenewer extends jade.core.behaviours.TickerBehaviour 
         } else {
             stop();
         }
+        
     }
     
     /** Set the offset time to renew the registrations before its expiration.
