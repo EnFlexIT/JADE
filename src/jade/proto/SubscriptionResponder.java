@@ -264,6 +264,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
     	Subscription s = getSubscription(cancel);
     	if (s != null) {
     		mySubscriptionManager.deregister(s);
+    		s.close();
     	}
     	return null;
     }

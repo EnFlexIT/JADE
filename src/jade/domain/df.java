@@ -860,43 +860,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
       }
   }
   
-  /**
-     DFSubscriptionResponder BAHAVIOUR. An extended version of the 
-     SubscriptionResponder that manages the CANCEL message
-   *
-  private class DFSubscriptionResponder extends SubscriptionResponder {	
-  	private static final String HANDLE_CANCEL = "Handle-cancel";
-    public SubscriptionManager mySubscriptionManager = null; // patch to allow compiling with JDK1.2
-
-		DFSubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm) {
-	    super(a, MessageTemplate.or(mt, MessageTemplate.MatchPerformative(ACLMessage.CANCEL)), sm);
-
-	    mySubscriptionManager = sm;
-	    registerTransition(RECEIVE_SUBSCRIPTION, HANDLE_CANCEL, ACLMessage.CANCEL);
-	    registerDefaultTransition(HANDLE_CANCEL, RECEIVE_SUBSCRIPTION);
-		    
-			// HANDLE_CANCEL 
-			Behaviour b = new OneShotBehaviour(myAgent) {
-				public void action() {
-			    DataStore ds = getDataStore();
-			    // If we are in this state the SUBSCRIPTION_KEY actually contains a CANCEL message 
-			    ACLMessage cancel = (ACLMessage) ds.get(SUBSCRIPTION_KEY);
-					try {
-						Action act = (Action) getContentManager().extractContent(cancel);
-						ACLMessage subsMsg = (ACLMessage)act.getAction();
-						mySubscriptionManager.deregister(new SubscriptionResponder.Subscription(DFSubscriptionResponder.this, subsMsg));
-					}
-					catch(Exception e) {
-						e.printStackTrace();
-					}
-				}
-			};
-			b.setDataStore(getDataStore());		
-			registerState(b, HANDLE_CANCEL);	
-		}
-  }
-  */
-		
     
   private List children = new ArrayList();
   private List parents = new ArrayList();
@@ -1070,22 +1033,20 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()),
 			MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchPerformative(ACLMessage.CANCEL)));
 		dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
-			// Note that the DF does not use the default handleCancel() as
-			// the way it retrieve 
+			// If the CANCEL message has a meaningful content, use it. 
+			// Otherwise deregister the Subscription with the same convID (default)
     	protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
-				ACLMessage subsMsg = null;
 				try {
 					Action act = (Action) myAgent.getContentManager().extractContent(cancel);
-					subsMsg = (ACLMessage)act.getAction();
+					ACLMessage subsMsg = (ACLMessage)act.getAction();
+					Subscription s = createSubscription(subsMsg);
+					mySubscriptionManager.deregister(s);
+					s.close();
 				}
 				catch(Exception e) {
 					log("WARNING: unexpected CANCEL content", 1);
-					// Create a dummy SUBSCRIBE with the proper sender and conv-id
-					subsMsg = new ACLMessage(ACLMessage.SUBSCRIBE);
-					subsMsg.setSender(cancel.getSender());
-					subsMsg.setConversationId(cancel.getConversationId());
+					super.handleCancel(cancel);
 				}
-				mySubscriptionManager.deregister(createSubscription(subsMsg));
 				return null;
     	}
     };
