@@ -138,22 +138,5 @@ public class FIPAService {
 		}
 		// The timeout has expired
 		return null;
-    
-    /*
-    ACLMessage reply = a.blockingReceive(mt, deadline);
-    if(reply.getPerformative() == ACLMessage.AGREE) {
-      reply =  a.blockingReceive(mt);
-      if(reply.getPerformative() != ACLMessage.INFORM) {
-				throw new FIPAException(reply.getContent());
-      }
-      else 
-	return reply;
-    } else if(reply.getPerformative() == ACLMessage.INFORM) 
-      return reply;
-    else 
-      throw new FIPAException(reply.getContent());
-    */
   }
-
-
 }
