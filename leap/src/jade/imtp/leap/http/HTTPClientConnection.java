@@ -42,6 +42,9 @@ import jade.imtp.leap.JICP.JICPPacket;
 import java.io.*;
 //#MIDP_EXCLUDE_BEGIN
 import java.net.*;
+//#PJAVA_EXCLUDE_BEGIN
+import javax.swing.*; // Needed to traverse an authenticated Proxy
+//#PJAVA_EXCLUDE_END
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.io.*;
@@ -57,6 +60,7 @@ class HTTPClientConnection extends Connection {
 	
 	//#MIDP_EXCLUDE_BEGIN
   private HttpURLConnection hc;
+  private static String username, password;
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
   private HttpConnection hc;
@@ -78,6 +82,31 @@ class HTTPClientConnection extends Connection {
   	if (!opened) {
   		int ret = 0;
 	  	//#MIDP_EXCLUDE_BEGIN
+			//#PJAVA_EXCLUDE_BEGIN
+  		// If the HTTP connection must go through an authenticated proxy
+  		// set the proper authenticator
+			Authenticator.setDefault(new Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					if (username == null) {
+						// Try as system properties first
+						username = System.getProperty("http.username");
+						password = System.getProperty("http.password");
+						if (username == null) {
+					  	JTextField usrTF = new JTextField();
+					  	JPasswordField pwdTF = new JPasswordField();
+					  	Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
+					  	int ret = JOptionPane.showConfirmDialog(null, message, null, JOptionPane.OK_CANCEL_OPTION);
+					  	if (ret == 0) {
+					  		username = usrTF.getText();
+					  		password = pwdTF.getText();
+					  	}
+						}
+					}
+					
+				  return new PasswordAuthentication(username,password.toCharArray());
+				}				
+			} );
+			//#PJAVA_EXCLUDE_END
 			hc = (HttpURLConnection) (new URL(url)).openConnection();
 			hc.setDoOutput(true);
 			hc.setRequestMethod("POST");
