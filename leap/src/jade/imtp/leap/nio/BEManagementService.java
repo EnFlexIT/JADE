@@ -482,7 +482,7 @@ public class BEManagementService extends BaseService {
 			        	}
 			        	else {
 		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request from non authorized address: "+address);
-			        		reply = new JICPPacket("Not authorized", null);
+			        		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 			        		break;
 			        	}
 			        }
@@ -494,7 +494,7 @@ public class BEManagementService extends BaseService {
 						  	if (msisdn != null && !msisdn.equals(id)) {
 						  		// Security attack: Someone is pretending to be someone other
 		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
-									reply = new JICPPacket("Not authorized", null);
+									reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 			        		break;
 						  	}	
 						  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
@@ -560,13 +560,13 @@ public class BEManagementService extends BaseService {
 			        		String msisdn = pdpContextInfo.getProperty(PDPContextManager.MSISDN);
 			        		if (msisdn == null || !msisdn.equals(recipientID)) {
 			        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
-				        		reply = new JICPPacket("Not authorized", null);
+				        		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 				        		break;
 			        		}
 			        	}
 			        	else {
 		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CONNECT_MEDIATOR request from non authorized address: "+address);
-			        		reply = new JICPPacket("Not authorized", null);
+			        		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 			        		break;
 			        	}
 			        }*/
@@ -585,7 +585,7 @@ public class BEManagementService extends BaseService {
 			        }
 			        else {
 		          	myLogger.log(Logger.WARNING, myLogPrefix+"Mediator "+recipientID+" not found");
-			        	reply = new JICPPacket("Mediator not found", null);
+			        	reply = new JICPPacket(JICPProtocol.NOT_FOUND_ERROR, null);
 			        }
 		      	}
 		      	else {
@@ -610,7 +610,7 @@ public class BEManagementService extends BaseService {
 		        else {
 		      		myLogger.log(Logger.WARNING, myLogPrefix+"No mediator for incoming packet of type "+type);
 		        	if (type == JICPProtocol.COMMAND_TYPE) {
-			        	reply = new JICPPacket("Mediator not found", null);
+			        	reply = new JICPPacket(JICPProtocol.NOT_FOUND_ERROR, null);
 		        	}
 		        }
 		      }

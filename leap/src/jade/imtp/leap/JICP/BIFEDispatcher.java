@@ -297,7 +297,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	      }
 	      else {
 		    	myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
-			  	if (myConnectionListener != null && replyMsg != null && replyMsg.equals("Not authorized")) {
+			  	if (myConnectionListener != null && replyMsg != null && replyMsg.equals(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
 						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED);
 			  	}
 	      }
@@ -550,7 +550,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			  	String errorMsg = new String(pkt.getData());
 			  	myLogger.log(Logger.WARNING, "JICP Error "+type+". "+errorMsg); 
 		  		c.close();
-		  		if (errorMsg.equals("Mediator not found")) {
+		  		if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
 			  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
 		  			// there was a fault our max disconnection time expired. 
 		  			// Try to recreate the BackEnd

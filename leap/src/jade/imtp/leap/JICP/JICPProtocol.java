@@ -126,7 +126,10 @@ public class JICPProtocol extends TransportProtocol {
 	   - jade_security_authentication_logincallback = cmdline
 	 */
 	public static final String OWNER_KEY = "owner";	
-
+	
+	// Error messages 
+	public static final String NOT_FOUND_ERROR = "Not-found";	
+	public static final String NOT_AUTHORIZED_ERROR = "Not-authorized";	
   	
   private static JICPProtocol theInstance = new JICPProtocol();
   

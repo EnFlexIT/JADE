@@ -410,7 +410,7 @@ public class JICPServer extends Thread
 		          	else {
 		          		if(myLogger.isLoggable(Logger.WARNING))
 		          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request from non authorized address: "+addr);
-		          		reply = new JICPPacket("Not authorized", null);
+		          		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 		          		break;
 		          	}
 		          }
@@ -423,7 +423,7 @@ public class JICPServer extends Thread
 						  		// Security attack: Someone is pretending to be someone other
 		          		if(myLogger.isLoggable(Logger.WARNING))
 		          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
-									reply = new JICPPacket("Not authorized", null);
+									reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 		          		break;
 						  	}	
 						  	// An existing front-end whose back-end was lost. The BackEnd must resynch 
@@ -468,7 +468,7 @@ public class JICPServer extends Thread
 	        	}
 	        	else {
         			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request received with accept-mediator option set to false. Address is: "+addr);
-							reply = new JICPPacket("Not authorized", null);
+							reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 	        	}
 	        	break;
 	
@@ -491,12 +491,12 @@ public class JICPServer extends Thread
 		          else {
 			          if(myLogger.isLoggable(Logger.INFO))
 			          	myLogger.log(Logger.INFO,"Mediator "+recipientID+" not found");
-		          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
+		          	reply = new JICPPacket(JICPProtocol.NOT_FOUND_ERROR, null);
 		          }
 	        	}
 	        	else {
         			myLogger.log(Logger.WARNING,"CONNECT_MEDIATOR request received with accept-mediator option set to false. Address is: "+addr);
-							reply = new JICPPacket("Not authorized", null);
+							reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
 	        	}
 	          break;
 			  		//#J2ME_EXCLUDE_END
