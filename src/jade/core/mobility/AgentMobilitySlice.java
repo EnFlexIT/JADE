@@ -47,7 +47,7 @@ import jade.util.leap.List;
 */
 public interface AgentMobilitySlice extends Service.Slice {
 
-    void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, AuthException;
+    void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException;
     byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
     void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
