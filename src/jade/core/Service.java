@@ -64,16 +64,22 @@ public interface Service {
 	Node getNode() throws ServiceException;
 
 	/**
-	   Serves an incoming vertical command. Typically, concrete
-	   slices will serve the command by invoking their service
-	   interface methods.  If the command execution has a result
-	   or it raises an exception, the outcome is stored in the
-	   command return value slot.
-
+	   Serves an incoming horizontal command, performing any
+	   required immediate processing, before turning it into a
+	   vertical command to be processed by the incoming filter
+	   chain.
 	   @param cmd The command that is to be served.
-	   @see jade.core.Command#setReturnValue()
+
+	   @return A vertical command, that will be processed by the
+	   incoming filter chain of the receiving node. If
+	   <code>null</code> is returned, no filter/sink processing
+	   will happen. This feature can be used to decouple incoming
+	   horizontal interaction patterns from vertical incoming
+	   commands (e.g. no incoming vertical command is generated
+	   until a required set of horizontal commands has been
+	   received).
 	*/
-	void serve(VerticalCommand cmd);
+	VerticalCommand serve(HorizontalCommand cmd);
 
     }
 
@@ -105,25 +111,21 @@ public interface Service {
 	}
 
 	/**
-	   Try to serve an incoming vertical command. If the command
-	   happens to also be an instance of the
-	   <code>HorizontalCommand</code> class, this proxy object
-	   will route the command to its remote implementation.
+	   Try to serve an incoming horizontal command, routing it to
+	   a remote slice implementation.
 
 	   @param cmd The command to serve, possibly through the network.
 	*/
-	public void serve(VerticalCommand cmd) {
-	    if(cmd instanceof HorizontalCommand) {
-		try {
-		    HorizontalCommand command = (HorizontalCommand)cmd;
-		    cmd.setReturnValue(myNode.accept(command));
-		}
-		catch(IMTPException imtpe) {
-		    cmd.setReturnValue(new ServiceException("An error occurred while routing the command to the remote implementation", imtpe));
-		}
+	public VerticalCommand serve(HorizontalCommand cmd) {
+	    try {
+		cmd.setReturnValue(myNode.accept(cmd));
 	    }
-	    else {
-		cmd.setReturnValue(new ServiceException("Cannot serve a purely vertical command through a Proxy"));
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(new ServiceException("An error occurred while routing the command to the remote implementation", imtpe));
+	    }
+	    finally {
+		// No local processing of this command is required
+		return null;
 	    }
 	}
 
@@ -213,9 +215,17 @@ public interface Service {
        tasks. This filter will be installed within the local command
        processing engine.
 
+       @param direction One of the two constants
+       <code>Filter.INCOMING</code> and <code>Filter.OUTGOING</code>,
+       distinguishing between the two filter chains managed by the
+       command processor.
        @return A <code>Filter</code> object, used by this service to
        intercept and process kernel-level commands.
+       @see jade.core.CommandProcessor
     */
-    Filter getCommandFilter();
+    Filter getCommandFilter(boolean direction);
+
+
+
 
 }

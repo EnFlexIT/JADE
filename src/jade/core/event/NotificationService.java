@@ -28,6 +28,7 @@ package jade.core.event;
 
 
 import jade.core.ServiceFinder;
+import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -102,7 +103,7 @@ public class NotificationService extends BaseService {
 	return localSlice;
     }
 
-    public Filter getCommandFilter() {
+    public Filter getCommandFilter(boolean direction) {
 	return localSlice;
     }
 
@@ -202,7 +203,7 @@ public class NotificationService extends BaseService {
 	    }
 	}
 
-	public void serve(VerticalCommand cmd) {
+	public VerticalCommand serve(HorizontalCommand cmd) {
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -234,6 +235,14 @@ public class NotificationService extends BaseService {
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+	    }
+	    finally {
+		if(cmd instanceof VerticalCommand) {
+		    return (VerticalCommand)cmd;
+		}
+		else {
+		    return null;
+		}
 	    }
 	}
 

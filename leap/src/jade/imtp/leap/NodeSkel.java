@@ -111,7 +111,7 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	Service.Slice slice = impl.getSlice(serviceName);
 
 	if(slice != null) {
-	    slice.serve((jade.core.VerticalCommand)cmd);
+	    slice.serve(cmd);
 	    return cmd.getReturnValue();
 	}
 	else {
