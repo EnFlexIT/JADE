@@ -39,13 +39,12 @@ import jade.security.dummy.DummyAuthority;
 import jade.security.SecurityFactory;
 import jade.security.JADEAuthority;
 import jade.security.JADEPrincipal;
-import jade.security.JADEAccessController;
-import java.security.Permission;
 import jade.security.Credentials;
 import jade.security.PrivilegedExceptionAction;
-
-
-
+//#ALL_EXCLUDE_BEGIN
+import java.security.Permission;
+import jade.security.JADEAccessController;
+//#ALL_EXCLUDE_END
 
 /**
 
@@ -78,6 +77,8 @@ public class DummySecurityFactory extends SecurityFactory {
     return new DummyPrincipal(name);
   }
 
+
+//#ALL_EXCLUDE_BEGIN
   public JADEAccessController newJADEAccessController(
       String name, JADEAuthority authority, String policy) {
     return new JADEAccessController() {
@@ -91,5 +92,7 @@ public class DummySecurityFactory extends SecurityFactory {
       }
     };
   }
+//#ALL_EXCLUDE_END
+
 
 } // end SecurityFactory

@@ -162,8 +162,13 @@ public static String getParameter(String key, String defaultVal) {
 // abstract methods of the factory, follows:
 
 abstract public JADEAuthority newJADEAuthority();
+
+
+//#ALL_EXCLUDE_BEGIN
 abstract public JADEAccessController newJADEAccessController(
                   String name, JADEAuthority authority, String policy );
+//#ALL_EXCLUDE_END
+
 
 abstract public JADEPrincipal newJADEPrincipal(SDSIName sdsiname);
 abstract public JADEPrincipal newJADEPrincipal(String string, SDSIName sdsiname1);
