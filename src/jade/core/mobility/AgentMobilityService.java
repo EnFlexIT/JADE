@@ -43,6 +43,7 @@ import java.net.URL;
 import jade.core.ServiceFinder;
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
+import jade.core.Command;
 import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.ServiceHelper;
@@ -73,6 +74,7 @@ import jade.security.Authority;
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 import jade.security.AuthException;
+import jade.security.CredentialsHelper;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -781,7 +783,7 @@ public class AgentMobilityService extends BaseService {
 
 		if(startIt) {
 		    // Actually start the agent thread
-		    myContainer.powerUpLocalAgent(agentID, instance);
+		    myContainer.powerUpLocalAgent(agentID);
 		}
 
 		log("Agent " + agentID + " inserted into LADT", 1);
@@ -883,7 +885,7 @@ public class AgentMobilityService extends BaseService {
 			agent.putBack((ACLMessage)messages.get(i - 1));
 		    }
 
-		    myContainer.powerUpLocalAgent(agentID, agent);
+		    myContainer.powerUpLocalAgent(agentID);
 		    log("Incoming agent " + agentID + " activated", 1);                             	
 		}
 	    }
@@ -1013,8 +1015,10 @@ public class AgentMobilityService extends BaseService {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
+	    // Set the credentials of the moving agent
+	    initCredentials(cmd, agentID);
+	    
 	    Object lastException = submit(cmd);
-
 	    if(lastException != null) {
 
 		if(lastException instanceof AuthException) {
@@ -1034,8 +1038,10 @@ public class AgentMobilityService extends BaseService {
 	    cmd.addParam(agentID);
 	    cmd.addParam(where);
 	    cmd.addParam(newName);
+	    // Set the credentials of the cloning agent
+	    initCredentials(cmd, agentID);
+	    
 	    Object lastException = submit(cmd);
-
 	    if(lastException != null) {
 
 		if(lastException instanceof AuthException) {
@@ -1065,5 +1071,20 @@ public class AgentMobilityService extends BaseService {
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);
     }
+    
+  private void initCredentials(Command cmd, AID id) {
+  	Agent agent = myContainer.acquireLocalAgent(id);
+  	if (agent != null) {
+  		try {
+		  	CredentialsHelper ch = (CredentialsHelper) agent.getHelper("jade.core.security.Security");
+	  		cmd.setPrincipal(ch.getPrincipal());
+	  		cmd.setCredentials(ch.getCredentials());
+	  	}
+	  	catch (ServiceException se) {
+	  		// The security plug-in is not there. Just ignore it
+	  	}
+  	}  		
+  	myContainer.releaseLocalAgent(id);
+  }
 }
 
