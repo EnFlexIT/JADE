@@ -50,6 +50,7 @@ public class BasicOntology extends Ontology {
   public static final String         INTEGER = "BO_Integer";
   public static final String         BOOLEAN = "BO_Boolean";
   public static final String         DATE = "BO_Date";
+  public static final String         BYTE_SEQUENCE = "BO_Byte-sequence";
     
   // Aggregate types names
   public static final String         SEQUENCE = "sequence";
@@ -58,12 +59,28 @@ public class BasicOntology extends Ontology {
   // Content element list 
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
   
-  // Generic concepts: AID 
+  // Generic concepts: AID and ACLMessage
   public static final String         AID = "agent-identifier";
-  public static final String         AID_NAME = "Name";
-  public static final String         AID_ADDRESSES = "Addresses";
-  public static final String         AID_RESOLVERS = "Resolvers";
+  public static final String         AID_NAME = "name";
+  public static final String         AID_ADDRESSES = "addresses";
+  public static final String         AID_RESOLVERS = "resolvers";
 
+  public static final String         ACLMSG = "acl-message";
+  public static final String         ACLMSG_PERFORMATIVE = "performative";
+  public static final String         ACLMSG_SENDER = "sender";
+  public static final String         ACLMSG_RECEIVERS = "receivers";
+  public static final String         ACLMSG_REPLY_TO = "reply-to";
+  public static final String         ACLMSG_LANGUAGE = "language";
+  public static final String         ACLMSG_ONTOLOGY = "ontology";
+  public static final String         ACLMSG_PROTOCOL = "protocol";
+  public static final String         ACLMSG_IN_REPLY_TO = "in-reply-to";
+  public static final String         ACLMSG_REPLY_WITH = "reply-with";
+  public static final String         ACLMSG_CONVERSATION_ID = "conversation-id";
+  public static final String         ACLMSG_REPLY_BY = "reply-by";
+  public static final String         ACLMSG_CONTENT = "content";
+  public static final String         ACLMSG_BYTE_SEQUENCE_CONTENT = "bs-content";
+  public static final String         ACLMSG_ENCODING = "encoding";
+  
   // Generic propositions: TRUE_PROP (i.e. the proposition that is true under whatever condition) 
   public static final String         TRUE_PROPOSITION = "TRUE";
   
@@ -98,6 +115,7 @@ public class BasicOntology extends Ontology {
       add(new PrimitiveSchema(INTEGER));
       add(new PrimitiveSchema(BOOLEAN));
       add(new PrimitiveSchema(DATE));
+      add(new PrimitiveSchema(BYTE_SEQUENCE));
             
     	// Schemas for aggregates
       add(new AggregateSchema(SEQUENCE));

@@ -121,6 +121,15 @@ public class AbsPrimitive implements AbsTerm {
         return ret;
     } 
 
+    /**
+     * Create an AbsPrimitive of type <code>BasicOntology.BYTE_SEQUENCE</code>
+     * containing a given <code>byte[]</code> value.
+     */
+    public static AbsPrimitive wrap(byte[] value) {
+        AbsPrimitive ret = new AbsPrimitive(BasicOntology.BYTE_SEQUENCE, value);
+        return ret;
+    } 
+
 
     /**
      * Set the value of this AbsPrimitive to the given String.
@@ -209,6 +218,18 @@ public class AbsPrimitive implements AbsTerm {
     } 
 
     /**
+     * Set the value of this AbsPrimitive to the given byte[] value.
+     * @param value The new value
+     * @throws IllegalArgumentException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.BYTE_SEQUENCE</code>
+     */
+    public void set(byte[] value) {
+    	if (!getTypeName().equals(BasicOntology.BYTE_SEQUENCE))
+    		throw new IllegalArgumentException("Wrong type");
+      this.value = value;
+    } 
+
+    /**
      * @return the value of this AbsPrimitive as a String.
      * @throws ClassCastException If the type of this AbsPrimitive 
      * is not <code>BasicOntology.STRING</code>
@@ -271,6 +292,15 @@ public class AbsPrimitive implements AbsTerm {
      */
     public Date getDate() {
         return (Date) value;
+    } 
+
+    /**
+     * @return the value of this AbsPrimitive as a byte[].
+     * @throws ClassCastException If the type of this AbsPrimitive 
+     * is not <code>BasicOntology.BYTE_SEQUENCE</code>
+     */
+    public byte[] getByteSequence() {
+        return (byte[]) value;
     } 
 
     /**
