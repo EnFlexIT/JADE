@@ -71,7 +71,10 @@ import jade.gui.AboutJadeAction;
     paintM(true,(RMAAction)actPro.actions.get(actPro.KILL_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.SUSPEND_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.RESUME_ACTION));
-    paintM(true,(RMAAction)actPro.actions.get(actPro.CHANGE_AGENT_OWNERSHIP_ACTION));
+    
+    // AR: removed for JADE 3.2 
+    // paintM(true,(RMAAction)actPro.actions.get(actPro.CHANGE_AGENT_OWNERSHIP_ACTION));
+    
     paintM(true,(RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.MOVEAGENT_ACTION));
     paintM(true,(RMAAction)actPro.actions.get(actPro.CLONEAGENT_ACTION));
