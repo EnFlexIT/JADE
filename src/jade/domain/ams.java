@@ -49,10 +49,17 @@ import jade.domain.JADEAgentManagement.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.lang.Codec;
 import jade.lang.sl.SL0Codec;
 
+import jade.onto.Ontology;
+import jade.onto.OntologyException;
+import jade.onto.Frame;
+
 import jade.onto.basic.Action;
+import jade.onto.basic.BasicOntology;
 import jade.onto.basic.ResultPredicate;
+import jade.onto.basic.DonePredicate;
 
 import jade.proto.FipaRequestResponderBehaviour;
 
@@ -103,6 +110,29 @@ public class ams extends Agent implements AgentManager.Listener {
 
     }
 
+    /**
+       Writes the <code>Done</code> predicate for the specific action
+       into the result <code>String</code> object, encoded in SL0.
+     */
+    protected String doneAction(Action a, String ontoName) throws FIPAException {
+      try {
+	Ontology o = lookupOntology(ontoName);
+	DonePredicate dp = new DonePredicate();
+	dp.set_0(a);
+	Frame f = o.createFrame(dp, BasicOntology.DONE);
+	List l = new ArrayList(1);
+	l.add(f);
+	Codec c = lookupLanguage(SL0Codec.NAME);
+	String result = c.encode(l, o);
+	return result;
+      }
+      catch(OntologyException oe) {
+	oe.printStackTrace();
+	throw new FIPAException("Internal error in building Done predicate.");
+      }
+
+    }
+
     public boolean done() {
       return true;
     }
@@ -140,7 +170,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	// Write new agent data in AMS Agent Table
 	AMSRegister(amsd);
 	//sendReply(ACLMessage.AGREE,"( true )");
-	sendReply(ACLMessage.INFORM, "FIXME");
+	sendReply(ACLMessage.INFORM, doneAction(a, getRequest().getOntology()));
 
 	// Inform agent creator that registration was successful.
 	if(informCreator !=  null) {
@@ -177,7 +207,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)d.get_0();
       AMSDeregister(amsd);
       //sendReply(ACLMessage.AGREE, "( true )");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
     }
 
   } // End of DeregBehaviour class
@@ -195,7 +225,7 @@ public class ams extends Agent implements AgentManager.Listener {
       AMSAgentDescription amsd = (AMSAgentDescription)m.get_0();
       AMSModify(amsd);
       //sendReply(ACLMessage.AGREE, "( true)");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
     }
 
   } // End of ModBehaviour class
@@ -450,7 +480,7 @@ public class ams extends Agent implements AgentManager.Listener {
       String containerName = kc.getName();
       myPlatform.killContainer(containerName);
       //sendReply(ACLMessage.AGREE, " (true)");
-      sendReply(ACLMessage.INFORM,"FIXME");
+      sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
 
     }
 
@@ -507,8 +537,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
       try {
 	myPlatform.kill(agentID, password);
-	//sendReply(ACLMessage.AGREE, "FIXME");
-	sendReply(ACLMessage.INFORM,"FIXME");
+	//sendReply(ACLMessage.AGREE, "( true )");
+	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -533,7 +563,8 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
       SniffOn so = (SniffOn)a.get_1();
       try {
-				myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
+	myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
+	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
@@ -553,7 +584,8 @@ public class ams extends Agent implements AgentManager.Listener {
     protected void processAction(Action a) throws FIPAException {
       SniffOff so = (SniffOff)a.get_1();
       try {
-				myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
+	myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
+	sendReply(ACLMessage.INFORM,doneAction(a, getRequest().getOntology()));
       }
       catch(UnreachableException ue) {
 	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
