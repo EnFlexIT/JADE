@@ -35,6 +35,15 @@
 /* 
  *
  * $Log$
+ * Revision 1.6  1998/12/13 16:39:50  rimassa
+ * Fixed a bug involving date and time representation.
+ *
+ * Revision 1.1  1998/12/09 09:55:41  bellifemine
+ * Initial revision
+ *
+ * Revision 1.11  1998/11/11 11:21:32  bellifemine
+ * Versione 0.9 inviata da Giovanni + modicato da me il Readme (tolto il riferimento allo RMI registry), rimessa la versione precedente di GUIProperties.java altrimenti non funzionava la GUI, aggiunto l'esempio AgentTimeout.java
+ *
  * Revision 1.5  1998/10/18 16:05:01  rimassa
  * Changed code to avoid using ACLMessage dump() method and default
  * constructor, since these two are now deprecated.
@@ -161,6 +170,7 @@ String Expression():
   s=Word()						{return s;}
 | s=Stringa()					{return s;}
 | s=Number()					{return s;}
+| s=DateTimeToken()				{return s;}
 | <LBRACE> ( s=Expression() {s1+=(s+" ");} )* <RBRACE>		{return "("+s1+")";}
 }
 
@@ -353,7 +363,7 @@ TOKEN:
   < DATETIME :      ("+")? (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
                            (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
                            (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
-                           (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["a"-"z","A"-"Z"] > 
+                           (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["a"-"z","A"-"Z"])? > 
 |  < WORD :          ["!" , "\"" , "$"-"'" , "*" , "+" , "," , "." , "/" , ":"-"~"] (["*"-"~","!"-"'"])* >
 | <STRINGLITERAL: "\"" (~["\""] | "\\" (["n","t","b","r","f","\\","\'","\""] | ["0"-"7"] (["0"-"7"])? | ["0"-"3"] ["0"-"7"] ["0"-"7"]))* "\""> 
 | < DIGIT :         ["0"-"9"] >
