@@ -22,11 +22,11 @@ import java.io.*;
 
 * <li> Implement a class that extends
 * <code>FipaContractNetInitiatorBehaviour</code>.  This class must
-* implement three methods that are called by
+* implement four methods that are called by
 * <code>FipaContractNetInitiatorBehaviour</code>:
 * <ul>
 
-* <li> <code>public Vector evaluateProposals(Vector proposals)</code>
+* <li> <code>public Vector handleProposeMessages(Vector proposals)</code>
 * to evaluate all the received proposals and to return a vector of
 * <code>ACLMessage</code> objects to be sent in response to the
 * proposals (return <code>null</code> to terminate the protocol).
@@ -34,33 +34,20 @@ import java.io.*;
 * <li> <code>public void handleOtherMessages(ACLMessage msg)</code>
 * to handle all received messages different from <code>propose</code>
 
-* <li> <code>public Vector evaluateFinalMessages(Vector
+* <li> <code>public Vector handleFinalMessages(Vector
 * messages)</code> to evaluate the messages received in the last state
 * of the protocol, that is <code>inform Done</code> and
 * <code>failure</code> messages, and to return a <code>Vector</code>
 * of <code>ACLMessages</code> to be sent before terminating the
 * behaviour
+
+* <li> <code> public String createCfpContent(String cfpContent, String receiver)</code> 
+* to return the cfp content for each receiver.
 * </ul>
 * <li> Create a new instance of this class and add it to the agent
 * with <code>Agent.addBehaviour()</code> method)
 * </ul>
 * <p>
-* <em>
-* <b>Important Note:</b> The <b>FIPA</b> semantics and the <b>FIPA</b>
-* content language do require that the actor name be a single
-* name. When this protocol is initiated with more than one agent
-* (i.e. the <code>cfp</code> message is sent to a group of agents
-* rather than a single agent), the content of the <code>cfp</code>
-* message must be changed for each receiver. This class supports this
-* requirement by replacing the first character <code>'*'</code> in the
-* passed message content with the name of the receiver.
-* This feature may introduce errors in those contents whose ontology
-* contains the symbol <code>'*'</code>. Future releases will consider
-* improving this feature.
-* </em>
-* <p>
-* <b>KNOWN BUGS: If the message content contains the character
-* <code>'*'</code>, it is replaced with the name of the receiver.</b>
 * @see jade.proto.FipaContractNetResponderBehaviour
 * @author Fabio Bellifemine - CSELT
 * @version $Date$ $Revision$
@@ -73,31 +60,25 @@ public abstract class FipaContractNetInitiatorBehaviour extends SimpleBehaviour 
    * For instance 
    * <code>appointments = (AppointmentAgent)myAgent.getAppointments()</code>
    */
-  public Agent myAgent;
   
   /* This is the cfpMsg sent in the first state of the protocol */
 protected ACLMessage cfpMsg; 
+
   private int state = 0;  // state of the protocol
-  long timeout;
-  MessageTemplate template;
-    Vector msgProposals = new Vector(); // vector of ACLMessage with the proposals
-  Vector msgAcceptReject = new Vector(); // vector with the ACLMessages to send (accept/reject proposal)
-  Vector msgFinal = new Vector(); // vector with the ACLMessages received after accept/reject-proposal
-  Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
-  AgentGroup proposerAgents;
+  private long timeout, blockTime, endingTime;
+  private MessageTemplate template;
+  private Vector msgProposals = new Vector(); // vector of ACLMessage with the proposals
+  private Vector msgAcceptReject = new Vector(); // vector with the ACLMessages to send (accept/reject proposal)
+  private Vector msgFinal = new Vector(); // vector with the ACLMessages received after accept/reject-proposal
+  private Vector msgFinalAnswers = new Vector(); // vector with the ACLMessages to send at the end of the protocol
+  private AgentGroup proposerAgents;
   private AgentGroup waitedAgents;
+
   /**
    * this variable should be set to true when the behaviour should terminate
    */
-  public boolean finished; // true when done()
-  /** 
-   * default timeout in milliseconds to wait for proposals.  This
-   * timeout is overriden by the <code>reply</code>-by parameter of
-   * the <code>cfp</code> message, if set.
-   */
-  public static final long DEFAULTTIMEOUT = 30000; 
-  ACLMessage wakeMsg;
-  Waker waker;
+  protected boolean finished=false; // true when done()
+
 
   /**
    * constructor of the behaviour.
@@ -111,19 +92,24 @@ protected ACLMessage cfpMsg;
    * @param group is the group of agents to which the cfp must be sent
    */
     public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
-      myAgent = a;
+      super(a);
       cfpMsg = (ACLMessage)msg.clone();
       proposerAgents = (AgentGroup)group.clone();
+      state=0;
+    }
+
+
+  /**
+   * constructor of the behaviour. In this case the group of responder agents
+   * is extracted by the receivers of the ACLMessage that has been passed as
+   * parameter.
+   * @see #FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group)
+   */
+    public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg) {
+      this(a,msg,msg.getDests());
     }
     
-  /**
-   * This constructor is here only to make happy the Java compiler.
-   * It should never be used, however.
-   */
-   public FipaContractNetInitiatorBehaviour(){ // default constructor
-     System.err.println("!! Called wrong constructor for FipaContractNetInitiatorBehaviour !!");
-     finished = true;
-   }
+
 
   /**
    * Action method of the behaviour. This method cannot be overriden
@@ -134,7 +120,6 @@ protected ACLMessage cfpMsg;
     switch (state) {
     case 0: {
       /* This is executed only when the Behaviour is started*/
-      state = 1;
       cfpMsg.setType("cfp");
       cfpMsg.setProtocol("FIPA-Contract-Net");
       cfpMsg.setSource(myAgent.getName());
@@ -143,63 +128,62 @@ protected ACLMessage cfpMsg;
       if (cfpMsg.getConversationId() == null)
 	cfpMsg.setConversationId("ContractNet"+(new Date()).getTime());
       timeout = cfpMsg.getReplyByDate().getTime()-(new Date()).getTime();
-      if (timeout <= 1000) timeout = DEFAULTTIMEOUT; // at least 1 second
-      //start a thread with the timeout
-      wakeMsg = new ACLMessage("inform");
-      wakeMsg.setReplyTo(cfpMsg.getReplyWith());
-      wakeMsg.setConversationId("WAKEUP"+cfpMsg.getReplyWith());
-      wakeMsg.setContent("(timeout " + timeout + ")");
-      waker = new Waker(myAgent,wakeMsg,timeout);
-      waker.start();
-      int p = cfpMsg.getContent().indexOf('*');
-      if (p != -1) {
-	//replace with the actual actor name that is 1 actor for each message.
-	String oldcontent = cfpMsg.getContent();
-	String actor;
-	Enumeration e = proposerAgents.getMembers();
-	while (e.hasMoreElements()) {
-	  actor = (String)e.nextElement();
-	  cfpMsg.setContent(oldcontent.substring(0,p-1) + actor + oldcontent.substring(p+1,oldcontent.length()));
-	  cfpMsg.setDest(actor);
-	  myAgent.send(cfpMsg);
-	}
-      } else { // the content does not contain the character '*'
-	myAgent.send(cfpMsg,proposerAgents);
+      if (timeout <= 1000) timeout = -1; // infinite timeout
+      endingTime = System.currentTimeMillis() + timeout;
+
+      //replace the content with the actual actor name 
+      // that is 1 actor for each message.
+      String actor;
+      String oldcontent = cfpMsg.getContent();
+      Enumeration e = proposerAgents.getMembers();
+      while (e.hasMoreElements()) {
+	actor = (String)e.nextElement();
+	cfpMsg.setContent(createCfpContent(oldcontent,actor));
+	cfpMsg.setDest(actor);
+	myAgent.send(cfpMsg);
       }
+
       template = MessageTemplate.MatchReplyTo(cfpMsg.getReplyWith());
       waitedAgents = (AgentGroup)proposerAgents.clone();
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
+      state = 1;
       break;
     }
     case 1: { // waiting for propose
       // remains in this state
       ACLMessage msg=myAgent.receive(template);
       if (msg == null) {
-	block();
-	return;
+	if (timeout > 0) {
+	  blockTime = endingTime - System.currentTimeMillis();
+	  //	  System.err.println("FipaContractNetInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
+	  if (blockTime <= 0) { //timeout expired
+	    state=2;
+	    return;
+	  } else {
+	    block(blockTime);
+	    return;
+	  }
+	} else { // query without timeout
+	  block();
+	  return;
+	}
       }
+
+      // Here the receive() has really read a message
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
       waitedAgents.removeMember(msg.getSource());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       if (!waitedAgents.getMembers().hasMoreElements()) {
-	waker.stop();
 	state=2;
       }
-      if (msg.getType().equalsIgnoreCase("propose")) {
-	// msg contains a propose ACLMessage
+      if (msg.getType().equalsIgnoreCase("propose")) 
 	msgProposals.addElement(msg);    
-      } else if (msg.getConversationId() == null) {
-	handleOtherMessages(msg);
-      } else if (msg.getConversationId().equalsIgnoreCase(wakeMsg.getConversationId())) { 
-	// wake-up message
-	state = 2;
-      } else 
-	handleOtherMessages(msg);
+      else handleOtherMessages(msg);
       break;
     }
     case 2: { // evaluate the proposals
-	msgAcceptReject = evaluateProposals(msgProposals);
+	msgAcceptReject = handleProposeMessages(msgProposals);
 	if (msgAcceptReject == null) finished=true;
 	else state=3;
 	break;
@@ -208,8 +192,7 @@ protected ACLMessage cfpMsg;
       ACLMessage tmpmsg;
       waitedAgents = new AgentGroup();
       long tmptime;
-      timeout = DEFAULTTIMEOUT;
-      state = 4;
+      timeout = -1;
       String replyWith = "ContractNetState4"+(new Date()).getTime();
       for (int i=0; i<msgAcceptReject.size(); i++) {
 	tmpmsg = (ACLMessage)msgAcceptReject.elementAt(i);
@@ -229,42 +212,43 @@ protected ACLMessage cfpMsg;
 	//System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
       }
       template = MessageTemplate.MatchReplyTo(replyWith);
-      wakeMsg = new ACLMessage("inform");
-      wakeMsg.setReplyTo(replyWith);
-      wakeMsg.setContent("(timeout " + timeout + ")");
-      wakeMsg.setConversationId("WAKEUP"+cfpMsg.getReplyWith());
-      waker = new Waker(myAgent,wakeMsg,timeout);
-      waker.start();
+      endingTime = System.currentTimeMillis() + timeout;
+      state = 4;
       break;
     }
     case 4: { // I can here receive failure, or inform(done) or not-understood
       ACLMessage msg=myAgent.receive(template);
       if (msg == null) {
-	block();
-	return;
+	if (timeout > 0) {
+	  blockTime = endingTime - System.currentTimeMillis();
+	  //	  System.err.println("FipaContractNetInitiatorBehaviour: timeout="+timeout+" endingTime="+endingTime+" currTime="+System.currentTimeMillis()+" blockTime="+blockTime);
+	  if (blockTime <= 0) { //timeout expired
+	    state=5;
+	    return;
+	  } else {
+	    block(blockTime);
+	    return;
+	  }
+	} else { // no timeout
+	  block();
+	  return;
+	}
       }
+
       //System.err.println("FipaContractNetInitiatorBehaviour: receive");
       //msg.dump();
       waitedAgents.removeMember(msg.getSource());
       //System.err.println("FipaContractNetInitiatorBehaviour: waitedAgents="+waitedAgents.toString());
-      if (!waitedAgents.getMembers().hasMoreElements()) {
-	waker.stop();
+      if (!waitedAgents.getMembers().hasMoreElements()) 
 	state=5;
-      }
-      if (msg.getConversationId() == null) 
-	msgFinal.addElement(msg);
-      else if (msg.getConversationId().equalsIgnoreCase(wakeMsg.getConversationId())) {
-	state = 5; // go to the next state of the protocol
-	// wake-up message
-      } else 
-	msgFinal.addElement(msg);
+      msgFinal.addElement(msg);
       break;
     }
     case 5: {
-      state=6;
-      msgFinalAnswers = evaluateFinalMessages(msgFinal);
+      msgFinalAnswers = handleFinalMessages(msgFinal);
       if (msgFinalAnswers == null)
 	finished = true;
+      state=6;
       break;
     }
     case 6: { // final state of the protocol
@@ -303,13 +287,11 @@ protected ACLMessage cfpMsg;
   /**
    * This method is called after all the <code>propose</code> messages
    * have been collected or after the timeout.
-   * The default timeout is specified by the class variable 
-   * <code>DEFAULTTIMEOUT</code>. 
+   * By default an infinite timeout is used.
    * This timeout is overriden by
    * the reply-by parameter of the <code>cfp</code> message, if set.
    * @param proposals is the Vector that contains the received
    * <code>propose</code> ACL message.
-
    * @return a <code>Vector</code> of ACLMessage to be sent in the
    * next phase of the protocol. Usually, these messages should be of
    * type <code>accept-proposal</code> or
@@ -321,14 +303,14 @@ protected ACLMessage cfpMsg;
    * one-to-many protocol and, unfortunately, each of the many might
    * use a different value of <code>:in-reply-to</code>.
    */
-    public abstract Vector evaluateProposals(Vector proposals);
+    public abstract Vector handleProposeMessages(Vector proposals);
 
   /**
-   * After having sent the messages returned by <code>evaluateProposals()</code>,
+   * After having sent the messages returned by <code>handleProposeMessages()</code>,
    * the protocol waits for the maximum timeout specified in those messages
    * (reply-by parameter), or until all the answers are received. 
-   * If no reply-by parameter was set, <code>
-   * DEFAULTTIMEOUT</code> is used, instead.
+   * If no reply-by parameter was set, an infinite timeout 
+   * is used, instead.
    * After this timeout, this method is called to react to all the received
    * messages. At the next state of the protocol, all the returned messages
    * are sent and then the protocol terminates.
@@ -342,7 +324,33 @@ protected ACLMessage cfpMsg;
    * each of the many might
    * use a different value of <code>:in-reply-to</code>. 
    */
-   public abstract Vector evaluateFinalMessages(Vector messages);
+   public abstract Vector handleFinalMessages(Vector messages);
+
+  /**
+   * Some content languages require that the name of the actor be included
+   * within the proposed action itself. For instance, in order to request
+   * to N sellers (s1,s2, ..., sN) the cost of a car, the cfp message should
+   * have this content (by using SL0 content language): <ul>
+   * <li> <code> <i, cfp(s1, ( (action s1 (sell car)), cost < 10000))> </code>
+   * <li> <code> <i, cfp(s2, ( (action s2 (sell car)), cost < 10000))> </code>
+   * <li> ...
+   * <li> <code> <i, cfp(sN, ( (action sN (sell car)), cost < 10000))> </code>
+   * </ul>
+   * You can notice that the content changes for every receiver.
+   * The purpose of this abstract method is to return the actual content for 
+   * the cfp message to be sent to the given receiver.
+   * A suggestion for the implementation is to insert a special symbol within
+   * the cfpContent that, at every call, is replaced with the name of the 
+   * receiver. Unfortunatelly, this default implementation cannot be 
+   * provided by this behaviour because there exist no such a universal
+   * special symbol.
+   * @param cfpContent this is the content of the cfp message that was passed
+   * in the constructor of the behaviour
+   * @param receiver this is the name of the receiver agent to which this 
+   * content is destinated
+   * @return the actual content to be sent to this receiver
+   */
+  public abstract String createCfpContent(String cfpContent, String receiver);
 }
 
 
