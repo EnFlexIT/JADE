@@ -29,7 +29,9 @@ public class CommEvent extends AWTEvent {
 
   public CommEvent(CommBroadcaster source, ACLMessage message) {
     super(source, -1);
-    this.message = message;
+    // Message cloning is Necessary for intra-VM messaging, since no
+    // message serialization is carried out in that case
+    this.message = (ACLMessage)message.clone();
     recipients = null;
   }
 
