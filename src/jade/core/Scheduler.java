@@ -108,12 +108,14 @@ class Scheduler implements Serializable {
   // Behaviour.restart() on every behaviour. The
   // Behaviour.restart() method then notifies the agent (with the
   // Agent.notifyRestarted() method), causing Scheduler.restart() to
-  // be called.
+  // be called (this also moves behaviours from the blocked queue to 
+  // the ready queue --> we must copy all behaviours into a temporary
+  // buffer to avoid concurrent modification exceptions).
   // Why not restarting only blocked behaviours?
   // Some ready behaviour can be a NDBehaviour with some of its
   // children blocked. These children must be restarted too.
   public synchronized void restartAll() {
-    Object[] dummy = readyBehaviours.toArray();
+    //Object[] dummy = readyBehaviours.toArray();
 
 
     Behaviour[] behaviours = new Behaviour[readyBehaviours.size()];
