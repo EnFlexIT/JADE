@@ -33,6 +33,7 @@ import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
+import jade.imtp.leap.ConnectionListener;
 import jade.util.leap.Properties;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -60,6 +61,8 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
   private String beAddrsText;
   private String[] backEndAddresses;
+  
+  private ConnectionListener myConnectionListener;
 
   /**
    * Constructor declaration
@@ -138,6 +141,14 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 
 	    // Start the embedded Thread and wait until it connects to the BackEnd
 	    start();
+	    Thread.yield();
+	    // In the meanwhile load the ConnectionListener if any
+	    try {
+	    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
+	    }
+	    catch (Exception e) {
+	    	// Just ignore it
+	    }
 	    waitUntilConnected();
 	    log("Connection OK", 1);
 
@@ -194,6 +205,12 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   /**
    */
   protected void setup() throws ICPException {
+  	if (mediatorAlive) {
+  		if (myConnectionListener != null) {
+  			myConnectionListener.handleDisconnection();
+  		}
+  	}
+  	
       while (true) {
 
 	  // Try first with the current transport address, then with the various backup addresses
@@ -293,6 +310,11 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 	mediatorAlive = true;
     }
+    else {
+    	if (myConnectionListener != null) {
+    		myConnectionListener.handleReconnection();
+    	}
+    }
     setConnection(c);
   }
 
@@ -380,6 +402,9 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 		notifyAll();		
 		if (mediatorAlive) {
 			// We cannot re-connected 
+    	if (myConnectionListener != null) {
+    		myConnectionListener.handleReconnectionFailure();
+    	}
 		}
 	}
 }

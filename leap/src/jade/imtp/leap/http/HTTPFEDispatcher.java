@@ -33,6 +33,7 @@ import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
+import jade.imtp.leap.ConnectionListener;
 import jade.imtp.leap.JICP.*;
 
 import jade.util.leap.Properties;
@@ -70,6 +71,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private String beAddrsText;
   private String[] backEndAddresses;
 
+  private ConnectionListener myConnectionListener;
 
   ////////////////////////////////////////////////
   // FEConnectionManager interface implementation
@@ -317,6 +319,14 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	// Give precedence to the Thread that is creating the BackEnd
   	Thread.yield();
   	
+    // In the meanwhile load the ConnectionListener if any
+    try {
+    	myConnectionListener = (ConnectionListener) Class.forName(props.getProperty("connection-listener")).newInstance();
+    }
+    catch (Exception e) {
+    	// Just ignore it
+    }
+    
   	JICPPacket lastResponse = null;
   	byte lastSid = 0x10; // Different from any valid sid
   	
@@ -430,7 +440,10 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	 */
   	private synchronized void setUnreachable() {
   		if (reachable && !pingOK) {
-  			log("Starting DisconnectionManager thread. ", 2);
+  			if (myConnectionListener != null) {
+  				myConnectionListener.handleDisconnection();
+  			}
+  			log("Starting DisconnectionManager thread ("+System.currentTimeMillis()+").", 2);
   			reachable = false;
   			myThread = new Thread(this);
   			myThread.start();
@@ -488,6 +501,9 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 				// Ping succeeded
 				log("Ping successful.", 2);
 	  		synchronized (this) {
+	  			if (myConnectionListener != null) {
+	  				myConnectionListener.handleReconnection();
+	  			}
 	  			pingOK = true;
 	  			// Notify the thread handling incoming commands in case
 	  			// it is waiting in waitUntilReachable()
@@ -498,7 +514,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		}
   		catch (ICPException icpe) {
   			// Impossible to reconnect to the BackEnd
-				log("Impossible to reconnect to the BackEnd. "+icpe.getMessage(), 0);
+				log("Impossible to reconnect to the BackEnd ("+System.currentTimeMillis()+"). "+icpe.getMessage(), 0);
   			handleConnectionError();
   		}
   	}
@@ -549,9 +565,6 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	      catch (IOException ioe) {
 		  // Ignore it, and try the next address...
 	  	log(ioe.toString(), 2);
-	      }
-	      catch(ICPException icpe) {
-		  // Ignore it, and try the next address...
 	      }
 	  }
 
@@ -620,18 +633,10 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   /**
      Executed by the DisconnectionManager thread as soon as it detects it is 
      impossible to contact the BackEnd again.
-     Users can define a proper Runnable object that acts as a 
-     disconnection handler and is invoked when an unrecoverable disconnection
-     occurs.
    */
   protected void handleConnectionError() {
-		try {
-			String discHandler = props.getProperty("disconnection-handler");
-			Runnable r = (Runnable) Class.forName(discHandler).newInstance();
-			r.run();
-		}
-		catch (Exception e) { 
-			// Just ignore it
+		if (myConnectionListener != null) {
+			myConnectionListener.handleReconnectionFailure();
 		}
   }
   
