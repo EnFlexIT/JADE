@@ -25,7 +25,7 @@ package jade.core.event;
 
 import java.util.Date;
 
-import jade.core.Location;
+import jade.core.ContainerID;
 
 /**
    This class represents a generic JADE event.
@@ -35,15 +35,15 @@ import jade.core.Location;
  */
 public class JADEEvent {
 
-  private Location place;
+  private ContainerID place;
   private Date time;
 
-  public JADEEvent(Location l) {
-    place = l;
+  public JADEEvent(ContainerID cid) {
+    place = cid;
     time = new Date(); // Now
   }
 
-  public Location getPlace() {
+  public ContainerID getPlace() {
     return place;
   }
 
