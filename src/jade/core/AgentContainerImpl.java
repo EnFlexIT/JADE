@@ -542,12 +542,12 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           myID = new ContainerID("No-Name", addr);
 
           // Acquire username and password
-          String ownership = myProfile.getParameter("ownership");
+          String ownership = myProfile.getParameter(Profile.OWNER);
           if (ownership == null)
               ownership = ContainerPrincipal.NONE;
           password = Agent.extractPassword(ownership);
           username = Agent.extractUsername(ownership);
-          myProfile.setParameter("ownership", username);
+          myProfile.setParameter(Profile.OWNER, username);
 
           // Register to the platform. If myPlatform is the real MainContainerImpl
           // this call also starts the AMS and DF

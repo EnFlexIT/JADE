@@ -26,8 +26,20 @@ package jade.security;
 import jade.core.ContainerID;
 
 
+/**
+	The <code>ContainerPrincipal</code> interface represents the principal
+	responsible for the execution of a container.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface ContainerPrincipal extends JADEPrincipal {
 	
+	/**
+		Returns the ownership field of this principal, as stored
+		on ams's white pages.
+		@return The ownership.
+	*/
 	public String getOwnership();
 
 }

@@ -26,8 +26,20 @@ package jade.security;
 import jade.core.AID;
 
 
+/**
+	The <code>AgentPrincipal</code> interface represents the principal
+	responsible for the execution of an agent.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface AgentPrincipal extends JADEPrincipal {
 
+	/**
+		Returns the ownership field of this principal, as stored
+		on ams's white pages.
+		@return The ownership.
+	*/
 	public String getOwnership();
 
 }

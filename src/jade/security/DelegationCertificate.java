@@ -27,10 +27,34 @@ import jade.util.leap.List;
 import java.util.Date;
 
 
+/**
+	The <code>DelegationCeritificate</code> interface is meant
+	to carry a list of permissions granted to certain principals.
+	It can be obtained after authenticating before an authority
+	or by an another (already authenticated) principal which owns
+	a list of permissions and wants to delegate them.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface DelegationCertificate extends JADECertificate {
 	
+	/**
+		Adds a permission to this delegation certificate.
+		@param permission The permission to add.
+	*/
 	public void addPermission(Object permission);
+
+	/**
+		Adds a list of permissions to this delegation certificate.
+		@param permissions The list of permissions to add.
+	*/
 	public void addPermissions(List permissions);
+
+	/**
+		Returns all permissions carried by this certificate.
+		@return The list of permissions.
+	*/
 	public List getPermissions();
 	
 }

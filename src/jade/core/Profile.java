@@ -67,7 +67,7 @@ public abstract class Profile {
   public static final String AUTHORITY_CLASS = "authority";
   public static final String POLICY_FILE = "policy";
   public static final String PASSWD_FILE = "passwd";
-  public static final String OWNERSHIP = "ownership";
+  public static final String OWNER = "owner";
 
   /**
      This constant is the name of the property whose value contains

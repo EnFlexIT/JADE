@@ -24,5 +24,12 @@ Boston, MA  02111-1307, USA.
 package jade.security;
 
 
+/**
+	The <code>UserPrincipal</code> interface represents a user
+	operating on the platform.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface UserPrincipal extends JADEPrincipal {
 }

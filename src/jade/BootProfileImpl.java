@@ -69,7 +69,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String MTP_KEY = "mtp";
     public static final String NOMTP_KEY = "nomtp";
     public static final String NAME_KEY = "name";
-    public static final String OWNERSHIP_KEY = "ownership";
+    public static final String OWNER_KEY = "owner";
     public static final String PASSWD_KEY = "passwd";
     public static final String POLICY_KEY = "policy";
     public static final String PORT_KEY = "port";
@@ -172,9 +172,9 @@ public class BootProfileImpl extends ProfileImpl {
             profileProp.setProperty(Profile.PASSWD_FILE, value);
         }
 
-        value = argProp.getProperty(OWNERSHIP_KEY);
+        value = argProp.getProperty(OWNER_KEY);
         if (value != null) {
-            profileProp.setProperty(Profile.OWNERSHIP, value);
+            profileProp.setProperty(Profile.OWNER, value);
         }
 
         String host = argProp.getProperty(HOST_KEY);

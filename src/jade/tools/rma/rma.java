@@ -447,11 +447,11 @@ public class rma extends ToolAgent {
   /**
    Callback method for platform management <em>GUI</em>.
    */
-  public void changeAgentPrincipal(AID name, String principal) {
+  public void changeAgentOwnership(AID name, String ownership) {
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(name);
     amsd.setState(AMSAgentDescription.ACTIVE);//SUSPENDED);
-    amsd.setOwnership(principal);
+    amsd.setOwnership(ownership);
     Modify m = new Modify();
     m.set_0(amsd);
 
@@ -465,7 +465,7 @@ public class rma extends ToolAgent {
       ACLMessage requestMsg = getRequest();
       requestMsg.setOntology(FIPAAgentManagementOntology.NAME);
       fillMsgContent(requestMsg, l);
-      addBehaviour(new AMSClientBehaviour("ChangeAgentPrincipal", requestMsg));
+      addBehaviour(new AMSClientBehaviour("ChangeAgentOwnership", requestMsg));
     }
     catch(FIPAException fe) {
       fe.printStackTrace();

@@ -26,5 +26,15 @@ package jade.security;
 import java.util.Date;
 
 
+/**
+	The <code>IdentityCeritificate</code> carries proof of the
+	identity of some authenticated principal. An
+	<code>IdentityCeritificate</code> object should be generated
+	and signed by an authority after verifying some proof
+	(usually a password) of applicant's identity.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface IdentityCertificate extends JADECertificate {
 }

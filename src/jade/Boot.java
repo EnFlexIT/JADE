@@ -139,7 +139,7 @@ public class Boot {
      * Original       New
      * ------------------------------
      * -host x        host:x
-     * -ownership x   ownership:x
+     * -owner x       owner:x
      * -name x        name:x
      * -port n        port:n
      * -mtp  x        mtp:x
@@ -227,13 +227,13 @@ public class Boot {
                 } else {
                     results.add("host:" + args[n]);
                 }
-            } else if (theArg.equalsIgnoreCase("-ownership")) {
+            } else if (theArg.equalsIgnoreCase("-owner")) {
                 if (++n == args.length) {
-                    System.err.println("Missing ownership");
+                    System.err.println("Missing owner");
 
                     printUsageInfo = true;
                 } else {
-                    results.add("ownership:" + args[n]);
+                    results.add("owner:" + args[n]);
                 }
             } else if (theArg.equalsIgnoreCase("-name")) {
                 if (++n == args.length) {
@@ -358,7 +358,7 @@ public class Boot {
         out.println("  \t\t\tIt should be used to override the default behaviour of the main-container (by default the -nomtp option unselected).");
         out.println("  -aclcodec\t\tSpecifies a list, separated by ';', of ACLCodec to use. By default the string codec is used.");
         out.println("  -name <platform name>\tThe symbolic platform name specified only for the main container.");
-        out.println("  -ownership <username:password>\tThe owner of a container or platform.");
+        out.println("  -owner <username:password>\tThe owner of a container or platform.");
 	out.println("  -nomobility\t\tIf specified, disables the mobility and cloning support for the container.");
         out.println("  -help\t\t\tPrints out usage informations.");
         out.println("");

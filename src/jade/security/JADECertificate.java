@@ -26,18 +26,65 @@ package jade.security;
 import java.util.Date;
 
 
+/**
+	The <code>JADECeritificate</code> interface has to be implemented
+	by classes storing authenticated informations, as identities or
+	delegated permissions.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface JADECertificate {
 	
+	/**
+		Sets the subject of this certificate, i.e. the principal which
+		the carried informations refer to.
+		@param The subject.
+	*/
 	public void setSubject(JADEPrincipal subject);
+
+	/**
+		Returns the subject of this certificate.
+		@return The subject.
+	*/
 	public JADEPrincipal getSubject();
 	
+	/**
+		Sets the validity period.
+		@param The validity period.
+	*/
 	public void setNotBefore(Date notBefore);
+
+	/**
+		Returns the validity period.
+		@return The validity period.
+	*/
 	public Date getNotBefore();
 	
+	/**
+		Sets the validity period.
+		@param The validity period.
+	*/
 	public void setNotAfter(Date notAfter);
+
+	/**
+		Returns the validity period.
+		@return The validity period.
+	*/
 	public Date getNotAfter();
 	
+	/**
+		Returns the canonical string representation of this certificate.
+		This string can be used to evaluate a digest and to sign the
+		certificate itself.
+		@return The canonical string representation.
+	*/
 	public String encode();
+
+	/**
+		Builds back a certificate from its string encoding.
+		@param encoded The string to restore the certificate from.
+	*/
 	public void decode(String encoded);
 	
 }

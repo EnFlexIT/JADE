@@ -56,11 +56,11 @@ class TablePanel extends JPanel {
 
   // final
   /**@clientCardinality **/
-  final String[] names = {"agent-name", "agent-addresses", "agent-state", "agent-ownership"};
+  final String[] names = {"name", "addresses", "state", "owner"};
   // Create the dummy data (a few rows of names)
   /**@clientCardinality **/
   Object[][] data = {
-    {"AGENT-NAME", "AGENT-ADDRESSES", "AGENT-STATE", "AGENT-OWNERSHIP"},
+    {"NAME", "ADDRESSES", "STATE", "OWNER"},
   };
 
   public TablePanel() {

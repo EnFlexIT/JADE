@@ -24,17 +24,40 @@ Boston, MA  02111-1307, USA.
 package jade.security;
 
 
+/**
+	The <code>JADEPrincipal</code> interface represents all principals
+	acting on the platform. They will be held responsible for their
+	own agents and containers.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public interface JADEPrincipal
 //__JADE_ONLY__BEGIN
 		extends java.security.Principal
 //__JADE_ONLY__END
 {
 
+	/**
+		The name which marks an unidentified principal.
+	*/
 	public static final String NONE = "none";
 
 
+	/**
+		Returns the string representation of this principal.
+		@return The name.
+	*/
 	public String getName();
 	
+	/**
+		Checks the hierarchical relationship between two principals, i.e.
+		tells if this principal belongs to group <code>p</code>.
+		If this holds, all permissions granted to <code>p</code> will be
+		automatically granted to this principal, too.
+		@param p The principal to check.
+		@return True if this principal is a member of group <code>p</code>.
+	*/
 	public boolean implies(JADEPrincipal p);
 
 }

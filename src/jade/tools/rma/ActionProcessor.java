@@ -48,7 +48,7 @@ class ActionProcessor {
      public static final String  KILL_ACTION="Kill";
      public static final String  SUSPEND_ACTION="Suspend Agent";
      public static final String  RESUME_ACTION="Resume Agent";
-     public static final String  CHANGE_AGENT_PRINCIPAL_ACTION = "Change Agent Principal";
+     public static final String  CHANGE_AGENT_OWNERSHIP_ACTION = "Change Agent Ownership";
      public static final String  CUSTOM_ACTION="Custom Agent";
      public static final String  SNIFFER_ACTION="Start Sniffer";     
      public static final String  DUMMYAG_ACTION="Start DummyAgent";
@@ -78,7 +78,7 @@ class ActionProcessor {
       actions.put(KILL_ACTION,new KillAction(KILL_ACTION, anRma,this));
       actions.put(SUSPEND_ACTION,new SuspendAction(anRma,this));
       actions.put(RESUME_ACTION,new ResumeAction(anRma,this));
-      actions.put(CHANGE_AGENT_PRINCIPAL_ACTION, new ChangeAgentPrincipalAction(anRma, this));
+      actions.put(CHANGE_AGENT_OWNERSHIP_ACTION, new ChangeAgentOwnershipAction(anRma, this, mWnd));
       actions.put(CUSTOM_ACTION,new CustomAction(anRma, mWnd,this));
       actions.put(SNIFFER_ACTION,new SnifferAction(anRma,this));
       actions.put(DUMMYAG_ACTION,new DummyAgentAction(anRma,this));

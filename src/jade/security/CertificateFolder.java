@@ -27,43 +27,86 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 
+/**
+	The <code>CertificateFolder</code> class is basically a list
+	of delegation certificates, plus an identity certificate.
+   
+	@author Michele Tomaiuolo - Universita` di Parma
+	@version $Date$ $Revision$
+*/
 public class CertificateFolder implements jade.util.leap.Serializable {
 	
 	IdentityCertificate identity = null;
 	List delegations = new ArrayList();
 	
+	/**
+		Creates an empty certificate folder.
+	*/
 	public CertificateFolder() {
 	}
 	
+	/**
+		Creates a certificate with a given identity.
+		@param identity The identity certificate.
+	*/
 	public CertificateFolder(IdentityCertificate identity) {
 		this.identity = identity;
 	}
 	
+	/**
+		Creates a certificate with an identity and a delegation.
+		@param identity The identity certificate.
+		@param delegation The delegation certificate.
+	*/
 	public CertificateFolder(IdentityCertificate identity, DelegationCertificate delegation) {
 		this.identity = identity;
 		delegations.add(delegation);
 	}
 	
+	/**
+		Sets the identity certificate.
+		@param identity The identity certificate.
+	*/
 	public void setIdentityCertificate(IdentityCertificate identity) {
 		this.identity = identity;
 	}
 	
+	/**
+		Returns the identity certificate.
+		@return The identity certificate.
+	*/
 	public IdentityCertificate getIdentityCertificate() {
 		return identity;
 	}
 
+	/**
+		Returns all delegation certificates.
+		@return The list of delegation certificates.
+	*/
 	public List getDelegationCertificates() {
 		return delegations;
 	}
 	
+	/**
+		Adds a delegation certificate.
+		@param delegation The new delegation certificate.
+	*/
 	public void addDelegationCertificate(DelegationCertificate delegation) {
 		delegations.add(delegation);
 	}
 	
+	/**
+		Removes a delegation certificate.
+		@param delegation The delegation certificate to remove.
+	*/
 	public void removeDelegationCertificate(DelegationCertificate delegation) {
 		delegations.remove(delegation);
 	}
 
+	/**
+		Returns an arrya containing all delegation certificates.
+		@return An array of delegation certificates.
+	*/
 	public DelegationCertificate[] getDelegationsAsArray() {
 		Object[] objs = delegations.toArray();
 		DelegationCertificate[] result = new DelegationCertificate[objs.length];
