@@ -71,7 +71,7 @@ public class Runtime {
      from the real JADE container.
    */
   public jade.wrapper.AgentContainer createAgentContainer(Profile p) {
-
+      p.setParameter(Profile.MAIN, "false"); // set to an agent container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();
@@ -89,7 +89,7 @@ public class Runtime {
      from the real JADE main container.
    */
   public jade.wrapper.MainContainer createMainContainer(Profile p) {
-
+      p.setParameter(Profile.MAIN, "true"); // set to a main container
       AgentContainerImpl impl = new AgentContainerImpl(p);
       beginContainer();
       impl.joinPlatform();

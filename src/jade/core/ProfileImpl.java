@@ -123,10 +123,32 @@ public class ProfileImpl extends Profile {
    *
    * @param key is the property name
    * @param value is the property value
-   *
+   * @deprecated setParameter should be used instead of this method
    */
   public void putProperty(String key, String value) {
-    props.put(key, value);
+    setParameter(key, value);
+  } 
+
+  /**
+   * Assign the given value to the given property name.
+   *
+   * @param key is the property name
+   * @param value is the property value
+   * @deprecated setParameter should be used instead of this method
+   */
+    public void setParameter(String key, String value) {
+	props.put(key, value);
+    }
+
+  /**
+   * Assign the given property value to the given property name
+   *
+   * @param key is the property name
+   * @param value is the property value
+   * @deprecated setSpecifier should be used instead of this method
+   */
+  public void putSpecifierList(String key, List value) {
+      setSpecifiers(key,value);
   } 
 
   /**
@@ -134,9 +156,8 @@ public class ProfileImpl extends Profile {
    *
    * @param key is the property name
    * @param value is the property value
-   *
    */
-  public void putSpecifierList(String key, List value) {
+  public void setSpecifiers(String key, List value) {
     props.put(key, value);
   } 
 

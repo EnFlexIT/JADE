@@ -137,6 +137,24 @@ public abstract class Profile {
      */
     public abstract List getSpecifiers(String key) throws ProfileException;
 
+    /**
+     * Assign the given value to the given property name.
+     *
+     * @param key is the property name
+     * @param value is the property value
+     *
+     */
+    public abstract void setParameter(String key, String value);
+
+    /**
+     * Assign the given value to the given property name.
+     *
+     * @param key is the property name
+     * @param value is the property value
+     *
+     */
+    public abstract void setSpecifiers(String key, List value);
+
 
 }
 
