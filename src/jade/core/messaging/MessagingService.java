@@ -97,7 +97,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     /**
        The name of this service.
     */
-    public static final String NAME = "Messaging";
+    public static final String NAME = "jade.core.messaging.Messaging";
 
     /**
        This command name represents the action of sending an ACL
@@ -313,6 +313,70 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    }
 	    catch(IMTPException imtpe) {
 		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+	public void serve(VerticalCommand cmd) {
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(H_DISPATCHLOCALLY)) {
+		    ACLMessage msg = (ACLMessage)params[0];
+		    AID receiverID = (AID)params[1];
+
+		    dispatchLocally(msg, receiverID);
+		}
+		else if(cmdName.equals(H_ROUTEOUT)) {
+		    ACLMessage msg = (ACLMessage)params[0];
+		    AID receiverID = (AID)params[1];
+		    String address = (String)params[2];
+
+		    routeOut(msg, receiverID, address);
+		}
+		else if(cmdName.equals(H_GETAGENTLOCATION)) {
+		    AID agentID = (AID)params[0];
+
+		    cmd.setReturnValue(getAgentLocation(agentID));
+		}
+		else if(cmdName.equals(H_INSTALLMTP)) {
+		    String address = (String)params[0];
+		    String className = (String)params[1];
+
+		    cmd.setReturnValue(installMTP(address, className));
+		}
+		else if(cmdName.equals(H_UNINSTALLMTP)) {
+		    String address = (String)params[0];
+
+		    uninstallMTP(address);
+		}
+		else if(cmdName.equals(H_NEWMTP)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+
+		    newMTP(mtp, cid);
+		}
+		else if(cmdName.equals(H_DEADMTP)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+
+		    deadMTP(mtp, cid);
+		}
+		else if(cmdName.equals(H_ADDROUTE)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    String sliceName = (String)params[1];
+
+		    addRoute(mtp, sliceName);
+		}
+		else if(cmdName.equals(H_REMOVEROUTE)) {
+		    MTPDescriptor mtp = (MTPDescriptor)params[0];
+		    String sliceName = (String)params[1];
+
+		    removeRoute(mtp, sliceName);
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 	}
 

@@ -47,6 +47,16 @@ import jade.security.AuthException;
 */
 public interface AgentManagementSlice extends Service.Slice {
 
+    // Constants for the names of horizontal commands associated to methods
+    static final String H_CREATEAGENT = "1";
+    static final String H_KILLAGENT = "2";
+    static final String H_CHANGEAGENTSTATE = "3";
+    static final String H_BORNAGENT = "4";
+    static final String H_DEADAGENT = "5";
+    static final String H_SUSPENDEDAGENT = "6";
+    static final String H_RESUMEDAGENT = "7";
+    static final String H_EXITCONTAINER = "8";
+
     void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException;
     void killAgent(AID agentID) throws IMTPException, NotFoundException;
     void changeAgentState(AID agentID, int newState) throws IMTPException, NotFoundException;

@@ -36,6 +36,12 @@ import jade.core.IMTPException;
 */
 public interface NotificationSlice extends Service.Slice {
 
+    // Constants for the names of horizontal commands associated to methods
+    static final String H_SNIFFON = "1";
+    static final String H_SNIFFOFF = "2";
+    static final String H_DEBUGON = "3";
+    static final String H_DEBUGOFF = "4";
+
     void sniffOn(AID snifferName, AID targetName) throws IMTPException;
     void sniffOff(AID snifferName, AID targetName) throws IMTPException;
     void debugOn(AID introspectorName, AID targetName) throws IMTPException;

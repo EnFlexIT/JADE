@@ -63,6 +63,73 @@ public interface Service {
 	*/
 	Node getNode() throws ServiceException;
 
+	/**
+	   Serves an incoming vertical command. Typically, concrete
+	   slices will serve the command by invoking their service
+	   interface methods.  If the command execution has a result
+	   or it raises an exception, the outcome is stored in the
+	   command return value slot.
+
+	   @param cmd The command that is to be served.
+	   @see jade.core.Command#setReturnValue()
+	*/
+	void serve(VerticalCommand cmd);
+
+    }
+
+    /**
+       An implementation of the <code>Slice</code> interface,
+       supporting routed dispatching of horizontal commands.
+    */
+    public abstract class SliceProxy implements Slice {
+
+	public SliceProxy() {
+	    this(null, null);
+	}
+
+	public SliceProxy(Service svc, Node n) {
+	    myService = svc;
+	    myNode = n;
+	}
+
+	public Service getService() {
+	    return myService;
+	}
+
+	public Node getNode() throws ServiceException {
+	    return myNode;
+	}
+
+	public void setNode(Node n) {
+	    myNode = n;
+	}
+
+	/**
+	   Try to serve an incoming vertical command. If the command
+	   happens to also be an instance of the
+	   <code>HorizontalCommand</code> class, this proxy object
+	   will route the command to its remote implementation.
+
+	   @param cmd The command to serve, possibly through the network.
+	*/
+	public void serve(VerticalCommand cmd) {
+	    if(cmd instanceof HorizontalCommand) {
+		try {
+		    HorizontalCommand command = (HorizontalCommand)cmd;
+		    cmd.setReturnValue(myNode.accept(command));
+		}
+		catch(IMTPException imtpe) {
+		    cmd.setReturnValue(new ServiceException("An error occurred while routing the command to the remote implementation", imtpe));
+		}
+	    }
+	    else {
+		cmd.setReturnValue(new ServiceException("Cannot serve a purely vertical command through a Proxy"));
+	    }
+	}
+
+	private Node myNode;
+	private Service myService;
+
     }
 
     /**

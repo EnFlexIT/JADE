@@ -65,7 +65,7 @@ public class AgentManagementService extends BaseService {
     /**
        The name of this service.
     */
-    public static final String NAME = "Agent-Management";
+    public static final String NAME = "jade.core.management.AgentManagement";
 
     /**
        This command name represents the <code>create-agent</code>
@@ -279,6 +279,63 @@ public class AgentManagementService extends BaseService {
 	    }
 	    catch(IMTPException imtpe) {
 		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+	public void serve(VerticalCommand cmd) {
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(H_CREATEAGENT)) {
+		    AID agentID = (AID)params[0];
+		    String className = (String)params[1];
+		    Object[] arguments = (Object[])params[2];
+		    String ownership = (String)params[3];
+		    CertificateFolder certs = (CertificateFolder)params[4];
+		    boolean startIt = ((Boolean)params[5]).booleanValue();
+
+		    createAgent(agentID, className, arguments, ownership, certs, startIt);
+		}
+		else if(cmdName.equals(H_KILLAGENT)) {
+		    AID agentID = (AID)params[0];
+
+		    killAgent(agentID);
+		}
+		else if(cmdName.equals(H_CHANGEAGENTSTATE)) {
+		    AID agentID = (AID)params[0];
+		    int newState = ((Integer)params[1]).intValue();
+
+		    changeAgentState(agentID, newState);
+		}
+		else if(cmdName.equals(H_BORNAGENT)) {
+		    AID agentID = (AID)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+		    CertificateFolder certs = (CertificateFolder)params[2];
+
+		    bornAgent(agentID, cid, certs);
+		}
+		else if(cmdName.equals(H_DEADAGENT)) {
+		    AID agentID = (AID)params[0];
+
+		    deadAgent(agentID);
+		}
+		else if(cmdName.equals(H_SUSPENDEDAGENT)) {
+		    AID agentID = (AID)params[0];
+
+		    suspendedAgent(agentID);
+		}
+		else if(cmdName.equals(H_RESUMEDAGENT)) {
+		    AID agentID = (AID)params[0];
+
+		    resumedAgent(agentID);
+		}
+		else if(cmdName.equals(H_EXITCONTAINER)) {
+		    exitContainer();
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 	}
 

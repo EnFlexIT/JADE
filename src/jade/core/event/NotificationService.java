@@ -73,7 +73,7 @@ public class NotificationService extends BaseService {
     /**
        The name of this service.
     */
-    public static final String NAME = "Notification";
+    public static final String NAME = "jade.core.event.Notification";
 
     /**
        This command name represents the action of activating an
@@ -271,6 +271,40 @@ public class NotificationService extends BaseService {
 	    }
 	}
 
+	public void serve(VerticalCommand cmd) {
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(H_SNIFFON)) {
+		    AID snifferName = (AID)params[0];
+		    AID targetName = (AID)params[1];
+
+		    sniffOn(snifferName, targetName);
+		}
+		else if(cmdName.equals(H_SNIFFOFF)) {
+		    AID snifferName = (AID)params[0];
+		    AID targetName = (AID)params[1];
+
+		    sniffOff(snifferName, targetName);
+		}
+		else if(cmdName.equals(H_DEBUGON)) {
+		    AID introspectorName = (AID)params[0];
+		    AID targetName = (AID)params[1];
+
+		    debugOn(introspectorName, targetName);
+		}
+		else if(cmdName.equals(H_DEBUGOFF)) {
+		    AID introspectorName = (AID)params[0];
+		    AID targetName = (AID)params[1];
+
+		    debugOff(introspectorName, targetName);
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
+	    }
+	}
 
 	// Implementation of the service-specific horizontal interface NotificationSlice
 

@@ -89,7 +89,7 @@ public class AgentMobilityService extends BaseService {
     /**
        The name of this service.
     */
-    public static final String NAME = "Agent-Mobility";
+    public static final String NAME = "jade.core.mobility.AgentMobility";
 
     /**
        This command name represents the <code>move-agent</code>
@@ -253,6 +253,68 @@ public class AgentMobilityService extends BaseService {
 	    }
 	    catch(IMTPException imtpe) {
 		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+	    }
+	}
+
+	public void serve(VerticalCommand cmd) {
+	    try {
+		String cmdName = cmd.getName();
+		Object[] params = cmd.getParams();
+
+		if(cmdName.equals(H_CREATEAGENT)) {
+		    AID agentID = (AID)params[0];
+		    byte[] serializedInstance = (byte[])params[1];
+		    String classSiteName = (String)params[2];
+		    boolean isCloned = ((Boolean)params[3]).booleanValue();
+		    boolean startIt = ((Boolean)params[4]).booleanValue();
+
+		    createAgent(agentID, serializedInstance, classSiteName, isCloned, startIt);
+		}
+		else if(cmdName.equals(H_FETCHCLASSFILE)) {
+		    String name = (String)params[0];
+
+		    cmd.setReturnValue(fetchClassFile(name));
+		}
+		else if(cmdName.equals(H_MOVEAGENT)) {
+		    AID agentID = (AID)params[0];
+		    Location where = (Location)params[1];
+
+		    moveAgent(agentID, where);
+		}
+		else if(cmdName.equals(H_COPYAGENT)) {
+		    AID agentID = (AID)params[0];
+		    Location where = (Location)params[1];
+		    String newName = (String)params[2];
+
+		    copyAgent(agentID, where, newName);
+		}
+		else if(cmdName.equals(H_PREPARE)) {
+
+		    cmd.setReturnValue(new Boolean(prepare()));
+		}
+		else if(cmdName.equals(H_TRANSFERIDENTITY)) {
+		    AID agentID = (AID)params[0];
+		    Location src = (Location)params[1];
+		    Location dest = (Location)params[2];
+
+		    cmd.setReturnValue(new Boolean(transferIdentity(agentID, src, dest)));
+		}
+		else if(cmdName.equals(H_HANDLETRANSFERRESULT)) {
+		    AID agentID = (AID)params[0];
+		    boolean result = ((Boolean)params[1]).booleanValue();
+		    List messages = (List)params[2];
+
+		    handleTransferResult(agentID, result, messages);
+		}
+		else if(cmdName.equals(H_CLONEDAGENT)) {
+		    AID agentID = (AID)params[0];
+		    ContainerID cid = (ContainerID)params[1];
+		    CertificateFolder certs = (CertificateFolder)params[2];
+		    clonedAgent(agentID, cid, certs);
+		}
+	    }
+	    catch(Throwable t) {
+		cmd.setReturnValue(t);
 	    }
 	}
 

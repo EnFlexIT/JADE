@@ -47,13 +47,23 @@ import jade.util.leap.List;
 */
 public interface AgentMobilitySlice extends Service.Slice {
 
+    // Constants for the names of horizontal commands associated to methods
+    static final String H_CREATEAGENT = "1";
+    static final String H_FETCHCLASSFILE = "2";
+    static final String H_MOVEAGENT = "3";
+    static final String H_COPYAGENT = "4";
+    static final String H_PREPARE = "5";
+    static final String H_TRANSFERIDENTITY = "6";
+    static final String H_HANDLETRANSFERRESULT = "7";
+    static final String H_CLONEDAGENT = "8";
+
     void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException;
     byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
 
     void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
     void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;
 
-    boolean prepare();
+    boolean prepare() throws IMTPException;
 
     boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException;
     void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;

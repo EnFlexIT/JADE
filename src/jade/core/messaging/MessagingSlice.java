@@ -46,6 +46,17 @@ import jade.mtp.MTPException;
 */
 public interface MessagingSlice extends Service.Slice {
 
+    // Constants for the names of horizontal commands associated to methods
+    static final String H_DISPATCHLOCALLY = "1";
+    static final String H_ROUTEOUT = "2";
+    static final String H_GETAGENTLOCATION = "3";
+    static final String H_INSTALLMTP = "4";
+    static final String H_UNINSTALLMTP ="5";
+    static final String H_NEWMTP = "6";
+    static final String H_DEADMTP = "7";
+    static final String H_ADDROUTE = "8";
+    static final String H_REMOVEROUTE = "9";
+
     void dispatchLocally(ACLMessage msg, AID receiverID) throws IMTPException, NotFoundException;
     void routeOut(ACLMessage msg, AID receiverID, String address) throws IMTPException, MTPException;
     ContainerID getAgentLocation(AID agentID) throws IMTPException, NotFoundException;

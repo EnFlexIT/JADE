@@ -48,6 +48,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
     }
 
     public Object accept(HorizontalCommand cmd, Class itf, Class[] classes) throws RemoteException {
+
 	System.out.println("--- Command Received ---");
 	System.out.println("Name: <" + cmd.getName() + ">");
 	System.out.println("Service: <" + cmd.getService() + ">");
@@ -58,6 +59,7 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	    System.out.println("param[" + i + "] = " + args[i]);
 	}
 	***/
+
 	System.out.println("--- ================ ---");
 
 	String serviceName = cmd.getService();
@@ -68,32 +70,9 @@ public class NodeRMIImpl extends UnicastRemoteObject implements NodeRMI {
 	Service.Slice slice = myNode.getSlice(serviceName);
 
 	if(slice != null) {
-	    // Reflective dispatching
-	    try {
-		Method toCall = itf.getMethod(commandName, classes);
-		try {
-		    return toCall.invoke(slice, commandParams);
-		}
-		catch(InvocationTargetException ite) {
-		    Throwable cause = ite.getCause();
 
-		    // If this is a declared exception of the method, let it through
-		    Class[] declaredExceptions = toCall.getExceptionTypes();
-		    for(int i = 0; i < declaredExceptions.length; i++) {
-			if(declaredExceptions[i].equals(cause.getClass())) {
-			    return cause;
-			}
-		    }
-
-		    // Unknown or runtime exception: just print it for now...
-		    cause.printStackTrace();
-		}
-
-	    }
-	    catch(Exception e) {
-		// FIXME: Throw something to mean 'Wrong version', 'Bad parameter' or whatever is needed
-		e.printStackTrace();
-	    }
+	    slice.serve((jade.core.VerticalCommand)cmd);
+	    return cmd.getReturnValue();
 	}
 	else {
 	    // FIXME: Throw something to mean 'Service Unknown'

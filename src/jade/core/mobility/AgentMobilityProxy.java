@@ -1,0 +1,279 @@
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
+package jade.core.mobility;
+
+import jade.core.Node;
+import jade.core.Service;
+import jade.core.Filter;
+import jade.core.GenericCommand;
+import jade.core.AID;
+import jade.core.ContainerID;
+import jade.core.Location;
+import jade.core.IMTPException;
+import jade.core.ServiceException;
+import jade.core.NotFoundException;
+import jade.core.NameClashException;
+
+import jade.security.CertificateFolder;
+import jade.security.AuthException;
+
+import jade.util.leap.List;
+
+/**
+
+   The remote proxy for the JADE kernel-level service managing
+   the mobility-related agent life cycle: migration and clonation.
+
+   @author Giovanni Rimassa - FRAMeTech s.r.l.
+*/
+public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobilitySlice {
+
+
+    public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_CREATEAGENT, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(serializedInstance);
+	    cmd.addParam(classSiteName);
+	    cmd.addParam(new Boolean(isCloned));
+	    cmd.addParam(new Boolean(startIt));
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof NotFoundException) {
+		    throw (NotFoundException)result;
+		}
+		else if(result instanceof NameClashException) {
+		    throw (NameClashException)result;
+		}
+		else if(result instanceof AuthException) {
+		    throw (AuthException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_FETCHCLASSFILE, AgentMobilityService.NAME, null);
+	    cmd.addParam(name);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof ClassNotFoundException) {
+		    throw (ClassNotFoundException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	    return (byte[])result;
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_MOVEAGENT, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(where);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof NotFoundException) {
+		    throw (NotFoundException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_COPYAGENT, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(where);
+	    cmd.addParam(newName);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof NotFoundException) {
+		    throw (NotFoundException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public boolean prepare() throws IMTPException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_PREPARE, AgentMobilityService.NAME, null);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+
+	    return ((Boolean)result).booleanValue();
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_TRANSFERIDENTITY, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(src);
+	    cmd.addParam(dest);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof NotFoundException) {
+		    throw (NotFoundException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+
+	    return ((Boolean)result).booleanValue();
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_HANDLETRANSFERRESULT, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(new Boolean(result));
+	    cmd.addParam(messages);
+
+
+	    Node n = getNode();
+	    Object res = n.accept(cmd);
+	    if((res != null) && (res instanceof Throwable)) {
+		if(res instanceof IMTPException) {
+		    throw (IMTPException)res;
+		}
+		else if(res instanceof NotFoundException) {
+		    throw (NotFoundException)res;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)res);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+    public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
+	try {
+	    GenericCommand cmd = new GenericCommand(H_CLONEDAGENT, AgentMobilityService.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(cid);
+	    cmd.addParam(certs);
+
+
+	    Node n = getNode();
+	    Object result = n.accept(cmd);
+	    if((result != null) && (result instanceof Throwable)) {
+		if(result instanceof IMTPException) {
+		    throw (IMTPException)result;
+		}
+		else if(result instanceof AuthException) {
+		    throw (AuthException)result;
+		}
+		else if(result instanceof NotFoundException) {
+		    throw (NotFoundException)result;
+		}
+		else if(result instanceof NameClashException) {
+		    throw (NameClashException)result;
+		}
+		else {
+		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		}
+	    }
+	}
+	catch(ServiceException se) {
+	    throw new IMTPException("Unable to access remote node", se);
+	}
+    }
+
+}
