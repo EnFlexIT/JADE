@@ -29,9 +29,6 @@ import jade.util.leap.Serializable;
 
 import jade.core.Agent;
 
-// DEBUG
-//import jade.proto.*;
-
 /**
    Composite behaviour with Finite State Machine based children scheduling. 
    It is a <code>CompositeBehaviour</code> that executes its children 
@@ -145,7 +142,25 @@ public class FSMBehaviour extends SerialBehaviour {
 		//#MIDP_EXCLUDE_END
   	}
   }
-
+  
+  /** 
+     Deregister a state of this <code>FSMBehaviour</code>. 
+     @param name The name of the state to be deregistered.
+     @return the Behaviour if any that was registered as the 
+     deregistered state.
+  */
+	public Behaviour deregisterState(String name) {
+		Behaviour b = (Behaviour) states.remove(name);
+		if (b != null) {
+			b.setParent(null);
+		}
+		if (name.equals(firstName)) {
+			firstName = null;
+		}
+		lastStates.remove(name);
+		return b;
+	}
+	
   /** 
      Register a transition in the FSM defining the policy for
      children scheduling of this <code>FSMBehaviour</code>.
@@ -280,6 +295,7 @@ public class FSMBehaviour extends SerialBehaviour {
   		currentName = firstName;
   	}
   	current = getState(currentName);
+  	handleStateEntered(current);
   	// DEBUG
   	//System.out.println(myAgent.getLocalName()+" is Executing state "+currentName);
   }
