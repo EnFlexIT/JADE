@@ -31,6 +31,9 @@ import jade.util.leap.Iterator;
 import jade.core.ContainerID;
 import jade.content.AgentAction;
 
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
+
 /**
   This class represents the <code>create-agent</code> action of 
   the <code>JADE-agent-management ontology</code>.
@@ -44,10 +47,12 @@ public class CreateAgent implements AgentAction {
 
     private String agentName;
     private String className;
-    private ContainerID container;
-    private String password;
-    private String delegation;
     private List arguments = new ArrayList();
+    private ContainerID container;
+    //#MIDP_EXCLUDE_BEGIN
+    private JADEPrincipal owner;
+    private Credentials initialCredentials;
+    //#MIDP_EXCLUDE_END
 
     /**
        Default constructor. A default constructor is necessary for
@@ -116,43 +121,37 @@ public class CreateAgent implements AgentAction {
 	return container;
     }
 
+    //#MIDP_EXCLUDE_BEGIN
     /**
-       Set the <code>password</code> slot of this action.
-       @param p The password to authenticate the principal requesting
-       the agent creation.
+       Set the principal of the owner of the agent to be created.
+       @param p The principal of the owner of the agent to be created.
     */
-    public void setPassword(String p) {
-	password = p;
+    public void setOwner(JADEPrincipal p) {
+	owner = p;
     }
 
     /**
-       Retrieve the value of the <code>password</code> slot of this
-       event, containing the pasword to authenticate the principal
-       requesting the agent creation.
-       @return The value of the <code>password</code> slot, or
-       <code>null</code> if no value was set.
+       @return The principal of the owner of the agent to be created.
     */
-    public String getPassword() {
-	return password;
+    public JADEPrincipal getOwner() {
+	return owner;
     }
 
     /**
-       Set the <code>delegation</code> slot of this action.
-       @param d The delegation to write into the slot.
+       Set the initial credentials to be granted to the agent to be created.
+       @param c The initial credentials to be granted to the agent to be created.
     */
-    public void setDelegation(String d) {
-	delegation = d;
+    public void setInitialCredentials(Credentials c) {
+	initialCredentials = c;
     }
 
     /**
-       Retrieve the value of the <code>delegation</code> slot of this
-       event.
-       @return The value of the <code>delegation</code> slot, or
-       <code>null</code> if no value was set.
+       @return The initial credentials to be granted to the agent to be created.
     */
-    public String getDelegation() {
-	return delegation;
+    public Credentials getInitialCredentials() {
+	return initialCredentials;
     }
+    //#MIDP_EXCLUDE_END
 
     /**
        Add an object to the <code>arguments</code> slot collection of

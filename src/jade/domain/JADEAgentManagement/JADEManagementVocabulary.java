@@ -58,8 +58,10 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
   public static final String CREATEAGENT_CLASS_NAME = "class-name";
   public static final String CREATEAGENT_ARGUMENTS = "arguments";
   public static final String CREATEAGENT_CONTAINER = "container";
-  public static final String CREATEAGENT_DELEGATION = "delegation";
-  public static final String CREATEAGENT_PASSWORD = "password";
+  //#MIDP_EXCLUDE_BEGIN
+  public static final String CREATEAGENT_OWNER = "owner";
+  public static final String CREATEAGENT_INITIAL_CREDENTIALS = "initial-credentials";
+	//#MIDP_EXCLUDE_END
 	
   public static final String KILLAGENT = "kill-agent";
   public static final String KILLAGENT_AGENT = "agent";

@@ -57,7 +57,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
 	
   private JADEManagementOntology() {
     //#MIDP_EXCLUDE_BEGIN
-  	super(NAME, ExceptionOntology.getInstance(), new BCReflectiveIntrospector());
+  	super(NAME, new Ontology[]{ExceptionOntology.getInstance(), SerializableOntology.getInstance()}, new BCReflectiveIntrospector());
     //#MIDP_EXCLUDE_END
     	
 		/*#MIDP_INCLUDE_BEGIN    	
@@ -136,8 +136,10 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	as.add(CREATEAGENT_CLASS_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
     	as.add(CREATEAGENT_ARGUMENTS, (TermSchema) TermSchema.getBaseSchema(), 0, ObjectSchema.UNLIMITED); 
     	as.add(CREATEAGENT_CONTAINER, (ConceptSchema) getSchema(CONTAINERID));
-    	as.add(CREATEAGENT_DELEGATION, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
-    	as.add(CREATEAGENT_PASSWORD, (PrimitiveSchema) getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL); 
+    	//#MIDP_EXCLUDE_BEGIN
+    	as.add(CREATEAGENT_OWNER, (TermSchema) TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL); 
+    	as.add(CREATEAGENT_INITIAL_CREDENTIALS, (TermSchema) TermSchema.getBaseSchema(), ObjectSchema.OPTIONAL); 
+    	//#MIDP_EXCLUDE_END
     	
     	as = (AgentActionSchema) getSchema(KILLAGENT);
     	as.add(KILLAGENT_AGENT, (ConceptSchema) getSchema(BasicOntology.AID)); 
