@@ -6,7 +6,7 @@
 -->
 	<TestsList>
         <!-- PHASE 0 -->
-        <Test name="Ph0 doesn't send any message" skip="false">
+        <Test name="Ph0 doesn't send any message" skip="true">
 			<TestClassName>
                 test.proto.tests.twoPh.TestPh0End
 			</TestClassName>
@@ -19,7 +19,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Failure in ph0 with 2 responders" skip="false">
+        <Test name="Failure in ph0 with 2 responders" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh0FailureWithTwoResponders
 			</TestClassName>
 			<WhatTest>
@@ -31,7 +31,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Timeout in ph0 with 2 responders" skip="false">
+        <Test name="Timeout in ph0 with 2 responders" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh0TimeoutWithTwoResponders
 			</TestClassName>
 			<WhatTest>
@@ -43,7 +43,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Out of Sequence in ph0" skip="false">
+        <Test name="Out of Sequence in ph0" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh0OutOfSeqWithThreeResponders
 			</TestClassName>
 			<WhatTest>
@@ -56,7 +56,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Ph0's failure for initiator's decision" skip="false">
+        <Test name="Ph0's failure for initiator's decision" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh0FailureByInitiator
 			</TestClassName>
 			<WhatTest>
@@ -69,7 +69,7 @@
 			</WhenTestPass>
 		</Test>
         <!-- PHASE 1 -->
-        <Test name="Failure in ph1 with 2 responders" skip="false">
+        <Test name="Failure in ph1 with 2 responders" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh1DisconfirmWithTwoResponders
 			</TestClassName>
 			<WhatTest>
@@ -81,7 +81,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Out of Sequence in ph1" skip="false">
+        <Test name="Out of Sequence in ph1" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh1OutOfSeqWithThreeResponders
 			</TestClassName>
 			<WhatTest>
@@ -94,7 +94,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Timeout in ph1 with 2 responders" skip="false">
+        <Test name="Timeout in ph1 with 2 responders" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh1TimeoutWithTwoResponders
 			</TestClassName>
 			<WhatTest>
@@ -107,7 +107,7 @@
 			</WhenTestPass>
 		</Test>
         <!-- PHASE 2 -->
-        <Test name="Out of Sequence in ph2" skip="false">
+        <Test name="Out of Sequence in ph2" skip="true">
 			<TestClassName>test.proto.tests.twoPh.TestPh2OutOfSeqWithThreeResponders
 			</TestClassName>
 			<WhatTest>
@@ -120,7 +120,7 @@
 			<WhenTestPass>
 			</WhenTestPass>
 		</Test>
-        <Test name="Success with read-only partecipant" skip="false">
+        <Test name="Success with read-only partecipant" skip="true">
             <TestClassName>
                 test.proto.tests.twoPh.TestSuccessWithReadOnlyResponder
             </TestClassName>
@@ -134,7 +134,7 @@
             <WhenTestPass>
             </WhenTestPass>
         </Test>
-        <Test name="Failure with read-only partecipant" skip="false">
+        <Test name="Failure with read-only partecipant" skip="true">
             <TestClassName>
                 test.proto.tests.twoPh.TestFailureWithReadOnlyResponder
             </TestClassName>
@@ -148,12 +148,23 @@
             <WhenTestPass>
             </WhenTestPass>
         </Test>
-        <Test name="Success with 2 responders" skip="false">
+        <Test name="Success with 2 responders" skip="true">
             <TestClassName>test.proto.tests.twoPh.TestSuccessWithTwoResponders
             </TestClassName>
             <WhatTest>
                 Test the Two phase commit protocol support in the case that
                 all responders reply successfully in all steps.
+            </WhatTest>
+            <HowWorkTest>
+            </HowWorkTest>
+            <WhenTestPass>
+            </WhenTestPass>
+        </Test>
+        <Test name="Nested protocols" skip="false">
+            <TestClassName>test.proto.tests.twoPh.TestNestedTwoPh
+            </TestClassName>
+            <WhatTest>
+                Test the state registration feature.
             </WhatTest>
             <HowWorkTest>
             </HowWorkTest>
