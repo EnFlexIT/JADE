@@ -103,8 +103,12 @@ class JICPClient {
 	      }
 	      pool.release(cw);
 		
-	    	done = true;
-		    return reply.getData();
+	      done = true;
+	      byte[] bb = reply.getData();
+	      if (bb == null) {
+	      	throw new ICPException("Null response from server");
+	      }
+		    return bb;
 	    } 
 	    catch (EOFException eof) {
 	    	if (!cw.isReused()) {
