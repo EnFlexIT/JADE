@@ -1205,10 +1205,12 @@ public class df extends GuiAgent implements DFGUIAdapter {
     
     void DFModify(DFAgentDescription dfd) throws NotRegistered {
 	//	checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
-		Object old = agentDescriptions.deregister(dfd.getName());
-		if(old == null)
+		Object old = agentDescriptions.register(dfd.getName(), dfd);
+		if(old == null) {
+				// Rollback
+				agentDescriptions.deregister(dfd.getName());
 		    throw new NotRegistered();
-		agentDescriptions.register(dfd.getName(), dfd);    
+		}
 		// for subscription
 		subManager.handleChange(dfd);
 		try{
