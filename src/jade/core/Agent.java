@@ -845,7 +845,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doMove(Location destination) {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING) && !terminating) {
+      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_TRANSIT);
 	myDestination = destination;
@@ -868,7 +868,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doClone(Location destination, String newName) {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING) && !terminating) {
+      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_COPY);
 	myDestination = destination;
@@ -891,6 +891,12 @@ public class Agent implements Runnable, Serializable {
   */
   void doExecute() {
     synchronized(stateLock) {
+      // FIXME: Hack to manage agents moving while in AP_IDLE state,
+      // but with pending timers. The correct solution would be to
+      // restore all pending timers.
+      if(myBufferedState == AP_IDLE)
+	myBufferedState = AP_ACTIVE;
+
       setState(myBufferedState);
       myBufferedState = AP_MIN;
       activateAllBehaviours();
