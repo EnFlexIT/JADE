@@ -71,7 +71,7 @@ public class JICPSPeer extends JICPPeer {
   }  
   
   protected ServerSocket getServerSocket(String host, int port, boolean changePortIfBusy) throws ICPException {
-		// Create the SSLContext if necessary
+  	// Create the SSLContext if necessary
   	if (ctx == null) {
 	  	try{
 				ctx = SSLContext.getInstance("TLS");
@@ -80,7 +80,6 @@ public class JICPSPeer extends JICPPeer {
 			catch( Exception e) { 
 				throw new ICPException("Error creating SSLContext.", e);
 			}
-			System.out.println("ctx created!");
   	}
 		
 		// Create the SSLServerSocket
@@ -114,9 +113,10 @@ public class JICPSPeer extends JICPPeer {
 			sss.setEnabledCipherSuites(new String[] {"SSL_DH_anon_WITH_RC4_128_MD5"});
 
 			String[] ecs = sss.getEnabledCipherSuites();
-			for (int i=0; i<ecs.length; i++) { 
-				System.out.println( "--"+i+"--"+ecs[i]);
-			}
+			//DEBUG
+			//for (int i=0; i<ecs.length; i++) { 
+			//	System.out.println("--"+i+"-- "+ecs[i]);
+			//}
 		}
 		catch (Exception e) {
 			throw new ICPException("Error enabling cypher suites.", e);

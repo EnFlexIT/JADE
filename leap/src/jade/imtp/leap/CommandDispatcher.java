@@ -139,6 +139,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
   private PlatformManager thePlatformManager = null;
 
 
+	private Logger myLogger;
+	
   /**
    * Tries to create a new command dispatcher and returns whether the
    * creation was successful. The implementation of the command
@@ -204,12 +206,12 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * be guaranteed.
    */
   public CommandDispatcher() {
-
     // Set a temporary name. Will be substituted as soon as the first
     // container attached to this CommandDispatcher will receive a
     // unique name from the main.
     name = DEFAULT_NAME;
     nextID = 1;
+  	myLogger = Logger.getMyLogger(getClass().getName());
   }
 
     synchronized PlatformManager getPlatformManagerProxy(Profile p) throws IMTPException {
@@ -632,9 +634,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       list.add(peer);
     } 
     catch (ICPException icpe) {
-
       // Print a warning.
-      System.out.println("Error adding ICP "+peer+"["+icpe.getMessage()+"].");
+      myLogger.log(Logger.WARNING, "Error adding ICP "+peer+"["+icpe.getMessage()+"].");
     } 
   } 
 

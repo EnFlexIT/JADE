@@ -182,7 +182,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
      Shut down this JICP server
   */
   public synchronized void shutdown() {
-	  myLogger.log(Logger.INFO,"Shutting down JICPServer...");
+	  myLogger.log(Logger.FINE,"JICPServer shutting down ...");
     state = TERMINATING;
 
     try {
@@ -234,7 +234,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
       } 
     } // END of while(listen) 
 
-		myLogger.log(Logger.INFO,"JICPServer terminated");
+		myLogger.log(Logger.FINE,"JICPServer terminated");
 		
     // release socket
     try {
@@ -260,7 +260,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
    * Called by a Mediator to notify that it is no longer active
    */
   public void deregisterMediator(String id) {
-  	System.out.println("Deregistering mediator "+id);
+  	myLogger.log(Logger.FINE, "Deregistering mediator "+id);
     mediators.remove(id);
   } 
   
@@ -394,7 +394,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  if(id != null) {
 					  	if (msisdn != null && !msisdn.equals(id)) {
 					  		// Security attack: Someone is pretending to be someone other
-	          		myLogger.log(Logger.INFO,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
+	          		myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
 	          		reply = new JICPPacket("Not authorized", null);
 	          		break;
 					  	}	
@@ -417,7 +417,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 					  	JICPMediator old = (JICPMediator) mediators.get(id);
 					  	if (old != null) {
 					  		// This is a zombie mediator --> kill it
-	    					myLogger.log(Logger.INFO,"Killing old mediator "+id);
+	    					myLogger.log(Logger.INFO, "Replacing old mediator "+id);
 					  		old.kill();
 					  		// Be sure the zombie container has been removed
 					  		waitABit(1000);
@@ -429,7 +429,7 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	          // Start the mediator
 	          JICPMediator m = startMediator(id, p);
 		  			m.handleIncomingConnection(c, pkt, addr, port);
-				  	System.out.println("Reregistering mediator "+id);
+				  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
 	          mediators.put(id, m);
 	          
 	          // Create an ad-hoc reply including the assigned mediator-id and the IP address
@@ -501,10 +501,10 @@ public class JICPServer extends Thread implements PDPContextManager.Listener {
 	      case 3:
 	      	// This is a re-used connection waiting for the next incoming packet
 	      	if (e instanceof EOFException) {
-	      		myLogger.log(Logger.INFO,"Client "+addr+":"+port+" has closed the connection.");
+	      		myLogger.log(Logger.FINE,"Client "+addr+":"+port+" has closed the connection.");
 	      	}
 	      	else {
-	      		myLogger.log(Logger.INFO,"Unexpected client "+addr+":"+port+" termination. "+e.toString());
+	      		myLogger.log(Logger.FINE,"Unexpected client "+addr+":"+port+" termination. "+e.toString());
 	      	}
       	}
       } 
