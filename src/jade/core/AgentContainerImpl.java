@@ -832,14 +832,30 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   private void unicastPostMessage(ACLMessage msg, AID receiverID) {
-    try {
-      deliverNow(msg, receiverID);
-    }
-    catch (UnreachableException ue) {
-      // The receiver is currently unreachable --> retry later
-      myDisconnectionManager.deliverLater(msg, receiverID);
-    }
+    enqueue(msg, receiverID);
+  }
 
+  /**
+   Adds a new ACLMessage to the send list...
+  */
+  public void enqueue(final ACLMessage msg, final AID receiverID) {
+
+    // Setting a Timer to now will force its expiration as soon as
+    // it is added to the timer dispatcher thread...
+    Timer t = new Timer(System.currentTimeMillis(), new TimerListener() {
+
+      public void doTimeOut(Timer t) {
+	try {
+	  deliverNow(msg, receiverID);
+	}
+	catch(UnreachableException ue) {
+	  myDisconnectionManager.deliverLater(msg, receiverID);
+	}
+      }
+
+    });
+
+    Runtime.instance().getTimerDispatcher().add(t);
   }
 
   /**
