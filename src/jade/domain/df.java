@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.12  1998/11/23 00:14:17  rimassa
+  Added a match() method to aid in 'search' DF action. Now a complete
+  match is performed on every attribute of a 'df-agent-descriptor'
+  ontology object.
+
   Revision 1.11  1998/11/18 23:00:52  Giovanni
   Written 'search' action implementation; now a simple linear scan of DF
   agent descriptor table is used. Still missing is a non trivial match
@@ -15,6 +20,8 @@
 */
 
 package jade.domain;
+
+import java.lang.reflect.Method;
 
 import java.io.StringReader;
 
@@ -94,11 +101,11 @@ public class df extends Agent {
 	myAction = AgentManagementOntology.DFAction.fromText(new StringReader(content));
       }
       catch(ParseException pe) {
-	//	pe.printStackTrace();
+	pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
       catch(TokenMgrError tme) {
-	//	tme.printStackTrace();
+	tme.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
 
@@ -399,9 +406,104 @@ public class df extends Agent {
     // FIXME: To be completed
   }
 
+  
+  // These two String arrays hold the field names of
+  // AgentManagementOntology.DFAgentDescriptor class.
+
+  private static final String[] stringFields = { "Name",
+						 "Type",
+						 "Ontology",
+						 "Ownership",
+						 "DFState"
+  };
+
+  private static final String[] vectorFields = { "Addresses",
+						 "AgentServices",
+						 "InteractionProtocols"
+  };
+
+  private static final Class[] noClass = new Class[0];
+  private static final Object[] noParams = new Object[0];
+
   private boolean match(AgentManagementOntology.DFAgentDescriptor template,
 			AgentManagementOntology.DFAgentDescriptor dfd) {
+
+    /* To have a match, the following clauses must be true:
+
+       + FOR EACH String-valued attribute A of the template
+         - ( template.getA() == null ) OR ( template.getA() == dfd.getA() )
+       + FOR EACH Vector-valued attribute V of the template
+         + FOR EACH element E of template.getV()
+	   - dfd.getV().contains(E)
+
+      Now we will use Reflection API to code the algorithm above.
+      This method returns false as soon as a mismatch is detected.
+
+    */
+
+    try {
+
+      Class dfdClass = dfd.getClass();
+      String methodName = null;
+      Method m = null;
+      String templateValue = null;
+      String dfdValue = null;
+
+      for(int i = 0; i<stringFields.length; i++) {
+	methodName = "get" + stringFields[i];
+	m = dfdClass.getMethod(methodName, noClass);
+
+	// This means: templateValue = template.get<stringFields[i]>()
+	templateValue = (String)m.invoke(template, noParams);
+	if(templateValue != null) {
+	  // This means: dfdValue = dfd.get<stringFields[i]>()
+	  dfdValue = (String)m.invoke(dfd, noParams);
+	  if(dfdValue == null)
+	    return false;
+	  if(!dfdValue.equalsIgnoreCase(templateValue))
+	    return false;
+	}
+
+      }
+
+      // If we reach here, then no mismatch occurred in comparing
+      // String-valued attributes.
+
+      Enumeration templateValues = null;
+      Enumeration dfdValues = null;
+
+      for(int i = 0; i<vectorFields.length; i++) {
+	methodName = "get" + vectorFields[i];
+	m = dfdClass.getMethod(methodName, noClass);
+
+	// This means: templateValues = template.get<vectorFields[i]>()
+	templateValues = (Enumeration)m.invoke(template, noParams);
+	while(templateValues.hasMoreElements()) {
+	  // This means: dfdValues = dfd.get<vectorFields[i]>()
+	  dfdValues = (Enumeration)m.invoke(dfd, noParams);
+	  templateValue = (String)templateValues.nextElement();
+	  if(!contains(dfdValues, templateValue))
+	    return false;
+	}
+
+      }
+
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+
     return true;
+  }
+
+  private boolean contains(Enumeration list, String value) {
+    while(list.hasMoreElements()) {
+      String current = (String)list.nextElement();
+      if(current.equalsIgnoreCase(value))
+	return true;
+    }
+    return false;
   }
 
 }
