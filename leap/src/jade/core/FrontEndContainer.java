@@ -272,13 +272,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			while (e.hasMoreElements()) {
 				String name = (String) e.nextElement();
 		    try {
-		      // Notify the BackEnd (get back platform info if this is the first agent) 
+		    	// Notify the BackEnd (get back platform info if this is the first agent) 
 		      String[] info = myBackEnd.bornAgent(name);
 					if (info != null) {
 						initInfo(info);
 					}
 				}
 				catch (Exception ex) {
+					ex.printStackTrace();
 					// An agent with the same name has come up in the meanwhile.
 					// FIXME: Kill the agent or notify a warning
 		    }

@@ -65,7 +65,7 @@ public abstract class Connection {
   //#MIDP_EXCLUDE_BEGIN
   public abstract String getRemoteHost() throws Exception;
   
-  public static String getLocalHost() throws Exception {
+  /*public static String getLocalHost() throws Exception {
   	String host = InetAddress.getLocalHost().getHostAddress(); 
 
     if ("127.0.0.1".equals(host)) {
@@ -78,7 +78,7 @@ public abstract class Connection {
     } 
 
     return host;
-  }
+  }*/
   //#MIDP_EXCLUDE_END
 }
 

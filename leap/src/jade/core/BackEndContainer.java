@@ -620,7 +620,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   		public void run() {
   			while (true) {
 	  			try {
-		  			// Wait for the input connection to be established.
+	  				// Wait for the input connection to be established.
 		  			waitUntilInputConnectionReady();
 		  			myFrontEnd.synch();
 		  			notifySynchronized();
