@@ -23,13 +23,6 @@ public class CommEvent extends AWTEvent {
   private String      command;
   private ACLMessage  message;
 
-  // FIXME: Check with Paolo whether this is still needed
-  public CommEvent(CommBroadcaster source, String command) {
-    super(source, -1);
-    if(command != null) this.command = new String(command);
-    else this.command = null;
-  }
-
   public CommEvent(CommBroadcaster source, ACLMessage message) {
     super(source, -1);
     this.message = message;
