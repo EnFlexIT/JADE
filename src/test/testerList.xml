@@ -65,6 +65,11 @@
 			<ClassName>test.mainReplication.MainReplicationTesterAgent</ClassName>
 			<Description> This item includes tests related to fault-tolerance/main-replication </Description>
 			<TestsListRif>test/mainReplication/mainReplicationTestsList.xml</TestsListRif>
+		</Tester> 
+		<Tester name="Persistent-delivery" skip="false">
+			<ClassName>test.persDelivery.PersistentDeliveryTesterAgent</ClassName>
+			<Description> This item includes tests related to the Persistent Delivery service </Description>
+			<TestsListRif>test/persDelivery/PersistentDeliveryTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="ContractNet Protocol" skip="false">
 			<ClassName>test.proto.ContractNetTesterAgent</ClassName>
