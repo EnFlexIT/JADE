@@ -6,6 +6,9 @@ package jade.domain;
 
 import java.io.StringReader;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
@@ -21,7 +24,7 @@ import jade.lang.acl.MessageTemplate;
   Responsibility and Collaborations:
 
   + Serves as Directory Facilitator for the Agent Platform, according
-    to FIPA 97 specification.
+    to FIPA 98 specification.
 
 ****************************************************************/
 public class df extends Agent {
@@ -80,6 +83,10 @@ public class df extends Agent {
 	//      pe.printStackTrace();
 	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
       }
+      catch(TokenMgrError tme) {
+	//      tme.printStackTrace();
+	throw myOntology.getException(AgentManagementOntology.Exception.UNRECOGNIZEDATTR);
+      }
 
       // Finally, assign each attribute value to an instance variable,
       // making sure mandatory attributes for the current DF action
@@ -99,7 +106,7 @@ public class df extends Agent {
 
     // Each concrete subclass will implement this deferred method to
     // do action-specific work
-    protected abstract void processArgs(AgentManagementOntology.DFAgentDescriptor dfd);
+    protected abstract void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException;
 
     public void action() {
 
@@ -107,18 +114,17 @@ public class df extends Agent {
 	// Convert message from untyped keyword/value list to ordinary
 	// typed variables, throwing a FIPAException in case of errors
 	crackMessage();
+
+	// Do real action, deferred to subclasses
+	processArgs(myAction.getArg());
+
       }
       catch(FIPAException fe) {
 	sendRefuse(myReply, fe.getMessage());
-	return;
       }
       catch(NoSuchElementException nsee) {
 	sendRefuse(myReply, AgentManagementOntology.Exception.UNRECOGNIZEDVALUE);
-	return;
       }
-
-      // Do real action, deferred to subclasses
-      processArgs(myAction.getArg());
 
     }
 
@@ -138,21 +144,21 @@ public class df extends Agent {
     // Send a 'refuse' message back to the requester
     protected void sendRefuse(ACLMessage msg, String reason) {
       msg.setType("refuse");
-      msg.setContent("( ams action " + myActionName + " ) " + reason);
+      msg.setContent("( action df " + myActionName + " ) " + reason);
       send(msg);
     }
     
     // Send a 'failure' message back to the requester
     protected void sendFailure(ACLMessage msg, String reason) {
     msg.setType("failure");
-    msg.setContent("( ams action " + myActionName + " ) " + reason);
+    msg.setContent("( action df " + myActionName + " ) " + reason);
     send(msg);
     }
     
     // Send an 'agree' message back to the requester
     protected void sendAgree(ACLMessage msg) {
       msg.setType("agree");
-      msg.setContent("( ams action " + myActionName + " )");
+      msg.setContent("( action df " + myActionName + " )");
       send(msg);
     }
     
@@ -186,20 +192,13 @@ public class df extends Agent {
       return new RegBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
-      try {
-	DFRegister(dfd);
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+      DFRegister(dfd);
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
-  }
+  } // End of RegBehaviour class
 
   private class DeregBehaviour extends DFBehaviour {
 
@@ -215,20 +214,13 @@ public class df extends Agent {
       return new DeregBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
-      try {
-	DFDeregister(dfd);
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+      DFDeregister(dfd);
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
-  }
+  } // End of DeregBehaviour class
 
   private class ModBehaviour extends DFBehaviour {
 
@@ -244,20 +236,13 @@ public class df extends Agent {
       return new ModBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
-      try {
-	DFModify(dfd);
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+      DFModify(dfd);
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
-  }
+  } // End of ModBehaviour class
 
   private class SrchBehaviour extends DFBehaviour {
 
@@ -273,24 +258,17 @@ public class df extends Agent {
       return new SrchBehaviour(request, reply);
     }
 
-    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) {
-      try {
-	DFSearch(dfd);
-      }
-      catch(Exception e) {
-	e.printStackTrace();
-      }
-
+    protected void processArgs(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
+      DFSearch(dfd);
       sendAgree(myReply);
       sendInform(myReply);
-
     }
 
-  }
+  } // End of SrchBehaviour class
 
   private AgentManagementOntology myOntology;
   private FipaRequestServerBehaviour dispatcher;
-  private Hashtable descriptors;
+  private Hashtable descriptors = new Hashtable();
 
   public df() {
 
@@ -317,24 +295,28 @@ public class df extends Agent {
     addBehaviour(dispatcher);
   }
 
-  private void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+  protected void DFRegister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     if(descriptors.containsKey(dfd.getName()))
-      /*throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG)*/;
+      throw myOntology.getException(AgentManagementOntology.Exception.AGENTALREADYREG);
 
     descriptors.put(dfd.getName(), dfd);
+    System.out.println("Just added Agent Descriptor: ");
+    dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+    System.out.println("");
+
   }
 
-  private void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+  protected void DFDeregister(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     Object o = descriptors.remove(dfd.getName());
     AgentManagementOntology.DFAgentDescriptor toRemove = (AgentManagementOntology.DFAgentDescriptor)o;
     if(toRemove == null)
-      /*throw myOntology.getException(AgentManagementOntology.Exception.UNABLETODEREG)*/;
+      throw myOntology.getException(AgentManagementOntology.Exception.UNABLETODEREG);
   }
 
-  private void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) /*throws FIPAException*/ {
+  protected void DFModify(AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
     Object o = descriptors.get(dfd.getName());
     if(o == null)
-      /*throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY)*/;
+      throw myOntology.getException(AgentManagementOntology.Exception.INCONSISTENCY);
 
     AgentManagementOntology.DFAgentDescriptor toChange = (AgentManagementOntology.DFAgentDescriptor)o;
 
