@@ -637,7 +637,13 @@ class MainContainerImpl implements Platform, AgentManager {
 			AgentContainer[] allContainers = containers.containers();
 			for (int i = 0; i < allContainers.length; i++) {
 				AgentContainer ac = allContainers[i];
-				ac.changeAgentPrincipal(name, to, null, null);
+				// FIXME: If some container is temporarily disconnected it will not be
+				// notified. We should investigate the sideeffects
+				try {
+					ac.changeAgentPrincipal(name, to, null, null);
+				}
+				catch (IMTPException imtpe) {
+				}
 			}
 
 			// Notify listeners
@@ -815,7 +821,13 @@ class MainContainerImpl implements Platform, AgentManager {
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, target);
+			// FIXME: If some container is temporarily disconnected it will not be
+			// notified. We should investigate the sideeffects
+	  	try {
+		    ac.updateRoutingTable(AgentContainer.ADD_RT, mtp, target);
+	  	}
+	  	catch (IMTPException imtpe) {
+	  	}
 	}
 
       }
@@ -846,7 +858,13 @@ class MainContainerImpl implements Platform, AgentManager {
 	  AgentContainer ac = allContainers[i];
 	  // Skip target container
 	  if(ac != target)
-	    ac.updateRoutingTable(AgentContainer.DEL_RT, mtp, target);
+			// FIXME: If some container is temporarily disconnected it will not be
+			// notified. We should investigate the sideeffects
+	  	try {
+		    ac.updateRoutingTable(AgentContainer.DEL_RT, mtp, target);
+	  	}
+	  	catch (IMTPException imtpe) {
+	  	}
 	}
 
       }
