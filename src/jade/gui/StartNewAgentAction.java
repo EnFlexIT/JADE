@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/02/04 14:47:31  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.5  1998/11/09 00:36:42  rimassa
   Changed callback logic to allow different ways to start new agents:
    - When no node is selected, one can write the container name within
@@ -21,8 +25,8 @@
 
 package jade.gui;
 
-import com.sun.java.swing.*;
-import com.sun.java.swing.tree.*;
+import javax.swing.*;
+import javax.swing.tree.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.lang.*;

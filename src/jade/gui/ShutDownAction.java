@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.3  1999/02/04 14:47:30  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.2  1998/11/15 23:19:04  rimassa
   Filled actionPerformed() method to obtain a reference to the RMA agent
   and calling its shutDownPlatform() method.
@@ -13,8 +17,8 @@ package jade.gui;
 
 import java.awt.*;
 import java.awt.event.*;
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 import jade.domain.rma;
 

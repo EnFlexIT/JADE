@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/02/04 14:47:27  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.5  1998/11/14 14:11:20  rimassa
   Fixed a major bug: the static Vector of all GUI icons was removed by
   mistake.
@@ -13,7 +17,7 @@
 
 package jade.gui;
 
-import com.sun.java.swing.*;
+import javax.swing.*;
 import java.util.Properties;
 import java.io.*;
 /**

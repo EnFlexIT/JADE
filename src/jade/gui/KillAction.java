@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/02/04 14:47:28  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.5  1998/11/15 23:17:48  rimassa
   Some changes to the constructor and actionPerformed() method to
   distinguish between Agent and AgentContainers.
@@ -18,7 +22,7 @@
 
 package jade.gui;
 
-import com.sun.java.swing.*;
+import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 

@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1999/02/04 14:47:30  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.4  1998/11/05 23:42:37  rimassa
   Changed some code indentation.
 
@@ -12,7 +16,7 @@
 
 package jade.gui;
 
-import com.sun.java.swing.*;
+import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.lang.*;

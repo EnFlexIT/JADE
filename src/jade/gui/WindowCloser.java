@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1999/02/04 14:47:33  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.4  1998/11/09 00:40:47  rimassa
   Modified callback method to terminate only the RMA agent when the GUI
   window is closed and not the whole agent container.
@@ -15,8 +19,8 @@ package jade.gui;
 
 import java.awt.*;
 import java.awt.event.*;
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 import jade.domain.rma;
 

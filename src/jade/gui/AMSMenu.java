@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/02/04 14:47:25  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.5  1998/11/15 23:12:56  rimassa
   Minor changes to comply with KillAction() new constructor.
 
@@ -18,8 +22,8 @@ package jade.gui;
 
 import java.awt.*;
 import java.awt.event.*;
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 /**
  * The Menu of the GUI

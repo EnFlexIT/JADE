@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/02/04 14:47:24  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.7  1998/11/09 00:29:28  rimassa
   Changed preferred window size from (400, 400) to (600, 400).
   Removed older, commented out code.
@@ -29,9 +33,9 @@ import java.awt.event.*;
 
 import java.util.Enumeration;
 
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
-import com.sun.java.swing.tree.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.tree.*;
 
 import jade.domain.rma;
 
@@ -48,7 +52,7 @@ import jade.domain.rma;
  *
  * @author  Gianstefano Monni
  * @version %I%, %G%
- * @see     com.sun.java.swing.JFrame
+ * @see     javax.swing.JFrame
  */
 public class AMSMainFrame extends JFrame {	
 
@@ -165,7 +169,7 @@ public class AMSMainFrame extends JFrame {
 
   private void setUI(String ui) {
     try {
-      UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
+      UIManager.setLookAndFeel("javax.swing.plaf."+ui);
       SwingUtilities.updateComponentTreeUI(this);
       pack();
     }

@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/02/04 14:47:33  rimassa
+  Changed package specification for Swing: now it's 'javax.swing' and no more
+  'com.sun.swing'.
+
   Revision 1.7  1998/11/09 00:39:19  rimassa
   Removed loadChildren() method, since now the GUI is notified of every
   event by the Agent Platform.
@@ -25,8 +29,8 @@
 
 package jade.gui;
 
-import com.sun.java.swing.*;
-import com.sun.java.swing.tree.*;
+import javax.swing.*;
+import javax.swing.tree.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
