@@ -183,7 +183,7 @@ class MainContainerProxy implements Platform {
     do {
 
       AgentProxy proxy = null;
-      try {
+      /*try {
 				// Try first with the local container	  
 				localContainer.dispatch(msg, receiverID);
 				proxy = new LocalProxy(localContainer, receiverID);
@@ -194,7 +194,7 @@ class MainContainerProxy implements Platform {
 				// It should never happen as this is a local call
 				throw new InternalError("Error: cannot contact the local container.");
       }
-      catch(NotFoundException nfe) {
+      catch(NotFoundException nfe) {*/
       	// The destination agent is not in the local container.
 				// Try with the Main Container: if this call raises a
 				// NotFoundException, the agent is not found in the whole
@@ -228,7 +228,7 @@ class MainContainerProxy implements Platform {
 					// Need to check again.
 	  			ok = false;
 				}
-      }
+      /*}*/
 
       /*
       i++;
