@@ -64,8 +64,8 @@ protected void setup() {
     try {
       System.out.println(getLocalName()+" is waiting for a message");
       ACLMessage msg = blockingReceive(); 
-      msg.dump();
-
+      
+      msg.toText(new BufferedWriter( new OutputStreamWriter(System.out)));
       ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(msg.getContentBase64()));
 
       /* Read all objects written in the content up to the end of the content */

@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.ex6;
 
+import java.io.*;
 import jade.core.*;
 import jade.proto.*;
 import jade.lang.acl.*;
@@ -41,7 +42,9 @@ class myBehaviour extends FipaQueryResponderBehaviour {
 
 public ACLMessage handleQueryMessage(ACLMessage msg) {
   System.err.println(myAgent.getLocalName()+" has replied to the following message: ");
-  msg.dump();
+  
+  msg.toText(new BufferedWriter( new OutputStreamWriter(System.out)));
+  
   ACLMessage msg1 = msg.createReply(); 
   msg1.setContent(msg.getContent());
   msg1.setPerformative(ACLMessage.INFORM);

@@ -22,6 +22,7 @@ Boston, MA  02111-1307, USA.
 
 package examples.ex6;
 
+import java.io.*;
 import jade.core.*;
 import jade.proto.*;
 import jade.lang.acl.*;
@@ -49,7 +50,8 @@ super(a,msg);
 
 public void handleOtherMessages(ACLMessage msg) {
  System.out.println(myAgent.getLocalName()+" has received the following unexpected message");
- msg.dump(); 
+ 
+ msg.toText(new BufferedWriter( new OutputStreamWriter(System.out)));
 }
 
 
@@ -58,7 +60,7 @@ public void handleInformMessages(java.util.Vector messages) {
   // all inform messages are handled
   System.out.println(myAgent.getLocalName()+" has received the following inform messages");
   for (int i=0; i<messages.size(); i++)
-    ((ACLMessage)(messages.elementAt(i))).dump();
+    ((ACLMessage)(messages.elementAt(i))).toText(new BufferedWriter(new OutputStreamWriter(System.out)));
   System.out.println(myAgent.getLocalName()+" - Please use the GUI to enter the query message");
   ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
   msg.setSource(getLocalName());
