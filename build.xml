@@ -11,7 +11,7 @@ ant dist - to create the distribution files
 <!-- set properties for this project -->
 <project name="JADE" default="jade" basedir=".">
   <description>JADE build file</description>
-  <property name="version" value="2.6"/>
+  <property name="version" value="2.61"/>
   <property name="build.compiler" value="javac1.2"/>
   <property name="javac.optimize" value="on"/>
   <property name="javac.debug" value="off"/>
