@@ -63,7 +63,7 @@ public class TestMobilityOntology extends Test {
   	String additionalClasspath = (String) getGroupArgument(MobilityTesterAgent.ADDITIONAL_CLASSPATH_KEY);
   	jc = TestUtility.launchJadeInstance("Container-3", "+"+additionalClasspath, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), null);
 
-  	// Launch the MobileInitiatorAgent on Container3
+  	// Launch the CodeMoverAgent on Container3
   	ma = TestUtility.createAgent(a, MOBILE_AGENT_NAME, "test.mobility.separate.CodeMoverAgent", null, null, jc.getContainerName());
 		
 		// Create the test behaviour
