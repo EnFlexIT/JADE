@@ -62,6 +62,16 @@ public class RMIIMTPManager implements IMTPManager {
 	  services = new HashMap();
       }
 
+
+      public String getPlatformName() throws IMTPException {
+	  try {
+	      return myRemoteImpl.getPlatformName();
+	  }
+	  catch(RemoteException re) {
+	      throw new IMTPException("An RMI exception occurred", re);
+	  }
+      }
+
       public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, AuthException {
 
 	  try {
