@@ -59,7 +59,7 @@ public interface AgentContainer {
                    JADEPrincipal ownerPrincipal, Credentials initialCredentials                  
                    ) throws NameClashException, IMTPException, NotFoundException, JADESecurityException;
     void powerUpLocalAgent(AID agentID) throws NotFoundException;
-    Agent addLocalAgent(AID id, Agent a) throws JADESecurityException;
+    Agent addLocalAgent(AID id, Agent a);
     void removeLocalAgent(AID id);
     Agent acquireLocalAgent(AID id);
     void releaseLocalAgent(AID id);
