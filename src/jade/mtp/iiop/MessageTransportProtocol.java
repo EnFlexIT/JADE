@@ -67,7 +67,7 @@ public class MessageTransportProtocol implements MTP {
       FIPA.Envelope[] envelopes = aFipaMessage.messageEnvelopes;
       byte[] payload = aFipaMessage.messageBody;
       
-      //      System.out.println("\n\n"+(new java.util.Date()).toString()+" RECEIVED IIOP MESSAGE"+new String(payload));
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" RECEIVED IIOP MESSAGE"+new String(payload));
     
       Envelope env = new Envelope();
 
@@ -250,7 +250,7 @@ public class MessageTransportProtocol implements MTP {
 
       FipaMessage msg = new FipaMessage(new FIPA.Envelope[] { IDLenv }, payload);
       objRef.message(msg);
-      //      System.out.println("\n\n"+(new java.util.Date()).toString()+" SENT IIOP MESSAGE TO ADDRESS iiop://"+addr.getHost()+":"+addr.getPort()+".\n"+ new String(payload));
+      System.out.println("\n\n"+(new java.util.Date()).toString()+" SENT IIOP MESSAGE TO ADDRESS iiop://"+iiopAddr.getHost()+":"+iiopAddr.getPort()+".\n"+ new String(payload));
     }
     catch(ClassCastException cce) {
       cce.printStackTrace();
