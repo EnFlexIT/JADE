@@ -303,7 +303,7 @@ public class ams extends Agent {
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("RMA-subscription");
-      mt2 = MessageTemplate.MatchType("subscribe");
+      mt2 = MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE);
       subscriptionTemplate = MessageTemplate.and(mt1, mt2);
       subscriptionTemplate = MessageTemplate.and(subscriptionTemplate, mt12);
 
@@ -387,7 +387,7 @@ public class ams extends Agent {
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyWith("RMA-cancellation");
-      mt2 = MessageTemplate.MatchType("cancel");
+      mt2 = MessageTemplate.MatchPerformative(ACLMessage.CANCEL);
       cancellationTemplate = MessageTemplate.and(mt1, mt2);
       cancellationTemplate = MessageTemplate.and(cancellationTemplate, mt12);
 

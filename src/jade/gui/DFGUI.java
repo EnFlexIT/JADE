@@ -53,7 +53,7 @@ public class DFGUI extends JFrame
 		//////////////////////////
 		// Initialization
 		super();
-    		setSize(505,405);
+    setSize(505,405);
 		setTitle("DF: " + a.getLocalName());
 		myAgent = a;
 

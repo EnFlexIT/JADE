@@ -244,7 +244,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
 
     requestTemplate = MessageTemplate.and(
 			  MessageTemplate.MatchProtocol("fipa-request"),
-			  MessageTemplate.MatchType("request"));
+			  MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
    }
 

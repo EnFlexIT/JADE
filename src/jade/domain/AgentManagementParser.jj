@@ -662,7 +662,7 @@ AgentManagementOntology.DFAgentDescriptor DF_description() :
   AgentManagementOntology.DFAgentDescriptor result = new AgentManagementOntology.DFAgentDescriptor();
 }
 {
- "(" <DF_DESCRIPTION> ( "(" FIPA_DF_description(result) ")" )+ ")"
+ "(" <DF_DESCRIPTION> ( "(" FIPA_DF_description(result) ")" )* ")"
  {
    return result;
  }

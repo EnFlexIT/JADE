@@ -88,7 +88,7 @@ import java.io.*;
 */
 public abstract class FipaContractNetResponderBehaviour extends SimpleBehaviour {
     
- private MessageTemplate mt=MessageTemplate.MatchType("cfp");
+ private MessageTemplate mt=MessageTemplate.MatchPerformative(ACLMessage.CFP);
  private MessageTemplate template;
  private int   state=0; // state of the protocol
 private long timeout, blockTime, endingTime;
@@ -107,7 +107,7 @@ private long timeout, blockTime, endingTime;
    * called.
    */
  public void reset() {
-    mt=MessageTemplate.MatchType("cfp");
+    mt=MessageTemplate.MatchPerformative(ACLMessage.CFP);
     template = null;
     state = 0;
     cfpMsg = null;

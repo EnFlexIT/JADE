@@ -103,7 +103,7 @@ public class rma extends Agent {
       MessageTemplate mt12 = MessageTemplate.and(mt1, mt2);
 
       mt1 = MessageTemplate.MatchReplyTo("RMA-subscription");
-      mt2 = MessageTemplate.MatchType("inform");
+      mt2 = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
       listenTemplate = MessageTemplate.and(mt1, mt2);
       listenTemplate = MessageTemplate.and(listenTemplate, mt12);
 
