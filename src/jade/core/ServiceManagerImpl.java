@@ -446,7 +446,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	myMain.removeRemoteContainer(desc);
 
 	if(propagate) {
-	    // Tell all the other service managers about the new node
+	    // Tell all the other service managers about the removed node
 	    myIMTPManager.nodeRemoved(desc);
 	}
 
@@ -755,7 +755,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 
 		public void nodeRemoved(Node n) {
-		    System.out.println("--- Node <" + n.getName() + "> REMOVED ---");
+		    System.out.println("--- Node <" + n.getName() + "> TERMINATED ---");
 		    try {
 			removeRemoteNode(new NodeDescriptor(n.getName(), n), true);
 		    }
