@@ -51,6 +51,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 import jade.domain.FIPAAgentManagement.MissingParameter;
 import jade.domain.FIPAAgentManagement.NotRegistered;
+import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -623,7 +624,9 @@ private void DFRegister(DFAgentDescription dfd) throws FIPAException {
     System.out.println("df::DFRegister() called.");
     
     checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
-    
+
+    if (PROVA.containsKey(dfd.getName())
+	throw new AlreadyRegistered();
     PROVA.put(dfd.getName(),dfd);
     if (isADF(dfd)) {
     	children.add(dfd.getName());
