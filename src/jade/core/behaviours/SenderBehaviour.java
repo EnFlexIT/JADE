@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/22 13:14:36  rimassa
+  Removed a redundant private instance variable.
+
   Revision 1.1  1999/05/20 13:43:17  rimassa
   Moved all behaviour classes in their own subpackage.
 
@@ -41,8 +44,6 @@ import jade.lang.acl.ACLMessage;
  */
 public final class SenderBehaviour extends OneShotBehaviour {
 
-  // The agent who is sending the message
-  private Agent myAgent;
 
   // The ACL message to send
   private ACLMessage message;
@@ -60,7 +61,7 @@ public final class SenderBehaviour extends OneShotBehaviour {
      @param ag The agent group to send the message to.
   */
   public SenderBehaviour(Agent a, ACLMessage msg, AgentGroup ag) {
-    myAgent = a;
+    super(a);
     message = msg;
     receivers = ag;
 
