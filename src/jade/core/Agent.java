@@ -47,8 +47,6 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.Codec;
 import jade.lang.acl.*;
 
-import jade.lang.sl.SL0Codec;
-
 import jade.onto.Name;
 import jade.onto.Frame;
 import jade.onto.Ontology;
@@ -57,9 +55,6 @@ import jade.onto.OntologyException;
 import jade.domain.AMSServiceCommunicator;
 // Concepts from fipa-agent-management ontology
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-
-// fipa-agent-management ontology
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
 
 import jade.domain.FIPAException;
 
@@ -362,15 +357,6 @@ public class Agent implements Runnable, Serializable {
   */
   private int messageCounter = 0 ;
 
-  // Common capabilities, shared by every agent
-  private static Map defaultLanguages = new HashMap();
-  private static Map defaultOntologies = new HashMap();
-
-
-  static {
-    defaultLanguages.put(new Name(SL0Codec.NAME), new SL0Codec());
-    defaultOntologies.put(new Name(FIPAAgentManagementOntology.NAME), FIPAAgentManagementOntology.instance());
-  }
 
   // Individual agent capabilities
   private transient Map languages = new HashMap();
@@ -493,8 +479,6 @@ public class Agent implements Runnable, Serializable {
    */
   public Codec lookupLanguage(String languageName) {
     Codec result = (Codec)languages.get(new Name(languageName));
-    if(result == null)
-      result = (Codec)defaultLanguages.get(new Name(languageName));
     return result;
   }
 
@@ -532,8 +516,6 @@ public class Agent implements Runnable, Serializable {
    */
   public Ontology lookupOntology(String ontologyName) {
     Ontology result = (Ontology)ontologies.get(new Name(ontologyName));
-    if(result == null)
-      result = (Ontology)defaultOntologies.get(new Name(ontologyName));
     return result;
   }
 
