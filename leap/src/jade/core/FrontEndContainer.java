@@ -88,8 +88,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	FrontEndContainer(Properties p) {
 		configProperties = p;
-		
-		// Start the therad for asynchronous message delivery
+
+		// Start the thread for asynchronous message delivery
 		Thread t = new Thread(this);
 		t.start();
 			
