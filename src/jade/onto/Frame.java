@@ -47,8 +47,8 @@ public class Frame {
   }
 
   private String myName;
-  private Map slotsByName;
-  private List slotsByPosition;
+  private List slotNames;
+  private List slotValues;
 
   /** This string is the prefix of all the unnamed slots of a Frame **/
   public static String UNNAMEDPREFIX = "_JADE.UNNAMED"; 
@@ -58,8 +58,8 @@ public class Frame {
   */
   public Frame(String name) {
     myName = name;
-    slotsByName = new HashMap();
-    slotsByPosition = new ArrayList();
+    slotNames = new ArrayList();
+    slotValues = new ArrayList();
   }
 
   /**
@@ -76,8 +76,8 @@ public class Frame {
     @param value A Java object that will be associated with the given name.
   */
   public void putSlot(String name, Object value) {
-    slotsByName.put(new Name(name), value);
-    slotsByPosition.add(value);
+    slotNames.add(new Name(name));
+    slotValues.add(value);
   }
 
   /**
@@ -89,10 +89,10 @@ public class Frame {
   */
   public void putSlot(Object value) {
     // generate a name with an underscore followed by the position number
-    String dummyName = UNNAMEDPREFIX + Integer.toString(slotsByPosition.size());
+    String dummyName = UNNAMEDPREFIX + Integer.toString(slotValues.size());
 
     // Add more underscores as needed
-    while(slotsByName.containsKey(dummyName))
+    while(slotNames.contains(dummyName))
       dummyName = dummyName+"_";
 
     putSlot(dummyName, value);
@@ -106,10 +106,11 @@ public class Frame {
     @exception OntologyException If no suitable slot exists.
   */
   public Object getSlot(String name) throws OntologyException {
-    Object result = slotsByName.get(new Name(name));
-    if(result == null)
+    int i = slotNames.indexOf(new Name(name));
+    if (i<0)
       throw new NoSuchSlotException(myName, name);
-    return result;
+    else
+      return getSlot(i);
   }
 
   /**
@@ -120,30 +121,27 @@ public class Frame {
   */
   public Object getSlot(int position) throws OntologyException { 
     try {
-      return slotsByPosition.get(position);
+      return slotValues.get(position);
     }
     catch(IndexOutOfBoundsException ioobe) {
       throw new NoSuchSlotException(myName, "@" + position);
     }
   }
 
-  final Iterator terms() {
-    return slotsByPosition.iterator();
-  }
 
   /**
    @return the number of slots in this Frame.
    **/
    public int size() {
-     return slotsByName.size();
+     return slotNames.size();
    }
 
   public String getSlotName(int position) throws OntologyException { 
     try {
-      return ((Name)(slotsByName.keySet().toArray())[position]).toString();
+      return ((Name)slotNames.get(position)).toString();
     }
     catch(Exception ioobe) {
-      throw new NoSuchSlotException(myName, "@" + position);
+      throw new NoSuchSlotException(myName, "at position" + position);
     }
   }
 
@@ -152,7 +150,7 @@ public class Frame {
     String s = "(" + getName() + " ";
     try {
      for (int i=0; i<size(); i++ ) 
-      s = s + getSlotName(i) + " " + getSlot(i).toString() + " ";
+      s = s + ':' + getSlotName(i) + " " + getSlot(i).toString() + " ";
     } catch (OntologyException oe) {
      oe.printStackTrace();
     }

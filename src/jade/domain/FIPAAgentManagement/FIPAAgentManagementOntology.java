@@ -37,7 +37,6 @@ import jade.onto.RoleFactory;
 import jade.onto.OntologyException;
 
 /**
-Javadoc documentation for the file
 @author Fabio Bellifemine - CSELT S.p.A.
 @version $Date$ $Revision$
 */
@@ -46,6 +45,15 @@ Javadoc documentation for the file
    This class represents the ontology defined by FIPA Agent Management 
    specifications (document no. 23). There is
    only a single instance of this class.
+   <p>
+   The package contains one class for each Frame in the ontology.
+   <p>
+   Notice that userDefinedslots will be parsed but ignored and not
+   returned in the Java object. In order to get a userDefined Slot, a new
+   Termdescriptor must be added to the Frame
+   of this
+   ontology and a new couple of set/get methods to the Java class representing
+   that frame.
  */
 public class FIPAAgentManagementOntology {
 
@@ -94,6 +102,12 @@ public class FIPAAgentManagementOntology {
   public static final String NOTREGISTERED = "not-registered";
   public static final String INTERNALERROR = "internal-error";  
 
+  // Other Propositions
+  public static final String TRUE = "true";
+  public static final String FALSE = "false";
+  public static final String DONE = "done";
+  public static final String RESULT = "result";
+
   static {
     initInstance();
   }
@@ -113,7 +127,6 @@ public class FIPAAgentManagementOntology {
 
   private static void initInstance() {
     try {
-      //FIXME Where we put the ACTION?
 	theInstance.addFrame(DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor(Ontology.CONCEPT_TYPE, AGENTIDENTIFIER, Ontology.M),
 	  new TermDescriptor(Ontology.CONCEPT_TYPE, Ontology.typeNames[Ontology.ANY_TYPE], Ontology.M)
@@ -121,19 +134,18 @@ public class FIPAAgentManagementOntology {
 	     public Object create(Frame f) { return new jade.onto.Action(); }
 	     public Class getClassForRole() { return jade.onto.Action.class; }
 	   });
-      
+
 	theInstance.addFrame(AGENTIDENTIFIER, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
 	  new TermDescriptor("addresses", Ontology.SEQUENCE_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("resolvers", Ontology.SEQUENCE_TYPE, AGENTIDENTIFIER, Ontology.O)
-	    //FIXME How can we deal with userDefinedSlots? Should we mind?
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new AID(); }
 	     public Class getClassForRole() { return AID.class; }
 	   });
 
 	theInstance.addFrame(DFAGENTDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("name", Ontology.CONCEPT_TYPE, AGENTIDENTIFIER, Ontology.M),
           new TermDescriptor("services", Ontology.SET_TYPE, SERVICEDESCRIPTION, Ontology.O),
 	  new TermDescriptor("protocols", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("ontology", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
@@ -150,7 +162,7 @@ public class FIPAAgentManagementOntology {
 	  new TermDescriptor("language", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("protocol", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O),
 	  new TermDescriptor("ownership", Ontology.STRING_TYPE, Ontology.O),
-	  new TermDescriptor("properties", Ontology.SET_TYPE, Ontology.typeNames[Ontology.STRING_TYPE], Ontology.O)
+	  new TermDescriptor("properties", Ontology.SET_TYPE, PROPERTY, Ontology.O)
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new ServiceDescription(); }
 	     public Class getClassForRole() { return ServiceDescription.class;}
@@ -165,7 +177,7 @@ public class FIPAAgentManagementOntology {
 	   });
 
 	theInstance.addFrame(AMSAGENTDESCRIPTION, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
-	  new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
+	  new TermDescriptor("name", Ontology.CONCEPT_TYPE, AGENTIDENTIFIER, Ontology.M),
 	  new TermDescriptor("ownership", Ontology.STRING_TYPE, Ontology.O),
 	  new TermDescriptor("state", Ontology.STRING_TYPE, Ontology.M),
 	}, new RoleFactory() {
@@ -201,7 +213,7 @@ public class FIPAAgentManagementOntology {
 
 	theInstance.addFrame(PROPERTY, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
 	    new TermDescriptor("name", Ontology.STRING_TYPE, Ontology.M),
-	    new TermDescriptor("value", Ontology.STRING_TYPE, Ontology.M) //FIXME it should be a Term and not a String
+	    new TermDescriptor("value", Ontology.ANY_TYPE, Ontology.M) 
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new Property(); } 
 	     public Class getClassForRole() { return Property.class; }
@@ -355,6 +367,33 @@ public class FIPAAgentManagementOntology {
 	}, new RoleFactory() {
 	     public Object create(Frame f) { return new InternalError(); } 
 	     public Class getClassForRole() { return InternalError.class; }
+	   });
+
+	theInstance.addFrame(TRUE, Ontology.CONCEPT_TYPE, new TermDescriptor[]{
+	}, new RoleFactory() {
+             public Object create(Frame f) { return new TrueProposition(); } 
+	     public Class getClassForRole() { return TrueProposition.class; }
+	});
+
+	theInstance.addFrame(FALSE, Ontology.CONCEPT_TYPE, new TermDescriptor[]{
+	}, new RoleFactory() {
+             public Object create(Frame f) { return new FalseProposition(); } 
+	     public Class getClassForRole() { return FalseProposition.class; }
+	});
+
+	theInstance.addFrame(DONE, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(Ontology.CONCEPT_TYPE, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) {return new DonePredicate(); }
+	     public Class getClassForRole() {return DonePredicate.class;}
+	   });
+
+	theInstance.addFrame(RESULT, Ontology.CONCEPT_TYPE, new TermDescriptor[] {
+	  new TermDescriptor(Ontology.CONCEPT_TYPE, DefaultOntology.NAME_OF_ACTION_FRAME, Ontology.M),
+	  new TermDescriptor(Ontology.ANY_TYPE, Ontology.typeNames[Ontology.ANY_TYPE], Ontology.M)
+	}, new RoleFactory() {
+	     public Object create(Frame f) {return new ResultPredicate(); }
+	     public Class getClassForRole() {return ResultPredicate.class;}
 	   });
 
     }

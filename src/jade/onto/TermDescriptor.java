@@ -130,11 +130,18 @@ public class TermDescriptor {
     @return The name of the type of the slot described by this object, as set
     by the constructor. For primitive types, the name of the type is returned
     (e.g. <code>int</code> or <code>String</code>); for complex types, the name
-    of the specific concept, action or predicate is returned.
+    of the specific concept is returned.
   */
   public String getTypeName() {
     return typeName;
   }
+
+public boolean hasPrimitiveTypeElements() {
+  for (int i=0; i<Ontology.typeNames.length-3; i++)  //eliminates Concept,set,sequence
+    if (Ontology.typeNames[i].equalsIgnoreCase(typeName))
+      return true;
+  return false;
+}
 
   /**
     Tells whether a slot is optional.
@@ -148,12 +155,21 @@ public class TermDescriptor {
    /**
     Tells whether a slot is complex.
     @return <code>true</code> if the slot described by this object is of a
-    complex type (i.e. if it is one among <code>Ontology.CONCEPT_TYPE</code>,
-    <code>Ontology.SET_TYPE</code> and <code>Ontology.SEQUENCE_TYPE</code>),
+    <code>Ontology.CONCEPT_TYPE</code>
     <code>false</code> otherwise.
   */
-  public boolean isComplex() {
-    return (type == Ontology.CONCEPT_TYPE) || (type == Ontology.SET_TYPE) || (type == Ontology.SEQUENCE_TYPE);
+  public boolean isConcept() {
+    return (type == Ontology.CONCEPT_TYPE); 
+  }
+
+   /**
+    Tells whether a slot is set or a sequence.
+    @return <code>true</code> if the slot described by this object is 
+    <code>Ontology.SET_TYPE</code> or <code>Ontology.SEQUENCE_TYPE</code>)
+    <code>false</code> otherwise.
+  */
+  public boolean isSet() {
+    return (type == Ontology.SET_TYPE) || (type == Ontology.SEQUENCE_TYPE);
   }
 
   void setName(String n) {

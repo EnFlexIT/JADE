@@ -26,11 +26,11 @@ package jade.domain.FIPAAgentManagement;
 
 public class AMSAgentDescription {
 
-private String name;
+private AID name;
 private String ownership;
 private String state;
 
-public void setName(String n){
+public void setName(AID n){
   name = n;
 }
 
@@ -42,7 +42,7 @@ public void setState(String n) {
   state = n;
 }
 
-public String getName(){
+public AID getName(){
   return name;
 }
 

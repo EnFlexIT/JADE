@@ -26,22 +26,30 @@ package jade.domain.FIPAAgentManagement;
 
 public class SearchConstraints {
 
-private long max_depth = 0;
-private long max_results = 0;
+private Long max_depth = null; 
 
-public void setMaxDepth(long l){
+private Long max_results = null;
+
+public void setMaxDepth(Long l){
   max_depth=l;
 }
 
+  /**
+   * return null if it has not been set
+   */
 public long getMaxDepth() {
-  return max_depth;
+  return null; //max_depth;
 }
 
-public void setMaxResults(long l) {
+public void setMaxResults(Long l) {
   max_results = l;
 }
 
-  public long getMaxResults(){
+  /**
+   * return null if it has not been set
+   */
+  public Long getMaxResults(){
     return max_results;
   }
 }
+

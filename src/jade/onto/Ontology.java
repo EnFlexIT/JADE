@@ -338,4 +338,8 @@ public interface Ontology {
    */
   TermDescriptor[] getTerms(String roleName) throws OntologyException;
 
+  /** @return the roleName of the passed object as registered in this ontology
+   * @throws OntologyException if no role is found for this object
+  **/
+  String getRoleName(Class c) throws OntologyException; 
 }

@@ -36,18 +36,18 @@ import java.util.*;
 
 
 
-    private String name;
+    private AID name;
     private List services = new ArrayList();
     private List interactionProtocols = new ArrayList();
     private List ontology = new ArrayList();
     private List language = new ArrayList();
 
 
-    public void setName(String n) {
+    public void setName(AID n) {
       name = n;
     }
 
-    public String getName() {
+    public AID getName() {
       return name;
     }
 
