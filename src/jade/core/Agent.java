@@ -691,7 +691,17 @@ public class Agent implements Runnable, Serializable
    public final jade.wrapper.AgentContainer getContainerController() {
      if (myContainer == null) {  // first time called
 	 try {
-	     myContainer = new jade.wrapper.AgentContainer((AgentContainerImpl)myToolkit, getHap());
+	 		jade.security.JADEPrincipal principal = null;
+	 		jade.security.Credentials credentials = null;
+	 		try {
+		 		jade.security.CredentialsHelper ch = (jade.security.CredentialsHelper) getHelper("jade.core.security.Security");
+		 		principal = ch.getPrincipal();
+		 		credentials = ch.getCredentials();
+	 		}
+	 		catch (ServiceException se) {
+	 			// Security plug-in not present. Ignore it
+	 		}
+			myContainer = myToolkit.getContainerController(principal, credentials);
 	 } catch (Exception e) {
 	     throw new IllegalStateException("A ContainerController cannot be got for this agent. Probably the method has been called at an appropriate time before the complete initialization of the agent.");
 	 }
@@ -1045,10 +1055,10 @@ public class Agent implements Runnable, Serializable
      does not guarantee agent autonomy. It is expected that in the
      next releases this method might be removed or its scope restricted.
      @param name The local name of the agent.
-  */
+  *
   public void doStart(String name) {
     myToolkit.handleStart(name, this);
-  }
+  }*/
   //#APIDOC_EXCLUDE_END
 
   /**
@@ -1433,7 +1443,7 @@ public class Agent implements Runnable, Serializable
      @exception IOException Thrown if some I/O error occurs during
      stream reading.
      @see jade.core.Agent#write(OutputStream s)
-  */
+  *
   public static void read(InputStream s) throws IOException {
     try {
       ObjectInput in = new ObjectInputStream(s);
@@ -1444,7 +1454,7 @@ public class Agent implements Runnable, Serializable
     catch(ClassNotFoundException cnfe) {
       cnfe.printStackTrace();
     }
-  }
+  }*/
 
   /**
      Read a previously saved agent from an input stream and restarts
@@ -1462,7 +1472,7 @@ public class Agent implements Runnable, Serializable
      @exception IOException Thrown if some I/O error occurs during
      stream reading.
      @see jade.core.Agent#write(OutputStream s)
-  */
+  *
   public static void read(InputStream s, String agentName) throws IOException {
     try {
       ObjectInput in = new ObjectInputStream(s);
@@ -1473,7 +1483,7 @@ public class Agent implements Runnable, Serializable
     catch(ClassNotFoundException cnfe) {
       cnfe.printStackTrace();
     }
-  }
+  }*/
 
   /**
      This method reads a previously saved agent, replacing the current
@@ -1902,7 +1912,6 @@ public class Agent implements Runnable, Serializable
         myToolkit.setPlatformAddresses(myAID);
       }
 
-      //myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
       myThread = t;
       myThread.start();
     }
@@ -1919,11 +1928,10 @@ public class Agent implements Runnable, Serializable
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
 
-    // Restore transient fields (apart from myThread, which will be set by doStart())
+    // Restore transient fields (apart from myThread, which will be set when the agent will be powered up)
     msgQueue = new MessageQueue(msgQueueMaxSize);
     stateLock = new Object();
     suspendLock = new Object();
-    //principalLock = new Object();
     pendingTimers = new AssociationTB();
     theDispatcher = TimerDispatcher.getTimerDispatcher();
     // restore O2AQueue
@@ -2487,18 +2495,18 @@ public class Agent implements Runnable, Serializable
 
   //#MIDP_EXCLUDE_BEGIN
   // Notify toolkit that a message was posted in the message queue
-  private void notifyPosted(ACLMessage msg) /*throws AuthException*/ {
+  private void notifyPosted(ACLMessage msg) {
     myToolkit.handlePosted(myAID, msg);
   }
 
   // Notify toolkit that a message was extracted from the message
   // queue
-  private void notifyReceived(ACLMessage msg) /*throws AuthException*/ {
+  private void notifyReceived(ACLMessage msg) {
     myToolkit.handleReceived(myAID, msg);
   }
 
   // Notify toolkit of the need to send a message
-  private void notifySend(ACLMessage msg) /*throws AuthException*/ {
+  private void notifySend(ACLMessage msg) {
   	myToolkit.handleSend(msg, myAID);
   }
 
@@ -2696,31 +2704,23 @@ public class Agent implements Runnable, Serializable
   * @return The service helper.
   */
   public ServiceHelper getHelper( String serviceName ) throws ServiceException {
-
-      ServiceHelper se = null;
-
+    ServiceHelper se = null;
   	if (helpersTable == null) {
   		helpersTable = new Hashtable();
   	}
 
-          try {
-          // is the helper already into the agent's helpersTable ?
-          if (helpersTable.get(serviceName)!=null) {
-                  // there is already one into the helpersTable
-                  se = (ServiceHelper) helpersTable.get(serviceName);
-          } else {
-                  // there isn't, request its creation
-                  se = myToolkit.getHelper(this, serviceName);
-                  se.init(this);
-                  helpersTable.put(serviceName, se);
-
-          }
-          } catch(Exception e ) {
-                  System.out.println(" ServiceHelper could not be created:"+ serviceName);
-                  e.printStackTrace();
-          }
-
-      return se;
+    // is the helper already into the agent's helpersTable ?
+    if (helpersTable.get(serviceName)!=null) {
+      // there is already one into the helpersTable
+      se = (ServiceHelper) helpersTable.get(serviceName);
+    } 
+    else {
+      // there isn't, request its creation
+      se = myToolkit.getHelper(this, serviceName);
+      se.init(this);
+      helpersTable.put(serviceName, se);	
+    }
+    return se;
   }
 
 //#MIDP_EXCLUDE_END
