@@ -69,7 +69,7 @@ public class BlockTimeoutTesterAgent extends TesterAgent {
       // Exit the JVM when there are no more containers around
       rt.setCloseVM(true);
       
-      Profile pMain = new ProfileImpl(null, 8888, null);
+      Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
 
       MainContainer mc = rt.createMainContainer(pMain);
 

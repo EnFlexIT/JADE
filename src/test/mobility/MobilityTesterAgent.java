@@ -56,10 +56,10 @@ public class MobilityTesterAgent extends TesterAgent {
 			private JadeController jc2;
 			
 			protected void initialize(Agent a) throws TestException {
-				jc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port 8888"), null); 
+				jc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
 				setArgument(CONTAINER1_KEY, jc1.getContainerName());
 				
-				jc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port 8888"), null); 
+				jc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
 				setArgument(CONTAINER2_KEY, jc2.getContainerName());
 			}
 			protected void shutdown(Agent a) {
@@ -80,7 +80,7 @@ public class MobilityTesterAgent extends TesterAgent {
       // Exit the JVM when there are no more containers around
       rt.setCloseVM(true);
 
-      Profile pMain = new ProfileImpl(null, 8888, null);
+      Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
 
       MainContainer mc = rt.createMainContainer(pMain);
 
