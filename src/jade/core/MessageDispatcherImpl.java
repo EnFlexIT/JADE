@@ -21,18 +21,13 @@ class MessageDispatcherImpl extends UnicastRemoteObject implements MessageDispat
   }
   
   public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
-    String receiverName = msg.getDest(); // FIXME: Will be 'msg.getValue(":dest");'
+    String receiverName = msg.getDest();
     Agent receiver = (Agent)localAgents.get(receiverName);
 
     if(receiver == null) 
       throw new NotFoundException("Message Dispatcher failed to find " + receiverName);
 
     receiver.postMessage(msg);
-  }
-
-  public void dispatch(String msg) throws RemoteException, NotFoundException {
-    // FIXME: To be implemented
-    // Parse the string into an ACL message, then invoke dispatch with it
   }
 
 }
