@@ -153,7 +153,7 @@ public class ContentManager implements Serializable {
      * @see jade.content.Ontology
      */
     public ContentElement extractContent(ACLMessage msg) 
-            throws CodecException, OntologyException {
+            throws CodecException, UngroundedException, OntologyException {
         Codec    codec = lookupLanguage(msg.getLanguage());
         Ontology onto  = getMergedOntology(codec, lookupOntology(msg.getOntology()));
 				byte[] content = msg.getByteSequenceContent();
