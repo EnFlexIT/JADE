@@ -159,10 +159,12 @@ public final class DefaultOntology implements Ontology {
 
       String roleName = f.getName();
       Class c = getClassForRole(roleName);
-      if(c == null)
-	throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
-
-      Object o = create(f);
+      if(c == null) {
+				System.out.println("Null class for role "+roleName);
+				throw new OntologyException("No class able to represent " + roleName + " role. Check the definition of the ontology.");
+      }
+      
+			Object o = create(f);
       return initObject(f, o, c);
   }
 
@@ -933,9 +935,18 @@ public final class DefaultOntology implements Ontology {
 
 
   public Object create(Frame f) throws OntologyException {
+    Class c  = null;
     try {
-      return getClassForRole(f.getName()).newInstance();
+			c = getClassForRole(f.getName());
+			Object obj = c.newInstance();
+			if (obj instanceof jade.domain.MobilityOntology.BCLocation) {
+				return ((jade.domain.MobilityOntology.BCLocation) obj).toCid();
+			}
+			else {
+				return obj;
+			}
     } catch (Exception e) {
+    	System.out.println("Error instantiating class "+c+". "+e.getMessage());
       throw new OntologyException(e.getMessage()); 
     }
   }
