@@ -62,6 +62,7 @@ public class Client extends Agent {
 	frame.addWindowListener(new WindowAdapter() {
 		public void windowClosing(WindowEvent we) {
 		    unsubscribe();
+		    doDelete();
 		    System.exit(0); 
 		    // kill all the container because there is also
 		    // 1 client running.

@@ -23,9 +23,11 @@ public class Snooper extends Agent {
     public void snoop(String str) {
 	// JADE 2.0: 
       // getHap() cannot be moved in the constructor because it would not work!
+      // each time the previous entry must be removed.
       msg.clearAllReceiver();
 	msg.addReceiver(new AID("buffer@"+getHap()));
 	// JADE 1.4:
+	// msg.removeAllDests();
 	//msg.addDest("buffer");
 	msg.setContent(str);
 	send(msg);

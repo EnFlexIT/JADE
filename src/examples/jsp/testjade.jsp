@@ -2,7 +2,7 @@
 <jsp:useBean id="snooper" class="examples.jsp.Snooper" scope="application">
 <% try {
     // Does not work for the moment
-    // String [] args = {"-platform", "buffer:examples.jsp.Buffer"};
+    // JADE 1.4 String [] args = {"-platform", "buffer:examples.jsp.Buffer"};
     String [] args = {"-container"};        
     jade.Boot.main(args);
     System.out.println("Jade Inited()");
