@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.12  1999/07/19 00:03:24  rimassa
+ * Added a moveAgent() method.
+ *
  * Revision 1.11  1999/06/04 07:42:32  rimassa
  * Made this previously public class package scoped.
  *
@@ -47,6 +50,8 @@ interface AgentContainer extends Remote {
 
   void waitAgent(String agentName) throws RemoteException, NotFoundException;
   void wakeAgent(String agentName) throws RemoteException, NotFoundException;
+
+  void moveAgent(String agentName, AgentContainer where) throws RemoteException;
 
   void killAgent(String agentName) throws RemoteException, NotFoundException;
   void exit() throws RemoteException;
