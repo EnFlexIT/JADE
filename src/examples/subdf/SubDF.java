@@ -40,8 +40,12 @@ import jade.lang.acl.ACLMessage;
 
 /**
 This is an example of an agent that plays the role of a sub-df by 
-registering with a parent DF.
-@author Giovanni Rimassa - Università di Parma
+automatically registering with a parent DF.
+Notice that exactly the same might be done by using the GUI of the DF.
+<p>
+This SUBDF inherits all the functionalities of the default DF, including
+its GUI.
+@author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 
@@ -66,8 +70,6 @@ public class SubDF extends jade.domain.df {
      else
        parentName=getDefaultDF();
       
-     DFServiceCommunicator.register(this,parentName,getDescription());
-		
       //Execute the setup of jade.domain.df which includes all the default behaviours of a df 
       //(i.e. register, unregister,modify, and search).
      super.setup();
@@ -77,7 +79,10 @@ public class SubDF extends jade.domain.df {
      
      //Show the default Gui of a df.
      super.showGui();
-    
+
+     DFServiceCommunicator.register(this,parentName,getDescription());
+     addParent(parentName);
+		
     }catch(InterruptedIOException iioe) {
       doDelete();
     }
