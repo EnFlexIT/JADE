@@ -11,7 +11,7 @@ package jade.proto;
   Responsibility and Collaborations:
 
   + Allows to deal with a group of ACL messages as a single
-  entity. Besiedes permits to select one of them using an internal
+  entity. Besides permits to select one of them using an internal
   cursor.
 
 

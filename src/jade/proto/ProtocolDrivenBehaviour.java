@@ -22,6 +22,7 @@ public class ProtocolDrivenBehaviour implements Behaviour {
   private boolean starting = true;
   private boolean finished = false;
 
+
   private Agent myAgent;
   private Interaction myInteraction;
   private NonDeterministicBehaviour currentBehaviours;
@@ -30,14 +31,29 @@ public class ProtocolDrivenBehaviour implements Behaviour {
   public ProtocolDrivenBehaviour(Agent a, Interaction i) {
     myAgent = a;
     myInteraction = i;
-    currentBehaviours = new NonDeterministicBehaviour(myAgent);
+    currentBehaviours = NonDeterministicBehaviour.createWhenAll(myAgent);
 
   }
 
 
+  // FIXME: for one-to-one protocols we spawn a ReceiveBehaviour for
+  // each protocol branch. For one-to-many protocols, instead, we
+  // spawn a ReceiveUntilConditionBehaviour for each protocol
+  // branch. The condition will be 'all participants have sent their
+  // messages or deadline expired' for fipa-contract-net protocol.
+
   // TODO: Starting code must distinguish the role. When initiator it
   // must send the first message to peers; when responder, it must
-  // receive the first message and read the peer and convId from it.
+  // receive the first message and read the peer group and convId from
+  // it.
+
+  private void startupAsInitiator() {
+    
+  }
+
+  private void startupAsResponder() {
+    
+  }
 
   // TODO: Suitable sub-behaviours must be written. A
   // receiveSubBehaviour receives the message expected in a given CA,
@@ -49,12 +65,17 @@ public class ProtocolDrivenBehaviour implements Behaviour {
   public void execute() {
 
     if(starting) {
-      // Do initialization stuff, according to whether playing
-      // initiator or responder role.
+
+      if(myInteraction.isInitiator())
+	startupAsInitiator();
+      else
+	startupAsResponder();
+
       starting = false;
+
     }
 
-    // Schedules currently active behaviours.
+    // Performs currently active behaviours.
     currentBehaviours.execute();
 
   }

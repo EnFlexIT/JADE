@@ -82,6 +82,13 @@ public class Interaction {
   }
 
 
+  // Tests whether this Interaction plays the Initiator role with
+  // respect to its Protocol.
+  public boolean isInitiator() {
+    return myRole == Protocol.initiatorRole;
+  }
+
+
   // Registers an user-supplied MessageHandler to be invoked when the
   // message contained in a CA is processed. If target CA has the same
   // role of the Interaction role (i.e. the associated message will be
