@@ -26,6 +26,9 @@ package jade.core.event;
 
 public interface AgentListener {
 
-  void handle(AgentEvent ev);
+  void changedAgentState(AgentEvent ev);
+  void addedBehaviour(AgentEvent ev);
+  void removedBehaviour(AgentEvent ev);
+  void changedBehaviourState(AgentEvent ev);
 
 }
