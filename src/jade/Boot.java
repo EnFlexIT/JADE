@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1998/10/30 18:17:17  rimassa
+  Added a '-version' command-line option to print out JADE version name.
+
   Revision 1.7  1998/10/25 23:52:46  rimassa
   Added '-gui' command line option to start a Remote Agent Management
   GUI.
@@ -97,6 +100,10 @@ public class Boot {
 	else if(args[n].equals("-gui")) {
 	  hasGUI = true;
 	}
+	else if(args[n].equals("-version") || args[n].equals("-v")) {
+	  System.out.println("JADE Version 0.84 - October 1998");
+	  System.exit(0);
+	}
 	else if(args[n].equals("-help") || args[n].equals("-h")) {
 	  usage();
 	}
@@ -193,7 +200,7 @@ public class Boot {
     System.out.println("  Create an Agent Platform and starts an agent on the local Agent Container");
     System.out.println("  \tjava jade.Boot -platform Willy:searchAgent");
     System.out.println("");
-    System.exit(3);
+    System.exit(0);
   }
 
 
