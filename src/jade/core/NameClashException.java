@@ -27,7 +27,7 @@ package jade.core;
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
-class NameClashException extends Exception {
+public class NameClashException extends Exception {
 
   NameClashException(String msg) {
     super(msg);
