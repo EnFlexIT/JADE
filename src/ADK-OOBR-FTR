@@ -32,6 +32,7 @@ Agent@- destroy@private void destroy() {
 Agent@- doActivate@public void doActivate() {
 Agent@- doDelete@public void doDelete() {
 Agent@- doFipaRequestClient@private String doFipaRequestClient(ACLMessage request, String replyString) throws FIPAException {
+Agent@- doFipaRequestClientNB@private void doFipaRequestClientNB(ACLMessage request, String replyString) throws FIPAException {
 Agent@- doMove@public void doMove() {
 Agent@- doStart@public void doStart(String name, String platformAddress) {
 Agent@- doSuspend@public void doSuspend() {
@@ -39,6 +40,7 @@ Agent@- doWait@public synchronized void doWait() {
 Agent@- doWake@public synchronized void doWake() {
 Agent@- forwardWithACC@public void forwardWithACC(ACLMessage msg) throws FIPAException {
 Agent@- getAddress@public String getAddress() {
+Agent@- getLocalName@public String getLocalName() {
 Agent@- getName@public String getName() {
 Agent@- join@void join() {
 Agent@= listeners@protected Vector listeners =
@@ -71,7 +73,7 @@ Agent@- setup@protected void setup() {
 Agent@- takeDown@protected void takeDown() {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java
-AgentPlatform@= addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
+AgentPlatform@= addContainer@public String addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@= bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException;
 AgentPlatform@= deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException;
 AgentPlatform@= lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
@@ -165,8 +167,8 @@ ams@= myAction@private AgentManagementOntology.AMSAction myAction;
 ams@= myActionName@private String myActionName;
 ams@= myOntology@protected AgentManagementOntology myOntology;
 ams@= myPlatform@private AgentPlatformImpl myPlatform;
-ams@= myReply@private ACLMessage myReply;
-ams@= myRequest@private ACLMessage myRequest;
+ams@= myReply@protected ACLMessage myReply;
+ams@= myRequest@protected ACLMessage myRequest;
 ams@= newAgentsBuffer@private Vector newAgentsBuffer =
 ams@= newContainersBuffer@private Vector newContainersBuffer =
 ams@= notifyRMAs@private NotifyRMAsBehaviour notifyRMAs;
@@ -207,7 +209,7 @@ df@- DeregBehaviour@public DeregBehaviour(ACLMessage request, ACLMessage reply) 
 df@- DeregBehaviour@public DeregBehaviour() {
 df@- ModBehaviour@public ModBehaviour(ACLMessage request, ACLMessage reply) {
 df@- ModBehaviour@public ModBehaviour() {
-df@- RecursiveSearchBehaviour@RecursiveSearchBehaviour(AgentManagementOntology.DFAgentDescriptor dfd, ACLMessage msg, AgentManagementOntology.DFSearchResult res, int dfDepth) {
+df@- RecursiveSearchBehaviour@RecursiveSearchBehaviour(AgentManagementOntology.DFAgentDescriptor dfd, ACLMessage msg, AgentManagementOntology.DFSearchResult res, int dfDepth, ACLMessage requestToSearchMsg) {
 df@- RegBehaviour@public RegBehaviour(ACLMessage request, ACLMessage reply) {
 df@- RegBehaviour@public RegBehaviour() {
 df@- SrchBehaviour@public SrchBehaviour(ACLMessage request, ACLMessage reply) {
@@ -217,9 +219,12 @@ df@- checkAttribute@private void checkAttribute(String attributeName, String att
 df@- checkAttributeList@private void checkAttributeList(String attributeName, Enumeration attributeValue) throws FIPAException {
 df@- contains@private boolean contains(Enumeration list, String value) {
 df@- crackMessage@private void crackMessage() throws FIPAException, NoSuchElementException {
+df@- deregisterWithDF@public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 df@= descriptors@private Hashtable descriptors =
 df@+ df@public df() {
 df@= dispatcher@private FipaRequestServerBehaviour dispatcher;
+df@- getDFAgentDescriptors@protected Enumeration getDFAgentDescriptors() {
+df@= gui@private DFGUI gui;
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
 df@- instance@public Behaviour instance(ACLMessage request, ACLMessage reply) {
@@ -228,17 +233,22 @@ df@- match@private boolean match(AgentManagementOntology.DFAgentDescriptor templ
 df@= myAction@private AgentManagementOntology.DFAction myAction;
 df@= myActionName@private String myActionName;
 df@= myOntology@private AgentManagementOntology myOntology;
-df@= myReply@private ACLMessage myReply;
-df@= myRequest@private ACLMessage myRequest;
+df@= myReply@protected ACLMessage myReply;
+df@= myRequest@protected ACLMessage myRequest;
 df@= noClass@private static final Class[] noClass =
+df@- noMatchingService@private boolean noMatchingService( AgentManagementOntology.DFAgentDescriptor dfd, AgentManagementOntology.ServiceDescriptor templSD) {
 df@= noParams@private static final Object[] noParams =
+df@= originalRequestToSearchMsg@ACLMessage originalRequestToSearchMsg;
+df@= parents@private AgentGroup parents =
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@- processAction@protected void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException {
 df@> processAction@protected abstract void processAction(AgentManagementOntology.DFAction dfa) throws FIPAException;
+df@- registerWithDF@public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 df@= reply@ACLMessage reply;
 df@= result@AgentManagementOntology.DFSearchResult result;
+df@= sdFields@private static final String[] sdFields =
 df@- sendAgree@protected void sendAgree(ACLMessage msg) {
 df@- sendFailure@protected void sendFailure(ACLMessage msg, String reason) {
 df@- sendInform@protected void sendInform(ACLMessage msg) {
@@ -247,7 +257,8 @@ df@- sendRefuse@protected void sendRefuse(ACLMessage msg, String reason) {
 df@- setup@protected void setup() {
 df@= stringFields@private static final String[] stringFields =
 df@= subDFs@private Hashtable subDFs =
-df@= vectorFields@private static final String[] vectorFields =
+df@- takeDown@protected void takeDown() {
+df@= vectorOfStringFields@private static final String[] vectorOfStringFields =
 
 /home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java
 Parser@= parse@public void parse(Reader textSource);
@@ -316,7 +327,7 @@ StartPlatform@- main@public static void main(String args[]) {
 StartPlatform@- usage@private static void usage() {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
-AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl() throws RemoteException {
+AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String args[]) throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@= MAP_LOAD_FACTOR@private static final float MAP_LOAD_FACTOR =
 AgentContainerImpl@= MAP_SIZE@private static final int MAP_SIZE =
@@ -327,10 +338,11 @@ AgentContainerImpl@- endSource@public void endSource(String name) {
 AgentContainerImpl@- exit@public void exit() throws RemoteException {
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- invalidateCacheEntry@public void invalidateCacheEntry(String key) throws RemoteException {
-AgentContainerImpl@- joinPlatform@public void joinPlatform(String platformRMI, String platformIIOP, Vector agentNamesAndClasses) {
+AgentContainerImpl@- joinPlatform@public void joinPlatform(String platformRMI, Vector agentNamesAndClasses) {
 AgentContainerImpl@- killAgent@public void killAgent(String agentName) throws RemoteException, NotFoundException {
 AgentContainerImpl@= localAgents@protected Hashtable localAgents =
 AgentContainerImpl@- lookup3@private AgentPlatform lookup3(String URL) throws RemoteException, NotBoundException, MalformedURLException, UnknownHostException {
+AgentContainerImpl@= myORB@protected ORB myORB;
 AgentContainerImpl@= myPlatform@private AgentPlatform myPlatform;
 AgentContainerImpl@- ping@public void ping() throws RemoteException {
 AgentContainerImpl@= platformAddress@protected String platformAddress;
@@ -354,20 +366,22 @@ AgentPlatformImpl@- AMSKillAgent@public void AMSKillAgent(String agentName, Stri
 AgentPlatformImpl@- AMSKillContainer@public void AMSKillContainer(String containerName) {
 AgentPlatformImpl@- AMSNewData@public void AMSNewData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException, AgentAlreadyRegisteredException {
 AgentPlatformImpl@- AMSRemoveData@public void AMSRemoveData(String agentName, String address, String signature, String APState, String delegateAgentName, String forwardAddress, String ownership) throws FIPAException {
-AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
+AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl(String args[]) throws RemoteException {
 AgentPlatformImpl@= CONTAINERS_SIZE@private static final int CONTAINERS_SIZE =
 AgentPlatformImpl@= GLOBALMAP_LOAD_FACTOR@private static final float GLOBALMAP_LOAD_FACTOR =
 AgentPlatformImpl@= GLOBALMAP_SIZE@private static final int GLOBALMAP_SIZE =
-AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
+AgentPlatformImpl@- addContainer@public String addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(String name, AgentDescriptor desc) throws RemoteException, NameClashException {
 AgentPlatformImpl@= containers@private Hashtable containers =
 AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteException, NotFoundException {
 AgentPlatformImpl@= defaultDF@private df defaultDF;
+AgentPlatformImpl@= frontEndACC@private InComingIIOP frontEndACC;
 AgentPlatformImpl@- getContainerName@private String getContainerName(AgentContainer ac) {
 AgentPlatformImpl@- initACC@private void initACC() {
 AgentPlatformImpl@- initAMS@private void initAMS() {
 AgentPlatformImpl@- initDF@private void initDF() {
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
+AgentPlatformImpl@- message@public void message(String acl_message) {
 AgentPlatformImpl@= platformAgents@private Hashtable platformAgents =
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- shutDown@public void shutDown() {
@@ -414,6 +428,7 @@ ACLMessage@- getMessage@public byte[] getMessage() {
 ACLMessage@- getOntology@public String getOntology() {
 ACLMessage@- getProtocol@public String getProtocol() {
 ACLMessage@- getReplyBy@public String getReplyBy() {
+ACLMessage@- getReplyByDate@public Date getReplyByDate() {
 ACLMessage@- getReplyTo@public String getReplyTo() {
 ACLMessage@- getReplyWith@public String getReplyWith() {
 ACLMessage@- getSource@public String getSource() {
@@ -424,6 +439,7 @@ ACLMessage@= msgType@private String msgType;
 ACLMessage@= ontology@private String ontology;
 ACLMessage@= protocol@private String protocol;
 ACLMessage@= reply_by@private String reply_by;
+ACLMessage@= reply_byInMillisec@private long reply_byInMillisec;
 ACLMessage@= reply_with@private String reply_with;
 ACLMessage@- reset@public void reset() {
 ACLMessage@- setContent@public void setContent( String content ) {
@@ -434,11 +450,13 @@ ACLMessage@- setLanguage@public void setLanguage( String str ) {
 ACLMessage@- setOntology@public void setOntology( String str ) {
 ACLMessage@- setProtocol@public void setProtocol( String str ) {
 ACLMessage@- setReplyBy@public void setReplyBy( String str ) {
+ACLMessage@- setReplyByDate@public void setReplyByDate(Date date) {
 ACLMessage@- setReplyTo@public void setReplyTo( String reply ) {
 ACLMessage@- setReplyWith@public void setReplyWith( String reply ) {
 ACLMessage@- setSource@public void setSource( String source ) {
 ACLMessage@- setType@public void setType( String type ) {
 ACLMessage@= source@private String source;
+ACLMessage@- toString@public String toString(){
 ACLMessage@- toText@public void toText(Writer w) {
 
 /home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
@@ -521,7 +539,7 @@ ComplexBehaviour@- BehaviourList@protected class BehaviourList {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
 ComplexBehaviour@- action@public final void action() {
-ComplexBehaviour@- addBehaviour@public void addBehaviour(Behaviour b) {
+ComplexBehaviour@- addSubBehaviour@public void addSubBehaviour(Behaviour b) {
 ComplexBehaviour@> bodyAction@protected abstract boolean bodyAction();
 ComplexBehaviour@- done@public boolean done() {
 ComplexBehaviour@= finished@private boolean finished =
@@ -779,12 +797,12 @@ Protocol@= startingPoint@protected CommunicativeAction startingPoint;
 
 /home/rimassa/DEVEL/JADE/src/jade/core/AgentGroup.java
 AgentGroup@- addMember@public void addMember(String name) {
-AgentGroup@- getNextMember@public String getNextMember() {
-AgentGroup@- hasMoreMembers@public boolean hasMoreMembers() {
-AgentGroup@= iterator@private Enumeration iterator =
+AgentGroup@- clone@public synchronized Object clone() {
+AgentGroup@- getMembers@public Enumeration getMembers(){
 AgentGroup@= memberNames@private Vector memberNames =
 AgentGroup@- removeMember@public void removeMember(String name) {
-AgentGroup@- reset@public void reset() {
+AgentGroup@- size@public int size() {
+AgentGroup@- toString@public String toString() {
 
 /home/rimassa/DEVEL/JADE/src/jade/core/NonDeterministicBehaviour.java
 NonDeterministicBehaviour@+ NonDeterministicBehaviour@protected NonDeterministicBehaviour(Agent a, int endCondition) {
@@ -1081,7 +1099,7 @@ AgentManagementOntology@= actions@private static Hashtable actions =
 AgentManagementOntology@= actions@private static Hashtable actions =
 AgentManagementOntology@= actor@private String actor;
 AgentManagementOntology@= actor@private String actor;
-AgentManagementOntology@= actor@private String actor;
+AgentManagementOntology@= actor@protected String actor;
 AgentManagementOntology@- addConstraint@public void addConstraint(Constraint c) {
 AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
 AgentManagementOntology@- addProperty@public void addProperty(String name, String value) {
@@ -1091,7 +1109,7 @@ AgentManagementOntology@= agentName@private String agentName;
 AgentManagementOntology@= agentProperties@private Properties agentProperties =
 AgentManagementOntology@= arg@private ACLMessage arg;
 AgentManagementOntology@= arg@private DFAgentDescriptor arg;
-AgentManagementOntology@= arg@private AMSAgentDescriptor arg;
+AgentManagementOntology@= arg@protected AMSAgentDescriptor arg;
 AgentManagementOntology@= className@private String className =
 AgentManagementOntology@= constraints@private Vector constraints =
 AgentManagementOntology@= containerName@private String containerName;
@@ -1145,7 +1163,7 @@ AgentManagementOntology@= keywords@private static Hashtable keywords =
 AgentManagementOntology@= lock@private static Object lock =
 AgentManagementOntology@= name@private String name;
 AgentManagementOntology@= name@private String name;
-AgentManagementOntology@= name@private String name;
+AgentManagementOntology@= name@protected String name;
 AgentManagementOntology@= name@private String name;
 AgentManagementOntology@= ownership@private String ownership;
 AgentManagementOntology@= parser@private static AgentManagementParser parser =
@@ -1799,7 +1817,7 @@ ShutDownAction@- actionPerformed@public void actionPerformed(ActionEvent evt) {
 FailedManagementActionException@+ FailedManagementActionException@public FailedManagementActionException() {
 
 /home/rimassa/DEVEL/JADE/src/jade/domain/FipaRequestClientBehaviour.java
-FipaRequestClientBehaviour@+ FipaRequestClientBehaviour@FipaRequestClientBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
+FipaRequestClientBehaviour@+ FipaRequestClientBehaviour@public FipaRequestClientBehaviour(Agent client, ACLMessage request, MessageTemplate template) {
 FipaRequestClientBehaviour@= firstReceive@private ComplexBehaviour firstReceive;
 FipaRequestClientBehaviour@> handleAgree@protected abstract void handleAgree(ACLMessage reply);
 FipaRequestClientBehaviour@> handleFailure@protected abstract void handleFailure(ACLMessage reply);
@@ -1835,7 +1853,7 @@ AboutDialog@= textArea1@java.awt.TextArea textArea1;
 AboutDialog@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
 
 /home/rimassa/DEVEL/JADE/src/examples/ex2/FilebasedSenderAgent.java
-FilebasedSenderAgent@= myGui@private Frame1 myGui=
+FilebasedSenderAgent@= myGui@private SentReceivedGUI myGui =
 FilebasedSenderAgent@- setup@protected void setup() {
 FilebasedSenderAgent@- takeDown@protected void takeDown() {
 
@@ -2920,3 +2938,251 @@ ProtocolDrivenBehaviour@- startupAsResponder@private void startupAsResponder() {
 Standard@+ Standard@private Standard() {
 Standard@- getProtocol@public static Protocol getProtocol(String name) {
 Standard@- initProtocols@private static void initProtocols() {
+
+/home/rimassa/DEVEL/JADE/src/examples/ex2/SentReceivedGUI.java
+SentReceivedGUI@+ SentReceivedGUI@public SentReceivedGUI(Agent a) {
+SentReceivedGUI@+ SentReceivedGUI@public SentReceivedGUI(String title) {
+SentReceivedGUI@+ SentReceivedGUI@public SentReceivedGUI() {
+SentReceivedGUI@- SentReceivedGUI_WindowClosing@void SentReceivedGUI_WindowClosing(java.awt.event.WindowEvent event) {
+SentReceivedGUI@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+SentReceivedGUI@- addNotify@public void addNotify() {
+SentReceivedGUI@= agent@private Agent agent;
+SentReceivedGUI@= fComponentsAdjusted@boolean fComponentsAdjusted =
+SentReceivedGUI@= label1@java.awt.Label label1;
+SentReceivedGUI@= label2@java.awt.Label label2;
+SentReceivedGUI@= m@private int m=
+SentReceivedGUI@- main@static public void main(String args[]) {
+SentReceivedGUI@= mainMenuBar@java.awt.MenuBar mainMenuBar;
+SentReceivedGUI@= menu1@java.awt.Menu menu1;
+SentReceivedGUI@= menu3@java.awt.Menu menu3;
+SentReceivedGUI@= miAbout@java.awt.MenuItem miAbout;
+SentReceivedGUI@- miAbout_Action@void miAbout_Action(java.awt.event.ActionEvent event) {
+SentReceivedGUI@= miExit@java.awt.MenuItem miExit;
+SentReceivedGUI@- miExit_Action@void miExit_Action(java.awt.event.ActionEvent event) {
+SentReceivedGUI@= miOpen@java.awt.MenuItem miOpen;
+SentReceivedGUI@- miOpen_Action@void miOpen_Action(java.awt.event.ActionEvent event) {
+SentReceivedGUI@= n@private int n=
+SentReceivedGUI@= openFileDialog1@java.awt.FileDialog openFileDialog1;
+SentReceivedGUI@- receivedMessage@public void receivedMessage(String msg) {
+SentReceivedGUI@- sentMessage@public void sentMessage(String msg) {
+SentReceivedGUI@- setVisible@public void setVisible(boolean b) {
+SentReceivedGUI@= textArea1@java.awt.TextArea textArea1;
+SentReceivedGUI@= textArea2@java.awt.TextArea textArea2;
+SentReceivedGUI@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/IIOPFormatException.java
+IIOPFormatException@+ IIOPFormatException@public IIOPFormatException(String msg) {
+
+/home/rimassa/DEVEL/JADE/src/jade/core/OutGoingIIOP.java
+OutGoingIIOP@= BIG_ENDIAN@public static final short BIG_ENDIAN =
+OutGoingIIOP@- BigEndianCodec@public BigEndianCodec(byte[] hexDigits) {
+OutGoingIIOP@- BigEndianCodec@public BigEndianCodec(String ior) {
+OutGoingIIOP@- CDRCodec@private static abstract class CDRCodec {
+OutGoingIIOP@= IIOP_MAJOR@private static final byte IIOP_MAJOR =
+OutGoingIIOP@= IIOP_MINOR@private static final byte IIOP_MINOR =
+OutGoingIIOP@= LITTLE_ENDIAN@public static final short LITTLE_ENDIAN =
+OutGoingIIOP@- LittleEndianCodec@public LittleEndianCodec(byte[] hexDigits) {
+OutGoingIIOP@- LittleEndianCodec@public LittleEndianCodec(String ior) {
+OutGoingIIOP@+ OutGoingIIOP@public OutGoingIIOP(ORB anOrb, String s) throws IIOPFormatException {
+OutGoingIIOP@+ OutGoingIIOP@public OutGoingIIOP(ORB anOrb, FIPA_Agent_97 objRef) throws IIOPFormatException {
+OutGoingIIOP@= TAG_INTERNET_IOP@private static final int TAG_INTERNET_IOP =
+OutGoingIIOP@= TYPE_ID@private static final String TYPE_ID =
+OutGoingIIOP@= codecStrategy@private CDRCodec codecStrategy;
+OutGoingIIOP@- getIOR@public String getIOR() {
+OutGoingIIOP@- getObject@public FIPA_Agent_97 getObject() {
+OutGoingIIOP@- getURL@public String getURL() {
+OutGoingIIOP@= host@private String host;
+OutGoingIIOP@- initFromIOR@private void initFromIOR(String s) throws IIOPFormatException {
+OutGoingIIOP@- initFromURL@private void initFromURL(String s, short endianness) throws IIOPFormatException {
+OutGoingIIOP@= ior@private String ior;
+OutGoingIIOP@= objectKey@private String objectKey;
+OutGoingIIOP@= orb@private ORB orb;
+OutGoingIIOP@= port@private short port;
+OutGoingIIOP@- readLong@public int readLong() {
+OutGoingIIOP@- readLong@public int readLong() {
+OutGoingIIOP@- readLongLong@public long readLongLong() {
+OutGoingIIOP@- readLongLong@public long readLongLong() {
+OutGoingIIOP@- readShort@public short readShort() {
+OutGoingIIOP@- readShort@public short readShort() {
+OutGoingIIOP@- writeLong@public void writeLong(int i) {
+OutGoingIIOP@- writeLong@public void writeLong(int i) {
+OutGoingIIOP@- writeLongLong@public void writeLongLong(long l) {
+OutGoingIIOP@- writeLongLong@public void writeLongLong(long l) {
+OutGoingIIOP@- writeShort@public void writeShort(short s) {
+OutGoingIIOP@- writeShort@public void writeShort(short s) {
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/DFGUI.java
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, String title, boolean modal) {
+AboutDialog@+ AboutDialog@public AboutDialog(Frame parent, boolean modal) {
+AboutDialog@- AboutDialog_WindowClosing@void AboutDialog_WindowClosing(java.awt.event.WindowEvent event) {
+DFGUI@= DEREGISTER@final static int DEREGISTER=
+DFGUI@+ DFGUI@public DFGUI(df a) {
+DFGUI@+ DFGUI@public DFGUI(String title) {
+DFGUI@+ DFGUI@public DFGUI() {
+DFGUI@- DFGUI_WindowClosing@void DFGUI_WindowClosing(java.awt.event.WindowEvent event) {
+agentDescriptionFrame@- DFGUI_WindowClosing@void DFGUI_WindowClosing(java.awt.event.WindowEvent event) {
+DFGUI@= MODIFY@final static int MODIFY=
+DFGUI@= REGISTER@final static int REGISTER=
+DFGUI@= VIEW@final static int VIEW=
+DFGUI@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+AboutDialog@- actionPerformed@public void actionPerformed(java.awt.event.ActionEvent event) {
+agentDescriptionFrame@- addAgentService@void addAgentService() {
+DFGUI@- addNotify@public void addNotify() {
+DFGUI@= agent@df agent;
+agentDescriptionFrame@+ agentDescriptionFrame@public agentDescriptionFrame(String title, Enumeration data, int useFor, Agent thisAgent) {
+agentDescriptionFrame@+ agentDescriptionFrame@public agentDescriptionFrame(String title) {
+agentDescriptionFrame@+ agentDescriptionFrame@public agentDescriptionFrame() {
+agentDescriptionFrame@= allDFAgentDescriptors@Enumeration allDFAgentDescriptors;
+agentDescriptionFrame@= allData@Enumeration allData;
+agentDescriptionFrame@= allServiceDescriptors@Enumeration allServiceDescriptors;
+agentDescriptionFrame@= button1@java.awt.Button button1;
+agentDescriptionFrame@- button1_MouseClicked@void button1_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button2@java.awt.Button button2;
+agentDescriptionFrame@- button2_MouseClicked@void button2_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button3@java.awt.Button button3;
+agentDescriptionFrame@- button3_MouseClicked@void button3_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button4@java.awt.Button button4;
+agentDescriptionFrame@- button4_MouseClicked@void button4_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button5@java.awt.Button button5;
+agentDescriptionFrame@- button5_MouseClicked@void button5_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button6@java.awt.Button button6;
+agentDescriptionFrame@- button6_MouseClicked@void button6_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button7@java.awt.Button button7;
+agentDescriptionFrame@- button7_MouseClicked@void button7_MouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= button8@java.awt.Button button8;
+agentDescriptionFrame@- button8_MouseClicked@void button8_MouseClicked(java.awt.event.MouseEvent event) {
+DFGUI@= buttonDFname@java.awt.Button buttonDFname;
+DFGUI@- buttonDFname_MouseClicked@void buttonDFname_MouseClicked(java.awt.event.MouseEvent event) {
+DFGUI@= canvas1@java.awt.Canvas canvas1;
+agentDescriptionFrame@= canvas1@java.awt.Canvas canvas1;
+agentDescriptionFrame@= currentDFAgentDescriptor@AgentManagementOntology.DFAgentDescriptor currentDFAgentDescriptor;
+agentDescriptionFrame@= currentDFAgentDescriptorNumber@int currentDFAgentDescriptorNumber;
+agentDescriptionFrame@= currentServiceDescriptor@AgentManagementOntology.ServiceDescriptor currentServiceDescriptor;
+agentDescriptionFrame@= currentServiceDescriptorNumber@int currentServiceDescriptorNumber;
+DFGUI@= fComponentsAdjusted@boolean fComponentsAdjusted =
+agentDescriptionFrame@- initializeDFAgentDescriptors@void initializeDFAgentDescriptors(Enumeration data) {
+agentDescriptionFrame@= label1@java.awt.Label label1;
+agentDescriptionFrame@= label10@java.awt.Label label10;
+agentDescriptionFrame@= label11@java.awt.Label label11;
+agentDescriptionFrame@= label12@java.awt.Label label12;
+agentDescriptionFrame@= label13@java.awt.Label label13;
+agentDescriptionFrame@= label14@java.awt.Label label14;
+agentDescriptionFrame@= label15@java.awt.Label label15;
+agentDescriptionFrame@= label16@java.awt.Label label16;
+agentDescriptionFrame@= label17@java.awt.Label label17;
+agentDescriptionFrame@= label2@java.awt.Label label2;
+agentDescriptionFrame@= label3@java.awt.Label label3;
+agentDescriptionFrame@= label4@java.awt.Label label4;
+agentDescriptionFrame@= label5@java.awt.Label label5;
+agentDescriptionFrame@= label6@java.awt.Label label6;
+agentDescriptionFrame@= label7@java.awt.Label label7;
+agentDescriptionFrame@= label8@java.awt.Label label8;
+agentDescriptionFrame@= label9@java.awt.Label label9;
+DFGUI@= labelDFname@java.awt.Label labelDFname;
+DFGUI@- main@static public void main(String args[]) {
+DFGUI@= mainMenuBar@java.awt.MenuBar mainMenuBar;
+DFGUI@= menu1@java.awt.Menu menu1;
+DFGUI@= menu3@java.awt.Menu menu3;
+DFGUI@= miAbout@java.awt.MenuItem miAbout;
+DFGUI@- miAbout_Action@void miAbout_Action(java.awt.event.ActionEvent event) {
+agentDescriptionFrame@- miAbout_Action@void miAbout_Action(java.awt.event.ActionEvent event) {
+DFGUI@= miDeregister@java.awt.MenuItem miDeregister;
+DFGUI@- miDeregister_Action@void miDeregister_Action(java.awt.event.ActionEvent event) {
+DFGUI@= miExit@java.awt.MenuItem miExit;
+DFGUI@- miExit_Action@void miExit_Action(java.awt.event.ActionEvent event) {
+agentDescriptionFrame@- miExit_Action@void miExit_Action(java.awt.event.ActionEvent event) {
+DFGUI@= miModify@java.awt.MenuItem miModify;
+DFGUI@- miModify_Action@void miModify_Action(java.awt.event.ActionEvent event) {
+DFGUI@= miRegister@java.awt.MenuItem miRegister;
+DFGUI@= miRegisterDF@java.awt.MenuItem miRegisterDF;
+DFGUI@- miRegisterDF_Action@void miRegisterDF_Action(java.awt.event.ActionEvent event) {
+DFGUI@- miRegister_Action@void miRegister_Action(java.awt.event.ActionEvent event) {
+DFGUI@= miView@java.awt.MenuItem miView;
+DFGUI@- miView_Action@void miView_Action(java.awt.event.ActionEvent event) {
+DFGUI@- mouseClicked@public void mouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@- mouseClicked@public void mouseClicked(java.awt.event.MouseEvent event) {
+agentDescriptionFrame@= myAgent@Agent myAgent;
+agentDescriptionFrame@= numberOfDFAgentDescriptors@int numberOfDFAgentDescriptors;
+agentDescriptionFrame@= numberOfServiceDescriptors@int numberOfServiceDescriptors;
+AboutDialog@= okButton@java.awt.Button okButton;
+AboutDialog@- okButton_Clicked@void okButton_Clicked(java.awt.event.ActionEvent event) {
+agentDescriptionFrame@- setAllEditable@void setAllEditable(boolean tf) {
+agentDescriptionFrame@- setServiceVisible@void setServiceVisible(boolean tf) {
+DFGUI@- setVisible@public void setVisible(boolean b) {
+AboutDialog@- setVisible@public void setVisible(boolean b) {
+agentDescriptionFrame@- setVisible@public void setVisible(boolean b) {
+DFGUI@- showErrorMsg@void showErrorMsg(String s) {
+AboutDialog@= textArea1@java.awt.TextArea textArea1;
+agentDescriptionFrame@= textField1@java.awt.TextField textField1;
+agentDescriptionFrame@= textField10@java.awt.TextField textField10;
+agentDescriptionFrame@= textField11@java.awt.TextField textField11;
+agentDescriptionFrame@= textField12@java.awt.TextField textField12;
+agentDescriptionFrame@= textField13@java.awt.TextField textField13;
+agentDescriptionFrame@= textField14@java.awt.TextField textField14;
+agentDescriptionFrame@= textField2@java.awt.TextField textField2;
+agentDescriptionFrame@= textField3@java.awt.TextField textField3;
+agentDescriptionFrame@= textField4@java.awt.TextField textField4;
+agentDescriptionFrame@= textField5@java.awt.TextField textField5;
+agentDescriptionFrame@= textField6@java.awt.TextField textField6;
+agentDescriptionFrame@= textField7@java.awt.TextField textField7;
+agentDescriptionFrame@= textField8@java.awt.TextField textField8;
+agentDescriptionFrame@= textField9@java.awt.TextField textField9;
+DFGUI@= textFieldDFname@java.awt.TextField textFieldDFname;
+DFGUI@= textFieldErrMsg@java.awt.TextField textFieldErrMsg;
+agentDescriptionFrame@- updateTextFields@void updateTextFields() {
+agentDescriptionFrame@= usage@int usage =
+DFGUI@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+AboutDialog@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+agentDescriptionFrame@- windowClosing@public void windowClosing(java.awt.event.WindowEvent event) {
+
+/home/rimassa/DEVEL/JADE/src/jade/domain/MissingAttributeException.java
+MissingAttributeException@+ MissingAttributeException@public MissingAttributeException() {
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/FipaContractNetInitiatorBehaviour.java
+FipaContractNetInitiatorBehaviour@= DEFAULTTIMEOUT@public static final long DEFAULTTIMEOUT =
+FipaContractNetInitiatorBehaviour@+ FipaContractNetInitiatorBehaviour@public FipaContractNetInitiatorBehaviour(){
+FipaContractNetInitiatorBehaviour@+ FipaContractNetInitiatorBehaviour@public FipaContractNetInitiatorBehaviour(Agent a, ACLMessage msg, AgentGroup group) {
+FipaContractNetInitiatorBehaviour@- action@final public void action() {
+FipaContractNetInitiatorBehaviour@= cfpMsg@ACLMessage cfpMsg;
+FipaContractNetInitiatorBehaviour@- done@public boolean done() {
+FipaContractNetInitiatorBehaviour@> evaluateFinalMessages@public abstract Vector evaluateFinalMessages(Vector messages);
+FipaContractNetInitiatorBehaviour@> evaluateProposals@public abstract Vector evaluateProposals(Vector proposals);
+FipaContractNetInitiatorBehaviour@= finished@public boolean finished;
+FipaContractNetInitiatorBehaviour@> handleOtherMessages@public abstract void handleOtherMessages(ACLMessage msg);
+FipaContractNetInitiatorBehaviour@= msgAcceptReject@Vector msgAcceptReject =
+FipaContractNetInitiatorBehaviour@= msgFinal@Vector msgFinal =
+FipaContractNetInitiatorBehaviour@= msgFinalAnswers@Vector msgFinalAnswers =
+FipaContractNetInitiatorBehaviour@= msgProposals@Vector msgProposals =
+FipaContractNetInitiatorBehaviour@= myAgent@public Agent myAgent;
+FipaContractNetInitiatorBehaviour@= proposerAgents@AgentGroup proposerAgents;
+FipaContractNetInitiatorBehaviour@= state@private int state =
+FipaContractNetInitiatorBehaviour@= template@MessageTemplate template;
+FipaContractNetInitiatorBehaviour@= timeout@long timeout;
+FipaContractNetInitiatorBehaviour@= waitedAgents@private AgentGroup waitedAgents;
+FipaContractNetInitiatorBehaviour@= wakeMsg@ACLMessage wakeMsg;
+FipaContractNetInitiatorBehaviour@= waker@Waker waker;
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/FipaContractNetResponderBehaviour.java
+FipaContractNetResponderBehaviour@> AcceptedProposal@public abstract ACLMessage AcceptedProposal(ACLMessage msg);
+FipaContractNetResponderBehaviour@= DEFAULTTIMEOUT@public static final long DEFAULTTIMEOUT =
+FipaContractNetResponderBehaviour@+ FipaContractNetResponderBehaviour@FipaContractNetResponderBehaviour(Agent a) {
+FipaContractNetResponderBehaviour@> RejectedProposal@public abstract void RejectedProposal(ACLMessage msg);
+FipaContractNetResponderBehaviour@- action@final public void action() {
+FipaContractNetResponderBehaviour@- done@public boolean done() {
+FipaContractNetResponderBehaviour@> evaluateCfp@public abstract ACLMessage evaluateCfp(ACLMessage cfp);
+FipaContractNetResponderBehaviour@= finished@public boolean finished =
+FipaContractNetResponderBehaviour@= mt@MessageTemplate mt=
+FipaContractNetResponderBehaviour@= myAgent@public Agent myAgent;
+FipaContractNetResponderBehaviour@- reset@public void reset() {
+FipaContractNetResponderBehaviour@= state@int state=
+FipaContractNetResponderBehaviour@= template@MessageTemplate template;
+FipaContractNetResponderBehaviour@= timeout@long timeout;
+FipaContractNetResponderBehaviour@= wakeMsg@ACLMessage wakeMsg;
+FipaContractNetResponderBehaviour@= waker@Waker waker;
+
+/home/rimassa/DEVEL/JADE/src/jade/proto/Waker.java
+Waker@+ Waker@Waker(Agent a, ACLMessage msg, long timeout) {
+Waker@= myAgent@Agent myAgent;
+Waker@= myMsg@ACLMessage myMsg;
+Waker@= myTimeout@long myTimeout;
+Waker@- run@public void run() {
