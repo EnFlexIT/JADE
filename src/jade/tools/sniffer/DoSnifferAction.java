@@ -38,7 +38,7 @@ import jade.util.leap.ArrayList;
 
    /**
   * For sniff the Agent in the tree.
-  * @see jade.tools.sniffer.DoNotSniffAction
+  * @see jade.tools.sniffer.DoNotSnifferAction
   * @see jade.tools.sniffer.ShowOnlyAction
   */
 

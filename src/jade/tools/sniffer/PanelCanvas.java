@@ -39,7 +39,7 @@ import java.awt.GridBagLayout;
   * Makes the two canvas.One is the agent canvas  which is useful
   * for drawing the agent's box and other is the message canvas
   * which useful for drawing the message with blue arrows.
-  * @see jade.sniffer.tools.MainPanel.
+  * @see jade.tools.sniffer.MainPanel
   */
 
 public class PanelCanvas extends JPanel {

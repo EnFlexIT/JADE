@@ -42,9 +42,9 @@ import java.io.Serializable;
  /**
  * Writes a text file with all sniffed messages showed on the Message Canvas. A dialog box
  * asks the user the name of the file.
- * @see jade.Sniffer.FixedAction
- * @see jade.Sniffer.AgentList
- * @see jade.Sniffer.MessageList
+ * @see jade.tools.sniffer.FixedAction
+ * @see jade.tools.sniffer.AgentList
+ * @see jade.tools.sniffer.MessageList
  */
 
  public class WriteMessageListAction extends FixedAction implements Serializable {

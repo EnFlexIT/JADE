@@ -36,7 +36,7 @@ import java.awt.Font;
  /**
  * Clears the Message Canvas.
  *
- * @see jade.tools.Sniffer.FixedAction
+ * @see jade.tools.sniffer.FixedAction
  */
 
 public class ClearCanvasAction extends FixedAction{

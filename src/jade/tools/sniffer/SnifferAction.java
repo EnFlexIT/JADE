@@ -40,7 +40,7 @@ import java.awt.event.ActionEvent;
  * @see  jade.tools.sniffer.WriteMessageListAction
  * @see  jade.tools.sniffer.DoSnifferAction
  * @see  jade.tools.sniffer.DoNotSnifferAction
- * @see  jade.tools.sniffer.DoShowOnlyAction
+ * @see jade.tools.sniffer.ShowOnlyAction
  */
 
 

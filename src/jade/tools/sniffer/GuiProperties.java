@@ -40,7 +40,7 @@ import java.util.Properties;
 
 /**
  * This class loads the icons used in the toolbar and menus
- * @see jade.tools.rma.GuiProperties
+ * @see jade.gui.GuiProperties
  */
 
 public class GuiProperties{

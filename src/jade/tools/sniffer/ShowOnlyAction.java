@@ -38,7 +38,7 @@ import jade.util.leap.ArrayList;
    /**
   * For don'tsniff the Agent in the tree, and if necessary
   * redrawing the box of agent with yellow color.
-  * @see jade.tools.sniffer.DoNotSniffAction
+  * @see jade.tools.sniffer.DoNotSnifferAction
   * @see jade.tools.sniffer.ShowOnlyAction
   */
 

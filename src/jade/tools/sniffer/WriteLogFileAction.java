@@ -42,9 +42,9 @@ import java.io.Serializable;
  * Creates a serialized snapshot of the agents and sniffed messages in both canvases for
  * later recall.
  *
- * @see jade.Sniffer.FixedAction
- * @see jade.Sniffer.AgentList
- * @see jade.Sniffer.MessageList
+ * @see jade.tools.sniffer.FixedAction
+ * @see jade.tools.sniffer.AgentList
+ * @see jade.tools.sniffer.MessageList
  */
 
 public class WriteLogFileAction extends FixedAction implements Serializable{
