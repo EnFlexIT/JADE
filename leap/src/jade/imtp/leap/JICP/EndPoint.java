@@ -48,7 +48,7 @@ public abstract class EndPoint extends Thread {
   private boolean    active = true;
   private boolean    connected = false;
   private Connection theConnection;
-  private Object     connectionLock = new Object(); // We can't synchronize on the connection itself as it may be null
+  protected Object     connectionLock = new Object(); // We can't synchronize on the connection itself as it may be null
   private InputStream  inp;
   private OutputStream out;
   private Thread terminator;
@@ -134,7 +134,7 @@ public abstract class EndPoint extends Thread {
 
       while (connected) {
         try {
-          log("Waiting for a command...");
+          log("Waiting for a command...", 3);
 
           // Read JICPPacket
           JICPPacket pkt = JICPPacket.readFrom(inp);
@@ -171,7 +171,7 @@ public abstract class EndPoint extends Thread {
     		handlePeerExited();
     	}
     	else {
-      	log("Command received. INC-SID="+id);
+      	log("Command received. INC-SID="+id, 3);
 
       	// Start a new IncomingHandler for the incoming connection
       	IncomingHandler h = new IncomingHandler(id, pkt);
@@ -179,7 +179,7 @@ public abstract class EndPoint extends Thread {
     	}
   	}
   	else {
-    	log("Response received. OUT-SID="+id);
+    	log("Response received. OUT-SID="+id, 3);
     	
     	// Dispatch the response  to the OutgoingHandler that is waiting for it
     	OutgoingHandler h = deregisterOutgoing(id);
@@ -288,13 +288,13 @@ public abstract class EndPoint extends Thread {
      */
     public final void run() {
       JICPPacket rsp = null;
-      log("Start serving incoming command. INC-SID="+id);
+      log("Start serving incoming command. INC-SID="+id, 3);
 
       // Extract the serialized command and passes it to the
       // listener for processing
     	try {
         rsp = handleCommand(cmd);
-        log("Command correctly handled. INC-SID="+id);
+        log("Command correctly handled. INC-SID="+id, 3);
     	}
     	catch (Exception e) {
     		rsp = new JICPPacket("IMTP Error", e);
@@ -307,7 +307,7 @@ public abstract class EndPoint extends Thread {
       	log("WARNING: Can't push back response. INC-SID="+id, 0);
       }
       else {
-	      log("Response pushed back. INC-SID="+id);
+	      log("Response pushed back. INC-SID="+id, 3);
       }
     } 
   }  // END of Inner class IncomingHandler
@@ -338,7 +338,7 @@ public abstract class EndPoint extends Thread {
     private final JICPPacket handle(JICPPacket cmd) throws ICPException {
     	// Register as waiting for a response and acquire a free ID
 	  	byte myId = registerOutgoing(this);
-	    log("Start serving outgoing command. OUT-SID="+myId);
+	    log("Start serving outgoing command. OUT-SID="+myId, 3);
   	
   		// Push the command
 	    oldPktCnt = pktCnt;
@@ -350,7 +350,7 @@ public abstract class EndPoint extends Thread {
     		throw new ICPException("Disconnected");
     	}
     	else {
-    		log("Command pushed. OUT-SID="+myId);
+    		log("Command pushed. OUT-SID="+myId, 3);
     	}
     	
 			// Wait until the EndPoint thread receives the response

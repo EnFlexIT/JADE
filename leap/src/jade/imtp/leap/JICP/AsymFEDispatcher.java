@@ -46,8 +46,8 @@ public class AsymFEDispatcher extends FrontEndDispatcher {
      read() in place.
    */
 	protected int deliver(JICPPacket pkt) throws IOException {
-		pkt.setRecipientID(mediatorId);
-    Connection c = new Connection(mediatorServerTA);
+		pkt.setRecipientID(mediatorTA.getFile());
+    Connection c = new Connection(mediatorTA);
     OutputStream o = c.getOutputStream();
 		int cnt = pkt.writeTo(o);
 		o.close();

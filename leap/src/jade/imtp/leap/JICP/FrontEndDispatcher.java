@@ -47,21 +47,17 @@ import java.io.*;
  */
 public class FrontEndDispatcher extends EndPoint implements FEConnectionManager, Dispatcher {
 
-  //private Thread            terminator = null;
-
   private MicroSkeleton mySkel = null;
   private BackEndStub myStub = null;
 
   // Variables related to the connection with the Mediator
-  protected TransportAddress mediatorServerTA;
-  protected String           mediatorId = null;
-  private boolean          mediatorAlive = false;
-  private long             retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
-  private long             maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
-  private long             totalDisconnectionTime = 0;
-  private String           errorMsg;
-  
+  protected TransportAddress mediatorTA;
+  private boolean mediatorAlive = false;
+  private long retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
+  private long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
+  private long totalDisconnectionTime = 0;
   private String owner;
+  private String errorMsg;
 
   /**
    * Constructor declaration
@@ -104,8 +100,8 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 	  	}
 	  	
 			// Compose URL 
-	  	mediatorServerTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
-	 		log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorServerTA), 2);
+	  	mediatorTA = JICPProtocol.getInstance().buildAddress(host, String.valueOf(port), null, null);
+	 		log("Remote URL is "+JICPProtocol.getInstance().addrToString(mediatorTA), 2);
 				
 			// Read (re)connection retry time
 			String tmp = props.getProperty(JICPProtocol.RECONNECTION_RETRY_TIME_KEY);
@@ -145,18 +141,6 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   		throw new IMTPException("Connection error", icpe);
   	}
   } 
-
-  /**
-   * Shut down this FrontEndDispatcher.
-   * This is called when the local FrontEnd container is exiting.
-   *
-  public void shutdown(boolean self) {
-    terminator = Thread.currentThread();
-    // If the termination is "self-initiated" the underlying EndPoint
-    // must notify its peer
-  	super.shutdown(self);
-    log("Shutdown initiated. Terminator thread is "+terminator, 2);
-  } */
 
   //////////////////////////////////////////////
   // Dispatcher interface implementation
@@ -227,25 +211,25 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
       	}
       	else {
       		// Can't reach the JICPServer to create my Mediator. Notify and exit
-      		errorMsg = "Can't connect to "+mediatorServerTA+". "+ioe.toString();
+      		errorMsg = "Can't connect to "+mediatorTA+". "+ioe.toString();
 	        throw new ICPException(errorMsg);
       	}
       }
     }
   }  
 
-  private void connect() throws IOException, ICPException {
+  protected void connect() throws IOException, ICPException {
     // Open the connection and gets the output and input streams
   	log("Opening connection to the BackEnd", 2);
-    Connection c = new Connection(mediatorServerTA);
-    DataOutputStream out = new DataOutputStream(c.getOutputStream());
-    DataInputStream inp = new DataInputStream(c.getInputStream());
+    Connection c = new Connection(mediatorTA);
+    OutputStream out = c.getOutputStream();
+    InputStream inp = c.getInputStream();
 
     log("Sending CREATE/CONNECT_MEDIATOR packet", 2);
     JICPPacket pkt = null;
     if (mediatorAlive) {
     	// This is a reconnection --> Send a CONNECT_MEDIATOR request
-    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorId, null);
+    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), null);
     }
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request and
@@ -275,7 +259,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     	throw new ICPException(errorMsg);
     } 
 		if (!mediatorAlive) {
-			mediatorId = new String(pkt.getData());
+			mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), new String(pkt.getData()), null);
 			mediatorAlive = true;
 		}
 		setConnection(c);

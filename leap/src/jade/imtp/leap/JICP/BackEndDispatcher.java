@@ -103,13 +103,16 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
     	// Keep default
     }
     
-    // Start the EndPoit embedded thread
+    // Start the EndPoint embedded thread
     start();
 
     //initCnt();
     
-    log("Created BackEndDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
-  	
+    log("Created BackEndDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);  	
+    startBackEndContainer(props);
+  }
+
+  protected final void startBackEndContainer(Properties props) throws ICPException {
     try {
     	myStub = new FrontEndStub(this);
     	props.setProperty(Profile.MAIN, "false");
@@ -129,7 +132,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 			throw new ICPException("Error creating profile");
     }
   }
-
+  
   /**
      Shutdown forced by the JICPServer this BackEndContainer is attached 
      to
@@ -262,20 +265,21 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	}
 	
   /**
-   * Sets the socket connected to the mediated container.
+   * Prepare to set the connection to the mediated container.
    * This is called by the JICPServer this BackEndDispatcher is 
    * attached to as soon as the FrontEnd container (re)connects.
-   * @param s the socket connected to the FrontEnd container
+   * @param c the connection to the FrontEnd container
    */
-   public synchronized void setConnection(Socket s) {
+  public synchronized JICPPacket handleIncomingConnection(Connection c) {
    	if (isConnected()) {
       // If the connection seems to be still valid then reset it so that 
     	// the embedded thread realizes it is no longer valid.
       resetConnection();
     } 
-    conn = new Connection(s);
+    conn = c;
     newConnectionReady = true;
     notifyAll();
+    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
   
   //////////////////////////////////////////////////////////////////////
