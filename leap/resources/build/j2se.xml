@@ -82,8 +82,9 @@
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${classes}"
-		       debug="${debug-build}"
-		       optimize="${optimised-build}"
+		       debug="${javac.debug}"
+		       optimize="${javac.optimize}"
+		       target="1.1"
 		       deprecation="off"/>
 		<!-- Ensure the images for the tools are also copied -->
 		<mkdir dir="${classes}/jade/tools/dfgui/images"/>
@@ -153,8 +154,8 @@
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-classes}"
 		       classpath="${classes}"
-		       debug="${debug-build}"
-		       optimize="${optimised-build}"
+		       debug="${javac.debug}"
+		       optimize="${javac.optimize}"
 		       deprecation="off"/>
 		       
 		<delete file="${root}/demo/demoJ2se.jar" quiet="true"/>
