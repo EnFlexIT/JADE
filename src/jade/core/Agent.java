@@ -82,11 +82,11 @@ public class Agent implements Runnable, CommBroadcaster {
 
   public void doStart(String name, String platformAddress) { // Transition from Initiated to Active
 
-    // Register this agent with platform AMS and start its embedded
-    // thread
+    // Set this agent's name and address and start its embedded thread
     myName = new String(name);
-    myAddress = new String(name + "@" + platformAddress);
+    myAddress = new String(platformAddress);
 
+    myThread.setName(myName);
     myThread.start();
 
   }
@@ -128,8 +128,8 @@ public class Agent implements Runnable, CommBroadcaster {
   public final void run() {
 
     try{
-      registerWithAMS(null,null,null,Agent.AP_ACTIVE);
-      
+      registerWithAMS(null,Agent.AP_ACTIVE,null,null,null);
+
       setup();
 
       mainLoop();
@@ -270,8 +270,8 @@ public class Agent implements Runnable, CommBroadcaster {
 
 
   // Register yourself with platform AMS
-  public void registerWithAMS(String signature, String delegateAgent,
-			      String forwardAddress, int APState) throws FIPAException {
+  public void registerWithAMS(String signature, int APState, String delegateAgent,
+			      String forwardAddress, String ownership) throws FIPAException {
 
     String replyString = myName + "-ams-registration";
 
@@ -290,20 +290,24 @@ public class Agent implements Runnable, CommBroadcaster {
     String APStateName = o.getAPStateByCode(APState);
 
     // Put mandatory attributes in content string
-    String content = "( action ams ( register-agent (" +
-      " :agent-name " + myName +
-      " :address " + myAddress +
-      " :ap-state " + APStateName;
+    String content = "( action ams ( register-agent " +
+      "( :ams-description " +
+      "( :agent-name " + myName + "@" + myAddress + " )" +
+      "( :address " + myAddress + " )" +
+      "( :ap-state " + APStateName + " )";
 
     // Add optional attributes if presents
     if(signature != null)
-      content = content.concat(" :signature " + signature);
+      content = content.concat("( :signature " + signature + " )");
 
     if(delegateAgent != null)
-      content = content.concat(" :delegate-agent " + delegateAgent);
+      content = content.concat("( :delegate-agent-name " + delegateAgent + " )");
 
     if(forwardAddress != null)
-      content = content.concat(" :forward-address " + forwardAddress);
+      content = content.concat("( :forward-address " + forwardAddress + " )");
+
+    if(ownership != null)
+      content = content.concat("( :ownership " + forwardAddress + " )");
 
     content = content.concat(") ) )");
 
@@ -319,7 +323,7 @@ public class Agent implements Runnable, CommBroadcaster {
       reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
       if(!reply.getType().equalsIgnoreCase("inform")) {
-	System.out.println("AMS registration failed !!!");
+	System.out.println("AMS registration failed for " + myName + "!!!");
 	doDelete();
       }
 
