@@ -527,59 +527,69 @@ public final class DefaultOntology implements Ontology {
     FrameSchema fs = lookupSchema(roleName);
     Iterator it = fs.subSchemas();
     int slotPosition = 0;
-
+    
     while(it.hasNext()) {
       SlotDescriptor desc = (SlotDescriptor)it.next();
       String slotName = desc.getName();
       String methodName;
       if (desc.isSet())
-				methodName = "add" + translateName(slotName);
+	methodName = "add" + translateName(slotName);
       else
-				methodName = "set" + translateName(slotName);
-
+	methodName = "set" + translateName(slotName);
+      
       // Retrieve the modifier method from the class and call it
       Method setMethod = findMethodCaseInsensitive(methodName, theRoleClass);
       try {
-				Object slotValue;
-				if (slotName.startsWith(Frame.UNNAMEDPREFIX))
-	  			slotValue = f.getSlot(slotPosition);
-				else
-	  			slotValue = f.getSlot(slotName);
-				// For complex slots, transform from sub-frame to sub-object.
-				// This is performed calling createObject() recursively.
-				if(desc.isComplex()) {
-	  			slotValue = createSingleObject((Frame)slotValue);
-	  			setMethod.invoke(entity, new Object[] { slotValue });
-				}
-				else if (desc.isSet()) {
-	  			Frame set = (Frame)slotValue;//this is the frame representing the set
-	  			if (desc.hasPrimitiveType())
-	    			for (int i=0; i<set.size(); i++) // add all the elements of the set
-	      			setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
-	  			else // convert the elements into an object and then add
-	    			for (int i=0; i<set.size(); i++) { 
-	      			Object element = createSingleObject((Frame)set.getSlot(i));
-	      			setMethod.invoke(entity, new Object[]{element});
-	    			} 
-				} 
-				else 
-	  			setMethod.invoke(entity, new Object[] { slotValue });
-				slotPosition++;
+	Object slotValue;
+	if (slotName.startsWith(Frame.UNNAMEDPREFIX))
+	  slotValue = f.getSlot(slotPosition);
+	else
+	  slotValue = f.getSlot(slotName);
+	// For complex slots, transform from sub-frame to sub-object.
+	// This is performed calling createObject() recursively.
+	if(desc.isComplex()) {
+	  slotValue = createSingleObject((Frame)slotValue);
+	  setMethod.invoke(entity, new Object[] { slotValue });
+	}
+	else if (desc.isSet()) {
+	  Frame set = (Frame)slotValue;//this is the frame representing the set
+	  if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)){
+	    for (int i=0; i<set.size(); i++) { 
+	      try { //try as a complex frame
+		Object element = createSingleObject((Frame)set.getSlot(i));
+		setMethod.invoke(entity, new Object[]{element});
+	      } catch (Exception ee1) {
+		// if exception then it is a primitive frame
+		setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
+	      }
+	    }//end of for int
+	  } else if (desc.hasPrimitiveType())
+	    for (int i=0; i<set.size(); i++) // add all the elements of the set
+	      setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
+	  else // convert the elements into an object and then add
+	    for (int i=0; i<set.size(); i++) { 
+	      Object element = createSingleObject((Frame)set.getSlot(i));
+	      setMethod.invoke(entity, new Object[]{element});
+	    } 
+	} 
+	else 
+	  setMethod.invoke(entity, new Object[] { slotValue });
+	slotPosition++;
       }
       catch(Frame.NoSuchSlotException fnsse) { // Ignore 'No such slot' errors for optional slots
-				if(!desc.isOptional())
-	  			throw fnsse;
+	if(!desc.isOptional())
+	  throw fnsse;
       }
       catch(InvocationTargetException ite) {
-				Throwable e = ite.getTargetException();
-				e.printStackTrace();
-				throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()",ite);
+	Throwable e = ite.getTargetException();
+	e.printStackTrace();
+	throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()",ite);
       }
       catch(IllegalAccessException iae) {
-				throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]",iae);
+	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]",iae);
       }
       catch(SecurityException se) {
-				throw new OntologyException("Wrong class: some required method is not accessible.",se); 
+	throw new OntologyException("Wrong class: some required method is not accessible.",se); 
       }
       catch(IllegalArgumentException iare){
       	throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]. For role "+roleName+" and slot "+slotName,iare);	
@@ -588,7 +598,7 @@ public final class DefaultOntology implements Ontology {
       	throw new OntologyException("Possibly a primitive value has been used instead of a Frame slot",iacce);
       }
     }
-
+    
     return entity;
   }
 
@@ -600,47 +610,57 @@ public final class DefaultOntology implements Ontology {
       String slotName = desc.getName();
       String methodName;
       if (desc.isSet())
-				methodName = "getAll" + translateName(slotName);
+	methodName = "getAll" + translateName(slotName);
       else
-				methodName = "get" + translateName(slotName);
+	methodName = "get" + translateName(slotName);
 
       // Retrieve the accessor method from the class and call it
       Method getMethod = findMethodCaseInsensitive(methodName, theRoleClass);
       try {
-				Object value = getMethod.invoke(o, new Object[] { });
-				if (value == null) {
-	  			if (!desc.isOptional())
-	    			throw new OntologyException("Slot "+slotName+" has a null value and it is mandatory"); 
-				} 
-				else {
-	  			// Now set the corresponding frame subterm appropriately
-	  			if(!desc.isComplex() && !desc.isSet()) { // For elementary terms, just put the Object as a slot
-	    			f.putSlot(slotName, value);
-	  			}
-	  			else if (desc.isComplex()) { 
-	    			// For complex terms, do a name lookup and 
-	    			// call createFrame() recursively
-	    			String roleName = desc.getType();
-	    			if (roleName.equalsIgnoreCase(Ontology.ANY_TYPE))
-	      			roleName = getRoleName(value.getClass());
-	    			f.putSlot(slotName, createFrame(value, roleName));
-	  			}
-	  			else if (desc.isSet()) {
-	    			Frame setFrame;
-	    			if (desc.getCategory() == Ontology.SET_SLOT)
-	      			setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
-	    			else
-	      			setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
-	    			Iterator i = (Iterator)value;
-	    			if (desc.hasPrimitiveType())
-	      			while (i.hasNext()) 
-								setFrame.putSlot(i.next());
-	    			else 
-	      			while (i.hasNext()) 
-								setFrame.putSlot(createFrame(i.next(), desc.getType()));
-	    			f.putSlot(slotName,setFrame);
-	  			}
-				} //if (value==null) else
+	Object value = getMethod.invoke(o, new Object[] { });
+	if (value == null) {
+	  if (!desc.isOptional())
+	    throw new OntologyException("Slot "+slotName+" has a null value and it is mandatory"); 
+	} 
+	else {
+	  // Now set the corresponding frame subterm appropriately
+	  if(!desc.isComplex() && !desc.isSet()) { // For elementary terms, just put the Object as a slot
+	    f.putSlot(slotName, value);
+	  }
+	  else if (desc.isComplex()) { 
+	    // For complex terms, do a name lookup and 
+	    // call createFrame() recursively
+	    String roleName = desc.getType();
+	    if (roleName.equalsIgnoreCase(Ontology.ANY_TYPE))
+	      roleName = getRoleName(value.getClass());
+	    f.putSlot(slotName, createFrame(value, roleName));
+	  }
+	  else if (desc.isSet()) {
+	    Frame setFrame;
+	    if (desc.getCategory() == Ontology.SET_SLOT)
+	      setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
+	    else
+	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
+	    Iterator i = (Iterator)value;
+	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
+	      while (i.hasNext()) {
+		Object elem = i.next();
+		try { //try before as a complex frame
+		  setFrame.putSlot(createFrame(elem, getRoleName(elem.getClass()))); 
+		} catch (Exception e) {
+		  // if exception then it is a primitive slot
+		  setFrame.putSlot(elem);
+		}
+	      }
+	    } else if (desc.hasPrimitiveType())
+	      while (i.hasNext()) 
+		setFrame.putSlot(i.next());
+	    else 
+	      while (i.hasNext()) 
+		setFrame.putSlot(createFrame(i.next(), desc.getType()));
+	    f.putSlot(slotName,setFrame);
+	  }
+	} //if (value==null) else
       }
       catch(InvocationTargetException ite) {
 				String msg = ite.getTargetException().getMessage();
