@@ -90,9 +90,12 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
     this.setMaximizable(true);
     this.setResizable(true);
     this.setJMenuBar(mainBar);
-    this.pack();
-    splitPanel.setDividerLocation(getWidth() / 2);
+  }
 
+  public void adjustDividerLocation() {
+    System.out.println("Width = " + getWidth());
+    splitPanel.setDividerLocation(getWidth() / 2);
+    lastDividerLocation = splitPanel.getDividerLocation();
   }
 
   public void setMessagePanelVisible(boolean b){
@@ -133,8 +136,8 @@ public class MainWindow extends JInternalFrame implements InternalFrameListener
 
   public void internalFrameActivated(InternalFrameEvent e){
     this.moveToFront();
-
   }
+
   public void internalFrameDeactivated(InternalFrameEvent e){}
   public void internalFrameClosed(InternalFrameEvent e){}
   public void internalFrameClosing(InternalFrameEvent e){}
