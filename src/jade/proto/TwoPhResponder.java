@@ -28,514 +28,273 @@ package jade.proto;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.FailureException;
 import jade.proto.states.*;
+import java.util.Date;
 
 /**
  * Class description
  * @author Elena Quarantotto - TILAB
  * @author Giovanni Caire - TILAB
  */
-public class TwoPhResponder extends FSMBehaviour {
-    /* FSM states names */
-    private static final String RECEIVE_CFP_STATE = "Receive-CallForProposal";
-    private static final String HANDLE_CFP = "Handle-Cfp";
-    private static final String SEND_PROPOSE_STATE = "Send-Propose";
-    private static final String RECEIVE_QUERY_IF_STATE = "Receive-Query-If";
-    private static final String HANDLE_OUT_OF_SEQUENCE_PH1_STATE = "Handle-Out-Of-Sequence-Ph1";
-    private static final String HANDLE_QUERY_IF_STATE = "Handle-Query-If";
-    private static final String HANDLE_REJECT_STATE ="Handle-Reject";
-    private static final String SEND_CONFIRM_STATE = "Send-Confirm";
-    private static final String RECEIVE_ACCEPTANCE_STATE = "Receive-Acceptance";
-    private static final String HANDLE_OUT_OF_SEQUENCE_PH2_STATE = "Handle-Out-Of-Sequence-Ph2";
-    private static final String HANDLE_ACCEPTANCE_STATE = "Handle-Acceptance";
-    private static final String DUMMY_FINAL = "Dummy-final";
+public class TwoPhResponder extends Responder {
+	// FSM states names 
+	private static final String RECEIVE_CFP = RECEIVE_INITIATION;
+	private static final String HANDLE_CFP = "Handle-Cfp";
+	private static final String HANDLE_QUERY_IF = "Handle-Query-If";
+	private static final String HANDLE_ACCEPT_PROPOSAL = "Handle-Accept";
+	private static final String HANDLE_REJECT_PROPOSAL = "Handle-Reject";
+	
+	private int phase = 0;
+	
+	/**
+	* Constructor of the behaviour that creates a new empty DataStore
+	* @see #TwoPhResponder(Agent a, MessageTemplate mt, DataStore store)
+	**/
+	public TwoPhResponder(Agent a, MessageTemplate mt) {
+	     this(a, mt, new DataStore());
+	}
+	
+	/**
+	 * Constructor of the behaviour.
+	 * @param a is the reference to the Agent object
+	 * @param mt is the MessageTemplate that must be used to match
+	 * the initiator message. Take care that if mt is null every message is
+	 * consumed by this protocol.
+	 * The best practice is to have a MessageTemplate that matches
+	 * the protocol slot; the static method <code>createMessageTemplate</code>
+	 * might be usefull.
+	 * @param store the DataStore for this protocol behaviour
+	 **/
+	public TwoPhResponder(Agent a, MessageTemplate mt, DataStore store) {
+		super(a, mt, store);
+		
+		registerTransition(CHECK_IN_SEQ, HANDLE_CFP, ACLMessage.CFP);
+		registerTransition(CHECK_IN_SEQ, HANDLE_QUERY_IF, ACLMessage.QUERY_IF);
+		registerTransition(CHECK_IN_SEQ, HANDLE_ACCEPT_PROPOSAL, ACLMessage.ACCEPT_PROPOSAL);
+		registerTransition(CHECK_IN_SEQ, HANDLE_REJECT_PROPOSAL, ACLMessage.REJECT_PROPOSAL);
 
-    /* Data store keys */
+		registerDefaultTransition(HANDLE_CFP, SEND_REPLY);
+		registerDefaultTransition(HANDLE_QUERY_IF, SEND_REPLY);
+		registerDefaultTransition(HANDLE_ACCEPT_PROPOSAL, SEND_REPLY);
+		registerDefaultTransition(HANDLE_REJECT_PROPOSAL, SEND_REPLY);
+		
+		registerTransition(SEND_REPLY, RECEIVE_NEXT, ACLMessage.PROPOSE, new String[] {HANDLE_CFP});
+		registerTransition(SEND_REPLY, RECEIVE_NEXT, ACLMessage.CONFIRM);
+		registerTransition(SEND_REPLY, RECEIVE_CFP, ACLMessage.INFORM);
+		registerTransition(SEND_REPLY, RECEIVE_CFP, ACLMessage.DISCONFIRM);
+		registerTransition(SEND_REPLY, RECEIVE_CFP, ACLMessage.FAILURE);
+		registerTransition(SEND_REPLY, RECEIVE_CFP, ACLMessage.NOT_UNDERSTOOD);		
+		
+		
+		Behaviour b;
+        
+		// HANDLE_CFP
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 4487495895818001L;
+	  	
+			public void action() {
+			    ACLMessage reply = handleCfp((ACLMessage) getDataStore().get(RECEIVED_KEY));
+			    getDataStore().put(REPLY_KEY, reply);
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_CFP);
+	
+		// HANDLE_QUERY_IF
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 4487495895818002L;
+	  	
+			public void action() {
+			    ACLMessage reply = handleQueryIf((ACLMessage) getDataStore().get(RECEIVED_KEY));
+			    getDataStore().put(REPLY_KEY, reply);
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_QUERY_IF);
+	
+		// HANDLE_ACCEPT_PROPOSAL
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 4487495895818003L;
+	  	
+			public void action() {
+			    ACLMessage reply = handleAcceptProposal((ACLMessage) getDataStore().get(RECEIVED_KEY));
+			    getDataStore().put(REPLY_KEY, reply);
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_ACCEPT_PROPOSAL);
+	
+		// HANDLE_REJECT_PROPOSAL
+		b = new OneShotBehaviour(myAgent) {
+	  	private static final long     serialVersionUID = 4487495895818004L;
+	  	
+			public void action() {
+			    ACLMessage reply = handleRejectProposal((ACLMessage) getDataStore().get(RECEIVED_KEY));
+			    getDataStore().put(REPLY_KEY, reply);
+			}
+		};
+		b.setDataStore(getDataStore());		
+		registerState(b, HANDLE_REJECT_PROPOSAL);
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object received by the responder.
-     **/
-    public final String CFP_KEY = "__Cfp_key" + hashCode();
+  /**
+   * This method is called when the initiator's
+   * message is received that matches the message template
+   * passed in the constructor.
+   * This default implementation return null which has
+   * the effect of sending no reponse. Programmers should
+   * override the method in case they need to react to this event.
+   * @param cfp the received message
+   * @return the ACLMessage to be sent as a response (i.e. one of
+   * <code>PROPOSE, FAILURE</code>. <b>Remind</b> to
+   * use the method <code>createReply</code> of the class ACLMessage in order
+   * to create a valid reply message
+   * @see jade.lang.acl.ACLMessage#createReply()
+   **/
+  protected ACLMessage handleCfp(ACLMessage cfp) {
+      return null;
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object sent as a response to the initiator's ACLMessage CFP.
-     **/
-    public final String PROPOSE_KEY = "__Propose_key" + hashCode();
+  /**
+  * This method is called after the <code>QUERY-IF</code> has been received.
+  * This default implementation return null which has
+  * the effect of sending no result notification. Programmers should
+  * override the method in case they need to react to this event.
+  * @param queryIf the received message
+  * @return the ACLMessage to be sent as a result notification (i.e. one of
+  * <code>CONFIRM, INFORM, DISCONFIRM</code>. <b>Remind</b> to
+  * use the method createReply of the class ACLMessage in order
+  * to create a valid reply message
+  * @see jade.lang.acl.ACLMessage#createReply()
+  **/
+  protected ACLMessage handleQueryIf(ACLMessage queryIf) {
+      return null;
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object received after an ACLMessage PROPOSE reply.
-     **/
-    //fix: public final String QUERY_IF_KEY = "__Query_If_key" + hashCode();*/
+  /**
+  * This method is called after the <code>REJECT-PROPOSAL</code> has been received.
+  * This default implementation do nothing.
+  * Programmers should override the method in case they need to react to this event.
+  * @param reject the received message
+  * @return the ACLMessage to be sent as a result notification (i.e. an
+  * <code>INFORM</code>. <b>Remind</b> to
+  * use the method createReply of the class ACLMessage in order
+  * to create a valid reply message
+  * @see jade.lang.acl.ACLMessage#createReply()
+  **/
+  protected ACLMessage handleRejectProposal(ACLMessage reject) {
+      return null;
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object sent by SEND_CONFIRM_STATE.
-     **/
-    public final String REPLY_KEY = "__Reply_key" + hashCode();
+  /**
+  * This method is called after the <code>ACCEPT-PROPOSAL</code> has been received.
+  * This default implementation return null which has
+  * the effect of sending no result notification. Programmers should
+  * override the method in case they need to react to this event.
+  * @param accept the received message
+  * @return the ACLMessage to be sent as a result notification (i.e. an
+  * <code>INFORM</code>. <b>Remind</b> to use the method createReply of
+  * the class ACLMessage in order to create a valid reply message
+  * @see jade.lang.acl.ACLMessage#createReply()
+  **/
+  protected ACLMessage handleAcceptProposal(ACLMessage accept) {
+      return null;
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object received after an ACLMessage CONFIRM reply.
-     **/
-    //fix: public final String ACCEPTANCE_KEY = "__Acceptance_key" + hashCode();
+  /**
+   * This method allows to register a user defined <code>Behaviour</code>
+   * in the PREPARE_PROPOSE state. This behaviour would override the homonymous
+   * method. This method also set the data store of the registered
+   * <code>Behaviour</code> to the DataStore of this current behaviour.
+   * It is responsibility of the registered behaviour to put the response
+   * to be sent into the datastore at the <code>PROPOSE_KEY</code> key.
+   * @param b the Behaviour that will handle this state
+   **/
+  public void registerHandleCfp(Behaviour b) {
+      registerDSState(b, HANDLE_CFP);
+  }
 
-    /**
-     * key to retrieve from the DataStore of the behaviour the ACLMessage
-     * object received by SEND_CONFIRM_STATE.
-     **/
-    public final String QUERY_KEY = "__Query_key" + hashCode();
+  /**
+   * This method allows to register a user defined <code>Behaviour</code>
+   * in the HANDLE_QUERY_IF state. This behaviour would override the homonymous
+   * method. This method also set the data store of the registered
+   * <code>Behaviour</code> to the DataStore of this current behaviour.
+   * It is responsibility of the registered behaviour to put the response
+   * to be sent into the datastore at the <code>REPLY_KEY</code> key.
+   * @param b the Behaviour that will handle this state
+   **/
+  public void registerHandleQueryIf(Behaviour b) {
+     registerDSState(b, HANDLE_QUERY_IF);
+  }
 
-    /**/
-    private MsgReceiver cfp_req, accept_req, queryIf_req;
-    //private SequentialBehaviour queryIf_req;
-    private MessageTemplate msgt = null;
+  /**
+   * This method allows to register a user defined <code>Behaviour</code>
+   * in the HANDLE_REJECT state. This behaviour would override the homonymous
+   * method. This method also set the data store of the registered
+   * <code>Behaviour</code> to the DataStore of this current behaviour.
+   * It is responsibility of the registered behaviour to put the response
+   * to be sent into the datastore at the <code>REPLY_KEY</code> key.
+   * @param b the Behaviour that will handle this state
+   **/
+  public void registerHandleRejectProposal(Behaviour b) {
+      registerDSState(b, HANDLE_REJECT_PROPOSAL);
+  }
 
-    private boolean logging = false; /**@todo REMOVE IT!!!!!!!!!!! */
+  /**
+   * This method allows to register a user defined <code>Behaviour</code>
+   * in the HANDLE_ACCEPTANCE state. This behaviour would override the homonymous
+   * method. This method also set the data store of the registered
+   * <code>Behaviour</code> to the DataStore of this current behaviour.
+   * It is responsibility of the registered behaviour to put the response
+   * to be sent into the datastore at the <code>REPLY_KEY</code> key.
+   * @param b the Behaviour that will handle this state
+   **/
+  public void registerHandleAcceptProposal(Behaviour b) {
+      registerDSState(b, HANDLE_ACCEPT_PROPOSAL);
+  }
 
-    /**
-    * Constructor of the behaviour that creates a new empty DataStore
-    * @see #TwoPhResponder(Agent a, MessageTemplate mt, DataStore store)
+  /**todo@ Da rivedere il createMessageTemplate E I COMMENTI!!!! */
+  /**  This static method can be used to set the proper message Template
+   * (based on the interaction protocol and the performative) to be passed to the constructor of this behaviour.
+    *  @see jade.domain.FIPANames.InteractionProtocol
     **/
-    public TwoPhResponder(Agent a, MessageTemplate mt) {
-         this(a, mt, new DataStore());
-    }
+  public static MessageTemplate createMessageTemplate() {
+      return MessageTemplate.and(MessageTemplate.MatchProtocol(TwoPhConstants.JADE_TWO_PHASE_COMMIT),
+              MessageTemplate.MatchPerformative(ACLMessage.CFP));
+  }
 
-    /**
-     * Constructor of the behaviour.
-     * @param a is the reference to the Agent object
-     * @param mt is the MessageTemplate that must be used to match
-     * the initiator message. Take care that if mt is null every message is
-     * consumed by this protocol.
-     * The best practice is to have a MessageTemplate that matches
-     * the protocol slot; the static method <code>createMessageTemplate</code>
-     * might be usefull.
-     * @param store the DataStore for this protocol behaviour
-     **/
-    public TwoPhResponder(Agent a, MessageTemplate mt, DataStore store) {
-        super(a);
-        setDataStore(store);
-        this.msgt = mt;
-        registerDefaultTransition(RECEIVE_CFP_STATE, HANDLE_CFP);
-        registerDefaultTransition(HANDLE_CFP, SEND_PROPOSE_STATE);
-        registerTransition(SEND_PROPOSE_STATE, RECEIVE_QUERY_IF_STATE, ACLMessage.PROPOSE);
-        registerTransition(SEND_PROPOSE_STATE, DUMMY_FINAL, ACLMessage.FAILURE);
-        registerDefaultTransition(RECEIVE_QUERY_IF_STATE, HANDLE_OUT_OF_SEQUENCE_PH1_STATE);
-        registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_PH1_STATE, RECEIVE_QUERY_IF_STATE);
-        registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_QUERY_IF_STATE, ACLMessage.QUERY_IF);
-        registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_REJECT_STATE, ACLMessage.REJECT_PROPOSAL);
-        registerTransition(RECEIVE_QUERY_IF_STATE, HANDLE_CFP, ACLMessage.CFP);
-        registerDefaultTransition(HANDLE_QUERY_IF_STATE, SEND_CONFIRM_STATE);
-        registerDefaultTransition(HANDLE_REJECT_STATE, SEND_CONFIRM_STATE);
-        registerTransition(SEND_CONFIRM_STATE, RECEIVE_ACCEPTANCE_STATE, ACLMessage.CONFIRM);
-        registerTransition(SEND_CONFIRM_STATE, DUMMY_FINAL, ACLMessage.DISCONFIRM);
-        registerTransition(SEND_CONFIRM_STATE, DUMMY_FINAL, ACLMessage.INFORM);
-        registerDefaultTransition(RECEIVE_ACCEPTANCE_STATE, HANDLE_OUT_OF_SEQUENCE_PH2_STATE);
-        registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE_PH2_STATE, RECEIVE_ACCEPTANCE_STATE);
-        registerTransition(RECEIVE_ACCEPTANCE_STATE, HANDLE_ACCEPTANCE_STATE, ACLMessage.ACCEPT_PROPOSAL);
-        registerTransition(RECEIVE_ACCEPTANCE_STATE, HANDLE_REJECT_STATE, ACLMessage.REJECT_PROPOSAL);
-        registerDefaultTransition(HANDLE_ACCEPTANCE_STATE, SEND_CONFIRM_STATE);
-
-        Behaviour b;
-
-        /* RECEIVE_CFP */
-        cfp_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), CFP_KEY) {
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(CFP_KEY);
-                msgt = MessageTemplate.and(
-                        MessageTemplate.MatchConversationId(msg.getConversationId()),
-                        MessageTemplate.MatchProtocol(TwoPhConstants.JADE_TWO_PHASE_COMMIT));
-                queryIf_req.setTemplate(msgt);
-                return super.onEnd();
-            }
-        };
-        registerFirstState(cfp_req, RECEIVE_CFP_STATE);
-
-        /* PREPARE_PROPOSE */
-        b = new OneShotBehaviour(myAgent) {
-            ACLMessage response = null;
-
-            public void action() {
-                ACLMessage cfp = (ACLMessage) getDataStore().get(CFP_KEY);
-                response = preparePropose(cfp);
-                getDataStore().put(PROPOSE_KEY, response);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(PROPOSE_KEY);
-                return response.getPerformative();
-            }
-        };
-        registerDSState(b, HANDLE_CFP);
-
-        /* SEND_PROPOSE */
-        b = new ReplySender(myAgent, PROPOSE_KEY, CFP_KEY) {
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage toReply = (ACLMessage) ds.get(CFP_KEY);
-                ACLMessage msg = (ACLMessage) ds.get(PROPOSE_KEY);
-                return super.onEnd();
-            }
-        };
-        registerDSState(b, SEND_PROPOSE_STATE);
-
-        /* RECEIVE_QUERY_IF */
-        /* fix:
-        queryIf_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_IF_KEY) {*/
-        queryIf_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_KEY) {
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                /*
-                fix: ACLMessage request = (ACLMessage) ds.get(QUERY_IF_KEY);
-                ds.put(QUERY_KEY, request);*/
-                ACLMessage request = (ACLMessage) ds.get(QUERY_KEY);
-                if(request.getPerformative() == ACLMessage.CFP) {
-                    ds.put(CFP_KEY, request);
-                }
-			    return super.onEnd();
-            }
-        };
-        registerDSState(queryIf_req, RECEIVE_QUERY_IF_STATE);
-
-        /* HANDLE_OUT_OF_SEQUENCE_PH1 */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-                DataStore ds = getDataStore();
-                /* fix:
-                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_IF_KEY);*/
-                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_KEY);
-                handleOutOfSequencePh1(outMsg);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                /* fix:
-                ACLMessage msg = (ACLMessage) ds.get(QUERY_IF_KEY); */
-                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
-                return msg.getPerformative();
-            }
-        };
-        registerDSState(b, HANDLE_OUT_OF_SEQUENCE_PH1_STATE);
-
-        /* HANDLE_QUERY_IF */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-                DataStore ds = getDataStore();
-                /* fix: carico da QUERY_KEY
-                ACLMessage queryIf = (ACLMessage) ds.get(QUERY_IF_KEY);
-                ds.put(QUERY_KEY, queryIf);*/
-                ACLMessage queryIf = (ACLMessage) ds.get(QUERY_KEY);
-                ACLMessage response = handleQueryIf(queryIf);
-                ds.put(REPLY_KEY, response);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                return msg.getPerformative();
-            }
-        };
-        registerDSState(b, HANDLE_QUERY_IF_STATE);
-
-        /* HANDLE_REJECT */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-                DataStore ds = getDataStore();
-                /* fix: caricato in QUERY_KEY
-                ACLMessage reject = (ACLMessage) ds.get(QUERY_IF_KEY);
-                ds.put(QUERY_KEY, reject);*/
-                ACLMessage reject = (ACLMessage) ds.get(QUERY_KEY);
-                ACLMessage response = handleRejectProposal(reject);
-                ds.put(REPLY_KEY, response);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                return msg.getPerformative();
-            }
-        };
-        registerDSState(b, HANDLE_REJECT_STATE);
-
-        /* SEND_CONFIRM */
-        b = new ReplySender(myAgent, REPLY_KEY, QUERY_KEY) {
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                ACLMessage query = (ACLMessage) ds.get(QUERY_KEY);
-                accept_req.setTemplate(msgt);
-                return super.onEnd();
-            }
-        };
-        registerDSState(b, SEND_CONFIRM_STATE);
-
-        /* WAIT_ACCEPTANCE */
-        /* fix: carico in QUERY_KEY
-        accept_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), ACCEPTANCE_KEY) { */
-        accept_req = new MsgReceiver(myAgent, msgt, -1, getDataStore(), QUERY_KEY) {
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                /*
-                fix: ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);
-                Logger.log("(TwoPhResponder, TwoPhResponder(), WAIT_ACCEPTANCE, " + myAgent.getLocalName() + "): " +
-                        "Received msg put in ACCEPTANCE_KEY = " + ACLMessage.getPerformative(msg.getPerformative()) +
-                                        "," + msg.getContent() + ")", logging); */
-                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
-                return super.onEnd();
-            }
-        };
-        registerDSState(accept_req, RECEIVE_ACCEPTANCE_STATE);
-
-        /* HANDLE_OUT_OF_SEQUENCE_PH2 */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-                DataStore ds = getDataStore();
-                /* fix:
-                ACLMessage outMsg = (ACLMessage) ds.get(ACCEPTANCE_KEY);*/
-                ACLMessage outMsg = (ACLMessage) ds.get(QUERY_KEY);
-                handleOutOfSequencePh2(outMsg);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                /*
-                ACLMessage msg = (ACLMessage) ds.get(ACCEPTANCE_KEY);*/
-                ACLMessage msg = (ACLMessage) ds.get(QUERY_KEY);
-                return msg.getPerformative();
-            }
-        };
-        registerDSState(b, HANDLE_OUT_OF_SEQUENCE_PH2_STATE);
-
-        /* HANDLE_ACCEPTANCE */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-                DataStore ds = getDataStore();
-                /* fix:
-                ACLMessage accept = (ACLMessage) ds.get(ACCEPTANCE_KEY);
-                Logger.log("(TwoPhResponder, TwoPhResponder(), HANDLE_ACCEPTANCE, " + myAgent.getLocalName() + "): " +
-                        "Received msg put in ACCEPTANCE_KEY = " + accept, logging);
-                ds.put(QUERY_KEY, accept);*/
-                ACLMessage accept = (ACLMessage) ds.get(QUERY_KEY);
-                ACLMessage response = handleAcceptProposal(accept);
-                ds.put(REPLY_KEY, response);
-            }
-
-            public int onEnd() {
-                DataStore ds = getDataStore();
-                ACLMessage msg = (ACLMessage) ds.get(REPLY_KEY);
-                return super.onEnd();
-            }
-
-        };
-        registerDSState(b, HANDLE_ACCEPTANCE_STATE);
-
-        /* DUMMY_FINAL */
-        b = new OneShotBehaviour(myAgent) {
-            public void action() {
-            }
-        };
-        registerLastState(b, DUMMY_FINAL);
-    }
-
-    /**
-     * This method is called when the initiator's
-     * message is received that matches the message template
-     * passed in the constructor.
-     * This default implementation return null which has
-     * the effect of sending no reponse. Programmers should
-     * override the method in case they need to react to this event.
-     * @param cfp the received message
-     * @return the ACLMessage to be sent as a response (i.e. one of
-     * <code>PROPOSE, FAILURE</code>. <b>Remind</b> to
-     * use the method <code>createReply</code> of the class ACLMessage in order
-     * to create a valid reply message
-     * @see jade.lang.acl.ACLMessage#createReply()
-     **/
-    protected ACLMessage preparePropose(ACLMessage cfp) {
-        return null;
-    }
-
-    /**
-    * This method is called after the <code>QUERY-IF</code> has been received.
-    * This default implementation return null which has
-    * the effect of sending no result notification. Programmers should
-    * override the method in case they need to react to this event.
-    * @param queryIf the received message
-    * @return the ACLMessage to be sent as a result notification (i.e. one of
-    * <code>CONFIRM, INFORM, DISCONFIRM</code>. <b>Remind</b> to
-    * use the method createReply of the class ACLMessage in order
-    * to create a valid reply message
-    * @see jade.lang.acl.ACLMessage#createReply()
-    **/
-    protected ACLMessage handleQueryIf(ACLMessage queryIf) {
-        return null;
-    }
-
-    /**
-    * This method is called after the <code>REJECT-PROPOSAL</code> has been received.
-    * This default implementation do nothing.
-    * Programmers should override the method in case they need to react to this event.
-    * @param reject the received message
-    * @return the ACLMessage to be sent as a result notification (i.e. an
-    * <code>INFORM</code>. <b>Remind</b> to
-    * use the method createReply of the class ACLMessage in order
-    * to create a valid reply message
-    * @see jade.lang.acl.ACLMessage#createReply()
-    **/
-    protected ACLMessage handleRejectProposal(ACLMessage reject) {
-        return null;
-    }
-
-    /**
-    * This method is called after the <code>ACCEPT-PROPOSAL</code> has been received.
-    * This default implementation return null which has
-    * the effect of sending no result notification. Programmers should
-    * override the method in case they need to react to this event.
-    * @param accept the received message
-    * @return the ACLMessage to be sent as a result notification (i.e. an
-    * <code>INFORM</code>. <b>Remind</b> to use the method createReply of
-    * the class ACLMessage in order to create a valid reply message
-    * @see jade.lang.acl.ACLMessage#createReply()
-    **/
-    protected ACLMessage handleAcceptProposal(ACLMessage accept) {
-        return null;
-    }
-
-    /**
-    * This callback method is called when arrives an incorrect message
-    * (i.e. a message with the correct in-reply-to field but with a
-    * unexpected performative) after has been sent a <code>PROPOSE</code>.
-    * This default implementation do nothing.
-    * Programmers should override the method in case they need to react to this event.
-    * @param  outOfSequenceMsg the received message that does not respect the protocol
-    **/
-    protected void handleOutOfSequencePh1(ACLMessage outOfSequenceMsg) {
-    }
-
-    /**
-    * This callback method is called when arrives an incorrect message
-    * (i.e. a message with the correct in-reply-to field but with a
-    * unexpected performative) after has been sent a <code>CONFIRM</code>.
-    * This default implementation do nothing.
-    * Programmers should override the method in case they need to react to this event.
-    * @param  outOfSequenceMsg the received message that does not respect the protocol
-    **/
-    protected void handleOutOfSequencePh2(ACLMessage outOfSequenceMsg) {
-    }
-
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the PREPARE_PROPOSE state. This behaviour would override the homonymous
-     * method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * It is responsibility of the registered behaviour to put the response
-     * to be sent into the datastore at the <code>PROPOSE_KEY</code> key.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerPreparePropose(Behaviour b) {
-        registerDSState(b, HANDLE_CFP);
-    }
-
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the HANDLE_QUERY_IF state. This behaviour would override the homonymous
-     * method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * It is responsibility of the registered behaviour to put the response
-     * to be sent into the datastore at the <code>REPLY_KEY</code> key.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerHandleQueryIf(Behaviour b) {
-       registerDSState(b, HANDLE_QUERY_IF_STATE);
-    }
-
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the HANDLE_REJECT state. This behaviour would override the homonymous
-     * method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * It is responsibility of the registered behaviour to put the response
-     * to be sent into the datastore at the <code>REPLY_KEY</code> key.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerHandleRejectProposal(Behaviour b) {
-        registerDSState(b, HANDLE_REJECT_STATE);
-    }
-
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the HANDLE_ACCEPTANCE state. This behaviour would override the homonymous
-     * method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * It is responsibility of the registered behaviour to put the response
-     * to be sent into the datastore at the <code>REPLY_KEY</code> key.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerHandleAcceptProposal(Behaviour b) {
-        registerDSState(b, HANDLE_ACCEPTANCE_STATE);
-    }
-
-    /**todo@ Vedere se e' possibile usare un solo stato HANDLE_OUT_OF_SEQUENCE */
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the HANDLE_OUT_OF_SEQUENCE_PH1 state. This behaviour would override
-     * the homonymous method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * The registered behaviour can found the send and received message in the
-     * datastore at the keys <code>PROPOSE_KEY</code> and <code>QUERY_IF_KEY</code>.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerHandleOutOfSequencePh1(Behaviour b) {
-        registerDSState(b, HANDLE_OUT_OF_SEQUENCE_PH1_STATE);
-    }
-
-    /**todo@ Vedere se e' possibile usare un solo stato HANDLE_OUT_OF_SEQUENCE */
-    /**
-     * This method allows to register a user defined <code>Behaviour</code>
-     * in the HANDLE_OUT_OF_SEQUENCE_PH2 state. This behaviour would override
-     * the homonymous method. This method also set the data store of the registered
-     * <code>Behaviour</code> to the DataStore of this current behaviour.
-     * The registered behaviour can found the send and received message in the
-     * datastore at the keys <code>REPLY_KEY</code> and <code>ACCEPTANCE_KEY</code>.
-     * @param b the Behaviour that will handle this state
-     **/
-    public void registerHandleOutOfSequencePh2(Behaviour b) {
-        registerDSState(b, HANDLE_OUT_OF_SEQUENCE_PH2_STATE);
-    }
-
-    private void registerDSState(Behaviour b, String name) {
-            b.setDataStore(getDataStore());
-            registerState(b,name);
-    }
-
-    /**todo@ Da rivedere il createMessageTemplate E I COMMENTI!!!! */
-    /**  This static method can be used to set the proper message Template
-     * (based on the interaction protocol and the performative) to be passed to the constructor of this behaviour.
-      *  @see jade.domain.FIPANames.InteractionProtocol
-      **/
-    public static MessageTemplate createMessageTemplate() {
-        return MessageTemplate.and(MessageTemplate.MatchProtocol(TwoPhConstants.JADE_TWO_PHASE_COMMIT),
-                MessageTemplate.MatchPerformative(ACLMessage.CFP));
-    }
-
-    public void reset() {
+  public void reset() {
 		super.reset();
-		DataStore ds = getDataStore();
-		ds.remove(CFP_KEY);
-		ds.remove(PROPOSE_KEY);
-		//fix ds.remove(QUERY_IF_KEY);
-        ds.remove(REPLY_KEY);
-        //fix ds.remove(ACCEPTANCE_KEY);
-        ds.remove(REPLY_KEY);
-		ds.remove(QUERY_KEY);
-        msgt = createMessageTemplate();
-        cfp_req.reset(msgt, -1, getDataStore(), CFP_KEY);
-    }
+		phase = 0;
+  }
+  
+  protected boolean checkInSequence(ACLMessage received) {
+  	int perf = received.getPerformative();
+  	switch (phase) {
+  	case 0:
+  		return (perf == ACLMessage.CFP);
+  	case 1:
+  		return (perf == ACLMessage.CFP || perf == ACLMessage.QUERY_IF || perf == ACLMessage.REJECT_PROPOSAL);
+  	case 2:
+  		return (perf == ACLMessage.ACCEPT_PROPOSAL || perf == ACLMessage.REJECT_PROPOSAL);
+  	}
+  	return false;
+  }
+  
+  protected void replySent(int exitValue) {
+		switch (exitValue) {
+		case ACLMessage.PROPOSE:
+			phase = 1;
+			break;
+		case ACLMessage.CONFIRM:
+			phase = 2;
+			break;
+		case ACLMessage.INFORM:
+		case ACLMessage.DISCONFIRM:
+		case ACLMessage.FAILURE:
+		case ACLMessage.NOT_UNDERSTOOD:
+			reset();
+			break;
+		}
+  }
 }
