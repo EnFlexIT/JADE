@@ -31,13 +31,15 @@ import jade.util.leap.Iterator;
 import jade.content.abs.*;
 import jade.content.onto.*;
 
-/**
+/** 
+ * Utility class that allow using an <code>ACLMessage</code> object
+ * as an ontological agent action.
  * @author Giovanni Caire - TILAB
  */
 public class OntoACLMessage extends ACLMessage implements AgentAction {
 
   /**
-   * Constructs an ontological ACL message whose performative
+   * Construct an ontological ACL message whose performative
    * is ACLMessage.NOT_UNDERSTOOD
    */
 	public OntoACLMessage() {
@@ -45,7 +47,7 @@ public class OntoACLMessage extends ACLMessage implements AgentAction {
 	}
 	
   /** 
-   * Constructor for an ontological ACL message with a given 
+   * Construct an ontological ACL message with a given 
    * performative
    * @param performative the performative of this ACL message. 
    * @see ACLMessage#ACLMessage(int)

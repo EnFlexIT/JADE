@@ -24,6 +24,8 @@
  */
 package jade.content.abs;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.core.CaseInsensitiveString;
 import java.util.Vector;
 import java.util.Hashtable;

@@ -272,8 +272,8 @@ public class Ontology implements Serializable {
     } 
 
     /**
-     * Retrieves the schema associated with <code>name</code>. The 
-     * search is extended to the base ontologies if the schema is not
+     * Retrieves the schema of element <code>name</code> in this ontology. 
+     * The search is extended to the base ontologies if the schema is not
      * found.
      * @param name the name of the schema in the vocabulary.
      * @return the schema or <code>null</code> if the schema is not found.
@@ -361,60 +361,8 @@ public class Ontology implements Serializable {
     }
 
     /**
-     * Retrieves the schema associated with <code>name</code>.
-     * @param name the name of the schema in the vocabulary.
-     * @param searchInBase If <code>true</code> the 
-     * search is extended to the base ontologies if the schema is not
-     * found.
-     * @return the schema.
-     * @throws OntologyException
-     *
-    ObjectSchema getSchema(String name, boolean searchInBase) throws OntologyException {
-        if (name == null) {
-            throw new OntologyException("Null schema identifier");
-        } 
-
-        ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
-
-        if (ret == null) {
-        	//System.out.println("Schema for "+name+" not found in "+getName());
-          if (searchInBase) {
-            for (int i = 0; i < base.length; ++i) {
-            	try {
-            		if (base[i] == null)
-            			System.out.println("Base ontology # "+i+" for ontology "+getName()+" is null");
-                ret = base[i].getSchema(name);
-                if (ret != null) {
-                	return ret;
-                }
-              }
-              catch (OntologyException oe) {
-                // Ignore and try next one
-              }
-            }
-          } 
-        } 
-
-        return ret;
-    } */
-
-    /**
-     * Retrieves the schema associated with <code>javaClass</code>
-     * The search is not extended to the base ontologies
-     * @param javaClass the Java class
-     * @return the schema
-     * @throws OntologyException
-     *
-    ObjectSchema getSchema(Class javaClass) throws OntologyException {
-        if (javaClass == null) {
-            throw new OntologyException("Null schema identifier");
-        } 
-        return (ObjectSchema) schemas.get(javaClass);
-    }*/ 
-
-    /**
-     * Retrieves the concrete class associated with <code>name</code> in
-     * the vocabulary. The search is extended to the base ontologies
+     * Retrieves the concrete class associated with element <code>name</code>
+     * in this ontology. The search is extended to the base ontologies
      * @param name the name of the schema.
      * @return the Java class or null if no schema called <code>name</code>
      * is found or if no class is associated to that schema.
@@ -438,6 +386,7 @@ public class Ontology implements Serializable {
       	return ret;
     } 
     
+		//#APIDOC_EXCLUDE_BEGIN
     /**
      * Converts an abstract descriptor to a Java object of the proper class.
      * @param abs the abstract descriptor.
@@ -539,6 +488,7 @@ public class Ontology implements Serializable {
       
       throw new UnknownSchemaException();
     } 
+		//#APIDOC_EXCLUDE_END
 
     
     /////////////////////////
@@ -575,5 +525,4 @@ public class Ontology implements Serializable {
     	// If we reach this point the object is not a term
     	throw new OntologyException("Object "+obj+" of class "+obj.getClass().getName()+" is not a term");
     }
- 
 }

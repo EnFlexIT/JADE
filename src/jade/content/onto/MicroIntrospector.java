@@ -28,8 +28,13 @@ import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
 
-/**
- * @author Giovanni Caire - TILAB
+/** 
+   This introspector does nothing but "asking objects to convert
+   themselves into/from abstract descriptors". It could be used 
+   when working in Java environments where the reflection is not 
+   supported (MIDP). All classes in an ontology using this introspector
+   must implement the <code>Introspectable</code> interface.
+   @author Giovanni Caire - TILAB
  */
 public class MicroIntrospector implements Introspector {
 

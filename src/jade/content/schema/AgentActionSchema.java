@@ -28,6 +28,8 @@ import jade.content.abs.*;
 import jade.content.onto.*;
 
 /**
+ * The class to be used to define schemas of agent actions in 
+ * an ontology.
  * Note that an AgentActionSchema should also be a ConceptSchema, but
  * this inheritance relation is cut as Java does not support
  * multiple inheritance. As a consequence in practice it will 

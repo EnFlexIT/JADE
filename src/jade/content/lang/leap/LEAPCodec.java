@@ -33,7 +33,8 @@ import java.util.Vector;
 import java.util.Date;
 import java.io.*;
 
-/**
+/** 
+ * Content language codec for the LEAP language
  * @author Federico Bergenti - Universita` di Parma
  */
 public class LEAPCodec extends ByteArrayCodec {

@@ -28,6 +28,8 @@ import jade.content.abs.*;
 import jade.content.onto.*;
 
 /**
+ * The class to be used to define schemas of predicates in 
+ * an ontology.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class PredicateSchema extends ContentElementSchema {

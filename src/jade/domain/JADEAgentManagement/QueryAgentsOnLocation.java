@@ -27,10 +27,10 @@ import jade.core.*;
 import jade.content.*;
 
 /**
-
-  This class represents the <code>query-agents-on-location</code>
-  action, requesting to send the list of the agents currently active
-  on a given container.
+  This class represents the <code>query-agents-on-location</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to retrieve the list
+  of agents running on a given container. 
 
   @author Giovanni Rimassa -  Universita' di Parma
   @version $Date$ $Revision$

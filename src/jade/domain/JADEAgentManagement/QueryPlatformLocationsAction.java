@@ -27,10 +27,10 @@ import jade.core.*;
 import jade.content.*;
 
 /**
-
-  This class represents the <code>query-platform-locations</code>
-  action, requesting to send the list of the available containers on
-  the agent platform.
+  This class represents the <code>query-platform-locations</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to retrieve the
+  list of containers in the platform. 
 
   @author Giovanni Rimassa -  Universita' di Parma
   @version $Date$ $Revision$

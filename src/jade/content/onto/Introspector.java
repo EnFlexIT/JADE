@@ -28,8 +28,11 @@ import jade.content.abs.*;
 import jade.content.schema.*;
 import jade.util.leap.Serializable;
 
-/**
- * @author Federico Bergenti - Universita` di Parma
+/** 
+   This interface defines the methods to convert objects of
+   ontological classes into/from abstract descriptors. Each ontology
+   has an <code>Introspector</code> and delegates it the conversion.
+   @author Federico Bergenti - Universita` di Parma
  */
 public interface Introspector extends Serializable {
 

@@ -27,6 +27,8 @@ package jade.content.abs;
 import jade.content.schema.*;
 
 /**
+ * An abstract descriptor that can hold a variable expression, i.e. an
+ * entity that is not known yet.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsVariable extends AbsObjectImpl implements AbsTerm {

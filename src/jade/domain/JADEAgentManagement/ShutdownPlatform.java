@@ -28,8 +28,10 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
-   This class represents the <code>shutdown-platform</code> action,
-   requesting to terminate the whole agent platform.
+  This class represents the <code>shutdown-platform</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to shutdown the whole
+  platform. 
 
    @author Giovanni Rimassa -  FRAMeTech s.r.l.
 */

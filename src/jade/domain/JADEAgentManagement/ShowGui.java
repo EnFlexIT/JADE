@@ -27,9 +27,10 @@ package jade.domain.JADEAgentManagement;
 import jade.content.AgentAction;
 
 /**
-   This class represents the <code>show-gui</code> action, requesting
-   an agent (tipically the JADE DF) to make its graphical user
-   interface visible.
+  This class represents the <code>show-gui</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE DF to make it show its graphical
+  user interface. 
 
    @author Tiziana Trucco -  CSELT s.p.a
    @version $Date$ $Revision$

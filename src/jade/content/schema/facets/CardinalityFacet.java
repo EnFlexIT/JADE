@@ -30,8 +30,8 @@ import jade.content.abs.*;
 import jade.util.leap.Iterator;
 
 /**
- * This facet forces the elements in an AbsAggregate
- * to be instances of a given schema.
+ * This facet forces an AbsAggregate to contain a number of 
+ * elements that is comprised between a given min and a given max.
  * @author Giovanni Caire - TILAB
  */
 public class CardinalityFacet implements Facet {

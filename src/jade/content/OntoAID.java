@@ -28,6 +28,8 @@ import jade.core.AID;
 import jade.util.leap.Iterator;
 
 /**
+ * Utility class that allow using an <code>AID</code> object
+ * as an ontological concept.
  * @author Giovanni Caire - TILAB
  */
 public class OntoAID extends AID implements Concept {

@@ -26,8 +26,13 @@ package jade.content.onto;
 
 import jade.content.abs.AbsObject;
 
-/**
- * @author Giovanni Caire - TILAB
+/** 
+   This interface must be implemented by ontological classes that
+   belong to an ontology using the <code>MicroIntrospector</code>.
+   It includes methods by means of which an object can be converted
+   into/from an abstract descriptor.
+   @see jade.content.onto.MicroIntrospector
+   @author Giovanni Caire - TILAB
  */
 public interface Introspectable {
 

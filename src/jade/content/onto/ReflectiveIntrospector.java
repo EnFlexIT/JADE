@@ -35,8 +35,11 @@ import java.lang.reflect.*;
 import jade.core.CaseInsensitiveString;
 
 /**
- * @author Federico Bergenti - Universita` di Parma
- * @author Giovanni Caire - TILAB
+   The default introspector for user defined ontologies. This
+   introspector is higly based on Java reflection and is therefore
+   not available when working in a MIDP environment.
+   @author Federico Bergenti - Universita` di Parma
+   @author Giovanni Caire - TILAB
  */
 public class ReflectiveIntrospector implements Introspector {
 
@@ -93,6 +96,7 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
+    //#APIDOC_EXCLUDE_BEGIN
     protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
         try {
             return method.invoke(obj, null);
@@ -101,6 +105,7 @@ public class ReflectiveIntrospector implements Introspector {
             throw new OntologyException("Error invoking accessor method "+method.getName()+" on object "+obj, e);
         } 
     } 
+    //#APIDOC_EXCLUDE_END
 
   /**
    * Translate an abstract descriptor into an object of a proper class 
@@ -153,6 +158,7 @@ public class ReflectiveIntrospector implements Introspector {
         } 
     } 
 
+    //#APIDOC_EXCLUDE_BEGIN
     protected void invokeSetterMethod(Method method, Object obj, 
                                  Object value) throws OntologyException {
     	try {
@@ -179,6 +185,7 @@ public class ReflectiveIntrospector implements Introspector {
           throw new OntologyException("Error invoking setter method "+method.getName()+" on object "+obj+" with parameter "+value, e);
       }
     } 
+    //#APIDOC_EXCLUDE_END
 
     /**
        Check the structure of a java class associated to an ontological element 
@@ -194,6 +201,7 @@ public class ReflectiveIntrospector implements Introspector {
     	// FIXME: Not yet implemented
     }
     
+  //#APIDOC_EXCLUDE_BEGIN
   protected Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
   	Method[] methods = c.getMethods();
     for(int i = 0; i < methods.length; i++) {
@@ -233,5 +241,6 @@ public class ReflectiveIntrospector implements Introspector {
 		} 
 		return buf.toString();
 	} 
+  //#APIDOC_EXCLUDE_END
 }
 

@@ -27,7 +27,8 @@ package jade.content.onto.basic;
 import jade.content.*;
 
 /**
- * This class represents the proposition FALSE 
+ * This class represents the FALSE proposition i.e. a predicate 
+ * that is always false.
  * @author Filippo Quarta - TILAB
  * @version $Date$ $Revision$
  */

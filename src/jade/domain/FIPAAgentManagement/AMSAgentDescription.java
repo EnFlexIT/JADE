@@ -28,9 +28,10 @@ import jade.core.AID;
 import jade.content.Concept;
 
 /**
-* This class implements a concept of the fipa-agent-management ontology
-* representing the description of an AMSAgent.
+* This class implements the concept of the fipa-agent-management ontology
+* representing the description of an Agent in the AMS catalogue.
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+* @see jade.domain.AMSService
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */

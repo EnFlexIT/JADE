@@ -27,7 +27,9 @@ package jade.content;
 import jade.util.leap.Serializable;
 
 /**
- * Interface representing a generic term
+ * Interface representing a generic term, i.e. an expression 
+ * identifying a generic entity (abstract or concrete) that "exist" 
+ * in the world and that agents can talk and reason about.
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface Term extends Serializable {}

@@ -39,11 +39,11 @@ import jade.util.leap.*;
 import java.util.Date;
 
 /**
- * Ontology containing
- * - Primitive types
- * - content element list
- * - Basic concept ACL_MESSAGE
- * - SL0 elements (AID, SL0 operators and TRUE and FALSE propositions).
+ * This class implements an ontology containing schemas for 
+ * Primitive types and SL0 operators i.e. basic ontological elements 
+ * required for minimal agent interaction.
+ * Users should always extend this ontology when defining their 
+ * ontologies.
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */
@@ -166,6 +166,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
     return theInstance;
   }
   
+	//#APIDOC_EXCLUDE_BEGIN
   /**
    * This method is redefined as BasicOntology does not use an
    * Introspector for performance reason
@@ -350,6 +351,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       throw new OntologyException("Unexpected error externalising "+obj+".", t);
     }
 	}
+	//#APIDOC_EXCLUDE_END
   
   /**
    * Redefine the <code>getSchema()</code> method to take into 

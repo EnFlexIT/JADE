@@ -29,7 +29,7 @@ import jade.content.schema.*;
 import jade.content.Term;
 
 /**
- * Represent an Abstract descriptor that can hold an Identifying
+ * An Abstract descriptor that can hold an Identifying
  * Referential Expression (IRE).
  * Note that an IRE is both a content element (as in the case of
  * a QUERY-REF communicative act) and a Term (as in the case of

@@ -27,7 +27,7 @@ package jade.content.abs;
 import jade.content.Term;
 
 /**
- * Represent an Abstract descriptor that can hold a term
+ * An abstract descriptor that can hold a term expression.
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface AbsTerm extends AbsObject, Term {

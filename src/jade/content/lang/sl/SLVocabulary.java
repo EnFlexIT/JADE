@@ -25,6 +25,7 @@
 package jade.content.lang.sl;
 
 /**
+ * The vocabulary of the simbols used in the FIPA SL language
  * @author Giovanni Caire - TILAB
  */
 public interface SLVocabulary 

@@ -26,7 +26,8 @@ package jade.content;
 
 /**
  * Generic interface to be implemented by classes associated to predicates
- * in an ontology
+ * in an ontology. Predicates are expressions that say something about 
+ * the status of the world and can be true or false.
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface Predicate extends ContentElement {}

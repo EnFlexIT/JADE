@@ -31,9 +31,8 @@ import jade.util.leap.Iterator;
 import jade.content.Concept;
 
 /**
-   Description of the  services available on an agent
-   platform.
-
+   This class implements the concept of the fipa-agent-management ontology
+   representing the description of a platform service. 
    @author Fabio Bellifemine - CSELT
    @version $Date$ $Revision$
 

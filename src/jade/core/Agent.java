@@ -238,8 +238,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
   }
 
-  //#APIDOC_EXCLUDE_END
-
 
   /**
      Out of band value for Agent Platform Life Cycle states.
@@ -337,6 +335,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public static final int D_MAX = 41;    // Hand-made type checking
   //#MIDP_EXCLUDE_END
+  //#APIDOC_EXCLUDE_END
 
 
   /**
@@ -390,7 +389,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   // received.
   private int messageCounter = 0 ;
 
-
+  
+  //#APIDOC_EXCLUDE_BEGIN
   /**
      The <code>Behaviour</code> that is currently executing.
      @see jade.core.behaviours.Behaviour
@@ -404,6 +404,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @serial
   */
   protected ACLMessage currentMessage;
+  //#APIDOC_EXCLUDE_END
 
   // This variable is 'volatile' because is used as a latch to signal
   // agent suspension and termination from outside world.
@@ -519,6 +520,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   //#MIDP_EXCLUDE_END
   
     private transient Object[] arguments = null;  // array of arguments
+    //#APIDOC_EXCLUDE_BEGIN
     /**
      * Called by AgentContainerImpl in order to pass arguments to a
      * just created Agent. 
@@ -529,6 +531,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	// I have declared the method final otherwise getArguments would not work!
 	arguments=args;
     }
+  	//#APIDOC_EXCLUDE_END
 
     /**
      * Get the array of arguments passed to this agent.
@@ -791,6 +794,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
       }
   }
 
+  //#APIDOC_EXCLUDE_BEGIN
   /**
      Read current agent state. This method can be used to query an
      agent for its state from the outside.
@@ -812,7 +816,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
     //#MIDP_EXCLUDE_BEGIN
 
-    //#APIDOC_EXCLUDE_BEGIN
   public AgentState getAgentState() {
     return AgentState.getInstance(getState());
   }
@@ -842,6 +845,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   // State transition methods for Agent Platform Life-Cycle
 
+  //#APIDOC_EXCLUDE_BEGIN
   /**
      Make a state transition from <em>initiated</em> to
      <em>active</em> within Agent Platform Life Cycle. Agents are
@@ -857,6 +861,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   public void doStart(String name) {
     myToolkit.handleStart(name, this);
   }
+  //#APIDOC_EXCLUDE_END
 
   /**
      Make a state transition from <em>active</em> to
@@ -2095,7 +2100,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private void activateAllBehaviours() {
     myScheduler.restartAll();
   }
-
+  
 	/**
 		Put a received message into the agent message queue. The message
 		is put at the back end of the queue. This method is called by

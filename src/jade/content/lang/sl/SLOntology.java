@@ -32,7 +32,7 @@ import jade.content.abs.*;
 #MIDP_INCLUDE_END*/
 
 /**
- * Ontology containing schemas for the SL language operators.
+ * Ontology containing schemas for the full SL language operators.
  * see jade.content.Ontology
  * @author Giovanni Caire - TILAB
  */

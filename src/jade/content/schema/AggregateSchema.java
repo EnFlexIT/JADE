@@ -29,6 +29,8 @@ import jade.content.onto.*;
 import jade.util.leap.Iterator;
 
 /**
+ * This class represent the schema of aggregate entities in
+ * an ontology.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AggregateSchema extends TermSchema {

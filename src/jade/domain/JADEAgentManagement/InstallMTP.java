@@ -27,9 +27,11 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
+  This class represents the <code>install-MTP</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to install a new MTP for
+  inter-platform communication on a given container.
 
-  This class represents the <code>install-mtp</code> action,
-  requesting the activation of a new MTP endpoint in the platform.
 
    @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$

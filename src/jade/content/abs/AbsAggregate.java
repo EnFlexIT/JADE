@@ -31,6 +31,8 @@ import java.io.PrintStream;
 import jade.content.lang.Codec;
 
 /**
+ * An abstract descriptor that can hold an aggregate entitiy
+ * expression.
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */

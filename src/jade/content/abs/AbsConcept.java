@@ -27,6 +27,8 @@ package jade.content.abs;
 import jade.content.Concept;
 
 /**
+ * An abstract descriptor that can hold a concept
+ * expression.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm, Concept {

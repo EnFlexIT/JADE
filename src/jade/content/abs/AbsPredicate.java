@@ -27,6 +27,7 @@ package jade.content.abs;
 import jade.content.Predicate;
 
 /**
+ * An abstract descriptor that can hold a predicate expression.
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  */
 public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement, Predicate {

@@ -27,7 +27,9 @@ package jade.content.schema;
 import jade.content.abs.*;
 import jade.content.onto.*;
 
-/**
+/** 
+ * The class to be used to define schemas of concepts in 
+ * an ontology.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ConceptSchema extends TermSchema {

@@ -28,6 +28,8 @@ import jade.content.abs.*;
 import jade.content.onto.*;
 
 /**
+ * This class represent the schema of primitive entities in
+ * an ontology.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class PrimitiveSchema extends TermSchema {

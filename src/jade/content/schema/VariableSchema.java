@@ -28,6 +28,7 @@ import jade.content.onto.*;
 import jade.content.abs.*;
 
 /**
+ * This class represents the schema of a variable.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class VariableSchema extends TermSchema {

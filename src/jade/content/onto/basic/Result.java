@@ -30,6 +30,11 @@ import jade.content.onto.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
+/**
+   This class implements the <code>result</code> operator of the
+   FIPA SL0 action.
+   @author Giovanni Caire - TILAB
+ */
 public class Result implements Predicate {
 	private Concept action;
 	private Object value;

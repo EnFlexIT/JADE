@@ -56,8 +56,6 @@ public abstract class Behaviour implements Serializable {
    */
   protected static final int NOTIFY_DOWN = 1;
 
-    //#APIDOC_EXCLUDE_END
-
   /**
      A constant identifying the runnable state.
      @serial
@@ -76,8 +74,6 @@ public abstract class Behaviour implements Serializable {
    */
   public static final String STATE_RUNNING = "RUNNING";
 
-
-    //#APIDOC_EXCLUDE_BEGIN
   
   /**
      Event class for notifying blocked and restarted behaviours.

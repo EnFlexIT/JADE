@@ -25,6 +25,7 @@
 package jade.content.lang.sl;
 
 /**
+ * The vocabulary of the simbols used in the FIPA SL2 language
  * @author Giovanni Caire - TILAB
  */
 public interface SL2Vocabulary extends SL1Vocabulary {

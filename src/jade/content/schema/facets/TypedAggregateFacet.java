@@ -31,7 +31,7 @@ import jade.util.leap.Iterator;
 
 /**
  * This facet forces the elements in an AbsAggregate
- * to be instances of a given schema.
+ * to be compliant to a given schema.
  * @author Giovanni Caire - TILAB
  */
 public class TypedAggregateFacet implements Facet {

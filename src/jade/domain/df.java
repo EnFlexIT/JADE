@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 import java.util.Vector;
 import java.util.Date;

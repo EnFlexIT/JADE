@@ -33,6 +33,7 @@ import jade.content.schema.facets.*;
 import jade.util.leap.Serializable;
 
 /**
+ * The common ancestor of all ontological schemas.
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */

@@ -26,7 +26,8 @@ package jade.content;
 
 /**
  * Generic interface to be implemented by classes associated to concepts
- * in an ontology
+ * in an ontology. Concepts are expressions describing entities with 
+ * a complex structure that can be defined in terms of slots
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface Concept extends Term {}

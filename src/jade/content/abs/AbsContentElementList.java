@@ -31,6 +31,8 @@ import jade.util.leap.Iterator;
 import java.io.PrintStream;
 
 /**
+ * An abstract descriptor that can hold a list of
+ * generic content element expressions.
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */

@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.util.Date;
 
 /**
+ * An abstract descriptor that can hold a primitive expression.
  * @author Paola Turci, Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
  */

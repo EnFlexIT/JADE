@@ -32,9 +32,10 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
-
-  This class represents the <code>create-agent</code> action,
-  requesting to create a new agent within the platform.
+  This class represents the <code>create-agent</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to create a new agent 
+  on a given container.
 
   @author Giovanni Rimassa -  Universita' di Parma
   @version $Date$ $Revision$

@@ -28,6 +28,8 @@ import jade.content.onto.*;
 import jade.content.abs.*;
 
 /**
+ * This class represents the schema of an Identifying Referential
+ * Expression (IRE) in an ontology. 
  * Note that an IRESchema should also be a TermSchema, but
  * this inheritance relation is cut as Java does not support
  * multiple inheritance. As a consequence in practice it will 

@@ -28,9 +28,10 @@ import jade.content.*;
 
 
 /**
-
-  This class represents the <code>where-is-agent</code> action,
-  requesting to send the location where the given agent is deployed.
+  This class represents the <code>where-is-agent</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to know the container
+  a given agent is currently running on. 
 
    @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$

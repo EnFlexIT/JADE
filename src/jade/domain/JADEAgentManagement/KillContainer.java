@@ -28,9 +28,9 @@ import jade.core.ContainerID;
 import jade.content.AgentAction;
 
 /**
-
-  This class represents the <code>kill-container</code> action, requesting
-  the termination of an agent container in the platform.
+  This class represents the <code>kill-container</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to kill an active container. 
 
   @author Giovanni Rimassa -  Universita' di Parma
   @version $Date$ $Revision$

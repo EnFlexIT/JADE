@@ -29,8 +29,9 @@ import jade.util.leap.Iterator;
 import jade.util.leap.ArrayList;
 
 /**
-   This class implements a concept of the fipa-agent-management ontology
-   representing an agent platform description.
+   This class implements the concept of the fipa-agent-management ontology
+   representing the description of an agent platform as it can be retrieved
+   from the AMS.
    @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
    @author Giovanni Rimassa - Universita' di Parma
    @author Alessandro Chiarotto - TILAB

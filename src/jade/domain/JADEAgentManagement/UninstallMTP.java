@@ -28,10 +28,10 @@ import jade.content.AgentAction;
 
 
 /**
-
-  This class represents the <code>uninstall-mtp</code> action,
-  requesting the deactivation of an MTP endpoint in the platform.
-
+  This class represents the <code>uninstall-MTP</code> action of 
+  the <code>JADE-agent-management ontology</code>.
+  This action can be requested to the JADE AMS to uninstall an MTP from
+  a given container.
    @author Giovanni Rimassa -  Universita' di Parma
    @version $Date$ $Revision$
 */

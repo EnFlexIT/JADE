@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.content.lang.sl;
 
+//#APIDOC_EXCLUDE_FILE
+
 import jade.content.lang.Codec;
 
 /**

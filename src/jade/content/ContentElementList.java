@@ -29,6 +29,8 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 
 /**
+ * Utility class to deal with a list of content elements as a
+ * content element itself.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ContentElementList implements ContentElement {

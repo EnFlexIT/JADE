@@ -26,7 +26,7 @@ package jade.content.onto;
 
 /**
  * Thrown when working with an ungrounded abstract descriptor, i.e., a
- * descriptor containing variables, as if it were grounded.
+ * descriptor containing variables.
  * Typically, thrown when applying <code>Ontology.toObject(AbsObject)</code>
  * to an ungrouded abstract descriptor.
  *

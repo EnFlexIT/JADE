@@ -28,6 +28,8 @@ import jade.content.abs.*;
 import jade.content.onto.OntologyException;
 
 /**
+ * This class represents the schema of a generic content element in
+ * an ontology.
  * @author Federico Bergenti - Universita` di Parma
  */
 public class ContentElementSchema extends ObjectSchemaImpl {

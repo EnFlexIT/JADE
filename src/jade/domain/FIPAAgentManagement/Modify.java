@@ -28,12 +28,14 @@ package jade.domain.FIPAAgentManagement;
 import jade.content.*;
 
 /** 
-* This class implements the <code>modify</code> action (to modify an
-* agent description).
-* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-* @author Fabio Bellifemine - CSELT S.p.A.
-* @version $Date$ $Revision$
-*/
+   This class implements the <code>modify</code> action of the 
+   <code>fipa-agent-management ontology</code>.
+   This action is supported by (and can be requested to) both the AMS and
+   the DF.
+   @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+   @author Fabio Bellifemine - CSELT S.p.A.
+   @version $Date$ $Revision$
+ */
 public class Modify implements AgentAction {
 
     /**
