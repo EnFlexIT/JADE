@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- All targets within a device.xml file should only depend on the init task in this file.
-     The build.xml file will coordinate the process at that level of targets
--->
-<project name="JADE-LEAP for J2SE" default="jar">
+
+<project name="JADE-LEAP for J2SE" default="do-lib">
 	<!-- PROPERTIES specific for J2SE -->
 	<property name="src" value="${j2se-root}/src"/>
 	<property name="classes" value="${j2se-root}/classes"/>
 	<property name="lib" value="${j2se-root}/lib"/>
 	<property name="doc" value="${j2se-root}/doc"/>
-	<property name="parsers" value="${leap-src}/parsers/j2se"/>
 	<property name="j2se-title" value="${title} v${version} for J2SE"/>
 
 	
 	<!-- INIT -->
-	<target name="do-init" if="j2se" 
+	<target name="do-init"  
 	        description="Create the appropriate directories">
 		<mkdir dir="${j2se-root}"/>
 		<mkdir dir="${src}"/>
@@ -24,7 +21,7 @@
 
 	
 	<!-- SETUP -->
-	<target name="do-setup" if="j2se" depends="do-init"
+	<target name="do-setup" depends="do-init"
 	        description="Setup the build environment">
 	  <!-- 1) Copy JADE sources -->
 	  <copy todir="${src}">
@@ -38,6 +35,14 @@
 	  <!-- 2) Copy LEAP sources -->
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
+				<exclude name="**/parsers/**"/>
+				<exclude name="**/*.java@"/>
+				<exclude name="**/*.java#"/>
+				<exclude name="**/jade/util/leap/**"/>
+				<exclude name="**/jade/core/Runtime.java"/>
+				<exclude name="**/jade/core/MainContainerProxy.java"/>
+			
+				<!--
 				<include name="**/jade/Boot.java"/>
 				<include name="**/jade/core/ProfileImpl.java"/>
 				<include name="**/jade/imtp/**"/>
@@ -50,6 +55,7 @@
 				<include name="**/jade/core/FrontEnd.java"/>
 				<include name="**/jade/core/FrontEndContainer.java"/>
 				<include name="**/jade/core/FEConnectionManager.java"/>
+				-->
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
@@ -58,14 +64,14 @@
 
 	
 	<!-- RESET -->
-	<target name="do-reset" if="j2se"
+	<target name="do-reset"
 	        description="Reset the build environment">
 		<delete dir = "${j2se-root}"/>
 	</target>
 
 	
 	<!-- CLEAN -->
-	<target name="do-clean" if="j2se"
+	<target name="do-clean"
 	        description="Clean class files">
 		<delete dir = "${classes}"/>
 		<delete dir = "${doc}"/>
@@ -77,56 +83,19 @@
 
 	
 	<!-- PARSERS -->
-	<target name="do-parsers" if="j2se" depends="do-parsers-generate, do-parsers-use-prebuild"
-	        description="Generate ACL and SL parsers from .jj files"/>
-	
-	<target name="do-parsers-generate" if="javacc-home"
-	        description = "Translate .jj files into .java files">
-
+	<target name="do-parsers" if="javacc-home"
+	        description="Generate ACL and SL parsers from .jj files">
   	<!-- ACL Parser -->
 		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
 		        javacchome="${javacc-home}"/>
-
   	<!-- SL Parser -->
 		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
 		        javacchome="${javacc-home}"/>
-	</target>
-
-	<target name="do-parsers-use-prebuild" unless="javacc-home"
-	        description = "Copy pre-generated parsers from the prebuild dir to the source dir">
-
-  	<echo>javacc-home not set. Using pre build parsers.</echo>
-		<copy todir = "${src}">
-	  	<fileset dir = "${parsers}"/>
-		</copy>
-	</target>
-
-	<target name="do-pgp" if="j2se"
-	        description = "Generate prebuild parsers">
-  	<!-- ACL Parser -->
-  	<delete>
-  		<fileset dir="${parsers}/jade/lang/acl">
-  			<include name="**/*.java"/>
-  		</fileset>
-  	</delete>
-		<javacc target="${src}/jade/lang/acl/ACLParser.jj"
-		        javacchome="${javacc-home}"
-		        outputdirectory="${parsers}/jade/lang/acl"/>
-
-  	<!-- SL Parser -->
-  	<delete>
-  		<fileset dir="${parsers}/jade/content/lang/sl">
-  			<include name="**/*.java"/>
-  		</fileset>
-  	</delete>
-		<javacc target="${src}/jade/content/lang/sl/SLParser.jj"
-		        javacchome="${javacc-home}"
-		        outputdirectory="${parsers}/jade/content/lang/sl"/>
 	</target>
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" if="j2se" depends="do-setup, do-parsers"
+	<target name="do-compile" depends="do-setup, do-parsers"
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${classes}"
@@ -161,8 +130,8 @@
 	</target>
 
 	
-	<!-- JAR -->
-	<target name="do-jar" if="j2se" depends="do-compile"
+	<!-- LIB -->
+	<target name="do-lib" depends="do-compile"
 	        description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
 		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
@@ -170,7 +139,7 @@
 
 	
 	<!-- JAVADOC -->
-	<target name="do-javadoc" if="j2se" depends="do-init"
+	<target name="do-javadoc" depends="do-init"
 	        description="Generate javadoc">
 		<javadoc sourcepath="${src}"
 		         destdir="${doc}"

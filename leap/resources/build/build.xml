@@ -35,61 +35,45 @@
   
 	<!-- TARGETS -->
 
-	<!-- ******** ENVIRONMENTS ********* -->
+	<!-- ******** JAVA ENVIRONMENTS ********* -->
 	
 	<!-- J2SE -->
-	<target name        = "j2se"
+	<target name = "j2se"
 	        description = "Set the j2se property --> j2se.xml will be called">
 		<property name = "j2se"  value = "true"/>
 	</target>
-
+	
+	
 	<!-- PJAVA (java-1.1-home must be set) -->
-	<target name        = "pjava"
-	        description = "Set the pjava property --> pjava.xml will be called (unless java-1.1-home is not set)"
-	        depends     = "pjava-do, pjava-dont"/>
-
-	<target name        = "pjava-do"
-	        if          = "java-1.1-home">
+	<target name = "pjava" depends = "pjava-do, pjava-dont"
+	        description = "Set the pjava property --> pjava.xml will be called (unless java-1.1-home is not set)"/>
+	<target name = "pjava-do" if = "java-1.1-home">
 		<property name = "pjava"  value = "true"/>
 	</target>
-
-	<target name        = "pjava-dont"
-	        unless      = "java-1.1-home">
-		<echo>
-		WARNING: 'java-1.1-home' not specified in buildLEAP.properties.
-		         Skipping pjava build.
-		</echo>
+	<target name = "pjava-dont" unless = "java-1.1-home">
+		<echo> WARNING: 'java-1.1-home' not specified in buildLEAP.properties. Skipping pjava build.</echo>
 	</target>
 
 
 	<!-- MIDP (j2me-wtk-home must be set) -->
-	<target name        = "midp"
-	        description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"
-	        depends     = "midp-do, midp-dont"/>
-
-	<target name        = "midp-do"
-	        if          = "j2me-wtk-home">
+	<target name = "midp" depends = "midp-do, midp-dont"
+	        description = "Set the midp property --> midp.xml will be called (unless j2me-wtk-home is not set)"/>
+	<target name = "midp-do" if = "j2me-wtk-home">
 		<property name = "midp"  value = "true"/>
 	</target>
-
-	<target name        = "midp-dont"
-	        unless      = "j2me-wtk-home">
-		<echo>
-		WARNING: 'j2me-wtk-home' not specified in buildLEAP.properties.
-		         Skipping midp build.
-		</echo>
+	<target name = "midp-dont" unless = "j2me-wtk-home">
+		<echo> WARNING: 'j2me-wtk-home' not specified in buildLEAP.properties. Skipping midp build.</echo>
 	</target>
 
 
 	<!-- ALL -->
-	<target name        = "all"
-	        description = "Set the property for all environments"
-	        depends     = "j2se, pjava, midp"/>
+	<target name = "all" depends = "j2se, pjava, midp"
+	        description = "Set the property for all environments"/>
 
 
-	<!-- ******* ACTIONS that can be specified for the above environments ******** -->
+	<!-- ******* ACTIONS that can be specified for the above java environments ******** -->
 
-	<!-- INIT the jade-leap directory structure for the selected environments -->
+	<!-- INIT the whole -->
 	<target name="init"
 	        description="Set time stamp">
 	  <tstamp/>
@@ -97,7 +81,7 @@
 	</target>
 	
 	
-	<!-- SETUP the build environment for the selected environments -->
+	<!-- SETUP the build environment for the selected java environments -->
 	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp"
 	        description="Setup the build environment using the appropriate {environment}.xml file"/>
 	<target name="setup-j2se" if="j2se">
@@ -111,7 +95,7 @@
 	</target>
 
 	
-	<!-- RESET the jade-leap directory structure for the selected environments -->
+	<!-- RESET the jade-leap directory structure for the selected java environments -->
 	<target name="reset" depends="init, reset-j2se, reset-pjava, reset-midp"
 	        description="Reset the directory structure using the appropriate {environment}.xml file"/>
 	<target name="reset-j2se" if="j2se">
@@ -125,7 +109,7 @@
 	</target>
 
 	
-	<!-- CLEAN class files for the selected environments -->
+	<!-- CLEAN class files for the selected java environments -->
 	<target name="clean" depends="init, clean-j2se, clean-pjava, clean-midp"
 	        description="Clean class files using the appropriate {environment}.xml file"/>
 	<target name="clean-j2se" if="j2se">
@@ -139,8 +123,9 @@
 	</target>
 
 	
-	<!-- Generate jade-leap PARSERS for the selected environments -->
-	<target name="parsers" depends="init, parsers-j2se, parsers-pjava, parsers-midp"
+	<!-- Generate ACL and SL PARSERS from jj files for the selected java environments 
+	     Note that there are no parsers in midp -->
+	<target name="parsers" depends="init, parsers-j2se, parsers-pjava"
 	        description="Generate parsers using the appropriate {environment}.xml file"/>
 	<target name="parsers-j2se" if="j2se">
 		<ant antfile="j2se.xml" target="do-parsers" dir="${buildfiles}"/>
@@ -148,24 +133,9 @@
 	<target name="parsers-pjava" if="pjava">
 		<ant antfile="pjava.xml" target="do-parsers" dir="${buildfiles}"/>
 	</target>
-	<target name="parsers-midp" if="midp">
-		<ant antfile="midp.xml" target="do-parsers" dir="${buildfiles}"/>
-	</target>
-
-	<target name="parsers-generate-prebuild" depends="init, pgp-j2se, pgp-pjava, pgp-midp"
-	        description="Generate pre-built parsers using the appropriate {environment}.xml file"/>
-	<target name="pgp-j2se" if="j2se">
-		<ant antfile="j2se.xml" target="do-pgp" dir="${buildfiles}"/>
-	</target>	
-	<target name="pgp-pjava" if="pjava">
-		<ant antfile="pjava.xml" target="do-pgp" dir="${buildfiles}"/>
-	</target>
-	<target name="pgp-midp" if="midp">
-		<ant antfile="midp.xml" target="do-pgp" dir="${buildfiles}"/>
-	</target>
 
 	
-	<!-- COMPILE jade-leap for the selected environments -->
+	<!-- COMPILE jade-leap for the selected java environments -->
 	<target name="compile" depends="init, compile-j2se, compile-pjava, compile-midp"
 	        description="Compile using the appropriate {environment}.xml file"/>
 	<target name="compile-j2se" if="j2se">
@@ -179,21 +149,21 @@
 	</target>
 
 	
-  <!-- Create jade-leap JAR for the selected environments -->
-	<target name="jar" depends="init, jar-j2se, jar-pjava, jar-midp"
+  <!-- Create jade-leap LIBRARY (jar files) for the selected java environments -->
+	<target name="lib" depends="init, lib-j2se, lib-pjava, lib-midp"
 	        description="Jar using the appropriate {environment}.xml file"/>
-	<target name="jar-j2se" if="j2se">
-		<ant antfile="j2se.xml" target="do-jar" dir="${buildfiles}"/>
+	<target name="lib-j2se" if="j2se">
+		<ant antfile="j2se.xml" target="do-lib" dir="${buildfiles}"/>
 	</target>	
-	<target name="jar-pjava" if="pjava">
-		<ant antfile="pjava.xml" target="do-jar" dir="${buildfiles}"/>
+	<target name="lib-pjava" if="pjava">
+		<ant antfile="pjava.xml" target="do-lib" dir="${buildfiles}"/>
 	</target>
-	<target name="jar-midp" if="midp">
-		<ant antfile="midp.xml" target="do-jar" dir="${buildfiles}"/>
+	<target name="lib-midp" if="midp">
+		<ant antfile="midp.xml" target="do-lib" dir="${buildfiles}"/>
 	</target>
 
 	
-	<!-- Generate JAVADOC for the selected environments -->
+	<!-- Generate JAVADOC for the selected java environments -->
 	<target name="javadoc" depends="init, javadoc-j2se, javadoc-pjava, javadoc-midp"
 	        description="JavaDoc using the appropriate {environment}.xml file"/>
 	<target name="javadoc-j2se" if="j2se">
@@ -208,7 +178,7 @@
 
 	
 	<!-- ******** The COMPLETE build process ********* -->
-	<target name="rebuild" depends="reset, jar"
+	<target name="rebuild" depends="reset, lib"
 	        description="Rebuild from scratch using the appropriate {environment}.xml file"/>
 
 	<target name="complete" depends="all, rebuild, javadoc"
@@ -229,7 +199,7 @@
 		<echo> To be implemented </echo>
 	</target>
 
-	<!-- ******** LEAP tools for ant ******** -->
+	<!-- ******** LEAP ant tasks ******** -->
 
 	<target name = "leapTools">
 		<mkdir dir="${tmp}/leapTools"/>

@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="JADE-LEAP for MIDP" default="jar">
+<project name="JADE-LEAP for MIDP" default="do-lib">
 	<!-- PROPERTIES specific for MIDP -->
 	<property name="src" value="${midp-root}/src"/>
 	<property name="classes" value="${midp-root}/classes"/>
 	<property name="lib" value="${midp-root}/lib"/>
 	<property name="doc" value="${midp-root}/doc"/>
 	<property name="unverified" value="${midp-root}/unverified"/>
-	<property name="parsers" value="${leap-src}/parsers/midp"/>
 	<property name="midp-title" value="${title} v${version} for MIDP"/>
 
 	
 	<!-- INIT -->
-	<target name="do-init" if="midp" 
+	<target name="do-init"  
 	        description="Create the appropriate directories">
 		<mkdir dir="${midp-root}"/>
 		<mkdir dir="${src}"/>
@@ -24,14 +23,14 @@
 
 	
 	<!-- SETUP -->
-	<target name="do-setup" if="midp" depends="do-init"
+	<target name="do-setup" depends="do-init"
 	        description="Setup the build environment">
 	  <!-- 1) Copy JADE sources -->
 	  <copy todir="${src}">
 			<fileset dir="${jade-src}">
 				<include name="**/starlight/**"/>
-
 				<include name="**/jade/**"/>
+				
 				<exclude name="**/jade/content/acl/**"/>
 				<exclude name="**/jade/content/lang/j/**"/>
 				<exclude name="**/jade/core/event/**"/>
@@ -63,7 +62,8 @@
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
 				<exclude name="**/parsers/**"/>
-				<exclude name="**/jade/core/Agent.java"/>
+				<exclude name="**/*.java@"/>
+				<exclude name="**/*.java#"/>
 			</fileset>
 		</copy>
 	  <!-- 3) Preprocess the whole -->
@@ -72,14 +72,14 @@
 
 	
 	<!-- RESET -->
-	<target name="do-reset" if="midp"
+	<target name="do-reset" 
 	        description="Reset the build environment">
 		<delete dir = "${midp-root}"/>
 	</target>
 
 	
 	<!-- CLEAN -->
-	<target name="do-clean" if="midp"
+	<target name="do-clean"
 	        description="Clean class files">
 		<delete dir = "${classes}"/>
 		<delete dir = "${unverified}"/>
@@ -91,44 +91,9 @@
 		<mkdir dir="${doc}"/>
 	</target>
 
-	
-	<!-- PARSERS -->
-	<target name="do-parsers" if="midp" depends="do-parsers-generate, do-parsers-use-prebuild"
-	        description="Generate SL0 parser from .jj files"/>
-	
-	<target name="do-parsers-generate" if="javacc-home"
-	        description = "Translate .jj files into .java files">
-
-		<!-- Old SL0 Parser -->
-		<javacc target="${src}/jade/lang/sl/SL0Parser.jj"
-		        javacchome="${javacc-home}"/>
-	</target>
-
-	<target name="do-parsers-use-prebuild" unless="javacc-home"
-	        description = "Copy pre-generated parsers from the prebuild dir to the source dir">
-
-  	<echo>javacc-home not set. Using pre build parsers.</echo>
-		<copy todir = "${src}">
-	  	<fileset dir = "${parsers}"/>
-		</copy>
-	</target>
-
-	<target name="do-pgp" if="midp"
-	        description = "Generate prebuild parsers">
-  	<!-- Old SL0 Parser -->
-  	<delete>
-  		<fileset dir="${parsers}/jade/lang/sl">
-  			<include name="**/*.java"/>
-  		</fileset>
-  	</delete>
-		<javacc target="${src}/jade/lang/sl/SL0Parser.jj"
-		        javacchome="${javacc-home}"
-		        outputdirectory="${parsers}/jade/lang/sl"/>
-	</target>
-
 
 	<!-- COMPILE -->
-	<target name="do-compile" if="midp" depends="do-setup, do-parsers"
+	<target name="do-compile" depends="do-setup"
 	        description="Compile sources">
 		<javac srcdir="${src}"
 		       destdir="${unverified}"
@@ -142,8 +107,8 @@
 	</target>
 
 	
-	<!-- JAR -->
-	<target name="do-jar" if="midp" depends="do-compile"
+	<!-- LIB -->
+	<target name="do-lib" depends="do-compile"
 	        description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
 		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}"/>
@@ -151,7 +116,7 @@
 
 	
 	<!-- JAVADOC -->
-	<target name="do-javadoc" if="midp" depends="do-init"
+	<target name="do-javadoc" depends="do-init"
 	        description="Generate javadoc">
 		<javadoc sourcepath="${src}"
 		         destdir="${doc}"
