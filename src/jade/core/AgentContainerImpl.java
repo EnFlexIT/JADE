@@ -489,12 +489,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     try {
-      // Deregister this container from the platform.
-      // If this is the Main Container this call also stops the AMS and DF
-	//      myPlatform.deregister(this);
 
       myPlatform.removeLocalContainer();
 
+      myIMTPManager.unexportServiceManager(myServiceManager);
       myIMTPManager.disconnect(myID);
 
     }
