@@ -62,7 +62,7 @@ interface AgentContainer extends Remote {
 
   void postTransferResult(String agentName, boolean result, Vector messages) throws RemoteException, NotFoundException;
   void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
-  void ping() throws RemoteException;
+  void ping(boolean hang) throws RemoteException;
 
   void enableSniffer(String SnifferName, java.util.Map ToBeSniffed) throws RemoteException;
   void disableSniffer(String SnifferName, java.util.Map NotToBeSniffed) throws RemoteException;
