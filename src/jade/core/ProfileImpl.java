@@ -102,20 +102,27 @@ public class ProfileImpl extends Profile {
   }
 
   /**
-   * Creates a Profile implementation with the default configuration
-   * for launching a main-container on the localhost, 
+   * Creates a Profile implementation with the following default configuration:
+	 * <br> if isMain is true, then the profile is configured to launch
+   * a main-container on the localhost, 
    * RMI internal Message Transport Protocol, port number 1099,
    * iiop MTP.
+	 * <br> if isMain is false, then the profile is configured to launch
+   * a remote container on the localhost, connecting to the main-container
+	 * on the localhost through 
+   * RMI internal Message Transport Protocol, port number 1099.
    */
-  public ProfileImpl() {
+  public ProfileImpl(boolean isMain) {
 
       //#ALL_EXCLUDE_BEGIN
-      this(new jade.util.BasicProperties());
+      props = new jade.util.BasicProperties();
       //#ALL_EXCLUDE_END
 
       /*#ALL_INCLUDE_BEGIN
-	this(new Properties());
+			props = new Properties();
       #ALL_INCLUDE_END*/
+		  props.setProperty(Profile.MAIN, Boolean.toString(isMain)); // set to a main/non-main container
+		  init();
   }
 
   /**
