@@ -85,8 +85,8 @@ public class TwoPh2Initiator extends Initiator {
 
     private int totSessions;
     
-    private boolean logging = true; /**@todo REMOVE IT!!!!!!!!!!! */
-    private boolean currentLogging = true; /**@todo REMOVE IT!!!!!!!!!!! */
+    private boolean logging = true; // @todo REMOVE IT!!!!!!!!!!! 
+    private boolean currentLogging = true; // @todo REMOVE IT!!!!!!!!!!! 
 
     /**
      * Constructs a <code>TwoPh2Initiator</code> behaviour.
