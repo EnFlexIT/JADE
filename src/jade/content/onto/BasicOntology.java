@@ -38,9 +38,8 @@ import jade.util.leap.List;
  */
 public class BasicOntology extends Ontology {
 	// The singleton instance of this ontology
-  private static final BasicOntology theInstance;
+  private static final BasicOntology theInstance = new BasicOntology();
   static {
-  	theInstance = new BasicOntology();
   	theInstance.initialize();
   }
   
