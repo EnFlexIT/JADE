@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.imtp.rmi;
 
 import java.rmi.RemoteException;
+import java.rmi.Naming;
 import java.rmi.server.UnicastRemoteObject;
 
 import jade.core.IMTPException;
@@ -64,24 +65,27 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	}
     }
 
-    public void activateService(String name, Class itf, NodeDescriptor desc) throws ServiceException, RemoteException {
+    public void activateService(String name, Class itf, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException {
 
 	String sliceName = desc.getName();
 	Node remoteNode = desc.getNode();
 
-	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
-
+	//	System.out.println("Activation requested of service <" + name + "> on node <" + sliceName + ">");
 	try {
 	    // Create a slice proxy for the new node
 	    Service.Slice slice = manager.createSliceProxy(name, itf, remoteNode);
 	    impl.addRemoteSlice(name, sliceName, slice, remoteNode);
+
+	    if(propagate) {
+		manager.serviceActivated(name, itf, remoteNode);
+	    }
 	}
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("Exception while looking up the local RMI node", imtpe);
 	}
     }
 
-    public void deactivateService(String name, NodeDescriptor desc) throws ServiceException, RemoteException {
+    public void deactivateService(String name, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException {
 	// FIXME: To be implemented
 
 	// Remove the slice of the service corresponding to the calling node...
@@ -90,21 +94,19 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 
     }
 
-    public String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces) throws ServiceException, AuthException, RemoteException {
+    public String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, boolean propagate) throws ServiceException, AuthException, RemoteException {
 
 	// Add the node to the node table
-	String containerName = impl.addRemoteNode(desc);
+	String containerName = impl.addRemoteNode(desc, propagate);
 
 	String name = desc.getName();
-	NodeAdapter remoteNode = (NodeAdapter)desc.getNode();
-
 	System.out.println("Adding node <" + name + "> to the platform.");
 
 	// Activate all the node services
 	List failedServices = new LinkedList();
 	for(int i = 0; i < svcNames.length; i++) {
 	    try {
-		activateService(svcNames[i], svcInterfaces[i], desc);
+		activateService(svcNames[i], svcInterfaces[i], desc, propagate);
 	    }
 	    catch(RemoteException re) {
 		// This should never happen, because it's a local call...
@@ -135,15 +137,25 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	    }
 	}
 
+	if(propagate) {
+	    try {
+		manager.nodeAdded(desc, svcNames, svcInterfaces, impl.getNodeCounter(), impl.getMainNodeCounter());
+	    }
+	    catch(IMTPException imtpe) {
+		throw new ServiceException("IMTP Error during node addition notification", imtpe);
+	    }
+	}
+
 	return containerName;
     }
 
-    public void removeNode(NodeDescriptor desc) throws ServiceException, RemoteException {
-	// FIXME: To be implemented
-
-	// Remove all the slices corresponding to the calling node...
-
-	// For each service, if no slices remain remove also the service...
+    public void removeNode(NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException {
+	try {
+	    impl.removeRemoteNode(desc, propagate);
+	}
+	catch(IMTPException imtpe) {
+	    throw new ServiceException("IMTP Error during node removal notification", imtpe);
+	}
 
     }
 
@@ -163,6 +175,38 @@ public class ServiceManagerRMIImpl extends UnicastRemoteObject implements Servic
 	catch(IMTPException imtpe) {
 	    throw new ServiceException("IMTP Error during slice lookup", imtpe);
 	}
+    }
+
+    public void ping() throws RemoteException {
+	// Do nothing...
+    }
+
+    public String[] addReplica(String addr) throws RemoteException {
+
+	try {
+	    // Retrieve the RMI object for the replica...
+	    ServiceManagerRMI replica = (ServiceManagerRMI)Naming.lookup(addr + RMIIMTPManager.SERVICE_MANAGER_NAME);
+
+	    // Send all nodes with their installed services...
+	    List infos = impl.getAllNodesInfo();
+
+	    Iterator it = infos.iterator();
+	    while(it.hasNext()) {
+		ServiceManagerImpl.NodeInfo info = (ServiceManagerImpl.NodeInfo)it.next();
+		replica.addNode(info.getNodeDescriptor(), info.getServiceNames(), info.getServiceInterfaces(), false);
+	    }
+
+	    replica.updateCounters(impl.getNodeCounter(), impl.getMainNodeCounter());
+	    return manager.getServiceManagerAddresses();
+	}
+	catch(Exception e) {
+	    e.printStackTrace();
+	    return new String[0];
+	}
+    }
+
+    public void updateCounters(int nodeCnt, int mainCnt) throws RemoteException {
+	impl.setNodeCounters(nodeCnt, mainCnt);
     }
 
 

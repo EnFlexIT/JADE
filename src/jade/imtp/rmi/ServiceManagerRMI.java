@@ -44,13 +44,18 @@ interface ServiceManagerRMI extends Remote {
 
     // Proper ServiceManager-like methods
     String getPlatformName() throws RemoteException;
-    void activateService(String name, Class itf, NodeDescriptor desc) throws ServiceException, RemoteException;
-    void deactivateService(String name, NodeDescriptor desc) throws ServiceException, RemoteException;
-    String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces) throws ServiceException, AuthException, RemoteException;
-    void removeNode(NodeDescriptor desc) throws ServiceException, RemoteException;
+    void activateService(String name, Class itf, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
+    void deactivateService(String name, NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
+    String addNode(NodeDescriptor desc, String[] svcNames, Class[] svcInterfaces, boolean propagate) throws ServiceException, AuthException, RemoteException;
+    void removeNode(NodeDescriptor desc, boolean propagate) throws ServiceException, RemoteException;
 
     // Added ServiceFinder-like method
     Node[] findAllNodes(String serviceKey) throws ServiceException, RemoteException;
     Node findSliceNode(String serviceKey, String sliceKey) throws ServiceException, RemoteException;
+
+    // Service methods
+    void ping() throws RemoteException;
+    String[] addReplica(String addr) throws RemoteException;
+    void updateCounters(int nodeCnt, int mainCnt) throws RemoteException;
 
 }
