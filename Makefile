@@ -10,6 +10,7 @@ SRCDIR  = $(ROOTDIR)/src
 LIBDIR  = $(ROOTDIR)/lib
 LIBNAME = JADE.jar
 EXAMPLESDIR = $(SRCDIR)/examples
+DEMODIR = $(SRCDIR)/demo
 MAKE = make
 
 export ROOTDIR
@@ -19,12 +20,13 @@ export DOCDIR
 export LIBDIR
 export LIBNAME
 export EXAMPLESDIR
+export DEMODIR
 export MAKE
 
 # The following targets are not file names
 .PHONY: all clean doc archive src lib examples
 
-all: lib examples
+all: lib examples demo
 	@echo JADE project built
 
 doc: clean
@@ -43,12 +45,17 @@ examples:
 	cd $(EXAMPLESDIR); $(MAKE) all
 	@echo Examples built.
 
+demo:
+	cd $(DEMODIR); $(MAKE) all
+	@echo Demo applications built.
+
 clean:
 	rm -f *~ "#*#" *.IOR
 	cd $(SRCDIR); $(MAKE) clean
 	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
 	cd $(EXAMPLESDIR); $(MAKE) clean
+	cd $(DEMODIR); $(MAKE) clean
 
 archive: clean
 	cd $(ROOTDIR)/..; \
