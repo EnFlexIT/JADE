@@ -92,6 +92,7 @@ public class HTTPServer extends Thread {
     	if (changePortIfBusy) {
     		// The specified port is busy. Let the system find a free one
     		server = new ServerSocket(0);
+        logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
     	}
     	else {
     		throw ioe;

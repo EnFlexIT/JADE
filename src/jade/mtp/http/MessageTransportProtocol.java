@@ -151,6 +151,7 @@ public class MessageTransportProtocol implements MTP {
    * Actual method to activate the HTTP MTP.
    *
    * Customizable parameters read from profile:<UL>
+   * <LI><B>port</B>: the port this HTTP server listens to.</LI> 
    * <LI><B>numKeepAlive</B>: Maximum number of keep-alive connections. 
    * Default value is 10. Set to 0 to disable keep-alive coonections (possible performance impact).</LI>
    * <LI><B>proxyHost</B>: Proxy host name or IP-address. No default value.</LI>
@@ -183,9 +184,17 @@ public class MessageTransportProtocol implements MTP {
 			}
 			else {
 				try {
-			    // Create default HTTPAddress on port 7778  	
-		      hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),IN_PORT);
-		      changePortIfBusy = true;
+			    // Create default HTTPAddress 
+		      String tmp;
+          if ((tmp = p.getParameter(PREFIX+"port",null)) != null) {
+            port = Integer.parseInt(tmp);
+          }
+          else {
+            // Use default port
+            port = IN_PORT;
+            changePortIfBusy = true;
+          }
+          hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port);
 				}
 		    catch( UnknownHostException ukhexc ) {
 		      throw new MTPException("Cannot activate MTP on default address: Unknown Host");
@@ -193,13 +202,16 @@ public class MessageTransportProtocol implements MTP {
 		    catch( MalformedURLException mexc ) {
 		      throw new MTPException("Cannot activate MTP on default address: Malformed URL");
 		    }
+        catch( NumberFormatException nfexc ) {
+		      throw new MTPException("Cannot activate MTP on default address: Invalid port");
+		    }  
 			}
       port = hta.getPortNo();
       if((port <= 0) || (port > 65535)) {
         throw new MTPException("Invalid port number "+ta.getPort());
       }
   
-      // Parse profile parameters
+      // Parse other profile parameters
       numKA     = Integer.parseInt(p.getParameter(PREFIX+"numKeepAlive",MAX_KA));
       if (numKA > 0) {
         keepAlive = true;
