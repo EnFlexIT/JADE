@@ -107,7 +107,7 @@ public class SLCodec extends StringCodec {
      * @return the content as a String.
      * @throws CodecException
      */
-    public String encode(Ontology ontology, AbsContentElement content) throws CodecException {
+    public synchronized String encode(Ontology ontology, AbsContentElement content) throws CodecException {
 	domainOnto = ontology;
 	StringBuffer str = new StringBuffer("(");
 	if (content instanceof AbsContentElementList) {
@@ -406,7 +406,7 @@ public class SLCodec extends StringCodec {
      * @return the content as an abstract description.
      * @throws CodecException
      */
-    public AbsContentElement decode(Ontology ontology, String content) throws CodecException {
+    public synchronized AbsContentElement decode(Ontology ontology, String content) throws CodecException {
 	try {
 	    return parser.parse(ontology,content);
 	}  catch(Throwable e) { // both ParseException and TokenMgrError
