@@ -114,7 +114,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	    fillContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return "( true )";
-	} 
+	}
 	return temp.getContent();
     }
 
@@ -128,7 +128,7 @@ public class ams extends Agent implements AgentManager.Listener {
      * try to return anyway a valid content with a best-effort strategy
      **/
     protected String createExceptionalMsgContent(Action a, String ontoName, FIPAException e) {
-	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD); 
+	ACLMessage temp = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 	temp.setLanguage(SL0Codec.NAME);
 	temp.setOntology(ontoName);
 	List l = new ArrayList(2);
@@ -143,7 +143,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	    fillContent(temp,l);
 	} catch (Exception ee) { // in any case try to return some good content
 	    return e.getMessage();
-	} 
+	}
 	return temp.getContent();
     }
 
@@ -162,7 +162,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	processAction(a);
 	} catch(FIPAException fe) {
 	    String ontoName = getRequest().getOntology();
-	    sendReply(ACLMessage.REFUSE,createExceptionalMsgContent(a, ontoName, fe));
+	    sendReply((fe instanceof FailureException?ACLMessage.FAILURE:ACLMessage.REFUSE),createExceptionalMsgContent(a, ontoName, fe));
 	}
     }
 
@@ -622,9 +622,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	pendingInforms.put(agentName, reply);
       }
       catch(UnreachableException ue) {
-	throw new jade.domain.FIPAAgentManagement.InternalError("The container is not reachable");
+	  throw new jade.domain.FIPAAgentManagement.InternalError(ue.getMessage()); 
       }
-
     }
 
   } // End of CreateBehaviour class
