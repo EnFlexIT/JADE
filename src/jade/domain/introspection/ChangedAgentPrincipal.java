@@ -21,61 +21,64 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.security;
 
+package jade.domain.introspection;
+
+import jade.core.AID;
+import jade.core.ContainerID;
+
+import jade.security.AgentPrincipal;
 
 /**
-
-  This is the base class of all JADE Principals.
-
-  @author Michele Tomaiuolo - Universita` di Parma
-  @version $Date$ $Revision$
+  
+   @author Michele Tomaiuolo -  Universita` di Parma
+   @version $Date$ $Revision$
 */
-public class JADEPrincipal implements java.security.Principal, java.io.Serializable {
 
-  public static final String NONE = "none";
-  protected String name;
+public class ChangedAgentPrincipal implements Event {
 
+  public static final String NAME = "Changed-Agent-Principal";
 
-  public JADEPrincipal() {
-    this(NONE);
-  }
+  private AID agent;
+  private AgentPrincipal oldPrincipal;
+  private AgentPrincipal newPrincipal;
 
-  public JADEPrincipal(String n) {
-    name = n;
-  }
-
-  public void setName(String n) { 
-    name = n;
-  }
+  private ContainerID where;
 
   public String getName() {
-    return name;
+    return NAME;
   }
 
-
-  public boolean equals(Object o) {
-
-    if (o instanceof String) {
-      return name.equalsIgnoreCase((String)o);
-    }
-    try {
-      JADEPrincipal p = (JADEPrincipal)o;
-      return name.equalsIgnoreCase(p.name);
-    }
-    catch(ClassCastException cce) {
-      return false;
-    }
-
+  public void setWhere(ContainerID id) {
+    where = id;
   }
 
-  public int compareTo(Object o) {
-    JADEPrincipal p = (JADEPrincipal)o;
-		return name.toLowerCase().compareTo(p.name.toLowerCase());
+  public ContainerID getWhere() {
+    return where;
   }
 
-  public int hashCode() {
-    return name.toLowerCase().hashCode();
+  public void setAgent(AID id) {
+    agent = id;
+  }
+
+  public AID getAgent() {
+    return agent;
+  }
+
+  public void setOldPrincipal(AgentPrincipal p) {
+    oldPrincipal = p;
+  }
+
+  public AgentPrincipal getOldPrincipal() {
+    return oldPrincipal;
+  }
+
+  public void setNewPrincipal(AgentPrincipal p) {
+    newPrincipal = p;
+  }
+
+  public AgentPrincipal getNewPrincipal() {
+    return newPrincipal;
   }
 
 }

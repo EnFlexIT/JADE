@@ -1,5 +1,5 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop
+JADE - Java Agent DEvelopment Framework is a framework to develop 
 multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
@@ -21,24 +21,37 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.security;
+package jade.tools.rma;
 
+import javax.swing.JOptionPane;
 
-/**
+import jade.core.AID;
 
-  This class represents principals associated to agents.
+import jade.gui.AgentTree;
+import jade.gui.AgentTreeModel;
 
-  @author Michele Tomaiuolo - Universita` di Parma
-  @version $Date$ $Revision$
-*/
-public class AgentPrincipal extends JADEPrincipal implements java.io.Serializable {
+/**   
+   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+   @version $Date$ $Revision$
+ */
+class ChangeAgentPrincipalAction extends AgentAction {
 
-  public AgentPrincipal() {
-    super();
+  private rma myRMA;
+
+  public ChangeAgentPrincipalAction(rma anRMA,ActionProcessor actPro) {
+    super ("ChangeAgentPrincipalActionIcon", "Change principal", actPro);
+    myRMA = anRMA;
   }
 
-  public AgentPrincipal(String n) {
-    super(n);
+  public void doAction(AgentTree.AgentNode node ) {
+    String principal = JOptionPane.showInputDialog("Please input a principal");
+    if (principal !=  null) {
+      String toChange = node.getName();
+      AID agentID = new AID();
+      agentID.setName(toChange);
+      myRMA.changeAgentPrincipal(agentID, principal);
+    }
   }
 
-}
+} // End of ChangeAgentPrincipalAction
+
