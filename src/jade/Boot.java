@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.16  1999/03/29 10:31:18  rimassa
+  Maintained a singleton for the current AgentContainer, to allow
+  calling createAgent() from Agent class (for agent factories).
+
   Revision 1.15  1999/02/25 08:03:26  rimassa
   Removed older, commented out code.
 
@@ -67,8 +71,15 @@ public class Boot {
   // This separates agent name from agent class on the command line
   private static final String SEPARATOR = ":";
 
+  // The singleton Agent Container
+  private static AgentContainerImpl theContainer;
+
   // Private constructor to forbid instantiation
   private Boot() {
+  }
+
+  public static AgentContainerImpl getContainer() {
+    return theContainer;
   }
 
   public static void main(String args[]) {
@@ -202,7 +213,6 @@ public class Boot {
     // values and command line options, for use with RMI calls.
     String platformRMI = "rmi://" + platformHost + ":" + platformPort + "/" + platformName;
 
-      AgentContainerImpl theContainer = null;
       if(isPlatform) {
 	theContainer = new AgentPlatformImpl(args);
 
