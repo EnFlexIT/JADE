@@ -64,13 +64,8 @@ import jade.mtp.TransportAddress;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.JADESecurityException;
-import jade.security.JADECertificate;
-import jade.security.DelegationCertificate;
-import jade.security.PrivilegedExceptionAction;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
-import jade.security.dummy.DummyPrincipal;
-
 
 /**
    This class is a concrete implementation of the JADE main container,
