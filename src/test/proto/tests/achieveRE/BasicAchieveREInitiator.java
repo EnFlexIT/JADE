@@ -27,6 +27,7 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
+import jade.domain.FIPANames;
 import test.common.*;
 import test.proto.tests.TestBase;
 
@@ -61,7 +62,7 @@ public class BasicAchieveREInitiator extends AchieveREInitiator {
 	
   protected Vector prepareRequests(ACLMessage request) {
 		Vector v = new Vector(1);
-		request.setProtocol(FIPAProtocolNames.FIPA_REQUEST);
+		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
   	request.setReplyByDate(new Date((new Date()).getTime() + waitingTime));
 		v.addElement(request);
 		return v;

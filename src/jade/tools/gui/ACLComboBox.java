@@ -34,7 +34,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import jade.lang.acl.*;
-import jade.proto.FIPAProtocolNames;
+import jade.domain.FIPANames;
 
 /**
  *  This class is used for selecting performatives or protocols of ACLMessage.
@@ -181,16 +181,16 @@ public class ACLComboBox extends JComboBox implements Observer {
 
   private static String fipaProtocols[] = {
     "",
-    FIPAProtocolNames.FIPA_REQUEST,
-    FIPAProtocolNames.FIPA_QUERY,
-    FIPAProtocolNames.FIPA_REQUEST_WHEN,
-    FIPAProtocolNames.FIPA_ENGLISH_AUCTION,
-    FIPAProtocolNames.FIPA_DUTCH_AUCTION,
-    FIPAProtocolNames.FIPA_BROKERING,
-    FIPAProtocolNames.FIPA_RECRUITING,
-    FIPAProtocolNames.FIPA_PROPOSE,
-    FIPAProtocolNames.FIPA_CONTRACT_NET,
-    FIPAProtocolNames.FIPA_ITERATED_CONTRACT_NET
+    FIPANames.InteractionProtocol.FIPA_REQUEST,
+    FIPANames.InteractionProtocol.FIPA_QUERY,
+    FIPANames.InteractionProtocol.FIPA_REQUEST_WHEN,
+    FIPANames.InteractionProtocol.FIPA_ENGLISH_AUCTION,
+    FIPANames.InteractionProtocol.FIPA_DUTCH_AUCTION,
+    FIPANames.InteractionProtocol.FIPA_BROKERING,
+    FIPANames.InteractionProtocol.FIPA_RECRUITING,
+    FIPANames.InteractionProtocol.FIPA_PROPOSE,
+    FIPANames.InteractionProtocol.FIPA_CONTRACT_NET,
+    FIPANames.InteractionProtocol.FIPA_ITERATED_CONTRACT_NET
     };
 
   private DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();

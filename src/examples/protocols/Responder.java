@@ -25,6 +25,7 @@ package examples.protocols;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.proto.*;
+import jade.domain.FIPANames;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
 import java.io.*;
@@ -68,10 +69,10 @@ public class Responder extends Agent {
     
     public void setup() {
 	
-	Behaviour requestB = new MyRequestResponder(this, AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
+	Behaviour requestB = new MyRequestResponder(this, AchieveREResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_REQUEST));
 	addBehaviour(requestB);
 	
-	Behaviour queryB = new MyRequestResponder(this,AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_QUERY));
+	Behaviour queryB = new MyRequestResponder(this,AchieveREResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_QUERY));
 	addBehaviour(queryB);
 	
     }

@@ -27,6 +27,7 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPANames;
 import java.io.*;
 import jade.proto.states.*;
 
@@ -50,7 +51,7 @@ public class ResponderHandler extends Agent {
     
     public void setup() {
 	
-	requestB = new MyRequestResponder(this, AchieveREResponder.createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
+	requestB = new MyRequestResponder(this, AchieveREResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_REQUEST));
 	
 	//register an handler to manage  differents action.
 	myHandler handler = new myHandler(this,requestB.getDataStore(),ACTION_KEY);

@@ -37,6 +37,7 @@ import jade.core.behaviours.*;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.domain.DFService;
 import jade.lang.acl.ACLMessage;
 

@@ -69,7 +69,7 @@ public class JADEManagementOntologyTesterAgent extends TesterAgent {
 				msg.addReceiver(getAMS());
   			msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
   			msg.setOntology(ontology.getName());
-    		msg.setProtocol(FIPAProtocolNames.FIPA_REQUEST);
+    		msg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
   			msg.setConversationId(TEST_CONVERSATION);
   			msg.setReplyWith(TEST_RESPONSE_ID);
 				setArgument(INFORM_MSG_KEY, msg);

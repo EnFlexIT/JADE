@@ -28,6 +28,7 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPANames;
 
 import test.common.TestUtility;
 
@@ -36,7 +37,7 @@ import test.common.TestUtility;
  */
 public class AgreeInformReplier extends AchieveREResponder {
 	public AgreeInformReplier() {
-		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_REQUEST));
+		super(null, createMessageTemplate(FIPANames.InteractionProtocol.FIPA_REQUEST));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {

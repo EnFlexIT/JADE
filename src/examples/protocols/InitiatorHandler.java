@@ -27,6 +27,7 @@ import java.io.*;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.proto.*;
+import jade.domain.FIPANames;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
 import java.util.*;
@@ -52,7 +53,7 @@ public final static String DO_THAT_ACTION = "dothat";
     ACLMessage createNewMessage(){
 	
 	ACLMessage messageToSend = new ACLMessage(ACLMessage.REQUEST);
-	messageToSend.setProtocol(jade.proto.FIPAProtocolNames.FIPA_REQUEST);
+	messageToSend.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
 	
 	double chance = Math.random();
 

@@ -29,8 +29,10 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPANames;
 import java.util.Vector;
 import java.util.Enumeration;
+
 
 /**
  * This example shows an agent performing the role of the initiator of a FIPARequest of FIPAQuery protocol.
@@ -81,16 +83,16 @@ public class Initiator extends Agent {
 	if (chance <range)
 	    {//sending a REQUEST
 		messageToSend.setPerformative(ACLMessage.REQUEST);
-		messageToSend.setProtocol(jade.proto.FIPAProtocolNames.FIPA_REQUEST);
+		messageToSend.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
 	    }else if(chance < (range * 2)){
 		//sending a QUERY_REF
 		messageToSend.setPerformative(ACLMessage.QUERY_REF);
-		messageToSend.setProtocol(jade.proto.FIPAProtocolNames.FIPA_QUERY);
+		messageToSend.setProtocol(FIPANames.InteractionProtocol.FIPA_QUERY);
 		System.out.println("Initiator is sending a Query-Ref message");
 	    }else {
 		//sending a QUERY_IF
 		messageToSend.setPerformative(ACLMessage.QUERY_IF);
-		messageToSend.setProtocol(jade.proto.FIPAProtocolNames.FIPA_QUERY);
+		messageToSend.setProtocol(FIPANames.InteractionProtocol.FIPA_QUERY);
 		System.out.println("Initiator is sending a Query-If message");
 	    }
 	

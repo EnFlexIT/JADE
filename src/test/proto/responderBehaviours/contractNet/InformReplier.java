@@ -28,13 +28,14 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPANames;
 
 /**
    @author Giovanni Caire - TILAB
  */
 public class InformReplier extends ContractNetResponder {
 	public InformReplier() {
-		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_CONTRACT_NET));
+		super(null, createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {

@@ -27,6 +27,7 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
+import jade.domain.FIPANames;
 import test.common.*;
 import test.proto.tests.TestBase;
 
@@ -62,7 +63,7 @@ public class BasicContractNetInitiator extends ContractNetInitiator {
 	
   protected Vector prepareCfps(ACLMessage cfp) {
 		Vector v = new Vector(1);
-		cfp.setProtocol(FIPAProtocolNames.FIPA_CONTRACT_NET);
+		cfp.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
   	cfp.setReplyByDate(new Date((new Date()).getTime() + waitingTime));
 		v.addElement(cfp);
 		return v;

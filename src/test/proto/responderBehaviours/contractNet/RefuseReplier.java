@@ -27,6 +27,7 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.*;
 
 /**
@@ -34,7 +35,7 @@ import jade.domain.FIPAAgentManagement.*;
  */
 public class RefuseReplier extends ContractNetResponder {
 	public RefuseReplier() {
-		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_CONTRACT_NET));
+		super(null, createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {

@@ -23,9 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
-//import jade.proto.FipaQueryResponderBehaviour;
-//import jade.proto.FipaRequestResponderBehaviour;
-import jade.proto.FIPAProtocolNames;
 import jade.proto.SimpleAchieveREResponder;
 
 import jade.core.*;

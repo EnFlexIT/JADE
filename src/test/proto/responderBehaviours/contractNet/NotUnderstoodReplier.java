@@ -28,13 +28,14 @@ import jade.core.behaviours.*;
 import jade.proto.*;
 import jade.lang.acl.*;
 import jade.domain.FIPAAgentManagement.*;
+import jade.domain.FIPANames;
 
 /**
    @author Giovanni Caire - TILAB
  */
 public class NotUnderstoodReplier extends ContractNetResponder {
 	public NotUnderstoodReplier() {
-		super(null, createMessageTemplate(FIPAProtocolNames.FIPA_CONTRACT_NET));
+		super(null, createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET));
 	}
 	
   protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
