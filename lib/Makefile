@@ -166,29 +166,8 @@ batch:
 	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
 
-
-
-
-
-	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBIIOPNAME) jade\mtp\iiop FIPA' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q jade\mtp\iiop' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y jade\mtp\iiop' >> $(BATCH_LIB)  # For Win 95/98
-	echo 'rmdir /S /Q  FIPA' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y  FIPA' >> $(BATCH_LIB)  # For Win 95/98
-	echo >> $(BATCH_LIB)
-	echo '$(AR) $(MANIFESTARFLAGS) ..\lib\$(LIBNAME)  jade' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y  jade' >> $(BATCH_LIB)  # For Win 95/98
-	echo >> $(BATCH_LIB)
-	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBBASE64NAME) starlight' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For NT 4
-	echo 'deltree /Y starlight' >> $(BATCH_LIB)  # For Win 95/98
-	echo 'cd ..' >> $(BATCH_LIB)
-
-
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBTOOLSNAME)' >> $(BATCH_CLEAN)
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBNAME)' >> $(BATCH_CLEAN)
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBBASE64NAME)' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\$(LIBNAME)' >> $(BATCH_CLEAN)
 
 
 
