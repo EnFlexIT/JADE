@@ -431,31 +431,43 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	startAdditionalServices();
 
     // Create and activate agents that must be launched at bootstrap
-  	//#MIDP_EXCLUDE_BEGIN
   	startBootstrapAgents();
-  	//#MIDP_EXCLUDE_END
 
     myLogger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
     return true;
   }
 
-  //#MIDP_EXCLUDE_BEGIN
   private void startBootstrapAgents() {
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
           Iterator agentSpecifiers = l.iterator();
           while(agentSpecifiers.hasNext()) {
               Specifier s = (Specifier) agentSpecifiers.next();
-
-              AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
-
-              try {
-              	getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(agentID, s.getClassName(), s.getArgs());
+              if (s.getName() != null) {
+	              AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+	
+	              try {
+                	//#MIDP_EXCLUDE_BEGING
+	              	getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(agentID, s.getClassName(), s.getArgs());
+	                //#MIDP_EXCLUDE_END
+	                /*#MIDP_INCLUDE_BEGIN
+                  String serviceName = jade.core.management.AgentManagementSlice.NAME;
+                  Service svc = myServiceFinder.findService(serviceName);
+                  jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) myIMTPManager.createSliceProxy(serviceName, svc.getHorizontalInterface(), myIMTPManager.getLocalNode());
+                  GenericCommand dummyCmd = new GenericCommand(null, null, null);
+                  dummyCmd.setPrincipal(myNodeDescriptor.getOwnerPrincipal());
+                  dummyCmd.setCredentials(myNodeDescriptor.getOwnerCredentials());
+                  target.createAgent(agentID, s.getClassName(), s.getArgs(), myNodeDescriptor.getOwnerPrincipal(), null, target.CREATE_ONLY, dummyCmd);
+                  #MIDP_INCLUDE_END*/
+	              }
+	              catch (Throwable t) {
+	                if(myLogger.isLoggable(Logger.SEVERE))
+	                  myLogger.log(Logger.SEVERE,"Cannot create agent "+s.getName()+": "+t.getMessage());
+	              }
               }
-              catch (Throwable t) {
-                if(myLogger.isLoggable(Logger.SEVERE))
-                  myLogger.log(Logger.SEVERE,"Cannot create agent "+s.getName()+": "+t.getMessage());
-              }
+              else {
+                myLogger.log(Logger.WARNING,"Cannot create an agent with no name");
+              }              	
           }
 
           // Now activate all agents (this call starts their embedded threads)
@@ -478,7 +490,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
           System.out.println("Warning: error reading initial agents");
       }
   }
-  //#MIDP_EXCLUDE_END
 
   public void shutDown() {
     // Remove all non-system agents
