@@ -74,7 +74,7 @@ public class CDOwner extends Agent {
 			addBehaviour(new ItemInformSender(this, myCd));      
     }
     
-    // SELLER ItemInformSender
+    // SELLER informs BUYER that he owns a given Item
     class ItemInformSender extends OneShotBehaviour {
 			private Item it;
 			
@@ -111,7 +111,7 @@ public class CDOwner extends Agent {
 			}
     }
      
-    // BUYER InformManager
+    // BUYER handles informations received from the SELLER
     class InformManager extends CyclicBehaviour {
     	
 			public InformManager(Agent a) { 
@@ -121,8 +121,8 @@ public class CDOwner extends Agent {
 			public void action() {
 				ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 				if (msg != null) {
+					System.out.println(getLocalName()+": INFORM received");
 	    		try {
-						System.out.println(getLocalName()+": INFORM received");
 						ContentElement ce = manager.extractContent(msg);
 						if (ce instanceof Owns) {
 							Owns owns = (Owns) ce;
@@ -145,9 +145,30 @@ public class CDOwner extends Agent {
 							addBehaviour(new RequestSender(myAgent, it));
 	    			}
 	    			else {
-	    				System.out.println("Unknown predicate");
+	    				System.out.println("Unknown predicate "+ce.getClass().getName());
 	    			}
 	    		}
+	    		catch (UngroundedException ue) {
+	    			try {
+							AbsContentElement ce = manager.extractAbsContent(msg);
+							if (ce.getTypeName().equals(BasicOntology.EQUALS)) {
+								AbsConcept price = (AbsConcept) ce.getAbsObject(BasicOntology.EQUALS_RIGHT);
+								System.out.println("Price is "+price.getInteger(ECommerceOntology.PRICE_VALUE));
+								
+								AbsIRE iota = (AbsIRE) ce.getAbsObject(BasicOntology.EQUALS_LEFT);
+								AbsProposition costs = iota.getProposition();
+								AbsConcept i = (AbsConcept) costs.getAbsObject(ECommerceOntology.COSTS_ITEM);
+								Item item = (Item) MusicOntology.getInstance().toObject(i);
+								addBehaviour(new RequestSender(myAgent, item));
+							}
+							else {
+								System.out.println("Unknown predicate "+ce.getTypeName());
+							}
+	    			}
+	    			catch (Exception e) {
+	    				e.printStackTrace();
+	    			}
+	    		}	
 	    		catch(Exception e) { 
 	    			e.printStackTrace(); 
 	    		}
@@ -159,7 +180,7 @@ public class CDOwner extends Agent {
 			
     }
     
-    // BUYER QuerySender
+    // BUYER queries the SELLER how much a given item costs 
     class QuerySender extends OneShotBehaviour {
 			Item it;
 			
@@ -204,7 +225,7 @@ public class CDOwner extends Agent {
 			}
     }
      
-    // SELLER QueryManager
+    // SELLER handles queries received from BUYER
     class QueryManager extends CyclicBehaviour {
     	
 			public QueryManager(Agent a) { 
@@ -247,7 +268,7 @@ public class CDOwner extends Agent {
 			
     }
     
-    // SELLER PriceInformSender
+    // SELLER informs BUYER about the cost of a given Item
     class PriceInformSender extends OneShotBehaviour {
 			private Item it;
 			
@@ -270,11 +291,29 @@ public class CDOwner extends Agent {
 					msg.setOntology(ontology.getName());
 
 					// Fill the content
-					Costs costs = new Costs();
+					/*Costs costs = new Costs();
 					costs.setItem(it);
 					costs.setPrice(new Price(new Integer(40000)));
 					
-					manager.fillContent(msg, costs);
+					manager.fillContent(msg, costs);*/
+					Ontology onto = MusicOntology.getInstance();
+					AbsVariable x = new AbsVariable("x", ECommerceOntology.PRICE);
+					
+					AbsPredicate costs = new AbsPredicate(ECommerceOntology.COSTS);
+					costs.set(ECommerceOntology.COSTS_ITEM, (AbsTerm) onto.fromObject(it));
+					costs.set(ECommerceOntology.COSTS_PRICE, x);
+					
+					AbsIRE iota = new AbsIRE(LEAPCodec.IOTA);
+					iota.setVariable(x);
+					iota.setProposition(costs);
+					
+					AbsPredicate equals = new AbsPredicate(BasicOntology.EQUALS);
+					equals.set(BasicOntology.EQUALS_LEFT, iota);
+					AbsConcept price = new AbsConcept(ECommerceOntology.PRICE);
+					price.set(ECommerceOntology.PRICE_VALUE, 40000);
+					equals.set(BasicOntology.EQUALS_RIGHT, price);
+					
+					manager.fillContent(msg, equals);
 					send(msg);
 	    	} 
 	    	catch(Exception e) { 
@@ -284,6 +323,7 @@ public class CDOwner extends Agent {
 			}
     }
      
+    // BUYER requests SELLER to sell a given Item
     class RequestSender extends OneShotBehaviour {
 	
     	private Item item = null;
@@ -323,7 +363,7 @@ public class CDOwner extends Agent {
 			}
     }
     
-    // SELLER RequestManager
+    // SELLER handles requests from BUYER
     class RequestManager extends CyclicBehaviour {
     	
 			public RequestManager(Agent a) { 
