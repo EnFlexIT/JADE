@@ -45,11 +45,13 @@ import jade.mtp.MTPException;
  */
 public class AgentContainerAdapter implements AgentContainer, Serializable {
 
-  AgentContainerRMI adaptee;
+  private AgentContainerRMI adaptee;
+  private RMIIMTPManager manager;
 
   /** Creates new AgentContainerAdapter */
-  public AgentContainerAdapter(AgentContainerRMI ac) {
+  public AgentContainerAdapter(AgentContainerRMI ac, RMIIMTPManager mgr) {
     adaptee = ac;
+    manager = mgr;
   }
 
   public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
@@ -117,7 +119,7 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
   
   public void createAgent(AID agentID, byte[] serializedInstance, AgentContainer classSite, boolean startIt) throws IMTPException {
     try {
-      adaptee.createAgent(agentID, serializedInstance, classSite.getAdapter().adaptee, startIt);
+      adaptee.createAgent(agentID, serializedInstance, manager.getRMIStub(classSite), startIt);
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -234,7 +236,7 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws IMTPException {
     try {
-      adaptee.updateRoutingTable(op, address, ac.getAdapter().adaptee);
+      adaptee.updateRoutingTable(op, address, manager.getRMIStub(ac));
     }
     catch(RemoteException re) {
       throw new IMTPException("Communication Failure", re);
@@ -250,17 +252,5 @@ public class AgentContainerAdapter implements AgentContainer, Serializable {
     }
   }
 
-  public jade.imtp.rmi.AgentContainerAdapter getAdapter() {
-    return this;
-  }
   
-  // This method serializes the adaptee instead of the adapter. Since the adaptee
-  // is really an RMI remote object, the stub is really sent over the network. This
-  // technique is used to support bynary remote methods, i.e. remote methods that have
-  // a remote object as a parameter. The RMI server object will get the stub and build
-  // a new adapter around it for the implementation to use.
-  private Object writeReplace() {
-    return adaptee;
-  }
-
 }
