@@ -63,14 +63,6 @@ public class JADEAgentManagementOntology {
   // Concepts
   public static final String AGENTIDENTIFIER = "agent-identifier";
   public static final String CONTAINERID = "container-ID";
-  public static final String CONTAINERBORN = "container-born";
-  public static final String CONTAINERDEAD = "container-dead";
-  public static final String AGENTBORN = "agent-born";
-  public static final String AGENTDEAD = "agent-dead";
-  public static final String AGENTMOVED = "agent-moved";
-  public static final String NEWMTP = "new-mtp";
-  public static final String DEADMTP = "dead-mtp";
-  public static final String APDESCRIPTION = "ap-description";
 
   // Actions supported by the ams
   public static final String KILLCONTAINER = "kill-container";
@@ -87,8 +79,15 @@ public class JADEAgentManagementOntology {
   public static final String SHOWGUI = "showgui";
 
   // Exception Predicates
-    public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NOTREGISTERED;
-    public static final String INTERNALERROR = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.INTERNALERROR;
+  public static final String NOTREGISTERED = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.NOTREGISTERED;
+  public static final String INTERNALERROR = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.INTERNALERROR;
+  public static final String UNSUPPORTEDVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNSUPPORTEDVALUE;
+  public static final String UNRECOGNISEDVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNRECOGNISEDVALUE;
+  public static final String UNSUPPORTEDFUNCTION = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNSUPPORTEDFUNCTION;
+  public static final String MISSINGPARAMETER = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.MISSINGPARAMETER;
+  public static final String UNEXPECTEDPARAMETER = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNEXPECTEDPARAMETER;
+  public static final String UNRECOGNISEDPARAMETERVALUE = jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.UNRECOGNISEDPARAMETERVALUE;
+
 
   /**
      This method grants access to the unique instance of the
@@ -173,12 +172,39 @@ public class JADEAgentManagementOntology {
 	  new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O)
 	}, ContainerID.class);
 
+	theInstance.addRole(UNSUPPORTEDVALUE, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.UnsupportedValue.class); 
+
+	theInstance.addRole(UNRECOGNISEDVALUE, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.UnrecognisedValue.class); 
+
+	theInstance.addRole(UNSUPPORTEDFUNCTION, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.UnsupportedFunction.class);
+
+	theInstance.addRole(MISSINGPARAMETER, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.MissingParameter.class); 
+
+	theInstance.addRole(UNEXPECTEDPARAMETER, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.UnexpectedParameter.class); 
+
+	theInstance.addRole(UNRECOGNISEDPARAMETERVALUE, new SlotDescriptor[] {
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M), 
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M) 
+	}, jade.domain.FIPAAgentManagement.UnrecognisedParameterValue.class); 
+
 	theInstance.addRole(NOTREGISTERED, new SlotDescriptor[] {
 	}, jade.domain.FIPAAgentManagement.NotRegistered.class); 
 
 	theInstance.addRole(INTERNALERROR, new SlotDescriptor[] {
-	    new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O) 
-		}, jade.domain.FIPAAgentManagement.InternalError.class); 
+	  new SlotDescriptor(Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.O) 
+	}, jade.domain.FIPAAgentManagement.InternalError.class); 
     }
     catch(OntologyException oe) {
       oe.printStackTrace();
