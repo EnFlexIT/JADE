@@ -57,6 +57,10 @@ class MessageQueue {
 			#MIDP_INCLUDE_END*/
   }
 
+  public MessageQueue() {
+      this(0);
+  }
+
   public boolean isEmpty() {
     return list.isEmpty();
   }
@@ -137,5 +141,35 @@ class MessageQueue {
 			#MIDP_INCLUDE_END*/
   }
 
-	
+    //#MIDP_EXCLUDE_BEGIN
+
+    // For persistence service
+    private void setMessages(java.util.List l) {
+	// FIXME: To be implemented
+	System.out.println(">>> MessageQueue::setMessages() <<<");
+    }
+
+    // For persistence service
+    private java.util.List getMessages() {
+	// FIXME: To be implemented
+	System.out.println(">>> MessageQueue::getMessages() <<<");
+	return null;
+    }
+
+    //#MIDP_EXCLUDE_END
+
+
+    // For persistence service
+    private Long persistentID;
+
+    // For persistence service
+    private Long getPersistentID() {
+	return persistentID;
+    }
+
+    // For persistence service
+    private void setPersistentID(Long l) {
+	persistentID = l;
+    }
+
 }
