@@ -30,4 +30,32 @@
 			<WhenTestPass> The test passes if no exception is fired.</WhenTestPass>
 			<Argument key="iterations" value="100"> Number of iterations </Argument>
 		</Test>		
+
+		<Test name="Composite behaviour restart" skip="false">
+			<TestClassName>test.behaviours.CompositeBehaviourRestart</TestClassName>
+			<WhatTest> When a composite behaviour is restarted, its
+			children are notified after its parent receives the
+			notification. If the behaviour
+			is restarted from an arbitrary thread, a race condition
+			between this thread and the agent's thread may happen,
+			causing the children not to be executed (i.e. the
+			agent's thread resumes the execution before the
+			restarting thread completes the notification to the
+			children).  
+
+			This problem has been detected while using parallel
+			behaviours (presumably, the bug will affect
+			serial behaviours as well). It can be solved by reversing the order in
+			which the parent and the children are notified in the
+			CompositeBehaviour::restart method. </WhatTest>
+			<HowWorkTest> A parallel behaviour with one child is
+			added to the agent. Moreover, a thread which will
+			restart this parallel behaviour is started as
+			well. </HowWorkTest>
+			<WhenTestPass> The test is passed iff the child of the
+			parallel behaviour is executed when it is restarted from
+			the thread. </WhenTestPass>
+			<author>Juan Manuel Serrano, jserrano@escet.urjc.es</author>
+		</Test>
+
 	</TestsList>
