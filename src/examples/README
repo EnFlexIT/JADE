@@ -3,7 +3,7 @@ README file for JADE $Name$ - Example programs.
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
 examples, you must set CLASSPATH environment variable to contain the
-zip file where JADE framework is contained and the current directory.
+file jade.jar and the current directory ('.').
 Then change to 'src' directory and refer to the various example agents
 with a fully qualified package name; all example agent classes belong
 to subpackages of 'examples' package: for example, class Agent1 in
@@ -152,3 +152,25 @@ The following list describes all the example programs found in
 				connected Directory Facilitator Agents.
 				This agent can register itself with another
 				DF, exploiting recursive search capabilities.
+
+
+'ex6' subdirectory
+==================
+This example shows the usage of the FIPAQuery protocol in jade.proto
+AgQueryInit is the initiator of the protocol while AgQueryResp is the
+responder.
+You can execute the example with the following command: 
+java jade.Boot -platform initiator:examples.ex6.AgQueryInit responder:examples.ex6.AgQueryResp
+and then use the GUI of the initiator to send a query message to the responder.
+
+
+'ex7' subdirectory
+==================
+This example shows how to transport serialized Java objects over an ACLMessage.
+You can execute it, for instance, with the following command:
+java jade.Boot -platform a1:examples.ex7.ObjectWriterAgent a2:examples.ex7.ObjectReaderAgent
+- ObjectReaderAgent: the agent registers with the DF and than enters into a 
+loop. In this loop, it waits for the next incoming message, and dumps all
+the Java objects into the message.
+- ObjectWriterAgent: the agent searches in the DF for an ObjectReaderAgent,
+and than sends a message with some Java objects.
