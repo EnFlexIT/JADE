@@ -26,6 +26,8 @@ package jade.core;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -59,6 +61,7 @@ class acc implements MTP.Dispatcher {
   private Map messageEncodings = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private Map localMTPs = new TreeMap(String.CASE_INSENSITIVE_ORDER);
   private RoutingTable routes = new RoutingTable();
+  private List addresses = new LinkedList();
   private AgentContainerImpl myContainer;
 
   public acc(AgentContainerImpl ac) {
@@ -71,47 +74,12 @@ class acc implements MTP.Dispatcher {
   * This method is called by ACCProxy before preparing the Envelope of an outgoing message.
   * It checks for all the AIDs present in the message and adds the addresses, if not present
   **/
-  void addAddressesToLocalAgents(ACLMessage msg) {
-      /*
-  	String platformId = '@' + myContainer.getPlatformID();
-    AID aid = msg.getSender();
-	  // if aid is null, then there is nothing to do
-    if (aid != null) {
-    	if(!aid.getName().endsWith(platformId)) // the sender is always local
-         aid.setName(aid.getName().concat(platformId));
-
-  	  // if has no address set, then adds the addresses of this platform
-  	  if (!aid.getAllAddresses().hasNext()) 
-  	  	for (Iterator i=externalAddresses.iterator(); i.hasNext(); )
-  		    aid.addAddresses(((String)i.next()).toUpperCase());	
-       
-    } 
-    msg.setSender(aid);
-    for (Iterator i=msg.getAllReceiver(); i.hasNext(); ) {
-    	aid = (AID)i.next();
-    	if (!aid.getAllAddresses().hasNext()) { 
-    		// if the AID has no addresses, then it is local
-  	  	// add local addresses
-    		for (Iterator it=externalAddresses.iterator(); it.hasNext(); )
-  		    aid.addAddresses((String)it.next());	
-  		  // make the name a guid
-        if(!aid.getName().endsWith(platformId)) 
-         aid.setName(aid.getName().concat(platformId));
-    	}
+  public void addPlatformAddresses(AID id) {
+    Iterator it = addresses.iterator();
+    while(it.hasNext()) {
+      String addr = (String)it.next();
+      id.addAddresses(addr);
     }
-    for (Iterator i=msg.getAllReplyTo(); i.hasNext(); ) {
-    	aid = (AID)i.next();
-      if (!aid.getAllAddresses().hasNext()) { 
-    		// if the AID has no addresses, then it is local
-  	  	// add local addresses
-    		for (Iterator it=externalAddresses.iterator(); it.hasNext(); )
-  		    aid.addAddresses((String)it.next());	
-  		  // make the name a guid
-        if(!aid.getName().endsWith(platformId)) 
-         aid.setName(aid.getName().concat(platformId));
-    	}
-    }
-      */
   }
 
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
@@ -291,11 +259,13 @@ class acc implements MTP.Dispatcher {
   public void addRoute(String address, AgentContainer ac) {
     String proto = extractProto(address);
     routes.addMTP(proto, ac);
+    addresses.add(address);
   }
 
   public void removeRoute(String address, AgentContainer ac) {
     String proto = extractProto(address);
     routes.removeMTP(proto, ac);
+    addresses.remove(address);
   }
 
   public void shutdown() {
