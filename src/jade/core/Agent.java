@@ -152,14 +152,11 @@ public class Agent implements Runnable, Serializable
 	      //#J2ME_EXCLUDE_BEGIN
 	      persistentPendingTimers.remove(old);
 	      //#J2ME_EXCLUDE_END
+	      TtoB.remove(old.getTimer());
 	  }
-	  old = (TBPair)TtoB.put(pair.getTimer(), pair);
-	  if(old != null) {
-	      theDispatcher.remove(old.getTimer());
-	      //#J2ME_EXCLUDE_BEGIN
-	      persistentPendingTimers.remove(old);
-	      //#J2ME_EXCLUDE_END
-	  }
+	  // Note that timers added to the TimerDispatcher are unique --> there
+	  // can't be an old value to handle
+	  TtoB.put(pair.getTimer(), pair);
 
 	  //#J2ME_EXCLUDE_BEGIN
 	  // For persistence service
@@ -330,7 +327,19 @@ public class Agent implements Runnable, Serializable
      is part of the <code>TimerListener</code> interface.
    */
   public void doTimeOut(Timer t) {
-    Behaviour b = pendingTimers.getPeer(t);
+  	Behaviour b = null;
+  	// This synchronized block avoids that if a behaviour is blocked 
+  	// again just after pendingTimers.getPeer(t) is called, a new mapping
+  	// is added before the old one is removed --> The new mapping is 
+  	// removed instead of the old one.
+  	// In any case b.restart() must be called outside the synchronized
+  	// block to avoid a deadlock between the TimerDispatcher and the Scheduler.
+  	synchronized (theDispatcher) {
+	    b = pendingTimers.getPeer(t);
+	    if(b != null) {
+	    	pendingTimers.removeMapping(b);
+	    }
+  	}
     if(b != null) {
       b.restart();
     }
@@ -338,7 +347,6 @@ public class Agent implements Runnable, Serializable
     else {
     	System.out.println("Warning: No mapping found for expired timer "+t.expirationTime());
     }
-    //#MIDP_EXCLUDE_END
   }
 
   /**
@@ -351,6 +359,11 @@ public class Agent implements Runnable, Serializable
      @see jade.core.behaviours.Behaviour#restart()
   */
   public void notifyRestarted(Behaviour b) {
+  	// The mapping for b in general has already been removed in doTimeOut().
+  	// There is however a case related to ParallelBehaviours where 
+  	// notifyRestarted() is not called as a consequence of a timer
+  	// expiration --> doTimeOut() is not called in this case -->
+  	// We remove the mapping in any case.
     Timer t = pendingTimers.getPeer(b);
     if(t != null) {
 				pendingTimers.removeMapping(b);
