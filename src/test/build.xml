@@ -226,10 +226,10 @@
                             dist
         __________________________________________________ -->
   <target name="dist" description="create the distribution file">
-   <echo message="REMIND TO PUT IN THIS DIRECTORY THE PDF FILE JADE_TestSuite_V2.0.pdf"/>
+   <echo message="REMIND TO PUT IN THIS DIRECTORY THE PDF FILE JADE_TestSuite.pdf"/>
    <mkdir dir="doc"/>
    <mkdir dir="doc/tutorials"/>
-   <copy file="src/test/JADE_TestSuite_V2.0.pdf" todir="doc/tutorials"/>
+   <copy file="src/test/JADE_TestSuite.pdf" todir="doc/tutorials"/>
    <copy file="src/test/testerListDist.xml" tofile="src/test/testerList.xml"/>
    <jar jarfile="../JADE-testSuite-${version}.zip">
       <fileset dir=".." includes="jade/src/test/COPYING"/>
@@ -237,7 +237,7 @@
       <fileset dir=".." includes="jade/src/test/License"/>
       <fileset dir=".." includes="jade/src/test/build.xml"/>
       <fileset dir=".." includes="jade/src/test/testerList.xml"/>
-      <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite_V2.0.pdf"/>
+      <fileset dir=".." includes="jade/doc/tutorials/JADE_TestSuite.pdf"/>
       <fileset dir=".." includes="jade/src/test/common/**"/>
       <fileset dir=".." includes="jade/src/test/interPlatform/**"/>
    </jar>
