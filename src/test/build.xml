@@ -114,7 +114,16 @@
           description="Compile files to be executed in a MIDP environment">
   	
   <property file="add-ons/leap/buildLEAP.properties"/>
-	<property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
+  <condition property="boot-midp-classes" 
+             value="${j2me-wtk-home}/lib/midpapi.zip">
+    <available file="${j2me-wtk-home}/lib/midpapi.zip"/>
+  </condition>
+  <condition property="boot-midp-classes" 
+             value="${j2me-wtk-home}/lib/midpapi10.jar${path.separator}${j2me-wtk-home}/lib/cldcapi10.jar">
+    <not><available file="${j2me-wtk-home}/lib/midpapi.zip"/></not>
+  </condition>
+
+  <property name="boot-midp-classes" value="${j2me-wtk-home}/lib/midpapi.zip"/>
   <property name="leap-home" value="add-ons/leap" />
   <property name="leapmidp" value="${leap-home}/midp/lib/JadeLeap.jar" />
   <property name="unverified" value="src/test/unverified" />
@@ -152,10 +161,10 @@
            nowarn="off" 
            optimize="on" 
            deprecation="on" 
-  	       includes="**/leap/midp/**"
-  	       verbose="false"
-  	       fork="yes"
-  	       compiler="modern"/>
+  	     includes="**/leap/midp/**"
+  	     verbose="false"
+  	     fork="yes"
+  	     compiler="modern"/>
 
   	       
 		<!-- Unjar JADE-LEAP -->
