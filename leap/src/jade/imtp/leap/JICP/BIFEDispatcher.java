@@ -271,7 +271,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  }
 		  catch (IOException ioe) {
 	      // Ignore it, and try the next address...
-	    	myLogger.log(Logger.INFO, "Connection error. "+ioe.toString());
+	    	myLogger.log(Logger.WARNING, "Connection error. "+ioe.toString());
 		  }
     }
 
@@ -333,9 +333,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	}
 	  	catch (IOException ioe) {
 	  		// Can't reach the BackEnd. 
-	  		if (myLogger.isLoggable(Logger.FINE)) {
-	  			myLogger.log(Logger.FINE, "IOException OC["+status+"]"+ioe);
-	  		}
+  			myLogger.log(Logger.WARNING, "IOException OC["+status+"]"+ioe);
   			refreshOut();
 	  		throw new ICPException("Dispatching error.", ioe);
 	  	}
@@ -424,9 +422,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		}
   		catch (IOException ioe) {
 				if (active) {
-		  		if (myLogger.isLoggable(Logger.CONFIG)) {
-		  			myLogger.log(Logger.CONFIG, "IOException IC["+status+"]"+ioe);
-		  		}
+	  			myLogger.log(Logger.WARNING, "IOException IC["+status+"]"+ioe);
   				refreshInp();
 				}
   		}
@@ -524,57 +520,68 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	writePacket(pkt, c);
 		  	pkt = c.readPacket();
 			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+			  	String errorMsg = new String(pkt.getData());
+			  	myLogger.log(Logger.WARNING, "JICP Error "+type+". "+errorMsg); 
 		  		c.close();
-		  		// The JICPServer didn't find my Mediator anymore. There was probably 
-			  	// a fault. Try to recreate the BackEnd
-			  	if (type == OUT) {
-			  		// BackEnd recreation is attempted only when restoring the 
-			  		// OUT connection since the BackEnd uses the connection that 
-			  		// creates it to receive outgoing commands. Moreover this ensures
-			  		// that (if the BackEnd is created on a different host) we do not
-			  		// end up with the INP and OUT connections pointing to different 
-			  		// hosts.
-				  	try {
-				  		c = createBackEnd();
-				  		handleReconnection(c, type);
+		  		if (errorMsg.equals("Mediator not found")) {
+			  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
+		  			// there was a fault our max disconnection time expired. 
+		  			// Try to recreate the BackEnd
+				  	if (type == OUT) {
+				  		// BackEnd recreation is attempted only when restoring the 
+				  		// OUT connection since the BackEnd uses the connection that 
+				  		// creates it to receive outgoing commands. Moreover this ensures
+				  		// that (if the BackEnd is created on a different host) we do not
+				  		// end up with the INP and OUT connections pointing to different 
+				  		// hosts.
+					  	try {
+					  		c = createBackEnd();
+					  		handleReconnection(c, type);
+					  	}
+					  	catch (IMTPException imtpe) { 
+					      handleError();
+					  	}
 				  	}
-				  	catch (IMTPException imtpe) { 
-				      handleError();
+				  	else {
+			  			// In case the outConnection still appears to be OK, refresh it
+				  		refreshOut();
+				  		// Then behave as if there was an IOException --> go to sleep for a while and try again
+			  			throw new IOException();
 				  	}
-			  	}
-			  	else {
-		  			// In case the outConnection still appears to be OK, refresh it
-			  		refreshOut();
-			  		// Then behave as if there was an IOException --> go to sleep for a while and try again
-		  			throw new IOException();
-			  	}
+		  		}
+		  		else {
+		  			// There was a JICP error. Abort  
+		  			handleError();
+		  		}
 			  }
 			  else {
 				  // The local-host address may have changed
 				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
 		  		if (myLogger.isLoggable(Logger.INFO)) {
-		  			myLogger.log(Logger.INFO, "Connect OK");
+		  			myLogger.log(Logger.INFO, "Connect OK "+type);
 		  		}
 				  handleReconnection(c, type);
 			  }
 			  return;
 	  	}
 	  	catch (IOException ioe) {
-	  		if (myLogger.isLoggable(Logger.INFO)) {
-	  			myLogger.log(Logger.INFO, "Connect failed "+ioe.toString());
-	  		}
+  			myLogger.log(Logger.WARNING, "Connect failed "+type+". "+ioe);
 	  		cnt++;
-	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
-	  			handleError();
-	  			return;
-	  		}
-	  		else {
-	  			// Wait a bit before trying again
-	  			try {
-	  				Thread.sleep(retryTime);
-	  			}
-	  			catch (Exception e) {}
-	  		}
+		  	if (type == OUT) {
+		  		// Max disconnection time expiration is detected only when 
+		  		// restoring the OUT connection. In this way we avoid having
+		  		// one connection restored while the other is declared dead.
+		  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
+		  			handleError();
+		  			return;
+		  		}
+		  	}
+	  		
+  			// Wait a bit before trying again
+  			try {
+  				Thread.sleep(retryTime);
+  			}
+  			catch (Exception e) {}
 	  	}
   	}
   }
@@ -713,7 +720,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   			}	  				
 			}
 			catch (IOException ioe) {
-				myLogger.log(Logger.FINE, "KA error "+ioe.toString());
+	  		myLogger.log(Logger.WARNING, "IOException OC sending KA. "+ioe);
 				refreshOut();
 			}
 		}
