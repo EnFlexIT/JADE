@@ -118,6 +118,10 @@ public class AgentMobilityService extends BaseService {
 	// Create a local slice
 	localSlice = new ServiceComponent();
 
+	// Create the two command sinks for this service
+	senderSink = new CommandSourceSink();
+	receiverSink = new CommandTargetSink();
+
 	// Initialize internal tables
 	loaders = new HashMap();
 	sites = new HashMap();
@@ -136,37 +140,28 @@ public class AgentMobilityService extends BaseService {
     }
 
     public Filter getCommandFilter(boolean direction) {
-	if(direction == Filter.OUTGOING) {
-	    return localSlice;
-	}
-	else {
-	    return null;
-	}
+	return null;
     }
 
     public Sink getCommandSink(boolean side) {
-	return null;
+	if(side == Sink.COMMAND_SOURCE) {
+	    return senderSink;
+	}
+	else {
+	    return receiverSink;
+	}
     }
 
     public String[] getOwnedCommands() {
 	return OWNED_COMMANDS;
     }
 
+    // This inner class handles the messaging commands on the command
+    // issuer side, turning them into horizontal commands and
+    // forwarding them to remote slices when necessary.
+    private class CommandSourceSink implements Sink {
 
-    /**
-       Inner mix-in class for this service: this class receives
-       commands through its <code>Filter</code> interface and serves
-       them, coordinating with remote parts of this service through
-       the <code>Slice</code> interface (that extends the
-       <code>Service.Slice</code> interface).
-    */
-    private class ServiceComponent implements Filter, AgentMobilitySlice {
-
-
-	// Implementation of the Filter interface
-
-	public void accept(VerticalCommand cmd) { // FIXME: Should set the exception somehow...
-
+	public void consume(VerticalCommand cmd) {
 	    try {
 		String name = cmd.getName();
 		if(name.equals(AgentMobilitySlice.REQUEST_MOVE)) {
@@ -199,21 +194,389 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	public void setBlocking(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
+
+	// Vertical command handler methods
+
+	private void handleRequestMove(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		ContainerID cid = impl.getContainerID(agentID);
+		AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
+		targetSlice.moveAgent(agentID, where);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
 	}
 
-    	public boolean isBlocking() {
-	    return false; // Blocking and Skipping not implemented
+	private void handleRequestClone(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+	    String newName = (String)params[2];
+
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		ContainerID cid = impl.getContainerID(agentID);
+		AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
+		targetSlice.copyAgent(agentID, where, newName);
+	    }
+	    else {
+		// Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
+	    }
 	}
 
-	public void setSkipping(boolean newState) {
-	    // Do nothing. Blocking and Skipping not supported
+	private void handleInformMoved(VerticalCommand cmd) throws IMTPException, ServiceException, AuthException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+
+	    log("Moving agent " + agentID + " on container " + where.getName(), 1);
+	    Agent a = myContainer.acquireLocalAgent(agentID);
+	    if (a == null) {
+		System.out.println("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
+		myContainer.abortMigration(a);
+		return;
+	    }
+	    String proto = where.getProtocol();
+	    if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
+		System.out.println("Mobility protocol not supported. Aborting transfer");
+		myContainer.abortMigration(a);
+		return;
+	    }
+
+	    int transferState = 0;
+	    List messages = new ArrayList();
+	    AgentMobilitySlice dest = null;
+	    try {
+
+		// --- This code should go into the Security Service ---
+
+		// Check for security permissions
+		// Note that CONTAINER_MOVE_TO will be checked on the destination container
+		myContainer.getAuthority().checkAction(Authority.AGENT_MOVE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder());
+		myContainer.getAuthority().checkAction(Authority.CONTAINER_MOVE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder());
+
+		log("Permissions for agent " + agentID + " OK", 2);
+
+		// --- End of code that should go into the Security Service ---
+
+		dest = (AgentMobilitySlice)getSlice(where.getName());
+
+		log("Destination container for agent " + agentID + " found", 2);
+		transferState = 1;
+		// If the destination container is the same as this one, there is nothing to do
+		if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
+		    myContainer.abortMigration(a);
+		    return;
+		}
+
+		// Serialize the agent
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ObjectOutputStream encoder = new ObjectOutputStream(out);
+		encoder.writeObject(a);
+		byte[] bytes = out.toByteArray();
+		log("Agent " + agentID + " correctly serialized", 2);
+
+		// Gets the container where the agent classes can be retrieved
+		String classSiteName = (String)sites.get(a);
+		AgentMobilitySlice classSite;
+		if (classSiteName == null) {
+		    // The agent was born on this container
+		    classSiteName = getLocalNode().getName();
+		}
+
+		// Perform a slice lookup...
+		classSite = (AgentMobilitySlice)getSlice(classSiteName);
+
+		// Create the agent on the destination container
+		dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
+		transferState = 2;
+		log("Agent " + agentID + " correctly created on destination container", 1);
+
+		AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
+
+		// Perform an atomic transaction for agent identity transfer
+		// From now on, messages for the moving agent will be routed to the 
+		// destination container
+		boolean transferResult = mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
+		transferState = 3;
+		log("Identity of agent " + agentID + " correctly transferred", 1);
+                        
+		if (transferResult == TRANSFER_COMMIT) {
+
+		    // Send received messages to the destination container. Note that
+		    // there is no synchronization problem as the agent is locked in the LADT
+		    myContainer.fillListFromMessageQueue(messages, a);
+
+		    dest.handleTransferResult(agentID, transferResult, messages);
+
+		    // Cause the invocation of 'beforeMove()' and the
+		    // subsequent termination of the agent thread, along
+		    // with its removal from the LADT
+		    myContainer.commitMigration(a);
+		    sites.remove(a);
+		}
+
+		else {
+		    myContainer.abortMigration(a);
+		    dest.handleTransferResult(agentID, transferResult, messages);
+		}
+		log("Agent " + agentID + " correctly activated on destination container", 1);
+	    }
+	    catch (IOException ioe) {
+		// Error in agent serialization
+		System.out.println("Error in agent serialization. Abort transfer. " + ioe);
+		myContainer.abortMigration(a);
+	    }
+	    catch (AuthException ae) {
+		// Permission to move not owned
+		System.out.println("Permission to move not owned. Abort transfer. " + ae.getMessage());
+		myContainer.abortMigration(a);
+	    }
+	    catch(NotFoundException nfe) {
+		if(transferState == 0) {
+		    System.out.println("Destination container does not exist. Abort transfer. " + nfe.getMessage());
+		    myContainer.abortMigration(a);
+		}
+		else if(transferState == 2) {
+		    System.out.println("Transferring agent does not seem to be part of the platform. Abort transfer. " + nfe.getMessage());
+		    myContainer.abortMigration(a);
+		}
+		else if(transferState == 3) {
+		    System.out.println("Transferred agent not found on destination container. Can't roll back. " + nfe.getMessage());
+		}
+	    }
+	    catch(NameClashException nce) {
+		// This should not happen, because the agent is not changing its name but just its location...
+	    }
+	    catch(IMTPException imtpe) {
+		// Unexpected remote error
+		if (transferState == 0) {
+		    System.out.println("Can't retrieve destination container. Abort transfer. " + imtpe.getMessage());
+		    myContainer.abortMigration(a);
+		}
+		else if (transferState == 1) {
+		    System.out.println("Error creating agent on destination container. Abort transfer. " + imtpe.getMessage());
+		    myContainer.abortMigration(a);
+		}
+		else if (transferState == 2) {
+		    System.out.println("Error transferring agent identity. Abort transfer. " + imtpe.getMessage());
+		    try {
+			dest.handleTransferResult(agentID, TRANSFER_ABORT, messages);
+			myContainer.abortMigration(a);
+		    }
+		    catch (Exception e) {
+			e.printStackTrace();
+		    }
+		}
+		else if (transferState == 3) {
+		    System.out.println("Error activating transferred agent. Can't roll back!!!. " + imtpe.getMessage());
+		}
+	    }
+	    finally {
+		myContainer.releaseLocalAgent(agentID);
+	    }
 	}
 
-	public boolean isSkipping() {
-	    return false; // Blocking and Skipping not implemented
+	private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException { // HandleInformCloned start
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+	    String newName = (String)params[2];
+
+	    try {
+
+		Agent a = myContainer.acquireLocalAgent(agentID);
+		if (a == null) {
+		    System.out.println("Internal error: handleClone() called with a wrong name (" + agentID + ") !!!");
+		    return;
+		} 
+		String proto = where.getProtocol();
+		if (!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
+		    System.out.println("Mobility protocol not supported. Abort cloning");
+		    return;
+		}
+
+		AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
+
+		// --- This code should go into the Security Service ---
+
+		// Check for security permissions
+		// Note that CONTAINER_CLONE_TO will be checked on the destination container
+		myContainer.getAuthority().checkAction(Authority.AGENT_CLONE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
+		myContainer.getAuthority().checkAction(Authority.CONTAINER_CLONE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
+
+		// --- End of code that should go into the Security Service ---
+
+
+		// Serialize the agent
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ObjectOutputStream encoder = new ObjectOutputStream(out);
+		encoder.writeObject(a);
+		byte[] bytes = out.toByteArray();
+
+		// Gets the container where the agent classes can be retrieved
+		String classSiteName = (String)sites.get(a);
+		AgentMobilitySlice classSite;
+		if (classSiteName == null) {
+		    // The agent was born on this container
+		    classSiteName = getLocalNode().getName();
+		}
+
+		// Perform a slice lookup...
+		classSite = (AgentMobilitySlice)getSlice(classSiteName);
+
+		// Create the agent on the destination container with the new AID
+		AID newID = new AID(newName, AID.ISLOCALNAME);
+		dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
+	    }
+	    catch (IOException ioe) {
+		// Error in agent serialization
+		throw new IMTPException("I/O serialization error in handleInformCloned()", ioe);
+	    }
+	    catch(ServiceException se) {
+		throw new IMTPException("Destination container not found in handleInformCloned()", se);
+	    }
+	    finally {
+		myContainer.releaseLocalAgent(agentID);
+	    }
 	}
+
+    } // End of CommandSourceSink class
+
+
+    // This inner class handles the messaging commands on the command
+    // issuer side, turning them into horizontal commands and
+    // forwarding them to remote slices when necessary.
+    private class CommandTargetSink implements Sink {
+
+	public void consume(VerticalCommand cmd) {
+
+	    try {
+		String name = cmd.getName();
+		if(name.equals(AgentMobilitySlice.REQUEST_MOVE)) {
+		    handleRequestMove(cmd);
+		}
+		else if(name.equals(AgentMobilitySlice.REQUEST_CLONE)) {
+		    handleRequestClone(cmd);
+		}
+		else if(name.equals(AgentMobilitySlice.INFORM_MOVED)) {
+		    handleInformMoved(cmd);
+		}
+		else if(name.equals(AgentMobilitySlice.INFORM_CLONED)) {
+		    handleInformCloned(cmd);
+		}
+	    }
+	    catch(IMTPException imtpe) {
+		cmd.setReturnValue(new UnreachableException("A remote container was unreachable during agent cloning", imtpe));
+	    }
+	    catch(AuthException ae) {
+		cmd.setReturnValue(ae);
+	    }
+	    catch(NotFoundException nfe) {
+		cmd.setReturnValue(nfe);
+	    }
+	    catch(NameClashException nce) {
+		cmd.setReturnValue(nce);
+	    }
+	}
+
+	private void handleRequestMove(VerticalCommand cmd) throws IMTPException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+
+	    moveAgent(agentID, where);
+	}
+
+	private void handleRequestClone(VerticalCommand cmd) throws IMTPException, NotFoundException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    Location where = (Location)params[1];
+	    String newName = (String)params[2];
+
+	    copyAgent(agentID, where, newName);
+	}
+
+	private void handleInformMoved(VerticalCommand cmd) {
+	    // Nothing to do here: INFORM_MOVED has no target-side action...
+	}
+
+	private void handleInformCloned(VerticalCommand cmd) throws AuthException, NotFoundException, NameClashException {
+	    Object[] params = cmd.getParams();
+	    AID agentID = (AID)params[0];
+	    ContainerID cid = (ContainerID)params[1];
+	    CertificateFolder certs = (CertificateFolder)params[2];
+
+	    clonedAgent(agentID, cid, certs);
+	}
+
+	private void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
+	    Agent a = myContainer.acquireLocalAgent(agentID);
+
+	    if(a == null)
+		throw new NotFoundException("Move-Agent failed to find " + agentID);
+	    a.doMove(where);
+
+	    myContainer.releaseLocalAgent(agentID);
+	}
+
+	private void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
+	    Agent a = myContainer.acquireLocalAgent(agentID);
+
+	    if(a == null)
+		throw new NotFoundException("Clone-Agent failed to find " + agentID);
+	    a.doClone(where, newName);
+
+	    myContainer.releaseLocalAgent(agentID);
+	}
+
+	private void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws AuthException, NotFoundException, NameClashException {
+	    MainContainer impl = myContainer.getMain();
+	    if(impl != null) {
+		try {
+		    // If the name is already in the GADT, throws NameClashException
+		    impl.bornAgent(agentID, cid, certs, false); 
+		}
+		catch(NameClashException nce) {
+		    try {
+			ContainerID oldCid = impl.getContainerID(agentID);
+			Node n = impl.getContainerNode(oldCid);
+
+			// Perform a non-blocking ping to check...
+			n.ping(false);
+
+			// Ping succeeded: rethrow the NameClashException
+			throw nce;
+		    }
+		    catch(NameClashException nce2) {
+			throw nce2; // Let this one through...
+		    }
+		    catch(Exception e) {
+			// Ping failed: forcibly replace the dead agent...
+			impl.bornAgent(agentID, cid, certs, true);
+		    }
+		}
+	    }
+	}
+
+
+    } // End of CommandTargetSink class
+
+
+    /**
+       Inner mix-in class for this service: this class receives
+       commands through its <code>Filter</code> interface and serves
+       them, coordinating with remote parts of this service through
+       the <code>Slice</code> interface (that extends the
+       <code>Service.Slice</code> interface).
+    */
+    private class ServiceComponent implements Service.Slice {
 
 
 	// Implementation of the Service.Slice interface
@@ -232,11 +595,12 @@ public class AgentMobilityService extends BaseService {
 	}
 
 	public VerticalCommand serve(HorizontalCommand cmd) {
+	    VerticalCommand result = null;
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
 
-		if(cmdName.equals(H_CREATEAGENT)) {
+		if(cmdName.equals(AgentMobilitySlice.H_CREATEAGENT)) {
 		    AID agentID = (AID)params[0];
 		    byte[] serializedInstance = (byte[])params[1];
 		    String classSiteName = (String)params[2];
@@ -245,66 +609,74 @@ public class AgentMobilityService extends BaseService {
 
 		    createAgent(agentID, serializedInstance, classSiteName, isCloned, startIt);
 		}
-		else if(cmdName.equals(H_FETCHCLASSFILE)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_FETCHCLASSFILE)) {
 		    String name = (String)params[0];
 
 		    cmd.setReturnValue(fetchClassFile(name));
 		}
-		else if(cmdName.equals(H_MOVEAGENT)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_MOVEAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.REQUEST_MOVE, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    Location where = (Location)params[1];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(where);
 
-		    moveAgent(agentID, where);
+		    result = gCmd;
 		}
-		else if(cmdName.equals(H_COPYAGENT)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_COPYAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.REQUEST_CLONE, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    Location where = (Location)params[1];
 		    String newName = (String)params[2];
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(where);
+		    gCmd.addParam(newName);
 
-		    copyAgent(agentID, where, newName);
+		    result = gCmd;
 		}
-		else if(cmdName.equals(H_PREPARE)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_PREPARE)) {
 
 		    cmd.setReturnValue(new Boolean(prepare()));
 		}
-		else if(cmdName.equals(H_TRANSFERIDENTITY)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_TRANSFERIDENTITY)) {
 		    AID agentID = (AID)params[0];
 		    Location src = (Location)params[1];
 		    Location dest = (Location)params[2];
 
 		    cmd.setReturnValue(new Boolean(transferIdentity(agentID, src, dest)));
 		}
-		else if(cmdName.equals(H_HANDLETRANSFERRESULT)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_HANDLETRANSFERRESULT)) {
 		    AID agentID = (AID)params[0];
-		    boolean result = ((Boolean)params[1]).booleanValue();
+		    boolean transferResult = ((Boolean)params[1]).booleanValue();
 		    List messages = (List)params[2];
 
-		    handleTransferResult(agentID, result, messages);
+		    handleTransferResult(agentID, transferResult, messages);
 		}
-		else if(cmdName.equals(H_CLONEDAGENT)) {
+		else if(cmdName.equals(AgentMobilitySlice.H_CLONEDAGENT)) {
+		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.INFORM_CLONED, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
 		    CertificateFolder certs = (CertificateFolder)params[2];
-		    clonedAgent(agentID, cid, certs);
+		    gCmd.addParam(agentID);
+		    gCmd.addParam(cid);
+		    gCmd.addParam(certs);
+
+		    result = gCmd;
 		}
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
+		if(result != null) {
+		    result.setReturnValue(t);
+		}
 	    }
 	    finally {
-		if(cmd instanceof VerticalCommand) {
-		    return (VerticalCommand)cmd;
-		}
-		else {
-		    return null;
-		}
+		return result;
 	    }
 	}
 
 
-	// Implementation of the service-specific horizontal interface AgentMobilitySlice 
-
-	public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
+	private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, AuthException {
 	    try {
 		log("Incoming agent " + agentID, 1);
 
@@ -344,14 +716,6 @@ public class AgentMobilityService extends BaseService {
 
 		// --- End of code that should go into the Security Service ---    
 
-
-		// Store the container where the classes for this agent can be
-		// retrieved
-		sites.put(instance, classSiteName);
-
-		// Connect the new instance to the local container
-		Agent old = myContainer.addLocalAgent(agentID, instance);
-
 		//#MIDP_EXCLUDE_BEGIN
 		CertificateFolder agentCerts = instance.getCertificateFolder();
 		//#MIDP_EXCLUDE_END
@@ -360,12 +724,18 @@ public class AgentMobilityService extends BaseService {
 		  CertificateFolder agentCerts = new CertificateFolder();
 		  #MIDP_INCLUDE_END*/
 
-
 		if(isCloned) {
 		    // Notify the main slice that a new agent is born
 		    AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
 		    mainSlice.clonedAgent(agentID, myContainer.getID(), agentCerts);
 		}
+
+		// Store the container where the classes for this agent can be
+		// retrieved
+		sites.put(instance, classSiteName);
+
+		// Connect the new instance to the local container
+		Agent old = myContainer.addLocalAgent(agentID, instance);
 
 		if(startIt) {
 		    // Actually start the agent thread
@@ -382,7 +752,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+	private byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
 
 	    log("Fetching class " + name, 4);
 	    String fileName = name.replace('.', '/') + ".class";
@@ -449,27 +819,7 @@ public class AgentMobilityService extends BaseService {
 
 	}
 
-	public void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException {
-	    Agent a = myContainer.acquireLocalAgent(agentID);
-
-	    if(a == null)
-		throw new NotFoundException("Move-Agent failed to find " + agentID);
-	    a.doMove(where);
-
-	    myContainer.releaseLocalAgent(agentID);
-	}
-
-	public void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException {
-	    Agent a = myContainer.acquireLocalAgent(agentID);
-
-	    if(a == null)
-		throw new NotFoundException("Clone-Agent failed to find " + agentID);
-	    a.doClone(where, newName);
-
-	    myContainer.releaseLocalAgent(agentID);
-	}
-
-	public void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
+	private void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
 	    log("Activating incoming agent "+agentID, 1);                             	
 	    try {
 		Agent agent = myContainer.acquireLocalAgent(agentID);
@@ -496,12 +846,12 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	public boolean prepare() {
+	private boolean prepare() {
 	    // Just return 'true', because this method is simply used as a 'ping', for now...
 	    return true;
 	}
 
-	public boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
+	private boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
 
 	    MainContainer impl = myContainer.getMain();
 	    if(impl != null) {
@@ -536,297 +886,7 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-
-	public void clonedAgent(AID agentID, ContainerID cid, CertificateFolder certs) throws IMTPException, AuthException, NotFoundException, NameClashException {
-	    MainContainer impl = myContainer.getMain();
-	    if(impl != null) {
-		try {
-		    // If the name is already in the GADT, throws NameClashException
-		    impl.bornAgent(agentID, cid, certs, false); 
-		}
-		catch(NameClashException nce) {
-		    try {
-			ContainerID oldCid = impl.getContainerID(agentID);
-			Node n = impl.getContainerNode(oldCid);
-
-			// Perform a non-blocking ping to check...
-			n.ping(false);
-
-			// Ping succeeded: rethrow the NameClashException
-			throw nce;
-		    }
-		    catch(NameClashException nce2) {
-			throw nce2; // Let this one through...
-		    }
-		    catch(Exception e) {
-			// Ping failed: forcibly replace the dead agent...
-			impl.bornAgent(agentID, cid, certs, true);
-		    }
-		}
-	    }
-	}
-
-
     } // End of ServiceComponent class
-
-
-
-    // Vertical command handler methods
-
-    private void handleRequestMove(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-	Location where = (Location)params[1];
-
-	MainContainer impl = myContainer.getMain();
-	if(impl != null) {
-	    ContainerID cid = impl.getContainerID(agentID);
-	    AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
-	    targetSlice.moveAgent(agentID, where);
-	}
-	else {
-	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	}
-    }
-
-    private void handleRequestClone(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-	Location where = (Location)params[1];
-	String newName = (String)params[2];
-
-	MainContainer impl = myContainer.getMain();
-	if(impl != null) {
-	    ContainerID cid = impl.getContainerID(agentID);
-	    AgentMobilitySlice targetSlice = (AgentMobilitySlice)getSlice(cid.getName());
-	    targetSlice.copyAgent(agentID, where, newName);
-	}
-	else {
-	    // Do nothing for now, but could also route the command to the main slice, thus enabling e.g. AMS replication
-	}
-    }
-
-    private void handleInformMoved(VerticalCommand cmd) throws IMTPException, ServiceException, AuthException, NotFoundException {
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-	Location where = (Location)params[1];
-
-    	log("Moving agent " + agentID + " on container " + where.getName(), 1);
-	Agent a = myContainer.acquireLocalAgent(agentID);
-	if (a == null) {
-	    System.out.println("Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
-	    myContainer.abortMigration(a);
-	    return;
-	}
-	String proto = where.getProtocol();
-	if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
-	    System.out.println("Mobility protocol not supported. Aborting transfer");
-	    myContainer.abortMigration(a);
-	    return;
-	}
-
-      int transferState = 0;
-      List messages = new ArrayList();
-      AgentMobilitySlice dest = null;
-      try {
-
-	  // --- This code should go into the Security Service ---
-
-	  // Check for security permissions
-	  // Note that CONTAINER_MOVE_TO will be checked on the destination container
-	  myContainer.getAuthority().checkAction(Authority.AGENT_MOVE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder());
-	  myContainer.getAuthority().checkAction(Authority.CONTAINER_MOVE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder());
-
-	  log("Permissions for agent " + agentID + " OK", 2);
-
-	  // --- End of code that should go into the Security Service ---
-
-	  dest = (AgentMobilitySlice)getSlice(where.getName());
-
-	  log("Destination container for agent " + agentID + " found", 2);
-	  transferState = 1;
-	  // If the destination container is the same as this one, there is nothing to do
-	  if (CaseInsensitiveString.equalsIgnoreCase(where.getName(), myContainer.here().getName())) {
-	      myContainer.abortMigration(a);
-	      return;
-	  }
-
-	  // Serialize the agent
-	  ByteArrayOutputStream out = new ByteArrayOutputStream();
-	  ObjectOutputStream encoder = new ObjectOutputStream(out);
-	  encoder.writeObject(a);
-	  byte[] bytes = out.toByteArray();
-	  log("Agent " + agentID + " correctly serialized", 2);
-
-	  // Gets the container where the agent classes can be retrieved
-	  String classSiteName = (String)sites.get(a);
-	  AgentMobilitySlice classSite;
-	  if (classSiteName == null) {
-	      // The agent was born on this container
-	      classSiteName = getLocalNode().getName();
-	      classSite = localSlice;
-	  }
-	  else {
-	      // Perform a slice lookup...
-	      classSite = (AgentMobilitySlice)getSlice(classSiteName);
-	  }
-
-	  // Create the agent on the destination container
-	  dest.createAgent(agentID, bytes, classSiteName, MIGRATION, CREATE_ONLY);
-	  transferState = 2;
-	  log("Agent " + agentID + " correctly created on destination container", 1);
-
-	  AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
-
-	  // Perform an atomic transaction for agent identity transfer
-	  // From now on, messages for the moving agent will be routed to the 
-	  // destination container
-	  boolean transferResult = mainSlice.transferIdentity(agentID, (ContainerID) myContainer.here(), (ContainerID) where);
-	  transferState = 3;
-	  log("Identity of agent " + agentID + " correctly transferred", 1);
-                        
-	  if (transferResult == TRANSFER_COMMIT) {
-
-	      // Send received messages to the destination container. Note that
-	      // there is no synchronization problem as the agent is locked in the LADT
-	      myContainer.fillListFromMessageQueue(messages, a);
-
-	      dest.handleTransferResult(agentID, transferResult, messages);
-
-	      // Cause the invocation of 'beforeMove()' and the
-	      // subsequent termination of the agent thread, along
-	      // with its removal from the LADT
-	      myContainer.commitMigration(a);
-	      sites.remove(a);
-	  }
-
-	  else {
-	      myContainer.abortMigration(a);
-	      dest.handleTransferResult(agentID, transferResult, messages);
-	  }
-	  log("Agent " + agentID + " correctly activated on destination container", 1);
-			}
-    	catch (IOException ioe) {
-	    // Error in agent serialization
-	    System.out.println("Error in agent serialization. Abort transfer. " + ioe);
-	    myContainer.abortMigration(a);
-	}
-    	catch (AuthException ae) {
-	    // Permission to move not owned
-	    System.out.println("Permission to move not owned. Abort transfer. " + ae.getMessage());
-	    myContainer.abortMigration(a);
-	}
-      catch(NotFoundException nfe) {
-	  if(transferState == 0) {
-	      System.out.println("Destination container does not exist. Abort transfer. " + nfe.getMessage());
-	      myContainer.abortMigration(a);
-	  }
-	  else if(transferState == 2) {
-	      System.out.println("Transferring agent does not seem to be part of the platform. Abort transfer. " + nfe.getMessage());
-	      myContainer.abortMigration(a);
-	  }
-	  else if(transferState == 3) {
-	      System.out.println("Transferred agent not found on destination container. Can't roll back. " + nfe.getMessage());
-	  }
-      }
-      catch(NameClashException nce) {
-	  // This should not happen, because the agent is not changing its name but just its location...
-      }
-      catch(IMTPException imtpe) {
-	  // Unexpected remote error
-	  if (transferState == 0) {
-	      System.out.println("Can't retrieve destination container. Abort transfer. " + imtpe.getMessage());
-	      myContainer.abortMigration(a);
-	  }
-	  else if (transferState == 1) {
-	      System.out.println("Error creating agent on destination container. Abort transfer. " + imtpe.getMessage());
-	      myContainer.abortMigration(a);
-	  }
-	  else if (transferState == 2) {
-	      System.out.println("Error transferring agent identity. Abort transfer. " + imtpe.getMessage());
-	      try {
-		  dest.handleTransferResult(agentID, TRANSFER_ABORT, messages);
-		  myContainer.abortMigration(a);
-	      }
-	      catch (Exception e) {
-		  e.printStackTrace();
-	      }
-	  }
-	  else if (transferState == 3) {
-	      System.out.println("Error activating transferred agent. Can't roll back!!!. " + imtpe.getMessage());
-	  }
-      }
-      finally {
-	  myContainer.releaseLocalAgent(agentID);
-      }
-    }
-
-    private void handleInformCloned(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, AuthException {
-	Object[] params = cmd.getParams();
-	AID agentID = (AID)params[0];
-	Location where = (Location)params[1];
-	String newName = (String)params[2];
-
-	try {
-
-	    Agent a = myContainer.acquireLocalAgent(agentID);
-	    if (a == null) {
-		System.out.println("Internal error: handleClone() called with a wrong name (" + agentID + ") !!!");
-		return;
-	    } 
-	    String proto = where.getProtocol();
-	    if (!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
-		System.out.println("Mobility protocol not supported. Abort cloning");
-		return;
-	    }
-
-	    AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
-
-	    // --- This code should go into the Security Service ---
-
-	    // Check for security permissions
-	    // Note that CONTAINER_CLONE_TO will be checked on the destination container
-	    myContainer.getAuthority().checkAction(Authority.AGENT_CLONE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
-	    myContainer.getAuthority().checkAction(Authority.CONTAINER_CLONE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
-
-	    // --- End of code that should go into the Security Service ---
-
-
-	    // Serialize the agent
-	    ByteArrayOutputStream out = new ByteArrayOutputStream();
-	    ObjectOutputStream encoder = new ObjectOutputStream(out);
-	    encoder.writeObject(a);
-	    byte[] bytes = out.toByteArray();
-
-	    // Gets the container where the agent classes can be retrieved
-	    String classSiteName = (String)sites.get(a);
-	    AgentMobilitySlice classSite;
-	    if (classSiteName == null) {
-		// The agent was born on this container
-		classSiteName = getLocalNode().getName();
-		classSite = localSlice;
-	    }
-	    else {
-		// Perform a slice lookup...
-		classSite = (AgentMobilitySlice)getSlice(classSiteName);
-	    }
-
-	    // Create the agent on the destination container with the new AID
-	    AID newID = new AID(newName, AID.ISLOCALNAME);
-	    dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
-	}
-    	catch (IOException ioe) {
-	    // Error in agent serialization
-	    throw new IMTPException("I/O serialization error in handleInformCloned()", ioe);
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Destination container not found in handleInformCloned()", se);
-	}
-	finally {
-	    myContainer.releaseLocalAgent(agentID);
-	}
-
-    }
 
 
 
@@ -854,7 +914,7 @@ public class AgentMobilityService extends BaseService {
             if (cl == null) {
                 cl = new MobileAgentClassLoader(classSite, verbosity);
                 loaders.put(classSiteName, cl);
-            } 
+            }
             Class c = cl.loadClass(v.getName());
             return c;
         } 
@@ -886,6 +946,12 @@ public class AgentMobilityService extends BaseService {
 
     // The local slice for this service
     private ServiceComponent localSlice;
+
+    // The command sink, source side
+    private final CommandSourceSink senderSink;
+
+    // The command sink, target side
+    private final CommandTargetSink receiverSink;
 
 }
 
