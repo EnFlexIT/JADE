@@ -48,7 +48,7 @@ import jade.domain.FIPAAgentManagement.AlreadyRegistered;
 import jade.domain.FIPAAgentManagement.NotRegistered;
 
 /**
-@author Giovanni Rimassa - Universita` di Parma
+@author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
 */
 
@@ -93,7 +93,7 @@ public interface AgentManager {
      * @throws UnreachableException if the container is unreachable 
      * @throws AuthException if this action is not authorized
      **/
-  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException;
+  void create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException, NameClashException;
   void kill(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void suspend(AID agentID) throws NotFoundException, UnreachableException, AuthException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, AuthException;
