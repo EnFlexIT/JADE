@@ -4,117 +4,30 @@
 .PHONY: all clean
 
 AR = jar
-ARFLAGS = cvMf
-MANIFESTARFLAGS = cmf
-
-MODULEDIR = $(LIBDIR)/modules
-
-# Low level modules
-
-BOOT_CLASSES = jade/*.class jade/util/leap/Properties.class
-BOOT_PACKAGES =
-BOOT_LIBNAME = boot.jar
-
-MAINCONTAINER_CLASSES = jade/core/AgentManager*.class jade/core/ContainerTable*.class jade/core/GADT.class 	\
-			jade/core/MainContainerImpl*.class jade/domain/ams*.class jade/domain/df*.class 	\
-			jade/domain/KB.class jade/domain/KBAbstractImpl.class
-MAINCONTAINER_PACKAGES =
-MAINCONTAINER_LIBNAME = main_container.jar
-
-KERNELJ2SE_CLASSES = jade/lang/acl/ISO8601.class jade/lang/acl/MessageTemplate*.class jade/lang/acl/StringACLCodec.class 	\
-		     jade/core/Agent.class jade/core/Agent$*.class jade/core/RealMobilityManager*.class 			\
-		     jade/core/RealNotificationManager.class jade/core/JADEClassLoader.class jade/core/FullAcc.class 		\
-		     jade/core/FullResourceManager.class jade/core/Runtime*.class jade/util/leap/Serializable.class 		\
-		     jade/proto/FipaRequestResponderBehaviour*.class jade/domain/AMSServiceCommunicator.class 			\
-		     jade/domain/DFServiceCommunicator.class jade/domain/FIPAServiceCommunicator.class 				\
-		     jade/domain/DFGUIAdapter.class jade/domain/DFGUIInterface.class 						\
-		     jade/domain/FIPAAgentManagement/APDescription.class jade/domain/FIPAAgentManagement/Quit.class 		\
-		     jade/domain/FIPAAgentManagement/APTransportDescription.class 						\
-		     jade/domain/FIPAAgentManagement/AlreadyRegistered.class 							\
-		     jade/domain/FIPAAgentManagement/DFAgentDescription.class jade/domain/FIPAAgentManagement/Register.class 	\
-		     jade/domain/FIPAAgentManagement/Deregister.class jade/domain/FIPAAgentManagement/Search.class 		\
-		     jade/domain/FIPAAgentManagement/FIPAAgentManagementOntology.class 						\
-		     jade/domain/FIPAAgentManagement/ServiceDescription.class 							\
-		     jade/domain/FIPAAgentManagement/FailureException.class jade/domain/FIPAAgentManagement/Unauthorised.class 	\
-		     jade/domain/FIPAAgentManagement/GetDescription.class jade/domain/FIPAAgentManagement/UnexpectedAct.class 	\
-		     jade/domain/FIPAAgentManagement/InternalError.class 							\
-		     jade/domain/FIPAAgentManagement/UnexpectedParameter.class 							\
-		     jade/domain/FIPAAgentManagement/MTPDescription.class 							\
-		     jade/domain/FIPAAgentManagement/UnrecognisedParameterValue.class 						\
-		     jade/domain/FIPAAgentManagement/Modify.class jade/domain/FIPAAgentManagement/UnsupportedAct.class 		\
-		     jade/domain/FIPAAgentManagement/NotRegistered.class jade/domain/FIPAAgentManagement/UnsupportedValue.class
-
-KERNELJ2SE_PACKAGES = jade/domain/DFGUIManagement jade/domain/JADEAgentManagement jade/lang/sl jade/onto
-KERNELJ2SE_LIBNAME = kernel_j2se.jar
-
-UTILS_CLASSES = jade/util/leap/ArrayList*.class jade/util/leap/Comparable.class jade/util/leap/HashMap*.class 			\
-		jade/util/leap/Iterator.class jade/util/leap/LinkedList*.class jade/util/leap/SortedSetImpl*.class
-UTILS_PACKAGES =
-UTILS_LIBNAME = utils.jar
-
-IMTPRMI_CLASSES =
-IMTPRMI_PACKAGES = jade/imtp/rmi
-IMTPRMI_LIBNAME = imtp_rmi.jar
-
-IIOP_CLASSES =
-IIOP_PACKAGES = FIPA jade/mtp/iiop
-IIOP_LIBNAME = iiop.jar
-
-KERNELSHARE_CLASSES =
-KERNELSHARE_PACKAGES = jade
-KERNELSHARE_LIBNAME = kernel_share.jar
-
-JADE_LIBNAME = jade.jar
-JADETOOLS_LIBNAME = jadeTools.jar
-BASE64_LIBNAME = Base64.jar
-
-JADETOOLS_CLASSES =
-JADETOOLS_PACKAGES = jade/tools jade/gui
+ARFLAGS = cvf
+MANIFESTARFLAGS = cmf jade.mf
 
 all:
 	@echo Making library ...
-
-#	Higher level modules, for backward compatibility
-	cd $(CLSDIR);										\
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(JADETOOLS_LIBNAME) $(JADETOOLS_CLASSES) $(JADETOOLS_PACKAGES);	\
-	rm -rf $(JADETOOLS_CLASSES) $(JADETOOLS_PACKAGES);						\
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(IIOP_LIBNAME) $(IIOP_CLASSES) $(IIOP_PACKAGES); 		\
-	rm -rf $(IIOP_CLASSES) $(IIOP_PACKAGES); 						\
-	$(AR) $(MANIFESTARFLAGS) jade.mf $(LIBDIR)/$(JADE_LIBNAME) jade;			\
-	$(AR) $(ARFLAGS) $(LIBDIR)/$(BASE64_LIBNAME) starlight;					\
-	rm -rf starlight
-
-#	Lower level modules, the ones really needed
-	cd $(CLSDIR); 													\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(BOOT_LIBNAME) $(BOOT_CLASSES) $(BOOT_PACKAGES); 				\
-	rm -rf $(BOOT_CLASSES) $(BOOT_PACKAGES);									\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(MAINCONTAINER_LIBNAME) $(MAINCONTAINER_CLASSES); $(MAINCONTAINER_CLASSES)	\
-	rm -rf $(MAINCONTAINER_CLASSES) $(MAINCONTAINER_PACKAGES); 							\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELJ2SE_LIBNAME) $(KERNELJ2SE_CLASSES) $(KERNELJ2SE_PACKAGES); 		\
-	rm -rf $(KERNELJ2SE_CLASSES) $(KERNELJ2SE_PACKAGES); 								\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(UTILS_LIBNAME) $(UTILS_CLASSES) $(UTILS_PACKAGES); 				\
-	rm -rf $(UTILS_CLASSES) $(UTILS_PACKAGES); 									\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(IMTPRMI_LIBNAME) $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 			\
-	rm -rf $(IMTPRMI_CLASSES) $(IMTPRMI_PACKAGES); 									\
-	$(AR) $(ARFLAGS) $(MODULEDIR)/$(KERNELSHARE_LIBNAME) $(KERNELSHARE_CLASSES) $(KERNELSHARE_PACKAGES); 		\
-	rm -rf $(KERNELSHARE_CLASSES) $(KERNELSHARE_PACKAGES);
-
-
-#	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
+	cd $(CLSDIR); \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBAPPLETNAME) jade/core/AgentGroup.class jade/core/IIOPAddress*.class jade/core/IIOPFormatException.class jade/domain/AgentManagementOntology*.class jade/domain/AgentManagementParser*.class jade/domain/*Exception.class jade/domain/ASCII_CharStream.class jade/domain/Token*.class jade/gui/AboutJadeAction*.class jade/gui/AgentNameTableModel.class jade/gui/ConstraintDlg*.class jade/gui/DFAgentDscDlg*.class jade/gui/DFGUI*.class jade/gui/GUI2DFCommunicatorInterface.class jade/gui/IntRetValue.class jade/gui/ServiceDsc*.class jade/gui/StringDlg*.class jade/gui/TreeHelp*.class jade/gui/GuiEvent.class jade/gui/images jade/gui/help/*.html jade/lang/acl/*.class jade/onto/*.class jade/tools/applet/*.class  \
+	rm -rf jade/tools/applet; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBTOOLSNAME) jade/tools; \
+	rm -rf jade/tools; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBIIOPNAME) jade/mtp/iiop FIPA; \
+	rm -rf jade/tools FIPA; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBNAME) jade; \
+	rm -rf jade; \
+	$(AR) $(ARFLAGS) $(LIBDIR)/$(LIBBASE64NAME) starlight; \
+	rm -rf starlight; \
+	cd $(LIBDIR)
 
 clean:
-	rm -f $(LIBDIR)/$(JADE_LIBNAME)
-	rm -f $(LIBDIR)/$(JADETOOLS_LIBNAME)
-	rm -f $(LIBDIR)/$(IIOP_LIBNAME)
-	rm -f $(LIBDIR)/$(BASE64_LIBNAME)
-
-	rm -f $(MODULEDIR)/$(BOOT_LIBNAME)
-	rm -f $(MODULEDIR)/$(MAINCONTAINER_LIBNAME)
-	rm -f $(MODULEDIR)/$(KERNELJ2SE_LIBNAME)
-	rm -f $(MODULEDIR)/$(UTILS_LIBNAME)
-	rm -f $(MODULEDIR)/$(IMTPRMI_LIBNAME)
-	rm -f $(MODULEDIR)/$(KERNELSHARE_LIBNAME)
-
+	rm -f $(LIBDIR)/$(LIBAPPLETNAME)
+	rm -f $(LIBDIR)/$(LIBTOOLSNAME)
+	rm -f $(LIBDIR)/$(LIBIIOPNAME)
+	rm -f $(LIBDIR)/$(LIBNAME)
+	rm -f $(LIBDIR)/$(LIBBASE64NAME)
 	rm -f `find . -name '*~' -print`
 	rm -f `find . -name '#*#' -print`
 	rm -f `find . -name '*.class' -print`
@@ -128,64 +41,28 @@ batch:
 	echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
 	echo '@REM Not distributed for this version $(AR) $(ARFLAGS) ..\lib\$(LIBAPPLETNAME) jade\core\AgentGroup.class jade\core\IIOPAddress*.class jade\core\IIOPFormatException.class jade\domain\AgentManagementOntology*.class jade\domain\AgentManagementParser*.class jade\domain\*Exception.class jade\domain\ASCII_CharStream.class jade\domain\Token*.class jade\gui\AboutJadeAction*.class jade\gui\AgentNameTableModel.class jade\gui\ConstraintDlg*.class jade\gui\DFAgentDscDlg*.class jade\gui\DFGUI*.class jade\gui\GUI2DFCommunicatorInterface.class jade\gui\IntRetValue.class jade\gui\ServiceDsc*.class jade\gui\StringDlg*.class jade\gui\TreeHelp*.class jade\gui\GuiEvent.class jade\gui\images jade\gui\help\*.html jade\lang\acl\*.class jade\onto\*.class jade\tools\applet\*.class ' >> $(BATCH_LIB)
 	echo >> $(BATCH_LIB)
-
-	#echo '$(AR) $(MANIFESTARFLAGS) jadeTools.mf $(subst /,\,..\lib\$(JADETOOLS_LIBNAME)) Notice.txt' >> $(BATCH_LIB)
-	echo '$(AR) $(ARFLAGS) ..\lib\$(JADETOOLS_LIBNAME) $(subst /,\,$(JADETOOLS_CLASSES)) $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(JADETOOLS_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(JADETOOLS_PACKAGES))' >> $(BATCH_LIB) # For Win 95/98	
+# echo 'cd $(subst /,\,$(subst $(ROOTDIR),.,$(CLSDIR)))' >> $(BATCH_LIB)
+	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBTOOLSNAME) jade\tools' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q jade\tools' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y jade\tools' >> $(BATCH_LIB)  # For Win 95/98	
 	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(IIOP_LIBNAME)) $(subst /,\,$(IIOP_CLASSES)) $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(IIOP_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBIIOPNAME) jade\mtp\iiop FIPA' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q jade\mtp\iiop' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y jade\mtp\iiop' >> $(BATCH_LIB)  # For Win 95/98
+	echo 'rmdir /S /Q  FIPA' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y  FIPA' >> $(BATCH_LIB)  # For Win 95/98
 	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(MANIFESTARFLAGS) jade.mf $(subst /,\,..\lib\$(JADE_LIBNAME)) jade' >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\$(BASE64_LIBNAME)) starlight' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y starlight' >> $(BATCH_LIB)  # For Win 95/98	
+	echo '$(AR) $(MANIFESTARFLAGS) ..\lib\$(LIBNAME)  jade' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q  jade' >> $(BATCH_LIB) # For Win NT 4
+	echo 'deltree /Y  jade' >> $(BATCH_LIB)  # For Win 95/98
 	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(BOOT_LIBNAME)) $(subst /,\,$(BOOT_CLASSES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(IIOP_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(BOOT_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(BOOT_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(MAINCONTAINER_LIBNAME)) $(subst /,\,$(MAINCONTAINER_CLASSES)) $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(MAINCONTAINER_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(MAINCONTAINER_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(KERNELJ2SE_LIBNAME)) $(subst /,\,$(KERNELJ2SE_CLASSES)) $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(KERNELJ2SE_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(KERNELJ2SE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(UTILS_LIBNAME)) $(subst /,\,$(UTILS_CLASSES)) $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(UTILS_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(UTILS_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(IMTPRMI_LIBNAME)) $(subst /,\,$(IMTPRMI_CLASSES)) $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(IMTPRMI_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(IMTPRMI_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
-
-	echo '$(AR) $(ARFLAGS) $(subst /,\,..\lib\modules\$(KERNELSHARE_LIBNAME)) $(subst /,\,$(KERNELSHARE_CLASSES)) $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)
-	echo 'del $(subst /,\,$(KERNELSHARE_CLASSES))' >> $(BATCH_LIB)
-	echo 'rmdir /S /Q $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB) # For Win NT 4
-	echo 'deltree /Y $(subst /,\,$(KERNELSHARE_PACKAGES))' >> $(BATCH_LIB)  # For Win 95/98	
-	echo >> $(BATCH_LIB)
+	echo '$(AR) $(ARFLAGS) ..\lib\$(LIBBASE64NAME) starlight' >> $(BATCH_LIB)
+	echo 'rmdir /S /Q starlight' >> $(BATCH_LIB) # For NT 4
+	echo 'deltree /Y starlight' >> $(BATCH_LIB)  # For Win 95/98
 	echo 'cd ..' >> $(BATCH_LIB)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBTOOLSNAME)' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBNAME)' >> $(BATCH_CLEAN)
+	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\$(LIBBASE64NAME)' >> $(BATCH_CLEAN)
 
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(LIBDIR)))\*.jar' >> $(BATCH_CLEAN)
-	echo 'del $(subst /,\,$(subst $(ROOTDIR),.,$(MODULEDIR)))\*.jar' >> $(BATCH_CLEAN)
+
 
