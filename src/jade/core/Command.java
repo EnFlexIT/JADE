@@ -70,5 +70,19 @@ public interface Command {
     */
     Object getReturnValue();
 
+    /**
+        Get the JADEPrincipal of the actor, respnsible for this Command object.
+        @return
+      */
+     jade.security.JADEPrincipal getPrincipal();
+     void setPrincipal( jade.security.JADEPrincipal p );
+ 
+     /**
+        Get the credentials that the actor of this command
+        wants to use while processing this command.
+        @return
+      */
+     jade.security.Credentials getCredentials();
+     void setCredentials( jade.security.Credentials creds );
 
 }

@@ -104,6 +104,33 @@ public class GenericCommand implements HorizontalCommand, VerticalCommand  {
 	return returnValue;
     }
 
+     public jade.security.JADEPrincipal getPrincipal() {
+       return principal;
+     } // end getPrincipal
+     public void setPrincipal( jade.security.JADEPrincipal p) {
+       // principal can be set only one time
+       // following setPrincipal are ignored
+       if (principal==null) {
+         this.principal = p;
+       }
+     } // end setPrincipal
+ 
+     public jade.security.Credentials getCredentials() {
+       return creds;
+     } // end getCredentials
+     public void setCredentials( jade.security.Credentials creds) {
+       // credentials can be set only one time
+       // following setCredentials are ignored
+       if (creds==null) {
+         this.creds = creds;
+       }
+     } // end setCredentials
+ 
+ 
+ 
+    private jade.security.JADEPrincipal principal = null;
+    private jade.security.Credentials creds;
+
     private final String myName;
     private final String myService;
     private final String myInteraction;

@@ -33,6 +33,8 @@ import jade.security.ContainerPrincipal;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 
 /**
@@ -55,7 +57,9 @@ public interface AgentContainer {
     AID getAMS();
     AID getDefaultDF();
 
-    void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException;
+    void initAgent(AID agentID, Agent instance, boolean startIt, 
+                   JADEPrincipal creator, Credentials creds                  
+                   ) throws NameClashException, IMTPException, NotFoundException, AuthException;
     Agent addLocalAgent(AID id, Agent a) throws AuthException;
     void powerUpLocalAgent(AID agentID, Agent instance);
     void removeLocalAgent(AID id);

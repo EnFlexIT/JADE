@@ -51,10 +51,12 @@ import jade.security.Authority;
 import jade.security.AuthException;
 import jade.security.AgentPrincipal;
 import jade.security.ContainerPrincipal;
-import jade.security.IdentityCertificate;
-import jade.security.DelegationCertificate;
+//import jade.security.IdentityCertificate;
+//import jade.security.DelegationCertificate;
 import jade.security.CertificateFolder;
 import jade.security.PrivilegedExceptionAction;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 //__SECURITY__END
 
 
@@ -105,8 +107,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private ContainerID myID;
   private NodeDescriptor myNodeDescriptor;
 
-  private String username = null;
-  private byte[] password = null;
+  //private String username = null;
+  //private byte[] password = null;
   private CertificateFolder certs;
   private Authority authority;
   private Map principals = new HashMap();
@@ -147,7 +149,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
   //#MIDP_EXCLUDE_END
 
-  private void createAgent(AID agentID, String className, Object[] args, String ownership, CertificateFolder certs, boolean startIt) {
+  private void createAgent(AID agentID, String className, Object[] args,
+                           JADEPrincipal creator, Credentials certs, boolean startIt) 
+          throws AuthException {
 
       Agent agent = null;
       try {
@@ -155,18 +159,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           agent.setArguments(args);
           //#MIDP_EXCLUDE_BEGIN
           // Set agent principal and certificates
-          if(certs != null) {
-              agent.setPrincipal(certs);
-          }
+//          if(certs != null) {
+//              agent.setPrincipal(certs);
+//          }
           // Set agent ownership
-          if(ownership != null)
-              agent.setOwnership(ownership);
-          else if(certs.getIdentityCertificate() != null)
-              agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
+//          if(ownership != null)
+//              agent.setOwnership(ownership);
+//          else if(certs.getIdentityCertificate() != null)
+//              agent.setOwnership(((AgentPrincipal)certs.getIdentityCertificate().getSubject()).getOwnership());
           //#MIDP_EXCLUDE_END
 
-          initAgent(agentID, agent, startIt);
-      }
+          initAgent(agentID, agent, startIt, (JADEPrincipal)null, (Credentials)null);
+
+
+      } 
+      catch(AuthException e) { throw e; }
       catch(ClassNotFoundException cnfe) {
           System.err.println("Class " + className + " for agent " + agentID + " was not found.");
       }
@@ -176,10 +183,26 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void initAgent(AID agentID, Agent instance, boolean startIt) throws NameClashException, IMTPException, NotFoundException, AuthException {
+      initAgent(agentID, instance, startIt, (JADEPrincipal) null, (Credentials) null);
+  }
+
+   /**
+    *   Creates a generic command for asking the creation
+    *   of a new agent.
+    */
+   public void initAgent(
+        AID agentID, Agent instance, boolean startIt,
+        JADEPrincipal creator, Credentials creds)
+      throws NameClashException, IMTPException, NotFoundException, AuthException {
+
+
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(agentID);
       cmd.addParam(instance);
       cmd.addParam(new Boolean(startIt));
+      cmd.setPrincipal( creator );
+      cmd.setCredentials( creds);
+
       myCommandProcessor.processOutgoing(cmd);
   }
 
@@ -187,6 +210,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_BEGIN
 		Agent agent = localAgents.acquire(agentID);
 		if (agent != null)
+                  if (certs!=null)
 			agent.setPrincipal(certs);
 		localAgents.release(agentID);
 		//#MIDP_EXCLUDE_END
@@ -330,25 +354,26 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       // the name for this container is got from the Profile, if exists
       // "No-name" is needed because the NAME is mandatory in the Ontology
       myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, AgentManager.UNNAMED_CONTAINER_NAME), addr);
-      String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
-      password = Agent.extractPassword(ownership);
-      username = Agent.extractUsername(ownership);
+      //String ownership = myProfile.getParameter(Profile.OWNER, ContainerPrincipal.NONE);
+      //password = Agent.extractPassword(ownership);
+      //username = Agent.extractUsername(ownership);
       //#MIDP_EXCLUDE_END
       /*#MIDP_INCLUDE_BEGIN
 	myID = new ContainerID(myProfile.getParameter(Profile.CONTAINER_NAME, "No-Name"), addr);
 	password = new byte[] {};
 	username = ContainerPrincipal.NONE;
 	#MIDP_INCLUDE_END*/
-      myProfile.setParameter(Profile.OWNER, username);
+      //myProfile.setParameter(Profile.OWNER, username);
 
+      /* we do not have identity certificates any more 
       // FIXME: Temporary Hack --- Start 
       certs = new CertificateFolder();
       IdentityCertificate identity = new jade.security.dummy.DummyCertificate();
       identity.setSubject(new jade.security.dummy.DummyPrincipal(myID, username));
       certs.setIdentityCertificate(identity);
       // FIXME: Temporary Hack --- End 
-
-      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), username, password);
+      */
+      myNodeDescriptor = new NodeDescriptor(myID, myIMTPManager.getLocalNode(), null, null);
 
   }
 
@@ -425,6 +450,54 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       return myNodeDescriptor;
   }
 
+
+   // principal and credentials of the container's owner
+   private JADEPrincipal principal = null;
+   private Credentials initialCred = null;
+ 
+   // Authenticate the container's owner.
+   // In pratice, send a vertical cmd, 
+   // a proper service (if any) will provide 
+   // the user's JADEPrincipal and his initial Credentials
+   // Such credentials are used in joinPlatform() to create agents at start-up time.
+   private void authenticateOwner() {
+ 
+     // ToDo: create vcomd AUTHENTICATE_USER
+     // send it to the cmd processor
+     // handle exceptions
+     // get Credentials and JADEPrincipal
+
+
+     /**
+      *   == move following code to Authentication service ==
+     
+ //#MIDP_EXCLUDE_BEGIN    
+     // get the SecurityFactory 
+     SecurityFactory sf = SecurityFactory.getSecurityFactory( myProfile );
+ 
+     // Authenticate the user owner of this container 
+     // and get his JADEPrincipal and Credentials
+   try {
+     // get the JADEUserAuthenticator object
+     JADEUserAuthenticator jua = sf.newJADEUserAuthenticator();
+     // login    TOFIX:add exception
+     jua.login( new UserPassCredential( username, password ) );
+     // take the principal 
+     principal = jua.getPrincipal();
+     // take the user credentials (it's a kind of login)
+     initialCred = jua.getCredentials();
+   } catch (AuthException e){ 
+     Logger.println("\nUser authentication failed.");
+     Logger.println("user: "+username);
+     Logger.println( e.getMessage() );
+     System.exit(-1);
+   }
+ //#MIDP_EXCLUDE_END    
+ */
+     
+   } // end authenticateOwner()
+ 
+
   
     void joinPlatform() {
 
@@ -480,6 +553,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	e.printStackTrace();
       }
       
+      // Authenticate the user that is creating this container 
+      authenticateOwner();
+
+      // here we should have 'principal' and 'initialCred' set, 
+      // if any authentication module was used.
+
+
       // Create and activate agents that must be launched at bootstrap
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -488,56 +568,56 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
               Specifier s = (Specifier) agentSpecifiers.next();
 
               AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
-              
-              try {
-                  String agentOwnership = username;
-                  CertificateFolder agentCerts = createCertificateFolder(agentID);
 
-		  createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, CREATE_ONLY);
-              }
-              catch (AuthException ae) {
+              try {
+                  createAgent(agentID, s.getClassName(), s.getArgs(),
+                              principal, initialCred, CREATE_ONLY);
+              } catch (AuthException ae) {
                   Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
               }
+
           }
           
+
           // Now activate all agents (this call starts their embedded threads)
           AID[] allLocalNames = localAgents.keys();
           for (int i = 0; i < allLocalNames.length; i++) {
               AID id = allLocalNames[i];
 
-	      if(!id.equals(theAMS) && !id.equals(theDefaultDF)) { 
-		  startAgent(id);
-	      }
+              if(!id.equals(theAMS) && !id.equals(theDefaultDF)) { 
+                  startAgent(id);
+              }
           }
       }
       catch (ProfileException pe) {
           System.out.println("Warning: error reading initial agents");
       }
-      
+
       System.out.println("Agent container " + myID + " is ready.");
   }
 
+/*
   CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
-	  AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
-	  
-	  IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-	  agentIdentity.setSubject(agentPrincipal);
-	  authority.sign(agentIdentity, certs);
-	  
-	  DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-	  agentDelegation.setSubject(agentPrincipal);
-	  for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
-	      agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-	  authority.sign(agentDelegation, certs);
-	  
-	  CertificateFolder agentCerts = new CertificateFolder();
-	  agentCerts.setIdentityCertificate(agentIdentity);
-	  agentCerts.addDelegationCertificate(agentDelegation);
-	  
-	  return agentCerts;
-  }
+          AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
 
+          IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+          agentIdentity.setSubject(agentPrincipal);
+          authority.sign(agentIdentity, certs);
+
+          DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+          agentDelegation.setSubject(agentPrincipal);
+          for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
+              agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+          authority.sign(agentDelegation, certs);
+
+          CertificateFolder agentCerts = new CertificateFolder();
+          agentCerts.setIdentityCertificate(agentIdentity);
+          agentCerts.addDelegationCertificate(agentDelegation);
+
+          return agentCerts;
+  }
+*/
   public void shutDown() {
 
     // Remove all non-system agents 
