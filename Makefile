@@ -35,7 +35,7 @@ BATCH_DOC = $(ROOTDIR)/makedoc.bat
 BATCH_LIB = $(ROOTDIR)/makelib.bat
 BATCH_CLEAN = $(ROOTDIR)/clean.bat
 
-COMMON_FILES = jade/README jade/License jade/COPYING jade/ChangeLog
+COMMON_FILES = jade/README jade/License jade/COPYING jade/ChangeLog jade/build.xml
 
 export VERSION
 export PACKAGE
