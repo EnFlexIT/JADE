@@ -7,7 +7,7 @@
 		<link rel="stylesheet" href="../cps.css">
 	</head>
 
-	<body bgcolor="#ffffff">
+	<body bgcolor="#d3d3d3">
 		<h1>Tutorial 2. JADE Containers, Local and Remote</h1>
 		<p>This tutorial shows how to add local and remote containers to  a JADE platform. As before, DummyAgent and PingAgent are used to demonstrate agent communication.</p>
 		<h2>Multiple Containers on One Computer</h2>
@@ -52,7 +52,7 @@
 		<p>You will get the windows for the two agents on the remote machine. RMA1 will show all the containers and agents on the platform, just like RMA on the main platform server. Try sending one of the  ping agents the usual message from dummy0.</p>
 		<h3>Note</h3>
 		<ul>
-			<li>If you just launch the RMA agent on the remote machine and try using its button to launch the Dummy Agent, the Dummy Agent fails to appear if one is running elsewhere. This is because of a clash of nicknames (da0 in both cases). Instead, select the container, right click and choose Start New Agent. Choose a none-clashing nickname for the new Dummy Agent, and enter its full class name jade.tools.DummyAgent.DummyAgent.	
+			<li>If you just launch the RMA agent on the remote machine and try using its button to launch the Dummy Agent, the Dummy Agent fails to appear if one is running elsewhere. This is because of a clash of nicknames (da0 in both cases). Instead, select the container, right click and choose Start New Agent. Choose a none-clashing nickname for the new Dummy Agent, and enter its full class name jade.tools.DummyAgent.DummyAgent.
 			<li>A JADE platform is a cooperative system. If you hook up to the main platform server from a remote machine and run an RMA agent on the remote machine you can use that agent to destroy the whole platform! Be nice. Security will eventually be added to JADE. If this is a problem, you can run JADE-S, the secure version of JADE. See the JADE&nbsp;documentations
 		</ul>
 		<h2>Containers and theJADE Program Development Cycle</h2>

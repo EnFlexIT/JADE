@@ -7,9 +7,9 @@
 		<link rel="stylesheet" href="../cps.css">
 	</head>
 
-	<body bgcolor="green" text="black">
+	<body bgcolor="d3d3d3" text="black">
 		<h1>Tutorial 1: Getting Started with JADE</h1>
-		<p>[originally for JADE 2.5 but works fine for JADE 3.0 also]</p>
+		<p>[originally for JADE 2.5 but works fine for JADE 3.x also]</p>
 		<p>JADE can be run in several different ways, on one or on many computers. The easiest way is to run a single JADE platform on one computer and use the main container.</p>
 		<p>Once you have unzipped JADE, you need to make Jade's jar files visible on the classpath. To save typing out could make a one line batch file with the following (on a single line).,</p>
 		<li>java  -classpath .;.\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar jade.Boot %1 %2 %3 %4 %5 %6 %7 %8 %9
@@ -41,8 +41,8 @@
 		</table>
 		<h4>Notes on this image</h4>
 		<ul>
-			<li>JADE agent <i>platforms</i> have <i>containers</i> to hold agents. A platform can have many containers, not necessarily on the same computer. One container on a platform is &quot;privileged&quot;. This <i>main container </i>resides on the host which also runs the platform's&nbsp;RMI server.  Agents on various containers on a platform use the RMI protocol to communicate. 
-			<li>The image above shows the GUI of the <i>Remote Monitoring Agent </i>(<b>RMA</b>) which appears when you use the -gui switch. In addition to itself, the RMA shows the presence of two other agents in the Main Container.  The <b>ams</b> is the Agent Management System. An agent itself, it provides an environment with many services for agents on the platform. The <b>df</b> is the<i> Directory Facilitator</i>. It is an agent which provides a &quot;yellow pages&quot; for agents known to the platform. 
+			<li>JADE agent <i>platforms</i> have <i>containers</i> to hold agents. A platform can have many containers, not necessarily on the same computer. One container on a platform is &quot;privileged&quot;. This <i>main container </i>resides on the host which also runs the platform's&nbsp;RMI server.  Agents on various containers on a platform use the RMI protocol to communicate.
+			<li>The image above shows the GUI of the <i>Remote Monitoring Agent </i>(<b>RMA</b>) which appears when you use the -gui switch. In addition to itself, the RMA shows the presence of two other agents in the Main Container.  The <b>ams</b> is the Agent Management System. An agent itself, it provides an environment with many services for agents on the platform. The <b>df</b> is the<i> Directory Facilitator</i>. It is an agent which provides a &quot;yellow pages&quot; for agents known to the platform.
 			<li>Agents residing on a platform must have unique names. A name is a &quot;nickname&quot; and an address separated by the at (@) sign. For example, RMA@IBM:1099/JADE is an agent with nickname RMA at the address IBM:1099/JADE. (&quot;IBM&quot; is the name of my Win2000 machine on a LAN.			<li>The addresses are in RMI format in this case. RMI is used for intra platform communication. (CORBA or HTTP are used for inter platform communication.) The address consists of a host name, in this case IBM, and a port on which the&nbsp;RMI naming service is active, in this case, 1099, the default port for RMI,1099. The name JADE distinguishes JADE RMI invocations from other possible RMI services. Note that in this case, the host name does not have a domain attached. If you wanted a full name you can use the -host switch: java jade.Boot -gui -host jupiter.scs.ryerson.ca, for example. There is also a -port switch if you don't like 1099.	</ul>
 		<h2>Running Some Agents</h2>
 		<p>We will use the DummyAgent which can be launched by clicking a button on the RMA, and the PingAgent which is an example provided with the Jade distribution. First you need to compile the PingAgent.</p>

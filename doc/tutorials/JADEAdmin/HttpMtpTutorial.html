@@ -1,62 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
 <html>
 
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
-		<meta name="generator" content="Adobe GoLive 5">
-		<title>JADE Tutorial 4 Using HTTP MTP for inter platform communication</title>
+		<meta name="generator" content="Adobe GoLive 6">
+		<title>JADE Tutorial 4 HTTP MTP</title>
+		<style type="text/css" media="screen"><!--
+body { color: #000000; font-style: normal; font-weight: normal; font-family: FontName, "Times New Roman"; background-color: #d3d3d3 }
+p { font-weight: 800 }
+td { }
+--></style>
 	</head>
 
-	<body bgcolor="#ffffff">
-		<h1>Tutorial 4: Using the HTTP MTP for Inter Platform  Communication</h1>
-		<p>An alternative for inter platform communication using the HTTP protocol instead of IIOP (see Tutorial 3) has been provided with the JADE distribution. It is easy to use and provides a well known and universally used message transport protocol (MTP).</p>
-		<h2>Compiling (if necessary)</h2>
-		<p>The HTTP MTP add-on comes with source and a jar file (http.jar) containing the compiled classes. The compiled code assumes you ar using the Crimson SAX parser (<a href="http://xml.apache.org/crimson/index.html">crimson.jar</a> from <a href="http://www.apache.org/">Apache </a>- a free download). If you want to use a different parser, e.g. Xerces, you need to follow the provided <a href="HTTP.html"> instructions</a>. What you want to create is the file http.jar. </p>
-		<h3></h3>
-		<h2>Using the HTTP MTP</h2>
-		<p>Once you have http.jar and crimson.jar the rest is easy. I just put these in the lib directory along with the other JADE jar files in the lib directory. Then I just needed to tell JADE where the main class is using the -mtp command line switch. All this can be put in a one line batch file which looks like this:</p>
-		<p><samp><b>java  -classpath .;.\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar;.\lib\crimson.jar;.\lib\http.jar jade.Boot -mtp jamr.jademtp.http.MessageTransportProtocol %1 %2 %3 %4 %5 %6 %7 %8 %9</b></samp></p>
-		<p>You could call this <a href="runjadehttp.bat">runjadehttp.bat</a>.</p>
-		<h3>The Ping Agent Example (again)</h3>
-		<p>The easiest way to run is to load both the HTTP&nbsp;MTP and the Ping Agent from the command line like so:</p>
-		<p><samp><b>runjadehttp -gui ping0:examples.PingAgent.PingAgent</b></samp></p>
-		<p>Now you will not see the huge IOR number for the end point of this platform but rather something more human:</p>
+	<body>
+		<h1>Tutorial 4: Using the HTTP&nbsp;MTP for Inter-Platform Communication</h1>
+		<p>For communication among FIPA&nbsp;compliant platforms JADE provides support for two message transport protocols, IIOP  and HTTP. The former was discussed in Tutorial 3. This tutorial deals with the HTTP&nbsp;MTP. Formally available only as an add-on, with the JADE 3.2 release the new version of the HTTP&nbsp;MTP is included with the main JADE distribution. In fact it is the default inter-platform MTP, displacing the IIOP&nbsp;MTP&nbsp;from that status.</p>
+		<p>Note that JADE&nbsp;3.2 and this HTTP&nbsp;MTP&nbsp;assumes you have Java j2se 1.4.x or higher installed. (This version of Jade has a built-in SAX XML&nbsp;parser needed by the HTTP&nbsp;MTP. With j2se 1.2.x or j2se 1.3.x you may be able to get it running by addin a SAX parser on your class path. Apache provides several of these. I have not, however, tested this out.)</p>
+		<h2>Running with the HTTP&nbsp;MTP</h2>
+		<p>Since in JADE 3.2 the HTTP&nbsp;MTP&nbsp;is the default MTP, you need  do nothing special to get it running. Just boot JADE in the normal way. On the console you get the usual JADE messages which will include something like this: http://Ishtar:7778/acc or http://jupiter.scs.ryerson.ca:7778/acc. 7778 is the default server port used by JADE for inter-platform communication.	</p>
 		<dl>
-			<dd><samp><b>    This is JADE 2.5 - 2002/02/05 14:01:24<br>
-					</b></samp>
-			<dd><samp><b>    downloaded in Open Source, under LGPL restrictions,<br>
-					</b></samp>
-			<dd><samp><b>    at http://jade.cselt.it/<br>
-						<br>
-					</b></samp>
-				
-			<dd><samp><b>http://IBM:7778/acc<br>
-					</b></samp>
-			<dd><samp><b>Agent container Main-Container@JADE-IMTP://IBM is ready.</b></samp>
+				</dl>
+		<h3>Setting MTP Properties</h3>
+		<p>When run as above, default settings are used. The new HTTP&nbsp;MTP allows you to change these for special purposes. For example,</p>
+		<p>With a proxy server, use these command line arguments:</p>
+		<dl>
+			<dd>-jade_http_mtp_proxyHost &lt;hostName&gt;<br>
+			<dd>-jade_http_mtp_proxyPort &lt;portNumber&gt;<br>
+
 		</dl>
-		<p>http://IBM:7778/acc is the address of the platform on the host &quot;IBM&quot; on the default port 7778. You can override the defaults with -port and  -host as usual.</p>
-		<p>Similarly run another platform on another host. In my case this is a computer called Frodo, so the platform has the address http://Frodo:7778/acc.</p>
-		<p>(Reminder: If you need the full name of the host, including the domain, specify it with -host, e.g. Frodo.scss.ryerson.ca, on the command line.)</p>
-		<h3>Sending a Message to the Remote Platform</h3>
-		<p>Suppose we are on host IBM and want to send the &quot;ping&quot; message to a Ping Agent on host Frodo. But is there a Ping Agent there? And, if so, what is its name? We need some info from the remote platform. This is where the Remote Manager Agent (RMA) comes in.</p>
-		<h3>Contacting a Remote Host</h3>
-		<p>On the RMA menu select &quot;remote platforms&quot;. You see this.</p>
-		<p><img src="images/RMARemote.gif" width="600" height="400" border="0"></p>
-		<p>Select &quot;Add Platform via AMS AID&quot;. This window appears. (Shown filled out&gt;)</p>
-		<p><img src="images/RMAams.gif" width="232" height="305" border="0"></p>
-		<p>Notice the name of the ams agent on the remote platform. The host part of the name is in RMI format.  Note also that the checkbox is unselected. We need the Global Agent Identifier for the remote AMS. </p>
-		<p>On the other hand the address of the platform is HTTP since we added the HTTP MTP for inter platform communication.</p>
-		<p>After you click OK, and expand the platform you get this:</p>
-		<p><img src="images/RMAwithRemote1.gif" width="600" height="400" border="0"></p>
-		<p>Nice, but where are the agents? To see them, select &quot;frodo:1099/JADE&quot; (actually, your equivalent to this), and right click the mouse. Then choose &quot;refresh agent list&quot;, and there they are, like so:</p>
-		<p><img src="images/RMAwithRemote2.gif" width="600" height="400" border="0"></p>
-		<h3>Finally, Actually send a message!</h3>
-		<p>Start up the Dummy Agent. Make sure the Communicative Act is QUERY-REF, and the Content is ping.</p>
-		<p>For the receiver name enter the global name of the Ping Agent on the remote platform, ping0@frodo:1099/JADE in the example. For the address (Right click on the Address field, remember?) enter the HTTP address: http://Frodo:7778/acc. Then send the message.</p>
-		<p>You should get an INFORM message back which you can inspect by clicking the &quot;glasses&quot; button. You should see &quot;alive&quot;. (If you are running an older version of Ping Agent, you may see &quot;(pong)&quot;.  The  change was made in order to conform to an <a href="http://www.agentcities.org/">Agent Cities</a> test suite.)</p>
-		<h3>Adding an MTP&nbsp;with the RMA</h3>
-		<p>If you do not use the -mtp command line switch, the Sun IIOP is added by default. You can add other MTPs (or remove them) once the RMA is running. Select the main container and right click, choosing, Add MTP. </p>
-		<p>To add the HTTP MTP, fill in the field for class name with jamr.jademtp.http.MessageTransportProtocol. Make sure http.jar and crimson.jar are on your class path before booting JADE.</p>
-		<h3></h3>
+		<p>You can also set the port for the socket used by the MTP (otherwise random):</p>
+		<dl>
+			<dd>-jade_http_mtp_outPort &lt;port number&gt;
+
+		</dl>
+		<p>This is useful with routers with port forwarding (see Example 2, below).</p>
+		<p>You can also put these settings in a configuration file and use JADE's -conf &lt;fielname&gt; command line argument to activate them. In this case the synatax is slightly different, for ecample, jade_http_mtp_outPort=&lt;port number&gt; on a line in the file.</p>
+		<h3>Changing RMI&nbsp;and HTTP Server Ports</h3>
+		<p>By default the main container of a JADE platform runs its RMI&nbsp;server on port 1099 and its HTTP&nbsp;MTP&nbsp;on port 7778. In some environments you may  want to change these settings. For examples, students may be doing assignments on a a mult-user system such as a Sun Sparc with many xTerms. These independent users would soon run into port clashes.</p>
+		<p>Chagning the RMI&nbsp;port is easy. Just use the -port command line argument. To change the MTP port you need to use the -mtp  command line option, something like,</p>
+		<dl>
+			<dd>-mtp jade.mtp.http.MessageTransportProtocol (http://jupiter.scs.ryerson.ca:11111/acc)
+		</dl>
+		<p>where the port chosen is not being used by anyone else.</p>
+		<p>For more information about these settings, see the JADE documentation for the HTTP&nbsp;MTP&gt;</p>
+		<h2>Testing the HTTP&nbsp;MTP</h2>
+		<h3>Example 1. Two Platforms on a LAN</h3>
+		<p>I tested my HTTP&nbsp;MTP connection on a LAN, on which there are two PCs named Frodo and Ishtar. Frodo is the remote machine and is running the old version of the HTTP&nbsp;MTP. On this platform the standard PingAgent is running. Ishtar, the local machine, runs the new version of the HTTP&nbsp;MTP. The machines are running separate JADE platforms (not one platform with a main and satellite container) so communication is iter-platform not intra-platform.</p>
+		<h3>[Note.</h3>
+		<p>Of course it would be better to run the new HTTP&nbsp;MTP on both machines. In fact, with the setup described above you will get theis warning:</p>
+		<dl>
+			<dd>HTTP-MTP WARNING: payload size does not match envelope information
+
+		</dl>
+		<p>The example worked in spite of this warning.]</p>
+		<p>You can look at the setup using an RMA agent on,say, Ishtar. I get something like this:</p>
+		<p><img src="images/RMAwithRemote3.gif" width="600" height="411"></p>
+		<p></p>
+		<p>To get this view choose the Remote Platforms menu item and then select &quot;Add Platform via AMS AID&quot;. This window appears:</p>
+		<p><img src="images/RMAams3.gif" width="232" height="328"></p>
+		<p></p>
+		<p>Fill in the name of the remote AMS agent, e.g., ams@Frodo:1099/Jade. (Do not click the checkbox which is for local names.)</p>
+		<p>To fill in the address, put the mouse cursor in the Address text field, and right click. In the window which pops up, fill in the address, e.g., http://Frodo:7778/acc. (7778 is the port chosen by default by the HTTP&nbsp;MTP.)</p>
+		<p>When you close all the pop up windows, you shoudl see new entries in your local RMA window. Under the line &quot;Remote Platforms&quot; you will see an entry like (in my case) Frodo:1099/Jade. But at first you will not see the agents on that platform. To see them, select the platform name and right click. From the pop up menu choose &quot;Refresh&quot;. The names of the agents on the remote platfomr should appear.</p>
+		<p>Talk to the Remote Ping</p>
+		<p>Above you can see a pretty picture of the Jade platorms thanks to the RMA.  This picture is useful for finding agents on remote platforms. In the image above we see that there is an agent on Frodo named ping0. I can ping it from Ishtar using DummyAgent supplied with JADE.</p>
+		<p>To successfully ping the standard JADE PingAgent you need to send it a message with Communicative Act query-ref, content, the string &quot;ping&quot; (entered on the DummyAgent without the quotes). The DummyAgent window looks like this after a message has been sent and received:</p>
+		<p><img src="images/DummyAgenthttp3.gif" width="632" height="675"></p>
+		<p></p>
+		<p>Note that to enter Receivers you need to right click on the field and then respond to the pop ups just as before. The address which is not shown in the DummyAgent window is, as before in my case, http:/Frodo:7778/acc/</p>
+		<p>The received message is shown in red. You can select it, and then click eyeglasses icon to see the properties of the reply received from the PingAgent. The content is &quot;alive&quot; which is correct.</p>
+		<h3>Example 2. JADE, LANS, and Routers</h3>
+		<p>I don't know how many have a setup similar to what I am about to describe, but hopefully some will find this experience interesting. As in Test 1, my local machine is Ishtar on a local LAN. This LAN&nbsp;uses the domain 192.168.1 which is special in that addresses beginning with 192.168 are not allowed to visible from the outside (i.e., the Internet). This LAN is connected to the Internet via a Linksys router. My service provider (ISP) provides an IP of 65.95.65.3 (at the momennt -- it chandes periodically).</p>
+		<p>The machine I want to talk to is at Ryerson University on a UNIX (Solaris) machine with name jupiter.scs.ryerson.ca, a fully Internet functional name. On this machine is running a JADE platform with a standard PingAgent in the main container.</p>
+		<p>The goal is to send the usual &quot;ping&quot; message from Ishtar on the LAN behind the rouoter to the PingAgent on jupiter, and get the standard &quot;aliive&quot; message back. It is easy enough to send the message. Getting the reply back needs some tweeking.</p>
+		<p>You can run the DummyAgent on Ishtar as in Test 1 above. The remote PingAgent is named ping0@jupiter.scs.ryerson.ca:1099/JADE at address  http://jupiter.scs.ryerson.ca:7778/acc. The &quot;ping&quot; message will arrive but nothing comes back. The platform on jupiter will try to send the return message to http://Ishtar:7778/acc. This unfortunately does no have a domain part so it is not recognized as a valid address.</p>
+		<p>One try is to add the address http://65.95.65.3:7778/acc to the sender agent's (da0, the DummyAgent) list of addresses. (Click the Set button on the DummyAgent GUI, and add the address in the same manner as you did for the receiver.) Still no luck.</p>
+		<p>On my system I am using a Linksys router. The administrative program gives me two possibilities, both of which work. The first is the DMZ setting. This allows me to expose a chosen machine on the LAN to the Internet. So I expose Ishtar. If I do this, and then run a JADE&nbsp;platform with the DummyAgent in the way described in the above paragraph, I get the &quot;alive&quot; message back from the remote PingAgent. All is well. (It seems the order is important. You need to reboot JADE after changing the DMZ setting.)</p>
+		<p>The danger of using DMZ is precisely that it exposes the machine on the Internet, making it more vulnerable to attack.  Fortunately there is a somewhat safer way.</p>
+		<p>My router also supports &quot;Port Forwarding&quot;. I can set any port I like. Say I choose 7777. Then I run my platform on Ishtar with additional switch </p>
+		<dl>
+			<dd>-jade_http_mtp_outPort 7777		</dl>
+		<p>Now all works fine and I have just exposed one port, not the hwole machine.</p>
+		<h3>User Program</h3>
+		<p>Instead of using DummhAgent, you might want to communicate from your own program on a machine behind a router. To do so you need to add a second return address to the message sender agent as in Test 2 above with the DummyAgent. To set the return adddress you might have some code lines like the following.</p>
+		<dl>
+			<dd><br>
+				   AID sender = getAID();<br>
+			<dd>   sender.addAddresses(&quot;http://&quot; + routerIp + &quot;:7778/acc&quot;);<br>
+			<dd>   msg.setSender(sender);
+		</dl>
+		<p>In my case the routerIP was 65.95.65.3. </p>
+		<p></p>
+		<p></p>
 		<p></p>
 	</body>
 
