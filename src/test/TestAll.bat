@@ -13,7 +13,7 @@ set JESS51=c:\myprograms\jess51
 set CLASSPATH=..\..\classes;%JESS51%
 set JADEJAR=..\..\lib\jade.jar
 
-REM goto :SKIPCOMPILATION
+goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
 CALL makejade
@@ -29,7 +29,7 @@ echo Starting the Agent Platform
 START java -cp %CLASSPATH% jade.Boot -gui
 pause Press a key when the platform is ready
 
-REM goto :STARTHERE 
+goto :STARTHERE 
 
 echo Running Base64 example
 java -cp %CLASSPATH% jade.Boot -container a:examples.Base64.ObjectReaderAgent b:examples.Base64.ObjectWriterAgent
@@ -73,13 +73,13 @@ java -cp %CLASSPATH% jade.Boot -container a:examples.PingAgent.PingAgent
 
 :STARTHERE
 echo Running the protocols example
-java -Djava.compiler="" -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1 r2) r1:examples.protocols.Responder  r2:examples.protocols.Responder 
 echo Everytime the initiator is blocked, it might be waiting forever for
 echo an INFORM/FAILURE message that closes the protocol.
-echo In such a case, just send it by using the DummyAgent (remind to match
-echo both conversation-id and in-reply-to field values) or simply
+echo In such a case, simply
 echo press a key and the responder will unblock the initiator.
+java -Djava.compiler="" -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1 r2) r1:examples.protocols.Responder  r2:examples.protocols.Responder 
 java -cp %CLASSPATH% examples.protocols.ProtocolTester r1 r2 r3
+java -Djava.compiler="" -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.InitiatorHandler(r1 r2) r1:examples.protocols.ResponderHandler  r2:examples.protocols.ResponderHandler
 
 echo Running the receivers example
 java -cp %CLASSPATH% jade.Boot -container a:examples.receivers.AgentReceiver b:examples.receivers.AgentSender
@@ -120,6 +120,12 @@ echo Testing the bit-efficient ACLCodec add-on FIXME (per Tiziana)
 echo Test inter-platform communication FIXME
 
 echo Test if calling jade.jar works. Just the RMA GUI must appear properly
+echo Test also the Graphical Tools:
+echo DummyAgent: all the menu items + all the image buttons + drag&drop of a message
+echo Sniffer: all the menu items + all the image buttons + click on the arrows
+echo Introspector: FIXME
+echo RMA: FIXME
+echo DFGUI: FIXME
 cd ..\..
 CALL makelib
 java -cp %JADEJAR% jade.Boot -nomtp rma2:jade.tools.rma.rma
