@@ -5,7 +5,7 @@
 
 MAKE = make
 IDLCC = idltojava -fno-cpp
-STUBGEN = rmic -classpath $(CLSDIR)
+STUBGEN = rmic 
 PARSERGEN = javacc
 
 ACLFLAGS    =   -OUTPUT_DIRECTORY:jade/lang/acl
