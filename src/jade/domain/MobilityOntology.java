@@ -121,8 +121,38 @@ public class MobilityOntology {
   */
   public static final String QUERY_PLATFORM_LOCATIONS = "query-platform-locations";
 
-  private static Ontology theInstance = new DefaultOntology();
+  private static Ontology theInstance = new DefaultOntology() {
+		// PATCH to deal with Location and ContainerID consistently with 
+		// the new ontology support
+  	public Frame createFrame(Object o, String roleName) throws OntologyException {
+  		if (o instanceof ContainerID) {
+  			System.out.println("Converting ContainerID into a BCLocation");
+  			o = BCLocation.wrap((ContainerID) o);
+  		}
+  		if (roleName.equalsIgnoreCase("location")) {
+  			System.out.println("Converting location into a container-id");
+  			roleName = "container-ID";
+  		}
+  		return super.createFrame(o, roleName);
+  	} 
+  	
+	  public Object create(Frame f) throws OntologyException {
+	    Class c  = null;
+	    try {
+				c = getClassForRole(f.getName());
+				Object obj = c.newInstance();
+				if (obj instanceof BCLocation) {
+					obj = ((BCLocation) obj).toCid();
+				}
+				return obj;
+	    } catch (Exception e) {
+	    	System.out.println("Error instantiating class "+c+". "+e.getMessage());
+	      throw new OntologyException(e.getMessage()); 
+	    }
+	  }
 
+  };
+  		
 
   /**
      This method grants access to the unique instance of JADE mobility
@@ -185,6 +215,8 @@ public class MobilityOntology {
 	    new SlotDescriptor("address", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M)
 	}, ContainerID.class);
 
+	// PATCH to deal with Location and ContainerID consistently with 
+	// the new ontology support
 	theInstance.addRole("container-ID", new SlotDescriptor[] {
 	    new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	    new SlotDescriptor("protocol", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
@@ -520,6 +552,8 @@ public class MobilityOntology {
 
   } // End of QueryPlatformLocationsAction
 
+	// PATCH to deal with Location and ContainerID consistently with 
+	// the new ontology support
   public static class BCLocation extends ContainerID {
 	  // This class is serialized by sending normal ContainerID
 	  public ContainerID toCid() {
@@ -528,6 +562,14 @@ public class MobilityOntology {
 	    cid.setAddress(getAddress());
 	    cid.setProtocol(getProtocol());
 	  	return cid;
+	  }
+	  
+	  public static BCLocation wrap(ContainerID cid) {
+	  	BCLocation l = new BCLocation();
+	    l.setName(cid.getName());
+	    l.setAddress(cid.getAddress());
+	    l.setProtocol(cid.getProtocol());
+	  	return l;
 	  }
   }
 
