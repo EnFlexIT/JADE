@@ -29,6 +29,7 @@ import jade.content.*;
 public class Position implements Concept {
 	private double x;
 	private double y;
+	private Boolean precise = null;
 
 	public Position() {
 	}
@@ -52,6 +53,14 @@ public class Position implements Concept {
 	
 	public void setY(double y) {
 		this.y = y;
+	}
+	
+	public Boolean getPrecise() {
+		return precise;
+	}
+	
+	public void setPrecise(Boolean b) {
+		precise = b;
 	}
 }
 

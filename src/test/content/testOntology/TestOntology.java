@@ -44,6 +44,7 @@ public class TestOntology extends Ontology {
   public static final String POSITION = "POSITION";
   public static final String POSITION_X = "x";
   public static final String POSITION_Y = "y";
+  public static final String POSITION_PRECISE = "precise";
   
   public static final String MOVE = "MOVE";
   public static final String MOVE_DESTINATION = "destination";
@@ -77,6 +78,7 @@ public class TestOntology extends Ontology {
     	ConceptSchema cs = (ConceptSchema) getSchema(POSITION);
     	cs.add(POSITION_X, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
     	cs.add(POSITION_Y, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
+    	cs.add(POSITION_PRECISE, (PrimitiveSchema) getSchema(BasicOntology.BOOLEAN), ObjectSchema.OPTIONAL);
 
     	cs = (ConceptSchema) getSchema(MOVE);
     	cs.add(MOVE_DESTINATION, (ConceptSchema) getSchema(POSITION));

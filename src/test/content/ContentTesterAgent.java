@@ -45,6 +45,7 @@ public class ContentTesterAgent extends TesterAgent {
 	protected TestGroup getTestGroup() {		
 		TestGroup tg = new TestGroup(new String[] {
   		"test.content.tests.TestInt",
+  		"test.content.tests.TestBoolean",
   		"test.content.tests.TestLong",
   		"test.content.tests.TestFloat",
   		"test.content.tests.TestDouble",
