@@ -401,6 +401,16 @@ public class Agent implements Runnable, Serializable {
   @serial
   */
   private volatile int myAPState;
+  
+  /**
+     This flag is used to distinguish the normal AP_ACTIVE state from
+     the particular case in which the agent state is set to AP_ACTIVE
+     during agent termination to allow it to deregister with the AMS. 
+     In this case in fact a call to <code>doDelete()</code>, 
+     <code>doMove()</code>, <code>doClone()</code> and <code>doSuspend()</code>
+     should have no effect.
+  */
+  private boolean terminating = false;
 
   // These two variables are used as temporary buffers for
   // mobility-related parameters
@@ -788,7 +798,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doMove(Location destination) {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_TRANSIT);
 	myDestination = destination;
@@ -811,7 +821,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doClone(Location destination, String newName) {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_COPY);
 	myDestination = destination;
@@ -865,7 +875,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doSuspend() {
     synchronized(stateLock) {
-      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) {
+      if((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE) && !terminating) {
 	myBufferedState = myAPState;
 	setState(AP_SUSPENDED);
       }
@@ -976,7 +986,7 @@ public class Agent implements Runnable, Serializable {
   */
   public void doDelete() {
     synchronized(stateLock) {
-      if(myAPState != AP_DELETED) {
+      if(myAPState != AP_DELETED && !terminating) {
 	setState(AP_DELETED);
 	if(!myThread.equals(Thread.currentThread()))
 	  myThread.interrupt();
@@ -1133,6 +1143,7 @@ public class Agent implements Runnable, Serializable {
     finally {
       switch(myAPState) {
       case AP_DELETED:
+      	terminating = true;
 	int savedState = getState();
 	setState(AP_ACTIVE);
 	takeDown();
@@ -1142,6 +1153,7 @@ public class Agent implements Runnable, Serializable {
       case AP_GONE:
 	break;
       default:
+      	terminating = true;
 	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 	System.out.println("State was " + myAPState);
 	savedState = getState();
