@@ -159,7 +159,11 @@ public class HTTPPacket {
   		payload = new byte[length];
 	    int n = 0;
 	    while (n < length) {
-    		n += is.read(payload, n, length-n);
+	    	int k = is.read(payload, n, length-n);
+	    	if (k < 0) {
+	    		throw new EOFException(String.valueOf(n));
+	    	}	    		
+    		n += k;
 	    }
 		  //System.out.println("Done");
   	}
