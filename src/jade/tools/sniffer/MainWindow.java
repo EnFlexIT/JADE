@@ -170,7 +170,7 @@ public class MainWindow extends JFrame {
  */
 
  public void showError(String errMsg) {
-  JOptionPane.showMessageDialog(null, errMsg, "Error", JOptionPane.ERROR_MESSAGE);
+  JOptionPane.showMessageDialog(null, errMsg, "Error in " + mySniffer.getName(), JOptionPane.ERROR_MESSAGE);
  }
 
  public Dimension getPreferredSize() {
