@@ -265,7 +265,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				
 			// 2) Evaluate the keep alive
 	  	if (keepAliveTime > 0) {
-		  	if ((currentTime - lastReceivedTime) > (keepAliveTime + 50000)) {
+		  	if ((currentTime - lastReceivedTime) > (keepAliveTime + RESPONSE_TIMEOUT)) {
 		  		// Missing keep-alive.
 		  		// The OUT connection is no longer valid
 		  		if (outManager.isConnected()) {
@@ -441,14 +441,14 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			  	
 				  long start = System.currentTimeMillis();
 					myConnection.writePacket(pkt);
-				  long mid = System.currentTimeMillis();
 					// Asynch-reply: JICPPacket reply = waitForReply(RESPONSE_TIMEOUT);
 				  readStartTime = System.currentTimeMillis();
 					JICPPacket reply = myConnection.readPacket();
 				  readStartTime = -1;
-				  long end = System.currentTimeMillis();
+				  lastReceivedTime = System.currentTimeMillis();
+				  long end = lastReceivedTime;
 				  if ((end - start) > 100) {
-				  	System.out.println("Dispatching time = "+(end-start)+" ("+(end-mid)+")");
+				  	System.out.println("Dispatching time = "+(end-start));
 				  }
 				  
 			  	if (myLogger.isLoggable(Logger.FINER)) {
@@ -474,8 +474,8 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 		  	catch (IOException ioe) {
 		  		synchronized (this) {
 		  			if (myConnection != null && !connectionRefreshed) {
-				  		// Either there was an IO exception writing data to the connection
-				  		// or the response timeout expired --> reset the connection.
+				  		// There was an IO exception writing data to the connection
+				  		// --> reset the connection.
 							myLogger.log(Logger.WARNING,myID+": IOException IC. "+ioe);
 				  		resetConnection();
 		  			}
