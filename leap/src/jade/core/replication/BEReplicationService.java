@@ -255,7 +255,7 @@ public class BEReplicationService extends BaseService {
     } // End of OutgoingCommandSink class
 
 
-    private class OutgoingCommandFilter implements Filter {
+    private class OutgoingCommandFilter extends Filter {
 
 	public boolean accept(VerticalCommand cmd) {
 
@@ -335,7 +335,7 @@ public class BEReplicationService extends BaseService {
     } // End of OutgoingCommandFilter class
 
 
-    private class IncomingCommandFilter implements Filter {
+    private class IncomingCommandFilter extends Filter {
 
 	public boolean accept(VerticalCommand cmd) {
 

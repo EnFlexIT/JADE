@@ -210,7 +210,7 @@ public class LightMessagingService extends BaseService implements MessageManager
    * the <code>Slice</code> interface (that extends the
    * <code>Service.Slice</code> interface).
    */
-  private class ServiceComponent implements Filter, MessagingSlice {
+  private class ServiceComponent extends Filter implements MessagingSlice {
 
     /**
      * Builds a new messaging service lightweight component,
