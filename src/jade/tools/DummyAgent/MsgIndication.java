@@ -73,13 +73,14 @@ class MsgIndication
 			tmpType += " ";
 		
 		// Put the destination agent group in form of a string
-		String dest = new String("(set ");
+		String dest = new String();
 		Iterator destAG = msg.getAllReceiver();
 		
 		while(destAG.hasNext())
-			dest.concat(destAG.next().toString() + " ");
+			dest = dest + destAG.next().toString() + " ";
 
 		String tmpDir = (direction == OUTGOING ? "sent to  " : "recv from");
+	
 		String tmpPeer = (direction == OUTGOING ? dest : msg.getSender().toString());
 		return(df.format(date) + ":  " + tmpType + " " + tmpDir + "   " + tmpPeer);
 	}
