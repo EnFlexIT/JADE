@@ -1,3 +1,38 @@
+MAJOR CHANGES in JADE Snapshot (15 February 2003) 
+==========================================================================
+GENERAL IMPROVEMENTS:
+- update of FipaManagement Ontology according to FIPA Standard
+- implemented new features of DF for FIPA Standard: search-id and lease-time
+- jade.misc.DFFederatorAgent added visualization capability and fixed minor bug
+- improved performance of SLCodec, ISO8601
+- DFService: Methods register and modify return now the lease_time
+- DFService: Added DFRegistrationRenewer behaviour
+- DFFipaAgentManagementBehaviour: The AGREE message is not sent anymore.
+- leap add-on: can now read configuration properties from a file (-conf option)
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- according to the new FIPA Standard:
+  - default value of SearchConstraints.maxResults is 1 instead of infinite
+  - updated definition of APDescription
+- df, ams, and MessageManager: modified property keys to use '_' instead of '.'
+- Renamed key for Main container host and port to "host" and "port" for consistency
+  with command line options
+- leap add-on: Properties source set to JAD by default
+
+BUG FIXES:
+- Fixed bug related to handling null keys and values in serialization of HashMap
+- jade.content 
+  - bug fix to correctly handle and externalize communicative acts as agent actions 
+  - result predicate modified to get a generic value (possibly a List) instead of
+    just a List
+- ams: Corrected bug in tools notification related to container crash
+- leap add-on:
+  - fixed bug in the reconnection mechanism. Improved logs
+  - Modified response timeout
+- XMLACLCodec add-on: Fixed bug on dealing with a null reply-by (Giovanni Barone)
+
+
+
 MAJOR CHANGES in JADE Snapshot (14 January 2003) 
 ==========================================================================
 GENERAL IMPROVEMENTS:
