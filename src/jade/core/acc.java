@@ -41,24 +41,6 @@ import jade.mtp.TransportAddress;
  */
 interface acc {
 
-    /**
-     * Internal exception thrown when all addresses have been tried
-     */
-    public static class NoMoreAddressesException extends NotFoundException {
-
-        /**
-         * Constructor declaration
-         * 
-         * @param msg the error message
-         * 
-         */
-        NoMoreAddressesException(String msg) {
-            super(msg);
-        }
-
-    } // End of NoMoreAddressesException class
-
-    
     public static class UnknownACLEncodingException extends NotFoundException {
       UnknownACLEncodingException(String msg) {
 	super(msg);
@@ -84,17 +66,6 @@ interface acc {
      */
     public void forwardMessage(ACLMessage msg, AID receiver, 
                                String address) throws MTPException;
-
-    /**
-     * Method declaration
-     * 
-     * @param agentID
-     * 
-     * @return
-     * 
-     * @throws NotFoundException
-     */
-    public AgentProxy getProxy(AID agentID) throws NotFoundException;
 
     /**
      * Method declaration
@@ -143,5 +114,9 @@ interface acc {
      * Shut down this ACC
      */
     public void shutdown();
+
+
+    public void dispatch(ACLMessage msg, AID receiverID) throws NotFoundException;
+
 }
 
