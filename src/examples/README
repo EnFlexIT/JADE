@@ -97,7 +97,7 @@ with JESS 5.1
 
 'mobile' subdirectory
 =====================
-This is an example of mobile agent.
+This is an example of a mobile agent.
  - CounterBehaviour.class	The behaviour uses two resources, in particular 
 				the counter cnt and the flag cntEnabled, of the agent object. 
 				It prints its value, increments by one,blocks 
@@ -312,15 +312,14 @@ and it is described by the file 'readme.txt' in its subdirectory.
 
 'inprocess' subdirectory
 ========================
-
-This example shows how to start a JADE runtime from within an external
+This example shows how to start a JADE runtime from an external
 application. The InProcessTest class is not a JADE agent, but has its
 own main() method instead.
 When started, the example launches a JADE main container on the local
 host, on port 8888, and a peripheral container, both within the same
 JVM. An RMA agent is also started.
-If the '-container' option is given, then two non-main container are
-started that try to connect to an external main container that must be
+If the '-container' option is given, then two non-main containers are
+started and each try to connect to an external main container that must be
 already active on the local host, port 1099. Then the platform starts
 and kills a DummyAgent and finally it starts the MobileAgent example.
 Using this example and the regular jade.Boot loader, hybrid platforms
@@ -339,12 +338,15 @@ order to create two sample hybrid platforms
 
 'thanksAgent' subdirectory
 ========================
-This agent implements the following functionality:
- - When being born one will register 
- - It will create a list of agents registered in DF.
- - It will send a message to them of greeting 
- - It will listen if there is some answer 
- - To the agents who answer it will thank to them to answer. 
+ This agent has the following functionality: 
+ - registers with the DF
+ - creates a list of agents
+ - each of this new agents registers with the DF
+ - the father agent sends a message of greeting to each of them
+ - it waits for an answer to the greeting
+ - it thanks the agents that have answered 
+
+
 
 'party' subdirectory (example kindly provided by Ian Dickinson, HP Bristol)
 ==========================================================================

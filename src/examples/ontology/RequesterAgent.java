@@ -35,7 +35,7 @@ import jade.onto.basic.*;
 import examples.ontology.employment.*;
 
 import java.util.Vector;
-import java.util.*;
+import jade.util.leap.*;
 import java.io.*;
 
 /**
@@ -126,7 +126,7 @@ public class RequesterAgent extends Agent {
     		// Write the works for predicate in the :content slot of the message
 		    List l = new ArrayList(1);
 		    l.add(wf);
-		    myAgent.fillContent(queryMsg, l);
+		    myAgent.fillMsgContent(queryMsg, l);
 				
 		    // Create and add a behaviour to query the engager agent whether
 				// person p already works for company c following a FIPAQeury protocol
@@ -134,7 +134,7 @@ public class RequesterAgent extends Agent {
 				addSubBehaviour(queryBehaviour);
 			}
 			catch (FIPAException fe) {
-				System.err.println("FIPAException in fillContent: " + fe.getMessage());
+				System.err.println("FIPAException in fillMsgContent: " + fe.getMessage());
 			}
 			catch (IOException ioe) { 
 				System.err.println("I/O error: " + ioe.getMessage()); 
@@ -194,7 +194,7 @@ public class RequesterAgent extends Agent {
 		public void handleInformMessages(Vector messages) {
 			ACLMessage msg = (ACLMessage) messages.get(0);
 			try{
-				List l = myAgent.extractContent(msg);
+				List l = myAgent.extractMsgContent(msg);
 				Object resp = l.get(0);
 				Ontology o = myAgent.lookupOntology(msg.getOntology());
 				String respName = o.getRoleName(resp.getClass());
@@ -227,7 +227,7 @@ public class RequesterAgent extends Agent {
     			// Write the action in the :content slot of the message
 		    	l = new ArrayList(1);
 		    	l.add(a);
-		    	myAgent.fillContent(requestMsg, l);
+		    	myAgent.fillMsgContent(requestMsg, l);
 				
 					// Create and add a behaviour to request the engager agent to engage
 					// person p in company c following a FIPARequest protocol
@@ -242,7 +242,7 @@ public class RequesterAgent extends Agent {
 				
 			} // End of try
 			catch (FIPAException fe) {
-				System.err.println("FIPAException in fill/extract content:" + fe.getMessage());
+				System.err.println("FIPAException in fill/extract Msgcontent:" + fe.getMessage());
 			}
 			catch (OntologyException fe) {
 				System.err.println("OntologyException in getRoleName:" + fe.getMessage());
@@ -279,7 +279,7 @@ public class RequesterAgent extends Agent {
 			System.out.println("Engagement failed");
 			// Get the failure reason and communicate it to the user
 			try{
-				List l = myAgent.extractContent(msg);
+				List l = myAgent.extractMsgContent(msg);
 				Object reason = l.get(1); 
 				Ontology o = myAgent.lookupOntology(msg.getOntology());
 				String reasonName = o.getRoleName(reason.getClass());
@@ -296,7 +296,7 @@ public class RequesterAgent extends Agent {
 			System.out.println("Engagement refused");
 			// Get the refusal reason and communicate it to the user
 			try{
-				List l = myAgent.extractContent(msg);
+				List l = myAgent.extractMsgContent(msg);
 				Object reason = l.get(1); 
 				Ontology o = myAgent.lookupOntology(msg.getOntology());
 				String reasonName = o.getRoleName(reason.getClass());

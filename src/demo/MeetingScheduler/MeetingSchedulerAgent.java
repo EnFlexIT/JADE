@@ -34,7 +34,7 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
-import jade.domain.DFServiceCommunicator;
+import jade.domain.DFService;
 import jade.domain.FIPAException;
 
 import jade.onto.basic.Action;
@@ -96,10 +96,10 @@ public class MeetingSchedulerAgent extends GuiAgent {
       fixAppointment(a);
       break;
     case REGISTERWITHDF:
-      AID dfName = new AID((String)ev.getParameter(0));
+      AID dfName = new AID((String)ev.getParameter(0), AID.ISGUID);
       try {
 	mf.showErrorMessage("Registering with "+dfName.getName()+" ...");
-	DFServiceCommunicator.register(this,dfName,getDFAgentDescription());
+	DFService.register(this,dfName,getDFAgentDescription());
 	mf.showErrorMessage("Done registration with "+dfName.getName()+".");
       } catch (FIPAException e) {
 	e.printStackTrace();
@@ -128,7 +128,7 @@ public class MeetingSchedulerAgent extends GuiAgent {
     mf = new mainFrame(this,getUser() + " - Appointment Scheduler" );
     mf.setVisible(true);
     try {
-      DFServiceCommunicator.register(this,getDFAgentDescription());
+      DFService.register(this,getDFAgentDescription());
       knownDF.add(getDefaultDF());
       addKnownPerson(new Person(getUser(), getAID(), getDefaultDF()));
     } catch (FIPAException e) {
@@ -149,14 +149,15 @@ public class MeetingSchedulerAgent extends GuiAgent {
     dfd.addOntologies("pa-ontology");
     dfd.addServices(sd);
     try {
-      List l = DFServiceCommunicator.search(this,dfname, dfd);
+      DFAgentDescription[] l = DFService.search(this,dfname, dfd);
     
-      // add values to knownPersons
-      for (Iterator i=l.iterator(); i.hasNext(); ) {
-	dfd = (DFAgentDescription)i.next();
-	Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd.getName(),dfname); 
-	  addKnownPerson(prs);
-      }
+      if (l != null)
+	  for (int i=0; i<l.length; i++) {
+	      // add values to knownPersons
+	      dfd = (DFAgentDescription)l[i];
+	      Person prs = new Person(((ServiceDescription)dfd.getAllServices().next()).getOwnership(),dfd.getName(),dfname); 
+	      addKnownPerson(prs);
+	  }
     } catch (FIPAException fe) {
       fe.printStackTrace();
       mf.showErrorMessage(fe.getMessage());
@@ -370,7 +371,7 @@ protected String getUser() {
     this method extract an appointment data structure from a message
   **/
   Appointment extractAppointment(ACLMessage msg) throws FIPAException {
-    List l = extractContent(msg);
+    jade.util.leap.List l = extractMsgContent(msg);
     return (Appointment)((Action)l.get(0)).get_1();
   }
 
@@ -378,12 +379,12 @@ protected String getUser() {
    * this method fills an aclmessage with an appointment
    **/
   void fillAppointment(ACLMessage msg, Appointment app) throws FIPAException {
-    List l = new ArrayList(1);
+    jade.util.leap.List l = new jade.util.leap.ArrayList(1);
     Action a = new Action();
     a.setActor(getAID());
     a.setAction(app);
     l.add(a);
-    fillContent(msg,l);
+    fillMsgContent(msg,l);
   }
 } // end Agent.java
 
