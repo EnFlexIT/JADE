@@ -46,6 +46,39 @@ import jade.mtp.MTPException;
 */
 public interface MessagingSlice extends Service.Slice {
 
+    // Constants for the names of the service vertical commands
+
+    /**
+       The name of this service.
+    */
+    public static final String NAME = "jade.core.messaging.Messaging";
+
+    /**
+       This command name represents the action of sending an ACL
+       message from an agent to another.
+    */
+    public static final String SEND_MESSAGE = "Send-Message";
+
+    /**
+       This command name represents the <code>install-mtp</code>
+       action.
+    */
+    public static final String INSTALL_MTP = "Install-MTP";
+
+    /**
+       This command name represents the <code>uninstall-mtp</code>
+       action.
+    */
+    public static final String UNINSTALL_MTP = "Uninstall-MTP";
+
+    /**
+       This command name represents the <code>set-platform-addresses</code>
+       action.
+    */
+    public static final String SET_PLATFORM_ADDRESSES = "Set-Platform-Addresses";
+
+
+
     // Constants for the names of horizontal commands associated to methods
     static final String H_DISPATCHLOCALLY = "1";
     static final String H_ROUTEOUT = "2";
