@@ -27,22 +27,44 @@ import jade.util.leap.Properties;
 import jade.util.Logger;
 
 /**
-@author Giovanni Caire - TILAB
+   This class is used to start up a JADE Front End container. Though
+   JADE supports split containers on all Java editions, the split
+   container deployment is better suited for small, resource
+   constrained devices.
+   @author Giovanni Caire - TILAB
 */
 public class MicroRuntime {
+
+        /**
+	   String constant to represent the agent list key in the
+	   configuration properties used when starting JADE Front End.
+	*/
 	public static final String AGENTS_KEY = "agents";
+
+
+        //#APIDOC_EXCLUDE_BEGIN
 	public static final String JVM_KEY = "jvm";
-	
-	public static final String J2SE = "pjava";
+
+	public static final String J2SE = "j2se";
 	public static final String PJAVA = "pjava";
 	public static final String MIDP = "midp";
-	
+        //#APIDOC_EXCLUDE_END
+
 	private static Runnable terminator;
 	private static FrontEnd myFrontEnd;
 	private static boolean terminated;
 	
 	/**
-	   Start up the JADE runtime
+	   Start up the JADE runtime. This method launches a JADE
+	   Front End container. Since JADE supports only one container
+	   in the split-container deployment, if a Front End is
+	   already running this method does nothing.
+
+	   @param p A property bag, containing name-value pairs used
+	   to configure the container during boot.
+	   @param r A <code>Runnable</code> object, whose
+	   <code>run()</code> method will be executed just after
+	   container termination.
 	 */
 	public static void startJADE(Properties p, Runnable r) {
 		if (myFrontEnd == null) {
@@ -56,7 +78,9 @@ public class MicroRuntime {
 	}
 	
 	/**
-	   Shut down the JADE runtime
+	   Shut down the JADE runtime. This method stops the JADE
+	   Front End container currently running in this JVM, if one
+	   such container exists.
 	 */
 	public static void stopJADE() {
 		if (myFrontEnd != null) {
@@ -72,14 +96,29 @@ public class MicroRuntime {
 	}
 	
 	/**
-	   Return <code>true</code> if the JADE runtime is currently running.
+	   Tells whether a JADE Front End container is currently
+	   running within this JVM.
+
+	   @return If the JADE runtime is currently running,
+	   <code>true</code> is returned. Otherwise, the method
+	   returns <code>false</code>.
 	 */
 	public static boolean isRunning() {
 		return myFrontEnd != null;
 	}
 	
 	/**
-	   Start a new agent.
+	   Start a new agent. This method starts a new agent within
+	   the active Front End container.
+
+	   @param name The local name (i.e. without the platform ID)
+	   of the agent to create.
+	   @param className The fully qualified name of the class
+	   implementing the agent to start.
+	   @param args The creation arguments for the agent.
+
+	   @throws Exception If the underlying agent creation process
+	   fails.
 	 */
 	public static void startAgent(String name, String className, String[] args) throws Exception {
 		if (myFrontEnd != null) {
@@ -94,7 +133,13 @@ public class MicroRuntime {
 	}
 	
 	/**
-	   Kill an agent
+	   Kill an agent. This method terminates an agent running
+	   within the active Front End container.
+
+	   @param name The local name (i.e. without the platform ID)
+	   of the agent to kill.
+	   @throws NotFoundException If no agent with the given local
+	   name are running within the active Front End.
 	 */
 	public static void killAgent(String name) throws NotFoundException {
 		if (myFrontEnd != null) {
