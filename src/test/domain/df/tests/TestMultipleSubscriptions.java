@@ -68,7 +68,7 @@ public class TestMultipleSubscriptions extends Test {
   	// Registers a DFD after 5 sec. Kill the test (FAILED) after 10 sec
   	Behaviour helper = new TickerBehaviour(a, 5000) {
   		protected void onTick() {
-  			if (getTickCount() == 0) {
+  			if (getTickCount() == 1) {
   				// First tick --> Register a DFD
 	  			DFAgentDescription dfd = TestDFHelper.getSampleDFD(myAgent.getAID());
 	  			try {
