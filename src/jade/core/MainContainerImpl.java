@@ -104,7 +104,6 @@ class MainContainerImpl implements Platform, AgentManager {
   private Profile myProfile;
 
 	MainContainerImpl(Profile p) throws ProfileException {
-		System.out.println("New Main active");
 	    myProfile = p;
 		myIMTPManager = p.getIMTPManager();
 		platformID = p.getParameter(Profile.PLATFORM_ID, null);

@@ -88,6 +88,8 @@ import jade.security.PrivilegedExceptionAction;
 */
 public class ams extends Agent implements AgentManager.Listener {
 
+	private int verbosity = 0;
+	
   Profile bootProfile = null;    
   
   // The AgentPlatform where information about agents is stored
@@ -120,7 +122,6 @@ public class ams extends Agent implements AgentManager.Listener {
      beyond the default one.
   */
   public ams(AgentManager ap, Profile aBootProfile) {
-		System.out.println("New AMS active");
     myPlatform = ap;
     myPlatform.addListener(this);
     bootProfile = aBootProfile;
@@ -525,7 +526,7 @@ public class ams extends Agent implements AgentManager.Listener {
     final AMSAgentDescription amsd = (AMSAgentDescription) r.getDescription();
     // Check mandatory slots
     AID id = amsd.getName();
-    log("Agent "+id+" registering with the AMS");
+    log("Agent "+id+" registering with the AMS", 2);
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
@@ -558,7 +559,7 @@ public class ams extends Agent implements AgentManager.Listener {
     final AMSAgentDescription amsd = (AMSAgentDescription) d.getDescription();
     // Check mandatory slots
     AID id = amsd.getName();
-    log("Agent "+id+" de-registering with the AMS");
+    log("Agent "+id+" de-registering with the AMS", 2);
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
@@ -913,6 +914,12 @@ public class ams extends Agent implements AgentManager.Listener {
           }
         }
       });
+      handlers.put(PlatformDescription.NAME, new Handler() {
+        public void handle(Event ev) {
+      		// Update the PlatformDescription txt file.
+        	writeAPDescription(((PlatformDescription) ev).getPlatform());
+        }
+      });
     }
 
     public void action() {
@@ -921,7 +928,7 @@ public class ams extends Agent implements AgentManager.Listener {
   	  	if (er != null) {
 			    // Perform event-specific actions (if any)
 			    Event ev = er.getWhat();
-			    log("EventManager serving event "+ev.getName());
+			    log("EventManager serving event "+ev.getName(), 3);
 			    Handler handler = (Handler)handlers.get(ev.getName());
 			    if(handler != null) {
 			      handler.handle(ev);
@@ -965,6 +972,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a BornAgent event in the AMS event queue
    */
   public void bornAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
     String ownership = ((AgentPrincipal)ev.getNewPrincipal()).getOwnership();
@@ -984,6 +992,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a DeadAgent event in the AMS event queue
    */
   public void deadAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     AID agentID = ev.getAgent();
 
@@ -1000,6 +1009,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a SuspendedAgent event in the AMS event queue
    */
   public void suspendedAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     AID name = ev.getAgent();
 
@@ -1016,6 +1026,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a ResumedAgent event in the AMS event queue
    */
   public void resumedAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     AID name = ev.getAgent();
 
@@ -1032,6 +1043,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a MovedAgent event in the AMS event queue
    */
   public void movedAgent(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID from = ev.getContainer();
     ContainerID to = ev.getNewContainer();
     AID agentID = ev.getAgent();
@@ -1050,6 +1062,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a ChangedAgentOwnership event in the AMS event queue
 	 */
 	public void changedAgentPrincipal(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     AID name = ev.getAgent();
 
@@ -1068,6 +1081,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put an AddedContainer event in the AMS event queue
    */
   public void addedContainer(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
 
@@ -1083,6 +1097,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a RemovedContainer event in the AMS event queue
   */
   public void removedContainer(PlatformEvent ev) {
+  	log(ev.toString(), 1);
     ContainerID cid = ev.getContainer();
     String name = cid.getName();
 
@@ -1098,6 +1113,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a XXX event in the AMS event queue
 	 */
 	public synchronized void changedContainerPrincipal(PlatformEvent ev) {
+  	log(ev.toString(), 1);
 		// FIXME: There is no element in the IntrospectionOntology 
 		// corresponding to this event
 	}
@@ -1106,6 +1122,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a AddedMTP event in the AMS event queue
    */
   public synchronized void addedMTP(MTPEvent ev) {
+  	log("MTPEvent [added MTP]", 1);
     Channel ch = ev.getChannel();
     ContainerID cid = ev.getPlace();
     String proto = ch.getProtocol();
@@ -1133,7 +1150,7 @@ public class ams extends Agent implements AgentManager.Listener {
      Put a RemovedMTP event in the AMS event queue
    */
   public synchronized void removedMTP(MTPEvent ev) {
-
+  	log("MTPEvent [removed MTP]", 1);
     Channel ch = ev.getChannel();
     ContainerID cid = ev.getPlace();
     String proto = ch.getProtocol();
@@ -1156,8 +1173,13 @@ public class ams extends Agent implements AgentManager.Listener {
 		eventQueue.put(er);
   }
 
-  public void messageIn(MTPEvent ev) { System.out.println("Message In."); }
-  public void messageOut(MTPEvent ev) { System.out.println("Message Out."); }
+  public void messageIn(MTPEvent ev) { 
+  	log("MTPEvent [message in]", 1);
+  }
+  
+  public void messageOut(MTPEvent ev) { 
+  	log("MTPEvent [message out]", 1);
+  }
 
   //////////////////////////////////////////////////
   // Utility methods
@@ -1251,13 +1273,19 @@ public class ams extends Agent implements AgentManager.Listener {
   }
   
   private void log(String s) {
-  	System.out.println("AMS - "+s);
+  	log(s, 0);
+  }
+  
+  private void log(String s, int level) {
+  	if (verbosity >= level) {
+	  	System.out.println("AMS-log: "+s);
+  	}
   }
   
   
   /**
      @serial
-   */
+   *
   private KB agentDescriptions = new KBAbstractImpl() {
       protected boolean match(Object template, Object fact) {
 	try {
@@ -1291,5 +1319,5 @@ public class ams extends Agent implements AgentManager.Listener {
 	  return false;
 	}
       }
-    };
+    };*/
 }
