@@ -15,17 +15,17 @@ public class AgentReceiver extends Agent {
     addBehaviour(new CyclicBehaviour(this) {
 
       protected void action() {
-	System.out.println("Now receiving (blocking style)...");
-	ACLMessage msg = myAgent.blockingReceive();
-	String source = msg.getSource();
-	String content = msg.getContent();
-	System.out.println("Received from " + source + ": " + content);
-	System.out.println("Sending back reply to " + source + "...");
-	ACLMessage reply = new ACLMessage();
-	reply.setSource(myAgent.getName());
-	reply.setDest(source);
-	reply.setContent("Thank you for calling, " + source);
-	myAgent.send(reply);
+        System.out.println("Now receiving (blocking style)...");
+        ACLMessage msg = myAgent.blockingReceive();
+        msg.dump();
+        System.out.println("Sending back reply to sender ...");
+        ACLMessage reply = new ACLMessage();
+        reply.setType("inform");
+        reply.setSource(myAgent.getName());
+        reply.setDest(msg.getSource());
+        reply.setContent("\"Thank you for calling, " + msg.getSource() + "\"");
+        //reply.dump();
+        myAgent.send(reply);
       }
 
     });
