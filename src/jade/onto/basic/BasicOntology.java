@@ -32,9 +32,11 @@ import jade.onto.Frame;
 import jade.onto.Ontology;
 import jade.onto.DefaultOntology;
 import jade.onto.SlotDescriptor;
-import jade.onto.RoleEntityFactory;
 import jade.onto.OntologyException;
+import jade.onto.Name;
 
+import java.util.Map;
+import java.util.HashMap;
 /**
    @author Giovanni Caire - CSELT S.p.A.
    @version $Date$ $Revision$
@@ -71,9 +73,6 @@ public class BasicOntology {
   public static final String RESULT = "result";
   public static final String NOT = "not";
 	
-  static {
-    initInstance();
-  }
 
   /**
      This method grants access to the unique instance of the
@@ -88,20 +87,19 @@ public class BasicOntology {
   private BasicOntology() {
   }
 
+  static { 
+    initInstance();
+  }
+
   private static void initInstance() {
     try {
 			// Adds ACTION role
-    	theInstance.addRole(
+      theInstance.addRole(
 				ACTION, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, AGENTIDENTIFIER, Ontology.M),
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-	     		public Object create(Frame f) { return new Action(); }
-	     		public Class getClassForRole() { return Action.class; }
-				}
-			);
+				}, Action.class);
 
 			// Adds AGENTIDENTIFIER role
 			theInstance.addRole(
@@ -110,46 +108,27 @@ public class BasicOntology {
 	  			new SlotDescriptor("name", Ontology.PRIMITIVE_SLOT, Ontology.STRING_TYPE, Ontology.M),
 	  			new SlotDescriptor("addresses", Ontology.SEQUENCE_SLOT, Ontology.STRING_TYPE, Ontology.O),
 	  			new SlotDescriptor("resolvers", Ontology.SEQUENCE_SLOT, AGENTIDENTIFIER, Ontology.O)
-				}, 
-				new RoleEntityFactory() {
-	     		public Object create(Frame f) { return new AID(); }
-	     		public Class getClassForRole() { return AID.class; }
-				}
-			);
+				}, AID.class);
+
 	
 			// Adds TRUE role
 			theInstance.addRole(
 				TRUE, 
 				new SlotDescriptor[]{
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new TrueProposition(); } 
-					public Class getClassForRole() { return TrueProposition.class; }
-				}
-			);
+				}, TrueProposition.class);
 
 			// Adds FALSE role
 			theInstance.addRole(
 				FALSE, 
 				new SlotDescriptor[]{
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) { return new FalseProposition(); } 
-					public Class getClassForRole() { return FalseProposition.class; }
-				}
-			);
+				}, FalseProposition.class);
 
 			// Adds DONE role
 			theInstance.addRole(
 				DONE, 
 				new SlotDescriptor[] {
 					new SlotDescriptor(Ontology.FRAME_SLOT, ACTION, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) {return new DonePredicate(); }
-					public Class getClassForRole() {return DonePredicate.class;}
-				}
-			);
+				}, DonePredicate.class);
 
 			// Adds RESULT role
 			theInstance.addRole(
@@ -157,24 +136,14 @@ public class BasicOntology {
 				new SlotDescriptor[] {
 					new SlotDescriptor(Ontology.FRAME_SLOT, ACTION, Ontology.M),
 					new SlotDescriptor(Ontology.SET_SLOT, Ontology.ANY_TYPE, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-					public Object create(Frame f) {return new ResultPredicate(); }
-					public Class getClassForRole() {return ResultPredicate.class;}
-				}
-			);
+				}, ResultPredicate.class);
 	   	   
 			// Adds NOT role
     	theInstance.addRole(
 				NOT, 
 				new SlotDescriptor[] {
 	  			new SlotDescriptor(Ontology.FRAME_SLOT, Ontology.ANY_TYPE, Ontology.M)
-				}, 
-				new RoleEntityFactory() {
-	     		public Object create(Frame f) { return new Not(); }
-	     		public Class getClassForRole() { return Not.class; }
-				}
-			);
+				}, Not.class);
 
 			// DEBUG: PRINT VOCABULARY
 	  	//List voc = theInstance.getVocabulary();
@@ -187,5 +156,7 @@ public class BasicOntology {
       oe.printStackTrace();
     }
   } //end of initInstance
+
+
 
 }
