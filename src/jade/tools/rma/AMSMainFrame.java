@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.6  1999/07/11 21:31:49  rimassa
+  Used asynchronous update for the tree model, by means of the
+  SwingUtilities.invokeLater() method.
+
   Revision 1.5  1999/06/25 12:55:51  rimassa
   Changed code to reflect the new jade.gui utility package.
 
@@ -151,83 +155,101 @@ class AMSMainFrame extends JFrame {
     return tree.getModel();
   }
 
-  public void addContainer(String name) {
+  public void addContainer(final String name) {
 
     // Add a container node to the tree model
-    MutableTreeNode node = tree.createNewNode(name, TreeData.CONTAINER);
-    AMSTreeModel model = tree.getModel();
-    MutableTreeNode root = (MutableTreeNode)model.getRoot();
-    model.insertNodeInto(node, root, root.getChildCount());
+    Runnable addIt = new Runnable() {
+      public void run() {
+	MutableTreeNode node = tree.createNewNode(name, TreeData.CONTAINER);
+	AMSTreeModel model = tree.getModel();
+	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+	model.insertNodeInto(node, root, root.getChildCount());
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
   }
 
-  public void removeContainer(String name) {
+  public void removeContainer(final String name) {
 
     // Remove a container from the tree model
-    AMSTreeModel model = tree.getModel();
-    MutableTreeNode root = (MutableTreeNode)model.getRoot();
-    Enumeration containers = root.children();
-    while(containers.hasMoreElements()) {
-      TreeData node = (TreeData)containers.nextElement();
-      String nodeName = node.getName();
-      if(nodeName.equalsIgnoreCase(name)) {
-	model.removeNodeFromParent(node);
-	return;
-      }
-    }
+    Runnable removeIt = new Runnable() {
+      public void run() {
 
-  }
-
-  public void addAgent(String containerName, String agentName, String agentAddress, String agentType) {
-
-    // Add an agent to the specified container
-
-    AMSTreeModel model = tree.getModel();
-    MutableTreeNode root = (MutableTreeNode)model.getRoot();
-
-    // Create a suitable new node
-    TreeData node = tree.createNewNode(agentName, TreeData.AGENT);
-    node.addAddress(agentAddress);
-    node.setType(agentType);
-
-    // Search for the agent container 'containerName'
-    Enumeration containers = root.children();
-    while(containers.hasMoreElements()) {
-      TreeData container = (TreeData)containers.nextElement();
-      String contName = container.getName();
-      if(contName.equalsIgnoreCase(containerName)) {
-	// Add this new agent to this container and return
-	model.insertNodeInto(node, container, container.getChildCount());
-	return;
-      }
-    }
-  }
-
-  public void removeAgent(String containerName, String agentName) {
-
-    // Remove an agent from the specified container
-
-    AMSTreeModel model = tree.getModel();
-    MutableTreeNode root = (MutableTreeNode)model.getRoot();
-
-    // Search for the agent container 'containerName'
-    Enumeration containers = root.children();
-    while(containers.hasMoreElements()) {
-      TreeData container = (TreeData)containers.nextElement();
-      String contName = container.getName();
-      if(contName.equalsIgnoreCase(containerName)) {
-
-	// Search for the agent 'agentName' in this agent container
-	Enumeration agents = container.children();
-	while(agents.hasMoreElements()) {
-	  TreeData agent = (TreeData)agents.nextElement();
-	  String agName = agent.getName();
-	  if(agName.equalsIgnoreCase(agentName)) {
-	    model.removeNodeFromParent(agent);
+	AMSTreeModel model = tree.getModel();
+	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+	Enumeration containers = root.children();
+	while(containers.hasMoreElements()) {
+	  TreeData node = (TreeData)containers.nextElement();
+	  String nodeName = node.getName();
+	  if(nodeName.equalsIgnoreCase(name)) {
+	    model.removeNodeFromParent(node);
 	    return;
 	  }
 	}
       }
-    }
+    };
+    SwingUtilities.invokeLater(removeIt);
+  }
+
+  public void addAgent(final String containerName, final String agentName, final String agentAddress, final String agentType) {
+
+    // Add an agent to the specified container
+    Runnable addIt = new Runnable() {
+      public void run() {
+	AMSTreeModel model = tree.getModel();
+	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+
+	// Create a suitable new node
+	TreeData node = tree.createNewNode(agentName, TreeData.AGENT);
+	node.addAddress(agentAddress);
+	node.setType(agentType);
+
+	// Search for the agent container 'containerName'
+	Enumeration containers = root.children();
+	while(containers.hasMoreElements()) {
+	  TreeData container = (TreeData)containers.nextElement();
+	  String contName = container.getName();
+	  if(contName.equalsIgnoreCase(containerName)) {
+	    // Add this new agent to this container and return
+	    model.insertNodeInto(node, container, container.getChildCount());
+	    return;
+	  }
+	}
+      }
+    };
+    SwingUtilities.invokeLater(addIt);
+  }
+
+  public void removeAgent(final String containerName, final String agentName) {
+
+    // Remove an agent from the specified container
+    Runnable removeIt = new Runnable() {
+      public void run() {
+	AMSTreeModel model = tree.getModel();
+	MutableTreeNode root = (MutableTreeNode)model.getRoot();
+
+	// Search for the agent container 'containerName'
+	Enumeration containers = root.children();
+	while(containers.hasMoreElements()) {
+	  TreeData container = (TreeData)containers.nextElement();
+	  String contName = container.getName();
+	  if(contName.equalsIgnoreCase(containerName)) {
+
+	    // Search for the agent 'agentName' in this agent container
+	    Enumeration agents = container.children();
+	    while(agents.hasMoreElements()) {
+	      TreeData agent = (TreeData)agents.nextElement();
+	      String agName = agent.getName();
+	      if(agName.equalsIgnoreCase(agentName)) {
+		model.removeNodeFromParent(agent);
+		return;
+	      }
+	    }
+	  }
+	}
+      }
+    };
+    SwingUtilities.invokeLater(removeIt);
   }
 
   public void showErrorDialog(String text, ACLMessage msg) {
