@@ -53,7 +53,6 @@ import jade.util.leap.Iterator;
  */
 class PersistentDeliveryManager {
 
-
     public static synchronized PersistentDeliveryManager instance(Profile p, MessageManager.Channel ch) {
 	if(theInstance == null) {
 	    theInstance = new PersistentDeliveryManager();
@@ -63,6 +62,7 @@ class PersistentDeliveryManager {
 	return theInstance;
     }
 
+    private static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
 
     // How often to check for expired deliveries
     private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
@@ -148,6 +148,13 @@ class PersistentDeliveryManager {
 			    List l = (List)enqueuedItems.get(keys[i]);
 			    DeliveryItem item = (DeliveryItem)l.remove(0);
 
+			    try {
+				storage.delete(item.getMessage(), item.getReceiver());
+			    }
+			    catch(IOException ioe) {
+				ioe.printStackTrace();
+			    }
+
 			    // Send either the stored message or a
 			    // failure if the due date has passed
 			    MessageManager.Channel ch = item.getChannel();
@@ -155,14 +162,13 @@ class PersistentDeliveryManager {
 				ch.notifyFailureToSender(item.getMessage(), item.getReceiver(), new InternalError("Message Undelivered after its due date"), true);
 			    }
 			    else {
+				// Set the due date as a user defined property of the message.
+				ACLMessage msg = item.getMessage();
+				Date dueDate = item.getDueDate();
+				if(dueDate != null) {
+				    msg.addUserDefinedParameter(ACL_USERDEF_DUE_DATE, Long.toString(dueDate.getTime()));
+				}
 				myMessageManager.deliver(item.getMessage(), item.getReceiver(), ch);
-			    }
-
-			    try {
-				storage.delete(item.getMessage(), item.getReceiver());
-			    }
-			    catch(IOException ioe) {
-				ioe.printStackTrace();
 			    }
 
 			    if(l.isEmpty()) {
@@ -381,7 +387,21 @@ class PersistentDeliveryManager {
 		pendingMessages.put(receiver, msgs);
 	    }
 
-	    DeliveryItem item = new DeliveryItem(msg, receiver, delay, deliveryChannel);
+	    // If a due date is present in the message, use it, otherwise use the passed delay
+	    String dueDate = msg.getUserDefinedParameter(ACL_USERDEF_DUE_DATE);
+	    DeliveryItem item = null;
+	    if(dueDate != null) {
+		try {
+		    item = new DeliveryItem(msg, receiver, new Date(Long.parseLong(dueDate)), deliveryChannel);
+		}
+		catch(NumberFormatException nfe) {
+		    item = new DeliveryItem(msg, receiver, delay, deliveryChannel);
+		}
+	    }
+	    else {
+		item = new DeliveryItem(msg, receiver, delay, deliveryChannel);
+	    }
+
 	    storage.store(item.getMessage(), item.getReceiver(), item.getDueDate());
 	    msgs.add(item);
 	}
