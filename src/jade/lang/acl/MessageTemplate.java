@@ -251,7 +251,7 @@ public class MessageTemplate {
 	  setValue.invoke(m3, oneParam);
 	}
 	if(!s1.equals(wildCard) && !s2.equals(wildCard)) 
-	  if(s1.equals(s2)) {
+	  if(s1.equalsIgnoreCase(s2)) {
 	    // This means:  m3.set<value>(s1);
 	    oneParam[0] = s1;
 	    setValue.invoke(m3, oneParam);
@@ -305,7 +305,7 @@ public class MessageTemplate {
 	// This means: s2 = msg.get<value>();
 	s2 = (String)getValue.invoke(msg, noParams);
 
-	if((!(s1.equals(wildCard))&&(!s1.equals(s2)))) {
+	if((!(s1.equalsIgnoreCase(wildCard))&&(!s1.equalsIgnoreCase(s2)))) {
 	  result = false;
 	  break; // Exit for loop
 	}
