@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="DF Persistent Subscriptions" skip="false">
+			<TestClassName>test.domain.persistence.df.tests.TestDFSubscriptionKill</TestClassName>
+			<WhatTest> Tests if the subscription service is supported by the persistent JADE DF, 
+					   you can execute this test only when you use persistent Knowledge Base, like DB.<br>
+					   By default the test uses <b>sun.jdbc.odbc.JdbcOdbcDriver</b> driver and expected
+					   url parameter. If you wish change this configuration, you can use configuration 
+					   button of the toolbar to set new arguments.</br>
+			</WhatTest>
+			<HowWorkTest> 
+				<br><b>Create phase</b></br>
+				<UL>
+	   			<LI>create new DF (df1) in a separate container</LI>
+	   			</UL>
+				<br><b>Load phase</b></br>
+				<UL>
+	   			<LI>register a DFD with that DF</LI>
+	   			</UL>
+	   			<br><b>Actual Test</b></br>
+	   			<UL>
+	   			<LI>subscribe to that DF (should immediately get back a notification);</LI>
+			    <LI>After 5 sec register 2nd DFD (matching) with that DF (should get back another notification;</LI>
+			    <LI>After 10 sec kill df1 agent after that create df1 agent;</LI>
+			    <LI>After 15 sec register 3rd DFD (not matching) with that DF (should not get back anything;</LI>
+			    <LI>After 20 sec modify 2nd DFD (still matching) with that DF (should get back another notification;</LI>
+			    <LI>After 25 sec modify 3rd DFD (now matching) with that DF (should get back another notification;</LI>
+			    </UL>			
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
+			</Test>		
+	</TestsList>
