@@ -102,12 +102,4 @@ abstract class DBKB extends KB {
 	// 2. fa una pulizia iniziale per togliere di mezzo le registrazioni scadute
 	protected void setup() throws SQLException {
 	}
-	
-	/*public void setSubscriptionResponder(SubscriptionResponder sResp){
-		sr = sResp;
-	}
-	
-	public void setLeaseManager(LeaseManager leaseMng){
-		lm = leaseMng;
-	}*/
 }

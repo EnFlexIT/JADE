@@ -165,6 +165,99 @@ public class DFMemKB extends MemKB{
 		}
 	}
 
+	  // Helper method to match two Service Description objects
+	  private final boolean matchServiceDesc(ServiceDescription template, ServiceDescription fact) {
+	
+	    // Match name
+	    String n1 = template.getName();
+	    if(n1 != null) {
+	      String n2 = fact.getName();
+	      if((n2 == null) || (!n1.equalsIgnoreCase(n2)))
+		return false;
+	    }
+	
+	    // Match type
+	    String t1 = template.getType();
+	    if(t1 != null) {
+	      String t2 = fact.getType();
+	      if((t2 == null) || (!t1.equalsIgnoreCase(t2)))
+		return false;
+	    }
+	
+	    // Match ownership
+	    String o1 = template.getOwnership();
+	    if(o1 != null) {
+	      String o2 = fact.getOwnership();
+	      if((o2 == null) || (!o1.equalsIgnoreCase(o2)))
+		return false;
+	    }
+	
+	    // Match ontologies set
+	    Iterator itTemplate = template.getAllOntologies();
+	    while(itTemplate.hasNext()) {
+	      String templateOnto = (String)itTemplate.next();
+	      boolean found = false;
+	      Iterator itFact = fact.getAllOntologies();
+	      while(!found && itFact.hasNext()) {
+		String factOnto = (String)itFact.next();
+		found = templateOnto.equalsIgnoreCase(factOnto);
+	      }
+	      if(!found)
+		return false;
+	    }
+	
+	    // Match languages set
+	    itTemplate = template.getAllLanguages();
+	    while(itTemplate.hasNext()) {
+	      String templateLang = (String)itTemplate.next();
+	      boolean found = false;
+	      Iterator itFact = fact.getAllLanguages();
+	      while(!found && itFact.hasNext()) {
+		String factLang = (String)itFact.next();
+		found = templateLang.equalsIgnoreCase(factLang);
+	      }
+	      if(!found)
+		return false;
+	    }
+	
+	    // Match protocols set
+	    itTemplate = template.getAllProtocols();
+	    while(itTemplate.hasNext()) {
+	      String templateProto = (String)itTemplate.next();
+	      boolean found = false;
+	      Iterator itFact = fact.getAllProtocols();
+	      while(!found && itFact.hasNext()) {
+		String factProto = (String)itFact.next();
+		found = templateProto.equalsIgnoreCase(factProto);
+	      }
+	      if(!found)
+		return false;
+	    }
+	
+	    // Match properties set
+	    itTemplate = template.getAllProperties();
+	    while(itTemplate.hasNext()) {
+	      Property templateProp = (Property)itTemplate.next();
+	      boolean found = false;
+	      Iterator itFact = fact.getAllProperties();
+	      while(!found && itFact.hasNext()) {
+					Property factProp = (Property)itFact.next();
+					if (templateProp.getName().equals(factProp.getName())) {
+						// The property name matches. Check the value
+						Object templateValue = templateProp.getValue();
+						if ((new String()).getClass().isInstance(templateValue)) 
+		    			found = ((String)templateValue).equalsIgnoreCase(factProp.getValue().toString());
+						else
+		    			found = templateValue.equals(factProp.getValue());
+	      	}
+	      }
+	      if(!found)
+					return false;
+	    }
+	
+	    return true;
+	  }
+
 /*************** Main method, for testing purposes ******************************/
   public static void main(String[] args) {
   	

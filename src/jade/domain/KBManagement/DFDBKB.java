@@ -82,82 +82,78 @@ public class DFDBKB extends DBKB {
  		 	stmt = conn.createStatement();
  		 	// Tables for DF registrations      
   		stmt.executeUpdate( "CREATE TABLE dfagentdescr (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
          "lease   	 VARCHAR(20)  NOT NULL, "   +
-         "PRIMARY KEY( aid,lease )"+")" );
+         "PRIMARY KEY( aid )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidaddress (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "address    VARCHAR(30)  NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "address    VARCHAR(255)  NOT NULL, "   +
          "PRIMARY KEY( aid, address )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE aidresolver (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "resolver 	 VARCHAR(30)  NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "resolver 	 VARCHAR(64)  NOT NULL, "   +
          "PRIMARY KEY( aid, resolver )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentprotocol (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "protocol   VARCHAR(30)	      NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "protocol   VARCHAR(32)	      NOT NULL, "   +
          "PRIMARY KEY( aid, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentontology (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "ontology 	 VARCHAR(30)  NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "ontology 	 VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentlanguage (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "language   VARCHAR(30)  NOT NULL, "   +
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "language   VARCHAR(32)  NOT NULL, "   +
          "PRIMARY KEY( aid, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservice (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "servicen   VARCHAR(30)  NOT NULL, "   +
-         "type       VARCHAR(30)  NOT NULL, "   +
-         "ownership  VARCHAR(30)  NOT NULL, "   +
-         "PRIMARY KEY( aid, servicen, type )"+")" );
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "sname   VARCHAR(32)  NOT NULL, "   +
+         "stype       VARCHAR(32)  NOT NULL, "   +
+         "sownership  VARCHAR(32)  NOT NULL, "   +
+         "PRIMARY KEY( aid, sname )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceprotocol (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "servicen   VARCHAR(30)  NOT NULL, "   +
-         "type       VARCHAR(30)  NOT NULL, "   +
-         "protocol   VARCHAR(30)  NOT NULL, "   +
-         "PRIMARY KEY( aid, servicen, type, protocol )"+")" );
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "sname   VARCHAR(32)  NOT NULL, "   +
+         "protocol   VARCHAR(32)  NOT NULL, "   +
+         "PRIMARY KEY( aid, sname, protocol )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceontology (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "servicen   VARCHAR(30)  NOT NULL, "   +
-         "type       VARCHAR(30)  NOT NULL, "   +
-         "ontology   VARCHAR(30)  NOT NULL, "   +
-         "PRIMARY KEY( aid, servicen, type, ontology )"+")" );
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "sname   VARCHAR(32)  NOT NULL, "   +
+         "ontology   VARCHAR(32)  NOT NULL, "   +
+         "PRIMARY KEY( aid, sname, ontology )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentservicelanguage (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "servicen   VARCHAR(30)  NOT NULL, "   +
-         "type       VARCHAR(30)  NOT NULL, "   +
-         "language   VARCHAR(30)  NOT NULL, "   +
-         "PRIMARY KEY( aid, servicen, type, language )"+")" );
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "sname   VARCHAR(32)  NOT NULL, "   +
+         "language   VARCHAR(32)  NOT NULL, "   +
+         "PRIMARY KEY( aid, sname, language )"+")" );
 
   		stmt.executeUpdate( "CREATE TABLE agentserviceproperty (" +
-         "aid		 VARCHAR(30)  NOT NULL, "   +
-         "servicen   VARCHAR(30)  NOT NULL, "   +
-         "type       VARCHAR(30)  NOT NULL, "   +
-         "propertyn  VARCHAR(30)  NOT NULL, "   +
-         "propertyv  VARCHAR(30)  NOT NULL, "   +
-         "PRIMARY KEY( aid, servicen, type, propertyn )"+")" );
+         "aid		 VARCHAR(64)  NOT NULL, "   +
+         "sname   VARCHAR(32)  NOT NULL, "   +
+         "propkey  VARCHAR(32)  NOT NULL, "   +
+         "propval  VARCHAR(255)  NOT NULL, "   +
+         "PRIMARY KEY( aid, sname, propkey )"+")" );
 
 			// Tables for subscriptions registrations
   		stmt.executeUpdate( "CREATE TABLE subscription (" +
-         "conversationid	 VARCHAR(70)  NOT NULL, "   +
-         "aclm1	 	 TEXT         NOT NULL, " +
-         "aclm2	 	 TEXT, " +
-         "aclm3	 	 TEXT, " +
-         "aclm4	 	 TEXT, " +
-         "aclm5	 	 TEXT, " +
-         "aclm6	 	 TEXT, " +
-         "aclm7	 	 TEXT, " +
-         "aclm8	 	 TEXT, " +
+         "conversationid	 VARCHAR(64)  NOT NULL, "   +
+         "aclm1	 	 VARCHAR(255)         NOT NULL, " +
+         "aclm2	 	 VARCHAR(255), " +
+         "aclm3	 	 VARCHAR(255), " +
+         "aclm4	 	 VARCHAR(255), " +
+         "aclm5	 	 VARCHAR(255), " +
+         "aclm6	 	 VARCHAR(255), " +
+         "aclm7	 	 VARCHAR(255), " +
+         "aclm8	 	 VARCHAR(255), " +
          "PRIMARY KEY( conversationid )"+")" );
     	//DEBUG
       System.out.println("Tables correctly created");
@@ -180,8 +176,508 @@ public class DFDBKB extends DBKB {
 			}
 		}
 	}
-	
 
+	/**
+	   Insert a new DFD object.
+	   @return the previous DFD (if any) corresponding to the same 
+	   AID
+	 */
+	public Object insert(Object name, Object fact) {
+		DFAgentDescription dfd = (DFAgentDescription) fact;
+		DFAgentDescription dfdToReturn = null;
+
+		// Remove the previous DFD if any
+		dfdToReturn = (DFAgentDescription) remove(dfd.getName());
+		
+		List l = createInserts(dfd);
+		Statement s = null;
+		try{
+			conn.setAutoCommit(false);
+			s = conn.createStatement();
+			for(int i = 0; i < l.size(); i++){
+				String queryInsert = (String)l.get(i);
+				s.addBatch(queryInsert);				
+			}
+			int [] updateCounts = s.executeBatch();
+			conn.setAutoCommit(true);
+			regsCnt++;
+			// se sono stati inseriti molte tuple 
+			// allora effettuo un controllo dei lease
+			if(regsCnt > MAX_REGISTER_WITHOUT_CLEAN){
+				clean();
+				regsCnt = 0;
+			}
+		}
+		catch(SQLException se){
+			System.out.println("Error inserting DFD for agent "+dfd.getName());
+			se.printStackTrace();
+		}
+		finally {
+			try {
+				if (s != null) s.close();
+			}
+			catch (SQLException se1) {
+				se1.printStackTrace();
+			}
+		}
+
+    return dfdToReturn;
+	}
+
+	/**
+	   Remove the DFD object corresponding to the indicated AID.
+	   @return the removed DFD (if any) 
+	 */
+	protected Object remove(Object name) {
+		AID agentAID = (AID) name;
+		String n = agentAID.getName();
+		
+		DFAgentDescription dfd = getDFD(n);
+		if (dfd != null) {
+			delete(n);
+		}
+		
+		return dfd;
+	}
+	
+	/**
+	   Retrieve the DFDs matching the given template
+	 */
+	public List search(Object template){
+		List matchingAIDs = new ArrayList();
+
+		// Get the names of all DFDs matching the template
+		Statement s = null;
+		ResultSet rs = null;
+		String select = createSelect((DFAgentDescription) template);
+		
+		try{
+			s = conn.createStatement();
+			rs = s.executeQuery(select);
+			int cnt = 0;
+			while(rs.next() && cnt < maxResults) { 
+    		String aidS = rs.getString("aid");
+
+      	// Skip DFDs whose lease time has already expired
+    		// FIXME: we should schedule them for removal
+				String sLease = rs.getString("lease");
+        long lease = Long.parseLong(sLease);
+        if (!lm.isExpired(lease != -1 ? new Date(lease) : null)) {
+        	matchingAIDs.add(aidS);
+        	cnt++;
+        }
+  		}
+		}
+		catch(SQLException se){
+			System.out.println("Error searching for DFDs matching template. DB operation: "+select);
+			se.printStackTrace();
+		}
+		finally {
+			try {
+				if (rs != null) rs.close();
+				if (s != null) s.close();
+			}
+			catch (SQLException se1) {
+				se1.printStackTrace();
+			}
+		}
+		
+		// For each matching AID reconstruct the complete DFD
+		List dfds = new ArrayList(matchingAIDs.size());
+		Iterator it = matchingAIDs.iterator();
+		while (it.hasNext()) {
+			dfds.add(getDFD((String) it.next()));
+		}
+		return dfds;
+	}
+
+	
+	/**
+	   Reconstruct the DFD corresponding to the given AID name (if any)
+	 */
+	private DFAgentDescription getDFD(String aidN){
+		DFAgentDescription dfd = null;
+		AID id = null;
+		
+		String select = null;
+		Statement s = null;
+		ResultSet rs = null;
+		
+		try{
+			s = conn.createStatement();
+			
+			// Check if there is a DFD corresponding to aidN and get lease time
+			select = "SELECT lease FROM dfagentdescr WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			if (rs.next()) {
+				dfd = new DFAgentDescription();
+				id = new AID(aidN);
+				dfd.setName(id);
+				String sLease = rs.getString("lease");
+				long lease = Long.parseLong(sLease);
+				if (lease != -1) {
+					dfd.setLeaseTime(new Date(lease));
+				}
+			}
+			else {
+				return null;
+			}
+			// AID addresses
+			select = "SELECT address FROM aidaddress WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				id.addAddresses(rs.getString("address"));
+			}
+			// AID resolvers FIXME: Resolvers are not handled properly
+			select = "SELECT resolver FROM aidresolver WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				id.addResolvers(new AID(rs.getString("resolver")));
+			}
+			// Protocols
+			select = "SELECT protocol FROM agentprotocol WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				dfd.addProtocols(rs.getString("protocol"));
+			}
+			// Languages
+			select = "SELECT language FROM agentlanguage WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				dfd.addLanguages(rs.getString("language"));
+			}
+			// Ontologies
+			select = "SELECT ontology FROM agentontology WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				dfd.addOntologies(rs.getString("ontology"));
+			}
+			// Services
+			select = "SELECT sname, stype, sownership FROM agentservice WHERE aid='"+aidN+"'";
+			rs = s.executeQuery(select);
+			while(rs.next()){
+				ServiceDescription sd = new ServiceDescription();
+				sd.setName(rs.getString("sname"));
+				sd.setType(rs.getString("stype"));
+				sd.setOwnership(rs.getString("sownership"));
+				
+				Statement sS = conn.createStatement();
+				String selectS = null;
+				ResultSet rsS = null;
+				
+				// Service protocols
+				selectS = "SELECT protocol FROM agentserviceprotocol WHERE aid='"+aidN+"'";
+				if(sd.getName() != null)
+					selectS +=" and sname='"+sd.getName()+"'";
+				rsS = sS.executeQuery(selectS);
+				while(rsS.next()){
+					sd.addProtocols(rsS.getString("protocol"));
+				}	
+				// Service languages
+				selectS = "SELECT ontology FROM agentserviceontology WHERE aid='"+aidN+"'";
+				if(sd.getName() != null)
+					selectS +=" and sname='"+sd.getName()+"'";
+				rsS = sS.executeQuery(selectS);
+				while(rsS.next()){
+					sd.addOntologies(rsS.getString("ontology"));
+				}	
+				// Service ontologies
+				selectS = "SELECT language FROM agentservicelanguage WHERE aid='"+aidN+"'";
+				if(sd.getName() != null)
+					selectS +=" and sname='"+sd.getName()+"'";
+				rsS = sS.executeQuery(selectS);
+				while(rsS.next()){
+					sd.addLanguages(rsS.getString("language"));
+				}
+				// Service properties
+				selectS = "SELECT propkey, propval FROM agentserviceproperty WHERE aid='"+aidN+"'";
+				if(sd.getName() != null)
+					selectS +=" and sname='"+sd.getName()+"'";				
+				rsS = sS.executeQuery(selectS);
+				while(rsS.next()){
+					Property prop = new Property();
+					prop.setName(rsS.getString("propkey"));
+					prop.setValue(rsS.getString("propval"));
+					sd.addProperties(prop);
+				}	
+				rsS.close();
+				sS.close();
+				dfd.addServices(sd);
+			}
+		}
+		catch(SQLException se){
+			System.out.println("Error reconstructing DFD for agent "+aidN);
+			se.printStackTrace();
+		}
+		finally {
+			try {
+				if (rs != null) rs.close();			
+				if (s != null) s.close();
+			}
+			catch (SQLException se1) {
+				se1.printStackTrace();
+			}
+		}
+		return dfd;
+	}
+
+	/**
+	   Delete the DFD object corresponding to the indicated agent name.
+	 */
+	private void delete(String nameAg) {  		
+		Statement s = null;
+		try{
+			conn.setAutoCommit(false);
+			s = conn.createStatement();
+			
+  		for(int i = 0; i < tableNemas.length-1; i++){
+  			String delete ="DELETE FROM "+tableNemas[i]+" WHERE aid = '"+nameAg+"'";
+  			s.addBatch(delete);
+  		}
+  		s.executeBatch();
+  		conn.setAutoCommit(true);
+		}
+		catch(SQLException se){
+			System.out.println("Error removing DFD for agent "+nameAg);
+			se.printStackTrace();
+		}
+		finally {
+			try {
+				if (s != null) s.close();
+			}
+			catch (SQLException se1) {
+				se1.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	   Return the SQL INSERT operations (as a List) that must be
+	   executed to insert a given DFAgentDescription into the DB
+	 */
+	private List createInserts(DFAgentDescription dfd){
+
+		List updates = new ArrayList();
+		AID agentAID = dfd.getName();
+		
+		String agentName = agentAID.getName();
+		Date leaseTime = dfd.getLeaseTime();
+		long lt = (leaseTime != null ? leaseTime.getTime() : -1);
+		String u = "INSERT INTO dfagentdescr VALUES ('"+agentName+"', '"+lt+"')";
+		updates.add(u);
+		
+		Iterator iter = agentAID.getAllAddresses();
+		while( iter.hasNext()){
+			u = "INSERT INTO aidaddress VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
+			updates.add(u);
+		}
+
+		// FIXME: This should be recursive
+		iter = agentAID.getAllResolvers();
+		while( iter.hasNext() ){
+			u = "INSERT INTO agentresolver VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
+			updates.add(u);
+		}
+		
+		iter = dfd.getAllLanguages();
+		while(iter.hasNext()){
+			u = "INSERT INTO agentlanguage VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
+			updates.add(u);
+		}
+		
+		iter = dfd.getAllOntologies();
+		while(iter.hasNext()){
+			u = "INSERT INTO agentontology VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
+			updates.add(u);
+		}
+
+		iter = dfd.getAllProtocols();
+		while( iter.hasNext() ){
+			u = "INSERT INTO agentprotocol VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
+			updates.add(u);
+		}
+		
+		iter = dfd.getAllServices();
+		while(iter.hasNext()){
+			ServiceDescription service = (ServiceDescription)iter.next();
+			String serviceName = service.getName();
+			String serviceType = service.getType();
+			String serviceOwner = service.getOwnership();
+			u = "INSERT INTO agentservice VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+serviceOwner+"')";
+			updates.add(u);
+
+			Iterator iterS = service.getAllProtocols();
+			while( iterS.hasNext() ){
+				u = "INSERT INTO agentserviceprotocol VALUES ('"+agentName+"', '"+serviceName+"', '"+(String)iterS.next()+"')";
+				updates.add(u);
+			}
+
+			iterS = service.getAllOntologies();
+			while( iterS.hasNext() ){
+				u = "INSERT INTO agentserviceontology VALUES ('"+agentName+"', '"+serviceName+"', '"+(String)iterS.next()+"')";
+				updates.add(u);
+			}
+
+			iterS = service.getAllLanguages();
+			while( iterS.hasNext() ){
+				u = "INSERT INTO agentservicelanguage VALUES ('"+agentName+"', '"+serviceName+"', '"+(String)iterS.next()+"')";
+				updates.add(u);
+			}
+
+			iterS = service.getAllProperties();
+			while( iterS.hasNext() ){
+				Property prop = (Property)iterS.next();
+				u = "INSERT INTO agentserviceproperty VALUES ('"+agentName+"', '"+serviceName+"', '"+(String)prop.getName()+"', '"+prop.getValue().toString()+"')";
+				updates.add(u);
+			}
+		}
+		
+		return updates;			
+	}
+	
+	/**
+	   Convert a template DFAgentDescription into the SQL SELECT
+	   operation that returns the AID names whose DFAgentDescriptions
+	   match the given template.
+	 */
+	private String createSelect(DFAgentDescription dfdTemplate){
+	
+		StringBuffer select = new StringBuffer("SELECT dfagentdescr.aid, dfagentdescr.lease FROM dfagentdescr");
+		
+		List lAs = new ArrayList();
+		List lWhere = new ArrayList();
+		
+		// Name
+		AID agentAID = dfdTemplate.getName();
+		if(agentAID != null){
+			lWhere.add(" dfagentdescr.aid = '"+agentAID.getName()+"'");
+		}
+		// Lease time
+		Date lease = dfdTemplate.getLeaseTime();
+		if(lease != null){
+			lWhere.add(" dfagentdescr.lease = '-1' OR dfagentdescr.lease > '"+lease.getTime()+"'");
+		}
+		// Languages
+		Iterator iter = dfdTemplate.getAllLanguages();
+		int i=0;
+		while(iter.hasNext()){
+			String tmp = "language"+i;
+			lAs.add(", agentlanguage AS "+tmp);
+			lWhere.add(tmp+".language='"+(String)iter.next()+"'");
+			lWhere.add(tmp+".aid=dfagentdescr.aid");
+			i++;
+		}
+		// Ontologies
+		iter = dfdTemplate.getAllOntologies();
+		i = 0;
+		while(iter.hasNext()){
+			String tmp = "ontology"+i;
+			lAs.add(", agentontology AS "+tmp);
+			lWhere.add(tmp+".ontology='"+(String)iter.next()+"'");
+			lWhere.add(tmp+".aid=dfagentdescr.aid");
+			i++;
+		}
+		// Protocols
+		iter = dfdTemplate.getAllProtocols();
+		i = 0;
+		while(iter.hasNext()){
+			String tmp = "protocol"+i;
+			lAs.add(", agentprotocol AS "+tmp);
+			lWhere.add(tmp+".protocol='"+(String)iter.next()+"'");
+			lWhere.add(tmp+".aid=dfagentdescr.aid");
+			i++;
+		}
+		// Services
+		iter = dfdTemplate.getAllServices();
+		i = 0;
+		while(iter.hasNext()){
+			ServiceDescription service = (ServiceDescription)iter.next();
+			String serviceName = service.getName();
+			String serviceType = service.getType();
+			String serviceOwner = service.getOwnership();
+			// Service name, type and ownership
+			String tmp = "service"+i;
+			lAs.add(", agentservice AS "+tmp);
+			if(serviceName != null){
+				lWhere.add(tmp+".sname='"+serviceName+"'");
+			}
+			if(serviceType != null){
+				lWhere.add(tmp+".stype='"+serviceType+"'");
+			}
+			if(serviceOwner != null){
+				lWhere.add(tmp+".sownership='"+serviceOwner+"'");
+			}
+			lWhere.add(tmp+".aid=dfagentdescr.aid");
+			i++;
+
+			// Service languages
+			Iterator iterS = service.getAllLanguages();
+			int j = 0;
+			while(iterS.hasNext()){
+				String tmp1 = "servicelanguage"+j;
+				lAs.add(", agentservicelanguage AS "+tmp1);
+				lWhere.add(tmp1+".language='"+(String)iterS.next()+"'");
+				lWhere.add(tmp1+".aid=dfagentdescr.aid");
+				j++;
+			}
+			// Service ontologies
+			iterS = service.getAllOntologies();
+			j = 0;
+			while(iterS.hasNext()){
+				String tmp1 = "serviceontology"+j;
+				lAs.add(", agentserviceontology AS "+tmp1);
+				lWhere.add(tmp1+".ontology='"+(String)iterS.next()+"'");
+				lWhere.add(tmp1+".aid=dfagentdescr.aid");
+				j++;
+			}
+			// Service protocols
+			iterS = service.getAllProtocols();
+			j = 0;
+			while(iterS.hasNext()){
+				String tmp1 = "serviceprotocol"+j;
+				lAs.add(", agentserviceprotocol AS "+tmp1);
+				lWhere.add(tmp1+".protocol='"+(String)iterS.next()+"'");
+				lWhere.add(tmp1+".aid=dfagentdescr.aid");
+				j++;
+			}
+			// Service properties
+			iterS = service.getAllProperties();
+			j = 0;
+			while(iterS.hasNext()){
+				String tmp1 = "serviceproperty"+j;
+				lAs.add(", agentserviceproperty AS "+tmp1);
+				Property prop = (Property) iterS.next();
+				lWhere.add(tmp1+".propkey='"+prop.getName()+"' and "+tmp1+".propval='"+prop.getValue().toString()+"'");
+				lWhere.add(tmp1+".aid=dfagentdescr.aid");
+				j++;
+			}			
+		}
+		
+		// Concatenate all AS
+		iter = lAs.iterator();
+		while (iter.hasNext()) {
+			select.append((String) iter.next());
+		}
+		// Concatenate all WHERE
+		if (lWhere.size() > 0) {
+			select.append(" WHERE ");
+		}
+		iter = lWhere.iterator();
+		i = 0;
+		while (iter.hasNext()) {
+			if(i > 0) {
+				select.append(" and ");
+			}
+			select.append((String) iter.next());
+			++i;
+		}
+		return select.toString();
+	}
+
+	////////////////////////////////////////
+	// DB cleaning methods
+	////////////////////////////////////////
+	
 	/**
 	   Removes DF registrations and subscriptions whose lease time 
 	   has expired.
@@ -197,23 +693,28 @@ public class DFDBKB extends DBKB {
 	   Removes DF registrations whose lease time has expired.
 	 */
 	private void cleanExpiredRegistrations(){
-
-		Statement stmt = null;
+		Statement s = null;
 		ResultSet rs = null;
-		long currLease = System.currentTimeMillis();
-		AID aidTemp = new AID();
+		long currTime = System.currentTimeMillis();
 		try{
-			List l = new LinkedList();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery("SELECT aid FROM dfagentdescr WHERE lease <'"+currLease+"' AND lease <>'-1'"); // seleziona gli scaduti
+			List l = new ArrayList();
+			s = conn.createStatement();
+			rs = s.executeQuery("SELECT aid FROM dfagentdescr WHERE lease <'"+currTime+"' AND lease <>'-1'"); // seleziona gli scaduti
 			while(rs.next()){
-				aidTemp.setName(rs.getString("aid"));
-				deregister(aidTemp);
+				delete(rs.getString("aid"));
 			}
-      		rs.close();
-      		stmt.close();
-		}catch(SQLException se){
+		}
+		catch(SQLException se){
 			se.printStackTrace();
+		}
+		finally {
+			try {
+      	if (rs != null) rs.close();
+      	if (s != null) s.close();
+			}
+			catch (SQLException se1) {
+				se1.printStackTrace();
+			}
 		}
 	}
 	
@@ -222,548 +723,6 @@ public class DFDBKB extends DBKB {
 	 */
 	private void cleanExpiredSubscriptions() {
 		//FIXME: To be implemented
-	}
-
-	// Passo una lista di AID name corrispondente
-	// alla lista dei dfd registrati da cancellare
-	// le operazioni sono di tipo batch
-	private void deregisterSetOfDfd(List l){
-		
-		Statement s = null;
-		String queryDel = "";
-		int deleteRows = 0;
-		boolean cancelled =false;
-		String nameAg = null;
-  		try{
-			conn.setAutoCommit(false);
-			s = conn.createStatement();
-			for(int j=0; j<l.size(); j++){
-				nameAg = (String)l.get(j);
-		  		for(int i = 0; i < tableNemas.length-1; i++){
-		  			queryDel ="DELETE FROM "+tableNemas[i]+" WHERE aid = '"+nameAg+"'";
-		  			s.addBatch(queryDel);
-		  		}
-			}
-	  		int [] updateCounts = s.executeBatch();
-	  		conn.setAutoCommit(true);
-	  		s.close();
-  		}catch(SQLException se){
-  			se.printStackTrace();
-  		}
-	}
-
-
-	// Cancella le tabelle la procedura e' di tipo batch
-	private void dropTables(){
-		Statement s = null;
-		String q="";
-		try{
-			s = conn.createStatement();
-			for(int i = 0; i<tableNemas.length; i++){
-				q = "DROP table "+tableNemas[i];
-				s.executeUpdate(q);
-			}
-			s.close();
-		}catch(SQLException se){
-			if(s != null)
-				try{
-					s.close();
-				}catch(SQLException see){
-					see.printStackTrace();
-				}
-			se.printStackTrace();
-		}
-		System.out.println("Tables dropped.");
-	}
-	
-	// Passi per fare register
-	// 1. prendere il dfd e trasformarlo in una insert
-	// 2. deregistra il precedente se c'era
-	// 3. esegue la insert
-	// 4. ritornare null se l'oggetto non esisteva prima altrimenti il vecchio
-  	public Object insert(Object name, Object fact) {
-		Statement s = null;
-		int insertedRows = 0;
-		// qui dai controlli effettuati dal DFService sono 
-		// sicura che il campo AID dell'agente del dfd esiste
-		DFAgentDescription dfd = (DFAgentDescription) fact;
-		DFAgentDescription dfdToReturn = null;
-
-		dfdToReturn = (DFAgentDescription) deregister(dfd.getName());
-		
-		// a questo punto sono sicura che il dfd non esiste
-		List l = dfdToInsertQueries(dfd);
-		try{
-			conn.setAutoCommit(false);
-			s = conn.createStatement();
-			for(int i = 0; i < l.size(); i++){
-				String queryInsert = (String)l.get(i);
-				s.addBatch(queryInsert);				
-			}
-			int [] updateCounts = s.executeBatch();
-			conn.setAutoCommit(true);
-			s.close();
-			regsCnt++;
-			// se sono stati inseriti molte tuple 
-			//allora effettuo un controllo dei lease
-			if(regsCnt > MAX_REGISTER_WITHOUT_CLEAN){
-				clean();
-				regsCnt = 0;
-			}
-		}catch(SQLException se){
-			System.out.println("DFAgentDescription already exist: "+se.getMessage());
-		}
-
-    	return dfdToReturn;
-  	}
-
-
-	// ritorna la lista delle insert che si devono effettuare 
-	// sulle varie tabelle del db per fare una registrazione
-	private List dfdToInsertQueries(DFAgentDescription dfd){
-
-		ArrayList listQuery = new ArrayList();
-		AID agentAID = dfd.getName();
-		
-		String agentName = agentAID.getName();
-		String query = ""; 
-		
-		Date leaseTime = dfd.getLeaseTime();
-		long lt = (leaseTime != null ? leaseTime.getTime() : -1);
-		query = "INSERT INTO dfagentdescr VALUES ('"+agentName+"', '"+lt+"')";
-		listQuery.add(query);
-		
-		Iterator iter = agentAID.getAllAddresses();
-		while( iter.hasNext()){
-			query = "INSERT INTO aidaddress VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
-			listQuery.add(query);
-		}
-
-		iter = agentAID.getAllResolvers();
-		while( iter.hasNext() ){
-			query = "INSERT INTO agentresolver VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
-			listQuery.add(query);
-		}
-		
-		iter = dfd.getAllLanguages();
-		while(iter.hasNext()){
-			query = "INSERT INTO agentlanguage VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
-			listQuery.add(query);
-		}
-		
-		iter = dfd.getAllOntologies();
-		while(iter.hasNext()){
-			query = "INSERT INTO agentontology VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
-			listQuery.add(query);
-		}
-
-		iter = dfd.getAllProtocols();
-		while( iter.hasNext() ){
-			query = "INSERT INTO agentprotocol VALUES ('"+agentName+"', '"+(String)iter.next()+"')";
-			listQuery.add(query);
-		}
-		
-		iter = dfd.getAllServices();
-		while(iter.hasNext()){
-			ServiceDescription service = (ServiceDescription)iter.next();
-			String serviceName = service.getName();
-			String serviceType = service.getType();
-			String serviceOwner = service.getOwnership();
-			query = "INSERT INTO agentservice VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+serviceOwner+"')";
-			listQuery.add(query);
-
-			Iterator iterS = service.getAllProtocols();
-			while( iterS.hasNext() ){
-				query = "INSERT INTO agentserviceprotocol VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+(String)iterS.next()+"')";
-				listQuery.add(query);
-			}
-
-			iterS = service.getAllOntologies();
-			while( iterS.hasNext() ){
-				query = "INSERT INTO agentserviceontology VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+(String)iterS.next()+"')";
-				listQuery.add(query);
-			}
-
-			iterS = service.getAllLanguages();
-			while( iterS.hasNext() ){
-				query = "INSERT INTO agentservicelanguage VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+(String)iterS.next()+"')";
-				listQuery.add(query);
-			}
-
-			iterS = service.getAllProperties();
-			while( iterS.hasNext() ){
-				Property prop = (Property)iterS.next();
-				query = "INSERT INTO agentserviceproperty VALUES ('"+agentName+"', '"+serviceName+"', '"+serviceType+"', '"+(String)prop.getName()+"', '"+prop.getValue().toString()+"')";
-				listQuery.add(query);
-			}
-		}
-		
-		return listQuery;			
-	}
-	
-
-	// torna l'oggetto cancellato se esisteva
-	// FIXME: Currently it does not return the deleted DFD but an
-	// empty DFD with just the name field set.
-  	public Object deregister(Object name) {
-
-  		AID agentAID = (AID) name;
-  		String nameAg = agentAID.getName();
-  		
-		Statement s = null;
-		String queryDel = "";
-		int deleteRows = 0;
-		boolean cancelled =false;
-		
-  		try{
-			conn.setAutoCommit(false);
-			s = conn.createStatement();
-			
-	  		for(int i = 0; i < tableNemas.length-1; i++){
-	  			queryDel ="DELETE FROM "+tableNemas[i]+" WHERE aid = '"+nameAg+"'";
-	  			s.addBatch(queryDel);
-	  		}
-	  		int [] updateCounts = s.executeBatch();
-	  		conn.setAutoCommit(true);
-	  		s.close();
-	  		for(int i = 0; i < updateCounts.length; i++){
-		  		if(updateCounts[i] != 0 ){
-					cancelled = true;
-	  			}
-	  		}
-  		}catch(SQLException se){
-  			System.out.println("Deregistration error: "+se.getMessage());
-  		}
-  		
-  		DFAgentDescription dfd = null;
-			if(cancelled){
-				dfd = new DFAgentDescription();
-				dfd.setName(agentAID);
-			}
-    	return dfd;
-  	}
-
-
-	// La search si svolge in piu' passi:
-	// 1. effettua una SELECT per reperire tutti gli AID
-	//	  degli agenti che soddisfano la richiesta
-	// 2. degli AID tornati ne prende solo i primi MAXAIDToReturn
-	//    che non abbiano lease scaduto
-	// 3. per ogni aid interroga il db per ricostruire il DFAgentDescription
-	// 4. ritorna la lista dei DFAgentDescription
-  	public List search(Object template){
-
-  		LinkedList aidList = new LinkedList();
-  		DFAgentDescription dfd = (DFAgentDescription) template;
-
-  		// PRIMA SELELCT PER AID
-  		String querySel = dfdToSelectQuery(dfd);
-			
-  		Statement s = null;
-  		ResultSet rs = null;
-  		try{
-  			s = conn.createStatement();
-  			rs = s.executeQuery(querySel);
-  			int AIDfound = 0;
-  			while(rs.next() && AIDfound < maxResults)   // for each row of data until to 100
-      		{
-        		String aidS = rs.getString("aid");
-
-				String sLease = rs.getString("lease");
-		        long lease = Long.parseLong(sLease);
-		        if (!lm.isExpired(lease != -1 ? new Date(lease) : null)) {
-		        //long currentLease = System.currentTimeMillis();
-						// se ancora deve scadere oppure il leaseRis del db e' infinito
-		        //if(currentLease < leaseRis || leaseRis == (lm.INFINITE_LEASE_TIME).getTime()){
-		        	aidList.add(aidS);
-		        	AIDfound++;
-		        }
-      		}
-      		rs.close();
-      		s.close();
-  		}catch(SQLException se){
-  			se.printStackTrace();
-  		}
-
-  		List l = new LinkedList();
-		l = makeListDfd(aidList);
-		return l;
-  	}
-
-
-	// STEP
-	// 1. per ogni tabella faccio la SELECT sull'AID
-	// 2. per ogni resultSet riempio i campi opportuni dell'oggetto dfd
-	// 3. ritorno l'oggetto
-	private List makeListDfd(List aidList){
-		List l = new LinkedList();
-		
-		for(int i =0; i<aidList.size(); i++){
-			String aidN = (String) aidList.get(i);
-			DFAgentDescription dfd = new DFAgentDescription();
-			
-			String query = "";
-			query = "SELECT * FROM dfagentdescr WHERE aid='"+aidN+"'";
-			Statement s = null;
-			ResultSet rs = null;
-			
-			try{
-				s = conn.createStatement();
-				rs = s.executeQuery(query);
-	
-				AID	aidAg = new AID();	
-				while(rs.next()){
-					aidAg.setName(rs.getString("aid"));
-					dfd.setName(aidAg);
-					String sLease = rs.getString("lease");
-					long lease = Long.parseLong(sLease);
-					if (lease != -1) {
-						dfd.setLeaseTime(new Date(lease));
-					}
-				}
-				query = "SELECT address FROM aidaddress WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					aidAg.addAddresses(rs.getString("address"));
-				}
-				query = "SELECT resolver FROM aidresolver WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					aidAg.addResolvers(new AID(rs.getString("resolver"), true));
-				}
-				query = "SELECT protocol FROM agentprotocol WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					dfd.addProtocols(rs.getString("protocol"));
-				}
-				query = "SELECT language FROM agentlanguage WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					dfd.addLanguages(rs.getString("language"));
-				}
-				query = "SELECT ontology FROM agentontology WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					dfd.addOntologies(rs.getString("ontology"));
-				}
-				query = "SELECT servicen, type, ownership FROM agentservice WHERE aid='"+aidN+"'";
-				rs = s.executeQuery(query);
-				while(rs.next()){
-					ServiceDescription sd = new ServiceDescription();
-					sd.setName(rs.getString("servicen"));
-					sd.setType(rs.getString("type"));
-					sd.setOwnership(rs.getString("ownership"));
-					String queryServ = "SELECT protocol FROM agentserviceprotocol WHERE aid='"+aidN+"'";
-					if(sd.getName() != null)
-						queryServ +=" and servicen='"+sd.getName()+"'";
-					if(sd.getType() != null)
-						queryServ +=" and type='"+sd.getType()+"'";
-					
-					Statement s1 =conn.createStatement();
-					ResultSet rsServ = s1.executeQuery(queryServ);
-					while(rsServ.next()){
-						sd.addProtocols(rsServ.getString("protocol"));
-					}	
-					queryServ = "SELECT ontology FROM agentserviceontology WHERE aid='"+aidN+"'";
-					if(sd.getName() != null)
-						queryServ +=" and servicen='"+sd.getName()+"'";
-					if(sd.getType() != null)
-						queryServ +=" and type='"+sd.getType()+"'";
-					
-					rsServ = s1.executeQuery(queryServ);
-					while(rsServ.next()){
-						sd.addOntologies(rsServ.getString("ontology"));
-					}	
-					queryServ = "SELECT language FROM agentservicelanguage WHERE aid='"+aidN+"'";
-					if(sd.getName() != null)
-						queryServ +=" and servicen='"+sd.getName()+"'";
-					if(sd.getType() != null)
-						queryServ +=" and type='"+sd.getType()+"'";
-					
-					rsServ = s1.executeQuery(queryServ);
-					while(rsServ.next()){
-						sd.addLanguages(rsServ.getString("language"));
-					}
-					queryServ = "SELECT propertyn, propertyv FROM agentserviceproperty WHERE aid='"+aidN+"'";
-					if(sd.getName() != null)
-						queryServ +=" and servicen='"+sd.getName()+"'";
-					if(sd.getType() != null)
-						queryServ +=" and type='"+sd.getType()+"'";
-					
-					rsServ = s1.executeQuery(queryServ);
-					while(rsServ.next()){
-						Property prop = new Property();
-						prop.setName(rsServ.getString("propertyn"));
-						prop.setValue(rsServ.getString("propertyv"));
-						sd.addProperties(prop);
-					}	
-					rsServ.close();
-					s1.close();
-					dfd.addServices(sd);
-				}
-				rs.close();			
-				s.close();
-			}catch(SQLException se){
-				se.printStackTrace();
-			}
-			l.add(dfd);
-		}		
-		return l;
-	}
-
-
-
-	// Questa restituisce solo la prima select:
-	// cioe' quella che restituisce gli AID degli agenti che 
-	// offrono servizi che match con il template
-	private String dfdToSelectQuery(DFAgentDescription dfdTemplate){
-	
-		String query ="SELECT dfagentdescr.aid, dfagentdescr.lease FROM dfagentdescr";
-		
-		LinkedList lT = new LinkedList();
-		LinkedList lW = new LinkedList();
-		
-		AID agentAID = null;
-		agentAID = dfdTemplate.getName();
-		// FIXME non dovrebbe esserci nulla da cercare se si conosce AID??
-		if(agentAID != null){
-			lW.add(" dfagentdescr.aid = '"+agentAID.getName()+"'");
-		}
-		// Da migliorare!!!
-		Date lease = dfdTemplate.getLeaseTime();
-		
-		if(lease != null){
-			lW.add(" dfagentdescr.lease > '"+lease.getTime()+"'");
-		}
-		Iterator iter = dfdTemplate.getAllLanguages();
-		int i=0;
-		String sub ="agentlanguage";
-		while(iter.hasNext()){
-			sub = sub.substring(0,7)+i;
-			lT.add(", agentlanguage AS "+sub);
-			lW.add(sub+".language='"+(String)iter.next()+"'");
-			i++;
-		}
-		for(int k = 0; k <i; k++){
-			sub = sub.substring(0,7)+k;
-			lW.add(sub+".aid=dfagentdescr.aid");
-		}
-		i = 0;
-		iter = dfdTemplate.getAllOntologies();
-		sub="agentontology";
-		while(iter.hasNext()){
-			sub = sub.substring(0,7)+i;
-			lT.add(", agentontology AS "+sub);
-			lW.add(sub+".ontology='"+(String)iter.next()+"'");
-			i++;
-		}
-		for(int k = 0; k <i; k++){
-			sub = sub.substring(0,7)+k;
-			lW.add(sub+".aid=dfagentdescr.aid");
-		}
-		i = 0;
-		iter = dfdTemplate.getAllProtocols();
-		sub="agentprotocol";
-		while(iter.hasNext()){
-			sub = sub.substring(0,7)+i;
-			lT.add(", agentprotocol AS "+sub+"");
-			lW.add(sub+".protocol='"+(String)iter.next()+"'");
-			i++;
-		}
-		for(int k = 0; k <i; k++){
-			sub = sub.substring(0,7)+k;
-			lW.add(sub+".aid=dfagentdescr.aid");
-		}
-		i = 0;
-		iter = dfdTemplate.getAllServices();
-		sub = "agentservice";
-		while(iter.hasNext()){
-			ServiceDescription service = (ServiceDescription)iter.next();
-			String serviceName = service.getName();
-			String serviceType = service.getType();
-			String serviceOwner = service.getOwnership();
-			sub = sub.substring(0,7)+i;
-			lT.add(", agentservice AS "+sub+"");
-			i++;
-			if(serviceName != null){
-				lW.add(sub+".servicen='"+serviceName+"'");
-			}
-			if(serviceType != null){
-				lW.add(sub+".type='"+serviceType+"'");
-			}
-			if(serviceOwner != null){
-				lW.add(sub+".ownership='"+serviceOwner+"'");
-			}
-			int j = 0;
-			Iterator iterS = service.getAllLanguages();
-			String sub1 ="agentservicelanguage";
-			while(iterS.hasNext()){
-				sub1 = sub1.substring(0,14)+j; 
-				lT.add(", agentservicelanguage AS "+sub1);
-				lW.add(sub1+".language='"+(String)iterS.next()+"'");
-				j++;
-			}
-			for(int k = 0; k <j; k++){
-				sub1 = sub1.substring(0,14)+k;
-				lW.add(sub1+".aid=dfagentdescr.aid");
-			}
-			j=0;	
-			iterS = service.getAllOntologies();
-			sub1 ="agentserviceontology";
-			while(iterS.hasNext()){
-				sub1 = sub1.substring(0,14)+j;
-				lT.add(", agentserviceontology AS "+sub1);
-				lW.add(sub1+".ontology='"+(String)iterS.next()+"'");
-				j++;
-			}
-			for(int k = 0; k <j; k++){
-				sub1 = sub1.substring(0,14)+k;
-				lW.add(sub1+".aid=dfagentdescr.aid");
-			}
-			j=0;	
-			iterS = service.getAllProtocols();
-			sub1 ="agentserviceprotocol";
-			while(iterS.hasNext()){
-				sub1 = sub1.substring(0,14)+j;
-				lT.add(", agentserviceprotocol AS "+sub1);
-				lW.add(sub1+".protocol='"+(String)iterS.next()+"'");
-				j++;
-			}
-			for(int k = 0; k <j; k++){
-				sub1 = sub1.substring(0,14)+k;
-				lW.add(sub1+".aid=dfagentdescr.aid");
-			}
-			j=0;	
-			iterS = service.getAllProperties();
-			sub1 = "agentserviceproperty";
-			while(iterS.hasNext()){
-				Property prop = (Property) iterS.next();
-				sub1 = sub1.substring(0,14)+j;
-				lT.add(", agentserviceproperty AS "+sub1);
-				lW.add(sub1+".propertyn='"+prop.getName()+"' and "+sub1+".propertyv='"+prop.getValue().toString()+"'");
-				j++;
-			}
-			for(int k = 0; k <j; k++){
-				sub1 = sub1.substring(0,14)+k;
-				lW.add(sub1+".aid=dfagentdescr.aid");
-			}
-		}
-		for(int k = 0; k <i; k++){
-			sub = sub.substring(0,7)+k;
-			lW.add(sub+".aid=dfagentdescr.aid");
-		}
-		for(i = 0; i < lT.size(); i++){
-			query +=lT.get(i);
-		}
-		if (lW.size() > 0) {
-			query += " WHERE ";
-		}
-		for(i = 0; i < lW.size(); i++){
-			if(i > 0)
-				query += " and ";
-			query += lW.get(i);
-		}
-		return query;
 	}
 
     /**
@@ -964,273 +923,59 @@ public class DFDBKB extends DBKB {
     	}catch( Exception e ) {}
 	}
 
+  ////////////////////////////////////////
+  // Utility methods currently not used
+  ////////////////////////////////////////
 
-/*************** Main method, for testing purposes ******************************/
-  public static void main(String[] args) {
-  	
-  	
-//		DFDBKB db = new DFDBKB(20, "com.mysql.jdbc.Driver","jdbc:mysql://localhost/DFDB");
- 		try {
- 			DFDBKB db = new DFDBKB(20, null,"jdbc:odbc:DFDB", null, null);
-  		db.dropTables();
- 		}
- 		catch (Exception e) {
- 			e.printStackTrace();
- 		}
- 		
-
-//		db.createTables();
-
-//		db.lm = new DFLeaseManager();
-//
-//	    DFAgentDescription dfd = new DFAgentDescription();
-//	    AID aidAgent1 = new AID("lisa@napoli.com", true);
-//	    aidAgent1.addAddresses("http://napoli.com");
-//	    dfd.setName(aidAgent1);
-//
-//		Date d = new Date(System.currentTimeMillis()+(60000*30));
-//		System.out.println("Data: "+d.toString());
-//	    dfd.setLeaseTime( d );
-//	    dfd.addLanguages("kif");
-//	    ServiceDescription sd= new ServiceDescription();
-//	    sd.setType("seller");
-//	    dfd.addServices(sd);
-//		
-//		db.register("lisa@napoli.com", dfd);
+	// Passo una lista di AID name corrispondente
+	// alla lista dei dfd registrati da cancellare
+	// le operazioni sono di tipo batch
+	private void deregisterSetOfDfd(List l){
+		
+		Statement s = null;
+		String queryDel = "";
+		int deleteRows = 0;
+		boolean cancelled =false;
+		String nameAg = null;
+  		try{
+			conn.setAutoCommit(false);
+			s = conn.createStatement();
+			for(int j=0; j<l.size(); j++){
+				nameAg = (String)l.get(j);
+		  		for(int i = 0; i < tableNemas.length-1; i++){
+		  			queryDel ="DELETE FROM "+tableNemas[i]+" WHERE aid = '"+nameAg+"'";
+		  			s.addBatch(queryDel);
+		  		}
+			}
+	  		int [] updateCounts = s.executeBatch();
+	  		conn.setAutoCommit(true);
+	  		s.close();
+  		}catch(SQLException se){
+  			se.printStackTrace();
+  		}
+	}
 
 
-
-//
-//		long start = System.currentTimeMillis();
-//		// CREO IL DFD
-//	    for(int i = 0; i<1000; i++){
-//		    DFAgentDescription dfd = new DFAgentDescription();
-//			AID aidAgent;
-//		    ServiceDescription sd = new ServiceDescription();
-//		    aidAgent = new AID("rosalba@napoli.it"+i, true);
-//		    aidAgent.addAddresses("http://cit.it");
-//		    dfd.setName(aidAgent);
-//		    dfd.setLease(System.currentTimeMillis()+(600000));
-//		    dfd.addLanguages("potentino");
-//		    dfd.addLanguages("kif");
-//		    dfd.addProtocols("tlc-application-protocol");
-//		    sd.setName("wireless");
-//		    sd.setType("web-services");
-//		    sd.setOwnership("Free");
-//		    sd.addLanguages("SQL");
-//		    sd.addProtocols("FIPA-REQUEST");
-//		    dfd.addServices(sd);
-//		   	// REGISTRO
-//		    db.register("rosalba@napoli.it"+i, dfd);
-//	    }
-//		
-//		long end = System.currentTimeMillis();
-//		System.out.println("Total Registration time: "+(end-start));
-//
-////		// SEARCH
-//		DFAgentDescription dfdTempalete = new DFAgentDescription();
-//		dfdTempalete.addLanguages("kif");
-//		ServiceDescription sdT = new ServiceDescription();
-//		sdT.setName("wireless");
-//		sdT.setType("web-services");
-//		dfdTempalete.addServices(sdT);
-//
-//		start = System.currentTimeMillis();		
-//		db.search(dfdTempalete);
-//		end = System.currentTimeMillis();
-//		System.out.println("Search time: "+(end-start));
-//
-//
-//		// CREO IL DFD
-////	    for(int i = 0; i<5000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////			AID aidAgent;
-////		    ServiceDescription sd = new ServiceDescription();
-////		    aidAgent = new AID("rosalba@napoli.it"+i, true);
-////		    aidAgent.addAddresses("http://cit.it");
-////		    dfd.setName(aidAgent);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*24));
-////		    dfd.addLanguages("potentino");
-////		    dfd.addLanguages("kif");
-////		    dfd.addProtocols("tlc-application-protocol");
-////		    sd.setName("wireless");
-////		    sd.setType("web-services");
-////		    sd.setOwnership("Free");
-////		    sd.addLanguages("SQL");
-////		    sd.addProtocols("FIPA-REQUEST");
-////		    dfd.addServices(sd);
-////		   	// REGISTRO
-////		    db.register("rosalba@napoli.it"+i, dfd);
-////	    }
-//// 		System.out.println("FINITO");
-////
-////	    for(int i = 5000; i<10000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent1 = new AID("filippo@lecce.com"+i, true);
-////		    aidAgent1.addAddresses("http://lecce.com");
-////		    dfd.setName(aidAgent1);
-////		    dfd.setLease(System.currentTimeMillis()+(60000*30));
-////		    dfd.addLanguages("kif");
-////		    dfd.addLanguages("pugliese");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setType("seller");
-////		    dfd.addServices(sd);
-////			
-////			db.register("filippo@lecce.com"+i, dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-////		
-////
-////	    for(int i = 10000; i<20000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("Lisa@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-////		    dfd.addProtocols("FIPA-REQUEST");
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("kif");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setName("pizzaiola");
-////		    sd.setType("food");
-////		    dfd.addServices(sd);
-////			
-////			db.register("lisa@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-////
-////
-////	    for(int i = 20000; i<30000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("infinito@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(-1);
-////		    dfd.addLanguages("SQL");
-////		    dfd.addLanguages("kif");
-////			db.register("infinito@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-////		
-////
-////	    for(int i = 0; i<100; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("Lisa@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-////		    dfd.addProtocols("FIPA-REQUEST");
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("kif");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setName("pizzaiola");
-////		    sd.setType("food");
-////		    dfd.addServices(sd);
-////			
-////			db.register("lisa@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-//
-////
-////	    for(int i = 15000; i<20000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("infinito@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(-1);
-////		    dfd.addLanguages("SQL");
-////		    dfd.addLanguages("kif");
-////			db.register("infinito@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-//// 		
-////	    for(int i = 20000; i<40000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent2 = new AID("giosue@napoli.it"+i, true);
-////		    dfd.setName(aidAgent2);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*48));
-////		    dfd.addProtocols("FIPA-REQUEST");
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("kif");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setName("pizzaiola");
-////		    sd.setType("food");
-////		    dfd.addServices(sd);
-////			
-////			db.register("giosue@napoli.it"+i,dfd);
-//// 		}
-//// 		System.out.println("FINITO ");
-////
-////	    for(int i =40000; i<60000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent1 = new AID("roberto@ariano.com"+i, true);
-////		    dfd.setName(aidAgent1);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*20));
-////		    dfd.addLanguages("kif");
-////		    dfd.addLanguages("SQL");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setType("seller");
-////		    dfd.addServices(sd);
-////			
-////			db.register("roberto@ariano.com"+i, dfd);
-//// 		}
-//// 		System.out.println("FINITO");
-////
-////	    for(int i =60000; i<80000; i++){
-////		    DFAgentDescription dfd = new DFAgentDescription();
-////		    AID aidAgent1 = new AID("maurizio@napoli.com"+i, true);
-////		    dfd.setName(aidAgent1);
-////		    dfd.setLease(System.currentTimeMillis()+(600000*10));
-////		    dfd.addLanguages("napoletano");
-////		    dfd.addLanguages("SQL");
-////		    ServiceDescription sd= new ServiceDescription();
-////		    sd.setType("seller");
-////		    dfd.addServices(sd);
-////			
-////			db.register("maurizio@napoli.com"+i, dfd);
-//// 		}
-//// 		System.out.println("FINITO 80000");
-//////
-//
-//
-//////
-//////		// SEARCH
-////		DFAgentDescription dfdTempalete = new DFAgentDescription();
-////		dfdTempalete.addOntologies("meeting-scheduler");
-////		dfdTempalete.addLanguages("fipa-sl0");
-////		dfdTempalete.addLanguages("kif");
-////		ServiceDescription sdT = new ServiceDescription();
-////		sdT.setName("profiling");
-////		sdT.setType("user-profiling");
-////		dfdTempalete.addServices(sdT);
-////		
-////		db.search(dfdTempalete);
-//
-//
-////		DFAgentDescription dfdT = new DFAgentDescription();
-////		dfdT.addLanguages("napoletano");
-////		db.search(dfdT);
-////
-////
-////		long endTime = System.currentTimeMillis();
-////		
-////		System.out.println("TEMPO IMPIEGATO: "+(endTime-startTime));
-////
-//
-////		DFAgentDescription dfdT2 = new DFAgentDescription();
-////		dfdT2.addLanguages("fipa-sl0");
-////		dfdT2.addLanguages("kif");
-////		ServiceDescription sdT2 = new ServiceDescription();
-////		sdT2.addLanguages("SQL");
-////		dfdT2.addServices(sdT2);
-////		
-////		db.search(dfdT2);
-//
-//
-//	    //System.out.println("Effattuata registrazione! ");
-//		//DEREGISTRO		
-////		for(int i =0; i<1001; i++)
-////		    db.deregister(new AID("rosalba@napoli.it"+i, true));
-////	    db.deregister(aidAgent1);
-////	    db.deregister(aidAgent2);
-////	    System.out.println("Effattuata deregistrazione! ");
-
-  }
-
+	// Cancella le tabelle la procedura e' di tipo batch
+	private void dropTables(){
+		Statement s = null;
+		String q="";
+		try{
+			s = conn.createStatement();
+			for(int i = 0; i<tableNemas.length; i++){
+				q = "DROP table "+tableNemas[i];
+				s.executeUpdate(q);
+			}
+			s.close();
+		}catch(SQLException se){
+			if(s != null)
+				try{
+					s.close();
+				}catch(SQLException see){
+					see.printStackTrace();
+				}
+			se.printStackTrace();
+		}
+		System.out.println("Tables dropped.");
+	}
 }

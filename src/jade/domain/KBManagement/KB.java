@@ -66,13 +66,24 @@ public abstract class KB {
 		// Now apply lease manager policy on requested lease time.
 		lm.grantLeaseTime(fact);
 
-		return insert(name, fact);
+		Object previous = insert(name, fact);
+		if (previous != null && lm.isExpired(lm.getLeaseTime(previous))) {
+			previous = null;
+		}
+		return previous;
 	}
 	
-	public abstract Object deregister(Object name);
-	public abstract List search(Object template);
-	 
+	public Object deregister(Object name) {
+		Object obj = remove(name);
+		if (obj != null && lm.isExpired(lm.getLeaseTime(obj))) {
+			obj = null;
+		}
+		return obj;
+	}
+		
 	protected abstract Object insert(Object name, Object fact);
+	protected abstract Object remove(Object name);
+	public abstract List search(Object template);
 	  
 	public abstract void subscribe(Object aclMessage, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
 	public abstract Enumeration getSubscriptions();
