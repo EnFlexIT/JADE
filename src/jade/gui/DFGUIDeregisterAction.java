@@ -86,8 +86,7 @@ class DFGUIDeregisterAction extends AbstractAction
 			name = gui.getSelectedAgentInTable();
 			if (name != null)
 			{
-				//FIXME I have to get the AID of df from DFGUI
-				df = gui.myAgent.getDescriptionOfThisDF().getName();			
+				df = gui.getLastDF();			
 				dfd = new DFAgentDescription();
 				dfd.setName(name); 
 			}
