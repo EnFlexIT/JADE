@@ -261,7 +261,7 @@ public final class DefaultOntology implements Ontology {
 
   /**
     Checks whether a given string is the name of a role in this ontology.
-    @see jade.onto.Ontology#isConcept(String roleName)
+    
   */
   public boolean isRole(String roleName) throws OntologyException {
   	FrameSchema fs = lookupSchema(roleName);

@@ -98,7 +98,7 @@ public class RequestFIPAServiceBehaviour extends FipaRequestInitiatorBehaviour {
   *  something goes wrong during the search, <code>DFSearchResult</code>
   *  object will throw a suitable <code>FipaException</code> as soon as
   *  a data access is attempted.
-  *  @see jade.domain.AgentManagementOntology.Constraint
+  *  @see jade.domain.FIPAAgentManagement.SearchConstraints
   */
    public RequestFIPAServiceBehaviour(Agent a, AID receiver, String actionName, Object agentDescription, SearchConstraints constraints) throws FIPAException {
      super(a, new ACLMessage(ACLMessage.REQUEST), mt);

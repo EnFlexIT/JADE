@@ -104,7 +104,7 @@ public class AMSServiceCommunicator extends FIPAServiceCommunicator {
 
   /**
    * registers a <code>AMSAgentDescription</code> with the default AMS
-   * @see register(Agent,AID,AMSAgentDescription)
+   * @see #register(Agent,AID,AMSAgentDescription)
    **/
   public static void register(Agent a, AMSAgentDescription amsd) throws FIPAException {
     register(a,a.getAMS(),amsd);

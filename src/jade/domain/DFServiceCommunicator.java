@@ -106,7 +106,7 @@ public class DFServiceCommunicator extends FIPAServiceCommunicator {
 
   /**
    * registers a <code>DFAgentDescription</code> with the default DF
-   * @see register(Agent,AID,DFAgentDescription)
+   * @see #register(Agent,AID,DFAgentDescription)
    **/
   public static void register(Agent a, DFAgentDescription dfd) throws FIPAException {
     register(a,a.getDefaultDF(),dfd);

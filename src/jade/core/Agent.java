@@ -543,7 +543,7 @@ public class Agent implements Runnable, Serializable {
      the content language or to the ontology is detected.
      @see jade.core.Agent#registerLanguage(String languageName, Codec translator)
      @see jade.core.Agent#registerOntology(String ontologyName, Ontology o)
-     @see jade.core.Agent#fillContent(ACLMessage msg, Object content)
+     @see jade.core.Agent#fillContent(ACLMessage msg, List content)
    */
   public List extractContent(ACLMessage msg) throws FIPAException {
     Codec c = lookupLanguage(msg.getLanguage());

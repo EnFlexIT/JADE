@@ -893,8 +893,8 @@ private int performative; // keeps the performative type of this object
      <b><it>ACC</it></b> for inter-platform messaging.
      @param e The <code>Envelope</code> object to attach to this
      message.
-     @see getEnvelope()
-     @see setDefaultEnvelope()
+     @see jade.lang.acl#getEnvelope()
+     @see jade.lang.acl#setDefaultEnvelope()
    */
   public void setEnvelope(Envelope e) {
     messageEnvelope = e;
@@ -905,8 +905,8 @@ private int performative; // keeps the performative type of this object
      Writes the message envelope for this message, using the
      <code>:sender</code> and <code>:receiver</code> message slots to
      fill in the envelope.
-     @see setEnvelope(Envelope e)
-     @see getEnvelope()
+     @see jade.lang.acl#setEnvelope(Envelope e)
+     @see jade.lang.acl#getEnvelope()
    */
   public void setDefaultEnvelope() {
     messageEnvelope = new Envelope();
@@ -921,8 +921,8 @@ private int performative; // keeps the performative type of this object
   /**
      Reads the envelope attached to this message, if any.
      @return The envelope for this message.
-     @see setEnvelope(Envelope e)
-     @see setDefaultEnvelope()
+     @see jade.lang.acl#setEnvelope(Envelope e)
+     @see jade.lang.acl#setDefaultEnvelope()
    */
   public Envelope getEnvelope() {
     return messageEnvelope;
@@ -933,7 +933,6 @@ private int performative; // keeps the performative type of this object
      string. This method allows to write a string representation of an
      <code>ACLMessage</code> object onto a character stream.
      @param w A <code>Writer</code> object to write the message onto.
-     @see jade.lang.acl.ACLMessage#fromText(Reader r)
   */
   public void toText(Writer w) {
     try {
@@ -1030,7 +1029,7 @@ private int performative; // keeps the performative type of this object
      writes a representation of this <code>ACLMessage</code> into a
      character string.
      @return A <code>String</code> representing this message.
-     @see jade.lang.acl.ACLMessage#fromText(Reader r)
+    
   */
   public String toString(){
     StringWriter text = new StringWriter();

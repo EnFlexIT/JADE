@@ -65,7 +65,7 @@ public class SlotDescriptor {
 
   /**
     Build the descriptor for an unnamed slot. 
-    @see SlotDescriptor(String n, int t, String vt, boolean o)
+    @see jade.onto#SlotDescriptor(String n, int t, String vt, boolean o)
   */
   public SlotDescriptor(int c, String t, boolean o) {
     this("",c,t,o);

@@ -146,7 +146,7 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       <code>getReply()</code> method, after changing its message type
       to the passed parameter and after setting the content to the passed
       parameter. 
-      @see jade.proto.FipaRequestResponderBehaviour.Action#getReply()
+     
     */
     protected void sendReply(int performative, String content) {
       myReply.setPerformative(performative);

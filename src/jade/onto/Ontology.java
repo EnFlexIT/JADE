@@ -369,7 +369,7 @@ public interface Ontology {
     represent the elements of the given ontological role. 
     @param roleName The name of the ontological role to examine.
     @return The descriptors for the selected ontology role.
-    @see jade.onto.TermDescriptor
+    @see jade.onto.SlotDescriptor
   */
   SlotDescriptor[] getSlots(String roleName) throws OntologyException;
 

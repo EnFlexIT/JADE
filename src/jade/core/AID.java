@@ -39,9 +39,25 @@ import java.util.Enumeration;
  tables use this class to record agent names and addresses.
  */
 public class AID implements Cloneable, Comparable, Serializable {
-  private String name = new String();
-  private List addresses = new ArrayList();
+  
+	/**
+  @serial
+  */
+	private String name = new String();
+  
+	/**
+  @serial
+  */
+	private List addresses = new ArrayList();
+  
+	/**
+  @serial
+  */
   private List resolvers = new ArrayList();
+  
+  /**
+  @serial
+  */
   private Properties userDefSlots = new Properties();
 
 
