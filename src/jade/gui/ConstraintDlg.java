@@ -91,12 +91,17 @@ public class ConstraintDlg extends JDialog
 
 		p.add(maxDepth);
 		mainPanel.add(p);
-		
+                /*
+                 * The maximum nuber of result to return for the search.
+                 * A negative value indicates that the sender agent is willing
+                 * to allow the search to propagate across all DFs.
+                 * The default value is 1
+                 */	
 		p = new JPanel();
 		label= new JLabel("Max number of results:");
 		label.setPreferredSize(new Dimension(155,26));
 		label.setMinimumSize(new Dimension(155,26));
-	  label.setMaximumSize(new Dimension(155,26));
+	  label.setMaximumSize(new Dimension(160,26));
 		p.add(label);
 		maxResult = new JTextField("");
 		maxResult.setPreferredSize(new Dimension(30,26));
@@ -139,17 +144,21 @@ public class ConstraintDlg extends JDialog
             	
             	if(result.length() !=0)
             	{
-            		Long r = Long.valueOf(result);
-            		if(r.compareTo(new Long(0)) >= 0)
-            	  	constraints.setMaxResults(r);
-            	  else
-            	  {
-            	  	JOptionPane.showMessageDialog(null,"The number of results must be positive !!!.","Error Message",JOptionPane.ERROR_MESSAGE); 
-								  return;
-            	  }  
-            	
+                     /*
+                      * A negative value indicates that the sender agent is willing
+                      * to allow the search to propagate across all DFs.
+                      * The default value is 1
+                     */
+                    Long r = Long.valueOf(result);
+                    constraints.setMaxResults(r);              	
             	}
-            
+               else {
+                     /* the user didnt set any value so set the value of max-result
+                      * to the default value
+                     */
+                      constraints.setMaxResults(new Long(-1));
+                }
+ 
             	dispose();
 
             }	catch(Exception e1){
