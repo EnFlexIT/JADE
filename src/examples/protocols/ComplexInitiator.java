@@ -26,6 +26,7 @@ import jade.proto.*;
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.util.leap.*;
+import jade.lang.acl.*;
 
 /**
  * This example shows how the AchieveREInitiator can be used
@@ -36,22 +37,25 @@ import jade.util.leap.*;
 public class ComplexInitiator extends Initiator {
 
     public void setup() {
-	AchieveREInitiator b = new Initiator.MyInitiator(this, createNewMessage());
-	b.registerPrepareRequests(new RWBehaviour(b, b.REQUEST_KEY, b.ALL_REQUESTS_KEY,true));
-	b.registerHandleAgree(new RWBehaviour(b, b.REPLY_KEY, null,true));
-	b.registerHandleRefuse(new RWBehaviour(b, b.REPLY_KEY, null,true));
-	b.registerHandleNotUnderstood(new RWBehaviour(b, b.REPLY_KEY, null,true));
+	// create a MyInitiator (see class Initiator) that restarts
+	// the protocol when it terminates
+	AchieveREInitiator b = new Initiator.MyInitiator(this, createNewMessage(), true);
+	b.registerPrepareRequests(new RWBehaviour(b.REQUEST_KEY, b.ALL_REQUESTS_KEY,true));
+	b.registerHandleAgree(new RWBehaviour(b.REPLY_KEY, null,true));
+	b.registerHandleRefuse(new RWBehaviour(b.REPLY_KEY, null,true));
+	b.registerHandleNotUnderstood(new RWBehaviour(b.REPLY_KEY, null,true));
 
 	// when the INFORM message arrives a new initiator is launched
-	//FIXME. IT DOES NOT WORK. 
-	// CompositeBehaviour.action() calls onEnd of b instead of
-	// starting the child behaviour!@
-	b.registerHandleInform(new Initiator.MyInitiator(this, createNewMessage()));
-	//b.registerHandleInform(new RWBehaviour(b, b.REPLY_KEY, null,true));
+	// notice that this second MyInitiator has false in the constuctor
+	// in order to avoid restarting the protocol when it terminates.
+	AchieveREInitiator b2 = new Initiator.MyInitiator(this, createNewMessage(), false);
+	b.registerHandleInform(b2); // take care that this method has shared the datastore of b and b2 !
+	//b2.setDataStore(new DataStore()); // this method separates the 2 datastores
+	//b.registerHandleInform(new RWBehaviour(b.REPLY_KEY, null,true));
 
-	b.registerHandleFailure(new RWBehaviour(b, b.REPLY_KEY, null,true));
-	b.registerHandleAllResponses(new RWBehaviour(b, b.ALL_RESPONSES_KEY, null,true));
-	b.registerHandleAllResultNotifications(new RWBehaviour(b, b.ALL_RESULT_NOTIFICATIONS_KEY, null,true));
+	b.registerHandleFailure(new RWBehaviour(b.REPLY_KEY, null,true));
+	b.registerHandleAllResponses(new RWBehaviour(b.ALL_RESPONSES_KEY, null,true));
+	b.registerHandleAllResultNotifications(new RWBehaviour(b.ALL_RESULT_NOTIFICATIONS_KEY, null,true));
 	addBehaviour(b);
     }
 
@@ -66,27 +70,25 @@ public class ComplexInitiator extends Initiator {
     class RWBehaviour extends OneShotBehaviour {
 	Object rk, wk;
 	boolean wl;
-	AchieveREInitiator father;
 
-	RWBehaviour(AchieveREInitiator b, Object readKey, Object writeKey, boolean writeAList) {
+	RWBehaviour(Object readKey, Object writeKey, boolean writeAList) {
 	    super(ComplexInitiator.this);
-	    setDataStore(b.getDataStore());
+	    //setDataStore(b.getDataStore());
 	    rk = readKey;
 	    wk = writeKey;
 	    wl = writeAList;
-	    father = b;
 	}
 
 	public void action() {
-	    System.out.println(myAgent.getLocalName()+" executing RWBehaviour in state "+father.getName(this)+" datastore.size="+getDataStore().size());
 	    if (rk != null) {
-		System.out.println(myAgent.getLocalName()+" read from datastore at key "+rk+":");
+		System.out.print(myAgent.getLocalName()+" read from datastore at key "+rk+":");
 		Object val = getDataStore().get(rk);
 		if (val instanceof List)
 		    for (Iterator i=((List)val).iterator(); i.hasNext(); )
-			System.out.println("  "+i.next());
+			System.out.print("  "+ACLMessage.getPerformative(((ACLMessage)i.next()).getPerformative()));
 		else 
-		    System.out.println("  "+val);
+		    System.out.print("  "+ACLMessage.getPerformative(((ACLMessage)val).getPerformative()));
+		System.out.println();
 	    } 
 	    if (wk != null) {
 		Object valR = getDataStore().get(rk);
@@ -98,15 +100,15 @@ public class ComplexInitiator extends Initiator {
 			valW = new ArrayList();
 			((List)valW).add(valR);
 		    }
-		    System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":");
+		    /*System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":");
 		    for (Iterator i=((List)valW).iterator(); i.hasNext(); )
-			System.out.println("  "+i.next());
+		    System.out.println("  "+i.next());*/
 		} else {
 		    if (valR instanceof List) 
 			valW = ((List)valR).get(0);
 		    else
 			valW = valR;
-		    System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":"+valW);
+		    /*System.out.println(myAgent.getLocalName()+" write into datastore at key "+wk+":"+valW);*/
 		}
 		getDataStore().put(wk,valW);
 	    }
