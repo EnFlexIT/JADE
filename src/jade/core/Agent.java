@@ -32,6 +32,7 @@ public class Agent implements Runnable, CommBroadcaster {
   protected static final int AP_ACTIVE = 2;
   protected static final int AP_SUSPENDED = 3;
   protected static final int AP_WAITING = 4;
+  protected static final int AP_DELETED = -1;
 
 
   protected Vector msgQueue = new Vector();
@@ -87,20 +88,20 @@ public class Agent implements Runnable, CommBroadcaster {
   public synchronized void doWait() { // Transition from Active to Waiting
     APState = AP_WAITING;
     try {
-      wait(); // Block on its monitor
+      wait(); // Blocks on its monitor
     }
     catch(InterruptedException ie) {
       // Do nothing
     }
   }
 
-  public void doWake() { // Transition from Waiting to Active
+  public synchronized void doWake() { // Transition from Waiting to Active
     APState = AP_ACTIVE;
     notify(); // Wakes up the embedded thread
   }
 
   public void doDelete() { // Transition to destroy the agent
-    APState = -1; // FIXME: Shold do something more
+    APState = AP_DELETED; // FIXME: Should do something more
   }
 
   public final void run() {
@@ -115,7 +116,7 @@ public class Agent implements Runnable, CommBroadcaster {
   protected void setup() {}
 
   private void mainLoop() {
-    while(APState == AP_ACTIVE) {
+    while(APState != AP_DELETED) {
 
       // Select the next behaviour to execute
       Behaviour b = myScheduler.schedule();
@@ -153,27 +154,56 @@ public class Agent implements Runnable, CommBroadcaster {
     }
   }
 
-  // Blocking receive
-  public final ACLMessage blockingReceive() {
-    if(msgQueue.isEmpty()) {
-      doWait();
-    }
-    ACLMessage msg = (ACLMessage)msgQueue.firstElement();
-    currentMessage = msg;
-    msgQueue.removeElementAt(0);
-    return msg;
-  }
-
   // Non-blocking receive
-  public final ACLMessage receive() {
-    if(msgQueue.isEmpty())
+  public final synchronized ACLMessage receive() {
+    if(msgQueue.isEmpty()) {
       return null;
+    }
     else {
       ACLMessage msg = (ACLMessage)msgQueue.firstElement();
       currentMessage = msg;
       msgQueue.removeElementAt(0);
       return msg;
     }
+  }
+
+  // Non-blocking receive with pattern matching on messages
+  public final synchronized ACLMessage receive(MessageTemplate pattern) {
+    ACLMessage msg = null;
+
+    Enumeration messages = msgQueue.elements();
+
+    while(messages.hasMoreElements()) {
+      ACLMessage cursor = (ACLMessage)messages.nextElement();
+      if(pattern.match(cursor)) {
+	msg = cursor;
+	currentMessage = cursor;
+	msgQueue.removeElement(cursor);
+	break; // Exit while loop
+      }
+    }
+
+    return msg;
+  }
+
+  // Blocking receive
+  public final synchronized ACLMessage blockingReceive() {
+    ACLMessage msg = receive();
+    while(msg == null) {
+      doWait();
+      msg = receive();
+    }
+    return msg;
+  }
+
+  // Blocking receive with pattern matching on messages
+  public final synchronized ACLMessage blockingReceive(MessageTemplate pattern) {
+    ACLMessage msg = receive(pattern);
+    while(msg == null) {
+      doWait();
+      msg = receive(pattern);
+    }
+    return msg;
   }
 
   public ACLMessage parse(Reader text) {
