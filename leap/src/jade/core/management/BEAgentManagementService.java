@@ -403,7 +403,6 @@ public class BEAgentManagementService extends BaseService {
 	private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
 
     Object[] params = cmd.getParams();
-    for (int i=0;i<params.length;i++) System.out.println(params[i]);
     AID agentID = (AID)params[0];
     String className = (String)params[1];
     String[]args = (String[])params[2];
@@ -601,7 +600,6 @@ public class BEAgentManagementService extends BaseService {
 
 		if(cmdName.equals(AgentManagementSlice.H_CREATEAGENT)) {
 		    GenericCommand gCmd = new GenericCommand(AgentManagementSlice.REQUEST_CREATE, AgentManagementSlice.NAME, null);
-      for (int i=0;i<params.length;i++) System.out.println(params[i]);
         AID agentID = (AID)params[0];
 		    String className = (String)params[1];
 		    Object[] arguments = (Object[])params[2];
