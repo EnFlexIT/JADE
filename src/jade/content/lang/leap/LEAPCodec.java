@@ -56,8 +56,9 @@ public class LEAPCodec extends ByteArrayCodec {
     private static final byte  INTEGER = 10;
     private static final byte  FLOAT = 11;
     private static final byte  DATE = 12;
-    private static final byte  CONTENT_ELEMENT_LIST = 13;
-    private static final byte  END_CONTENT_ELEMENT_LIST = 14;
+    private static final byte  BYTE_SEQUENCE = 13;
+    private static final byte  CONTENT_ELEMENT_LIST = 14;
+    private static final byte  END_CONTENT_ELEMENT_LIST = 15;
 
     // LEAP Language operators
     public static final String INSTANCEOF = "INSTANCEOF";
@@ -101,8 +102,8 @@ public class LEAPCodec extends ByteArrayCodec {
 
             return buffer.toByteArray();
         } 
-        catch (IOException ioe) {
-            throw new CodecException(ioe.getMessage());
+        catch (Throwable t) {
+            throw new CodecException("Error encoding content", t);
         } 
     } 
 
@@ -155,14 +156,8 @@ public class LEAPCodec extends ByteArrayCodec {
 
             return (AbsContentElement) obj;
         } 
-        catch (OntologyException oe) {
-            throw new CodecException(oe.getMessage());
-        } 
-        catch (IOException ioe) {
-            throw new CodecException(ioe.getMessage());
-        } 
-        catch (ClassCastException cce) {
-            throw new CodecException(cce.getMessage());
+        catch (Throwable t) {
+            throw new CodecException("Error decoding content", t);
         } 
     } 
 
@@ -170,7 +165,7 @@ public class LEAPCodec extends ByteArrayCodec {
      * Synchronized so that it can possibly be executed by different threads
      */
     private synchronized void write(DataOutputStream stream, 
-                                    AbsObject abs) throws IOException {
+                                    AbsObject abs) throws Throwable {
         int reference = references.indexOf(abs);
 
         if (reference != -1) {
@@ -182,33 +177,42 @@ public class LEAPCodec extends ByteArrayCodec {
 
         if (abs instanceof AbsPrimitive) {
             stream.writeByte(PRIMITIVE);
-
+            
             Object obj = ((AbsPrimitive) abs).getObject();
 
             if (obj instanceof String) {
                 stream.writeByte(STRING);
+            		stream.writeUTF((String) obj);
             } 
 
             if (obj instanceof Boolean) {
                 stream.writeByte(BOOLEAN);
+            		stream.writeBoolean(((Boolean) obj).booleanValue());
             } 
 
             if (obj instanceof Long) {
                 stream.writeByte(INTEGER);
+            		stream.writeLong(((Long) obj).longValue());
             } 
 
             //__CLDC_UNSUPPORTED__BEGIN
             if (obj instanceof Double) {
                 stream.writeByte(FLOAT);
+            		stream.writeDouble(((Double) obj).doubleValue());
             } 
             //__CLDC_UNSUPPORTED__END
 
             if (obj instanceof Date) {
                 stream.writeByte(DATE);
-                obj = new Long(((Date) obj).getTime());
+            		stream.writeLong(((Date) obj).getTime());
             } 
 
-            stream.writeUTF(obj.toString());
+            if (obj instanceof byte[]) {
+                stream.writeByte(BYTE_SEQUENCE);
+                byte[] b = (byte[]) obj;
+            		stream.writeInt(b.length);
+            		stream.write(b, 0, b.length);
+            } 
 
             return;
         } 
@@ -266,152 +270,139 @@ public class LEAPCodec extends ByteArrayCodec {
      * Synchronized so that it can possibly be executed by different threads
      */
     private synchronized AbsObject read(DataInputStream stream, 
-                                        Ontology ontology) throws IOException, OntologyException {
-        try {
-            byte kind = stream.readByte();
+                                        Ontology ontology) throws Throwable {
+        byte kind = stream.readByte();
 
-            if (kind == REFERENCE) {
-                int       reference = stream.readInt();
-                AbsObject abs = (AbsObject) references.elementAt(reference);
+        if (kind == REFERENCE) {
+            int       reference = stream.readInt();
+            AbsObject abs = (AbsObject) references.elementAt(reference);
 
-                if (abs != null) {
-                    return abs;
-                } 
-                else {
-                    throw new IOException("Corrupted stream");
-                }
-            } 
-
-            if (kind == PRIMITIVE) {
-                byte         type = stream.readByte();
-                String       value = stream.readUTF();
-                AbsPrimitive abs = null;
-
-                if (type == STRING) {
-                    abs = AbsPrimitive.wrap(value);
-                } 
-
-                if (type == BOOLEAN) {
-                		boolean b;
-                		if (CaseInsensitiveString.equalsIgnoreCase(value, "true")) {
-                			b = true;
-                		}
-                		else if (CaseInsensitiveString.equalsIgnoreCase(value, "false")) {
-                			b = false;
-                		}
-                		else {
-                			throw new CodecException("Wrong boolean value "+value);
-                		}
-                    abs = AbsPrimitive.wrap(b);
-                } 
-
-                if (type == INTEGER) {
-                    abs = AbsPrimitive.wrap(Long.parseLong(value));
-                } 
-
-                //__CLDC_UNSUPPORTED__BEGIN
-                if (type == FLOAT) {
-                		// Note that Float.parseFloat() is not available in PJAVA
-                    abs = AbsPrimitive.wrap((new Double(value)).doubleValue());
-                } 
-                //__CLDC_UNSUPPORTED__END
-
-                if (type == DATE) {
-                		long l = Long.parseLong(value);
-                    abs = AbsPrimitive.wrap(new Date(l));
-                } 
-
+            if (abs != null) {
                 return abs;
             } 
+            else {
+                throw new IOException("Corrupted stream");
+           	}
+        } 
 
-            if (kind == AGGREGATE) {
-                String       typeName = stream.readUTF();
-                AbsAggregate abs = new AbsAggregate(typeName);
-                byte         marker = stream.readByte();
+        if (kind == PRIMITIVE) {
+            byte         type = stream.readByte();
+            AbsPrimitive abs = null;
 
-                do {
-                    if (marker == ELEMENT) {
-                        AbsObject elementValue = read(stream, ontology);
-
-                        if (elementValue != null) {
-                        	try {
-                            abs.add((AbsTerm) elementValue);
-                        	}
-                        	catch (ClassCastException cce) {
-                        		throw new CodecException("Non term element in aggregate"); 
-                        	}
-                        } 
-
-                        marker = stream.readByte();
-                    } 
-                } 
-                while (marker != END_AGGREGATE);
-
-                return abs;
+            if (type == STRING) {
+            		String value = stream.readUTF();
+                abs = AbsPrimitive.wrap(value);
             } 
 
-            if (kind == CONTENT_ELEMENT_LIST) {
-                AbsContentElementList abs = new AbsContentElementList();
-                byte                  marker = stream.readByte();
-
-                do {
-                    if (marker == ELEMENT) {
-                        AbsObject elementValue = read(stream, ontology);
-
-                        if (elementValue != null) {
-                        	try {
-                            abs.add((AbsContentElement) elementValue);
-                        	}
-                        	catch (ClassCastException cce) {
-                        		throw new CodecException("Non content-element element in content-element-list"); 
-                        	}
-                        } 
-
-                        marker = stream.readByte();
-                    } 
-                } 
-                while (marker != END_CONTENT_ELEMENT_LIST);
-
-                return abs;
+            if (type == BOOLEAN) {
+            		boolean value = stream.readBoolean();
+                abs = AbsPrimitive.wrap(value);
             } 
 
+            if (type == INTEGER) {
+            		long value = stream.readLong();
+                abs = AbsPrimitive.wrap(value);
+            } 
+
+            //__CLDC_UNSUPPORTED__BEGIN
+            if (type == FLOAT) {
+            		double value = stream.readDouble();
+                abs = AbsPrimitive.wrap(value);
+            } 
+            //__CLDC_UNSUPPORTED__END
+
+            if (type == DATE) {
+                long value = stream.readLong();
+                abs = AbsPrimitive.wrap(new Date(value));
+            } 
+
+            if (type == BYTE_SEQUENCE) {
+                byte[] value = new byte[stream.readInt()];
+                stream.read(value, 0, value.length);
+                abs = AbsPrimitive.wrap(value);
+            } 
+
+            return abs;
+        } 
+
+        if (kind == AGGREGATE) {
             String       typeName = stream.readUTF();
-            // DEBUG System.out.println("Type is "+typeName);
-            ObjectSchema schema = ontology.getSchema(typeName);
-            // DEBUG System.out.println("Schema is "+schema);
-            AbsObject    abs = schema.newInstance();
-
-            references.addElement(abs);
-
-            counter++;
-
-            byte marker = stream.readByte();
+            AbsAggregate abs = new AbsAggregate(typeName);
+            byte         marker = stream.readByte();
 
             do {
-                if (marker == ATTRIBUTE) {
-                    String    attributeName = stream.readUTF();
-                    AbsObject attributeValue = read(stream, ontology);
+                if (marker == ELEMENT) {
+                    AbsObject elementValue = read(stream, ontology);
 
-                    if (attributeValue != null) {
-                        Ontology.setAttribute(abs, attributeName, attributeValue);
+                    if (elementValue != null) {
+                    		try {
+                          abs.add((AbsTerm) elementValue);
+                       	}
+                        catch (ClassCastException cce) {
+                        	throw new CodecException("Non term element in aggregate"); 
+                        }
                     } 
 
                     marker = stream.readByte();
                 } 
             } 
-            while (marker != END_ATTRIBUTES);
+            while (marker != END_AGGREGATE);
 
             return abs;
         } 
-        catch (OntologyException oe) {
-            throw oe;
+
+        if (kind == CONTENT_ELEMENT_LIST) {
+            AbsContentElementList abs = new AbsContentElementList();
+            byte                  marker = stream.readByte();
+
+            do {
+                if (marker == ELEMENT) {
+                    AbsObject elementValue = read(stream, ontology);
+
+                    if (elementValue != null) {
+                      	try {
+                            abs.add((AbsContentElement) elementValue);
+                        }
+                        catch (ClassCastException cce) {
+                        		throw new CodecException("Non content-element element in content-element-list"); 
+                        }
+                    } 
+
+                    marker = stream.readByte();
+                } 
+            } 
+            while (marker != END_CONTENT_ELEMENT_LIST);
+
+            return abs;
         } 
-        catch (IOException ioe) {
-            throw ioe;
+
+        String       typeName = stream.readUTF();
+        // DEBUG System.out.println("Type is "+typeName);
+        ObjectSchema schema = ontology.getSchema(typeName);
+        // DEBUG System.out.println("Schema is "+schema);
+        AbsObject    abs = schema.newInstance();
+
+        references.addElement(abs);
+
+        counter++;
+
+        byte marker = stream.readByte();
+
+        do {
+            if (marker == ATTRIBUTE) {
+                String    attributeName = stream.readUTF();
+                AbsObject attributeValue = read(stream, ontology);
+
+                if (attributeValue != null) {
+                    Ontology.setAttribute(abs, attributeName, attributeValue);
+                } 
+
+                marker = stream.readByte();
+            } 
         } 
-        catch (Throwable t) {
-            throw new IOException("Corrupted stream");
-        } 
+        while (marker != END_ATTRIBUTES);
+
+        return abs;
     } 
 }
 
