@@ -55,8 +55,8 @@ public interface AgentManager {
     void handleNewAgent(String containerName, AID agentID);
     void handleDeadAgent(String containerName, AID agentID);
     void handleMovedAgent(String fromContainer, String toContainer, AID agentID);
-    void handleNewAddress(String address);
-    void handleDeadAddress(String address);
+    void handleNewAddress(String address, String container);
+    void handleDeadAddress(String address, String container);
   }
 
   void addListener(Listener l);
@@ -67,7 +67,7 @@ public interface AgentManager {
   String[] platformAddresses();
 
   String getContainerName(AID agentID) throws NotFoundException;
-  void create(String agentName, String className, String arguments[],String containerName) throws UnreachableException;
+  void create(String agentName, String className, String arguments[], String containerName) throws UnreachableException;
 
   void killContainer(String containerName);
   void kill(AID agentID, String password) throws NotFoundException, UnreachableException;
