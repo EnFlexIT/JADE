@@ -32,6 +32,13 @@ package jade.core;
 public class NameClashException extends Exception {
 
   /**
+     Construct a <code>NameClashException</code> with no detail message
+  */
+  public NameClashException() {
+      super();
+  }
+
+  /**
     Construct a <code>NameClashException</code> with the given message.
     @param msg The exception message.
   */
