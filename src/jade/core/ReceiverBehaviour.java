@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1999/03/09 13:02:41  rimassa
+  Made a change to correctly receive ACL messages with more than a
+  single receiver.
+
   Revision 1.7  1998/12/01 23:36:50  rimassa
   Fixed a wrong implementation of reset() method.
 
@@ -19,6 +23,10 @@
 */
 
 package jade.core;
+
+import java.util.Enumeration;
+
+import jade.core.AgentGroup;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -67,9 +75,12 @@ public final class ReceiverBehaviour extends Behaviour {
       s = msg.getConversationId();
       if(s != null)
 	result.setConversationId(s);
-      s = msg.getDest();
-      if(s != null)
-	result.setDest(s);
+      AgentGroup ag = msg.getDests();
+      Enumeration e = ag.getMembers();
+      while(e.hasMoreElements()) {
+	s = (String)e.nextElement();
+	result.addDest(s);
+      }
       s = msg.getEnvelope();
       if(s != null)
 	result.setEnvelope(s);
