@@ -18,18 +18,18 @@ as soon as available.
 Your feedback as users is very important to us. Please, if you have new 
 requirements that you would like to see implemented or if you have examples 
 of usage or if you discover some bugs, send us information.
-Check the website http://jade.cselt.it/
+Check the website http://jade.tilab.com/
 for how to report bugs and send suggestions.  
 
 SYSTEM REQUIREMENTS
 ===================
 To build the framework a complete Java programming environment is
-needed. At least a Java Development Kit version 1.2 is required. 
+needed. At least a Java Development Kit version 1.4 is required. 
 
 
 KNOWN BUGS
 ==========
-  see http://jade.cselt.it/  ('Bugs' page)  for the full list of reported bugs
+  see http://jade.tilab.com/  ('Bugs' page)  for the full list of reported bugs
 
 
 CONTACT
@@ -47,8 +47,8 @@ The following is an excerpt from the programmer's guide.
 5.1 Software requirements
 =========================
 The only software requirement to execute the system is the Java Run Time 
-Environment version 1.2
-Further to the Java Compiler version 1.2, to build the system, the JavaCC 
+Environment version 1.4
+Further to the Java Compiler version 1.4, to build the system, the JavaCC 
 parser generator (version 0.8pre or version 1.1; available from 
 http://www.metamata.com), the IDL to Java translator idltojava 
 (available from the Sun Developer Connection) are also needed. However, 
@@ -61,7 +61,7 @@ JADE with build.xml file, ANT is available from http://jakarta.apache.org.
 ========================
 All the software is distributed under the LGPL license limitations. 
 It can be downloaded from the JADE web site 
-http://jade.cselt.it/ Five compressed files are available:
+http://jade.tilab.com/ Five compressed files are available:
 1. the source code of JADE
 2. the source code of the examples
 3. the documentation, including the javadoc of the JADE API and 
