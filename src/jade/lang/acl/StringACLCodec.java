@@ -147,6 +147,19 @@ public class StringACLCodec implements ACLCodec {
     }
   }
 
+  public AID decodeAID() throws ACLCodec.CodecException {
+    try {
+	return parser.parseAID(null);
+    }
+    catch(jade.lang.acl.TokenMgrError e1) {
+	throw new ACLCodec.CodecException(getName() + " AID decoding token exception", e1);
+    }
+    catch(Exception e) {
+	e.printStackTrace();
+	throw new ACLCodec.CodecException(getName() + " AID decoding exception", e);
+    }
+  }
+
   /**
    * encodes the message and writes it into the Writer passed in the 
    * constructor.
