@@ -30,6 +30,8 @@ package jade.core;
 import jade.core.behaviours.Behaviour;
 
 import jade.security.AuthException;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 import jade.mtp.TransportAddress;
 
 import jade.util.leap.Map;
@@ -682,7 +684,9 @@ public class PlatformManagerImpl implements PlatformManager {
     	for (int i = 0; i < ids.length; ++i) {
     		try {
 	    		Node n = myMain.getContainerNode(ids[i]);
-			    NodeDescriptor nodeDsc = new NodeDescriptor(ids[i], n, "", new byte[0]); // FIXME: Temporary Hack
+	    		JADEPrincipal principal = myMain.getPrincipal(ids[i]);
+	    		Credentials credentials = myMain.getCredentials(ids[i]);
+			    NodeDescriptor nodeDsc = new NodeDescriptor(ids[i], n, principal, credentials); 
 			    infos.add(new NodeInfo(nodeDsc));
     		}
     		catch (NotFoundException nfe) {

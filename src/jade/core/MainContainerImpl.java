@@ -160,19 +160,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	Node node = desc.getNode();
 	ContainerID cid = desc.getContainer();
-	String username = desc.getPrincipalName();
-	byte[] password = desc.getPrincipalPwd();
-
-	// Authenticate user
-	//JADEPrincipal principal = getAuthority().createJADEPrincipal(cid, username);
-	//CertificateFolder certs = authority.authenticate(principal, password);
-	//authority.checkAction(Authority.PLATFORM_CREATE, principal, certs);
-	//authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
-
-	// Add the calling container as the main container
-	containers.addContainer(cid, node, null);
-
-	localContainerID = cid;
+	containers.addContainer(cid, node, null, null); // GVFIXME
+ 	localContainerID = cid;
 
     }
 
@@ -197,20 +186,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	Node node = desc.getNode();
 	ContainerID cid = desc.getContainer();
-	String username = desc.getPrincipalName();
-	byte[] password = desc.getPrincipalPwd();
-
-	// Authenticate user
-	//JADEPrincipal principal = authority.createContainerPrincipal(cid, username);
-	//CertificateFolder certs = authority.authenticate(principal, password);
-	//authority.checkAction(Authority.CONTAINER_CREATE, principal, certs);
-		
-	// Set the container-principal
-	//	ac.changeContainerPrincipal(certs);
-
-	// add to the platform's container list
-	containers.addContainer(cid, node, null);
-
+	containers.addContainer(cid, node, null, null); // GVFIXME
 	ContainerID[] allContainers = containers.names();
 
 	// Notify listeners
@@ -1556,8 +1532,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   }*/
 
 
-/*
-	public JADEPrincipal getPrincipal(AID agentID) {
+	/*public JADEPrincipal getPrincipal(AID agentID) {
 		JADEPrincipal ap;
 		AgentDescriptor ad = platformAgents.acquire(agentID);
 
@@ -1569,21 +1544,28 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			platformAgents.release(agentID);
 			return ap;
 		}
-	}
+	}*/
 	
-  private JADEPrincipal getPrincipal(ContainerID cid) {
+  JADEPrincipal getPrincipal(ContainerID cid) {
 	 	JADEPrincipal cp = null;
 	 	try {
-			cp = containers.getPrincipal(cid);
+			return containers.getPrincipal(cid);
 	 	}
 	 	catch (NotFoundException nfe) {
+	 		// FIXME: Should we create an "empty" Principal
+	 		return null;
 	 	}
-	 	if (cp == null) {
-	 		cp = authority.createContainerPrincipal(cid, JADEPrincipal.NONE);
-	 	}
-	 	return cp;
   }
-*/
+
+  Credentials getCredentials(ContainerID cid) {
+	 	try {
+			return containers.getCredentials(cid);
+	 	}
+	 	catch (NotFoundException nfe) {
+	 		// FIXME: Should we create "empty" Credentials
+	 		return null;
+	 	}
+  }
 
   private boolean match(AMSAgentDescription templateDesc, AMSAgentDescription factDesc) {
 		try {

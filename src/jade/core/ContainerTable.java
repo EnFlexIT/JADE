@@ -33,7 +33,8 @@ import jade.util.leap.LinkedList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
-import jade.security.ContainerPrincipal;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 
 class ContainerTable {
@@ -44,16 +45,19 @@ class ContainerTable {
   private static class Entry {
     private Node node;
     private List mtps = new LinkedList();
-    private ContainerPrincipal principal;
+    private JADEPrincipal principal;
+    private Credentials credentials;
 
     public Entry(Node n) {
       node = n;
       principal = null;
+      credentials = null;
     }
 
-    public Entry(Node n, ContainerPrincipal cp) {
+    public Entry(Node n, JADEPrincipal cp, Credentials cr) {
       node = n;
       principal = cp;
+      credentials = cr;
     }
 
     public void addMTP(MTPDescriptor mtp) {
@@ -64,12 +68,20 @@ class ContainerTable {
       mtps.remove(mtp);
     }
 
-    public void setPrincipal(ContainerPrincipal cp) {
+    public void setPrincipal(JADEPrincipal cp) {
       principal = cp;
     }
 
-    public ContainerPrincipal getPrincipal() {
+    public JADEPrincipal getPrincipal() {
       return principal;
+    }
+
+    public void setCredentials(Credentials cr) {
+      credentials = cr;
+    }
+
+    public Credentials getCredentials() {
+      return credentials;
     }
 
     public Node getNode() {
@@ -91,8 +103,8 @@ class ContainerTable {
     entries.put(cid, e);
   }
 
-  public synchronized void addContainer(ContainerID cid, Node n, ContainerPrincipal cp) {
-    Entry e = new Entry(n, cp);
+  public synchronized void addContainer(ContainerID cid, Node n, JADEPrincipal cp, Credentials cr) {
+    Entry e = new Entry(n, cp, cr);
     entries.put(cid, e);
   }
 
@@ -124,18 +136,32 @@ class ContainerTable {
     return e.getNode();
   }
 
-  public synchronized void setPrincipal(ContainerID cid, ContainerPrincipal cp) throws NotFoundException {
+  public synchronized void setPrincipal(ContainerID cid, JADEPrincipal cp) throws NotFoundException {
     Entry e = (Entry)entries.get(cid);
     if(e == null)
       throw new NotFoundException("No container named " + cid.getName() + " was found.");
     e.setPrincipal(cp);
   }
 
-  public synchronized ContainerPrincipal getPrincipal(ContainerID cid) throws NotFoundException {
+  public synchronized JADEPrincipal getPrincipal(ContainerID cid) throws NotFoundException {
     Entry e = (Entry)entries.get(cid);
     if(e == null)
       throw new NotFoundException("No container named " + cid.getName() + " was found.");
     return e.getPrincipal();
+  }
+
+  public synchronized void setCredentials(ContainerID cid, Credentials cr) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
+    if(e == null)
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
+    e.setCredentials(cr);
+  }
+
+  public synchronized Credentials getCredentials(ContainerID cid) throws NotFoundException {
+    Entry e = (Entry)entries.get(cid);
+    if(e == null)
+      throw new NotFoundException("No container named " + cid.getName() + " was found.");
+    return e.getCredentials();
   }
 
   public synchronized List getMTPs(ContainerID cid) throws NotFoundException {

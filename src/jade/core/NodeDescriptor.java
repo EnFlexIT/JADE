@@ -27,7 +27,8 @@ package jade.core;
 
 
 import jade.util.leap.Serializable;
-
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 /**
 
@@ -62,15 +63,15 @@ public class NodeDescriptor implements Serializable {
 
        @param cid The container ID for the hosted container.
        @param node The described <code>Node</code> object.
-       @param userName The user name of the principal of this container, if any.
-       @param password The authentication password for the principal of this container, if any.
+       @param principal The principal of the node owner.
+       @param credentials The credentials of the node owner.
     */
-    public NodeDescriptor(ContainerID cid, Node node, String userName, byte[] password) {
+    public NodeDescriptor(ContainerID cid, Node node, JADEPrincipal principal, Credentials credentials) {
 	myName = cid.getName();
 	myNode = node;
 	myContainer = cid;
-	myPrincipalName = userName;
-	myPrincipalPwd = password;
+	ownerPrincipal = principal;
+	ownerCredentials = credentials;
     }
 
     /**
@@ -134,33 +135,30 @@ public class NodeDescriptor implements Serializable {
     }
 
     /**
-       Retrieve the name of the principal for the container (if any)
-       hosted by the described node.
+       Retrieve the principal of the owner of this node (if any)
 
-       @return The name of the principal of the hosted container, or
+       @return The principal of the owner of this node, or
        <code>null</code> if no principal was set.
     */
-    public String getPrincipalName() {
-	return myPrincipalName;
+    public JADEPrincipal getOwnerPrincipal() {
+	return ownerPrincipal;
     }
 
     /**
-       Retrieve the authentication password for the principal of tha
-       container (if any) hosted by the described node.
+       Retrieve the credentials of the owner of this node (if any)
 
-       @return A byte array containing the password for the principal
-       of the hosted container, or <code>null</code> if no such
-       principal or container were set.
+       @return The credentials of the owner of this node, or
+       <code>null</code> if no credentials were set.
     */
-    public byte[] getPrincipalPwd() {
-	return myPrincipalPwd;
+    public Credentials getOwnerCredentials() {
+	return ownerCredentials;
     }
 
     private String myName;
     private Node myNode;
 
     private ContainerID myContainer;
-    private String myPrincipalName;
-    private byte[] myPrincipalPwd;
+    private JADEPrincipal ownerPrincipal;
+    private Credentials ownerCredentials;
 
 }

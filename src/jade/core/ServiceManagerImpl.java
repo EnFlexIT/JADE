@@ -326,6 +326,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	
 		// Add the service to the local service finder so that it can be found
 		localServices.put(svc.getName(), svc);
+		
+    // If this service extends BaseService, attach it to the Command Processor
+    if(svc instanceof BaseService) {
+			BaseService bs = (BaseService)svc;
+			bs.setCommandProcessor(myCommandProcessor);
+    }
   }
   
   private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
