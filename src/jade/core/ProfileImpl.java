@@ -71,7 +71,7 @@ public class ProfileImpl extends Profile {
   private ServiceManager myServiceManager = null;
   private ServiceFinder myServiceFinder = null;
   private CommandProcessor myCommandProcessor = null;
-  private Platform        myPlatform = null;
+  private MainContainerImpl myMain = null;
   private IMTPManager     myIMTPManager = null;
   private ResourceManager myResourceManager = null;
 
@@ -236,13 +236,9 @@ public class ProfileImpl extends Profile {
 
   /**
    */
-  protected Platform getPlatform() throws ProfileException {
-    if (myPlatform == null) {
-      createPlatform();
-    } 
-
-    return myPlatform;
-  } 
+  protected MainContainerImpl getMain() throws ProfileException {
+      return myMain;
+  }
 
   /**
    */
@@ -301,8 +297,9 @@ public class ProfileImpl extends Profile {
 	    String isMain = props.getProperty(MAIN);
 	    if(isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
 		// This is a main container: create a real Service Manager and export it
-		myServiceManager = new ServiceManagerImpl(this);
-		myIMTPManager.exportServiceManager(myServiceManager);
+		myMain = new MainContainerImpl(this);
+		myServiceManager = new ServiceManagerImpl(this, myMain);
+		myIMTPManager.exportServiceManager((ServiceManagerImpl)myServiceManager);
 	    }
 	    else {
 		// This is a peripheral container: create a Service Manager Proxy
@@ -352,23 +349,6 @@ public class ProfileImpl extends Profile {
 	}
     }
 
-
-  /**
-   * Method declaration
-   *
-   * @throws ProfileException
-   *
-   * @see
-   */
-  private void createPlatform() throws ProfileException {
-
-      String isMain = props.getProperty(MAIN);
-      if (isMain == null || CaseInsensitiveString.equalsIgnoreCase(isMain, "true")) {
-	  // The real Main
-	  myPlatform = new MainContainerImpl(this);
-	  // HP myPlatform = theMainContainer = new MainContainerImpl(this);
-      }
-  } 
 
   /**
    * Method declaration
