@@ -182,13 +182,11 @@ public abstract class FipaRequestInitiatorBehaviour extends SimpleBehaviour {
   @param request update request message to be sent.
   @param template a new MessageTemplate.  
   */
-  public void reset(ACLMessage request, MessageTemplate template){
-  
+  public void reset(ACLMessage request, MessageTemplate template){  
   	reqTemplate = template;
   	reset(request);
-  
   }
-  
+
   public boolean done(){
   
   	return finished;
