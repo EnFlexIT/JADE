@@ -23,13 +23,37 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
-import java.util.*;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+/**
+   Description of the transport services available on an agent
+   platform.
+
+   @author Fabio Bellifemine - CSELT
+   @version $Date$ $Revision$
+
+ */
 public class APTransportDescription {
+
   private List mtps = new ArrayList(); 
 
-public void addAvailableMtps(MTPDescription s) {mtps.add(s);}
-public boolean removeAvailableMtps(MTPDescription s) {return mtps.remove(s);}
-public void clearAllAvailableMtps() {mtps.clear();}
-public Iterator getAllAvailableMtps() {return mtps.iterator();}
+  public void addAvailableMtps(MTPDescription s) {
+    mtps.add(s);
+  }
+
+  public boolean removeAvailableMtps(MTPDescription s) {
+    return mtps.remove(s);
+  }
+
+  public void clearAllAvailableMtps() {
+    mtps.clear();
+  }
+
+  public Iterator getAllAvailableMtps() {
+    return mtps.iterator();
+  }
+
 }
