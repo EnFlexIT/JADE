@@ -292,7 +292,8 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(snifferName);
 		AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, AgentContainer.CREATE_AND_START);
+		    myContainer.initAgent(id, tn, null, null); // GVFIXME:
+		    myContainer.powerUpLocalAgent(id);
 		    addMessageListener(tn);
 		}
 		catch (Exception e) {
@@ -343,7 +344,8 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(introspectorName);
 		AID id = new AID(introspectorName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, AgentContainer.CREATE_AND_START);
+		    myContainer.initAgent(id, tn, null, null); // GVFIXME:
+		    myContainer.powerUpLocalAgent(id);
 		    if (targetName.equals(myContainer.getAMS())) {
 			// If we are debugging the AMS, let's wait for the ToolNotifier 
 			// be ready to avoid deadlock problems. Note also that in 
