@@ -69,7 +69,7 @@ public class AgentState {
 
   public int compareTo(Object o) {
     AgentState as = (AgentState)o;
-    return name.compareToIgnoreCase(as.name);
+		return name.toLowerCase().toUpperCase().compareTo(as.name.toLowerCase().toUpperCase());
   }
 
   public int hashCode() {
