@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -53,7 +54,7 @@ public class AgentGroup implements Cloneable, Serializable {
   /**
      Removes an agent from this group. 
      @param name The agent name (case-sensitive) to remove from this group.
-     * @see removeMemberAddressAndCaseInsensitive(String name)
+     @see jade.core.AgentGroup#removeMemberAddressAndCaseInsensitive(String name)
    */
   public void removeMember(String name) {
      memberNames.removeElement(name);
