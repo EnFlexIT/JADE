@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.26  1998/11/09 00:02:25  rimassa
+  Modified doWait() method to avoid missing notifications.
+  A 'finally' clause is used to execute user-specific and JADE system
+  cleanup both when an agent terminates naturally and when it is killed
+  from RMA.
+
   Revision 1.25  1998/11/08 23:57:50  rimassa
   Added a join() method to allow AgentContainer objects to wait for all
   their agents to terminate before exiting.
@@ -134,6 +140,7 @@
   Renamed 'fipa' to 'jade'.
 
   */
+
 
 package jade.core;
 
