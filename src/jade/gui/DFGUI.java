@@ -193,8 +193,8 @@ public class DFGUI extends JFrame
 		item = generalMenu.add(new DFGUICloseGuiAction(this));
 		
 		// feature only for applet
-		if(isGUIForApplet)
-			item = generalMenu.add(new DFGUIRefreshAppletAction(this));
+		/*		if(isGUIForApplet)
+			item = generalMenu.add(new DFGUIRefreshAppletAction(this));*/
 			
 		jmb.add (generalMenu);
 
@@ -243,7 +243,7 @@ public class DFGUI extends JFrame
 		closeB.setText("");
 		closeB.setIcon(closeImg);
 		closeB.setToolTipText("Close the DF GUI");
-
+		/*
 		if(isGUIForApplet)
 		{
 			Icon refreshImg = DFGuiProperties.getIcon("refreshapplet");
@@ -251,7 +251,7 @@ public class DFGUI extends JFrame
 			refreshB.setText("");
 			refreshB.setIcon(refreshImg);
 			refreshB.setToolTipText("Refresh the GUI");
-		}
+		}*/
 		
 		bar.addSeparator();
 
@@ -286,12 +286,12 @@ public class DFGUI extends JFrame
 		searchB.setIcon(searchImg);
 		searchB.setToolTipText("Search for agents matching a given description");
 
-		Icon searchWithImg = DFGuiProperties.getIcon("searchwithconstraints");
+		/*		Icon searchWithImg = DFGuiProperties.getIcon("searchwithconstraints");
 		searchWithB = bar.add(new DFGUISearchWithConstraintAction(this));
 		searchWithB.setText("");
 		searchWithB.setIcon(searchWithImg);
 		searchWithB.setToolTipText("Search for agent using constraints");
-		
+		*/
 		bar.addSeparator();
 
 		// SUPER DF
