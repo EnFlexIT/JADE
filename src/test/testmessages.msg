@@ -1,6 +1,19 @@
 (INFORM
  :language FIPA-SL0
  :ontology fipa-agent-management
+ :content (  (action (Agent-Identifier :name "action" )
+             (SEARCH
+              (Df-agent-description
+              :name (Agent-Identifier :name "strng with \"  and blanks"))
+              (search-constraints :max-depth 20 :max-results 10 )
+             ))
+           )
+ :X-comment "Here I want to test the String management of the SL0 parser "
+)
+
+(INFORM
+ :language FIPA-SL0
+ :ontology fipa-agent-management
  :content ( (result (action (Agent-Identifier :name x@001122)
              (SEARCH
               (Df-agent-description
