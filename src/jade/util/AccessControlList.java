@@ -100,14 +100,27 @@ public class AccessControlList {
 
 private static Logger logger = Logger.getMyLogger(AccessControlList.class.getName());
 
+// constructor
+public AccessControlList(){
+} // end constructor
+
+
+// Set black and white list
 private String blackFileName=null;
 private String whiteFileName=null;
 public void setBlack( String blackFileName ){
 	this.blackFileName=blackFileName;
+	refresh_black();
 }
 public void setWhite( String whiteFileName ){
 	this.whiteFileName=whiteFileName;
+	refresh_white();
 }
+
+// internal representation (optimized for speed)
+private InternalACL black_iacl;
+private InternalACL white_iacl;
+
 
 
 /**
@@ -129,8 +142,13 @@ public boolean isAllowed(String section, String value){
 	                       "\n    white="+whiteFileName+"\n"
   );}
   
-  boolean isInBlack = isInList( blackFileName, section, value);
-  boolean isInWhite = isInList( whiteFileName, section, value);
+  boolean isInBlack=false;
+  boolean isInWhite=false;
+
+  if (black_iacl!=null) // if loaded, check
+  		isInBlack = isInList( black_iacl, section, value);
+  if (white_iacl!=null) 
+  		isInWhite = isInList( white_iacl, section, value);
 
   if(logger.isLoggable(Logger.FINE)) {
 	      logger.log(Logger.FINE, 
@@ -141,26 +159,23 @@ public boolean isAllowed(String section, String value){
   return retVal;
 }
 
-private boolean isInList(String fileName, String section, String value) {
+private boolean isInList( InternalACL iacl, String section, String value) {
   boolean retVal=false;
   // read the ACL file
   try {
-         System.out.println("Opening: "+fileName);
-         BufferedReader in = new BufferedReader(new FileReader(fileName));
          String str;
          String currSection="";
-         while ((str = in.readLine()) != null) {
-           str=str.trim();
+         int pos = 0;
+         while ( pos<iacl.size ) {
+           pos++;
 
-           if (str.startsWith("#")) {
-			 continue;
-           }
-
+//String p=null; if (iacl.pat[pos]!=null) p=iacl.pat[pos].pattern();
+//System.out.println( "+++ pos="+pos+"  pattern="+p+"  iacl.sectionName[pos]="+iacl.sectionName[pos] );
 
 		   // if encountered a section header
 		   // change the current section 
-		   if (str.endsWith(":")) {
-		   	  currSection = str.substring(0, str.length()-1);
+		   if ( iacl.sectionName[pos]!=null) {
+		   	  currSection = iacl.sectionName[pos];
 		   	  logger.log(Logger.FINER, "Encountered section named: '"+currSection +"'");
 		   	  continue;
 		   }
@@ -172,16 +187,15 @@ private boolean isInList(String fileName, String section, String value) {
 			 continue;
 		   }
 
-		   // prepare pattern (from the pattern at this line)
-           Pattern pattern = Pattern.compile(str);
+		   if (iacl.pat[pos]==null) continue; // should not happen in healty acl;
 
 	       // prapare matcher (from the passed value)
 	       Matcher m = null;  // matcher is created from the pattern
-           m = pattern.matcher( value );
+           m = iacl.pat[pos].matcher( value );
 		   if(logger.isLoggable(Logger.FINER)) {
 				   logger.log(Logger.FINER, 
-					"("+fileName+")  "+
-					"  pattern="+str+ 
+					"("+iacl.fileName+")  "+
+					"  pattern="+iacl.pat[pos].pattern()+ 
 	       			"  matcher="+value+ 
 	       			"\n"); 
 		   }
@@ -195,9 +209,9 @@ private boolean isInList(String fileName, String section, String value) {
            }
 
          } // end while
-         in.close();
-     } catch (IOException e) { 
-     		logger.log(Logger.WARNING, "Exception while checking"+fileName, e );
+
+     } catch (Throwable e) { 
+     		logger.log(Logger.WARNING, "Exception while checking "+iacl.fileName, e );
      		retVal=false;
      }
 
@@ -205,16 +219,94 @@ private boolean isInList(String fileName, String section, String value) {
 } // end isAllowed
 
 
+/**
+ *   Update this AccessControlList object 
+ *   reading again the white and black files.
+ */
+public void refresh() {
+  refresh_black();
+  refresh_white();
+} // end refresh()
+
+private void refresh_black(){
+  try {
+  	black_iacl = file2iacl( blackFileName );
+  } catch (IOException e) { 
+  	logger.log(Logger.WARNING, "Exception while checking: "+blackFileName, e );
+  }
+}
+private void refresh_white(){
+  try {
+  	white_iacl = file2iacl( whiteFileName );
+  } catch (IOException e) { 
+  	logger.log(Logger.WARNING, "Exception while checking: "+whiteFileName, e );
+  }
+}
 
 
 
+private InternalACL file2iacl(String fileName) throws IOException {
 
+  InternalACL iacl;
+
+  // count number of lines 
+  BufferedReader in = new BufferedReader(new FileReader(fileName));
+  int n=0;
+  while (( in.readLine()) != null) { n++; }
+  in.close();
+  // create properly dimensioned arrays
+  iacl = new InternalACL( n+1 );
+
+  iacl.fileName = fileName; // just used for debugging
+
+  logger.log(Logger.FINER, "Opening acc.control list file:"+fileName+" ("+n+" lines)");
+  in = new BufferedReader(new FileReader(fileName));
+  String str;
+  int pos=0;
+  while ((str = in.readLine()) != null) {
+  	 pos++;
+     str=str.trim();
+     if (str.startsWith("#")) {
+		 continue;
+     }
+     // if encountered a section header
+	 if (str.endsWith(":")) {
+	    iacl.sectionName[ pos ] = str.substring(0, str.length()-1);
+	    continue;
+	 }
+
+     // prepare pattern (from the pattern at this line)
+     try {
+       iacl.pat[ pos ] = Pattern.compile(str);
+     } catch (PatternSyntaxException pse) {
+       logger.log(Logger.WARNING, "Error in expression acc.control list file:"+fileName+" (line:"+pos+")");
+     }
+  }
+  in.close();
+
+  return iacl;
+}// end file2iacl
+
+
+// internal representation of a acl file
+private class InternalACL {
+	public Pattern[] pat; // compiled pattern at line i-th
+	public String[] sectionName;  // name of the section header at line i-th
+	public int size;
+	public String fileName;
+	public InternalACL(int dim){
+		size=dim;
+		pat=new Pattern[ dim+1 ];
+		sectionName=new String[ dim+1 ];
+	}
+}
 
 
 /*
-*
-* The following code is only for class-level testing.
-*
+ *
+ * The following code is only for class-level testing.
+ *
+
 public static void main(String args[]){
 	createTestACL();
 	AccessControlList acl = new AccessControlList();
@@ -222,17 +314,21 @@ public static void main(String args[]){
 	acl.setWhite( whiteFilename );
 	acl.setLogLevel( Level.FINE );
 
-	testAndPrint( acl, "user",     "goodboy" );
-	testAndPrint( acl, "user",     "sfogliatella9814" );
-	testAndPrint( acl, "section2", "forbiddenvalue" );
-	testAndPrint( acl, "section2", "goodvalue" );
-	testAndPrint( acl, "sectionX", "anyvalue" );
+	testAndPrint( acl, "user",     "goodboy"         , true);
+	testAndPrint( acl, "user",     "sfogliatella9814", false);
+	testAndPrint( acl, "section2", "forbiddenvalue"  , false);
+	testAndPrint( acl, "section2", "goodvalue"       , true);
+	testAndPrint( acl, "sectionX", "anyvalue"        , false);
 	
 }
 
-private static void testAndPrint(AccessControlList acl, String section, String value){
+private static void testAndPrint(AccessControlList acl, String section, String value, boolean expected){
 	boolean ok = acl.isAllowed( section, value );
-	System.out.println( "section="+section+"  value="+value+"    ok="+(ok+" ").toUpperCase()+"\n\n");
+	System.out.println( 
+		"section="+section+"  value="+value
+		+"  ok="+(ok+" ").toUpperCase()
+		+""+( (ok==expected) ? ":-)": "!!!  [:-( expected="+expected+" !!!")
+		+"\n\n");
 }
 
 private static final String blackFilename="black.txt";
