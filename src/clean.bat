@@ -24,6 +24,8 @@ del jade\tools\DummyAgent\*.class
 del jade\tools\DummyAgent\*~
 del jade\tools\rma\*.class
 del jade\tools\rma\*~
+del jade\tools\sniffer\*.class
+del jade\tools\sniffer\*~
 
 del jade\lang\acl\ACLParser.java
 del jade\lang\acl\ACLParserConstants.java
