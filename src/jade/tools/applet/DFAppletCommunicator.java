@@ -366,7 +366,7 @@ public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException {
   {
     if(thisDF == null)
   	{
-  	  AID df = new AID(getName());
+  	  AID df = new AID(getName(), AID.ISGUID);
     
 	    try
  	    {
