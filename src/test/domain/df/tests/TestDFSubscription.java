@@ -31,6 +31,7 @@ import jade.lang.acl.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 
+import jade.content.*;
 import jade.content.abs.*;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;
@@ -79,34 +80,8 @@ public class TestDFSubscription extends Test {
   		throw new TestException("Error registering a DFD with the DF.", fe);
   	}
   	
-  	// The test behaviour is a ParallelBehaviour (WHEN_ANY) with 2 children
-  	// i) A SubscriptionInitiator that subscribes to the DF and manages
-  	//    notifications from it. 
-  	// ii) A TickerBehaviour (with period 5 sec) that simulates other 
-  	//     agents registering/deregistering/modifying with the DF as follows:
-  	// - tick 1 - registers a second DFD (matching)
-  	// - tick 2 - registers a third DFD (not matching)
-  	// - tick 3 - modifies the second DFD (still matching)
-  	// - tick 4 - modifies the third DFD (now matching)
-  	// - tick 5 - terminates.
-  	// When the TickerBehaviour terminates the whole parallel behaviour 
-  	// terminates too. If there 4 notifications were received --> TEST_PASSED
-  	// otherwise TEST_FAILED.
-  	ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ANY) {
-  		public int onEnd() {
-  			if (informCnt == 4) {
-  				store.put(key, new Integer(Test.TEST_PASSED));
-  			}
-  			else {
-  				l.log(informCnt+" notifications received from DF while 4 were expected");
-  				store.put(key, new Integer(Test.TEST_FAILED));
-  			}
-  			return 0;
-  		}
-  	};	
-
   	// Register language and ontology
-  	Codec codec = new SLCodec();
+  	final Codec codec = new SLCodec();
   	a.getContentManager().registerLanguage(codec);
   	a.getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 
@@ -135,7 +110,7 @@ public class TestDFSubscription extends Test {
   	}
   	
   	// The behaviour that subscribes to the DF and handles notifications
-  	pb.addSubBehaviour(new SubscriptionInitiator(a, subscriptionMsg) {
+  	final SubscriptionInitiator si = new SubscriptionInitiator(a, subscriptionMsg) {
   		
   		public void onStart() {
   			super.onStart();
@@ -147,7 +122,50 @@ public class TestDFSubscription extends Test {
   			//l.log(inform.toString());
   			informCnt++;
   		}
-  	} );
+  	};
+  	
+  	// The test behaviour is a ParallelBehaviour (WHEN_ANY) with 2 children
+  	// i) A SubscriptionInitiator that subscribes to the DF and manages
+  	//    notifications from it. 
+  	// ii) A TickerBehaviour (with period 5 sec) that simulates other 
+  	//     agents registering/deregistering/modifying with the DF as follows:
+  	// - tick 1 - registers a second DFD (matching)
+  	// - tick 2 - registers a third DFD (not matching)
+  	// - tick 3 - modifies the second DFD (still matching)
+  	// - tick 4 - modifies the third DFD (now matching)
+  	// - tick 5 - terminates.
+  	// When the TickerBehaviour terminates the whole parallel behaviour 
+  	// terminates too. If 4 notifications were received --> TEST_PASSED
+  	// otherwise TEST_FAILED.
+  	ParallelBehaviour pb = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ANY) {
+  		public int onEnd() {
+  			if (informCnt == 4) {
+  				store.put(key, new Integer(Test.TEST_PASSED));
+  			}
+  			else {
+  				l.log(informCnt+" notifications received from DF while 4 were expected");
+  				store.put(key, new Integer(Test.TEST_FAILED));
+  			}
+  			
+  			// Cancel the subscription
+				ACLMessage cancel = new ACLMessage(ACLMessage.CANCEL);
+				cancel.addReceiver(myAgent.getDefaultDF());
+				cancel.setLanguage(codec.getName());
+				cancel.setOntology(FIPAManagementOntology.getInstance().getName());
+				ACLMessage subscriptionMsg = (ACLMessage) si.getDataStore().get(myAgent.getDefaultDF());				
+				Action act = new Action(myAgent.getDefaultDF(), OntoACLMessage.wrap(subscriptionMsg));
+				try {
+					myAgent.getContentManager().fillContent(cancel, act);
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+		  	}
+				myAgent.send(cancel);
+  			return 0;
+  		}
+  	};	
+
+  	pb.addSubBehaviour(si);
 		
   	// The behaviour that simulates other agents that 
   	// register/deregister/modify descriptions with the DF

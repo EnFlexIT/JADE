@@ -48,11 +48,12 @@ public class TestSearchUntilFound extends Test {
   public String getDescription() {
   	StringBuffer sb = new StringBuffer("Tests the searchUntilFound() method of the DFService class\n");
   	sb.append("More in details \n");
-  	sb.append("- registers DFD1 with the DF\n");
+  	sb.append("- register DFD1 with the DF\n");
   	sb.append("- launch another agent that will register a DFD2 after 5 sec and DFD12 after other 10 sec.\n");
   	sb.append("- call searchUntilFound(template1 matching DFD1) (this should immediately return DFD1)\n");
   	sb.append("- call searchUntilFound(template2 matching DFD2) (this should return DFD2 as soos as the other agent registers DFD2)\n");
   	sb.append("- call searchUntilFound(template3 not matching, timeout == 5 sec) (this should return null when the timeout expires)\n");
+  	sb.append("- wait some time to check that no further notifications are received from the DF\n");
   	return sb.toString();
   }
   
@@ -84,6 +85,11 @@ public class TestSearchUntilFound extends Test {
   		
   		public void action() {
   			ret = Test.TEST_FAILED;
+  		
+  			// Make the DFRegisterer agent start 
+  			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+  			msg.addReceiver(r);
+  			myAgent.send(msg);
   			
   			try {
 	  			DFAgentDescription[] result = null;  			
@@ -102,7 +108,7 @@ public class TestSearchUntilFound extends Test {
 	  			
 	  			// Third search
 	  			DFAgentDescription template = new DFAgentDescription();
-	  			template.addOntologies("AAAAAAA");
+	  			template.addOntologies("Non-matching-ontology");
 	  			result = DFService.searchUntilFound(myAgent, myAgent.getDefaultDF(), template, new SearchConstraints(), 5000);
 	  			if (result == null) {
 	  				l.log("Search 3 successful (No result found)");
@@ -114,9 +120,9 @@ public class TestSearchUntilFound extends Test {
 	  			
 	  			// Wait to see if other messages arrive. This would mean that the 
 	  			// CANCEL mechanism does not work
-	  			ACLMessage msg = myAgent.blockingReceive(10000);
+	  			msg = myAgent.blockingReceive(10000);
 	  			if (msg != null) {
-	  				l.log("Unexpected message received");
+	  				l.log("Unexpected message received "+msg);
 	  				return;
 	  			}
 	  			
@@ -177,6 +183,8 @@ public class TestSearchUntilFound extends Test {
   
   public static class DFRegisterer extends Agent {
   	protected void setup() {
+  		blockingReceive();
+  		
   		addBehaviour(new TickerBehaviour(this, 5000) {
   			private int cnt = 0;
   			

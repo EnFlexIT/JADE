@@ -52,19 +52,19 @@ public class MobilityTesterAgent extends TesterAgent {
   		"test.mobility.tests.TestDoMove"
 		} ) {
 			 
-			private RemoteController rc1;
-			private RemoteController rc2;
+			private JadeController jc1;
+			private JadeController jc2;
 			
 			protected void initialize(Agent a) throws TestException {
-				rc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -port 8888"), null); 
-				setArgument(CONTAINER1_KEY, rc1.getContainerName());
+				jc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port 8888"), null); 
+				setArgument(CONTAINER1_KEY, jc1.getContainerName());
 				
-				rc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -port 8888"), null); 
-				setArgument(CONTAINER2_KEY, rc2.getContainerName());
+				jc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port 8888"), null); 
+				setArgument(CONTAINER2_KEY, jc2.getContainerName());
 			}
 			protected void shutdown(Agent a) {
-				rc1.kill();
-				rc2.kill();
+				jc1.kill();
+				jc2.kill();
 			}
 		};
 		

@@ -38,18 +38,12 @@ public class TestBlockTimeout extends Test {
 	private static final String SENDER_CLASS = "test.behaviours.SeqSender";
 	private static final String RECEIVER_CLASS = "test.behaviours.SeqReceiver";
 
-	/*private static final int DEFAULT_N_AGENTS = 4;
-	private static final int DEFAULT_N_MESSAGES = 100;
-	private static final long DEFAULT_SHORTEST_PERIOD = 5; 
-	private int nAgents = DEFAULT_N_AGENTS;
-	private int nMessages = DEFAULT_N_MESSAGES;
-	private long shortestPeriod = DEFAULT_SHORTEST_PERIOD;*/
 	private int nAgents;
 	private int nMessages;
 	private long shortestPeriod;
 	private long timeoutIncrease;
   private ACLMessage startMsg = new ACLMessage(ACLMessage.INFORM);
-	private RemoteController rc;
+	private JadeController jc;
 	
   public String getName() {
   	return TEST_NAME;
@@ -67,21 +61,6 @@ public class TestBlockTimeout extends Test {
   		final DataStore store = ds;
   		final String key = resultKey;
   		
-  		/* Get arguments
-	  	Object[] args = getGroupArguments();
-    	if (args != null && args.length > 0) {
-    		// Number of senders/receivers
-      	nAgents = Integer.parseInt((String) args[0]);
-      	if (args.length > 1) {
-      		// Number of messages
-      		nMessages = Integer.parseInt((String) args[1]);
-      		if (args.length > 2) {
-      			// Shortest period
-	      		shortestPeriod = Long.parseLong((String) args[2]);
-      		}
-      	}
-    	}*/
-    	
     	// Get arguments
     	nAgents = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_AGENTS_NAME));
     	nMessages = Integer.parseInt((String) getGroupArgument(BlockTimeoutTesterAgent.N_MESSAGES_NAME));
@@ -89,7 +68,7 @@ public class TestBlockTimeout extends Test {
     	timeoutIncrease = Long.parseLong((String) getGroupArgument(BlockTimeoutTesterAgent.TIMEOUT_INCREASE_NAME));
 
     	// Launch a peripheral container
-	    rc = TestUtility.launchJadeInstance("Container", null, "-container -port 8888", new String[] {});
+	    jc = TestUtility.launchJadeInstance("Container", null, "-container -host "+TestUtility.getLocalHostName()+" -port 8888", new String[] {});
     	
 	    // Launch senders and receivers
   	  for (int i = 0; i < nAgents; ++i) {
@@ -98,9 +77,9 @@ public class TestBlockTimeout extends Test {
     		// Launch the sender on the main
     		String[] agentArgs = new String[] {receiverName, String.valueOf(nMessages), String.valueOf(shortestPeriod*(i+1))}; 
     		TestUtility.createAgent(a, senderName, SENDER_CLASS, agentArgs, a.getAMS(), AgentManager.MAIN_CONTAINER_NAME); 
-				// Launch the receiver on container-1 (it exists for sure)
+				// Launch the receiver on the peripheral container
     		agentArgs = new String[] {a.getLocalName()};
-    		TestUtility.createAgent(a, receiverName, RECEIVER_CLASS, agentArgs, a.getAMS(), "Container-1");
+    		TestUtility.createAgent(a, receiverName, RECEIVER_CLASS, agentArgs, a.getAMS(), jc.getContainerName());
     		// Prepare the message to start the senders
     		startMsg.addReceiver(new AID(senderName, AID.ISLOCALNAME));
   	  }
@@ -170,7 +149,7 @@ public class TestBlockTimeout extends Test {
   	  }
   	  
   	  // Kill the peripheral container
-  	  rc.kill();
+  	  jc.kill();
   	}
   	catch (Exception e) {
   		e.printStackTrace();
