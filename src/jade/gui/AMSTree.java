@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1998/11/03 00:43:23  rimassa
+  Added automatic GUI tree updating in response to AMS 'inform' messages to
+  Remote Management Agent.
+
   Revision 1.4  1998/11/01 14:57:27  rimassa
   Changed code indentation to comply with JADE style.
 
@@ -53,7 +57,7 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     selModel = tree.getSelectionModel();
     selModel.setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     selArea = new JTextArea(5,20);
-    selArea.setEditable(false);
+    selArea.setEditable(true);
 
     pane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,new JScrollPane(tree),new JScrollPane(selArea));
     pane.setContinuousLayout(false);
@@ -173,12 +177,21 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
    * @param level The level (PLATFORM, CONTAINER, AGENT) of new node
    * @return a new node with specified level and name
    */
-  public DefaultMutableTreeNode createNewNode(String name,int level) {
+  public TreeData createNewNode(String name,int level) {
     if (level >TreeData.SUPER_NODE && level<=TreeData.AGENT)
       return new TreeData(name,level);
     else return new TreeData(name,TreeData.AGENT);
   }
 
+  /*
+  public void expandPath(TreePath tp) {
+    tree.expandPath(tp);
+  }
+
+  public void scrollPathToVisible(TreePath tp) {
+    tree.scrollPathToVisible(tp);
+  }
+  */
 
   /**
    * @return current TreeModel
@@ -187,10 +200,10 @@ public class AMSTree extends JPanel implements TreeSelectionListener, PopupMenuL
     {
       if (tree.getModel() instanceof AMSTreeModel)
 	return (AMSTreeModel)tree.getModel();
-      else System.out.println(tree.getModel());
-      System.exit(-1);
-      return null;
-		
+      else {
+	System.out.println(tree.getModel());
+	return null;
+      }	
     }
     
   /**

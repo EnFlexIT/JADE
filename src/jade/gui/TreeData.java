@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1998/11/03 00:43:25  rimassa
+  Added automatic GUI tree updating in response to AMS 'inform' messages to
+  Remote Management Agent.
+
   Revision 1.4  1998/11/01 14:56:03  rimassa
   Changed code indentation.
   Removed dummy insertion into Agent Platform Tree representation.
@@ -40,20 +44,20 @@ public class TreeData extends DefaultMutableTreeNode {
 
   public static final String AddSeparator = "";
 
-  public static final int SUPER_NODE     = 0;
+  public static final int SUPER_NODE = 0;
   public static final int AGENT_PLATFORM = 1;
-  public static final int CONTAINER      = 2;
-  public static final int	AGENT          = 3;
+  public static final int CONTAINER = 2;
+  public static final int AGENT = 3;
 
   protected static String ContainerToolTip = "Agents Container";
-  protected static String SuperNodeToolTip = "Agent Management System GUI";
+  protected static String SuperNodeToolTip = "JADE Remote Management Agent GUI";
 
   protected static String[] statesNames;
   protected static String[] LevelsNames;
   protected static Icon[] icons;
 	
-  protected String name	   = "Name";
-  protected String type	   = "Type";
+  protected String name	= "Name";
+  protected String type	= "Type";
 	
   protected int currentState = SUSPENDED;
   protected int Level = AGENT; 
@@ -68,7 +72,7 @@ public class TreeData extends DefaultMutableTreeNode {
     statesNames[SUSPENDED]="Suspended";
     statesNames[RUNNING]="Running";
 
-    LevelsNames[SUPER_NODE] ="AMS Level";
+    LevelsNames[SUPER_NODE] ="JADE";
     LevelsNames[AGENT_PLATFORM]="Agent Platform";
     LevelsNames[CONTAINER]="Container";
     LevelsNames[AGENT]="Agent";
@@ -86,7 +90,7 @@ public class TreeData extends DefaultMutableTreeNode {
     name = nameP;
     if (addressesP == null) {
       addresses = new String[1];
-      addresses[0]="Address 1 : 200";
+      addresses[0]=" - ";
     }
     else addresses = addressesP;
     type = typeP;
@@ -104,14 +108,14 @@ public class TreeData extends DefaultMutableTreeNode {
    * Defines a Node with specific name and Level  
    */
   public TreeData(String t,int LevelP) {
-    this(t,null,"tipo",LevelP);
+    this(t,null," - ",LevelP);
   }
 
   /** 
    * Defines a Agent with specific name   
    */
   public TreeData(String t) {
-    this(t,null,"tipo",AGENT);
+    this(t,null," - ",AGENT);
   }
     
   /**
@@ -238,7 +242,7 @@ public class TreeData extends DefaultMutableTreeNode {
    */
   protected void loadChildren() {
 
-    // FIX ME:  Chiedere allo AMS informazioni circa gli agenti
+    // FIXME:  Chiedere allo AMS informazioni circa gli agenti
 
     hasLoaded = true;
   }

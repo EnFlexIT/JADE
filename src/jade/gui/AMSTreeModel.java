@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.5  1998/11/03 00:43:24  rimassa
+  Added automatic GUI tree updating in response to AMS 'inform' messages to
+  Remote Management Agent.
+
   Revision 1.4  1998/11/01 14:57:28  rimassa
   Changed code indentation to comply with JADE style.
 
@@ -27,7 +31,7 @@ public class AMSTreeModel extends DefaultTreeModel {
   /**
    * the Root of the Tree
    */
-  protected static TreeData root = new TreeData ("AMS GUI",TreeData.SUPER_NODE);
+  protected static TreeData root = new TreeData ("JADE ",TreeData.SUPER_NODE);
 
   public AMSTreeModel () {
     super(root);
