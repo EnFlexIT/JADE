@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
-//#MIDP_EXCLUDE_FILE
-
 import jade.util.leap.*;
 
 import jade.domain.FIPAAgentManagement.*;
@@ -71,11 +69,17 @@ import jade.content.onto.OntologyException;
  * non-blocking behaviour of type RequestFIPAServiceBehaviour that can be 
  * added to the queue of the agent behaviours, as usual, by using 
  * <code>Agent.addBehaviour()</code>. 
+ * <br>
+ * <b>The MIDP version of this class only includes the 
+ * <code>getFailedReceiver()</code> method.</b>
+ * <br>
+ *
  * @author Fabio Bellifemine - CSELT S.p.A.
   @version $Date$ $Revision$ 
  **/
 public class AMSService extends FIPAService {
 
+	//#MIDP_EXCLUDE_BEGIN
   private static Codec c = new SLCodec();
   private static Ontology o = FIPAManagementOntology.getInstance();
   private static ContentManager cm = new ContentManager();
@@ -457,6 +461,8 @@ the default SearchContraints are used.
     SearchConstraints constraints = new SearchConstraints();
     return getNonBlockingBehaviour(a,amsName,actionName,amsd,constraints);
   }
+	//#MIDP_EXCLUDE_END
+	
   
   /**
      Extracts the receiver a message could not be delivered to from
