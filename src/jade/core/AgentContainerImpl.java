@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.19  1998/11/01 19:13:43  rimassa
+  Removed every reference to now-deleted MessageDispatcher
+  interface. Added code to do what MessageDispatcherImpl used to do.
+
   Revision 1.18  1998/11/01 14:58:25  rimassa
   Now shutDown() method is correctly called on exit.
 
@@ -71,19 +75,19 @@ import jade.lang.acl.*;
   Responsibilities and Collaborations:
 
   + Creates agents on the local Java VM, and starts the message dispatcher.
-    (Agent, MessageDispatcher)
+    (Agent)
 
   + Connects with each newly created agent, to allow event-based
     interaction between the two.
-    (Agent, MessageDispatcher)
+    (Agent)
 
   + Routes outgoing messages to the suitable message dispatcher, caching
     remote agent addresses.
-    (Agent, AgentDescriptor, MessageDispatcher)
+    (Agent, AgentDescriptor)
 
   + Holds an RMI object reference for the agent platform, used to
     retrieve the addresses of unknown agents.
-    (AgentPlatform, MessageDispatcher)
+    (AgentPlatform)
 
 
 **************************************************************************************/
@@ -98,9 +102,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
   // Remote agents cache, indexed by agent name
   private Hashtable remoteAgentsCache = new Hashtable(MAP_SIZE, MAP_LOAD_FACTOR);
 
-  // The message dispatcher of this container
-  protected MessageDispatcherImpl myDispatcher;
-
   // The agent platform this container belongs to
   private AgentPlatform myPlatform;
 
@@ -109,7 +110,6 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
 
   public AgentContainerImpl() throws RemoteException {
-    myDispatcher = new MessageDispatcherImpl(this, localAgents);
 
     // Configure Java runtime system to put the whole host address in RMI messages
     try {
@@ -152,7 +152,7 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     // Insert new agent into local agents table
     localAgents.put(agentName.toLowerCase(), instance);
 
-    desc.setDemux(myDispatcher);
+    desc.setContainer(this);
 
     try {
       myPlatform.bornAgent(agentName, desc); // RMI call
@@ -176,6 +176,19 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     if(agent == null)
       throw new NotFoundException("KillAgent failed to find " + agentName);
     agent.doDelete();
+  }
+
+  public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
+    String receiverName = msg.getDest();
+    Agent receiver = (Agent)localAgents.get(receiverName.toLowerCase());
+
+    if(receiver == null) 
+      throw new NotFoundException("Message Dispatcher failed to find " + receiverName);
+
+    receiver.postMessage(msg);
+  }
+
+  public void ping() throws RemoteException {
   }
 
   public void invalidateCacheEntry(String key) throws RemoteException {
@@ -204,8 +217,8 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 
        The link chain is:
        a) Agent 1 -> AgentContainer1 -- Through CommEvent
-       b) AgentContainer 1 -> MessageDispatcher 2 -- Through RMI (cached or retreived from AgentPlatform)
-       c) MessageDispatcher 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
+       b) AgentContainer 1 -> AgentContainer 2 -- Through RMI (cached or retreived from AgentPlatform)
+       c) AgentContainer 2 -> Agent 2 -- Through postMessage() (direct insertion in message queue, no events here)
 
        agentNamesAndClasses is a Vector of String containing, orderly, the name of an agent and the name of Agent
        concrete subclass which implements that agent.
@@ -345,16 +358,16 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
 	desc = myPlatform.lookup(receiverName); // RMI call
 	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
       }
-      MessageDispatcher md = desc.getDemux();
+      AgentContainer ac = desc.getContainer();
       try {
-	md.dispatch(msg); // RMI call
+	ac.dispatch(msg); // RMI call
       }
       catch(RemoteException re) { // Communication error: retry with a newer object reference from the platform
 	remoteAgentsCache.remove(receiverName.toLowerCase());
 	desc = myPlatform.lookup(receiverName); // RMI call
 	remoteAgentsCache.put(receiverName.toLowerCase(),desc);  // FIXME: The cache grows indefinitely ...
-	md = desc.getDemux();
-	md.dispatch(msg); // RMI call
+	ac = desc.getContainer();
+	ac.dispatch(msg); // RMI call
       }
 
     }
