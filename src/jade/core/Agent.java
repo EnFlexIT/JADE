@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.39  1999/03/15 15:20:33  rimassa
+  Added automatic sender setting when no one is specified.
+
   Revision 1.38  1999/03/10 06:55:05  rimassa
   Removed a useless import clause.
 
@@ -731,6 +734,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.lang.acl.ACLMessage
   */
   public final void send(ACLMessage msg) {
+    if(msg.getSource() == null)
+      msg.setSource(getLocalName());
     CommEvent event = new CommEvent(this, msg);
     broadcastEvent(event);
   }
@@ -750,6 +755,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.AgentGroup
   */
   public final void send(ACLMessage msg, AgentGroup g) {
+    if(msg.getSource() == null)
+      msg.setSource(getLocalName());
     CommEvent event = new CommEvent(this, msg, g);
     broadcastEvent(event);
   }
