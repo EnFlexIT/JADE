@@ -110,8 +110,8 @@ idl: $(IDLSTUBS)
 	@echo IDL stubs and skeletons generated
 
 $(IDLSTUBS): $(IDLSPEC)
-	# $(IDLCC) $<
-	@echo IDL files not generated because of bug in the IDL compiler
+	$(IDLCC) $<
+	@echo IDL files generated
 
 parsers: ACLParser SL0Parser
 	@echo Parsers generated
