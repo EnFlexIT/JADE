@@ -13,7 +13,6 @@ import jade.util.leap.Iterator;
 import java.util.Date;
 
 class SimpleSLCodec extends StringCodec {
-	private static final String illegalFirstChar = "#0123456789:-?";
 	private int indent = 0;
 	
 	public SimpleSLCodec() {
@@ -132,14 +131,10 @@ class SimpleSLCodec extends StringCodec {
 		String type = val.getTypeName();
   	if (type.equals(BasicOntology.STRING)) {	
 	   	String s = val.getString();
-	   	if (isAWord(s)) {
-	   		str.append(s);
-	   	}
-	   	else {
-	   		str.append("\"");
-	   		str.append(s);
-	   		str.append("\"");
-	   	}
+    	if (!SimpleSLTokenizer.isAWord(s)) {
+    		s = SimpleSLTokenizer.quoteString(s);
+    	}
+    	str.append(s);
   	}
   	else if (type.equals(BasicOntology.DATE))
 	    str.append(ISO8601.toString(val.getDate()));
@@ -147,30 +142,6 @@ class SimpleSLCodec extends StringCodec {
   		throw new CodecException("SL_does_not_allow_encoding_sequencesOfBytes");
   	else 
   		str.append(val.getObject().toString());
-  }
-
-  /**
-   * Test if the given string is a legal SL word using the FIPA XC00008D spec.
-   * In addition to FIPA's restrictions, place the additional restriction 
-   * that a Word can not contain a '\"', that would confuse the parser at
-   * the other end.
-   */
-  private boolean isAWord( String s) {
-		// This should permit strings of length 0 to be encoded.
-		if( s==null || s.length()==0 ) {
-	    return false; // words must have at least one character
-		}
-		
-		if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 ) {
-	    return false;
-		}
-		for( int i=0; i< s.length(); i++) {
-			char c = s.charAt(i);
-	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 ) {
-				return false;
-			}
-		}		
-		return true;
   }
 
   /**

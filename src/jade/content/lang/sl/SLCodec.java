@@ -132,7 +132,7 @@ public class SLCodec extends StringCodec {
    * quotation marks inside the string.
    * This must be the exact inverse of the procedure in
    * the parser (SLParser.jj) when it encounters a quoted string.
-   */
+   *
   private String quotedString(String s)
   {
       // Make the stringBuffer a little larger than strictly
@@ -148,17 +148,17 @@ public class SLCodec extends StringCodec {
               result.append(s.charAt(i));
       result.append("\"");
       return result.toString();
-  }
+  }*/
 
 
-private static String illegalFirstChar = new String("#0123456789:-?");
+//private static String illegalFirstChar = new String("#0123456789:-?");
 
     /**
      * Test if the given string is a legal SL0 word using the FIPA XC00008D spec.
      * In addition to FIPA's restrictions, place the additional restriction 
      * that a Word can not contain a '\"', that would confuse the parser at
      * the other end.
-     */
+     *
     private boolean isAWord( String s) {
 	// This should permit strings of length 0 to be encoded.
 	if( s==null || s.length()==0 )
@@ -174,7 +174,7 @@ private static String illegalFirstChar = new String("#0123456789:-?");
 		return false;
 	}
 	return true;
-    }
+    }*/
 
 
     /**
@@ -183,10 +183,10 @@ private static String illegalFirstChar = new String("#0123456789:-?");
      **/
     private String encode(String val) {
 	// if the slotName is a String of words then quote it
-	if (isAWord(val)) 
+	if (SimpleSLTokenizer.isAWord(val)) 
 	    return val;
 	else
-	    return quotedString(val);
+	    return SimpleSLTokenizer.quoteString(val);
     }
 
 
@@ -363,7 +363,7 @@ private static String illegalFirstChar = new String("#0123456789:-?");
 	  return encode(v.toString());
     }
 
-    private String toString(AbsObject val) throws CodecException {
+    private String toString(AbsObject val) throws CodecException { 
 	if (val instanceof AbsPrimitive) return toString( (AbsPrimitive)val);
 	if (val instanceof AbsPredicate) return toString( (AbsPredicate)val);
 	if (val instanceof AbsIRE) return toString( (AbsIRE)val);

@@ -50,17 +50,17 @@ public class SimpleSLTokenizer {
 	public String nextToken() throws Codec.CodecException {
 		try {
 			skipSpaces();
+			String token = null;
 			char c = content.charAt(current);
 			if (c == ')' || c == '(') {
-				return String.valueOf(c);
+				token = String.valueOf(c);
 			}
-			int start = current;
-			while (!isSpace(c) && c != ')') {
-				c = content.charAt(++current);
+			else {
+				int start = current;
+				token = getElement(false);
+				current = start;
 			}
-			String s = content.substring(start, current);
-			current = start;
-			return s;
+			return token;
 		}
 		catch (IndexOutOfBoundsException ioobe) {
 			throw new Codec.CodecException(msg+current);
@@ -87,24 +87,33 @@ public class SimpleSLTokenizer {
 	   Return the next SL element (i.e. a word or a generic sequence 
 	   of char enclosed into "") and advance the pointer to the character
 	   just after.
+	   If the element starts with ':' this is automatically removed.
+	   If the element is a sequence of char enclosed into "" the enclosing
+	   " are removed and all \" are automatically transformed into "
 	 */
 	public String getElement() throws Codec.CodecException {
+		return getElement(true);
+	}
+	
+	private String getElement(boolean removeColon) throws Codec.CodecException {
 		try {
 			String el = null;
 			skipSpaces();
 			if (content.charAt(current) == '"') {
-				int start = current++;
+				current++;
+				StringBuffer sb = new StringBuffer();
 				while (content.charAt(current) != '"') {
-					if (content.charAt(current) == '\\') {
+					if (content.charAt(current) == '\\' && content.charAt(current+1) == '\"') {
 						current++;
 					}
+					sb.append(content.charAt(current));
 					current++;
 				}
 				current++;
-				el = content.substring(start, current);
+				el = sb.toString();
 			}
 			else {
-				el = getWord();
+				el = getWord(removeColon);
 			}
 			return el;
 		}
@@ -113,16 +122,16 @@ public class SimpleSLTokenizer {
 		}
 	}
 	
-	private String getWord() {
+	private String getWord(boolean removeColon) {
 		skipSpaces();
 		int start = current;
 		char c = content.charAt(current);
 		// Automatically remove ':' in case this is a slot name.
 		// Note that in SL slot values cannot start with ':'
-		if (c == ':') {
+		if (removeColon && c == ':') {
 			start++;
 		}
-		while (!isSpace(c) && c != ')') {
+		while (!isSpace(c) && c != ')' && c != '(') {
 			c = content.charAt(++current);
 		}
 		String s = content.substring(start, current);
@@ -138,4 +147,50 @@ public class SimpleSLTokenizer {
 	private boolean isSpace(char c) {
 		return (c == ' ' || c == '\t' || c == '\n');
 	}
+	
+	private static final String illegalFirstChar = "#0123456789:-?";
+  /**
+   * Test if the given string is a legal SL word using the FIPA XC00008D spec.
+   * In addition to FIPA's restrictions, place the additional restriction 
+   * that a Word can not contain a '\"', that would confuse the parser at
+   * the other end.
+   */
+  public static boolean isAWord( String s) {
+		// This should permit strings of length 0 to be encoded.
+		if( s==null || s.length()==0 ) {
+	    return false; // words must have at least one character
+		}
+		
+		if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 ) {
+	    return false;
+		}
+		for( int i=0; i< s.length(); i++) {
+			char c = s.charAt(i);
+	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 ) {
+				return false;
+			}
+		}		
+		return true;
+  }
+  
+  /** 
+   * Take a java String and quote it to form a legal FIPA SL0 string.
+   * Add quotation marks to the beginning/end and escape any 
+   * quotation marks inside the string.
+   */
+  public static String quoteString(String s) {
+      // Make the stringBuffer a little larger than strictly
+      // necessary in case we need to insert any additional
+      // characters.  (If our size estimate is wrong, the
+      // StringBuffer will automatically grow as needed).
+      StringBuffer result = new StringBuffer(s.length()+20);
+      result.append("\"");
+      for( int i=0; i<s.length(); i++)
+          if( s.charAt(i) == '"' ) 
+              result.append("\\\"");
+          else 
+              result.append(s.charAt(i));
+      result.append("\"");
+      return result.toString();
+  }
 }
