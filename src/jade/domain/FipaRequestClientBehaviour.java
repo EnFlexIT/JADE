@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.4  1999/02/15 11:45:12  rimassa
+  Changed removeBehaviour() calls to removeSubBehaviour() calls.
+
   Revision 1.3  1999/02/14 23:20:56  rimassa
   Changed addBehaviour() calls to addSubBehaviour() calls where
   appropriate.
@@ -137,7 +140,7 @@ public abstract class FipaRequestClientBehaviour extends SequentialBehaviour {
 
       public void reset() {
 	if(finished)
-	  FipaRequestClientBehaviour.this.removeBehaviour(secondReceive);
+	  FipaRequestClientBehaviour.this.removeSubBehaviour(secondReceive);
 	finished = false;
       }
 

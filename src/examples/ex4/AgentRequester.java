@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.10  1999/02/15 11:40:31  rimassa
+  Changed removeBehaviour() calls to removeSubBehaviour() calls.
+
   Revision 1.9  1999/02/14 22:50:20  rimassa
   Renamed addBehaviour() calls to addSubBehaviour() calls.
   Added some block() calls to avoid wasting CPU time.
@@ -229,7 +232,7 @@ public class AgentRequester extends Agent {
       public void reset() {
 	if(agreed()) {
 	  receivedAgree = false;
-	  parent.removeBehaviour(receiveAfterAgree);
+	  parent.removeSubBehaviour(receiveAfterAgree);
 	  receiveAfterAgree = null;
 	}
       }
