@@ -44,6 +44,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
+import jade.util.leap.EmptyIterator;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.Envelope;
@@ -54,7 +55,12 @@ import jade.domain.FIPAAgentManagement.Envelope;
  * All parameters are couples <em>keyword: value</em>.
  * All keywords are <code>private final String</code>.
  * All values can be set by using the methods <em>set</em> and can be read by using
- * the methods <em>get</em>. <p>
+ * the methods <em>get</em>. 
+ * <p> <b>Warning: </b> since JADE 3.1  an exception might be thrown 
+ * during the serialization of the ACLMessage parameters (with 
+ * exception of the content of the ACLMessage) because of a limitation
+ * to 65535 in the total number of bytes needed to represent all the 
+ * characters of a String (see also java.io.DataOutput#writeUTF(String)).
  * <p> The methods <code> setByteSequenceContent() </code> and 
  * <code> getByteSequenceContent() </code> allow to send arbitrary
  * sequence of bytes
@@ -165,7 +171,7 @@ private int performative; // keeps the performative type of this object
 
     /** These constants represent the expected size of the 2 array lists
     * used by this class **/
-    private static final int RECEIVERS_EXPECTED_SIZE = 2;
+    private static final int RECEIVERS_EXPECTED_SIZE = 1;
     private static final int REPLYTO_EXPECTED_SIZE = 1;
   /**
   @serial
@@ -175,7 +181,7 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private ArrayList reply_to = new ArrayList(REPLYTO_EXPECTED_SIZE);
+  private ArrayList reply_to = null; 
 
   /**
   @serial
@@ -188,27 +194,27 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer reply_with = null;
+  private String reply_with = null;
 
   /**
   @serial
   */
-  private StringBuffer in_reply_to = null;
+  private String in_reply_to = null;
 
   /**
   @serial
   */
-  private StringBuffer encoding = null;
+  private String encoding = null;
 
   /**
   @serial
   */
-  private StringBuffer language = null;
+  private String language = null;
 
   /**
   @serial
   */
-  private StringBuffer ontology = null;
+  private String ontology = null;
 
   /**
   @serial
@@ -218,17 +224,17 @@ private int performative; // keeps the performative type of this object
   /**
   @serial
   */
-  private StringBuffer protocol = null;
+  private String protocol = null;
 
   /**
   @serial
   */
-  private StringBuffer conversation_id = null;
+  private String conversation_id = null;
 
   /**
   @serial
   */
-  private Properties userDefProps = new Properties();
+  private Properties userDefProps = null; 
 
   private Envelope messageEnvelope;
 
@@ -272,10 +278,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getSender()
   */
   public void setSender(AID s) {
-    if (s != null)
-      source = (AID)s.clone();
-    else
-      source = null;
+      source = s; 
   }
 
   /**
@@ -319,8 +322,10 @@ private int performative; // keeps the performative type of this object
      @param dest The value to add to the slot value set.
   */
   public void addReplyTo(AID dest) {
-    if (dest != null) 
-      reply_to.add(dest);
+		if (dest != null) { 
+			reply_to = (reply_to == null ? new ArrayList(REPLYTO_EXPECTED_SIZE) : reply_to);
+			reply_to.add(dest);
+		}
   }
 
   /**
@@ -331,7 +336,7 @@ private int performative; // keeps the performative type of this object
      @return true if the AID has been found and removed, false otherwise
   */
   public boolean removeReplyTo(AID dest) {
-    if (dest != null)
+		if ((dest != null) && (reply_to != null) ) 
       return reply_to.remove(dest);
     else
       return false;
@@ -343,7 +348,8 @@ private int performative; // keeps the performative type of this object
      value.</em> 
   */
   public void clearAllReplyTo() {
-    reply_to.clear();
+    if (reply_to != null)
+			reply_to.clear();
   }
 
   /**
@@ -469,10 +475,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getReplyWith()
   */
   public void setReplyWith(String reply) {
-    if (reply != null)
-      reply_with = new StringBuffer(reply);
-    else
-      reply_with = null;
+      reply_with = reply; 
   }
 
   /**
@@ -482,10 +485,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getInReplyTo()
   */
   public void setInReplyTo(String reply) {
-    if (reply != null)
-      in_reply_to = new StringBuffer(reply);
-    else
-      in_reply_to = null;
+      in_reply_to = reply;
   }
   
   /**
@@ -495,10 +495,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getEncoding()
   */
   public void setEncoding(String str) {
-    if (str != null)
-      encoding = new StringBuffer(str);
-    else
-      encoding = null;
+      encoding = str;
   }
 
   /**
@@ -508,10 +505,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getLanguage()
   */
   public void setLanguage(String str) {
-    if (str != null)
-      language = new StringBuffer(str);
-    else
-      language = null;
+      language = str;
   }
 
   /**
@@ -521,10 +515,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getOntology()
   */
   public void setOntology(String str) {
-    if (str != null)
-      ontology = new StringBuffer(str);
-    else
-      ontology = null;
+      ontology = str;
   }
 
 
@@ -545,10 +536,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getProtocol()
   */
   public void setProtocol( String str ) {
-    if (str != null)
-      protocol = new StringBuffer(str);
-    else
-      protocol = null;
+      protocol = str;
   }
 
   /**
@@ -558,10 +546,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#getConversationId()
   */
   public void setConversationId( String str ) {
-    if (str != null)
-      conversation_id = new StringBuffer(str);
-    else
-      conversation_id = null;
+      conversation_id = str;
   }
 
 
@@ -581,7 +566,10 @@ private int performative; // keeps the performative type of this object
      reply_to agents for this message.
   */
   public Iterator getAllReplyTo() {
-    return reply_to.iterator();
+			if (reply_to == null)
+					return EmptyIterator.getInstance();
+			else
+					return reply_to.iterator();
   }
 
   /**
@@ -590,10 +578,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setSender(AID).
   */
   public AID getSender() {
-    if(source != null)
-      return (AID)source.clone();
-    else
-      return null;
+			return source;
   }
 
   /**
@@ -691,9 +676,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setReplyWith(String).
   */
   public String getReplyWith() {
-    if(reply_with != null)
-      return new String(reply_with);
-    else return null;
+      return reply_with;
   }
 
   /**
@@ -702,9 +685,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setInReplyTo(String).
   */
   public String getInReplyTo() {
-    if(in_reply_to != null)
-      return new String(in_reply_to);
-    else return null;
+      return in_reply_to;
   }
 
 
@@ -715,10 +696,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setEncoding(String).
   */
   public String getEncoding() {
-    if(encoding != null)
-      return new String(encoding);
-    else
-      return null;
+      return encoding;
   }
 
   /**
@@ -727,10 +705,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setLanguage(String).
   */
   public String getLanguage() {
-    if(language != null)
-      return new String(language);
-    else
-      return null;
+      return language;
   }
 
   /**
@@ -739,10 +714,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setOntology(String).
   */
   public String getOntology() {
-    if(ontology != null)
-      return new String(ontology);
-    else
-      return null;
+      return ontology;
   }
 
   //#MIDP_EXCLUDE_BEGIN
@@ -781,10 +753,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setProtocol(String).
   */
   public String getProtocol() {
-    if(protocol != null)
-      return new String(protocol);
-    else
-      return null;
+      return protocol;
   }
 
   /**
@@ -793,10 +762,7 @@ private int performative; // keeps the performative type of this object
      @see jade.lang.acl.ACLMessage#setConversationId(String).
   */
   public String getConversationId() {
-    if(conversation_id != null)
-      return new String(conversation_id);
-    else
-      return null;
+      return conversation_id;
   }
  
 
@@ -810,6 +776,7 @@ private int performative; // keeps the performative type of this object
    * @param value the property value
   **/
    public void addUserDefinedParameter(String key, String value) {
+			 userDefProps = (userDefProps == null ? new Properties() : userDefProps);
        userDefProps.setProperty(key,value);
    }
 
@@ -822,14 +789,18 @@ private int performative; // keeps the performative type of this object
      * @return  the value in this ACLMessage with the specified key value.
      */
    public String getUserDefinedParameter(String key){
-     return userDefProps.getProperty(key);
+			 if (userDefProps == null)
+					 return null;
+			 else
+					 return userDefProps.getProperty(key);
    }
 
   /**
    * get a clone of the data structure with all the user defined parameters
    **/
    public Properties getAllUserDefinedParameters() {
-     return (Properties)userDefProps.clone();
+			 userDefProps = (userDefProps == null ? new Properties() : userDefProps);
+			 return userDefProps; 
    }
 
   /**
@@ -839,7 +810,10 @@ private int performative; // keeps the performative type of this object
      @return true if the property has been found and removed, false otherwise
    */
    public boolean removeUserDefinedParameter(String key) {
-     return (userDefProps.remove(key) != null);
+			 if (userDefProps == null)
+					 return false;
+			 else
+					 return (userDefProps.remove(key) != null);
    }
 
   /**
@@ -913,10 +887,12 @@ private int performative; // keeps the performative type of this object
     try {
       result = (ACLMessage)super.clone();
       result.dests = (ArrayList)dests.clone();       // Deep copy
-      result.reply_to = (ArrayList)reply_to.clone(); // Deep copy
-      result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
+      if (reply_to != null)
+					result.reply_to = (ArrayList)reply_to.clone(); // Deep copy
+			if (userDefProps != null)
+					result.userDefProps = (Properties)userDefProps.clone();	//Deep copy
       if(messageEnvelope != null)
-	  result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
+					result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
     catch(CloneNotSupportedException cnse) {
       throw new InternalError(); // This should never happen
@@ -947,7 +923,8 @@ private int performative; // keeps the performative type of this object
     }
 
     result.dests = (ArrayList) dests.clone();
-    result.reply_to = (ArrayList) reply_to.clone();
+    if (reply_to != null)
+		result.reply_to = (ArrayList) reply_to.clone();
 
     return result;
   } 
@@ -959,7 +936,8 @@ private int performative; // keeps the performative type of this object
  public void reset() {
   source = null;
   dests.clear();
-  reply_to.clear();
+  if (reply_to != null)
+			reply_to.clear();
   performative = NOT_UNDERSTOOD;
   content = null;
   byteSequenceContent = null;
@@ -971,7 +949,8 @@ private int performative; // keeps the performative type of this object
   reply_byInMillisec = 0;
   protocol = null;
   conversation_id = null;
-  userDefProps.clear();
+	if (userDefProps != null)
+			userDefProps.clear();
  }
 
   /**
@@ -986,10 +965,10 @@ private int performative; // keeps the performative type of this object
   public ACLMessage createReply() {
     ACLMessage m = (ACLMessage)clone();
     m.clearAllReceiver();
-    Iterator it = reply_to.iterator();
-    while (it.hasNext())
-      m.addReceiver((AID)it.next());
-    if (reply_to.isEmpty())
+		Iterator it = getAllReplyTo(); 
+		while (it.hasNext())
+			m.addReceiver((AID)it.next());
+    if ((reply_to == null) || reply_to.isEmpty())
       m.addReceiver(getSender());
     m.clearAllReplyTo();
     m.setLanguage(getLanguage());

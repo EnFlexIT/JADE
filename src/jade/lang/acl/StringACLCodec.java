@@ -254,17 +254,19 @@ public class StringACLCodec implements ACLCodec {
       appendACLExpression(str, CONVERSATION_ID, msg.getConversationId());
 
       Properties userDefProps = msg.getAllUserDefinedParameters();
-      Enumeration e = userDefProps.propertyNames();
-      while (e.hasMoreElements()) {
-	  String key = ((String)e.nextElement());
-	  if (key.indexOf(' ') == -1) {
-	      if ( (!key.startsWith("X-")) && (!key.startsWith("x-")) )
-		  appendACLExpression(str, ":X-"+key, userDefProps.getProperty(key));
-	      else
-		  appendACLExpression(str, ":"+key, userDefProps.getProperty(key));
-	  } else 
-	      System.err.println("WARNING: The slotName of user-defined parameters cannot contain blanks inside. Therefore "+key+" is not being encoded");
-      }
+			if (userDefProps != null) {
+					Enumeration e = userDefProps.propertyNames();
+					while (e.hasMoreElements()) {
+							String key = ((String)e.nextElement());
+							if (key.indexOf(' ') == -1) {
+									if ( (!key.startsWith("X-")) && (!key.startsWith("x-")) )
+											appendACLExpression(str, ":X-"+key, userDefProps.getProperty(key));
+									else
+											appendACLExpression(str, ":"+key, userDefProps.getProperty(key));
+							} else 
+									System.err.println("WARNING: The slotName of user-defined parameters cannot contain blanks inside. Therefore "+key+" is not being encoded");
+					}
+			}
       str.append(")");
 
       return str.toString();
