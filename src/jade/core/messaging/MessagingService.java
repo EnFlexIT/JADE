@@ -735,11 +735,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 		MessagingSlice targetSlice = (MessagingSlice)getSlice(cid.getName());
 		try {
-		    targetSlice.dispatchLocally(msg, receiverID);
-		    // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
-		    // On successful message dispatch, put the slice into the slice cache
-		    cachedSlices.put(receiverID, targetSlice);
-		    ok = true;
+			try {
+				targetSlice.dispatchLocally(msg, receiverID);
+			}
+			catch (IMTPException imtpe) {
+		    // Try to get a newer slice and repeat...
+				targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
+				targetSlice.dispatchLocally(msg, receiverID);
+			}
+			// System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
+			// On successful message dispatch, put the slice into the slice cache
+			cachedSlices.put(receiverID, targetSlice);
+			ok = true;
 		}
 		catch(NotFoundException nfe) {
 		    ok = false; // Stale proxy again, maybe the receiver is running around. Try again...
