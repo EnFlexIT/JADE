@@ -5,6 +5,7 @@ ARCHIVE    = JADE
 
 ROOTDIR = $(shell pwd)
 ROOTNAME = $(shell basename $(ROOTDIR))
+DOCDIR  = $(ROOTDIR)/doc
 SRCDIR  = $(ROOTDIR)/src
 LIBDIR  = $(ROOTDIR)/lib
 LIBNAME = JADE.zip
@@ -14,6 +15,7 @@ MAKE = make
 export ROOTDIR
 export ROOTNAME
 export SRCDIR
+export DOCDIR
 export LIBDIR
 export LIBNAME
 export EXAMPLESDIR
@@ -22,10 +24,11 @@ export MAKE
 # The following targets are not file names
 .PHONY: all clean doc archive src lib examples
 
-all: doc lib examples
+all: lib examples
 	@echo JADE project built
 
-doc:
+doc: clean
+	cd $(DOCDIR); $(MAKE) all
 	@echo HTML documentation built
 
 lib: src
@@ -43,6 +46,7 @@ examples:
 clean:
 	rm -f *~ "#*#"
 	cd $(SRCDIR); $(MAKE) clean
+	cd $(DOCDIR); $(MAKE) clean
 	cd $(LIBDIR); $(MAKE) clean
 	cd $(EXAMPLESDIR); $(MAKE) clean
 
