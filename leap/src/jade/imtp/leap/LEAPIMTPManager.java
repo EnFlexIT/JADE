@@ -38,7 +38,6 @@ package jade.imtp.leap;
 import jade.core.*;
 import jade.lang.acl.ACLMessage;
 import jade.mtp.TransportAddress;
-import jade.security.AuthException;
 import jade.util.leap.*;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.Connection;
@@ -72,6 +71,8 @@ public class LEAPIMTPManager implements IMTPManager {
   private String localAddr;
   
   private NodeLEAP localNode;
+
+  Logger logger = Logger.getMyLogger(this.getClass().getName());
 
   /**
    * Default constructor used to dynamically instantiate a new
@@ -113,7 +114,7 @@ public class LEAPIMTPManager implements IMTPManager {
           theDispatcher.addICP(peer, id, theProfile);
         } 
         catch (Exception e) {
-          Logger.println("Error adding ICP. "+e);
+          logger.log(Logger.SEVERE,"Error adding ICP. "+e);
         } 
       }
 
@@ -124,7 +125,7 @@ public class LEAPIMTPManager implements IMTPManager {
     }
     catch (ProfileException pe) {
       // Just print a warning
-      Logger.println("Profile error. "+pe.getMessage());
+      logger.log(Logger.SEVERE,"Profile error. "+pe.getMessage());
     } 
 
     // Now check that some ICP is active. Note that, as a CommandDispatcher
@@ -138,10 +139,10 @@ public class LEAPIMTPManager implements IMTPManager {
     	localAddr = (String) URLs.get(0);
       Iterator it = URLs.iterator();
 
-      Logger.println("Listening for intra-platform commands on address:");
+      logger.log(Logger.ALL,"Listening for intra-platform commands on address:");
 
       while (it.hasNext()) {
-        Logger.println("- "+(String) it.next());
+        logger.log(Logger.ALL,"- "+(String) it.next());
       }
     }
 
