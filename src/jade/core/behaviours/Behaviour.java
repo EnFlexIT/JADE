@@ -286,9 +286,14 @@ public abstract class Behaviour implements Serializable {
   		onStart();
   		startFlag = false;
   	}
-  	myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_READY, Behaviour.STATE_RUNNING);
-  	action();
+  	
+  	//__CLDC_UNSUPPORTED__BEGIN
+		myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_READY, Behaviour.STATE_RUNNING);
+  	//__CLDC_UNSUPPORTED__END
+		action();
+  	//__CLDC_UNSUPPORTED__BEGIN
     myAgent.notifyChangeBehaviourState(this, Behaviour.STATE_RUNNING, Behaviour.STATE_READY);
+  	//__CLDC_UNSUPPORTED__END
   }
   
   /**
@@ -450,5 +455,5 @@ public abstract class Behaviour implements Serializable {
    */
   public void setDataStore(DataStore ds) {
   	myStore = ds;
-  }
+  }  
 }
