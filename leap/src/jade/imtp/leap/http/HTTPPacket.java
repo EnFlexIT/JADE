@@ -204,7 +204,9 @@ public class HTTPPacket {
     outWriter.flush();
     
     // Payload
-    baos.write(payload); 
+    if (payload != null) {
+	    baos.write(payload);
+    }
     
     os.write(baos.toByteArray());
     os.flush();
