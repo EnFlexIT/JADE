@@ -177,10 +177,9 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 		// Subscribe as a listener for the new agent
 		instance.setToolkit(this);
-		
+
 		// put the agent in the local table and get the previous one, if any
 		Agent previous = localAgents.put(agentID, instance);
-                if(previous != null) System.out.println("Name clash for " + agentID + "!!!");
 		if (startIt) {
 			try {
 				CertificateFolder agentCerts = instance.getCertificateFolder();
