@@ -34,7 +34,6 @@ import java.util.Enumeration;
 import jade.core.behaviours.Behaviour;
 
 import jade.lang.acl.*;
-import jade.domain.FIPAException;
 
 import jade.security.JADESecurityException;
 
@@ -47,13 +46,12 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
 import jade.core.mobility.AgentMobilityHelper;
+import jade.core.mobility.Movable;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
-
-import java.util.Vector;
 //#MIDP_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -66,12 +64,10 @@ import javax.microedition.midlet.*;
    tasks, such as:
    <ul>
    <li> <b> Message passing using <code>ACLMessage</code> objects,
-   both unicast and multicast with optional pattern matching. </b>
+   both unicast and multicast with optional pattern matching. </b></li>
    <li> <b> Complete Agent Platform life cycle support, including
-   starting, suspending and killing an agent. </b>
-   <li> <b> Scheduling and execution of multiple concurrent activities. </b>
-   <li> <b> Simplified interaction with <em>FIPA</em> system agents
-   for automating common agent tasks (DF registration, etc.). </b>
+   starting, suspending and killing an agent. </b></li>
+   <li> <b> Scheduling and execution of multiple concurrent activities. </b></li>
    </ul>
 
    Application programmers must write their own agents as
@@ -79,6 +75,7 @@ import javax.microedition.midlet.*;
    and exploiting <code>Agent</code> class capabilities.
    
    @author Giovanni Rimassa - Universita' di Parma
+   @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
  */
 public class Agent implements Runnable, Serializable 
@@ -88,29 +85,26 @@ public class Agent implements Runnable, Serializable
 	{
   private static final long     serialVersionUID = 3487495895819000L;
 	
-  // This inner class is used to force agent termination when a signal
-  // from the outside is received
-  private class AgentDeathError extends Error {
-  	//#MIDP_EXCLUDE_BEGIN
-    AgentDeathError() {
-      super("Agent " + Thread.currentThread().getName() + " has been terminated.");
+  /**
+     Inner class Interrupted.
+     This class is used to handle change state requests that occur
+     in particular situations such as when the agent thread is 
+     blocked in the doWait() method.
+   */
+  public static class Interrupted extends Error {
+    public Interrupted() {
+      super();
     }
-  	//#MIDP_EXCLUDE_END
-  }
-
-  //#MIDP_EXCLUDE_BEGIN
-  private static class AgentInMotionError extends Error {
-    AgentInMotionError() {
-      super("Agent " + Thread.currentThread().getName() + " is about to move or be cloned.");
-    }
-  }
- 	//#MIDP_EXCLUDE_END
-
-
-  // This class manages bidirectional associations between Timer and
-  // Behaviour objects, using hash tables. This class is fully
-  // synchronized because is accessed both by agent internal thread
-  // and high priority Timer Dispatcher thread.
+  }  // END of inner class Interrupted
+  
+  
+  /**
+     Inner class AssociationTB.
+     This class manages bidirectional associations between Timer and
+     Behaviour objects, using hash tables. This class is fully
+     synchronized because it is accessed both by agent internal thread
+     and high priority Timer Dispatcher thread.
+   */
   private class AssociationTB {
       private Hashtable BtoT = new Hashtable();
       private Hashtable TtoB = new Hashtable();
@@ -162,10 +156,8 @@ public class Agent implements Runnable, Serializable
 	  }
 
 	  //#J2ME_EXCLUDE_BEGIN
-
 	  // For persistence service
 	  persistentPendingTimers.add(pair);
-
 	  //#J2ME_EXCLUDE_END
       }
 
@@ -175,10 +167,8 @@ public class Agent implements Runnable, Serializable
 	      TtoB.remove(pair.getTimer());
 
 	      //#J2ME_EXCLUDE_BEGIN
-
 	      // For persistence service
 	      persistentPendingTimers.remove(pair);
-
 	      //#J2ME_EXCLUDE_END
 
 	      theDispatcher.remove(pair.getTimer());
@@ -225,8 +215,12 @@ public class Agent implements Runnable, Serializable
 	  return TtoB.keys();
       }
 
-  } // End of AssociationTB class
+  } // End of inner class AssociationTB 
 
+  
+    /**
+       Inner class TBPair
+     */
     private static class TBPair {
 
 	public TBPair() {
@@ -283,18 +277,21 @@ public class Agent implements Runnable, Serializable
 		    myTimer = new Timer(expirationTime, owner);
 		}
 	    }
-	}
+	}  
 
 	private Timer myTimer;
 	private long expirationTime;
 	private Behaviour myBehaviour;
 	private Agent owner;
 
-    } // End of TBPair class
+    } // End of inner class TBPair 
 
 
 	//#MIDP_EXCLUDE_BEGIN
-  // A simple class for a boolean condition variable
+  /**
+     Inner class CondVar
+     A simple class for a boolean condition variable
+   */
   private static class CondVar {
     private boolean value = false;
 
@@ -309,7 +306,7 @@ public class Agent implements Runnable, Serializable
       notifyAll();
     }
 
-  } // End of CondVar class
+  } // End of inner class CondVar 
 	//#MIDP_EXCLUDE_END
 
 
@@ -417,49 +414,6 @@ public class Agent implements Runnable, Serializable
   */
   public static final int AP_DELETED = 6;
 
-  //#MIDP_EXCLUDE_BEGIN
-  /**
-     Represents the <code>transit</code> agent state.
-  */
-  public static final int AP_TRANSIT = 7;
-
-  // Non compliant states, used internally. Maybe report to FIPA...
-  /**
-     Represents the <code>copy</code> agent state.
-  */
-  public static final int AP_COPY = 8;
-
-  /**
-     Represents the <code>gone</code> agent state. This is the state
-     the original instance of an agent goes into when a migration
-     transaction successfully commits.
-  */
-  static final int AP_GONE = 9;
-
-  /**
-     Represents the <code>saving</code> agent state. This is the state
-     an agent goes into when its actual storage within a persistent
-     data repository takes place.
-  */
-  static final int AP_SAVING = 10;
-
-  /**
-     Represents the <code>loading</code> agent state. This is the
-     state an agent goes into when its current state is about to be
-     replaced with a new one retrieved from a persistent data
-     repository.
-  */
-  static final int AP_RELOADING = 11;
-
-  /**
-     Represents the <code>frozen</code> agent state. This is similar
-     to the suspended state, but the agent is actually removed from
-     its container and kept on a persistent store.
-  */
-  static final int AP_FROZEN = 12;
-
-
-  //#MIDP_EXCLUDE_END
 
   /**
      Out of band value for Agent Platform Life Cycle states.
@@ -541,9 +495,6 @@ public class Agent implements Runnable, Serializable
 
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
   private transient Object suspendLock = new Object(); // Used for agent suspension
-  //#MIDP_EXCLUDE_BEGIN
-  //private transient Object principalLock = new Object(); // Used to make principal transitions atomic
-  //#MIDP_EXCLUDE_END
 
   private transient Thread myThread;
   private transient TimerDispatcher theDispatcher;
@@ -555,28 +506,14 @@ public class Agent implements Runnable, Serializable
   // Free running counter that increments by one for each message
   // received.
   private int messageCounter = 0 ;
-
   
-  //#APIDOC_EXCLUDE_BEGIN
-  /**
-     The <code>Behaviour</code> that is currently executing.
-     @see jade.core.behaviours.Behaviour
-     @serial
-  */
-  protected Behaviour currentBehaviour;
-
-  /**
-     Last message received.
-     @see jade.lang.acl.ACLMessage
-     @serial
-  */
-  protected ACLMessage currentMessage;
-  //#APIDOC_EXCLUDE_END
-
-  // This variable is 'volatile' because is used as a latch to signal
-  // agent suspension and termination from outside world.
-  private volatile int myAPState;
-
+  private LifeCycle myLifeCycle;
+  private LifeCycle myBufferedLifeCycle;
+  private LifeCycle myActiveLifeCycle;
+  private transient LifeCycle myDeletedLifeCycle;
+  //#MIDP_EXCLUDE_BEGIN
+  private transient LifeCycle mySuspendedLifeCycle;
+  //#MIDP_EXCLUDE_END
   
   /**
      This flag is used to distinguish the normal AP_ACTIVE state from
@@ -588,6 +525,7 @@ public class Agent implements Runnable, Serializable
   */
   private boolean terminating = false;
   
+  //#MIDP_EXCLUDE_BEGIN
   // For persistence service
   private void setTerminating(boolean b) {
       terminating = b;
@@ -597,30 +535,14 @@ public class Agent implements Runnable, Serializable
   private boolean getTerminating() {
       return terminating;
   }
-
-  //#MIDP_EXCLUDE_BEGIN
+  
   /** 
      When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
      or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
      These events in facts are very frequent.
    */
   private boolean generateBehaviourEvents = false;
-
-  // These two variables are used as temporary buffers for
-  // mobility-related parameters
-  private transient Location myDestination;
-  private transient String myNewName;
-
-
-  // This variables are used as a temporary buffer for
-  // persistence-related parameters
-  private transient String myRepository;
-  private transient ContainerID myBufferContainer;
-
   //#MIDP_EXCLUDE_END
-
-  // Temporary buffer for agent suspension
-  private int myBufferedState = AP_MIN;
 
 	/*#MIDP_INCLUDE_BEGIN
   public static MIDlet midlet;
@@ -632,9 +554,10 @@ public class Agent implements Runnable, Serializable
 
   /**
      Default constructor.
-  */
+   */
   public Agent() {
-    changeStateTo(AP_INITIATED);
+  	myActiveLifeCycle = new ActiveLifeCycle();
+  	myLifeCycle = myActiveLifeCycle;
     myScheduler = new Scheduler(this);
     theDispatcher = TimerDispatcher.getTimerDispatcher();
   }
@@ -667,11 +590,11 @@ public class Agent implements Runnable, Serializable
     private transient jade.wrapper.AgentContainer myContainer = null;
 
    /**
-    * Return a controller for this agents container. 
+    * Return a controller for the container this agent lives in. 
     * <br>
     * <b>NOT available in MIDP</b>
     * <br>
-    * @return jade.wrapper.AgentContainer The proxy container for this agent.
+    * @return jade.wrapper.AgentContainer a controller for the container this agent lives in.
     */
    public final jade.wrapper.AgentContainer getContainerController() {
      if (myContainer == null) {  // first time called
@@ -693,11 +616,9 @@ public class Agent implements Runnable, Serializable
      }
      return myContainer;
    }
-
-
-
   //#MIDP_EXCLUDE_END
-  
+
+   
     private transient Object[] arguments = null;  // array of arguments
     //#APIDOC_EXCLUDE_BEGIN
     /**
@@ -748,6 +669,21 @@ public class Agent implements Runnable, Serializable
   }
 
   /**
+   * Method to query the Home Agent Platform. This is the name of
+   * the platform where the agent has been created, therefore it will 
+   * never change during the entire lifetime of the agent.
+   * In JADE the name of an agent by default is composed by the 
+   * concatenation (using '@') of the agent local name and the Home 
+   * Agent Platform name 
+   *
+   * @return A <code>String</code> containing the name of the home agent platform
+   * (e.g. <em>myComputerName:1099/JADE</em>).
+  */
+  public final String getHap() {
+    return myHap;
+  }
+
+  /**
      Method to query the private Agent ID. Note that this Agent ID is
      <b>different</b> from the one that is registered with the
      platform AMS.
@@ -795,21 +731,7 @@ public class Agent implements Runnable, Serializable
 			myAID.removeAddresses(address);
 		}
   }
-  /**
-   * Method to query the Home Agent Platform. This is the name of
-   * the platform where the agent has been created, therefore it will 
-   * never change during the entire lifetime of the agent.
-   * In JADE the name of an agent by default is composed by the 
-   * concatenation (using '@') of the agent local name and the Home 
-   * Agent Platform name 
-   *
-   * @return A <code>String</code> containing the name of the home agent platform
-   * (e.g. <em>myComputerName:1099/JADE</em>).
-  */
-  public final String getHap() {
-    return myHap;
-  }
-
+  
   /**
      Method to retrieve the location this agent is currently at.
      @return A <code>Location</code> object, describing the location
@@ -859,6 +781,7 @@ public class Agent implements Runnable, Serializable
     } 
   	#MIDP_INCLUDE_END*/
   }
+  
 //#CUSTOM_EXCLUDE_BEGIN
   /**
      Set message queue size. This method allows to change the number
@@ -903,21 +826,64 @@ public class Agent implements Runnable, Serializable
   }
 //#CUSTOM_EXCLUDE_END
 
-  private void changeStateTo(int state) {
-      synchronized (stateLock) {
-	  if (state != myAPState) {
-	      int oldState = myAPState;
-	      setState(state);
-	      //#MIDP_EXCLUDE_BEGIN
-	      notifyChangedAgentState(oldState, myAPState);
-	      //#MIDP_EXCLUDE_END
-	      /*#MIDP_INCLUDE_BEGIN
-	      //myToolkit.handleChangedAgentState(myAID, oldState, myAPState);
-	      #MIDP_INCLUDE_END*/
-	  }
+  
+  /////////////////////////////////
+  // Agent state management
+  /////////////////////////////////
+  public void changeStateTo(LifeCycle newLifeCycle) {
+  	boolean changed = false;
+  	newLifeCycle.setAgent(this);
+  	synchronized (stateLock) {
+		  if (!myLifeCycle.equals(newLifeCycle)) {
+		  	// The new state is actually different from the current one
+		  	if (myLifeCycle.transitionTo(newLifeCycle)) {
+		      myBufferedLifeCycle = myLifeCycle;
+		      myLifeCycle = newLifeCycle;
+		      changed = true;
+		      //#MIDP_EXCLUDE_BEGIN
+		      notifyChangedAgentState(myBufferedLifeCycle.getState(), myLifeCycle.getState());
+		      //#MIDP_EXCLUDE_END
+		  	}
+		  }
+    }
+    if (changed) {
+      myLifeCycle.transitionFrom(myBufferedLifeCycle);
+      if (!Thread.currentThread().equals(myThread)) {
+      	// If the state-change is forced from the outside, interrupt 
+      	// the agent thread to allow the state change to take place
+      	interruptThread();
       }
+    }
   }
 
+  public void restoreBufferedState() {
+  	System.out.println("Restoring buffered state "+myBufferedLifeCycle.getState());
+  	changeStateTo(myBufferedLifeCycle);
+  }
+  
+  /**
+     The ActiveLifeCycle handles different internal states (INITIATED, 
+     ACTIVE, WAITING, IDLE). This method switches between them.
+   */
+  private void setActiveState(int newState) {
+  	synchronized (stateLock) {
+  		if (myLifeCycle == myActiveLifeCycle) {
+	  		int oldState = myLifeCycle.getState();
+	  		if (newState != oldState) {
+		  		((ActiveLifeCycle) myLifeCycle).setState(newState);
+		  		//#MIDP_EXCLUDE_BEGIN
+		  		notifyChangedAgentState(oldState, newState);
+		  		//#MIDP_EXCLUDE_END
+	  		}
+	  	}
+	  	else {
+  			// A change state request arrived in the meanwhile. 
+	  		// Let it take place.
+  			throw new Interrupted();
+	  	}
+  	}
+  }
+  
   //#APIDOC_EXCLUDE_BEGIN
   /**
      Read current agent state. This method can be used to query an
@@ -925,28 +891,18 @@ public class Agent implements Runnable, Serializable
      @return the Agent Platform Life Cycle state this agent is currently in.
    */
   public int getState() {
-    int state;
-    synchronized(stateLock) {
-      state = myAPState;
-    }
-    return state;
+  	return myLifeCycle.getState();
   }
-
-  // For persistence service
-  private void setState(int state) {
-      myAPState = state;
-  }
+  //#APIDOC_EXCLUDE_END
 
 
-    //#MIDP_EXCLUDE_BEGIN
-
+  //#MIDP_EXCLUDE_BEGIN
   public AgentState getAgentState() {
     return AgentState.getInstance(getState());
   }
-    //#APIDOC_EXCLUDE_END
   
   /**
-     This is only called by the RealNotificationManager to provide the Introspector
+     This is only called by the NotificationService to provide the Introspector
      agent with a snapshot of the behaviours currently loaded in the agent
    */
   Scheduler getScheduler() {
@@ -954,9 +910,7 @@ public class Agent implements Runnable, Serializable
   }
 
   /**
-     This is only called by the RealNotificationManager to provide the Introspector
-     agent with a snapshot of the messages currently pending in the queue and by
-     the RealMobilityManager to transfer messages in the queue
+     This is only called by AgentContainerImpl
    */
   MessageQueue getMessageQueue() {
       return msgQueue;
@@ -967,47 +921,67 @@ public class Agent implements Runnable, Serializable
       msgQueue = mq;
   }
 
-  // State transition methods for Agent Platform Life-Cycle
-
+  
+  /////////////////////////////
+  // Mobility related code
+  /////////////////////////////
+  private transient AgentMobilityHelper mobHelper;
+  
+  private void initMobHelper() throws ServiceException {
+  	if (mobHelper == null) {
+  		mobHelper = (AgentMobilityHelper) getHelper(AgentMobilityHelper.NAME);
+  		mobHelper.registerMovable(new Movable() {
+		  	public void beforeMove() {
+		  		Agent.this.beforeMove();
+		  	}
+		  	
+		  	public void afterMove() {
+		  		Agent.this.afterMove();
+		  	}
+		  	
+		  	public void beforeClone() {
+		  		Agent.this.beforeClone();
+		  	}
+		  	
+		  	public void afterClone() {
+		  		Agent.this.afterClone();
+		  	}
+		  } );
+  	}
+  }
+  
   /**
-     Make a state transition from <em>active</em> to
-     <em>transit</em> within Agent Platform Life Cycle. This method
+     Make this agent move to a remote location. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a migration process.
+     It should be noted that this method just changes the agent 
+     state to <code>AP_TRANSIT</code>. The actual migration takes
+     place asynchronously.
      <br>
      <b>NOT available in MIDP</b>
      <br>
      @param destination The <code>Location</code> to migrate to.
   */
   public void doMove(Location destination) {
-      // Do nothing if the mobility service is not installed
-      try {
-	  getHelper(jade.core.mobility.AgentMobilityHelper.NAME);
-      }
-      catch(ServiceException se) {
-	  // Do nothing
-	  return;
-      }
-
-      synchronized(stateLock) {
-	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	      myBufferedState = myAPState;
-	      changeStateTo(AP_TRANSIT);
-	      myDestination = destination;
-
-	      // Real action will be executed in the embedded thread
-	      if(!myThread.equals(Thread.currentThread()))
-		  myThread.interrupt();
-	  }
-      }
-  }
+    // Do nothing if the mobility service is not installed
+    try {
+    	initMobHelper();
+		  mobHelper.move(destination);
+    }
+    catch(ServiceException se) {
+		  // FIXME: Log a proper warning
+		  return;
+    }
+	}
   
-
+	
   /**
-     Make a state transition from <em>active</em> to
-     <em>copy</em> within Agent Platform Life Cycle. This method
+     Make this agent be cloned on another location. This method
      is intended to support agent mobility and is called either by the
      Agent Platform or by the agent itself to start a clonation process.
+     It should be noted that this method just changes the agent 
+     state to <code>AP_COPY</code>. The actual clonation takes
+     place asynchronously.
      <br>
      <b>NOT available in MIDP</b>
      <br>
@@ -1015,139 +989,16 @@ public class Agent implements Runnable, Serializable
      @param newName The name that will be given to the copy agent.
   */
   public void doClone(Location destination, String newName) {
-
-      // Do nothing if the mobility service is not installed
-      try {
-	  getHelper(jade.core.mobility.AgentMobilityHelper.NAME);
-      }
-      catch(ServiceException se) {
-	  // Do nothing
-	  return;
-      }
-
-      synchronized(stateLock) {
-	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	      myBufferedState = myAPState;
-	      changeStateTo(AP_COPY);
-	      myDestination = destination;
-	      myNewName = newName;
-
-	      // Real action will be executed in the embedded thread
-	      if(!myThread.equals(Thread.currentThread()))
-		  myThread.interrupt();
-	  }
-      }
-  }
-
-  //#APIDOC_EXCLUDE_BEGIN
-  // External method, is to be called from other threads
-  public void requestSave(String repository) {
-      // Do nothing if the persistence service is not installed
-      try {
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-      }
-      catch(ServiceException se) {
-	  // Do nothing
-	  return;
-      }
-
-      synchronized(stateLock) {
-	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	      myBufferedState = myAPState;
-	      changeStateTo(AP_SAVING);
-	      myRepository = repository;
-
-	      // Real action will be executed in the embedded thread
-	      if(!myThread.equals(Thread.currentThread()))
-		  myThread.interrupt();
-	  }
-      }      
-  }
-
-  public void requestReload(String repository) {
-      // Do nothing if the persistence service is not installed
-      try {
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-      }
-      catch(ServiceException se) {
-	  // Do nothing
-	  return;
-      }
-
-      synchronized(stateLock) {
-	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	      myBufferedState = myAPState;
-	      changeStateTo(AP_RELOADING);
-	      myRepository = repository;
-
-	      // Real action will be executed in the embedded thread
-	      if(!myThread.equals(Thread.currentThread()))
-		  myThread.interrupt();
-	  }
-      }
-  }
-
-  // External method, is to be called from other threads
-  public void requestFreeze(String repository, ContainerID bufferContainer) {
-      // Do nothing if the persistence service is not installed
-      try {
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-      }
-      catch(ServiceException se) {
-	  // Do nothing
-	  return;
-      }
-      synchronized(stateLock) {
-	  if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	      myBufferedState = myAPState;
-	      changeStateTo(AP_FROZEN);
-
-	      myRepository = repository;
-	      myBufferContainer = bufferContainer;
-
-	      // Real action will be executed in the embedded thread
-	      if(!myThread.equals(Thread.currentThread()))
-		  myThread.interrupt();
-	  }
-      }      
-  }
-  //#APIDOC_EXCLUDE_END
-  
-  /**
-     Make a state transition from <em>transit</em> or
-     <code>copy</code> to <em>active</em> within Agent Platform Life
-     Cycle. This method is intended to support agent mobility and is
-     called by the destination Agent Platform when a migration process
-     completes and the mobile agent is about to be restarted on its
-     new location.
-  */
-  void doExecute() {
-    synchronized(stateLock) {
-      // FIXME: Hack to manage agents moving while in AP_IDLE state,
-      // but with pending timers. The correct solution would be to
-      // restore all pending timers.
-      if(myBufferedState == AP_IDLE)
-	myBufferedState = AP_ACTIVE;
-
-      changeStateTo(myBufferedState);
-      myBufferedState = AP_MIN;
-      activateAllBehaviours();
+    // Do nothing if the mobility service is not installed
+    try {
+    	initMobHelper();
+		  mobHelper.clone(destination, newName);
     }
-  }
-
-  /**
-     Make a state transition from <em>transit</em> to <em>gone</em>
-     state. This state is only used to label the original copy of a
-     mobile agent which migrated somewhere.
-  */
-  void doGone() {
-    synchronized(stateLock) {
-      changeStateTo(AP_GONE);
+    catch(ServiceException se) {
+		  // FIXME: Log a proper warning
+		  return;
     }
-  }
+  }  
   //#MIDP_EXCLUDE_END
 
   /**
@@ -1160,29 +1011,18 @@ public class Agent implements Runnable, Serializable
      by the Agent Platform and are delivered as soon as the agent
      resumes. Calling <code>doSuspend()</code> on a suspended agent
      has no effect.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @see jade.core.Agent#doActivate()
   */
   public void doSuspend() {
-    synchronized(stateLock) {
-      if(((myAPState == AP_ACTIVE)||(myAPState == AP_WAITING)||(myAPState == AP_IDLE)) && !terminating) {
-	myBufferedState = myAPState;
-	changeStateTo(AP_SUSPENDED);
-      }
-    }
-    if(myAPState == AP_SUSPENDED) {
-      if(myThread.equals(Thread.currentThread())) {
-	waitUntilActivate();
-      }
-      else {
-      	synchronized (stateLock) {
-      		if (myBufferedState == AP_IDLE) {
-      			// When we resume we must go to the ACTIVE state (not IDLE)
-      			myBufferedState = AP_ACTIVE;
-      			interruptThread();
-      		}
-      	}
-      }
-    }
+  	//#MIDP_EXCLUDE_BEGIN
+  	if (mySuspendedLifeCycle == null) {
+  		mySuspendedLifeCycle = new SuspendedLifeCycle();
+  	}
+		changeStateTo(mySuspendedLifeCycle);
+  	//#MIDP_EXCLUDE_END
   }
 
   /**
@@ -1193,38 +1033,25 @@ public class Agent implements Runnable, Serializable
      Platform and resumes agent execution. Calling
      <code>doActivate()</code> when the agent is not suspended has no
      effect.
+     <br>
+     <b>NOT available in MIDP</b>
+     <br>
      @see jade.core.Agent#doSuspend()
   */
   public void doActivate() {
-    synchronized(stateLock) {
-      if(myAPState == AP_SUSPENDED) {
-	changeStateTo(myBufferedState);
-      }
-    }
-    if(myAPState != AP_SUSPENDED) {
-      switch(myBufferedState) {
-      case AP_ACTIVE:
-	activateAllBehaviours();
-	synchronized(suspendLock) {
-	  myBufferedState = AP_MIN;
-	  suspendLock.notifyAll();
-	}
-	break;
-      case AP_WAITING:
-	doWake();
-	break;
-      }
-    }
+  	//#MIDP_EXCLUDE_BEGIN
+  	//doExecute();
+  	restoreBufferedState();
+  	//#MIDP_EXCLUDE_END
   }
 
   /**
      Make a state transition from <em>active</em> to <em>waiting</em>
-     within Agent Platform Life Cycle. This method can be called by
-     the Agent Platform or by the agent itself and causes the agent to
-     block, stopping all its activities until some event happens. A
-     waiting agent wakes up as soon as a message arrives or when
-     <code>doWake()</code> is called. Calling <code>doWait()</code> on
-     a suspended or waiting agent has no effect.
+     within Agent Platform Life Cycle. This method has only effect 
+     when called by the agent thread and causes the agent to
+     block, stopping all its activities until  
+     a message arrives or 	the
+     <code>doWake()</code> method is called. 
      @see jade.core.Agent#doWake()
   */
   public void doWait() {
@@ -1239,14 +1066,26 @@ public class Agent implements Runnable, Serializable
      @see jade.core.Agent#doWait()
   */
   public void doWait(long millis) {
-    synchronized(stateLock) {
-      if(myAPState == AP_ACTIVE)
-	changeStateTo(AP_WAITING);
-    }
-    if(myAPState == AP_WAITING) {
-      if(myThread.equals(Thread.currentThread())) {
-	waitUntilWake(millis);
-      }
+  	if (Thread.currentThread().equals(myThread)) {
+    	setActiveState(AP_WAITING);
+    	
+	    synchronized(msgQueue) {
+	    	try {
+				  // Blocks on msgQueue monitor for a while
+				  waitOn(msgQueue, millis);
+	    	}
+	    	catch (InterruptedException ie) {
+	    		if (myLifeCycle != myActiveLifeCycle && !terminating) {
+	    			// Change state request from the outside
+		    		throw new Interrupted();
+	    		}
+	    		else {
+	    			// Spurious wake up. Just print a warning
+	    			System.out.println("Agent "+getName()+" interrupted while waiting");
+	    		}    			
+	    	}
+		  	setActiveState(AP_ACTIVE);
+	    }
     }
   }
 
@@ -1259,20 +1098,18 @@ public class Agent implements Runnable, Serializable
   */
   public void doWake() {
     synchronized(stateLock) {
-      if((myAPState == AP_WAITING) || (myAPState == AP_IDLE)) {
-	changeStateTo(AP_ACTIVE);
+    	int previous = myLifeCycle.getState();
+      if((previous == AP_WAITING) || (previous == AP_IDLE)) {
+      	setActiveState(AP_ACTIVE);
       }
     }
-    if(myAPState == AP_ACTIVE) {
+    if(myLifeCycle.getState() == AP_ACTIVE) {
       activateAllBehaviours();
       synchronized(msgQueue) {
         msgQueue.notifyAll(); // Wakes up the embedded thread
       }
     }
   }
-
-  // This method handles both the case when the agents decides to exit
-  // and the case in which someone else kills him from outside.
 
   /**
      Make a state transition from <em>active</em>, <em>suspended</em>
@@ -1283,33 +1120,19 @@ public class Agent implements Runnable, Serializable
      agent has no effect.
   */
   public void doDelete() {
-    synchronized(stateLock) {
-      if(myAPState != AP_DELETED && !terminating) {
-				changeStateTo(AP_DELETED);
-				if((myThread != null) && !myThread.equals(Thread.currentThread())) {
-	          interruptThread();
-				}
-      }
-    }
+  	if (myDeletedLifeCycle == null) {
+  		myDeletedLifeCycle = new DeletedLifeCycle();
+  	}
+		changeStateTo(myDeletedLifeCycle);
   }
 
-  // This is to be called only by the scheduler
+  // This is called only by the scheduler
   void idle() throws InterruptedException {
-    synchronized(stateLock) {
-    	if (myAPState != AP_ACTIVE) {
-    		// We have been suspended from the outside just before entering this method
-    		throw new InterruptedException();
-    	}
-			changeStateTo(AP_IDLE);
-    }
+		setActiveState(AP_IDLE);
     // No need for synchronized block since this is only called by the 
-    // scheduler itself in the synchronized schedule() method
+    // scheduler in the synchronized schedule() method
     waitOn(myScheduler, 0);
-    synchronized(stateLock) {
-	if(myAPState == AP_IDLE) {
-	    changeStateTo(AP_ACTIVE);
-	}
-    }
+		setActiveState(AP_ACTIVE);
   }
 
   //#MIDP_EXCLUDE_BEGIN
@@ -1534,121 +1357,192 @@ public class Agent implements Runnable, Serializable
   //#APIDOC_EXCLUDE_BEGIN
 
   /**
-     This method is the main body of every agent. It can handle
-     automatically <b>AMS</b> registration and deregistration and
-     provides startup and cleanup hooks for application programmers to
-     put their specific code into.
+     This method is the main body of every agent. It 
+     provides startup and cleanup hooks for application 
+     programmers to put their specific code into.
      @see jade.core.Agent#setup()
      @see jade.core.Agent#takeDown()
   */
   public final void run() {
-
-    try {
-      switch(myAPState) {
-      case AP_INITIATED:
-				changeStateTo(AP_ACTIVE);
-				// No 'break' statement - fall through
-      case AP_ACTIVE:
-        notifyStarted();
-				setup();
-				break;
-			//#MIDP_EXCLUDE_BEGIN
-      case AP_TRANSIT:
-	doExecute();
-	afterMove();
-	break;
-      case AP_COPY:
-	doExecute();
-	afterClone();
-	break;
-      case AP_SAVING:
-	  doExecute();
-	  afterLoad();
-	  break;
-      case AP_RELOADING:
-	  doExecute();
-	  afterReload();
-	  break;
-      case AP_FROZEN:
-	  doExecute();
-	  afterThaw();
-	  break;
-			//#MIDP_EXCLUDE_END
-      }
-
-      mainLoop();
-    }
-    catch(InterruptedException ie) {
-      // Do Nothing, since this is a killAgent from outside
-    }
-    catch(InterruptedIOException iioe) {
-      // Do nothing, since this is a killAgent from outside
-    }
-    catch(Exception e) {
+  	try {
+  		myLifeCycle.init();
+  		while (myLifeCycle.alive()) {
+  			try {
+  				myLifeCycle.execute();
+  				// Let other agents go on
+  				Thread.yield();
+  			}
+  			catch (JADESecurityException jse) {
+				  // FIXME: maybe we should send a message to the agent
+				  System.out.println("JADESecurityException: "+jse.getMessage());
+  			}
+  			catch (InterruptedException ie) {
+					// Change LC state request from the outside. Just do nothing
+					// and let the new LC state do its job
+  			}
+  			catch (InterruptedIOException ie) {
+					// Change LC state request from the outside. Just do nothing
+					// and let the new LC state do its job
+  			}
+  			catch (Interrupted i) {
+					// Change LC state request from the outside. Just do nothing
+					// and let the new LC state do its job
+  			}
+  		}
+  	}
+    catch(Throwable t) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
-      e.printStackTrace();
+      t.printStackTrace();
     }
-    catch(AgentDeathError ade) {
-      // Do Nothing, since this is a killAgent from outside
-    }
-    //#MIDP_EXCLUDE_BEGIN
-    catch(AgentInMotionError aime) {
-      // This is a move from the outside while the agent was waiting 
-    	// (blockingReceive()) outside the mainLoop(). There is nothing 
-    	// we can do
-    }
-    //#MIDP_EXCLUDE_END
-    finally {
-			//#MIDP_EXCLUDE_BEGIN
-      switch(myAPState) {
-      case AP_TRANSIT:
-      case AP_COPY:
-      	System.err.println("***  Agent " + myName + " moved in a forbidden situation ***");
-      	// No break statement --> fall through
-      case AP_DELETED:
-      	terminating = true;
-	int savedState = getState();
-	changeStateTo(AP_ACTIVE);
-	takeDown();
-	destroy();
-	changeStateTo(savedState);
-	break;
-      case AP_GONE:
-	break;
-      case AP_FROZEN:
-	  break;
-      case AP_RELOADING:
-	  break;
-      default:
-      	terminating = true;
-	System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
-	System.out.println("State was " + myAPState);
-	savedState = getState();
-	changeStateTo(AP_ACTIVE);
-	takeDown();
-	destroy();
-	changeStateTo(savedState);
-      }
-			//#MIDP_EXCLUDE_END
-			/*#MIDP_INCLUDE_BEGIN
-      if (myAPState != AP_DELETED) {
-        System.out.println("ERROR: Agent "+myName+" died without being properly terminated !!!");
-        System.out.println("State was "+myAPState);
-      } 
+  	terminating = true;
+    myLifeCycle.end();
+  }		
+  //#APIDOC_EXCLUDE_END
 
-      terminating = true;
+  
+  
+  /**
+     Inner class ActiveLifeCycle
+   */
+  private class ActiveLifeCycle extends LifeCycle {
+  	private ActiveLifeCycle() {
+  		super(AP_INITIATED);
+  	}
+  	
+  	public void setState(int s) {
+  		myState = s;
+  	}
+  	
+  	public void init() {
+  		setActiveState(AP_ACTIVE);
+  		//#MIDP_EXCLUDE_BEGIN
+      notifyStarted();
+  		//#MIDP_EXCLUDE_END
+			setup();
+  	}
+  	
+		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
+			// Select the next behaviour to execute
+	    Behaviour currentBehaviour = myScheduler.schedule();
+	    // Remember how many messages arrived
+	    int oldMsgCounter = messageCounter;
+	    
+	    // Just do it!
+	    currentBehaviour.actionWrapper();
 
-      int savedState = getState();
-      changeStateTo(AP_ACTIVE);
-      takeDown();
-      destroy();
-      changeStateTo(savedState);
-			#MIDP_INCLUDE_END*/
-    }
+	    // If the current Behaviour has blocked and more messages arrived
+	    // in the meanwhile, restart the behaviour to give it another chance
+	    if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable())) {
+	      currentBehaviour.restart();
+	    }
+
+	    // When it is needed no more, delete it from the behaviours queue
+	    if(currentBehaviour.done()) {
+	      currentBehaviour.onEnd();
+	      myScheduler.remove(currentBehaviour);
+	      currentBehaviour = null;
+	    }
+	    else {
+	      synchronized(myScheduler) {
+					// Need synchronized block (Crais Sayers, HP): What if
+					// 1) it checks to see if its runnable, sees its not,
+					//    so it begins to enter the body of the if clause
+					// 2) meanwhile, in another thread, a message arrives, so
+					//    the behaviour is restarted and moved to the ready list.
+					// 3) now back in the first thread, the agent executes the
+					//    body of the if clause and, by calling block(), moves
+					//   the behaviour back to the blocked list.
+					if(!currentBehaviour.isRunnable()) {
+		  			// Remove blocked behaviour from ready behaviours queue
+		  			// and put it in blocked behaviours queue
+		  			myScheduler.block(currentBehaviour);
+		  			currentBehaviour = null;
+					}
+	      }
+	    }
+		}
+		
+		public void end() {
+			clean(false);
+		}
+		
+		public boolean transitionTo(LifeCycle to) {
+			// We can go to whatever state unless we are terminating
+			if (!terminating) {
+				// The agent is going to leave this state. When 
+				// the agent will enter this state again it must be 
+				// in AP_ACTIVE
+				myState = AP_ACTIVE;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		
+		public void transitionFrom(LifeCycle from) {
+			activateAllBehaviours();
+		}
+  } // END of inner class ActiveLifeCycle
+  
+  
+  /**
+     Inner class DeletedLifeCycle
+   */
+  private class DeletedLifeCycle extends LifeCycle {
+  	private DeletedLifeCycle() {
+  		super(AP_DELETED);
+  	}
+  	
+		public void end() {
+			clean(true);
+		}
+		
+		public boolean alive() {
+			return false;
+		}		
+  } // END of inner class DeletedLifeCycle
+  
+  //#MIDP_EXCLUDE_BEGIN
+  /**
+     Inner class SuspendedLifeCycle
+   */
+  private class SuspendedLifeCycle extends LifeCycle {
+  	private SuspendedLifeCycle() {
+  		super(AP_SUSPENDED);
+  	}
+  	
+		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
+			waitUntilActivate();
+		}
+		
+		public void end() {
+			clean(false);
+		}
+		
+		public boolean transitionTo(LifeCycle to) {
+			// We can only die or resume
+			return (to.getState() == AP_ACTIVE || to.getState() == AP_DELETED); 
+		}		
+  } // END of inner class SuspendedLifeCycle
+  
+  //#MIDP_EXCLUDE_END
+
+  
+  //#APIDOC_EXCLUDE_BEGIN
+  public void clean(boolean ok) {
+  	if (!ok) {
+			System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
+			System.out.println("State was " + myLifeCycle.getState());
+  	}
+		myBufferedLifeCycle = myLifeCycle;
+		myLifeCycle = myActiveLifeCycle;
+		takeDown();
+    pendingTimers.clear();
+    myToolkit.handleEnd(myAID);
+		myLifeCycle = myBufferedLifeCycle;
   }
-
-    //#APIDOC_EXCLUDE_END
-
+  //#APIDOC_EXCLUDE_END
 
   /**
      This protected method is an empty placeholder for application
@@ -1732,92 +1626,21 @@ public class Agent implements Runnable, Serializable
     <br>
   */
   protected void afterClone() {}
-
-  /**
-     Actions to perform before saving an agent. This empty placeholder
-     method can be overridden by user defined agents to execute some
-     actions just before the current agent is saved to a persistent
-     store.
-     <br>
-     <b>Not available in J2ME. Requires the Persistence JADE add-on</b>
-     <br>
-  */
-  protected void beforeSave() {}
-
-  /**
-     Actions to perform after loading an agent. This empty placeholder
-     method can be overridden by user defined agents to execute some
-     actions just after the current agent is loaded from a persistent
-     store.
-     <br>
-     <b>Not available in J2ME. Requires the Persistence JADE add-on</b>
-     <br>
-  */
-  protected void afterLoad() {}
-
-  /**
-    Actions to perform before reloading. This empty placeholder method
-    can be overridden by user defined agents to execute some actions
-    just before the agent thread terminates (and before a new thread
-    is started that will execute the newly reloaded agent).
-  */
-  protected void beforeReload() {}
-
-  /**
-     Actions to perform after reloading. This empty placeholder method
-     can be overridden by user defined agents to execute some actions
-     just after a new thread has started executing the newly reloaded
-     agent (and before the thread enters the main agent execution
-     loop.
-  */
-  protected void afterReload() {}
-
-  /**
-    Actions to perform before freezing. This empty placeholder method can be
-    overridden by user defined agents to execute some actions just before
-    an agent is frozen on a persistent store and its thread terminates.
-    <br>
-    <b>NOT available in MIDP</b>
-    <br>
-  */
-  protected void beforeFreeze() {}
-
-  /**
-    Actions to perform after thawing. This empty placeholder method
-    can be overridden by user defined agents to execute some actions
-    just after a previously frozen agent is thawed and its thread is
-    started on the proper agent container.
-    <br>
-    <b>NOT available in MIDP</b>
-    <br>
-  */
-  protected void afterThaw() {}
-
 	//#MIDP_EXCLUDE_END
 
   // This method is used by the Agent Container to fire up a new agent for the first time
   void powerUp(AID id, Thread t) {
-
     // Set this agent's name and address and start its embedded thread
-    if ( (myAPState == AP_INITIATED) 
-			//#MIDP_EXCLUDE_BEGIN
-	|| (myAPState == AP_SAVING)
-        || (myAPState == AP_FROZEN)
-    	|| (myAPState == AP_TRANSIT) 
-    	|| (myAPState == AP_COPY)
-			//#MIDP_EXCLUDE_END
-    		) {
-      myName = id.getLocalName();
-      myHap = id.getHap();
-      
-      synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
-        myAID = id;
-        myToolkit.setPlatformAddresses(myAID);
-      }
-
-      myThread = t;
-      myThread.start();
+    myName = id.getLocalName();
+    myHap = id.getHap();
+    
+    synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
+      myAID = id;
+      myToolkit.setPlatformAddresses(myAID);
     }
+
+    myThread = t;
+    myThread.start();
   }
 
 	//#MIDP_EXCLUDE_BEGIN
@@ -1843,240 +1666,38 @@ public class Agent implements Runnable, Serializable
     o2aLocks = new HashMap();
     myToolkit = DummyToolkit.instance();
 
-    //For persistence service
-    //#PJAVA_EXCLUDE_BEGIN
-    persistentPendingTimers = new java.util.HashSet();
-    //#PJAVA_EXCLUDE_END
+     //#PJAVA_EXCLUDE_BEGIN
+     //For persistence service
+     persistentPendingTimers = new java.util.HashSet();
+     //#PJAVA_EXCLUDE_END
   }
-
-
 	//#MIDP_EXCLUDE_END
 
-  private void mainLoop() throws InterruptedException, InterruptedIOException {
-  	while(myAPState != AP_DELETED) {
-			//#MIDP_EXCLUDE_BEGIN
-      try {
-			//#MIDP_EXCLUDE_END
 
-	// Check for Agent state changes
-	switch(myAPState) {
-	case AP_WAITING:
-	  waitUntilWake(0);
-	  break;
-	case AP_SUSPENDED:
-	  waitUntilActivate();
-	  break;
-	//#MIDP_EXCLUDE_BEGIN
-	case AP_TRANSIT:
-	  try {
-		notifyMove();
-	  } catch (Exception e) {
-	  	// something went wrong
-	  	changeStateTo(myBufferedState);
-			myDestination = null;
-			if (e instanceof JADESecurityException) {
-				// Will be caught together with all other JADESecurityException-s
-				throw (JADESecurityException) e;
-	  	}
-	  	else {
-	  		e.printStackTrace();
-	  	}
-	  }  
-	  if(myAPState == AP_GONE) {
-	    beforeMove();
-	    return;
-	  }
-	  break;
-	case AP_COPY:
-	  beforeClone();
-	  try {
-	  notifyCopy();
-	  } catch (Exception e) {
-	  	// something went wrong
-	  	changeStateTo(myBufferedState);
-			myDestination = null;
-			if (e instanceof JADESecurityException) {
-				// Will be catched together with all other JADESecurityException-s
-				throw (JADESecurityException) e;
-	  	}
-	  	else {
-	  		e.printStackTrace();
-	  	}
-	  }
-	  doExecute();
-	  break;
-	case AP_SAVING:
-	    try {
-		beforeSave();
-		notifySave();
-	    }
-	    catch(Exception e) {
-		// Something went wrong
-		e.printStackTrace();
-	    }
-	    finally {
-		doExecute();
-		myRepository = null;
-	    }
-	    // FIXME: Should an user-defined afterSave() method be called?
-	    break;
-	case AP_RELOADING:
-	    try {
-		beforeReload();
-		notifyReload();
-		return;
-	    }
-	    catch(Exception e) {
-		// Something went wrong
-		e.printStackTrace();
-		doExecute();
-	    }
-	    break;
-	case AP_FROZEN:
-	  try {
-	      beforeFreeze();
-	      notifyFreeze();
-	      return;
-	  }
-	  catch (Exception e) {
-	      // something went wrong
-	      e.printStackTrace();
-	      doExecute();
-	  }
-	  break;
-	//#MIDP_EXCLUDE_END
-	case AP_ACTIVE:
-	  try {
-	    // Select the next behaviour to execute
-	    currentBehaviour = myScheduler.schedule();
-
-	    // Remember how many messages arrived
-	    int oldMsgCounter = messageCounter;
-
-	    // Just do it!
-	    currentBehaviour.actionWrapper();
-
-	    // If the current Behaviour has blocked and more messages arrived
-	    // in the meanwhile, restart the behaviour to give it another chance
-	    if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable()))
-	      currentBehaviour.restart();
-
-	    // When it is needed no more, delete it from the behaviours queue
-	    if(currentBehaviour.done()) {
-	      currentBehaviour.onEnd();
-	      myScheduler.remove(currentBehaviour);
-	      currentBehaviour = null;
-	    }
-	    else {
-	      synchronized(myScheduler) {
-					// Need synchronized block (Crais Sayers, HP): What if
-					// 1) it checks to see if its runnable, sees its not,
-					//    so it begins to enter the body of the if clause
-					// 2) meanwhile, in another thread, a message arrives, so
-					//    the behaviour is restarted and moved to the ready list.
-					// 3) now back in the first thread, the agent executes the
-					//    body of the if clause and, by calling block(), moves
-					//   the behaviour back to the blocked list.
-					if(!currentBehaviour.isRunnable()) {
-		  			// Remove blocked behaviour from ready behaviours queue
-		  			// and put it in blocked behaviours queue
-		  			myScheduler.block(currentBehaviour);
-		  			currentBehaviour = null;
-					}
-	      }
-	    }
-	  }
-	  // Someone interrupted the agent. It could be a kill, a
-	  // move/clone or a suspend-while-idle request from the outside...
-	  catch(InterruptedException ie) {
-	    switch(myAPState) {
-	    case AP_DELETED:
-	      throw new AgentDeathError();
-	    //#MIDP_EXCLUDE_BEGIN
-	    case AP_TRANSIT:
-	    case AP_COPY:
-	      throw new AgentInMotionError();
-	    //#MIDP_EXCLUDE_END
-	    case AP_ACTIVE:
-	    case AP_IDLE:
-	      System.out.println("WARNING: Spurious wakeup for agent " + getLocalName());
-	      break;
-	    }
-	  } // end catch
-	  break;
-	}  // END of switch on agent state
-
-	// Now give CPU control to other agents
-	Thread.yield();
-	//#MIDP_EXCLUDE_BEGIN
-    }
-    catch(AgentInMotionError aime) {
-	// Do nothing, since this is a doMove() or doClone() from the outside.
-    }
-    catch(JADESecurityException e) {
-    	// If there is an JADESecurityException we don't want the agent to be killed
-    	// as for other unexpected exceptions.
-		  // FIXME: maybe should send a message to the agent
-		  System.out.println("JADESecurityException: "+e.getMessage() );
-		}
-	//#MIDP_EXCLUDE_END
-    } // END of while
-  }
-
+  /**
+     Thi method is executed when blockingReceive() is called
+     from a separate Thread. 
+     It does not affect the agent state.
+   */
   private void waitUntilWake(long millis) {
     synchronized(msgQueue) {
-			try {
+    	try {
 			  // Blocks on msgQueue monitor for a while
 			  waitOn(msgQueue, millis);
-		    changeStateTo(AP_ACTIVE);
-			}
-			catch(InterruptedException ie) {
-			  switch(myAPState) {
-			  case AP_DELETED:
-			    throw new AgentDeathError();
-			  //#MIDP_EXCLUDE_BEGIN
-			  case AP_TRANSIT:
-			  case AP_COPY:
-			  case AP_FROZEN:
-			  case AP_SAVING:
-			    throw new AgentInMotionError();
-			  //#MIDP_EXCLUDE_END
-			  default:
-			  	if (Thread.currentThread().equals(myThread)) {
-			  		System.out.println("Agent "+getName()+" interrupted in waiting state");
-			  	}
-			  }
-			}
+    	}
+    	catch (InterruptedException ie) {
+    		throw new Interrupted();
+    	}
     }
   }
 
-  private void waitUntilActivate() {
+  //#MIDP_EXCLUDE_BEGIN
+  private void waitUntilActivate() throws InterruptedException {
     synchronized(suspendLock) {
-      while(myAPState == AP_SUSPENDED) {
-  try {
-  	waitOn(suspendLock, 0);
-	}
-	catch(InterruptedException ie) {
-	  switch(myAPState) {
-	  case AP_DELETED:
-	    throw new AgentDeathError();
-	  //#MIDP_EXCLUDE_BEGIN
-	  case AP_TRANSIT:
-	  case AP_COPY:
-	    // Undo the previous clone or move request
-	    changeStateTo(AP_SUSPENDED);
-	  //#MIDP_EXCLUDE_END
-	  }
-	}
-      }
+	  	waitOn(suspendLock, 0);
     }
   }
-
-	private void destroy() { 
-	    // Remove all pending timers
-	    pendingTimers.clear();
-	    notifyDestruction();
-	}
+  //#MIDP_EXCLUDE_END
 
   /**
      This method adds a new behaviour to the agent. This behaviour
@@ -2116,21 +1737,16 @@ public class Agent implements Runnable, Serializable
 		send.
 		@see jade.lang.acl.ACLMessage
 	*/
-	public final void send(final ACLMessage msg) {
-			// set the sender of the message if not yet set
-			// FIXME. Probably we should always set the sender of the message!
-			try {
-				msg.getSender().getName().charAt(0);
-			}
-			catch (Exception e) {
-				msg.setSender(myAID);
-			}
-		//#MIDP_EXCLUDE_BEGIN
-		notifySend(msg);
-		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
+	public final void send(ACLMessage msg) {
+		// Set the sender of the message if not yet set
+		// FIXME. Probably we should always set the sender of the message!
+		try {
+			msg.getSender().getName().charAt(0);
+		}
+		catch (Exception e) {
+			msg.setSender(myAID);
+		}
 		myToolkit.handleSend(msg, myAID);
-		#MIDP_INCLUDE_END*/
 	}
 	
 	/**
@@ -2162,13 +1778,12 @@ public class Agent implements Runnable, Serializable
 		ACLMessage msg = null;
 		synchronized (msgQueue) {
 			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
-				final ACLMessage cursor = (ACLMessage)messages.next();
+				ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
 					msgQueue.remove(cursor);
 					//#MIDP_EXCLUDE_BEGIN
-					notifyReceived(cursor);
+					myToolkit.handleReceived(myAID, cursor);
 					//#MIDP_EXCLUDE_END
-					currentMessage = cursor;
 					msg = cursor;
 					break; // Exit while loop
 				}
@@ -2237,7 +1852,6 @@ public class Agent implements Runnable, Serializable
       long timeToWait = millis;
       while(msg == null) {
 				long startTime = System.currentTimeMillis();
-				//#MIDP_EXCLUDE_BEGIN
 				if (Thread.currentThread().equals(myThread)) {
 					doWait(timeToWait);
 				}
@@ -2245,28 +1859,6 @@ public class Agent implements Runnable, Serializable
 					// blockingReceive() called from an external thread --> Do not change the agent state
 					waitUntilWake(timeToWait);
 				}
-				//#MIDP_EXCLUDE_END
-				/*#MIDP_INCLUDE_BEGIN
-			  // As Thread.interrupt() is substituted by interruptThread(),
-			  // it is possible to enter this method with the agent state
-			  // equals to AP_DELETED. If this is the case the loop
-			  // lasts forever as doWait() does nothing -->the monitor
-			  // of the msgQueue is not released --> even if a message arrive
-			  // the postMessage method can't be executed.
-			  // Throwing AgentDeathError is necessary to exit this infinite loop.
-			  if (myAPState == AP_ACTIVE) {
-					if (Thread.currentThread().equals(myThread)) {
-						doWait(timeToWait);
-					}
-					else {
-						// blockingReceive() called from an external thread --> Do not change the agent state
-						waitUntilWake(timeToWait);
-					}
-			  } 
-			  else {
-			    throw new AgentDeathError();
-			  }
-				#MIDP_INCLUDE_END*/
 				long elapsedTime = System.currentTimeMillis() - startTime;
 			
 				msg = receive(pattern);
@@ -2309,8 +1901,8 @@ public class Agent implements Runnable, Serializable
   }
 
 
-    //#APIDOC_EXCLUDE_BEGIN
-
+  //#MIDP_EXCLUDE_BEGIN
+  //#APIDOC_EXCLUDE_BEGIN
   /**
     This method blocks until the agent has finished its start-up phase
     (i.e. until just before its setup() method is called.
@@ -2318,7 +1910,7 @@ public class Agent implements Runnable, Serializable
     AMS and the JADE platform is aware of it.
   */
   public synchronized void waitUntilStarted() {
-    while(getState() == AP_INITIATED) {
+    while(myLifeCycle.getState() == AP_INITIATED) {
       try {
         wait();
       }
@@ -2327,109 +1919,14 @@ public class Agent implements Runnable, Serializable
       }
     }
   }
-
-    //#APIDOC_EXCLUDE_END
+  //#APIDOC_EXCLUDE_END
 
   
-  // Event firing methods
-
   // Notify creator that the start-up phase has completed
   private synchronized void notifyStarted() {
     notifyAll();
   }
-
-  // Notify toolkit of the destruction of the current agent
-  private void notifyDestruction() {
-    myToolkit.handleEnd(myAID);
-  }
-
-  //#MIDP_EXCLUDE_BEGIN
-  // Notify toolkit that a message was posted in the message queue
-  private void notifyPosted(ACLMessage msg) {
-    myToolkit.handlePosted(myAID, msg);
-  }
-
-  // Notify toolkit that a message was extracted from the message
-  // queue
-  private void notifyReceived(ACLMessage msg) {
-    myToolkit.handleReceived(myAID, msg);
-  }
-
-  // Notify toolkit of the need to send a message
-  private void notifySend(ACLMessage msg) {
-  	myToolkit.handleSend(msg, myAID);
-  }
-
-  // Notify toolkit of the need to move the current agent
-  private void notifyMove() throws JADESecurityException, IMTPException, NotFoundException {
-      try {
-	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
-	  h.informMoved(myAID, myDestination);
-      }
-      catch(ServiceNotActiveException snae) {
-	  // The mobility service is not installed. Abort migration.
-	  doExecute();
-      }
-      catch(ServiceException se) {
-	  // Some other error occurred. Dump the exception and abort migration.
-	  se.printStackTrace();
-	  doExecute();
-      }
-  }
-
-  // Notify toolkit of the need to copy the current agent
-  private void notifyCopy() throws JADESecurityException, IMTPException, NotFoundException, NameClashException {
-      try {
-	  AgentMobilityHelper h = (AgentMobilityHelper)getHelper(AgentMobilityHelper.NAME);
-	  h.informCloned(myAID, myDestination, myNewName);
-      }
-      catch(ServiceNotActiveException snae) {
-	  // The mobility service is not installed. Abort migration.
-	  doExecute();
-      }
-      catch(ServiceException se) {
-	  // Some other error occurred. Dump the exception and abort migration.
-	  se.printStackTrace();
-	  doExecute();
-      }
-  }
-
-  private void notifySave() throws ServiceException, NotFoundException, IMTPException {
-      try {
-
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-	  myToolkit.handleSave(myAID, myRepository);
-      }
-      catch(ServiceException se) {
-	  // Do nothing...
-      }
-  }
-
-  private void notifyReload() throws ServiceException, NotFoundException, IMTPException {
-      try {
-
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-	  myToolkit.handleReload(myAID, myRepository);
-      }
-      catch(ServiceException se) {
-	  // Do nothing...
-      }
-  }
-
-  private void notifyFreeze() throws ServiceException, NotFoundException, IMTPException {
-      try {
-
-	  // FIXME: There should be a constant defined somewhere in the JADE distribution
-	  getHelper("jade.core.persistence.Persistence");
-	  myToolkit.handleFreeze(myAID, myRepository, myBufferContainer);
-      }
-      catch(ServiceException se) {
-	  // Do nothing...
-      }
-  }
-
+  
 
   // Notify toolkit of the added behaviour
   // Package scooped as it is called by the Scheduler
@@ -2448,7 +1945,7 @@ public class Agent implements Runnable, Serializable
   }
   
 
-    //#APIDOC_EXCLUDE_BEGIN
+  //#APIDOC_EXCLUDE_BEGIN
 
   // Notify the toolkit of the change in behaviour state
   // Public as it is called by the Scheduler and by the Behaviour class 
@@ -2461,8 +1958,7 @@ public class Agent implements Runnable, Serializable
   public void setGenerateBehaviourEvents(boolean b) {
   	generateBehaviourEvents = b;
   }
-
-    //#APIDOC_EXCLUDE_END
+  //#APIDOC_EXCLUDE_END
 
 
   // For persistence service
@@ -2473,9 +1969,7 @@ public class Agent implements Runnable, Serializable
   
   // Notify toolkit that the current agent has changed its state
   private void notifyChangedAgentState(int oldState, int newState) {
-    AgentState from = AgentState.getInstance(oldState);
-    AgentState to = AgentState.getInstance(newState);
-    myToolkit.handleChangedAgentState(myAID, from, to);
+    myToolkit.handleChangedAgentState(myAID, oldState, newState);
   }
   
   //#MIDP_EXCLUDE_END
@@ -2497,7 +1991,7 @@ public class Agent implements Runnable, Serializable
 		synchronized (msgQueue) {
 			if (msg != null) {
 				//#MIDP_EXCLUDE_BEGIN
-				notifyPosted(msg);
+				myToolkit.handlePosted(myAID, msg);
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
 				doWake();
@@ -2520,11 +2014,7 @@ public class Agent implements Runnable, Serializable
 		return theContentManager;
 	}
 
-//#APIDOC_EXCLUDE_BEGIN
-
-//#MIDP_EXCLUDE_BEGIN
-
-  // all the agent's service helper
+  // All the agent's service helper
   private transient Hashtable helpersTable;
 
   /**
@@ -2547,11 +2037,6 @@ public class Agent implements Runnable, Serializable
     }
     return se;
   }
-
-//#MIDP_EXCLUDE_END
-
-//#APIDOC_EXCLUDE_END
-
 	//#CUSTOM_EXCLUDE_END
 	
 	/**
@@ -2574,16 +2059,17 @@ public class Agent implements Runnable, Serializable
 		return val;
 	}
 	
+	
   /**
      This method is used to interrupt the agent's thread.
      In J2SE/PJAVA it just calls myThread.interrupt(). In MIDP, 
      where interrupt() is not supported the thread interruption is 
      simulated as described below.
-     The agent thread can be in one of the following four states:
+     The agent thread can be in one of the following three states:
      1) Running a behaviour.
      2) Sleeping on msgQueue due to a doWait()
-     3) Sleeping on suspendLock due to a doSuspend()
-     4) Sleeping on myScheduler due to a schedule() with no active behaviours
+     3) Sleeping on myScheduler due to a schedule() with no active behaviours
+     Note that in MIDP the suspended state is not supported
      The idea is: set the 'isInterrupted' flag, then wake up the
      thread wherever it may be
    */
@@ -2598,9 +2084,7 @@ public class Agent implements Runnable, Serializable
 	    // case 1: Nothing to do.
 	    // case 2: Signal on msgQueue.
 	    synchronized (msgQueue) {msgQueue.notifyAll();} 
-	    // case 3: Signal on suspendLock object.
-	    synchronized (suspendLock) {suspendLock.notifyAll();} 
-			// case 4: Signal on the Scheduler
+			// case 3: Signal on the Scheduler
 			synchronized (myScheduler) {myScheduler.notifyAll();}
   	}
   	#MIDP_INCLUDE_END*/
@@ -2633,17 +2117,6 @@ public class Agent implements Runnable, Serializable
   }
 
     //#J2ME_EXCLUDE_BEGIN
-
-    // For persistence service
-    private void setBufferedState(int bs) {
-	myBufferedState = bs;
-    }
-
-    // For persistence service
-    private int getBufferedState() {
-	return myBufferedState;
-    }
-
     // For persistence service -- Hibernate needs java.util collections
     private java.util.Set getBehaviours() {
 	Behaviour[] behaviours = myScheduler.getBehaviours();
@@ -2696,5 +2169,4 @@ public class Agent implements Runnable, Serializable
     }
 
     //#J2ME_EXCLUDE_END
-
 }
