@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.2  1998/12/08 00:07:17  rimassa
+  Removed handcrafted content generation for request message; now using
+  updated DFSearchBehaviour.toText() method.
+  Removed debugging printouts.
+
   Revision 1.1  1998/12/01 23:45:51  rimassa
   A Behaviour to search a DF for information. Will be used by a DF itself to
   perform recursive searches concurrently when a :df-depth greater than 1 is
@@ -45,6 +50,7 @@ public class SearchDFBehaviour extends FipaRequestClientBehaviour {
     msg.setOntology("fipa-agent-management");
 
     AgentManagementOntology.DFSearchAction dfsa = new AgentManagementOntology.DFSearchAction();
+    dfsa.setActor(dfName);
     dfsa.setArg(dfd);
     if(constraints != null) {
       Enumeration e = constraints.elements();
@@ -63,36 +69,31 @@ public class SearchDFBehaviour extends FipaRequestClientBehaviour {
 
     StringWriter textOut = new StringWriter();
     dfsa.toText(textOut);
-    msg.setContent("( action " + dfName + textOut + " )");
+    msg.setContent(textOut.toString());
 
   }
 
   protected void handleNotUnderstood(ACLMessage reply) {
-    System.out.println("'not-understood' received.");
     AgentManagementOntology myOntology = AgentManagementOntology.instance();
     result.setException(myOntology.getException(AgentManagementOntology.Exception.FAILEDMANACTION));
   }
 
   protected void handleRefuse(ACLMessage reply) {
-    System.out.println("'refuse' received.");
     String content = reply.getContent();
     StringReader text = new StringReader(content);
     result.setException(FIPAException.fromText(text));
   }
 
   protected void handleAgree(ACLMessage reply) {
-    System.out.println("'agree' received.");
   }
 
   protected void handleFailure(ACLMessage reply) {
-    System.out.println("'failure' received.");
     String content = reply.getContent();
     StringReader text = new StringReader(content);
     result.setException(FIPAException.fromText(text));
   }
 
   protected void handleInform(ACLMessage reply) {
-    System.out.println("'inform' received.");
 
     // Extract agent descriptors from reply message
     String content = reply.getContent();
