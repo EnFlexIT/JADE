@@ -195,5 +195,10 @@ public class ChatManagerAgent extends ToolAgent implements SubscriptionManager {
       });
     } // END of installHandlers() method
   	
-  } // END of inner class AMSSubscriber  
+  } // END of inner class AMSSubscriber 
+  
+  // Workaround for bug in JDK1.2.2
+  protected ACLMessage getSubscribe() {
+  	return super.getSubscribe();
+  }
 }
