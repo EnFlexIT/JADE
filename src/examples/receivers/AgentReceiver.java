@@ -65,7 +65,18 @@ public class AgentReceiver extends Agent {
       return finished;
     }
 
-    
+    public int onEnd() {
+    	reset();
+    	myAgent.addBehaviour(this);
+      return 0;
+    }
+
+    public void reset() {
+    	super.reset();
+    	finished = false;
+    	state = FIRST;
+    }
+
     private boolean op1(){
     		  
 
