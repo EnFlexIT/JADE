@@ -125,7 +125,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   private Filter encInFilter;
 
   // The logger
-  private Logger logger = Logger.getMyLogger(this.getClass().getName());
+  private Logger logger = Logger.getMyLogger(getClass().getName());
 
   // The cached AID -> MessagingSlice associations
   //#MIDP_EXCLUDE_BEGIN
@@ -133,8 +133,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   //#MIDP_EXCLUDE_END
 
   /*#MIDP_INCLUDE_BEGIN
-		private final Map cachedSlices = new HashMap();
-		#MIDP_INCLUDE_END*/
+	private final Map cachedSlices = new HashMap();
+	#MIDP_INCLUDE_END*/
 
   // The routing table mapping MTP addresses to their hosting slice
   private RoutingTable routes = new RoutingTable();
@@ -195,15 +195,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     // Initialize its own ID
     platformID = myContainer.getPlatformID();
     accID = "fipa-mts://" + platformID + "/acc";
-
-    /* Activate the default ACL String codec anyway
-    ACLCodec stringCodec = new StringACLCodec();
-    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
-
-    // Activate the efficient encoding for intra-platform encoding
-    ACLCodec efficientCodec = new LEAPACLCodec();
-    messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
-    */
 
     // create the command filters related to the encoding of ACL messages
     encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer, this);
@@ -624,8 +615,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {
             public void dispatchMessage(Envelope env, byte[] payload) {
               //log("Message from remote platform received", 2);
-              if (logger.isLoggable(Logger.INFO))
-                logger.log(Logger.INFO,"Message from remote platform received");
+              if (logger.isLoggable(Logger.FINE))
+                logger.log(Logger.FINE,"Message from remote platform received");
 
               // To avoid message loops, make sure that the ID of this ACC does
               // not appear in a previous 'received' stamp
@@ -676,8 +667,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         String[] pp = result.getSupportedProtocols();
         for (int i = 0; i < pp.length; ++i) {
           //log("Added Route-Via-MTP for protocol "+pp[i], 1);
-          if (logger.isLoggable(Logger.INFO))
-            logger.log(Logger.INFO,"Added Route-Via-MTP for protocol "+pp[i]);
+          if (logger.isLoggable(Logger.CONFIG))
+            logger.log(Logger.CONFIG,"Added Route-Via-MTP for protocol "+pp[i]);
 
         }
 
@@ -752,8 +743,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
               throw (ServiceException)t;
             }
             //System.err.println("### addRoute() threw " + t.getClass().getName() + " ###");
-            if (logger.isLoggable(Logger.INFO))
-              logger.log(Logger.INFO,"### addRoute() threw " + t.getClass().getName() + " ###");
+            logger.log(Logger.WARNING,"### addRoute() threw " + t + " ###");
           }
         }
         impl.newMTP(mtp, cid);
@@ -779,10 +769,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             }
           }
           catch(Throwable t) {
-            //System.err.println("### removeRoute() threw " + t.getClass().getName() + " ###");
-            if (logger.isLoggable(Logger.INFO))
-              logger.log(Logger.INFO,"### removeRoute() threw " + t.getClass().getName() + " ###");
-
             // Re-throw allowed exceptions
             if(t instanceof IMTPException) {
               throw (IMTPException)t;
@@ -790,6 +776,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
             if(t instanceof ServiceException) {
               throw (ServiceException)t;
             }
+            
+            logger.log(Logger.WARNING,"### removeRoute() threw " + t + " ###");
           }
         }
         impl.deadMTP(mtp, cid);
@@ -935,13 +923,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           		throw ((IMTPException) t);
           	}
           	//log("Fresh slice is "+targetSlice, 4);
-                  if (logger.isLoggable(Logger.INFO))
-                    logger.log(Logger.INFO,"Fresh slice is "+targetSlice);
+                  if (logger.isLoggable(Logger.FINEST))
+                    logger.log(Logger.FINEST,"Fresh slice is "+targetSlice);
 
             targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
           	//log("Dispatch successful", 4);
-                  if (logger.isLoggable(Logger.INFO))
-                    logger.log(Logger.INFO,"Dispatch successful");
+                  if (logger.isLoggable(Logger.FINEST))
+                    logger.log(Logger.FINEST,"Dispatch successful");
 
           }
           // System.out.println("--- New Container for AID " + receiverID.getLocalName() + " is " + cid.getName() + " ---");
@@ -1083,8 +1071,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     private void routeOut(Envelope env, byte[] payload, AID receiverID, String address) throws IMTPException, MTPException {
 	    RoutingTable.OutPort out = routes.lookup(address);
       //log("Routing message to "+receiverID.getName()+" towards port "+out, 2);
-      if (logger.isLoggable(Logger.INFO))
-        logger.log(Logger.INFO,"Routing message to "+receiverID.getName()+" towards port "+out);
+      if (logger.isLoggable(Logger.FINE))
+        logger.log(Logger.FINE,"Routing message to "+receiverID.getName()+" towards port "+out);
 
 	    if(out != null)
         out.route(env, payload, receiverID, address);
@@ -1111,8 +1099,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    String[] pp = mtp.getSupportedProtocols();
 	    for (int i = 0; i < pp.length; ++i) {
 		   // log("Added Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
-                   if (logger.isLoggable(Logger.INFO))
-                     logger.log(Logger.INFO,"Added Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
+                   if (logger.isLoggable(Logger.CONFIG))
+                     logger.log(Logger.CONFIG,"Added Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
 
 	    }
 
@@ -1130,8 +1118,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    String[] pp = mtp.getSupportedProtocols();
 	    for (int i = 0; i < pp.length; ++i) {
 		    //log("Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
-                    if (logger.isLoggable(Logger.INFO))
-                      logger.log(Logger.INFO,"Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
+                    if (logger.isLoggable(Logger.CONFIG))
+                      logger.log(Logger.CONFIG,"Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
 
 	    }
 
@@ -1178,8 +1166,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           ACLCodec codec = (ACLCodec)c.newInstance();
           messageEncodings.put(codec.getName().toLowerCase(), codec);
           //System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
-          if (logger.isLoggable(Logger.INFO))
-            logger.log(Logger.INFO,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+          if (logger.isLoggable(Logger.CONFIG))
+            logger.log(Logger.CONFIG,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
 
           // FIXME: notify the AMS of the new Codec to update the APDescritption.
         }
@@ -1196,8 +1184,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 	    // MTPs
 	    l = myProfile.getSpecifiers(Profile.MTPS);
-	    String fileName = myProfile.getParameter(Profile.FILE_DIR, "") + "MTPs-" + myContainer.getID().getName() + ".txt";
-	    PrintWriter f = new PrintWriter(new FileWriter(fileName));
+	    PrintWriter f = null;
+	    StringBuffer sb = null;
 
 	    Iterator mtps = l.iterator();
 	    while (mtps.hasNext()) {
@@ -1215,14 +1203,20 @@ public class MessagingService extends BaseService implements MessageManager.Chan
         MessagingSlice s = (MessagingSlice)getSlice(getLocalNode().getName());
         MTPDescriptor mtp = s.installMTP(addressURL, className);
         String[] mtpAddrs = mtp.getAddresses();
+	    	if (f == null) { 
+			    String fileName = myProfile.getParameter(Profile.FILE_DIR, "") + "MTPs-" + myContainer.getID().getName() + ".txt";
+			    f = new PrintWriter(new FileWriter(fileName));
+			    sb = new StringBuffer("MTP addresses:");
+	    	}
         f.println(mtpAddrs[0]);
-        System.out.println(mtpAddrs[0]);
-        if (logger.isLoggable(Logger.INFO))
-          logger.log(Logger.INFO,mtpAddrs[0]);
-
+        sb.append("\n- ");
+        sb.append(mtpAddrs[0]);
 	    }
-
-	    f.close();
+			
+	    if (f != null) {
+	    	myLogger.log(Logger.INFO, sb.toString());
+		    f.close();
+	    }
     }
     catch (ProfileException pe1) {
 	    //System.err.println("Error reading MTPs/Codecs");
