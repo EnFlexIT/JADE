@@ -74,6 +74,8 @@ import jade.security.DelegationCertificate;
 import jade.security.IdentityCertificate;
 import jade.security.CertificateFolder;
 import jade.security.PrivilegedExceptionAction;
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
 
 
 /**
@@ -130,7 +132,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		throw new ProfileException("Can't set PlatformID");
 	    }
 	}
-
+/*
 	try {
 	    if (p.getParameter(Profile.OWNER, null) != null) {
 		// if there is an owner for this container
@@ -150,7 +152,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	    authority = null;
 	    //			e1.printStackTrace();
 	}
-		
+*/
 	try {
 	    if (authority == null) {
 		authority = new jade.security.dummy.DummyAuthority();
@@ -298,7 +300,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
 	try {
 	    theAMS.resetEvents(true);
-	    ac.initAgent(ac.getAMS(), theAMS, AgentContainerImpl.CREATE_AND_START);
+	    ac.initAgent(ac.getAMS(), theAMS, AgentContainerImpl.CREATE_AND_START, (JADEPrincipal) null, (Credentials)null);
 	    theAMS.waitUntilStarted();
 	}
 	catch(Exception e) {
@@ -307,7 +309,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
  
 	try {
-	    ac.initAgent(ac.getDefaultDF(), defaultDF, AgentContainerImpl.CREATE_AND_START);
+	    ac.initAgent(ac.getDefaultDF(), defaultDF, AgentContainerImpl.CREATE_AND_START, (JADEPrincipal)null, (Credentials)null);
 	    defaultDF.waitUntilStarted();
 	}
 	catch(Exception e) {
@@ -334,19 +336,21 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   public void bornAgent(AID name, ContainerID cid, CertificateFolder certs, boolean forceReplacement) throws NameClashException, NotFoundException, AuthException {
 
     // verify identity certificate
-    authority.verify(certs.getIdentityCertificate());
+//    authority.verify(certs.getIdentityCertificate());
 
     AgentDescriptor ad = new AgentDescriptor(AgentDescriptor.NATIVE_AGENT);
     ad.setContainerID(cid);
-    AgentPrincipal principal = (AgentPrincipal) certs.getIdentityCertificate().getSubject();
-    ad.setPrincipal(principal);
+    //AgentPrincipal principal = (AgentPrincipal) certs.getIdentityCertificate().getSubject();
+    AgentPrincipal principal = new jade.security.dummy.DummyPrincipal();
+    
+//    ad.setPrincipal(principal);
     // CertificateFolder to be used by the AMS to perform actions on
     // behalf of (requested  by) the new agent
-    ad.setAMSDelegation(prepareAMSDelegation(certs));
+//    ad.setAMSDelegation(prepareAMSDelegation(certs));
     // Registration to the With Pages service
     AMSAgentDescription amsd = new AMSAgentDescription();
     amsd.setName(name);
-    amsd.setOwnership(principal.getOwnership());
+//    amsd.setOwnership(principal.getOwnership());
     amsd.setState(AMSAgentDescription.ACTIVE);
     ad.setDescription(amsd);
     
@@ -638,8 +642,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       // --- This code should go into the Security Service ---
 
       // Check permissions
-      authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
-      authority.checkAction(Authority.CONTAINER_CREATE_IN, getPrincipal(cid), null);
+      //authority.checkAction(Authority.AGENT_CREATE, (AgentPrincipal)certs.getIdentityCertificate().getSubject(), null);
+      //authority.checkAction(Authority.CONTAINER_CREATE_IN, getPrincipal(cid), null);
 
       // --- End of code that should go into the Security Service ---
 

@@ -135,13 +135,11 @@ public abstract class Profile {
   public static final String BE_REPLICA_INDEX = "be-replica-index";
   public static final String BE_MEDIATOR_ID = "be-mediator-id";
 
-  public static final String MAINAUTH_CLASS = "main-auth";
-  public static final String AUTHORITY_CLASS = "authority";
-  public static final String POLICY_FILE = "java.security.policy";
-  public static final String PASSWD_FILE = "jade.security.passwd";
+  //public static final String MAINAUTH_CLASS = "main-auth";
+  //public static final String AUTHORITY_CLASS = "authority";
+  //public static final String POLICY_FILE = "java.security.policy";
+  //public static final String PASSWD_FILE = "jade.security.passwd";
   public static final String OWNER = "owner";
-  public static final String PWD_HASH_ALGORITHM = "jade.security.impl.pwdHashAlgorithm";
-  public static final String PWD_DIALOG_CLASS = "jade.security.PwdDialog";
 
   // On J2SE and pJava, install mobility and notification services by default
   //#J2ME_EXCLUDE_BEGIN
