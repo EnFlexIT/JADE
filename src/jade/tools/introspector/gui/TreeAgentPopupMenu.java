@@ -27,20 +27,25 @@ package jade.tools.introspector.gui;
 
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 
 import jade.core.AID;
+import jade.gui.AgentTree;
 import jade.tools.introspector.Introspector;
 
 
-class TreeAgentPopupMenu extends JPopupMenu{
+class TreeAgentPopupMenu extends JPopupMenu {
   Introspector debugger;
   String agentName;
-  public TreeAgentPopupMenu(Introspector d){
+  private AgentTree tree;
+
+  public TreeAgentPopupMenu(Introspector d, AgentTree t) {
     debugger = d;
+    tree = t;
     build();
   }
 
-  void build (){
+  void build () {
     JMenuItem debugOn = new JMenuItem("Debug On");
     JMenuItem debugOff = new JMenuItem("Debug Off");
     TreeAgentPopupMenuListener listener = new TreeAgentPopupMenuListener();
@@ -53,18 +58,19 @@ class TreeAgentPopupMenu extends JPopupMenu{
     this.add(debugOff);
   }
 
-  public void setSelectedAgent(String agentname) {
-    this.agentName = agentname;
-  }
-
   class TreeAgentPopupMenuListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
-      JMenuItem source=(JMenuItem) e.getSource();
-      if(source.getName().equals("on")) {
-        debugger.addAgent(new AID(agentName, AID.ISGUID));
-      }
-      else if(source.getName().equals("off")) {
-        debugger.removeAgent(new AID(agentName, AID.ISGUID));
+      JMenuItem source = (JMenuItem)e.getSource();
+      TreePath[] paths = tree.tree.getSelectionPaths();
+      for(int i = 0; i < paths.length; i++) {
+	AgentTree.Node node = (AgentTree.Node) (paths[i].getLastPathComponent());
+	String agentName = node.getName();
+	if(source.getName().equals("on")) {
+	  debugger.addAgent(new AID(agentName, AID.ISGUID));
+	}
+	else if(source.getName().equals("off")) {
+	  debugger.removeAgent(new AID(agentName, AID.ISGUID));
+	}
       }
     }
   }

@@ -39,7 +39,7 @@ import javax.swing.tree.TreeSelectionModel;
  */
 class PopUpMouser extends MouseAdapter
 {
-    TreeAgentPopupMenu popup;
+    JPopupMenu popup;
     JTree tree;
     AgentTree agentTree;
 
@@ -74,13 +74,11 @@ class PopUpMouser extends MouseAdapter
       }
       current=(AgentTree.Node)selPath.getLastPathComponent();
       typeNode=current.getType();
-      if(!typeNode.equals("")){
-	  popup = (TreeAgentPopupMenu)agentTree.getPopupMenu(typeNode);
-	  if(popup == null)
-	    return false;
-        popup.setSelectedAgent(current.getName());
+      if(!typeNode.equals("")) {
+	popup = agentTree.getPopupMenu(typeNode);
+	if(popup == null)
+	  return false;
       }
-
 
       return true;
     }

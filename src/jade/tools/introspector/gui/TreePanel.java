@@ -39,7 +39,7 @@ import jade.gui.AgentTree;
 class TreePanel extends JPanel implements TreeSelectionListener {
 
   public JTextArea selArea;
-  AgentTree treeAgent;
+  AgentTree treeAgent; // FIXME: It should be private
   private JScrollPane scroll;
   private JSplitPane pan;
   private JSplitPane pane;
