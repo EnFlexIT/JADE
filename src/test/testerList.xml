@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='utf-8'?>
+	<!DOCTYPE TesterList [
+		<!ELEMENT TesterList (Tester)*>
+		<!ELEMENT Tester (ClassName, Description, TestsListRif)>
+		<!ATTLIST Tester 
+		    name     CDATA    #REQUIRED
+		    skip     CDATA    #REQUIRED
+		>
+		<!ELEMENT ClassName (#PCDATA)>
+		<!ELEMENT Description (#PCDATA)>
+		<!ELEMENT TestsListRif (#PCDATA)>
+	]>
+	<TesterList> 
+		<Tester name="Ping" skip="true">
+			<ClassName>test.pingAgent.PingTesterAgent</ClassName>
+			<Description> Implements a simple intaraction between 2 agents </Description>
+			<TestsListRif>test\\pingAgent\\pingTestsList.xml</TestsListRif>
+		</Tester>		
+		<Tester name="Content" skip="false">
+			<ClassName>test.content.ContentTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\content\\contentTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="SLOperators" skip="false">
+			<ClassName>test.content.SLOperatorsTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\content\\SLOperatorTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Inter Platform Communication" skip="false">
+			<ClassName>test.interPlatform.InterPlatformCommunicationTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\interPlatform\\interPlatformTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Behaviours" skip="false">
+			<ClassName>test.behaviours.BlockTimeoutTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\behaviours\\blockTimeOutTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="DF" skip="false">
+			<ClassName>test.domain.df.DFTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\domain\\df\\dfTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="JADE Management Ontology" skip="false">
+			<ClassName>test.domain.JADEManagementOntologyTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\domain\\jadeManagementOntotestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Mobility" skip="false">
+			<ClassName>test.mobility.MobilityTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\mobility\\mobilityTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="ContractNet Protocol" skip="false">
+			<ClassName>test.proto.ContractNetTesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\proto\\contractNetProtoTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="AchieveRE Protocol" skip="false">
+			<ClassName>test.proto.AchieveRETesterAgent</ClassName>
+			<Description> FIXME TO WRITE.... </Description>
+			<TestsListRif>test\\proto\\achieveRETestsList.xml</TestsListRif>
+		</Tester>
+	</TesterList>
