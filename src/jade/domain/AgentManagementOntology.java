@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.7  1998/10/18 17:35:36  rimassa
+  Added some static final String varibles to Constraint class to
+  represent various keywords.
+
   Revision 1.6  1998/10/04 18:01:21  rimassa
   Added a 'Log:' field to every source file.
 
@@ -479,9 +483,17 @@ public class AgentManagementOntology {
 
 
   public static class Constraint {
-    String name;
-    String fn;
-    int arg;
+
+    public static final String DFDEPTH = ":df-depth";
+    public static final String RESPREQ = ":resp-req";
+
+    public static final String MAX = "Max";
+    public static final String MIN = "Min";
+    public static final String EXACTLY = "Exactly";
+
+    private String name;
+    private String fn;
+    private int arg;
 
     public void setName(String s) {
       name = s;
