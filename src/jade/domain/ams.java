@@ -906,7 +906,7 @@ public class ams extends Agent implements AgentManager.Listener {
   protected void setup() {
 
     // Fill the ':name' slot of the Agent Platform Profile with the Platform ID.
-    theProfile.setName(getHap());
+    theProfile.setName("\"" + getHap() + "\"");
     writeAPDescription();
 
     // Register the supported ontologies 
