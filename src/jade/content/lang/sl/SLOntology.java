@@ -86,10 +86,10 @@ __J2ME_COMPATIBILITY__END*/
 	  
 	  
 			// Schemas for the SL2 operators
-    	add(VariableSchema.getBaseSchema(), AbsVariable.getJavaClass());
-  		add(new IRESchema(IOTA), AbsIRE.getJavaClass());
-  		add(new IRESchema(ANY), AbsIRE.getJavaClass());
-  		add(new IRESchema(ALL), AbsIRE.getJavaClass());
+    	add(VariableSchema.getBaseSchema());
+  		add(new IRESchema(IOTA));
+  		add(new IRESchema(ANY));
+  		add(new IRESchema(ALL));
 	  	add(new PredicateSchema(FORALL), AbsPredicate.getJavaClass());
 	  	add(new PredicateSchema(EXISTS), AbsPredicate.getJavaClass());
 	  	add(new PredicateSchema(BELIEF), AbsPredicate.getJavaClass());
