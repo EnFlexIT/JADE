@@ -41,6 +41,7 @@ import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
 
 import jade.content.ContentElementList;
+import jade.content.ContentElement;
 
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -310,7 +311,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
       
     List l = null;
     try {
-    	Result r = (Result)((ContentElementList)myAgent.getContentManager().extractContent(lastMsg)).get(0); 
+    	Result r = (Result)((ContentElement)myAgent.getContentManager().extractContent(lastMsg)); 
     	l = r.getItems(); 
 	} catch (Exception e) {
 	    e.printStackTrace();
