@@ -378,6 +378,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Install all ACL Codecs and MTPs specified in the Profile
 	  messaging.boot(myProfile);
 
+	  // Attach all base services to the container Command Processor
+	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
+	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
+
 	  //#MIDP_EXCLUDE_BEGIN
 	  if(myMainContainer != null) {
 	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER_HOST, null) == null);
@@ -400,6 +404,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  se.printStackTrace();
 	      }
 	  }
+
   }
 
   protected NodeDescriptor getNodeDescriptor() {
@@ -939,10 +944,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	return true;
     }
 
-    public void storeUndelivered(ACLMessage msg, AID receiverID) {
-
-    }
-
     // Tells whether the given AID refers to an agent of this platform
     // or not.
     public boolean livesHere(AID id) {
@@ -982,6 +983,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	    myServiceManager.activateService(new ServiceDescriptor(svc.getName(), svc));
 	    svc.boot(myProfile);
+
+	    // If this service extends BaseService, attach it to the container Command Processor
+	    if(svc instanceof BaseService) {
+		BaseService bs = (BaseService)svc;
+		bs.setCommandProcessor(myCommandProcessor);
+	    }
+
 	}
 	catch(ServiceException se) {
 	    // Let it through
