@@ -1217,12 +1217,14 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      amount of time passes without any message reception.
    */
   public final ACLMessage blockingReceive(long millis) {
-    ACLMessage msg = receive();
-    if(msg == null) {
-      doWait(millis);
-      msg = receive();
+    synchronized(waitLock) {
+      ACLMessage msg = receive();
+      if(msg == null) {
+	doWait(millis);
+	msg = receive();
+      }
+      return msg;
     }
-    return msg;
   }
 
   /**
@@ -1263,21 +1265,24 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
      @see jade.core.Agent#blockingReceive()
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern, long millis) {
-    ACLMessage msg = receive(pattern);
-    long timeToWait = millis;
-    while(msg == null) {
-      long startTime = System.currentTimeMillis();
-      doWait(timeToWait);
-      long elapsedTime = System.currentTimeMillis() - startTime;
-
+    ACLMessage msg = null;
+    synchronized(waitLock) {
       msg = receive(pattern);
+      long timeToWait = millis;
+      while(msg == null) {
+	long startTime = System.currentTimeMillis();
+	doWait(timeToWait);
+	long elapsedTime = System.currentTimeMillis() - startTime;
 
-      if(millis != 0) {
-	timeToWait -= elapsedTime;
-	if(timeToWait <= 0)
-	  break;
+	msg = receive(pattern);
+
+	if(millis != 0) {
+	  timeToWait -= elapsedTime;
+	  if(timeToWait <= 0)
+	    break;
+	}
+
       }
-
     }
     return msg;
   }
