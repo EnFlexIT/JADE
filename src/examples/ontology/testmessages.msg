@@ -1,3 +1,18 @@
+(INFORM
+ :language FIPA-SL0
+ :ontology fipa-agent-management
+ :content ( (result (action (Agent-Identifier :name x@001122)
+             (SEARCH
+              (Df-agent-description
+              :name (Agent-Identifier :name x@ior:002233))
+              (search-constraints :max-depth 20 :max-results 10 )
+             ))
+             (set (DF-Agent-Description
+                    :name (Agent-Identifier :name x@ior:002233))
+                  (DF-Agent-Description :name (Agent-Identifier :name x2)))
+           ))
+ :X-comment "Result of a search with the DF"
+)
 
 (REQUEST
  :language FIPA-SL0
@@ -152,8 +167,7 @@
  :content ((action (Agent-Identifier :name x@001122)
             (move-agent
              (Mobile-Agent-Description
-              :name x@ior:002233
-              :address iiop://p.cselt:50/acc
+              :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
 			    :transport-protocol RMI
@@ -187,8 +201,7 @@
  :content ((done (action (Agent-Identifier :name x@001122)
                          (clone-agent
              (Mobile-Agent-Description
-              :name x@ior:002233
-              :address iiop://p.cselt:50/acc
+              :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
 			    :transport-protocol RMI
@@ -203,8 +216,7 @@
  :content ((action (Agent-Identifier :name x@001122)
             (clone-agent
              (Mobile-Agent-Description
-              :name x@ior:002233
-              :address iiop://p.cselt:50/acc
+              :name (Agent-Identifier :name x@ior:002233)
               :destination (Location 
 			    :name Container1 
 			    :transport-protocol RMI
@@ -218,7 +230,7 @@
  :language FIPA-SL0
  :ontology jade-mobility-ontology
  :content ( (result (action (Agent-Identifier :name x@001122)
-                            (where-is-agent Giovanni))
+                            (where-is-agent (Agent-Identifier :name Giovanni)))
              (Location 
 			    :name Container1 
 			    :transport-protocol RMI
