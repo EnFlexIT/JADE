@@ -594,10 +594,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
     }
     serializeByteArray(payload);
     
-  	Envelope env = gm.getEnvelope();
-  	if (env != null) {
-  		writeObject(env);
-  	}	
+		writeObject(gm.getEnvelope());
   	writeBoolean(gm.isAMSFailure());
   }
   
