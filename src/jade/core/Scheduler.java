@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.8  1999/03/15 15:22:22  rimassa
+  Changed an 'if' clause to a 'while' clause.
+
   Revision 1.7  1999/03/03 16:03:44  rimassa
   Changed a getName() call to getLocalName() call.
 
@@ -80,7 +83,7 @@ class Scheduler {
   // round-robin algorithm.
   public synchronized Behaviour schedule() throws InterruptedException {
 
-    if(behaviours.isEmpty()) {
+    while(behaviours.isEmpty()) {
       // System.out.println("Agent " + owner.getLocalName() + " has nothing to do, so it sleeps ...");
       wait();
     }
