@@ -31,40 +31,65 @@ import javax.microedition.lcdui.*;
 /**
    @author Giovanni Caire - TILAB
  */
-public class TestConnectionListener implements ConnectionListener {
+public class TestConnectionListener implements ConnectionListener, CommandListener {
+  private final static Command CMD_BACK = new Command("Back", Command.BACK, 1);
 	private Form f;
+	private Displayable previous;
 	
 	public TestConnectionListener() {
 		f = new Form("Connection events");
-    Display.getDisplay(Agent.midlet).setCurrent(f);
+    f.addCommand(CMD_BACK);
+    f.setCommandListener(this);
 	}
 		
-	/**
-	   This method is called whenever a temporary disconnection 
-	   is detected.
-	 */
-	public void handleDisconnection() {
-		f.append(new StringItem(null, "Disconnection "+System.currentTimeMillis()));
-    Display.getDisplay(Agent.midlet).setCurrent(f);
+	public void handleConnectionEvent(int ev) {
+		switch (ev) {
+		case BEFORE_CONNECTION:
+			f.append(new StringItem(null, "Before connection."));
+			break;
+		case DISCONNECTED:
+			f.append(new StringItem(null, "Disconnection. "+System.currentTimeMillis()));
+			show();
+			break;
+		case RECONNECTED:
+			f.append(new StringItem(null, "Reconnection. "+System.currentTimeMillis()));
+			show();
+			break;
+		case DROPPED:
+			f.append(new StringItem(null, "Connection dropped. "+System.currentTimeMillis()));
+			break;
+		case RECONNECTION_FAILURE:
+			f.append(new StringItem(null, "Impossible to reconnect. "+System.currentTimeMillis()));
+			show();
+			break;
+		case BE_NOT_FOUND:
+			f.append(new StringItem(null, "BackEnd not found! "+System.currentTimeMillis()));
+			break;
+		case NOT_AUTHORIZED:
+			f.append(new StringItem(null, "Not authorized! "+System.currentTimeMillis()));
+			show();
+			break;
+		default:
+			break;
+		}			
 	}
 	
-	/**
-	   This method is called whenever a the device reconnects
-	   after a temporary disconnection.
-	 */
-	public void handleReconnection() {
-		f.append(new StringItem(null, "Reconnection "+System.currentTimeMillis()));
-    Display.getDisplay(Agent.midlet).setCurrent(f);
-	}
-
-	/**
-	   This method is called when the device detects it is no longer
-	   possible to reconnect (e.g. because the maximum disconnection 
-	   timeout expired) 
-	 */
-	public void handleReconnectionFailure() {
-		f.append(new StringItem(null, "Impossible to reconnect "+System.currentTimeMillis()));
-    Display.getDisplay(Agent.midlet).setCurrent(f);
-	}
+	
+	private void show() {
+		Display theDisplay = Display.getDisplay(Agent.midlet);
+		Displayable current = theDisplay.getCurrent();
+		if (current != f) {
+			previous = current;
+		}
+    theDisplay.setCurrent(f);
+	} 
+	
+  public void commandAction(Command c, Displayable d) {
+    if( c == CMD_BACK) {
+    	if (previous != null) {
+	    	Display.getDisplay(Agent.midlet).setCurrent(previous);
+    	}
+    }
+  }
 }
 
