@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.23  2000/01/21 15:12:23  rimassaJade
+  Date update for JADE 1.25.
+
   Revision 1.22  1999/10/06 14:56:25  rimassa
   Committed for 1.1 version.
 
@@ -84,7 +87,7 @@ import java.util.Vector;
  */
 public class Boot {
 
-
+ 
   // This separates agent name from agent class on the command line
   private static final String SEPARATOR = ":";
 
