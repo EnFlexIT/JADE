@@ -431,7 +431,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   }
 
   public CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
-      return super.createCertificateFolder(agentID);
+      return null; //super.createCertificateFolder(agentID);
   }
 
   /**
