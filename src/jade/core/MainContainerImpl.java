@@ -49,6 +49,9 @@ import jade.domain.df;
 
 import jade.lang.acl.ACLMessage;
 
+import jade.mtp.*; // FIXME: IIOP is now hardwired into the platform
+
+
 class MainContainerImpl extends AgentContainerImpl implements MainContainer, AgentManager {
 
   // Initial size of containers hash table
@@ -110,6 +113,17 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   }
 
+  // FIXME: Temporary hack
+  public void route(jade.domain.FIPAAgentManagement.Envelope env, byte[] payload, String address) throws RemoteException, NotFoundException {
+    try {
+      theACC.forwardMessage(env, payload, address);
+    }
+    catch(MTP.MTPException mtpe) {
+      throw new NotFoundException("Temporary Hack");
+    }
+  }
+
+
   // this variable holds a progressive number just used to name new containers
   private static int containersProgNo = 0;
 
@@ -124,8 +138,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     // Build the Agent IDs for the AMS and for the Default DF.
     Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
 
-    theACC = new acc();
-
     initAMS();
     initDF();
 
@@ -135,6 +147,37 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     catch(Exception e) {
       // Should never happen
       e.printStackTrace();
+    }
+
+    theACC = new acc(this, myPlatform);
+
+    try {
+      Class c = Class.forName("jade.mtp.iiop.MessageTransportProtocol"); // FIXME: Now hardwired, will become configurable
+      MTP iiopMTP = (MTP)c.newInstance();
+      TransportAddress addr = theACC.addMTP(iiopMTP);
+      String s = iiopMTP.addrToStr(addr);
+      System.out.println(s);
+      try {
+	FileWriter f = new FileWriter("JADE.IOR");
+	f.write(s, 0, s.length());
+	f.close();
+      }
+      catch (IOException io) {
+	io.printStackTrace();
+      }
+    }
+    catch(ClassNotFoundException cnfe) {
+      System.out.println("ERROR: The class for the IIOP MTP was not found");
+    }
+    catch(InstantiationException ie) {
+      ie.printStackTrace();
+    }
+    catch(IllegalAccessException iae) {
+      iae.printStackTrace();
+    }
+    catch(MTP.MTPException mtpe) {
+      System.out.println("ERROR: Could not initialize IIOP MTP !!!");
+      mtpe.printStackTrace();
     }
 
     containers.put(MAIN_CONTAINER_NAME, this);
@@ -332,7 +375,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
   public RemoteProxy getProxy(AID agentID) throws RemoteException, NotFoundException {
-    System.out.println("MainContainerImpl::getProxy() called");
     RemoteProxy rp;
     AgentDescriptor ad = platformAgents.get(agentID);
 
