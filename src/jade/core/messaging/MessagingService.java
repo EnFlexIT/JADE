@@ -120,7 +120,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	super.init(ac, p);
-
+	this.myProfile = p;
 	myContainer = ac;
 
 	// Initialize its own ID
@@ -460,13 +460,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
 		if(address == null) { 
 		    // Let the MTP choose the address
-		    TransportAddress ta = proto.activate(dispatcher);
+		    TransportAddress ta = proto.activate(dispatcher, myProfile);
 		    address = proto.addrToStr(ta);
 		}
 		else { 
 		    // Convert the given string into a TransportAddress object and use it
 		    TransportAddress ta = proto.strToAddr(address);
-		    proto.activate(dispatcher, ta);
+		    proto.activate(dispatcher, ta, myProfile);
 		}
 		routes.addLocalMTP(address, proto);
 		MTPDescriptor result = new MTPDescriptor(proto.getName(), new String[] {address}, proto.getSupportedProtocols());
@@ -843,7 +843,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
        the list of ACL codecs and MTPs to activate on this node.
     **/
     public void boot(Profile myProfile) throws ServiceException {
-
+				this.myProfile = myProfile;
 	try {
 
 	    // Activate the default ACL String codec anyway
@@ -1137,6 +1137,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
     }
 
+		// The profile passed to this object
+		private Profile myProfile;
 
     // The concrete agent container, providing access to LADT, etc.
     private AgentContainer myContainer;

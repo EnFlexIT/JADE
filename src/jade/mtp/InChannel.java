@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.mtp;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.core.Profile;
 
 /**
    This interface is the receiver's view of an MTP.
@@ -41,22 +42,26 @@ public interface InChannel {
   /**
      Activates an MTP handler for incoming messages on a default
      address.
+		 @parameter p is the Profile from which the configuration parameters
+		 for this instance of JADE container can be retrieved
      @return A <code>TransportAddress</code>, corresponding to the
      chosen default address.
      @exception MTPException Thrown if some MTP initialization error
      occurs.
   */
-  TransportAddress activate(Dispatcher disp) throws MTPException;
+  TransportAddress activate(Dispatcher disp, Profile p) throws MTPException;
 
   /**
      Activates an MTP handler for incoming messages on a specific
      address.
      @param ta A <code>TransportAddress</code> object, representing
      the transport address to listen to.
+		 @parameter p is the Profile from which the configuration parameters
+		 for this instance of JADE container can be retrieved
      @exception MTPException Thrown if some MTP initialization error
      occurs.
    */
-  void activate(Dispatcher disp, TransportAddress ta) throws MTPException;
+  void activate(Dispatcher disp, TransportAddress ta, Profile p) throws MTPException;
 
   /**
      Deactivates the MTP handler listening at a given transport

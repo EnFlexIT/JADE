@@ -42,6 +42,7 @@ import org.omg.CosNaming.*;
 import FIPA.*; // OMG IDL Stubs
 
 import jade.core.AID;
+import jade.core.Profile;
 
 import jade.mtp.InChannel;
 import jade.mtp.OutChannel;
@@ -196,11 +197,11 @@ public class MessageTransportProtocol implements MTP {
     
   }
 
-  public TransportAddress activate(InChannel.Dispatcher disp) throws MTPException {
+  public TransportAddress activate(InChannel.Dispatcher disp, Profile p) throws MTPException {
     server = new MTSImpl(disp);
     myORB.connect(server);
     IIOPAddress iiop = new IIOPAddress(myORB, server);
-    
+
     /* //Open log file
     String fileName = "iiop"+iiop.getHost()+iiop.getPort()+".log";
 		try{
@@ -211,7 +212,7 @@ public class MessageTransportProtocol implements MTP {
     
   }
 
-  public void activate(InChannel.Dispatcher disp, TransportAddress ta) throws MTPException {
+  public void activate(InChannel.Dispatcher disp, TransportAddress ta, Profile p) throws MTPException {
     throw new MTPException("User supplied transport address not supported.");
   }
 
