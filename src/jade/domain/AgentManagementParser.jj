@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.9  1998/10/26 22:36:23  Giovanni
+  Added some grammar productions to support property lists in AMS action
+  'create-agent'.
+
   Revision 1.8  1998/10/26 00:05:39  rimassa
   Added grammar productions to parse two new AMS actions: 'create-agent'
   and 'kill-agent'. Besides, some slight modifications were necessary to
@@ -187,11 +191,21 @@ void CreateAgentArg(AgentManagementOntology.CreateAgentAction caa) :
 {
   Token t;
   AgentManagementOntology.AMSAgentDescriptor amsd;
-} // FIXME: Property list still missing
+}
 {
    ( amsd = AMSDescriptionBody() { caa.setArg(amsd); } )
  | ( <AGENT_CODE> t = <WORD> { caa.setClassName(t.image); } )
- | ( <AGENT_PROPERTIES> t = <INTEGER> { int i = Integer.parseInt(t.image); caa.setContainerID(i); } )
+ | ( <AGENT_PROPERTIES> ( "(" Property(caa) ")" )+ )
+}
+
+void Property(AgentManagementOntology.CreateAgentAction caa) :
+{
+  Token name;
+  Token value;
+}
+{
+  ":" name = <WORD> ( value = <WORD> | value = <INTEGER> )
+  { caa.addProperty(":" + name.image, value.image); }
 }
 
 AgentManagementOntology.KillAgentAction KillAgentBody() :
