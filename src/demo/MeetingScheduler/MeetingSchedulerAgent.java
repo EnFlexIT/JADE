@@ -59,39 +59,7 @@ protected void setup() {
 
 
 protected void searchPerson(String dfname, String personName) {
-  AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
-  sd.setType("personal-agent");
-  if (personName != null)
-    sd.setFixedProps("(represents " + personName + ")");
-  AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
-  dfd.setOntology("pa-ontology");
-  //dfd.addAgentService(sd);
-  //dfd.setDFState("active");
-  //dfd.setOwnership(user);
-  try {
-    //dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-    AgentManagementOntology.DFSearchResult result;
-    Vector vc = new Vector(1);
-    AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
-    c.setName(AgentManagementOntology.Constraint.DFDEPTH);
-    c.setFn(AgentManagementOntology.Constraint.MAX); // MIN
-    c.setArg(3);
-    vc.addElement(c);
-    result = searchDF(dfname,dfd,vc);
-    //System.err.println("\nSearch DF results:");
-    //result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
-    
-    // add values to knownPersons
-    Enumeration e = result.elements();
-    while (e.hasMoreElements()) {
-      dfd = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
-      Person p = new Person(dfd.getOwnership(),dfd,dfname); 
-      addKnownPerson(p);
-    }
-  } catch (jade.domain.FIPAException fe) {
-    fe.printStackTrace();
-    mf.showErrorMessage(fe.getMessage());
-  }
+  addBehaviour(new SearchPersonBehaviour(this, dfname, personName));
 }
 
 protected void DFregistration(String dfname) {
@@ -319,6 +287,50 @@ protected String getUser() {
       DFregistration("df");  // register with the default DF
       mf.setVisible(true);
     }
+  }
+
+  class SearchPersonBehaviour extends jade.core.behaviours.OneShotBehaviour {
+    String dfname, personName;
+    SearchPersonBehaviour(Agent a, String dfName, String personname) {
+      super(a);
+      this.dfname=dfName;
+      this.personName=personname;
+    }
+  public void action(){
+    AgentManagementOntology.ServiceDescriptor sd = new AgentManagementOntology.ServiceDescriptor();
+    sd.setType("personal-agent");
+    if (personName != null)
+      sd.setFixedProps("(represents " + personName + ")");
+    AgentManagementOntology.DFAgentDescriptor dfd = new AgentManagementOntology.DFAgentDescriptor();
+    dfd.setOntology("pa-ontology");
+    //dfd.addAgentService(sd);
+    //dfd.setDFState("active");
+    //dfd.setOwnership(user);
+    try {
+      //dfd.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+      AgentManagementOntology.DFSearchResult result;
+      Vector vc = new Vector(1);
+      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
+      c.setFn(AgentManagementOntology.Constraint.MAX); // MIN
+      c.setArg(3);
+      vc.addElement(c);
+      result = searchDF(dfname,dfd,vc);
+      //System.err.println("\nSearch DF results:");
+      //result.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
+      
+      // add values to knownPersons
+      Enumeration e = result.elements();
+      while (e.hasMoreElements()) {
+	dfd = (AgentManagementOntology.DFAgentDescriptor)e.nextElement();
+	Person p = new Person(dfd.getOwnership(),dfd,dfname); 
+	addKnownPerson(p);
+      }
+    } catch (jade.domain.FIPAException fe) {
+      fe.printStackTrace();
+      mf.showErrorMessage(fe.getMessage());
+    }
+  }
   }
 
 } // end Agent.java
