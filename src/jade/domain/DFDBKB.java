@@ -40,7 +40,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.LinkedList;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
-
+import jade.util.Logger;
 
 import java.sql.*;
 import java.util.Enumeration;
@@ -63,6 +63,8 @@ class DFDBKB extends DBKB {
 	private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	// Number of registrations after the last lease-time-cleanup
 	private int regsCnt = 0;
+	
+	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
 	// COSTRUCTORS
 	public DFDBKB(int max, String drv, String url, String user, String passwd) throws SQLException {
@@ -158,15 +160,15 @@ class DFDBKB extends DBKB {
          "aclm7	 	 VARCHAR(255), " +
          "aclm8	 	 VARCHAR(255), " +
          "PRIMARY KEY( conversationid )"+")" );
-    	//DEBUG
-      System.out.println("Tables correctly created");
+    		//DEBUG
+      		logger.log(Logger.INFO,"Tables correctly created");
 		}
 		catch(SQLException se) {
 			// We interpret an SQLException here as a sign that tables 
 			// are already there.
 			// FIXME: We should distinguish the case of actual creation errors.
     	//DEBUG
-			System.out.println("Tables already present");
+			logger.log(Logger.WARNING,"Tables already present");
 		}
 		finally {
 			if (stmt != null) {
@@ -213,7 +215,7 @@ class DFDBKB extends DBKB {
 			}
 		}
 		catch(SQLException se){
-			System.out.println("Error inserting DFD for agent "+dfd.getName());
+			logger.log(Logger.SEVERE,"Error inserting DFD for agent "+dfd.getName());
 			se.printStackTrace();
 		}
 		finally {
@@ -273,7 +275,7 @@ class DFDBKB extends DBKB {
   		}
 		}
 		catch(SQLException se){
-			System.out.println("Error searching for DFDs matching template. DB operation: "+select);
+			logger.log(Logger.SEVERE,"Error searching for DFDs matching template. DB operation: "+select);
 			se.printStackTrace();
 		}
 		finally {
@@ -410,7 +412,7 @@ class DFDBKB extends DBKB {
 			}
 		}
 		catch(SQLException se){
-			System.out.println("Error reconstructing DFD for agent "+aidN);
+			logger.log(Logger.WARNING,"Error reconstructing DFD for agent "+aidN);
 			se.printStackTrace();
 		}
 		finally {
@@ -442,7 +444,7 @@ class DFDBKB extends DBKB {
   		conn.setAutoCommit(true);
 		}
 		catch(SQLException se){
-			System.out.println("Error removing DFD for agent "+nameAg);
+			logger.log(Logger.WARNING,"Error removing DFD for agent "+nameAg);
 			se.printStackTrace();
 		}
 		finally {
@@ -894,7 +896,7 @@ class DFDBKB extends DBKB {
 		String convID = aclM.getConversationId();
 		String res = deregisterSubscription(convID);
 		if(res == null)
-			System.out.println("No subscription to delete.");
+			logger.log(Logger.WARNING,"No subscription to delete.");
 	}
 
 
@@ -981,6 +983,6 @@ class DFDBKB extends DBKB {
 				}
 			se.printStackTrace();
 		}
-		System.out.println("Tables dropped.");
+		logger.log(Logger.INFO,"Tables dropped.");
 	}
 }

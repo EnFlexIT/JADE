@@ -32,6 +32,7 @@ import jade.content.abs.AbsIRE;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.proto.SubscriptionResponder;
 import jade.util.leap.List;
+import jade.util.Logger;
 
 import java.util.Enumeration;
 
@@ -59,7 +60,7 @@ public abstract class KB {
 		// We don't want to register a fact whose lease time has 
 		// already expired
 		if (lm.isExpired(lm.getLeaseTime(fact))) {
-			System.out.println("Fact with lease time already expired");
+			Logger.getMyLogger(this.getClass().getName()).log(Logger.WARNING,"Fact with lease time already expired");
 			return null;
 		}
 		

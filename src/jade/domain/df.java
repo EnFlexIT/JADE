@@ -34,6 +34,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
+import jade.util.Logger;
 
 import java.net.InetAddress;
 
@@ -136,7 +137,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   // FIXME The size of the cache must be read from the Profile
   private final static int SEARCH_ID_CACHE_SIZE = 16;
   private jade.util.HashCache searchIdCache = new jade.util.HashCache(SEARCH_ID_CACHE_SIZE);
-	private int searchIdCnt = 0;
+  private int searchIdCnt = 0;
  
   // The DF federated with this DF
   private List children = new ArrayList();
@@ -188,6 +189,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private KB agentDescriptions = null;
   private KBSubscriptionManager subManager = null;	
   
+  private Logger logger = Logger.getMyLogger(this.getClass().getName());
+  
     /**
        Default constructor. This constructor does nothing; however,
        applications can create their own DF agents using regular
@@ -232,7 +235,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				dbPassword = p.getProperty(DB_PASSWORD, dbPassword);
 			}
 			catch (Exception e) {
-				log("Error loading configuration from file "+args[0]+" ["+e+"].", 0);
+				logger.log(Logger.SEVERE,"Error loading configuration from file "+args[0]+" ["+e+"].");
 			}
 		}
 		
@@ -255,9 +258,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
   		maxResultLimit = Integer.parseInt(sMaxResults);
 		if(maxResultLimit < 0){
 			maxResultLimit = Integer.parseInt(DEFAULT_MAX_RESULTS);
-			log("WARNING: The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS ,0);
+			logger.log(Logger.SEVERE,"WARNING: The maxResult parameter of the DF Search Constraints can't be a negative value. It has been set to the default value: " + DEFAULT_MAX_RESULTS);
 		}else if(maxResultLimit > Integer.parseInt(DEFAULT_MAX_RESULTS)){
-			log("WARNING: Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!",0);
+			logger.log(Logger.SEVERE,"WARNING: Setting the maxResult of the DF Search Constraint to large values can cause low performance or system crash !!");
 		}
   	}
   	catch (Exception e) {
@@ -265,27 +268,27 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	}
 				
   	// Instantiate the knowledge base 
-		log("DF KB configuration:", 2);
+		logger.log(Logger.INFO,"DF KB configuration:");
 		if (dbUrl != null) {
-			log("- Type = persistent", 2);
-			log("- DB url = "+dbUrl, 2);
-			log("- DB driver = "+dbDriver, 2);
-			log("- DB username = "+dbUsername, 2);
-			log("- DB password = "+dbPassword, 2);
+			logger.log(Logger.INFO,"- Type = persistent");
+			logger.log(Logger.INFO,"- DB url = "+dbUrl);
+			logger.log(Logger.INFO,"- DB driver = "+dbDriver);
+			logger.log(Logger.INFO,"- DB username = "+dbUsername);
+			logger.log(Logger.INFO,"- DB password = "+dbPassword);
 			try {
 	  			agentDescriptions = new DFDBKB(maxResultLimit, dbDriver, dbUrl, dbUsername, dbPassword);
 			}
 			catch (Exception e) {
-				log("Error creating persistent KB ["+e+"]. Use a volatile KB.", 0);
+				logger.log(Logger.SEVERE,"Error creating persistent KB ["+e+"]. Use a volatile KB.");
 				e.printStackTrace();
 			}
 		}
 		if (agentDescriptions == null) {
-			log("- Type = volatile", 2);
+			logger.log(Logger.INFO,"- Type = volatile");
 			agentDescriptions = new DFMemKB(maxResultLimit);
 		}
-		log("- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"), 2);
-		log("- Max search result = "+maxResultLimit, 2);
+		logger.log(Logger.INFO,"- Max lease time = "+(maxLeaseTime != null ? ISO8601.toRelativeTimeString(maxLeaseTime.getTime()) : "infinite"));
+		logger.log(Logger.INFO,"- Max search result = "+maxResultLimit);
 		//#PJAVA_EXCLUDE_END
 		/*#PJAVA_INCLUDE_BEGIN
 		agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
@@ -339,7 +342,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 					s.close();
 				}
 				catch(Exception e) {
-					log("WARNING: unexpected CANCEL content", 1);
+					logger.log(Logger.WARNING,"WARNING: unexpected CANCEL content");
 					super.handleCancel(cancel);
 				}
 				return null;
@@ -444,7 +447,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		}
     newConstr.setSearchId(searchId);
 		
-    log("Activating recursive search: "+localResults.size()+" item(s) found locally. "+maxRes+" expected. Search depth is "+maxDep+". Search ID is "+searchId+". Propagating search to "+children.size()+" federated DF(s)", 3);
+    logger.log(Logger.CONFIG,"Activating recursive search: "+localResults.size()+" item(s) found locally. "+maxRes+" expected. Search depth is "+maxDep+". Search ID is "+searchId+". Propagating search to "+children.size()+" federated DF(s)");
 
     // Add the behaviour handling the search on federated DFs
     addBehaviour(new RecursiveSearchHandler(localResults, dfd, newConstr, action));
@@ -515,7 +518,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
        successive replies.
      */
     protected void handleInform(ACLMessage inform) {
-	    log("Recursive search result received from "+inform.getSender().getName()+".", 3); 
+	    logger.log(Logger.CONFIG,"Recursive search result received from "+inform.getSender().getName()+"."); 
     	int cnt = 0;
 	    if (receivedResults < maxExpectedResults) {
 	    	try {
@@ -532,25 +535,25 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		    	}
 	    	}
 	    	catch (Exception e) {
-	    		log("WARNING: Error decoding reply from federated DF "+inform.getSender().getName()+" during recursive search ["+e.toString()+"].", 0); 
+	    		logger.log(Logger.SEVERE,"WARNING: Error decoding reply from federated DF "+inform.getSender().getName()+" during recursive search ["+e.toString()+"]."); 
 	    	}
     	}
-	    log(cnt+" new items found.", 3); 
+	    logger.log(Logger.CONFIG,cnt+" new items found."); 
     }
     
     protected void handleRefuse(ACLMessage refuse) {
-  		log("WARNING: REFUSE received from federated DF "+refuse.getSender().getName()+" during recursive search.", 0);
+  		logger.log(Logger.SEVERE,"WARNING: REFUSE received from federated DF "+refuse.getSender().getName()+" during recursive search.");
     }
     protected void handleFailure(ACLMessage failure) {
     	// In general this is due to a federation loop (search-id already used)
     	// In this case no warning must be printed --> We use verbosity level 1
-  		log("WARNING: FAILURE received from federated DF "+failure.getSender().getName()+" during recursive search.", 1);
+  		logger.log(Logger.WARNING,"WARNING: FAILURE received from federated DF "+failure.getSender().getName()+" during recursive search.");
     }
     protected void handleNotUnderstood(ACLMessage notUnderstood) {
-  		log("WARNING: NOT_UNDERSTOOD received from federated DF "+notUnderstood.getSender().getName()+" during recursive search.", 0);
+  		logger.log(Logger.SEVERE,"WARNING: NOT_UNDERSTOOD received from federated DF "+notUnderstood.getSender().getName()+" during recursive search.");
     }
     protected void handleOutOfSequence(ACLMessage msg) {
-  		log("WARNING: Out of sequence message "+ACLMessage.getPerformative(msg.getPerformative())+" received from "+msg.getSender().getName()+" during recursive search.", 0);
+  		logger.log(Logger.SEVERE,"WARNING: Out of sequence message "+ACLMessage.getPerformative(msg.getPerformative())+" received from "+msg.getSender().getName()+" during recursive search.");
     }
     
     public int onEnd() {
@@ -589,7 +592,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	    throw new AlreadyRegistered();
 	
 	if(isADF(dfd)) {
-			log("Added federation "+dfd.getName().getName()+" --> "+getName(), 1);
+			logger.log(Logger.WARNING,"Added federation "+dfd.getName().getName()+" --> "+getName());
 	    children.add(dfd.getName());
 	    try {
     		gui.addChildren(dfd.getName());
@@ -665,7 +668,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, true);
-    log("Agent "+requester.getName()+" requesting action Register for "+dfd.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Register for "+dfd.getName());
 		
 		// Avoid autoregistration
 		if (dfd.getName().equals(getAID())) {
@@ -685,7 +688,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, false);
-    log("Agent "+requester.getName()+" requesting action Deregister for "+dfd.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Deregister for "+dfd.getName());
 		
 		// Do it
 		DFDeregister(dfd);
@@ -700,7 +703,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Check mandatory slots
 		DFService.checkIsValid(dfd, true);
-    log("Agent "+requester.getName()+" requesting action Modify for "+dfd.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Modify for "+dfd.getName());
 		
 		// Do it
 		DFModify(dfd);
@@ -719,7 +722,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		SearchConstraints constraints = s.getConstraints();
 		List result = null;
 		
-    log("Agent "+requester.getName()+" requesting action Search", 2);
+    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action Search");
 		
     // Avoid loops in searching on federated DFs
 		checkSearchId(constraints.getSearchId());
@@ -761,7 +764,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	   error occurs creating the GUI.
 	 */
   void showGuiAction(ShowGui sg, AID requester) throws FailureException {
-    log("Agent "+requester.getName()+" requesting action ShowGui", 2);
+    logger.log(Logger.INFO,"Agent "+requester.getName()+" requesting action ShowGui");
 		if (!showGui()){
 	    throw new FailureException("Gui_is_being_shown_already");
 		}
@@ -776,7 +779,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   List getParentsAction(GetParents action, AID requester) {
-    log("Agent "+requester+" requesting action GetParents.", 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetParents.");
   	return parents;
   }
 
@@ -786,7 +789,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
      Package scoped since it is called by DFAppletManagementBehaviour.
 	 */
   List getDescriptionAction(GetDescription action, AID requester) {
-    log("Agent "+requester+" requesting action GetDescription.", 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetDescription.");
 	  // FIXME: This embeds the description into a list since the Applet still expects a List
   	List tmp = new ArrayList();
 	  tmp.add(getDescriptionOfThisDF());
@@ -799,7 +802,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   List getDescriptionUsedAction(GetDescriptionUsed action, AID requester) {
   	AID parent = action.getParentDF();
-    log("Agent "+requester+" requesting action GetDescriptionUsed to federate with "+parent.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action GetDescriptionUsed to federate with "+parent.getName());
 	  // FIXME: This embeds the description into a list since the Applet still expects a List
   	List tmp = new ArrayList();
 	  tmp.add(getDescriptionOfThisDF(parent));
@@ -812,7 +815,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void federateAction(final Federate action, AID requester) {
 		AID remoteDF = action.getDf();
-    log("Agent "+requester+" requesting action Federate with DF "+remoteDF.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action Federate with DF "+remoteDF.getName());
 		Register r = new Register();
 		DFAgentDescription tmp = action.getDescription();
 		final DFAgentDescription dfd = (tmp != null ? tmp : getDescriptionOfThisDF());
@@ -836,7 +839,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void registerWithAction(final RegisterWith action, AID requester){
 		AID remoteDF = action.getDf();
-    log("Agent "+requester+" requesting action RegisterWith on DF "+remoteDF.getName(), 2);
+    	logger.log(Logger.INFO,"Agent "+requester+" requesting action RegisterWith on DF "+remoteDF.getName());
 		Register r = new Register();
 		final DFAgentDescription dfd = action.getDescription();
 		r.setDescription(dfd);
@@ -862,7 +865,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void deregisterFromAction(final DeregisterFrom action, AID requester){
 		AID remoteDF = action.getDf();
-    log("Agent "+requester+" requesting action DeregisterFrom on DF "+remoteDF.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action DeregisterFrom on DF "+remoteDF.getName());
 		Deregister d = new Deregister();
 		final DFAgentDescription dfd = action.getDescription();
 		d.setDescription(dfd);
@@ -888,7 +891,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void modifyOnAction(final ModifyOn action, AID requester){
 		AID remoteDF = action.getDf();
-    log("Agent "+requester+" requesting action ModifyOn on DF "+remoteDF.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action ModifyOn on DF "+remoteDF.getName());
 		Modify m = new Modify();
 		m.setDescription(action.getDescription());
     Behaviour b = new RemoteDFRequester(remoteDF, m) {
@@ -906,7 +909,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	 */
   void searchOnAction(final SearchOn action, AID requester){
 		AID remoteDF = action.getDf();
-    log("Agent "+requester+" requesting action SearchOn on DF "+remoteDF.getName(), 2);
+    logger.log(Logger.INFO,"Agent "+requester+" requesting action SearchOn on DF "+remoteDF.getName());
 		Search s = new Search();
 		s.setDescription(action.getDescription());
 		s.setConstraints(action.getConstraints());
@@ -1202,7 +1205,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		myDescription = dfd;
 		myDescription.setName(getAID());
 		if (!isADF(myDescription)) {
-			log("WARNING: The description set for this DF does not include a \"fipa-df\" service.", 0);
+			logger.log(Logger.SEVERE,"WARNING: The description set for this DF does not include a \"fipa-df\" service.");
 		}
 	}
 	
@@ -1273,16 +1276,16 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	  		getContentManager().fillContent(notification, ce);
 	  		send(notification);
 	  		AID receiver = (AID) notification.getAllReceiver().next();
-	  		log("Notification sent back to "+receiver.getName(), 3);
+	  		logger.log(Logger.CONFIG,"Notification sent back to "+receiver.getName());
 	  	}
 	  	catch (Exception e) {
 	  		// Should never happen
-	  		log("WARNING: Error encoding pending notification content.", 0);
+	  		logger.log(Logger.SEVERE,"WARNING: Error encoding pending notification content.");
 	  		e.printStackTrace();
 	  	}
   	}
   	else {
-  		log("WARNING: Processed action request not found.",0);
+  		logger.log(Logger.SEVERE,"WARNING: Processed action request not found.");
   	}
   }
   
@@ -1327,9 +1330,4 @@ public class df extends GuiAgent implements DFGUIAdapter {
   	}
   }  
   
-  void log(String s, int level) {
-  	if (verbosity >= level) {
-	  	System.out.println(getLocalName()+"-log: "+s);
-  	}
-  }
 }
