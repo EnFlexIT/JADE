@@ -8,7 +8,7 @@
 
   <property environment="env"/>
   <path id="project.class.path">
-    <pathelement path="${env.CLASSPATH}"/>
+    <!--pathelement path="${env.CLASSPATH}"/-->
     <fileset dir="lib">
         <include name="*.jar"/>
     </fileset>
