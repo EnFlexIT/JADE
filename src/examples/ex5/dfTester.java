@@ -1,6 +1,10 @@
 /*
 
   $Log$
+  Revision 1.17  1999/02/25 08:02:46  rimassa
+  Added a correct InterruptedIOException handler; the agent is
+  terminated.
+
   Revision 1.16  1999/02/14 22:52:26  rimassa
   Renamed addBehaviour() calls to addSubBehaviour() calls.
 
@@ -266,6 +270,9 @@ public class dfTester extends Agent {
 	    System.out.println("Invalid action name.");
 	  }
 
+	}
+	catch(InterruptedIOException iioe) {
+	  doDelete();
 	}
 	catch(IOException ioe) {
 	  ioe.printStackTrace();
