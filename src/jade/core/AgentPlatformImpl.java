@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.27  1999/03/03 16:07:45  rimassa
+  Added a getContainerFromAgent() method.
+  Added methods to dispatch a suspend()/resume() request to the
+  appropriate agent container.
+  Improved method naming, distinguishing between AMS and AP.
+
   Revision 1.26  1999/02/25 08:26:12  rimassa
   Removed useless FIXME.
   Clarified various error messages appearing when an agent was not
@@ -239,6 +245,14 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   }
 
+  AgentContainer getContainerFromAgent(String agentName) throws NotFoundException {
+    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(agentName.toLowerCase());
+    if(ad == null)
+      throw new NotFoundException("Agent " + agentName + " not found in getContainerFromAgent()");
+    AgentContainer ac = ad.getContainer();
+    return ac;
+  }
+
   private String getContainerName(AgentContainer ac) {
     String name = "";
     Enumeration e = containers.keys();
@@ -343,7 +357,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     while(e.hasMoreElements()) {
       String containerName = (String)e.nextElement();
       AgentContainer ac = (AgentContainer)containers.get(containerName);
-      killContainer(ac);
+      APKillContainer(ac);
     }
 
     // Kill all non-system agents
@@ -382,7 +396,23 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
 
   }
 
-  public void killContainer(AgentContainer ac) {
+  // These methods dispatch agent management operations to
+  // appropriate Agent Container through RMI.
+
+  public void APKillAgent(String name) throws NoCommunicationMeansException {
+    try {
+      AgentContainer ac = getContainerFromAgent(name);
+      ac.killAgent(name); // RMI call
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void APKillContainer(AgentContainer ac) {
     try {
       ac.exit(); // RMI call
     }
@@ -392,6 +422,58 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     }
     catch(RemoteException re) {
       re.printStackTrace();
+    }
+  }
+
+  public void APSuspendAgent(String name) throws NoCommunicationMeansException {
+    try {
+      AgentContainer ac = getContainerFromAgent(name);
+      ac.suspendAgent(name); // RMI call
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void APActivateAgent(String name) throws NoCommunicationMeansException {
+    try {
+      AgentContainer ac = getContainerFromAgent(name);
+      ac.resumeAgent(name); // RMI call
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void APWaitAgent(String name) throws NoCommunicationMeansException {
+    try {
+      AgentContainer ac = getContainerFromAgent(name);
+      ac.waitAgent(name); // RMI call
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
+    }
+  }
+
+  public void APWakeAgent(String name) throws NoCommunicationMeansException {
+    try {
+      AgentContainer ac = getContainerFromAgent(name);
+      ac.wakeAgent(name); // RMI call
+    }
+    catch(NotFoundException nfe) {
+      throw new NoCommunicationMeansException();
+    }
+    catch(RemoteException re) {
+      throw new NoCommunicationMeansException();
     }
   }
 
@@ -450,7 +532,7 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
     final AgentContainer ac = (AgentContainer)containers.get(containerName);
     Thread auxThread = new Thread(new Runnable() {
       public void run() {
-	killContainer(ac);
+	APKillContainer(ac);
       }
     });
     auxThread.start();
@@ -473,21 +555,8 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
   // This one is called in response to a 'kill-agent' action
   public void AMSKillAgent(String agentName, String password) throws NoCommunicationMeansException {
     String simpleName = agentName.substring(0,agentName.indexOf('@'));
-    AgentDescriptor ad = (AgentDescriptor)platformAgents.get(simpleName.toLowerCase());
-    if(ad == null)
-      throw new NoCommunicationMeansException();
-    try {
-      AgentContainer ac = ad.getContainer();
-      ac.killAgent(simpleName);
-    }
-    catch(NotFoundException nfe) {
-      throw new NoCommunicationMeansException();
-    }
-    catch(RemoteException re) {
-      throw new NoCommunicationMeansException();
-    }
+    APKillAgent(simpleName);
   }
-
   // This one is called in response to a 'register-agent' action
   public void AMSNewData(String agentName, String address, String signature, String APState,
 			 String delegateAgentName, String forwardAddress, String ownership)
@@ -558,7 +627,23 @@ public class AgentPlatformImpl extends AgentContainerImpl implements AgentPlatfo
       if(APState != null) {
 	AgentManagementOntology o = AgentManagementOntology.instance();
 	int state = o.getAPStateByName(APState);
+	int oldState = o.getAPStateByName(amsd.getAPState());
+	switch(state) {
+	case Agent.AP_SUSPENDED:
+	  APSuspendAgent(simpleName);
+	  break;
+	case Agent.AP_WAITING:
+	  APWaitAgent(simpleName);
+	  break;
+	case Agent.AP_ACTIVE:
+	  if(oldState == Agent.AP_WAITING)
+	    APWakeAgent(simpleName);
+	  else
+	    APActivateAgent(simpleName);
+	}
+
 	amsd.setAPState(state);
+
       }
     }
     catch(NotFoundException nfe) {
