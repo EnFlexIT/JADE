@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 package jade.tools.logging;
 
 // Import required Java classes 
+import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -31,6 +32,7 @@ import java.util.logging.*;
 import java.util.Enumeration;
 import java.util.Vector;
 import jade.gui.JadeLogoButton;
+import javax.swing.JOptionPane;
 
 
 import jade.core.*;
@@ -57,6 +59,17 @@ public class LogManagerGui extends javax.swing.JFrame {
 	private String 	logo = "images/logger.gif";
 	private String 	jadeLogo = "images/jadelogo.jpg";
 	private AID     agentName;
+	
+	private static final String ErrorMessage = "A pattern consists of a string that includes the following special components that will be replaced at runtime:\n\n"+
+	"/       "+" the local pathname separator"+"\n"+
+	"%t     "+"the system temporary directory "+"\n"+
+	"%h    "+"the value of the user.home system property "+"\n"+
+	"%g    "+"the generation number to distinguish rotated logs "+"\n"+
+	"%u    "+"a unique number to resolve conflicts "+"\n"+
+	"%%    "+"translates to a single percent sign %"+"\n\n"+
+	"Please refer to java.util.logging.FileHandler documentation for further informations.\n\n";
+    private static final String ErrorPaneTitle = "Wrong  name for path specified ";
+
 
 	
 	LogManager logManager = LogManager.getLogManager();
@@ -289,9 +302,12 @@ public class LogManagerGui extends javax.swing.JFrame {
 					try{
 						((LogElem)loggers.elementAt(row)).setFileName(value.toString());
 						if (((LogElem)loggers.elementAt(row)).getFileName().length()>1)
+						{
+							System.out.println(value.toString());
 							logger.addHandler(new FileHandler(value.toString()));
-						}catch (Exception e){
-							e.printStackTrace();
+							}
+						}catch (IOException e){
+							JOptionPane.showMessageDialog(new JFrame(),ErrorMessage,ErrorPaneTitle,JOptionPane.ERROR_MESSAGE);
 							}
 					getValueAt(row,column); 
 					}
