@@ -19,6 +19,9 @@ import jade.core.Behaviour;
 ****************************************************************/
 public class ProtocolDrivenBehaviour implements Behaviour {
 
+  ProtocolDrivenBehaviour() {
+  }
+
   public void execute() {
   }
 

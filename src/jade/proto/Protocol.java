@@ -56,6 +56,7 @@ public class Protocol {
   // CommunicativeAction can be retrieved later using its name.
   public void addCA(CommunicativeAction ca, String name) {
     myElements.put(name, ca);
+    ca.setName(name);
   }
 
   // Retrieves a CommunicativeAction, using the name as a key.

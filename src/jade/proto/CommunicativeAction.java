@@ -24,6 +24,7 @@ class CommunicativeAction {
 
   private ACLMessage myMessage;
   private Protocol myProtocol;
+  private String myName;
 
   // This can be either Protocol.initiatorRole or Protocol.responderRole.
   private int myRole;
@@ -33,10 +34,12 @@ class CommunicativeAction {
   private Vector allowedAnswers = new Vector();
 
   // A CommunicativeAction is bound to an ACL message and an
-  // interaction protocol for its whole lifetime.
+  // interaction protocol for its whole lifetime. Besides, it has a
+  // name with which is registered in a Protocol.
   public CommunicativeAction(ACLMessage msg, Protocol p) {
     myMessage = msg;
     myProtocol = p;
+    myName = null;
   }
 
 
@@ -54,6 +57,12 @@ class CommunicativeAction {
     return myRole;
   }
 
+  // Sets the name with which this CommunicativeAction is known inside
+  // its Protocol. This method has package visibility because it is to
+  // be used only by Protocol class.
+  void setName(String name) {
+    myName = new String(name);
+  }
 
   // Sets a link between two CommunicativeActions, meaning that 'ca'
   // is an allowed message after 'this' in protocol 'myProtocol'.
