@@ -1,3 +1,13 @@
+MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
+==========================================================================
+- fixed bug in run.bat of the demo because it did not include iiop.jar in
+  the CLASSPATH
+- Added a sanity check in notifyFailureToSender to avoid NullPointerException 
+  when the sender is null
+- ACLMessage: removed an additional blank at the end of the content slot.
+- MobileAgent example: fixed bug in dealing with the move message
+
+	
 MAJOR CHANGES in JADE 2.2 ($Date$ $Name$)
 ======================================================	
 - The class MessageTemplate has been modified in order to allow the
