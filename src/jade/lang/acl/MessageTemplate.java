@@ -94,8 +94,6 @@ public class MessageTemplate {
 
     }
 
-    msg.dump();
-
     return msg;
   }
 
