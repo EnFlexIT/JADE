@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.21  1998/12/08 00:10:20  rimassa
+  Removed handmade parsing of message content; now updated
+  AMSAction.fromText() method is used.
+
   Revision 1.20  1998/11/15 23:08:24  rimassa
   Added a new KillContainerBehaviour to support 'kill-container' AMS
   action.
@@ -142,9 +146,6 @@ public class ams extends Agent {
     private void crackMessage() throws FIPAException, NoSuchElementException {
 
       String content = myRequest.getContent();
-
-      // Remove 'action ams' from content string
-      content = content.substring(content.indexOf("ams") + 3); // FIXME: AMS could crash for a bad msg
 
       // Obtain an AMS action from message content
       try {
