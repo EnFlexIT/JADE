@@ -40,7 +40,7 @@ public final class DefaultOntology implements Ontology {
 
   private static final List primitiveTypes = new ArrayList(12);
 
-  static { //FIXME. All the primitive types should be subclasse of java.lang.Object!
+  static { 
     primitiveTypes.add(BOOLEAN_TYPE, Boolean.class);
     primitiveTypes.add(BYTE_TYPE, Byte.class);
     primitiveTypes.add(CHARACTER_TYPE, Character.class);
@@ -50,7 +50,7 @@ public final class DefaultOntology implements Ontology {
     primitiveTypes.add(LONG_TYPE, Long.class);
     primitiveTypes.add(SHORT_TYPE, Short.class);
     primitiveTypes.add(STRING_TYPE, String.class);
-    primitiveTypes.add(BINARY_TYPE, Byte.class);
+    primitiveTypes.add(BINARY_TYPE, Byte[].class);
     primitiveTypes.add(DATE_TYPE, java.util.Date.class);
     primitiveTypes.add(ANY_TYPE, Object.class);
   }
@@ -68,7 +68,7 @@ public final class DefaultOntology implements Ontology {
   public static String NAME_OF_SEQUENCE_FRAME = "sequence";
 
   // Special slot, all actions must have it.
-  private static final TermDescriptor actorSlot = new TermDescriptor(NAME_OF_ACTOR_SLOT, ANY_TYPE, M);
+  private static final TermDescriptor actorSlot = new TermDescriptor(NAME_OF_ACTOR_SLOT, ANY_TERM, ANY_TYPE, M);
 
   private Map schemas;
   private Map factories;
@@ -348,10 +348,10 @@ public final class DefaultOntology implements Ontology {
   /**
    * This method checks for correct get and set methods for the
    * current descriptor and retrieves the implementation type.
-   * This check is for terms of type SET_TYPE or SEQUENCE_TYPE.
+   * This check is for terms of type SET_TERM or SEQUENCE_TERM.
    * <p> 
    * For every <code>TermDescriptor</code> 
-   * of type <code>SET_TYPE</code> or <code>SEQUENCE_TYPE</code>
+   * of type <code>SET_TERM</code> or <code>SEQUENCE_TERM</code>
    * and named <code>XXX</code>, with elements of type <code>T</code>, the
    * class must have four accessible methods, with the following
    * signature:</i>
@@ -418,7 +418,7 @@ public final class DefaultOntology implements Ontology {
 	// Check for correct set and get methods for the current
 	// descriptor and retrieve the implementation type.
 	Class implType;
-	if ((desc.getType() == SET_TYPE) || (desc.getType() == SEQUENCE_TYPE))
+	if ((desc.getType() == SET_TERM) || (desc.getType() == SEQUENCE_TERM))
 	  implType = checkGetAndSet2(termName, c);
 	else
 	  implType = checkGetAndSet(termName, c);
@@ -435,7 +435,11 @@ public final class DefaultOntology implements Ontology {
 	  }
 	}
 	else {	// Check that the returned type is compatible with the one dictated by the TermDescriptor
-	  Class primitive = (Class)primitiveTypes.get(desc.getType());
+	  int typeIndex=0;
+	  for (int i=0; i<Ontology.typeNames.length; i++)
+	    if (Ontology.typeNames[i].equalsIgnoreCase(desc.getTypeName()))
+	      typeIndex = i;
+	  Class primitive = (Class)primitiveTypes.get(typeIndex);
 	  if(!implType.isAssignableFrom(primitive))
 	    throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
 	}
@@ -551,7 +555,7 @@ public final class DefaultOntology implements Ontology {
 	  }
 	  else if (desc.isSet()) {
 	    Frame setFrame;
-	    if (desc.getType() == Ontology.SET_TYPE)
+	    if (desc.getType() == Ontology.SET_TERM)
 	      setFrame = new Frame(NAME_OF_SET_FRAME); 
 	    else
 	      setFrame = new Frame(NAME_OF_SEQUENCE_FRAME); 

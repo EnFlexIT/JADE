@@ -41,7 +41,7 @@ import java.util.List;
    <ol>
 
    <li><i> For every <code>TermDescriptor</code> object of the
-   array, of type <code>SET_TYPE</code> or <code>SEQUENCE_TYPE</code>
+   array, of type <code>SET_TERM</code> or <code>SEQUENCE_TERM</code>
    and named <code>XXX</code>, with elements of type <code>T</code>, the
    class must have four accessible methods, with the following
    signature:</i>
@@ -192,9 +192,9 @@ public interface Ontology {
      class, obeying to some rules.
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
-     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
+     @see jade.onto.Ontology#addFrame(String conceptName, TermDescriptor[] slots, RoleFactory rf)
   */
-  static final short CONCEPT_TYPE = 12;
+  static final short FRAME_TERM = 12;
 
   /**
      Constant for <code>set</code> type in a
@@ -202,7 +202,7 @@ public interface Ontology {
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
   */
-  static final short SET_TYPE = 13;
+  static final short SET_TERM = 13;
 
   /**
      Constant for <code>sequence</code> type in a
@@ -210,7 +210,23 @@ public interface Ontology {
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
   */
-  static final short SEQUENCE_TYPE = 14;
+  static final short SEQUENCE_TERM = 14;
+
+  /**
+     Constant for <code>constant</code> type in a
+     <code>TermDescriptor</code>. 
+     @see jade.onto.TermDescriptor
+     @see jade.onto.Frame
+  */
+  static final short CONSTANT_TERM = 15;
+
+  /**
+     Constant for <code>any</code> type in a
+     <code>TermDescriptor</code>. 
+     @see jade.onto.TermDescriptor
+     @see jade.onto.Frame
+  */
+  static final short ANY_TERM = ANY_TYPE;
 
 
   /**
@@ -220,7 +236,8 @@ public interface Ontology {
   */
   static final String typeNames[] = { "boolean", "byte", "char", "double",
 				      "float", "int", "long", "short",
-				      "String", "Binary", "Date", "any", "Concept", "Set", "Sequence" };
+				      "String", "Binary", "Date", "any", "Concept", "Set", "Sequence", "Constant" };
+  // Warning AND FIXME. TermDescriptor.hasPrimitiveElement depends on this array of Strings
 
   /**
     Adds a new concept role to the ontology, defined by the structure

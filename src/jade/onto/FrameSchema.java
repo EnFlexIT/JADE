@@ -126,9 +126,9 @@ class FrameSchema implements Cloneable, Serializable {
 	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.BINARY_TYPE]); 
 	  break;
 	}
-	case Ontology.CONCEPT_TYPE: {
+	case Ontology.FRAME_TERM: {
 	  if(!(o instanceof Frame))
-	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CONCEPT_TYPE]); 
+	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.FRAME_TERM]); 
 	  myOntology.check((Frame)o);
 	  break;
 	}

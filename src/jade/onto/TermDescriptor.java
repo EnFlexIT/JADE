@@ -42,11 +42,17 @@ public class TermDescriptor {
   /**
     Build the descriptor for a named slot of a complex type. This constructor
     can be used to describe a named slot, whose type is one among
-    <code>Ontology.CONCEPT_TYPE</code>. 
+    <code>Ontology.FRAME_TERM , Ontology.SET_TERM, Ontology.SEQUENCE_TERM,
+    Ontology.CONSTANT_TERM</code>. 
     @param n The name of the described slot.
-    @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, is a set, ...).
-    @param tn The name of the actual role played by the slot type in the
+    @param t A symbolic constant to identify the type of the slot (i.e. 
+    one value between <code>
+    Ontology.FRAME_TERM , Ontology.SET_TERM, Ontology.SEQUENCE_TERM,
+    Ontology.CONSTANT_TERM, Ontology.ANY_TERM</code>. )
+    @param tn The name of the type of the values allowed for this slot, (i.e.
+    one value between <code> Ontology.STRING_TYPE, Ontology.XXX_TYPE </code>,
+    or, in case of a FRAME_TERM, the name of the role played by this slot 
+    in the
     ontology.
     @param o One of <code>Ontology.M</code> (for mandatory slots) and
     <code>Ontology.O</code> (for optional slots).
@@ -61,51 +67,24 @@ public class TermDescriptor {
 
 
   /**
-    Build the descriptor for a named slot of a primitive type. This constructor
-    can be used to describe a named slot, whose type is one among the primitive
-    types supported by a JADE ontology.
-    @param n The name of the described slot.
-    @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a boolean, a string or some other primitive type).
-    @param o One of <code>Ontology.M</code> (for mandatory slots) and
-    <code>Ontology.O</code> (for optional slots).
-  */
-  public TermDescriptor(String n, int t, boolean o) {
-    this(n, t, Ontology.typeNames[t], o);
-  }
-
-  /**
-    Build the descriptor for an unnamed slot of a complex type. This constructor
-    can be used to describe a slot without a name, whose type is one among
-    <code>Ontology.CONCEPT_TYPE</code>.
-    @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, an action or a predicate).
-    @param tn The name of the actual role played by the slot type in the
-    ontology.
-    @param o One of <code>Ontology.M</code> (for mandatory slots) and
-    <code>Ontology.O</code> (for optional slots).
+    Build the descriptor for an unnamed slot. 
+    @see TermDescriptor(String n, int t, String tn, boolean o)
   */
   public TermDescriptor(int t, String tn, boolean o) {
-    myName = new Name("");
-    type = t;
-    typeName = tn;
-    optionality = o;
+    this("",t,tn,o);
   }
 
-  /**
-    Build the descriptor for an unnamed slot of a primitive type. This constructor
-    can be used to describe a slot without a name, whose type is one among
-    the primitive types supported by a JADE ontology.
-    @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, a set, ...).
-    @param tn The name of the actual role played by the slot type in the
-    ontology.
-    @param o One of <code>Ontology.M</code> (for mandatory slots) and
-    <code>Ontology.O</code> (for optional slots).
-  */
-  public TermDescriptor(int t, boolean o) {
-    this(t, Ontology.typeNames[t], o);
-  }
+
+  // FIXME. Probably can be removed. It is just used because STRING_TYPE, ...
+  // are int instead of String
+public TermDescriptor(int t, int tn, boolean o) {
+  this("",t,Ontology.typeNames[tn],o);
+}
+  // FIXME. Probably can be removed. It is just used because STRING_TYPE, ...
+  // are int instead of String
+public TermDescriptor(String n, int t, int tn, boolean o) {
+  this(n,t,Ontology.typeNames[tn],o);
+}
 
   /**
     Get the name of a slot.
@@ -136,8 +115,9 @@ public class TermDescriptor {
     return typeName;
   }
 
+  //FIXME. Must be improved because it depends on Ontology.typeNames
 public boolean hasPrimitiveTypeElements() {
-  for (int i=0; i<Ontology.typeNames.length-3; i++)  //eliminates Concept,set,sequence
+  for (int i=0; i<Ontology.typeNames.length-4; i++)  //eliminates Concept,set,sequence, constant
     if (Ontology.typeNames[i].equalsIgnoreCase(typeName))
       return true;
   return false;
@@ -155,21 +135,21 @@ public boolean hasPrimitiveTypeElements() {
    /**
     Tells whether a slot is complex.
     @return <code>true</code> if the slot described by this object is of a
-    <code>Ontology.CONCEPT_TYPE</code>
+    <code>Ontology.FRAME_TERM</code>
     <code>false</code> otherwise.
   */
   public boolean isConcept() {
-    return (type == Ontology.CONCEPT_TYPE); 
+    return (type == Ontology.FRAME_TERM); 
   }
 
    /**
     Tells whether a slot is set or a sequence.
     @return <code>true</code> if the slot described by this object is 
-    <code>Ontology.SET_TYPE</code> or <code>Ontology.SEQUENCE_TYPE</code>)
+    <code>Ontology.SET_TERM</code> or <code>Ontology.SEQUENCE_TERM</code>)
     <code>false</code> otherwise.
   */
   public boolean isSet() {
-    return (type == Ontology.SET_TYPE) || (type == Ontology.SEQUENCE_TYPE);
+    return (type == Ontology.SET_TERM) || (type == Ontology.SEQUENCE_TERM);
   }
 
   void setName(String n) {
