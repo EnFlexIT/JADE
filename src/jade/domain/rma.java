@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.13  1999/03/07 22:52:36  rimassa
+  Added a printout in a catch() block for ParseException.
+
   Revision 1.12  1999/03/03 16:02:58  rimassa
   Added methods to suspend and resume agents on demand.
   Added a getModel() method to access GUI TreeModel.
@@ -110,7 +113,6 @@ public class rma extends Agent {
 	// Handle inform messages from AMS
 	StringReader text = new StringReader(current.getContent());
 	try {
-
 	  AgentManagementOntology.AMSEvent amse = AgentManagementOntology.AMSEvent.fromText(text);
 	  int k = amse.getKind();
 
@@ -149,6 +151,7 @@ public class rma extends Agent {
 	}
 	catch(ParseException pe) {
 	  pe.printStackTrace();
+	  System.out.println(current.getContent());
 	}
 	catch(TokenMgrError tme) {
 	  tme.printStackTrace();
