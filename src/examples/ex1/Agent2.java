@@ -17,7 +17,7 @@ public class Agent2 extends Agent {
       super(a);
     }
 
-    protected void action() {
+    public void action() {
       System.out.println(getName() + ": executing...");
       MessageTemplate mt1 = MessageTemplate.MatchProtocol("fipa-request");
       MessageTemplate mt2 = MessageTemplate.MatchOntology("fipa-agent-management");
