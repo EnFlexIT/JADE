@@ -33,10 +33,11 @@ import java.awt.event.*;
 /**
    @author Giovanni Caire - TILAB
  */
-class AWTChatGui extends Frame implements ChatGui, ActionListener {
+class AWTChatGui extends Frame implements ChatGui {
 	private ChatClientAgent myAgent;
 	private TextField writeTf;
 	private TextArea allTa;
+	private ParticipantsFrame participantsFrame;
 	
 	AWTChatGui(ChatClientAgent a) {
 		myAgent = a;
@@ -48,7 +49,16 @@ class AWTChatGui extends Frame implements ChatGui, ActionListener {
 		writeTf = new TextField();
 		p.add(writeTf, BorderLayout.CENTER);
 		Button b = new Button("Send");
-		b.addActionListener(this);
+		b.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+		  	String s = writeTf.getText();
+		  	if (s != null && !s.equals("")) {
+			  	myAgent.handleSpoken(s);
+			  	notifySpoken(myAgent.getLocalName(), s);
+			  	writeTf.setText("");
+		  	}
+			} 
+		} );
 		p.add(b, BorderLayout.EAST);
 		add(p, BorderLayout.NORTH);
 		
@@ -56,6 +66,18 @@ class AWTChatGui extends Frame implements ChatGui, ActionListener {
 		allTa.setEditable(false);
 		allTa.setBackground(Color.white);
 		add(allTa, BorderLayout.CENTER);
+		
+		b = new Button("Participants");
+		b.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (!participantsFrame.isVisible()) {
+					participantsFrame.setVisible(true);
+				}	
+			} 
+		} );
+		add(b, BorderLayout.SOUTH);
+		
+		participantsFrame = new ParticipantsFrame(this, myAgent.getLocalName());
 		
 		addWindowListener(new	WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
@@ -67,27 +89,25 @@ class AWTChatGui extends Frame implements ChatGui, ActionListener {
 	}
 	
 	public void notifyParticipantsChanged(String[] names) {
-		//FIXME: TBD
+		if (participantsFrame != null) {
+			participantsFrame.refresh(names);
+		}
 	}
 	
 	public void notifySpoken(String speaker, String sentence) {
 		allTa.append(speaker+": "+sentence+"\n");
 	}
 	
-	public void actionPerformed(ActionEvent e) {
-  	String s = writeTf.getText();
-  	if (s != null && !s.equals("")) {
-	  	myAgent.handleSpoken(s);
-	  	notifySpoken(myAgent.getLocalName(), s);
-	  	writeTf.setText("");
-  	}
-	}
-	
-	private Dimension getProperSize(int maxX, int maxY) {
+	Dimension getProperSize(int maxX, int maxY) {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int x = (screenSize.width < maxX ? screenSize.width : maxX);
 		int y = (screenSize.height < maxY ? screenSize.height : maxY);
 		return new Dimension(x, y);
+	}
+	
+	public void dispose() {
+		participantsFrame.dispose();
+		super.dispose();
 	}
 }
 

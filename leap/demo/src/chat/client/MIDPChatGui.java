@@ -70,13 +70,14 @@ class MIDPChatGui implements ChatGui, CommandListener {
 		others = new Form("Participants");
 		others.addCommand(okCmd);
 		others.setCommandListener(this);
+		others.append(new StringItem(myAgent.getLocalName(), null));
 	}
 	
 	///////////////////////////////////
 	// ChatGui interface implementation
 	///////////////////////////////////
 	public void notifyParticipantsChanged(String[] names) {
-		for (int i = 0; i < others.size(); ++i) {
+		for (int i = 1; i < others.size(); ++i) {
 			others.delete(i);
 		}
 		for (int i = 0; i < names.length; ++i) {
