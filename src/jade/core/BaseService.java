@@ -26,6 +26,8 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 
+import jade.core.behaviours.Behaviour;
+
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 
@@ -44,6 +46,7 @@ import jade.util.leap.HashMap;
 public abstract class BaseService implements Service {
 
     public static final String MAIN_SLICE = ServiceFinder.MAIN_SLICE;
+    public static final String THIS_SLICE = ServiceFinder.THIS_SLICE;
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	myFinder = p.getServiceFinder();
@@ -195,7 +198,13 @@ public abstract class BaseService implements Service {
     public ServiceHelper getHelper(Agent a) {
          return null;
     }
-    
+
+    // This will be overridden by services that provide an AMS-level
+    // access to (some of) their features
+    public Behaviour getAMSBehaviour() {
+	return null;
+    }
+
     public void boot(Profile p) throws ServiceException {
 	// Empty placeholder method
     }
