@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.7  1998/10/11 19:09:17  rimassa
+  Removed old,commented out code.
+
   Revision 1.6  1998/10/04 18:00:32  rimassa
   Added a 'Log:' field to every source file.
 
@@ -50,18 +53,6 @@ public class dfTester extends Agent {
 
   // Used to generate conversation IDs.
   private int convCounter = 0;
-
-  // Values for the various parameters of the request to DF agent
-  /*
-  private String name = null;
-  private String address = null;
-  private String services = null;
-  private String type = null;
-  private String interactionProtocols = null;
-  private String ontology = null;
-  private String ownership = null;
-  private String DFState = null;
-  */
 
   // Holds the current conversation ID.
   private String convID;
@@ -293,39 +284,6 @@ public class dfTester extends Agent {
     toSend.setContent("( action df " + w + " )");
 
     toSend.dump();
-
-    /*
-    String text = "( request " +
-      "    :sender " + myName +
-      "    :receiver df" +
-      "    :protocol fipa-request" +
-      "    :ontology fipa-agent-management" +
-      "    :language SL0" +
-      "    :content  ( action df ( " + myAction;
-
-    if(name.length() > 0)
-      text = text.concat("      :agent-name " + name);
-    if(address.length() > 0)
-      text = text.concat("      :agent-address " + address);
-    if(services.length() > 0)
-      text = text.concat("      :agent-services " + services);
-    if(type.length() > 0)
-      text = text.concat("      :agent-type " + type);
-    if(interactionProtocols.length() > 0)
-      text = text.concat("      :interaction-protocols" + interactionProtocols);
-    if(ontology.length() > 0)
-      text = text.concat("      :ontology" + ontology);
-    if(ownership.length() > 0)
-      text = text.concat("      :ownership" + ownership);
-    if(DFState.length() > 0)
-      text = text.concat("      :df-state" + DFState);
-
-    text = text +
-      " ) )" +
-      "    :conversation-id " + convID +
-      ")";
-    */
- 
     send(toSend);
 
     System.out.println("[Agent.sendRequest()]\tRequest sent");
