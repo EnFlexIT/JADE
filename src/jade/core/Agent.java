@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.43  1999/03/30 06:48:14  rimassa
+  Removed a deprecated ACLMessage.setDest() call.
+  Removed some debugging printouts.
+
   Revision 1.42  1999/03/29 10:37:04  rimassa
   Added a public doStart() method to start agents from within others.
   Changed doSuspend() and doActivate() methods to buffer the agent state
@@ -525,7 +529,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	myBufferedState = myAPState;
 	myAPState = AP_SUSPENDED;
       }
-      System.out.println("old: " + myBufferedState + " new: " + myAPState);
     }
     if(myAPState == AP_SUSPENDED) {
       if(myThread.equals(Thread.currentThread())) {
@@ -549,7 +552,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
       if(myAPState == AP_SUSPENDED) {
 	myAPState = myBufferedState;
       }
-      System.out.println("old: " + myBufferedState + " new: " + myAPState);
     }
     if((myAPState != AP_SUSPENDED)&&(myBufferedState != AP_MIN)) {
       activateAllBehaviours();
@@ -558,7 +560,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 	suspendLock.notify();
       }
     }
-    System.out.println("old: " + myBufferedState + " new: " + myAPState);
   }
 
   /**
@@ -976,7 +977,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     ACLMessage request = new ACLMessage("request");
 
     request.setSource(myName);
-    request.setDest(dest);
+    request.removeAllDests();
+    request.addDest(dest);
     request.setLanguage("SL0");
     request.setOntology("fipa-agent-management");
     request.setProtocol("fipa-request");
@@ -1228,8 +1230,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     StringWriter text = new StringWriter();
     a.toText(text);
     request.setContent(text.toString());
-
-    // Send message and collect reply, in a separate Behaviour
+    request.dump();
+    // Send message and collect reply
     doFipaRequestClient(request, replyString);
 
   }
