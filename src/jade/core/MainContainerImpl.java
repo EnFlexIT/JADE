@@ -45,6 +45,9 @@ import java.util.Set;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
+import jade.core.event.PlatformEvent;
+import jade.core.event.MTPEvent;
+
 import jade.domain.ams;
 import jade.domain.df;
 
@@ -67,7 +70,6 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   public MainContainerImpl() throws RemoteException {
     super();
-    myName = MAIN_CONTAINER_NAME;
     systemAgentsThreads.setMaxPriority(Thread.NORM_PRIORITY + 1);
   }
 
@@ -84,7 +86,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
     AgentDescriptor desc = new AgentDescriptor();
     RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.AMS);
-    desc.setContainerName(myName);
+    desc.setContainerID(myID);
     desc.setProxy(rp);
 
     platformAgents.put(Agent.AMS, desc);
@@ -104,7 +106,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
     AgentDescriptor desc = new AgentDescriptor();
     RemoteProxyRMI rp = new RemoteProxyRMI(this, Agent.DEFAULT_DF);
-    desc.setContainerName(myName);
+    desc.setContainerID(myID);
     desc.setProxy(rp);
 
     platformAgents.put(Agent.DEFAULT_DF, desc);
@@ -123,6 +125,14 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     translator = new AIDTranslator(platformID);
 
     String platformRMI = "rmi://" + platformID;
+
+    try {
+      InetAddress netAddr = InetAddress.getLocalHost();
+      myID = new ContainerID(MAIN_CONTAINER_NAME, netAddr);
+    }
+    catch(UnknownHostException uhe) {
+      uhe.printStackTrace();
+    }
 
     // Build the Agent IDs for the AMS and for the Default DF.
     Agent.initReservedAIDs(globalAID("ams"), globalAID("df"));
@@ -145,11 +155,11 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 				String className = ACLCodecs[i];
 				installACLCodec(className);
 			}
-			
-      containers.addContainer(MAIN_CONTAINER_NAME, this);
-      containersProgNo++;
 
-      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + myName + ".txt"));
+    containers.addContainer(MAIN_CONTAINER_NAME, this);
+    containersProgNo++;
+
+      PrintWriter f = new PrintWriter(new FileWriter("MTPs-" + MAIN_CONTAINER_NAME + ".txt"));
 
       for(int i = 0; i < MTPs.length; i += 2) {
 
@@ -183,13 +193,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
 
     // Notify platform listeners
-    try {
-      InetAddress netAddr = InetAddress.getLocalHost();
-      postNewContainer(MAIN_CONTAINER_NAME, netAddr);
-    }
-    catch(UnknownHostException uhe) {
-      uhe.printStackTrace();
-    }
+    fireAddedContainer(myID);
 
     Agent a = theAMS;
     a.powerUp(Agent.AMS, systemAgentsThreads);
@@ -234,8 +238,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerFromAgent()");
     }
     ad.lock();
-    String name = ad.getContainerName();
-    AgentContainer ac = containers.getContainer(name);
+    ContainerID cid = ad.getContainerID();
+    AgentContainer ac = containers.getContainer(cid.getName());
     ad.unlock();
     return ac;
   }
@@ -244,12 +248,12 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   private class FailureMonitor implements Runnable {
 
     private AgentContainer target;
-    private String targetName;
+    private ContainerID targetID;
     private boolean active = true;
 
-    public FailureMonitor(AgentContainer ac, String name) {
+    public FailureMonitor(AgentContainer ac, ContainerID cid) {
       target = ac;
-      targetName = name;
+      targetID = cid;
     }
 
     public void run() {
@@ -263,8 +267,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 	  }
 	  catch(RemoteException re2) { // Object down
 
-	    containers.removeContainer(targetName);
-	    postDeadContainer(targetName);
+	    containers.removeContainer(targetID.getName());
+	    fireRemovedContainer(targetID);
 
 	    active = false;
 	  }
@@ -280,57 +284,72 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   // Private methods to notify platform listeners of a significant event.
 
-  private void postNewContainer(String name, InetAddress host) {
+  private void fireAddedContainer(ContainerID cid) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.ADDED_CONTAINER, cid);
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleNewContainer(name, host);
+      l.addedContainer(ev);
     }
   }
 
-  private void postDeadContainer(String name) {
+  private void fireRemovedContainer(ContainerID cid) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.REMOVED_CONTAINER, cid);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleDeadContainer(name);
+      l.removedContainer(ev);
     }
   }
 
-  private void postNewAgent(String containerName, AID agentID) {
+  private void fireBornAgent(ContainerID cid, AID agentID) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.BORN_AGENT, agentID, cid);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleNewAgent(containerName, agentID);
+      l.bornAgent(ev);
     }
   }
 
-  private void postDeadAgent(String containerName, AID agentID) {
+  private void fireDeadAgent(ContainerID cid, AID agentID) {
+    PlatformEvent ev = new PlatformEvent(PlatformEvent.DEAD_AGENT, agentID, cid);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleDeadAgent(containerName, agentID);
+      l.deadAgent(ev);
     }
   }
 
-  private void postMovedAgent(String fromContainer, String toContainer, AID agentID) {
+  private void fireMovedAgent(ContainerID from, ContainerID to, AID agentID) {
+    PlatformEvent ev = new PlatformEvent(agentID, from, to);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleMovedAgent(fromContainer, toContainer, agentID);
+      l.movedAgent(ev);
     }
   }
 
-  private void postNewAddress(String address, String container) {
+  private void fireAddedMTP(String address, ContainerID cid) {
+    Channel ch = new Channel("FIXME: missing channel name", "FIXME: missing channel protocol", address);
+    MTPEvent ev = new MTPEvent(MTPEvent.ADDED_MTP, cid, ch);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleNewAddress(address, container);
+      l.addedMTP(ev);
    } 
   }
 
-  private void postDeadAddress(String address, String container) {
+  private void fireRemovedMTP(String address, ContainerID cid) {
+    Channel ch = new Channel("FIXME: missing channel name", "FIXME: missing channel protocol", address);
+    MTPEvent ev = new MTPEvent(MTPEvent.REMOVED_MTP, cid, ch);
+
     for(int i = 0; i < platformListeners.size(); i++) {
       AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-      l.handleDeadAddress(address, container);
+      l.removedMTP(ev);
    }
   }
 
 
-  public String addContainer(AgentContainer ac, InetAddress addr) throws RemoteException {
+  public String addContainer(AgentContainer ac, ContainerID cid) throws RemoteException {
 
     // Send all platform addresses to the new container
     String[] containerNames = containers.names();
@@ -354,38 +373,39 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
 
     String name = AUX_CONTAINER_NAME + containersProgNo;
+    cid.setName(name);
     containers.addContainer(name, ac);
     containersProgNo++;
 
     // Spawn a blocking RMI call to the remote container in a separate
     // thread. This is a failure notification technique.
-    Thread t = new Thread(new FailureMonitor(ac, name));
+    Thread t = new Thread(new FailureMonitor(ac, cid));
     t.start();
 
     // Notify listeners
-    postNewContainer(name, addr);
+    fireAddedContainer(cid);
 
     // Return the name given to the new container
     return name;
 
   }
 
-  public void removeContainer(String name) throws RemoteException {
-    containers.removeContainer(name);
+  public void removeContainer(ContainerID cid) throws RemoteException {
+    containers.removeContainer(cid.getName());
 
     // Notify listeners
-    postDeadContainer(name);
+    fireRemovedContainer(cid);
   }
 
-  public AgentContainer lookup(String name) throws RemoteException, NotFoundException {
-    AgentContainer ac = containers.getContainer(name);
+  public AgentContainer lookup(ContainerID cid) throws RemoteException, NotFoundException {
+    AgentContainer ac = containers.getContainer(cid.getName());
     return ac;
   }
 
-  public void bornAgent(AID name, RemoteProxy rp, String containerName) throws RemoteException, NameClashException {
+  public void bornAgent(AID name, RemoteProxy rp, ContainerID cid) throws RemoteException, NameClashException {
     AgentDescriptor desc = new AgentDescriptor();
     desc.setProxy(rp);
-    desc.setContainerName(containerName);
+    desc.setContainerID(cid);
     AgentDescriptor old = platformAgents.put(name, desc);
 
     // If there's already an agent with name 'name' throw a name clash
@@ -399,12 +419,12 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
       catch(UnreachableException ue) {
 	System.out.println("Replacing a dead agent ...");
-	postDeadAgent(old.getContainerName(), name);
+	fireDeadAgent(old.getContainerID(), name);
       }
     }
 
     // Notify listeners
-    postNewAgent(containerName, name);
+    fireBornAgent(cid, name);
 
   }
 
@@ -412,11 +432,11 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     AgentDescriptor ad = platformAgents.get(name);
     if(ad == null)
       throw new NotFoundException("DeadAgent failed to find " + name);
-    String containerName = ad.getContainerName();
+    ContainerID cid = ad.getContainerID();
     platformAgents.remove(name);
 
     // Notify listeners
-    postDeadAgent(containerName, name);
+    fireDeadAgent(cid, name);
   }
 
   public RemoteProxy getProxy(AID agentID) throws RemoteException, NotFoundException {
@@ -439,7 +459,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
-  public boolean transferIdentity(AID agentID, String src, String dest) throws RemoteException, NotFoundException {
+  public boolean transferIdentity(AID agentID, ContainerID src, ContainerID dest) throws RemoteException, NotFoundException {
     AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null)
       throw new NotFoundException("transferIdentity() unable to find agent " + agentID.getName());
@@ -457,8 +477,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     // Commit transaction and notify listeners
     ad.lock();
     ad.setProxy(new RemoteProxyRMI(destAC, agentID));
-    ad.setContainerName(dest);
-    postMovedAgent(src, dest, agentID);
+    ad.setContainerID(dest);
+    fireMovedAgent(src, dest, agentID);
     ad.unlock();
     return true;
   }
@@ -626,8 +646,9 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   // Methods for Message Transport Protocols management
 
 
-  public void newMTP(String mtpAddress, String containerName) throws RemoteException {
+  public void newMTP(String mtpAddress, ContainerID cid) throws RemoteException {
     try {
+      String containerName = cid.getName();
       platformAddresses.add(mtpAddress);
       containers.addAddress(containerName, mtpAddress);
       AgentContainer target = containers.getContainer(containerName);
@@ -647,15 +668,16 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
 
       // Notify listeners (typically the AMS)
-      postNewAddress(mtpAddress, containerName);
+      fireAddedMTP(mtpAddress, cid);
     }
     catch(NotFoundException nfe) {
-      System.out.println("Error: the container " + containerName + " was not found.");
+      System.out.println("Error: the container " + cid.getName() + " was not found.");
     }
   }
 
-  public void deadMTP(String mtpAddress, String containerName) throws RemoteException {
+  public void deadMTP(String mtpAddress, ContainerID cid) throws RemoteException {
     try {
+      String containerName = cid.getName();
       platformAddresses.remove(mtpAddress);
       containers.removeAddress(containerName, mtpAddress);
       AgentContainer target = containers.getContainer(containerName);
@@ -675,17 +697,18 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
       }
 
       // Notify listeners (typically the AMS)
-      postDeadAddress(mtpAddress, containerName);
+      fireRemovedMTP(mtpAddress, cid);
 
     }
     catch(NotFoundException nfe) {
-      System.out.println("Error: the container " + containerName + " was not found.");
+      System.out.println("Error: the container " + cid.getName() + " was not found.");
       nfe.printStackTrace();
     }
 
   }
 
-  public String installMTP(String address, String containerName, String className) throws NotFoundException, UnreachableException, MTPException {
+  public String installMTP(String address, ContainerID cid, String className) throws NotFoundException, UnreachableException, MTPException {
+    String containerName = cid.getName();
     AgentContainer target = containers.getContainer(containerName);
     try {
       return target.installMTP(address, className);
@@ -696,7 +719,8 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 
   }
 
-  public void uninstallMTP(String address, String containerName) throws NotFoundException, UnreachableException, MTPException {
+  public void uninstallMTP(String address, ContainerID cid) throws NotFoundException, UnreachableException, MTPException {
+    String containerName = cid.getName();
     AgentContainer target = containers.getContainer(containerName);
     try {
       target.uninstallMTP(address);
@@ -719,8 +743,13 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
   }
 
   // This is used by AMS to obtain the set of all the Agent Containers of the platform.
-  public String[] containerNames() {
-    return containers.names();
+  public ContainerID[] containerIDs() {
+    String[] names = containers.names();
+    ContainerID[] ids = new ContainerID[names.length];
+    for(int i = 0; i < names.length; i++) {
+      ids[i] = new ContainerID(names[i], null);
+    }
+    return ids;
   }
 
   // This is used by AMS to obtain the list of all the agents of the platform.
@@ -735,20 +764,21 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     return result;
   }
 
-  // This maps the name of an agent to the name of the Agent Container the agent lives in.
-  public String getContainerName(AID agentID) throws NotFoundException {
+  // This maps the name of an agent to the ID of the Agent Container the agent lives in.
+  public ContainerID getContainerID(AID agentID) throws NotFoundException {
     AgentDescriptor ad = platformAgents.get(agentID);
     if(ad == null)
-      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerName()");
+      throw new NotFoundException("Agent " + agentID.getName() + " not found in getContainerID()");
     ad.lock();
-    String result = ad.getContainerName();
+    ContainerID result = ad.getContainerID();
     ad.unlock();
     return result;
   }
 
   // This is called in response to a 'create-agent' action
-  public void create(String agentName, String className, String args[],String containerName) throws UnreachableException {
+  public void create(String agentName, String className, String args[], ContainerID cid) throws UnreachableException {
     try {
+      String containerName = cid.getName();
       AgentContainer ac;
       // If no name is given, the agent is started on the MainContainer itself
       if(containerName == null)
@@ -770,10 +800,11 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
     }
   }
 
-  public void killContainer(String containerName) {
+  public void killContainer(ContainerID cid) {
 
     // This call spawns a separate thread in order to avoid deadlock.
     try {
+      String containerName = cid.getName();
       final AgentContainer ac = containers.getContainer(containerName);
       final String cName = containerName;
       Thread auxThread = new Thread(new Runnable() {
@@ -784,7 +815,7 @@ class MainContainerImpl extends AgentContainerImpl implements MainContainer, Age
 	   catch(RemoteException re) {
 	     System.out.println("Container " + cName + " is unreachable.");
 	     containers.removeContainer(cName);
-	     postDeadContainer(cName);
+	     fireRemovedContainer(new ContainerID(cName, null));
 	   }
 	 }
       });
