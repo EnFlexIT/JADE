@@ -505,14 +505,32 @@ public final class DefaultOntology implements Ontology {
 	  			}
 				}
 				else {	// Check that the returned type is compatible with the one dictated by the SlotDescriptor
+					Class slotType = null;
 	  			try {
-	    			Class primitive = Class.forName(desc.getType()); 
+	    			slotType = Class.forName(desc.getType()); 
 	  				// System.out.println("- primitive class is: "+primitive.getName());
-	    			if(!implType.isAssignableFrom(primitive))
-	      			throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " is of type "+ primitive + ", but must be a subtype of " + implType + " class.");
+	    			if(!implType.isAssignableFrom(slotType))
+	      			throw new OntologyException("1 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
 	  			} 
 	  			catch (Exception e) {
-	    			throw new OntologyException("Wrong class: the primitive term " + desc.getName() + " must be a subtype of " + implType + " class.");
+	  				// The check might have failed because the compared types are arrays.
+	  				// In this case in fact Class.forName() does not work.
+	  				// Let's try also this case
+	  				try{
+	  					String type = desc.getType();
+	  					Class componentImplType = implType.getComponentType();
+	  					if (type.endsWith("[]") && componentImplType != null){
+	  						String componentType = type.substring(0, type.length() - 2); 
+	  						slotType = Class.forName(componentType);
+	  						if (!componentImplType.isAssignableFrom(slotType)) 
+	    						throw new OntologyException("2 Wrong class: the primitive slot " + desc.getName() + " is of type "+ componentImplType + "[], but must be a subtype of " + slotType + "[].");
+	  					}
+	  					else
+	    					throw new OntologyException("3 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + slotType + ".");
+	  				}
+	  				catch (Exception e1) {
+	      			throw new OntologyException("4 Wrong class: the primitive slot " + desc.getName() + " is of type "+ implType + ", but must be a subtype of " + desc.getType() + ".");
+	  				}
 	  			}
 				}
       }
@@ -533,68 +551,82 @@ public final class DefaultOntology implements Ontology {
     Iterator it = fs.subSchemas();
     int slotPosition = 0;
     
+    // LOOP on slots 
     while(it.hasNext()) {
       SlotDescriptor desc = (SlotDescriptor)it.next();
       String slotName = desc.getName();
       String methodName;
       if (desc.isSet())
-	methodName = "add" + translateName(slotName);
+				methodName = "add" + translateName(slotName);
       else
-	methodName = "set" + translateName(slotName);
+				methodName = "set" + translateName(slotName);
       
       // Retrieve the modifier method from the class and call it
       Method setMethod = findMethodCaseInsensitive(methodName, theRoleClass);
       try {
-	Object slotValue;
-	if (slotName.startsWith(Frame.UNNAMEDPREFIX))
-	  slotValue = f.getSlot(slotPosition);
-	else
-	  slotValue = f.getSlot(slotName);
-	// For complex slots, transform from sub-frame to sub-object.
-	// This is performed calling createObject() recursively.
-	if(desc.isComplex()) {
-	  slotValue = createSingleObject((Frame)slotValue);
-	  setMethod.invoke(entity, new Object[] { slotValue });
-	}
-	else if (desc.isSet()) {
-	  Frame set = (Frame)slotValue;//this is the frame representing the set
-	  if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)){
-	    for (int i=0; i<set.size(); i++) { 
-	      try { //try as a complex frame
-		Object element = createSingleObject((Frame)set.getSlot(i));
-		setMethod.invoke(entity, new Object[]{element});
-	      } catch (Exception ee1) {
-		// if exception then it is a primitive frame
-		setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
-	      }
-	    }//end of for int
-	  } else if (desc.hasPrimitiveType())
-	    for (int i=0; i<set.size(); i++) // add all the elements of the set
-	      setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
-	  else // convert the elements into an object and then add
-	    for (int i=0; i<set.size(); i++) { 
-	      Object element = createSingleObject((Frame)set.getSlot(i));
-	      setMethod.invoke(entity, new Object[]{element});
-	    } 
-	} 
-	else 
-	  setMethod.invoke(entity, new Object[] { slotValue });
-	slotPosition++;
-      }
+				Object slotValue;
+				if (slotName.startsWith(Frame.UNNAMEDPREFIX))
+	  			slotValue = f.getSlot(slotPosition);
+				else
+	  			slotValue = f.getSlot(slotName);
+	  			
+				// COMPLEX SLOT: the value of this slot is another Frame object -->
+	  		// Transform from sub-frame to sub-object by calling 
+				// createObject() recursively.
+	  		if(desc.isComplex()) {
+	  			slotValue = createSingleObject((Frame)slotValue);
+	  			setMethod.invoke(entity, new Object[] { slotValue });
+				}
+				
+				// SET SLOT or SEQUENCE SLOT: the value of this slot is a set or sequence
+				else if (desc.isSet()) {
+	  			Frame set = (Frame) slotValue; //this is the frame representing the set
+	  			if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)){
+	    			for (int i=0; i<set.size(); i++) { 
+	      			try { //try as a complex frame
+								Object element = createSingleObject((Frame)set.getSlot(i));
+								setMethod.invoke(entity, new Object[]{element});
+	      			} 
+	      			catch (Exception ee1) {
+								// if exception then it is a primitive frame
+								setMethod.invoke(entity, new Object[]{set.getSlot(i)}); 
+	      			}
+	    			} //end of for int
+	  			} 
+	  			else if (desc.hasPrimitiveType()) {
+	    			for (int i=0; i<set.size(); i++) // add all the elements of the set
+	      			setMethod.invoke(entity, new Object[]{ castPrimitiveValue(set.getSlot(i), desc.getType())});
+	  			}
+	  			else {// convert the elements into an object and then add
+	    			for (int i=0; i<set.size(); i++) { 
+	      			Object element = createSingleObject((Frame)set.getSlot(i));
+	      			setMethod.invoke(entity, new Object[]{element});
+	    			} 
+	  			}
+				}
+				
+				// PRIMITIVE SLOT: the value of this slot has a primitive type -->
+				// It can be directly set.
+				else { 
+	  			setMethod.invoke(entity, new Object[] { castPrimitiveValue(slotValue, desc.getType()) });
+				}
+				slotPosition++;
+				
+      } // END of try
       catch(Frame.NoSuchSlotException fnsse) { // Ignore 'No such slot' errors for optional slots
-	if(!desc.isOptional())
-	  throw fnsse;
+				if(!desc.isOptional())
+	  			throw fnsse;
       }
       catch(InvocationTargetException ite) {
-	Throwable e = ite.getTargetException();
-	e.printStackTrace();
-	throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()",ite);
+				Throwable e = ite.getTargetException();
+				e.printStackTrace();
+				throw new OntologyException("Internal error: a reflected method threw an exception.\n e.getMessage()",ite);
       }
       catch(IllegalAccessException iae) {
-	throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]",iae);
+				throw new OntologyException("Internal error: the required method is not accessible [" + iae.getMessage() + "]",iae);
       }
       catch(SecurityException se) {
-	throw new OntologyException("Wrong class: some required method is not accessible.",se); 
+				throw new OntologyException("Wrong class: some required method is not accessible.",se); 
       }
       catch(IllegalArgumentException iare){
       	throw new OntologyException("Possible mismatch between the type returned by the parser and the type declared in the ontology [" + iare.getMessage() + "]. For role "+roleName+" and slot "+slotName,iare);	
@@ -602,13 +634,56 @@ public final class DefaultOntology implements Ontology {
       catch(ClassCastException iacce) {
       	throw new OntologyException("Possibly a primitive value has been used instead of a Frame slot",iacce);
       }
-    }
+      
+    } // END of LOOP on slots
     
     return entity;
   }
 
-
-  private void buildFromObject(Frame f, FrameSchema fs, Object o, Class theRoleClass) throws OntologyException {
+	private Object castPrimitiveValue(Object value, String type) throws IllegalArgumentException {
+		// The CLParser cannot distinguish between Byte, Short, Integer, Long and 
+		// between Character and string ....
+		// Therefore it simply returns 
+		// - Long for strings representing a valid integer value
+		// - Double for strings representing a valid rational value 
+		// - Boolean for strings equals to "true" and "false"
+		// - Date for strings representing a valid UTCTime
+		// - String for strings not belonging to the above cases
+		// - Byte[] for non-string values
+		// This method performs the necessary checks and conversions.
+		
+		String stringifiedValue = value.toString();
+		Object castedValue = null;
+		try{
+			if (type.equalsIgnoreCase(Ontology.INTEGER_TYPE))
+				castedValue = (Object) new Integer(stringifiedValue);
+			else if (type.equalsIgnoreCase(Ontology.SHORT_TYPE))
+				castedValue = (Object) new Short(stringifiedValue);
+			else if (type.equalsIgnoreCase(Ontology.FLOAT_TYPE))
+				castedValue = (Object) new Float(stringifiedValue);
+			else if (type.equalsIgnoreCase(Ontology.CHARACTER_TYPE)){
+				if (stringifiedValue.length() != 1)
+					throw new IllegalArgumentException("Type mismatch for value " + stringifiedValue + " and type " + type);
+				castedValue = (Object) new Character(stringifiedValue.charAt(0));
+			}
+			else if (type.equalsIgnoreCase(Ontology.BYTE_TYPE)){
+				castedValue = (Object) new Byte(stringifiedValue);
+			}
+			else if (type.equalsIgnoreCase(Ontology.STRING_TYPE)){
+				if (!value.getClass().equals(java.lang.Byte[].class))
+					castedValue = stringifiedValue;
+			}
+			else 
+				castedValue = value;
+		}
+		catch(NumberFormatException nfe) {
+			throw new IllegalArgumentException("Format mismatch between value " + stringifiedValue + " and type " + type);
+		}
+		
+		return castedValue;
+	}
+	
+	private void buildFromObject(Frame f, FrameSchema fs, Object o, Class theRoleClass) throws OntologyException {
     Iterator it = fs.subSchemas();
     while(it.hasNext()) {
       SlotDescriptor desc = (SlotDescriptor)it.next();
