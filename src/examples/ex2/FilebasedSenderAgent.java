@@ -33,9 +33,11 @@ public class FilebasedSenderAgent extends Agent {
 	  return;
 	}
 	else {
+	  //System.err.println("FilebasedSenderAgent: ");
+	  //msg.dump();
 	  StringWriter w = new StringWriter();
 	  msg.toText(w);
-	  myGui.receivedMessage("("+w.toString()+")");
+	  myGui.receivedMessage(w.toString());
 	}
       }
     });
