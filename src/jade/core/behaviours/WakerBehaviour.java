@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -46,7 +47,7 @@ import java.util.*;
  * <li> the method  <code>handleElapsedTimeout</code> must implement the
  * task that will be executed after the timeout is elapsed.
  * </ul>
- * Javadoc documentation for the file
+ * 
  * @author Fabio Bellifemine - CSELT S.p.A.
  * @version $Date$ $Revision$
  */

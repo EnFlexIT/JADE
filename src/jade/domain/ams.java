@@ -50,7 +50,7 @@ import jade.proto.FipaRequestResponderBehaviour;
   applications cannot use this class directly, but interact with it
   through <em>ACL</em> message passing.
 
-  Javadoc documentation for the file
+  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 

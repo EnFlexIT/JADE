@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop 
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -78,7 +79,7 @@ import jade.onto.DefaultOntology;
    appropriate type.
    </ol>
   
-  Javadoc documentation for the file
+  
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 
@@ -185,7 +186,7 @@ public class AgentManagementOntology extends DefaultOntology {
     */
     public void toText(Writer w) {
       try {
-	w.write("( " + TITLE);
+	w.write("( " + TITLE + " ");
 	if(name != null)
 	  w.write("( " + NAME + " " + name + " )");
 	if(type != null)
@@ -509,7 +510,7 @@ public class AgentManagementOntology extends DefaultOntology {
 	}
 
 	if(!services.isEmpty()) {
-	  w.write("( " + SERVICES);
+	  w.write("( " + SERVICES + " ");
 	  e = getAgentServices();
 	  while(e.hasMoreElements()) {
 	    ServiceDescriptor sd = (ServiceDescriptor)e.nextElement();

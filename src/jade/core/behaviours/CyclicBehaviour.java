@@ -30,7 +30,7 @@ import jade.core.Agent;
    can be extended by application programmers to create behaviours
    that keep executing continuously (e.g. simple reactive behaviours).
    
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

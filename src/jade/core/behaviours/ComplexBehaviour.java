@@ -40,7 +40,7 @@ import jade.core.Agent;
    @see jade.core.behaviours.SequentialBehaviour
    @see jade.core.behaviours.NonDeterministicBehaviour
 
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 

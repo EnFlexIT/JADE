@@ -33,7 +33,7 @@ import jade.core.Agent;
    notification used for blocking and restarting behaviours is
    directly accessible at this level.
    
-   Javadoc documentation for the file
+   
    @author Giovanni Rimassa - Universita` di Parma
    @version $Date$ $Revision$
 
