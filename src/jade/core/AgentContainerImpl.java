@@ -39,6 +39,8 @@ import jade.util.Logger;
 import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
 
+import jade.core.messaging.GenericMessage;
+
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -70,6 +72,7 @@ import jade.security.Credentials;
    @see Runtime#createAgentContainer(Profile)
 
    @author Giovanni Rimassa - Universita' di Parma
+   @author Jerome Picault - Motorola Labs
    @version $Date$ $Revision$
 
 */
@@ -386,7 +389,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
 	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
 	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
-	      new ServiceDescriptor(messaging.getName(), messaging)
+	      new ServiceDescriptor(messaging.getName(), messaging),
 	  };
 
 	  // Register with the platform and activate all the container fundamental services
@@ -533,7 +536,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	e.printStackTrace();
       }
       
-
       // Create and activate agents that must be launched at bootstrap
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -666,15 +668,32 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
     public void handleSend(ACLMessage msg, AID sender) throws AuthException {
+      Envelope env = msg.getEnvelope();
+      // Small hack to enables the delivering of messages even if there is 
+      // no receiver in the ACL message, only in the envelope
+      Iterator it;
+      if (env!=null){
+        it = env.getAllIntendedReceiver();
+        // If no 'intended-receiver' is present, use the 'to' slot (but
+        // this should not happen).
+        if(!it.hasNext()){
+          it = env.getAllTo();
+          if(!it.hasNext()) it=msg.getAllReceiver();
+        }
+      }
+      else it=msg.getAllReceiver();
+      while (it.hasNext()){
+        AID receiver = (AID)it.next();
+        GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
+        cmd.addParam(sender);
+        cmd.addParam(new GenericMessage((ACLMessage)msg.clone()));
+        cmd.addParam(receiver);
+        Object lastException = myCommandProcessor.processOutgoing(cmd);
 
-	GenericCommand cmd = new GenericCommand(jade.core.messaging.MessagingSlice.SEND_MESSAGE, jade.core.messaging.MessagingSlice.NAME, null);
-	cmd.addParam(msg);
-	cmd.addParam(sender);
-	Object lastException = myCommandProcessor.processOutgoing(cmd);
-
-	if((lastException != null) && (lastException instanceof AuthException)) {
-	    throw (AuthException)lastException;
-	}
+        if((lastException != null) && (lastException instanceof AuthException)) {
+          throw (AuthException)lastException;
+        }
+      }
 
     }
 
