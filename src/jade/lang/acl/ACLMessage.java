@@ -291,10 +291,13 @@ private int performative; // keeps the performative type of this object
      slot. <em><b>Warning:</b> no checks are made to validate the slot
      value.</em>
      @param r The value to remove from the slot value set.
+     @return true if the AID has been found and removed, false otherwise
   */
-  public void removeReceiver(AID r) {
+  public boolean removeReceiver(AID r) {
     if (r != null)
-      dests.remove(r);
+      return dests.remove(r);
+    else
+      return false;
   }
 
   /**
@@ -323,10 +326,13 @@ private int performative; // keeps the performative type of this object
      slot. <em><b>Warning:</b> no checks are made to validate the slot
      value.</em>
      @param dest The value to remove from the slot value set.
+     @return true if the AID has been found and removed, false otherwise
   */
-  public void removeReplyTo(AID dest) {
+  public boolean removeReplyTo(AID dest) {
     if (dest != null)
-      reply_to.remove(dest);
+      return reply_to.remove(dest);
+    else
+      return false;
   }
 
   /**
@@ -830,9 +836,10 @@ private int performative; // keeps the performative type of this object
    * Removes the key and its corresponding value from the list of user
    * defined parameters in this ACLMessage.
    * @ param key the key that needs to be removed
+     @return true if the property has been found and removed, false otherwise
    */
-   public void removeUserDefinedParameter(String key) {
-     userDefProps.remove(key);
+   public boolean removeUserDefinedParameter(String key) {
+     return (userDefProps.remove(key) != null);
    }
 
   /**
