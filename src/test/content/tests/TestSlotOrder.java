@@ -49,7 +49,7 @@ public class TestSlotOrder extends Test{
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				AbsConcept i = new AbsConcept(ECommerceOntology.ITEM);
-  				i.set(ECommerceOntology.ITEM, 35624);
+  				i.set(ECommerceOntology.ITEM_SERIALID, 35624);
   				
   				AbsConcept p = new AbsConcept(ECommerceOntology.PRICE);
   				p.set(ECommerceOntology.PRICE_VALUE, 5.37);
