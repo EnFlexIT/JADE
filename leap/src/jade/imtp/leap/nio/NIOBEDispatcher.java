@@ -457,7 +457,6 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 					JICPPacket reply = myConnection.readPacket();
 				  readStartTime = -1;
 				  checkTerminatedInfo(reply);
-				  System.out.println("peer active = "+peerActive);
 				  lastReceivedTime = System.currentTimeMillis();
 				  long end = lastReceivedTime;
 				  if ((end - start) > 100) {
@@ -472,7 +471,6 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			      throw new ICPException(new String(pkt.getData()));
 			    }
 			    if (!peerActive) {
-					  System.out.println("Calling shutdown()");
 			    	// This is the response to an exit command --> Suicide, without
 			    	// killing the above container since it is already dying. 
 			    	NIOBEDispatcher.this.shutdown();
