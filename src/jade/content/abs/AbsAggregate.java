@@ -85,8 +85,8 @@ public class AbsAggregate extends AbsTerm {
      * @return the elements.
      *
      */
-    public List getElements() {
-        return elements;
+    public Iterator getAllElement() {
+        return elements.iterator();
     } 
 
     /**
@@ -103,7 +103,7 @@ public class AbsAggregate extends AbsTerm {
      * Clear the aggregate.
      *
      */
-    public void clearElements () {
+    public void clearAllElement () {
 	elements.clear();
     }
 

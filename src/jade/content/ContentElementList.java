@@ -63,13 +63,11 @@ public class ContentElementList implements ContentElement {
     } 
 
     /**
-     * Retrieves the number of elements.
-     *
-     * @return the number of elements.
+     * Clears all elements..
      *
      */
-    public int getElementCount() {
-        return elements.size();
+    public void clearAllElements() {
+        elements.clear();
     } 
 
     /**
@@ -78,7 +76,7 @@ public class ContentElementList implements ContentElement {
      * @return an iterator to the list of elements.
      *
      */
-    public Iterator getElements() {
+    public Iterator getAllElement() {
         return elements.iterator();
     } 
 }

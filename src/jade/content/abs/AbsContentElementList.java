@@ -61,8 +61,8 @@ public class AbsContentElementList extends AbsContentElement {
      * @return the list of elements.
      *
      */
-    public List getList() {
-        return list;
+    public Iterator getAll() {
+        return list.iterator();
     } 
 }
 

@@ -31,6 +31,7 @@ import jade.core.AID;
 
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -66,13 +67,13 @@ public class CommunicativeActBase implements CommunicativeAct {
     } 
 
     /**
-     * Sets the receivers.
+     * Clears the receiver list.
      *
      * @param receivers the receivers.
      *
      */
-    public void setReceivers(List receivers) {
-        this.receivers = receivers;
+    public void clearAllReceiver() {
+        receivers.clear();
     } 
 
     /**
@@ -81,8 +82,8 @@ public class CommunicativeActBase implements CommunicativeAct {
      * @return the receivers.
      *
      */
-    public List getReceivers() {
-        return receivers;
+    public Iterator getAllReceiver() {
+        return receivers.iterator();
     } 
 
     /**

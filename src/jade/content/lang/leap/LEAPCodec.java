@@ -122,7 +122,7 @@ public class LEAPCodec extends Codec {
 
             AbsContentElementList acel = (AbsContentElementList) abs;
 
-            for (Iterator i = acel.getList().iterator(); i.hasNext(); ) {
+            for (Iterator i = acel.getAll(); i.hasNext(); ) {
                 stream.writeByte(ELEMENT);
                 write(stream, (AbsObject) i.next());
             } 

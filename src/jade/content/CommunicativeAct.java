@@ -26,8 +26,7 @@ package jade.content;
 
 import jade.content.onto.*;
 import jade.core.AID;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -35,8 +34,9 @@ import jade.util.leap.ArrayList;
 public interface CommunicativeAct extends GenericAction {
     void setSender(AID sender);
     AID  getSender();
-    void setReceivers(List receivers);
-    List getReceivers();
+
+    void clearAllReceiver();
+    Iterator getAllReceiver();
     void addReceiver(AID aid);
 }
 

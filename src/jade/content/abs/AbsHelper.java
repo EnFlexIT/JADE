@@ -169,7 +169,7 @@ public class AbsHelper {
     public static List toListObject(AbsContentElementList abs, FullOntology onto) throws OntologyException {
         List ret = new ArrayList();
 
-        for (Iterator i = abs.getList().iterator(); i.hasNext(); ) {
+        for (Iterator i = abs.getAll(); i.hasNext(); ) {
             ret.add(onto.toObject((AbsObject) i.next()));
         }
 
