@@ -45,6 +45,7 @@ import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
+import jade.core.ServiceHelper;
 import jade.core.BaseService;
 import jade.core.ServiceException;
 import jade.core.Sink;
@@ -93,10 +94,10 @@ public class AgentMobilityService extends BaseService {
 
 
     private static final String[] OWNED_COMMANDS = new String[] {
-	AgentMobilitySlice.REQUEST_MOVE,
-	AgentMobilitySlice.REQUEST_CLONE,
-	AgentMobilitySlice.INFORM_MOVED,
-	AgentMobilitySlice.INFORM_CLONED
+	AgentMobilityHelper.REQUEST_MOVE,
+	AgentMobilityHelper.REQUEST_CLONE,
+	AgentMobilityHelper.INFORM_MOVED,
+	AgentMobilityHelper.INFORM_CLONED
     };
 
 
@@ -128,6 +129,10 @@ public class AgentMobilityService extends BaseService {
 	return localSlice;
     }
 
+    public ServiceHelper getHelper(Agent a) {
+	return helper;
+    }
+
     public Filter getCommandFilter(boolean direction) {
 	return null;
     }
@@ -153,16 +158,16 @@ public class AgentMobilityService extends BaseService {
 	public void consume(VerticalCommand cmd) {
 	    try {
 		String name = cmd.getName();
-		if(name.equals(AgentMobilitySlice.REQUEST_MOVE)) {
+		if(name.equals(AgentMobilityHelper.REQUEST_MOVE)) {
 		    handleRequestMove(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.REQUEST_CLONE)) {
+		else if(name.equals(AgentMobilityHelper.REQUEST_CLONE)) {
 		    handleRequestClone(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.INFORM_MOVED)) {
+		else if(name.equals(AgentMobilityHelper.INFORM_MOVED)) {
 		    handleInformMoved(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.INFORM_CLONED)) {
+		else if(name.equals(AgentMobilityHelper.INFORM_CLONED)) {
 		    handleInformCloned(cmd);
 		}
 	    }
@@ -488,16 +493,16 @@ public class AgentMobilityService extends BaseService {
 
 	    try {
 		String name = cmd.getName();
-		if(name.equals(AgentMobilitySlice.REQUEST_MOVE)) {
+		if(name.equals(AgentMobilityHelper.REQUEST_MOVE)) {
 		    handleRequestMove(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.REQUEST_CLONE)) {
+		else if(name.equals(AgentMobilityHelper.REQUEST_CLONE)) {
 		    handleRequestClone(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.INFORM_MOVED)) {
+		else if(name.equals(AgentMobilityHelper.INFORM_MOVED)) {
 		    handleInformMoved(cmd);
 		}
-		else if(name.equals(AgentMobilitySlice.INFORM_CLONED)) {
+		else if(name.equals(AgentMobilityHelper.INFORM_CLONED)) {
 		    handleInformCloned(cmd);
 		}
 	    }
@@ -644,7 +649,7 @@ public class AgentMobilityService extends BaseService {
 		    cmd.setReturnValue(fetchClassFile(name));
 		}
 		else if(cmdName.equals(AgentMobilitySlice.H_MOVEAGENT)) {
-		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.REQUEST_MOVE, AgentMobilitySlice.NAME, null);
+		    GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.REQUEST_MOVE, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    Location where = (Location)params[1];
 		    gCmd.addParam(agentID);
@@ -653,7 +658,7 @@ public class AgentMobilityService extends BaseService {
 		    result = gCmd;
 		}
 		else if(cmdName.equals(AgentMobilitySlice.H_COPYAGENT)) {
-		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.REQUEST_CLONE, AgentMobilitySlice.NAME, null);
+		    GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.REQUEST_CLONE, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    Location where = (Location)params[1];
 		    String newName = (String)params[2];
@@ -682,7 +687,7 @@ public class AgentMobilityService extends BaseService {
 		    handleTransferResult(agentID, transferResult, messages);
 		}
 		else if(cmdName.equals(AgentMobilitySlice.H_CLONEDAGENT)) {
-		    GenericCommand gCmd = new GenericCommand(AgentMobilitySlice.INFORM_CLONED, AgentMobilitySlice.NAME, null);
+		    GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.INFORM_CLONED, AgentMobilitySlice.NAME, null);
 		    AID agentID = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
 		    CertificateFolder certs = (CertificateFolder)params[2];
@@ -995,6 +1000,58 @@ public class AgentMobilityService extends BaseService {
 
     // The local slice for this service
     private final ServiceComponent localSlice = new ServiceComponent();
+
+    // The helper for this service (entry point for agents).
+    private final AgentMobilityHelper helper = new AgentMobilityHelper() {
+
+	public void init(Agent a) {
+	}
+
+	public void informMoved(AID agentID, Location where) throws ServiceException, AuthException, NotFoundException, IMTPException {
+	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(where);
+	    Object lastException = submit(cmd);
+
+	    if(lastException != null) {
+
+		if(lastException instanceof AuthException) {
+		    throw (AuthException)lastException;
+		}
+		if(lastException instanceof NotFoundException) {
+		    throw (NotFoundException)lastException;
+		}
+		if(lastException instanceof IMTPException) {
+		    throw (IMTPException)lastException;
+		}
+	    }
+	}
+
+	public void informCloned(AID agentID, Location where, String newName) throws ServiceException, AuthException, IMTPException, NotFoundException, NameClashException {
+	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_CLONED, AgentMobilitySlice.NAME, null);
+	    cmd.addParam(agentID);
+	    cmd.addParam(where);
+	    cmd.addParam(newName);
+	    Object lastException = submit(cmd);
+
+	    if(lastException != null) {
+
+		if(lastException instanceof AuthException) {
+		    throw (AuthException)lastException;
+		}
+		if(lastException instanceof NotFoundException) {
+		    throw (NotFoundException)lastException;
+		}
+		if(lastException instanceof IMTPException) {
+		    throw (IMTPException)lastException;
+		}
+		if(lastException instanceof NameClashException) {
+		    throw (NameClashException)lastException;
+		}
+	    }
+	}
+
+    };
 
     // The command sink, source side
     private final CommandSourceSink senderSink = new CommandSourceSink();
