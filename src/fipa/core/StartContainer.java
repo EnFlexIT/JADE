@@ -13,7 +13,7 @@ public class StartContainer {
     // Default values for looking up the RMI registry
     String platformHost = "localhost";
     String platformPort = "1099";
-    String platformName = "FEPF";
+    String platformName = "JADE";
 
     Vector agents = new Vector();
 

@@ -13,7 +13,7 @@ public class StartPlatform {
     AgentPlatform thePlatform = null;
 
     // Default values for binding to the RMI registry
-    String platformName = "FEPF";
+    String platformName = "JADE";
     String platformHost = "localhost";
     String platformPort = "1099";
 
