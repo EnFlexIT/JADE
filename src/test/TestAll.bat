@@ -13,7 +13,7 @@ set JESS51=c:\myprograms\jess51
 set CLASSPATH=..\..\classes;%JESS51%
 set JADEJAR=..\..\lib\jade.jar
 
-goto :SKIPCOMPILATION
+REM goto :SKIPCOMPILATION
 echo compile JADE and the examples
 cd ..\..
 CALL makejade
@@ -29,7 +29,7 @@ echo Starting the Agent Platform
 START java -cp %CLASSPATH% jade.Boot -gui
 pause Press a key when the platform is ready
 
-goto :STARTHERE 
+REM goto :STARTHERE 
 
 echo Running Base64 example
 java -cp %CLASSPATH% jade.Boot -container a:examples.Base64.ObjectReaderAgent b:examples.Base64.ObjectWriterAgent
@@ -73,8 +73,7 @@ java -cp %CLASSPATH% jade.Boot -container a:examples.PingAgent.PingAgent
 
 :STARTHERE
 echo Running the protocols example
-REM java -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1 r2 r3) r1:examples.protocols.Responder r2:examples.protocols.Responder r3:examples.protocols.Responder
-java -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1) r1:examples.protocols.Responder 
+java -Djava.compiler="" -cp %CLASSPATH% jade.Boot -container ini:examples.protocols.ComplexInitiator(r1 r2) r1:examples.protocols.Responder  r2:examples.protocols.Responder 
 echo Everytime the initiator is blocked, it might be waiting forever for
 echo an INFORM/FAILURE message that closes the protocol.
 echo In such a case, just send it by using the DummyAgent (remind to match
