@@ -135,7 +135,7 @@ public class Mediator extends EndPoint implements JICPMediator {
   public JICPPacket handleJICPPacket(JICPPacket p) throws ICPException {
   	if (isPing(p)) {
   		// If the command is a PING handle it locally
-			return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, Command.getSerializedOk());   		
+			return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, Command.getSerializedOk());   		
   	}
   	else {
   		// Otherwise forward it to the mediated container

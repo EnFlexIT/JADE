@@ -228,7 +228,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     JICPPacket pkt = null;
     if (mediatorAlive) {
     	// This is a reconnection --> Send a CONNECT_MEDIATOR request
-    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, mediatorId, null);
+    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorId, null);
     }
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request
@@ -237,7 +237,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
     	sb.append(JICPProtocol.MAX_DISCONNECTION_TIME_KEY);
     	sb.append('=');
     	sb.append(maxDisconnectionTime);
-    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, sb.toString().getBytes());
+    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 		}    	
     pkt.writeTo(out);
 
@@ -261,14 +261,7 @@ public class JICPBMPeer extends EndPoint implements ICP {
   ////////////////////////////////////
   protected JICPPacket handleCommand(JICPPacket cmd) throws Exception {
   	byte[] rspData = cmdListener.handleCommand(cmd.getData());
-    // If this is the Thread that is shutting down this JICPBMPeer
-    // (i.e. the Thread that has previously called the deactivate() method)
-    // --> notify the Mediator
-    /*if (Thread.currentThread().equals(terminator)) {
-      log("Activate Mediator shutdown (after the current command has been served)");
-    	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), rspData);
-    }*/
-    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
+    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
   }
   
   /**

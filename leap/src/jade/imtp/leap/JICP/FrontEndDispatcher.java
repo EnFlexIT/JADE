@@ -32,7 +32,6 @@ import jade.imtp.leap.BackEndStub;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
-import jade.imtp.leap.ICP;
 import jade.imtp.leap.ICPException;
 import jade.util.leap.Properties;
 /*#MIDP_INCLUDE_BEGIN
@@ -54,8 +53,8 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   private BackEndStub myStub = null;
 
   // Variables related to the connection with the Mediator
-  private TransportAddress mediatorServerTA;
-  private String           mediatorId = null;
+  protected TransportAddress mediatorServerTA;
+  protected String           mediatorId = null;
   private boolean          mediatorAlive = false;
   private long             retryTime = JICPProtocol.DEFAULT_RETRY_TIME;
   private long             maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -196,14 +195,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
    */
   protected JICPPacket handleCommand(JICPPacket cmd) throws Exception {
   	byte[] rspData = mySkel.handleCommand(cmd.getData());
-    // If this is the Thread that is shutting down this FrontEndDispatcher
-    // (i.e. the Thread that has previously called the shutdown() method)
-    // --> notify the Mediator
-    /*if (Thread.currentThread().equals(terminator)) {
-      log("Activate Mediator shutdown (after the current command has been served)");
-    	return new JICPPacket(JICPProtocol.RESPONSE_TYPE, (byte) (JICPProtocol.UNCOMPRESSED_INFO | JICPProtocol.TERMINATED_INFO), rspData);
-    }*/
-    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, rspData);
+    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
   }
   
   /**
@@ -253,7 +245,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     JICPPacket pkt = null;
     if (mediatorAlive) {
     	// This is a reconnection --> Send a CONNECT_MEDIATOR request
-    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, mediatorId, null);
+    	pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorId, null);
     }
     else {
     	// This is the first time --> Send a CREATE_MEDIATOR request and
@@ -270,7 +262,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     		sb.append(";owner=");
     		sb.append(owner);
     	}
-    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null, sb.toString().getBytes());
+    	pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
     }    	
     pkt.writeTo(out);
 
