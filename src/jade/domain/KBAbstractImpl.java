@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAAgentManagement.Property;
 
 /** Common base class for AMS and DF Knowledge Base*/
 abstract class KBAbstractImpl implements KB {
@@ -183,7 +184,23 @@ abstract class KBAbstractImpl implements KB {
 	return false;
     }
 
-    // FIXME: Should try to match the Properties, too ?
+    // Match properties set
+    itTemplate = template.getAllProperties();
+    while(itTemplate.hasNext()) {
+      Property templateProp = (Property)itTemplate.next();
+      boolean found = false;
+      Iterator itFact = fact.getAllProperties();
+      while(!found && itFact.hasNext()) {
+	Property factProp = (Property)itFact.next();
+	Object templateValue = templateProp.getValue();
+	if ((new String()).getClass().isInstance(templateValue)) 
+	    found = ((String)templateValue).equalsIgnoreCase(factProp.getValue().toString());
+	else
+	    found = templateValue.equals(factProp.getValue());
+      }
+      if(!found)
+	return false;
+    }
 
     return true;
   }
