@@ -79,20 +79,30 @@ public class FIPAServiceCommunicator {
   
 
   /**
-   * This method plays the initiator role in the Fipa-Request interaction protocol
-   * and performs all the steps of the protocol.
+   * This method plays the initiator role in the Fipa-Request
+   * interaction protocol and performs all the steps of the
+   * protocol. The method uses the
+   * <code>:reply-with</code>/<code>:in-reply-to</code> ACL message
+   * slots as a mechanism to match the protocol replies.
    * Take care because the method blocks until all the response messages are received.
    * Under error conditions, or if the responder does not wish to respond, that
    * might block for ever the execution of the agent.
    * For this reason, the <code>FipaRequestInitiatorBehaviour</code> is the preferred
    * way to play the protocol.
    * @param a is the Agent playing the initiator role
-   * @param request is the ACLMessage to be sent. Notice that all the slots of the
-   * message must have already been filled by the caller. 
+   * @param request is the ACLMessage to be sent. Notice that all the
+   * slots of the message must have already been filled by the
+   * caller. If the <code>:reply-with</code> message slot is not set,
+   * a default one will be generated automatically.
    * @return the INFORM message received in the final state of the protocol, if
    * the protocol succeeded, otherwise it throws an Exception
    */
   public static ACLMessage doFipaRequestClient(Agent a, ACLMessage request) throws FIPAException {
+
+    // If the request message does not have a ':reply-with' slot set
+    if (request.getReplyWith() == null) 
+      request.setReplyWith("rw"+a.getLocalName()+(new Date()).getTime());
+
     a.send(request);
     MessageTemplate mt = MessageTemplate.MatchInReplyTo(request.getReplyWith());
     ACLMessage reply = a.blockingReceive(mt);
