@@ -42,7 +42,7 @@ public abstract class TestBase extends Test {
   	responders = new AID[responderBehaviours.length];
   	for (int i = 0; i < responderBehaviours.length; ++i) {
   		String resp = new String(RESPONDER_NAME+i);
-  		AID id = TestUtility.createTarget(a, resp);
+  		AID id = TestUtility.createAgent(a, resp, TestUtility.CONFIGURABLE_AGENT, null);
   		TestUtility.addBehaviour(a, id, responderBehaviours[i]);
   		msg.addReceiver(id);
   		responders[i] = id;
