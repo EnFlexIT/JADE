@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.2  1999/08/27 15:46:32  rimassa
+  Added support for TransientException in order to retry message
+  dispatch when the receiver agent has moved.
+
   Revision 1.1  1999/03/17 13:09:54  rimassa
   A class representing a cached local agent address. Weak references are used
   to allow garbage collection of dead agents even in the presence of cached
@@ -22,13 +26,30 @@ class LocalProxy implements AgentProxy {
     ref = new WeakReference(a);
   }
 
-  public void dispatch(ACLMessage msg) throws NotFoundException {
+  public void dispatch(ACLMessage msg) throws NotFoundException, TransientException {
 
-    Agent a = (Agent)ref.get();
+    Agent receiver = (Agent)ref.get();
     // If the agent has been collected, throw an exception
-    if(a == null)
+    if(receiver == null)
       throw new NotFoundException("Stale local proxy");
-    a.postMessage(msg);
+
+    synchronized(receiver) {
+      // If this is a mobile agent, Wait until the end of the transaction.
+      while(receiver.getState() == Agent.AP_TRANSIT) {
+	try {
+	  receiver.wait();
+	}
+	catch(InterruptedException ie) {
+	  ie.printStackTrace();
+	}
+      }
+      if(receiver.getState() == Agent.AP_GONE) {
+	System.out.println("ARGH!!! in LocalProxy.dispatch()");
+	throw new TransientException("Agent " + receiver.getLocalName() + " is dead.");
+      }
+      receiver.postMessage(msg);
+    }
+
   }
 
 }

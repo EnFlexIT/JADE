@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.2  1999/08/27 15:47:19  rimassa
+  Added support for TransientException in order to retry message
+  dispatch when the receiver agent has moved.
+
   Revision 1.1  1999/03/17 13:13:14  rimassa
   A remote proxy for an agent that can be reached by RMI (ordinary JADE agents).
 
@@ -19,7 +23,7 @@ class RemoteProxyRMI extends RemoteProxy {
     ref = ac;
   }
 
-  public void dispatch(ACLMessage msg) throws NotFoundException {
+  public void dispatch(ACLMessage msg) throws NotFoundException, TransientException {
     try {
 	ref.dispatch(msg); // RMI call
     }
