@@ -25,6 +25,7 @@ package jade.imtp.leap.JICP;
 
 //#MIDP_EXCLUDE_FILE
 
+import jade.core.AgentManager;
 import jade.core.BackEndContainer;
 import jade.core.BEConnectionManager;
 import jade.core.BackEnd;
@@ -83,6 +84,7 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
      Initialize parameters and start the embedded thread
    */
   public void init(JICPServer srv, String id, Properties props) throws ICPException {
+
     myJICPServer = srv;
     myID = id;
     
@@ -114,22 +116,38 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 
   protected final void startBackEndContainer(Properties props) throws ICPException {
     try {
+
     	myStub = new FrontEndStub(this);
+
     	props.setProperty(Profile.MAIN, "false");
     	props.setProperty("mobility", "jade.core.DummyMobilityManager");
+	String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
+	if(masterNode == null) {
+	    props.setProperty(Profile.CONTAINER_NAME, "BackEnd-" + myID);
+	}
+
+	// Add the mediator ID to the profile (it's used as a token
+	// to keep related replicas together)
+	props.setProperty(Profile.BE_MEDIATOR_ID, myID);
+
     	myContainer = new BackEndContainer(new ProfileImpl(props), this);
 			// Check that the BackEndContainer has successfully joined the platform
 			ContainerID cid = (ContainerID) myContainer.here();
-			if (cid == null || cid.getName().equals("No-Name")) {
+			if (cid == null || cid.getName().equals(AgentManager.UNNAMED_CONTAINER_NAME)) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
     	mySkel = new BackEndSkel(myContainer);
+
+	if(masterNode == null) {
+	    myContainer.activateReplicas(props);
+	}
+
     	log("BackEndContainer successfully joined the platform: name is "+cid.getName(), 2);
     }
     catch (ProfileException pe) {
     	// should never happen
     	pe.printStackTrace();
-			throw new ICPException("Error creating profile");
+	throw new ICPException("Error creating profile");
     }
   }
   
@@ -138,16 +156,10 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
      to
    */
   public void kill() {
-  	// Force the BackEndContainer to terminate. This will also
-  	// cause this BackEndDispatcher to terminate and deregister 
-  	// from the JICPServer
-  	try {
-  		myContainer.exit();
-  	}
-  	catch (IMTPException imtpe) {
-  		// Should never happen as this is a local call
-  		imtpe.printStackTrace();
-  	}
+      // Force the BackEndContainer to terminate. This will also
+      // cause this BackEndDispatcher to terminate and deregister 
+      // from the JICPServer
+      myContainer.exit();
   }
   
   /**
@@ -176,6 +188,49 @@ public class BackEndDispatcher extends EndPoint implements BEConnectionManager, 
 	 */
   public FrontEnd getFrontEnd(BackEnd be, Properties props) throws IMTPException {
   	return myStub;
+  }
+
+  public void activateReplica(String addr, Properties props) throws IMTPException {
+      try {
+
+	  // Build a CREATE_MEDIATOR packet with the given properties as payload
+	  StringBuffer sb = new StringBuffer();
+	  Enumeration e = props.propertyNames();
+	  while(e.hasMoreElements()) {
+
+	      String key = (String)e.nextElement();
+	      String value = props.getProperty(key);
+	      sb.append(key);
+	      sb.append('=');
+	      sb.append(value);
+	      sb.append(';');
+
+	  }
+
+	  JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
+
+	  // Open a Connection to the given JICP address and write the packet to it
+	  int colonPos = addr.indexOf(':');
+	  String host = addr.substring(0, colonPos);
+	  String port = addr.substring(colonPos + 1, addr.length());
+	  JICPAddress targetAddress = new JICPAddress(host, port, "", "");
+	  Connection c = new Connection(targetAddress);
+	  OutputStream out = c.getOutputStream();
+	  InputStream inp = c.getInputStream();
+	  pkt.writeTo(out);
+
+	  // Read back the response
+	  pkt = JICPPacket.readFrom(inp);
+	  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+	      // The JICPServer refused to create the Mediator or didn't find myMediator anymore
+	      byte[] data = pkt.getData();
+	      String errorMsg = (data != null ? new String(data) : null);
+	      throw new IMTPException(errorMsg);
+	  }
+      }
+      catch(IOException ioe) {
+	  throw new IMTPException("An I/O error occurred", ioe);
+      }
   }
 
   /**
