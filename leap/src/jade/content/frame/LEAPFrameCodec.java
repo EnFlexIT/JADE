@@ -117,9 +117,11 @@ public class LEAPFrameCodec implements jade.util.leap.Serializable {
       return (Frame) read(inpStream);
     } 
     catch (FrameException fe) {
+    	//fe.printStackTrace();
     	throw fe;
     }
     catch (Throwable t) {
+      //t.printStackTrace();
       throw new FrameException("Error decoding content", t);
     }
     finally {
@@ -305,20 +307,23 @@ public class LEAPFrameCodec implements jade.util.leap.Serializable {
   		// Write the tag modified and just put the index
   		stream.writeByte(tag|MODIFIER);
   		stream.writeByte(index);
+  		
   	}
   	else {
   		stream.writeByte(tag);
   		stream.writeUTF(s);
   		if (stringReferences.size() < 256) {
   			stringReferences.addElement(s);
+     		//System.out.println("writeString: added:"+s);
   		}
   	}
   }
   
   private final String readString(DataInputStream stream, byte tag) throws Throwable {
   	if ((tag&MODIFIER) != 0) {
-  		int index = stream.readByte();
-  		return (String) stringReferences.elementAt(index);
+		int index = stream.readUnsignedByte();
+		String s = (String) stringReferences.elementAt(index);
+  		return s;
   	}
   	else {
   		String s = stream.readUTF();
