@@ -328,6 +328,42 @@ public final class DefaultOntology implements Ontology {
    * if name starts with UNNAMED_PREFIX, it removes it
    * @return the name of a method, given the name of a slot
    */
+	private String translateName(String name) {
+		String       n;
+		StringBuffer buf = new StringBuffer();
+		if (name.startsWith(Frame.UNNAMEDPREFIX)) {
+			n = name.substring(Frame.UNNAMEDPREFIX.length());
+		} 
+		else {
+			n = name;
+		} 
+
+		boolean capitalize = false;
+
+		for (int i = 0; i < n.length(); i++) {
+			char c = n.charAt(i);
+			switch (c) {
+			case ':':
+				// Just ignore it
+	     	break;
+			case '-':
+				// Don't copy the character, but capitalize the next
+				// one so that x-y becomes xY
+	     	capitalize = true;
+				break;
+ 			default:
+				if (capitalize) {
+					buf.append(Character.toUpperCase(c));
+					capitalize = false;
+				} 
+				else {
+					buf.append(c);
+				} 
+			}
+		} 
+		return new String(buf);
+	} 
+/*
   private String translateName(String name) {
     StringBuffer buf;
     if (name.startsWith(Frame.UNNAMEDPREFIX))
@@ -351,7 +387,7 @@ public final class DefaultOntology implements Ontology {
     
     return new String(buf);
   }
-
+*/
 
   private Class checkGetAndSet(String name, Class c) throws OntologyException {
     Class result;
@@ -712,14 +748,15 @@ public final class DefaultOntology implements Ontology {
 	      setFrame = new Frame(Ontology.NAME_OF_SET_FRAME); 
 	    else
 	      setFrame = new Frame(Ontology.NAME_OF_SEQUENCE_FRAME); 
-	    // MODIFIED by GC
-	    // If the getAllXXX() method of the user defined class returned a
-	    // java.util.Iterator --> OK. If it returned a jade.util.leap.Iterator 
-	    // the cast works in any case as jade.util.leap.Iterator extends java.util.Iterator
   		//__BACKWARD_COMPATIBILITY__BEGIN
+	    // If the getAllXXX() method of the user defined class returns a
+	    // java.util.Iterator --> OK. If it returns a jade.util.leap.Iterator 
+	    // the cast works in any case as jade.util.leap.Iterator extends java.util.Iterator
 	    java.util.Iterator i = (java.util.Iterator) value;
   		//__BACKWARD_COMPATIBILITY__END
   		/*__J2ME_COMPATIBILITY__BEGIN If we are on J2ME the getAllXXX method definitely returns a jade.util.leap.Iterator
+	    // The getAllXXX() method of the user defined class must return 
+	    // a jade.util.leap.Iterator
 	    jade.util.leap.Iterator i = (jade.util.leap.Iterator) value;
   		__J2ME_COMPATIBILITY__END*/
 	    if (desc.getType().equalsIgnoreCase(Ontology.ANY_TYPE)) {
