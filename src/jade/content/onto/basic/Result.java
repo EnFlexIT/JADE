@@ -32,16 +32,16 @@ import jade.util.leap.ArrayList;
 
 public class Result implements Predicate {
 	private Concept action;
-	private List items;
+	private Object value;
 	
 	public Result() {
 		action = null;
-		items = new ArrayList();
+		value = null;
 	}
 	
-	public Result(Concept a, List l) {
+	public Result(Concept a, Object v) {
 		setAction(a);
-		setItems(l);
+		setValue(v);
 	}
 	
 	public Concept getAction() {
@@ -52,12 +52,29 @@ public class Result implements Predicate {
 		action = a;
 	}	
 	
+	public Object getValue() {
+		return value;
+	}
+	
+	public void setValue(Object v) {
+		value = v;
+	}	
+	
 	public List getItems() {
-		return items;
+		if (value instanceof List) {
+			return (List) value;
+		}
+		else {
+			List l = new ArrayList(1);
+			if (value != null) {
+				l.add(value);
+			}
+			return l;
+		}
 	}
 	
 	public void setItems(List l) {
-		items = l;
+		value = l;
 	}	
 	
 }

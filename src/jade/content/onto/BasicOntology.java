@@ -66,22 +66,6 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
   // Content element list 
   public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
 
-  // Generic concept ACL Message
-  public static final String         ACLMSG = "FIPA-ACL-Message";
-  public static final String         ACLMSG_SENDER = "sender";
-  public static final String         ACLMSG_RECEIVERS = "receiver";
-  public static final String         ACLMSG_REPLY_TO = "reply-to";
-  public static final String         ACLMSG_LANGUAGE = "language";
-  public static final String         ACLMSG_ONTOLOGY = "ontology";
-  public static final String         ACLMSG_PROTOCOL = "protocol";
-  public static final String         ACLMSG_IN_REPLY_TO = "in-reply-to";
-  public static final String         ACLMSG_REPLY_WITH = "reply-with";
-  public static final String         ACLMSG_CONVERSATION_ID = "conversation-id";
-  public static final String         ACLMSG_REPLY_BY = "reply-by";
-  public static final String         ACLMSG_CONTENT = "content";
-  public static final String         ACLMSG_BYTE_SEQUENCE_CONTENT = "bs-content";
-  public static final String         ACLMSG_ENCODING = "encoding";
-  
   /**
    * Constructor
    */
@@ -159,7 +143,8 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
       // RESULT Schema
       PredicateSchema resultSchema = new PredicateSchema(RESULT);
       resultSchema.add(RESULT_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
-      resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
+      resultSchema.add(RESULT_VALUE, (TermSchema) TermSchema.getBaseSchema());
+      //resultSchema.add(RESULT_ITEMS, (TermSchema) getSchema(SEQUENCE));
       add(resultSchema); 
       
       // EQUALS Schema
@@ -227,8 +212,8 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	    // RESULT
 	    if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.RESULT)) { 
 				Result r = new Result();
-  			r.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ACTION))); 
-  			r.setItems((List) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ITEMS))); 
+  			r.setAction((AgentAction) referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_ACTION)));
+  			r.setValue(referenceOnto.toObject(abs.getAbsObject(BasicOntology.RESULT_VALUE)));
 				return r;
 	    }
 	    // EQUALS
@@ -334,7 +319,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	    if(obj instanceof Result) {
 	    	AbsPredicate absResult = new AbsPredicate(BasicOntology.RESULT);
   			absResult.set(BasicOntology.RESULT_ACTION, (AbsAgentAction) referenceOnto.fromObject(((Result) obj).getAction()));
-  			absResult.set(BasicOntology.RESULT_ITEMS, (AbsAggregate) referenceOnto.fromObject(((Result) obj).getItems()));
+  			absResult.set(BasicOntology.RESULT_VALUE, (AbsTerm) referenceOnto.fromObject(((Result) obj).getValue()));
 				return absResult;
 	    }
 

@@ -38,7 +38,7 @@ public interface SL0Vocabulary {
   public static final String         AID_ADDRESSES = "addresses";
   public static final String         AID_RESOLVERS = "resolvers";
 
-  public static final String         ACLMSG = "acl-message";
+  public static final String         ACLMSG = "FIPA-ACL-Message";
   public static final String         ACLMSG_PERFORMATIVE = "performative";
   public static final String         ACLMSG_SENDER = "sender";
   public static final String         ACLMSG_RECEIVERS = "receivers";
@@ -67,7 +67,9 @@ public interface SL0Vocabulary {
     
   public static final String         RESULT = "result";
   public static final String         RESULT_ACTION = "action";
-  public static final String         RESULT_ITEMS = "items";
+  public static final String         RESULT_VALUE = "value";
+  /** @deprecated Use <code>RESULT_VALUE</code> instead */
+  public static final String         RESULT_ITEMS = RESULT_VALUE;
     
   public static final String         ACTION = "action";
   public static final String         ACTION_ACTOR = "actor";
