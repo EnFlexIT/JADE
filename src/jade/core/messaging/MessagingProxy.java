@@ -54,7 +54,9 @@ public class MessagingProxy extends Service.SliceProxy implements MessagingSlice
 	    GenericCommand cmd = new GenericCommand(H_DISPATCHLOCALLY, NAME, null);
       cmd.addParam(senderID);
 	    cmd.addParam(msg);
-      cmd.addParam(receiverID);
+	    cmd.addParam(receiverID);
+	    cmd.setPrincipal(msg.getSenderPrincipal());
+	    cmd.setCredentials(msg.getSenderCredentials());
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

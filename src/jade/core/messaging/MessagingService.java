@@ -315,9 +315,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
           handleSetPlatformAddresses(cmd);
         }
 	    }
-	    catch(AuthException ae) {
-        cmd.setReturnValue(ae);
-	    }
 	    catch(IMTPException imtpe) {
         imtpe.printStackTrace();
 	    }
@@ -330,49 +327,26 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    catch(MTPException mtpe) {
         mtpe.printStackTrace();
 	    }
+	    catch(Throwable t) {
+        cmd.setReturnValue(t);
+	    }
     }
 
     // Vertical command handler methods
 
-    private void handleSendMessage(VerticalCommand cmd) throws AuthException {
+    private void handleSendMessage(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
 	    AID sender = (AID)params[0];
 	    GenericMessage msg = (GenericMessage)params[1];
-            AID dest = (AID)params[2];
-
-	    // --- This code must go into a Security Service, intercepting the message sending...
-
-	    //AgentPrincipal target1 = myContainer.getAgentPrincipal(sender);
-
-	    //Authority authority = myContainer.getAuthority();
-	    //authority.checkAction(Authority.AGENT_SEND_AS, target1, null);
-
-	    // --- End of security code		
-
-
-	    AuthException lastException = null;
-
-   
-      //try {
-        //AgentPrincipal target2 = myContainer.getAgentPrincipal(dest);
-        //authority.checkAction(Authority.AGENT_SEND_TO, target2, null);
-        myMessageManager.deliver(msg, dest, MessagingService.this);  
-      //}
-      //catch (AuthException ae) {
-      //  lastException = ae;
-      //  notifyFailureToSender(msg, dest, new InternalError(ae.getMessage()), false);
-      //}
-      
-	    if(lastException != null)
-        throw lastException;
+      AID dest = (AID)params[2];
+      // Since message delivery is asynchronous we use the GenericMessage
+      // as a temporary holder for the sender principal and credentials to the 
+      msg.setSenderPrincipal(cmd.getPrincipal());
+      msg.setSenderCredentials(cmd.getCredentials());
+      myMessageManager.deliver(msg, dest, MessagingService.this);
     }
     
-    private void handleNotifyFailure(VerticalCommand cmd) throws AuthException {
-      // FIXME: the message inside the command is a generic message, i.e.
-      // can either be an ACLMessage or payload+envelope
-      // open question: adjust it to provide interesting information to the
-      // user
-
+    private void handleNotifyFailure(VerticalCommand cmd) {
 	    Object[] params = cmd.getParams();
 	    GenericMessage msg = (GenericMessage)params[0];
 	    AID receiver = (AID)params[1];
@@ -398,17 +372,18 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	    content = content + " (ACLMessage) ) (MTS-error "+receiver+" \""+ie.getMessage() + "\") )";
 	    failure.setContent(content);
 
-            try {
-                GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
-                command.addParam(theAMS);
-                command.addParam(new GenericMessage(failure));
-                command.addParam((AID)(failure.getAllReceiver().next()));
-                submit(command);
-              }
-              catch(ServiceException se) {
-                // It should never happen
-                se.printStackTrace();
-              }
+      try {
+          GenericCommand command = new GenericCommand(MessagingSlice.SEND_MESSAGE, MessagingSlice.NAME, null);
+          command.addParam(theAMS);
+          command.addParam(new GenericMessage(failure));
+          command.addParam((AID)(failure.getAllReceiver().next()));
+          // FIXME: We should set the AMS principal and credentials
+          submit(command);
+        }
+        catch(ServiceException se) {
+          // It should never happen
+          se.printStackTrace();
+        }
     }
 
     private MTPDescriptor handleInstallMTP(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException, MTPException {
@@ -610,7 +585,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
     private void dispatchLocally(ACLMessage msg, AID receiverID) throws NotFoundException {
 	    boolean found = myContainer.postMessageToLocalAgent(msg, receiverID);
-	    if(!found) {
+	    if(!found) { 
         throw new NotFoundException("Messaging service slice failed to find " + receiverID);
 	    }
     }

@@ -29,6 +29,9 @@ import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.Serializable;
 
+import jade.security.JADEPrincipal;
+import jade.security.Credentials;
+
 //#MIDP_EXCLUDE_BEGIN
 import jade.lang.acl.LEAPACLCodec;
 import java.io.ObjectInputStream;
@@ -49,6 +52,8 @@ public class GenericMessage implements Serializable {
   private transient ACLMessage msg;
   private Envelope env;
   private byte[] payload;
+  private transient JADEPrincipal senderPrincipal;
+  private transient Credentials senderCredentials;
 
   public GenericMessage(){
   }
@@ -80,6 +85,22 @@ public class GenericMessage implements Serializable {
     this.payload = payload;
   }
 
+  void setSenderPrincipal(JADEPrincipal senderPrincipal) {
+  	this.senderPrincipal = senderPrincipal;
+  }
+  
+  JADEPrincipal getSenderPrincipal() {
+  	return senderPrincipal;
+  }
+  
+  void setSenderCredentials(Credentials senderCredentials) {
+  	this.senderCredentials = senderCredentials;
+  }
+  
+  Credentials getSenderCredentials() {
+  	return senderCredentials;
+  }
+  
 	//#MIDP_EXCLUDE_BEGIN
   private void writeObject(ObjectOutputStream out) throws IOException {
   	// Updates the payload if not present, before serialising

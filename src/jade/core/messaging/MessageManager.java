@@ -28,7 +28,6 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAAgentManagement.InternalError;
 
 import jade.core.AID;
-import jade.core.AgentContainerImpl;
 import jade.core.ResourceManager;
 import jade.core.Profile;
 import jade.core.ProfileException;
