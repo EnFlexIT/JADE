@@ -91,6 +91,13 @@ class DummyBehaviour extends SimpleBehaviour
 		public void run()
 		{
 			agent.getGui().queuedMsgListModel.add(0, (Object) new MsgIndication(msg, MsgIndication.INCOMING, new Date()));
+			StringACLCodec codec = new StringACLCodec();
+		  try {
+		  	codec.decode(codec.encode(msg));
+		  } catch (ACLCodec.CodecException ce) {
+					System.out.println("Received a wrong ACL Message");
+					ce.printStackTrace();
+		  }
 		}
 	}
 
