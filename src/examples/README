@@ -1,4 +1,4 @@
-README file for JADE 0.76 - Example programs.
+README file for JADE 0.77 - Example programs.
 
 Some example programs are provided in JADE package, to show various
 framework features and suggested programming idioms.  To run the
@@ -133,3 +133,10 @@ The following list describes all the example programs found in
 				'fipa-request' conversation with the
 				AMS using the data gathered from the
 				user.
+
+ - dfTester.class		This agent is for Directory Facilitator
+				just the same thing amsTester is for
+				Agent Management System. It allows the
+				user to make requests to DF agent
+				interactively.
+
