@@ -27,8 +27,8 @@ package jade.core;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
 
 import jade.domain.FIPAAgentManagement.Envelope;
 
@@ -37,6 +37,7 @@ import jade.lang.acl.ACLMessage;
 import jade.mtp.OutChannel;
 import jade.mtp.MTP;
 import jade.mtp.MTPException;
+import jade.mtp.MTPDescriptor;
 
 class RoutingTable {
 
@@ -152,12 +153,16 @@ class RoutingTable {
       return local.isEmpty() && remote.isEmpty();
     }
 
+    public String size() {
+      return "[ local: " + local.size() + "  remote: " + remote.size() + " ]";
+    }
+
   } // End of OutPortList class
 
 
   private FullAcc myACC;
-  private Map inPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-  private Map outPorts = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  private Map inPorts = new HashMap();
+  private Map outPorts = new HashMap();
   private List platformAddresses = new ArrayList();
 
   
@@ -170,15 +175,29 @@ class RoutingTable {
      <code>url</code>.
    */
   public void addLocalMTP(String url, MTP proto) {
+    url = url.toLowerCase();
     // A local MTP can receive messages
     inPorts.put(url, proto);
 
-    // A local MTP can also send messages
+    // A local MTP can also send messages, over all supported protocols
     OutPort out = new OutViaMTP(myACC, proto);
-    addOutPort(url, out, LOCAL);
+    String[] protoNames = proto.getSupportedProtocols();
+    for(int i = 0; i < protoNames.length; i++) {
+      addOutPort(protoNames[i], out, LOCAL);
+    }
 
     // The new MTP is a valid address for the platform
     platformAddresses.add(url);
+
+    /*
+    java.util.Iterator it = outPorts.keySet().iterator();
+    while(it.hasNext()) {
+      String name = (String)it.next();
+      OutPortList l = (OutPortList)outPorts.get(name);
+      System.out.println("<" + name + "> ==> " + l.size());
+    }
+    */
+
   }
 
   /**
@@ -186,39 +205,59 @@ class RoutingTable {
      <code>url</code>.
    */
   public MTP removeLocalMTP(String url) {
+    url = url.toLowerCase();
     // A local MTP appears both in the input and output port tables
     MTP proto = (MTP)inPorts.remove(url);
     if(proto != null) {
-      OutPort out = new OutViaMTP(myACC, proto);
-      removeOutPort(url, out);
+      // Remove all outgoing ports associated with this MTP
+      String[] protoNames = proto.getSupportedProtocols();
+      for(int i = 0; i < protoNames.length; i++) {
+	OutPort out = new OutViaMTP(myACC, proto);
+	removeOutPort(protoNames[i], out);
+      }
     }
 
     // The MTP address is not a platform address anymore
     platformAddresses.remove(url);
 
+    /*
+    java.util.Iterator it = outPorts.keySet().iterator();
+    while(it.hasNext()) {
+      String name = (String)it.next();
+      OutPortList l = (OutPortList)outPorts.get(name);
+      System.out.println("<" + name + "> ==> " + l.size());
+    }
+    */
+
     return proto;
   }
 
-  public void addRemoteMTP(String url, AgentContainer where) {
+  public void addRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
 
-    // A remote MTP can be used only for outgoing messages, through a
-    // RoutedChannel
+    // A remote MTP can be used only for outgoing messages, through an
+    // OutPort that routes messages through a container
     OutPort out = new OutViaContainer(where);
-    addOutPort(url, out, REMOTE);
+    String[] protoNames = mtp.getSupportedProtocols();
+    for(int i = 0; i < protoNames.length; i++) {
+      addOutPort(protoNames[i], out, REMOTE);
+    }
 
     // Remote MTPs are valid platform addresses
-    platformAddresses.add(url);
+    platformAddresses.add(mtp.getAddress());
   }
 
   /**
      Removes the MTP for the URL named <code>name</code>.
    */
-  public void removeRemoteMTP(String url, AgentContainer where) {
+  public void removeRemoteMTP(MTPDescriptor mtp, AgentContainer where) {
     OutPort ch = new OutViaContainer(where);
-    removeOutPort(url, ch);
+    String[] protoNames = mtp.getSupportedProtocols();
+    for(int i = 0; i < protoNames.length; i++) {
+      removeOutPort(protoNames[i], ch);
+    }
 
     // Remote MTPs are valid platform addresses
-    platformAddresses.remove(url);
+    platformAddresses.remove(mtp.getAddress());
   }
 
   /**
@@ -226,6 +265,7 @@ class RoutingTable {
      reaching the address <code>url</code>.
    */
   public OutPort lookup(String url) {
+    url = url.toLowerCase();
     String proto = extractProto(url);
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
@@ -238,8 +278,8 @@ class RoutingTable {
     return platformAddresses.iterator();
   }
 
-  private void addOutPort(String url, OutPort port, boolean location) {
-    String proto = extractProto(url);
+  private void addOutPort(String proto, OutPort port, boolean location) {
+    proto = proto.toLowerCase();
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
       l.add(port, location);
@@ -250,8 +290,8 @@ class RoutingTable {
     }
   }
 
-  private void removeOutPort(String url, OutPort port) {
-    String proto = extractProto(url);
+  private void removeOutPort(String proto, OutPort port) {
+    proto = proto.toLowerCase();
     OutPortList l = (OutPortList)outPorts.get(proto);
     if(l != null)
       l.remove(port);
