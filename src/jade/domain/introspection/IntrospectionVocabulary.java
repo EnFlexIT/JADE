@@ -17,6 +17,8 @@ public interface IntrospectionVocabulary {
   public static final String EVENTRECORD_WHAT = "what";
   public static final String EVENTRECORD_WHEN = "when";
   public static final String EVENTRECORD_WHERE = "where";
+
+  public static final String META_RESETEVENTS = "meta_reset-events";
   
   public static final String ADDEDCONTAINER = "added-container";
   public static final String ADDEDCONTAINER_CONTAINER = "container";
