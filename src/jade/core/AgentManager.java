@@ -47,7 +47,7 @@ public interface AgentManager {
      notified of significant platform-level events (e.g. container
      added or removed, agent state changes, etc.).
    */
-  static interface Listener {
+  public static interface Listener {
     void handleNewContainer(String name, InetAddress host);
     void handleDeadContainer(String name);
     void handleNewAgent(String containerName, AID agentID);
