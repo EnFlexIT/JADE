@@ -83,7 +83,7 @@ public class EmploymentOntology {
   private static void initInstance() {
     try {
 			// Adds the roles of the basic ontology (ACTION, AID,...)
-    	theInstance.joinOntology(BasicOntologyManager.instance());
+    	theInstance.joinOntology(BasicOntology.instance());
     	
 			// Adds ADDRESS role
     	theInstance.addRole(
