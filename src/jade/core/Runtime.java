@@ -38,10 +38,6 @@ import jade.lang.acl.ACLMessage;
  */
 public class Runtime {
 
-	//DEBUG
-  private static final String DEBUG_TARGET = "tester";
-  private static final boolean DEBUG_ENABLED = false;
-  
   private static Runtime theInstance;
   
   static {
@@ -59,47 +55,6 @@ public class Runtime {
 	  // Do nothing
   }
 
-  void debug(String msg) {
-  	if (DEBUG_ENABLED) {
-	  	if (Thread.currentThread().getName().equals(DEBUG_TARGET)) {
-  			System.out.println("DEBUG - Thread "+Thread.currentThread().getName()+": "+msg);
-  		}
-  	}
-  }
-  
-  void debug(String name, String msg) {
-  	if (DEBUG_ENABLED) {
-	  	if (name != null && name.equals(DEBUG_TARGET)) {
-	  		System.out.println("DEBUG - Thread "+Thread.currentThread().getName()+": "+"Agent "+name+": "+msg);
-	  	}
-  	}
-  }
-  
-  void debug(Agent a, String msg1, String msg2) {
-  	if (DEBUG_ENABLED) {
-	  	if (a != null) {
-	  		String name = a.getLocalName();
-		  	if (name != null) {
-		  		if (name.equals(DEBUG_TARGET)) {
-	  				System.out.println("DEBUG - Thread "+Thread.currentThread().getName()+": "+"Agent "+name+": "+msg1);
-		  		}
-		  		return;
-	  		}
-	  	}
-	  	if (msg2 != null) {
-		  	System.out.println("DEBUG - Thread "+Thread.currentThread().getName()+": "+msg2);
-	  	}
-  	}
-  }
-  
-  String stringify(ACLMessage msg) {
-  	if (msg != null) {
-  		String sender = (msg.getSender() != null ? msg.getSender().getLocalName() : null);
-  		return new String(ACLMessage.getPerformative(msg.getPerformative())+" from "+sender+" CID="+msg.getConversationId());
-  	}
-  	return null;
-  }
-  	
   
     /**
      * This method returns the singleton instance of this class

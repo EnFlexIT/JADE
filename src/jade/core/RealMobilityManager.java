@@ -285,10 +285,11 @@ class RealMobilityManager implements MobilityManager {
                         
 	    List    messages = new ArrayList();
 	    if (transferResult == TRANSFER_COMMIT) {
-		// Send received messages to the destination container
-		Iterator i = a.messages();
+		// Send received messages to the destination container. Note that 
+	  // there is no synchronization problem as the agent is locked in the LADT
+		Iterator i = a.getMessageQueue().iterator();
 		while (i.hasNext()) {
-		    messages.add(i.next());
+			messages.add(i.next());
 		} 
 
 		dest.postTransferResult(agentID, transferResult, messages);

@@ -43,6 +43,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+//import jade.util.Debug;
 
 import jade.core.behaviours.Behaviour;
 
@@ -390,7 +391,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
   private String myHap = null;
 
   private transient Object stateLock = new Object(); // Used to make state transitions atomic
-  private transient Object waitLock = new Object();  // Used for agent waiting
+  //private transient Object waitLock = new Object();  // Used for agent waiting
   private transient Object suspendLock = new Object(); // Used for agent suspension
   private transient Object principalLock = new Object(); // Used to make principal transitions atomic
 
@@ -1053,11 +1054,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
   
   /**
-     This is only called by the NotificationManager to provide the Introspector
+     This is only called by the RealNotificationManager to provide the Introspector
      agent with a snapshot of the behaviours currently loaded in the agent
    */
   Scheduler getScheduler() {
   	return myScheduler;
+  }
+
+  /**
+     This is only called by the RealNotificationManager to provide the Introspector
+     agent with a snapshot of the messages currently pending in the queue and by
+     the RealMobilityManager to transfer messages in the queue
+   */
+  MessageQueue getMessageQueue() {
+  	return msgQueue;
   }
 
   // State transition methods for Agent Platform Life-Cycle
@@ -1262,9 +1272,10 @@ public class Agent implements Runnable, Serializable, TimerListener {
     }
     if(myAPState == AP_ACTIVE) {
       activateAllBehaviours();
-      synchronized(waitLock) {
-      	//Runtime.instance().debug(getLocalName(), "Notifying on waitLock");
-        waitLock.notifyAll(); // Wakes up the embedded thread
+      //synchronized(waitLock) {
+      synchronized(msgQueue) {
+        //waitLock.notifyAll(); // Wakes up the embedded thread
+        msgQueue.notifyAll(); // Wakes up the embedded thread
       }
     }
   }
@@ -1669,7 +1680,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     msgQueue = new MessageQueue(msgQueueMaxSize);
     stateLock = new Object();
     suspendLock = new Object();
-    waitLock = new Object();
+    //waitLock = new Object();
     principalLock = new Object();
     pendingTimers = new AssociationTB();
     languages = new HashMap();
@@ -1777,17 +1788,16 @@ public class Agent implements Runnable, Serializable, TimerListener {
   }
 
   private void waitUntilWake(long millis) {
-    synchronized(waitLock) {
+    //synchronized(waitLock) {
+    synchronized(msgQueue) {
 
       long timeToWait = millis;
       while(myAPState == AP_WAITING) {
 	try {
 
 	  long startTime = System.currentTimeMillis();
-	  //DEBUG
-	  //Runtime.instance().debug("Start waiting on waitLock");
-	  waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
-	  //Runtime.instance().debug("Exit waiting on waitLock");
+	  //waitLock.wait(timeToWait); // Blocks on waiting state monitor for a while
+	  msgQueue.wait(timeToWait); // Blocks on waiting state monitor for a while
 	  long elapsedTime = System.currentTimeMillis() - startTime;
 
 	  // If this was a timed wait, update time to wait; if the
@@ -1817,10 +1827,7 @@ public class Agent implements Runnable, Serializable, TimerListener {
     synchronized(suspendLock) {
       while(myAPState == AP_SUSPENDED) {
   try {
-	  //DEBUG
-	  //Runtime.instance().debug("Start waiting on suspendLock");
 	  suspendLock.wait(); // Blocks on suspended state monitor
-	  //Runtime.instance().debug("Exit waiting on suspendLock");
 	}
 	catch(InterruptedException ie) {
 	  switch(myAPState) {
@@ -1995,7 +2002,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 	*/
 	public final ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage msg = null;
-		synchronized (waitLock) {
+		//synchronized (waitLock) {
+		synchronized (msgQueue) {
 			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
 				final ACLMessage cursor = (ACLMessage)messages.next();
 				if (pattern == null || pattern.match(cursor)) {
@@ -2050,7 +2058,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
      amount of time passes without any message reception.
    */
   public final ACLMessage blockingReceive(long millis) {
-    synchronized(waitLock) {
+    //synchronized(waitLock) {
+    synchronized(msgQueue) {
       ACLMessage msg = receive();
       if(msg == null) {
 	doWait(millis);
@@ -2099,7 +2108,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
   */
   public final ACLMessage blockingReceive(MessageTemplate pattern, long millis) {
     ACLMessage msg = null;
-    synchronized(waitLock) {
+    //synchronized(waitLock) {
+    synchronized(msgQueue) {
       msg = receive(pattern);
       long timeToWait = millis;
       while(msg == null) {
@@ -2129,7 +2139,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @see jade.core.Agent#receive()
   */
   public final void putBack(ACLMessage msg) {
-    synchronized(waitLock) {
+    //synchronized(waitLock) {
+    synchronized(msgQueue) {
       msgQueue.addFirst(msg);
     }
   }
@@ -2256,23 +2267,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
 		@see jade.core.Agent#send(ACLMessage msg)
 	*/
 	public final void postMessage(final ACLMessage msg) {
-		//DEBUG
-		//Runtime.instance().debug(getLocalName(), "message posted: "+Runtime.instance().stringify(msg));
-		//Runtime.instance().debug(getLocalName(), "message posted: "+msg);
-			
-		synchronized (waitLock) {
-			/*
-			try {
-				java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
-				f.write("waitLock taken in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
-				f.write(msg.toString());
-				f.close();
-			}
-			catch(java.io.IOException ioe) {
-				System.out.println(ioe.getMessage());
-			}
-			*/
-
+		//synchronized (waitLock) {
+		synchronized (msgQueue) {
 			if (msg != null) {
 				try {
 					doPrivileged(new PrivilegedExceptionAction() {
@@ -2292,22 +2288,11 @@ public class Agent implements Runnable, Serializable, TimerListener {
 			doWake();
 			messageCounter++;
 		}
-
-		/*
-		try {
-			java.io.FileWriter f = new java.io.FileWriter("logs/" + getLocalName(), true);
-			f.write("waitLock dropped in postMessage() [thread " + Thread.currentThread().getName() + "]\n");
-			f.close();
-		}
-		catch(java.io.IOException ioe) {
-			System.out.println(ioe.getMessage());
-		}
-		*/
 	}
 
-  Iterator messages() {
+  /*Iterator messages() {
     return msgQueue.iterator();
-  }
+  }*/
 
 	private ContentManager theContentManager = new ContentManager();
 

@@ -125,7 +125,9 @@ class RealNotificationManager implements NotificationManager {
   		helper.start();
   		return;
   	}
-  		
+  	
+  	// Get the ToolNotifier for the indicated debugger (or create a new one
+  	// if not yet there)
     ToolNotifier tn = findNotifier(debuggerName);
     if(tn == null) { // Need a new notifier
     	tn = new ToolNotifier(debuggerName);
@@ -148,6 +150,7 @@ class RealNotificationManager implements NotificationManager {
     }
     tn.addObservedAgent(toBeDebugged);
     
+    // Update the map of debuggers currently debugging the toBeDebugged agent
     synchronized (debuggers) {
 	    List l = (List) debuggers.get(toBeDebugged);
   	  if (l == null) {
@@ -159,16 +162,19 @@ class RealNotificationManager implements NotificationManager {
     	}
     }
 
+    // Activate behaviour-related events generation on the toBeDebugged agent
     Agent a = localAgents.acquire(toBeDebugged);
     AgentState as = a.getAgentState();
     Scheduler s = a.getScheduler();
+    MessageQueue mq = a.getMessageQueue();
     a.setGenerateBehaviourEvents(true);
     localAgents.release(toBeDebugged);
     
     // Notify current agent state
     fireChangedAgentState(toBeDebugged, as, as);
-    // Notify currently loaded behaviour (mutual exclusion with 
-    // Scheduler.add(), remove()...)
+    
+    // Notify currently loaded behaviour 
+    // (Mutual exclusion with Scheduler.add(), remove()...)
     synchronized (s) {
     	Iterator it = s.readyBehaviours.iterator();
     	while (it.hasNext()) {
@@ -189,9 +195,19 @@ class RealNotificationManager implements NotificationManager {
     		tn.changedBehaviourState(ev);
     	}
     }
-    // Notify essages currently pending in the message queue
-    // FIXME: To be implemented
     
+    // Notify messages currently pending in the message queue
+    // (Mutual exclusion with Agent.receive(), blockingReceive(), postMessage()...)
+    synchronized (mq) {
+    	Iterator it = mq.iterator();
+    	while (it.hasNext()) {
+    		ACLMessage msg = (ACLMessage) it.next();
+    		// We can't just call firePostedMessage() as we must only notify the 
+    		// ToolNotifier associated with debuggerName (NOT all AgentListeners)
+				MessageEvent ev = new MessageEvent(MessageEvent.POSTED_MESSAGE, msg, toBeDebugged, myID());
+    		tn.postedMessage(ev);
+    	}
+    }
   }
 
   public void disableDebugger(AID debuggerName, AID notToBeDebugged) {
