@@ -31,7 +31,4 @@ public void set_0(Object desc) {  description = desc;}
 public Object get_0() {return description;}
 public void set_1(SearchConstraints s) {constraints=s;}
 public SearchConstraints get_1() {return constraints;}
-public AMSAgentDescription getAMSAgentDescription() { 
-  return (AMSAgentDescription)description;
-}
 }

@@ -28,7 +28,5 @@ public class Modify {
 Object description;
 public void set_0(Object desc) {  description = desc;}
 public Object get_0() {return description;}
-public AMSAgentDescription getAMSAgentDescription() { 
-  return (AMSAgentDescription)description;
-}
+
 }
