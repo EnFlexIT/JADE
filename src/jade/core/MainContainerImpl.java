@@ -154,6 +154,9 @@ class MainContainerImpl implements Platform, AgentManager {
 	}
 
 	public void register(AgentContainerImpl ac, ContainerID cid, String username, byte[] password) throws IMTPException, AuthException {
+
+		cid.setName(MAIN_CONTAINER_NAME);
+
 		// Authenticate user
 		ContainerPrincipal principal = getAuthority().createContainerPrincipal(cid, username);
 		CertificateFolder certs = authority.authenticate(principal, password);
@@ -163,8 +166,7 @@ class MainContainerImpl implements Platform, AgentManager {
 		// Set the container-principal
 		ac.changeContainerPrincipal(certs);
 
-		// Add the calling container as the main container and set its name
-		cid.setName(MAIN_CONTAINER_NAME);
+		// Add the calling container as the main container
 		containers.addContainer(cid, ac, principal);
 		containersProgNo++;
 
