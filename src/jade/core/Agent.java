@@ -437,21 +437,6 @@ public class Agent implements Runnable, Serializable {
   /**
   * This method must be overridden by programmers in order to pass 
   * arguments to the agent.
-  *  
-  * To run an agent by any Java program passing some parameters,with the 
-  * only requirement being that a JADE container is already running on the
-  * same host and the same JVM (Java Virtual Machine) of the Java program,
-  * the programmer must so use the following line of code:
-  *
-  * <code>
-  * ...
-  * String[] arg = ...;
-  * Agent a = new myAgent();
-  * a.setArguments(arg); 
-  * a.doStart(...);
-  * ... 
-  * </code>
-  *
   * Otherwise, to pass argument to the agent by command line or using the RMA GUI
   * see the programmer's guide for a better documentation.
   *
@@ -771,9 +756,13 @@ public class Agent implements Runnable, Serializable {
   /**
      Make a state transition from <em>initiated</em> to
      <em>active</em> within Agent Platform Life Cycle. Agents are
-     started automatically by JADE on agent creation and should not be
+     started automatically by JADE on agent creation and 
+     this method should not be
      used by application developers, unless creating some kind of
      agent factory. This method starts the embedded thread of the agent.
+     <b> It is highly descouraged the usage of this method </b> because it
+     does not guarantee agent autonomy; soon this policy will
+     be enfored by removing or restricting the scope of the method
      @param name The local name of the agent.
   */
   public void doStart(String name) {
