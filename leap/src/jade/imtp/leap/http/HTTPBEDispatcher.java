@@ -55,26 +55,9 @@ import java.util.*;
  * Class declaration
  * @author Giovanni Caire - TILAB
  */
-public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMediator, TimerListener {
+public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMediator {
 	
 	private int verbosity = 1;
-	
-  private long maxDisconnectionTime;
-  private Timer disconnectionTimer;
-  private Object timerLock = new Object();
-  private boolean connectionUp = true;
-  
-  private boolean terminating = false;
-  
-  private boolean busy = true;
-  private Object busyLock = new Object();
-  
-  private JICPPacket currentCommand, currentResponse;
-  private boolean commandReady = false;
-  private boolean responseReady = false;
-  private Object commandLock = new Object();
-  private Object responseLock = new Object();
-  private long responseTimeout = 20000;
 
   private JICPServer myJICPServer;
   private String myID;
@@ -83,14 +66,15 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   private FrontEndStub myStub = null;
   private BackEndContainer myContainer = null;
 
-  private static final boolean RECONNECTION_TEST_ACTIVE = false;
-  private static final long RECONNECTION_TEST_PERIOD = 60000;
+	private OutgoingsHandler myOutgoingsHandler;
+	private InetAddress lastRspAddr;
+	private int lastRspPort;
   
   /////////////////////////////////////
   // JICPMediator interface implementation
   /////////////////////////////////////
   /**
-     Initialize parameters and start the embedded thread
+     Initialize parameters and activate the BackEndContainer
    */
   public void init(JICPServer srv, String id, Properties props) throws ICPException {
     myJICPServer = srv;
@@ -103,9 +87,10 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
+  	verbosity = 3;
   	
   	// Max disconnection time
-    maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
+    long maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
     try {
     	maxDisconnectionTime = Long.parseLong(props.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
     }
@@ -113,13 +98,13 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
     	// Keep default
     }
     
-    log("Created HTTPBEDispatcher V1.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
+    myOutgoingsHandler = new OutgoingsHandler(maxDisconnectionTime);
   	
+    log("Created HTTPBEDispatcher V2.0 ID = "+myID+" MaxDisconnectionTime = "+maxDisconnectionTime, 1);
+  	
+    jade.util.Logger.println("Start-backend-"+System.currentTimeMillis());
     startBackEndContainer(props);
-    
-    if (RECONNECTION_TEST_ACTIVE) {
-    	activateReconnectionTest();
-    }
+    jade.util.Logger.println("Backend-started-"+System.currentTimeMillis());    
   }
   
   protected final void startBackEndContainer(Properties props) throws ICPException {
@@ -145,7 +130,9 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   
   /**
      Shutdown forced by the JICPServer this BackEndContainer is attached 
-     to
+     to. This method is also called when the FrontEnd spontaneously exits
+     and when the the communication with the FrontEnd cannot be 
+     re-established.
    */
   public void kill() {
   	// Force the BackEndContainer to terminate. This will also
@@ -162,80 +149,73 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   /**
      Handle an incoming JICP packet received by the JICPServer.
    */
-  public JICPPacket handleJICPPacket(JICPPacket pkt) throws ICPException {
+  public JICPPacket handleJICPPacket(JICPPacket pkt, InetAddress addr, int port) throws ICPException {
   	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
+  		// COMMAND
     	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
     		// PEER TERMINATION NOTIFICATION
     		// The remote FrontEnd has terminated spontaneously -->
     		// Terminate and notify up.
     		log("Peer termination notification received", 2);
-    		shutdown();
     		handlePeerExited();
     		return null;
     	}
     	else {
     		// NORMAL COMMAND
     		// Serve the incoming command and send back the response
-      	log("Incoming command received", 3);
+    		byte sid = pkt.getSessionID();
+      	log("Incoming command received "+sid, 3);
 		  	byte[] rspData = mySkel.handleCommand(pkt.getData());
-      	log("Incoming command served", 3);
-		    return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+      	log("Incoming command served "+sid, 3);
+		    pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, rspData);
+		    pkt.setSessionID(sid);
+		    return pkt;
     	}
   	}
   	else {
   		// RESPONSE
-    	byte data[] = pkt.getData();
-    	if (data != null && data.length == 1 && data[0] == (byte) 0xff) {
-    		// It's the dummy initial response --> no one is waiting for it
-    		log("Dummy response received", 2);
-    	}
-    	else {
-  			// It's a real response --> Pass the response to the issuer of 
-    		// the command 
-    		log("Response received", 3);
-  			setResponse(pkt);
-    	}
-    	
-    	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
-    		// It was the last response (the FrontEnd has terminated as a consequence
-    		// of a command issued by the local BackEnd) --> Terminate
-    		log("Last response detected", 2);
-    		shutdown();
-    		return null;
-    	}
-    	else {
-				// It was not the last response --> unlock the connection 
-    		// and wait for the next outgoing command
-    		unlockConnection();
-    		pkt = waitForCommand();
-    		if (pkt != null) {
-	    		log("Issuing outgoing command", 3); 
-    		}
-    		return pkt;
-    	}
+  		lastRspAddr = addr;
+  		lastRspPort = port;
+  		return myOutgoingsHandler.dispatchResponse(pkt);
   	}
   } 
 
   /**
      Handle an incoming connection. This is called by the JICPServer
      when a CREATE or CONNECT_MEDIATOR is received.
+     The HTTPBEDispatcher reacts to this call by resetting the current
+     situation
    */
-  public synchronized JICPPacket handleIncomingConnection(Connection c) {
-  	// The connection is up again. Remove the Timer for max
-  	// disconnection time (if any)
-		connectionUp = true;
-		if (disconnectionTimer != null) {
-			Runtime.instance().getTimerDispatcher().remove(disconnectionTimer);
-			disconnectionTimer = null;
-		}
-  	
-  	// Activate buffered commands flushing
-  	myStub.flush();
-  	
-  	// Just return an OK response
+  public JICPPacket handleIncomingConnection(Connection c, InetAddress addr, int port) {
+  	myOutgoingsHandler.setConnecting();
+		
+  	// Return an OK response
     return new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
   } 
+
+  private void dummyResponse() {
+  	myJICPServer.dummyReply(lastRspAddr, lastRspPort);
+  }
   
+  //////////////////////////////////////////
+  // Dispatcher interface implementation
+  //////////////////////////////////////////
+  /** 
+     This is called by the Stub using this Dispatcher to dispatch 
+     a serialized command to the FrontEnd. 
+     Mutual exclusion with itself to ensure one command at a time
+     is dispatched.
+   */
+	public synchronized byte[] dispatch(byte[] payload, boolean flush) throws ICPException {
+  	JICPPacket pkt = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, payload);
+  	pkt = myOutgoingsHandler.deliverCommand(pkt, flush);
+    if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+    	// Communication OK, but there was a JICP error on the peer
+      throw new ICPException(new String(pkt.getData()));
+    }
+    return pkt.getData();
+	}
+	
   ////////////////////////////////////////////////
   // BEConnectionManager interface implementation
   ////////////////////////////////////////////////
@@ -252,20 +232,19 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   }
 
   /**
-     Make this HTTPBEDispatcher terminate.
+     Clean up this HTTPBEDispatcher.
      The shutdown process can be activated in the following cases:
      1) The local container is requested to exit --> The exit commad
      is forwarded to the FrontEnd 
      1.a) Forwarding OK. The FrontEnd sends back a response with 
      the TERMINATED_INFO set. When this response is received the 
-     shutdown() method is called.
+     shutdown() method is called (see handleJICPPacket()).
      1.b) Forwarding failed. The BackEndContainer ignores the 
      exception and directly calls the shutdown() method.
-     2) The FrontEnd spontaneously terminates. When the termination 
-     notification is received the shutdown() method is called.
-     3) A disconnection is detected and the FrontEnd no longer 
-     reconnects. When the maxDisconnectionTime expires the shutdown()
-     method is called. 
+     
+     Note that in the case the FrontEnd spontaneously exits and in the
+     case the max disconnection time expires the kill() method is 
+     called --> see case 1. 
    */
   public void shutdown() {
     log("Initiate HTTPBEDispatcher shutdown", 2);
@@ -276,135 +255,14 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	  myID = null;
     }
 
-    // This makes the thread waiting for an outgoing command wake up
-    // and close the connection
-    synchronized (commandLock) {
-    	terminating = true;
-    	currentCommand = null;
-    	commandLock.notifyAll();
-    }
+    // In case shutdown() is called while the device is disconnected
+    // this resets the disconnection timer (if any).
+  	myOutgoingsHandler.setTerminating();
   } 
 
-  //////////////////////////////////////////
-  // Dispatcher interface implementation
-  //////////////////////////////////////////
-	public synchronized byte[] dispatch(byte[] payload) throws ICPException {
-		if (connectionUp && !terminating) {
-	  	JICPPacket cmd = new JICPPacket(JICPProtocol.COMMAND_TYPE, JICPProtocol.COMPRESSED_INFO, payload);
-	  	lockConnection();
-	  	setCommand(cmd);
-	  	JICPPacket rsp = waitForResponse();
-	    return rsp.getData();
-		}
-		else {
-			throw new ICPException("Disconnected");
-		}
-	}
-	
-	/**
-	   Lock the connection (only one outgoing command at 
-	   a time can be dispatched)
-	 */
-	private void lockConnection() {
-  	synchronized (busyLock) {
-			while (busy) {
-				try {
-	  			busyLock.wait();
-				}
-				catch (InterruptedException ie) {
-				}
-			}
-			busy = true;
-  	}
-	}
-	
-	/**
-	   Unlock the connection 
-	 */
-	private void unlockConnection() {
-  	synchronized (busyLock) {
-			busy = false;
-			busyLock.notifyAll();
-  	}
-	}
-	
-	/**
-	   Notify the thread that will actually deliver the command
-	   over the network
-	 */
-  private void setCommand(JICPPacket cmd) {
-		synchronized (commandLock) {
-			commandReady = true;
-			currentCommand = cmd;
-			commandLock.notifyAll();
-		}
-  }
-  
-  /**
-     Wait for the response to a previously dispatched command
-   */
-  private JICPPacket waitForResponse() throws ICPException {
-  	synchronized (responseLock) {
-  		while (!responseReady) {
-  			try {
-	  			responseLock.wait(responseTimeout);
-	  			if (!responseReady) {
-	  				// The response timeout has expired --> The FrontEnd
-	  				// is disconnected
-	  				connectionUp = false;		  				
-	  				disconnectionTimer = Runtime.instance().getTimerDispatcher().add(new Timer(System.currentTimeMillis()+maxDisconnectionTime, this));
-	  				throw new ICPException("Response timeout expired");
-	  			}
-  			}
-				catch (InterruptedException ie) {
-				}
-  		}
-  		responseReady = false;
-  		return currentResponse;
-  	}
-  }
-  
-  /**
-     Notify the thread that is waiting for the response
-   */
-  private void setResponse(JICPPacket rsp) {
-  	synchronized (responseLock) {
-  		responseReady = true;
-  		currentResponse = rsp;
-  		responseLock.notifyAll();
-  	}
-  }
-
-  /**
-  	 Wait for the next command
-   */
-  private JICPPacket waitForCommand() {
-  	synchronized (commandLock) {
-  		while (!commandReady && !terminating) {
-  			try {
-	  			commandLock.wait();
-  			}
-				catch (InterruptedException ie) {
-				}
-  		}
-  		commandReady = false;
-  		return currentCommand;
-  	}
-  }
-  
-  /////////////////////////////////////////
-  // TimerListener interface implementation
-  /////////////////////////////////////////
-  public void doTimeOut(Timer t) {
-  	log("Max disconnection timeout expired", 1);
-		// The remote FrontEnd is probably down -->
-		// Terminate and notify up.
-		shutdown();
-		handleConnectionError();
-  }
-  
   protected void handlePeerExited() {
 		// The FrontEnd has exited --> suicide!
+  	myOutgoingsHandler.setTerminating();
   	kill();
   }
   
@@ -412,8 +270,227 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
 		// The FrontEnd is probably dead --> suicide!
 		// FIXME: If there are pending messages that will never be delivered
 		// we should notify a FAILURE to the sender
+  	myOutgoingsHandler.setTerminating();
 		kill();
   }
+  
+	
+  /**
+     Inner class OutgoingsHandler.
+     This class manages outgoing commands i.e. commands that must be
+     sent to the FrontEnd.
+     
+     NOTE that, since HTTPBEDispatcher is synchronized only one thread at 
+     a time can execute the deliverCommand() method. This also ensures 
+     that only one thread at a time can execute the dispatchResponse() 
+     method. As a consequence it's impossible that at a certain point in 
+     time there is both a thread waiting for a command and a therad waiting
+     for a response.
+     
+     @author Giovanni Caire - TILAB
+   */
+  private class OutgoingsHandler implements TimerListener {
+  	private static final int REACHABLE = 0;
+  	private static final int CONNECTING = 1;
+  	private static final int UNREACHABLE = 2;
+  	private static final int TERMINATED = 3;
+  	
+  	private static final long RESPONSE_TIMEOUT = 30000; // 30 sec
+  	
+  	private static final int MAX_SID = 0x0f;
+  	
+  	private int frontEndStatus = CONNECTING;
+  	private int outCnt = 0;
+  	private Thread commandWaiter = null;
+  	private Thread responseWaiter = null;
+  	private JICPPacket currentCommand = null;
+  	private JICPPacket currentResponse = null;
+  	private boolean commandReady = false;
+  	private boolean responseReady = false;
+  	
+  	private long maxDisconnectionTime;
+  	private Timer disconnectionTimer = null;
+  	
+  	private boolean waitingForFlush = false;
+  	
+  	public OutgoingsHandler(long maxDisconnectionTime) {
+  		this.maxDisconnectionTime = maxDisconnectionTime;
+  	}
+  	
+  	/**
+  	   Schedule a command for delivery, wait for the response from the
+  	   FrontEnd and return it.
+  	   @exception ICPException if 1) the frontEndStatus is not REACHABLE,
+  	   2) the response timeout expires (the frontEndStatus is set to
+  	   UNREACHABLE) or 3) the OutgoingsHandler is reset (the frontEndStatus
+  	   is set to CONNECTING).
+  	   Called by HTTPBEDispatcher#dispatch()
+  	 */
+  	public synchronized JICPPacket deliverCommand(JICPPacket cmd, boolean flush) throws ICPException {
+  		if (frontEndStatus == REACHABLE) {
+	  		// The following check preserves dispatching order when the 
+	  		// device has just reconnected but flushing has not started yet
+	  		if (waitingForFlush && !flush) {
+					throw new ICPException("Upsetting dispatching order");
+	  		}
+	  		waitingForFlush = false;
+	  		
+  			// 1) Schedule the command for delivery
+			  int sid = outCnt;
+			  outCnt = (outCnt+1) & MAX_SID;
+			  log("Scheduling outgoing command for delivery "+sid, 3);
+			  cmd.setSessionID((byte) sid);
+  			currentCommand = cmd;
+  			commandReady = true;
+  			notifyAll();
+  			
+  			// 2) Wait for the response
+  			while (!responseReady) {
+	  			try {
+  					responseWaiter = Thread.currentThread();
+	  				wait(RESPONSE_TIMEOUT);
+	  				responseWaiter = null;
+	  				if (!responseReady) {
+	  					if (frontEndStatus == CONNECTING) {
+	  						// The connection was reset
+			  				log("Response will never arrive "+sid, 2);
+	  					}
+	  					else {
+		  					// Response Timeout expired
+				  			log("Response timeout expired "+sid, 2);
+				  			frontEndStatus = UNREACHABLE;
+				  			activateTimer();
+	  					}
+			  			outCnt--;
+			  			if (outCnt < 0) {outCnt = MAX_SID;}
+			  			throw new ICPException("Missing response");
+	  				}
+	  			}
+	  			catch (InterruptedException ie) {}
+  			}
+	  		log("Expected response arrived "+currentResponse.getSessionID(), 3);
+	  		responseReady = false;
+	  		return currentResponse;
+  		}
+  		else {
+  			throw new ICPException("Unreachable");
+  		}
+  	}
+
+  	/**
+  	   Dispatch a response from the FrontEnd to the issuer of the command
+  	   this response refers to.
+  	   If no one is waiting for this response (the frontEndStatus must be
+  	   different from REACHABLE), set the frontEndStatus to REACHABLE.
+  	   @return the next outgoing command to be delivered to the FrontEnd 
+  	   or null if the OutgoingsHandler is reset.
+  	   Called by HTTPBEDispatcher#handleJICPPacket()
+  	 */
+  	public synchronized JICPPacket dispatchResponse(JICPPacket rsp) {
+  		// 1) Handle the response
+  		if (responseWaiter != null) {
+  			// There was someone waiting for this response. Dispatch it
+	    	log("Response received "+rsp.getSessionID(), 3);
+	    	responseReady = true;
+	    	currentResponse = rsp;
+  			notifyAll();
+  		}
+  		else {
+  			// No one was waiting for this response. It must be the
+    		// initial dummy response or a response that arrives after 
+  			// the timeout has expired. 
+	    	log("Spurious response received", 2);
+  		}
+  		if (frontEndStatus != REACHABLE) {
+  			frontEndStatus = REACHABLE;
+  			resetTimer();
+  			waitingForFlush = myStub.flush();
+  		}
+  		
+  		// 2) Check if this is the last response
+    	if ((rsp.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
+    		// The FrontEnd has terminated as a consequence of a command issued 
+    		// by the local BackEnd. Terminate
+    		log("Last response detected", 2);
+    		shutdown();
+    		return null;
+    	}
+    	
+  		// 3) Wait for the next command
+			while (!commandReady) {
+  			try {
+					commandWaiter = Thread.currentThread();
+  				wait();
+  				commandWaiter = null;
+  				if (!commandReady) {
+  					// The connection was reset
+			  		log("Return with no command to deliver ", 2);
+  					return null;
+  				}
+  			}
+  			catch (InterruptedException ie) {}
+			}
+  		log("Delivering outgoing command "+currentCommand.getSessionID(), 3);
+  		commandReady = false;
+  		return currentCommand;
+  	}
+  	
+  	/**
+  	   Reset this OutgoingsHandler and set the frontEndStatus to CONNECTING. 
+  	   If there is a thread waiting for a command to deliver to the 
+  	   FrontEnd it will return null.
+  	   If there is a thread waiting for a response it will exit with 
+  	   an Exception.
+  	   The frontEndStatus is set to CONNECTING.
+  	   Called by HTTPBEDispatcher#handleIncomingConnection()
+  	 */
+  	public synchronized void setConnecting() {
+  		log("Resetting the connection ", 2);
+  		dummyResponse();
+  		frontEndStatus = CONNECTING;
+  		reset();
+  	}
+  	
+  	/**
+  	   Reset this OutgoingsHandler and set the frontEndStatus to TERMINATED. 
+  	 */
+  	public synchronized void setTerminating() {
+  		frontEndStatus = TERMINATED;
+  		reset();
+  	}
+  	
+  	private void reset() {
+  		commandReady = false;
+  		responseReady = false;
+  		currentCommand = null;
+  		currentResponse = null;
+  		resetTimer();
+  		notifyAll();
+  	}
+  	
+  	private void activateTimer() {
+	  	// Set the disconnection timer
+			disconnectionTimer = new Timer(System.currentTimeMillis()+maxDisconnectionTime, this);
+			disconnectionTimer = Runtime.instance().getTimerDispatcher().add(disconnectionTimer);
+  	}
+  	
+  	private void resetTimer() {
+			if (disconnectionTimer != null) {
+				Runtime.instance().getTimerDispatcher().remove(disconnectionTimer);
+				disconnectionTimer = null;
+			}
+  	}
+  	
+  	public synchronized void doTimeOut(Timer t) {
+	  	if (frontEndStatus != REACHABLE) {
+		  	log("Max disconnection timeout expired", 1);
+				// The remote FrontEnd is probably down --> notify up.
+				handleConnectionError();
+	  	}
+  	}
+  } // END of inner class OutgoingsHandler
+  	  	
+  
   
   /**
    */
@@ -422,27 +499,6 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
       String name = Thread.currentThread().toString();
       jade.util.Logger.println(name+": "+s);
     } 
-  } 
-  
-  private void activateReconnectionTest() {
-  	if (myID != null) {
-  		final String id = myID;
-	  	Timer t = new Timer(System.currentTimeMillis()+RECONNECTION_TEST_PERIOD, new TimerListener() {
-	  		public void doTimeOut(Timer t) {
-	  			log("Reconnection test: simulating a disconnection", 2);
-			    // This makes the thread waiting for an outgoing command wake up
-			    // and close the connection
-			    synchronized (commandLock) {
-			    	commandReady = true;
-			    	currentCommand = null;
-			    	commandLock.notifyAll();
-			    }
-	  			activateReconnectionTest();
-	  		}
-	  	} );
-	  	TimerDispatcher td = Runtime.instance().getTimerDispatcher();
-	  	td.add(t);
-  	}
-  }
+  }   
 }
 
