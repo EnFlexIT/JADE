@@ -98,7 +98,9 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
     }
     
     public void createAgent(AID agentID, byte[] serializedInstance, AgentContainerRMI classSite, boolean startIt) throws RemoteException, IMTPException {
-      impl.createAgent(agentID, serializedInstance, new AgentContainerAdapter(classSite, manager), startIt);
+      AgentContainer cont = manager.getAdapter(classSite);
+      impl.createAgent(agentID, serializedInstance, cont, startIt);
+      //impl.createAgent(agentID, serializedInstance, new AgentContainerAdapter(classSite, manager), startIt);
     }
 
     public void resumeAgent(AID agentID) throws RemoteException, NotFoundException, IMTPException {
