@@ -37,6 +37,7 @@ public class MicroStub {
 	protected Vector pendingCommands = new Vector();
 	private int activeCnt = 0;
 	private boolean flushing = false;
+	private Thread flusher;
 	
 	public MicroStub(Dispatcher d) {
 		myDispatcher = d;
@@ -82,6 +83,7 @@ public class MicroStub {
 	}
 	
 	private void postpone(Command c) {
+		Logger.println(Thread.currentThread().toString()+": Command "+c.getCode()+" postponed");
 		pendingCommands.addElement(c);
 	}
 	
@@ -91,8 +93,9 @@ public class MicroStub {
 			// This is called by the main thread of the underlying EndPoint
 			// --> The actual flushing must be done asynchronously to avoid
 			// deadlock
-			Thread t = new Thread() {
+			flusher = new Thread() {
 				public void run() {
+					Logger.println("Flushing thread activated");
 					// 1) Lock the buffer of pending commands to avoid calling 
 					// remote methods while flushing
 					synchronized (pendingCommands) {
@@ -106,6 +109,7 @@ public class MicroStub {
 						flushing = true;
 					}
 					
+					Logger.println("Start flushing");
 					// Flush the buffer of pending commands
 					Enumeration e = pendingCommands.elements();
 					while (e.hasMoreElements()) {
@@ -130,9 +134,10 @@ public class MicroStub {
 						flushing = false;
 						pendingCommands.notifyAll();
 					}
+					Logger.println("Flushing thread terminated");
 				}
 			};
-			t.start();
+			flusher.start();
 		}
 	}
 	
@@ -143,23 +148,27 @@ public class MicroStub {
 	   lock/unlock mechanism instead of a simple synchronization.
 	 */
 	private void disableFlush() {
-		synchronized (pendingCommands) {
-			while (flushing) {
-				try {
-					pendingCommands.wait();
+		if (Thread.currentThread() != flusher) {
+			synchronized (pendingCommands) {
+				while (flushing) {
+					try {
+						pendingCommands.wait();
+					}
+					catch (InterruptedException ie) {
+					}
 				}
-				catch (InterruptedException ie) {
-				}
+				activeCnt++;
 			}
-			activeCnt++;
 		}
 	}
 		
 	private void enableFlush() {
-		synchronized (pendingCommands) {
-			activeCnt--;
-			if (activeCnt == 0) {
-				pendingCommands.notifyAll();
+		if (Thread.currentThread() != flusher) {
+			synchronized (pendingCommands) {
+				activeCnt--;
+				if (activeCnt == 0) {
+					pendingCommands.notifyAll();
+				}
 			}
 		}
 	}		
