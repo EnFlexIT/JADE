@@ -6,7 +6,6 @@ package fipa.core;
 
 import java.util.Enumeration;
 import java.util.Vector;
-import java.lang.reflect.*;
 
 import fipa.lang.acl.*;
 
@@ -22,11 +21,12 @@ import fipa.lang.acl.*;
     (ACLMessage)
 
   + Schedules and executes complex behaviours.
-    (Behaviour)
+    (Behaviour, Scheduler)
 
 ****************************************************************/
 public class Agent implements Runnable, CommBroadcaster {
 
+  // Agent Platform Life-Cycle states
   protected static final int AP_INITIATED = 1;
   protected static final int AP_ACTIVE = 2;
   protected static final int AP_SUSPENDED = 3;
@@ -35,27 +35,36 @@ public class Agent implements Runnable, CommBroadcaster {
 
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
-  protected Vector actions = new Vector();
 
 
-  protected String myName;
+  protected String myName = null;
   protected Thread myThread;
+  protected Scheduler myScheduler;
+  protected ACLMessage currentMessage;
+
   protected int APState;
   protected int DomainState;
 
-  private ACLParser parser = null; // FIXME: Must be initialized with a valid ACL parser
-  protected ACLMessage currentMessage;
+  private ACLParser myParser = null;
+
 
   public Agent() {
     APState = AP_INITIATED;
+    myThread = new Thread(this);
+    myParser = null; // FIXME: Must be initialized with a valid ACL parser
+    myScheduler = new Scheduler(this);
   }
+
+  public String getName() {
+    return myName;
+  }
+
+  // State transition methods for Agent Platform Life-Cycle
 
   public void doStart(String name) { // Transition from Initiated to Active
 
     myName = new String(name);
-
     APState = AP_ACTIVE;
-    myThread = new Thread(this);
     myThread.start();
 
   }
@@ -75,7 +84,7 @@ public class Agent implements Runnable, CommBroadcaster {
     // FIXME: Should do something more
   }
 
-  public void doWait() { // Transition from Active to Waiting
+  public synchronized void doWait() { // Transition from Active to Waiting
     APState = AP_WAITING;
     try {
       wait(); // Block on its monitor
@@ -90,73 +99,52 @@ public class Agent implements Runnable, CommBroadcaster {
     notify(); // Wakes up the embedded thread
   }
 
-  protected void localStartup() {}
+  public void doDelete() { // Transition to destroy the agent
+    APState = -1; // FIXME: Shold do something more
+  }
 
   public final void run() {
 
-    localStartup();
+    setup();
 
-    System.out.println(myName + ": initializing...");
+    mainLoop();
 
-    schedule();
-
-    System.out.println(myName + ": exiting...");
-
+    destroy();
   }
 
-  public void schedule() {
-    
-    /*
-    int ret;
-    Class[] params = new Class[0];
-    Object[] args  = new Object[0];
+  protected void setup() {}
 
-    while( isActive && actions.size() > 0 ) {
-      for( int i=0; i<actions.size(); i++ ) {
-	String s = (String)actions.elementAt(i);
-	System.out.println(myName + ": invoking " + s);
-	try{
-	  Method m = this.getClass().getMethod(s, params); // FIXME: Change Method to Behaviour
-	  try{
-	    ret = ((Integer)m.invoke( this, args )).intValue();
-	    if( ret == 1 ) actions.removeElementAt(i);
-	  }
-	  catch( InvocationTargetException e ){
-	    e.printStackTrace();
-	  } 
-	  catch( IllegalAccessException e ){
-	    e.printStackTrace();
-	  }
-	}
-	catch( NoSuchMethodException e ){
-	  System.out.println(" method " + s + " not found ! ");
-	  System.exit(3);
-	}
+  private void mainLoop() {
+    while(APState == AP_ACTIVE) {
 
-	try {
-	  Thread.sleep(500);
-	} 
-	catch( InterruptedException e ) {
-	}
+      // Select the next behaviour to execute
+      Behaviour b = myScheduler.schedule();
 
+      // Just do it!
+      b.execute();
+
+      // When is needed no more, delete it from the behaviours queue
+      if(b.done()) {
+	myScheduler.remove(b);
       }
-    }
-    */
 
+    }
   }
 
+  private void destroy() { // FIXME: Should remove the agent from all agents tables.
+  }
 
   public void addBehaviour(Behaviour b) {
-    actions.addElement(b);
+    myScheduler.add(b);
   }
 
   public void removeBehaviour(Behaviour b) {
-    // FIXME: To be implemented
+    myScheduler.remove(b);
   }
 
 
   // Event based message sending -- serialized object
-  protected final void send(ACLMessage msg) {
+  public final void send(ACLMessage msg) {
     CommEvent event = new CommEvent(this, msg);
     Enumeration e = listeners.elements();
     while(e.hasMoreElements()) {
@@ -166,7 +154,7 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   // Blocking receive
-  protected final ACLMessage blockingReceive() {
+  public final ACLMessage blockingReceive() {
     if(msgQueue.isEmpty()) {
       doWait();
     }
@@ -177,7 +165,7 @@ public class Agent implements Runnable, CommBroadcaster {
   }
 
   // Non-blocking receive
-  protected final ACLMessage receive() {
+  public final ACLMessage receive() {
     if(msgQueue.isEmpty())
       return null;
     else {
