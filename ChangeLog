@@ -17,6 +17,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
   - Catched exception in initfromIOR 
   - Matched the ServiceDescription also against the user-defined properties
 - Added the JadeJessProtege example kindly provided by Oliver Hoffmann.
+- Added a checkbox to the AID GUI. This checkbox must be checked when local
+  names are set instead of GUID (globally unique identifiers).
 - Modified the class jade.core.AID that now represents only GUID. Some 
   user applications might need to modify the code and call the constructor
   AID(localName, AID.ISLOCALNAME) instead of the old constructor.
@@ -41,6 +43,8 @@ MAJOR CHANGES since JADE 2.2 ($Date$ $Name$)
     selected agents.
 - Added the SLFormatter tool (jade.tools.sl.SLFormatter) that allows to
   format an SL-expression into a human-friendly string. (Craig Sayers, HP)
+- Fixed bug of the configuration GUI that did not allow specifying a list
+  of agents to be launched.
 - Added the command line parameter "-name" which specifies the symbolic 
   name to be used as the platform name rather than the default name generated
   from the main container's hostname and the portnumber. (Ion Constantinescu)
