@@ -14,10 +14,7 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   public static final String DFAGENTDESCRIPTION_PROTOCOLS = "protocols";
   public static final String DFAGENTDESCRIPTION_ONTOLOGIES = "ontologies";
   public static final String DFAGENTDESCRIPTION_LANGUAGES = "languages";
-  // For FIPA 2000 compatibility
-  public static final String DFAGENTDESCRIPTION_PROTOCOL = "protocol";
-  public static final String DFAGENTDESCRIPTION_ONTOLOGY = "ontology";
-  public static final String DFAGENTDESCRIPTION_LANGUAGE = "language";
+  public static final String DFAGENTDESCRIPTION_LEASE_TIME = "lease-time";
 
   public static final String SERVICEDESCRIPTION	= "service-description";
   public static final String SERVICEDESCRIPTION_NAME = "name";
@@ -27,14 +24,11 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   public static final String SERVICEDESCRIPTION_ONTOLOGIES = "ontologies";
   public static final String SERVICEDESCRIPTION_LANGUAGES = "languages";
   public static final String SERVICEDESCRIPTION_PROPERTIES = "properties";
-  // For FIPA 2000 compatibility
-  public static final String SERVICEDESCRIPTION_PROTOCOL = "protocol";
-  public static final String SERVICEDESCRIPTION_ONTOLOGY = "ontology";
-  public static final String SERVICEDESCRIPTION_LANGUAGE = "language";
   
   public static final String SEARCHCONSTRAINTS = "search-constraints";
   public static final String SEARCHCONSTRAINTS_MAX_DEPTH = "max-depth";
   public static final String SEARCHCONSTRAINTS_MAX_RESULTS = "max-results";
+  public static final String SEARCHCONSTRAINTS_SEARCH_ID = "search-id";
   
   public static final String AMSAGENTDESCRIPTION = "ams-agent-description";
   public static final String AMSAGENTDESCRIPTION_NAME = "name";
@@ -95,45 +89,4 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   
   public static final String GETDESCRIPTION = "get-description";
   
-  public static final String QUIT = "quit";
-  public static final String QUIT_AID = "agent-identifier";
-
-  // Not-understood Exception Predicates
-  public static final String UNSUPPORTEDACT = "unsupported-act";
-  public static final String UNSUPPORTEDACT_ACT = "act";	
-  
-  public static final String UNEXPECTEDACT = "unexpected-act";
-  public static final String UNEXPECTEDACT_ACT = "act";
-  
-  public static final String UNSUPPORTEDVALUE = "unsupported-value";
-  public static final String UNSUPPORTEDVALUE_VALUE = "value";
-    
-  public static final String UNRECOGNISEDVALUE = "unrecognised-value";
-  public static final String UNRECOGNISEDVALUE_VALUE = "value";	
-  
-  // Refusal Exception Predicates
-  public static final String UNAUTHORISED = "unauthorised";
-  
-  public static final String UNSUPPORTEDFUNCTION = "unsupported-function";
-  public static final String UNSUPPORTEDFUNCTION_FUNCTION = "function";
-  
-  public static final String MISSINGPARAMETER = "missing-parameter";
-  public static final String MISSINGPARAMETER_OBJECT_NAME    = "object-name";	
-  public static final String MISSINGPARAMETER_PARAMETER_NAME = "parameter-name";
-
-  public static final String UNEXPECTEDPARAMETER = "unexpected-parameter";
-  public static final String UNEXPECTEDPARAMETER_OBJECT_NAME = "object-name";
-  public static final String UNEXPECTEDPARAMETER_PARAMETER_NAME = "parameter-name";
-  
-  public static final String UNRECOGNISEDPARAMETERVALUE = "unrecognised-parameter-value";
-  public static final String UNRECOGNISEDPARAMETERVALUE_PARAMETER_NAME = "parameter-name";
-  public static final String UNRECOGNISEDPARAMETERVALUE_PARAMETER_VALUE = "parameter-value";
-
-  // Failure Exception Predicates
-  public static final String ALREADYREGISTERED = "already-registered";
-  public static final String NOTREGISTERED = "not-registered";
-  
-  public static final String INTERNALERROR = "internal-error";  
-  public static final String INTERNALERROR_MESSAGE = "error-message";	
-
 }

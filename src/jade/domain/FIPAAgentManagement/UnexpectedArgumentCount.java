@@ -24,49 +24,19 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-/**
-* This class models a search constraint.
+import jade.content.Predicate;
+
+/** 
+* 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-public class SearchConstraints {
 
-private Long max_depth = null; 
+public class UnexpectedArgumentCount extends RefuseException implements Predicate {
 
-private Long max_results = null;
-
-    private String search_id = null;
-
-    public void setSearchId(String searchId) {
-	search_id = searchId;
-    }
-  /**
-   * return null if it has not been set
-   */
-    public String getSearchId() {
-	return search_id;
-    }
-
-public void setMaxDepth(Long l){
-  max_depth=l;
+public UnexpectedArgumentCount() {
+  super("unexpected-argument-count");
 }
 
-  /**
-   * return null if it has not been set
-   */
-public Long getMaxDepth() {
-  return max_depth;
-}
-
-public void setMaxResults(Long l) {
-  max_results = l;
-}
-
-  /**
-   * return null if it has not been set
-   */
-  public Long getMaxResults(){
-    return max_results;
-  }
 }

@@ -26,6 +26,14 @@ public interface ExceptionVocabulary {
   public static final String UNSUPPORTEDFUNCTION = "unsupported-function";
   public static final String UNSUPPORTEDFUNCTION_FUNCTION = "function";
   
+  public static final String MISSINGARGUMENT = "missing-argument";
+  public static final String MISSINGARGUMENT_ARGUMENT = "argument-name";
+  
+  public static final String UNEXPECTEDARGUMENT = "unexpected-argument";
+  public static final String UNEXPECTEDARGUMENT_ARGUMENT = "argument-name";
+  
+  public static final String UNEXPECTEDARGUMENTCOUNT = "unexpected-argument-count";
+
   public static final String MISSINGPARAMETER = "missing-parameter";
   public static final String MISSINGPARAMETER_OBJECT_NAME    = "object-name";	
   public static final String MISSINGPARAMETER_PARAMETER_NAME = "parameter-name";

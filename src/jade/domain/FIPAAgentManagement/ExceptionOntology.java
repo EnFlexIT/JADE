@@ -68,15 +68,6 @@ import jade.content.schema.*;
       a void clearAllAttrName() method to remove all the values (the list becomes empty). 
       Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
       that allows the programmer to walk through the List and cast its elements to the appropriate type.
-      * <p>
-      * <i>
-      * FIPA2000 still uses singular names for some slots whose type
-      * value is a set. In particular for "ontologies","languages","protocols".
-      * Because of that, since JADE 2.4, both singular and plural names
-      * can be used and are valid for those slots.
-      * That might change as soon as FIPA takes a final decision on the
-      * names of those slots.
-      * </i>
  */
 public class ExceptionOntology  extends Ontology implements ExceptionVocabulary {
 
@@ -108,6 +99,9 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(UNEXPECTEDACT), UnexpectedAct.class);
 	  	add(new PredicateSchema(UNSUPPORTEDVALUE), UnsupportedValue.class);
 	  	add(new PredicateSchema(UNRECOGNISEDVALUE), UnrecognisedValue.class);
+	  	add(new PredicateSchema(MISSINGARGUMENT), MissingArgument.class);
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENT), UnexpectedArgument.class);
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENTCOUNT), UnexpectedArgumentCount.class);
 	  	add(new PredicateSchema(UNSUPPORTEDFUNCTION), UnsupportedFunction.class);
 	  	add(new PredicateSchema(MISSINGPARAMETER), MissingParameter.class);
 	  	add(new PredicateSchema(UNEXPECTEDPARAMETER), UnexpectedParameter.class);
@@ -124,6 +118,9 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(UNSUPPORTEDVALUE));
 	  	add(new PredicateSchema(UNRECOGNISEDVALUE));
 	  	add(new PredicateSchema(UNSUPPORTEDFUNCTION));
+	  	add(new PredicateSchema(MISSINGARGUMENT));
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENT));
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENTCOUNT));
 	  	add(new PredicateSchema(MISSINGPARAMETER));
 	  	add(new PredicateSchema(UNEXPECTEDPARAMETER));
 	  	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
@@ -148,7 +145,13 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  
 	  	ps = (PredicateSchema)getSchema(UNSUPPORTEDFUNCTION);
 	  	ps.add(UNSUPPORTEDFUNCTION_FUNCTION, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
-	  
+
+	  	ps = (PredicateSchema)getSchema(MISSINGARGUMENT);
+	  	ps.add(MISSINGARGUMENT_ARGUMENT, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+
+	  	ps = (PredicateSchema)getSchema(UNEXPECTEDARGUMENT);
+	  	ps.add(UNEXPECTEDARGUMENT_ARGUMENT, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+
 	  	ps = (PredicateSchema)getSchema(MISSINGPARAMETER);
 	  	ps.add(MISSINGPARAMETER_OBJECT_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
 	  	ps.add(MISSINGPARAMETER_PARAMETER_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);

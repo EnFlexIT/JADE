@@ -24,49 +24,34 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.FIPAAgentManagement;
 
-/**
-* This class models a search constraint.
+import jade.content.Predicate;
+
+/** 
+* 
 * @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-public class SearchConstraints {
 
-private Long max_depth = null; 
+public class UnexpectedArgument extends RefuseException implements Predicate {
 
-private Long max_results = null;
-
-    private String search_id = null;
-
-    public void setSearchId(String searchId) {
-	search_id = searchId;
-    }
-  /**
-   * return null if it has not been set
-   */
-    public String getSearchId() {
-	return search_id;
-    }
-
-public void setMaxDepth(Long l){
-  max_depth=l;
-}
-
-  /**
-   * return null if it has not been set
-   */
-public Long getMaxDepth() {
-  return max_depth;
-}
-
-public void setMaxResults(Long l) {
-  max_results = l;
-}
-
-  /**
-   * return null if it has not been set
-   */
-  public Long getMaxResults(){
-    return max_results;
+  public UnexpectedArgument() {
+    this("Unknown-argument-name"); 
   }
+  
+public UnexpectedArgument(String argumentName) {
+  super("(unexpected-argument "+argumentName+")");
+  s1=argumentName;
+}
+
+
+/**
+  @serial
+  */
+String s1;
+public void setArgumentName(String a){s1=a; setMessage("(unexpected-argument "+s1+")");}
+public String getArgumentName() {return s1;}
+
+public void set_0(String a){setArgumentName(a);}
+public String get_0() {return getArgumentName();}
 }

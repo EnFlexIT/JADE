@@ -32,15 +32,6 @@ import jade.content.Concept;
   *  support to <em>DF</em> agent, holding all informations needed by
   *  <code>DF-agent-description</code> objects in
   *  <code>fipa-agent-management</code> ontology.
-  * <p>
-  * <i>
-  * FIPA2000 still uses singular names for some slots whose type
-  * value is a set. In particular for "ontologies","languages","protocols".
-  * Because of that, since JADE 2.4, both singular and plural names
-  * can be used and are valid for those slots.
-  * That might change as soon as FIPA takes a final decision on the
-  * names of those slots.
-  * </i>
   *  @see jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology
   *  @author Fabio Bellifemine - CSELT S.p.A.
   *  @version $Date$ $Revision$
@@ -80,8 +71,7 @@ public Iterator getAllServices(){
 }
 
     public void addProtocols(String ip) {
-	if (!interactionProtocols.contains(ip)) //FIXME. This check is needed because addProtocol might be also been called
-	    interactionProtocols.add(ip);
+	interactionProtocols.add(ip);
     }
     public boolean removeProtocols(String ip) {
       return interactionProtocols.remove(ip);
@@ -96,8 +86,7 @@ public Iterator getAllServices(){
 
 
     public void addOntologies(String ip) {
-	if (!ontology.contains(ip)) //FIXME. This check is needed because addOntology might be also been called
-	    ontology.add(ip);
+	ontology.add(ip);
     }
     public boolean removeOntologies(String ip) {
       return ontology.remove(ip);
@@ -110,8 +99,7 @@ public Iterator getAllServices(){
     }
 
     public void addLanguages(String ip) {
-	if (!language.contains(ip)) //FIXME. This check is needed because addLanguage might be also been called
-	    language.add(ip);
+	language.add(ip);
     }
     public boolean removeLanguages(String ip) {
       return language.remove(ip);
@@ -123,12 +111,4 @@ public Iterator getAllServices(){
       return language.iterator();
     }
 
-      // FIXME. since JADE 2.4. In order to comply with FIPA 2000. 
-      // see also the documentation of this class about singular and plural names
-      public void addOntology(String ip) { addOntologies(ip); }
-      public Iterator getAllOntology() { return getAllOntologies();}
-      public void addProtocol(String ip) { addProtocols(ip); }
-      public Iterator getAllProtocol() { return getAllProtocols();}
-      public void addLanguage(String ip) { addLanguages(ip); }
-      public Iterator getAllLanguage() { return getAllLanguages();}
   } 

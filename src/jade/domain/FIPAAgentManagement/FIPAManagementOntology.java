@@ -68,15 +68,6 @@ import jade.content.schema.*;
       a void clearAllAttrName() method to remove all the values (the list becomes empty). 
       Reading is performed by a  Iterator getAllAttrName() method that returns an Iterator 
       that allows the programmer to walk through the List and cast its elements to the appropriate type.
-      * <p>
-      * <i>
-      * FIPA2000 still uses singular names for some slots whose type
-      * value is a set. In particular for "ontologies","languages","protocols".
-      * Because of that, since JADE 2.4, both singular and plural names
-      * can be used and are valid for those slots.
-      * That might change as soon as FIPA takes a final decision on the
-      * names of those slots.
-      * </i>
  */
 public class FIPAManagementOntology  extends Ontology implements FIPAManagementVocabulary {
 
@@ -119,7 +110,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new AgentActionSchema(MODIFY), Modify.class);
 	  	add(new AgentActionSchema(SEARCH), Search.class);
 	  	add(new AgentActionSchema(GETDESCRIPTION), GetDescription.class);
-	  	add(new AgentActionSchema(QUIT), Quit.class);
+
     	//#MIDP_EXCLUDE_END
 			   	  
 			/*#MIDP_INCLUDE_BEGIN    	
@@ -134,7 +125,6 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new AgentActionSchema(MODIFY));
 	  	add(new AgentActionSchema(SEARCH));
 	  	add(new AgentActionSchema(GETDESCRIPTION));
-	  	add(new AgentActionSchema(QUIT));
 	  
 	  	add(new PredicateSchema(UNAUTHORISED));
 	  	add(new PredicateSchema(UNSUPPORTEDACT));
@@ -142,6 +132,9 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new PredicateSchema(UNSUPPORTEDVALUE));
 	  	add(new PredicateSchema(UNRECOGNISEDVALUE));
 	  	add(new PredicateSchema(UNSUPPORTEDFUNCTION));
+	  	add(new PredicateSchema(MISSINGARGUMENT));
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENT));
+	  	add(new PredicateSchema(UNEXPECTEDARGUMENTCOUNT));
 	  	add(new PredicateSchema(MISSINGPARAMETER));
 	  	add(new PredicateSchema(UNEXPECTEDPARAMETER));
 	  	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
@@ -156,10 +149,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(DFAGENTDESCRIPTION_PROTOCOLS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
 	  	cs.add(DFAGENTDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
 	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
-  		// For FIPA 2000 compatibility
-	  	cs.add(DFAGENTDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
-	  	cs.add(DFAGENTDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
-	  	cs.add(DFAGENTDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
+	  	cs.add(DFAGENTDESCRIPTION_LEASE_TIME, (PrimitiveSchema)getSchema(BasicOntology.DATE), ObjectSchema.OPTIONAL); 
 
 	  	cs = (ConceptSchema)getSchema(SERVICEDESCRIPTION);
 	  	cs.add(SERVICEDESCRIPTION_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
@@ -169,14 +159,11 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(SERVICEDESCRIPTION_LANGUAGES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
 	  	cs.add(SERVICEDESCRIPTION_ONTOLOGIES, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
 	  	cs.add(SERVICEDESCRIPTION_PROPERTIES, (ConceptSchema)getSchema(PROPERTY), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
-  		// For FIPA 2000 compatibility
-	  	cs.add(SERVICEDESCRIPTION_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
-	  	cs.add(SERVICEDESCRIPTION_LANGUAGE, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
-	  	cs.add(SERVICEDESCRIPTION_ONTOLOGY, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0 , ObjectSchema.UNLIMITED, BasicOntology.SET);
 
 	  	cs = (ConceptSchema)getSchema(SEARCHCONSTRAINTS);
 	  	cs.add(SEARCHCONSTRAINTS_MAX_DEPTH, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 	  	cs.add(SEARCHCONSTRAINTS_MAX_RESULTS, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+	  	cs.add(SEARCHCONSTRAINTS_SEARCH_ID, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 	  
 	  	cs = (ConceptSchema)getSchema(AMSAGENTDESCRIPTION);
 	  	cs.add(AMSAGENTDESCRIPTION_NAME, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
@@ -240,10 +227,6 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	as.add(SEARCH_CONSTRAINTS, (ConceptSchema)getSchema(SEARCHCONSTRAINTS), ObjectSchema.MANDATORY);
 	  	as.setEncodingByOrder(true);
 
-	  	as = (AgentActionSchema)getSchema(QUIT);
-	  	as.add(QUIT_AID, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
-	  	as.setEncodingByOrder(true);
-	  
     } 
     catch(OntologyException oe) {
     }
