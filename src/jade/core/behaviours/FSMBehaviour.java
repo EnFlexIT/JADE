@@ -315,6 +315,9 @@ public class FSMBehaviour extends SerialBehaviour {
 				if (current == null) {
 					throw new NullPointerException();
   			}
+  			else {
+  				handleStateEntered(current);
+  			}
   		}
   		catch (NullPointerException npe) {
   			current = null;
@@ -327,6 +330,9 @@ public class FSMBehaviour extends SerialBehaviour {
 
   protected void handleInconsistentFSM(String current, int event) {
 		throw new RuntimeException("Inconsistent FSM. State: "+current+" event: "+event);
+  }
+  
+  protected void handleStateEntered(Behaviour state) {
   }
   	
   /**
