@@ -286,9 +286,8 @@
  :ontology fipa-agent-management
  :content ( unauthorised
             (unsupported-function PLUS) 
-            (missing-argument ACTION)
-            (unexpected-argument Agent-Identifier)
-            unexpected-argument-count
+            (missing-parameter ACTION pippo)
+            (unexpected-parameter Agent-Identifier x-pippo)
             (missing-parameter Agent-Identifier name)
             (unexpected-parameter Agent-Identifier X-userdefined)
             (unrecognised-parameter-value Agent-Identifier "20")
