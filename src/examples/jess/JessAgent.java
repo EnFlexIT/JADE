@@ -1,20 +1,34 @@
-/**
- * @version $Id$
- *
- * Copyright (c) 1998 CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
- * All Rights Reserved.
- *
- * This software is the confidential and proprietary information of 
- * CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A. You shall not
- * disclose such Confidential Information and shall use it only in accordance
- * with the terms of the agreement you entered into with CSELT.
- *
- * @author Fabio Bellifemine - CSELT S.p.A.
- */
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
 
 package examples.jess;
 
 import jade.core.Agent;
+
+/**
+Javadoc documentation for the file
+@author Fabio Bellifemine - CSELT S.p.A
+@version $Date$ $Revision$
+*/
 
 /**
  * This is a simple sample JADE Agent that embeds a Jess engine.

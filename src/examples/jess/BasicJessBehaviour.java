@@ -1,40 +1,25 @@
-/**
- * @version $Id$
- *
- * Copyright (c) 1998 CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A.
- * All Rights Reserved.
- *
- * This software is the confidential and proprietary information of 
- * CSELT Centro Studi e Laboratori Telecomunicazioni S.p.A. You shall not
- * disclose such Confidential Information and shall use it only in accordance
- * with the terms of the agreement you entered into with CSELT.
- *
- * @author Fabio Bellifemine - CSELT S.p.A.
- *
- * $Log$
- * Revision 1.8  1999/10/06 08:57:50  rimassa
- * Added a missing import clause.
- *
- * Revision 1.7  1999/04/06 00:08:07  rimassa
- * New version by Fabio.
- *
- * Revision 1.7  1999/03/31 20:54:49  rimassa
- * New version received from Fabio.
- *
- * Revision 1.13  1999/03/31 08:06:06  bellifemine
- * The ACLMessage content is quoted before Jess assertion and then unquoted before
- * Jess send.
- *
- * Revision 1.12  1999/02/25 17:26:05  bellifemine
- * Versione 0.975 inviata da Giovanni il 25/2/99 + FipaContractNetResponderBehaviour.java mio
- *
- * Revision 1.5  1999/02/04 13:09:04  rimassa
- * Fixed a bug and tested with Jess 4.3 .
- *
- * Revision 1.8  1999/02/04 09:41:21  bellifemine
- * <>
- *
- */
+/*****************************************************************
+JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+Copyright (C) 2000 CSELT S.p.A. 
+
+GNU Lesser General Public License
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation, 
+version 2.1 of the License. 
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the
+Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA  02111-1307, USA.
+*****************************************************************/
+
 
 package examples.jess;
 
@@ -44,6 +29,12 @@ import jade.lang.acl.ACLMessage;
 import jess.*;
 import java.io.*;
 import java.util.Enumeration;
+
+/**
+Javadoc documentation for the file
+@author Fabio Bellifemine - CSELT S.p.A
+@version $Date$ $Revision$
+*/
 
 /**
  * This is the basic class that implements a behaviour of JADE that allows 
