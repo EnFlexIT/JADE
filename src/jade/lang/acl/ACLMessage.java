@@ -34,6 +34,10 @@
 ////////////////////////////////////////////////////////////////////////
 /*
  $Log$
+ Revision 1.18  1999/06/25 12:40:52  rimassa
+ Fixed a bug in toText() method: missing parentheses when multiple
+ receivers were present.
+
  Revision 1.17  1999/04/08 12:01:21  rimassa
  Changed clone() method to correctly implement a deep copy.
 
@@ -680,8 +684,12 @@ public class ACLMessage implements Cloneable, Serializable {
       Enumeration e = dests.getMembers();
       if(e.hasMoreElements()) 
 	w.write(DEST + "\n");
+	  if (dests.size() > 1)
+		w.write("(");
       while(e.hasMoreElements())
 	w.write((String)e.nextElement() + "\n");
+	  if (dests.size() > 1)
+		w.write(")");
       if(content != null)
 	w.write(CONTENT + " " + content + "\n");
       if(reply_with != null)
