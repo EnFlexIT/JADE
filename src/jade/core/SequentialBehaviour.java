@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.6  1998/12/07 23:54:37  rimassa
+  Changed bodyAction() method to handle the case when a
+  SequentialBehaviour has no children. Now an empty SequentialBehaviour
+  ends immediately.
+
   Revision 1.5  1998/10/04 18:01:16  rimassa
   Added a 'Log:' field to every source file.
 
@@ -28,10 +33,18 @@ public class SequentialBehaviour extends ComplexBehaviour {
 
   protected boolean bodyAction() {
     boolean result = false;
-    Behaviour b = subBehaviours.getCurrent();
-    b.action();
-    if (b.done()) {
-      result = subBehaviours.next();
+
+    if(!subBehaviours.isEmpty()) {
+
+      Behaviour b = subBehaviours.getCurrent();
+      b.action();
+      if (b.done()) {
+	result = subBehaviours.next();
+      }
+
+    }
+    else {
+      result = true;
     }
 
     return result;
