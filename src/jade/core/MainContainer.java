@@ -47,7 +47,4 @@ interface MainContainer extends AgentContainer {
 
   RemoteProxy getProxy(AID id) throws RemoteException, NotFoundException;
 
-  // FIXME: Temporary hack
-  void route(jade.domain.FIPAAgentManagement.Envelope env, byte[] payload, String address) throws RemoteException, NotFoundException;
-
 }
