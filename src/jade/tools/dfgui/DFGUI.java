@@ -98,7 +98,7 @@ import jade.gui.AboutJadeAction;
 * @version $Date$ $Revision$
 */
 
-public class DFGUI extends JFrame
+public class DFGUI extends JFrame implements DFGUIInterface
 {
 	// class variables used to discriminate between the view of the dfgui.
 	public static int AGENT_VIEW = 0;
@@ -172,20 +172,20 @@ public class DFGUI extends JFrame
   AID lastDF = null;                // this AID is the AID of the DF on which the last search was made. 
   
 	// CONSTRUCTORS
-	public DFGUI(DFGUIAdapter a, boolean isApplet) 
+/**
+Constructor without parameter. Used by the df to avoid reflection, 
+Using this constructor, the method setAdapter must be called (after the constructor)
+to set the agent with which the gui interacts.
+*/
+	public DFGUI()
 	{
 		//////////////////////////
 		// Initialization
 		super();
 		lastSearchResults = new HashMap();
-		isGUIForApplet = isApplet;
-    setSize(550,450);
 	
-		try{
-			setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
-		}catch(NullPointerException e){setTitle("DF:Unknown");}
-    myAgent = a;
-    
+    setSize(550,450);
+  
 		/////////////////////////////////////
 		// Add main menu to the GUI window
 		JMenuBar jmb = new JMenuBar();
@@ -536,7 +536,18 @@ public class DFGUI extends JFrame
 		} );
 }
 	
-  class tabListener implements ChangeListener
+/**
+Constructor with arguments.
+@param a the DFGUIAdapter with which the gui interacts.
+*/
+public DFGUI(DFGUIAdapter a)
+{
+	super();
+	setAdapter(a);
+
+}
+  
+	class tabListener implements ChangeListener
   {
   	public void stateChanged(ChangeEvent event)
   	{
@@ -555,6 +566,26 @@ public class DFGUI extends JFrame
   
   }
   
+  /*
+  This method must be used after the constructor of the gui 
+  to set the object implementing the DFGUIAdapter interface.
+  It's necessary to avoid any dipendency between the JADE tools and 
+  the class of the domain package.
+  */
+  public void setAdapter(DFGUIAdapter a)
+  {
+  	try{
+			setTitle("DF: "+ a.getDescriptionOfThisDF().getName().getName());
+			myAgent = a;
+		}catch(NullPointerException e){
+			e.printStackTrace();
+			setTitle("DF:Unknown");}
+    
+
+  }
+  
+  
+ 
   /**
   * Use this method to show a message on the DF GUI.
   * @param msg the string to show
@@ -910,14 +941,6 @@ Refresh the search result.
 		EventQueue.invokeLater(new disposeIt(this));
 	}
  
-	/**
-	* Checks if the gui is of an applet or not. 
-	* @return true if is the gui of an applet
-	*/
-	public boolean isApplet()
-	{
-		return isGUIForApplet;
-	} 
 	
 	
 	/**
