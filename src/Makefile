@@ -101,8 +101,8 @@ IDLSTUBS    =   FIPA/AgentID.java \
 		FIPA/stringsHelper.java \
 		FIPA/stringsHolder.java
 
-STUBS       = 	jade.core.AgentContainerImpl \
-		jade.core.MainContainerImpl
+STUBS       = 	jade.imtp.rmi.AgentContainerRMIImpl \
+		jade.imtp.rmi.MainContainerRMIImpl
 
 all: $(IDLSTUBS) parsers classes stubs images
 	@echo
