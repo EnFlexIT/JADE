@@ -267,6 +267,6 @@ public class Envelope implements jade.util.leap.Serializable {
 		s = s + " "+ ro[j].toString(); 
 	    s = s + ") ";
 	}
-	return s;
+	return s+")";
     }
 }
