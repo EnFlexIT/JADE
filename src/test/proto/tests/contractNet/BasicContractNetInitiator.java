@@ -133,12 +133,23 @@ public class BasicContractNetInitiator extends ContractNetInitiator {
 	}
 	
 	public void printDetails() {
-  	System.out.println("PROPOSE: expected "+expected[0]+", received "+proposeCnt);  
-  	System.out.println("REFUSE: expected "+expected[1]+", received "+refuseCnt);  
-  	System.out.println("NOT_UNDERSTOOD: expected "+expected[2]+", received "+notUnderstoodCnt);  
-  	System.out.println("INFORM: expected "+expected[3]+", received "+informCnt);  
-  	System.out.println("FAILURE: expected "+expected[4]+", received "+failureCnt);  
-  	System.out.println("OUT OF SEQUENCE: expected "+expected[5]+", received "+outOfSeqCnt);
+		System.out.println(getDetails());
+	}
+	
+	public String getDetails() {
+		StringBuffer sb = new StringBuffer();
+  	sb.append("PROPOSE: expected "+expected[0]+", received "+proposeCnt);  
+  	sb.append("\n");
+  	sb.append("REFUSE: expected "+expected[1]+", received "+refuseCnt);  
+  	sb.append("\n");
+  	sb.append("NOT_UNDERSTOOD: expected "+expected[2]+", received "+notUnderstoodCnt);  
+  	sb.append("\n");
+  	sb.append("INFORM: expected "+expected[3]+", received "+informCnt);  
+  	sb.append("\n");
+  	sb.append("FAILURE: expected "+expected[4]+", received "+failureCnt);  
+  	sb.append("\n");
+  	sb.append("OUT OF SEQUENCE: expected "+expected[5]+", received "+outOfSeqCnt);
+  	return sb.toString();
   }
 }
 
