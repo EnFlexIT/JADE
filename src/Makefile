@@ -24,20 +24,18 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/core/behaviours/ReceiverBehaviour.java \
 		jade/core/behaviours/WakerBehaviour.java \
 		jade/domain/MobilityOntology.java \
-		jade/proto/ProtocolDrivenBehaviour.java \
-		jade/proto/Standard.java \
 		jade/proto/FipaRequestInitiatorBehaviour.java \
 		jade/proto/FipaRequestResponderBehaviour.java \
-		jade/proto/FipaContractNetInitiatorBehaviour.java \
-		jade/proto/FipaContractNetResponderBehaviour.java \
-		jade/proto/FipaQueryInitiatorBehaviour.java \
-		jade/proto/FipaQueryResponderBehaviour.java \
+#		jade/proto/FipaContractNetInitiatorBehaviour.java \
+#		jade/proto/FipaContractNetResponderBehaviour.java \
+#		jade/proto/FipaQueryInitiatorBehaviour.java \
+#		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/onto/DefaultOntology.java \
-		jade/tools/rma/rma.java \
-		jade/tools/sniffer/Sniffer.java \
-		jade/tools/DummyAgent/DummyAgent.java \
-		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
-		jade/tools/applet/DFApplet.java \
+#		jade/tools/rma/rma.java \
+#		jade/tools/sniffer/Sniffer.java \
+#		jade/tools/DummyAgent/DummyAgent.java \
+#		jade/tools/SocketProxyAgent/SocketProxyAgent.java \
+#		jade/tools/applet/DFApplet.java \
 		starlight/util/Base64.java
 
 ACLCLASSES = 	jade/lang/acl/ACLParser.java \
