@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.security;
 
-import starlight.util.Base64;
-
 public class JADECertificate implements java.io.Serializable {
 	
 	Principal subject;
@@ -57,16 +55,16 @@ public class JADECertificate implements java.io.Serializable {
 	public Long getSerialAsLong() { return new Long(serial); }
 	public Long getNotBeforeAsLong() { return new Long(notBefore); }
 	public Long getNotAfterAsLong() { return new Long(notAfter); }
-	public String getPublicKeyAsString() { return new String(Base64.encode(key)); }
-	public String getSignatureAsString() { return new String(Base64.encode(signature)); }
+	public String getPublicKeyAsString() { return "01020304"; }
+	public String getSignatureAsString() { return "01020304"; }
 	
 	public void setSubject(Principal subject) { this.subject = subject; }
 	public void setIssuer(Principal issuer) { this.issuer = issuer; }
 	public void setSerialAsLong(Long serial) { this.serial = serial.longValue(); }
 	public void setNotBeforeAsLong(Long nb) { this.notBefore = nb.longValue(); }
 	public void setNotAfterAsLong(Long na) { this.notAfter = na.longValue(); }
-	public void setPublicKeyAsString(String key) { this.key = Base64.decode(key.toCharArray()); }
-	public void setSignatureAsString(String signature) { this.signature = Base64.decode(signature.toCharArray()); }
+	public void setPublicKeyAsString(String key) { this.key = new byte[] {1, 2, 3, 4}; }
+	public void setSignatureAsString(String signature) { this.signature = new byte[] {1, 2, 3, 4}; }
 	
 	// other methods
 	
