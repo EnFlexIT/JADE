@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.8  1998/12/08 00:11:31  rimassa
+  Removed handmade parsing of message content; now updated
+  fromText() method is used from various AMS actions.
+
   Revision 1.7  1998/11/15 23:11:52  rimassa
   Added two public methods killContainer() and shutDownPlatform(), used
   as GUI callbacks.
@@ -228,7 +232,7 @@ public class rma extends Agent {
 
     StringWriter createText = new StringWriter();
     caa.toText(createText);
-    newAgentMsg.setContent("( action ams " + createText + " )");
+    newAgentMsg.setContent(createText.toString());
 
     send(newAgentMsg);
 
@@ -241,7 +245,7 @@ public class rma extends Agent {
     kaa.setAgentName(name);
     StringWriter killText = new StringWriter();
     kaa.toText(killText);
-    killAgentMsg.setContent("( action ams " + killText + " )");
+    killAgentMsg.setContent(killText.toString());
 
     send(killAgentMsg);
 
@@ -255,7 +259,7 @@ public class rma extends Agent {
     kca.setContainerName(name);
     StringWriter killText = new StringWriter();
     kca.toText(killText);
-    killContainerMsg.setContent("( action ams " + killText + " )");
+    killContainerMsg.setContent(killText.toString());
 
     send(killContainerMsg);
 
