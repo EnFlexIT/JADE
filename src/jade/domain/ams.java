@@ -1455,9 +1455,11 @@ public class ams extends Agent implements AgentManager.Listener {
     for(int i = 0; i < agents.length; i++) {
       amsd.setName(agents[i]);
       List l = agentDescriptions.search(amsd);
-      AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
-      AID name = amsDesc.getName();
-      name.removeAddresses(address);
+      if(!l.isEmpty()) {
+	AMSAgentDescription amsDesc = (AMSAgentDescription)l.get(0);
+	AID name = amsDesc.getName();
+	name.removeAddresses(address);
+      }
     }
 
     // Generate a suitable AMS event
