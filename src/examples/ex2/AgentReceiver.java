@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.12  1999/06/09 12:52:19  rimassa
+  Changed timeout value from 1 second to 10 seconds.
+
   Revision 1.11  1999/06/08 23:44:40  rimassa
   Added a timeout argument in blockingReceive().
 
@@ -45,7 +48,7 @@ public class AgentReceiver extends Agent {
 
       public void action() {
         System.out.println("Now receiving (blocking style)...");
-        ACLMessage msg = blockingReceive(1000);
+        ACLMessage msg = blockingReceive(10000);
 	if(msg != null) {
 	  msg.toText(new BufferedWriter(new OutputStreamWriter(System.out)));
 
