@@ -279,7 +279,7 @@ public class AgentManagementService extends BaseService {
 	// Implementation of the service-specific horizontal interface AgentManagementSlice 
 
 
-	public void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException {
+	public void createAgent(AID agentID, String className, Object arguments[], String ownership, CertificateFolder certs, boolean startIt) throws IMTPException, NotFoundException, NameClashException, AuthException {
 	    Agent agent = null;
 	    try {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
@@ -300,12 +300,16 @@ public class AgentManagementService extends BaseService {
 		initAgent(agentID, agent, startIt);
 	    }
 	    catch(ClassNotFoundException cnfe) {
-		System.err.println("Class " + className + " for agent " + agentID + " was not found.");
-		throw new IMTPException("Exception in createAgent",cnfe);
+		throw new IMTPException("Class " + className + " for agent " + agentID + " not found in createAgent()", cnfe);
 	    }
-	    catch(Exception e ) {
-		// FIXME: Log the Exception
-		throw new IMTPException("Exception in createAgent",e);
+	    catch(InstantiationException ie) {
+		throw new IMTPException("Instantiation exception in createAgent()", ie);
+	    }
+	    catch(IllegalAccessException iae) {
+		throw new IMTPException("Illegal access exception in createAgent()", iae);
+	    }
+	    catch(ServiceException se) {
+		throw new IMTPException("Service exception in createAgent()", se);
 	    }
 	}
 
@@ -348,7 +352,29 @@ public class AgentManagementService extends BaseService {
 	public void bornAgent(AID name, ContainerID cid, CertificateFolder certs) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	    MainContainerImpl impl = myContainer.getMain();
 	    if(impl != null) {
-		impl.bornAgent(name, cid, certs);
+		try {
+		    // If the name is already in the GADT, throws NameClashException
+		    impl.bornAgent(name, cid, certs, false); 
+		}
+		catch(NameClashException nce) {
+		    try {
+			ContainerID oldCid = impl.getContainerID(name);
+			Node n = impl.getContainerNode(oldCid);
+
+			// Perform a non-blocking ping to check...
+			n.ping(false);
+
+			// Ping succeeded: rethrow the NameClashException
+			throw nce;
+		    }
+		    catch(NameClashException nce2) {
+			throw nce2; // Let this one through...
+		    }
+		    catch(Exception e) {
+			// Ping failed: forcibly replace the dead agent...
+			impl.bornAgent(name, cid, certs, true);
+		    }
+		}
 	    }
 	}
 
@@ -383,7 +409,7 @@ public class AgentManagementService extends BaseService {
 
     // Vertical command handler methods
 
-    private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, ServiceException {
+    private void handleRequestCreate(VerticalCommand cmd) throws IMTPException, AuthException, NotFoundException, NameClashException, ServiceException {
 
 	Object[] params = cmd.getParams();
 	String name = (String)params[0];
