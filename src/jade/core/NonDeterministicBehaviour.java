@@ -1,5 +1,11 @@
 /*
   $Log$
+  Revision 1.7  1998/12/07 23:52:59  rimassa
+  Changed bodyAction() method to return if this Behaviour has no
+  children. Now an empty NonDeterministicBehaviour created with WHEN_ANY
+  option never ends, whereas an empty NonDeterministicBehaviour created
+  with WHEN_ALL option ends immediately.
+
   Revision 1.6  1998/10/31 12:54:14  rimassa
   Added an implementation of reset() method and modified class code to
   support it. Now a NonDeterministicBehaviour object has a list of
@@ -71,18 +77,22 @@ public class NonDeterministicBehaviour extends ComplexBehaviour {
 
   protected boolean bodyAction() {
 
-    Behaviour b = subBehaviours.getCurrent();
-    b.action();
+    if(!subBehaviours.isEmpty()) {
 
-    boolean partialResult = b.done();
-    if(partialResult == true) {
-      subBehaviours.removeElement(b);
-      terminatedChildren.addElement(b);
+      Behaviour b = subBehaviours.getCurrent();
+      b.action();
+
+      boolean partialResult = b.done();
+      if(partialResult == true) {
+	subBehaviours.removeElement(b);
+	terminatedChildren.addElement(b);
+      }
+
+      boolean endReached = subBehaviours.next();
+      if(endReached)
+	subBehaviours.begin();
+
     }
-
-    boolean endReached = subBehaviours.next();
-    if(endReached)
-      subBehaviours.begin();
 
     return evalCondition();
 
