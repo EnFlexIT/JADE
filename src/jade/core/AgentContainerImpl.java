@@ -91,7 +91,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   //#MIDP_EXCLUDE_END
 
   // The IMTP manager, used to access IMTP-dependent functionalities
-  private IMTPManager myIMTPManager;
+  protected IMTPManager myIMTPManager;
 
   // The platform Service Manager
   private ServiceManager myServiceManager;
@@ -102,13 +102,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Object managing Thread resources in this container
   private ResourceManager myResourceManager;
   
-  private ContainerID myID;
-  private NodeDescriptor myNodeDescriptor;
+  protected ContainerID myID;
+  protected NodeDescriptor myNodeDescriptor;
 
   // These are only used at bootstrap-time to initialize the local 
   // NodeDescriptor. Further modifications take no effect
-  private JADEPrincipal ownerPrincipal;
-  private Credentials ownerCredentials;
+  protected JADEPrincipal ownerPrincipal;
+  protected Credentials ownerCredentials;
   
   private Authority authority = new jade.security.dummy.DummyAuthority();
   private Map principals = new HashMap();
@@ -448,12 +448,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	startAdditionalServices();
     
     // Create and activate agents that must be launched at bootstrap
+  	//#J2ME_EXCLUDE_BEGIN
   	startBootstrapAgents();
+  	//#J2ME_EXCLUDE_END
 
     System.out.println("Agent container " + myID + " is ready.");
     return true;
   }
 
+  //#J2ME_EXCLUDE_BEGIN
   private void startBootstrapAgents() {
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
@@ -491,7 +494,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
           System.out.println("Warning: error reading initial agents");
       }
   }
-  
+  //#J2ME_EXCLUDE_END  
+
   public void shutDown() {
     // Remove all non-system agents 
     Agent[] allLocalAgents = localAgents.values();
