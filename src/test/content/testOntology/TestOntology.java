@@ -53,6 +53,14 @@ public class TestOntology extends Ontology {
   public static final String ROUTE_ELEMENTS = "elements";
   public static final String ROUTE_EST_TIME = "estimated-time";
   
+  public static final String LOCATION = "LOCATION";
+  public static final String LOCATION_NAME = "name";
+  public static final String LOCATION_POSITION = "position";
+  
+  public static final String CLOSE = "CLOSE";
+  public static final String CLOSE_WHERE = "where";
+  public static final String CLOSE_TO = "to";
+  
   // The singleton instance of this ontology
 	private static Ontology theInstance = new TestOntology(MusicShopOntology.getInstance());
 	
@@ -71,9 +79,15 @@ public class TestOntology extends Ontology {
     	add(new ConceptSchema(POSITION), Position.class);
     	add(new ConceptSchema(MOVE), Move.class);
     	add(new ConceptSchema(ROUTE), Route.class);
+    	add(new ConceptSchema(LOCATION), absConceptClass);
+    	add(new PredicateSchema(CLOSE), absPredicateClass);
     	
     	PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
     	ps.add(EXISTS_WHAT, (ConceptSchema) ConceptSchema.getBaseSchema());
+
+    	ps = (PredicateSchema) getSchema(CLOSE);
+    	ps.add(CLOSE_WHERE, (ConceptSchema) getSchema(LOCATION));
+    	ps.add(CLOSE_TO, (ConceptSchema) getSchema(LOCATION));
 
     	ConceptSchema cs = (ConceptSchema) getSchema(POSITION);
     	cs.add(POSITION_X, (PrimitiveSchema) getSchema(BasicOntology.FLOAT));
@@ -86,6 +100,10 @@ public class TestOntology extends Ontology {
     	cs = (ConceptSchema) getSchema(ROUTE);
     	cs.add(ROUTE_ELEMENTS, (ConceptSchema) getSchema(POSITION), 2, ObjectSchema.UNLIMITED);
     	cs.add(ROUTE_EST_TIME, (PrimitiveSchema) getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+    	
+    	cs = (ConceptSchema) getSchema(LOCATION);
+    	cs.add(LOCATION_NAME, (PrimitiveSchema) getSchema(BasicOntology.STRING));
+    	cs.add(LOCATION_POSITION, (ConceptSchema) getSchema(POSITION));
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();

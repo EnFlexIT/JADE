@@ -65,7 +65,9 @@ public class ContentTesterAgent extends TesterAgent {
   		"test.content.tests.TestCardinality",
   		"test.content.tests.TestCorrectIRE",
   		"test.content.tests.TestOntoACLMessage",
-  		"test.content.tests.TestBCReflectiveIntrospector"
+  		"test.content.tests.TestBCReflectiveIntrospector",
+  		"test.content.tests.TestAbsDescriptorAsConcept",
+  		"test.content.tests.TestAbsDescriptorAsPredicate"
 		} ) {
 			
 			private AID resp;
