@@ -64,11 +64,11 @@ public class SerializableOntology extends Ontology {
     super("Serializable-ontology", (Ontology) null, null);
   	try {
 	    // Add the primitive schema for binary data
-	    PrimitiveSchema byteSeqSchema = (PrimitiveSchema) BasicOntology.getInstance().getSchema(BasicOntology.BYTE_SEQUENCE);
-	    add(byteSeqSchema);
+	    PrimitiveSchema stringSchema = (PrimitiveSchema) BasicOntology.getInstance().getSchema(BasicOntology.STRING);
+	    add(stringSchema);
 	    // Add the schema for a generic Serializable object
 	    ConceptSchema serializableSchema = new ConceptSchema(SERIALIZABLE);
-	    serializableSchema.add(SERIALIZABLE_VALUE, byteSeqSchema);
+	    serializableSchema.add(SERIALIZABLE_VALUE, stringSchema);
 	    add(serializableSchema);
   	}
   	catch (Exception e) {
@@ -85,7 +85,8 @@ public class SerializableOntology extends Ontology {
 		if (SERIALIZABLE.equals(abs.getTypeName())) {
 			try {
 				AbsPrimitive absValue = (AbsPrimitive) abs.getAbsObject(SERIALIZABLE_VALUE);
-				byte[] value = absValue.getByteSequence();
+				String stringValue = absValue.getString();
+				byte[] value = starlight.util.Base64.decode(stringValue.toCharArray());
 	      ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value));
 	      return in.readObject();
 			}
@@ -114,7 +115,8 @@ public class SerializableOntology extends Ontology {
     		ObjectOutputStream out = new ObjectOutputStream(baos);
     		out.writeObject(obj);
     		AbsConcept absSerializable = new AbsConcept(SERIALIZABLE);
-    		absSerializable.set(SERIALIZABLE_VALUE, baos.toByteArray());
+				String stringValue = new String(starlight.util.Base64.encode(baos.toByteArray()));
+    		absSerializable.set(SERIALIZABLE_VALUE, stringValue);
     		return absSerializable;
   		}
 			catch (Throwable t) {
