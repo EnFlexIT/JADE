@@ -144,6 +144,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	cs.add(ENVELOPE_DATE, (PrimitiveSchema)getSchema(BasicOntology.DATE));
 	  	cs.add(ENVELOPE_INTENDEDRECEIVER, (ConceptSchema)getSchema(BasicOntology.AID), 0, ObjectSchema.UNLIMITED);
 	  	cs.add(ENVELOPE_RECEIVED, (ConceptSchema)getSchema(RECEIVEDOBJECT), ObjectSchema.OPTIONAL);
+	  	cs.add(ENVELOPE_PROPERTIES, (ConceptSchema)getSchema(PROPERTY), 0, ObjectSchema.UNLIMITED, BasicOntology.SET);
 
 	  	cs = (ConceptSchema)getSchema(RECEIVEDOBJECT);
 	  	cs.add(RECEIVEDOBJECT_BY, (PrimitiveSchema)getSchema(BasicOntology.STRING));

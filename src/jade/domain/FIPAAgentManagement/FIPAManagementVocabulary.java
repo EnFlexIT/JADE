@@ -73,6 +73,7 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   public static final String ENVELOPE_INTENDEDRECEIVER	= "intended-receiver";
   public static final String ENVELOPE_TRANSPORTBEHAVIOUR= "transport-behaviour";
   public static final String ENVELOPE_RECEIVED			= "received";
+  public static final String ENVELOPE_PROPERTIES = "properties";
  
   public static final String RECEIVEDOBJECT				= "received-object";
   public static final String RECEIVEDOBJECT_BY			= "by";

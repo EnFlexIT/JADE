@@ -41,10 +41,11 @@ import jade.content.Concept;
  
 public class Envelope implements Concept, jade.util.leap.Serializable {
 
+    private final static int EXPECTED_LIST_SIZE = 2;
 	/**
   @serial
   */
-  private ArrayList to = new ArrayList();
+  private ArrayList to = new ArrayList(EXPECTED_LIST_SIZE);
   /**
   @serial
   */
@@ -73,7 +74,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
   /**
   @serial
   */
-  private ArrayList intendedReceiver = new ArrayList();
+  private ArrayList intendedReceiver = new ArrayList(EXPECTED_LIST_SIZE);
   /**
   @serial
   */
@@ -82,7 +83,9 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
   /**
   serial
   */
-  private ArrayList stamps = new ArrayList();
+  private ArrayList stamps = new ArrayList(EXPECTED_LIST_SIZE);
+
+  private ArrayList properties = new ArrayList(EXPECTED_LIST_SIZE);
 
     /**
      * Constructor. Initializes the payloadLength to -1.
@@ -207,7 +210,19 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     return ret;
   }
 
-  // FIXME: Handle Properties
+
+    public void addProperties(Property ip) {
+      properties.add(ip);
+    }
+    public boolean removeProperties(Property ip) {
+      return properties.remove(ip);
+    }
+    public void clearAllProperties(){
+      properties.clear();
+    }
+    public Iterator getAllProperties() {
+      return properties.iterator();
+    }
   
   //#MIDP_EXCLUDE_BEGIN
     public String toString() {
@@ -248,6 +263,14 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	    }
 	    s = s + ") ";
 	}
+	if (properties.size() > 0) {
+	    s = s + " :properties (set";
+	    for (int j=0; j<properties.size(); j++) {
+		Property p = (Property)properties.get(j);
+		s = s + " " + p.getName() + " " + p.getValue();
+	    }
+	    s = s + ")";
+	}
 	return s+")";
     }
   //#MIDP_EXCLUDE_END
@@ -264,6 +287,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	env.payloadEncoding = payloadEncoding;
 	env.date = date;
 	env.transportBehaviour = transportBehaviour;
+	env.properties = (ArrayList)properties.clone();
 	return env;
     }
 }
