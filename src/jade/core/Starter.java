@@ -73,21 +73,22 @@ public class Starter {
 	  String platformRMI = "rmi://" + host + ":" + port + "/JADE";
 
           theContainer = new AgentContainerImpl(p);
-
           MainContainer mc;
-          
+
 	  if(isPlatform) {
 	      // Create an embedded RMI Registry within the platform and
 	      // bind the Main Container to it.
               mc = new MainContainerImpl(p);
 
+              jade.imtp.rmi.MainContainerRMI mcRMI = new jade.imtp.rmi.MainContainerRMIImpl((MainContainerImpl)mc);
 	      Registry theRegistry = LocateRegistry.createRegistry(port);
-	      Naming.bind(platformRMI, mc);
+	      Naming.bind(platformRMI, mcRMI);
 	  }
 	  else {
             // Look the remote Main Container up into the
             // RMI Registry, then create a Smart Proxy for it.
-            MainContainer remoteMC = (MainContainer)Naming.lookup(platformRMI);
+            jade.imtp.rmi.MainContainerRMI remoteMCRMI = (jade.imtp.rmi.MainContainerRMI)Naming.lookup(platformRMI);
+            MainContainer remoteMC = new jade.imtp.rmi.MainContainerAdapter(remoteMCRMI);
             mc = new MainContainerProxy(remoteMC);
           }
 
