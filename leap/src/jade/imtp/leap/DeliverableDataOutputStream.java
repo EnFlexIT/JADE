@@ -121,6 +121,10 @@ class DeliverableDataOutputStream extends DataOutputStream {
                     writeByte(Serializer.AID_ID);
                     serializeAID((AID) o);
                 } 
+                else if (o instanceof AID[]) {                     // AID array
+                    writeByte(Serializer.AIDARRAY_ID);
+                    serializeAIDArray((AID[]) o);
+                } 
                 else if (o instanceof String) {                  // String
                     writeByte(Serializer.STRING_ID);
                     writeUTF((String) o);
@@ -132,6 +136,10 @@ class DeliverableDataOutputStream extends DataOutputStream {
                 else if (o instanceof ContainerID) {             // ContainerID
                     writeByte(Serializer.CONTAINERID_ID);
                     serializeContainerID((ContainerID) o);
+                } 
+                else if (o instanceof ContainerID[]) {             // ContainerID
+                    writeByte(Serializer.CONTAINERIDARRAY_ID);
+                    serializeContainerIDArray((ContainerID[]) o);
                 } 
                 else if (o instanceof Boolean) {                 // Boolean
                     writeByte(Serializer.BOOLEAN_ID);
@@ -564,6 +572,14 @@ class DeliverableDataOutputStream extends DataOutputStream {
         serializeProperties(id.getAllUserDefinedSlot());
     } 
 
+    private void serializeAIDArray(AID[] aida) throws IOException, LEAPSerializationException {
+        writeInt(aida.length);
+
+        for (int i = 0; i < aida.length; i++) {
+            writeAID(aida[i]);
+        } 
+    } 
+
     /**
      * Package scoped as it is called by the CommandDispatcher
      */
@@ -596,6 +612,29 @@ class DeliverableDataOutputStream extends DataOutputStream {
         } 
         catch (IOException ioe) {
             throw new LEAPSerializationException("Error serializing ContainerID");
+        } 
+    } 
+
+    public void writeContainerID(ContainerID id) throws LEAPSerializationException {
+        try {
+            if (id != null) {
+                writeBoolean(true);     // Presence flag true
+                serializeContainerID(id);
+            } 
+            else {
+                writeBoolean(false);    // Presence flag false
+            } 
+        } 
+        catch (IOException ioe) {
+            throw new LEAPSerializationException("Error serializing ContainerID");
+        } 
+    } 
+
+    private void serializeContainerIDArray(ContainerID[] cida) throws IOException, LEAPSerializationException {
+        writeInt(cida.length);
+
+        for (int i = 0; i < cida.length; i++) {
+            writeContainerID(cida[i]);
         } 
     } 
 
