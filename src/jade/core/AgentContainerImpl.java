@@ -30,8 +30,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
-//import java.io.FileWriter;
-//import java.io.PrintWriter;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -103,10 +101,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   // The Agent Communication Channel, managing the external MTPs.
   private acc theACC;
 
-  // The Profile thefining the configuration of this Container
+  // The Profile defining the configuration of this Container
   private Profile myProfile;
   
-  // 
+  // The IMTP manager, used to access IMTP-dependent functionalities
   private IMTPManager myIMTPManager;
   
   // The Object this container delegates all operations related to
@@ -243,7 +241,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     Agent previous = localAgents.put(agentID, instance);
     if(startIt) {
       try {
-	RemoteContainerProxy rp = new RemoteContainerProxy(this, agentID);
+	RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
 	myMain.bornAgent(agentID, rp, myID); // RMI call
 	instance.powerUp(agentID, ResourceManager.USER_AGENTS);
       }
@@ -526,7 +524,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   		myIMTPManager = myProfile.getIMTPManager();
   		myIMTPManager.initialize(myProfile);
   		myIMTPManager.remotize(this);
-  		
       myMain = myProfile.getMain();
 
       // This string will be used to build the GUID for every agent on
@@ -563,22 +560,22 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     // Create and activate agents that must be launched at bootstrap
     try {
-	    List l = myProfile.getSpecifiers(Profile.AGENTS);
+	List l = myProfile.getSpecifiers(Profile.AGENTS);
     	Iterator agentSpecifiers = l.iterator();
     	while(agentSpecifiers.hasNext()) {
     		Specifier s = (Specifier) agentSpecifiers.next();
       
       	AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
       	try {
-        	createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
-        	RemoteContainerProxy rp = new RemoteContainerProxy(this, agentID);
-        	myMain.bornAgent(agentID, rp, myID);
+	  createAgent(agentID, s.getClassName(), s.getArgs(), NOSTART);
+	  RemoteProxy rp = myIMTPManager.createAgentProxy(this, agentID);
+	  myMain.bornAgent(agentID, rp, myID);
       	}
       	catch(IMTPException re) { // It should never happen as this is a local call
         	re.printStackTrace();
       	}
       	catch(NameClashException nce) {
-        	System.out.println("Agent name already in use: "+nce.getMessage());
+        	System.out.println("Agent name already in use: " + nce.getMessage());
         	// FIXME: If we have two agents with the same name among the initial 
         	// agents, the second one replaces the first one, but then a 
         	// NameClashException is thrown --> both agents are removed even if
@@ -628,17 +625,21 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     try {
       // Deregister this container from the platform
       myMain.deregister(this);
+
+
+      // Unblock threads hung in ping() method (this will deregister the container)
+      synchronized(pingLock) {
+	pingLock.notifyAll();
+      }
+
+      myIMTPManager.unremotize(this); 
+      myIMTPManager.shutDown();
     }
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();
     }
 
-    // Unblock threads hung in ping() method (this will deregister the container)
-    synchronized(pingLock) {
-      pingLock.notifyAll();
-    }
 
-    
     // Destroy the (now empty) thread groups
 
     //try {
@@ -652,9 +653,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     //  agentThreads = null;
     //}
 
-    //myIMTPManager.unremotize(this); 
-    myIMTPManager.shutDown();
-    
+
+
     // Notify the JADE Runtime that the container has terminated
     // execution
     Runtime.instance().endContainer();
@@ -749,7 +749,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void handleMove(AID agentID, Location where) {
-  	myMobilityManager.handleMove(agentID, where);
+    myMobilityManager.handleMove(agentID, where);
   }
 /*
     // Mutual exclusion with dispatch() method
