@@ -662,12 +662,12 @@ private List getSniffer(AID id, java.util.Map theMap) {
     if (env != null) {
 	it = env.getAllIntendedReceiver();
 	if ( (it != null) && (it.hasNext()) ) {
-	    System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
+	    //System.out.println("WARNING: Envelope.intendedReceiver taking precedence over ACLMessage.to");
 	    // ok. use the intendedreceiver
 	} else {
 	    it = env.getAllTo();
 	    if ( (it != null) && (it.hasNext()) ) {
-		System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
+		//System.out.println("WARNING: Envelope.to taking precedence over ACLMessage.to");
 		// ok. use the :to
 		// FIXME. Should I copy all the :to values in the :IntendedReceiver?
 	    } else {
