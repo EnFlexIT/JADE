@@ -33,13 +33,6 @@ import jade.onto.*;
 
 import jade.lang.Codec;
 
-import jade.onto.Frame;
-import jade.onto.Ontology;
-import jade.onto.DefaultOntology;
-import jade.onto.TermDescriptor;
-import jade.onto.RoleEntityFactory;
-import jade.onto.OntologyException;
-
 /**
    Javadoc documentation for the file
    @author Giovanni Rimassa -  Universita` di Parma
