@@ -109,18 +109,16 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   private Authority authority;
   private Map principals = new HashMap();
 
+  private AID theAMS;
+  private AID theDefaultDF;
+
   // This monitor is used to hang a remote ping() call from the front
   // end, in order to detect container failures.
   private Object pingLock = new Object();
 
-  //private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
-
   // Package scoped constructor, so that only the Runtime  
   // class can actually create a new Agent Container.
   AgentContainerImpl(Profile p) {
-
-    // Set up attributes for agents thread group
-    //agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
     myProfile = p;
   }
 
@@ -389,48 +387,75 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public MTPDescriptor installMTP(String address, String className) throws IMTPException, MTPException {
-  	MTPDescriptor result = myACC.addMTP(className, address);
-  	
+      MTPDescriptor result = myACC.addMTP(className, address);
+
     // Add the address of the new MTP to the AIDs of all local agents
     Agent[] allLocalAgents = localAgents.values();
   	for(int i = 0; i < allLocalAgents.length; i++) {
 	  String[] addrs = result.getAddresses();
-	  allLocalAgents[i].addPlatformAddress(addrs[0]);
+          for(int j = 0; j < addrs.length; j++) {
+            allLocalAgents[i].addPlatformAddress(addrs[j]);
+          }
   	}
 
-  	myPlatform.newMTP(result, myID);
-  	return result;
+    // Add the new addresses to the AMS and Default DF AIDs
+    String[] addresses = result.getAddresses();
+    for(int i = 0; i < addresses.length; i++) {
+        theAMS.addAddresses(addresses[i]);
+        theDefaultDF.addAddresses(addresses[i]);
+    }
+
+    myPlatform.newMTP(result, myID);
+    return result;
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {
     MTPDescriptor mtp = myACC.removeMTP(address);
-    
-    // Remove the address of the old MTP to the AIDs of all local agents
+
+    // Remove the address of the old MTP from the AIDs of all local agents
     Agent[] allLocalAgents = localAgents.values();
     for(int i = 0; i < allLocalAgents.length; i++) {
       allLocalAgents[i].removePlatformAddress(address);
     }
+
+    // Remove the address of the old MTP from the AIDs of the AMS and the Default DF
+
+    theAMS.removeAddresses(address);
+    theDefaultDF.removeAddresses(address);
 
     myPlatform.deadMTP(mtp, myID);
   }
 
   public void updateRoutingTable(int op, MTPDescriptor mtp, AgentContainer ac) throws IMTPException {
     Agent[] allLocalAgents = localAgents.values();
+    String[] addresses = mtp.getAddresses();
     switch(op) {
     case ADD_RT:
       myACC.addRoute(mtp, ac);
-      // Add the address of the new MTP to the AIDs of all local agents
-      for(int i = 0; i < allLocalAgents.length; i++) {
-	String[] addrs = mtp.getAddresses();
-	allLocalAgents[i].addPlatformAddress(addrs[0]);	
+      for(int i = 0; i < addresses.length; i++) {
+
+        // Add the address of the new MTP to the AIDs of all local agents
+        for(int j = 0; j < allLocalAgents.length; j++) {
+            allLocalAgents[j].addPlatformAddress(addresses[i]);
+        }
+
+        // Add the new addresses to the AMS and Default DF AIDs
+        theAMS.addAddresses(addresses[i]);
+        theDefaultDF.addAddresses(addresses[i]);
       }
       break;
     case DEL_RT:
       myACC.removeRoute(mtp, ac);
-      // Remove the address of the old MTP to the AIDs of all local agents
-      for(int i = 0; i < allLocalAgents.length; i++) {
-	String[] addrs = mtp.getAddresses();
-	allLocalAgents[i].removePlatformAddress(addrs[0]);
+      for(int i = 0; i < addresses.length; i++) {
+
+        // Remove the address of the old MTP to the AIDs of all local agents
+        for(int j = 0; j < allLocalAgents.length; j++) {
+            allLocalAgents[j].removePlatformAddress(addresses[i]);
+        }
+
+        // Remove the addresses of the old MTP from the AIDs of the AMS and the Default DF
+        theAMS.removeAddresses(addresses[i]);
+        theDefaultDF.removeAddresses(addresses[i]);
       }
       break;
     }
@@ -449,179 +474,180 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return authority;
   }
 
-	void joinPlatform() {
-		try {
-			// Create and initialize the IMTPManager
-			myIMTPManager = myProfile.getIMTPManager();
-			myIMTPManager.initialize(myProfile);
-			
-			// Make itself accessible from remote JVMs
-			myIMTPManager.remotize(this);
-			
-			// Get the Main
-			myPlatform = myProfile.getPlatform();
+  void joinPlatform() {
+      try {
+          // Create and initialize the IMTPManager
+          myIMTPManager = myProfile.getIMTPManager();
+          myIMTPManager.initialize(myProfile);
+          
+          // Make itself accessible from remote JVMs
+          myIMTPManager.remotize(this);
+          
+          // Get the Main
+          myPlatform = myProfile.getPlatform();
+          
+          // Create and init container-authority
+          try {
+              String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
+              if (type != null) {
+                  authority = (Authority)Class.forName(type).newInstance();
+                  authority.setName("container-authority");
+                  authority.init(myProfile, myPlatform);
+              }
+          }
+          catch (Exception e1) {
+              e1.printStackTrace();
+          }
+          
+          try {
+              if (authority == null) {
+                  authority = new jade.security.dummy.DummyAuthority();
+                  authority.setName("container-authority");
+                  authority.init(myProfile, myProfile.getPlatform());
+              }
+          }
+          catch (Exception e2) {
+              e2.printStackTrace();
+          }
+          
+          // This string will be used to build the GUID for every agent on
+          // this platform.
+          platformID = myPlatform.getPlatformName();
+          
+          // Build the Agent IDs for the AMS and for the Default DF.
+          theAMS = new AID("ams", AID.ISLOCALNAME);
+          theDefaultDF = new AID("df", AID.ISLOCALNAME);
 
-			// Create and init container-authority
-			try {
-				String type = myProfile.getParameter(Profile.AUTHORITY_CLASS);
-				if (type != null) {
-					authority = (Authority)Class.forName(type).newInstance();
-					authority.setName("container-authority");
-					authority.init(myProfile, myPlatform);
-				}
-			}
-			catch (Exception e1) {
-				e1.printStackTrace();
-			}
-			
-			try {
-				if (authority == null) {
-					authority = new jade.security.dummy.DummyAuthority();
-					authority.setName("container-authority");
-					authority.init(myProfile, myProfile.getPlatform());
-				}
-			}
-			catch (Exception e2) {
-				e2.printStackTrace();
-			}
-			
-			// This string will be used to build the GUID for every agent on
-			// this platform.
-			platformID = myPlatform.getPlatformName();
+          // Create the ResourceManager
+          myResourceManager = myProfile.getResourceManager();
 
-			// Build the Agent IDs for the AMS and for the Default DF.
-			Agent.initReservedAIDs(new AID("ams", AID.ISLOCALNAME), new AID("df", AID.ISLOCALNAME));
+          // Create the MessageManager
+          myMessageManager = new MessageManager();
+          myMessageManager.initialize(myProfile, this);
 
-			// Create the ResourceManager
-			myResourceManager = myProfile.getResourceManager();
-			
-			// Create the MessageManager
-			myMessageManager = new MessageManager();
-			myMessageManager.initialize(myProfile, this);
-			
-			// Create and initialize the NotificationManager
-			myNotificationManager = myProfile.getNotificationManager();
-			myNotificationManager.initialize(this, localAgents);
-			
-			// Create and initialize the MobilityManager.
-			myMobilityManager = myProfile.getMobilityManager();
-			myMobilityManager.initialize(myProfile, this, localAgents);
-			
-			// Create the ACC.
-			myACC = myProfile.getAcc();
+          // Create and initialize the NotificationManager
+          myNotificationManager = myProfile.getNotificationManager();
+          myNotificationManager.initialize(this, localAgents);
 
-			// Initialize the Container ID
-			TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
-			myID = new ContainerID("No-Name", addr);
-			
-			// Acquire username and password
-			String ownership = myProfile.getParameter("ownership");
-			if (ownership == null)
-				ownership = ContainerPrincipal.NONE;
-			password = Agent.extractPassword(ownership);
-			username = Agent.extractUsername(ownership);
-			myProfile.setParameter("ownership", username);
+          // Create and initialize the MobilityManager.
+          myMobilityManager = myProfile.getMobilityManager();
+          myMobilityManager.initialize(myProfile, this, localAgents);
 
-			// Register to the platform. If myPlatform is the real MainContainerImpl
-			// this call also starts the AMS and DF
-			myPlatform.register(this, myID, username, password);
+          // Create the ACC.
+          myACC = myProfile.getAcc();
 
-			// Install MTPs and ACLCodecs. Must be done after registering with the Main
-			myACC.initialize(this, myProfile);
-		}
-		catch (IMTPException imtpe) {
-			System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
-			imtpe.printStackTrace();
-			Runtime.instance().endContainer();
-			return;
-		}
-		catch (AuthException ae) {
-			System.err.println("Authentication or authorization failure while contacting agent platform.");
-			ae.printStackTrace();
-			Runtime.instance().endContainer();
-			return;
-		}
-		catch (Exception e) {
-			System.err.println("Some problem occurred while contacting agent platform.");
-			e.printStackTrace();
-			Runtime.instance().endContainer();
-			return;
-		}
+          // Initialize the Container ID
+          TransportAddress addr = (TransportAddress) myIMTPManager.getLocalAddresses().get(0);
+          myID = new ContainerID("No-Name", addr);
 
-		// Create and activate agents that must be launched at bootstrap
-		try {
-			List l = myProfile.getSpecifiers(Profile.AGENTS);
-			Iterator agentSpecifiers = l.iterator();
-			while(agentSpecifiers.hasNext()) {
-				Specifier s = (Specifier) agentSpecifiers.next();
-					
-				AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
-		
-				try {
-					String agentOwnership = username;
-					AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+          // Acquire username and password
+          String ownership = myProfile.getParameter("ownership");
+          if (ownership == null)
+              ownership = ContainerPrincipal.NONE;
+          password = Agent.extractPassword(ownership);
+          username = Agent.extractUsername(ownership);
+          myProfile.setParameter("ownership", username);
 
-					IdentityCertificate agentIdentity = authority.createIdentityCertificate();
-					agentIdentity.setSubject(agentPrincipal);
-					authority.sign(agentIdentity, certs);
+          // Register to the platform. If myPlatform is the real MainContainerImpl
+          // this call also starts the AMS and DF
+          myPlatform.register(this, myID, username, password);
 
-					DelegationCertificate agentDelegation = authority.createDelegationCertificate();
-					agentDelegation.setSubject(agentPrincipal);
-					for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
-						agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
-					authority.sign(agentDelegation, certs);
-
-					CertificateFolder agentCerts = new CertificateFolder();
-					agentCerts.setIdentityCertificate(agentIdentity);
-					agentCerts.addDelegationCertificate(agentDelegation);
-						
-					try {
-						createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, NOSTART);
-					}
-					catch (IMTPException imtpe) {
-						// The call to createAgent() in this case is local --> no need to
-						// print the exception again. Just skip this agent
-						continue;
-					}
-					myPlatform.bornAgent(agentID, myID, agentCerts);
-				}
-				catch (IMTPException imtpe1) {
-					imtpe1.printStackTrace();
-					localAgents.remove(agentID);
-				}
-				catch (NameClashException nce) {
-					System.out.println("Agent name already in use: " + nce.getMessage());
-					// FIXME: If we have two agents with the same name among the initial 
-					// agents, the second one replaces the first one, but then a 
-					// NameClashException is thrown --> both agents are removed even if
-					// the platform "believes" that the first on is alive.
-					localAgents.remove(agentID);
-				}
-				catch (NotFoundException nfe) {
-					System.out.println("This container does not appear to be registered with the main container.");
-					localAgents.remove(agentID);
-				}
-				catch (AuthException ae) {
-					System.out.println("Authorization or authentication error while adding a new agent to the platform.");
-					localAgents.remove(agentID);
-				}
-			}
-
-			// Now activate all agents (this call starts their embedded threads)
-			AID[] allLocalNames = localAgents.keys();
-			for (int i = 0; i < allLocalNames.length; i++) {
-				AID id = allLocalNames[i];
-				Agent agent = localAgents.acquire(id);
-				agent.powerUp(id, myResourceManager);
-				localAgents.release(id);
-			}
-		}
-		catch (ProfileException pe) {
-			System.out.println("Warning: error reading initial agents");
-		}
-			
-		System.out.println("Agent container " + myID + " is ready.");
-	}
+          // Install MTPs and ACLCodecs. Must be done after registering with the Main
+          myACC.initialize(this, myProfile);
+      }
+      catch (IMTPException imtpe) {
+          System.err.println("Communication failure while contacting agent platform: " + imtpe.getMessage());
+          imtpe.printStackTrace();
+          Runtime.instance().endContainer();
+          return;
+      }
+      catch (AuthException ae) {
+          System.err.println("Authentication or authorization failure while contacting agent platform.");
+          ae.printStackTrace();
+          Runtime.instance().endContainer();
+          return;
+      }
+      catch (Exception e) {
+          System.err.println("Some problem occurred while contacting agent platform.");
+          e.printStackTrace();
+          Runtime.instance().endContainer();
+          return;
+      }
+      
+      // Create and activate agents that must be launched at bootstrap
+      try {
+          List l = myProfile.getSpecifiers(Profile.AGENTS);
+          Iterator agentSpecifiers = l.iterator();
+          while(agentSpecifiers.hasNext()) {
+              Specifier s = (Specifier) agentSpecifiers.next();
+              
+              AID agentID = new AID(s.getName(), AID.ISLOCALNAME);
+              
+              try {
+                  String agentOwnership = username;
+                  AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
+                  
+                  IdentityCertificate agentIdentity = authority.createIdentityCertificate();
+                  agentIdentity.setSubject(agentPrincipal);
+                  authority.sign(agentIdentity, certs);
+                  
+                  DelegationCertificate agentDelegation = authority.createDelegationCertificate();
+                  agentDelegation.setSubject(agentPrincipal);
+                  for (int c = 0; c < certs.getDelegationCertificates().size(); c++)
+                      agentDelegation.addPermissions(((DelegationCertificate)certs.getDelegationCertificates().get(c)).getPermissions());
+                  authority.sign(agentDelegation, certs);
+                  
+                  CertificateFolder agentCerts = new CertificateFolder();
+                  agentCerts.setIdentityCertificate(agentIdentity);
+                  agentCerts.addDelegationCertificate(agentDelegation);
+                  
+                  try {
+                      createAgent(agentID, s.getClassName(), s.getArgs(), agentOwnership, agentCerts, NOSTART);
+                  }
+                  catch (IMTPException imtpe) {
+                      // The call to createAgent() in this case is local --> no need to
+                      // print the exception again. Just skip this agent
+                      continue;
+                  }
+                  myPlatform.bornAgent(agentID, myID, agentCerts);
+              }
+              catch (IMTPException imtpe1) {
+                  imtpe1.printStackTrace();
+                  localAgents.remove(agentID);
+              }
+              catch (NameClashException nce) {
+                  System.out.println("Agent name already in use: " + nce.getMessage());
+                  // FIXME: If we have two agents with the same name among the initial
+                  // agents, the second one replaces the first one, but then a
+                  // NameClashException is thrown --> both agents are removed even if
+                  // the platform "believes" that the first on is alive.
+                  localAgents.remove(agentID);
+              }
+              catch (NotFoundException nfe) {
+                  System.out.println("This container does not appear to be registered with the main container.");
+                  localAgents.remove(agentID);
+              }
+              catch (AuthException ae) {
+                  System.out.println("Authorization or authentication error while adding a new agent to the platform.");
+                  localAgents.remove(agentID);
+              }
+          }
+          
+          // Now activate all agents (this call starts their embedded threads)
+          AID[] allLocalNames = localAgents.keys();
+          for (int i = 0; i < allLocalNames.length; i++) {
+              AID id = allLocalNames[i];
+              Agent agent = localAgents.acquire(id);
+              agent.powerUp(id, myResourceManager);
+              localAgents.release(id);
+          }
+      }
+      catch (ProfileException pe) {
+          System.out.println("Warning: error reading initial agents");
+      }
+      
+      System.out.println("Agent container " + myID + " is ready.");
+  }
 
 
   public void shutDown() {
@@ -637,7 +663,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
       // Skip the Default DF and the AMS
       AID id = a.getAID();
-      if(id.equals(Agent.AMS) || id.equals(Agent.DEFAULT_DF))
+      if(id.equals(getAMS()) || id.equals(getDefaultDF()))
         continue;
 
       a.doDelete();
@@ -850,11 +876,20 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	myMobilityManager.handleClone(agentID, where, newName);
   }
 
-	public void setPlatformAddresses(AID id) {
-		myACC.setPlatformAddresses(id);
-	}
+  public void setPlatformAddresses(AID id) {
+    myACC.setPlatformAddresses(id);
+  }
 	
-	
+  public AID getAMS() {
+    return (AID)theAMS.clone();
+  }
+
+  public AID getDefaultDF() {
+    return (AID)theDefaultDF.clone();
+  }
+
+
+
   // Private and package scoped methods
 
   /**
@@ -908,13 +943,13 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
    */
   void notifyFailureToSender(ACLMessage msg, InternalError ie) {
 		//if (the sender is not the AMS and the performative is not FAILURE)
-		if ( (msg.getSender()==null) || ((msg.getSender().equals(Agent.getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
+		if ( (msg.getSender()==null) || ((msg.getSender().equals(getAMS())) && (msg.getPerformative()==ACLMessage.FAILURE))) // sanity check to avoid infinte loops
 	    return;
 		// else send back a failure message
 		ACLMessage failure = msg.createReply();
 		failure.setPerformative(ACLMessage.FAILURE);
 		//System.err.println(failure.toString());
-		failure.setSender(Agent.getAMS());
+		failure.setSender(getAMS());
 		// FIXME the content is not completely correct, but that should
 		// also avoid creating wrong content
 		String content = "( (action " + msg.getSender().toString();
