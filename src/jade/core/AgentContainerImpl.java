@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.40  1999/06/15 14:34:31  rimassa
+  Added a new thread group for time-critical activities, runnning at
+  high priority.
+  Added support for timer dispatching, using a time critical thread.
+
   Revision 1.39  1999/06/04 07:44:02  rimassa
   Made package scoped this previously public class.
 
@@ -189,6 +194,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   protected ORB myORB;
 
   private ThreadGroup agentThreads = new ThreadGroup("JADE Agents");
+  private ThreadGroup criticalThreads = new ThreadGroup("JADE time-critical threads");
 
   public AgentContainerImpl(String args[]) throws RemoteException {
 
@@ -202,6 +208,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
 
     // Set up attributes for agents thread group
     agentThreads.setMaxPriority(Thread.NORM_PRIORITY);
+
+    // Set up attributes for time critical threads
+    criticalThreads.setMaxPriority(Thread.MAX_PRIORITY);
+
+    // Initialize timer dispatcher
+    TimerDispatcher td = new TimerDispatcher();
+    Thread t = new Thread(criticalThreads, td);
+    t.setPriority(criticalThreads.getMaxPriority());
+
+    td.setThread(t);
+    // This call starts the timer dispatcher thread
+    Agent.setDispatcher(td);
+
 
     // Initialize CORBA runtime
     myORB = ORB.init(args, null);
@@ -366,6 +385,9 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   }
 
   public void shutDown() {
+    // Shuts down the Timer Dispatcher
+    Agent.stopDispatcher();
+
     // Remove all agents
     Set s = localAgents.keySet();
 		java.lang.Object[] allLocalAgents = s.toArray();
