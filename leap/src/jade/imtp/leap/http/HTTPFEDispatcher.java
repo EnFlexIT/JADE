@@ -53,7 +53,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
   private MicroSkeleton mySkel;
   private BackEndStub myStub;
-
+  
   private Thread terminator;
   private boolean active = false;
   private DisconnectionManager myDisconnectionManager;
@@ -62,6 +62,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private int outCnt;
   private boolean waitingForFlush = false;
   private long maxDisconnectionTime;
+  private Properties props;
   
   private TransportAddress mediatorTA;
   
@@ -76,7 +77,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	   Create a BackEnd in the fixed network and return a stub to 
 	   communicate with it
 	 */
-  public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {
+  public BackEnd getBackEnd(FrontEnd fe, Properties p) throws IMTPException {
+  	props = p;
 		// Verbosity
   	try {
   		verbosity = Integer.parseInt(props.getProperty("jade_imtp_leap_http_HTTPFEDispatcher_verbosity"));
@@ -141,6 +143,18 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		// for incoming commands is created by the embedded thread.
 		outConnection = new HTTPClientConnection(mediatorTA); 
 
+		// By specifying a proper "preload class", applications can load
+		// as much code as possible while the BackEnd is being created
+		try {
+			String preloadClass = props.getProperty("preloader");
+			Runnable r = (Runnable) Class.forName(preloadClass).newInstance();
+			Thread t = new Thread(r);
+			t.start();
+		}
+		catch (Exception e) { 
+			// Just ignore it
+		}
+		
 		// Create the remote BackEnd
 		createBackEnd();
 		log("BackEnd created successfully", 1);
@@ -201,6 +215,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 
 		try {
 			jade.util.Logger.println("send-create-mediator-"+System.currentTimeMillis());
+			
 	  	pkt = deliver(pkt, outConnection);
 			jade.util.Logger.println("create-mediator-rsp-got"+System.currentTimeMillis());
 		}
@@ -279,6 +294,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   // Embedded Thread handling incoming commands
   /////////////////////////////////////////////
   public void run() {
+  	Thread.yield();
+  	
   	JICPPacket lastResponse = null;
   	byte lastSid = 0x10; // Different from any valid sid
   	
@@ -478,11 +495,19 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   /**
      Executed by the DisconnectionManager thread as soon as it detects it is 
      impossible to contact the BackEnd again.
-     Subclasses may redefine this method to react to this event 
-     properly.
+     Users can define a proper Runnable object that acts as a 
+     disconnection handler and is invoked when an unrecoverable disconnection
+     occurs.
    */
   protected void handleConnectionError() {
-  	// FIXME: to be implemented
+		try {
+			String discHandler = props.getProperty("disconnection-handler");
+			Runnable r = (Runnable) Class.forName(discHandler).newInstance();
+			r.run();
+		}
+		catch (Exception e) { 
+			// Just ignore it
+		}
   }
   
   /**
