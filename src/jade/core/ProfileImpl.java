@@ -26,7 +26,7 @@
 
 package jade.core;
 
-import jade.util.leap.LEAPProperties;
+import jade.util.leap.Properties;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -50,7 +50,7 @@ import java.util.Hashtable;
  */
 public class ProfileImpl extends Profile {
 
-  private LEAPProperties  props = new LEAPProperties();
+  private Properties  props = null;
 
 
   private Platform        myPlatform = null;
@@ -67,7 +67,7 @@ public class ProfileImpl extends Profile {
    * iiop MTP.
    */
   public ProfileImpl() {
-    props = new LEAPProperties();
+    props = new Properties();
 
     try {
       // Set default values
