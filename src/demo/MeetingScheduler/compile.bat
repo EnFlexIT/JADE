@@ -1,3 +1,3 @@
 cd ..\..
-javac -deprecation -classpath .;..\lib\jade.jar;demo\MeetingScheduler\components.jar demo\MeetingScheduler\MeetingSchedulerAgent.java 
+javac -classpath %classpath%;.;..\lib\jade.jar;demo\MeetingScheduler\CalendarBean.jar; -d ..\classes demo\MeetingScheduler\*.java 
 pause
