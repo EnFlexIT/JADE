@@ -1,12 +1,22 @@
 # Makefile for JADE project - 'doc' directory
 
-DOC = javadoc -sourcepath $(SRCDIR)
+DOC = javadoc
 
 DOC_MAIN = $(SRCDIR)/jade-main.html
 DOC_OUTDIR = $(DOCDIR)/api
 DOC_WINTITLE = "$(PACKAGE) $(VERSION) API Reference"
+TMPSRCDIR = $(DOCDIR)/__tmp
 
-API_PACKAGES = jade.core jade.core.behaviours jade.lang jade.lang.acl jade.lang.sl jade.domain jade.domain.FIPAAgentManagement jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic jade.gui jade.mtp jade.mtp.iiop jade.onto.JADEMetaOntology jade.wrapper jade.core.event jade.domain.DFGUIManagement jade.domain.introspection
+API_CLASSES = 	$(SRCDIR)/jade/core/AID.java $(SRCDIR)/jade/core/Agent.java $(SRCDIR)/jade/core/BehaviourID.java \
+		$(SRCDIR)/jade/core/CaseInsensitiveString.java $(SRCDIR)/jade/core/Channel.java \
+		$(SRCDIR)/jade/core/ContainerID.java $(SRCDIR)/jade/core/Location.java $(SRCDIR)/jade/core/NameClashException.java \
+		$(SRCDIR)/jade/core/NotFoundException.java $(SRCDIR)/jade/core/Profile.java \
+		$(SRCDIR)/jade/core/ProfileException.java $(SRCDIR)/jade/core/ProfileImpl.java \
+		$(SRCDIR)/jade/core/Runtime.java $(SRCDIR)/jade/core/UnreachableException.java 
+
+API_PACKAGES = 	jade.core jade.core.behaviours jade.lang jade.lang.acl jade.lang.sl jade.domain jade.domain.FIPAAgentManagement \
+		jade.domain.JADEAgentManagement jade.proto jade.onto jade.onto.basic jade.gui jade.mtp jade.mtp.iiop \
+		jade.onto.JADEMetaOntology jade.wrapper jade.core.event jade.domain.DFGUIManagement jade.domain.introspection
 
 API_FLAGS = -d $(DOC_OUTDIR) -overview $(DOC_MAIN) -author -windowtitle $(DOC_WINTITLE)
 
@@ -19,7 +29,12 @@ SNIFFER_PACKAGES = jade.tools.sniffer
 all: api tools
 
 api: $(DOC_OUTDIR)
-	$(DOC) $(API_FLAGS) $(API_PACKAGES)
+	mkdir -p $(TMPSRCDIR); \
+	cp -R $(SRCDIR)/* $(TMPSRCDIR); \
+	rm -rf $(TMPSRCDIR)/jade/core/*.java; \
+	cp $(API_CLASSES) $(TMPSRCDIR)/jade/core; \
+	$(DOC) -sourcepath $(TMPSRCDIR) $(API_FLAGS) $(API_PACKAGES); \
+	rm -rf $(TMPSRCDIR)
 
 $(DOC_OUTDIR):
 	mkdir -p $(DOC_OUTDIR)
@@ -27,7 +42,7 @@ $(DOC_OUTDIR):
 tools: sniffer
 
 sniffer: $(SNIFFER_OUTDIR)
-	$(DOC) $(SNIFFER_FLAGS) $(SNIFFER_PACKAGES)
+	$(DOC) -sourcepath $(SRCDIR) $(SNIFFER_FLAGS) $(SNIFFER_PACKAGES)
 
 $(SNIFFER_OUTDIR):
 	mkdir -p $(SNIFFER_OUTDIR)
