@@ -62,6 +62,7 @@ public class BootProfileImpl extends ProfileImpl {
 
     public static final String ACLCODEC_KEY = "aclcodec";
     public static final String AGENTS_KEY = "agents";
+    public static final String SERVICES_KEY = "services";
     public static final String AUTHORITY_KEY = "authority";
     public static final String CONF_KEY = "conf";
     public static final String CONTAINER_KEY = "container";
@@ -83,6 +84,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String SMADDRS_KEY = "smaddrs";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";
+
 
 	// PROVA
 //    public static final String A_KEY = "jade.domain.df.dbdrv";
@@ -321,6 +323,15 @@ public class BootProfileImpl extends ProfileImpl {
 
             setSpecifiers(Profile.AGENTS, agents);
         }
+
+	// Get service list (if any)
+	value = argProp.getProperty(SERVICES_KEY);
+	if(value == null) {
+	    value = DEFAULT_SERVICES;
+	}
+
+	setSpecifiers(Profile.SERVICES, parseSpecifiers(value));
+
 
 	// finally, copy into profileProp all the properties that
 	// were present in argProp AND were not already present in profileProp.
