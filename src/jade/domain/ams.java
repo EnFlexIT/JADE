@@ -104,7 +104,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
       }
       catch(FIPAException fe) {
-      	System.out.println(fe.getMessage());
+      	System.out.println("FIPA Exception: " + fe.getMessage());
 	sendReply(ACLMessage.REFUSE,"("+fe.getMessage()+")");
       }
 
@@ -689,6 +689,13 @@ public class ams extends Agent implements AgentManager.Listener {
     myPlatform = ap;
     myPlatform.addListener(this);
 
+    // Fill Agent Platform Profile with data.
+    theProfile.setName("JADE");
+    theProfile.setDynamic(new Boolean(false));
+    theProfile.setMobility(new Boolean(false));
+    APTransportDescription mtps = new APTransportDescription();
+    theProfile.setTransportProfile(mtps);
+
     MessageTemplate mtFIPA = 
       MessageTemplate.and(MessageTemplate.MatchLanguage(SL0Codec.NAME),
 			  MessageTemplate.MatchOntology(FIPAAgentManagementOntology.NAME));
@@ -734,26 +741,6 @@ public class ams extends Agent implements AgentManager.Listener {
    to carry on its duties within <em><b>JADE</b></em> agent platform.
   */
   protected void setup() {
-
-    // Fill Agent Platform Profile with data.
-    theProfile.setName("JADE");
-    theProfile.setDynamic(new Boolean(false));
-    theProfile.setMobility(new Boolean(false));
-    APTransportDescription mtps = new APTransportDescription();
-    String[] addresses = myPlatform.platformAddresses();
-    for(int i = 0; i < addresses.length; i++) {
-      String addr = addresses[i];
-      MTPDescription desc = new MTPDescription();
-      int colonPos = addr.indexOf(':');
-      if(colonPos != -1)
-	desc.setMtpName(addr.substring(0, colonPos));
-      desc.addAddresses(addr);
-
-      mtps.addAvailableMtps(desc);
-    }
-
-    theProfile.setTransportProfile(mtps);
-
 
     // Register the supported ontologies 
     registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
@@ -981,6 +968,18 @@ public class ams extends Agent implements AgentManager.Listener {
     application agents.
   */
   public synchronized void handleDeadAgent(String containerName, AID agentID) {
+    // Deregister the agent, if it's still there.
+    try {
+      AMSAgentDescription amsd = new AMSAgentDescription();
+      amsd.setName(agentID);
+      List l = AMSSearch(amsd, null, null);
+      if(!l.isEmpty())
+	AMSDeregister(amsd);
+    }
+    catch(FIPAException fe) {
+      fe.printStackTrace();
+    }
+
     AgentDead ad = new AgentDead();
     ad.setAgent(agentID);
     ad.setContainer(containerName);
@@ -1002,18 +1001,37 @@ public class ams extends Agent implements AgentManager.Listener {
   }
 
   public void handleNewAddress(String address) {
-    AMSAgentDescription amsd = new AMSAgentDescription();
+      try {
+    // Add the new address to the platform profile
+    APTransportDescription mtps = theProfile.getTransportProfile();
+    MTPDescription desc = new MTPDescription();
+    int colonPos = address.indexOf(':');
+    if(colonPos != -1)
+      desc.setMtpName(address.substring(0, colonPos));
+    desc.addAddresses(address);
+    mtps.addAvailableMtps(desc);
 
+    // Retrieve all agent descriptors
+    AMSAgentDescription amsd = new AMSAgentDescription();
     List l = agentDescriptions.search(amsd);
+
+    // Add the new address to all the agent descriptors
     Iterator it = l.iterator();
     while(it.hasNext()) {
-      AMSAgentDescription desc = (AMSAgentDescription)it.next();
-      AID name = desc.getName();
+      AMSAgentDescription ad = (AMSAgentDescription)it.next();
+      AID name = ad.getName();
       name.addAddresses(address);
     }
+      }
+      catch(NullPointerException npe) { npe.printStackTrace(); }
+
   }
 
   public void handleDeadAddress(String address) {
+
+    // FIXME: Remove the dead address from the platform profile
+      
+    // Remove the dead address from all the registered agents
     AID[] agents = myPlatform.agentNames();
     AMSAgentDescription amsd = new AMSAgentDescription();
     for(int i = 0; i < agents.length; i++) {
