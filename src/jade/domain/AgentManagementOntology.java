@@ -67,7 +67,7 @@ public class AgentManagementOntology {
     private String negotiableProperties;
     private String communicationProperties;
 
-    public static ServiceDescriptor fromText(Reader r) throws ParseException{
+    public static ServiceDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseServiceDescriptor(r);
     }
 
@@ -189,7 +189,7 @@ public class AgentManagementOntology {
     private String ownership;
 
 
-    public static AMSAgentDescriptor fromText(Reader r) throws ParseException{
+    public static AMSAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSDescriptor(r);
     }
 
@@ -340,7 +340,7 @@ public class AgentManagementOntology {
     private String DFState;
 
 
-    public static DFAgentDescriptor fromText(Reader r) throws ParseException{
+    public static DFAgentDescriptor fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseDFDescriptor(r);
     }
 
@@ -530,7 +530,7 @@ public class AgentManagementOntology {
     private AMSAgentDescriptor arg;
 
 
-    public static AMSAction fromText(Reader r) throws ParseException{
+    public static AMSAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseAMSAction(r);
     }
 
@@ -582,7 +582,7 @@ public class AgentManagementOntology {
     private DFAgentDescriptor arg;
 
 
-    public static DFAction fromText(Reader r) throws ParseException{
+    public static DFAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseDFAction(r);
     }
 
@@ -667,7 +667,7 @@ public class AgentManagementOntology {
     private ACLMessage arg;
 
 
-    public static ACCAction fromText(Reader r) throws ParseException {
+    public static ACCAction fromText(Reader r) throws ParseException, TokenMgrError {
       return AgentManagementOntology.parser.parseACCAction(r);
     }
 
