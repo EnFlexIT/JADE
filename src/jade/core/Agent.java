@@ -95,7 +95,6 @@ import jade.security.PrivilegedExceptionAction;
 
 public class Agent implements Runnable, Serializable, TimerListener {
 
-  private final static short UNPROTECTMYPOINTER = 0;
   /**
   @serial
   */
@@ -349,24 +348,13 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
 
 
-
-  /**
-     The Agent ID for the AMS of this platform.
-   */
-  static AID AMS;
-
-  /**
-     The Agent ID for the Default DF of this platform.
-   */
-  static AID DEFAULT_DF;
-
   /**
      Get the Agent ID for the platform AMS.
      @return An <code>AID</code> object, that can be used to contact
      the AMS of this platform.
   */
-  public static final AID getAMS() {
-    return AMS;
+  public final AID getAMS() {
+    return myToolkit.getAMS();
   }
 
   /**
@@ -374,8 +362,8 @@ public class Agent implements Runnable, Serializable, TimerListener {
      @return An <code>AID</code> object, that can be used to contact
      the default DF of this platform.
   */
-  public static final AID getDefaultDF() {
-    return DEFAULT_DF;
+  public final AID getDefaultDF() {
+    return myToolkit.getDefaultDF();
   }
 
   private int       msgQueueMaxSize = 0;
@@ -629,11 +617,6 @@ public class Agent implements Runnable, Serializable, TimerListener {
   	if (myToolkit == null)
   		return null;
     return myToolkit.getAuthority();
-  }
-
-  static void initReservedAIDs(AID amsID, AID defaultDfID) {
-    AMS = amsID;
-    DEFAULT_DF = defaultDfID;
   }
 
   /**
