@@ -39,6 +39,9 @@ import javax.microedition.lcdui.*;
    This class handles JADE start-up and shut-down in split-container
    mode, according to the current type of environment (JVM) we are
    running in.
+   <br>
+   <b>Requires the LEAP add-on</b>
+   <br>
    @author Giovanni Caire - TILAB
  */
 //#MIDP_EXCLUDE_BEGIN
