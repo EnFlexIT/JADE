@@ -24,6 +24,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
+//#J2ME_EXCLUDE_FILE
+
 /**
 Type using to store key and  value  of a user defined property.
 @author Tiziana Trucco - CSELT S.p.A

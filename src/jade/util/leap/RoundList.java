@@ -23,7 +23,9 @@
  */
 
 package jade.util.leap;
- 
+
+//#MIDP_EXCLUDE_FILE
+
 import jade.util.leap.LinkedList;
 import java.util.NoSuchElementException;
 

@@ -21,6 +21,8 @@
 
 package jade.util;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.util.Enumeration;
 
 import java.io.InputStreamReader;

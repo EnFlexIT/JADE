@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+//#MIDP_EXCLUDE_FILE
+
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.BufferedWriter;
@@ -125,6 +127,12 @@ public class ams extends Agent implements AgentManager.Listener {
     myPlatform = ap;
     myPlatform.addListener(this);
     bootProfile = aBootProfile;
+    try {
+    	verbosity = Integer.parseInt(bootProfile.getParameter("jade.domain.ams.verbosity", "0"));
+    }
+    catch (Exception e) {
+    	// Keep default (0)
+    }
   }
 
   /**
@@ -202,6 +210,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		final AID agentID = new AID(agentName, AID.ISLOCALNAME);
 		final String className = ca.getClassName();
 		final ContainerID container = ca.getContainer();
+		log("Agent "+requester+" requesting Create-agent "+agentID+" on container "+container, 2);
 		// Prepare arguments as a String[]
 		Iterator it = ca.getAllArguments(); 
 		ArrayList listArg = new ArrayList();
@@ -270,6 +279,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	// KILL AGENT
 	void killAgentAction(KillAgent ka, AID requester) throws FIPAException {
   	final AID agentID = ka.getAgent();
+		log("Agent "+requester+" requesting Kill-agent "+agentID, 2);
 	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 
     try {
@@ -303,6 +313,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		final AID agentID = dsc.getName();
 		final ContainerID where = (ContainerID) dsc.getDestination();
 		final String newName = ca.getNewName();
+		log("Agent "+requester+" requesting Clone-agent "+agentID+" on container "+where, 2);
 	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
@@ -334,6 +345,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		MobileAgentDescription dsc = ma.getMobileAgentDescription();
 		final AID agentID = dsc.getName();
 		final ContainerID where = (ContainerID) dsc.getDestination();
+		log("Agent "+requester+" requesting Move-agent "+agentID+" on container "+where, 2);
 	  CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
 	  try {
@@ -363,6 +375,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	// KILL CONTAINER
 	void killContainerAction(KillContainer kc, AID requester) throws FIPAException {
     final ContainerID cid = kc.getContainer();
+		log("Agent "+requester+" requesting Kill-container "+cid, 2);
     CertificateFolder requesterCredentials = myPlatform.getAMSDelegation(requester);
 		
     try{
@@ -388,6 +401,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// INSTALL MTP
 	MTPDescriptor installMTPAction(InstallMTP im, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Install-MTP", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    return myPlatform.installMTP(im.getAddress(), im.getContainer(), im.getClassName());
@@ -405,6 +419,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// UNINSTALL MTP
 	void uninstallMTPAction(UninstallMTP um, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Uninstall-MTP", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.uninstallMTP(um.getAddress(), um.getContainer());
@@ -422,6 +437,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// SNIFF ON
 	void sniffOnAction(SniffOn so, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Sniff-off", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.sniffOn(so.getSniffer(), so.getCloneOfSniffedAgents());
@@ -436,6 +452,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// SNIFF OFF
 	void sniffOffAction(SniffOff so, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Sniff-on", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.sniffOff(so.getSniffer(), so.getCloneOfSniffedAgents());
@@ -450,6 +467,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// DEBUG ON
 	void debugOnAction(DebugOn don, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Debug-on", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.debugOn(don.getDebugger(), don.getCloneOfDebuggedAgents());
@@ -464,6 +482,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// DEBUG OFF
 	void debugOffAction(DebugOff doff, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Debug-off", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    myPlatform.debugOff(doff.getDebugger(), doff.getCloneOfDebuggedAgents());
@@ -478,6 +497,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// WHERE IS AGENT
 	Location whereIsAgentAction(WhereIsAgentAction wia, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Where-is-agent", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    return myPlatform.getContainerID(wia.getAgentIdentifier());
@@ -489,6 +509,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// QUERY PLATFORM LOCATIONS
 	List queryPlatformLocationsAction(QueryPlatformLocationsAction qpl, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Query-platform-locations", 2);
 		// FIXME: Permissions for this action are not yet defined
 	  ContainerID[] ids = myPlatform.containerIDs();
 	  List l = new ArrayList();
@@ -500,6 +521,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	
 	// QUERY AGENTS ON LOCATION
 	List queryAgentsOnLocationAction(QueryAgentsOnLocation qaol, AID requester) throws FIPAException {
+		log("Agent "+requester+" requesting Query-agents-on-location", 2);
 		// FIXME: Permissions for this action are not yet defined
 		try {
 	    return myPlatform.containerAgents((ContainerID) qaol.getLocation());
@@ -526,7 +548,7 @@ public class ams extends Agent implements AgentManager.Listener {
     final AMSAgentDescription amsd = (AMSAgentDescription) r.getDescription();
     // Check mandatory slots
     AID id = amsd.getName();
-    log("Agent "+id+" registering with the AMS", 2);
+    log("Agent "+requester+" requesting AMS-registration for "+id, 2);
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
@@ -559,7 +581,7 @@ public class ams extends Agent implements AgentManager.Listener {
     final AMSAgentDescription amsd = (AMSAgentDescription) d.getDescription();
     // Check mandatory slots
     AID id = amsd.getName();
-    log("Agent "+id+" de-registering with the AMS", 2);
+    log("Agent "+requester+" requesting AMS-deregistration for "+id, 2);
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
@@ -592,6 +614,8 @@ public class ams extends Agent implements AgentManager.Listener {
     final AMSAgentDescription amsd = (AMSAgentDescription) m.getDescription();
     // Check mandatory slots
     AID id = amsd.getName();
+    log("Agent "+requester+" requesting AMS-modification for "+id, 2);
+    log("New state is "+amsd.getState()+". New ownership is "+amsd.getOwnership(), 2);
     if (id == null || id.getName() == null || id.getName().length() == 0) {
 			throw new MissingParameter(FIPAManagementVocabulary.AMSAGENTDESCRIPTION, FIPAManagementVocabulary.DFAGENTDESCRIPTION_NAME);
     }
@@ -627,6 +651,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
   // SEARCH
   List searchAction(Search s, AID requester) {
+    log("Agent "+requester+" requesting AMS-search", 2);
   	AMSAgentDescription template = (AMSAgentDescription) s.getDescription();
   	long max = -1;
   	SearchConstraints sc = s.getConstraints();
@@ -641,6 +666,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
   // GET_DESCRIPTION
   APDescription getDescriptionAction(AID requester) {
+    log("Agent "+requester+" requesting AMS-get-description", 2);
   	APTransportDescription tdsc = theProfile.getTransportProfile();
   	tdsc.clearAllAvailableMtps();
   	Iterator mtps = platformMTPs().iterator();

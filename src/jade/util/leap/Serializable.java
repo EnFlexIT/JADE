@@ -28,5 +28,10 @@ package jade.util.leap;
  * 
  * @see java.io.Serializable
  */
-public interface Serializable extends java.io.Serializable {}
+public interface Serializable 
+//#MIDP_EXCLUDE_BEGIN
+	extends java.io.Serializable 
+//#MIDP_EXCLUDE_END
+{
+}
 

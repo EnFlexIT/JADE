@@ -64,16 +64,16 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
    * Constructor
    */
   private JADEManagementOntology() {
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
   	super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
     	
-		/*__J2ME_COMPATIBILITY__BEGIN    	
+		/*#MIDP_INCLUDE_BEGIN    	
   	super(NAME, BasicOntology.getInstance(), null);
-   	__J2ME_COMPATIBILITY__END*/
+   	#MIDP_INCLUDE_END*/
 
     try {
-    	//__CLDC_UNSUPPORTED__BEGIN
+    	//#MIDP_EXCLUDE_BEGIN
     	// Concepts definitions
     	add(new ConceptSchema(CONTAINERID), ContainerID.class);
     	add(new ConceptSchema(LOCATION));
@@ -102,9 +102,9 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE), UnrecognisedParameterValue.class);
     	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
     	add(new PredicateSchema(INTERNALERROR), jade.domain.FIPAAgentManagement.InternalError.class);
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
     	
-			/*__J2ME_COMPATIBILITY__BEGIN    	
+			/*#MIDP_INCLUDE_BEGIN    	
     	// Concepts definitions
     	add(new ConceptSchema(CONTAINERID));
     	
@@ -129,7 +129,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	add(new PredicateSchema(UNRECOGNISEDPARAMETERVALUE));
     	add(new PredicateSchema(NOTREGISTERED));
     	add(new PredicateSchema(INTERNALERROR));
-   		__J2ME_COMPATIBILITY__END*/
+   		#MIDP_INCLUDE_END*/
    		
    		// Slots definitions
     	ConceptSchema cs = (ConceptSchema)getSchema(LOCATION);

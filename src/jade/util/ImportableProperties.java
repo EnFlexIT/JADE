@@ -21,6 +21,8 @@
 
 package jade.util;
 
+//#J2ME_EXCLUDE_FILE
+
 import java.util.Hashtable;
 
 import java.io.Reader;

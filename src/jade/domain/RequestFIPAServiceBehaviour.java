@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain;
 
+//#MIDP_EXCLUDE_FILE
+
 import java.util.Date;
 import java.util.Vector;
 
@@ -274,7 +276,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
     return lastMsg;
   }
 
-  //__JADE_ONLY__BEGIN
+  //#ALL_EXCLUDE_BEGIN
   /**
     This public method allows to get the results of a search operation. 
     @return the List of Objects received an a result of the search. 
@@ -292,7 +294,7 @@ public class RequestFIPAServiceBehaviour extends SimpleAchieveREInitiator{
 		}
 		return l;
   }
-  //__JADE_ONLY__END
+  //#ALL_EXCLUDE_END
     
   /**
     This public method allows to get the results of a search operation. 

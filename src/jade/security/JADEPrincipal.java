@@ -33,9 +33,9 @@ package jade.security;
 	@version $Date$ $Revision$
 */
 public interface JADEPrincipal
-//__JADE_ONLY__BEGIN
+//#ALL_EXCLUDE_BEGIN
 		extends java.security.Principal
-//__JADE_ONLY__END
+//#ALL_EXCLUDE_END
 {
 
 	/**

@@ -1,5 +1,7 @@
 package jade.gui;
 
+//#MIDP_EXCLUDE_FILE
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

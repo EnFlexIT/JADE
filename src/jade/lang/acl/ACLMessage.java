@@ -221,7 +221,7 @@ private int performative; // keeps the performative type of this object
 
   private Envelope messageEnvelope;
 
-  //__JADE_ONLY__BEGIN
+  //#ALL_EXCLUDE_BEGIN
   /**
   Returns the list of the communicative acts.
   @deprecated Use getAllPerformativeNames() instead
@@ -230,7 +230,7 @@ private int performative; // keeps the performative type of this object
   {
   	return ((ArrayList) performatives).toList();
   }
-  //__JADE_ONLY__END
+  //#ALL_EXCLUDE_END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.

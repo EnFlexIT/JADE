@@ -466,7 +466,7 @@ public class MessageTemplate implements Serializable {
     return new MessageTemplate(new Literal(value));
   }
 
-  //__JADE_ONLY__BEGIN
+  //#ALL_EXCLUDE_BEGIN
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
@@ -485,7 +485,7 @@ public class MessageTemplate implements Serializable {
       }
     return MatchReceiver(v);
   }
-  //__JADE_ONLY__END
+  //#ALL_EXCLUDE_END
 
   /**
      This <em>Factory Method</em> returns a message template that
@@ -532,7 +532,7 @@ public class MessageTemplate implements Serializable {
     return new MessageTemplate(new Literal(value,IN_REPLY_TO));
   }
 
-  //__JADE_ONLY__BEGIN
+  //#ALL_EXCLUDE_BEGIN
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:reply-to</code> slot.
@@ -551,7 +551,7 @@ public class MessageTemplate implements Serializable {
       }
     return MatchReplyTo(v);
   }
-  //__JADE_ONLY__END
+  //#ALL_EXCLUDE_END
 
   /**
      This <em>Factory Method</em> returns a message template that

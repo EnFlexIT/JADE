@@ -32,9 +32,9 @@ package jade.security;
 	@version $Date$ $Revision$
 */
 public interface PrivilegedExceptionAction
-//__JADE_ONLY__BEGIN
+//#ALL_EXCLUDE_BEGIN
 		extends java.security.PrivilegedExceptionAction
-//__JADE_ONLY__END
+//#ALL_EXCLUDE_END
 {
 
 	/**

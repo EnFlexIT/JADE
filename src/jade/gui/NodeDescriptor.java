@@ -23,6 +23,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
+//#J2ME_EXCLUDE_FILE
+
 import javax.swing.JPopupMenu;
 
 /**

@@ -21,6 +21,8 @@
 
 package jade.util;
 
+//#J2ME_EXCLUDE_FILE
+
 /**
  * Property related exception.
  * @author Dick Cowan - HP Labs

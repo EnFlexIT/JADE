@@ -92,17 +92,17 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
   }
 
   private ExceptionOntology() {
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
   	super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
     	
-		/*__J2ME_COMPATIBILITY__BEGIN    	
+		/*#MIDP_INCLUDE_BEGIN    	
   	super(NAME, BasicOntology.getInstance(), null);
-   	__J2ME_COMPATIBILITY__END*/
+   	#MIDP_INCLUDE_END*/
 
 
 		try {
-    	//__CLDC_UNSUPPORTED__BEGIN
+    	//#MIDP_EXCLUDE_BEGIN
 	  	add(new PredicateSchema(UNAUTHORISED), Unauthorised.class);
 	  	add(new PredicateSchema(UNSUPPORTEDACT), UnsupportedAct.class);
 	  	add(new PredicateSchema(UNEXPECTEDACT), UnexpectedAct.class);
@@ -115,9 +115,9 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(ALREADYREGISTERED), AlreadyRegistered.class);
 	  	add(new PredicateSchema(NOTREGISTERED), NotRegistered.class);
 	  	add(new PredicateSchema(INTERNALERROR), InternalError.class);
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
 			   	  
-			/*__J2ME_COMPATIBILITY__BEGIN    	
+			/*#MIDP_INCLUDE_BEGIN    	
 		add(new PredicateSchema(UNAUTHORISED));
 	  	add(new PredicateSchema(UNSUPPORTEDACT));
 	  	add(new PredicateSchema(UNEXPECTEDACT));
@@ -130,7 +130,7 @@ public class ExceptionOntology  extends Ontology implements ExceptionVocabulary 
 	  	add(new PredicateSchema(ALREADYREGISTERED));
 	  	add(new PredicateSchema(NOTREGISTERED));
 	  	add(new PredicateSchema(INTERNALERROR));
-   		__J2ME_COMPATIBILITY__END*/
+   		#MIDP_INCLUDE_END*/
 	  	
 	  	PredicateSchema ps = (PredicateSchema)getSchema(UNSUPPORTEDACT);
 	  	ps.add(UNSUPPORTEDACT_ACT, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);

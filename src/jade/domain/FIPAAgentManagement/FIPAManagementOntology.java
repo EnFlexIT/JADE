@@ -92,17 +92,17 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
   }
 
   private FIPAManagementOntology() {
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
   	super(NAME, ExceptionOntology.getInstance(), new BCReflectiveIntrospector());
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
     	
-		/*__J2ME_COMPATIBILITY__BEGIN    	
+		/*#MIDP_INCLUDE_BEGIN    	
   	super(NAME, BasicOntology.getInstance(), null);
-   	__J2ME_COMPATIBILITY__END*/
+   	#MIDP_INCLUDE_END*/
 
 
 		try {
-    	//__CLDC_UNSUPPORTED__BEGIN
+    	//#MIDP_EXCLUDE_BEGIN
 	  	add(new ConceptSchema(DFAGENTDESCRIPTION), DFAgentDescription.class);
 	  	add(new ConceptSchema(SERVICEDESCRIPTION), ServiceDescription.class);
 	  	add(new ConceptSchema(SEARCHCONSTRAINTS), SearchConstraints.class);
@@ -120,10 +120,9 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new AgentActionSchema(SEARCH), Search.class);
 	  	add(new AgentActionSchema(GETDESCRIPTION), GetDescription.class);
 	  	add(new AgentActionSchema(QUIT), Quit.class);
-	  
-    	//__CLDC_UNSUPPORTED__END
+    	//#MIDP_EXCLUDE_END
 			   	  
-			/*__J2ME_COMPATIBILITY__BEGIN    	
+			/*#MIDP_INCLUDE_BEGIN    	
 	  	add(new ConceptSchema(DFAGENTDESCRIPTION));
 	  	add(new ConceptSchema(SERVICEDESCRIPTION));
 	  	add(new ConceptSchema(SEARCHCONSTRAINTS));
@@ -149,7 +148,7 @@ public class FIPAManagementOntology  extends Ontology implements FIPAManagementV
 	  	add(new PredicateSchema(ALREADYREGISTERED));
 	  	add(new PredicateSchema(NOTREGISTERED));
 	  	add(new PredicateSchema(INTERNALERROR));
-   		__J2ME_COMPATIBILITY__END*/
+   		#MIDP_INCLUDE_END*/
 	  	
 	  	ConceptSchema cs = (ConceptSchema)getSchema(DFAGENTDESCRIPTION);
 	  	cs.add(DFAGENTDESCRIPTION_NAME, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);

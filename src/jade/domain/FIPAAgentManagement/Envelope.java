@@ -264,8 +264,11 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	ReceivedObject[] ro = getStamps();
 	if (ro.length > 0 ) {
 	    s = s + " :received-object (sequence ";
-	    for (int j=0; j<ro.length; j++) 
-		s = s + " "+ ro[j].toString(); 
+	    for (int j=0; j<ro.length; j++) {
+	    	if (ro[j] != null) {
+					s = s + " "+ ro[j].toString(); 
+	    	}
+	    }
 	    s = s + ") ";
 	}
 	return s+")";

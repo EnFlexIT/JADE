@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
+//#J2ME_EXCLUDE_FILE
+
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JTextField;

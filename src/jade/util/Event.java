@@ -25,9 +25,9 @@
 package jade.util;
  
 import java.util.Vector;
-//__CLDC_UNSUPPORTED__BEGIN
+//#MIDP_EXCLUDE_BEGIN
 import java.util.EventObject;
-//__CLDC_UNSUPPORTED__END
+//#MIDP_EXCLUDE_END
 
 /**
  * This class represents a generic event carrying some information
@@ -38,14 +38,14 @@ import java.util.EventObject;
  * @author Giovanni Caire - TILab 
  */
  public class Event 
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
  		extends EventObject
-    //__CLDC_UNSUPPORTED__END
+    //#MIDP_EXCLUDE_END
     {
     	
-	/*__J2ME_COMPATIBILITY__BEGIN
+	/*#MIDP_INCLUDE_BEGIN
   protected Object source;
-	__J2ME_COMPATIBILITY__END*/
+	#MIDP_INCLUDE_END*/
 	protected int type; 
 	private Vector param = null;
 	
@@ -59,12 +59,12 @@ import java.util.EventObject;
 	   @param source The source that generated the event
 	 */
 	public Event(int type, Object source) {
-    //__CLDC_UNSUPPORTED__BEGIN
+    //#MIDP_EXCLUDE_BEGIN
 		super(source);
-    //__CLDC_UNSUPPORTED__END    	
-		/*__J2ME_COMPATIBILITY__BEGIN
+    //#MIDP_EXCLUDE_END    	
+		/*#MIDP_INCLUDE_BEGIN
   	this.source = source;
-		__J2ME_COMPATIBILITY__END*/
+		#MIDP_INCLUDE_END*/
 		this.type = type;
 	}
 	
@@ -82,11 +82,11 @@ import java.util.EventObject;
 		addParameter(info);
 	}
 	
-	/*__J2ME_COMPATIBILITY__BEGIN
+	/*#MIDP_INCLUDE_BEGIN
   public Object getSource() {
   	return source;
   }
-	__J2ME_COMPATIBILITY__END*/
+	#MIDP_INCLUDE_END*/
 	
 	/**
 	   @return the type of this <code>Event</code> object
