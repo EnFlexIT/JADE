@@ -65,6 +65,7 @@ public mainFrame(MeetingSchedulerAgent a, String title) {
 
 public mainFrame() {
   //{{INIT_CONTROLS
+	java.util.Locale.setDefault(Locale.US);
   setLayout(null);
   setVisible(false);
   setSize(255,305);
