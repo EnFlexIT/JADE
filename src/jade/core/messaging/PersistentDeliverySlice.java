@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.messaging;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 import jade.core.Service;
 import jade.core.AID;

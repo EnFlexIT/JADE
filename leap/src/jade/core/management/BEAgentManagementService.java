@@ -21,7 +21,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 package jade.core.management;
 
