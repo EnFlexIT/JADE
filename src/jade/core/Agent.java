@@ -300,14 +300,8 @@ public class Agent implements Runnable, Serializable {
   */
   public static final int D_MAX = 41;    // Hand-made type checking
 
-  /**
-     Default value for message queue size. When the number of buffered
-     messages exceeds this value, older messages are discarded
-     according to a <b><em>FIFO</em></b> replacement policy.
-     @see jade.core.Agent#setQueueSize(int newSize)
-     @see jade.core.Agent#getQueueSize()
-  */
-  public static final int MSG_QUEUE_SIZE = 100;
+
+
 
   /**
      The Agent ID for the AMS of this platform.
@@ -337,8 +331,8 @@ public class Agent implements Runnable, Serializable {
     return DEFAULT_DF;
   }
 
-  private int       msgQueueMaxSize = MSG_QUEUE_SIZE;
-  private transient MessageQueue msgQueue = new MessageQueue(MSG_QUEUE_SIZE);
+  private int       msgQueueMaxSize = 0;
+  private transient MessageQueue msgQueue = new MessageQueue(msgQueueMaxSize);
   private transient AgentToolkit myToolkit;
 
   /**
@@ -818,12 +812,16 @@ public class Agent implements Runnable, Serializable {
      of ACL messages that can be buffered before being actually read
      by the agent or discarded.
      @param newSize A non negative integer value to set message queue
-     size to. Passing 0 means unlimited message queue.
+     size to. Passing 0 means unlimited message queue.  When the number of 
+     buffered
+     messages exceeds this value, older messages are discarded
+     according to a <b><em>FIFO</em></b> replacement policy.
      @throws IllegalArgumentException If <code>newSize</code> is negative.
      @see jade.core.Agent#getQueueSize()
   */
   public void setQueueSize(int newSize) throws IllegalArgumentException {
     msgQueue.setMaxSize(newSize);
+    msgQueueMaxSize = newSize;
   }
 
   /**
