@@ -1,3 +1,6 @@
+
+
+
 (PROXY
  :X-comment "This message tests the case where the value of an ACLMessage  parameter is a number"
  :reply-with 99
@@ -203,16 +206,14 @@
  :ontology jade-mobility-ontology
  :content "( (RESULT (action (Agent-Identifier :name x@001122)
                             (query-platform-locations))
-                    (Platform-Locations
-                     :locations 
-                      (SET (Location 
-			    :name Container1 
-			    :transport-protocol RMI
-                            :transport-address rmi://p.cselt.it:50)
-                           (Location 
-			    :name Container2 
-			    :transport-protocol RMI2
-                            :transport-address rmi2://p.cselt.it:50)
+                      (SEQUENCE (Container-ID 
+			                           :name Container1 
+			                           :protocol RMI
+                                 :address rmi://p.cselt.it:50)	
+                                (Container-ID
+			                           :name Container2 
+			                           :protocol RMI2
+                                 :address rmi2://p.cselt.it:50)
         ))))"
  :X-comment "In the message you must put at a minimum all the mandatory slots, otherwise you get an exception."
 )
@@ -225,7 +226,7 @@
             (move-agent
              (Mobile-Agent-Description
               :name (Agent-Identifier :name x@ior:002233)
-              :destination (Location 
+              :destination (Container-ID
 			    :name Container1 
 			    :protocol RMI
                             :address rmi://p.cselt.it:50)
@@ -259,7 +260,7 @@
                          (clone-agent
              (Mobile-Agent-Description
               :name (Agent-Identifier :name x@ior:002233)
-              :destination (Location 
+              :destination (Container-ID
 			    :name Container1 
 			    :protocol RMI
                             :address rmi://p.cselt.it:50)
@@ -274,7 +275,7 @@
             (clone-agent
              (Mobile-Agent-Description
               :name (Agent-Identifier :name x@ior:002233)
-              :destination (Location 
+              :destination (Container-ID
 			    :name Container1 
 			    :protocol RMI
                             :address rmi://p.cselt.it:50)
@@ -288,7 +289,7 @@
  :ontology jade-mobility-ontology
  :content "( (result (action (Agent-Identifier :name x@001122)
                             (where-is-agent (Agent-Identifier :name Giovanni)))
-             (Location 
+             (Container-ID
 			    :name Container1 
 			    :protocol RMI
                             :address rmi://p.cselt.it:50)
@@ -337,7 +338,6 @@
 )
 
 
-
 (REFUSE
  :language FIPA-SL0
  :ontology fipa-agent-management
@@ -364,29 +364,6 @@
  )"
  :X-comment "a bit of not-understood exceptions are here"
 )
-
-
-
-(REQUEST
- :language FIPA-SL0
- :ontology fipa-agent-management
- :content " ((action (Agent-Identifier :name AMS@IOR:001122)
-            (QUIT (Agent-Identifier :name peppino))
-          ))"
- :X-comment "Request AMS to Quit the agent peppino"
-)
-
-
-(INFORM
- :language FIPA-SL0
- :ontology fipa-agent-management
- :content "((done (action (Agent-Identifier :name AMS@IOR:001122)
-            (QUIT (Agent-Identifier :name peppino)))
-          ))"
- :X-comment "Done Quit the agent peppino"
-)
-
-
 
 
 
@@ -479,7 +456,7 @@
           			 (Property :name X4 :value -12.23) 
           			 (Property :name X5 :value 20001211T100025100A)
           			 (Property :name X6 :value (Agent-Identifier :name x))
-          			 (Property :name X7 :value (Dummy :name x))
+          			 (Property :name X7 :value (AGENT-identifier :name x))
                                  (Property :name X2 :value V2) )))
              :protocols (set FIPA-Request FIPA-Contract-Net)
              :ontologies (set FIPA-Agent-Management Trading)
