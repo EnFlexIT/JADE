@@ -57,8 +57,8 @@ public class MainBar extends JMenuBar {
     viewMenu=new JMenu("View");
     actionMenu= new JMenu("Action");
 
-    viewMessageItem=new JCheckBoxMenuItem(" View Mess & state");
-    vewBehaviourItem=new JCheckBoxMenuItem(" View Behviour");
+    viewMessageItem=new JCheckBoxMenuItem("View Messages");
+    vewBehaviourItem=new JCheckBoxMenuItem("View Behaviours");
     viewMessageItem.setSelected(true);
     vewBehaviourItem.setSelected(true);
 
