@@ -31,6 +31,18 @@ package jade.proto;
  **/
 public interface FIPAProtocolNames{
 
+	//achieve rational effect protocol
     public static final String FIPA_REQUEST = "fipa-request";
     public static final String FIPA_QUERY =  "fipa-query" ;
+	public static final String FIPA_REQUEST_WHEN = "fipa-request-when";
+	
+	//auction protocol
+	public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
+	public static final String FIPA_DUTCH_AUCTION = "fipa-auction-ducth";
+	
+	public static final String FIPA_BROCKERING = "fipa-brockering";
+	public static final String FIPA_RECRUITING = "fipa-recruting";
+	public static final String FIPA_PROPOSE = "fipa-propose";
+	
+	public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
 }
