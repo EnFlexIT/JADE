@@ -1,5 +1,5 @@
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/Agent.java
+/home/rimassa/DEVEL/JADE/src/jade/core/Agent.java
 Agent@+ Agent@public Agent() {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
@@ -23,34 +23,34 @@ Agent@- run@public final void run() {
 Agent@- send@public final void send(ACLMessage msg) {
 Agent@- setup@protected void setup() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentPlatform.java
+/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@> bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
 AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
 AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/Behaviour.java
+/home/rimassa/DEVEL/JADE/src/jade/core/Behaviour.java
 Behaviour@> done@public boolean done();
 Behaviour@> execute@public void execute();
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommBroadcaster.java
+/home/rimassa/DEVEL/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
 CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommEvent.java
+/home/rimassa/DEVEL/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@- getCommand@public String getCommand() {
 CommEvent@- getMessage@public ACLMessage getMessage() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/CommListener.java
+/home/rimassa/DEVEL/JADE/src/jade/core/CommListener.java
 CommListener@> CommHandle@void CommHandle( CommEvent event );
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/MessageDispatcher.java
+/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcher.java
 MessageDispatcher@> dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException;
 MessageDispatcher@> dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/Giovanni/DEVEL/ADK/src/fipa/domain/ams.java
+/home/rimassa/DEVEL/JADE/src/jade/domain/ams.java
 ams@- ThreadChanged@public void ThreadChanged( ThreadEvent event ) {
 ams@+ ams@public ams(int dfPort, Socket sock, Vector agents, Vector sockets ) {
 ams@- parseMsg@public void parseMsg( aclMessage msg ) {
@@ -61,16 +61,16 @@ ams@- sendAddress@private void sendAddress( String requestedAdd, aclMessage msg,
 ams@- updateDb@private synchronized void updateDb( String source, String name ) {
 ams@- waiting@public void waiting() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/domain/df.java
+/home/rimassa/DEVEL/JADE/src/jade/domain/df.java
 df@- local_startup@public void local_startup() {
 df@- parseMsg@public int parseMsg() {
 df@- sendAddress@private void sendAddress( String requestedAdd, aclMessage msg, String type ) {
 df@- updateService@private void updateService( String source, String name, String service ) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/Parser.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/Parser.java
 Parser@> parse@public void parse(Reader textSource);
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/Message.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Message.java
 MessageImpl@+ MessageImpl@public MessageImpl() {
 MessageImpl@= acceptProposalKind@private static final Object acceptProposalKind =
 MessageImpl@= agreeKind@private static final Object agreeKind =
@@ -100,7 +100,7 @@ MessageImpl@= requestWhenKind@private static final Object requestWhenKind =
 MessageImpl@= requestWheneverKind@private static final Object requestWheneverKind =
 MessageImpl@= subscribeKind@private static final Object subscribeKind =
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/grammar.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/grammar.java
 MessageParameter@= value@public String value();
 senderParam@- value@public String value() {
 receiverParam@- value@public String value() {
@@ -114,29 +114,29 @@ ontologyParam@- value@public String value() {
 protocolParam@- value@public String value() {
 conversationIdParam@- value@public String value() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentDescriptor.java
+/home/rimassa/DEVEL/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
 AgentDescriptor@- getName@public String getName() {
 AgentDescriptor@- set@public void set(String s, MessageDispatcher md) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/NotFoundException.java
+/home/rimassa/DEVEL/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/StartContainer.java
+/home/rimassa/DEVEL/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/StartPlatform.java
+/home/rimassa/DEVEL/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 StartPlatform@- usage@private static void usage() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentContainerImpl.java
+/home/rimassa/DEVEL/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/AgentPlatformImpl.java
+/home/rimassa/DEVEL/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
@@ -144,12 +144,12 @@ AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteEx
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/MessageDispatcherImpl.java
+/home/rimassa/DEVEL/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ACLMessage.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLMessage.java
 ACLMessage@+ ACLMessage@public ACLMessage( String source, int port ) {
 ACLMessage@+ ACLMessage@public ACLMessage() {
 ACLMessage@- dump@public void dump() {
@@ -183,7 +183,7 @@ ACLMessage@- setReplyWith@public void setReplyWith( String reply ) {
 ACLMessage@- setSource@public void setSource( String source ) {
 ACLMessage@- setType@public void setType( String type ) {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/Agent.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Agent.java
 Agent@- activate@public void activate(String name) {
 Agent@- addBehaviour@public void addBehaviour(Behaviour b) {
 Agent@- addCommListener@public final void addCommListener(CommListener l) {
@@ -197,25 +197,25 @@ Agent@- schedule@public void schedule() {
 Agent@- send@protected final void send(String msg) {
 Agent@- send@protected final void send(ACLMessage msg) {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/AgentContainerImpl.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentContainerImpl.java
 AgentContainerImpl@+ AgentContainerImpl@public AgentContainerImpl(String platformURL, Vector agentNamesAndClasses) throws RemoteException {
 AgentContainerImpl@- CommHandle@public void CommHandle(CommEvent event) {
 AgentContainerImpl@+ finalize@protected void finalize() {
 AgentContainerImpl@- postRemote@private void postRemote(ACLMessage msg, String receiverName) {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/AgentDescriptor.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentDescriptor.java
 AgentDescriptor@- getDemux@public MessageDispatcher getDemux() {
 AgentDescriptor@- getName@public String getName() {
 AgentDescriptor@- set@public void set(String s, MessageDispatcher md) {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/AgentPlatform.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatform.java
 AgentPlatform@> addContainer@public void addContainer(AgentContainer ac) throws RemoteException;
 AgentPlatform@> bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException;
 AgentPlatform@> deadAgent@public void deadAgent(String name) throws RemoteException;
 AgentPlatform@> lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException;
 AgentPlatform@> removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException;
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/AgentPlatformImpl.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/AgentPlatformImpl.java
 AgentPlatformImpl@+ AgentPlatformImpl@public AgentPlatformImpl() throws RemoteException {
 AgentPlatformImpl@- addContainer@public void addContainer(AgentContainer ac) throws RemoteException {
 AgentPlatformImpl@- bornAgent@public void bornAgent(AgentDescriptor desc) throws RemoteException {
@@ -223,42 +223,42 @@ AgentPlatformImpl@- deadAgent@public void deadAgent(String name) throws RemoteEx
 AgentPlatformImpl@- lookup@public AgentDescriptor lookup(String agentName) throws RemoteException, NotFoundException {
 AgentPlatformImpl@- removeContainer@public void removeContainer(AgentContainer ac) throws RemoteException {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/Behaviour.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/Behaviour.java
 Behaviour@> execute@public void execute();
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/CommBroadcaster.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommBroadcaster.java
 CommBroadcaster@> addCommListener@void addCommListener (CommListener l);
 CommBroadcaster@> removeCommListener@void removeCommListener(CommListener event);
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/CommEvent.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommEvent.java
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, ACLMessage message) {
 CommEvent@+ CommEvent@public CommEvent(CommBroadcaster source, String command) {
 CommEvent@- getCommand@public String getCommand() {
 CommEvent@- getMessage@public ACLMessage getMessage() {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/CommListener.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/CommListener.java
 CommListener@> CommHandle@void CommHandle( CommEvent event );
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/MessageDispatcher.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcher.java
 MessageDispatcher@> dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException;
 MessageDispatcher@> dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException;
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/MessageDispatcherImpl.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/MessageDispatcherImpl.java
 MessageDispatcherImpl@+ MessageDispatcherImpl@public MessageDispatcherImpl(Hashtable h) throws RemoteException {
 MessageDispatcherImpl@- dispatch@public void dispatch(String msg) throws RemoteException, NotFoundException {
 MessageDispatcherImpl@- dispatch@public void dispatch(ACLMessage msg) throws RemoteException, NotFoundException {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/NotFoundException.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/NotFoundException.java
 NotFoundException@+ NotFoundException@NotFoundException(String msg) {
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/StartContainer.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartContainer.java
 StartContainer@- main@public static void main(String args[]) {
 StartContainer@- usage@private static void usage(){
 
-/home/Giovanni/DEVEL/ADK/src/ADK/src/fipa/core/StartPlatform.java
+/home/rimassa/DEVEL/JADE/src/JADE/src/jade/core/StartPlatform.java
 StartPlatform@- main@public static void main(String args[]) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/ComplexBehaviour.java
+/home/rimassa/DEVEL/JADE/src/jade/core/ComplexBehaviour.java
 ComplexBehaviour@- BehaviourList@public BehaviourList() {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour(Agent a) {
 ComplexBehaviour@+ ComplexBehaviour@public ComplexBehaviour() {
@@ -276,21 +276,21 @@ ComplexBehaviour@- preAction@protected void preAction() {
 ComplexBehaviour@- removeBehaviour@public void removeBehaviour(Behaviour b) {
 ComplexBehaviour@- removeElement@public final synchronized boolean removeElement(Behaviour b) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/SimpleBehaviour.java
+/home/rimassa/DEVEL/JADE/src/jade/core/SimpleBehaviour.java
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour(Agent a) {
 SimpleBehaviour@+ SimpleBehaviour@public SimpleBehaviour() {
 SimpleBehaviour@> action@protected abstract void action();
 SimpleBehaviour@- done@public boolean done() {
 SimpleBehaviour@- execute@public final void execute() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/core/Scheduler.java
+/home/rimassa/DEVEL/JADE/src/jade/core/Scheduler.java
 Scheduler@+ Scheduler@public Scheduler(Agent a) {
 Scheduler@- add@public synchronized void add(Behaviour b) {
 Scheduler@+ finalize@protected void finalize() {
 Scheduler@- remove@public void remove(Behaviour b) {
 Scheduler@- schedule@public synchronized Behaviour schedule() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ACLParser.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParser.java
 ACLParser@+ ACLParser@public ACLParser(ACLParserTokenManager tm) {
 ACLParser@+ ACLParser@public ACLParser(java.io.Reader stream) {
 ACLParser@+ ACLParser@public ACLParser(java.io.InputStream stream) {
@@ -325,7 +325,7 @@ ACLParser@- jj_ntk@final private int jj_ntk() {
 ACLParser@- main@public static void main(String args[]) {
 ACLParser@- parse@public ACLMessage parse(Reader text) throws ParseException {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ACLParserTokenManager.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ACLParserTokenManager.java
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream, int lexState) {
 ACLParserTokenManager@+ ACLParserTokenManager@public ACLParserTokenManager(ASCII_CharStream stream) {
 ACLParserTokenManager@- ReInit@public void ReInit(ASCII_CharStream stream, int lexState) {
@@ -369,7 +369,7 @@ ACLParserTokenManager@- jjStopAtPos@private final int jjStopAtPos(int pos, int k
 ACLParserTokenManager@- jjStopStringLiteralDfa_1@private final int jjStopStringLiteralDfa_1(int pos, long active0) {
 ACLParserTokenManager@- jjStopStringLiteralDfa_3@private final int jjStopStringLiteralDfa_3(int pos, long active0) {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ASCII_CharStream.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ASCII_CharStream.java
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.InputStream dstream, int startline, int startcolumn, int buffersize) {
 ASCII_CharStream@+ ASCII_CharStream@public ASCII_CharStream(java.io.Reader dstream, int startline, int startcolumn) {
@@ -396,18 +396,18 @@ ASCII_CharStream@- getEndLine@public final int getEndLine() {
 ASCII_CharStream@- getLine@public final int getLine() {
 ASCII_CharStream@- readChar@public final char readChar() throws java.io.IOException {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/ParseException.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/ParseException.java
 ParseException@+ ParseException@public ParseException(String message) {
 ParseException@+ ParseException@public ParseException() {
 ParseException@+ ParseException@public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal, String[] tokenImageVal ) {
 ParseException@- add_escapes@protected String add_escapes(String str) {
 ParseException@- getMessage@public String getMessage() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/Token.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/Token.java
 Token@- newToken@public static final Token newToken(int ofKind) {
 Token@- toString@public final String toString() {
 
-/home/Giovanni/DEVEL/ADK/src/fipa/lang/acl/TokenMgrError.java
+/home/rimassa/DEVEL/JADE/src/jade/lang/acl/TokenMgrError.java
 TokenMgrError@- LexicalError@private static final String LexicalError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar) {
 TokenMgrError@+ TokenMgrError@public TokenMgrError(boolean EOFSeen, int lexState, int errorLine, int errorColumn, String errorAfter, char curChar, int reason) {
 TokenMgrError@+ TokenMgrError@public TokenMgrError(String message, int reason) {
