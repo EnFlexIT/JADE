@@ -24,12 +24,18 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 /**
+  This exception is thrown when trying to create an agent with an
+  already existing name.
 @author Giovanni Rimassa - Universita` di Parma
 @version $Date$ $Revision$
 */
 public class NameClashException extends Exception {
 
-  NameClashException(String msg) {
+  /**
+    Construct a <code>NameClashException</code> with the given message.
+    @param msg The exception message.
+  */
+  public NameClashException(String msg) {
     super(msg);
   }
 }
