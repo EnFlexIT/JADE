@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/06/04 07:59:50  rimassa
+  Changed package scoping when using some String constants.
+
   Revision 1.1  1999/05/20 15:42:13  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -321,7 +324,7 @@ public class rma extends Agent {
       agentName = agentName.concat('@' + getAddress());
 
     if(containerName.equals(""))
-      containerName = AgentPlatform.MAIN_CONTAINER_NAME;
+      containerName = AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME;
 
     amsd.setName(agentName);
 
@@ -436,7 +439,7 @@ public class rma extends Agent {
    Callback method for platform management <em>GUI</em>.
    */
   public void shutDownPlatform() {
-    killContainer(AgentPlatform.MAIN_CONTAINER_NAME);
+    killContainer(AgentManagementOntology.PlatformProfile.MAIN_CONTAINER_NAME);
   }
 
 }
