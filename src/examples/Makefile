@@ -9,7 +9,7 @@ TARGETS = receivers/AgentReceiver.java receivers/AgentSender.java \
 	  subdf/SubDF.java \
 	  Base64/ObjectReaderAgent.java Base64/ObjectWriterAgent.java Base64/Person.java \
 	  ex7/OntologyTest.java \
-	  mobile/MobileAgent.java \
+	  mobile/MobileAgent.java
 
 all: 
 	@echo Making test examples
