@@ -60,6 +60,7 @@
     <!-- Copy xml configuration files -->
     <copy todir="classes" >
      <fileset dir="src" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
+     <fileset dir="src" includes="**/*.properties **/**/*.properties **/**/**/*.properties **/**/**/**/*.properties"/>
     </copy>
   </target>
 
