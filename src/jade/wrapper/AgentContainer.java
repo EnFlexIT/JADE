@@ -23,7 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import java.rmi.RemoteException; // FIXME: This will have to go away...
+//import java.rmi.RemoteException; // FIXME: This will have to go away...
 
 import jade.core.AID;
 import jade.core.AgentContainerImpl;
@@ -130,7 +130,7 @@ public class AgentContainer {
     try {
       myImpl.installMTP(address, className);
     }
-    catch(IMTPException re) { // It should never happen...
+    catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
     }
   }
@@ -152,7 +152,7 @@ public class AgentContainer {
     try {
       myImpl.uninstallMTP(address);
     }
-    catch(IMTPException re) { // It should never happen...
+    catch(IMTPException imtpe) { // It should never happen...
       throw new InternalError("Remote exception on a local call.");
     }
   }
