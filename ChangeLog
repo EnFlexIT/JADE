@@ -9,6 +9,8 @@ GENERAL IMPROVEMENTS:
 - Added method submit() in the Service interface for cross service command
 	submission
 - Added support for a service filter to stop a command.
+- Added command line options to select the port where RMI objects are to
+  be exported (-smhost, -smport, -nodehost, -nodeport).
 
 - LEAP add-on:
 	- Modified default BackEnd-FrontEnd communication using two sockets
