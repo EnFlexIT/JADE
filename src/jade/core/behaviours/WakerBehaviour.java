@@ -27,7 +27,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import jade.core.*;
 
-import java.util.*;
+import java.util.Date;
 
 /**
  * This abstract class implements a OneShot task that must be executed
