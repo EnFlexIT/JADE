@@ -379,7 +379,13 @@ public class ProfileImpl extends Profile {
   } 
 
     public String toString() {
-	return "(Profile "+props.toString()+")";
+	StringBuffer str = new StringBuffer("(Profile");
+	String[] properties = props.toStringArray();
+	if (properties != null)
+	    for (int i=0; i<properties.length; i++)
+		str.append(" "+properties[i]);
+	str.append(")");
+	return str.toString();
     }
 }
 
