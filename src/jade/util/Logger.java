@@ -188,10 +188,13 @@ public class Logger
      @return myLogger the instance of the Logger.
 	 */
 	public static Logger getMyLogger(String name){
-		Logger myLogger = new Logger(name, (String)null);
-		java.util.logging.LogManager.getLogManager().addLogger(myLogger);
+		Logger lg = (Logger) java.util.logging.LogManager.getLogManager().getLogger(name);
+		if (lg == null) {
+			lg = new Logger(name, (String)null);
+			java.util.logging.LogManager.getLogManager().addLogger(lg);
+		}
 		
-		return myLogger;
+		return lg;
 	}
 	
 	/**
