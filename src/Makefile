@@ -36,6 +36,7 @@ ROOTCLASSES =	jade/core/behaviours/ComplexBehaviour.java \
 		jade/proto/FipaQueryInitiatorBehaviour.java \
 		jade/proto/FipaQueryResponderBehaviour.java \
 		jade/tools/rma/rma.java \
+		jade/tools/sniffer/Sniffer.java \
 		jade/tools/DummyAgent/DummyAgent.java \
 		jade/tools/SocketProxyAgent/SocketProxyAgent.java
 
@@ -85,7 +86,6 @@ clean:
 	rm -f FIPA_Agent_97Holder.java
 	rm -f FIPA_Agent_97Helper.java
 	rm -f _FIPA_Agent_97ImplBase.java
-
 
 	rm -f jade/lang/acl/ACLParser.java
 	rm -f jade/lang/acl/ACLParserConstants.java
