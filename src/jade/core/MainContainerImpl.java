@@ -100,6 +100,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 
     private List platformListeners = new LinkedList();
     private List platformAddresses = new LinkedList();
+    private List agentTools = new LinkedList();
+
     private ContainerTable containers = new ContainerTable();
     private GADT platformAgents = new GADT();
   
@@ -284,6 +286,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     public void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, AuthException {
 
 	try {
+	    theAMS.resetEvents(true);
 	    ac.initAgent(ac.getAMS(), theAMS, AgentContainerImpl.CREATE_AND_START);
 	    theAMS.waitUntilStarted();
 	}
@@ -549,6 +552,22 @@ public class MainContainerImpl implements MainContainer, AgentManager {
   // These methods are called by the AMS to execute the actions that can 
   // be requested by agents in the platform.
   //////////////////////////////////////////////////////////////////////
+
+  public void addTool(AID tool) {
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.ADD_TOOL, jade.core.event.NotificationSlice.NAME, null);
+      cmd.addParam(tool);
+
+      myCommandProcessor.processOutgoing(cmd);
+  }
+
+  public void removeTool(AID tool) {
+      GenericCommand cmd = new GenericCommand(jade.core.event.NotificationSlice.REMOVE_TOOL, jade.core.event.NotificationSlice.NAME, null);
+	cmd.addParam(tool);
+
+	myCommandProcessor.processOutgoing(cmd);
+  }
+
+
   /**
      Create an agent on a given container
      @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, AuthException, NotFoundException
@@ -1158,12 +1177,39 @@ public class MainContainerImpl implements MainContainer, AgentManager {
       ContainerID cid1 = ad.getContainerID();
 
       if (cid.equals(cid1)) {
-				agents.add(id);
+	  agents.add(id);
       } 
-    	platformAgents.release(id);
-  	} 
-  	return agents;
+      platformAgents.release(id);
+    } 
+    return agents;
   }
+
+  public void toolAdded(AID tool) {
+      synchronized(agentTools) {
+	  if(!agentTools.contains(tool)) {
+	      agentTools.add(tool);
+	  }
+      }
+  }
+
+  public void toolRemoved(AID tool) {
+      synchronized(agentTools) {
+	  agentTools.remove(tool);
+      }
+  }
+
+  public AID[] agentTools() {
+      synchronized(agentTools) {
+	  Object[] objs = agentTools.toArray();
+	  AID[] result = new AID[objs.length];
+	  for(int i = 0; i < result.length; i++) {
+	      result[i] = (AID)objs[i];
+	  }
+
+	  return result;
+      }
+  }
+
   
   /**
      Return the ID of the container an agent lives in

@@ -48,6 +48,9 @@ public interface MainContainer {
     void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
     void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
 
+    void toolAdded(AID tool);
+    void toolRemoved(AID tool);
+
     ContainerID[] containerIDs();
     AID[] agentNames();
     List containerMTPs(ContainerID cid) throws NotFoundException;

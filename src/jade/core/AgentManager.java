@@ -79,6 +79,10 @@ public interface AgentManager {
   AID[] agentNames();
   List containerMTPs(ContainerID cid) throws NotFoundException;
   List containerAgents(ContainerID cid) throws NotFoundException;
+
+  void addTool(AID tool);
+  void removeTool(AID tool);
+  AID[] agentTools();
   
   ContainerID getContainerID(AID agentID) throws NotFoundException;
   AMSAgentDescription getAMSDescription(AID agentID) throws NotFoundException;
