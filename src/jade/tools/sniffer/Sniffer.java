@@ -174,19 +174,44 @@ public class Sniffer extends ToolAgent {
     private MessageTemplate listenSniffTemplate;
 
     SniffListenerBehaviour() {
-      listenSniffTemplate = MessageTemplate.MatchOntology("sniffed-message");
+      listenSniffTemplate = MessageTemplate.MatchConversationId(getName() + "-event");
     }
 
     public void action() {
 
       ACLMessage current = receive(listenSniffTemplate);
       if(current != null) {
-
 	try {
+	  List l = extractContent(current);
+	  Occurred o = (Occurred)l.get(0);
+	  EventRecord er = o.get_0();
+	  Event ev = (Event)er.getWhat();
+	  String content;
+	  if(ev instanceof SentMessage)
+	    content = ((SentMessage)ev).getMessage().getPayload();
+	  else if(ev instanceof PostedMessage)
+	    content = ((PostedMessage)ev).getMessage().getPayload();
+	  else return;
+
 	  ACLCodec codec = new StringACLCodec();
-	  String content = current.getContent();
 	  ACLMessage tmp = codec.decode(content.getBytes());
 	  Message msg = new Message(tmp);
+
+	  // If this is a 'posted-message' event and the sender is
+	  // currently under sniff, then the message was already
+	  // displayed when the 'sent-message' event occurred. In that
+	  // case, we simply skip this message.
+	  if(ev instanceof PostedMessage) {
+	    String nickname = msg.getSender().getName();
+	    int index = nickname.indexOf("@");
+	    if(index != -1)
+	      nickname = nickname.substring(0, index);
+
+	    Agent a = new Agent(nickname);
+	    if(agentsUnderSniff.contains(a))
+	      return;
+	  }
+
           // If the message that we just got is one that should be filtered out
           // then drop that it on the floor.  WARNING - this means that the log file
           // that the sniffer might dump does not include the message!!!!
@@ -288,7 +313,6 @@ public class Sniffer extends ToolAgent {
 	      ActionProcessor ap = myGUI.actPro;
               DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
               sa.doSniff(agent.getName());
-              sa.sendAgentVector();
 	    } else {
               // System.out.println("Agent not in .inf: " + agent.getName());
 	    }
@@ -302,6 +326,7 @@ public class Sniffer extends ToolAgent {
 	    String container = cid.getName();
 	    AID agent = da.getAgent();
 	    myGUI.removeAgent(container, agent);
+
 	  }
         });
 
@@ -404,9 +429,12 @@ public class Sniffer extends ToolAgent {
     ACLMessage request = getSniffMsg(l, SNIFF_OFF);
     //start a FIPARequestProtocol to sniffOf the agent since the sniffer will die
     try{
-    if(request != null)
-        FIPAServiceCommunicator.doFipaRequestClient(this,request);
-    }catch(jade.domain.FIPAException e){e.printStackTrace();}
+      if(request != null)
+	FIPAServiceCommunicator.doFipaRequestClient(this,request);
+    }
+    catch(jade.domain.FIPAException e) {
+      System.out.println(e.getMessage());
+    }
 
     myGUI.mainPanel.panelcan.canvMess.ml.removeAllMessages();
 
