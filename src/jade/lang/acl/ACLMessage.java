@@ -29,6 +29,11 @@ import java.io.Writer;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.lang.ClassNotFoundException;
 
 import java.util.Enumeration;
 import java.util.Date;
@@ -46,11 +51,12 @@ import starlight.util.Base64;
  * the methods <em>get</em>. <p>
  * Notice that the <em>get</em> methods never
  * return null, rather they return an empty String. <p>
- * The methods <code> setContentBase64() </code> and 
- * <code> getContentBase64() </code> allow to send
+ * The methods <code> setContentObject() </code> and 
+ * <code> getContentObject() </code> allow to send
  * serialized Java objects over the content of an ACLMessage.
+ * These method are not FIPA compliant so thier usage is not encouraged.
  
- Javadoc documentation for the file
+ 
  @author Fabio Bellifemine - CSELT
  @version $Date$ $Revision$
 
@@ -333,7 +339,7 @@ private int performative; // keeps the performative type of this object
    * @see java.io.ObjectOutputStream#writeObject(Object)
    * @param bytes is the the sequence of bytes to be appended to the content of this message
    */
-  public void setContentBase64(byte[] bytes) {
+  private void setContentBase64(byte[] bytes) {
     try {
       content = new StringBuffer().append(Base64.encode(bytes));
     }
@@ -353,7 +359,23 @@ private int performative; // keeps the performative type of this object
     }
   }
 
-
+  /**
+  This methods set the content of this ACLMessage to a Java object.
+  It is not FIPA compliant so its usage is not encouraged.
+  For example:<br>
+  <PRE>
+  ACLMessage msg;
+  msg.setContentObject(new Date());
+  </PRE>
+  */
+  public void setContentObject(Serializable s) throws IOException
+  {
+  	ByteArrayOutputStream c = new ByteArrayOutputStream();
+  	ObjectOutputStream oos = new ObjectOutputStream(c);
+  	oos.writeObject(s);
+  	oos.flush();
+  	setContentBase64(c.toByteArray());
+  }
   /**
    * This method returns the content of this ACLmessage
    * after decoding according to Base64.
@@ -372,7 +394,7 @@ private int performative; // keeps the performative type of this object
    * @see jade.lang.acl.ACLMessage#getContent()
    * @see java.io.ObjectInputStream#readObject()
    */
-  public byte[] getContentBase64() {
+  private byte[] getContentBase64() {
     try {
       char[] cc = new char[content.length()];
       content.getChars(0,content.length(),cc,0);
@@ -392,6 +414,22 @@ private int performative; // keeps the performative type of this object
       	return new byte[0];
     }
     
+  }
+  /**
+  This method return the content of a this ACLMessage after decoding according to Base64.
+  It is not FIPA compliant so its usage is not encouraged.
+  */
+  public Serializable getContentObject() throws IOException,ClassNotFoundException, UnreadableException
+  {
+  	
+  		try{
+  			ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(getContentBase64()));
+  		  Serializable s = (Serializable)oin.readObject();
+  		  return s;
+  		}catch (java.lang.Error e){
+  		 throw new UnreadableException(e.getMessage());
+  		}
+  	
   }
 
   /**
