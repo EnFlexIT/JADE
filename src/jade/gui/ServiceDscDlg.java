@@ -29,6 +29,8 @@ package jade.gui;
 // Import required Java classes 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.Serializable;
+
 import javax.swing.*;
 import java.util.Iterator;
 import java.util.Properties;
@@ -280,7 +282,7 @@ public class ServiceDscDlg extends JDialog
 										}
 								}
 								// set the value of this property
-            		tp.setValue(val);
+            		tp.setValue((Serializable)val);
             		out.addProperties(tp);
             	}
 

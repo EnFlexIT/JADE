@@ -206,7 +206,7 @@ public class XMLCodec extends DefaultHandler {
         char[] serdata = acc.toString().toCharArray();
         ObjectInputStream ois = new ObjectInputStream( 
           new ByteArrayInputStream(Base64.decode(serdata)));
-        p.setValue(ois.readObject());
+        p.setValue((Serializable)ois.readObject());
       }catch(Exception e){
 	  // nothing, we leave value of this property as null;
       }

@@ -71,7 +71,7 @@ public class TestSerializableProperty extends Test {
  				// Prepare registration message
  				Vector v = new Vector();
  				try {
- 					java.util.List l = new ArrayList();
+ 					java.util.ArrayList l = new java.util.ArrayList();
  					l.add(A_STRING);
  					l.add(AN_INTEGER);
  					Property p = new Property(SER_PROP_NAME, l);
