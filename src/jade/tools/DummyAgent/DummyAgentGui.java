@@ -43,7 +43,7 @@ import jade.gui.*;
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
 */
-class DummyAgentGui extends JFrame implements ActionListener
+class DummyAgentGui extends JFrame 
 {
 	DummyAgent        myAgent;
 	AID               agentName;
@@ -52,13 +52,17 @@ class DummyAgentGui extends JFrame implements ActionListener
 	JList             queuedMsgList;
 	File              currentDir;
   String 						logoDummy = "images/dummyagent.gif";
-	// Constructor
+	DummyAgentGui thisGUI;
+	
+  // Constructor
 	DummyAgentGui(DummyAgent a)
 	{
 		//////////////////////////
 		// Call JFrame constructor
 		super();
 
+		thisGUI = this;
+		
 		//////////////////////////////////////////////////////////
 		// Store pointer to the Dummy agent controlled by this GUI
 		myAgent = a;
@@ -121,7 +125,13 @@ class DummyAgentGui extends JFrame implements ActionListener
 
 		JMenu generalMenu = new JMenu ("General");
 		generalMenu.add (item = new JMenuItem ("Exit"));
-		item.addActionListener (this);
+		Action exitAction = new AbstractAction("Exit"){
+			public void actionPerformed(ActionEvent e)
+			{
+					myAgent.doDelete();
+			}
+		};
+		item.addActionListener (exitAction);
 		jmb.add (generalMenu);
 		
     Icon resetImg = GuiProperties.getIcon("reset");
@@ -137,189 +147,54 @@ class DummyAgentGui extends JFrame implements ActionListener
     		
     JMenu currentMsgMenu = new JMenu ("Current message");
 		currentMsgMenu.add (item = new JMenuItem ("Reset"));
-		item.addActionListener (this);
-		item.setIcon(resetImg);
-		currentMsgMenu.add (item = new JMenuItem ("Send"));
-		item.addActionListener (this);
-		item.setIcon(sendImg);
-		currentMsgMenu.add (item = new JMenuItem ("Open"));
-		item.addActionListener (this);
-		item.setIcon(openImg);
-		currentMsgMenu.add (item = new JMenuItem ("Save"));
-		item.addActionListener (this);
-		item.setIcon(saveImg);
-		currentMsgMenu.addSeparator();
-		jmb.add (currentMsgMenu);
-
-		JMenu queuedMsgMenu = new JMenu ("Queued message");
-		queuedMsgMenu.add (item = new JMenuItem ("Open queue"));
-		item.addActionListener (this);
-		item.setIcon(openQImg);
-		queuedMsgMenu.add (item = new JMenuItem ("Save queue"));
-		item.addActionListener (this);
-		item.setIcon(saveQImg);
-		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
-		item.addActionListener (this);
-		item.setIcon(setImg);
-		queuedMsgMenu.add (item = new JMenuItem ("Reply"));
-		item.addActionListener (this);
-		item.setIcon(replyImg);
-		queuedMsgMenu.add (item = new JMenuItem ("View"));
-		item.addActionListener (this);
-		item.setIcon(viewImg);
-		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
-		item.addActionListener (this);
-		item.setIcon(deleteImg);
-		jmb.add (queuedMsgMenu);
-
-		setJMenuBar(jmb);
-
-		/////////////////////////////////////////////////////
-		// Add Toolbar to the NORTH part of the border layout 
-		JToolBar bar = new JToolBar();
-
 		
-		JButton resetB = new JButton();
-	  //resetB.setText("Reset");
-		resetB.setIcon(resetImg);
-		resetB.setToolTipText("New the current ACL message");
-		resetB.addActionListener(this);
-		bar.add(resetB);	
-		
-		JButton sendB = new JButton();
-	  //sendB.setText("Send");
-		sendB.setIcon(sendImg);
-		sendB.setToolTipText("Send the current ACL message");
-		sendB.addActionListener(this);
-		bar.add(sendB);		
-		
-		JButton openB = new JButton();
-		//openB.setText("Open");
-		openB.setIcon(openImg);
-		openB.setToolTipText("Read the current ACL message from file");
-		openB.addActionListener(this);
-		bar.add(openB);
-
-		
-		JButton saveB = new JButton();
-		//saveB.setText("Save");
-		saveB.setIcon(saveImg);
-		saveB.setToolTipText("Save the current ACL message to file");
-		saveB.addActionListener(this);
-		bar.add(saveB);
-
-		bar.addSeparator(new Dimension(50,30));
-
-	
-		JButton openQB = new JButton();
-	  //openQB.setText("Open queue");
-		openQB.setIcon(openQImg);
-		openQB.setToolTipText("Read the queue of sent/received messages from file");
-		openQB.addActionListener(this);
-		bar.add(openQB);
-
-
-		JButton saveQB = new JButton();
-	  //saveQB.setText("Save queue");
-		saveQB.setIcon(saveQImg);
-		saveQB.setToolTipText("Save the queue of sent/received messages to file");
-		saveQB.addActionListener(this);
-		bar.add(saveQB);
-
-		bar.addSeparator();
-		
-		JButton setB = new JButton();
-		//setB.setText("Set as current");
-		setB.setIcon(setImg);
-		setB.setToolTipText("Set the selected ACL message to be the current message");
-		setB.addActionListener(this);
-		bar.add(setB);
-
-
-		JButton replyB = new JButton();
-	  //replyB.setText("Reply");
-		replyB.setIcon(replyImg);
-		replyB.setToolTipText("Prepare a message to reply to the selected message");
-		replyB.addActionListener(this);
-		bar.add(replyB);
-
-		bar.addSeparator();
-	
-		JButton viewB = new JButton();
-		//viewB.setText("View");
-		viewB.setIcon(viewImg);
-		viewB.setToolTipText("View the selected ACL message");
-		viewB.addActionListener(this);
-		bar.add(viewB);
-
-
-		JButton deleteB = new JButton();
-	//deleteB.setText("Delete");
-		deleteB.setIcon(deleteImg);
-		deleteB.setToolTipText("Delete the selected ACL message");
-		deleteB.addActionListener(this);
-		bar.add(deleteB);
-
-		bar.addSeparator(new Dimension(180,30));
-		JadeLogoButton logo = new JadeLogoButton();
-		bar.add(logo);
-		getContentPane().add("North", bar);
-	}
-
-	void showCorrect()
-	{
-		///////////////////////////////////////////
-		// Arrange and display GUI window correctly
-		pack();
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		int centerX = (int)screenSize.getWidth() / 2;
-		int centerY = (int)screenSize.getHeight() / 2;
-		setLocation(centerX - getWidth() / 2, centerY - getHeight() / 2);
-		show();
-	}
-
-	///////////////////////////////////////////
-	// Handlers for menu and toolbar commands
-	public void actionPerformed(ActionEvent e)
-	{
-		String command = e.getActionCommand();
-
-		// RESET
-		if      (command.equals("Reset"))
+		Action currentMessageAction = new AbstractAction("Current message", resetImg){
+		public void actionPerformed(ActionEvent e)
 		{
 			ACLMessage m = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 			m.setSender(agentName);
 	    m.setEnvelope(new jade.domain.FIPAAgentManagement.Envelope());	
 			currentMsgGui.setMsg(m);
 		}
-		// SEND
-		else if (command.equals("Send"))
-		{
-			ACLMessage m = currentMsgGui.getMsg();
-			queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
-		  StringACLCodec codec = new StringACLCodec();
-		  try {
+		};
+		
+
+		item.addActionListener(currentMessageAction);
+	  item.setIcon(resetImg);
+
+	  currentMsgMenu.add (item = new JMenuItem ("Send"));
+		Action sendAction = new AbstractAction("Send", sendImg){
+			public void actionPerformed(ActionEvent e)
+			{
+			  ACLMessage m = currentMsgGui.getMsg();
+			  queuedMsgListModel.add(0, (Object) new MsgIndication(m, MsgIndication.OUTGOING, new Date()));
+		    StringACLCodec codec = new StringACLCodec();
+		    try {
 		      codec.decode(codec.encode(m));
 		      myAgent.send(m);
-		  } catch (ACLCodec.CodecException ce) {	
+		    } catch (ACLCodec.CodecException ce) {	
 		  	  System.out.println("Wrong ACL Message " + m.toString());
 			    ce.printStackTrace();
 		      JOptionPane.showMessageDialog(null,"Wrong ACL Message: "+"\n"+ ce.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
 						  }
-
-			
-		}
-		// OPEN
-		else if (command.equals("Open"))
-		{
-			JFileChooser chooser = new JFileChooser(); 
-			if (currentDir != null)
-				chooser.setCurrentDirectory(currentDir); 
-			int returnVal = chooser.showOpenDialog(null); 
-			if(returnVal == JFileChooser.APPROVE_OPTION)
-			{
-				currentDir = chooser.getCurrentDirectory();
-				String fileName = chooser.getSelectedFile().getAbsolutePath();
+			}
+		};
+		
+	  item.addActionListener (sendAction);
+		item.setIcon(sendImg);
+		
+		currentMsgMenu.add (item = new JMenuItem ("Open"));
+	  Action openAction = new AbstractAction("Open", openImg){
+	  	public void actionPerformed(ActionEvent e)
+	  	{
+	  		JFileChooser chooser = new JFileChooser(); 
+		  	if (currentDir != null)
+				  chooser.setCurrentDirectory(currentDir); 
+		  	int returnVal = chooser.showOpenDialog(null); 
+			  if(returnVal == JFileChooser.APPROVE_OPTION)
+			  {
+				  currentDir = chooser.getCurrentDirectory();
+				  String fileName = chooser.getSelectedFile().getAbsolutePath();
 
 				try
 				{
@@ -333,82 +208,48 @@ class DummyAgentGui extends JFrame implements ActionListener
 					System.out.println("Wrong ACL Message in file: " +fileName);
 					// e2.printStackTrace(); 
 					JOptionPane.showMessageDialog(null,"Wrong ACL Message in file: "+ fileName +"\n"+ e2.getMessage(),"Error Message",JOptionPane.ERROR_MESSAGE);
-				
-			}
-			} 
-		}
-		// SAVE
-		else if (command.equals("Save"))
-		{
-			JFileChooser chooser = new JFileChooser();
-			if (currentDir != null)
-				chooser.setCurrentDirectory(currentDir); 
-			int returnVal = chooser.showSaveDialog(null); 
-			if(returnVal == JFileChooser.APPROVE_OPTION)
-			{
-				currentDir = chooser.getCurrentDirectory();
-				String fileName = chooser.getSelectedFile().getAbsolutePath();
-
-				try
-				{
-					StringACLCodec codec = new StringACLCodec(null,new FileWriter(fileName));
-					ACLMessage ACLmsg = currentMsgGui.getMsg();
-					codec.write(ACLmsg); 
 				}
-				catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
-				catch(IOException e4) { System.out.println("IO Exception"); }
-			} 
-		}
-		// VIEW
-		else if (command.equals("View"))
-		{
-			int i = queuedMsgList.getSelectedIndex();
-			if (i != -1)
-			{
-				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
-				ACLMessage m = mi.getMessage();
-				AclGui.showMsgInDialog(m, this);
-			}
-		}
-		// DELETE
-		else if (command.equals("Delete"))
-		{
-			int i = queuedMsgList.getSelectedIndex();
-			if (i != -1)
-			{
-				queuedMsgListModel.removeElementAt(i);
-			}
-		}
-		// SET AS CURRENT
-		else if (command.equals("Set as current"))
-		{
-			int i = queuedMsgList.getSelectedIndex();
-			if (i != -1)
-			{
-				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
-				ACLMessage m = mi.getMessage();
-				currentMsgGui.setMsg(m);
-			}
-		}
-		// REPLY
-		else if (command.equals("Reply"))
-		{
-			int i = queuedMsgList.getSelectedIndex();
-			if (i != -1)
-			{
-				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
-				ACLMessage m = mi.getMessage();
-				ACLMessage reply = m.createReply();
-				reply.setEnvelope(new jade.domain.FIPAAgentManagement.Envelope());
-				//reply.setSender(myAgent.getAID());
-				//currentMsgGui.setMsg(m.createReply());
-				currentMsgGui.setMsg(reply);
-			}
-		}
-		// OPEN QUEUE
-		else if (command.equals("Open queue"))
-		{
-			JFileChooser chooser = new JFileChooser(); 
+			  } 
+	  	}
+	  };
+		item.addActionListener (openAction);
+		item.setIcon(openImg);
+		
+		currentMsgMenu.add (item = new JMenuItem ("Save"));
+		Action saveAction = new AbstractAction("Save", saveImg){
+	  	public void actionPerformed(ActionEvent e)
+	  	{
+	  		JFileChooser chooser = new JFileChooser();
+			  if (currentDir != null)
+				  chooser.setCurrentDirectory(currentDir); 
+			  int returnVal = chooser.showSaveDialog(null); 
+			  if(returnVal == JFileChooser.APPROVE_OPTION)
+			  {
+			  	currentDir = chooser.getCurrentDirectory();
+			  	String fileName = chooser.getSelectedFile().getAbsolutePath();
+
+				  try
+			  	{
+					  StringACLCodec codec = new StringACLCodec(null,new FileWriter(fileName));
+				  	ACLMessage ACLmsg = currentMsgGui.getMsg();
+				  	codec.write(ACLmsg); 
+				  }
+				  catch(FileNotFoundException e3) { System.out.println("Can't open file: " + fileName); }
+				  catch(IOException e4) { System.out.println("IO Exception"); }
+			  } 
+	  	}
+		};
+    item.addActionListener (saveAction);
+		item.setIcon(saveImg);
+		currentMsgMenu.addSeparator();
+		jmb.add (currentMsgMenu);
+
+		JMenu queuedMsgMenu = new JMenu ("Queued message");
+		queuedMsgMenu.add (item = new JMenuItem ("Open queue"));
+		Action openQAction = new AbstractAction("Open queue", openQImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	JFileChooser chooser = new JFileChooser(); 
 			if (currentDir != null)
 				chooser.setCurrentDirectory(currentDir); 
 			int returnVal = chooser.showOpenDialog(null); 
@@ -446,11 +287,17 @@ class DummyAgentGui extends JFrame implements ActionListener
 				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
 				catch(IOException e6) { System.out.println("IO Exception"); }
 			} 
-		}
-		// SAVE QUEUE
-		else if (command.equals("Save queue"))
-		{
-			JFileChooser chooser = new JFileChooser(); 
+
+	  	}
+		};
+		item.addActionListener (openQAction);
+		item.setIcon(openQImg);
+		
+		queuedMsgMenu.add (item = new JMenuItem ("Save queue"));
+		Action saveQAction = new AbstractAction("Save queue", saveQImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	JFileChooser chooser = new JFileChooser(); 
 			if (currentDir != null)
 				chooser.setCurrentDirectory(currentDir); 
 			int returnVal = chooser.showSaveDialog(null); 
@@ -481,12 +328,188 @@ class DummyAgentGui extends JFrame implements ActionListener
 				catch(FileNotFoundException e5) { System.out.println("Can't open file: " + fileName); }
 				catch(IOException e6) { System.out.println("IO Exception"); }
 			} 
-		}
-		// EXIT
-		else if (command.equals("Exit"))
-		{
-			myAgent.doDelete();
-		}
+
+	  }
+	  };
+		item.addActionListener (saveQAction);
+		item.setIcon(saveQImg);
+		
+		queuedMsgMenu.add (item = new JMenuItem ("Set as current"));
+		Action setAction = new AbstractAction("Set as current", setImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				currentMsgGui.setMsg(m);
+			}
+
+	  }
+	  };
+
+		item.addActionListener (setAction);
+		item.setIcon(setImg);
+		
+		queuedMsgMenu.add (item = new JMenuItem ("Reply"));
+    Action replyAction = new AbstractAction("Reply", replyImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				ACLMessage reply = m.createReply();
+				reply.setEnvelope(new jade.domain.FIPAAgentManagement.Envelope());
+				//reply.setSender(myAgent.getAID());
+				//currentMsgGui.setMsg(m.createReply());
+				currentMsgGui.setMsg(reply);
+			}
+
+	  }
+	  };
+		item.addActionListener (replyAction);
+		item.setIcon(replyImg);
+		
+		queuedMsgMenu.add (item = new JMenuItem ("View"));
+		Action viewAction = new AbstractAction("View", viewImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				MsgIndication mi = (MsgIndication) queuedMsgListModel.getElementAt(i);
+				ACLMessage m = mi.getMessage();
+				AclGui.showMsgInDialog(m, thisGUI);
+			}
+	  }
+	  };
+		item.addActionListener (viewAction);
+		item.setIcon(viewImg);
+		
+		queuedMsgMenu.add (item = new JMenuItem ("Delete"));
+		Action deleteAction = new AbstractAction("Delete", deleteImg){
+	  public void actionPerformed(ActionEvent e)
+	  {
+	  	int i = queuedMsgList.getSelectedIndex();
+			if (i != -1)
+			{
+				queuedMsgListModel.removeElementAt(i);
+			}
+
+	  }
+	  };
+		item.addActionListener (deleteAction);
+		item.setIcon(deleteImg);
+		jmb.add (queuedMsgMenu);
+
+		setJMenuBar(jmb);
+
+		/////////////////////////////////////////////////////
+		// Add Toolbar to the NORTH part of the border layout 
+		JToolBar bar = new JToolBar();
+
+		
+		JButton resetB = new JButton();
+	  //resetB.setText("Reset");
+		resetB.setText("");
+	  resetB.setIcon(resetImg);
+		resetB.setToolTipText("New the current ACL message");
+		resetB.addActionListener(currentMessageAction);
+		bar.add(resetB);	
+		
+		JButton sendB = new JButton();
+	  sendB.setText("");
+		sendB.setIcon(sendImg);
+		sendB.setToolTipText("Send the current ACL message");
+		sendB.addActionListener(sendAction);
+		bar.add(sendB);		
+		
+		JButton openB = new JButton();
+		openB.setText("");
+		openB.setIcon(openImg);
+		openB.setToolTipText("Read the current ACL message from file");
+		openB.addActionListener(openAction);
+		bar.add(openB);
+
+		
+		JButton saveB = new JButton();
+		saveB.setText("");
+		saveB.setIcon(saveImg);
+		saveB.setToolTipText("Save the current ACL message to file");
+		saveB.addActionListener(saveAction);
+		bar.add(saveB);
+
+		bar.addSeparator(new Dimension(50,30));
+
+	
+		JButton openQB = new JButton();
+	  openQB.setText("");
+		openQB.setIcon(openQImg);
+		openQB.setToolTipText("Read the queue of sent/received messages from file");
+		openQB.addActionListener(openQAction);
+		bar.add(openQB);
+
+
+		JButton saveQB = new JButton();
+	  saveQB.setText("");
+		saveQB.setIcon(saveQImg);
+		saveQB.setToolTipText("Save the queue of sent/received messages to file");
+		saveQB.addActionListener(saveQAction);
+		bar.add(saveQB);
+
+		bar.addSeparator();
+		
+		JButton setB = new JButton();
+		setB.setText("");
+		setB.setIcon(setImg);
+		setB.setToolTipText("Set the selected ACL message to be the current message");
+		setB.addActionListener(setAction);
+		bar.add(setB);
+
+
+		JButton replyB = new JButton();
+	  replyB.setText("");
+		replyB.setIcon(replyImg);
+		replyB.setToolTipText("Prepare a message to reply to the selected message");
+		replyB.addActionListener(replyAction);
+		bar.add(replyB);
+
+		bar.addSeparator();
+	
+		JButton viewB = new JButton();
+		viewB.setText("");
+		viewB.setIcon(viewImg);
+		viewB.setToolTipText("View the selected ACL message");
+		viewB.addActionListener(viewAction);
+		bar.add(viewB);
+
+
+		JButton deleteB = new JButton();
+	  deleteB.setText("");
+		deleteB.setIcon(deleteImg);
+		deleteB.setToolTipText("Delete the selected ACL message");
+		deleteB.addActionListener(deleteAction);
+		bar.add(deleteB);
+
+		bar.addSeparator(new Dimension(180,30));
+		JadeLogoButton logo = new JadeLogoButton();
+		bar.add(logo);
+		getContentPane().add("North", bar);
+	}
+
+	void showCorrect()
+	{
+		///////////////////////////////////////////
+		// Arrange and display GUI window correctly
+		pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int centerX = (int)screenSize.getWidth() / 2;
+		int centerY = (int)screenSize.getHeight() / 2;
+		setLocation(centerX - getWidth() / 2, centerY - getHeight() / 2);
+		show();
 	}
 
 }
