@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.6  1998/10/18 12:40:41  rimassa
+  Added code to create an RMI registry embedded within the Agent
+  Platform; now you don't need to run rmiregistry anymore.
+  Removed some older, commented out code.
+
   Revision 1.5  1998/10/04 18:00:41  rimassa
   Added a 'Log:' field to every source file.
 
@@ -9,6 +14,8 @@ package jade;
 
 
 import java.rmi.*;
+import java.rmi.registry.*;
+
 import java.util.Vector;
 
 
@@ -117,7 +124,13 @@ public class Boot {
       AgentContainerImpl theContainer = null;
       if(isPlatform) {
 	theContainer = new AgentPlatformImpl();
+
+	// Create an embedded RMI Registry within the platform and
+	// bind the Agent Platform to it
+	int port = Integer.parseInt(platformPort);
+	Registry theRegistry = LocateRegistry.createRegistry(port);
 	Naming.bind(platformRMI, theContainer);
+
       }
       else {
 	theContainer = new AgentContainerImpl();
@@ -132,19 +145,6 @@ public class Boot {
       System.err.println("Some other error while starting Agent Container");
       e.printStackTrace();
     }
-
-    /* FIXME: Temporary code; will go away when a GUI administration is put in
-    System.out.println("Type 'quit' to close the container.");
-    String input = "";
-    byte[] buffer = new byte[10];
-    while(!input.equals("quit")) {
-      int len = System.in.read(buffer);
-      input = new String(buffer,0,len-1);
-    }
-    // Shut down the container
-
-    theContainer.shutDown();
-    */
 
   }
 
