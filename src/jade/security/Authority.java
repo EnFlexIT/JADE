@@ -52,7 +52,7 @@ public interface Authority {
 	public final String AGENT_SEND_AS       = "agent-send-as";
 	public final String AGENT_RECEIVE_FROM  = "agent-receive-from";
 	public final String AGENT_MOVE          = "agent-move";
-	public final String AGENT_COPY          = "agent-copy";
+	public final String AGENT_CLONE         = "agent-clone";
 	
 	public final String CONTAINER_CREATE    = "container-create";
 	public final String CONTAINER_KILL      = "container-kill";
@@ -60,8 +60,8 @@ public interface Authority {
 	public final String CONTAINER_KILL_IN   = "container-kill-in";
 	public final String CONTAINER_MOVE_FROM = "container-move-from";
 	public final String CONTAINER_MOVE_TO   = "container-move-to";
-	public final String CONTAINER_COPY_FROM = "container-copy-from";
-	public final String CONTAINER_COPY_TO   = "container-copy-to";
+	public final String CONTAINER_CLONE_FROM = "container-clone-from";
+	public final String CONTAINER_CLONE_TO   = "container-clone-to";
 
 	public final String PLATFORM_CREATE     = "platform-create";
 	public final String PLATFORM_KILL       = "platform-kill";
