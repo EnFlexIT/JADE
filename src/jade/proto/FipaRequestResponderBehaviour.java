@@ -281,32 +281,8 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
       if(s != null)
 	reply.setConversationId(s);
 
-
-      // Start reading message content and spawn a suitable
-      // Behaviour according to action kind
-
-      String content = msg.getContent();
-      if(content == null) {
-	sendNotUnderstood(reply);
-	return;
-      }
-
-      StringTokenizer st = new StringTokenizer(content," \t\n\r()",false);
-
-      String token = st.nextToken();
-      if(token.equalsIgnoreCase("action")) {
-	token = st.nextToken(); // Now 'token' is the agent name
-
-	// Commented out, since it is SL-specific...
-	/*
-	  if(!(token.equalsIgnoreCase(myAgent.getName()) || token.equalsIgnoreCase(myAgent.getLocalName()))) {
-	  sendNotUnderstood(reply);
-	  return;
-	}
-	*/ 
-
-	token = st.nextToken(); // Now 'token' is the action name
-
+	String token=getActionName(msg);
+	
 	Factory action = (Factory)actions.get(token);
 
 	if(action == null) {
@@ -320,14 +296,40 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
 	  ab.setReply(reply);
 	  myAgent.addBehaviour(ab);
 	}
-      }
-      else
-	sendNotUnderstood(reply);
+      
     }
     else block();
+}
 
+/**
+  This method is used to get the right behaviour from the <code>Factory</code>.
+  It must return the name of the action that is then used to look-up 
+  in the factory with the list of registered actions.
+  This default implementation has been provided, but take care because
+  it works only for SL content language and it is also case-sensitive. 
+  Infact, the case of the returned <code>actionName</code> and that of the 
+  <code>actionName</code> passed as a parameter to <code>registerFactory</code> 
+  must be the same.
+  @param msg  the received ACLMessage.
+  @return the name of the action. If the content of the message is empty or its
+  syntax does not comply with SL, it returns an empty String.
+  @see registerFactory(String actionName, Factory f) 
+  */
+protected String getActionName(ACLMessage msg) {  
+  try {  
+		String content = msg.getContent();
+    if(content == null) 
+     	return "";
+    StringTokenizer st = new StringTokenizer(content," \t\n\r()",false);
+    String token = st.nextToken();  // this is action
+	  token = st.nextToken(); 				// Now 'token' is the agent name
+		token = st.nextToken(); 				// Now 'token' is the action name
+		return token;
+  } 
+  catch (Exception e) { 
+  	return "";
   }
-
+}
 
   /**
     Associate a <code>Factory</code> object with an action name. This
@@ -364,4 +366,3 @@ public class FipaRequestResponderBehaviour extends CyclicBehaviour {
   }
 
 } // End of FipaRequestResponderBehaviour class
-
