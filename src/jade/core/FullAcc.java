@@ -173,7 +173,15 @@ class FullAcc implements acc, InChannel.Dispatcher {
       id.addAddresses(addr);
     }
   }
-
+  
+  /**
+     Adjust an AID so that it contains all (and only) platform addresses
+   */
+  public void setPlatformAddresses(AID id) {
+  	id.clearAllAddresses();
+  	addPlatformAddresses(id);
+  }
+  
   public void prepareEnvelope(ACLMessage msg, AID receiver) {
     Envelope env = msg.getEnvelope();
     if(env == null) {

@@ -112,6 +112,6 @@ interface acc {
   	/**
        Add all platform addresses to the given AID
    	*/
-  	public void addPlatformAddresses(AID id);
+  	public void setPlatformAddresses(AID id);
 }
 

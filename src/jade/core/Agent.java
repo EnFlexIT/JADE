@@ -1394,7 +1394,7 @@ public class Agent implements Runnable, Serializable {
       
       synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
 		    myAID = id;
-				myToolkit.addPlatformAddresses(myAID);
+				myToolkit.setPlatformAddresses(myAID);
       }
 
       myThread = rm.getThread(ResourceManager.USER_AGENTS, getLocalName(), this);    
@@ -1544,7 +1544,7 @@ public class Agent implements Runnable, Serializable {
   private void waitUntilActivate() {
     synchronized(suspendLock) {
       while(myAPState == AP_SUSPENDED) {
-	try {
+  try {
 	  suspendLock.wait(); // Blocks on suspended state monitor
 	}
 	catch(InterruptedException ie) {

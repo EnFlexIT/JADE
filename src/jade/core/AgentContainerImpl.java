@@ -708,8 +708,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	myMobilityManager.handleClone(agentID, where, newName);
   }
 
-	public void addPlatformAddresses(AID id) {
-		myACC.addPlatformAddresses(id);
+	public void setPlatformAddresses(AID id) {
+		myACC.setPlatformAddresses(id);
 	}
 	
   // Private methods
