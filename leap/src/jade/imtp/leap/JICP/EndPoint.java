@@ -49,8 +49,8 @@ public abstract class EndPoint extends Thread {
   private boolean    connected = false;
   private Connection theConnection;
   private Object     connectionLock = new Object(); // We can't synchronize on the connection itself as it may be null
-  private DataInputStream  inp;
-  private DataOutputStream out;
+  private InputStream  inp;
+  private OutputStream out;
   private Thread terminator;
   
 	private int pktCnt = 0;
@@ -137,8 +137,10 @@ public abstract class EndPoint extends Thread {
           log("Waiting for a command...");
 
           // Read session id and JICPPacket
-          byte id = inp.readByte();
+          byte id = (byte) inp.read();
+          System.out.println("SessionID read");
           JICPPacket pkt = JICPPacket.readFrom(inp);
+          System.out.println("Packet read");
           pktCnt = (pktCnt+1) & 0x0fff;
         	if (pkt.getType() == JICPProtocol.COMMAND_TYPE) {
           	if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
@@ -200,7 +202,7 @@ public abstract class EndPoint extends Thread {
   					pkt.setTerminatedInfo();
   				}
 			    // Write the session id and the packet
-			    out.writeByte(id);
+			    out.write(id);
 				  return pkt.writeTo(out);
 		    }
 		    catch (IOException ioe) {
@@ -240,8 +242,8 @@ public abstract class EndPoint extends Thread {
   protected final void setConnection(Connection c) throws IOException {
   	synchronized (connectionLock) {
 			theConnection = c;
-	    out = new DataOutputStream(theConnection.getOutputStream());
-	    inp = new DataInputStream(theConnection.getInputStream());
+	    out = theConnection.getOutputStream();
+	    inp = theConnection.getInputStream();
 			connected = true;
   	}
   }
