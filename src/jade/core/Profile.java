@@ -99,6 +99,13 @@ public abstract class Profile {
   public static final String AGENTS = "agents";
 
   /**
+     This constant is the name of the property whose value contains the
+     list of addresses through which the platform <i>Service
+     Manager</i> can be reached.
+  */
+  public static final String REMOTE_SERVICE_MANAGER_ADDRESSES = "smaddrs";
+
+  /**
    * This constant is the key of the property whose value contains the
    * list of MTPs that have to be launched at bootstrap time.
    * This list must be retrieved via the <code>getSpecifiers(MTPS)<code>
