@@ -17,4 +17,16 @@ package jade.proto;
 
 ****************************************************************/
 public class Protocol {
+
+  // These two contants are used to distinguish between different
+  // protocol roles. In particular, the initiator of an interaction is
+  // kept distinct from the responders; in FIPA 97 graphical notation
+  // for protocols, communicative actions originated by the initiator
+  // are represented as white boxes, whereas the ones originated by
+  // other agents are drawn in grey.
+  public static final int initiatorRole = 1;
+  public static final int responderRole = 2;
+
+  private CommunicativeAction startingPoint;
+
 }
