@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.37  1999/04/08 12:07:55  rimassa
+  Added a missing clone() to multicast messages.
+
   Revision 1.36  1999/04/08 12:00:03  rimassa
   Changed multicast code to make it work, even if now isn't probably
   compliant.
@@ -387,14 +390,16 @@ public class AgentContainerImpl extends UnicastRemoteObject implements AgentCont
     ACLMessage msg = event.getMessage();
 
     AgentGroup group = null;
+
     if(event.isMulticast()) {
       group = event.getRecipients();
       Enumeration e = group.getMembers();
       while(e.hasMoreElements()) {
 	String dest = (String)e.nextElement();
-	msg.removeAllDests();
-	msg.addDest(dest);
-	unicastPostMessage(msg, dest);
+	ACLMessage copy = (ACLMessage)msg.clone();
+	copy.removeAllDests();
+	copy.addDest(dest);
+	unicastPostMessage(copy, dest);
       }
     }
     else {  // FIXME: This is probably not compliant
