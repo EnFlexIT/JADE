@@ -120,7 +120,7 @@ public class MicroRuntime {
 			t = new Thread(terminator);
 		}
 		else {
-			// If the termination was activated frome remote, then let
+			// If the termination was activated from remote, then let
 			// the current thread complete before closing down everything
 			final Thread current = Thread.currentThread();
 			t = new Thread(new Runnable() {
