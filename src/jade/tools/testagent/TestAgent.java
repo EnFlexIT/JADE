@@ -33,16 +33,15 @@ import javax.swing.border.*;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology;
-import jade.lang.Codec;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
+
+import jade.content.AgentAction;
+import jade.content.lang.Codec;
+
 import jade.lang.acl.*;
-import jade.lang.acl.*;
-import jade.lang.sl.*;
-import jade.lang.sl.SL0Codec;
-import jade.onto.Frame;
-import jade.onto.Ontology;
-import jade.onto.OntologyException;
+import jade.content.lang.sl.*;
 
 
 /**
@@ -84,8 +83,8 @@ public class TestAgent extends Agent {
     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
     msg.setSender(getAID());
     msg.setEncoding("String");
-    msg.setLanguage(SL0Codec.NAME);
-    msg.setOntology(FIPAAgentManagementOntology.NAME);
+    msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
+    msg.setOntology(FIPAManagementVocabulary.NAME);
     msg.setProtocol("fipa-request");
     msg.setReplyWith("Req" + (new Date()).getTime());
     msg.setConversationId("Req" + (new Date()).getTime());
@@ -103,7 +102,7 @@ public class TestAgent extends Agent {
     amsAgentDescription.setOwnership(getHap());
     amsAgentDescription.setState("ACTIVE");
     Register register = new Register();
-    register.set_0(amsAgentDescription);
+    register.setDescription(amsAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, this.getAMS(), register);
     itsFrame.setItsMsg(msg);
@@ -119,12 +118,12 @@ public class TestAgent extends Agent {
 
     DFAgentDescription dFAgentDescription = new DFAgentDescription();
     dFAgentDescription.setName(getAID());
-    dFAgentDescription.addOntologies(FIPAAgentManagementOntology.NAME);
-    dFAgentDescription.addLanguages(SL0Codec.NAME);
+    dFAgentDescription.addOntologies(FIPAManagementVocabulary.NAME);
+    dFAgentDescription.addLanguages(FIPANames.ContentLanguage.FIPA_SL0);
     dFAgentDescription.addServices(serviceDescr);
 
     Register register = new Register();
-    register.set_0(dFAgentDescription);
+    register.setDescription(dFAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, getDefaultDF(), register);
     itsFrame.setItsMsg(msg);
@@ -135,7 +134,7 @@ public class TestAgent extends Agent {
     DFAgentDescription dFAgentDescription = new DFAgentDescription();
     dFAgentDescription.setName(getAID());
     Deregister deregister = new Deregister();
-    deregister.set_0(dFAgentDescription);
+    deregister.setDescription(dFAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, getDefaultDF(), deregister);
     itsFrame.setItsMsg(msg);
@@ -147,7 +146,7 @@ public class TestAgent extends Agent {
     AMSAgentDescription amsAgentDescription = new AMSAgentDescription();
     amsAgentDescription.setName(getAID());
     Deregister deregister = new Deregister();
-    deregister.set_0(amsAgentDescription);
+    deregister.setDescription(amsAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, getAMS(), deregister);
     itsFrame.setItsMsg(msg);
@@ -162,8 +161,8 @@ public class TestAgent extends Agent {
     searchConstraints.setMaxResults(new Long(100));
 
     Search search = new Search();
-    search.set_1(searchConstraints);
-    search.set_0(amsAgentDescription);
+    search.setConstraints(searchConstraints);
+    search.setDescription(amsAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, getAMS(), search);
     itsFrame.setItsMsg(msg);
@@ -179,8 +178,8 @@ public class TestAgent extends Agent {
     searchConstraints.setMaxResults(new Long(100));
 
     Search search = new Search();
-    search.set_1(searchConstraints);
-    search.set_0(dFAgentDescription);
+    search.setConstraints(searchConstraints);
+    search.setDescription(dFAgentDescription);
 
     ACLMessage msg = createRequestMessage(this, this.getDefaultDF(), search);
     itsFrame.setItsMsg(msg);
@@ -321,8 +320,8 @@ public class TestAgent extends Agent {
     System.out.println("starting up: " + this.getAID().toString());
 
     try {
-      registerLanguage(SL0Codec.NAME, new SL0Codec());
-      this.registerOntology(FIPAAgentManagementOntology.NAME, FIPAAgentManagementOntology.instance());
+      getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+      getContentManager().registerOntology(FIPAManagementOntology.getInstance(), FIPAManagementVocabulary.NAME);
 
     }
     catch (Exception e) {
@@ -338,46 +337,31 @@ public class TestAgent extends Agent {
   }
 
 
-  ACLMessage createRequestMessage(Agent sender, AID receiver, Object what) {
+  ACLMessage createRequestMessage(Agent sender, AID receiver, AgentAction what) {
     ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
     request.setSender(sender.getAID());
     request.addReceiver(receiver);
     request.setProtocol("fipa-request");
-    request.setLanguage(SL0Codec.NAME);
+    request.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     request.setEncoding("String");
-    request.setOntology(FIPAAgentManagementOntology.NAME);
+    request.setOntology(FIPAManagementVocabulary.NAME);
     request.setReplyWith("rw" + sender.getName() + (new Date()).getTime());
     request.setConversationId("conv" + sender.getName() + (new Date()).getTime());
 
-    jade.onto.basic.Action act = new jade.onto.basic.Action();
-    act.set_0(receiver);
-    act.set_1(what);
+    jade.content.onto.basic.Action act = new jade.content.onto.basic.Action();
+    act.setActor(receiver);
+    act.setAction(what);
 
-    jade.util.leap.ArrayList l = new jade.util.leap.ArrayList();
-    jade.lang.sl.SL0Codec sl = new jade.lang.sl.SL0Codec();
-
-    l.add(act);
-
-    String content = encode(act, sl, jade.domain.FIPAAgentManagement.FIPAAgentManagementOntology.instance());
-
-    request.setContent(content);
+    try {
+    	getContentManager().fillContent(request, act);
+    } catch (Exception e) {
+    	e.printStackTrace();
+	}
     return request;
   }
 
 
-  String encode(jade.onto.basic.Action act, Codec c, Ontology o) {
-    // Write the action in the :content slot of the request
-    jade.util.leap.List l = new jade.util.leap.ArrayList();
-    try {
-      Frame f = o.createFrame(act, o.getRoleName(act.getClass()));
-      l.add(f);
-    }
-    catch (OntologyException oe) {
-      System.out.println("oe ");
-    }
-    return c.encode(l, o);
-  }
-
+  
 
   /**
    *  Description of the Class
