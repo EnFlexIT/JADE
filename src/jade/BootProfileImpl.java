@@ -80,6 +80,7 @@ public class BootProfileImpl extends ProfileImpl {
     public static final String PORT_KEY = "port";
     public static final String SMHOST_KEY = "smhost";
     public static final String SMPORT_KEY = "smport";
+    public static final String SMADDRS_KEY = "smaddrs";
     public static final String VERSION_KEY = "version";
     public static final String NOMOBILITY_KEY = "nomobility";
 
@@ -245,7 +246,17 @@ public class BootProfileImpl extends ProfileImpl {
 	if(smPort != null) {
 	    profileProp.setProperty(Profile.LOCAL_SERVICE_MANAGER_PORT, smPort);
 	}
-        
+
+        value = argProp.getProperty(SMADDRS_KEY);
+        if (value != null) {
+	    try {
+		setSpecifiers(Profile.REMOTE_SERVICE_MANAGER_ADDRESSES, Specifier.parseSpecifierList(value));
+	    }
+	    catch(Exception e) {
+		e.printStackTrace();
+	    }
+        }
+
         value = argProp.getProperty(NAME_KEY);
         if (value != null) {
 	    System.out.println("WARNING: using user specified platform name. Please note that this option is stronlgy discouraged since uniqueness of the HAP is not enforced. This might result in non-unique agent names.");
