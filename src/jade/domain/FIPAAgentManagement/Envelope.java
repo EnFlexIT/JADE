@@ -69,10 +69,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
   @serial
   */
   private Date date;
-  /**
-  @serial
-  */
-  private ArrayList encrypted = new ArrayList();
+    
   /**
   @serial
   */
@@ -157,22 +154,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     return date;
   }
 
-  public void addEncrypted(String s) {
-    encrypted.add(s);
-  }
-
-  public boolean removeEncrypted(String s) {
-    return encrypted.remove(s);
-  }
-
-  public void clearAllEncrypted() {
-    encrypted.clear();
-  }
-
-  public Iterator getAllEncrypted() {
-    return encrypted.iterator();
-  }
-
+  
   public void addIntendedReceiver(AID id) {
     intendedReceiver.add(id);
   }
@@ -249,12 +231,6 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 	    s = s + " :payload-encoding " + getPayloadEncoding();
 	if (getDate() != null)
 	    s = s + " :date " + getDate().toString();
-	i = getAllEncrypted();
-	if (i.hasNext()) {
-	    s = s + " :encrypted ";
-	    for (Iterator ii=i; ii.hasNext(); )
-		s = s + " "+ii.next().toString();
-	}
 	i = getAllIntendedReceiver();
 	if (i.hasNext()) {
 	    s = s + " :intended-receiver (sequence ";
@@ -279,7 +255,6 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     public Object clone(){
 	Envelope env = new Envelope();
 	env.to = (ArrayList)to.clone();
-	env.encrypted = (ArrayList)encrypted.clone();
 	env.intendedReceiver= (ArrayList)intendedReceiver.clone();
 	env.stamps = (ArrayList)stamps.clone();
 	env.from = from;

@@ -105,12 +105,12 @@ public class MessageTransportProtocol implements MTP {
 	}
 
 	// Read in the 'encrypted' slot
-	if(IDLenv.encrypted.length > 0)
-	  env.clearAllEncrypted();
-	for(int i = 0; i < IDLenv.encrypted.length; i++) {
-	  String word = IDLenv.encrypted[i];
-	  env.addEncrypted(word);
-	}
+	//if(IDLenv.encrypted.length > 0)
+	//  env.clearAllEncrypted();
+	//for(int i = 0; i < IDLenv.encrypted.length; i++) {
+	//  String word = IDLenv.encrypted[i];
+	//  env.addEncrypted(word);
+	//}
 
 	// Read in the other slots
 	if(IDLenv.comments.length() > 0)
@@ -256,16 +256,17 @@ public class MessageTransportProtocol implements MTP {
 
 
       // Fill in the 'encrypted' field of the IDL envelope
-      Iterator itEncrypted = env.getAllEncrypted();
-      List encrypted = new ArrayList();
-      while(itEncrypted.hasNext()) {
-	String word = (String)itEncrypted.next();
-	encrypted.add(word);
-      }
+      //Iterator itEncrypted = env.getAllEncrypted();
+      //List encrypted = new ArrayList();
+      //while(itEncrypted.hasNext()) {
+	//String word = (String)itEncrypted.next();
+	//encrypted.add(word);
+      //}
 
-      String[] IDLencrypted = new String[encrypted.size()];
-      for(int i = 0; i < encrypted.size(); i++)
-	IDLencrypted[i] = (String)encrypted.get(i);
+      String[] IDLencrypted = new String[0];
+      //String[] IDLencrypted = new String[encrypted.size()];
+      //for(int i = 0; i < encrypted.size(); i++)
+	//IDLencrypted[i] = (String)encrypted.get(i);
 
 
       // Fill in the other fields of the IDL envelope ...

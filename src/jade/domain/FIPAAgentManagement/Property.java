@@ -38,6 +38,14 @@ import jade.content.Concept;
 
     private String name;
     private Object value;
+    
+public Property() {
+}
+
+public Property(String name, Object value) {
+	this.name = name;
+	this.value = value;
+}
 
 public void setName(String n) {
   name = n;

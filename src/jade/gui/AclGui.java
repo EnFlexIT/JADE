@@ -337,12 +337,6 @@ public class AclGui extends JPanel
   /**
   @serial
   */
-  private VisualStringList encryptedPanel;
-
-  
-  /**
-  @serial
-  */
   private VisualAIDList intendedReceiverPanel;
   /**
   @serial
@@ -809,7 +803,7 @@ public class AclGui extends JPanel
     toPanel.setDimension(new Dimension(205,37));  
     put(aclPanel,toPanel, 1, 0, 2, 1, false); 
   
-    //From
+    //From (line #1)
     l = new JLabel("From:");
     put(aclPanel,l, 0, 1, 1, 1,false);
     fromButton = new JButton("Set");
@@ -842,7 +836,7 @@ public class AclGui extends JPanel
       }
     });
     
-    //Comments (line # 2-8)
+    //Comments (line # 2-6)
     l = new JLabel("Comments:");
     put(aclPanel,l,0,2,1,1,false);
     comments = new JTextArea(4,TEXT_SIZE);
@@ -917,22 +911,14 @@ public class AclGui extends JPanel
                         }
                       } );
     
-    //encrypted (line #11)
-    l = new JLabel("Encrypted:");
-    put(aclPanel,l, 0, 11, 1, 1,false);
-    encryptedPanel = new VisualStringList(new ArrayList().iterator(),ownerGui);
-    encryptedPanel.setDimension(new Dimension(205,37));
-    put(aclPanel,encryptedPanel,1,11,2,1,false);
-      
-  
-    //intendedReceiver (line //12)
+    //intendedReceiver (line #11)
     l = new JLabel("Intended Receiver:");
-    put(aclPanel,l,0,12,1,1,false);
+    put(aclPanel,l,0,11,1,1,false);
     intendedReceiverPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
     intendedReceiverPanel.setDimension(new Dimension(205,37));
-    put(aclPanel,intendedReceiverPanel, 1, 12,2,1,false);
+    put(aclPanel,intendedReceiverPanel, 1, 11,2,1,false);
     
-    //ReceivedObject (line //13)
+    //ReceivedObject (line #12-15)
     JPanel recPanel = new JPanel();
     recPanel.setLayout(new BoxLayout(recPanel,BoxLayout.Y_AXIS));
     JPanel tempPane = new JPanel();
@@ -1036,9 +1022,9 @@ public class AclGui extends JPanel
     tempPane.add(via);
     recPanel.add(tempPane);
 
-    put(aclPanel,recPanel,0,13,3,1,false);
+    put(aclPanel,recPanel,0,12,3,1,false);
     
-    //(line 14)
+    //(line 17)
     JPanel tmpPanel = new JPanel();
     //tmpPanel.setBackground(Color.lightGray);
     defaultEnvelopeButton = new JButton("Set Default Envelope");
@@ -1057,7 +1043,7 @@ public class AclGui extends JPanel
           }
         }
     });
-    put(aclPanel,tmpPanel,0,18,3,1,false);
+    put(aclPanel,tmpPanel,0,17,3,1,false);
     //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(aclPanel);
 
@@ -1189,7 +1175,6 @@ public class AclGui extends JPanel
     date.setEditable(false);
     dateButton.setText(guiEnabledFlag ? "Set" : "View");
 
-    encryptedPanel.setEnabled(guiEnabledFlag);
     intendedReceiverPanel.setEnabled(guiEnabledFlag);
     defaultEnvelopeButton.setVisible(guiEnabledFlag);
       //ReceivedObject
@@ -1248,8 +1233,6 @@ public class AclGui extends JPanel
       else
         date.setText("");
       
-      encryptedPanel.resetContent(envelope.getAllEncrypted());
-
       intendedReceiverPanel.resetContent(envelope.getAllIntendedReceiver());
       
       ReceivedObject recObject = envelope.getReceived();
@@ -1498,10 +1481,6 @@ public class AclGui extends JPanel
     //setDate require a Date not a String
     if (dateDate != null) 
       env.setDate(dateDate);
-    
-    Enumeration enc_Enum = encryptedPanel.getContent();
-    while(enc_Enum.hasMoreElements())
-      env.addEncrypted((String)enc_Enum.nextElement());
     
     Enumeration int_Enum = intendedReceiverPanel.getContent();
     while(int_Enum.hasMoreElements())

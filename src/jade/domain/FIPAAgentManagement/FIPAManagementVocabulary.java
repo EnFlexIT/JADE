@@ -70,10 +70,9 @@ public interface FIPAManagementVocabulary extends ExceptionVocabulary {
   public static final String ENVELOPE_PAYLOADLENGTH		= "payload-length";
   public static final String ENVELOPE_PAYLOADENCODING	= "payload-encoding";
   public static final String ENVELOPE_DATE				= "date";
-  public static final String ENVELOPE_ENCRYPTED			= "encrypted";
   public static final String ENVELOPE_INTENDEDRECEIVER	= "intended-receiver";
   public static final String ENVELOPE_TRANSPORTBEHAVIOUR= "transport-behaviour";
-  public static final String ENVELOPE_STAMPS			= "stamps";
+  public static final String ENVELOPE_RECEIVED			= "received";
  
   public static final String RECEIVEDOBJECT				= "received-object";
   public static final String RECEIVEDOBJECT_BY			= "by";
