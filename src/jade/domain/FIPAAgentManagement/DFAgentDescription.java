@@ -53,7 +53,8 @@ import java.util.Date;
 	
 
 	// Added lease default value -1
-	private Date leaseTime = new Date(-1);
+	//private Date leaseTime = new Date(-1);
+	private Date leaseTime;
 
         /** Set the identifier of the agent
          * @param n the identifier of the agent
@@ -69,35 +70,47 @@ import java.util.Date;
       return name;
     }
     
-    /** Set the time at which the lease for the registration will expire.
-     *
-     * @param absoluteTime time at which the lease for this registration will expire
-     */    
+    /**
+       Set the lease time for the registration of this DFAgentDescription
+       as an absolute time.
+       @param absoluteTime The lease time for the registration of this 
+       DFAgentDescription as an absolute time. Use <code>null</code> 
+       (default) to indicate an infinite lease time
+     */
     public void setLeaseTime(Date absoluteTime) {
       leaseTime = absoluteTime;
     }
 
-    /** Return the lease time
-     *
-     */    
+    /**
+       @return The lease time for the registration of this DFAgentDescription
+       as an absolute time. A <code>null</code> value indicates an infinite 
+       time.
+     */
     public Date getLeaseTime() {
       return leaseTime;
     }
     
-    /** Set the duration at which the lease for the registration will expire.
-     * @param relativeTime duration of lease time in milliseconds.
-     */    
-    public void setRemainingLeaseTime(long relativeTime){
-    	long currentTime = System.currentTimeMillis();
-    	leaseTime = new Date(currentTime+relativeTime);
+    /**
+       Set the lease time for the registration of this DFAgentDescription
+       as a relative time.
+       @param relativeTime The lease time for the registration of this 
+       DFAgentDescription as a relative time.
+     */
+    public void setRelativeLeaseTime(long relativeTime){
+    	leaseTime = new Date(System.currentTimeMillis()+relativeTime);
     }
     
-	
-    
-    /** Get the remaining lease time in milliseconds.
-     */    
-    public long getRemainingLeaseTime(){
-    	return (leaseTime.getTime() - System.currentTimeMillis());
+    /**
+       Indicates whether the lease time for the registration of this 
+       DFAgentDescription has expired.
+     */
+    public boolean checkLeaseTimeExpired(){
+    	if (leaseTime == null) {
+    		return false;
+    	}
+    	else {
+    		return (System.currentTimeMillis() > leaseTime.getTime());
+    	}
     }
 
     public void addServices(ServiceDescription a) {
