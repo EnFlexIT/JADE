@@ -58,8 +58,13 @@ public class ProfileImpl extends Profile {
        Creates a Profile implementation that gets the configuration from 
        a file
      */
-    public ProfileImpl(String fileName) throws ProfileException {
-        props = new LEAPProperties(fileName);
+    public ProfileImpl(String fileName) {
+    	if (fileName != null) {
+	        props = new LEAPProperties(fileName);
+    	}
+    	else {
+    		props = new LEAPProperties();
+    	}
     	try {
     		// Set default values
       		String host = InetAddress.getLocalHost().getHostName();
@@ -70,7 +75,9 @@ public class ProfileImpl extends Profile {
       		props.setProperty(PLATFORM_ID, host + ":1099/JADE");
       		
       		// Load the properties from property file
-        	props.load();
+      		if (fileName != null) {
+	        	props.load();
+      		}
     	}
     	catch(UnknownHostException uhe) {
     		uhe.printStackTrace();
@@ -86,7 +93,8 @@ public class ProfileImpl extends Profile {
        host and port for the Main Container and the default platform ID.
      */
 	public ProfileImpl() {
-        props = new LEAPProperties();
+		this(null);
+        /*props = new LEAPProperties();
     	try {
       		String host = InetAddress.getLocalHost().getHostName();
       		props.setProperty(MAIN, "true");
@@ -97,7 +105,7 @@ public class ProfileImpl extends Profile {
     	}
     	catch(UnknownHostException uhe) {
       		uhe.printStackTrace();
-    	}
+    	}*/
   	}
 
 
@@ -149,7 +157,8 @@ public class ProfileImpl extends Profile {
     protected AgentCache getAgentCache() throws ProfileException {
         String className = props.getProperty(AGENTCACHE);
 
-        if (className == null) {
+	if (className == null) {
+			// Use FullAgentCache by default
             className = new String("jade.core.FullAgentCache");
         } 
 
@@ -169,6 +178,7 @@ public class ProfileImpl extends Profile {
         String className = props.getProperty(MOBILITY);
 
         if (className == null) {
+        	// Use RealMobilityHandler by default
             className = new String("jade.core.RealMobilityHandler");
         } 
 
@@ -188,7 +198,8 @@ public class ProfileImpl extends Profile {
         String className = props.getProperty(IMTP);
 
         if (className == null) {
-            throw new ProfileException("No IMTP mechanism specified");
+        	// Use RMIIMTPManager by default
+            className = new String("jade.imtp.rmi.RMIIMTPManager");
         } 
 
         try {
@@ -209,7 +220,7 @@ public class ProfileImpl extends Profile {
      * among the configuration properties.
      */
     public String getParameter(String key) throws ProfileException {
-        return props.getProperty(key);
+    	return props.getProperty(key);
     } 
 
     /**

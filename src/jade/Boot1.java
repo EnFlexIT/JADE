@@ -108,11 +108,11 @@ public class Boot1 {
         // Initialize the Profile
         try {
             Profile p = new ProfileImpl(args[0]);
-
+            
             // Check whether this is the Main Container or a peripheral container
 	        String             isMain = p.getParameter(Profile.MAIN);
 
-    	    if (isMain == null || isMain.equals("true")) {
+    	    if (isMain == null || isMain.equalsIgnoreCase("true")) {
 				Runtime.instance().createMainContainer(p);
             } 
             else {
@@ -120,12 +120,6 @@ public class Boot1 {
             } 
 
         } 
-        //catch (IOException ioe) {
-        //    System.err.println("Error creating the Profile [" 
-        //                       + ioe.getMessage() + "]");
-        //    ioe.printStackTrace();
-        //    System.exit(-1);
-        //} 
         catch (ProfileException pe) {
             pe.printStackTrace();
             System.exit(-1);
