@@ -71,6 +71,10 @@ public interface MainReplicationSlice extends Service.Slice {
     static final String H_NEWTOOL = "12";
     static final String H_DEADTOOL = "13";
 
+    // NOTE that some horizontal command do not have a corresponding
+    // method in the SliceProxy since they are always sent in 
+    // broadcast and therefore the serve() method of the SliceProxy
+    // is called directly.
     int getLabel() throws IMTPException;
     String getPlatformManagerAddress() throws IMTPException;
     void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException;
@@ -78,15 +82,15 @@ public interface MainReplicationSlice extends Service.Slice {
 
     void fillGADT(AID[] agents, ContainerID[] containers) throws IMTPException;
 
-    void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException;
-    void deadAgent(AID name) throws IMTPException, NotFoundException;
+    //void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException;
+    //void deadAgent(AID name) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
-    void resumedAgent(AID name) throws IMTPException, NotFoundException;
+    //void resumedAgent(AID name) throws IMTPException, NotFoundException;
 
-    void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
-    void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
+    //void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
+    //void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
 
     void newTool(AID tool) throws IMTPException;
-    void deadTool(AID tool) throws IMTPException;
+    //void deadTool(AID tool) throws IMTPException;
 
 }

@@ -59,6 +59,7 @@ import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 import jade.mtp.MTPDescriptor;
 
 import jade.security.Credentials;
+import jade.security.JADEPrincipal;
 import jade.security.AuthException;
 
 import jade.util.leap.List;
@@ -264,7 +265,10 @@ public class MainReplicationService extends BaseService {
 		    handleDeadMTP(cmd);
 		}
 	    }
-	    catch(IMTPException imtpe) {
+	    catch (Throwable t) {
+				cmd.setReturnValue(t);
+	    }
+	    /*catch(IMTPException imtpe) {
 		cmd.setReturnValue(imtpe);
 	    }
 	    catch(NotFoundException nfe) {
@@ -278,7 +282,7 @@ public class MainReplicationService extends BaseService {
 	    }
 	    catch(ServiceException se) {
 		cmd.setReturnValue(se);
-	    }
+	    }*/
 
 	    // Never veto a command
 	    return true;
@@ -290,12 +294,10 @@ public class MainReplicationService extends BaseService {
 
 	    AID agentID = (AID)params[0];
 	    ContainerID cid = (ContainerID)params[1];
-	    String ownership = (String)params[2];
 
 	    GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
 	    hCmd.addParam(agentID);
 	    hCmd.addParam(cid);
-	    hCmd.addParam(ownership);
 	    hCmd.setPrincipal(cmd.getPrincipal());
 	    hCmd.setCredentials(cmd.getCredentials());
 
@@ -423,7 +425,6 @@ public class MainReplicationService extends BaseService {
 	}
 
 	public VerticalCommand serve(HorizontalCommand cmd) {
-	    VerticalCommand result = null;
 	    try {
 		String cmdName = cmd.getName();
 		Object[] params = cmd.getParams();
@@ -454,8 +455,7 @@ public class MainReplicationService extends BaseService {
 		else if(cmdName.equals(MainReplicationSlice.H_BORNAGENT)) {
 		    AID name = (AID)params[0];
 		    ContainerID cid = (ContainerID)params[1];
-		    String ownership = (String)params[2];
-		    bornAgent(name, cid, ownership);
+		    bornAgent(name, cid, cmd.getPrincipal(), cmd.getCredentials());
 		}
 		else if(cmdName.equals(MainReplicationSlice.H_DEADAGENT)) {
 		    AID name = (AID)params[0];
@@ -490,12 +490,8 @@ public class MainReplicationService extends BaseService {
 	    }
 	    catch(Throwable t) {
 		cmd.setReturnValue(t);
-		if(result != null) {
-		    result.setReturnValue(t);
-		}
 	    }
-
-            return result;
+	    return null;
 	}
 
 
@@ -561,6 +557,10 @@ public class MainReplicationService extends BaseService {
 
 	private void removeReplica(String smAddr, int index) throws IMTPException {
 	    replicas.remove(index);
+	    adjustLabels(index);
+	}
+	
+	private void adjustLabels(int index) {
 	    if(index < myLabel) {
 		myLabel--;
 		monitoredLabel--;
@@ -594,11 +594,18 @@ public class MainReplicationService extends BaseService {
 
 	}
 
-	private void bornAgent(AID name, ContainerID cid, String ownership) throws NameClashException, NotFoundException, AuthException {
+	private void bornAgent(AID name, ContainerID cid, JADEPrincipal principal, Credentials credentials) throws NameClashException, NotFoundException {
+	  // Retrieve the ownership from the credentials
+    String ownership = "NONE";
+    if (credentials != null) {
+    	JADEPrincipal ownerPr = credentials.getOwner();
+    	if (ownerPr != null) {
+    		ownership = ownerPr.getName();
+    	}
+    }
 	    try {
 		// If the name is already in the GADT, throws NameClashException
-	  // FIXME: What about the principal?
-		myMain.bornAgent(name, cid, ownership, null, false);
+		myMain.bornAgent(name, cid, principal, ownership, false);
 		log("Agent "+name.getName()+" inserted into GADT", 2);
 	    }
 	    catch(NameClashException nce) {
@@ -617,7 +624,7 @@ public class MainReplicationService extends BaseService {
 		}
 		catch(Exception e) {
 		    // Ping failed: forcibly replace the dead agent...
-		    myMain.bornAgent(name, cid, ownership, null, true);
+		    myMain.bornAgent(name, cid, principal, ownership, true);
 				log("Agent "+name.getName()+" inserted into GADT", 2);
 		}
 	    }
@@ -690,6 +697,7 @@ public class MainReplicationService extends BaseService {
 	    	myPlatformManager.removeNode(new NodeDescriptor(n.getName(), n), false);
 
 
+	  replicas.remove(monitoredLabel);
 		// Broadcast a 'removeReplica()' method (exclude yourself from bcast)
 		GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_REMOVEREPLICA, MainReplicationSlice.NAME, null);
 		hCmd.addParam(monitoredSvcMgr);
@@ -699,7 +707,7 @@ public class MainReplicationService extends BaseService {
 		int oldLabel = myLabel;
 
 		// Adjust the label, and become leader if it is the case...
-		removeReplica(monitoredSvcMgr, monitoredLabel);
+		adjustLabels(monitoredLabel);
 
 		// -- Attach to the new neighbour slice...
 		MainReplicationSlice newSlice = (MainReplicationSlice)replicas.get(monitoredLabel);
@@ -770,6 +778,11 @@ public class MainReplicationService extends BaseService {
 	    String sliceName = slice.getNode().getName();
 	    if(includeSelf || !sliceName.equals(localNodeName)) {
 		slice.serve(cmd);
+		Object ret = cmd.getReturnValue();
+		if (ret instanceof Throwable) {
+			log("Error propagating H-command "+cmd.getName()+" to slice "+sliceName, 0);
+			((Throwable) ret).printStackTrace();
+		}
 	    }
 	}
 

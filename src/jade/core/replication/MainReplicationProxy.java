@@ -161,13 +161,13 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	    throw new IMTPException("Unable to access remote node", se);
 	}
     }
-
-    public void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, AuthException {
+    
+    /*public void bornAgent(AID name, ContainerID cid, JADEPrincipal principal String ownership) throws IMTPException, NameClashException, NotFoundException, AuthException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_BORNAGENT, NAME, null);
 	    cmd.addParam(name);
 	    cmd.addParam(cid);
-	    cmd.addParam(creds);
+	    cmd.addParam(ownership);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);
@@ -216,7 +216,7 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	catch(ServiceException se) {
 	    throw new IMTPException("Unable to access remote node", se);
 	}
-    }
+    }*/
 
     public void suspendedAgent(AID name) throws IMTPException, NotFoundException {
 	try {
@@ -242,6 +242,7 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	}
     }
 
+    /*
     public void resumedAgent(AID name) throws IMTPException, NotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_RESUMEDAGENT, NAME, null);
@@ -308,7 +309,7 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	catch(ServiceException se) {
 	    throw new IMTPException("Unable to access remote node", se);
 	}
-    }
+    }*/
 
     public void newTool(AID tool) throws IMTPException {
 	try {
@@ -331,6 +332,7 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	}
     }
 
+    /*
     public void deadTool(AID tool) throws IMTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_DEADTOOL, NAME, null);
@@ -351,5 +353,6 @@ public class MainReplicationProxy extends Service.SliceProxy implements MainRepl
 	    throw new IMTPException("Unable to access remote node", se);
 	}
     }
+    */
 
 }
