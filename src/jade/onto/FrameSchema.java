@@ -1,5 +1,6 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop multi-agent systems in compliance with the FIPA specifications.
+JADE - Java Agent DEvelopment Framework is a framework to develop
+multi-agent systems in compliance with the FIPA specifications.
 Copyright (C) 2000 CSELT S.p.A. 
 
 GNU Lesser General Public License
@@ -143,7 +144,7 @@ class FrameSchema implements Cloneable, Serializable {
 	case Ontology.PREDICATE_TYPE: {
 	  if(!(o instanceof Frame))
 	    throw new WrongTermTypeException(f.getName(), name, Ontology.typeNames[Ontology.CONCEPT_TYPE]); 
-	  myOntology.check((Frame)o, td.getTypeName());
+	  myOntology.check((Frame)o);
 	  break;
 	}
 	default:
