@@ -65,6 +65,7 @@ import jade.lang.acl.ACLMessage;
 import jess.*;
 import java.io.*;
 import jade.util.leap.*;
+import java.util.Hashtable;
 
 /**
 Javadoc documentation for the file

@@ -24,7 +24,7 @@ batch:
 	echo 'Remind to set the CLASSPATH to include the jess packages' >> $(BATCH_JESSEXAMPLE)
 	echo >> $(BATCH_JESSEXAMPLE)
 	echo 'cd src\examples' >> $(BATCH_JESSEXAMPLE)
-	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -classpath %CLASSPATH%;..;..\..\classes $(subst /,\,$(TARGETS))' >> $(BATCH_JESSEXAMPLE)
+	echo '$(JC) $(subst /,\,$(subst $(ROOTDIR),..\..,$(JFLAGS))) -d ..\..\classes -classpath %CLASSPATH%;..;..\..\classes $(subst /,\,$(TARGETS))' >> $(BATCH_JESSEXAMPLE)
 	echo >> $(BATCH_JESSEXAMPLE)
 
 
