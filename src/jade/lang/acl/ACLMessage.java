@@ -67,6 +67,8 @@ import starlight.util.Base64;
  */
  
 public class ACLMessage implements Cloneable, Serializable {
+	// Explicitly set for compatibility between standard and micro version
+	private static final long serialVersionUID=3945353187608998130L;
 
   /** constant identifying the FIPA performative **/
   public static final int ACCEPT_PROPOSAL = 0;
