@@ -53,16 +53,9 @@ class AddRemotePlatformAction extends FixedAction
    	 AID remoteAMS = gui.ShowAIDGui(null,true,true);
    	 try{
    	 	if (remoteAMS != null)
-   	 	{
-   	 		String name = remoteAMS.getName();
-   	 		if(name.toUpperCase().startsWith("AMS"))
-   	 			//FIXME: add control no action on Local AMS...
-   	 			{
-   	 				//System.out.println("an AMS...must not be the local AMS");
-     		  	myRMA.addRemotePlatform(remoteAMS);
-   	 			}
-   	 	}
-   	 }catch(Exception e){e.printStackTrace();}
+		    myRMA.addRemotePlatform(remoteAMS);
+   	 			
+   	    	 }catch(Exception e){e.printStackTrace();}
   }
 
 }  // End of ShowDFGuiAction
