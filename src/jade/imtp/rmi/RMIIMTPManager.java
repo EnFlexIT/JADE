@@ -23,9 +23,15 @@ package jade.imtp.rmi;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.Socket;
+import java.net.ServerSocket;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 import java.rmi.*;
 import java.rmi.registry.*;
+import java.rmi.server.*;
 
 import java.util.Iterator;
 import jade.util.leap.List;
@@ -319,6 +325,22 @@ public class RMIIMTPManager implements IMTPManager {
     }
   }
 
+	/**
+		Creates the client socket factory, which will be used
+		to instantiate a <code>UnicastRemoteObject</code>.
+		@return The client socket factory.
+	*/
+	public RMIClientSocketFactory getClientSocketFactory() {
+		return new SimpleSocketFactory();
+	}
+
+	/**
+		Creates the server socket factory, which will be used
+		to instantiate a <code>UnicastRemoteObject</code>.
+		@return The server socket factory.
+	*/
+	public RMIServerSocketFactory getServerSocketFactory() { 
+		return new SimpleSocketFactory();
+	}
 
 }
-

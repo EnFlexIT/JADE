@@ -290,7 +290,9 @@ public class ProfileImpl extends Profile {
    */
   private void createIMTPManager() throws ProfileException {
     // Use the RMI IMTP by default
-    String className = new String("jade.imtp.rmi.RMIIMTPManager");
+    String className = System.getProperty("jade.imtp.manager");
+    if (className == null)
+    	className = new String("jade.imtp.rmi.RMIIMTPManager");
 
     try {
       myIMTPManager = (IMTPManager) Class.forName(className).newInstance();

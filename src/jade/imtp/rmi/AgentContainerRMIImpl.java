@@ -56,7 +56,7 @@ public class AgentContainerRMIImpl extends UnicastRemoteObject implements AgentC
 
     /** Creates new AgentContainerRMIImpl */
     public AgentContainerRMIImpl(AgentContainer ac, RMIIMTPManager mgr) throws RemoteException {
-      super(0, new RMISSLClientSocketFactory(), new RMISSLServerSocketFactory());
+	    super(0, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
       impl = ac;
       manager = mgr;
     }
