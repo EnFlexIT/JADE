@@ -364,7 +364,7 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
     }
   }
 
-  public String installMTP(String address, String className) throws RemoteException {
+  public String installMTP(String address, String className) throws RemoteException, MTPException {
     try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
@@ -374,32 +374,19 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
       return result;
     }
     catch(ClassNotFoundException cnfe) {
-      System.out.println("ERROR: The class for the IIOP MTP was not found");
-      return null;
+      throw new MTPException("ERROR: The class " + className  + " for the " + address  + " MTP was not found");
     }
     catch(InstantiationException ie) {
-      ie.printStackTrace();
-      return null;
+      throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
     }
     catch(IllegalAccessException iae) {
-      iae.printStackTrace();
-      return null;
-    }
-    catch(MTPException mtpe) {
-      System.out.println("ERROR: Could not initialize MTP from class " + className + "!!!");
-      mtpe.printStackTrace();
-      return null;
+      throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
     }
   }
 
-  public void uninstallMTP(String address) throws RemoteException, NotFoundException {
-    try {
-      theACC.removeMTP(address);
-      myPlatform.deadMTP(address, myName);
-    }
-    catch(MTPException mtpe) {
-      throw new NotFoundException("The specified MTP was not present in the ACC");
-    }
+  public void uninstallMTP(String address) throws RemoteException, NotFoundException, MTPException {
+    theACC.removeMTP(address);
+    myPlatform.deadMTP(address, myName);
   }
 
   public void updateRoutingTable(int op, String address, AgentContainer ac) throws RemoteException {
@@ -522,6 +509,27 @@ class AgentContainerImpl extends UnicastRemoteObject implements AgentContainer, 
   public void shutDown() {
 
     // Close all MTP links to the outside world
+    List l = theACC.getLocalAddresses();
+    String[] addresses = (String[])l.toArray(new String[0]);
+    for(int i = 0; i < addresses.length; i++) {
+      try {
+	String addr = addresses[i];
+	uninstallMTP(addr);
+      }
+      catch(RemoteException re) {
+	// It should never happen
+	System.out.println("ERROR: Remote Exception thrown for a local call.");
+      }
+      catch(NotFoundException nfe) {
+	nfe.printStackTrace();
+      }
+      catch(MTPException mtpe) {
+	mtpe.printStackTrace();
+      }
+
+    }
+
+    // Close down the ACC
     theACC.shutdown();
 
     // Shuts down the Timer Dispatcher
