@@ -40,6 +40,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	private long wakeupTime, period;
 	private int state;
 	private boolean finished;
+	private int tickCount = 0;
 
   /**
    * Construct a <code>TickerBehaviour</code> that call its 
@@ -66,6 +67,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
       // Timeout is expired --> execute the user defined action and
     	// re-initialize wakeupTime
     	onTick();
+    	tickCount++;
 			wakeupTime = System.currentTimeMillis() + period;
 			blockTime = period;
     } 
@@ -105,6 +107,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
   	super.reset();
   	state = 0;
   	finished = false;
+  	tickCount = 0;
 	}
 
 	/**
@@ -112,5 +115,12 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	 */
 	public void stop() {
 		finished = true;
+	}
+
+	/**
+	 * @return The number of ticks since the last reset
+	 */
+	public int getTickCount() {
+		return tickCount;
 	}
 }
