@@ -40,9 +40,9 @@ import java.util.HashMap;
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
 */
-public class DefaultOntology implements Ontology {
+public final class DefaultOntology implements Ontology {
 
-  private static final List primitiveTypes = new ArrayList(10);
+  private static final List primitiveTypes = new ArrayList(11);
 
   static {
     primitiveTypes.add(BOOLEAN_TYPE, Boolean.TYPE);
@@ -55,10 +55,19 @@ public class DefaultOntology implements Ontology {
     primitiveTypes.add(SHORT_TYPE, Short.TYPE);
     primitiveTypes.add(STRING_TYPE, String.class);
     primitiveTypes.add(BINARY_TYPE, (new byte[0]).getClass());
+    primitiveTypes.add(ANY_TYPE, (new Object()).getClass());
   }
 
+
+  /** Symbolic constant identifying a frame representing an action **/ 
+  public static String NAME_OF_ACTION_FRAME = "action";
+  /** Symbolic constant identifying a slot representing an actor **/ 
+  public static String NAME_OF_ACTOR_SLOT = Frame.UNNAMEDPREFIX+".ACTION.actor";
+  /** Symbolic constant identifying a slot representing an action **/ 
+  public static String NAME_OF_ACTION_SLOT = Frame.UNNAMEDPREFIX+".ACTION.action";
+
   // Special slot, all actions must have it.
-  private static final TermDescriptor actorSlot = new TermDescriptor(":actor", STRING_TYPE, M);
+  private static final TermDescriptor actorSlot = new TermDescriptor(NAME_OF_ACTOR_SLOT, ANY_TYPE, M);
 
   private Map schemas;
   private Map factories;
@@ -89,7 +98,7 @@ public class DefaultOntology implements Ontology {
   */
   public void addFrame(String conceptName, int kind, TermDescriptor[] slots) throws OntologyException {
 
-    if((kind != CONCEPT_TYPE) && (kind != ACTION_TYPE) && (kind != PREDICATE_TYPE))
+    if(kind != CONCEPT_TYPE) 
       throw new OntologyException("Error: Unknown kind of Frame requested");
 
     FrameSchema fs = new FrameSchema(this, conceptName, kind);
@@ -100,10 +109,6 @@ public class DefaultOntology implements Ontology {
 	slots[i].setName("_" + i);
       fs.addTerm(slots[i]);
     }
-
-    // Add a special ':actor' slot for actions
-    if(kind == ACTION_TYPE)
-      fs.addTerm(actorSlot);
 
     addSchemaToTable(conceptName, fs);
 
@@ -132,7 +137,7 @@ public class DefaultOntology implements Ontology {
     RoleFactory fac = lookupFactory(roleName);
 
     if(fac == null)
-      throw new OntologyException("No class able to play " + roleName + " role.");
+      throw new OntologyException("No class able to play " + roleName + " role. Check the definition of the ontology.");
 
     Class c = fac.getClassForRole();
 
@@ -148,7 +153,7 @@ public class DefaultOntology implements Ontology {
   public Frame createFrame(Object o, String roleName) throws OntologyException {
     RoleFactory rf = lookupFactory(roleName);
     if(rf == null)
-      throw new OntologyException("No class able to play " + roleName + " role.");
+      throw new OntologyException("No class able to play " + roleName + " role.Check the definition of the ontology.");
 
     Class theConceptClass = rf.getClassForRole();
     if(!theConceptClass.isInstance(o))
@@ -157,8 +162,8 @@ public class DefaultOntology implements Ontology {
     FrameSchema fs = lookupSchema(roleName);
     if(fs == null)
       throw new OntologyException("Internal error: inconsistency between schema and class table");
-    if(!fs.isConcept() && !fs.isAction() && !fs.isPredicate())
-      throw new OntologyException("The role " + roleName + " is not a concept, action or predicate in this ontology.");
+    if(!fs.isConcept())
+      throw new OntologyException("The role " + roleName + " is not a concept in this ontology.");
 
     Frame f = new Frame(roleName);
     buildFromObject(f, fs, o, theConceptClass);
@@ -239,27 +244,6 @@ public class DefaultOntology implements Ontology {
     return fs.isConcept();
   }
 
-  /**
-    Checks whether a given frame is an action in this ontology.
-    @see jade.onto.Ontology#isAction(String roleName)
-  */
-  public boolean isAction(String roleName) throws OntologyException {
-    FrameSchema fs = lookupSchema(roleName);
-    if(fs == null)
-      throw new OntologyException("No schema was found for " + roleName + "role.");
-    return fs.isAction();
-  }
-
-  /**
-    Checks whether a given frame is a predicate in this ontology.
-    @see jade.onto.Ontology#isPredicate(String roleName)
-  */
-  public boolean isPredicate(String roleName) throws OntologyException {
-    FrameSchema fs = lookupSchema(roleName);
-    if(fs == null)
-      throw new OntologyException("No schema was found for " + roleName + "role.");
-    return fs.isPredicate();
-  }
 
   /**
     Get the descriptions for all the slots that made the structure of a given
@@ -339,8 +323,8 @@ public class DefaultOntology implements Ontology {
 	// descriptor and retrieve the implementation type.
 	Class implType = checkGetAndSet(termName, methods);
 
-	// If the descriptor is a complex term (Concept, Action or
-	// Predicate) and some class C is registered for that role,
+	// If the descriptor is a complex term (Concept)
+	// and some class C is registered for that role,
 	// then the implementation type must be a supertype of C.
 	if(desc.isComplex()) {
 	  RoleFactory rf = lookupFactory(desc.getTypeName());

@@ -27,7 +27,7 @@ package jade.onto;
 /**
   Descriptor class for the slots of ontological concepts. Instances of this
   class are used to describe the slots of the various entities of an ontology
-  (i.e. <it>Concepts</it>, <it>Actions</it> and <it>Predicates</it>).
+  (i.e. <it>Concepts</it>).
 
   @author Giovanni Rimassa - Universita` di Parma
   @version $Date$ $Revision$
@@ -37,16 +37,16 @@ public class TermDescriptor {
   private Name myName;
   private int type;
   private String typeName;
+private int elementType; // indicates the type of the elements of a set/sequence, when this type is a primitive type
   private boolean optionality;
 
   /**
     Build the descriptor for a named slot of a complex type. This constructor
     can be used to describe a named slot, whose type is one among
-    <code>Ontology.CONCEPT_TYPE</code>, <code>Ontology.ACTION_TYPE</code> and
-    <code>Ontology.PREDICATE_TYPE</code>.
+    <code>Ontology.CONCEPT_TYPE</code>. 
     @param n The name of the described slot.
     @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, an action or a predicate).
+    it is a concept, is a set, ...).
     @param tn The name of the actual role played by the slot type in the
     ontology.
     @param o One of <code>Ontology.M</code> (for mandatory slots) and
@@ -56,6 +56,25 @@ public class TermDescriptor {
     myName = new Name(n);
     type = t;
     typeName = tn;
+    optionality = o;
+  }
+
+  /**
+    Build the descriptor for a named slot of a set/sequence type. 
+    This constructor
+    can be used to describe a named slot, whose type is one among
+    <code>Ontology.SET_TYPE  Ontology.SEQUENCE_TYPE</code>. 
+    @param n The name of the described slot.
+    @param t A symbolic constant to identify the type of the slot (i.e. whether
+    it is a concept, is a set, ...).
+    @param et A symbolic constant to identify the type of the elements (i.e. whether it is a string, is a long, ...).
+    @param o One of <code>Ontology.M</code> (for mandatory slots) and
+    <code>Ontology.O</code> (for optional slots).
+  */
+  public TermDescriptor(String n, int t, int et, boolean o) {
+    myName = new Name(n);
+    type = t;
+    elementType = et;
     optionality = o;
   }
 
@@ -76,8 +95,7 @@ public class TermDescriptor {
   /**
     Build the descriptor for an unnamed slot of a complex type. This constructor
     can be used to describe a slot without a name, whose type is one among
-    <code>Ontology.CONCEPT_TYPE</code>, <code>Ontology.ACTION_TYPE</code> and
-    <code>Ontology.PREDICATE_TYPE</code>.
+    <code>Ontology.CONCEPT_TYPE</code>.
     @param t A symbolic constant to identify the type of the slot (i.e. whether
     it is a concept, an action or a predicate).
     @param tn The name of the actual role played by the slot type in the
@@ -97,7 +115,7 @@ public class TermDescriptor {
     can be used to describe a slot without a name, whose type is one among
     the primitive types supported by a JADE ontology.
     @param t A symbolic constant to identify the type of the slot (i.e. whether
-    it is a concept, an action or a predicate).
+    it is a concept, a set, ...).
     @param tn The name of the actual role played by the slot type in the
     ontology.
     @param o One of <code>Ontology.M</code> (for mandatory slots) and
@@ -149,11 +167,11 @@ public class TermDescriptor {
     Tells whether a slot is complex.
     @return <code>true</code> if the slot described by this object is of a
     complex type (i.e. if it is one among <code>Ontology.CONCEPT_TYPE</code>,
-    <code>Ontology.ACTION_TYPE</code> and <code>Ontology.PREDICATE_TYPE</code>),
+    <code>Ontology.SET_TYPE</code> and <code>Ontology.SEQUENCE_TYPE</code>),
     <code>false</code> otherwise.
   */
   public boolean isComplex() {
-    return ( type == Ontology.CONCEPT_TYPE) || (type == Ontology.ACTION_TYPE) || ( type == Ontology.PREDICATE_TYPE);
+    return (type == Ontology.CONCEPT_TYPE) || (type == Ontology.SET_TYPE) || (type == Ontology.SEQUENCE_TYPE);
   }
 
   void setName(String n) {

@@ -50,6 +50,8 @@ public class Frame {
   private Map slotsByName;
   private List slotsByPosition;
 
+  /** This string is the prefix of all the unnamed slots of a Frame **/
+  public static String UNNAMEDPREFIX = "_JADE.UNNAMED"; 
   /**
     Creates a new frame with the given name.
     @param name The name of this frame.
@@ -79,18 +81,19 @@ public class Frame {
   }
 
   /**
-    Adds an unnamed slot to this frame. The new slot has no name, and its
+    Adds an unnamed slot to this frame. Its
     position is determined by the number of slots of this frame at the time of
     the call. The given Java object is put at the end of the slot sequence.  
+    A dummy name is set for this slot with the prefix <code>UNNAMEDPREFIX</code>.
     @param value A Java object that will be associated with the given position.
   */
   public void putSlot(Object value) {
     // generate a name with an underscore followed by the position number
-    String dummyName = "_" + Integer.toString(slotsByPosition.size());
+    String dummyName = UNNAMEDPREFIX + Integer.toString(slotsByPosition.size());
 
     // Add more underscores as needed
     while(slotsByName.containsKey(dummyName))
-      dummyName = "_" + dummyName;
+      dummyName = dummyName+"_";
 
     putSlot(dummyName, value);
 
@@ -127,6 +130,35 @@ public class Frame {
   final Iterator terms() {
     return slotsByPosition.iterator();
   }
+
+  /**
+   @return the number of slots in this Frame.
+   **/
+   public int size() {
+     return slotsByName.size();
+   }
+
+  public String getSlotName(int position) throws OntologyException { 
+    try {
+      return ((Name)(slotsByName.keySet().toArray())[position]).toString();
+    }
+    catch(Exception ioobe) {
+      throw new NoSuchSlotException(myName, "@" + position);
+    }
+  }
+
+  /** it is here just for debugging purposes **/
+  public String toString() {
+    String s = "(" + getName() + " ";
+    try {
+     for (int i=0; i<size(); i++ ) 
+      s = s + getSlotName(i) + " " + getSlot(i).toString() + " ";
+    } catch (OntologyException oe) {
+     oe.printStackTrace();
+    }
+    return s+ ") ";
+  }
+    
 
 }
 

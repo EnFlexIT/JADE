@@ -25,19 +25,31 @@ package jade.onto;
 
 /**
   Abstract interface for application defined ontology. Through this interface it
-  is possible to manage a collection of <b><i>Concepts</i></b>, <b><i>Actions
-  </i></b> and <b><i>Predicates</i></b>, along with their structure. User
+  is possible to manage a collection of <b><i>Frames</i></b>, 
+  along with their structure. User
   defined Java classes can be registered with an ontology as playing a certain
   <i>role</i>; then, the <code>Ontology</code> object is able to convert back
   and forth between user defined Java objects and <code>Frame</code> objects.
 
-  A role can be a <b><i>concept</i></b>, an <b><i>action</i></b>, or a
-  <b><i>predicate</i></b> of the ontology. The role played by the given
+  A role is identified by the name of the Frame that represents the role.
+  The role played by the given
   class must have been previously inserted into this Ontology using the
   <code>addFrame()</code> method. To play an ontological role, a Java class must
   obey to some rules:
 
    <ol>
+
+   <li><i> For every <code>TermDescriptor</code> object of the
+   array, of type <code>SET_TYPE</code> or <code>SEQUENCE_TYPE</code>
+   and named <code>XXX</code>, with elements of type <code>T</code>, the
+   class must have four accessible methods, with the following
+   signature:</i>
+     <ul>
+     <li> <code>Iterator getAllXXX()</code>
+     <li> <code>void addXXX(T t)</code>
+     <li> <code>boolean removeXXX(T t)</code>
+     <li> <code>void clearAllXXX()</code>
+     </ul>
 
    <li><i> For every <code>TermDescriptor</code> object of the
    array, of type <code>T</code> and named <code>XXX</code>, the
@@ -48,14 +60,6 @@ package jade.onto;
      <li> <code>void setXXX(T t)</code>
      </ul>
 
-   <li><i> For an action role, the class must also have an
-   accessible method, with the following signature:</i>
-     <ul>
-     <li> <code>String getActor()</code>
-     <li> <code>void setActor(String actor)</code>
-     </ul>
-   <i>The two methods above are meant to manage the name of the agent
-   that is to do the action.</i>
    </ol>
 
    As long as the above rules are followed, any user-defined class
@@ -168,6 +172,12 @@ public interface Ontology {
   static final short BINARY_TYPE = 9;
 
   /**
+     Constant for any type in a <code>TermDescriptor</code>.
+     @see jade.onto.TermDescriptor
+   */
+  static final short ANY_TYPE = 10;
+
+  /**
      Constant for <code>Frame</code> type in a
      <code>TermDescriptor</code>. Ontology concepts can be represented
      as <code>Frame</code> instances or as instances of a user-defined
@@ -176,30 +186,24 @@ public interface Ontology {
      @see jade.onto.Frame
      @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
-  static final short CONCEPT_TYPE = 10;
-
-
-  /**
-     Constant for <code>Action</code> type in a
-     <code>TermDescriptor</code>. Ontology actions can be represented
-     as <code>Action</code> instances or as instances of a user-defined
-     class, obeying to some rules.
-     @see jade.onto.TermDescriptor
-     @see jade.onto.Frame
-     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
-  */
-  static final short ACTION_TYPE = 11;
+  static final short CONCEPT_TYPE = 11;
 
   /**
-     Constant for <code>Predicate</code> type in a
-     <code>TermDescriptor</code>. Ontology predicates can be represented
-     as <code>Predicate</code> instances or as instances of a user-defined
-     class, obeying to some rules.
+     Constant for <code>set</code> type in a
+     <code>TermDescriptor</code>. 
      @see jade.onto.TermDescriptor
      @see jade.onto.Frame
-     @see jade.onto.Ontology#addFrame(String conceptName, int kind, TermDescriptor[] slots, RoleFactory rf)
   */
-  static final short PREDICATE_TYPE = 12;
+  static final short SET_TYPE = 12;
+
+  /**
+     Constant for <code>sequence</code> type in a
+     <code>TermDescriptor</code>. 
+     @see jade.onto.TermDescriptor
+     @see jade.onto.Frame
+  */
+  static final short SEQUENCE_TYPE = 13;
+
 
   /**
      String array of names of the various types allowed for elements
@@ -208,7 +212,7 @@ public interface Ontology {
   */
   static final String typeNames[] = { "boolean", "byte", "char", "double",
 				      "float", "int", "long", "short",
-				      "String", "Binary", "Concept", "Action", "Predicate" };
+				      "String", "Binary", "any", "Concept", "Set", "Sequence" };
 
   /**
     Adds a new concept role to the ontology, defined by the structure
@@ -320,28 +324,6 @@ public interface Ontology {
     <code>roleName</code> exists in the current ontology.
    */
   boolean isConcept(String roleName) throws OntologyException;
-
-  /**
-    Tells whether the given roleName is an action in the current
-    ontology.
-    @param roleName The name of the role to check.
-    @return <code>true</code> if the given role is indeed an action,
-    <code>false</code> otherwise.
-    @exception OntologyException If no role named
-    <code>roleName</code> exists in the current ontology.
-   */
-  boolean isAction(String roleName) throws OntologyException;
-
-  /**
-    Tells whether the given roleName is a predicate in the current
-    ontology.
-    @param roleName The name of the role to check.
-    @return <code>true</code> if the given role is indeed a predicate,
-    <code>false</code> otherwise.
-    @exception OntologyException If no role named
-    <code>roleName</code> exists in the current ontology.
-   */
-  boolean isPredicate(String roleName) throws OntologyException;
 
   /**
     Returns the array of <code>TermDescriptor</code> objects that
