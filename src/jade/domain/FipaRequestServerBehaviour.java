@@ -55,8 +55,8 @@ class FipaRequestServerBehaviour extends CyclicBehaviour {
       reply.setDest(msg.getSource());
       reply.setSource(msg.getDest());
       reply.setProtocol("fipa-request");
-      reply.setOntology("fipa-agent-management");
-      reply.setLanguage("SL0");
+      reply.setOntology("fipa-agent-management"); // FIXME: This is application-dependent
+      reply.setLanguage("SL0"); // FIXME: This is application-dependent
 
       String s = msg.getReplyWith();
       if(s != null)
