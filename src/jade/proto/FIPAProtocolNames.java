@@ -38,10 +38,10 @@ public interface FIPAProtocolNames{
 	
 	//auction protocol
 	public static final String FIPA_ENGLISH_AUCTION = "fipa-auction-english";
-	public static final String FIPA_DUTCH_AUCTION = "fipa-auction-ducth";
+	public static final String FIPA_DUTCH_AUCTION = "fipa-auction-dutch";
 	
 	public static final String FIPA_BROKERING = "fipa-brokering";
-	public static final String FIPA_RECRUITING = "fipa-recruting";
+	public static final String FIPA_RECRUITING = "fipa-recruiting";
 	public static final String FIPA_PROPOSE = "fipa-propose";
 	
 	public static final String FIPA_CONTRACT_NET = "fipa-contract-net";  
