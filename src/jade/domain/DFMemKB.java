@@ -240,11 +240,16 @@ class DFMemKB extends MemKB{
 					Property factProp = (Property)itFact.next();
 					if (templateProp.getName().equals(factProp.getName())) {
 						// The property name matches. Check the value
-						Object templateValue = templateProp.getValue();
-						if ((new String()).getClass().isInstance(templateValue)) 
+						Object templateValue = templateProp.getValue(); 
+						if (templateValue == null) {
+							found = true;
+						}
+						else if (templateValue instanceof String) {
 		    			found = ((String)templateValue).equalsIgnoreCase(factProp.getValue().toString());
-						else
+						}
+						else {
 		    			found = templateValue.equals(factProp.getValue());
+						}
 	      	}
 	      }
 	      if(!found)
