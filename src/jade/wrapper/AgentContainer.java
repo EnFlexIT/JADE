@@ -25,7 +25,6 @@ package jade.wrapper;
 
 import jade.wrapper.PlatformController.Listener;
 import jade.core.AID;
-import jade.core.AgentContainerImpl;
 import jade.core.NotFoundException;
 import jade.core.IMTPException;
 import jade.core.AgentManager;
