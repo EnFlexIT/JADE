@@ -130,20 +130,14 @@ import jade.core.CaseInsensitiveString;
  *     e.g. <code>Person</code>;
  * <li>retrieve the registered information through various keys.
  * </ul>
- * The framework already provides two ontologies that you can use for building your
- * application-specific ontologies:
- * <ul>
- * <li><code>BasicOntology</code>: that provides all basic elements, i.e., 
- *     primitive data types, aggregate types, etc.
- * <li><code>ACLOntology</code>: that extends the <code>BasicOntology</code> and
- *     provides the elements corresponding to the FIPA ACL performatives
- * </ul>
- * Application-specific ontologies should be implemented extending one of them 
+ * The framework already provides the <code>BasicOntology</code> ontology
+ * that provides all basic elements, i.e. primitive data types, aggregate 
+ * types, etc.
+ * Application-specific ontologies should be implemented extending it. 
 
  * @see jade.content.Concept
  * @see jade.content.abs.AbsConcept
  * @see jade.content.schema.ConceptSchema
- * @see jade.content.onto.ACLOntology
  * @see jade.content.onto.BasicOntology
  * @author Federico Bergenti - Universita` di Parma
  * @author Giovanni Caire - TILAB
