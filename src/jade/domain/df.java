@@ -23,7 +23,7 @@ import jade.lang.acl.ACLMessage;
 ****************************************************************/
 public class df extends Agent {
 
-  private abstract class DFBehaviour extends SimpleBehaviour implements BehaviourPrototype {
+  private abstract class DFBehaviour extends OneShotBehaviour implements BehaviourPrototype {
 
     // This String will be set by subclasses
     private String myActionName;
