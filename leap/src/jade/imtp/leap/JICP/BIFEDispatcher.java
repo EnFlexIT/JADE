@@ -304,6 +304,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	writePacket(pkt, outConnection);
 		  	status = 1;
 		  	pkt = outConnection.readPacket();
+		  	if (pkt.getSessionID() != outCnt) {
+		  		pkt = outConnection.readPacket();
+		  	}
 		  	status = 2;
 	  		if (myLogger.isLoggable(Logger.FINEST)) {
 	  			myLogger.log(Logger.FINEST, "Response received "+pkt.getSessionID());
@@ -386,7 +389,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 							// Keep-alive
 						  pkt = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 						}
-						else {
+						else {						
 							// Incoming command
 				  		if (myLogger.isLoggable(Logger.FINEST)) {
 				  			myLogger.log(Logger.FINEST, "Incoming command received "+sid+" pkt-type="+pkt.getType());
