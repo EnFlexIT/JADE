@@ -36,7 +36,7 @@ import jade.content.onto.*;
  * 
  * @author Federico Bergenti
  */
-public class ContentManager {
+public class ContentManager implements Serializable {
     private Map languages = new HashMap();
     private Map ontologies = new HashMap();
 
