@@ -109,6 +109,12 @@ public class MobileAgent extends GuiAgent {
 	  addBehaviour(b2);	
 	}
 
+	public void takeDown() {
+	  gui.dispose();
+	  gui.setVisible(false);
+	  System.out.println(getLocalName()+" is now shutting down.");
+	}
+
   /**
    * This method stops the counter by disabling the flag
    */
