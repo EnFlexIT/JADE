@@ -44,7 +44,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 
 import jade.lang.acl.ACLCodec;
 
-import jade.mtp.MTP;
+//import jade.mtp.MTP;
 import jade.mtp.MTPException;
 import jade.mtp.TransportAddress;
 
@@ -340,7 +340,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void installACLCodec(String className) throws jade.lang.acl.ACLCodec.CodecException {
-  
+  	myACC.addACLCodec(className);
+  	/*
     try{
       Class c = Class.forName(className);
       ACLCodec codec = (ACLCodec)c.newInstance(); 
@@ -357,11 +358,15 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     catch(IllegalAccessException iae) {
       throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
     }
-
+		*/
   }
 
   public String installMTP(String address, String className) throws IMTPException, MTPException {
-    try {
+  	String result = myACC.addMTP(className, address);
+  	myMain.newMTP(result, myID);
+  	return result;
+  	/*
+  	try {
       Class c = Class.forName(className);
       MTP proto = (MTP)c.newInstance();
       TransportAddress ta = myACC.addMTP(proto, address);
@@ -378,6 +383,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     catch(IllegalAccessException iae) {
       throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
     }
+    */
   }
 
   public void uninstallMTP(String address) throws IMTPException, NotFoundException, MTPException {

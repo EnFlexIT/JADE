@@ -106,12 +106,11 @@ interface acc {
      * 
      * @throws MTPException
      */
-    public TransportAddress addMTP(MTP proto, 
-                                   String address) throws MTPException;
+    public String addMTP(String mtpClassName, String address) throws MTPException;
     
     public void removeMTP(String address) throws MTPException;
 
-    public void addACLCodec(ACLCodec codec);
+    public void addACLCodec(String codecClassName) throws jade.lang.acl.ACLCodec.CodecException;
 
     /**
      * Method declaration

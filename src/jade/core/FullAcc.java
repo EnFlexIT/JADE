@@ -68,7 +68,8 @@ class FullAcc implements acc, InChannel.Dispatcher {
 
   public FullAcc() {
     ACLCodec stringCodec = new StringACLCodec();
-    addACLCodec(stringCodec);
+    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+    //addACLCodec(stringCodec);
   }
 
   public void initialize(AgentContainerImpl ac, Profile p) {
@@ -137,8 +138,24 @@ class FullAcc implements acc, InChannel.Dispatcher {
 		}    	
   }
 
-  public void addACLCodec(ACLCodec codec) {
-    messageEncodings.put(codec.getName().toLowerCase(), codec);
+  public void addACLCodec(String codecClassName) throws jade.lang.acl.ACLCodec.CodecException{
+    try{
+      Class c = Class.forName(codecClassName);
+      ACLCodec codec = (ACLCodec)c.newInstance(); 
+    	messageEncodings.put(codec.getName().toLowerCase(), codec);
+      System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + codecClassName +"\n");
+      // FIXME: notify the AMS of the new Codec to update the APDescritption.
+    }
+    catch(ClassNotFoundException cnfe){
+      throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +codecClassName +" for the ACLCodec not found.",cnfe);
+    }
+    catch(InstantiationException ie) {
+      throw new jade.lang.acl.ACLCodec.CodecException("The class " + codecClassName + " raised InstantiationException (see NestedException)",ie);
+    }
+    catch(IllegalAccessException iae) {
+      throw new jade.lang.acl.ACLCodec.CodecException("The class " + codecClassName  + " raised IllegalAccessException (see nested exception)", iae);
+    }
+  		
   }
 
   /*
@@ -273,64 +290,34 @@ class FullAcc implements acc, InChannel.Dispatcher {
     return new ACCProxy(agentID, this);
   }
 
-  public TransportAddress addMTP(MTP proto, String address) throws MTPException {
-    if(address == null) { // Let the protocol choose the address
-	/*
-      if(proto.getName().equalsIgnoreCase("iiop")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("corbaloc", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(proto.getName().equalsIgnoreCase("ior")) {
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaloc", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(proto.getName().equalsIgnoreCase("corbaloc")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(proto.getName().equalsIgnoreCase("corbaname")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaloc", proto);
-      }
-	*/
-      TransportAddress ta = proto.activate(this);
-      address = proto.addrToStr(ta);
+  public String addMTP(String mtpClassName, String address) throws MTPException { 
+  	try {
+  		// Create the MTP
+      Class c = Class.forName(mtpClassName);
+      MTP proto = (MTP)c.newInstance();
+      
+    	if(address == null) { 
+    		// Let the MTP choose the address
+      	TransportAddress ta = proto.activate(this);
+      	address = proto.addrToStr(ta);
+    	}
+    	else { 
+    		// Convert the given string into a TransportAddress object and use it
+      	TransportAddress ta = proto.strToAddr(address);
+      	proto.activate(this, ta);
+    	}
       routes.addLocalMTP(address, proto);
       localAddresses.add(address); // FIXME: This is for the temporary fault-tolerance support
-      return ta;
+      return address;
     }
-    else { // Convert the given string into a TransportAddress object and use it
-      routes.addLocalMTP(address, proto);
-      localAddresses.add(address); // FIXME: This is for the temporary fault-tolerance support
-      /*
-      if(ta.getProto().equalsIgnoreCase("iiop")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("corbaloc", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(ta.getProto().equalsIgnoreCase("ior")) {
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaloc", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(ta.getProto().equalsIgnoreCase("corbaloc")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaname", proto);
-      }
-      if(ta.getProto().equalsIgnoreCase("corbaname")) {
-	localMTPs.put("ior", proto);
-	localMTPs.put("iiop", proto);
-	localMTPs.put("corbaloc", proto);
-      }
-      */
-      TransportAddress ta = proto.strToAddr(address);
-      proto.activate(this, ta);
-      return ta;
+    catch(ClassNotFoundException cnfe) {
+      throw new MTPException("ERROR: The class " + mtpClassName + " for the " + address  + " MTP was not found");
+    }
+    catch(InstantiationException ie) {
+      throw new MTPException("The class " + mtpClassName + " raised InstantiationException (see nested exception)", ie);
+    }
+    catch(IllegalAccessException iae) {
+      throw new MTPException("The class " + mtpClassName  + " raised IllegalAccessException (see nested exception)", iae);
     }
   }
 
