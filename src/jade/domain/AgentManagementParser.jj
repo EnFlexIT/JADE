@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.21  1999/08/31 17:26:57  rimassa
+  Extended AMSEvent grammar to handle new agent motion events.
+
   Revision 1.20  1999/07/19 00:06:38  rimassa
   Added liexical and syntactical production rules to support FIPA 98
   compilant platform profile ontology object.
@@ -251,13 +254,23 @@ AgentManagementOntology.AMSEvent ContainerEvent() :
 
 AgentManagementOntology.AMSEvent AgentEvent() :
 {
-  AgentManagementOntology.AMSAgentEvent amse = new AgentManagementOntology.AMSAgentEvent();
+  AgentManagementOntology.AMSAgentEvent amse;
   Token kind;
   AgentManagementOntology.AMSAgentDescriptor amsd;
 }
 {
-  ( ( kind = "new-agent" { amse.setKind(AgentManagementOntology.AMSAgentEvent.NEWAGENT); } )
-  | ( kind = "dead-agent" { amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADAGENT); } )
+  ( ( kind = "new-agent" {
+      amse = new AgentManagementOntology.AMSAgentEvent(); 
+      amse.setKind(AgentManagementOntology.AMSAgentEvent.NEWAGENT);
+     } )
+  | ( kind = "dead-agent" {
+      amse = new AgentManagementOntology.AMSAgentEvent();
+      amse.setKind(AgentManagementOntology.AMSAgentEvent.DEADAGENT);
+     } )
+  | ( kind = "moved-agent" {
+      amse = new AgentManagementOntology.AMSMotionEvent();
+      amse.setKind(AgentManagementOntology.AMSAgentEvent.MOVEDAGENT);
+     } )
   )
   "("
   ( ( Properties(amse) ")" "(" amsd = AMSDescriptionBody() )
