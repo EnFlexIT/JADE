@@ -66,7 +66,7 @@ public class JICPServer extends Thread {
 
   private ConnectionFactory connFactory;
   
-  private static int     verbosity = 2;
+  private static int     verbosity = 1;
 
   /**
    * Constructor declaration
@@ -368,7 +368,7 @@ public class JICPServer extends Thread {
 	          String s = new String(pkt.getData());
 	          Properties p = parseProperties(s);
 	          JICPMediator m = startMediator(id, p);
-	        	m.handleIncomingConnection(c, addr, port);
+	        	m.handleIncomingConnection(c, addr, port, JICPProtocol.CREATE_MEDIATOR_TYPE);
 	          mediators.put(id, m);
 	          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, id.getBytes());
 	        	closeConnection = false;
@@ -383,12 +383,12 @@ public class JICPServer extends Thread {
 	          	// Don't close the connection, but pass it to the proper 
 	          	// mediator. Use the response (if any) prepared by the 
 	          	// Mediator itself
-	          	reply = m.handleIncomingConnection(c, addr, port);
+	          	reply = m.handleIncomingConnection(c, addr, port, JICPProtocol.CONNECT_MEDIATOR_TYPE);
 	          	closeConnection = false;
 	          }
 	          else {
 	          	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
-	          }	
+	          }
 	          break;
 	
 	        default:
