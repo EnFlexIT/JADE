@@ -253,9 +253,8 @@ class JICPServer extends Thread {
         	m.setConnection(socket);
           mediators.put(id, m);
           reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, id.getBytes());
-        	reply.writeTo(out);
         	closeConnection = false;
-        	return;
+        	break;
 
         case JICPProtocol.CONNECT_MEDIATOR_TYPE:
           // A mediated container is (re)connecting to its mediator
@@ -267,10 +266,8 @@ class JICPServer extends Thread {
           	reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.UNCOMPRESSED_INFO, null);
           	// Directly send back the response and don't close the socket,
           	// but pass it to the proper mediator
-          	reply.writeTo(out);
           	m.setConnection(socket);
           	closeConnection = false;
-          	return;
           }
           else {
           	reply = new JICPPacket("Mediator "+recipientID+" not found", null);
@@ -284,7 +281,9 @@ class JICPServer extends Thread {
         }
 
         // Send the actual response data
-        reply.writeTo(out);
+        if (reply != null) {
+	        reply.writeTo(out);
+        }
       } 
       catch (Exception e) {
         log("Problems in communication with client", 1);
