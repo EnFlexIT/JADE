@@ -31,7 +31,7 @@ BATCH_DOC = $(ROOTDIR)/makedoc.bat
 BATCH_LIB = $(ROOTDIR)/makelib.bat
 BATCH_CLEAN = $(ROOTDIR)/clean.bat
 
-COMMON_FILES = jade\README jade\License jade\COPYING
+COMMON_FILES = jade/README jade/License jade/COPYING
 
 export VERSION
 export PACKAGE
@@ -141,22 +141,22 @@ batch: $(CLSDIR) $(DOCDIR)
 	echo >> $(BATCH_DIST)
 
 	echo 'cd ..;' >> $(BATCH_DIST)
-	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-src-$(VERSION).$(ZIPEXT) $(COMMON_FILES) jade\*.bat jade\Makefile jade\src\Makefile jade\src/*.idl jade\src\jade' >> $(BATCH_DIST)
+	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-src-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\*.bat jade\Makefile jade\src\Makefile jade\src\*.idl jade\src\jade' >> $(BATCH_DIST)
 	echo 'cd jade' >> $(BATCH_DIST)
 
 	echo 'cd ..' >> $(BATCH_DIST)
-	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-examples-$(VERSION).$(ZIPEXT) $(COMMON_FILES) jade\src\examples jade\src\demo' >> $(BATCH_DIST)
+	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-examples-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\src\examples jade\src\demo' >> $(BATCH_DIST)
 	echo 'cd jade' >> $(BATCH_DIST)
 
-	echo 'call $(BATCH_DOC)' >> $(BATCH_DIST)
+	echo 'call $(subst /,\,$(subst $(ROOTDIR),.,$(BATCH_DOC)))' >> $(BATCH_DIST)
 	echo 'cd ..' >> $(BATCH_DIST)
-	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-doc-$(VERSION).$(ZIPEXT) $(COMMON_FILES) jade\doc' >> $(BATCH_DIST)
+	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-doc-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\doc' >> $(BATCH_DIST)
 	echo 'cd jade' >> $(BATCH_DIST)
 
-	echo 'call $(BATCH_ALL)' >> $(BATCH_DIST)
-	echo 'call $(BATCH_LIB)' >> $(BATCH_DIST) 
+	echo 'call $(subst /,\,$(subst $(ROOTDIR),.,$(BATCH_ALL)))' >> $(BATCH_DIST)
+	echo 'call $(subst /,\,$(subst $(ROOTDIR),.,$(BATCH_LIB)))' >> $(BATCH_DIST) 
 	echo 'cd ..' >> $(BATCH_DIST)
-	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-bin-$(VERSION).$(ZIPEXT) $(COMMON_FILES) jade\lib jade\src\starlight' >> $(BATCH_DIST)
+	echo '$(ZIP) $(ZIPFLAGS) $(PACKAGE)-bin-$(VERSION).$(ZIPEXT) $(subst /,\,$(COMMON_FILES)) jade\lib jade\src\starlight' >> $(BATCH_DIST)
 	echo 'cd jade' >> $(BATCH_DIST)
 
 	rm -f $(BATCH_CLEAN)
