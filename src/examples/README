@@ -84,7 +84,7 @@ The code IS just the file JadeAgent.clp.
 Every time an ACL message arrives, a new fact is asserted in JESS.
 A function allows to send messages.
 In order to compile this example, JESS is needed. It has been already tested
-with JESS 4.3
+with JESS 5.1
  - BasicJessBehaviour.class
  - JessAgent.class
  - JessBehaviour.class
