@@ -46,7 +46,7 @@ package jade.imtp.leap;
  * @author Michael Watzke
  * @version 1.0, 09/11/2000
  */
-class LEAPSerializationException extends Exception {
+public class LEAPSerializationException extends Exception {
 
   /**
    * Nested Exception to hold wrapped exception.
