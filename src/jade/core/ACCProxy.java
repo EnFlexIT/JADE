@@ -49,39 +49,11 @@ class ACCProxy implements AgentProxy {
 
   public void dispatch(ACLMessage msg) throws NotFoundException {
 
-    AID aid = msg.getSender();
-    if(aid == null) {
-      System.out.println("ERROR: null message sender. Aborting message dispatch...");
-      return;
-    }
-
-    // if has no address set, then adds the addresses of this platform
-    if(!aid.getAllAddresses().hasNext())
-      myACC.addPlatformAddresses(aid);
-
-    Iterator it1 = msg.getAllReceiver();
-    while(it1.hasNext()) {
-      AID id = (AID)it1.next();
-      if(!id.getAllAddresses().hasNext())
-	myACC.addPlatformAddresses(id);
-    }
-
-    Iterator it2 = msg.getAllReplyTo();
-    while(it2.hasNext()) {
-      AID id = (AID)it2.next();
-      if(!id.getAllAddresses().hasNext())
-	myACC.addPlatformAddresses(id);
-    }
-
-    myACC.prepareEnvelope(msg, receiver);
-    Envelope env = msg.getEnvelope();
-    byte[] payload = myACC.encodeMessage(msg);
-
     Iterator addresses = receiver.getAllAddresses();
     while(addresses.hasNext()) {
       String address = (String)addresses.next();
       try {
-	myACC.forwardMessage(env, payload, address);
+	myACC.forwardMessage(msg, receiver, address);
 	return;
       }
       catch(MTPException mtpe) {
