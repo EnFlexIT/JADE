@@ -129,6 +129,9 @@ public class BrowserLauncher {
 	
 	/** JVM constant for any Windows 9x JVM */
 	private static final int WINDOWS_9x = 3;
+	
+
+	private static final int WINDOWS_2000 = 4;
 
 	/** JVM constant for any other platform */
 	private static final int OTHER = -1;
@@ -177,6 +180,7 @@ public class BrowserLauncher {
 	static {
 		loadedWithoutErrors = true;
 		String osName = System.getProperty("os.name");
+	
 		if ("Mac OS".equals(osName)) {
 			String mrjVersion = System.getProperty("mrj.version");
 			String majorMRJVersion = mrjVersion.substring(0, 3);
@@ -196,14 +200,22 @@ public class BrowserLauncher {
 				errorMessage = "Invalid MRJ version: " + mrjVersion;
 			}
 		} else if (osName.startsWith("Windows")) {
+			
 			if (osName.indexOf("9") != -1) {
 				jvm = WINDOWS_9x;
-			} else {
+			}
+			else 
+			if(osName.indexOf("2") != -1){
+				jvm = WINDOWS_2000;
+			}
+			else {
 				jvm = WINDOWS_NT;
 			}
-		} else {
+		} 
+		else {
 			jvm = OTHER;
 		}
+	
 		
 		if (loadedWithoutErrors) {	// if we haven't hit any errors yet
 			loadedWithoutErrors = loadClasses();
@@ -379,11 +391,16 @@ public class BrowserLauncher {
 			case WINDOWS_9x:
 				browser = "command.com";
 				break;
+			case WINDOWS_2000:
+				browser ="";
+				break;
 			case OTHER:
 			default:
 				browser = "netscape";
 				break;
 		}
+		
+		
 		return browser;
 	}
 
@@ -421,10 +438,15 @@ public class BrowserLauncher {
 			case MRJ_2_1:
 				Runtime.getRuntime().exec(new String[] { (String) browser, url } );
 				break;
-		    case WINDOWS_NT:
-		    case WINDOWS_9x:
-				Runtime.getRuntime().exec(new String[] { (String) browser, FIRST_WINDOWS_PARAMETER,
+		  case WINDOWS_NT:
+		  case WINDOWS_9x:
+				Runtime.getRuntime().exec(new String[] { (String)browser, FIRST_WINDOWS_PARAMETER,
 																	SECOND_WINDOWS_PARAMETER, url });
+		  
+				break;
+			case WINDOWS_2000:
+				String cmd = "rundll32" + " " + "url.dll" + " " +  "FileProtocolHandler"+ " " + url; 
+        Runtime.getRuntime().exec(cmd); 
 				break;
 			case OTHER:
 				// Assume that we're on Unix and that Netscape is installed
