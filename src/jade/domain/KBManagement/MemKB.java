@@ -45,10 +45,10 @@ import jade.proto.SubscriptionResponder;
 import jade.core.AID;
 
 /**
+ * Common base class for AMS and DF Knowledge Base
+ * 
  * @author Elisabetta Cortese - TILab
- *
  */
-/** Common base class for AMS and DF Knowledge Base*/
 public abstract class MemKB extends KB {
 
 	protected Map facts = new HashMap();
@@ -72,7 +72,8 @@ public abstract class MemKB extends KB {
 			clean();
 			currentReg = 0;
 		}
-	    return facts.put(name, fact);
+     
+	  return facts.put(name, fact);
 	}
 
 	protected Object remove(Object name) {

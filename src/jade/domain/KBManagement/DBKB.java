@@ -36,48 +36,78 @@ import java.sql.SQLException;
  * <code>KB</code> interface where information are stored in
  * a database.
  * 
- * @author Elisabetta Cortese (TiLab S.p.A.)
+ * @author Roland Mungenast - Profactor
  */
 public abstract class DBKB extends KB {
 	
-	// il database e' generico per JADE, ora viene usato solo dal
-	// DF ma in futuro potra' essere usato anche dall'AMS
-	// Come paramaetri di default vengono usati quelli per accedere
-	// ad un Database creato con Microsoft Access.
-
-	private String driver = "sun.jdbc.odbc.JdbcOdbcDriver";
-	protected Connection conn = null;
-
-	//protected LeaseManager lm;
-	//protected SubscriptionResponder sr;
-	
-	// se il driver  l'indirizzo sono stati
-	// forniti in input alla piattaforma usa 
-	// questo costruttore
-	public DBKB(String url, int maxResultLimit) throws SQLException {
-		super(maxResultLimit);
-    loadDBDriver(null);
-	  setDBConnection(null, url, null, null);
+  /**
+   * Used database driver
+   */
+	protected String driver = "sun.jdbc.odbc.JdbcOdbcDriver";
+  
+  /**
+   * Used database connection
+   */
+  protected Connection conn = null;
+  
+  /**
+   * Specifies whether the KB should delete all existing tables for the DF at startup
+   */
+  protected boolean cleanTables;
+  
+  /**
+   * Constructs a new <code>DFKB</code> and establishes a connection to the database
+   * at the given URL using the <code>sun.jdbc.odbc.JdbcOdbcDriver</code> driver.
+   * 
+   * @param maxResultLimit internal limit for the number of maximum search results.
+   * @param url database URL
+   * @param maxResultLimit JADE internal limit for the maximum number of search results
+   * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
+   * @throws SQLException an error occured while opening a connection to the database
+   */
+	public DBKB(String url, int maxResultLimit, boolean cleanTables) throws SQLException {
+		this(null, url, maxResultLimit, cleanTables);
+	}
+  
+  /**
+   * Constructs a new <code>DFKB</code> and establishes a connection to the database.
+   * 
+   * @param maxResultLimit internal limit for the number of maximum search results.
+   * @param drv database driver
+   * @param url database URL
+   * @param user database user name
+   * @param passwd database password
+   * @param maxResultLimit JADE internal limit for the maximum number of search results
+   * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
+   * @throws SQLException an error occured while opening a connection to the database
+   */
+	public DBKB(String drv, String url, int maxResultLimit, boolean cleanTables) throws SQLException {
+		this(drv, url, null, null, maxResultLimit, cleanTables);
 	}
 
-	public DBKB(String drv, String url, int maxResultLimit) throws SQLException {
+  /**
+   * Constructs a new <code>DFKB</code> and establishes a connection to the database.
+   * 
+   * @param maxResultLimit internal limit for the number of maximum search results.
+   * @param drv database driver
+   * @param url database URL
+   * @param user database user name
+   * @param passwd database password
+   * @param maxResultLimit JADE internal limit for the maximum number of search results
+   * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
+   * @throws SQLException an error occured while opening a connection to the database
+   */
+	public DBKB(String drv, String url, String user, String passwd, int maxResultLimit, boolean cleanTables) throws SQLException {
 		super(maxResultLimit);
-    loadDBDriver(drv);
-    setDBConnection(drv, url, null, null);
-	}
-
-	public DBKB(String drv, String url, String user, String passwd, int maxResultLimit) throws SQLException {
-		super(maxResultLimit);
+    this.cleanTables = cleanTables;
     loadDBDriver(drv);
     setDBConnection(drv, url, user, passwd);
     setup();
 	}
   
-  
-
   /**
    * Loads an JDBC driver
-   * @param drv dirver name or <code>null</code> </ br>
+   * @param drv driver name or <code>null</code> </ br>
    * if the default JDBC-ODBC driver should be used
    * @throws SQLException if the driver cannot be loaded
    */
@@ -105,7 +135,6 @@ public abstract class DBKB extends KB {
    * @throws SQLException if a database access error occurs
    */
 	protected void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
-    
 		// Connect to the DB
 		if (user != null) {
 			conn = DriverManager.getConnection(url, user, passwd);
@@ -115,10 +144,9 @@ public abstract class DBKB extends KB {
 		}
 	}
 	
-	
-	// Called from constructor
-	// 1. crea le tabelle se non esistono 
-	// 2. fa una pulizia iniziale per togliere di mezzo le registrazioni scadute
-	protected void setup() throws SQLException {
-	}
+  /**
+   * This method is called by the constructor after a
+   * connection to the database has been established. 
+   */
+  abstract protected void setup() throws SQLException;
 }
