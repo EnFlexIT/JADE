@@ -1,5 +1,9 @@
 /*
   $Log$
+  Revision 1.28  1998/11/30 00:15:34  rimassa
+  Completed API to use FIPA system agents: now all 'refuse' and
+  'failure' reply messages are unmarshaled into Java exceptions.
+
   Revision 1.27  1998/11/15 23:00:20  rimassa
   Added a new private inner class, named AgentDeathError. Now when an
   Agent is killed from the AgentPlatform while in waiting state, a new
@@ -151,6 +155,7 @@
 package jade.core;
 
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Serializable;
 
@@ -488,24 +493,29 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     return request;
   }
 
-  private void doFipaRequestClient(ACLMessage request, String replyString) {
+  private String doFipaRequestClient(ACLMessage request, String replyString) throws FIPAException {
 
     send(request);
 
     ACLMessage reply = blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
-    // FIXME: Should unmarshal content of 'refuse' and 'failure'
-    // messages and convert them to Java exceptions
     if(reply.getType().equalsIgnoreCase("agree")) {
       reply =  blockingReceive(MessageTemplate.MatchReplyTo(replyString));
 
       if(!reply.getType().equalsIgnoreCase("inform")) {
-	System.out.println(replyString + " failed for " + myName + "!!!");
+	String content = reply.getContent();
+	StringReader text = new StringReader(content);
+	throw FIPAException.fromText(text);
       }
-
+      else {
+	String content = reply.getContent();
+	return content;
+      }
     }
     else {
-      System.out.println(replyString + " refused for " + myName + "!!!");
+      String content = reply.getContent();
+      StringReader text = new StringReader(content);
+      throw FIPAException.fromText(text);
     }
 
   }
@@ -605,7 +615,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  public void forwardWithACC(ACLMessage msg) {
+  public void forwardWithACC(ACLMessage msg) throws FIPAException {
 
     String replyString = myName + "-acc-forward";
     ACLMessage request = FipaRequestMessage("acc", replyString);
@@ -626,7 +636,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Register yourself with a DF
-  public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void registerWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-register";
     ACLMessage request = FipaRequestMessage(dfName, replyString);
@@ -639,7 +649,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + " ( " + text + " )");
+    request.setContent("( action " + dfName + text + " )");
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -647,7 +657,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Deregister yourself with a DF 
-  public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void deregisterWithDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-deregister";
     ACLMessage request = FipaRequestMessage(dfName, replyString);
@@ -660,7 +670,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + " ( " + text + " )");
+    request.setContent("( action " + dfName + text + " )");
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -668,7 +678,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Modify registration data with a DF
-  public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) {
+  public void modifyDFRegistration(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) throws FIPAException {
 
     String replyString = myName + "-df-modify";
     ACLMessage request = FipaRequestMessage(dfName, replyString);
@@ -681,7 +691,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     // Convert it to a String and write it in content field of the request
     StringWriter text = new StringWriter();
     a.toText(text);
-    request.setContent("( action " + dfName + " ( " + text + " )");
+    request.setContent("( action " + dfName + text + " )");
 
     // Send message and collect reply
     doFipaRequestClient(request, replyString);
@@ -689,23 +699,51 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   // Search a DF for information
-  public void searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd) { // FIXME: Constraints still missing
+
+  // FIXME: Constraints still missing
+  public AgentManagementOntology.DFSearchResult searchDF(String dfName, AgentManagementOntology.DFAgentDescriptor dfd, Vector constraints) throws FIPAException {
 
     String replyString = myName + "-df-search";
     ACLMessage request = FipaRequestMessage(dfName, replyString);
 
     // Build a DF action object for the request
-    AgentManagementOntology.DFAction a = new AgentManagementOntology.DFSearchAction();
+    AgentManagementOntology.DFSearchAction a = new AgentManagementOntology.DFSearchAction();
     a.setName(AgentManagementOntology.DFAction.SEARCH);
     a.setArg(dfd);
 
+    if(constraints == null) {
+      AgentManagementOntology.Constraint c = new AgentManagementOntology.Constraint();
+      c.setName(AgentManagementOntology.Constraint.DFDEPTH);
+      c.setFn(AgentManagementOntology.Constraint.EXACTLY);
+      c.setArg(1);
+      a.addConstraint(c);
+    }
+    else {
+      // Put constraints into action
+    }
+
     // Convert it to a String and write it in content field of the request
-    StringWriter text = new StringWriter();
-    a.toText(text);
-    request.setContent("( action " + dfName + " ( " + text + " )");
+    StringWriter textOut = new StringWriter();
+    a.toText(textOut);
+    request.setContent("( action " + dfName + textOut + " )");
 
     // Send message and collect reply
-    doFipaRequestClient(request, replyString);
+    String content = doFipaRequestClient(request, replyString);
+
+    // Extract agent descriptors from reply message
+    AgentManagementOntology.DFSearchResult found = null;
+    StringReader textIn = new StringReader(content);
+    try {
+      found = AgentManagementOntology.DFSearchResult.fromText(textIn);
+    }
+    catch(jade.domain.ParseException jdpe) {
+      jdpe.printStackTrace();
+    }
+    catch(jade.domain.TokenMgrError jdtme) {
+      jdtme.printStackTrace();
+    }
+
+    return found;
 
   }
 
