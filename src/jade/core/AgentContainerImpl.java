@@ -302,6 +302,10 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return authority;
   }
 
+  protected NodeDescriptor getNodeDescriptor() {
+      return myNodeDescriptor;
+  }
+
   protected void init() throws IMTPException, ProfileException {
 
       // Create and initialize the IMTPManager
@@ -318,43 +322,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       myMainContainer = myProfile.getMain();
 
       //#MIDP_EXCLUDE_END
-
-      /*  -- this is old security code
-      // Create and init container-authority
-      try {
-	  if (myProfile.getParameter(Profile.OWNER, null) != null) {
-	      // if there is an owner for this container
-	      // then try to use the full implementation of security
-	      myProfile.setParameter(Profile.MAINAUTH_CLASS,"jade.security.impl.PlatformAuthority");
-		  myProfile.setParameter(Profile.AUTHORITY_CLASS,"jade.security.impl.ContainerAuthority");
-	  }
-	  String type = myProfile.getParameter(Profile.AUTHORITY_CLASS, null);
-	  if (type != null) {
-	      authority = (Authority)Class.forName(type).newInstance();
-	      authority.setName("container-authority");
-		  //#MIDP_EXCLUDE_BEGIN
-	      authority.init(myProfile, myMainContainer);
-	      //#MIDP_EXCLUDE_END
-	  }
-      }
-      catch (Exception e1) {
-	  System.out.println("Some problems occured during the initialization of the security. JADE will continue execution by using dummy security.");
-	  authority = null;
-	  //e1.printStackTrace();
-      }
-      try {
-	  if (authority == null) {
-	      authority = new jade.security.dummy.DummyAuthority();
-	      authority.setName("container-authority");
-	      //#MIDP_EXCLUDE_BEGIN
-	      authority.init(myProfile, myMainContainer);
-	      //#MIDP_EXCLUDE_END
-	  }
-      }
-      catch (Exception e2) {
-	  e2.printStackTrace();
-      }
-      */
           
       // This string will be used to build the GUID for every agent on
       // this platform.
@@ -388,35 +355,6 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  startService("jade.core.messaging.LightMessagingService");
 	  #MIDP_INCLUDE_END*/
 	  
-	  /* AgentManagement Service
-	  jade.core.management.AgentManagementService agentManagement = new jade.core.management.AgentManagementService();
-	  agentManagement.init(this, myProfile);
-
-	  // Messaging Service
-	  //#MIDP_EXCLUDE_BEGIN
-	  jade.core.messaging.MessagingService messaging = new jade.core.messaging.MessagingService();
-	  //#MIDP_EXCLUDE_END
-	  /#MIDP_INCLUDE_BEGIN
-	    jade.core.messaging.LightMessagingService messaging = new jade.core.messaging.LightMessagingService();
-	  #MIDP_INCLUDE_END/
-	  messaging.init(this, myProfile);
-
-	  ServiceDescriptor[] baseServices = new ServiceDescriptor[] {
-	      new ServiceDescriptor(agentManagement.getName(), agentManagement),
-	      new ServiceDescriptor(messaging.getName(), messaging),
-	  };
-
-	  // Register with the platform and activate all the container fundamental services
-	  // This call can modify the name of this container
-	  myServiceManager.addNode(myNodeDescriptor, baseServices);
-
-	  // Attach all base services to the container Command Processor
-	  ((BaseService)agentManagement).setCommandProcessor(myCommandProcessor);
-	  ((BaseService)messaging).setCommandProcessor(myCommandProcessor);
-
-	  // Install all ACL Codecs and MTPs specified in the Profile
-	  messaging.boot(myProfile);*/
-
 	  //#MIDP_EXCLUDE_BEGIN
 	  // If we are the master main container --> start the AMS and DF
 	  if(myMainContainer != null) {
@@ -450,54 +388,7 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	}
   }
 
-  protected NodeDescriptor getNodeDescriptor() {
-      return myNodeDescriptor;
-  }
-
-
-   // Authenticate the container's owner.
-   // In pratice, send a vertical cmd, 
-   // a proper service (if any) will provide 
-   // the user's JADEPrincipal and his initial Credentials
-   // Such credentials are used in joinPlatform() to create agents at start-up time.
-   /*private void authenticateOwner() {
- 
-     // ToDo: create vcomd AUTHENTICATE_USER
-     // send it to the cmd processor
-     // handle exceptions
-     // get Credentials and JADEPrincipal
-
-
-     
- //#MIDP_EXCLUDE_BEGIN    
-     // get the SecurityFactory 
-     SecurityFactory sf = SecurityFactory.getSecurityFactory( myProfile );
- 
-     // Authenticate the user owner of this container 
-     // and get his JADEPrincipal and Credentials
-   try {
-     // get the JADEUserAuthenticator object
-     JADEUserAuthenticator jua = sf.newJADEUserAuthenticator();
-     // login    TOFIX:add exception
-     jua.login( new UserPassCredential( username, password ) );
-     // take the principal 
-     principal = jua.getPrincipal();
-     // take the user credentials (it's a kind of login)
-     initialCred = jua.getCredentials();
-   } catch (AuthException e){ 
-     Logger.println("\nUser authentication failed.");
-     Logger.println("user: "+username);
-     Logger.println( e.getMessage() );
-     System.exit(-1);
-   }
- //#MIDP_EXCLUDE_END    
-     
-   } // end authenticateOwner()*/
- 
-
-  
-    void joinPlatform() {
-
+  boolean joinPlatform() {
   	//#J2ME_EXCLUDE_BEGIN
   	// Redirect output if the -output option is specified
   	String output = myProfile.getParameter("output", null);
@@ -514,38 +405,43 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
   	}
   	//#J2ME_EXCLUDE_END
   	
-      try {
-
-	  // Perform the initial setup from the profile
-	  init();
-
-	  // Connect the local node to the platform and activate the basic services 
-	  startNode();
-
-      }
-      catch (IMTPException imtpe) {
-          Logger.println("Communication failure while joining agent platform: " + imtpe.getMessage());
-          imtpe.printStackTrace();
-          endContainer();
-          return;
-      }
-      catch (AuthException ae) {
-          Logger.println("Authentication or authorization failure while joining agent platform.");
-          ae.printStackTrace();
-          endContainer();
-          return;
-      }
-      catch (Exception e) {
-          Logger.println("Some problem occurred while joining agent platform.");
-          e.printStackTrace();
-          endContainer();
-          return;
-      }
+    try {
+		  // Perform the initial setup from the profile
+		  init();
+	
+		  // Connect the local node to the platform and activate the basic services 
+		  startNode();
+    }
+    catch (IMTPException imtpe) {
+        Logger.println("Communication failure while joining agent platform: " + imtpe.getMessage());
+        imtpe.printStackTrace();
+        endContainer();
+        return false;
+    }
+    catch (AuthException ae) {
+        Logger.println("Authentication or authorization failure while joining agent platform.");
+        ae.printStackTrace();
+        endContainer();
+        return false;
+    }
+    catch (Exception e) {
+        Logger.println("Some problem occurred while joining agent platform.");
+        e.printStackTrace();
+        endContainer();
+        return false;
+    }
       
-      // Start additional services as specified in the profile
-    	startAdditionalServices();
-      
-      // Create and activate agents that must be launched at bootstrap
+    // Start additional services as specified in the profile
+  	startAdditionalServices();
+    
+    // Create and activate agents that must be launched at bootstrap
+  	startBootstrapAgents();
+
+    System.out.println("Agent container " + myID + " is ready.");
+    return true;
+  }
+
+  private void startBootstrapAgents() {
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
           Iterator agentSpecifiers = l.iterator();
@@ -561,10 +457,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   Logger.println("Authorization or authentication error while adding a new agent to the platform.");
                   localAgents.remove(agentID);
               }
-
           }
           
-
           // Now activate all agents (this call starts their embedded threads)
           AID[] allLocalNames = localAgents.keys();
           for (int i = 0; i < allLocalNames.length; i++) {
@@ -578,10 +472,8 @@ public class AgentContainerImpl implements AgentContainer, AgentToolkit {
       catch (ProfileException pe) {
           System.out.println("Warning: error reading initial agents");
       }
-
-      System.out.println("Agent container " + myID + " is ready.");
   }
-
+  
 /*
   CertificateFolder createCertificateFolder(AID agentID) throws AuthException {
           AgentPrincipal agentPrincipal = authority.createAgentPrincipal(agentID, username);
