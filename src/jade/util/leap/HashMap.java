@@ -40,12 +40,6 @@ import java.util.Enumeration;
  */
 public class HashMap implements Map, Serializable {
     private transient java.util.HashMap realHiddenMap = null;
-    private Hashtable                   hiddenMap;
-    
-    // This is needed to ensure compatibility with the J2ME version of 
-    // this class in serialization/deserialization operations
-    private static final long           serialVersionUID = 3487495895819395L;
-
     /**
      * Proxy to the realHiddenMap keys Set
      */
@@ -55,6 +49,15 @@ public class HashMap implements Map, Serializable {
      * Proxy to the realHiddenMap values Collection
      */
     private transient Collection        values = null;
+
+  	/**
+   	   The following elements are required to ensure compatibility with 
+   	   the J2ME version of this class in serialization/deserialization 
+   	   operations.
+   	 */
+    private static final long     serialVersionUID = 3487495895819395L;
+  	private static final Long     nullValue = new Long(serialVersionUID);
+    private Hashtable             hiddenMap;
 
     /**
      * Default constructor, creates a new empty Map
@@ -299,6 +302,8 @@ public class HashMap implements Map, Serializable {
         while (it.hasNext()) {
             Object key = it.next();
             Object value = realHiddenMap.get(key);
+            key = (key != null ? key : nullValue);
+            value = (value != null ? value : nullValue);
 
             hiddenMap.put(key, value);
         } 
@@ -322,6 +327,8 @@ public class HashMap implements Map, Serializable {
         while (e.hasMoreElements()) {
             Object key = e.nextElement();
             Object value = hiddenMap.get(key);
+            key = (nullValue.equals(key) ? null : key);
+            value = (nullValue.equals(value) ? null : value);
 
             realHiddenMap.put(key, value);
         } 

@@ -67,9 +67,9 @@ public class HashMap implements Map, Serializable {
 
   /**
    * The following elements are necessary to handle null keys and
-   * objects that are allowed in HashMap, but not in Hashtable.
+   * values that are allowed in HashMap, but not in Hashtable.
    */
-  private transient Object     nullValue = new Integer(hashCode());
+ 	private static final Long     nullValue = new Long(serialVersionUID);
 
   /**
    * Default constructor, creates a new empty Map
@@ -101,7 +101,7 @@ public class HashMap implements Map, Serializable {
     o = (o != null ? o : nullValue);
 
     Object ret = hiddenMap.remove(o);
-    return (ret != nullValue ? ret : null);
+    return (nullValue.equals(ret) ? null : ret);
   } 
 
   /**
@@ -115,7 +115,7 @@ public class HashMap implements Map, Serializable {
 
     Object previous = hiddenMap.put(key, value);
 
-    return (previous != nullValue ? previous : null);
+    return (nullValue.equals(previous) ? null : previous);
   } 
 
   /**
@@ -134,7 +134,7 @@ public class HashMap implements Map, Serializable {
     key = (key != null ? key : nullValue);
 
     Object ret = hiddenMap.get(key);
-    return (ret != nullValue ? ret : null);
+    return (nullValue.equals(ret) ? null : ret);
   } 
 
   /**
@@ -419,7 +419,7 @@ public class HashMap implements Map, Serializable {
       } 
 
       Object ret = elements.nextElement();
-      return (ret != nullValue ? ret : null);
+      return (nullValue.equals(ret) ? null : ret);
     } 
 
     /**
