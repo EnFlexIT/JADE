@@ -94,11 +94,11 @@ class JICPClient {
       if (dataType == JICPProtocol.COMMAND_TYPE) {
         int commandType = Command.getCommandType(data);
         switch (commandType) {
-        case Command.PING:
+        case Command.PING_NODE_NONBLOCKING:
           dataInfo |= JICPProtocol.NON_BLOCKING_IMTP_PING_INFO;
           break;
 
-        case Command.BLOCKING_PING:
+        case Command.PING_NODE_BLOCKING:
           dataInfo |= JICPProtocol.BLOCKING_IMTP_PING_INFO;
           break;
         }

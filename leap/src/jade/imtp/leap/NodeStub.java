@@ -70,7 +70,13 @@ class NodeStub extends Stub implements NodeLEAP {
     }
 
     public void ping(boolean hang) throws IMTPException {
-	Command cmd = new Command(Command.PING_NODE, remoteID);
+	Command cmd;
+	if(hang) {
+	    cmd = new Command(Command.PING_NODE_BLOCKING, remoteID);
+	}
+	else {
+	    cmd = new Command(Command.PING_NODE_NONBLOCKING, remoteID);
+	}
 	cmd.addParam(new Boolean(hang));
 
 	try {

@@ -61,7 +61,8 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	    break;
 	} 
 
-	case Command.PING_NODE: {
+	case Command.PING_NODE_BLOCKING:
+	case Command.PING_NODE_NONBLOCKING: {
 	    Boolean hang = (Boolean)command.getParamAt(0);
 	    ping(hang.booleanValue());
 
@@ -110,7 +111,6 @@ class NodeSkel extends Skeleton implements NodeLEAP {
 	Service.Slice slice = impl.getSlice(serviceName);
 
 	if(slice != null) {
-
 	    slice.serve((jade.core.VerticalCommand)cmd);
 	    return cmd.getReturnValue();
 	}
