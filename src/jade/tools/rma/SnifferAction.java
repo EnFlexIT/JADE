@@ -1,5 +1,8 @@
 /*
   $Log$
+  Revision 1.2  1999/11/08 16:33:59  rimassaJade
+  Actually implemented the action to start a message sniffer.
+
   Revision 1.1  1999/05/20 15:42:11  rimassa
   Moved RMA agent from jade.domain package to jade.tools.rma package.
 
@@ -26,21 +29,20 @@ import java.lang.*;
  * String containing ALL agents selected in the Tree
  * @see jade.gui.AMSAbstractAction
  */
-public class SnifferAction extends AMSAbstractAction
-{
-	public SnifferAction()
-	{
-		super ("SnifferActionIcon","Start Sniffer");
-	}
-	
-	public void actionPerformed(ActionEvent e) 
-	{
-		System.out.println(ActionName+" for Agents: ");                                     
-		for (int i=0;i<listeners.size();i++)
-		{
-			System.out.println(listeners.elementAt(i).toString());
-		}
-		listeners.removeAllElements();
-	}
+public class SnifferAction extends AMSAbstractAction {
+
+  private static int progressiveNumber = 0;
+  private rma myRMA;
+
+  public SnifferAction(rma anRMA) {
+    super ("SnifferActionIcon","Start Sniffer");
+    myRMA = anRMA;		
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    myRMA.newAgent("sniffer"+progressiveNumber, "jade.tools.sniffer.Sniffer", new String());
+    progressiveNumber++;
+  }
+
 }
 	
