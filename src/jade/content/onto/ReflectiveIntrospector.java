@@ -102,7 +102,7 @@ public class ReflectiveIntrospector implements Introspector {
     //#APIDOC_EXCLUDE_BEGIN
     protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
         try {
-            return method.invoke(obj, null);
+            return method.invoke(obj, (Object[]) null);
         } 
         catch (Exception e) {
             throw new OntologyException("Error invoking accessor method "+method.getName()+" on object "+obj, e);

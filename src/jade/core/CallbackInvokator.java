@@ -46,7 +46,7 @@ public class CallbackInvokator implements jade.util.leap.Serializable {
 	private void recursiveInvoke(Agent a, Class agentClass, String name) {
 		Method callbackMethod = null;
 		try {
-			callbackMethod = agentClass.getDeclaredMethod(name, null);
+			callbackMethod = agentClass.getDeclaredMethod(name, (Class[]) null);
 			//#DOTNET_EXCLUDE_BEGIN
 			boolean accessibilityChanged = false;
 			if (!callbackMethod.isAccessible()) {
@@ -60,7 +60,7 @@ public class CallbackInvokator implements jade.util.leap.Serializable {
 			}					
 			//#DOTNET_EXCLUDE_END
 			try { 			
-				callbackMethod.invoke(a, null);
+				callbackMethod.invoke(a, (Object[]) null);
 				//#DOTNET_EXCLUDE_BEGIN
 				// Restore accessibility if changed
 				if (accessibilityChanged) {
