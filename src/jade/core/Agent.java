@@ -1,5 +1,10 @@
 /*
   $Log$
+  Revision 1.24  1998/11/05 23:31:20  rimassa
+  Added a protected takeDown() method as a placeholder for
+  agent-specific destruction actions.
+  Added automatic AMS deregistration on agent exit.
+
   Revision 1.23  1998/11/01 19:11:19  rimassa
   Made doWake() activate all blocked behaviours.
 
@@ -266,6 +271,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
       mainLoop();
 
+      takeDown();
+
       destroy();
     }
     catch(InterruptedException ie) {
@@ -280,6 +287,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   }
 
   protected void setup() {}
+
+  protected void takeDown() {}
 
   private void mainLoop() throws InterruptedException {
     while(myAPState != AP_DELETED) {
@@ -311,6 +320,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   private void destroy() {
     System.out.println("Agent " + myName + " is dead.");
+    try {
+      deregisterWithAMS();
+    }
+    catch(FIPAException fe) {
+      fe.printStackTrace();
+    }
     notifyDestruction();
   }
 
