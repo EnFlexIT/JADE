@@ -196,6 +196,10 @@ public class DummyAgent extends Agent implements ActionListener
 		///////////////////////////////////
 		// Arrange and display agent window
 		agentWnd.pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int centerX = (int)screenSize.getWidth() / 2;
+		int centerY = (int)screenSize.getHeight() / 2;
+		agentWnd.setLocation(centerX - agentWnd.getWidth() / 2, centerY - agentWnd.getHeight() / 2);
 		agentWnd.show();
 
 		///////////////////////
@@ -227,18 +231,13 @@ public class DummyAgent extends Agent implements ActionListener
 				try
 				{
 					BufferedReader in = new BufferedReader(new FileReader(fileName));
-					ACLParser parser = ACLParser.create();
-					ACLMessage ACLmsg = parser.parse(in);
+					ACLMessage ACLmsg = ACLMessage.fromText(in);
 					currentMsgGui.setMsg(ACLmsg);
 				}
 				catch(FileNotFoundException e1) 
 				{
 					System.out.println("File Not Found: " + fileName);
 				} 
-				catch(ParseException e2)
-				{
-					System.out.println("Parse Exception");
-				}
 			} 
 		}
 		else if (command == "Save")
