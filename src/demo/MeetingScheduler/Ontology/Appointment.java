@@ -22,7 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 
 package demo.MeetingScheduler.Ontology;
-import jade.util.leap.*;
+import java.util.*;
 import java.util.Date;
 import jade.core.AID;
 

@@ -28,7 +28,7 @@ import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Date;
-import jade.util.leap.*;
+import java.util.*;
 
 import demo.MeetingScheduler.Ontology.*;
 import jade.core.Agent;
