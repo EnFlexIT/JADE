@@ -538,7 +538,7 @@ public class AID implements Comparable, Serializable {
 
 
     // For persistence service
-    private Long persistentID;
+    private transient Long persistentID;
 
     // For persistence service
     private Long getPersistentID() {
