@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 import jade.util.leap.Properties;
+import jade.util.Logger;
 
 /**
 @author Giovanni Caire - TILAB
@@ -98,10 +99,24 @@ public class MicroRuntime {
 	/**
 	   Activate the Java environment terminator when the JADE runtime
 	   has stopped.
+	   This is done after the thread executing the handleTermination() 
+	   method has terminated to allow it to successfully send back a
+	   response in case the termination was activated by remote.
 	 */
 	static void handleTermination() {
 		myFrontEnd = null;
-		Thread t = new Thread(terminator);
+		final Thread killer = Thread.currentThread();
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					killer.join();
+				}
+				catch (InterruptedException ie) {
+					Logger.println("Interrupted in join");
+				}
+				terminator.run();
+			}
+		} );
 		t.start();
 	}
 }
