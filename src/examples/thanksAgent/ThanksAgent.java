@@ -53,17 +53,23 @@ import jade.wrapper.*;
  **/
 public class ThanksAgent extends Agent {
 
-    public static boolean IAmTheCreator = true;
-		// number of thanks message sent, if 2 then the example terminated successfully (used by the Test Suite)
-		public static int terminated = 0;
+    private static boolean IAmTheCreator = true;
+		// number of answer messages received.
+		private int answersCnt = 0;
 
     public final static String GREETINGS = "GREETINGS";
     public final static String ANSWER = "ANSWER";
     public final static String THANKS = "THANKS";
 		private AgentContainer ac = null;
+		private AgentController t1 = null;
+		private AID initiator = null;
 
     protected void setup() {
-	System.out.println(getLocalName()+" STARTED ITS JOB");
+	System.out.println(getLocalName()+" STARTED");
+	Object[] args = getArguments();
+	if (args != null && args.length > 0) {
+		initiator = new AID((String) args[0], AID.ISLOCALNAME);
+	}
 
 	try {
 	    // create the agent descrption of itself
@@ -86,7 +92,8 @@ public class ThanksAgent extends Agent {
 	    try {
 					// create agent t1 on the same container of the creator agent
 		AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
-		container.createNewAgent(t1AgentName, "examples.thanksAgent.ThanksAgent", null).start();
+		t1 = container.createNewAgent(t1AgentName, "examples.thanksAgent.ThanksAgent", null);
+		t1.start();
 		System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName + " ON CONTAINER "+container.getContainerName());
 	    } catch (Exception any) {
 		any.printStackTrace();
@@ -120,7 +127,7 @@ public class ThanksAgent extends Agent {
 	    msg.addReceiver(new AID(t2AgentName, AID.ISLOCALNAME));
 
 	    send(msg);
-	    System.out.println(getLocalName()+" SENT GREETINGS MESSAGE : "+msg); 
+	    System.out.println(getLocalName()+" SENT GREETINGS MESSAGE  TO "+t1AgentName+" AND "+t2AgentName); 
 	}  /* IF YOU COMMENTED OUT THIS ELSE CLAUSE, THEN YOU WOULD GENERATE
 	      AN INTERESTING INFINITE LOOP WITH INFINTE AGENTS AND AGENT 
 	      CONTAINERS BEING CREATED 
@@ -136,39 +143,75 @@ public class ThanksAgent extends Agent {
 	// then send a THANKS message
 	addBehaviour(new CyclicBehaviour(this) {
 		public void action() {
-		    // listen if a greetings message arrives
-		    ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-		    if (msg != null) {
-			if (GREETINGS.equalsIgnoreCase(msg.getContent())) {
+	    // listen if a greetings message arrives
+	    ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+	    if (msg != null) {
+				if (GREETINGS.equalsIgnoreCase(msg.getContent())) {
 			    // if a greetings message is arrived then send an ANSWER
-			    System.out.println(myAgent.getLocalName()+" RECEIVED GREETINGS MESSAGE : "+msg); 
+			    System.out.println(myAgent.getLocalName()+" RECEIVED GREETINGS MESSAGE FROM "+msg.getSender().getLocalName()); 
 			    ACLMessage reply = msg.createReply();
 			    reply.setContent(ANSWER);
 			    myAgent.send(reply);
-			    System.out.println(myAgent.getLocalName()+" SENT ANSWER MESSAGE : "+reply); 
-			} else if (ANSWER.equalsIgnoreCase(msg.getContent())) {
+			    System.out.println(myAgent.getLocalName()+" SENT ANSWER MESSAGE");
+				} 
+				else if (ANSWER.equalsIgnoreCase(msg.getContent())) {
 			    // if an ANSWER to a greetings message is arrived 
 			    // then send a THANKS message
-			    System.out.println(myAgent.getLocalName()+" RECEIVED ANSWER MESSAGE : "+msg); 
+			    System.out.println(myAgent.getLocalName()+" RECEIVED ANSWER MESSAGE FROM "+msg.getSender().getLocalName()); 
 			    ACLMessage replyT = msg.createReply();
 			    replyT.setContent(THANKS);
 			    myAgent.send(replyT);
-			    System.out.println(myAgent.getLocalName()+" SENT THANKS MESSAGE : "+replyT); 
-					synchronized (myAgent.getClass()) { // synchronized between all agents of this class
-							terminated++;
-							if (terminated == 2) {
-									try {
-											// kill the created container
-											ac.kill();
-									} catch (StaleProxyException any) {
-									}
-							}
+			    System.out.println(myAgent.getLocalName()+" SENT THANKS MESSAGE"); 
+			    answersCnt++;
+					if (answersCnt == 2) {
+						// All answers have been received. 
+						// Wait a bit to be sure the other Thanks agents gets the Thank message,
+						// then kill everybody
+						try {
+							Thread.sleep(1000);
+						} 
+						catch (InterruptedException ie) {}
+						try {
+							// Kill the created container (this will also kill ThanksAgent2)
+							ac.kill();
+							// Kill ThanksAgent2
+							t1.kill();
+							// Reset the creator indication
+							IAmTheCreator = true;
+							// Notify the initiator if any
+							if (initiator != null) {
+								ACLMessage notification = new ACLMessage(ACLMessage.INFORM);
+								notification.addReceiver(initiator);
+								send(notification);
+							}	
+						} 
+						catch (StaleProxyException any) {
+							any.printStackTrace();
+						}
 					}
+				}
+				else if (THANKS.equalsIgnoreCase(msg.getContent())) {
+			    System.out.println(myAgent.getLocalName()+" RECEIVED THANKS MESSAGE FROM "+msg.getSender().getLocalName()); 
+				}
+				else {
+			    System.out.println(myAgent.getLocalName()+" Unexpected message received from "+msg.getSender().getLocalName()); 
+				}					
 			}
-		    } else // if no message is arrived, block the behaviour
-			block();
+			else {
+				// if no message is arrived, block the behaviour
+				block();
+			}
 		}
-	    });
-    }
+	});
+		}
 
+    protected void takeDown() {
+    	// Deregister with the DF
+			try {
+			    DFService.deregister(this);
+			    System.out.println(getLocalName()+" DEREGISTERED WITH THE DF");
+			} catch (FIPAException e) {
+			    e.printStackTrace();
+			}
+    }
 }
