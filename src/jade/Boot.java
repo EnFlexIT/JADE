@@ -268,6 +268,26 @@ public class Boot {
       // object name for the main container, taken from default values
       // and command line options.
       String platformID = p.getProperty("host") + ":" + p.getProperty("port") + "/" + platformName;
+
+      // Configure Java runtime system to put the selected host address in RMI messages
+      try {
+	String localHost;
+	if(isPlatform) {
+	  localHost = p.getProperty("host");
+	}
+	else {
+	  // FIXME: It should be possible to set the local host also
+	  // on a non-main container.
+	  localHost = InetAddress.getLocalHost().getHostAddress();
+	}
+	System.getProperties().put("java.rmi.server.hostname", localHost);
+
+      }
+      catch(java.net.UnknownHostException jnue) {
+	jnue.printStackTrace();
+      }
+
+
   
       // Start a new JADE runtime system, passing along suitable
       // information extracted from command line arguments.
@@ -361,29 +381,9 @@ public class Boot {
   public static void checkProperties(Properties p) throws BootException
   {
   
-  	String container = p.getProperty("container");
+    String container = p.getProperty("container");
     boolean isContainer = (Boolean.valueOf(container)).booleanValue();	
-  
-  	
-  	if(!isContainer) //is a platform
-  	   {
-  	   	String host = p.getProperty("host");
-  	   	try {
-  	   		String platformHost = InetAddress.getLocalHost().getHostName();
-          if(!(platformHost.equalsIgnoreCase(host)))
-          {
-          	p.remove("host");
-          	p.put("host",platformHost);
-          	throw new BootException("WARNING: Not possible to launch a platform \non a different host.\nA platform must be launched on local host.");
-          }
-  	   	}
-        catch(UnknownHostException uhe) {
-           System.out.print("Unknown host exception in getLocalHost(): ");
-           System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
-           System.exit(1);
-        }
 
-  	   } 	
   	String port = p.getProperty("port");
   	int portNumber = -1;
   	try{
