@@ -17,6 +17,9 @@ ACLSPEC     = 	jade/lang/acl/ACLParser.jj
 DFDESCFLAGS =	-OUTPUT_DIRECTORY:jade/domain
 DFDESCSPEC  =	jade/domain/DFDescriptionParser.jj
 
+AGENTMANFLAGS =	-OUTPUT_DIRECTORY:jade/domain
+AGENTMANSPEC  =	jade/domain/AgentManagementParser.jj
+
 EXECS       = 	jade/Boot.java
 ROOTCLASSES =	jade/core/ComplexBehaviour.java \
 		jade/core/NonDeterministicBehaviour.java \
@@ -35,7 +38,7 @@ all: parsers classes stubs
 	@echo Build complete.
 	@echo
 
-parsers: ACLParser DFDescParser
+parsers: ACLParser DFDescParser AgentManParser
 	@echo Parsers generated
 
 ACLParser:
@@ -43,6 +46,9 @@ ACLParser:
 
 DFDescParser:
 	$(PARSERGEN) $(DFDESCFLAGS) $(DFDESCSPEC)
+
+AgentManParser:
+	$(PARSERGEN) $(AGENTMANFLAGS) $(AGENTMANSPEC)
 
 classes:
 	$(JC) $(JFLAGS) $(EXECS)
