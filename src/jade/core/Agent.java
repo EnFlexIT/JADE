@@ -896,10 +896,20 @@ public class Agent implements Runnable, Serializable, TimerListener {
 
   }
 
-  // This is used by the agent container to wait for agent termination
+
+  /**
+   * This is used by the agent container to wait for agent termination.
+   * We have alreader called doDelete on the thread which would have
+   * issued an interrupt on it. However, it still may decide not to exit.
+   * So we will wait no longer than 5 seconds for it to exit and we
+   * do not care of this zombie agent.
+   * FIXME: we must further isolate container and agents, for instance
+   * by using custom class loader and dynamic proxies and JDK 1.3.
+   * FIXME: the timeout value should be got by Profile
+   */
   void join() {
     try {
-      myThread.join();
+      myThread.join(5000);
     }
     catch(InterruptedException ie) {
       ie.printStackTrace();
