@@ -1,5 +1,14 @@
 /*
   $Log$
+  Revision 1.34  1999/02/25 08:12:35  rimassa
+  Instance variables 'myName' and 'myAddress' made private.
+  Made variable 'myAPState' volatile.
+  Made join() work without timeout, after resolving termination
+  problems.
+  Handled InterruptedIOException correctly.
+  Removed doFipaRequestClientNB() and made all System Agents Access API
+  blocking again.
+
   Revision 1.33  1999/02/15 11:41:46  rimassa
   Changed some code to use getXXX() naming methods.
 
@@ -187,6 +196,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Serializable;
 
+import java.io.InterruptedIOException;
+
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -245,15 +256,18 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   protected Vector msgQueue = new Vector();
   protected Vector listeners = new Vector();
 
-  protected String myName = null;
-  protected String myAddress = null;
+  private String myName = null;
+  private String myAddress = null;
 
   protected Thread myThread;
   protected Scheduler myScheduler;
   protected Behaviour currentBehaviour;
   protected ACLMessage currentMessage;
 
-  private int myAPState;
+  // This variable is 'volatile' because is used as a latch to signal
+  // agent suspension and termination from outside world.
+  private volatile int myAPState;
+
   private int myDomainState;
   private Vector blockedBehaviours = new Vector();
 
@@ -263,7 +277,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
   public Agent() {
     myAPState = AP_INITIATED;
     myDomainState = D_UNKNOWN;
-    myThread = new Thread(this);
     myScheduler = new Scheduler(this);
   }
 
@@ -281,9 +294,8 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // This is used by the agent container to wait for agent termination
   void join() {
-    try { // FIXME: Some deadlock problems, since thread.interrupt() does not seem to work
-      doWake();
-      myThread.join(500); // Wait at most 500 milliseconds
+    try {
+      myThread.join();
     }
     catch(InterruptedException ie) {
       ie.printStackTrace();
@@ -293,12 +305,12 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   // State transition methods for Agent Platform Life-Cycle
 
-  public void doStart(String name, String platformAddress) { // Transition from Initiated to Active
+  public void doStart(String name, String platformAddress, ThreadGroup myGroup) { // Transition from Initiated to Active
 
     // Set this agent's name and address and start its embedded thread
     myName = new String(name);
     myAddress = new String(platformAddress);
-
+    myThread = new Thread(myGroup, this);    
     myThread.setName(myName);
     myThread.start();
 
@@ -363,6 +375,9 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     catch(InterruptedException ie) {
       // Do Nothing, since this is a killAgent from outside
     }
+    catch(InterruptedIOException iioe) {
+      // Do nothing, since this is a killAgent from outside
+    }
     catch(Exception e) {
       System.err.println("***  Uncaught Exception for agent " + myName + "  ***");
       e.printStackTrace();
@@ -381,7 +396,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   protected void takeDown() {}
 
-  private void mainLoop() throws InterruptedException {
+  private void mainLoop() throws InterruptedException, InterruptedIOException {
     while(myAPState != AP_DELETED) {
 
       // Select the next behaviour to execute
@@ -562,28 +577,6 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
 
   }
 
-  // FIXME: Temporary hack; should find a better solution...
-  private void doFipaRequestClientNB(ACLMessage request, String replyString) throws FIPAException {
-    MessageTemplate template = MessageTemplate.MatchReplyTo(replyString);
-    addBehaviour(new FipaRequestClientBehaviour(this, request, template) {
-      protected void handleNotUnderstood(ACLMessage reply) {
-        // Do nothing
-      }
-      protected void handleRefuse(ACLMessage reply) {
-        // Do nothing
-      }
-      protected void handleAgree(ACLMessage reply) {
-        // Do nothing
-      }
-      protected void handleFailure(ACLMessage reply) {
-        // Do Nothing
-      }
-      protected void handleInform(ACLMessage reply) {
-        // Do nothing
-      }
-    });
-  }
-
   // Register yourself with platform AMS
   public void registerWithAMS(String signature, int APState, String delegateAgent,
 			      String forwardAddress, String ownership) throws FIPAException {
@@ -716,7 +709,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setContent(text.toString());
 
     // Send message and collect reply, in a separate Behaviour
-    doFipaRequestClientNB(request, replyString);
+    doFipaRequestClient(request, replyString);
 
   }
 
@@ -760,7 +753,7 @@ public class Agent implements Runnable, Serializable, CommBroadcaster {
     request.setContent(text.toString());
 
     // Send message and collect reply
-    doFipaRequestClientNB(request, replyString);
+    doFipaRequestClient(request, replyString);
 
   }
 
