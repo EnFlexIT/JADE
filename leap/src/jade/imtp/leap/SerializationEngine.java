@@ -68,8 +68,8 @@ class SerializationEngine {
 	}
 
 	final static Command deserialize(byte[] data) throws LEAPSerializationException {
-		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
     try { 
+			DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
     	int type = (int) dis.readByte();
       Command cmd = new Command(type);
       int paramCnt = (int) dis.readByte();
@@ -79,8 +79,8 @@ class SerializationEngine {
       //Logger.println("De-serialized command. Type = "+cmd.getCode()+". Length = "+(data != null ? data.length : 0));
       return cmd;
     } 
-    catch (IOException ioe) {
-      throw new LEAPSerializationException("Error deserializing Command");
+    catch (Exception e) {
+      throw new LEAPSerializationException("Error deserializing Command "+e);
     }
 	}
 	
