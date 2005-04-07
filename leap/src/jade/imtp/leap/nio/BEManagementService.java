@@ -533,7 +533,7 @@ public class BEManagementService extends BaseService {
 						  		// This is a zombie mediator --> kill it
 			  					myLogger.log(Logger.INFO, myLogPrefix+"Replacing old mediator "+id);
 						  		old.kill();
-						  		// Be sure the zombie container has been removed
+						  		// Be sure the zombie container has been removed from the Main Container tables
 						  		waitABit(1000);
 						  	}
 						  }
@@ -610,7 +610,7 @@ public class BEManagementService extends BaseService {
 		        break;
 		      }        
 		      default: {
-		      	// Pass all other JICP packets (command, responses, keep-alives ...)
+		      	// Pass all other JICP packets (commands, responses, keep-alives ...)
 		      	// to the proper mediator.
 		        if (mediator == null) {
 		        	mediator = getFromID(recipientID);
