@@ -98,6 +98,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
     catch (Exception e) {
     	// Keep default
     }
+    System.out.println("Next command for FE will have sessionID "+inpCnt);
 
     // lastSid
     int lastSid = 0x0f;
@@ -471,7 +472,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		myConnection = c;
   		connectionRefreshed = true;
   		waitingForFlush = myStub.flush();
-  		myContainer.notifyInputConnectionReady();
+  		//myContainer.notifyInputConnectionReady();
   	}
   	
   	synchronized void resetConnection() {
@@ -536,9 +537,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				  checkTerminatedInfo(reply);
 				  lastReceivedTime = System.currentTimeMillis();
 				  long end = lastReceivedTime;
-				  if ((end - start) > 100) {
-				  	System.out.println("Dispatching time = "+(end-start));
-				  }
+			  	System.out.println("INP Session "+inpCnt+". Dispatching time = "+(end-start));
 				  
 			  	if (myLogger.isLoggable(Logger.FINER)) {
 				  	myLogger.log(Logger.FINER, myID+": Received response "+inpCnt+" from FE");
