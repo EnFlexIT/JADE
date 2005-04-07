@@ -59,7 +59,7 @@ public class JICPPacket {
   /**
    * An optional identifier for the session this packet belongs to
    */
-  private byte   sessionID;
+  private byte   sessionID = -1;
   
   /**
    * An optional field indicating the actual recipient for this JICPPacket. 
