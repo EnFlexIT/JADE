@@ -105,8 +105,8 @@
   <target name="leap" depends="init" 
           description="Compile files to be executed in a MIDP environment">
   	
-  <property file="add-ons/leap/buildLEAP.properties"/>
-  <property name="leap-home" value="add-ons/leap" />
+  <property file="leap/buildLEAP.properties"/>
+  <property name="leap-home" value="leap" />
   <property name="leapmidp" value="${leap-home}/midp/lib/JadeLeap.jar" />
   <property name="unverified" value="src/test/unverified" />
   <property name="verified" value="src/test/verified" />
