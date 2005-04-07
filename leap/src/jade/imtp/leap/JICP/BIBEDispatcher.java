@@ -565,7 +565,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   		myConnection = c;
   		connectionRefreshed = true;
   		waitingForFlush = myStub.flush();
-  		myContainer.notifyInputConnectionReady();
+  		//myContainer.notifyInputConnectionReady();
   	}
 
   	private synchronized Connection getConnection(boolean flush) {
