@@ -62,6 +62,11 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
     private long outCnt = 0;
 
+	  // This flag is used to prevent two parallel shut-down processes and
+    // also to be sure that threads possibly started by this BEContainer
+    // do not survive after the BEContainer shutdown. 
+	  private boolean terminating = false;
+	  
     // The FrontEnd this BackEndContainer is connected to
     private FrontEnd myFrontEnd;
 
@@ -124,7 +129,6 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
 				    myLogger.log(Logger.INFO, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
 		    		resynch();
-				    myLogger.log(Logger.INFO, "Resynch OK");
 		    	}
 		    }
 		    return connected;
@@ -411,11 +415,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	throw new IMTPException("Unsupported operation");
   }
 
-  // This flag is used only to prevent two successive shut-down processes. 
-  private boolean terminating = false;
   /**
    */
   public void shutDown() {
+  	// Avoid two parallel shut-downs
   	synchronized(this) {
   		if (terminating) {
   			return;
@@ -683,7 +686,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   // Flag indicating that the front-end synchronization process is in place
   private boolean synchronizing = false;
   // Flag indicating that the input-connection is ready
-  private boolean inputConnectionReady = false;
+  //private boolean inputConnectionReady = false;
   
   private Object inputConnectionLock = new Object();
   private Object frontEndSynchLock = new Object();
@@ -692,22 +695,33 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   
   /**
      Start the front-end synchronization process.
+     NOTE that when this method is called it may not be possible
+     to send commands to the FE. If a bi-connection dispatcher
+     is used in fact, the INP connection is not yet ready at this time.
+     However we can't just send a SYNCH command and rely on the 
+     store-and-forward mechanism of the FrontEndStub since we need to know 
+     when the SYNCH command is completely served. --> We start a separated
+     Thread that tries sending the SYNCH command until success.
    */
   private void resynch() {
   	synchronizing = true;
-		inputConnectionReady = false;
+		//inputConnectionReady = false;
   	Thread synchronizer = new Thread() {
   		public void run() {
-  			while (true) {
+  			while (!terminating) {
 	  			try {
 	  				// Wait for the input connection to be established.
-		  			waitUntilInputConnectionReady();
+		  			//waitUntilInputConnectionReady();
 		  			myFrontEnd.synch();
 		  			notifySynchronized();
+				    myLogger.log(Logger.INFO, "Resynch completed");
 		  			break;
 	  			}
 	  			catch (IMTPException imtpe) {
 	  				// The input connection is down again. Go back waiting
+				    myLogger.log(Logger.INFO, "Can't issue SYNCH command to FE. Wait a bit and retry...");
+				    try {Thread.sleep(1000);} catch (Exception e) {}
+						//inputConnectionReady = false;
 	  			}
   			}
   		}
@@ -715,7 +729,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   	synchronizer.start();
   }
 
-  private void waitUntilInputConnectionReady() {
+  /*private void waitUntilInputConnectionReady() {
   	synchronized (inputConnectionLock) {
   		while (!inputConnectionReady) {
   			try {
@@ -724,14 +738,14 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   			catch (Exception e) {}
   		}
   	}
-  }
+  }*/
   
-  public void notifyInputConnectionReady() {
+  /*public void notifyInputConnectionReady() {
   	synchronized (inputConnectionLock) {
   		inputConnectionReady = true;
   		inputConnectionLock.notifyAll();
   	}
-  }
+  }*/
   
   private void postponeAfterFrontEndSynch(ACLMessage msg, String sender) {
   	// No need for synchronization since this is called within a synchronized block
