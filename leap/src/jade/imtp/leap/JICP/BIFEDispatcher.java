@@ -414,12 +414,20 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				while (isConnected()) {
 					status = 0;
 					JICPPacket pkt = myConnection.readPacket();
+					// HACK!: For some misterious reason just after a BE re-creation it 
+					// may happen that we get a RESPONSE packet here. Waiting for a cleaner 
+					// solution, we just ignore it and go back reading the next incoming
+					// command
+					if (pkt.getType() == JICPProtocol.RESPONSE_TYPE) {
+		  			myLogger.log(Logger.WARNING, "Unexpected response packet received on INP connection. Ignore it");
+						continue;
+					}
 					status = 1;
   				byte sid = pkt.getSessionID();
   				if (sid == lastSid) {
   					// Duplicated packet
 			  		if (myLogger.isLoggable(Logger.WARNING)) {
-			  			myLogger.log(Logger.WARNING, "Duplicated packet from BE "+sid);
+			  			myLogger.log(Logger.WARNING, "Duplicated packet from BE: pkt-type="+pkt.getType()+" info="+pkt.getInfo()+" SID="+sid);
 			  		}
   					pkt = lastResponse;
   				}
