@@ -6,9 +6,7 @@
   <property file="buildLEAP.properties"/>
   <property name="java-home" value="${env.JAVA_HOME}"/>
   <property name="root"      value="."/>
-  <property name="jade-home" value="../.."/>
-  <property name="javac.optimize" value="on"/>
-  <property name="javac.debug" value="off"/>
+  <property name="jade-home" value=".."/>
 
 	<property name="buildfiles" value="${root}/resources/build"/>
 
@@ -115,6 +113,8 @@
 	<target name="init"
 	        description="Set time stamp">
 	  <tstamp/>
+	  
+		<ant antfile="build.xml" target="doTag" dir="${jade-home}"/>
 	  
     <condition property="boot-midp-classes-tmp" 
                value="${j2me-wtk-home}/lib/midpapi.zip">
