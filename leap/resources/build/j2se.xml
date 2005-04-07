@@ -206,8 +206,8 @@
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-classes}"
 		       classpath="${classes}"
-		       debug="${javac.debug}"
-		       optimize="${javac.optimize}"
+		       debug="${debug-build}"
+		       optimize="${optimised-build}"
 		       deprecation="off"/>
 		       
 		<delete file="${root}/demo/demoJ2se.jar" quiet="true"/>
