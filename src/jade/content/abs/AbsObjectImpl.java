@@ -25,7 +25,9 @@
 package jade.content.abs;
 
 import jade.core.CaseInsensitiveString;
-import java.util.*;
+import jade.util.leap.ArrayList;
+import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
 
 /**
  * Base class for all non-primitive abstract descriptor classes.
@@ -99,15 +101,10 @@ public class AbsObjectImpl implements AbsObject {
      */
     public String[] getNames() {
     	String[] names = new String[orderedKeys.size()];
-    	return (String[])orderedKeys.toArray(names);
-      /*  String[] elementNames = new String[getCount()];
-        
-        int count = 0;
-        for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
-					elementNames[count++] = ((CaseInsensitiveString) e.nextElement()).toString();
-				}
-
-        return elementNames; */
+			int j=0;
+			for (Iterator i=orderedKeys.iterator(); i.hasNext(); )
+					names[j++] = (String)i.next();
+    	return names;
     } 
 
     /**
@@ -196,20 +193,19 @@ public class AbsObjectImpl implements AbsObject {
     {
     	String slotNames[] = o.getNames();
     	sort(slotNames);
-    	Vector v = new Vector();
+			int[] v = new int[2*slotNames.length + 1];
+			int j=0;
     	for(int i = 0; i < slotNames.length; i++)
     	{
-    		v.addElement(new Integer(slotNames[i].hashCode()));
-    		v.addElement(new Integer(o.getAbsObject(slotNames[i]).hashCode()));
+    		v[j++] = slotNames[i].hashCode();
+    		v[j++] = o.getAbsObject(slotNames[i]).hashCode();
     	}
-    	v.addElement(new Integer(o.getTypeName().hashCode()));
+    	v[j++] = o.getTypeName().hashCode();
 
    		int sum = 0;
    		int counter = 0;
-   		Enumeration enumeration = v.elements(); 
-   		while(enumeration.hasMoreElements())
-   		{
-   			sum += ((Integer)enumeration.nextElement()).intValue() * x^counter;
+			for (int i=0; i<v.length; i++ ) {
+   			sum += v[i] * x^counter;
    			counter++;
    		}
    		return sum;
