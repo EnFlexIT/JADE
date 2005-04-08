@@ -50,12 +50,13 @@ import java.util.Enumeration;
  * @author Giovanni Caire - TILAB
  */
 public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
+	public static final String MSISDN = "msisdn";
+	public static final String VERSION = "version";
+	
 	protected static final byte INP = (byte) 1;
 	protected static final byte OUT = (byte) 0;
 	
 	private static final int RESPONSE_TIMEOUT = 30000;
-	
-	private static final String MSISDN = "msisdn";
 	
 	protected String myMediatorClass = "jade.imtp.leap.JICP.BIBEDispatcher";
 	
@@ -266,6 +267,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
 	  appendProp(sb, JICPProtocol.OWNER_KEY, props.getProperty(JICPProtocol.OWNER_KEY));
 	  appendProp(sb, MSISDN, props.getProperty(MSISDN));
+	  appendProp(sb, VERSION, props.getProperty(VERSION));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
     // Try first with the current transport address, then with the various backup addresses
