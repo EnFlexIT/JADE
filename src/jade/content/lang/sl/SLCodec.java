@@ -183,11 +183,9 @@ public class SLCodec extends StringCodec {
      * escaping strings, if necessary
      **/
     private String encode(String val) {
-	// if the slotName is a String of words then quote it
-	if (SimpleSLTokenizer.isAWord(val)) 
-	    return val;
-	else
-	    return SimpleSLTokenizer.quoteString(val);
+    	// if the slotName is a String of words then quote it
+    	String out = (SimpleSLTokenizer.isAWord(val) ? val :  SimpleSLTokenizer.quoteString(val));
+    	return out;
     }
 
 
@@ -524,8 +522,11 @@ public class SLCodec extends StringCodec {
 		  for (int i=0; i<slotNames.length; i++) {
 				AbsTerm t = (AbsTerm)val.getAbsObject(slotNames[i]);
 				if (t != null) {
-					str.append(" :");
-					str.append(encode(slotNames[i]));
+					// if this isn't un unnamed slot, then encode it otherwise just encode its value
+					if (!slotNames[i].startsWith(this.UNNAMEDPREFIX)) {
+						str.append(" :");
+						str.append(encode(slotNames[i]));
+					}
 					str.append(" ");
 					str.append(toString(t));
 				}

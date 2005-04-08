@@ -33,6 +33,14 @@ public interface SL2Vocabulary extends SL1Vocabulary {
   public static final String         ANY = "any";
   public static final String         ALL = "all";
   
+  public static final String         IMPLIES = "implies";
+  public static final String         IMPLIES_LEFT = "left";
+  public static final String         IMPLIES_RIGHT = "right";
+  
+  public static final String         EQUIV = "equiv";
+  public static final String         EQUIV_LEFT = "left";
+  public static final String         EQUIV_RIGHT = "right";
+  
   public static final String         EXISTS = "exists";
   public static final String         EXISTS_WHAT = "what";
   public static final String         EXISTS_CONDITION = "condition";

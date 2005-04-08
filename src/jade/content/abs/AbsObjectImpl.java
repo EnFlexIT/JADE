@@ -25,9 +25,7 @@
 package jade.content.abs;
 
 import jade.core.CaseInsensitiveString;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.Enumeration;
+import java.util.*;
 
 /**
  * Base class for all non-primitive abstract descriptor classes.
@@ -36,8 +34,13 @@ import java.util.Enumeration;
  * @author Giovanni Caire - TILAB
  */
 public class AbsObjectImpl implements AbsObject {
-    private Hashtable elements = new Hashtable();
+    private HashMap elements = new HashMap();
+    /** This list keeps the keys in the same order as they were added **/
+    private ArrayList orderedKeys = new ArrayList();
     private String    typeName = null;
+    /** true if this object is changed and its hash must be recomputed **/
+    private boolean changed = true;
+    private int hashCode = 0;
 
     /**
      * Construct an Abstract descriptor to hold an object of
@@ -69,11 +72,14 @@ public class AbsObjectImpl implements AbsObject {
     protected void set(String name, AbsObject value) {
     		CaseInsensitiveString ciName = new CaseInsensitiveString(name);
     		if (value == null) {
+    			orderedKeys.remove(name);
     			elements.remove(ciName);
     		}
     		else {
+    			orderedKeys.add(name);
 	        elements.put(ciName, value);
     		}
+    		changed = true;
     } 
 
     /**
@@ -92,14 +98,16 @@ public class AbsObjectImpl implements AbsObject {
      * @see AbsObject#getNames()
      */
     public String[] getNames() {
-        String[] elementNames = new String[getCount()];
+    	String[] names = new String[orderedKeys.size()];
+    	return (String[])orderedKeys.toArray(names);
+      /*  String[] elementNames = new String[getCount()];
         
         int count = 0;
         for (Enumeration e = elements.keys(); e.hasMoreElements(); ) {
 					elementNames[count++] = ((CaseInsensitiveString) e.nextElement()).toString();
 				}
 
-        return elementNames;
+        return elementNames; */
     } 
 
     /**
@@ -109,9 +117,8 @@ public class AbsObjectImpl implements AbsObject {
      * @see AbsObject#isGrounded()
      */
     public boolean isGrounded() {
-			Enumeration e = elements.elements();
-			while (e.hasMoreElements()) {
-				AbsObject abs = (AbsObject) e.nextElement();
+			for (Iterator i = elements.values().iterator(); i.hasNext(); ) {
+				AbsObject abs = (AbsObject) i.next();
 				if (!abs.isGrounded()) {
 					return false;
 				}
@@ -128,7 +135,11 @@ public class AbsObjectImpl implements AbsObject {
         return elements.size();
     } 
 
-
+    /**
+     * This method is here just for debugging. Notice that it is highly innefficient.
+     * The method StringCodec.encode() should be used instead.
+     * @see StringCodec.encode(AbsContentElement content)
+     */
     public String toString() {
     	StringBuffer sb = new StringBuffer("(");
     	sb.append(getTypeName());
@@ -136,7 +147,10 @@ public class AbsObjectImpl implements AbsObject {
       String[] names = getNames();
       
       for (int i = 0; i < names.length; i++) {
-      	sb.append(" :"+names[i]+" "+getAbsObject(names[i]));
+      	sb.append(" :");
+      	sb.append(names[i]);
+				sb.append(" ");
+      	sb.append(getAbsObject(names[i]));
       }
       sb.append(")");
       
@@ -166,7 +180,12 @@ public class AbsObjectImpl implements AbsObject {
      */
     public int hashCode()
     {
-    	return f(this);
+    	// if this object is changed, then recompute its hash, otherwise use the previous value
+    	if (changed) {
+    		hashCode = f(this);
+    		changed = false;
+    	}
+    	return hashCode;
     }
     
     /**

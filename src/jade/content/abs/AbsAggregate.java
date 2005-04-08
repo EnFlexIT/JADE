@@ -217,6 +217,11 @@ public class AbsAggregate extends AbsConcept {
     	return elements.size();
     }
 
+    /**
+     * This method is here just for debugging. Notice that it is highly innefficient.
+     * The method StringCodec.encode() should be used instead.
+     * @see StringCodec.encode(AbsContentElement content)
+     */
     public String toString() {
     	StringBuffer sb = new StringBuffer("(");
     	sb.append(getTypeName());

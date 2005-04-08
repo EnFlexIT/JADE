@@ -147,14 +147,17 @@ class SLParser {
     else
        System.out.println("Full-SL"+" Parser Started ...");
 
-    //SL0Codec codec = new SL0Codec();
+    SLCodec codec = new SLCodec();
     //Ontology o = new DefaultOntology();
 
     while (true) {
 	System.out.println("insert an SL expression to parse: ");
       try {
 	AbsContentElementList result = theParser.Content();
-	System.out.println("\n\n RESULT=\n"+result.toString());
+  String resultEncoded = codec.encode(result);
+	System.out.println("\n\n RESULT of SLParser.Content()=\n"+resultEncoded); 
+  AbsContentElement result2 = codec.decode(resultEncoded);
+	System.out.println("\n\n RESULT of SLCodec.decode(SLCodec.encode(SLParser.Content()))=\n"+codec.encode(result2)); 
 	System.out.println("\n\n");
 	//result.dump();
 	//System.out.println("AFTER ENCODING: "+codec.encode(result,o));
@@ -340,9 +343,13 @@ void FunctionalTermParameters(AbsConcept val) :
 }
 
 void Parameter(AbsConcept val) :
-{ Token t; AbsTerm term;}
+{ Token t; AbsTerm term; String slotName;}
 {
- t=<PARAMETERNAME> term=Term() {val.set(t.image.substring(1),term);}
+// t.image.substring(1) allows to remove the leading  ':' char
+ (   t=<PARAMETERNAME>        {slotName = t.image.substring(1);}
+   | t=<PARAMETERNAME_STRING> {slotName = unescape(t.image.substring(1));} )
+ term=Term()                  {val.set(slotName,term);}
+
 }
 
 AbsAgentAction ActionExpression_NoBrace() :
@@ -570,7 +577,8 @@ TOKEN:
       ( (~["\""]) | "\\\"" )*
       "\""
   >
-| < PARAMETERNAME : ":"<WORD> | ":"<STRING_LITERAL> >
+| < PARAMETERNAME : ":"<WORD> >
+| < PARAMETERNAME_STRING : ":"<STRING_LITERAL> >
 | < DATETIME :  (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])
                 (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) ["t","T"]
                 (["0"-"9"]) (["0"-"9"]) (["0"-"9"]) (["0"-"9"])

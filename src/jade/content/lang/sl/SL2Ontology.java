@@ -53,6 +53,15 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
   	super(name, base, intro);
   	
   	try {
+  		add(new PredicateSchema(IMPLIES), AbsPredicate.getJavaClass());
+  		add(new PredicateSchema(EQUIV), AbsPredicate.getJavaClass());
+  		PredicateSchema ps = (PredicateSchema) getSchema(IMPLIES);
+  		ps.add(IMPLIES_LEFT, (PredicateSchema) PredicateSchema.getBaseSchema());
+	  	ps.add(IMPLIES_RIGHT, (PredicateSchema) PredicateSchema.getBaseSchema());
+	  	ps = (PredicateSchema) getSchema(EQUIV);
+  		ps.add(EQUIV_LEFT, (PredicateSchema) PredicateSchema.getBaseSchema());
+	  	ps.add(EQUIV_RIGHT, (PredicateSchema) PredicateSchema.getBaseSchema());
+  	
     	add(VariableSchema.getBaseSchema());
   		add(new IRESchema(IOTA));
   		add(new IRESchema(ANY));
@@ -67,7 +76,7 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
 	  	add(new AgentActionSchema(ACTION_SEQUENCE), AbsAgentAction.getJavaClass());
 	  	add(new AgentActionSchema(ACTION_ALTERNATIVE), AbsAgentAction.getJavaClass());
   	
-  		PredicateSchema ps = (PredicateSchema) getSchema(EXISTS);
+  		ps = (PredicateSchema) getSchema(EXISTS);
   		ps.add(EXISTS_WHAT, (VariableSchema) VariableSchema.getBaseSchema());
 	  	ps.add(EXISTS_CONDITION, (PredicateSchema) PredicateSchema.getBaseSchema());
   	
@@ -132,5 +141,11 @@ class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
 		return (super.isSLFunctionWithoutSlotNames(symbol) || 
 			CaseInsensitiveString.equalsIgnoreCase(ACTION_SEQUENCE, symbol) ||
 			CaseInsensitiveString.equalsIgnoreCase(ACTION_ALTERNATIVE, symbol));
+	}
+	
+	boolean isBinaryLogicalOp(String symbol) {
+		return (super.isBinaryLogicalOp(symbol) || 
+				CaseInsensitiveString.equalsIgnoreCase(IMPLIES, symbol) || 
+				CaseInsensitiveString.equalsIgnoreCase(EQUIV, symbol));
 	}
 }
