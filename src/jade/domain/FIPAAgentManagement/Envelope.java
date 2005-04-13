@@ -199,7 +199,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
     /**
        Retrieve the <code>payload-length</code> slot of this object.
        @return The value of the <code>payload-length</code> slot of
-       this envelope, or <code>null</code> if no value was set.
+       this envelope, or <code>null</code> or a negative value if no value was set.
     */
     public Long getPayloadLength() {
 	return payloadLength;

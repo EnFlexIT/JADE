@@ -211,10 +211,10 @@ public class HTTPServer extends Thread {
             //Post the Message to Jade platform	
             synchronized (dispatcher) {
 
-              if ((env.getPayloadLength() != null)&&(env.getPayloadLength().intValue() != payload.size())) {
-                if(logger.isLoggable(Logger.WARNING))
-                	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
-
+                if(logger.isLoggable(Logger.WARNING)) {
+                	// check payload size
+                  if ((env.getPayloadLength() != null) && (env.getPayloadLength().intValue() >= 0) && (env.getPayloadLength().intValue() != payload.size()))
+                  	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
               }
               dispatcher.dispatchMessage(env,payload.toByteArray());
             }
