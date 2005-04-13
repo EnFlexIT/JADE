@@ -39,6 +39,7 @@ import java.io.PrintStream;
 public class AbsContentElementList implements AbsContentElement {
   	private List elements = new ArrayList();
     private String    typeName = null;
+    private boolean isAContentExpression = false;
 	
   	/**
    	 * Construct an Abstract descriptor to hold a content element list      
@@ -204,7 +205,10 @@ public class AbsContentElementList implements AbsContentElement {
     	Iterator it = elements.iterator();
     	int i = 0;
     	while (it.hasNext()) {
-    		sb.append(" #"+i+" "+it.next());
+    		sb.append(" #");
+    		sb.append(i);
+    		sb.append(" ");
+    		sb.append(it.next());
     		++i;
     	}
     	sb.append(")");
@@ -214,5 +218,19 @@ public class AbsContentElementList implements AbsContentElement {
     public int hashCode() {
     	return toString().hashCode();
     }
+    
+  	/**
+  	 * @see AbsContent.isAContentExpression
+  	 */
+  	public boolean isAContentExpression() {
+  		return isAContentExpression;
+  	}
+  	
+  	/**
+  	 * @see AbsContent.setIsAContentExpression(boolean flag)
+  	 */
+  	public void setIsAContentExpression(boolean flag) {
+  		isAContentExpression = flag;
+  	}
 }
 

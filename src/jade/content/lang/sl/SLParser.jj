@@ -222,7 +222,7 @@ AbsContentElement ContentExpression_NoBrace() :
  (  val=IdentifyingExpression_NoBrace()
   | val=ActionExpression_NoBrace()
   | val=Wff_NoBrace() )
- {return val;}
+ {val.setIsAContentExpression(true); return val;}
 }
 
 

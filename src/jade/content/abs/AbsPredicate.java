@@ -32,6 +32,8 @@ import jade.content.Predicate;
  */
 public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement, Predicate {
 
+	private boolean isAContentExpression = false;
+	
     /**
      * Construct an Abstract descriptor to hold a predicate of
      * the proper type (e.g. FATHER_OF, WORKS_FOR...).
@@ -78,6 +80,18 @@ public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentE
  			}
  			return absPredicateClass;
  		}
-
+ 		/**
+  	 * @see AbsContent.isAContentExpression
+  	 */
+  	public boolean isAContentExpression() {
+  		return isAContentExpression;
+  	}
+  	
+  	/**
+  	 * @see AbsContent.setIsAContentExpression(boolean flag)
+  	 */
+  	public void setIsAContentExpression(boolean flag) {
+  		isAContentExpression = flag;
+  	}
 }
 

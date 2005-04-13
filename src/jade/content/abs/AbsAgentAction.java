@@ -32,7 +32,9 @@ import jade.content.AgentAction;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsAgentAction extends AbsConcept implements AbsContentElement, AgentAction {
-		
+	
+	private boolean isAContentExpression = false;
+	
     /**
      * Construct an Abstract descriptor to hold an agent action of
      * the proper type, e.g. SELL, BUY....
@@ -69,5 +71,18 @@ public class AbsAgentAction extends AbsConcept implements AbsContentElement, Age
  			return absAgentActionClass;
  		}
 
+ 		/**
+  	 * @see AbsContent.isAContentExpression
+  	 */
+  	public boolean isAContentExpression() {
+  		return isAContentExpression;
+  	}
+  	
+  	/**
+  	 * @see AbsContent.setIsAContentExpression(boolean flag)
+  	 */
+  	public void setIsAContentExpression(boolean flag) {
+  		isAContentExpression = flag;
+  	}
 }
 

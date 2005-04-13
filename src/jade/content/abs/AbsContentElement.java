@@ -32,4 +32,18 @@ import jade.content.ContentElement;
  * @author Federico Bergenti - Universita` di Parma
  */
 public interface AbsContentElement extends AbsObject, ContentElement {
+	/**
+	 * Return true if this Abstract Content Element represents a ContentExpression
+	 * of the SL Grammar (see also FIPA-SL specifications).
+	 * @return true if this Abstract Content Element represents a ContentExpression
+	 * of the SL Grammar (see also FIPA-SL specifications), false otherwise 
+	 */
+	public boolean isAContentExpression();
+	/**
+	 * Set the isAContentExpression flag to the passed value.
+	 * By default, if this method was not called, this value is intialized to false.
+	 * @param flag true if this Abstract Content Element represents a ContentExpression
+	 * of the SL Grammar (see also FIPA-SL specifications), false otherwise 
+	 */
+	public void setIsAContentExpression(boolean flag);
 }

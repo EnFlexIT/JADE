@@ -38,6 +38,7 @@ import jade.content.Term;
  */
 public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm {
 
+	private boolean isAContentExpression = false;
     /**
      * Construct an Abstract descriptor to hold a IRE of
      * the proper type (e.g. ANY, IOTA, ALL...).
@@ -105,5 +106,19 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
  			return absIREClass;
  		}
 
+    
+  	/**
+  	 * @see AbsContent.isAContentExpression
+  	 */
+  	public boolean isAContentExpression() {
+  		return isAContentExpression;
+  	}
+  	
+  	/**
+  	 * @see AbsContent.setIsAContentExpression(boolean flag)
+  	 */
+  	public void setIsAContentExpression(boolean flag) {
+  		isAContentExpression = flag;
+  	}
 }
 
