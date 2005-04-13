@@ -43,6 +43,7 @@ public class JadeGateway {
 		private static String agentType;
 		// jade profile properties
 		private static ProfileImpl profile;
+		private static Properties jadeProps;
 		private static final Logger myLogger = Logger.getMyLogger(JadeGateway.class.getName());
 
 
@@ -112,6 +113,8 @@ public class JadeGateway {
 				}
 				myAgent = null;
 				myContainer = null;
+				// reinitialize the profile otherwise an exception would be thrown by JADE
+				init(agentType, jadeProps);
 				checkJADE();
 		}
 
@@ -124,6 +127,7 @@ public class JadeGateway {
 		 **/
 		public final static void init(String agentClassName, Properties jadeProfile) {
 				agentType = agentClassName;
+				jadeProps = jadeProfile;
 				profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
 		}
 		
