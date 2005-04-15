@@ -103,7 +103,7 @@ class MobileAgentClassLoader extends ClassLoader {
 
     protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
 
-	Class c;
+	Class c = null;
 
 	// log("Loading class " + name, 5);
         if(myLogger != null) {
@@ -137,11 +137,32 @@ class MobileAgentClassLoader extends ClassLoader {
   	}
 	#PJAVA_INCLUDE_END*/
 
+	/*#DOTNET_INCLUDE_BEGIN
+	System.Type myType = System.Type.GetType(name);
+	if (myType == null)
+	{
+		//resolveClass(c);
+		boolean found = false;
+		int i = 0;
+		System.Reflection.Assembly[] assemblies =  System.AppDomain.get_CurrentDomain().GetAssemblies();
+
+		while (!found && i<assemblies.length)
+		{
+			myType = assemblies[i].GetType(name);
+			found = (myType != null);
+			i++;
+		}
+
+		c = Class.FromType( myType );
+	}
+	#DOTNET_INCLUDE_END*/
+
+
 	//log("Class " + name + " loaded", 5);
         if(myLogger != null) {
-          if(myLogger.isLoggable(Logger.FINER))
-            myLogger.log(Logger.FINER,"Class " + name + " loaded" );
-                }
+			if(myLogger.isLoggable(Logger.FINER))
+				myLogger.log(Logger.FINER,"Class " + name + " loaded" );
+		}
 
   	return c;
     }

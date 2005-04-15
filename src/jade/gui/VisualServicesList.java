@@ -52,6 +52,14 @@ public class VisualServicesList extends VisualStringList
 		super(content,owner);
 		checkSlots = true;
 	}
+
+	/*#DOTNET_INCLUDE_BEGIN
+	VisualServicesList(jade.util.leap.Iterator content, Component owner)
+	{
+		super(content,owner);
+		checkSlots = true;
+	}
+	#DOTNET_INCLUDE_END*/
 	
 	protected String getElementName(Object el)
 	{

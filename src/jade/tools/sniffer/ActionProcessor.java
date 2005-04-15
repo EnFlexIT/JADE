@@ -26,8 +26,15 @@ package jade.tools.sniffer;
 import java.util.Map;
 import java.util.HashMap;
 import jade.gui.AgentTree;
+
+//#DOTNET_EXCLUDE_BEGIN
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
+//#DOTNET_EXCLUDE_END
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.*;
+#DOTNET_INCLUDE_END*/
 
    /**
    Javadoc documentation for the file
@@ -67,10 +74,25 @@ import javax.swing.tree.TreePath;
   int lungpath;
   AgentTree.Node now;
   FixedAction fx;
-  TreePath paths[];
   AgentAction agentAction;
-   action = act;
-   paths = mainPanel.treeAgent.tree.getSelectionPaths();
+  action = act;
+  //#DOTNET_EXCLUDE_BEGIN
+  TreePath paths[];
+  paths = mainPanel.treeAgent.tree.getSelectionPaths();
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  System.Collections.IList paths = new System.Collections.ArrayList();
+  TreeNode node;
+
+  TreeNode aNode = mainPanel.treeAgent.tree.get_SelectedNode();
+  while (aNode != null)
+  {
+	  paths.Add( aNode );
+	  aNode = aNode.get_Parent();
+	  if ( !(aNode instanceof AgentTree.AgentNode) ) 
+	    aNode = null;
+  } 
+  #DOTNET_INCLUDE_END*/
 
    // Fixed actions are without parameters, so they are executed once,
    // regardless how many tree elements are selected
@@ -82,11 +104,25 @@ import javax.swing.tree.TreePath;
    // means that, if no selection is present, no action is performed.
    else {
      if(paths != null) {
+	   //#DOTNET_EXCLUDE_BEGIN
        lungpath=paths.length;
        for (int i=0;i<lungpath;i++) {
-         now = (AgentTree.Node) (paths[i].getLastPathComponent());
-         agentAct(now);
-       }
+			 now = (AgentTree.Node) (paths[i].getLastPathComponent());
+			 agentAct(now);
+		 }
+	   //#DOTNET_EXCLUDE_END
+	   /*#DOTNET_INCLUDE_BEGIN
+ 	   lungpath=paths.get_Count();
+	   for (int i=0;i<lungpath;i++) 
+	   {
+        try 
+		    {
+			    now = (AgentTree.Node) (paths.get_Item(i));
+			    agentAct(now);
+		    }
+		    catch (ClassCastException cce) {}
+     }
+	   #DOTNET_INCLUDE_END*/
      }
    }
 

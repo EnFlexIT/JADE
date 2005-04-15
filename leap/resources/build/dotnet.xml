@@ -4,14 +4,27 @@
 	<!-- PROPERTIES specific for .NET -->
 	<property name="src" value="${dotnet-root}/src"/>
 	<property name="lib" value="${dotnet-root}/lib"/>
+	<property name="bin" value="${dotnet-root}/bin"/>
+	<property name="doc" value="${dotnet-root}/doc"/>
+	<property name="vjc" value="${dotnet-home}/vjc.exe"/>
+	<property name="csc" value="${dotnet-home}/csc.exe"/>
+	<property name="gacutil" value="${dotnet-home}/gacutil.exe"/>
+	<property name="al" value="${dotnet-home}/al.exe"/>	
+	<property name="extras" value="${dotnet-root}/extras"/>
+	<property name="examples" value="${dotnet-root}/examples"/>
+	<property name="vs2003" value="${dotnet-root}/VS2003S"/>
+	<property name="vs2003Sol" value="JadeLeap"/>
+	<property name="exeFileName" value="AgentBooter"/>
+	<property name="vss" value="${dotnet-root}/${vs2003Sol}_Solution"/>
 
 	
 	<!-- INIT -->
 	<target name="do-init" 
 	        description="Create the appropriate directories">
-		<mkdir dir="${dotnet-root}"/>
+		<!-- <mkdir dir="${dotnet-root}"/> -->
 		<mkdir dir="${src}"/>
 		<mkdir dir="${lib}"/>
+		<mkdir dir="${bin}"/>
 	</target>
 
 	
@@ -34,19 +47,111 @@
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
+				<exclude name="**/jade/gui/**"/>
 			</fileset>
 		</copy>
-	  <!-- 3) Preprocess the whole as if it were for PJAVA -->
+		<!-- 3) Copy additional JAVA files -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${extras}">
+				<exclude name="**/*.java@"/>
+				<exclude name="**/*.java#"/>
+			</fileset>
+		</copy>
+		<!-- 4) Copy AssemblyInfo & key file -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${vs2003}">
+				<include name="**/AssemblyInfo.java"/>
+				<include name="**/JadeLeap.snk"/>
+			</fileset>
+		</copy>
+	  <!-- 5) Preprocess the whole as if it were for PJAVA -->
 	  <pproc basedir="${src}" type="pjava"/>
-	  <!-- 4) Preprocess specific for .NET -->
-	  <pproc basedir="${src}" type="dotnet"/>
+	  <!-- 6) Add files for agent tools -->
+	  <copy todir="${src}" overwrite="yes">
+			<fileset dir="${jade-src}">
+				<include name="**/jade/tools/ToolAgent.java"/>
+				<include name="**/jade/tools/ToolNotifier.java"/>
+				<include name="**/jade/tools/sl/SLFormatter.java"/>
+				<include name="**/jade/tools/sniffer/ActionProcessor.java"/>
+				<include name="**/jade/tools/sniffer/Agent.java"/>
+				<include name="**/jade/tools/sniffer/AgentAction.java"/>
+				<include name="**/jade/tools/sniffer/AgentList.java"/>
+				<include name="**/jade/tools/sniffer/ClearCanvasAction.java"/>
+				<include name="**/jade/tools/sniffer/DisplayLogFileAction.java"/>
+				<include name="**/jade/tools/sniffer/DoNotSnifferAction.java"/>
+				<include name="**/jade/tools/sniffer/DoSnifferAction.java"/>
+				<include name="**/jade/tools/sniffer/ExitAction.java"/>
+				<include name="**/jade/tools/sniffer/FixedAction.java"/>
+				<include name="**/jade/tools/sniffer/MainMenu.java"/>
+				<include name="**/jade/tools/sniffer/MainPanel.java"/>
+				<include name="**/jade/tools/sniffer/MainWindow.java"/>
+				<include name="**/jade/tools/sniffer/Message.java"/>
+				<include name="**/jade/tools/sniffer/MessageList.java"/>
+				<include name="**/jade/tools/sniffer/MMCanvas.java"/>
+				<include name="**/jade/tools/sniffer/PanelCanvas.java"/>
+				<include name="**/jade/tools/sniffer/PopNoSniffAgent.java"/>
+				<include name="**/jade/tools/sniffer/PopShowAgent.java"/>
+				<include name="**/jade/tools/sniffer/PopSniffAgent.java"/>
+				<include name="**/jade/tools/sniffer/PopupAgent.java"/>
+				<include name="**/jade/tools/sniffer/PopupMessage.java"/>
+				<include name="**/jade/tools/sniffer/ShowOnlyAction.java"/>
+				<include name="**/jade/tools/sniffer/Sniffer.java"/>
+				<include name="**/jade/tools/sniffer/SnifferAction.java"/>
+				<include name="**/jade/tools/sniffer/StartException.java"/>
+				<include name="**/jade/tools/sniffer/ViewMessage.java"/>
+				<include name="**/jade/tools/sniffer/WriteLogFileAction.java"/>
+				<include name="**/jade/tools/sniffer/WriteMessageListAction.java"/>
+				<include name="**/jade/util/EnhancedProperties.java"/>
+				<include name="**/jade/util/ExpandedProperties.java"/>
+				<include name="**/jade/util/ImportableProperties.java"/>
+				<include name="**/jade/core/event/NotificationService.java"/>
+				<include name="**/jade/core/event/NotificationProxy.java"/>
+				<include name="**/jade/domain/introspection/AMSSubscriber.java"/>
+				<include name="**/jade/mtp/http/BasicFipaDateTime.java"/>
+				<include name="**/jade/mtp/http/HTTPAddress.java"/>
+				<include name="**/jade/mtp/http/HTTPIO.java"/>
+				<include name="**/jade/mtp/http/HTTPServer.java"/>
+				<include name="**/jade/mtp/http/HTTPSocketFactory.java"/>
+				<include name="**/jade/mtp/http/KeepAlive.java"/>
+				<include name="**/jade/mtp/http/MessageTransportProtocol.java"/>
+				<include name="**/jade/mtp/http/XMLCodec.java"/>
+			</fileset>
+		</copy>
+    <!-- 7) Copy jade.gui files -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${jade-src}">
+			  <include name="**/jade/gui/*.java"/>
+				<exclude name="**/jade/gui/AgentTree.java"/>
+				<exclude name="**/jade/gui/AgentTreeModel.java"/>
+				<exclude name="**/jade/gui/GuiProperties.java"/>
+				<exclude name="**/jade/gui/TreeHelp.java"/>
+				<exclude name="**/jade/gui/TreeIconRenderer.java"/>
+			</fileset>
+		</copy>
+    <!-- 8) Copy jade.gui leap file -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${leap-src}">
+				<include name="**/jade/gui/**"/>				
+			</fileset>
+		</copy>	
+    <!-- 9) Copy jade.gui.AgentTree file (modified .NET version) -->
+		<!-- <copy todir="${src}" overwrite="yes">
+			<fileset dir="${extras}">
+				<include name="**/jade/gui/AgentTree.java"/>
+			</fileset>
+    </copy> -->
+	  <!-- 9) Preprocess specific for .NET -->
+		<pproc basedir="${src}" type="dotnet"/>
 	</target>
 
 	
 	<!-- RESET -->
 	<target name="do-reset"
 	        description="Reset the build environment">
-		<delete dir = "${dotnet-root}"/>
+		<!-- <delete dir = "${dotnet-root}"/> -->
+		<delete dir = "${src}"/>
+		<delete dir = "${lib}"/>
+		<delete dir = "${bin}"/>
 	</target>
 
 	
@@ -71,15 +176,171 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" depends="do-setup, do-parsers"
+	<target name="do-compile" depends="do-setup, do-parsers" unless="${env.VJSHARPTOOLS}"
 	  description="Compile sources">
-	  <echo>Visual J# compiler is: ${vjc}</echo>
+	  <echo>${env.VJSHARPTOOLS} prova - Visual J# compiler is: ${vjc}</echo>
+	  <copy todir="${root}" overwrite="yes">
+			<fileset dir="${vs2003}">
+				<include name="**/*.snk"/>
+			</fileset>
+		</copy>
 	  <exec executable="${vjc}">
 	    <arg line="/recurse:${src}/*.java" /> 
 	    <arg line="/t:library" />
+	    <arg line="/r:System.Xml.dll" />
+	    <arg line="/r:System.Windows.Forms.dll" />
+	    <arg line="/r:System.Drawing.dll" />
+	    <arg line="/r:VJSSupUILib.dll" />
 	    <!-- arg line="/main:jade.Boot" /-->
-	    <arg line="/out:${lib}/JadeLeap.dll" />
+	    <arg line="/out:${lib}/${vs2003Sol}.dll" />
 	  </exec>
+	</target>
+	  
+	<!-- INSTALL DLL -->
+	<target name="do-dll" depends="do-setup, do-parsers, do-compile"
+	  description="Install JADELEAP.NET dll">
+	  <!-- ADD DLL INTO GAC -->
+	  <echo>Installing ${vs2003Sol}.dll into GAC...</echo>
+	  <exec executable="${gacutil}">
+	    <arg line="/u ${vs2003Sol}" /> 
+	  </exec>
+	  <exec executable="${gacutil}">
+	    <arg line="/i ${lib}/${vs2003Sol}.dll" /> 
+	  </exec>
+	  <!-- CREATE EXECUTABLE FILE -->
+	  <echo>Create ${exeFileName}.exe in directory ${bin}</echo>
+	  <delete file="${bin}/*.exe" />
+	  <exec executable="${vjc}">
+	    <arg line="/recurse:${vs2003}/*.java" /> 
+	    <arg line="/t:exe" />
+	    <arg line="/r:System.Xml.dll" />
+ 	    <arg line="/r:System.Windows.Forms.dll" />
+	    <arg line="/r:System.Drawing.dll" />
+	    <arg line="/r:${vs2003Sol}.dll" />
+	    <arg line="/libpath:${lib}" />
+	    <!-- arg line="/main:jade.Boot" /-->
+	    <arg line="/out:${bin}/${exeFileName}.exe" />
+	  </exec>
+	  <delete file="${root}/*.snk" />
+	</target>
+	
+	
+	<!-- CREATE SOLUTION -->
+	<target name="create-solution"
+	  description="Create Visual Studio 2003 solution">
+	  <echo>Visual Studio 2003 Solution folder is ${vs2003Sol}</echo>
+	  <delete dir="${vss}"/>
+	  <mkdir  dir="${vss}"/>
+	  <copy todir="${vss}" overwrite="yes">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</copy>
+		<copy todir="${vss}" overwrite="yes">
+		  <fileset dir="${vs2003}">
+		    <include name="**/*.vjsproj"/>
+		    <include name="**/*.user"/>
+		    <include name="**/AssemblyInfo.java"/>
+		    <include name="**/JadeLeap.snk"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<!-- CREATE EXECUTABLE -->
+	<target name="create-executable"
+	  description="Create ${exeFileName}.exe excutable file">
+	  <echo>Executable file name is ${exeFileName}.exe</echo>
+	  <delete file="${bin}/*.exe" />
+	  <exec executable="${vjc}">
+	    <arg line="/recurse:${vs2003}/*.java" /> 
+	    <arg line="/t:exe" />
+	    <arg line="/r:System.Xml.dll" />
+	    <arg line="/r:${vs2003Sol}.dll" />
+	    <arg line="/libpath:${lib}" />
+	    <!-- arg line="/main:jade.Boot" /-->
+	    <arg line="/out:${bin}/AgentBooter.exe" />
+	  </exec>
+	</target>
+	
+	<!-- PREPARE DOTNET EXAMPLES -->
+	<target name="prepare-examples"
+	  description="Prepare examples for .NET">
+	  <echo>Prepare examples for .NET</echo>
+	  <delete verbose="true">
+      <fileset dir="${examples}">
+		    <include name="**/Base64/**"/>
+		    <include name="**/behaviours/**"/>
+		    <include name="**/bookTrading/**"/>
+		    <include name="**/content/**"/>
+		    <include name="**/hallo/**"/>
+		    <include name="**/messaging/**"/>
+		    <include name="**/ontology/**"/>
+		    <include name="**/party/**"/>
+		    <include name="**/PingAgent/**"/>
+		    <include name="**/protocols/**"/>
+		    <include name="**/thanksAgent/**"/>
+		    <include name="**/yellowPages/**"/>
+			</fileset>
+    </delete>
+	  <copy todir="${examples}" overwrite="yes">
+		  <fileset dir="${jade-src}/examples">
+		    <include name="**/Base64/**"/>
+		    <include name="**/behaviours/**"/>
+		    <include name="**/bookTrading/**"/>
+		    <include name="**/content/**"/>
+		    <include name="**/hallo/**"/>
+		    <include name="**/messaging/**"/>
+		    <include name="**/ontology/**"/>
+		    <include name="**/party/**"/>
+		    <include name="**/PingAgent/**"/>
+		    <include name="**/protocols/**"/>
+		    <include name="**/thanksAgent/**"/>
+		    <include name="**/yellowPages/**"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<!-- CREATE DOTNET J# EXAMPLES -->
+	<target name="create-examples-J#" depends="prepare-examples"
+	  description="Compile examples for J#.NET">
+	  <echo>Compiling examples for J#.NET</echo>
+	  <exec executable="${vs2003}/compileAllExamplesJSharpDotNET.bat">
+	    <arg line="${vs2003}/AgentBooterJSharp.java" />	    
+	    <arg line="${lib}" />
+	    <arg line="${examples}" />
+	    <arg line="${root}" />	    
+	    <arg line="${vjc}" />	    
+	  </exec>
+	</target>
+	
+	<!-- CREATE DOTNET C# EXAMPLES -->
+	<target name="create-examples-C#"
+	  description="Compile examples for C#.NET">
+	  <echo>Compiling examples for C#.NET</echo>
+	  <!-- <copy todir="${root}" overwrite="yes">
+		  <fileset dir="${vs2003}">
+		    <include name="**/AgentBooterCSharp.cs"/>
+			</fileset>
+		</copy> -->
+		<delete file="${examples}/dummy/*.java" />		
+		<delete file="${examples}/dummy/*.exe" />		
+	  <exec executable="${vs2003}/compileCSharpDotNET.bat">
+	    <arg line="${examples}/dummy" />
+	    <arg line="${lib}" />
+	    <arg line="Dummy" />
+	    <arg line="AgentBooterCSharp.cs" />	    
+	    <arg line="${csc}" />	    
+	  </exec>
+	  <!-- <delete file="${root}/AgentBooterCSharp.cs" /> -->
+	</target>
+	
+	<!-- Create the JADE-LEAP-DOTNET distribution zip files -->
+	<target name="dist" 
+	        description="Create the DotNet distribution file">
+		<delete file="${dist}/JadeLeapDotNet-${version}.zip" quiet="true"/>
+    <jar jarfile="${dist}/JadeLeapDotNet-${version}.zip" basedir="${dist}">
+    	<include name="add-ons/leap/dotnet/lib/**"/>
+    </jar>
 	</target>
 	
 </project>

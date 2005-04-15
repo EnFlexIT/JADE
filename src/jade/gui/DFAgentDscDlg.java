@@ -104,6 +104,11 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
   
   /* text field showing the value set by the user in the dialog */
   private JTextField textFieldLeaseTime;
+
+  /*#DOTNET_INCLUDE_BEGIN
+  private Component myComponent;
+  private Component getOwner() {return myComponent;}
+  #DOTNET_INCLUDE_END*/
   
     /**
        Create a dialog with the given parent.
@@ -114,6 +119,9 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
     {
 	super(parent);
 	dlgParent = (Dialog) this;
+	/*#DOTNET_INCLUDE_BEGIN
+	myComponent = parent;
+	#DOTNET_INCLUDE_END*/
     }
 
     /**
@@ -125,8 +133,11 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
     {
 	super(parent);
 	dlgParent = (Dialog) this;
+	/*#DOTNET_INCLUDE_BEGIN
+	myComponent = parent;	
+	#DOTNET_INCLUDE_END*/
     }
-
+	
 	/**
 	* This method show a a giu for a <code>DFAgentDescription</code>.
 	* @param dfd the DFAgentDescrption to show
@@ -405,8 +416,14 @@ public class DFAgentDscDlg extends JDialog implements ActionListener
     pack();
    
     try{
+		//#DOTNET_EXCLUDE_BEGIN
     	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
     	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+    	int x = getOwner().getX() + (getOwner().WIDTH - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().HEIGHT - getHeight()) / 2; 
+		#DOTNET_INCLUDE_END*/
     	setLocation(x>0 ? x:0,y>0 ? y:0);
     }catch(Exception e){}
 

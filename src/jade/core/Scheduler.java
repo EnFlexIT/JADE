@@ -164,16 +164,37 @@ class Scheduler implements Serializable {
     behaviours = new Behaviour[blockedBehaviours.size()];
     counter = 0;
 		//#MIDP_EXCLUDE_BEGIN
-    for(Iterator it = blockedBehaviours.iterator(); it.hasNext();)
+    for(Iterator it = blockedBehaviours.iterator(); it.hasNext();) {
 		//#MIDP_EXCLUDE_END
 		/*#MIDP_INCLUDE_BEGIN
-    for(Iterator it = new EnumIterator(blockedBehaviours.elements()); it.hasNext();)
+    for(Iterator it = new EnumIterator(blockedBehaviours.elements()); it.hasNext();) {
 			#MIDP_INCLUDE_END*/
+	
+	//#DOTNET_EXCLUDE_BEGIN
 	behaviours[counter++] = (Behaviour)it.next();
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+  Object tmpB = null;
+	try // Hack: sometimes .NET inserts into this array a non-Behaviour object
+	{ 
+    tmpB = it.next();
+		behaviours[counter++] = (Behaviour)tmpB;
+	}
+	catch(ClassCastException cce) 
+	{
+	  System.out.println("Found an object of type "+tmpB.getClass().getName()+" instead of Behaviour");
+	  cce.printStackTrace();
+	}
+	#DOTNET_INCLUDE_END*/
+		}
 
     for(int i = 0; i < behaviours.length; i++) {
       Behaviour b = behaviours[i];
-      b.restart();
+	  /*#DOTNET_INCLUDE_BEGIN
+	  if (b != null)
+	  #DOTNET_INCLUDE_END*/
+			b.restart();
+
     }
   }
 

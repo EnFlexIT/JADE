@@ -585,10 +585,10 @@ class DeliverableDataInputStream extends DataInputStream {
         }
     }
  
-    private Service.SliceProxy deserializeSliceProxy() throws LEAPSerializationException {
+    private SliceProxy deserializeSliceProxy() throws LEAPSerializationException {
         try {
 			    String   className = readUTF();
-			    Service.SliceProxy proxy = (Service.SliceProxy) Class.forName(className).newInstance();
+			    SliceProxy proxy = (SliceProxy) Class.forName(className).newInstance();
 			    proxy.setNode(readNode());
 			    return proxy;
         }

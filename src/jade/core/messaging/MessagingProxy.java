@@ -25,6 +25,7 @@ package jade.core.messaging;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -47,7 +48,7 @@ import jade.mtp.MTPException;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class MessagingProxy extends Service.SliceProxy implements MessagingSlice {
+public class MessagingProxy extends SliceProxy implements MessagingSlice {
 
 
     public void dispatchLocally(AID senderID, GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, JADESecurityException {

@@ -27,6 +27,7 @@ package jade.core.replication;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -44,7 +45,7 @@ import jade.mtp.MTPDescriptor;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class BEReplicationProxy extends Service.SliceProxy implements BEReplicationSlice {
+public class BEReplicationProxy extends SliceProxy implements BEReplicationSlice {
 
     public void acceptReplica(String sliceName, String replicaIndex) throws IMTPException {
 	try {

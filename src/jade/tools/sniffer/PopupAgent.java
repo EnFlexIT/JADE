@@ -22,9 +22,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
+//#DOTNET_EXCLUDE_BEGIN
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+//#DOTNET_EXCLUDE_END
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.*;
+#DOTNET_INCLUDE_END*/
    /**
    Javadoc documentation for the file
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -39,9 +45,22 @@ import javax.swing.JMenuItem;
   * @see jade.tools.sniffer.PopupMessage
   */
 
-public class PopupAgent extends JPopupMenu {
+public class PopupAgent 
+	//#DOTNET_EXCLUDE_BEGIN
+	extends JPopupMenu
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	extends ContextMenu
+	#DOTNET_INCLUDE_END*/
+{
 
+ //#DOTNET_EXCLUDE_BEGIN
  private JMenuItem tmp;
+ //#DOTNET_EXCLUDE_END
+ /*#DOTNET_INCLUDE_BEGIN
+ private MenuItem tmp;
+ private MMCanvas canvAgent;
+ #DOTNET_INCLUDE_END*/
  private  PopSniffAgent popSniffAg;
  private  PopNoSniffAgent popNoSniffAg;
  private  PopShowAgent popShowAg;
@@ -54,6 +73,7 @@ public class PopupAgent extends JPopupMenu {
    popNoSniffAg=new PopNoSniffAgent(this,mySniffer,canvAgent);
    popShowAg=new PopShowAgent(this,mySniffer,canvAgent);
 
+   //#DOTNET_EXCLUDE_BEGIN
    tmp=add(popSniffAg);
    tmp.setIcon(null);
 
@@ -62,6 +82,13 @@ public class PopupAgent extends JPopupMenu {
 
    tmp=add(popShowAg);
    tmp.setIcon(null);
+   //#DOTNET_EXCLUDE_END
+   /*#DOTNET_INCLUDE_BEGIN
+   this.canvAgent = canvAgent;
+   get_MenuItems().Add(popSniffAg);
+   get_MenuItems().Add(popNoSniffAg);
+   get_MenuItems().Add(popShowAg);
+   #DOTNET_INCLUDE_END*/
  }
 
  protected void setAgent(Agent ag) {

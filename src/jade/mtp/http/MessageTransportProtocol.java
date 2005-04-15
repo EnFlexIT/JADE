@@ -232,11 +232,13 @@ public class MessageTransportProtocol implements MTP {
       
       timeout = Integer.parseInt(p.getParameter(PREFIX+"timeout",TIMEOUT));
 
+	  //#DOTNET_EXCLUDE_BEGIN
       try{
         HTTPSocketFactory.getInstance().configure(p, hta);
       } catch(Exception e){
         throw new MTPException("Error configuring Socket Factory", e);
       }
+	  //#DOTNET_EXCLUDE_END
       /*
         System.out.println("Parameters set:");
         System.out.println("- KA "+numKA);
@@ -365,6 +367,7 @@ public class MessageTransportProtocol implements MTP {
         //HTTPAddress is new or cached missed;
         // Open a new connection
         Socket client = null;
+		//#DOTNET_EXCLUDE_BEGIN
         HTTPSocketFactory sfac = HTTPSocketFactory.getInstance();
         if (useOutPort) {
           client = sfac.createSocket(url.getHost(),url.getPortNo(),InetAddress.getLocalHost(),outPort);
@@ -372,6 +375,16 @@ public class MessageTransportProtocol implements MTP {
         else {
           client = sfac.createSocket(url.getHost(),url.getPortNo());
         }
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		if (useOutPort) 
+		{
+			client = new Socket(url.getHost(),url.getPortNo(),InetAddress.getLocalHost(),outPort);
+		}
+		else {
+			client = new Socket(url.getHost(),url.getPortNo());
+		}
+		#DOTNET_INCLUDE_END*/
         
         // Create a new KA object
         kac = new KeepAlive.KAConnection(client,url);

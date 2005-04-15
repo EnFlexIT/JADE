@@ -22,9 +22,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
+//#DOTNET_EXCLUDE_BEGIN
 import java.awt.event.ActionEvent;
+//#DOTNET_EXCLUDE_END
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.MenuItem;
+import System.Windows.Forms.MouseEventArgs;
+#DOTNET_INCLUDE_END*/
 
    /**
    Javadoc documentation for the file
@@ -41,7 +48,14 @@ import jade.util.leap.ArrayList;
    * @see jade.tools.sniffer.PopShowAgent
    */
 
-public class PopNoSniffAgent extends AbstractPopup {
+public class PopNoSniffAgent 
+	//#DOTNET_EXCLUDE_BEGIN
+	extends AbstractPopup 
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	extends MenuItem
+	#DOTNET_INCLUDE_END*/
+{
  private PopupAgent popAg;
  private Sniffer mySniffer;
  private List noSniffAgent=new ArrayList();
@@ -54,7 +68,12 @@ public class PopNoSniffAgent extends AbstractPopup {
    this.canvAgent=canvAgent;
  }
 
+ //#DOTNET_EXCLUDE_BEGIN
  public void actionPerformed(ActionEvent avt) {
+ //#DOTNET_EXCLUDE_END
+ /*#DOTNET_INCLUDE_BEGIN
+ public void OnClick(System.EventArgs e) {
+ #DOTNET_INCLUDE_END*/
    noSniffAgent.add(popAg.agent);
    canvAgent.removeAgent(popAg.agent.agentName);
    canvAgent.repaintNoSniffedAgent(popAg.agent);

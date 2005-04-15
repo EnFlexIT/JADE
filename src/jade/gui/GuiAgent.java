@@ -102,8 +102,23 @@ public abstract class GuiAgent extends Agent
 					{
 						ex.printStackTrace(); // Should never happen
 					}
-				}			
+					/*#DOTNET_INCLUDE_BEGIN
+					 catch (Exception exc)
+					 {
+					 ev = null;
+					 guiEventQueue.removeElementAt(0);
+					 }
+					 #DOTNET_INCLUDE_END*/
+				}
+				//#DOTNET_EXCLUDE_BEGIN
 				onGuiEvent(ev);
+				//#DOTNET_EXCLUDE_END
+				/*#DOTNET_INCLUDE_BEGIN
+				if (ev != null)
+					onGuiEvent(ev);
+				else
+					block();
+				#DOTNET_INCLUDE_END*/
 			}
 			else
 				block();

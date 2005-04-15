@@ -457,7 +457,7 @@ public class PlatformManagerImpl implements PlatformManager {
 			}
 			else {
 				// Create a dummy SliceProxy (it will never be used)
-				slice = new Service.SliceProxy(service, node);
+				slice = new SliceProxy(service, node);
 			}
 				
 			String sliceKey = node.getName();

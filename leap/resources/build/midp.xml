@@ -51,6 +51,7 @@
 				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
 				<exclude name="**/jade/mtp/http/**"/>
+				<exclude name="**/jade/gui/**"/>
 				<exclude name="**/jade/tools/**"/>
 				<exclude name="**/jade/wrapper/**"/>
 				<!-- The following files cannot include preprocessor directives. They must be excluded manually -->
@@ -73,6 +74,7 @@
 	  <!-- 2) Copy LEAP sources -->
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
+			  <exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 				<exclude name="**/jade/imtp/leap/sms/*"/>

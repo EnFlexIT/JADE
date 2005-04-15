@@ -22,7 +22,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
+//#DOTNET_EXCLUDE_BEGIN
 import java.awt.event.ActionEvent;
+//#DOTNET_EXCLUDE_END
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.MenuItem;
+import System.Windows.Forms.MessageBox;
+#DOTNET_INCLUDE_END*/
 import jade.gui.AclGui;
 
    /**
@@ -39,7 +45,13 @@ import jade.gui.AclGui;
    */
 
 
-public class ViewMessage extends AbstractPopup{
+public class ViewMessage 
+	//#DOTNET_EXCLUDE_BEGIN
+	extends AbstractPopup{
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	extends MenuItem {
+	#DOTNET_INCLUDE_END*/
 
  private MainWindow mWnd;
  private Message message;
@@ -47,10 +59,22 @@ public class ViewMessage extends AbstractPopup{
  public ViewMessage(MainWindow mWnd) {
   super("View Message");
   this.mWnd=mWnd;
+  /*#DOTNET_INCLUDE_BEGIN
+  this.add_Click( new System.EventHandler( this.ShowMe ) );
+  #DOTNET_INCLUDE_END*/
  }
 
+ //#DOTNET_EXCLUDE_BEGIN
  public void actionPerformed(ActionEvent avt) {
-   AclGui.showMsgInDialog(message,mWnd);
+  AclGui.showMsgInDialog(message, mWnd);
+ //#DOTNET_EXCLUDE_END
+ 
+ /*#DOTNET_INCLUDE_BEGIN
+ public void ShowMe(Object o, System.EventArgs e) {
+  if (message == null)
+	return;
+  AclGui.showMsgInDialog(message, mWnd.myJavaFrame);
+ #DOTNET_INCLUDE_END*/
  }
 
  protected void setMessage(Message mess) {

@@ -202,7 +202,12 @@ public class ExpandedProperties extends EnhancedProperties {
                 break;
             }
             if ((searchCeilingFile != null)
-                    && (dir.compareTo(searchCeilingFile) == 0)) {
+                    //#DOTNET_EXCLUDE_BEGIN
+					&& (dir.compareTo(searchCeilingFile) == 0)) {
+					//#DOTNET_EXCLUDE_END
+					/*#DOTNET_INCLUDE_BEGIN
+                    && (dir.Equals(searchCeilingFile) )) {
+					#DOTNET_INCLUDE_END*/
                 break;
             }
 

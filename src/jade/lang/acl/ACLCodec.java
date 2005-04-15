@@ -34,7 +34,12 @@ package jade.lang.acl;
  */
 public interface ACLCodec {
 
+  //#DOTNET_EXCLUDE_BEGIN
   public static final String DEFAULT_CHARSET = "US-ASCII";
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  public static final String DEFAULT_CHARSET = "ISO-8859-1";
+  #DOTNET_INCLUDE_END*/
 
   /**
     This exception is thrown when some problem occurs in the concrete parsing

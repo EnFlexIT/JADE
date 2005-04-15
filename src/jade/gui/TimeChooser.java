@@ -170,8 +170,14 @@ public class TimeChooser implements ActionListener
 		else // Locate the dialog relatively to the screen
 		{
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			//#DOTNET_EXCLUDE_BEGIN
 			int centerX = (int)screenSize.getWidth() / 2;
 			int centerY = (int)screenSize.getHeight() / 2;
+			//#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+			int centerX = (int)screenSize.width / 2;
+			int centerY = (int)screenSize.height / 2;
+			#DOTNET_INCLUDE_END*/
 			dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
 		}
 		dlg.show();
@@ -227,8 +233,14 @@ public class TimeChooser implements ActionListener
 		else // Locate the dialog relatively to the screen
 		{
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			//#DOTNET_EXCLUDE_BEGIN
 			int centerX = (int)screenSize.getWidth() / 2;
 			int centerY = (int)screenSize.getHeight() / 2;
+			//#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+			int centerX = (int)screenSize.width / 2;
+			int centerY = (int)screenSize.height / 2;
+			#DOTNET_INCLUDE_END*/
 			dlg.setLocation(centerX - dlg.getWidth() / 2, centerY - dlg.getHeight() / 2);
 		}
 		dlg.show();

@@ -303,7 +303,7 @@ public class AgentMobilityService extends BaseService {
 		//log("Agent " + agentID + " correctly serialized", 2);
                 if(logger.isLoggable(Logger.INFO))
                   logger.log(Logger.INFO,"Agent " + agentID + " correctly serialized");
-
+    
 
 		// Gets the container where the agent classes can be retrieved
 		String classSiteName = (String)sites.get(a);
@@ -383,6 +383,7 @@ public class AgentMobilityService extends BaseService {
         logger.log(Logger.WARNING,"Migration of agent " + agentID + "aborted");
 		}
 	    }
+		//#DOTNET_EXCLUDE_BEGIN
 	    catch (IOException ioe) {
 		// Error in agent serialization
 		//System.out.println("Error in agent serialization. Abort transfer. " + ioe);
@@ -450,7 +451,16 @@ public class AgentMobilityService extends BaseService {
 
 		}
 	    }
-	    finally {
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		catch(System.Exception exc)
+		{
+			if(logger.isLoggable(Logger.SEVERE))
+				logger.log(Logger.SEVERE,"Error in agent serialization. Abort transfer. " + exc.get_Message());
+		}
+		#DOTNET_INCLUDE_END*/
+	    finally 
+		{
 	  if (transferState <= 2) {
 	  	// Something went wrong --> Roll back.
 	  	a.restoreBufferedState();

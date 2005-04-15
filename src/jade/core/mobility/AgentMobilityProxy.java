@@ -27,6 +27,7 @@ package jade.core.mobility;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.Filter;
 import jade.core.GenericCommand;
 import jade.core.AID;
@@ -49,7 +50,7 @@ import jade.util.leap.List;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class AgentMobilityProxy extends Service.SliceProxy implements AgentMobilitySlice {
+public class AgentMobilityProxy extends SliceProxy implements AgentMobilitySlice {
 
 
     public void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {

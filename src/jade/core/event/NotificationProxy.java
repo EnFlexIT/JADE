@@ -29,6 +29,7 @@ package jade.core.event;
 import jade.core.Node;
 import jade.core.GenericCommand;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.ServiceException;
 import jade.core.AID;
 import jade.core.IMTPException;
@@ -40,7 +41,7 @@ import jade.core.IMTPException;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class NotificationProxy extends Service.SliceProxy implements NotificationSlice {
+public class NotificationProxy extends SliceProxy implements NotificationSlice {
 
 
     public void sniffOn(AID snifferName, AID targetName) throws IMTPException {

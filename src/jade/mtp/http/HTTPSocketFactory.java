@@ -40,12 +40,16 @@ import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
+
+//#DOTNET_EXCLUDE_BEGIN
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.TrustManager;
 
 import jade.mtp.http.https.*;
+//#DOTNET_EXCLUDE_END
+
 /**
  * Singleton class for obtaining sockets. HTTP MTP calls methods use this class
  * every time that a socket is needed. 
@@ -61,46 +65,53 @@ public class HTTPSocketFactory {
     return _instance;
   }
 
-  public void configure(Profile profile, HTTPAddress hta) throws Exception {
-    if (hta.getProto().equals("https")) {
-      _usingHttps = true;
-      try {
-        String trustManagerClass =
-          profile.getParameter(
-            PREFIX + "trustManagerClass",
-            "jade.mtp.http.https.NoAuthentication");
+	public void configure(Profile profile, HTTPAddress hta) throws Exception {
+		//#DOTNET_EXCLUDE_BEGIN
+		if (hta.getProto().equals("https")) {
+			_usingHttps = true;
+			try {
+				String trustManagerClass =
+					profile.getParameter(
+					PREFIX + "trustManagerClass",
+					"jade.mtp.http.https.NoAuthentication");
 
-        String keyManagerClass =
-          profile.getParameter(
-            PREFIX + "keyManagerClass",
-            "jade.mtp.http.https.KeyStoreKeyManager");
+				String keyManagerClass =
+					profile.getParameter(
+					PREFIX + "keyManagerClass",
+					"jade.mtp.http.https.KeyStoreKeyManager");
 
-        HTTPSTrustManager tm =
-          (HTTPSTrustManager)Class.forName(trustManagerClass).newInstance();
-        tm.init(profile);
+				HTTPSTrustManager tm =
+					(HTTPSTrustManager)Class.forName(trustManagerClass).newInstance();
+				tm.init(profile);
 
-        HTTPSKeyManager km =
-          (HTTPSKeyManager)Class.forName(keyManagerClass).newInstance();
-        km.init(profile);
+				HTTPSKeyManager km =
+					(HTTPSKeyManager)Class.forName(keyManagerClass).newInstance();
+				km.init(profile);
 
-        if (profile
-          .getParameter(PREFIX + "needClientAuth", "no")
-          .equals("yes"))
-          _needClientAuth = true;
+				if (profile
+					.getParameter(PREFIX + "needClientAuth", "no")
+					.equals("yes"))
+					_needClientAuth = true;
 
-        SSLContext sctx = SSLContext.getInstance("TLS");
-        sctx.init(new KeyManager[] { km }, new TrustManager[] { tm }, null);
+				SSLContext sctx = SSLContext.getInstance("TLS");
+				sctx.init(new KeyManager[] { km }, new TrustManager[] { tm }, null);
 
-        _socketFactory = sctx.getSocketFactory();
-        _serverSocketFactory = sctx.getServerSocketFactory();
+				_socketFactory = sctx.getSocketFactory();
+				_serverSocketFactory = sctx.getServerSocketFactory();
       } catch (Exception e) {
-        throw new MTPException("Error initializing secure conection", e);
-      }
+				throw new MTPException("Error initializing secure conection", e);
+			}
     } else {
-      _socketFactory = SocketFactory.getDefault();
-      _serverSocketFactory = ServerSocketFactory.getDefault();
-    }
-  }
+			_socketFactory = SocketFactory.getDefault();
+			_serverSocketFactory = ServerSocketFactory.getDefault();
+		}
+		//#DOTNET_EXCLUDE_END
+
+		/*#DOTNET_INCLUDE_BEGIN
+		 _socketFactory = SocketFactory.getDefault();
+		 _serverSocketFactory = ServerSocketFactory.getDefault();
+		 #DOTNET_INCLUDE_END*/
+	}
 
   public Socket createSocket(String host, int port) throws IOException {
     return _socketFactory.createSocket(host, port);
@@ -117,8 +128,10 @@ public class HTTPSocketFactory {
 
   public ServerSocket createServerSocket(int port) throws IOException {
     ServerSocket ss = _serverSocketFactory.createServerSocket(port);
-    if (_usingHttps)
+    //#DOTNET_EXCLUDE_BEGIN
+	if (_usingHttps)
        ((SSLServerSocket)ss).setNeedClientAuth(_needClientAuth);
+	//#DOTNET_EXCLUDE_END
     return ss;
   }
 

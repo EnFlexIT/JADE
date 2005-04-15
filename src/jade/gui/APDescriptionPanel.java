@@ -126,7 +126,9 @@ public class APDescriptionPanel extends JPanel
 		try{
 			platformName_Field.setText(desc.getName());
 				  
-		  MTPs_List.resetContent(desc.getAllAPServices());
+			//#DOTNET_EXCLUDE_BEGIN
+			MTPs_List.resetContent(desc.getAllAPServices());
+			//#DOTNET_EXCLUDE_END
 		  
 		}catch(Exception e){e.printStackTrace();}
 	   

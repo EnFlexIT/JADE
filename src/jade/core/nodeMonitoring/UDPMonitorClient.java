@@ -30,9 +30,17 @@ import jade.core.Node;
 import jade.util.Logger;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+//#DOTNET_EXCLUDE_BEGIN
+import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
+//#DOTNET_EXCLUDE_END
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Net.*;
+import System.Net.Sockets.*;
+#DOTNET_INCLUDE_END*/
+
 
 /**
  * The <code>UDPMonitorClient</code> sends UDP ping messages 
@@ -46,7 +54,15 @@ class UDPMonitorClient {
   private boolean running = false;
   private boolean terminating = false;
   
+  //#DOTNET_EXCLUDE_BEGIN
   private DatagramChannel channel;
+  //#DOTNET_EXCLUDE_END
+
+  /*#DOTNET_INCLUDE_BEGIN
+  private UdpClient channel;
+  private IPEndPoint receivePoint;
+  #DOTNET_INCLUDE_END*/
+
   private String serverHost;
   private int serverPort;
   private ByteBuffer ping;
@@ -60,6 +76,8 @@ class UDPMonitorClient {
    * 
    * @author Roland Mungenast - Profactor
    * @since JADE 3.3
+   * @author Federico Pieri - ERXA
+   * @since JADE 3.3.NET
    */
   private class Sender implements Runnable {
 
@@ -68,19 +86,39 @@ class UDPMonitorClient {
       while (running) {
         updatePing();
         try {
-          channel.send(ping, new InetSocketAddress(serverHost, serverPort));
-          Thread.sleep(pingDelay - 5);
+			  //#DOTNET_EXCLUDE_BEGIN
+			    channel.send(ping, new InetSocketAddress(serverHost, serverPort));
+			    Thread.sleep(pingDelay - 5);
         } catch (IOException e) {
-          if(logger.isLoggable(Logger.SEVERE))
+			    if(logger.isLoggable(Logger.SEVERE))
             logger.log(Logger.SEVERE,"Error sending UDP ping message for node " + node.getName());
         } catch (InterruptedException e) { 
           // ignore --> the ping with the termination flag has to be sent immediately
         }
+			  //#DOTNET_EXCLUDE_END
+			  /*#DOTNET_INCLUDE_BEGIN
+			    channel.Send(ping.getUByte(), ping.capacity(), serverHost, serverPort);
+			    Thread.sleep(pingDelay - 5);
+			  } 
+			  catch (Exception e) 
+			  {
+          if(logger.isLoggable(Logger.SEVERE))
+            logger.log(Logger.SEVERE,"Error sending UDP ping message for node " + node.getName());
+        }
+        #DOTNET_INCLUDE_END*/
       }
       
       try {
-        channel.close();
+		  //#DOTNET_EXCLUDE_BEGIN
+		    channel.close();
       } catch (IOException e) {
+		  //#DOTNET_EXCLUDE_END
+		  /*#DOTNET_INCLUDE_BEGIN
+   	    channel.Close();
+		  } 
+		  catch (Exception e) 
+		  {
+		  #DOTNET_INCLUDE_END*/
         if(logger.isLoggable(Logger.FINER))
           logger.log(Logger.FINER,"Error closing UDP channel");
       }
@@ -122,7 +160,12 @@ class UDPMonitorClient {
    * @throws IOException if the 
    */
   public void start() throws IOException {
-    channel = DatagramChannel.open();
+	//#DOTNET_EXCLUDE_BEGIN
+	channel = DatagramChannel.open();
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	channel = new UdpClient();
+	#DOTNET_INCLUDE_END*/
     running = true;
     sender = new Thread(new Sender());
     sender.start();

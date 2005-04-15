@@ -25,7 +25,12 @@ Boston, MA  02111-1307, USA.
 
 //#J2ME_EXCLUDE_FILE
 
+//#DOTNET_EXCLUDE_BEGIN
 import javax.swing.JPopupMenu;
+//#DOTNET_EXCLUDE_END
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.MenuItem;
+#DOTNET_INCLUDE_END*/
 
 /**
    Javadoc documentation for the file
@@ -33,16 +38,32 @@ import javax.swing.JPopupMenu;
    @version $Date$ $Revision$
  */
 
-class NodeDescriptor {
+class NodeDescriptor 
+{
+  //#DOTNET_EXCLUDE_BEGIN
   JPopupMenu popupMenu;
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  MenuItem	popupMenu;
+  #DOTNET_INCLUDE_END*/
   String pathImage;
 
+  //#DOTNET_EXCLUDE_BEGIN
   protected NodeDescriptor(JPopupMenu popupMenu,String pathImage){
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  protected NodeDescriptor(MenuItem popupMenu,String pathImage){
+  #DOTNET_INCLUDE_END*/
    this.popupMenu=popupMenu;
    this.pathImage=pathImage;
   }
 
+  //#DOTNET_EXCLUDE_BEGIN
   protected JPopupMenu getPopupMenu() {
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  protected MenuItem getPopupMenu() {
+  #DOTNET_INCLUDE_END*/
    return popupMenu;
   }
 
@@ -50,7 +71,12 @@ class NodeDescriptor {
    return pathImage;
   }
   
+  //#DOTNET_EXCLUDE_BEGIN
   protected void setNewPopupMenu(JPopupMenu p){
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  protected void setNewPopupMenu(MenuItem p){
+  #DOTNET_INCLUDE_END*/
   this.popupMenu =p;
   }
 } 

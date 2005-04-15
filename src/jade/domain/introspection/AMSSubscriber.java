@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
-//#DOTNET_EXCLUDE_FILE
-
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -60,7 +58,12 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
   private MessageTemplate listenTemplate;
 
   // Ignore case for event names
+  //#DOTNET_EXCLUDE_BEGIN
   private Map handlers = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  private Map handlers = new TreeMap(new CaseInsensitiveComparator() );
+  #DOTNET_INCLUDE_END*/
 
   /**
      This interface must be implemented by concrete event handlers
@@ -177,5 +180,44 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
   public final ACLMessage getCancel() {
     return AMSCancellation;
   }
+
+  //#JAVA_EXCLUDE_BEGIN
+  /*#DOTNET_INCLUDE_BEGIN
+    //This class is used to obtain a Comparator for compare two strings
+	//with case ignoring.
+  	private class CaseInsensitiveComparator implements java.util.Comparator, java.io.Serializable 
+	{
+		// use serialVersionUID from JDK 1.2.2 for interoperability
+		private static final long serialVersionUID = 8575799808933029326L;
+
+		public int compare(Object o1, Object o2) 
+		{
+			String s1 = (String) o1;
+			String s2 = (String) o2;
+			int n1=s1.length(), n2=s2.length();
+			for (int i1=0, i2=0; i1<n1 && i2<n2; i1++, i2++) 
+			{
+				char c1 = s1.charAt(i1);
+				char c2 = s2.charAt(i2);
+				if (c1 != c2) 
+				{
+					c1 = Character.toUpperCase(c1);
+					c2 = Character.toUpperCase(c2);
+					if (c1 != c2) 
+					{
+						c1 = Character.toLowerCase(c1);
+						c2 = Character.toLowerCase(c2);
+						if (c1 != c2) 
+						{
+							return c1 - c2;
+						}
+					}
+				}
+			}
+			return n1 - n2;
+		}
+	}
+  #DOTNET_INCLUDE_END*/
+  //#JAVA_EXCLUDE_END
 }
 

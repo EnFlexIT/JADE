@@ -48,9 +48,6 @@ import java.io.*;
 
 import jade.util.leap.Iterator;
 
-import org.xml.sax.*;
-import org.xml.sax.helpers.DefaultHandler;
-
 import jade.mtp.MTPException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
@@ -58,9 +55,21 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.core.AID;
 import jade.util.Logger;
 
+//#DOTNET_EXCLUDE_BEGIN
+import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
+//#DOTNET_EXCLUDE_END
+
 import starlight.util.Base64;
 
-public class XMLCodec extends DefaultHandler {
+/*#DOTNET_INCLUDE_BEGIN
+import System.Xml.*;
+import System.Collections.ArrayList;
+#DOTNET_INCLUDE_END*/
+
+
+public class XMLCodec extends DefaultHandler 
+{
     
   // Constants
   public final static String PREAMBUL = "<?xml version=\"1.0\"?>\n";
@@ -99,8 +108,19 @@ public class XMLCodec extends DefaultHandler {
   public final static String CT = ">";
   public final static String NULL = "";
   
-  private XMLReader      parser = null;
-  private Envelope       env;
+	/*#DOTNET_INCLUDE_BEGIN
+	public final static char[] badChars  = { '\r', '\n', ' ' };
+	public final static String CHARS_CODEC = "ISO-8859-1";
+	#DOTNET_INCLUDE_END*/
+
+	//#DOTNET_EXCLUDE_BEGIN
+	private XMLReader		 parser	= null;
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	private XmlTextReader  parser = null;
+	#DOTNET_INCLUDE_END*/
+
+  private Envelope       env = null;
   private ReceivedObject ro  = null;
   private AID            aid = null;
   private Property       prop = null;
@@ -114,20 +134,40 @@ public class XMLCodec extends DefaultHandler {
   //private int origin;
 
   
-  /**
-   * Constructor:
-   * @param parserClass the SAX parser class to use
-   */
+	/*#DOTNET_INCLUDE_BEGIN
+	 //To XML reading
+	 private boolean found			= false;
+	 private String aidStr			= "";
+	 private String addressStr		= "";
+	 private String mts			= "";
+	 private ReceivedObject recObj = null;
+	 private int diffInPayLoad		= 0;
+	 #DOTNET_INCLUDE_END*/
+  
+
+	//#DOTNET_EXCLUDE_BEGIN
+	/**
+	 * Constructor:
+	 * @param parserClass the SAX parser class to use
+	 */
   public XMLCodec(String parserClass) throws MTPException {
     try{ 
-      parser = (XMLReader)Class.forName(parserClass).newInstance();
-      parser.setContentHandler(this);
-      parser.setErrorHandler(this);
-    }
+			parser = (XMLReader)Class.forName(parserClass).newInstance();
+			parser.setContentHandler(this);
+			parser.setErrorHandler(this);
+		}
     catch(Exception e) {
-      throw new MTPException(e.toString());
-    }
-  }
+			throw new MTPException(e.toString());
+		}
+	}
+	//#DOTNET_EXCLUDE_END
+
+	/*#DOTNET_INCLUDE_BEGIN
+	 //Constructor:
+	 //For dotnet is used the System.Xml.XmlTextReader parser.
+	 //Nothing to do in the constructor
+	public XMLCodec() throws MTPException {}
+	#DOTNET_INCLUDE_END*/
   
   // ***************************************************
   // *               Encoding methods                  *
@@ -437,36 +477,266 @@ public class XMLCodec extends DefaultHandler {
   }
   
   /** This method is called when warning occur*/  
+  //#DOTNET_EXCLUDE_BEGIN
   public void warning(SAXParseException exception) {
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  public void warning(ParseException exception) {
+  #DOTNET_INCLUDE_END*/
     if(logger.isLoggable(Logger.WARNING))
+		//#DOTNET_EXCLUDE_BEGIN
     	logger.log(Logger.WARNING," line " + exception.getLineNumber() + ": "+
                        exception.getMessage());
+	    //#DOTNET_EXCLUDE_END
+	    /*#DOTNET_INCLUDE_BEGIN
+    	logger.log(Logger.WARNING," line " + exception.getError() + ": " +
+	                    exception.get_Message());
+		#DOTNET_INCLUDE_END*/
   }
   
   /** This method is called when errors occur*/ 
-  public void error(SAXParseException exception)  {
+  //#DOTNET_EXCLUDE_BEGIN
+  public void error(SAXParseException exception) {
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  public void error(ParseException exception) {
+  #DOTNET_INCLUDE_END*/
     if(logger.isLoggable(Logger.WARNING))
-    	logger.log(Logger.WARNING,"ERROR: line " + exception.getLineNumber() + ": " +
-                       exception.getMessage());
+		//#DOTNET_EXCLUDE_BEGIN
+		logger.log(Logger.WARNING,"ERROR: line " + exception.getLineNumber() + ": " +
+			exception.getMessage());
+	  //#DOTNET_EXCLUDE_END
+	  /*#DOTNET_INCLUDE_BEGIN
+	   logger.log(Logger.WARNING,"ERROR: line " + exception.getError() + ": " +
+	   exception.get_Message());
+	   #DOTNET_INCLUDE_END*/
   }
   
   /** This method is called when non-recoverable errors occur.*/ 
+  //#DOTNET_EXCLUDE_BEGIN
   public void fatalError(SAXParseException exception) throws SAXException{
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  public void fatalError(ParseException exception) {
+  #DOTNET_INCLUDE_END*/
+
     if(logger.isLoggable(Logger.WARNING))
-    	logger.log(Logger.SEVERE,"FATAL: line " + exception.getLineNumber() + ": " +
-                       exception.getMessage());
-    throw exception;
+		//#DOTNET_EXCLUDE_BEGIN
+		logger.log(Logger.SEVERE,"FATAL: line " + exception.getLineNumber() + ": " +
+			exception.getMessage());
+      throw exception;
+	  //#DOTNET_EXCLUDE_END
+	  /*#DOTNET_INCLUDE_BEGIN
+	   logger.log(Logger.SEVERE,"FATAL: line " + exception.getError() + ": " +
+			exception.get_Message());
+	   #DOTNET_INCLUDE_END*/
   }
   
-  /** Main method */
-  public Envelope parse(Reader in) throws MTPException {
-    try { 
-		  parser.parse(new InputSource(in));
-      return env;
-    }
+	//#DOTNET_EXCLUDE_BEGIN
+	// Main method
+	public Envelope parse(Reader in) throws MTPException 
+	{
+		try 
+		{ 
+			parser.parse(new InputSource(in));
+			return env;
+		}
     catch (Exception ex) {
-      throw new MTPException(ex.getMessage());
-    }
-  }
+			throw new MTPException(ex.getMessage());
+		}
+	}
+	//#DOTNET_EXCLUDE_END
+  
+	/*#DOTNET_INCLUDE_BEGIN
+    // Main method
+	public Envelope parse(System.IO.TextReader in) throws MTPException 
+	{
+		try
+		{
+			//Inizialization of variables used
+			ArrayList elemList	= new ArrayList();
+			String textStr		= "";
+			env				= new Envelope();
+			recObj			= new ReceivedObject();
+			parser			= new XmlTextReader(in);
+
+			while ( parser.Read() )
+			{
+				XmlNodeType myNType = parser.get_NodeType();
+				if (myNType.Equals( XmlNodeType.Element ))
+				{
+					elemList.Add( parser.get_Name() );
+					if ( parser.get_HasAttributes() )
+					{
+						while( parser.MoveToNextAttribute() )
+						{
+							compare	(parser.get_Name(), parser.get_Value());
+						}//End WHILE block
+					}//End IF block
+					parser.MoveToElement();
+				}
+				else if (myNType.Equals( XmlNodeType.Text ))
+				{
+					textStr = parser.ReadString();
+
+					int counter = elemList.get_Count()-1;
+					found = false;
+					while (counter >= 0 && !found)
+					{
+						compare(elemList.get_Item(counter).ToString(), textStr);
+						counter--;
+					}
+					if (counter < 0)
+						//Console.WriteLine("ERRORE");
+						System.out.println("ERRORE");
+					else
+					{
+						found = false;
+						elemList.RemoveAt(elemList.get_Count()-1);
+					}
+
+				}
+				else if ( myNType.Equals( XmlNodeType.EndElement ) )
+				{
+					int idx = elemList.LastIndexOf(parser.get_Name());
+					elemList.RemoveAt(idx);
+					if (elemList.get_Count() > 0)
+						compare(elemList.get_Item(elemList.get_Count()-1).ToString(), "");
+				}
+			}//End WHILE block
+			parser.Close();
+		}
+		catch (XmlException e)
+		{
+			env = new Envelope();
+			throw new MTPException("Exception during parsing XML file.\nNested exception is: "+e.get_Message());
+		}
+		finally
+		{
+			return env;
+		}
+	}
+	
+	public void compare(String s, String r) throws MTPException
+	{
+		try 
+		{
+			this.found = true;
+			if (s.equalsIgnoreCase(this.AID_NAME))
+			{
+				aidStr = r.Trim(badChars);
+			}
+			else if (s.equalsIgnoreCase(this.TO_TAG))
+			{
+				//aidStr = convertHostname(aidStr);
+				AID newAID = new AID(aidStr, AID.ISGUID);
+				newAID.addAddresses( addressStr );
+				env.addTo( newAID );
+				//reset values
+				aidStr = "";
+				addressStr = "";
+			}
+			else if (s.equalsIgnoreCase(this.FROM_TAG))
+			{
+				AID newAID = new AID(aidStr, AID.ISGUID);
+				newAID.addAddresses( addressStr );
+				env.setFrom( newAID );
+				//reset values
+				aidStr = "";
+				addressStr = "";
+			}
+			else if (s.equalsIgnoreCase(this.AID_ADDRESS))
+			{
+				if (r != "")
+					addressStr = r.Trim(badChars);
+			}
+			else if (s.equalsIgnoreCase(this.AID_ADDRESSES))
+			{
+				if (r != "")
+					addressStr = r.Trim(badChars);
+			}
+			else if (s.equalsIgnoreCase(this.REPRESENTATION_TAG))
+			{
+				String aclStr = r.Trim(badChars);
+				env.setAclRepresentation( aclStr );
+			}
+			else if (s.equalsIgnoreCase(this.DATE_TAG))
+			{
+				String dateStr = r.Trim(badChars);
+				BasicFipaDateTime bfdt = new BasicFipaDateTime(dateStr);
+				env.setDate( bfdt.getTime() );
+			}
+			else if (s.equalsIgnoreCase(this.INTENDED_TAG))
+			{
+				//aidStr = convertHostname(aidStr);
+				AID newAID = new AID(aidStr, AID.ISGUID);
+				newAID.addAddresses( addressStr );
+				env.addIntendedReceiver( newAID );
+				//reset values
+				aidStr = "";
+				addressStr = "";
+			}
+			else if (s.equalsIgnoreCase(this.ENCODING_TAG))
+			{
+				String payStr = r.Trim(badChars);
+				env.setPayloadEncoding( payStr );
+			}
+			else if (s.equalsIgnoreCase(this.LENGTH_TAG))
+			{
+				String payStr = r.Trim(badChars);
+				env.setPayloadLength( new java.lang.Long(payStr) );
+			}
+			else if (s.equalsIgnoreCase(this.COMMENTS_TAG))
+			{
+				String cmtStr = r.Trim(badChars);
+				env.setComments( cmtStr );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_TAG))
+			{
+				env.setReceived( recObj );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_VIA))
+			{
+				String via = r.Trim(badChars);
+				recObj.setVia( via );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_BY))
+			{
+				String mts = r.Trim(badChars);
+				recObj.setBy( mts );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_DATE))
+			{
+				String aDate = r.Trim(badChars);
+				BasicFipaDateTime bfdt = new BasicFipaDateTime(aDate);
+				recObj.setDate( bfdt.getTime() );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_FROM))
+			{
+				String from = r.Trim(badChars);
+				recObj.setFrom( from );
+			}
+			else if (s.equalsIgnoreCase(this.RECEIVED_ID))
+			{
+				String id = r.Trim(badChars);
+				recObj.setId( id );
+			}
+			else if (s.equalsIgnoreCase(this.INDEX))
+			{
+				String index = r.Trim(badChars);
+				Property prop = new Property();
+				prop.setName(s);
+				prop.setValue(index);
+				env.addProperties( prop );
+			}
+			else
+				found = false;
+		}
+		catch (Exception e)
+		{
+			throw new MTPException("Error during tags comparison");
+		}
+	}
+	#DOTNET_INCLUDE_END*/
 
 }//End of XMLCodec class

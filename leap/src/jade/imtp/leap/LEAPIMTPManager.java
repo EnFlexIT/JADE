@@ -235,7 +235,7 @@ public class LEAPIMTPManager implements IMTPManager {
   public Service.Slice createSliceProxy(String serviceName, Class itf, Node where) throws IMTPException {
       try {
 	  Class proxyClass = Class.forName(serviceName + "Proxy");
-	  Service.SliceProxy proxy = (Service.SliceProxy)proxyClass.newInstance();
+	  SliceProxy proxy = (SliceProxy)proxyClass.newInstance();
 	  proxy.setNode(where);
 	  return proxy;
       }

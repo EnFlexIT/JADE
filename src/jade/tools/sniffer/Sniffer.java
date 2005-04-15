@@ -172,8 +172,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-      if(logger.isLoggable(Logger.FINE))
-      	logger.log(Logger.FINE,"AGREE received");
+	  if(Sniffer.logger.isLoggable(Logger.FINE))
+	    Sniffer.logger.log(Logger.FINE,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -181,8 +181,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-      if(logger.isLoggable(Logger.FINE))
-      	logger.log(Logger.FINE,"INFORM received");
+	  if(Sniffer.logger.isLoggable(Logger.FINE))
+	    Sniffer.logger.log(Logger.FINE,"INFORM received");
     }
 
   } // End of AMSClientBehaviour class
@@ -423,7 +423,7 @@ public class Sniffer extends ToolAgent {
    */
   public void toolSetup() {
 
-    ExpandedProperties properties = new ExpandedProperties();
+    properties = new ExpandedProperties();
 
     /*
      * preload agents from argument array if arguments present, otherwise load
@@ -465,6 +465,7 @@ public class Sniffer extends ToolAgent {
         }
     }
 
+    //#DOTNET_EXCLUDE_BEGIN
     // Send 'subscribe' message to the AMS
     AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
 
@@ -481,11 +482,45 @@ public class Sniffer extends ToolAgent {
     // Show Graphical User Interface
     myGUI = new MainWindow(this, properties);
     myGUI.ShowCorrect();
+    //#DOTNET_EXCLUDE_END
 
+    /*#DOTNET_INCLUDE_BEGIN
+    //Create GUI
+	System.Threading.ThreadStart tStart = new System.Threading.ThreadStart( createUI );
+	System.Threading.Thread t = new System.Threading.Thread( tStart );
+	t.Start();
+	#DOTNET_INCLUDE_END*/
   }
 
+  /*#DOTNET_INCLUDE_BEGIN
+  	private void createUI()
+	{
+		// Show Graphical User Interface
+		myGUI = new MainWindow(this, properties);
+		myGUI.ShowCorrect();
+		System.Windows.Forms.Application.Run();
+	}
+
+	protected void startBehaviours()
+	{
+		// Send 'subscribe' message to the AMS
+		AMSSubscribe.addSubBehaviour(new SenderBehaviour(this, getSubscribe()));
+
+		// Handle incoming 'inform' messages
+		AMSSubscribe.addSubBehaviour(new SnifferAMSListenerBehaviour());
+
+		// Handle incoming REQUEST to start/stop sniffing agents
+		addBehaviour(new RequestListenerBehaviour());
+
+		// Schedule Behaviours for execution
+		addBehaviour(AMSSubscribe);
+		addBehaviour(new SniffListenerBehaviour());
+	}
+  #DOTNET_INCLUDE_END*/
+
   
-  private void addAgent(AID id) {
+  private void addAgent(AID id) 
+  {
     ActionProcessor ap = myGUI.actPro;
     DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
     sa.doSniff(id.getName());

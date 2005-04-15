@@ -162,7 +162,18 @@ import jade.domain.FIPAAgentManagement.*;
  		JPanel addressesPanel = new JPanel();
  		addressesPanel.setLayout(new BorderLayout());
 		addressesPanel.setBorder(BorderFactory.createTitledBorder("Addresses"));
+		//#DOTNET_EXCLUDE_BEGIN
     addressListPanel = new VisualStringList(agentAID.getAllAddresses(),parentGUI);
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		java.util.ArrayList aList = new java.util.ArrayList();
+		jade.util.leap.Iterator it = agentAID.getAllAddresses();
+		while ( it.hasNext() )
+		{
+			aList.add( it.next() );
+		}
+	addressListPanel = new VisualStringList(aList.iterator(),parentGUI);
+		#DOTNET_INCLUDE_END*/
     addressListPanel.setDimension(new Dimension(200,40));
     addressListPanel.setEnabled(editable);
  		addressesPanel.add(addressListPanel);
@@ -173,7 +184,18 @@ import jade.domain.FIPAAgentManagement.*;
  		JPanel resolversPanel = new JPanel();
  		resolversPanel.setLayout(new BorderLayout());
  		resolversPanel.setBorder(BorderFactory.createTitledBorder("Resolvers"));
+		//#DOTNET_EXCLUDE_BEGIN
  	  resolverListPanel = new VisualAIDList(agentAID.getAllResolvers(),parentGUI);
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		java.util.ArrayList bList = new java.util.ArrayList();
+		jade.util.leap.Iterator it2 = agentAID.getAllResolvers();
+		while ( it2.hasNext() )
+		{
+			bList.add( it2.next() );
+		}
+	  resolverListPanel = new VisualAIDList(bList.iterator(),parentGUI);
+		#DOTNET_INCLUDE_END*/
  	  resolverListPanel.setDimension(new Dimension(200,40));
  	  resolverListPanel.setEnabled(editable);
  	  resolverListPanel.setCheckMandatorySlots(checkMandatorySlots);

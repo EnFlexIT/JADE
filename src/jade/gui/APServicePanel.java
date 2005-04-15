@@ -128,7 +128,9 @@ public class APServicePanel extends JPanel
 		{
 			name_Field.setText(ap.getName());
 			type_Field.setText(ap.getType());
+			//#DOTNET_EXCLUDE_BEGIN
 			address_List.resetContent(ap.getAllAddresses());
+			//#DOTNET_EXCLUDE_END
 		}
 	}
 

@@ -214,9 +214,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				target.copyAgent(id, where, newName);
 			}
 
-			private Service.SliceProxy getProxyToLocalSlice(String serviceName) throws Throwable {
+			private SliceProxy getProxyToLocalSlice(String serviceName) throws Throwable {
 				Service svc = myServiceFinder.findService(serviceName);
-				return (Service.SliceProxy) myIMTPManager.createSliceProxy(serviceName, svc.getHorizontalInterface(), myIMTPManager.getLocalNode());
+				return (SliceProxy) myIMTPManager.createSliceProxy(serviceName, svc.getHorizontalInterface(), myIMTPManager.getLocalNode());
 			}
 		};
   }

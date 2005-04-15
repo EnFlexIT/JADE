@@ -25,6 +25,7 @@ package jade.core.replication;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
@@ -36,7 +37,7 @@ import jade.core.ServiceException;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class AddressNotificationProxy extends Service.SliceProxy implements AddressNotificationSlice {
+public class AddressNotificationProxy extends SliceProxy implements AddressNotificationSlice {
 
     public void addServiceManagerAddress(String addr) throws IMTPException {
 	try {

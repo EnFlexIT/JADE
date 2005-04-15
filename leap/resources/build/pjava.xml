@@ -38,6 +38,8 @@
 	  <!-- 2) Copy LEAP sources -->
 	  <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
+			  <exclude name="**/jade/mtp/http/**"/>
+			  <exclude name="**/jade/gui/**"/>
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 			</fileset>

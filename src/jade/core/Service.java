@@ -121,9 +121,12 @@ public interface Service {
 
     }
 
+//#DOTNET_EXCLUDE_BEGIN
+		// 15/4/05 We had to deprecate this class because of the .NET integration
     /**
        An implementation of the <code>Slice</code> interface,
        supporting routed dispatching of horizontal commands.
+			 @deprecated use the class jade.core.SliceProxy instead of this inner class
     */
     public class SliceProxy implements Slice {
 
@@ -169,6 +172,7 @@ public interface Service {
 	private transient Service myService;
 
     }
+//#DOTNET_EXCLUDE_END
 
     /**
        Retrieve the name of this service, that can be used to look up

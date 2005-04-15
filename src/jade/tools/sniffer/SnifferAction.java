@@ -51,11 +51,13 @@ public abstract class SnifferAction extends AbstractAction{
  private String ActionName;
 
  public SnifferAction(String IconKey,String ActionName,ActionProcessor actPro) {
-    this.img = GuiProperties.getIcon("SnifferAction."+IconKey);
-    this.ActionName = ActionName;
+    //#DOTNET_EXCLUDE_BEGIN
+	this.img = GuiProperties.getIcon("SnifferAction."+IconKey);
     putValue(Action.SMALL_ICON,img);
     putValue(Action.DEFAULT,img);
-    putValue(Action.NAME,ActionName);
+    //#DOTNET_EXCLUDE_END
+	putValue(Action.NAME,ActionName);
+    this.ActionName = ActionName;
     this.actPro=actPro;
   }
 
@@ -71,4 +73,12 @@ public abstract class SnifferAction extends AbstractAction{
    actPro.process(this);
   }
 
- } 
+ //#JAVA_EXCLUDE_BEGIN
+ /*#DOTNET_INCLUDE_BEGIN
+ public void OnClick(Object sender, System.EventArgs e)
+ {
+	actPro.process(this);
+ }	
+ #DOTNET_INCLUDE_END*/
+ //#JAVA_EXCLUDE_END
+} 

@@ -27,6 +27,7 @@ package jade.core.messaging;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -49,7 +50,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class PersistentDeliveryProxy extends Service.SliceProxy implements PersistentDeliverySlice {
+public class PersistentDeliveryProxy extends SliceProxy implements PersistentDeliverySlice {
 
 
     /*public void activateMsgStore(String name) throws IMTPException, NameClashException {

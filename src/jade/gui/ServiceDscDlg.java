@@ -76,16 +76,27 @@ public class ServiceDscDlg extends JDialog
   @serial
 	*/
 	boolean checkSlots;
+
+	/*#DOTNET_INCLUDE_BEGIN
+	Component myComponent;
+  private Component getOwner() {return myComponent;}
+	#DOTNET_INCLUDE_END*/
 	
 	// CONSTRUCTORS
 	ServiceDscDlg(Frame parent) 
 	{
 		super(parent);
+		/*#DOTNET_INCLUDE_BEGIN
+		myComponent = parent;
+		#DOTNET_INCLUDE_END*/
 	}
 
 	ServiceDscDlg(Dialog parent) 
 	{
 		super(parent);
+		/*#DOTNET_INCLUDE_BEGIN
+		myComponent = parent;
+		#DOTNET_INCLUDE_END*/
 	}
 
 	/**
@@ -196,7 +207,12 @@ public class ServiceDscDlg extends JDialog
 		p = new JPanel();
 		p.setLayout(new BorderLayout());
 		p.setBorder(BorderFactory.createTitledBorder("Properties"));
+		//#DOTNET_EXCLUDE_BEGIN
 		Iterator temp = serviceDesc.getAllProperties();
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		jade.util.leap.Iterator temp = serviceDesc.getAllProperties();
+		#DOTNET_INCLUDE_END*/
 		Properties props = new Properties();
 		while(temp.hasNext())
 		{
@@ -324,8 +340,15 @@ public class ServiceDscDlg extends JDialog
 		setResizable(false);
 		
 	  try{
+		//#DOTNET_EXCLUDE_BEGIN
     	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
     	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+    	int x = getOwner().getX() + (getOwner().WIDTH - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().HEIGHT - getHeight()) / 2; 
+		#DOTNET_INCLUDE_END*/
+
     	setLocation(x>0 ? x:0,y>0 ? y:0);
     }catch(Exception e){}
 	        pack();

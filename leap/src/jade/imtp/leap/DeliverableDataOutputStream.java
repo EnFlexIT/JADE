@@ -214,9 +214,9 @@ class DeliverableDataOutputStream extends DataOutputStream {
           writeByte(Serializer.SERVICEDESCRIPTOR_ID);
           serializeServiceDescriptor((ServiceDescriptor) o);
         }
-        else if (o instanceof Service.SliceProxy) {      // SliceProxy
+        else if (o instanceof SliceProxy) {      // SliceProxy
           writeByte(Serializer.SLICEPROXY_ID);
-          serializeSliceProxy((Service.SliceProxy) o);
+          serializeSliceProxy((SliceProxy) o);
         }
         else if(o instanceof Property) {                   // Property
           writeByte(Serializer.PROPERTY_ID);
@@ -685,7 +685,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
 
   /**
    */
-  private void serializeSliceProxy(Service.SliceProxy proxy) throws LEAPSerializationException {
+  private void serializeSliceProxy(SliceProxy proxy) throws LEAPSerializationException {
     try {
       writeUTF(proxy.getClass().getName());
       writeNode(proxy.getNode());

@@ -27,6 +27,7 @@ package jade.core.replication;
 
 import jade.core.Node;
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -48,7 +49,7 @@ import jade.security.JADESecurityException;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 */
-public class MainReplicationProxy extends Service.SliceProxy implements MainReplicationSlice {
+public class MainReplicationProxy extends SliceProxy implements MainReplicationSlice {
 
 
     public int getLabel() throws IMTPException {

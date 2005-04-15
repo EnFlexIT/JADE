@@ -76,7 +76,12 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
     unicastReceiver = r;
     
     this.clearAllReceiver();
+    //#DOTNET_EXCLUDE_BEGIN
     for (Iterator i=msg.getAllReceiver(); i.hasNext(); )
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+    for (jade.util.leap.Iterator i=msg.getAllReceiver(); i.hasNext(); )
+	#DOTNET_INCLUDE_END*/
       this.addReceiver((AID)i.next());
 
     this.setSender(msg.getSender());

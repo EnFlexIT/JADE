@@ -695,15 +695,28 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
         return result;
     }
-      catch(ClassNotFoundException cnfe) {
-        throw new MTPException("ERROR: The class " + className + " for the " + address  + " MTP was not found");
-      }
-      catch(InstantiationException ie) {
-        throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
-      }
-      catch(IllegalAccessException iae) {
-        throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-      }
+	/*#DOTNET_INCLUDE_BEGIN
+	catch(System.TypeLoadException tle)
+	{
+	ClassNotFoundException cnfe = new ClassNotFoundException(tle.get_Message());
+	throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", cnfe);
+	}
+	catch(System.TypeInitializationException tie)
+	{
+	InstantiationException ie = new InstantiationException(tie.get_Message());
+	throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
+	}
+	#DOTNET_INCLUDE_END*/
+    catch(ClassNotFoundException cnfe) 
+	{
+    throw new MTPException("ERROR: The class " + className + " for the " + address  + " MTP was not found");
+    }
+    catch(InstantiationException ie) {
+    throw new MTPException("The class " + className + " raised InstantiationException (see nested exception)", ie);
+    }
+    catch(IllegalAccessException iae) {
+    throw new MTPException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
+    }
     }
 
     private void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {

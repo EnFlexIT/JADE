@@ -55,6 +55,11 @@ public class ConstraintDlg extends JDialog
   @serial
   */
   SearchConstraints constraints = new SearchConstraints();
+
+  /*#DOTNET_INCLUDE_BEGIN
+  Component myComponent;
+  private Component getOwner() {return myComponent;}
+  #DOTNET_INCLUDE_END*/
 	
     /**
        Create a dialog with the given parent.
@@ -64,6 +69,9 @@ public class ConstraintDlg extends JDialog
     public ConstraintDlg(Frame parent)
     {
 	super(parent);
+	/*#DOTNET_INCLUDE_BEGIN
+	myComponent = parent;
+	#DOTNET_INCLUDE_END*/
     }
 
     /**
@@ -74,6 +82,9 @@ public class ConstraintDlg extends JDialog
     public ConstraintDlg(Dialog parent)
     {
 	super(parent);
+	/*#DOTNET_INCLUDE_BEGIN
+	myComponent = parent;
+	#DOTNET_INCLUDE_END*/
     }
 	
 	/**
@@ -221,8 +232,14 @@ public class ConstraintDlg extends JDialog
     pack();
     
     try{
+		//#DOTNET_EXCLUDE_BEGIN
     	int x = getOwner().getX() + (getOwner().getWidth() - getWidth()) / 2;
     	int y = getOwner().getY() + (getOwner().getHeight() - getHeight()) / 2; 
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+    	int x = getOwner().getX() + (getOwner().WIDTH - getWidth()) / 2;
+    	int y = getOwner().getY() + (getOwner().HEIGHT - getHeight()) / 2; 
+		#DOTNET_INCLUDE_END*/
     	setLocation(x>0 ? x:0,y>0 ? y:0);
     }catch(Exception e){}
     

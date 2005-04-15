@@ -101,10 +101,18 @@ public abstract class Profile {
   //#J2ME_EXCLUDE_END
 
   // On PJAVA the Notification service is not supported
+  //#DOTNET_EXCLUDE_BEGIN
   /*#PJAVA_INCLUDE_BEGIN
   public static final String DEFAULT_SERVICES = "jade.core.mobility.AgentMobilityService";
   public static final String DEFAULT_SERVICES_NOMOBILITY = "";
   #PJAVA_INCLUDE_END*/
+  //#DOTNET_EXCLUDE_END
+
+  // On DOTNET the Notification service is  supported
+  /*#DOTNET_INCLUDE_BEGIN
+  public static final String DEFAULT_SERVICES = "jade.core.mobility.AgentMobilityService;jade.core.event.NotificationService";
+  public static final String DEFAULT_SERVICES_NOMOBILITY = "jade.core.event.NotificationService";
+  #DOTNET_INCLUDE_END*/
 
   // On MIDP, no additional services are installed by default
   /*#MIDP_INCLUDE_BEGIN

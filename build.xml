@@ -69,13 +69,7 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**" >
-    <!--
-    Why do we need the "target" option?
-    <javac srcdir="${src}" destdir="${build}" nowarn="off" target="1.2" optimize="${javac.optimize}" debug="${javac.debug}" deprecation="on" excludes="demo/**,examples/**,test/**" >
-	  <compilerarg value="-source" />
-	  <compilerarg value="1.2" />
-	  -->
+    <javac srcdir="${src}" destdir="${build}" nowarn="on" optimize="${javac.optimize}" debug="${javac.debug}" debuglevel="lines,vars,source" deprecation="on" excludes="demo/**,examples/**,test/**" >
 	</javac>
     <copy todir="${build}/jade/tools/DummyAgent/images">
       <fileset dir="${src}/jade/tools/DummyAgent/images"/>

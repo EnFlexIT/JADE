@@ -54,8 +54,14 @@ import jade.util.Logger;
 
 public class HTTPServer extends Thread {
 	// Codec class
+
+  //#DOTNET_EXCLUDE_BEGIN
   //static String CODEC = "org.apache.xerces.parsers.SAXParser";
   static String CODEC   = "org.apache.crimson.parser.XMLReaderImpl";
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  static String CODEC   = ""; // this constant is not used by .NET
+  #DOTNET_INCLUDE_END*/
   
   private int port;
 	private InChannel.Dispatcher dispatcher;
@@ -92,8 +98,12 @@ public class HTTPServer extends Thread {
     catch (IOException ioe) {
     	if (changePortIfBusy) {
     		// The specified port is busy. Let the system find a free one
-    		//server = new ServerSocket(0);
-				server = HTTPSocketFactory.getInstance().createServerSocket(0);
+    		//#DOTNET_EXCLUDE_BEGIN	
+			server = HTTPSocketFactory.getInstance().createServerSocket(0);
+			//#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+			server = new ServerSocket(0);
+			#DOTNET_INCLUDE_END*/
         if(logger.isLoggable(Logger.WARNING))
         	logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
     	}
@@ -109,7 +119,7 @@ public class HTTPServer extends Thread {
   public synchronized void desactivate() {
     //Stop keep-alive Threads
     for(int i=0 ; i < threads.size(); i++) {
-      ((ServerThread) threads.get(i)).shutdown();
+		 ((ServerThread) threads.elementAt(i)).shutdown();
     }
     // The non-keep-alive will close themselves after a while
     active = false;
@@ -187,7 +197,12 @@ public class HTTPServer extends Thread {
      */
     public void run () {
       try {
+	    //#DOTNET_EXCLUDE_BEGIN
         codec = new XMLCodec(HTTPServer.CODEC);
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		codec = new XMLCodec();
+		#DOTNET_INCLUDE_END*/
         input = new BufferedInputStream(client.getInputStream());
         output = new BufferedOutputStream(client.getOutputStream());
         do {
@@ -195,7 +210,7 @@ public class HTTPServer extends Thread {
           StringBuffer envelope   = new StringBuffer(40);
           ByteArrayOutputStream payload = new ByteArrayOutputStream(40);
           StringBuffer connection = new StringBuffer();
-          String responseMsg      = HTTPIO.readAll(input,envelope,payload,connection);
+          String responseMsg      = HTTPIO.readAll(input,envelope,payload,connection);	
           String type = connection.toString();
           if (HTTPIO.OK.equals(responseMsg)) {
             // Extract the information from request
@@ -205,8 +220,21 @@ public class HTTPServer extends Thread {
             //System.out.println(payload.toString()+"\n"); 
             //Execute parser to extract information from the Envelope
             //System.out.println("Envelope received:\n"+envelope.toString());
-            StringReader sr = new StringReader(envelope.toString());
-            Envelope env = codec.parse(sr);
+
+			//#DOTNET_EXCLUDE_BEGIN  
+			StringReader sr = new StringReader(envelope.toString());
+		    //#DOTNET_EXCLUDE_END
+			/*#DOTNET_INCLUDE_BEGIN
+			System.IO.StringReader sr = new System.IO.StringReader( envelope.toString() );
+			#DOTNET_INCLUDE_END*/
+			Envelope env = codec.parse(sr);
+			
+		    /*#DOTNET_INCLUDE_BEGIN
+			//There are problems if PayloadEncoding is set to US-ASCII
+			if (env.getPayloadEncoding() == null)
+				env.setPayloadEncoding(XMLCodec.CHARS_CODEC);
+			#DOTNET_INCLUDE_END*/
+
             //System.out.println("Envelope received:\n"+env);
             //Post the Message to Jade platform	
             synchronized (dispatcher) {
@@ -214,7 +242,7 @@ public class HTTPServer extends Thread {
                 if(logger.isLoggable(Logger.WARNING)) {
                 	// check payload size
                   if ((env.getPayloadLength() != null) && (env.getPayloadLength().intValue() >= 0) && (env.getPayloadLength().intValue() != payload.size()))
-                  	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
+                	logger.log(Logger.WARNING,"Payload size does not match envelope information"); 
               }
               dispatcher.dispatchMessage(env,payload.toByteArray());
             }

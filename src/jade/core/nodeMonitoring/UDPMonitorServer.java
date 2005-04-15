@@ -30,11 +30,20 @@ import jade.core.Profile;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+//#DOTNET_EXCLUDE_BEGIN
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+//#DOTNET_EXCLUDE_END
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Net.*;
+import System.Net.Sockets.*;
+#DOTNET_INCLUDE_END*/
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,6 +68,8 @@ import jade.util.Logger;
  * 
  * @author Roland Mungenast - Profactor
  * @since JADE 3.3
+ * @author Federico Pieri - ERXA
+ * @since JADE 3.3.NET
  */
 class UDPMonitorServer {
 
@@ -69,15 +80,20 @@ class UDPMonitorServer {
   private static int pingDelayLimit;
   private static int unreachLimit;
   
+  //#DOTNET_EXCLUDE_BEGIN
   private DatagramChannel server;
   private Selector selector; 
+  //#DOTNET_EXCLUDE_END
   private Map targets;
- 
+   
   private PingHandler pingHandler;
   private Timer timer;
   private HashMap deadlines;
   
-  
+  /*#DOTNET_INCLUDE_BEGIN
+  private Socket server;
+  #DOTNET_INCLUDE_END*/
+
   /**
    * Class to store a deadline for the next ping
    * of a targeted node
@@ -126,61 +142,101 @@ class UDPMonitorServer {
     }
     
     private void handlePing() throws IOException {
-      // allocate maximum size of one UDP packet
-      ByteBuffer datagramBuffer = ByteBuffer.allocate(1<<16);
-      SocketAddress address = server.receive(datagramBuffer);
-      datagramBuffer.position(0);
+		  // allocate maximum size of one UDP packet
+		  ByteBuffer datagramBuffer = ByteBuffer.allocate(1<<16);
+			
+		  //#DOTNET_EXCLUDE_BEGIN
+		  SocketAddress address = server.receive(datagramBuffer);
+		  //#DOTNET_EXCLUDE_END
+
+		  /*#DOTNET_INCLUDE_BEGIN
+		   ubyte[] recData = new ubyte[datagramBuffer.getUByte().length];
+
+		   if ( server != null)
+		   {
+		   try
+		   {
+		   if (server.get_Available() <= 0)
+		   return;
+		   }
+		   catch (System.ObjectDisposedException ode)
+		   {
+		   return;
+		   }
+		   }
+		   else
+		   return;
+
+		   try
+		   {
+		   server.Receive(recData, 0, server.get_Available(), SocketFlags.None);
+		   }
+		   catch (SocketException se)
+		   {
+		   int socketError = se.get_ErrorCode();
+		   return;
+		   }
+		   IPEndPoint IPendPt  = (IPEndPoint) server.get_LocalEndPoint();
+		   IPAddress address	= IPendPt.get_Address();
+		   datagramBuffer.copyUByte(recData);
+		   #DOTNET_INCLUDE_END*/
+
+		  datagramBuffer.position(0);
       
       if (address != null) {
     
-        int nodeIDLength = datagramBuffer.getInt();
+				  int nodeIDLength = datagramBuffer.getInt();
         
-        // get node ID
-        byte[] bb = new byte[nodeIDLength];
-        datagramBuffer.get(bb, 0, nodeIDLength);
-        String nodeID = new String(bb);
+				  // get node ID
+				  byte[] bb = new byte[nodeIDLength];
+				  datagramBuffer.get(bb, 0, nodeIDLength);
+				  String nodeID = new String(bb);
         
-        // analyse info byte
-        byte info = datagramBuffer.get();
-        boolean isTerminating = false;
+				  // analyse info byte
+				  byte info = datagramBuffer.get();
+				  boolean isTerminating = false;
         if ((info & TERMINATING_INFO) != 0) {
-          isTerminating = true;
-        }
+					  isTerminating = true;
+				  }
         
-        // cancel arleady existing deadline
-        TimerTask currDeadline = (TimerTask) deadlines.get(nodeID);
+				  // cancel arleady existing deadline
+				  TimerTask currDeadline = (TimerTask) deadlines.get(nodeID);
         if (currDeadline != null) {
-          currDeadline.cancel();
-        }   
-        pingReceived(nodeID, isTerminating);
-      }
-    }
-   
-    public void run() {
-      while (!interrupted) { // endless loop
-        try {
-           
-          selector.select();
+					  currDeadline.cancel();
+				  }   
+				  pingReceived(nodeID, isTerminating);
+			  }
+		}
+
+			public void run() {
+		  while (!interrupted) { // endless loop
+			  try  {
+						//#DOTNET_EXCLUDE_BEGIN
+				  selector.select();
           
-          Set keys = selector.selectedKeys();
-          interrupted = keys.size() == 0;
-          Iterator i = keys.iterator();
+				  Set keys = selector.selectedKeys();
+				  interrupted = keys.size() == 0;
+				  Iterator i = keys.iterator();
           
           while (i.hasNext()) {
-            SelectionKey key = (SelectionKey) i.next();
-            i.remove();
+					  SelectionKey key = (SelectionKey) i.next();
+					  i.remove();
             if (key.isValid() && key.isReadable()) {
-              handlePing();
-            }
-          } 
-          
-        } catch (IOException e) {
-          if(logger.isLoggable(Logger.SEVERE))
-            logger.log(Logger.SEVERE,"UDP Connection error ");
-        }
-      } // for
-    }
-    
+						//#DOTNET_EXCLUDE_END
+						  handlePing();
+						//#DOTNET_EXCLUDE_BEGIN
+					  }
+				  }
+						//#DOTNET_EXCLUDE_END 
+			  } 
+			  catch (Exception e)  // .net requires I catch Exception instead of IOException
+			  {
+				  if(logger.isLoggable(Logger.SEVERE))
+					  logger.log(Logger.SEVERE,"UDP Connection error ");
+			  }
+		  } // for
+	  }
+
     public void start() {
       thread.start();
     }
@@ -188,13 +244,12 @@ class UDPMonitorServer {
     public void stop() {
       interrupted = true;
     }
-  }
- 
+	}
+  
   
   /**
    * Constructs a new UDPMonitorServer object
    * @param p Profile including settings for the UDP monitor server
-   * @throws IOException if the UDP server cannot be started up
    * 
    */
   UDPMonitorServer(int p, int pdl, int ul) {
@@ -206,8 +261,14 @@ class UDPMonitorServer {
     deadlines = new HashMap();
     targets = new HashMap();
     try {
-      server = DatagramChannel.open();  
-    } catch (IOException e) {
+		//#DOTNET_EXCLUDE_BEGIN
+		server = DatagramChannel.open();  
+		//#DOTNET_EXCLUDE_END
+
+		/*#DOTNET_INCLUDE_BEGIN
+		server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		#DOTNET_INCLUDE_END*/
+	} catch (Exception e) { // .net requires I catch Exception instead of IOException
        if(logger.isLoggable(Logger.SEVERE))
         logger.log(Logger.SEVERE,"Cannot open UDP channel.");
     }
@@ -219,13 +280,40 @@ class UDPMonitorServer {
   private synchronized void startServer() {
     try {
         // Start UDP server
-        server.configureBlocking(false);
-        server.socket().setReuseAddress(true);
-        server.socket().bind(new InetSocketAddress(Profile.getDefaultNetworkName(), port));
+
+		//#DOTNET_EXCLUDE_BEGIN
+		server.configureBlocking(false);
+		server.socket().setReuseAddress(true);
+		server.socket().bind(new InetSocketAddress(Profile.getDefaultNetworkName(), port));
+		//#DOTNET_EXCLUDE_END
+
+		/*#DOTNET_INCLUDE_BEGIN
+		server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		server.set_Blocking( false );
+		server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
+		String defaultNetworkName = Profile.getDefaultNetworkName();
+		System.Net.IPHostEntry hostEntry = System.Net.Dns.GetHostByName( defaultNetworkName );
+		System.Net.IPAddress[] ipAddresses = hostEntry.get_AddressList();
+		long ipAddressLong = ipAddresses[0].get_Address();
+		if ( !server.get_Connected() )
+		{
+			IPEndPoint ipPoint = new IPEndPoint(IPAddress.Any, port);
+			try
+			{
+				server.Bind( ipPoint );
+			}
+			catch(SocketException se)
+			{
+				int socketError = se.get_ErrorCode();
+			}
+		 }
+		 #DOTNET_INCLUDE_END*/
       
-        // Create and register Selector
-        selector = Selector.open();
-        server.register(selector, SelectionKey.OP_READ);
+		//#DOTNET_EXCLUDE_BEGIN
+		// Create and register Selector
+		selector = Selector.open();
+		server.register(selector, SelectionKey.OP_READ);
+		//#DOTNET_EXCLUDE_END
 
         // Start PingHandler thread
         pingHandler = new PingHandler("UDPNodeFailureMonitor-PingHandler");
@@ -239,10 +327,7 @@ class UDPMonitorServer {
      
         if(logger.isLoggable(Logger.CONFIG))
           logger.log(Logger.CONFIG,"(UDP port: " + port + ", ping_delay_limit: " + pingDelayLimit + ", unreachable_limit: " + unreachLimit + ")"); 
-     
-        
-        
-    } catch (IOException e) {
+		} catch (Exception e) { // .net requires I catch Exception instead of IOException
       if(logger.isLoggable(Logger.SEVERE))
         logger.log(Logger.SEVERE,"UDP monitoring server cannot be started");
     }
@@ -256,7 +341,15 @@ class UDPMonitorServer {
       pingHandler.stop();
       timer.cancel();
       deadlines.clear();
-      server.disconnect();
+      
+	  //#DOTNET_EXCLUDE_BEGIN
+	  server.disconnect();
+	  //#DOTNET_EXCLUDE_END
+
+	  /*#DOTNET_INCLUDE_BEGIN
+	  server.Shutdown(SocketShutdown.Both);
+	  server.Close();
+	  #DOTNET_INCLUDE_END*/
        
       if(logger.isLoggable(Logger.INFO))
         logger.log(Logger.INFO,"UDP monitoring server has been stopped.");
@@ -381,6 +474,6 @@ class UDPMonitorServer {
       deadlines.put(nodeID, deadline);
       timer.schedule(deadline, delay);
     }
-  }  
+  }
 }
 

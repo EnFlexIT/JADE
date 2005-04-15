@@ -4,6 +4,7 @@
 	<!-- PROPERTIES -->
   <property environment="env"/>
   <property file="buildLEAP.properties"/>
+  <property file="../jade/build.properties"/>
   <property name="java-home" value="${env.JAVA_HOME}"/>
   <property name="root"      value="."/>
   <property name="jade-home" value=".."/>
@@ -94,16 +95,16 @@
 	<!-- DOTNET (vjc must be set in the buildLEAP.properties file) -->
 	<target name = "dotnet" depends = "dotnet-do, dotnet-dont"
 	        description = "Set the dotnet property --> dotnet.xml will be called (unless vjc is not set)"/>
-	<target name = "dotnet-do" if = "vjc">
+	<target name = "dotnet-do" if = "dotnet-home">
 		<property name = "dotnet"  value = "true"/>
 	</target>
-	<target name = "dotnet-dont" unless = "vjc">
-		<echo> WARNING: 'vjc' not specified in buildLEAP.properties. Skipping dotnet build.</echo>
+	<target name = "dotnet-dont" unless = "dotnet-home">
+		<echo> WARNING: 'dotnet directory' not specified in buildLEAP.properties. Skipping dotnet build.</echo>
 	</target>
 
 	
 	<!-- ALL -->
-	<target name = "all" depends = "j2se, pjava, midp"
+	<target name = "all" depends = "j2se, pjava, midp, dotnet"
 	        description = "Set the property for all environments"/>
 
 
@@ -140,7 +141,7 @@
       	<isset property="wma-classes" />
       </not>
     </condition>
-    
+
 		<mkdir dir="${tmp}"/>
 	</target>
 	
@@ -225,8 +226,8 @@
 		<ant antfile="${buildfiles}/midp.xml" target="do-compile" dir="."/>
 	</target>
 	<target name="compile-dotnet" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/>
-		<ant antfile="${buildfiles}/dotnet.xml" target="do-compile" dir="."/>
+	  <!--fail unless="env.VJSHARPTOOLS" message="In order to compile JADE for .NET you need to set the VJSHARPTOOLS environment variable"/-->
+		<ant antfile="${buildfiles}/dotnet.xml" target="do-dll" dir="."/>
 	</target>
 
 	
@@ -291,22 +292,25 @@
 	<!-- Create the JADE-LEAP distribution zip files -->
 	<target name="dist" depends="init"
 	        description="Create the LEAP distribution file">
-		<delete file="${dist}/LeapAddon.zip" quiet="true"/>
-    <jar jarfile="${dist}/LeapAddon.zip" basedir="${dist}">
-    	<include name="add-ons/leap/License"/>
-    	<include name="add-ons/leap/COPYING"/>
-    	<include name="add-ons/leap/README.txt"/>
-    	<include name="add-ons/leap/buildLEAP.properties"/>
-    	<include name="add-ons/leap/build.xml"/>
-    	<include name="add-ons/leap/jade-leap.jad"/>
-    	<include name="add-ons/leap/LEAPUserGuide.pdf"/>
-    	<include name="add-ons/leap/demo/*.bat"/>
-    	<include name="add-ons/leap/demo/demo.jad"/>
-    	<include name="add-ons/leap/demo/demo.manifest"/>
-    	<include name="add-ons/leap/demo/demo.dlc"/>
-    	<include name="add-ons/leap/demo/src/**"/>
-    	<include name="add-ons/leap/resources/**"/>
-    	<include name="add-ons/leap/src/**"/>
+		<delete file="${dist}/LeapAddon-${version}.zip" quiet="true"/>
+    <jar jarfile="${dist}/LeapAddon-${version}.zip" basedir="${dist}">
+    	<include name="leap/License"/>
+    	<include name="leap/COPYING"/>
+    	<include name="leap/README.txt"/>
+    	<include name="leap/buildLEAP.properties"/>
+    	<include name="leap/build.xml"/>
+    	<include name="leap/jade-leap.jad"/>
+    	<include name="leap/LEAPUserGuide.pdf"/>
+    	<include name="leap/demo/*.bat"/>
+    	<include name="leap/demo/demo.jad"/>
+    	<include name="leap/demo/demo.manifest"/>
+    	<include name="leap/demo/demo.dlc"/>
+    	<include name="leap/demo/src/**"/>
+    	<include name="leap/resources/**"/>
+    	<include name="leap/src/**"/>
+    	<include name="leap/dotnet/examples/dummy/**"/>
+    	<include name="leap/dotnet/extras/**"/>
+    	<include name="leap/dotnet/VS2003S/**"/>
     </jar>
 	</target>
 
@@ -388,4 +392,46 @@
 	  <delete dir="${tmp}/t1"/>
 	  <delete dir="${tmp}/t2"/>
 	</target>
+	
+	<!-- CREATE Visual Studio 2003 complete Solution for .NET version  -->
+	<target name="solution" depends="solution-dotnet"
+	        description="Create Visul Studio 2003 complete solution for .NET version"/>
+	<target name="solution-dotnet" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new Visual Studio 2003 solution!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-solution" dir="."/>
+	</target>
+	
+		<!-- CREATE executable file for .NET version  -->
+	<target name="executable" depends="executable-dotnet"
+	        description="Create Visul Studio 2003 complete solution for .NET version"/>
+	<target name="executable-dotnet" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-executable" dir="."/>
+	</target>
+	
+	<!-- COMPILE ALL examples for .NET version  -->
+	<target name="all-examples" depends="examples-dotnet"
+	        description="Create .NET examples"/>
+	<target name="examples-dotnet" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
+	</target>
+	
+	<!-- COMPILE J# examples for .NET version  -->
+	<target name="J#-examples" depends="examples-dotnet-J#"
+	        description="Create J#.NET examples"/>
+	<target name="examples-dotnet-J#" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
+	</target>
+	
+	<!-- COMPILE C# examples for .NET version  -->
+	<target name="C#-examples" depends="examples-dotnet-C#"
+	        description="Create C#.NET examples"/>
+	<target name="examples-dotnet-C#" if="dotnet">
+	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
+	</target>
+	
 </project>

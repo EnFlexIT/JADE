@@ -386,7 +386,9 @@ public class AclGui extends JPanel
 
 
   private class AclMessagePanel extends JPanel
-    implements DropTargetListener
+    //#DOTNET_EXCLUDE_BEGIN
+	implements DropTargetListener
+    //#DOTNET_EXCLUDE_END
   {
       AclMessagePanel()
       {
@@ -402,7 +404,9 @@ public class AclGui extends JPanel
     
 	aclPanel = new JPanel();
 
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(aclPanel, this);
+    //#DOTNET_EXCLUDE_END
 
 	aclPanel.setLayout(lm);
     
@@ -421,7 +425,9 @@ public class AclGui extends JPanel
     
 	// Sender  (line # 0)
 	l = new JLabel("Sender:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 0, 1, 1, false); 
 	senderEnabledFlag = true; // The sender field is enabled by default, but can be disabled with the setSenderEnabled() method.
 	sender = new JTextField();
@@ -465,7 +471,9 @@ public class AclGui extends JPanel
     
 	// Receiver (line # 1)
 	l = new JLabel("Receivers:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l,0,1,1,1,false);
 	receiverListPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
 	receiverListPanel.setDimension(new Dimension(205,37));
@@ -474,7 +482,9 @@ public class AclGui extends JPanel
     
 	//Reply-to (line #2)
 	l = new JLabel("Reply-to:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 2, 1, 1,false);
 	replyToListPanel = new VisualAIDList(new ArrayList().iterator(),ownerGui);
 	replyToListPanel.setDimension(new Dimension(205,37));
@@ -482,7 +492,9 @@ public class AclGui extends JPanel
       
 	// Communicative act (line # 3)
 	l = new JLabel("Communicative act:");
+	//#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 3, 1, 1, false);  
 	communicativeAct = new JComboBox(); 
     
@@ -495,7 +507,9 @@ public class AclGui extends JPanel
 
 	// Content (line # 4-8)
 	l = new JLabel("Content:");
+	//#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 4, 3, 1, false);     
 	content = new JTextArea(5,TEXT_SIZE);
 	JScrollPane contentPane = new JScrollPane();
@@ -506,7 +520,9 @@ public class AclGui extends JPanel
 
 	// Language (line # 9)
 	l = new JLabel("Language:");
-	new DropTarget(l, this);
+	//#DOTNET_EXCLUDE_BEGIN
+    new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 9, 1, 1, false);     
 	language = new JTextField();
 	language.setBackground(Color.white);
@@ -514,7 +530,9 @@ public class AclGui extends JPanel
   
 	//Encoding (line # 10)
 	l = new JLabel("Encoding:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 10, 1, 1, false);      
 	encoding = new JTextField(); 
 	encoding.setBackground(Color.white);
@@ -522,7 +540,9 @@ public class AclGui extends JPanel
     
 	// Ontology (line # 11)
 	l = new JLabel("Ontology:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 11, 1, 1, false);      
 	ontology = new JTextField();
 	ontology.setBackground(Color.white);
@@ -530,7 +550,9 @@ public class AclGui extends JPanel
 
 	// Protocol (line # 12)
 	l = new JLabel("Protocol:");
+    //#DOTNET_EXCLUDE_BEGIN
 	new DropTarget(l, this);
+    //#DOTNET_EXCLUDE_END
 	put(aclPanel,l, 0, 12, 1, 1, false);      
 	protocol = new JComboBox();   
 	for (i = 0;i < fipaProtocolArrayList.size(); ++i)
@@ -613,7 +635,9 @@ public class AclGui extends JPanel
 
       // Conversation-id (line # 13)
       l = new JLabel("Conversation-id:");
+      //#DOTNET_EXCLUDE_BEGIN
       new DropTarget(l, this);
+      //#DOTNET_EXCLUDE_END
       put(aclPanel,l, 0, 13, 1, 1, false);      
       conversationId = new JTextField();
       conversationId.setBackground(Color.white);
@@ -621,7 +645,9 @@ public class AclGui extends JPanel
 
       // In-reply-to (line # 14)
       l = new JLabel("In-reply-to:");
+      //#DOTNET_EXCLUDE_BEGIN
       new DropTarget(l, this);
+      //#DOTNET_EXCLUDE_END
       put(aclPanel,l, 0, 14, 1, 1, false);      
       inReplyTo = new JTextField();   
       inReplyTo.setBackground(Color.white);
@@ -629,7 +655,9 @@ public class AclGui extends JPanel
 
       // Reply-with (line # 15)
       l = new JLabel("Reply-with:");
+      //#DOTNET_EXCLUDE_BEGIN
       new DropTarget(l, this);
+      //#DOTNET_EXCLUDE_END
       put(aclPanel,l, 0, 15, 1, 1, false);      
       replyWith = new JTextField();   
       replyWith.setBackground(Color.white);
@@ -638,7 +666,9 @@ public class AclGui extends JPanel
       // Reply-by (line # 16)
       replyByDate = null;
       l = new JLabel("Reply-by:");
+      //#DOTNET_EXCLUDE_BEGIN
       new DropTarget(l, this);
+      //#DOTNET_EXCLUDE_END
       put(aclPanel,l, 0, 16, 1, 1, false);
       replyBySet = new JButton("Set");
       replyBySet.setMargin(new Insets(2,3,2,3));
@@ -686,7 +716,9 @@ public class AclGui extends JPanel
     
       //Properties (line #17)
       l = new JLabel("User Properties:");
+      //#DOTNET_EXCLUDE_BEGIN
       new DropTarget(l, this);
+      //#DOTNET_EXCLUDE_END
       put(aclPanel,l, 0, 17, 1, 1, false);
       propertiesListPanel = new VisualPropertiesList(new Properties(),ownerGui);
       propertiesListPanel.setDimension(new Dimension(205,37));
@@ -697,6 +729,7 @@ public class AclGui extends JPanel
 
     } // END AclMessagePanel()
 
+    //#DOTNET_EXCLUDE_BEGIN
     public void dragOver(java.awt.dnd.DropTargetDragEvent p1) {
       if(logger.isLoggable(Logger.FINEST))
       	logger.log(Logger.FINEST,"dragOver");
@@ -786,6 +819,7 @@ public class AclGui extends JPanel
 	} //~ if (selectedItems != null)
 
     } // END drop(dropEvent)
+    //#DOTNET_EXCLUDE_END
 
   } // END class AclMessagePanel
   
@@ -1221,7 +1255,9 @@ public class AclGui extends JPanel
       }
       from.setText(param);
 
+	  //#DOTNET_EXCLUDE_BEGIN
       toPanel.resetContent(envelope.getAllTo());
+      //#DOTNET_EXCLUDE_END
       try{
         AID fromAID = envelope.getFrom();
         param = fromAID.getName();
@@ -1256,7 +1292,9 @@ public class AclGui extends JPanel
       else
         date.setText("");
       
+	  //#DOTNET_EXCLUDE_BEGIN
       intendedReceiverPanel.resetContent(envelope.getAllIntendedReceiver());
+	  //#DOTNET_EXCLUDE_END
       
       ReceivedObject recObject = envelope.getReceived();
       try{
@@ -1324,8 +1362,10 @@ public class AclGui extends JPanel
   
     sender.setText(param);
     
+    //#DOTNET_EXCLUDE_BEGIN
     receiverListPanel.resetContent(msg.getAllReceiver());
     replyToListPanel.resetContent(msg.getAllReplyTo());
+    //#DOTNET_EXCLUDE_END
     
     Enumeration e =   msg.getAllUserDefinedParameters().propertyNames();
     ArrayList list = new ArrayList();

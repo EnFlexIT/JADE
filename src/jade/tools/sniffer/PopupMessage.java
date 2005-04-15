@@ -23,9 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
+//#DOTNET_EXCLUDE_BEGIN
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
+//#DOTNET_EXCLUDE_END
+
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.*;
+#DOTNET_INCLUDE_END*/
 
    /**
    Javadoc documentation for the file
@@ -42,21 +48,45 @@ import javax.swing.JMenuItem;
   */
 
 
-public class PopupMessage extends JPopupMenu {
-
+public class PopupMessage 
+	//#DOTNET_EXCLUDE_BEGIN
+	extends JPopupMenu
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	extends ContextMenu
+	#DOTNET_INCLUDE_END*/
+{
+ 
+ //#DOTNET_EXCLUDE_BEGIN
  private JMenuItem tmp;
+ //#DOTNET_EXCLUDE_END
+ /*#DOTNET_INCLUDE_BEGIN
+ private MenuItem tmp;
+ #DOTNET_INCLUDE_END*/
  private  MainWindow mWnd;
  private  ViewMessage viewMessage;
 
   public PopupMessage(MainWindow mWnd) {
    super();
    viewMessage=new ViewMessage(mWnd);
+   //#DOTNET_EXCLUDE_BEGIN
    tmp=add(viewMessage);
    tmp.setIcon(null);
+   //#DOTNET_EXCLUDE_END
+   /*#DOTNET_INCLUDE_BEGIN
+   get_MenuItems().Add(viewMessage);
+   #DOTNET_INCLUDE_END*/
   }
 
   protected void setMessage(Message mess) {
    viewMessage.setMessage(mess);
   }
+
+  /*#DOTNET_INCLUDE_BEGIN
+  	protected void showMessage(Object o, System.EventArgs e)
+	{
+		viewMessage.ShowMe(o, e);
+	}
+  #DOTNET_INCLUDE_END*/
 
 } 

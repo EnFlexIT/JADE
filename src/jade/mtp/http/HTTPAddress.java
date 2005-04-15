@@ -56,10 +56,17 @@ public class HTTPAddress implements TransportAddress {
   HTTPAddress(String addr) throws MalformedURLException {
     url = new URL(addr);
   }
+
+  /*#DOTNET_INCLUDE_BEGIN
+  HTTPAddress(String addr, int port) throws MalformedURLException
+  {
+ 	this(addr, port, false);
+  }
+  #DOTNET_INCLUDE_END*/
   
   HTTPAddress(String addr, int port, boolean https) 
     throws MalformedURLException {
-      if(https){
+        if(https){
         url = new URL("https",addr,port,"/acc");
       }else{
         url = new URL("http",addr,port,"/acc");

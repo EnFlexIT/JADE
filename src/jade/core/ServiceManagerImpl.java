@@ -419,7 +419,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	  	// node and not a proxy
 	  	Node n = slice.getNode();
 	  	if (n.getName().equals(localNode.getName()) && !n.equals(localNode)) {
-	  		((Service.SliceProxy) slice).setNode(localNode);
+	  		((SliceProxy) slice).setNode(localNode);
 	  	}
   	}
   	return slice;

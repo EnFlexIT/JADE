@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.management;
 
 import jade.core.Service;
+import jade.core.SliceProxy;
 import jade.core.Filter;
 import jade.core.Node;
 import jade.core.AID;
@@ -48,7 +49,7 @@ import jade.security.JADESecurityException;
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 
 */
-public class AgentManagementProxy extends Service.SliceProxy implements AgentManagementSlice {
+public class AgentManagementProxy extends SliceProxy implements AgentManagementSlice {
 
     public void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt, Command sourceCmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
 	try {

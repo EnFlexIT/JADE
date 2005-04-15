@@ -109,22 +109,46 @@ public class VisualStringList extends JPanel
 	* @param content an iterator of the items to show in the panel
 	*
 	*/
-	
-	VisualStringList(Iterator content,Component ownerGui)
+
+	public VisualStringList(Iterator content,Component ownerGui)
 	{
-	
 		owner = ownerGui;
 		listModel = new DefaultListModel();
+
 		try
-	  {
-	  	while(content.hasNext())
-	  	{
-	  		listModel.addElement(content.next());
-	  	}
+		{
+			while(content.hasNext())
+			{
+				listModel.addElement(content.next());
+			}
 	 		
-	  }catch(Exception e){e.printStackTrace();}
-		
-	  
+		}
+		catch(Exception e){e.printStackTrace();}
+		create();
+	}
+
+	
+	/*#DOTNET_INCLUDE_BEGIN
+	public VisualStringList(jade.util.leap.Iterator content,Component ownerGui)
+	{
+		owner = ownerGui;
+		listModel = new DefaultListModel();
+
+		try
+		{
+			while(content.hasNext())
+			{
+				listModel.addElement(content.next());
+			}
+	 		
+		}
+		catch(Exception e){e.printStackTrace();}
+		create();
+	}
+	#DOTNET_INCLUDE_END*/
+
+	private void create()
+	{
 	  genericList = new JList(listModel);
 	  genericList.setCellRenderer(new VisualListCellRenderer(this));
 	  genericList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

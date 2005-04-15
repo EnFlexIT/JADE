@@ -23,7 +23,13 @@ Boston, MA  02111-1307, USA.
 package jade.tools.sniffer;
 
 import java.awt.event.ActionEvent;
+//#DOTNET_EXCLUDE_BEGIN
 import java.awt.Font;
+//#DOTNET_EXCLUDE_END
+/*#DOTNET_INCLUDE_BEGIN
+import System.Drawing.Font;
+import System.Drawing.FontStyle;
+#DOTNET_INCLUDE_END*/
 
    /**
    Javadoc documentation for the file
@@ -42,7 +48,12 @@ import java.awt.Font;
 public class ClearCanvasAction extends FixedAction{
 
   private MainPanel mainPanel;
+  //#DOTNET_EXCLUDE_BEGIN
   private Font font = new Font("Helvetica",Font.ITALIC,12);
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  private Font font = new Font("Helvetica", 12, FontStyle.Italic);
+  #DOTNET_INCLUDE_END*/
 
   public ClearCanvasAction(ActionProcessor actPro,MainPanel mainPanel){
     super("ClearCanvasActionIcon","Clear Canvas",actPro);
@@ -51,8 +62,14 @@ public class ClearCanvasAction extends FixedAction{
 
   public void doAction (){
     mainPanel.panelcan.canvMess.removeAllMessages();
+    //#DOTNET_EXCLUDE_BEGIN
     mainPanel.textArea.setFont(font);
     mainPanel.textArea.setText("                                                                 No Message");
+    //#DOTNET_EXCLUDE_END
+    /*#DOTNET_INCLUDE_BEGIN
+	mainPanel.textArea.set_Font(font);
+    mainPanel.textArea.set_Text("                                                                 No Message");
+	#DOTNET_INCLUDE_END*/
   }
 
 } 

@@ -33,6 +33,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Color;
 
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.*;
+import System.Drawing.*;
+#DOTNET_INCLUDE_END*/
+
   /**
    Javadoc documentation for the file
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
@@ -46,27 +51,52 @@ import java.awt.Color;
    * @see jade.tools.sniffer.PanelCanvas
    */
 
-public class MainPanel extends JPanel {
+public class MainPanel 
+//#DOTNET_EXCLUDE_BEGIN
+	extends JPanel 
+//#DOTNET_EXCLUDE_END
+/*#DOTNET_INCLUDE_BEGIN
+    extends Panel
+#DOTNET_INCLUDE_END*/
+{
  protected AgentTree treeAgent;
+ //#DOTNET_EXCLUDE_BEGIN
  protected PanelCanvas panelcan;
  private JSplitPane pane;
  private PopupMouser popM;
  public JTextArea textArea;
  private Font font = new Font("Helvetica",Font.ITALIC,12);
+ //#DOTNET_EXCLUDE_END
+ /*#DOTNET_INCLUDE_BEGIN
+ private System.Drawing.Font font = new System.Drawing.Font("Helvetica",12, FontStyle.Italic);
+ protected PanelCanvas panelcan;
+ public TextBox textArea;
+ private Panel myPanel;
+ #DOTNET_INCLUDE_END*/
  int pos;
 
  public MainPanel(Sniffer mySniffer,MainWindow mwnd) {
-    Font f;
+    //#DOTNET_EXCLUDE_BEGIN
+	Font f;
     f = new Font("SanSerif",Font.PLAIN,14);
     setFont(f);
     setLayout(new BorderLayout(10,10));
+    //#DOTNET_EXCLUDE_END
+
+    /*#DOTNET_INCLUDE_BEGIN
+	super();
+	System.Drawing.Font f;
+	f = new System.Drawing.Font("SanSerif", 14, FontStyle.Regular, GraphicsUnit.Pixel);
+	#DOTNET_INCLUDE_END*/
 
     treeAgent = new AgentTree(f);
 
     panelcan = new PanelCanvas(mwnd,this,mySniffer);
+
     // Slight edit to this by R. Kessler.  We use a Scrollpane's ability to have
     // a column header by setting the columnheaderview to be the canvAgent.  Now,
     // when you get too long, the agents are still available on the top.
+    //#DOTNET_EXCLUDE_BEGIN
     JScrollPane pc = new JScrollPane();
     pc.setColumnHeaderView(panelcan.canvAgent);
     pc.setViewportView(panelcan);
@@ -82,11 +112,28 @@ public class MainPanel extends JPanel {
     add(textArea,"South");
     popM=new PopupMouser(treeAgent.tree,treeAgent);
     treeAgent.tree.addMouseListener(popM);
+    //#DOTNET_EXCLUDE_END
 
  }
 
-  public void adjustDividerLocation() {
+    /*#DOTNET_INCLUDE_BEGIN
+	public void setPanel(Panel p)
+	{
+		myPanel = p;
+	}
+
+	public Panel getPanel()
+	{
+		return myPanel;
+	}
+	#DOTNET_INCLUDE_END*/
+
+
+  public void adjustDividerLocation() 
+  {
+	//#DOTNET_EXCLUDE_BEGIN
     pane.setDividerLocation(0.3);
+    //#DOTNET_EXCLUDE_END
   }
 
 } 

@@ -23,9 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.sniffer;
 
+//#DOTNET_EXCLUDE_BEGIN
 import javax.swing.JPanel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+//#DOTNET_EXCLUDE_END
+/*#DOTNET_INCLUDE_BEGIN
+import System.Windows.Forms.*;
+import System.Drawing.*;
+#DOTNET_INCLUDE_END*/
 
   /**
    Javadoc documentation for the file
@@ -42,17 +48,35 @@ import java.awt.GridBagLayout;
   * @see jade.tools.sniffer.MainPanel
   */
 
-public class PanelCanvas extends JPanel {
+public class PanelCanvas 
+	//#DOTNET_EXCLUDE_BEGIN
+	extends JPanel
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+	extends Panel
+	#DOTNET_INCLUDE_END*/
+{
 
   protected MMCanvas canvAgent;
   protected MMCanvas canvMess;
+  //#DOTNET_EXCLUDE_BEGIN
   private PopMouserMessage popMess;
   private PopMouserAgent popAgent;
+  //#DOTNET_EXCLUDE_END
+  /*#DOTNET_INCLUDE_BEGIN
+  private Panel myPanel;
+  private PopupAgent popAgent;
+  private PopupMessage popMess;
+  #DOTNET_INCLUDE_END*/
   private Sniffer mySniffer;
 
   public PanelCanvas(MainWindow mWnd,MainPanel mPan,Sniffer mySniffer) {
-   GridBagConstraints gbc;
+   /*#DOTNET_INCLUDE_BEGIN
+   super(); 
+   #DOTNET_INCLUDE_END*/
    this.mySniffer=mySniffer;
+   //#DOTNET_EXCLUDE_BEGIN
+   GridBagConstraints gbc;
    setLayout(new GridBagLayout());
    gbc = new GridBagConstraints();
    gbc.gridx = 0;
@@ -77,14 +101,53 @@ public class PanelCanvas extends JPanel {
    gbc.fill = GridBagConstraints.BOTH;
    gbc.weightx = 0.5;
    gbc.weighty = 1;
-
-     //E' il canvas per i messaggi
-
+  
+   //E' il canvas per i messaggi
    canvMess = new MMCanvas(false,mWnd,this,mPan,canvAgent);
 
    popMess=new PopMouserMessage(canvMess,mWnd);
    canvMess.addMouseListener(popMess);
    add(canvMess,gbc);
+   //#DOTNET_EXCLUDE_END
+   /*#DOTNET_INCLUDE_BEGIN
+   canvAgent=new MMCanvas(true,mWnd,this,mPan,null);
+   
+   //E' il canvas per i messaggi
+   canvMess = new MMCanvas(false,mWnd,this,mPan,canvAgent);
+   
+   this.popAgent = mWnd.popAg;
+   this.popMess = mWnd.popMess;
+   #DOTNET_INCLUDE_END*/
  }
 
+   /*#DOTNET_INCLUDE_BEGIN
+   	public void setPanel(Panel p)
+	{
+		myPanel = p;
+		myPanel.add_MouseDown( new MouseEventHandler( this.mouser ) );
+	}
+
+	public Panel getPanel()
+	{
+		return myPanel;
+	}
+	
+   	public void mouser(Object o, MouseEventArgs e)
+	{
+		Message mess = this.canvMess.selMessage(e);
+		if (mess != null)
+		{
+			popMess.setMessage( mess );
+		}
+
+		if ( e.get_Button().Equals(MouseButtons.Right) )
+		{
+			popMess.Show(myPanel, new Point(e.get_X(), e.get_Y()) );
+		}
+		else
+		{
+			
+		}
+	}
+   #DOTNET_INCLUDE_END*/
 } 

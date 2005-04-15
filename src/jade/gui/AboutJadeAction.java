@@ -122,7 +122,7 @@ public class AboutJadeAction extends AbstractAction
 		c.gridy=1; 
 		gridbag.setConstraints(label,c);
 	  theCont.add(label);
-	  
+	        
 	  label = new JLabel(jade.core.Runtime.getVersionInfo());
 	  label.setForeground(dark_blue);
 		
@@ -235,7 +235,9 @@ private class AboutFrame extends JDialog {
 
     }
     
+	//#DOTNET_EXCLUDE_BEGIN
     EventQueue.invokeLater(new disposeIt(this));
+    //#DOTNET_EXCLUDE_END
 
   }
   
