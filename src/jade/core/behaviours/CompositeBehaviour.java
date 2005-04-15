@@ -219,11 +219,14 @@ public abstract class CompositeBehaviour extends Behaviour {
   }
   
   protected void resetChildren() {
-  	Iterator it = getChildren().iterator();
-  	while (it.hasNext()) {
-  		Behaviour b = (Behaviour) it.next();
-  		b.reset();
-  	}  	
+  	Collection c = getChildren();
+  	if (c != null) {
+	  	Iterator it = c.iterator();
+	  	while (it.hasNext()) {
+	  		Behaviour b = (Behaviour) it.next();
+	  		b.reset();
+	  	}
+  	}
   }
   
   /**
@@ -234,10 +237,13 @@ public abstract class CompositeBehaviour extends Behaviour {
      @see jade.core.behaviours.Behaviour#setAgent(Agent a)
    */
   public void setAgent(Agent a) {
-  	Iterator it = getChildren().iterator();
-  	while (it.hasNext()) {
-  		Behaviour b = (Behaviour) it.next();
-  		b.setAgent(a);
+  	Collection c = getChildren();
+  	if (c != null) {
+	  	Iterator it = c.iterator();
+	  	while (it.hasNext()) {
+	  		Behaviour b = (Behaviour) it.next();
+	  		b.setAgent(a);
+	  	}
   	}
   	
   	super.setAgent(a);

@@ -30,6 +30,16 @@
 			<WhenTestPass> The test passes if the ThreadeBehaviourFactory becomes empty within 5 seconds.</WhenTestPass>
 		</Test>
 		
+		<Test name="Threaded behaviours parent and reset" skip="false">
+			<TestClassName>test.behaviours.tests.TestThreadedBehavioursParent</TestClassName>
+			<WhatTest> Test that the parent behaviour (as returned by the getParent() method) of a behaviour that is executed in a dedicated thread is actually what one would expect.
+			</WhatTest>
+			<HowWorkTest> 
+			</HowWorkTest> 
+			<WhenTestPass>
+			</WhenTestPass>
+		</Test>		
+
 		<Test name="Behaviour performance" skip="false">
 			<TestClassName>test.behaviours.tests.TestPerformance</TestClassName>
 			<WhatTest> Tests the performance of the behaviour scheduling/blocking/restarting mechanism by running a number of different behaviours that do all these things.</WhatTest>

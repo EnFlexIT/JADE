@@ -60,7 +60,7 @@ public class ThreadedBehaviourFactory {
 	   <code>b</code> will be executed by a dedicated Therad.
 	 */
 	public Behaviour wrap(Behaviour b) {
-		return new ThreadedBehaviour(b);
+		return new ThreadedBehaviourWrapper(b);
 	}
 	
 	/**
@@ -78,9 +78,9 @@ public class ThreadedBehaviourFactory {
 	public void interrupt() {
 		synchronized (threadedBehaviours) { 
 			// Mutual exclusion with threaded behaviour addition/removal
-			ThreadedBehaviour[] tt = new ThreadedBehaviour[threadedBehaviours.size()];
+			ThreadedBehaviourWrapper[] tt = new ThreadedBehaviourWrapper[threadedBehaviours.size()];
 			for (int i = 0; i < tt.length; ++i) {
-				tt[i] = (ThreadedBehaviour) threadedBehaviours.elementAt(i);
+				tt[i] = (ThreadedBehaviourWrapper) threadedBehaviours.elementAt(i);
 			}
 			for (int i = 0; i < tt.length; ++i) {
 				tt[i].interrupt();
@@ -122,7 +122,7 @@ public class ThreadedBehaviourFactory {
 		synchronized(threadedBehaviours) {
 			Enumeration e = threadedBehaviours.elements();
 			while (e.hasMoreElements()) {
-				ThreadedBehaviour tb = (ThreadedBehaviour) e.nextElement();
+				ThreadedBehaviourWrapper tb = (ThreadedBehaviourWrapper) e.nextElement();
 				if (tb.getBehaviour().equals(b)) {
 					return tb.getThread();
 				}
@@ -132,23 +132,28 @@ public class ThreadedBehaviourFactory {
 	}
 	
 	/**
-	   Inner class ThreadedBehaviour
+	   Inner class ThreadedBehaviourWrapper
 	 */
-	private class ThreadedBehaviour extends Behaviour implements Runnable {
+	private class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
 		private Thread myThread;
 		private Behaviour myBehaviour;
 		private boolean restarted = false;
 		private boolean finished = false;
 		private int exitValue;
 	
-		private ThreadedBehaviour(Behaviour b) {
+		private ThreadedBehaviourWrapper(Behaviour b) {
 			super(b.myAgent);
 			myBehaviour = b;
+			myBehaviour.setParent(new DummyParentBehaviour(myAgent, this));
 		}
 		
 		public void onStart() {
+			// Be sure both the wrapped behaviour and its dummy parent are linked to the 
+			// correct agent
 			myBehaviour.setAgent(myAgent);
-			myBehaviour.setParent(new DummyCompositeBehaviour(myAgent, this));
+			myBehaviour.parent.setAgent(myAgent);
+			
+			// Start the dedicated thread
 			myThread = new Thread(this);
 			myThread.setName(myAgent.getLocalName()+"#"+myBehaviour.getBehaviourName());
 			myThread.start();
@@ -165,13 +170,25 @@ public class ThreadedBehaviourFactory {
 		}
 		
 		public int onEnd() {
-			// This check only makes sense if the ThreadedBehaviour is a child
-			// of a SerialBehaviour. In this case in fact the ThreadedBehaviour 
+			// This check only makes sense if the ThreadedBehaviourWrapper is a child
+			// of a SerialBehaviour. In this case in fact the ThreadedBehaviourWrapper 
 			// terminates, but the parent remains blocked.
 			if (!myBehaviour.isRunnable()) {
 				block();
 			}
 			return exitValue;
+		}
+		
+		/**
+		   Propagate the parent to the wrapped behaviour. 
+		   NOTE that the <code>parent</code> member variable of the wrapped behaviour
+		   must point to the DummyParentBehaviour --> From the wrapped behaviour
+		   accessing the actual parent must always be retrieved through the
+		   getParent() method.
+		 */
+		protected void setParent(CompositeBehaviour parent) {
+			super.setParent(parent);
+			myBehaviour.setThreadedParent(parent);
 		}
 		
 		public void setDataStore(DataStore ds) {
@@ -182,6 +199,13 @@ public class ThreadedBehaviourFactory {
 			return myBehaviour.getDataStore();
 		}
 		
+		public void reset() {
+			restarted = false;
+			finished = false;
+			myBehaviour.reset();
+			super.reset();
+		}
+			
 		// This is synchronized to avoid that, in case the wrapped behaviour
 		// is a SerialBehaviour we end up with the current child still blocked
 		// while the thread is restarted.
@@ -253,17 +277,17 @@ public class ThreadedBehaviourFactory {
 		private final Behaviour getBehaviour() {
 			return myBehaviour;
 		}
-	} // END of inner class ThreadedBehaviour
+	} // END of inner class ThreadedBehaviourWrapper
 	
 	/**
-	   Inner class DummyCompositeBehaviour.
+	   Inner class DummyParentBehaviour.
 	   This class has the only purpose of propagating restart events
-	   in the actual wrapped behaviour to the ThreadedBehaviour.
+	   in the actual wrapped behaviour to the ThreadedBehaviourWrapper.
 	 */
-	private class DummyCompositeBehaviour extends CompositeBehaviour {
-		private ThreadedBehaviour myChild;
+	private class DummyParentBehaviour extends CompositeBehaviour {
+		private ThreadedBehaviourWrapper myChild;
 		
-		private DummyCompositeBehaviour(Agent a, ThreadedBehaviour b) {
+		private DummyParentBehaviour(Agent a, ThreadedBehaviourWrapper b) {
 			super(a);
 			myChild = b;
 		}
@@ -279,8 +303,8 @@ public class ThreadedBehaviourFactory {
   	}
   	
   	/**
-  	   Redefine the root() method so that both the DummyCompositeBehaviour
-  	   and the ThreadedBehaviour are invisible in the behaviours hierarchy
+  	   Redefine the root() method so that both the DummyParentBehaviour
+  	   and the ThreadedBehaviourWrapper are invisible in the behaviours hierarchy
   	 */
   	public Behaviour root() {
   		Behaviour r = myChild.root();
@@ -309,5 +333,5 @@ public class ThreadedBehaviourFactory {
 	  public jade.util.leap.Collection getChildren() {
 	  	return null;
 	  }
-	} // END of inner class DummyCompositeBehaviour
+	} // END of inner class DummyParentBehaviour
 }

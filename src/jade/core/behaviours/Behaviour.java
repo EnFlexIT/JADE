@@ -181,28 +181,43 @@ public abstract class Behaviour implements Serializable {
     //#APIDOC_EXCLUDE_END
 
 	//#CUSTOM_EXCLUDE_BEGIN
-  /**
-     Back pointer to the enclosing Behaviour (if present).
-     @see jade.core.behaviours.CompositeBehaviour
-  */
-  protected CompositeBehaviour parent;
-
   /** 
      The private data store of this Behaviour
    */
   private DataStore myStore;
   
-  final void setParent(CompositeBehaviour cb) {
+  void setParent(CompositeBehaviour cb) {
   	parent = cb;
-	if (parent != null)
+		if (parent != null) {
 	    myAgent = parent.myAgent;
+		}
+		threadedParent = null;
   }
 
-    protected CompositeBehaviour getParent() {
-	return parent;
-    }
+  void setThreadedParent(CompositeBehaviour cb) {
+  	threadedParent = cb;
+  }
+  
+  private CompositeBehaviour threadedParent;
+	//#APIDOC_EXCLUDE_BEGIN
+  protected CompositeBehaviour parent;
+	//#APIDOC_EXCLUDE_END
 
+  /**
+     @return The enclosing Behaviour (if present).
+     @see jade.core.behaviours.CompositeBehaviour
+  */
+  protected CompositeBehaviour getParent() {
+  	if (threadedParent != null) {
+  		return threadedParent;
+  	}
+  	else {
+			return parent;
+  	}
+  }
 	//#CUSTOM_EXCLUDE_END
+  
+  
   /**
      Default constructor. It does not set the agent owning this
      behaviour object.
@@ -380,8 +395,9 @@ public abstract class Behaviour implements Serializable {
    */
   public Behaviour root() {
  	  //#CUSTOM_EXCLUDE_BEGIN
-    if(parent != null)
-      return parent.root();
+  	Behaviour p = getParent();
+    if (p != null)
+      return p.root();
     else
  	  //#CUSTOM_EXCLUDE_END
       return this;
