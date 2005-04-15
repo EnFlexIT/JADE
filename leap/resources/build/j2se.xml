@@ -88,6 +88,7 @@
 		<javac srcdir="${src}"
 		       destdir="${classes}"
 		       debug="${debug-build}"
+		       debuglevel="vars,lines,source"
 		       optimize="${optimised-build}"
 		       deprecation="off"/>
 		<!-- Ensure the images for the tools are also copied -->
