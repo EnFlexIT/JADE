@@ -118,7 +118,7 @@ public class SLCodec extends StringCodec {
     				encodeAndAppend(o);
     				buffer.append(' ');
     			}
-    		} else encode(content);
+    		} else encodeAndAppend(content);
     		buffer.append(')');
     		return buffer.toString();
     	} finally {
