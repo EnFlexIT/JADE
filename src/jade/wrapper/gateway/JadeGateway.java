@@ -59,23 +59,32 @@ public class JadeGateway {
 		}
 
 		/**
+		 * execute a command. 
+		 * This method first check if the executor Agent is alive (if not it
+		 * creates container and agent), then it forwards the execution
+		 * request to the agent, finally it blocks waiting until the command
+		 * has been executed (i.e. the method <code>releaseCommand</code> 
+		 * is called by the executor agent)
 		 * @throws StaleProxyException if the method was not able to execute the Command
 		 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 		 **/
-		public final static synchronized void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
-				checkJADE();
-				// incapsulate the command into an Event
-				Event e = new Event(-1, command);
-				try {
-						if (myLogger.isLoggable(Logger.INFO)) 
-								myLogger.log(Logger.INFO, "Requesting execution of command "+command);
-						myAgent.putO2AObject(e, myAgent.ASYNC);
-				} catch (StaleProxyException exc) {
-						exc.printStackTrace();
-						// in case an exception was thrown, restart JADE
-						// and then reexecute the command
-						restartJADE();
-						myAgent.putO2AObject(e, myAgent.ASYNC);
+		public final static void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
+				Event e = null;
+				synchronized (JadeGateway.class) {
+						checkJADE();
+						// incapsulate the command into an Event
+						e = new Event(-1, command);
+						try {
+								if (myLogger.isLoggable(Logger.INFO)) 
+										myLogger.log(Logger.INFO, "Requesting execution of command "+command);
+								myAgent.putO2AObject(e, myAgent.ASYNC);
+						} catch (StaleProxyException exc) {
+								exc.printStackTrace();
+								// in case an exception was thrown, restart JADE
+								// and then reexecute the command
+								restartJADE();
+								myAgent.putO2AObject(e, myAgent.ASYNC);
+						}
 				}
 				// wait until the answer is ready
 				e.waitUntilProcessed();
