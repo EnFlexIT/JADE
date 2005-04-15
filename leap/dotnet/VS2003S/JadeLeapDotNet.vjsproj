@@ -1210,6 +1210,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "jade\domain\DFIteratedSearchManagementBehaviour.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "jade\domain\DFJadeAgentManagementBehaviour.java"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -1726,6 +1731,11 @@
                 />
                 <File
                     RelPath = "jade\domain\KBManagement\KB.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "jade\domain\KBManagement\KBIterator.java"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -2319,6 +2329,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "jade\lang\acl\ConversationList.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "jade\lang\acl\ISO8601.java"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -2520,6 +2535,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "jade\proto\IteratedAchieveREInitiator.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "jade\proto\ProposeInitiator.java"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -2541,6 +2561,21 @@
                 />
                 <File
                     RelPath = "jade\proto\SimpleAchieveREResponder.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "jade\proto\SSContractNetResponder.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "jade\proto\SSIteratedAchieveREResponder.java"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "jade\proto\SSResponder.java"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />

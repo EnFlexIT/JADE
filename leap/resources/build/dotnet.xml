@@ -106,6 +106,7 @@
 				<include name="**/jade/util/ImportableProperties.java"/>
 				<include name="**/jade/core/event/NotificationService.java"/>
 				<include name="**/jade/core/event/NotificationProxy.java"/>
+				<include name="**/jade/core/nodeMonitoring/*.java"/>
 				<include name="**/jade/domain/introspection/AMSSubscriber.java"/>
 				<include name="**/jade/mtp/http/BasicFipaDateTime.java"/>
 				<include name="**/jade/mtp/http/HTTPAddress.java"/>

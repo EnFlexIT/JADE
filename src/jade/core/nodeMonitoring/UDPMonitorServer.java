@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.core.nodeMonitoring;
 
 //#APIDOC_EXCLUDE_FILE
+// Take care that the DOTNET build file (dotnet.xml) uses this file (it is copied just after the preprocessor excluded it)
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.Profile;
