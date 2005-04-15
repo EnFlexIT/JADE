@@ -190,7 +190,8 @@ AID AgentIdentifier():
 {
 <LBRACE2> <AID> 
  (
-    (<NAME> s=Word() { cur.setName(s); token_source.SwitchTo(AIDSTATE);})
+//    (<NAME> s=Word() { cur.setName(s); token_source.SwitchTo(AIDSTATE);})
+    (<NAME> s=Content() { cur.setName(s); token_source.SwitchTo(AIDSTATE);})
   | (<ADDRESSES> <LBRACE2> <SEQUENCE> {token_source.SwitchTo(CONTENTSTATE);} 
        (s=Word() {cur.addAddresses(s);} )* <RBRACE> 
        {token_source.SwitchTo(AIDSTATE);})
