@@ -64,13 +64,14 @@ public class BlockingNodeFailureMonitor extends NodeFailureMonitor
       while(!nodeExited && !stopped) {
         try {
           nodeExited = target.ping(true); // Hang on this call
-          if(myLogger.isLoggable(Logger.INFO))
-            myLogger.log(Logger.INFO,"PING from node " + target.getName() + " returned [" + 
-                (nodeExited ? "EXIT]" : "GO ON]"));
+          if(myLogger.isLoggable(Logger.INFO)) {
+            myLogger.log(Logger.INFO,"PING from node " + target.getName() + " returned [" + (nodeExited ? "EXIT]" : "GO ON]"));
+          }
         }
         catch(IMTPException imtpe1) { // Connection down
-          if(myLogger.isLoggable(Logger.INFO))
-            myLogger.log(Logger.INFO,"PING from node " + target.getName() + " exited with exception");
+          if(myLogger.isLoggable(Logger.INFO)) {
+            myLogger.log(Logger.INFO,"PING from node " + target.getName() + " exited with exception. "+imtpe1.getMessage());
+          }
           
           if(!stopped) {
             fireNodeUnreachable();

@@ -24,6 +24,7 @@ Boston, MA  02111-1307, USA.
 package jade.imtp.leap;
 
 import jade.core.*;
+import jade.util.Logger;
 
 /**
    This calss implements a stub to a remote LEAP Node.
@@ -33,6 +34,8 @@ import jade.core.*;
 class NodeStub extends Stub implements Node {
 	private String name;
 	private boolean hasPM = false;
+	
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
   public NodeStub() {
 		super();
@@ -74,6 +77,9 @@ class NodeStub extends Stub implements Node {
   */
   public Object accept(HorizontalCommand cmd) throws IMTPException {
 		try {
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Sending HC "+cmd.getName()+" to remote node "+name+" at addresses "+remoteTAs.toArray());
+			}
 	    Command leapCmd = new Command(Command.ACCEPT_COMMAND, remoteID);
 	    leapCmd.addParam(cmd);
 	    Command result = theDispatcher.dispatchCommand(remoteTAs, leapCmd);
@@ -109,11 +115,18 @@ class NodeStub extends Stub implements Node {
 		cmd.addParam(new Boolean(hang));
 	
 		try {
-		    Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
-		    checkResult(result, new String[] { });
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Pinging remote node "+name+" at addresses "+remoteTAs.toArray());
+			}
+			
+		  Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
+		  checkResult(result, new String[] { });
 	
-		    Boolean b = (Boolean)result.getParamAt(0);
-		    return b.booleanValue();
+		  Boolean b = (Boolean)result.getParamAt(0);
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Ping to remote node "+name+" returned: "+b.booleanValue());
+			}
+		  return b.booleanValue();
 		}
 		catch (DispatcherException de) {
 		    throw new IMTPException(DISP_ERROR_MSG, de);
