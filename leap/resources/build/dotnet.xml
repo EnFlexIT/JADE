@@ -14,7 +14,7 @@
 	<property name="examples" value="${dotnet-root}/examples"/>
 	<property name="vs2003" value="${dotnet-root}/VS2003S"/>
 	<property name="vs2003Sol" value="JadeLeap"/>
-	<property name="exeFileName" value="AgentBooter"/>
+	<property name="exeFileName" value="JADEBoot"/>
 	<property name="vss" value="${dotnet-root}/${vs2003Sol}_Solution"/>
 
 	
@@ -259,7 +259,7 @@
 	    <arg line="/r:${vs2003Sol}.dll" />
 	    <arg line="/libpath:${lib}" />
 	    <!-- arg line="/main:jade.Boot" /-->
-	    <arg line="/out:${bin}/AgentBooter.exe" />
+	    <arg line="/out:${bin}/${exeFileName}.exe" />
 	  </exec>
 	</target>
 	
