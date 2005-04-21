@@ -34,6 +34,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	private static final long RESPONSE_TIMEOUT = 60000;
 	
   private long keepAliveTime;
+  private boolean enableServerKeepAlive;
   private long lastReceivedTime;
   private boolean active = true;
   private boolean peerActive = true;
@@ -85,6 +86,15 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
     keepAliveTime = JICPProtocol.DEFAULT_KEEP_ALIVE_TIME;
     try {
     	keepAliveTime = Long.parseLong(props.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+    }
+    catch (Exception e) {
+    	// Keep default
+    }
+
+  	// Server-keep-alive time
+    enableServerKeepAlive = false;
+    try {
+    	enableServerKeepAlive = Boolean.valueOf(props.getProperty("enable-server-keep-alive")).booleanValue();
     }
     catch (Exception e) {
     	// Keep default
@@ -274,6 +284,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			return outManager.handleCommand(c, pkt);
 		}
 		else if (type == JICPProtocol.KEEP_ALIVE_TYPE) {
+			if (enableServerKeepAlive) {
+				inpManager.sendServerKeepAlive();
+			}
 			return outManager.handleKeepAlive(c, pkt);
 		}
 		/* Asynch-reply
@@ -312,8 +325,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			  		Thread t = new Thread() {
 			  			public void run() {
 			  				try {
-				  				JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
-				  				inpManager.dispatch(pkt, false);
+				  				//JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+				  				//inpManager.dispatch(pkt, false);
+				  				inpManager.sendServerKeepAlive();
 		              if(myLogger.isLoggable(Logger.CONFIG)) {
 		              	myLogger.log(Logger.CONFIG, myID+": IC valid");
 		              }
@@ -580,7 +594,12 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   			resetConnection();
   		}
   	}
-  		
+
+  	public void sendServerKeepAlive() throws ICPException {
+			JICPPacket pkt = new JICPPacket(JICPProtocol.KEEP_ALIVE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+			dispatch(pkt, false);
+  	}
+  	
   	/* Asynch-reply
   	final synchronized void handleResponse(Connection c, JICPPacket reply) throws ICPException {
   		checkConnection(c);
