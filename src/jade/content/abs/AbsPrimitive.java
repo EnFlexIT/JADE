@@ -358,7 +358,7 @@ public class AbsPrimitive implements AbsTerm {
     }
 
     /**
-       Makes no sense in the case of an AbsAggregate that has no attribute
+       Makes no sense in the case of an AbsPrimitive that has no attribute
        --> Just return 0
      */
     public int getCount() {

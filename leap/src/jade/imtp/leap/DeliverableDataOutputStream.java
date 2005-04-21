@@ -218,6 +218,12 @@ class DeliverableDataOutputStream extends DataOutputStream {
           writeByte(Serializer.SLICEPROXY_ID);
           serializeSliceProxy((SliceProxy) o);
         }
+        //#DOTNET_EXCLUDE_BEGIN
+        else if (o instanceof Service.SliceProxy) {      // Service.SliceProxy
+          writeByte(Serializer.SERVICESLICEPROXY_ID);
+          serializeServiceSliceProxy((Service.SliceProxy) o);
+        }
+        //#DOTNET_EXCLUDE_END
         else if(o instanceof Property) {                   // Property
           writeByte(Serializer.PROPERTY_ID);
           serializeProperty((Property) o);
@@ -694,6 +700,20 @@ class DeliverableDataOutputStream extends DataOutputStream {
       throw new LEAPSerializationException("Error serializing SliceProxy");
     }
   }
+
+  //#DOTNET_EXCLUDE_BEGIN
+  /**
+   */
+  private void serializeServiceSliceProxy(Service.SliceProxy proxy) throws LEAPSerializationException {
+    try {
+      writeUTF(proxy.getClass().getName());
+      writeNode(proxy.getNode());
+    }
+    catch (Throwable t) {
+      throw new LEAPSerializationException("Error serializing Service.SliceProxy");
+    }
+  }
+  //#DOTNET_EXCLUDE_END
 
   private void serializeNode(Node n) throws LEAPSerializationException {
     try {

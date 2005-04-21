@@ -76,7 +76,8 @@ interface Serializer {
     static final byte PROPERTY_ID = 30;
     static final byte SERIALIZABLE_ID = 31;
     static final byte SERVICEDESCRIPTOR_ID = 32;
-    static final byte SLICEPROXY_ID = 33;
+    static final byte SERVICESLICEPROXY_ID = 33;
+    static final byte SLICEPROXY_ID = 36;
     static final byte PLATFORMMANAGER_ID = 34;
     static final byte GENERICMESSAGE_ID = 35;
 

@@ -151,6 +151,10 @@ class DeliverableDataInputStream extends DataInputStream {
                     return deserializeServiceDescriptor();
                 case Serializer.SLICEPROXY_ID:
                     return deserializeSliceProxy();
+                //#DOTNET_EXCLUDE_BEGIN
+                case Serializer.SERVICESLICEPROXY_ID:
+                    return deserializeServiceSliceProxy();
+                //#DOTNET_EXCLUDE_END
                 case Serializer.JICPADDRESS_ID:
                     return deserializeJICPAddress();
                 case Serializer.HTTPADDRESS_ID:
@@ -596,6 +600,20 @@ class DeliverableDataInputStream extends DataInputStream {
             throw new LEAPSerializationException("Error deserializing SliceProxy");
         }
     }
+ 
+    //#DOTNET_EXCLUDE_BEGIN
+    private Service.SliceProxy deserializeServiceSliceProxy() throws LEAPSerializationException {
+        try {
+			    String   className = readUTF();
+			    Service.SliceProxy proxy = (Service.SliceProxy) Class.forName(className).newInstance();
+			    proxy.setNode(readNode());
+			    return proxy;
+        }
+        catch (Throwable t) {
+            throw new LEAPSerializationException("Error deserializing Service.SliceProxy");
+        }
+    }
+    //#DOTNET_EXCLUDE_END
  
     private NodeDescriptor deserializeNodeDescriptor() throws LEAPSerializationException {
 	try {
