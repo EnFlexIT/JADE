@@ -206,13 +206,36 @@ public class ThreadedBehaviourFactory {
 			super.reset();
 		}
 			
-		// This is synchronized to avoid that, in case the wrapped behaviour
-		// is a SerialBehaviour we end up with the current child still blocked
-		// while the thread is restarted.
+  	/**
+  	   Propagate a restart() call (typically this happens when this 
+  	   ThreadedBehaviourWrapped is directly added to the agent Scheduler
+  	   and a message is received) to the wrapped threaded behaviour.
+  	   
+		   This is synchronized to avoid that, in case the wrapped behaviour
+		   is a SerialBehaviour we end up with the current child still blocked
+		   while the thread is restarted.
+		 */
 		public synchronized void restart() {
 			myBehaviour.restart();
 		}
 		
+		/**
+		   Propagate a DOWNWARDS event (typically this happens when this
+		   ThreadedBehaviourWrapper is added as a child of a CompositeBehaviour
+		   and the latter, or an ancestor, is blocked/restarted)
+		   to the wrapped threaded behaviour.
+		   If the event is a restart, also notify the dedicated thread.
+		 */
+  	protected void handle(RunnableChangedEvent rce) {
+  		super.handle(rce);
+  		if (!rce.isUpwards()) {
+  			myBehaviour.handle(rce);
+	  		if (rce.isRunnable()) {
+	  			go();
+	  		}
+  		}
+  	}
+  		
 		private synchronized void go() {
 			restarted = true;
 			notifyAll();
@@ -297,6 +320,9 @@ public class ThreadedBehaviourFactory {
 		}
 		
   	protected void handle(RunnableChangedEvent rce) {
+  		// This is always an UPWARDS event from the threaded behaviour, but
+  		// there is no need to propagate it to the wrapper since it will 
+  		// immediately block again. It would be just a waste of time.
   		if (rce.isRunnable()) {
   			myChild.go();
   		}
