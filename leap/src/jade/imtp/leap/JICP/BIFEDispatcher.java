@@ -305,7 +305,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	      }
 	      else {
 		    	myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
-			  	if (myConnectionListener != null && replyMsg != null && replyMsg.equals(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
+			  	if (myConnectionListener != null && replyMsg != null && replyMsg.startsWith(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
 						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED);
 			  	}
 	      }

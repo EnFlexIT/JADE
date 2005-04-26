@@ -106,7 +106,7 @@ public class JICPPacket {
    */
   public JICPPacket(String explanation, Exception e) {
     if (e != null) {
-      explanation = explanation+": "+e.toString();
+      explanation = explanation+": "+e.getClass().getName()+"#"+e.getMessage();
     } 
 
     init(JICPProtocol.ERROR_TYPE, JICPProtocol.DEFAULT_INFO, null, explanation.getBytes());
