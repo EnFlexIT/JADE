@@ -397,7 +397,7 @@
 	<target name="solution" depends="solution-dotnet"
 	        description="Create Visul Studio 2003 complete solution for .NET version"/>
 	<target name="solution-dotnet" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new Visual Studio 2003 solution!"/>
+	  <fail unless="dotnet-home" message="It is not possible to create new Visual Studio 2003 solution!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-solution" dir="."/>
 	</target>
 	
@@ -405,7 +405,7 @@
 	<target name="executable" depends="executable-dotnet"
 	        description="Create Visul Studio 2003 complete solution for .NET version"/>
 	<target name="executable-dotnet" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-executable" dir="."/>
 	</target>
 	
@@ -413,7 +413,7 @@
 	<target name="all-examples" depends="examples-dotnet"
 	        description="Create .NET examples"/>
 	<target name="examples-dotnet" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
 	</target>
@@ -422,7 +422,7 @@
 	<target name="J#-examples" depends="examples-dotnet-J#"
 	        description="Create J#.NET examples"/>
 	<target name="examples-dotnet-J#" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-J#" dir="."/>
 	</target>
 	
@@ -430,7 +430,7 @@
 	<target name="C#-examples" depends="examples-dotnet-C#"
 	        description="Create C#.NET examples"/>
 	<target name="examples-dotnet-C#" if="dotnet">
-	  <fail unless="env.VJSHARPTOOLS" message="It is not possible to create new executable file!"/>
+	  <fail unless="dotnet-home" message="It is not possible to create new executable file!"/>
 		<ant antfile="${buildfiles}/dotnet.xml" target="create-examples-C#" dir="."/>
 	</target>
 	
