@@ -36,7 +36,7 @@ import jade.content.abs.*;
  * see jade.content.Ontology
  * @author Giovanni Caire - TILAB
  */
-class SLOntology 
+public class SLOntology 
 //#MIDP_EXCLUDE_BEGIN
 	extends SL2Ontology 
 //#MIDP_EXCLUDE_END
@@ -49,12 +49,7 @@ class SLOntology
   public static final String ONTOLOGY_NAME = "SL-ONTOLOGY";
 	
   // The singleton instance of this ontology
-//#MIDP_EXCLUDE_BEGIN
-	private static Ontology theInstance = new SLOntology(ONTOLOGY_NAME, SL2Ontology.getInstance(), null);
-//#MIDP_EXCLUDE_END
-/*#MIDP_INCLUDE_BEGIN
-	private static Ontology theInstance = new SLOntology(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
-#MIDP_INCLUDE_END*/
+	private static Ontology theInstance = new SLOntology();
 	
 	public static Ontology getInstance() {
 		return theInstance;
@@ -63,10 +58,14 @@ class SLOntology
   /**
    * Constructor
    */
-  protected SLOntology(String name, Ontology base, Introspector intro) {
-  	super(name, base, intro);
+  protected SLOntology() {
+		//#MIDP_EXCLUDE_BEGIN
+  	super(ONTOLOGY_NAME, SL2Ontology.getInstance(), null);
+		//#MIDP_EXCLUDE_END
 
-/*#MIDP_INCLUDE_BEGIN
+		/*#MIDP_INCLUDE_BEGIN
+  	super(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
+  	
   	try {
 			// Schemas for the SL1 operators
   		add(new PredicateSchema(AND), AbsPredicate.getJavaClass());
@@ -141,7 +140,7 @@ class SLOntology
     catch (OntologyException oe) {
       oe.printStackTrace();
     } 
-#MIDP_INCLUDE_END*/
+		#MIDP_INCLUDE_END*/
 	}
 
 }
