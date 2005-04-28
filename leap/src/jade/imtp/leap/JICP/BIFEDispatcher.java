@@ -826,24 +826,32 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	JICPPacket pkt = prepareDropDownRequest();
 	  	try {
 		  	writePacket(pkt, outConnection);
-  			outConnection.readPacket();
+  			JICPPacket rsp = outConnection.readPacket();
 	  		myLogger.log(Logger.INFO, "DROP_DOWN response received");
-  					  	
-		  	// Now close the outConnection
-		  	try {
-			  	outConnection.close();
-			  	outConnection = null;
-		  	}
-		  	catch (IOException ioe) {
-		  		// Just print a warning
-		  		myLogger.log(Logger.WARNING, "Exception in connection drop-down closing the OUT connection. "+ioe);
-		  	}
-		  	
-	  		myLogger.log(Logger.INFO, "Connection dropped");
-		  	connectionDropped = true;
-				if (myConnectionListener != null) {
-					myConnectionListener.handleConnectionEvent(ConnectionListener.DROPPED, null);
-				}
+  					
+	  		if ((rsp.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) {
+			  	// Now close the outConnection
+			  	try {
+				  	outConnection.close();
+				  	outConnection = null;
+			  	}
+			  	catch (IOException ioe) {
+			  		// Just print a warning
+			  		myLogger.log(Logger.WARNING, "Exception in connection drop-down closing the OUT connection. "+ioe);
+			  	}
+			  	
+		  		myLogger.log(Logger.INFO, "Connection dropped");
+			  	connectionDropped = true;
+					if (myConnectionListener != null) {
+						myConnectionListener.handleConnectionEvent(ConnectionListener.DROPPED, null);
+					}
+	  		}
+	  		else {
+	  			// The BE has the INP connection down and we didn't know that.
+	  			// Do not drop, but refresh the INP connection
+		  		myLogger.log(Logger.INFO, "INP connection refresh request from BE");
+	  			refreshInp();
+	  		}
 	  	}
 	  	catch (IOException ioe) {
 	  		// Can't reach the BackEnd. 
