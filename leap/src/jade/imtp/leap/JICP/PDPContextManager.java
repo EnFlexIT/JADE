@@ -29,6 +29,8 @@ import jade.util.leap.Properties;
 
 import java.net.InetAddress;
 
+import jade.security.JADESecurityException;
+
 public interface PDPContextManager {
 	public static final String MSISDN = "msisdn";
 	public static final String USERNAME = "pdp-context-username";
@@ -43,5 +45,5 @@ public interface PDPContextManager {
   
   void registerListener(Listener l);
   
-  Properties getPDPContextInfo(InetAddress addr, String owner);
+  Properties getPDPContextInfo(InetAddress addr, String owner) throws JADESecurityException;
 }

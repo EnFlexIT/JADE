@@ -212,7 +212,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
   protected void setup() throws ICPException {
   	if (mediatorAlive) {
   		if (myConnectionListener != null) {
-	  		myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED);
+	  		myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED, null);
   		}
   	}
   	
@@ -317,7 +317,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
     }
     else {
     	if (myConnectionListener != null) {
-	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED);
+	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
     	}
     }
     setConnection(c);
@@ -408,7 +408,7 @@ public class FrontEndDispatcher extends EndPoint implements FEConnectionManager,
 		if (mediatorAlive) {
 			// We cannot re-connected 
     	if (myConnectionListener != null) {
-	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE);
+	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
     	}
 		}
 	}

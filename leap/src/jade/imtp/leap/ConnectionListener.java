@@ -91,6 +91,7 @@ public interface ConnectionListener {
 	   a split container) when connection specific events happen on the 
 	   device.
 	   @param ev The event that happened
+     @param info an object parameter of the event. 
 	 */
-	public void handleConnectionEvent(int ev);
+	public void handleConnectionEvent(int ev, Object info);
 }

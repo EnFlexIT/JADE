@@ -38,6 +38,7 @@ import jade.util.leap.Properties;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.TransportProtocol;
 import jade.imtp.leap.JICP.*;
+import jade.security.JADESecurityException;
 
 import java.io.*;
 import java.nio.*;
@@ -488,20 +489,14 @@ public class BEManagementService extends BaseService {
 			        if(myLogger.isLoggable(Logger.CONFIG)) {
 			        	myLogger.log(Logger.CONFIG, myLogPrefix+"Owner = "+owner);
 			        }
-			        
-			        // If there is a PDPContextManager add the PDP context properties
-			        if (myPDPContextManager != null) {
-			        	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);
-			        	if (pdpContextInfo != null) {
-			          	mergeProperties(p, pdpContextInfo);
-			        	}
-			        	else {
-		        			myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request from non authorized address: "+address);
-			        		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
-			        		break;
-			        	}
-			        }
-			
+			        try{
+                Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(address, owner);
+                mergeProperties(p, pdpContextInfo);
+              }catch(JADESecurityException jse){
+                myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request from non authorized address: "+address);
+                reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, jse);
+                break;
+              }
 						  // Get mediator ID from the passed properties (if present)
 			        String id = p.getProperty(JICPProtocol.MEDIATOR_ID_KEY); 
 			        String msisdn = p.getProperty(PDPContextManager.MSISDN);
@@ -765,7 +760,7 @@ public class BEManagementService extends BaseService {
 	     the IOEventServer itself is used and the default behaviour
 	     is to issue an INCOMING_CONNECTION outgoing command
 	   */
-	  public Properties getPDPContextInfo(InetAddress addr, String owner) {
+	  public Properties getPDPContextInfo(InetAddress addr, String owner) throws JADESecurityException{
       GenericCommand cmd = new GenericCommand(INCOMING_CONNECTION, getName(), null);
       cmd.addParam(myID);
       cmd.addParam(addr);
@@ -789,15 +784,16 @@ public class BEManagementService extends BaseService {
               myLogger.log(Logger.FINER, myLogPrefix+"Address "+ addr + " owner " + owner + " not authenticated.");
             }
 	      		// Incoming connection from non-authorized device
-	      		return null;
+	      		throw ((JADESecurityException)ret);
 	      	}
 	      	else if (ret instanceof Throwable) {
             if (myLogger.isLoggable(Logger.FINER)) {
               myLogger.log(Logger.FINER, myLogPrefix+"Error retrieving PDPContextPropert for address "+ addr + " owner " + owner + ". " + ret);
             }
 	      		// Unexpected exception
+            //FIXME: devo lasciare la stampa ?
 	      		((Throwable) ret).printStackTrace();
-	      		return null;
+            throw new JADESecurityException(((Throwable)ret).getMessage());
 	      	}
 	      }
 	      

@@ -306,7 +306,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	      else {
 		    	myLogger.log(Logger.WARNING, "Mediator error: "+replyMsg);
 			  	if (myConnectionListener != null && replyMsg != null && replyMsg.startsWith(JICPProtocol.NOT_AUTHORIZED_ERROR)) {
-						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED);
+						myConnectionListener.handleConnectionEvent(ConnectionListener.NOT_AUTHORIZED, replyMsg);
 			  	}
 	      }
 		  }
@@ -503,7 +503,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	if (myInputManager != null && myInputManager.isConnected()) {
 	  		myInputManager.close();
 				if (outConnection != null && myConnectionListener != null) {
-					myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED);
+					myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED, null);
 				}
 			}
 			
@@ -529,7 +529,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  		catch (Exception e) {}
 	  		outConnection = null;
 				if (myInputManager.isConnected() && myConnectionListener != null) {
-					myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED);
+					myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED, null);
 				}
 	  	}
 	  	
@@ -655,7 +655,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			}
 		}
 		if (transition && myConnectionListener != null) {
-			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED);
+			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
 		}
 	}
 	
@@ -663,7 +663,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		myLogger.log(Logger.SEVERE, "Can't reconnect ("+System.currentTimeMillis()+")");
 
 		if (myConnectionListener != null) {
-			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE);
+			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
 		}
 		myInputManager.close();
 		active = false;
@@ -842,7 +842,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  		myLogger.log(Logger.INFO, "Connection dropped");
 		  	connectionDropped = true;
 				if (myConnectionListener != null) {
-					myConnectionListener.handleConnectionEvent(ConnectionListener.DROPPED);
+					myConnectionListener.handleConnectionEvent(ConnectionListener.DROPPED, null);
 				}
 	  	}
 	  	catch (IOException ioe) {
@@ -918,7 +918,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   
   private JICPConnection openConnection(TransportAddress ta, int timeout) throws IOException {
   	if (myConnectionListener != null) {
-			myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION);
+			myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION, null);
   	}
   	JICPConnection c = new JICPConnection(ta);
   	//#MIDP_EXCLUDE_BEGIN
@@ -931,7 +931,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   
   private void handleBENotFound() {
   	if (myConnectionListener != null) {
-			myConnectionListener.handleConnectionEvent(ConnectionListener.BE_NOT_FOUND);
+			myConnectionListener.handleConnectionEvent(ConnectionListener.BE_NOT_FOUND, null);
   	}
   }
 }

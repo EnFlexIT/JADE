@@ -39,6 +39,7 @@ package jade.imtp.leap.JICP;
 import jade.core.Profile;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
+import jade.security.JADESecurityException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
 
@@ -401,18 +402,17 @@ public class JICPServer extends Thread
 		          
 		          // If there is a PDPContextManager add the PDP context properties
 		          if (myPDPContextManager != null) {
-		          	// FIXME: Get username and password specified among the CREATE_MEDIATOR properties
-		          	Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr, p.getProperty(JICPProtocol.OWNER_KEY));
-		          	if (pdpContextInfo != null) {
-									myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
-			          	mergeProperties(p, pdpContextInfo);
-		          	}
-		          	else {
-		          		if(myLogger.isLoggable(Logger.WARNING))
-		          			myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request from non authorized address: "+addr);
-		          		reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
-		          		break;
-		          	}
+                try{
+                  //FIXME: Get username and password specified among the CREATE_MEDIATOR properties
+                  Properties pdpContextInfo = myPDPContextManager.getPDPContextInfo(addr, p.getProperty(JICPProtocol.OWNER_KEY));
+                  myLogger.log(Logger.FINE, "PDPContext properties = "+pdpContextInfo);
+                  mergeProperties(p, pdpContextInfo);
+                }catch(JADESecurityException jse){
+                  if(myLogger.isLoggable(Logger.WARNING))
+                    myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request from non authorized address: "+addr);
+                  reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, jse);
+                  break;
+                }
 		          }
 	
 						  // Get mediator ID from the passed properties (if present)

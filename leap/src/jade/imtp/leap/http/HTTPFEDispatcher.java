@@ -516,7 +516,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   		if (reachable) {
   			if (missingKA || !pingOK) {
 	  			if (myConnectionListener != null) {
-	  				myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED);
+	  				myConnectionListener.handleConnectionEvent(ConnectionListener.DISCONNECTED, null);
 	  			}
 	  			log("Starting DM ("+System.currentTimeMillis()+").", 2);
 	  			reachable = false;
@@ -540,7 +540,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   	private synchronized void setReachable() {
   		reachable = true;
 			if (myConnectionListener != null) {
-	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED);
+	  		myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
 			}
   		notifyAll();
   	}
@@ -598,7 +598,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   			// Impossible to reconnect to the BackEnd
 				log("Impossible to reconnect to the BackEnd ("+System.currentTimeMillis()+"). "+icpe.getMessage(), 0);
 				if (myConnectionListener != null) {
-	  			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE);
+	  			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
 				}
   		}
   	}
