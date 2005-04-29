@@ -58,6 +58,30 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
     } 
 
     /**
+     * Sets the sequence of variables of this IRE.
+     * @param variables The abstract descriptor holding the sequence of variables.
+     */
+    public void setVariables(AbsAggregate variables) {
+        set(IRESchema.VARIABLE, variables);
+    } 
+
+    /**
+     * Sets the variable term of this IRE.
+     * @param t The abstract descriptor holding the variable or sequence of variables.
+     */
+    public void setAbsTerm(AbsTerm t) {
+    	if (t instanceof AbsVariable) {
+    		setVariable((AbsVariable) t);
+    	}
+    	else if (t instanceof AbsAggregate) {
+    		setVariables((AbsAggregate) t);
+    	}
+    	else {
+    		throw new IllegalArgumentException("Invalid term "+t+" for an AbsIRE");
+    	}
+    } 
+
+    /**
      * Sets the proposition of this IRE.
      * @param proposition The abstract descriptor holding the proposition.
      */
@@ -71,6 +95,22 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
      */
     public AbsVariable getVariable() {
         return (AbsVariable) getAbsObject(IRESchema.VARIABLE);
+    } 
+
+    /**
+     * Gets the sequence of variables of this IRE.
+     * @return the abstract descriptor holding the sequence of variables of this IRE.
+     */
+    public AbsAggregate getVariables() {
+        return (AbsAggregate) getAbsObject(IRESchema.VARIABLE);
+    } 
+
+    /**
+     * Gets the variable term of this IRE.
+     * @return the abstract descriptor holding the variable term of this IRE.
+     */
+    public AbsTerm getAbsTerm() {
+        return (AbsTerm) getAbsObject(IRESchema.VARIABLE);
     } 
 
     /**

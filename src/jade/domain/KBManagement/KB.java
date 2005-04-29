@@ -97,7 +97,7 @@ public abstract class KB {
 	public abstract List search(Object template, int maxResult);
 	public abstract KBIterator iterator(Object template);
 	  
-	public abstract void subscribe(Object aclMessage, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
+	public abstract void subscribe(Object template, SubscriptionResponder.Subscription s) throws NotUnderstoodException;
 	public abstract Enumeration getSubscriptions();
 	public abstract void unsubscribe(SubscriptionResponder.Subscription sub);
 }

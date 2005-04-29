@@ -63,8 +63,7 @@ public class IRESchema extends TermSchema {
     public IRESchema(String typeName) {
         super(typeName);
 
-        // FIXME: It should be possible to specify a set of variables
-        add(VARIABLE, VariableSchema.getBaseSchema()); 
+        add(VARIABLE, TermSchema.getBaseSchema()); 
         add(PROPOSITION, PredicateSchema.getBaseSchema());
     }
 

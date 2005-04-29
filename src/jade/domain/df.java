@@ -1382,13 +1382,13 @@ public class df extends GuiAgent implements DFGUIAdapter {
     //#APIDOC_EXCLUDE_END
 
 	/**
-	This method returns the descriptor of an agent registered with the DF.
+	This method returns the description of an agent registered with the DF.
 	*/
 	public DFAgentDescription getDFAgentDsc(AID name) throws FIPAException
 	{
 	  DFAgentDescription template = new DFAgentDescription();
 	  template.setName(name);
-	  List l = agentDescriptions.search(template);
+	  List l = agentDescriptions.search(template, 1);
 	  if(l.isEmpty())
 	    return null;
 	  else
@@ -1428,7 +1428,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
   			  gui = (DFGUIInterface)c.newInstance();
 		      gui.setAdapter(df.this); //this method must be called to avoid reflection (the constructor of the df gui has no parameters).		
   			  DFAgentDescription matchEverything = new DFAgentDescription();
-		      List agents = agentDescriptions.search(matchEverything);
+  			  // FIXME: Getting a list with all DFAgentDescriptions may cause out of memory
+  			  // The DFGui should probably be paged and we should use an iterated search.
+		      List agents = agentDescriptions.search(matchEverything, -1);
 		      List AIDList = new ArrayList();
 		      Iterator it = agents.iterator();
 		      while(it.hasNext())
@@ -1572,15 +1574,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
    * @return 
    * <ul>
    * <li> 1 if constraints.maxResults == null (according to FIPA specs)
-   * <li> LIMIT_MAXRESULT if constraints.maxResults < 0 (the FIPA specs requires it to be 
-   * infinite, but for practical reason we prefer to limit it)
+   * <li> maxResultLimit if constraints.maxResults is infinite (i.e. < 0) or
+   * greater than maxResultLimit 
    * <li> constraints.maxResults otherwise
    * </ul>
    * This is package-scoped since it is also used by the DFIteratedSearchManagementBehaviour 
    **/
   int getActualMaxResults(SearchConstraints constraints) {
       int maxResult = (constraints.getMaxResults() == null ? 1 : constraints.getMaxResults().intValue());
-      maxResult = (maxResult < 0 ? maxResultLimit : maxResult); // limit the max num of results
+      maxResult = ((maxResult < 0 || maxResult > maxResultLimit)  ? maxResultLimit : maxResult); // limit the max num of results
       return maxResult;              
   }
   

@@ -87,24 +87,15 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
     }catch(Exception e){
       throw new NotUnderstoodException(e.getMessage());
     }
-    // Search for DFDs that already match the specified template
-    List results = kBase.search(dfdTemplate); 
+    // Search for DFDs that already match the specified template.
+    // Note that we ignore the SearchConstraint.maxResult here
+    // FIXME: Getting all DFDs matching a template may cause out-of-memory.
+    // We should use an iterated search and send back possibly more than one
+    // notification.
+    List results = kBase.search(dfdTemplate, -1); 
     
     // If some DFD matches the template, notify the subscribed agent 
     if(results.size() > 0){
-      // If there are more matching DFD than MAX_RESULT, then remove the DFD in eccess
-      Long maxResult = constraints.getMaxResults();           
-      if(maxResult != null) {           
-        if(results.size() >= maxResult.intValue()){
-          // More results than required have been found, put in list the first MAX_RESULT results
-          ArrayList list = new ArrayList();
-          int j = 0;
-          for(Iterator i = results.iterator();i.hasNext()&& j < maxResult.intValue();j++){
-            list.add(i.next()); 
-          }
-          results=list;
-        }
-      }
       notify(sub, results, absIota);
       return true;
     }

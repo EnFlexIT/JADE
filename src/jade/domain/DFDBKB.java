@@ -864,8 +864,10 @@ public class DFDBKB extends DBKB {
    
 		try {
       s = conn.createStatement();
-      s.setMaxRows(maxResult);
-      s.setFetchSize(maxResult);
+      if (maxResult >= 0) {
+	      s.setMaxRows(maxResult);
+	      s.setFetchSize(maxResult);
+      }
       rs = s.executeQuery(select);
      
 			while(rs.next()) { 

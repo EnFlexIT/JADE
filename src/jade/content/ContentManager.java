@@ -160,9 +160,13 @@ public class ContentManager implements Serializable {
     		if (codec == null) {
     			throw new CodecException("Unknown language "+msg.getLanguage());
     		}
-    		Ontology o = lookupOntology(msg.getOntology());
-    		if (o == null) {
-    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		String ontoName = msg.getOntology();
+    		Ontology o = null;
+    		if (ontoName != null) {
+	    		o = lookupOntology(ontoName);
+	    		if (o == null) {
+	    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+	    		}
     		}
         Ontology onto  = getMergedOntology(codec, o);
         
@@ -190,9 +194,13 @@ public class ContentManager implements Serializable {
     		if (codec == null) {
     			throw new CodecException("Unknown language "+msg.getLanguage());
     		}
-    		Ontology o = lookupOntology(msg.getOntology());
-    		if (o == null) {
-    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		String ontoName = msg.getOntology();
+    		Ontology o = null;
+    		if (ontoName != null) {
+	    		o = lookupOntology(ontoName);
+	    		if (o == null) {
+	    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+	    		}
     		}
         Ontology onto  = getMergedOntology(codec, o);
         
@@ -222,9 +230,13 @@ public class ContentManager implements Serializable {
     		if (codec == null) {
     			throw new CodecException("Unknown language "+msg.getLanguage());
     		}
-    		Ontology o = lookupOntology(msg.getOntology());
-    		if (o == null) {
-    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		String ontoName = msg.getOntology();
+    		Ontology o = null;
+    		if (ontoName != null) {
+	    		o = lookupOntology(ontoName);
+	    		if (o == null) {
+	    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+	    		}
     		}
         Ontology onto  = getMergedOntology(codec, o);
         
@@ -254,9 +266,13 @@ public class ContentManager implements Serializable {
     		if (codec == null) {
     			throw new CodecException("Unknown language "+msg.getLanguage());
     		}
-    		Ontology o = lookupOntology(msg.getOntology());
-    		if (o == null) {
-    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+    		String ontoName = msg.getOntology();
+    		Ontology o = null;
+    		if (ontoName != null) {
+	    		o = lookupOntology(ontoName);
+	    		if (o == null) {
+	    			throw new OntologyException("Unknown ontology "+msg.getOntology());
+	    		}
     		}
         Ontology onto  = getMergedOntology(codec, o);
         
@@ -306,6 +322,9 @@ public class ContentManager implements Serializable {
 				Ontology langOnto = c.getInnerOntology();
 				if (langOnto == null) {
 					ontology = o;
+				}
+				else if (o == null) {
+					ontology = langOnto;
 				}
 				else {
 					ontology = new Ontology(null, new Ontology[]{o, langOnto}, null);

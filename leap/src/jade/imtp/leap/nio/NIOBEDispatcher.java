@@ -270,6 +270,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	 */
 	public JICPPacket handleJICPPacket(Connection c, JICPPacket pkt, InetAddress addr, int port) throws ICPException {
   	if (pkt.getType() == JICPProtocol.DROP_DOWN_TYPE) {
+  		// Note that the return packet is written inside the handleDropDown() 
+  		// method since the connection must be closed after the response has 
+  		// been sent back.
   		handleDropDown(c, pkt, addr, port);
 		  return null;
   	}
@@ -422,13 +425,24 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			myLogger.log(Logger.INFO,  myID+": DROP_DOWN request received.");
 		}
 		
-		JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 		try {
-			c.writePacket(rsp);
-			
-			inpManager.resetConnection();
-			outManager.resetConnection();
-			connectionDropped = true;
+			// It might be that case that the FE does not know that the INP
+			// connection is DOWN. In this case, postponed commands 
+			// will never be delivered if we serve the DROP_DOWN request 
+			// normally. 
+			if (inpManager.isConnected()) {
+				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
+				c.writePacket(rsp);
+				
+				inpManager.resetConnection();
+				outManager.resetConnection();
+				connectionDropped = true;
+			}
+			else {
+				myLogger.log(Logger.WARNING,  myID+": INP connection is down. Ignoring DROP_DOWN request.");
+				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.RECONNECT_INFO, null);
+				c.writePacket(rsp);
+			}
 		}
 		catch (Exception e) {
 			myLogger.log(Logger.WARNING,  myID+": Error writing DROP_DOWN response. "+e);

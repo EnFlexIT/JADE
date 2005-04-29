@@ -90,7 +90,7 @@ public abstract class MemKB extends KB {
 		List result = new ArrayList();
 	    Iterator it = facts.values().iterator();
 		int found = 0;
-	    while(it.hasNext() && (found < maxResults)) {
+	    while(it.hasNext() && (maxResults >=0) && (found < maxResults)) {
 	        Object fact = it.next();
 		    if(match(template, fact)){
 				result.add(fact);
