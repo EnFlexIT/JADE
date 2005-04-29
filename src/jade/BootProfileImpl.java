@@ -28,11 +28,9 @@ package jade;
 //#ALL_EXCLUDE_FILE
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import java.util.Enumeration;    // J2ME CLDC OK
 import java.util.Vector;         // J2ME CLDC OK
-import java.util.Stack;          // J2ME CLDC OK
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -43,8 +41,6 @@ import jade.util.PropertiesException;
 import jade.core.ProfileImpl;
 import jade.core.Profile;
 import jade.core.Specifier;
-
-import jade.domain.df;
 
 /**
  * A profile implementation enhanced to support boot's

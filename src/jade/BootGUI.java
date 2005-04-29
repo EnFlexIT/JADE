@@ -42,8 +42,6 @@ import java.util.Vector;
 import jade.util.BasicProperties;
 import jade.util.ExpandedProperties;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import jade.gui.TreeHelp;
 

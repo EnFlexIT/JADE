@@ -130,8 +130,9 @@ class MainWindow extends JFrame {
   // Perform asynchronous disposal to avoid nasty InterruptedException
   // printout.
   public void disposeAsync() {
+  	dispose();
 
-    class disposeIt implements Runnable {
+    /*class disposeIt implements Runnable {
       private Window toDispose;
 
       public disposeIt(Window w) {
@@ -145,7 +146,7 @@ class MainWindow extends JFrame {
     }
 
     // Make AWT Event Dispatcher thread dispose RMA window for us.
-    SwingUtilities.invokeLater(new disposeIt(this));
+    SwingUtilities.invokeLater(new disposeIt(this));*/
 
   }
 

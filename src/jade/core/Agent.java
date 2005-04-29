@@ -39,7 +39,6 @@ import jade.security.JADESecurityException;
 
 //#MIDP_EXCLUDE_BEGIN
 import java.io.InputStream;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.ObjectOutput;

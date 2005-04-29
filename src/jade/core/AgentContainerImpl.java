@@ -35,6 +35,7 @@ import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
 
 import jade.core.messaging.GenericMessage;
+import jade.core.management.AgentManagementSlice;
 
 import jade.domain.FIPAAgentManagement.InternalError;
 
@@ -102,7 +103,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   private AID theAMS;
   private AID theDefaultDF;
-
   
   
   // Default constructor
@@ -147,14 +147,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			public void createAgent(AID id, String className, Object[] args) throws Throwable {
 				// Do as if it was a remote call from the main to allows
 				// security checks to take place if needed
-				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
-				target.createAgent(id, className, args, principal, null, target.CREATE_ONLY, dummyCmd);
+				AgentManagementSlice target = (AgentManagementSlice) getProxyToLocalSlice(AgentManagementSlice.NAME);
+				target.createAgent(id, className, args, principal, null, AgentManagementSlice.CREATE_ONLY, dummyCmd);
 			}
 
 			public void killContainer() throws Throwable {
 				// Do as if it was a remote call from the main to allows
 				// security checks to take place if needed
-				jade.core.management.AgentManagementSlice target = (jade.core.management.AgentManagementSlice) getProxyToLocalSlice(jade.core.management.AgentManagementSlice.NAME);
+				AgentManagementSlice target = (AgentManagementSlice) getProxyToLocalSlice(AgentManagementSlice.NAME);
 				// FIXME: set Principal and Credentials
 				target.exitContainer();
 			}
@@ -316,25 +316,37 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  // Start all container fundamental services (without activating them)
   	List basicServices = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
+	  dsc.setMandatory(true);
 	  basicServices.add(dsc);
 	  //#MIDP_EXCLUDE_BEGIN
 	  dsc = startService("jade.core.messaging.MessagingService", false);
-	  basicServices.add(dsc);
 	  //#MIDP_EXCLUDE_END
 	  /*#MIDP_INCLUDE_BEGIN
 	  dsc = startService("jade.core.messaging.LightMessagingService", false);
-	  basicServices.add(dsc);
 	  #MIDP_INCLUDE_END*/
+	  dsc.setMandatory(true);
+	  basicServices.add(dsc);
     List l = myProfile.getSpecifiers(Profile.SERVICES);
     myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
     Iterator serviceSpecifiers = l.iterator();
     while(serviceSpecifiers.hasNext()) {
 		  Specifier s = (Specifier) serviceSpecifiers.next();
 		  String serviceClass = s.getClassName();
-		  if (serviceClass.equals("jade.core.security.SecurityService") || serviceClass.equals("jade.core.security.permission.PermissionService")) {
+		  boolean isMandatory = false;
+		  if ( s.getArgs() != null )
+		  	isMandatory = CaseInsensitiveString.equalsIgnoreCase( (String) s.getArgs()[0], "true" );
+		  try {
 		  	dsc = startService(serviceClass, false);
-			  basicServices.add(dsc);
+		  	dsc.setMandatory(isMandatory);
+		  	basicServices.add(dsc);
+		  } catch (ServiceException se) {
+		  	if (isMandatory)
+		  		throw se;
+		  	else
+		  		myLogger.log(Logger.WARNING,"Exception starting service " + serviceClass + " : " + se.toString());
+		  		se.printStackTrace();
 		  }
+
     }
 
     // Register with the platform
@@ -343,11 +355,22 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
     }
     // This call can modify the name of this container
-	  myServiceManager.addNode(myNodeDescriptor, descriptors);
+    // This call performs the real connection to the platform
+	myServiceManager.addNode(myNodeDescriptor, descriptors);
 
-	  // Boot all basic services
+	 // Boot all services
     for (int i = 0; i < descriptors.length; ++i) {
-    	descriptors[i].getService().boot(myProfile);
+
+    	ServiceDescriptor currentServDesc = descriptors[i];
+    	try {
+    		currentServDesc.getService().boot(myProfile);
+    	} catch(Throwable t) {
+    		if ( currentServDesc.isMandatory() )
+    			throw new ServiceException("An error occurred during service booting", t);
+    		else
+		  		myLogger.log(Logger.WARNING,"Exception booting service " + currentServDesc.getName() + " : " + t.toString());
+    			t.printStackTrace();
+    	}
     }
 
 	  //#MIDP_EXCLUDE_BEGIN
@@ -357,32 +380,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
 	  //#MIDP_EXCLUDE_END
-  }
-
-  protected void startAdditionalServices() {
-	  // Start all the additional services mentioned in the profile
-  	try {
-	    List l = myProfile.getSpecifiers(Profile.SERVICES);
-	    Iterator serviceSpecifiers = l.iterator();
-	    while(serviceSpecifiers.hasNext()) {
-	    	Specifier s = null;
-	      try {
-				  s = (Specifier) serviceSpecifiers.next();
-				  String serviceClass = s.getClassName();
-				  if (!(serviceClass.equals("jade.core.security.SecurityService") || serviceClass.equals("jade.core.security.permission.PermissionService"))) {
-				  	startService(serviceClass, true);
-				  }
-	      }
-	      catch(Exception e) {
-		  		System.out.println("Error starting service "+s.getClassName());
-				  e.printStackTrace();
-	      }
-		  }
-  	}
-  	catch (ProfileException pe) {
-  		System.out.println("Error reading services from profile.");
-  		pe.printStackTrace();
-  	}
   }
 
   boolean joinPlatform() {
@@ -406,7 +403,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		  // Perform the initial setup from the profile
 		  init();
 
-		  // Connect the local node to the platform and activate the basic services
+		  // Connect the local node to the platform and activate all the services
 		  startNode();
     }
     catch (IMTPException imtpe) {
@@ -427,9 +424,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
         endContainer();
         return false;
     }
-
-    // Start additional services as specified in the profile
-  	startAdditionalServices();
 
     // Create and activate agents that must be launched at bootstrap
   	startBootstrapAgents();

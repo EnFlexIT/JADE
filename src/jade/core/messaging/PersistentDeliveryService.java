@@ -26,13 +26,11 @@ package jade.core.messaging;
 //#J2ME_EXCLUDE_FILE
 
 import java.io.IOException;
-import java.util.Date;
 
 import jade.core.ServiceFinder;
 
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
-import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
@@ -45,19 +43,10 @@ import jade.core.AID;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
-import jade.core.NotFoundException;
-import jade.core.NameClashException;
-import jade.core.UnreachableException;
 
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.Envelope;
 
-import jade.util.leap.Iterator;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
 import jade.util.Logger;
 
 
@@ -124,23 +113,11 @@ public class PersistentDeliveryService extends BaseService {
 
 
     public void init(AgentContainer ac, Profile p) throws ProfileException {
-	super.init(ac, p);
-	myContainer = ac;
-	myServiceFinder = myContainer.getServiceFinder();
-
-	try {
-	    MessageManager.Channel ch = (MessageManager.Channel)myServiceFinder.findService(MessagingSlice.NAME);
-	    myManager = PersistentDeliveryManager.instance(p, ch);
-	    myManager.start();
-	}
-	catch(IMTPException imtpe) {
-	    imtpe.printStackTrace();
-	}
-	catch(ServiceException se) {
-	    se.printStackTrace();
-	}
+		super.init(ac, p);
+		myContainer = ac;
+		myServiceFinder = myContainer.getServiceFinder();
     }
-
+    
     public String getName() {
 	return PersistentDeliverySlice.NAME;
     }
@@ -634,24 +611,40 @@ public class PersistentDeliveryService extends BaseService {
 
 
     /**
-       Activates the ACL codecs and MTPs as specified in the given
-       <code>Profile</code> instance.
-       @param myProfile The <code>Profile</code> instance containing
-       the list of ACL codecs and MTPs to activate on this node.
-    **/
+       Activate the PersistentDeliveryManager and instantiate the 
+       PersistentDeliveryFilter.
+       Note that getting the MessagingService (required to instantiate
+       the PersistentDeliveryManager) cannot be done in the init() method
+       since at that time the MessagingService may not be installed yet.
+     */
     public void boot(Profile myProfile) throws ServiceException {
-	try {
-	    // Load the supplied class to filter messages if any
-	    String className = myProfile.getParameter(PERSISTENT_DELIVERY_FILTER, null);
-	    if(className != null) {
+    	// getting the delivery channel
+    	try {
+    	    MessageManager.Channel ch = (MessageManager.Channel)myServiceFinder.findService(MessagingSlice.NAME);
+    	    if (ch == null)
+    	    	throw new ServiceException("Can't locate delivery channel");
+    	    myManager = PersistentDeliveryManager.instance(myProfile, ch);
+    	    myManager.start();
+    	}
+    	catch(IMTPException imtpe) {
+    	    imtpe.printStackTrace();
+    	    throw new ServiceException("Cannot retrieve the delivery channel",imtpe);
+    	}
+
+    	try {
+		    // Load the supplied class to filter messages if any
+		    String className = myProfile.getParameter(PERSISTENT_DELIVERY_FILTER, null);
+		    if(className != null) {
 				Class c = Class.forName(className);
 				messageFilter = (PersistentDeliveryFilter)c.newInstance();
-	      logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
-	    }
-	}
-	catch(Exception e) {
-	    throw new ServiceException("Exception in message filter initialization", e);
-	}
+				logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
+		    }
+		}
+		catch(Exception e) {
+		    throw new ServiceException("Exception in message filter initialization", e);
+		}
+	
+
 
     }
 

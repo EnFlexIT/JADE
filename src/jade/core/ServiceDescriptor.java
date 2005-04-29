@@ -52,6 +52,7 @@ public class ServiceDescriptor implements Serializable {
     public ServiceDescriptor(String sn, Service svc) {
 	myName = sn;
 	myService = svc;
+	myIsMandatory = false;
     }
 
     /**
@@ -102,8 +103,17 @@ public class ServiceDescriptor implements Serializable {
     public Service getService() {
 	return myService;
     }
+    
+    public void setMandatory(boolean isMandatory) {
+    	myIsMandatory = isMandatory;
+    }
+    
+    public boolean isMandatory() {
+    	return myIsMandatory;
+    }
 
     private String myName;
+    private boolean myIsMandatory;
     private transient Service myService;
 
 	//#MIDP_EXCLUDE_BEGIN

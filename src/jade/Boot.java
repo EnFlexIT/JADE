@@ -43,7 +43,6 @@ import java.util.Vector;         // J2ME CLDC OK
 import jade.core.Runtime;
 import jade.core.Profile;
 //import jade.core.BootProfileImpl;
-import jade.core.Specifier;
 import jade.util.BasicProperties;
 import jade.util.PropertiesException;
 //import jade.security.SecurityFactory;
@@ -84,23 +83,23 @@ public class Boot {
         } 
         properties = profile.getArgProperties();
 
-        if (properties.getBooleanProperty(profile.DUMP_KEY, false)) {
+        if (properties.getBooleanProperty(BootProfileImpl.DUMP_KEY, false)) {
             listProperties(System.out);
         }
 
-        if (properties.getBooleanProperty(profile.VERSION_KEY, false)) {
+        if (properties.getBooleanProperty(BootProfileImpl.VERSION_KEY, false)) {
             System.out.println(Runtime.getCopyrightNotice());
             return;
         }
 
-        if (properties.getBooleanProperty(profile.HELP_KEY, false)) {
+        if (properties.getBooleanProperty(BootProfileImpl.HELP_KEY, false)) {
             usage(System.out);
             return;
         }
 
-        if (properties.getProperty(profile.MAIN_HOST) == null) {
+        if (properties.getProperty(Profile.MAIN_HOST) == null) {
             try {
-                properties.setProperty(profile.MAIN_HOST, InetAddress.getLocalHost().getHostName());
+                properties.setProperty(Profile.MAIN_HOST, InetAddress.getLocalHost().getHostName());
             } catch (UnknownHostException uhe) {
                 System.out.print("Unknown host exception in getLocalHost(): ");
                 System.out.println(" please use '-host' and/or '-port' options to setup JADE host and port");
@@ -108,9 +107,9 @@ public class Boot {
             }
         }
 
-        if (properties.getBooleanProperty(profile.CONF_KEY, false)) {
+        if (properties.getBooleanProperty(BootProfileImpl.CONF_KEY, false)) {
             new BootGUI(this);
-            if (properties.getBooleanProperty(profile.DUMP_KEY, false)) {
+            if (properties.getBooleanProperty(BootProfileImpl.DUMP_KEY, false)) {
                 listProperties(System.out);
             }
         }
@@ -450,14 +449,14 @@ public class Boot {
      */
     protected void check() throws BootException {
         try {
-            Integer.parseInt(profile.getParameter(profile.MAIN_PORT, Integer.toString(profile.DEFAULT_PORT)));
+            Integer.parseInt(profile.getParameter(Profile.MAIN_PORT, Integer.toString(BootProfileImpl.DEFAULT_PORT)));
         } catch (NumberFormatException nfe) {
             throw new BootException("Malformed port number");
         }
 
         // Remove the MTP list if '-nomtp' is specified
-        if (profile.getBooleanProperty(profile.NOMTP_KEY, false)) {
-            if (profile.getParameter(profile.MTP_KEY, null) != null) {
+        if (profile.getBooleanProperty(BootProfileImpl.NOMTP_KEY, false)) {
+            if (profile.getParameter(BootProfileImpl.MTP_KEY, null) != null) {
                 throw new BootException("Error: If noMTP is set, you can't specify MTPs.");
             }
         }
@@ -465,7 +464,7 @@ public class Boot {
         // Check that the local-host is actually local
         try {
             InetAddress myPlatformAddrs[] = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
-            InetAddress hostAddrs[] = InetAddress.getAllByName(profile.getParameter(profile.LOCAL_HOST, null));
+            InetAddress hostAddrs[] = InetAddress.getAllByName(profile.getParameter(Profile.LOCAL_HOST, null));
 
             // The trick here is to compare the InetAddress
             // objects, not the strings since the one string might be a
@@ -491,10 +490,10 @@ public class Boot {
             }
 
             if (!isLocal) {
-                throw new BootException("Error: Not possible to launch JADE a remote host ("+properties.getProperty(profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
+                throw new BootException("Error: Not possible to launch JADE a remote host ("+properties.getProperty(Profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
             }
         } catch (UnknownHostException uhe) {
-            throw new BootException("Error: Not possible to launch JADE an unknown host ("+properties.getProperty(profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
+            throw new BootException("Error: Not possible to launch JADE an unknown host ("+properties.getProperty(Profile.LOCAL_HOST)+"). Check the -host and -local-host options.");
         }
     }
 
