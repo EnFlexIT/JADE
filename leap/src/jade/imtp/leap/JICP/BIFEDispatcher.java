@@ -577,13 +577,15 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				  		// that (if the BackEnd is created on a different host) we do not
 				  		// end up with the INP and OUT connections pointing to different 
 				  		// hosts.
+				  		// Finally, if BE re-creation fails, we behave as if there was an 
+				  		// IOException when trying to reconnect.
 					  	try {
 					  		handleBENotFound();
 					  		c = createBackEnd();
 					  		handleReconnection(c, type);
 					  	}
 					  	catch (IMTPException imtpe) { 
-					      handleError();
+					      throw new IOException("BE-recreation failed");
 					  	}
 				  	}
 				  	else {
@@ -829,7 +831,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   			JICPPacket rsp = outConnection.readPacket();
 	  		myLogger.log(Logger.INFO, "DROP_DOWN response received");
   					
-	  		if ((rsp.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) {
+	  		if (rsp.getType() != JICPProtocol.ERROR_TYPE) {
 			  	// Now close the outConnection
 			  	try {
 				  	outConnection.close();
@@ -847,10 +849,14 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 					}
 	  		}
 	  		else {
-	  			// The BE has the INP connection down and we didn't know that.
-	  			// Do not drop, but refresh the INP connection
-		  		myLogger.log(Logger.INFO, "INP connection refresh request from BE");
-	  			refreshInp();
+	  			// The BE refused to drop down the connection
+		  		myLogger.log(Logger.INFO, "DROP_DOWN refused");
+		  		if ((rsp.getInfo() & JICPProtocol.RECONNECT_INFO) != 0) {
+		  			// The BE has the INP connection down and we didn't know that.
+		  			// Refresh the INP connection
+			  		myLogger.log(Logger.INFO, "INP connection refresh request from BE");
+		  			refreshInp();
+		  		}
 	  		}
 	  	}
 	  	catch (IOException ioe) {

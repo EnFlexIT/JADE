@@ -163,6 +163,10 @@ public class MicroStub {
 		return false;
 	}
 	
+	public boolean isEmpty() {
+		return ((pendingCommands.size() == 0) && (!flushing));
+	}
+	
 	/**
 	   Note that normal command-dispatching and postponed command
 	   flushing can't occur at the same time, but different commands

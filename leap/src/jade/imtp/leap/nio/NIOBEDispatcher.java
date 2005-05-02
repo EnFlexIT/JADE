@@ -426,11 +426,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 		}
 		
 		try {
-			// It might be that case that the FE does not know that the INP
-			// connection is DOWN. In this case, postponed commands 
-			// will never be delivered if we serve the DROP_DOWN request 
-			// normally. 
-			if (inpManager.isConnected()) {
+			// If the INP connection is down or we have some postponed command
+			// to flush, refuse dropping the connection
+			if (inpManager.isConnected() && inpManager.isEmpty()) {
 				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 				c.writePacket(rsp);
 				
@@ -439,8 +437,8 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				connectionDropped = true;
 			}
 			else {
-				myLogger.log(Logger.WARNING,  myID+": INP connection is down. Ignoring DROP_DOWN request.");
-				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.RECONNECT_INFO, null);
+				myLogger.log(Logger.WARNING,  myID+": DROP_DOWN request refused.");
+				JICPPacket rsp = new JICPPacket(JICPProtocol.ERROR_TYPE, getReconnectInfo(), null);
 				c.writePacket(rsp);
 			}
 		}
@@ -523,6 +521,10 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	  
   	final boolean isConnected() {
   		return myConnection != null;
+  	}
+  	
+  	final boolean isEmpty() {
+  		return myStub.isEmpty();
   	}
   	
   	void shutdown() {
@@ -751,17 +753,26 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		return (!isConnected()) && (currentTime > expirationDeadline);
   	}
   			
-	  private final byte getReconnectInfo() {
+	  /*private final byte getReconnectInfo() {
 	  	byte info = JICPProtocol.DEFAULT_INFO;
 			// If the inpConnection is null request the FrontEnd to reconnect
 			if (!inpManager.isConnected()) {
 				info |= JICPProtocol.RECONNECT_INFO;
 			}
 			return info;
-	  }
+	  }*/
   } // END of inner class OutputManager
   
 
+  private final byte getReconnectInfo() {
+  	byte info = JICPProtocol.DEFAULT_INFO;
+		// If the inpConnection is null request the FrontEnd to reconnect
+		if (!inpManager.isConnected()) {
+			info |= JICPProtocol.RECONNECT_INFO;
+		}
+		return info;
+  }
+	  
   private final void checkTerminatedInfo(JICPPacket pkt) {
 		if ((pkt.getInfo() & JICPProtocol.TERMINATED_INFO) != 0) {
 			peerActive = false;
