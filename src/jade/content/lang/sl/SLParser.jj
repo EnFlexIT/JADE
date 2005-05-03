@@ -111,12 +111,25 @@ class SLParser {
      this.slType = slType;
   }
 
-
+  
   Ontology curOntology = null;
+  /**
+   * Reinitialize the parser such as it is ready to parse a new expression.
+   * @param content the content to be parsed
+   * @param o the ontology, null if no ontology (this parameter is used to get the names of the slots
+   * when they are encoded as unnamed slots.
+  */
+  void reinit(Ontology o, String content) {
+    curOntology = o;
+    if (content == null) content = new String();
+    ReInit(new StringReader(content));
+  }
+
   /**
    * @param content the content to be parsed
    * @param o the ontology, null if no ontology (this parameter is used to get the names of the slots
    * when they are encoded as unnamed slots.
+   * @deprecated since JADE 3.4 it is preferrable to use reinit() and then call directly the method corresponding to the production rule (e.g. Content())
   */
   AbsContentElement parse(Ontology o, String content) throws ParseException, TokenMgrError{
     curOntology = o;
@@ -216,6 +229,7 @@ AbsContentElement ContentExpression():
  {return val;}
 }
 
+
 AbsContentElement ContentExpression_NoBrace() :
 { AbsContentElement val=null; }
 {
@@ -226,7 +240,6 @@ AbsContentElement ContentExpression_NoBrace() :
 }
 
 
-//FIXME. The IRE has been constrained to contain a Variable instead of a Term.
 AbsIRE IdentifyingExpression_NoBrace() :
 { Token t; AbsIRE ire=null; AbsPredicate prop; AbsTerm term; AbsVariable var;}
 {

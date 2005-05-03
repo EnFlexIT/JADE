@@ -358,37 +358,137 @@ public class SLCodec extends StringCodec {
      */
     public synchronized AbsContentElement decode(Ontology ontology, String content) throws CodecException {
 	try {
-	    return parser.parse(ontology,content);
+      parser.reinit(ontology, content);
+			AbsContentElementList tuple = parser.Content();
+			if (tuple.size() > 1)
+					return tuple;
+			else  // if there is a single ContentExpression than return just it, not the tuple
+					return tuple.get(0);
 	}  catch(Throwable e) { // both ParseException and TokenMgrError
 	    throw new CodecException("Parse exception", e);
 	}
     }
 
 
+
+    /**
+     * Decodes the content to an abstract description, where the content is known to be a Term.
+     * @param ontology the ontology.
+     * @param cterm the term as a String.
+     * @return the content as an abstract description.
+     * @throws CodecException
+		 * @since JADE 3.4
+     */
+    public synchronized AbsTerm decodeTerm(Ontology ontology, String term) throws CodecException {
+				try {
+						parser.reinit(ontology, term);
+						return parser.Term();
+				}  catch(Throwable e) { // both ParseException and TokenMgrError
+						throw new CodecException("Parse exception", e);
+				}
+    }
+
+
+		/**
+     * Encodes the content into a String, where the content is known to be a Term.
+     * @param ontology the ontology.
+     * @param term the termt as an abstract descriptor
+     * @return the content as a String 
+     * @throws CodecException
+		 * @since JADE 3.4
+     */
+    public synchronized String encodeTerm(Ontology ontology, AbsTerm term) throws CodecException {
+				try {
+						domainOnto = ontology;
+						buffer = new StringBuffer();
+						encodeAndAppend(term);
+						return buffer.toString();
+				} finally {
+						buffer = null; //frees the memory
+				}
+    }
+
+
+    /**
+     * Decodes the content to an abstract description, where the content is known to be a Well-formed Formula
+     * @param ontology the ontology.
+     * @param formula the content as a String.
+     * @return the content as an abstract description.
+     * @throws CodecException
+		 * @since JADE 3.4
+     */
+    public synchronized AbsPredicate decodeFormula(Ontology ontology, String formula) throws CodecException {
+				try {
+						parser.reinit(ontology, formula);
+						return parser.Wff();
+				}  catch(Throwable e) { // both ParseException and TokenMgrError
+						throw new CodecException("Parse exception", e);
+				}
+    }
+
+
+		/**
+     * Encodes the content into a String, where the content is known to be a Well-formed Formula
+     * @param ontology the ontology.
+     * @param formula the formula as an abstract descriptor
+     * @return the content as a String 
+     * @throws CodecException
+		 * @since JADE 3.4
+     */
+    public synchronized String encodeFormula(Ontology ontology, AbsPredicate formula) throws CodecException {
+				try {
+						domainOnto = ontology;
+						buffer = new StringBuffer();
+						encodeAndAppend(formula);
+						return buffer.toString();
+				} finally {
+						buffer = null; //frees the memory
+				}
+    }
+
+
     public static void main(String[] args) {
 	SLCodec codec = null;
+  char contentType = 'C';
 	try {
 	    codec = new SLCodec(Integer.parseInt(args[0]));
+			contentType = (args.length > 1 ? args[1].charAt(0) : 'C');
 	} catch (Exception e) {
-	    System.out.println("usage: SLCodec SLLevel\n  where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL");
+	    System.out.println("usage: SLCodec SLLevel [ContentType]\n where SLLevel can be 0 for SL0, 1 for SL1, 2 for SL2, 3 or more for full SL \n and where ContentType is a char representing the type of content to be parsed: C for a contentexpression (default), T for a term, F for a formula");
 	    System.exit(0);
 	}
 
 	while (true) {
 	    try {
-		System.out.println("insert an SL expression to parse (all the expression on a single line!): ");
+		System.out.println("insert an SL " + (contentType == 'F' ? "Well-Formed Formula" : (contentType == 'T' ? "Term" : "Content Expression")) + " to parse (all the expression on a single line!): ");
 		BufferedReader buff = new BufferedReader(new InputStreamReader(System.in));
 		String str = buff.readLine();
 		System.out.println("\n\n");
-		//AbsContentElement result = codec.decode(str.getBytes("US-ASCII"));
-		AbsContentElement result = codec.decode(str);
-		System.out.println("DUMP OF THE DECODE OUTPUT:");
-		System.out.println(result);
-		System.out.println("\n\n");
-		System.out.println("AFTER ENCODE:");
-		//System.out.println(new String(codec.encode(result),"US-ASCII"));
-		System.out.println(codec.encode(result));
-		System.out.println("\n\n");
+		if (contentType == 'F') {
+				AbsPredicate result = codec.decodeFormula(null, str);
+				System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
+				System.out.println(result);
+				System.out.println("\n\n");
+				System.out.println("AFTER ENCODE:");
+				System.out.println(codec.encodeFormula(null, result));
+				System.out.println("\n\n");
+		} else if (contentType == 'T') {
+				AbsTerm result = codec.decodeTerm(null, str);
+				System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
+				System.out.println(result);
+				System.out.println("\n\n");
+				System.out.println("AFTER ENCODE:");
+				System.out.println(codec.encodeTerm(null, result));
+				System.out.println("\n\n");
+		} else {
+				AbsContentElement result = codec.decode(str);
+				System.out.println("DUMP OF THE DECODE OUTPUT (just for debugging):");
+				System.out.println(result);
+				System.out.println("\n\n");
+				System.out.println("AFTER ENCODE:");
+				System.out.println(codec.encode(result));
+				System.out.println("\n\n");
+		}
 	    } catch(Exception pe) {
 		pe.printStackTrace();
 		//System.exit(0);
