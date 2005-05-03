@@ -232,7 +232,7 @@ public class SLCodec extends StringCodec {
     	buffer.append('(');
       encodeAndAppend(val.getTypeName());
       buffer.append(' ');
-      encodeAndAppend(val.getVariable());
+      encodeAndAppend(val.getTerm());
       buffer.append(' ');
       encodeAndAppend(val.getProposition());
       buffer.append(')'); 

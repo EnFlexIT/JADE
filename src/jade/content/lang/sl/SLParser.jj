@@ -230,9 +230,11 @@ AbsContentElement ContentExpression_NoBrace() :
 AbsIRE IdentifyingExpression_NoBrace() :
 { Token t; AbsIRE ire=null; AbsPredicate prop; AbsTerm term; AbsVariable var;}
 {
- t=<REFERENTIALOP> {if (slType<2) throw new ParseException("NotFullSL_IdentifyExpression_NotParsable_UseAtLeastSL2");} /* t=Term()*/ var=Variable() prop=Wff()
+ t=<REFERENTIALOP> {if (slType<2) throw new ParseException("NotFullSL_IdentifyExpression_NotParsable_UseAtLeastSL2");} term=Term() /*var=Variable()*/ prop=Wff()
  { ire = new AbsIRE(t.image); 
-   ire.setVariable(var); ire.setProposition(prop); 
+   /*ire.setVariable(var);*/
+   ire.setTerm(term);
+   ire.setProposition(prop); 
    return ire;}
 }
 

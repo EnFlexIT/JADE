@@ -69,7 +69,7 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
      * Sets the variable term of this IRE.
      * @param t The abstract descriptor holding the variable or sequence of variables.
      */
-    public void setAbsTerm(AbsTerm t) {
+    public void setTerm(AbsTerm t) {
     	if (t instanceof AbsVariable) {
     		setVariable((AbsVariable) t);
     	}
@@ -109,7 +109,7 @@ public class AbsIRE extends AbsObjectImpl implements AbsContentElement, AbsTerm 
      * Gets the variable term of this IRE.
      * @return the abstract descriptor holding the variable term of this IRE.
      */
-    public AbsTerm getAbsTerm() {
+    public AbsTerm getTerm() {
         return (AbsTerm) getAbsObject(IRESchema.VARIABLE);
     } 
 
