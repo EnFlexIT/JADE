@@ -888,8 +888,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
             response = dispatchSerializedCommand(destTAs, originalPayload, origin);
           } 
           catch (UnreachableException ue) {
-
-            // rsp = buildExceptionResponse("jade.core.UnreachableException", ue.getMessage());
             response = buildExceptionResponse(ue);
           } 
         } 
@@ -900,18 +898,20 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         // process it.
       	Integer id = new Integer(command.getObjectID());
       	Skeleton s = (Skeleton) skeletons.get(id);
-      	if (s == null) {
-      		throw new DispatcherException("No skeleton for object-id "+id);
+      	if (s != null) {
+	        response = s.processCommand(command);
       	}
-        response = s.processCommand(command);
+      	else {
+      		response = buildExceptionResponse(new DispatcherException("No skeleton for object-id "+id));
+      	}
       } 
 
       return serializeCommand(response);
     } 
     catch (Exception e) {
-
-      // FIXME. If this throws an exception this is not handled by
-      // the CommandDispatcher.
+      // Note that if the call below throws an exception this is not handled by
+      // the CommandDispatcher. However this should never happen as an exception
+    	// response should always be serializable.
       return serializeCommand(buildExceptionResponse(new DispatcherException(e.toString())));
     } 
   } 

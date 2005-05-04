@@ -376,7 +376,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  //#MIDP_EXCLUDE_BEGIN
 	  // If we are the master main container --> start the AMS and DF
 	  if(myMainContainer != null) {
-	      boolean startThem = (myProfile.getParameter(Profile.LOCAL_SERVICE_MANAGER, null) == null);
+	      boolean startThem = !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false);
 	      myMainContainer.initSystemAgents(this, startThem);
 	  }
 	  //#MIDP_EXCLUDE_END

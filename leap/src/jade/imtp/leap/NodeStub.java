@@ -35,8 +35,6 @@ class NodeStub extends Stub implements Node {
 	private String name;
 	private boolean hasPM = false;
 	
-	private Logger myLogger = Logger.getMyLogger(getClass().getName());
-	
   public NodeStub() {
 		super();
   }

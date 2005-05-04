@@ -38,6 +38,7 @@ import jade.core.*;
 import jade.mtp.TransportAddress;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.Logger;
 
 /**
  * @author Giovanni Caire - Telecom Italia LAB
@@ -56,6 +57,8 @@ class Stub {
   //protected CommandDispatcher theDispatcher = null;
   protected StubHelper theDispatcher = null;
 
+	protected Logger myLogger = Logger.getMyLogger(getClass().getName());
+	
   /**
    * Default Constructor
    */
@@ -117,7 +120,7 @@ class Stub {
 
       // The exception thrown is not among the expected exceptions -->
       // Print a notification and throw IMTPException
-      System.out.println("EXCEPTION in remote container: "+exceptionName);
+      myLogger.log(Logger.WARNING, "EXCEPTION in remote container: "+exceptionName);
       throw new IMTPException(exceptionName+" occurred in remote container ["
                               +(String) result.getParamAt(1)+"]");
     } 

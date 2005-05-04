@@ -211,6 +211,18 @@ public class LEAPIMTPManager implements IMTPManager {
 		  	catch (ServiceException se) {
 		  		throw new IMTPException("Cannot attach to the original PlatformManager.", se);
 		  	}
+		  	catch (IMTPException imtpe) {
+		  		Throwable t = imtpe.getNested();
+		  		if ((t != null) && (t instanceof UnreachableException)) {
+		  			// The master main container does not exists. Become the leader
+          	logger.log(Logger.INFO,"No master main container found at "+masterPMAddr+". Take the leadership");
+          	masterPMAddr = null;
+          	theProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, "false");
+		  		}
+		  		else {
+		  			throw imtpe;
+		  		}
+		  	}		  	
       }
   }
 

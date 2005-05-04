@@ -318,9 +318,11 @@ public class PlatformManagerImpl implements PlatformManager {
 			
 			// Add all service slices
 			// Do not broadcast since this information is already conveied when broadcasting the add-node event
-			for (int i = 0; i < nodeServices.size(); ++i) {
-				ServiceDescriptor service = (ServiceDescriptor) nodeServices.elementAt(i);
-				localAddSlice(service, dsc, propagated);
+			if (nodeServices != null) {
+				for (int i = 0; i < nodeServices.size(); ++i) {
+					ServiceDescriptor service = (ServiceDescriptor) nodeServices.elementAt(i);
+					localAddSlice(service, dsc, propagated);
+				}
 			}
 
 			// Return the name given to the new node
