@@ -472,6 +472,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
    */
   protected class InputManager {
   	private Connection myConnection;
+  	private boolean dispatching = false;
   	private boolean connectionRefreshed;
   	private boolean waitingForFlush;
   	private long readStartTime = -1;
@@ -524,7 +525,9 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	}
   	
   	final boolean isEmpty() {
-  		return myStub.isEmpty();
+  		// We are empty if we are not dispatching a JICPPacket and our stub 
+  		// has no postponed commands waiting to be delivered.
+  		return (!dispatching) && myStub.isEmpty();
   	}
   	
   	void shutdown() {
@@ -539,68 +542,74 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	 */
   	final JICPPacket dispatch(JICPPacket pkt, boolean flush) throws ICPException {
   		synchronized (dispatchLock) {
-	  		synchronized (this) {
-		  		if ((!active) || (myConnection == null) || (waitingForFlush && (!flush))) {
-			  		// If we are waiting for flushed packets and the current packet
-			  		// is a normal (i.e. non-flushed) one, then throw an exception -->
-		  			// The packet will be put in the queue of packets to be flushed
-		  			System.out.println("###### Dispatching in disconnected state.");
-			  		throw new ICPException("Unreachable");
+  			dispatching = true;
+  			try {
+		  		synchronized (this) {
+			  		if ((!active) || (myConnection == null) || (waitingForFlush && (!flush))) {
+				  		// If we are waiting for flushed packets and the current packet
+				  		// is a normal (i.e. non-flushed) one, then throw an exception -->
+			  			// The packet will be put in the queue of packets to be flushed
+			  			System.out.println("###### Dispatching in disconnected state.");
+				  		throw new ICPException("Unreachable");
+			  		}
+			  		
+			  		waitingForFlush = false;
+			  		connectionRefreshed = false;
 		  		}
 		  		
-		  		waitingForFlush = false;
-		  		connectionRefreshed = false;
-	  		}
-	  		
-	  		try {
-			  	pkt.setSessionID((byte) inpCnt);
-			  	if (myLogger.isLoggable(Logger.FINE)) {
-				  	myLogger.log(Logger.FINE, myID+": Sending command "+inpCnt+" to FE");
-			  	}
-			  	
-				  long start = System.currentTimeMillis();
-					myConnection.writePacket(pkt);
-					// Asynch-reply: JICPPacket reply = waitForReply(RESPONSE_TIMEOUT);
-				  readStartTime = System.currentTimeMillis();
-					JICPPacket reply = myConnection.readPacket();
-				  readStartTime = -1;
-				  checkTerminatedInfo(reply);
-				  lastReceivedTime = System.currentTimeMillis();
-				  long end = lastReceivedTime;
-			  	System.out.println("INP Session "+inpCnt+". Dispatching time = "+(end-start));
-				  
-			  	if (myLogger.isLoggable(Logger.FINER)) {
-				  	myLogger.log(Logger.FINER, myID+": Received response "+inpCnt+" from FE");
-			  	}
-			    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
-			    	// Communication OK, but there was a JICP error on the peer
-			      throw new ICPException(new String(pkt.getData()));
-			    }
-			    if (!peerActive) {
-			    	// This is the response to an exit command --> Suicide, without
-			    	// killing the above container since it is already dying. 
-			    	NIOBEDispatcher.this.shutdown();
-			    }
-			  	inpCnt = (inpCnt+1) & 0x0f;
-			  	return reply;
-	  		}
-		  	catch (NullPointerException npe) {
-		  		// This can happen if a resetConnection() occurs just before 
-		  		// myConnection.writePacket()/readPacket() is called.
-		  		throw new ICPException("Connection reset.");
-		  	}
-		  	catch (IOException ioe) {
-		  		synchronized (this) {
-		  			if (myConnection != null && !connectionRefreshed) {
-				  		// There was an IO exception writing data to the connection
-				  		// --> reset the connection.
-							myLogger.log(Logger.WARNING,myID+": IOException IC. "+ioe);
-				  		resetConnection();
-		  			}
+		  		try {
+				  	pkt.setSessionID((byte) inpCnt);
+				  	if (myLogger.isLoggable(Logger.FINE)) {
+					  	myLogger.log(Logger.FINE, myID+": Sending command "+inpCnt+" to FE");
+				  	}
+				  	
+					  long start = System.currentTimeMillis();
+						myConnection.writePacket(pkt);
+						// Asynch-reply: JICPPacket reply = waitForReply(RESPONSE_TIMEOUT);
+					  readStartTime = System.currentTimeMillis();
+						JICPPacket reply = myConnection.readPacket();
+					  readStartTime = -1;
+					  checkTerminatedInfo(reply);
+					  lastReceivedTime = System.currentTimeMillis();
+					  long end = lastReceivedTime;
+				  	System.out.println("INP Session "+inpCnt+". Dispatching time = "+(end-start));
+					  
+				  	if (myLogger.isLoggable(Logger.FINER)) {
+					  	myLogger.log(Logger.FINER, myID+": Received response "+inpCnt+" from FE");
+				  	}
+				    if (reply.getType() == JICPProtocol.ERROR_TYPE) {
+				    	// Communication OK, but there was a JICP error on the peer
+				      throw new ICPException(new String(pkt.getData()));
+				    }
+				    if (!peerActive) {
+				    	// This is the response to an exit command --> Suicide, without
+				    	// killing the above container since it is already dying. 
+				    	NIOBEDispatcher.this.shutdown();
+				    }
+				  	inpCnt = (inpCnt+1) & 0x0f;
+				  	return reply;
 		  		}
-				  readStartTime = -1;
-		  		throw new ICPException("Dispatching error.", ioe);
-		  	}
+			  	catch (NullPointerException npe) {
+			  		// This can happen if a resetConnection() occurs just before 
+			  		// myConnection.writePacket()/readPacket() is called.
+			  		throw new ICPException("Connection reset.");
+			  	}
+			  	catch (IOException ioe) {
+			  		synchronized (this) {
+			  			if (myConnection != null && !connectionRefreshed) {
+					  		// There was an IO exception writing data to the connection
+					  		// --> reset the connection.
+								myLogger.log(Logger.WARNING,myID+": IOException IC. "+ioe);
+					  		resetConnection();
+			  			}
+			  		}
+					  readStartTime = -1;
+			  		throw new ICPException("Dispatching error.", ioe);
+			  	}
+  			}
+  			finally {
+  				dispatching = false;
+  			}
   		}
   	}
   	
