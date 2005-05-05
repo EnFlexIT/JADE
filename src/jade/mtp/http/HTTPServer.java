@@ -92,8 +92,12 @@ public class HTTPServer extends Thread {
     }
     timeout = t;
     try {
-				//server = new ServerSocket(port);
-			server = HTTPSocketFactory.getInstance().createServerSocket(port);
+				//#DOTNET_EXCLUDE_BEGIN 
+				server = HTTPSocketFactory.getInstance().createServerSocket(port);
+				//#DOTNET_EXCLUDE_END
+				/*#DOTNET_INCLUDE_BEGIN
+					server = new ServerSocket(port);
+					#DOTNET_INCLUDE_END*/
     }
     catch (IOException ioe) {
     	if (changePortIfBusy) {

@@ -2970,16 +2970,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "jade\wrapper\GatewayAgent.java"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "jade\wrapper\JadeGateway.java"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "jade\wrapper\PlatformController.java"
                     SubType = "Code"
                     BuildAction = "Compile"
