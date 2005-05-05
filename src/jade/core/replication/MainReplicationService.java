@@ -184,6 +184,11 @@ public class MainReplicationService extends BaseService {
 
     }
 
+    public void shutdown() {
+    	if (localSlice != null) {
+	    	localSlice.stopMonitoring();
+    	}
+    }
 
     private class CommandOutgoingFilter extends Filter {
 
@@ -391,30 +396,33 @@ public class MainReplicationService extends BaseService {
     myPlatformManager = myMain.getPlatformManager();
 	}
 
+	public void stopMonitoring() {
+    if(nodeMonitor != null) {
+			if (logger.isLoggable(Logger.CONFIG))
+				logger.log(Logger.CONFIG,"Stop monitoring node <"+nodeMonitor.getNode().getName()+">");
+			nodeMonitor.stop();
+    }
+	}
+	
 	private void attachTo(int label, MainReplicationSlice slice) throws IMTPException, ServiceException {
 
-	    // Stop the previous monitor, if any
-	    if(nodeMonitor != null) {
-	    	//log("Stop monitoring node <"+nodeMonitor.getNode().getName()+">", 2);
-                if (logger.isLoggable(Logger.CONFIG))
-                  logger.log(Logger.CONFIG,"Stop monitoring node <"+nodeMonitor.getNode().getName()+">");
-				nodeMonitor.stop();
-	    }
+		// Stop the previous monitor, if any
+		stopMonitoring();
+		
+		// Store the label of the monitored slice
+		monitoredLabel = label;
+		
+		// Avoid monitoring yourself
+		if(monitoredLabel == myLabel) {
+			return;
+		}
 
-	    // Store the label of the monitored slice
-	    monitoredLabel = label;
-
-	    // Avoid monitoring yourself
-	    if(monitoredLabel == myLabel) {
-		return;
-	    }
-
-	    // Store the Service Manager address for the monitored slice
-	    monitoredSvcMgr = slice.getPlatformManagerAddress();
-
-	    // Set up a failure monitor on the target slice...
-	    nodeMonitor = NodeFailureMonitor.getFailureMonitor();
-	    nodeMonitor.start(slice.getNode(), this);
+		// Store the Service Manager address for the monitored slice
+		monitoredSvcMgr = slice.getPlatformManagerAddress();
+		
+		// Set up a failure monitor on the target slice...
+		nodeMonitor = NodeFailureMonitor.getFailureMonitor();
+		nodeMonitor.start(slice.getNode(), this);
 	}
 
 	// Implementation of the Service.Slice interface
@@ -779,58 +787,37 @@ public class MainReplicationService extends BaseService {
 
     } // End of ServiceComponent class
 
-  /*#PJAVA_INCLUDE_BEGIN
-  // PJAVA workaround as protected methods inherited from parent class
-  // are not accessible to inner classes
-  //public void log(String txt, int l) {
-    //super.log(txt,l);
-  //}
-  #PJAVA_INCLUDE_END*/
 
+	private AgentContainer myContainer;
+	
+	private ServiceComponent localSlice;
+	
+	private Filter outFilter;
+	private Filter inFilter;
+	
+	private int myLabel = -1;
+	private final List replicas = new LinkedList();
+	
+	// Owned copies of Main Container and Service Manager
+	private MainContainerImpl myMain;
+	private PlatformManager myPlatformManager;
 
-    private AgentContainer myContainer;
-
-    private ServiceComponent localSlice;
-
-    private Filter outFilter;
-    private Filter inFilter;
-
-
-
-    // Service specific data
-
-    private int myLabel = -1;
-    private final List replicas = new LinkedList();
-
-    // Owned copies of Main Container and Service Manager
-    private MainContainerImpl myMain;
-    private PlatformManager myPlatformManager;
-
-    private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
-
-	Object[] slices = replicas.toArray();
-
-	String localNodeName = getLocalNode().getName();
-	for(int i = 0; i < slices.length; i++) {
-	    MainReplicationSlice slice = (MainReplicationSlice)slices[i];
-
-	    String sliceName = slice.getNode().getName();
-	    if(includeSelf || !sliceName.equals(localNodeName)) {
-		slice.serve(cmd);
-		Object ret = cmd.getReturnValue();
-		if (ret instanceof Throwable) {
-			//log("Error propagating H-command "+cmd.getName()+" to slice "+sliceName, 0);
-                        if (logger.isLoggable(Logger.SEVERE))
-                          logger.log(Logger.SEVERE,"Error propagating H-command "+cmd.getName()+" to slice "+sliceName);
-
-			((Throwable) ret).printStackTrace();
+  private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
+		Object[] slices = replicas.toArray();
+	
+		String localNodeName = getLocalNode().getName();
+		for(int i = 0; i < slices.length; i++) {
+			MainReplicationSlice slice = (MainReplicationSlice)slices[i];
+			
+			String sliceName = slice.getNode().getName();
+			if(includeSelf || !sliceName.equals(localNodeName)) {
+				slice.serve(cmd);
+				Object ret = cmd.getReturnValue();
+				if (ret instanceof Throwable) {
+					logger.log(Logger.SEVERE,"Error propagating H-command "+cmd.getName()+" to slice "+sliceName);
+					((Throwable) ret).printStackTrace();
+				}
+			}
 		}
-	    }
 	}
-
-    }
-
-
-
-
 }

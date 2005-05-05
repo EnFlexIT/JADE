@@ -256,18 +256,18 @@ public abstract class BaseService implements Service {
     }
 
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
-
-	// First look through the name alias table
-	String realName = lookupAlias(name);
-
-	// Invalidate the cache entry
-	slices.remove(realName);
-
-	// Get a newer slice and return it
-	return getSlice(name);
-
+    	clearCachedSlice(name);
+			// Get a newer slice and return it
+			return getSlice(name);
     }
 
+    void clearCachedSlice(String name) {
+			// First look through the name alias table
+			String realName = lookupAlias(name);
+			// Invalidate the cache entry
+			slices.remove(realName);
+    }
+    
     //#MIDP_EXCLUDE_BEGIN
     protected CallbackInvokator createInvokator() {
     	return new CallbackInvokator();

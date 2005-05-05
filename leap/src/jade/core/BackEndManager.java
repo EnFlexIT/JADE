@@ -40,7 +40,7 @@ import jade.util.Logger;
  */
 
 class BackEndManager {
-	public static final String PERMANENT = "jade_core_BackEndManager_permanent";
+	//public static final String PERMANENT = "jade_core_BackEndManager_permanent";
 	
   // The Profile defining the configuration of this Container
   protected Profile myProfile;
@@ -55,7 +55,7 @@ class BackEndManager {
   private NodeDescriptor myNodeDescriptor;
   
   private Map children = new HashMap();
-  private boolean permanent;
+  //private boolean permanent;
   
   private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
@@ -76,7 +76,7 @@ class BackEndManager {
 	
   private void joinPlatform() throws IMTPException {
   	try {
-  		permanent = myProfile.getBooleanProperty(PERMANENT, false);
+  		//permanent = myProfile.getBooleanProperty(PERMANENT, false);
   		
       myIMTPManager = myProfile.getIMTPManager();
       myIMTPManager.initialize(myProfile);
@@ -143,9 +143,9 @@ class BackEndManager {
 	  	if (myLogger.isLoggable(Logger.CONFIG)) {
 	  		myLogger.log(Logger.CONFIG, "Child node "+child.getName()+" deregistered.");
 	  	}
-	  	if (children.isEmpty() && !permanent) {
-	  		shutDown();
-	  	}
+	  	//if (children.isEmpty() && !permanent) {
+	  	//	shutDown();
+	  	//}
   	}
   	catch (Exception e) {
   		myLogger.log(Logger.WARNING, "Error deregistering child node "+child.getName()+". "+e);

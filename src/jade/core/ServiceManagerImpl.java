@@ -126,7 +126,6 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
 
-  // FIXME: Should take an array of Service
   public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, JADESecurityException {
   	localNode = desc.getNode();
 	  try {
@@ -395,6 +394,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	          myLogger.log(Logger.INFO,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
 	        }
 				  myPlatformManager.adopt(localNode, null);
+				  clearCachedMainSlice();
           if(myLogger.isLoggable(Logger.INFO)) {
             myLogger.log(Logger.INFO,"Reconnection OK"); 
           }
@@ -413,6 +413,16 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
   }
 
+
+  private void clearCachedMainSlice() {
+		Object[] services = localServices.values().toArray();
+		for (int i = 0; i < services.length; ++i) {
+			if (services[i] instanceof BaseService) {
+				((BaseService) services[i]).clearCachedSlice(MAIN_SLICE);
+			}
+		}
+  }
+  
   private Service.Slice checkLocal(Service.Slice slice) throws ServiceException {
   	if (slice != null) {
 	  	// If the slice is for the local node be sure it includes the real local

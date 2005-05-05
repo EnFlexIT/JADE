@@ -213,7 +213,8 @@ public abstract class NodeFailureMonitor {
   
   
   /**
-     Return an instance of a <code>NodeFailureMonitor</code> class.
+     Factory method to create NodeFailureMonitor objects
+     @return a new instance of a <code>NodeFailureMonitor</code>.
    */
   public static NodeFailureMonitor getFailureMonitor() {
   	NodeFailureMonitor nfm = null;

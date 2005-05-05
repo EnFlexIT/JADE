@@ -297,19 +297,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		    
 				if (!propagated) {
 					// Start monitoring
-					boolean needMonitor = true;
-					Node parent = dsc.getParentNode();
-					if (parent != null) {
-						// This is a child node --> Do not monitor it directly (unless the perent does not exist)
-						NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
-						if (failureMonitor != null) {
-							failureMonitor.addChild(node);
-							needMonitor = false;
-						}
-					}
-					if (needMonitor) {
-				    monitor(node);
-					}
+					monitor(dsc);
 				}
 			}
 	
@@ -636,8 +624,7 @@ public class PlatformManagerImpl implements PlatformManager {
     	replicas.remove(address);
 
     	if (!propagated) {
-    		// Check all non-child and non-main nodes and adopt them if they were attached to the
-    		// dead PlatformManager
+    		// Notify first all non-child and non-main nodes.
     		Object[] allNodes = nodes.values().toArray();
 				for(int i = 0; i < allNodes.length; i++) {
 					NodeDescriptor dsc = (NodeDescriptor) allNodes[i];
@@ -652,6 +639,20 @@ public class PlatformManagerImpl implements PlatformManager {
 					    	removeTerminatedNode(n);
 					    }
 						}
+			    }
+				}    		
+    		// Then notify all child nodes.
+				for(int i = 0; i < allNodes.length; i++) {
+					NodeDescriptor dsc = (NodeDescriptor) allNodes[i];
+					if (dsc.getParentNode() != null) {
+			    	Node n = dsc.getNode();
+						try {
+							n.platformManagerDead(address, getLocalAddress());
+						}
+				    catch(IMTPException imtpe) {
+				    	// The node daid while no one was monitoring it
+				    	removeTerminatedNode(n);
+				    }
 			    }
 				}    		
 
@@ -682,11 +683,14 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
    	public void adopt(Node n, Node[] children) throws IMTPException {
-   		NodeFailureMonitor failureMonitor = monitor(n);
-   		if (children != null) {
-   			for (int i = 0; i < children.length; ++i) {
-   				failureMonitor.addChild(children[i]);
-   			}
+   		String name = n.getName();
+   		NodeDescriptor dsc = getDescriptor(name);
+   		if (dsc != null) {
+   			monitor(dsc);
+   			myLogger.log(Logger.INFO, "Node <"+n.getName()+"> adopted");
+   		}
+   		else {
+   			myLogger.log(Logger.WARNING, "NO descriptor found for node <"+n.getName()+"> requesting adoption. Ignore...");
    		}
    	}
 
@@ -805,7 +809,22 @@ public class PlatformManagerImpl implements PlatformManager {
 			return infos;
     }
 
-
+    private Node[] getChildren(String name) {
+    	List children = new ArrayList();
+  		Object[] allNodes = nodes.values().toArray();
+			for(int i = 0; i < allNodes.length; i++) {
+				NodeDescriptor dsc = (NodeDescriptor) allNodes[i];
+				Node parent = dsc.getParentNode();
+				if (parent != null && name.equals(parent.getName())) {
+					children.add(dsc.getNode());
+				}
+			}
+			Node[] childrenArray = new Node[children.size()];
+			for (int i = 0; i < childrenArray.length; ++i) {
+				childrenArray[i] = (Node) children.get(i);
+			}
+			return childrenArray;
+    }
 
     private void adjustName(NodeDescriptor dsc, Node node) {
 			ContainerID cid = dsc.getContainer();
@@ -868,6 +887,26 @@ public class PlatformManagerImpl implements PlatformManager {
     }
 
 
+    private void monitor(NodeDescriptor dsc) {
+			boolean needMonitor = true;
+			Node node = dsc.getNode();
+			Node parent = dsc.getParentNode();
+			if (parent != null) {
+				// This is a child node --> Do not monitor it directly if the perent is already monitored
+				NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
+				if (failureMonitor != null) {
+					failureMonitor.addChild(node);
+					if (myLogger.isLoggable(Logger.CONFIG)) {
+						myLogger.log(Logger.INFO, "Node <"+node.getName()+"> added as child of node "+parent.getName());
+					}
+					needMonitor = false;
+				}
+			}
+			if (needMonitor) {
+			  monitor(node);
+			}
+    }
+    
     private NodeFailureMonitor monitor(Node target) {
 
       NodeEventListener listener = new NodeEventListener() {
@@ -899,6 +938,7 @@ public class PlatformManagerImpl implements PlatformManager {
 	    // Start a new node failure monitor
 	    NodeFailureMonitor failureMonitor = NodeFailureMonitor.getFailureMonitor();
       failureMonitor.start(target, listener);
+      monitors.put(target.getName(), failureMonitor);
 	
 	    return failureMonitor;
     }
