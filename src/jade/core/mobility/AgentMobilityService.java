@@ -793,8 +793,19 @@ public class AgentMobilityService extends BaseService {
 
 
 		// Reconstruct the serialized agent
+		//#DOTNET_EXCLUDE_BEGIN
 		ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSiteName, myContainer.getServiceFinder());
 		Agent instance = (Agent)in.readObject();
+		//#DOTNET_EXCLUDE_END
+		/*#DOTNET_INCLUDE_BEGIN
+		ubyte[] ubyteSerializedInstance = new ubyte[serializedInstance.length];
+		System.Buffer.BlockCopy(serializedInstance, 0, ubyteSerializedInstance, 0, serializedInstance.length);
+		ByteArrayInputStream in = new ByteArrayInputStream(serializedInstance);
+		ObjectInputStream decoder = new ObjectInputStream(in);
+		Object obj = decoder.readObject();
+		
+		Agent instance = (Agent) obj;
+		#DOTNET_INCLUDE_END*/
 
 		//log("Agent " + agentID + " reconstructed", 2);
                 if(logger.isLoggable(Logger.INFO))

@@ -114,6 +114,7 @@ class MobileAgentClassLoader extends ClassLoader {
 	//#PJAVA_EXCLUDE_BEGIN
 	c = super.loadClass(name, resolve);
 	//#PJAVA_EXCLUDE_END
+	//#DOTNET_EXCLUDE_BEGIN
 	/*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
   	// 1) Try to see if the class has already been loaded
   	c = findLoadedClass(name);
@@ -136,6 +137,7 @@ class MobileAgentClassLoader extends ClassLoader {
   	    resolveClass(c);
   	}
 	#PJAVA_INCLUDE_END*/
+	//#DOTNET_EXCLUDE_END
 
 	/*#DOTNET_INCLUDE_BEGIN
 	System.Type myType = System.Type.GetType(name);
