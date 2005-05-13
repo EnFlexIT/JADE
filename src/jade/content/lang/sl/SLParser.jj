@@ -65,6 +65,9 @@ import java.util.Date;
 **/
 class SLParser {
 
+  private static final String META_EXCEPTION_MESSAGE = "Meta SL expressions are not allowed";
+		/** This variable is true, when meta symbols are allowed (metas are a semantics-specific extension to the SL Grammar) **/
+		private boolean metaAllowed = true; //FIXME to do set/unset this variable 
 
      /* Take a quoted FIPA SL0 String and convert to a 
       * normal Java-style String.  Remove the
@@ -132,9 +135,7 @@ class SLParser {
    * @deprecated since JADE 3.4 it is preferrable to use reinit() and then call directly the method corresponding to the production rule (e.g. Content())
   */
   AbsContentElement parse(Ontology o, String content) throws ParseException, TokenMgrError{
-    curOntology = o;
-    if (content == null) content = new String();
-    ReInit(new StringReader(content));
+	  reinit(o, content);
     AbsContentElementList tuple = Content();
     if (tuple.size() > 1)
       return tuple;
@@ -223,10 +224,11 @@ void RBrace() :
 AbsContentElement ContentExpression():
 { AbsContentElement val=null; String s; }
 {
- ( s=String() { val=new AbsPredicate(s);} // true, false, PropositionSymbol
-   | LBrace() ( val=ContentExpression_NoBrace() ) RBrace()
+ (   s=String()     { val=new AbsPredicate(s);} // true, false, PropositionSymbol
+   | LBrace()       ( val=ContentExpression_NoBrace() ) RBrace()
+   | s=MetaSymbol() { AbsPredicate val1=new AbsPredicate(s); val1.setIsMetaFormula(true); val=val1;} 
  )
- {return val;}
+ {val.setIsAContentExpression(true); return val;}
 }
 
 
@@ -236,7 +238,7 @@ AbsContentElement ContentExpression_NoBrace() :
  (  val=IdentifyingExpression_NoBrace()
   | val=ActionExpression_NoBrace()
   | val=Wff_NoBrace() )
- {val.setIsAContentExpression(true); return val;}
+ {return val;}
 }
 
 
@@ -261,7 +263,7 @@ AbsVariable Variable():
 
 
 AbsTerm Term():
-{ Token v; AbsTerm val=null;}
+{ Token v; AbsTerm val=null; String s;}
 {
  (  val=Variable() 
   | val=Constant()
@@ -271,6 +273,9 @@ AbsTerm Term():
      | val=IdentifyingExpression_NoBrace()
    ) 
    RBrace() 
+                     // in order to avoid adding a new class that represents a generic AbsTerm, I am reusing AbsVariable. 
+                     // Of course, the methods fromObject/toObject needs to have a similar behaviour. 
+  | s=MetaSymbol() { AbsVariable val1=new AbsVariable(); val1.setName(s); val1.setIsMetaTerm(true); val=val1;} 
  )
  {return val;}
 }
@@ -397,10 +402,12 @@ AbsAgentAction ActionExpression_NoBrace() :
 }
 
 
-AbsAgentAction ActionExpression() :
-{ AbsAgentAction val=null; }
+AbsTerm ActionExpression() :
+{ AbsTerm val=null; String s;}
 { 
-  LBrace() val=ActionExpression_NoBrace() RBrace()
+ (  LBrace() val=ActionExpression_NoBrace() RBrace()
+  | s=MetaSymbol() { AbsVariable val1=new AbsVariable(); val1.setName(s); val1.setIsMetaTerm(true); val=val1;} 
+ )
   {return val;}
 }
 
@@ -410,13 +417,14 @@ AbsPredicate Wff() :
 {
  (  s=String() { val = new AbsPredicate(s);} // expands to true, false, PropositionSymbol
   | LBrace() val=Wff_NoBrace() RBrace()
+  | s=MetaSymbol() { val=new AbsPredicate(s); val.setIsMetaFormula(true);} 
  )
  {return val;}
 }
 
 AbsPredicate Wff_NoBrace() :
 { AbsPredicate arg1, arg2, val=null; Token t; AbsTerm term; String s;
-  AbsAgentAction act; String slotNames[]=null;}
+  String slotNames[]=null;}
 {
  (  t=<UNARYLOGICALOP> {if (slType<1) throw new ParseException("NotFullSL_NotExpression_NotParsable_UseAtLeastSL1");} arg1=Wff() 
    {val = new AbsPredicate(t.image); 
@@ -465,13 +473,13 @@ AbsPredicate Wff_NoBrace() :
         }
     }
 
-  | t=<ACTIONOP> act=ActionExpression() 
+  | t=<ACTIONOP> term=ActionExpression() 
    {val = new AbsPredicate(t.image); 
     try {
 	   slotNames = curOntology.getSchema(t.image).getNames();
-	   val.set(slotNames[0], act);
+	   val.set(slotNames[0], term);
         } catch (Exception e) {
-           val.set(Codec.UNNAMEDPREFIX+"0", act);
+           val.set(Codec.UNNAMEDPREFIX+"0", term);
         }
    }
    (arg1=Wff() {
@@ -560,6 +568,15 @@ String String() :
 }
  
 
+/** This grammar rule is an extension to the FIPA SL Grammar. It is specific to the semantics framework.
+    It allows to represent a symbol which is not matched by any FIPA-SL token. **/
+String MetaSymbol():
+{ Token t;}
+{ 
+  (t=<METASYMBOL> | t=<METASYMBOL2>)
+     { if (!metaAllowed) throw new ParseException(META_EXCEPTION_MESSAGE); else return t.image;}
+}
+
 
 
 
@@ -622,6 +639,7 @@ TOKEN:
       // If you want, you can add bytes to matchedToken.image here.
       matchedToken.image = new String(bytes);
     }
+| <METASYMBOL : "??"<WORD> > //see javadoc of method MetaSymbol()
 }
 
 
@@ -655,4 +673,5 @@ TOKEN:
       ( (~["\""]) | "\\\"" )*
       "\""
   > :DEFAULT
+| <METASYMBOL2 : "??"<WORD2> > : DEFAULT //see javadoc of method MetaSymbol()
 }

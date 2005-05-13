@@ -32,6 +32,7 @@ import jade.content.schema.*;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AbsVariable extends AbsObjectImpl implements AbsTerm {
+		private boolean isMeta = false;
 
     /**
      * Construct an Abstract descriptor to hold a variable
@@ -123,6 +124,19 @@ public class AbsVariable extends AbsObjectImpl implements AbsTerm {
  			}
  			return absVariableClass;
  		}
+
+		/** Return true if this object represents a meta term (i.e. symbol ??x) rather than a concrete variable.
+		 * This method is currently used only by the semantics framework.
+		 * @return true if this object represents a meta term
+		 * @since JADE3.4
+		 **/
+		public final boolean isMetaTerm() {return isMeta;}
+
+		/** Sets the value of isMetaTerm, where the default is false.
+		 * This method is currently used only by the semantics framework.
+		 * @since JADE3.4
+		 **/
+		public final void setIsMetaTerm(boolean isMeta) { this.isMeta = isMeta;}
 
 }
 

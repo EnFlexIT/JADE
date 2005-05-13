@@ -65,6 +65,9 @@ public class SLCodec extends StringCodec {
     private Ontology domainOnto = null; // application ontology
     /** This is the StringBuffer used by the encode method **/
     private transient StringBuffer buffer = null; 
+		/** This variable is true, when meta symbols are allowed (metas are a semantics-specific extension to the SL Grammar) **/
+		private boolean metaAllowed = true; //FIXME set/unset this variable to do
+
     /**
      * Construct a Codec object for the full SL-language (FIPA-SL).
      */
@@ -134,8 +137,8 @@ public class SLCodec extends StringCodec {
      * And append it to the buffer.
      **/
     private void encodeAndAppend(String val) {
-    	// if the slotName is a String of words then quote it
-    	String out = (SimpleSLTokenizer.isAWord(val) ? val :  SimpleSLTokenizer.quoteString(val));
+    	// if the slotName is a String of words then quote it. If it is a meta (i.e. startsWith "??") do not quote it.
+    	String out = ( (SimpleSLTokenizer.isAWord(val) || (metaAllowed && val.startsWith("??")) ) ? val : SimpleSLTokenizer.quoteString(val));
     	buffer.append(out);
     }
 
@@ -182,11 +185,11 @@ public class SLCodec extends StringCodec {
     			buffer.append(propositionSymbol);
     			buffer.append(' ');
     			try {
-    				encodeAndAppend((AbsConcept)val.getAbsObject(slotNames[0]));
+    				encodeAndAppend((AbsTerm)val.getAbsObject(slotNames[0]));
     				buffer.append(' ');
     				encodeAndAppend((AbsPredicate)val.getAbsObject(slotNames[1]));
     			} catch (RuntimeException e) {
-    				throw new CodecException("A ModalOp requires a concept and a formula arguments",e);
+    				throw new CodecException("A ModalOp requires a term and a formula arguments",e);
     			}
     		} else if (slOnto.isActionOp(propositionSymbol)) {
     			// Action operator of the SL language (DONE, FEASIBLE)
@@ -240,11 +243,12 @@ public class SLCodec extends StringCodec {
  
     private void encodeAndAppend(AbsVariable val) throws CodecException {
     	String var = val.getName();
-    	buffer.append('?');
-    	if (!(var.charAt(0) == '?'))
+    	if (var.charAt(0) == '?') {
     		encodeAndAppend(var);
-    	else 
-    		encodeAndAppend(var.substring(1));
+    	} else {
+					buffer.append('?');
+					encodeAndAppend(var);
+			}
     }
     
     private void encodeAndAppend(AbsConcept val) throws CodecException {

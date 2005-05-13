@@ -149,13 +149,15 @@ public class SimpleSLTokenizer {
 	}
 	
 	private static final String illegalFirstChar = "#0123456789:-?";
+		//FIXME We might improve performance if we merged isAWord and quoteString into a single method
+		// infact they both have to loop over the chars of the String.
   /**
    * Test if the given string is a legal SL word using the FIPA XC00008D spec.
    * In addition to FIPA's restrictions, place the additional restriction 
    * that a Word can not contain a '\"', that would confuse the parser at
    * the other end.
    */
-  public static boolean isAWord( String s) {
+  public final static boolean isAWord( String s) {
 		// This should permit strings of length 0 to be encoded.
 		if( s==null || s.length()==0 ) {
 	    return false; // words must have at least one character

@@ -33,7 +33,8 @@ import jade.content.Predicate;
 public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentElement, Predicate {
 
 	private boolean isAContentExpression = false;
-	
+		private boolean isMeta = false;
+
     /**
      * Construct an Abstract descriptor to hold a predicate of
      * the proper type (e.g. FATHER_OF, WORKS_FOR...).
@@ -81,17 +82,31 @@ public class AbsPredicate extends AbsPrimitiveSlotsHolder implements AbsContentE
  			return absPredicateClass;
  		}
  		/**
-  	 * @see AbsContent.isAContentExpression
+  	 * @see AbsContentElement.isAContentExpression
   	 */
   	public boolean isAContentExpression() {
   		return isAContentExpression;
   	}
   	
   	/**
-  	 * @see AbsContent.setIsAContentExpression(boolean flag)
+  	 * @see AbsContentElement.setIsAContentExpression(boolean flag)
   	 */
   	public void setIsAContentExpression(boolean flag) {
   		isAContentExpression = flag;
   	}
+
+
+		/** Return true if this object represents a meta formula (symbol ??x) rather than a concrete formula.
+		 * This method is currently used only by the semantics framework.
+		 * @return true if this object represents a meta formula
+		 * @since JADE3.4
+		 **/
+		public final boolean isMetaFormula() {return isMeta;}
+
+		/** Sets the value of isMetaFormula, where the default is false.
+		 * This method is currently used only by the semantics framework.
+		 * @since JADE3.4
+		 **/
+		public final void setIsMetaFormula(boolean isMeta) { this.isMeta = isMeta;}
 }
 
