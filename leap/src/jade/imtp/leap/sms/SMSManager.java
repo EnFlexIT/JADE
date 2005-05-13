@@ -38,8 +38,7 @@ public abstract class SMSManager {
 	
 	public static final int UNDEFINED = -1;
 	
-	public static final String CLASS_NAME = "jade_imtp_leap_sms_SMSManager_classname";
-	public static final String VERBOSITY = "jade_imtp_leap_sms_SMSManager_verbosity";
+	public static final String IMPLEMENTATION = "jade_imtp_leap_sms_SMSManager_implementation";
 	
 	// The logger
 	private static Logger myLogger = Logger.getMyLogger(SMSManager.class.getName());
@@ -53,20 +52,26 @@ public abstract class SMSManager {
 	public static SMSManager getInstance(Properties pp) {
 		if (theInstance == null) {			
 			// Initialize the singleton instance
-			String className = pp.getProperty(CLASS_NAME);
-			if (className == null) {
-				className = "jade.imtp.leap.sms.PhoneBasedSMSManager";
+			Object tmp = pp.get(IMPLEMENTATION);
+			if (tmp == null) {
+				tmp = "jade.imtp.leap.sms.PhoneBasedSMSManager";
 			}
-			try {
-				myLogger.log(Logger.FINE, "Creating the SMSManager singleton instance: class is "+className);
-				theInstance = (SMSManager) Class.forName(className).newInstance();
-				theInstance.init(pp);
-				myLogger.log(Logger.INFO, "SMSManager singleton instance correctly created and initialized");
+			if (tmp instanceof SMSManager) {
+				theInstance = (SMSManager) tmp;
 			}
-			catch (Throwable t) {
-				myLogger.log(Logger.SEVERE, "Error creating the SMSManager singleton instance. "+t);
-				return null;
+			else {
+				// Try as a string specifying the class to load
+				try {
+					myLogger.log(Logger.FINE, "Creating the SMSManager singleton instance: class is "+tmp);
+					theInstance = (SMSManager) Class.forName((String) tmp).newInstance();
+					theInstance.init(pp);
+				}
+				catch (Throwable t) {
+					myLogger.log(Logger.SEVERE, "Error creating the SMSManager singleton instance. "+t);
+					return null;
+				}
 			}
+			myLogger.log(Logger.INFO, "SMSManager singleton instance correctly initialized");
 		}
 		return theInstance;
 	}
