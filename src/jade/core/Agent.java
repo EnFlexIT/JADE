@@ -644,7 +644,7 @@ public class Agent implements Runnable, Serializable
      * @return the array of arguments passed to this agent.
      * @see <a href=../../../tutorials/ArgsAndPropsPassing.htm>How to use arguments or properties to configure your agent.</a>
      **/
-    protected Object[] getArguments() {
+    public Object[] getArguments() {
 	return arguments;
     }
     
