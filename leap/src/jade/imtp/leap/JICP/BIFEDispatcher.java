@@ -203,9 +203,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
 	    outConnection = createBackEnd();
 
-	    // Start the InputManager dealing with incoming commands
-	    refreshInp();
-
 	    return myStub;
   	}
   	catch (ICPException icpe) {
@@ -301,6 +298,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		    	myLogger.log(Logger.INFO, "BackEnd OK");
+		    	// The BE has just been created --> refresh the INP connection too
+		    	refreshInp();
 				  return con;	      
 	      }
 	      else {
