@@ -169,7 +169,9 @@ public class Boot {
 		  				Enumeration kk = pp.keys();
 		  				while (kk.hasMoreElements()) {
 		  					String key = (String) kk.nextElement();
-	  						props.setProperty(key, pp.getProperty(key));
+		  					if (!props.containsKey(key)) {
+		  						props.setProperty(key, pp.getProperty(key));
+		  					}
 		  				}
 	  				}
 	  				catch (Exception e) {
