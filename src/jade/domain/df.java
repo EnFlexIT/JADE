@@ -842,6 +842,9 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		  try {
 		      gui.removeChildren(dfd.getName());
 		  } catch (Exception e) {}
+      // for subscriptions
+      subManager.handleChange(dfd);
+      
       try{ 
 		  // refresh the GUI if shown, exception thrown if the GUI was not shown
 		  // this refresh must be here, otherwise the GUI is not synchronized with 
