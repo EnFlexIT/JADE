@@ -147,7 +147,7 @@ public class DFDBKB extends DBKB {
    * Initializes all used SQL statements, the DB tables and the logging
    */
 	protected void setup() throws SQLException {
-		logger = Logger.getMyLogger(this.getClass().getName());		
+		logger = Logger.getMyLogger(this.getClass().getName());
     
     try {
       conn.setAutoCommit(false); // deactivate auto commit for better performance
@@ -174,13 +174,13 @@ public class DFDBKB extends DBKB {
       // get the datatype with the highest precision from the meta data information
       DatabaseMetaData md = conn.getMetaData();
       ResultSet typeInfo = md.getTypeInfo();
-      int maxPresision = -1;
+      long maxPrecision = -1;
       while (typeInfo.next()) {
-        int jdbcType = Integer.parseInt(typeInfo.getString("DATA_TYPE"));
-        int precision = Integer.parseInt(typeInfo.getString("PRECISION"));
+        long jdbcType = Long.parseLong(typeInfo.getString("DATA_TYPE"));
+        long precision = Long.parseLong(typeInfo.getString("PRECISION"));
         
-        if (jdbcType == Types.LONGVARCHAR && precision > maxPresision) {
-          maxPresision = precision;
+        if (jdbcType == Types.LONGVARCHAR && precision > maxPrecision) {
+          maxPrecision = precision;
           bestMatch = typeInfo.getString("TYPE_NAME");
         }
       }
@@ -1288,7 +1288,7 @@ public class DFDBKB extends DBKB {
 		int i=0;
 		while(iter.hasNext()){
 			String tmp = "language"+i;
-			lAs.add(", language AS "+tmp);
+			lAs.add(", language "+tmp);
 			lWhere.add(tmp+".language='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
 			i++;
@@ -1298,7 +1298,7 @@ public class DFDBKB extends DBKB {
 		i = 0;
 		while(iter.hasNext()){
 			String tmp = "ontology"+i;
-			lAs.add(", ontology AS "+tmp);
+			lAs.add(", ontology "+tmp);
 			lWhere.add(tmp+".ontology='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
 			i++;
@@ -1308,7 +1308,7 @@ public class DFDBKB extends DBKB {
 		i = 0;
 		while(iter.hasNext()){
 			String tmp = "protocol"+i;
-			lAs.add(", protocol AS "+tmp);
+			lAs.add(", protocol "+tmp);
 			lWhere.add(tmp+".protocol='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
 			i++;
@@ -1323,7 +1323,7 @@ public class DFDBKB extends DBKB {
 			String serviceOwner = service.getOwnership();
 			// Service name, type and ownership
 			String tmp = "service"+i;
-			lAs.add(", service AS "+tmp);
+			lAs.add(", service "+tmp);
 			if(serviceName != null){
 				lWhere.add(tmp+".sname='"+serviceName+"'");
 			}
@@ -1341,7 +1341,7 @@ public class DFDBKB extends DBKB {
 			int j = 0;
 			while(iterS.hasNext()){
 				String tmp1 = "servicelanguage"+j;
-				lAs.add(", servicelanguage AS "+tmp1);
+				lAs.add(", servicelanguage "+tmp1);
 				lWhere.add(tmp1+".language='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
 				j++;
@@ -1351,7 +1351,7 @@ public class DFDBKB extends DBKB {
 			j = 0;
 			while(iterS.hasNext()){
 				String tmp1 = "serviceontology"+j;
-				lAs.add(", serviceontology AS "+tmp1);
+				lAs.add(", serviceontology "+tmp1);
 				lWhere.add(tmp1+".ontology='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
 				j++;
@@ -1361,7 +1361,7 @@ public class DFDBKB extends DBKB {
 			j = 0;
 			while(iterS.hasNext()){
 				String tmp1 = "serviceprotocol"+j;
-				lAs.add(", serviceprotocol AS "+tmp1);
+				lAs.add(", serviceprotocol "+tmp1);
 				lWhere.add(tmp1+".protocol='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
 				j++;
@@ -1371,7 +1371,7 @@ public class DFDBKB extends DBKB {
 			j = 0;
 			while(iterS.hasNext()){
 				String tmp1 = "serviceproperty"+j;
-				lAs.add(", serviceproperty AS "+tmp1);
+				lAs.add(", serviceproperty "+tmp1);
 				Property prop = (Property) iterS.next();	
         
         if (prop.getName() != null)
@@ -1386,7 +1386,7 @@ public class DFDBKB extends DBKB {
 			}			
 		}
 		
-		// Concatenate all AS
+		// Concatenate all the aliases
 		iter = lAs.iterator();
 		while (iter.hasNext()) {
 			select.append((String) iter.next());
