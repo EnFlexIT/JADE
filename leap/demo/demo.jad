@@ -7,4 +7,4 @@ MIDlet-Version: 1.0
 MIDlet-Vendor: TILAB
 MIDlet-Name: Demo
 MIDlet-Description: Sample suite from MIDP early access workspace.
-MIDlet-LEAP-conf: conf
+LEAP-conf: conf

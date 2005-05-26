@@ -1,11 +1,11 @@
 MIDlet-4: View-output, , jade.util.leap.OutputViewer
 MIDlet-3: Config, , jade.util.leap.Config
-MIDlet-Jar-Size: 500804
+MIDlet-Jar-Size: 503267
 MIDlet-2: JADE-standalone, , jade.Boot
 MIDlet-1: JADE-split, , jade.MicroBoot
 MIDlet-Jar-URL: midp/lib/JadeLeap.jar
 MIDlet-Version: 3.0
-MIDlet-Description: Sample suite from MIDP early access workspace.
-MIDlet-Name: JADE-LEAP
 MIDlet-Vendor: TILAB
-MIDlet-LEAP-conf: jad
+MIDlet-Name: JADE-LEAP
+MIDlet-Description: Sample suite from MIDP early access workspace.
+LEAP-conf: jad

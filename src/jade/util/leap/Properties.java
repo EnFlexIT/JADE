@@ -73,7 +73,10 @@ public class Properties extends java.util.Properties implements Serializable {
 public class Properties extends Hashtable {
   private static final char SEPARATOR = '=';
   private static final String JAD = "jad";
-  private static final String JAD_PREFIX = "MIDlet-LEAP-";
+	// in MIDP2.0, names of user-def properties cannot start with MIDlet
+	// for backward compatibility with JADE 3.3 we try both names
+  private static final String JAD_PREFIX = "LEAP-";
+  private static final String JAD_PREFIX_old = "MIDlet-LEAP-";
   private boolean             fromJad = false;
 #MIDP_INCLUDE_END*/
 
@@ -181,7 +184,11 @@ public class Properties extends Hashtable {
   public String getProperty(String key) {
     String prop = (String) super.get(key);
     if (prop == null && fromJad && jade.core.Agent.midlet != null) {
-      prop = jade.core.Agent.midlet.getAppProperty("MIDlet-LEAP-" + key);
+      prop = jade.core.Agent.midlet.getAppProperty(JAD_PREFIX + key);
+	    // in MIDP2.0, names of user-def properties cannot start with MIDlet
+			// for backward compatibility with JADE 3.3 we try both names
+      if (prop == null)
+        prop = jade.core.Agent.midlet.getAppProperty(JAD_PREFIX_old + key);
     } 
     return prop;
   } 

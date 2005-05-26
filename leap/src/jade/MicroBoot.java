@@ -185,10 +185,13 @@ public class MicroBoot extends MIDlet implements Runnable {
     }
     
     try {
-    	String source = getAppProperty("MIDlet-LEAP-conf");
+		  // in MIDP2.0, names of user-def properties cannot start with MIDlet
+			// for backward compatibility with JADE 3.3 we try both names
+    	String source = getAppProperty("LEAP-conf");
       if (source == null) {
-      	// Use the JAD by default 
-      	source = "jad";
+    	  source = getAppProperty("MIDlet-LEAP-conf");
+				if (source == null) // Use the JAD by default 
+      	   source = "jad";
 			}
     	Properties props = new Properties();
     	props.load(source);

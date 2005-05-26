@@ -61,6 +61,11 @@
   
 	<!-- TARGETS -->
 
+  <target name="help" description="show the usage of the most frequently used targets of this ant file">
+   <echo message="ant all rebuild  (to clean and recompile midp, j2se, and pjava)"/>
+   <echo message="ant midp rebuild  (to clean and recompile only midp)"/>
+  </target>
+
 	<!-- ******** JAVA ENVIRONMENTS ********* -->
 	
 	<!-- J2SE -->
