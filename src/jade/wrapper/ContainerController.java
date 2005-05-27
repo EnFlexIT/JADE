@@ -150,9 +150,9 @@ public class ContainerController {
 	    }
 	      
       AID agentID = new AID(nickname, AID.ISLOCALNAME);
-      // FIXME: This method skip the security checks!
       try {
-          myImpl.initAgent(agentID, anAgent, (JADEPrincipal)null, (Credentials)null);
+					jade.core.NodeDescriptor nd = myImpl.getNodeDescriptor();
+          myImpl.initAgent(agentID, anAgent, nd.getOwnerPrincipal(),nd.getOwnerCredentials());
       }
       catch(Exception e) {
           throw new StaleProxyException(e);
