@@ -152,18 +152,37 @@ public class ProfileImpl extends Profile {
 
 
     /**
-     * This constructor creates a default Profile for launching a platform.
+     * This constructor creates a default Profile for launching a platform (<b>i.e. a main container!!</b>).
      * @param host is the name of the host where the main-container should
      * be listen to. A null value means use the default (i.e. localhost)
      * @param port is the port number where the main-container should be
      * listen
      * for other containers. A negative value should be used for using
      * the default port number.
-     * @param platformID is the synbolic name of the platform, if
+     * @param platformID is the symbolic name of the platform, if
      * different from default. A null value means use the default 
      * (i.e. localhost)
      **/
      public ProfileImpl(String host, int port, String platformID) {
+				 this(host, port, platformID, true);
+		 }
+
+  /**
+     * This constructor creates a default Profile for launching a main (or non-main) container 
+		 * (depending on the value of <code>isMain</code>) 
+     * @param host is the name of the host where the main-container should
+     * be listen to. A null value means use the default (i.e. localhost)
+     * @param port is the port number where the main-container should be
+     * listen
+     * for other containers. A negative value should be used for using
+     * the default port number.
+     * @param platformID is the symbolic name of the platform, if
+     * different from default. A null value means use the default 
+     * (i.e. localhost)
+		 * @param isMain if isMain is false, then the profile is configured to launch
+		 * a remote container, if true a main-container
+     **/
+     public ProfileImpl(String host, int port, String platformID, boolean isMain) {
 			// create the object props
       //#ALL_EXCLUDE_BEGIN
       props = new jade.util.BasicProperties();
@@ -172,6 +191,7 @@ public class ProfileImpl extends Profile {
 			props = new Properties();
       #ALL_INCLUDE_END*/
 			// set the passed properties
+		  props.setProperty(Profile.MAIN, (new Boolean(isMain)).toString()); // set to a main/non-main container
      	if(host != null)
        		props.setProperty(MAIN_HOST, host);
      	if(port > 0)
