@@ -200,6 +200,9 @@
 	<!-- INSTALL DLL -->
 	<target name="do-dll" depends="do-setup, do-parsers, do-compile"
 	  description="Install JADELEAP.NET dll">
+	  <!-- TEST IF DLL FILE EXISTS -->
+	  <available file="${lib}/${vs2003Sol}.dll" property="dll.NET.exist"/>
+	  <fail unless="dll.NET.exist" message="${vs2003Sol}.dll hasn't been previously created. Impossible to register it into GAC!"/>
 	  <!-- ADD DLL INTO GAC -->
 	  <echo>Installing ${vs2003Sol}.dll into GAC...</echo>
 	  <exec executable="${gacutil}">
