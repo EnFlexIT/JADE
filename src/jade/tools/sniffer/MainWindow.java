@@ -492,6 +492,10 @@ public class MainWindow
     }
     SwingUtilities.invokeLater(new disposeIt(this));
     //#DOTNET_EXCLUDE_END
+    /*#DOTNET_INCLUDE_BEGIN
+	this.Close();
+	this.Dispose();
+	#DOTNET_INCLUDE_END*/
   }
 
   //#JAVA_EXCLUDE_BEGIN
