@@ -227,9 +227,13 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   /**
      Issue an INFORM_CREATED vertical command.
-     Note that the Principal and Credentials if any are those of the
-     owner of the newly born agent. The SecurityService, if active,
-     creates the Principal and credentials of the agent and sets them.
+     Note that the Principal, if any, is that of the
+     owner of the newly born agent, while the Credentials, if any, are a set
+     additional initial credentials to be attached to the newly born agent. 
+     The SecurityService, if active,
+     will create a new Principal for the newly born agent and will initialize its 
+     credentials as the union of the initial credential and the ownership 
+     certificate.
    */
    public void initAgent(
         AID agentID, Agent instance,
@@ -326,6 +330,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	  #MIDP_INCLUDE_END*/
 	  dsc.setMandatory(true);
 	  services.add(dsc);
+	  
     List l = myProfile.getSpecifiers(Profile.SERVICES);
     myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
     Iterator serviceSpecifiers = l.iterator();
@@ -906,6 +911,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	localAgents.release(id);
     }
 
+    public AID[] agentNames() {
+    	return localAgents.keys();
+    }
+    
     //#MIDP_EXCLUDE_BEGIN
     public void fillListFromMessageQueue(List messages, Agent a) {
 	MessageQueue mq = a.getMessageQueue();

@@ -63,6 +63,7 @@ public interface AgentContainer {
     void removeLocalAgent(AID id);
     Agent acquireLocalAgent(AID id);
     void releaseLocalAgent(AID id);
+    AID[] agentNames();
 
     //#MIDP_EXCLUDE_BEGIN
     void fillListFromMessageQueue(List messages, Agent a);
