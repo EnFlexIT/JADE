@@ -251,11 +251,11 @@ public class LEAPIMTPManager implements IMTPManager {
 	  if (proxy instanceof SliceProxy) {
 	  	((SliceProxy) proxy).setNode(where);
 	  }
-	  // #DOTNET_EXCLUDE_BEGIN
+	  //#DOTNET_EXCLUDE_BEGIN
 	  else if (proxy instanceof Service.SliceProxy) {
 	  	((Service.SliceProxy) proxy).setNode(where);
 	  }
-	  // #DOTNET_EXCLUDE_END
+	  //#DOTNET_EXCLUDE_END
 	  else {
 	  	throw new IMTPException("Class "+proxyClass.getName()+" is not a slice proxy.");
 	  }
