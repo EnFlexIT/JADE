@@ -167,13 +167,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, JADESecurityException {
 	ContainerID cid = ac.getID();
 	NodeDescriptor dsc = getDescriptor(cid.getName());
+	// The owner of both the AMS and the DF is the owner of the main container.
 	JADEPrincipal cp = dsc.getOwnerPrincipal();
-	Credentials cr = dsc.getOwnerCredentials();
 
 	try {
 	    theAMS.resetEvents(true);
 	    AID amsId = ac.getAMS();
-	    ac.initAgent(amsId, theAMS, cp, cr); 
+	    // The AMS has NO initial credentials 
+	    ac.initAgent(amsId, theAMS, cp, null); 
 	    ac.powerUpLocalAgent(amsId);
 	    theAMS.waitUntilStarted();
 	}
@@ -184,7 +185,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
  
 	try {
 	    AID dfId = ac.getDefaultDF();
-	    ac.initAgent(dfId, defaultDF, cp, cr);
+	    // The DF has NO initial credentials 
+	    ac.initAgent(dfId, defaultDF, cp, null);
 	    ac.powerUpLocalAgent(dfId);
 	    defaultDF.waitUntilStarted();
 	}
