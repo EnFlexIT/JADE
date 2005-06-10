@@ -597,7 +597,6 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		//#PJAVA_EXCLUDE_END
   }  // End of method setup()
 
-  
   /**
     Cleanup <em>DF</em> on exit. This method performs all necessary
     cleanup operations during agent shutdown.
@@ -806,70 +805,69 @@ public class df extends GuiAgent implements DFGUIAdapter {
   
     void DFRegister(DFAgentDescription dfd) throws AlreadyRegistered {
 	
-	//checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
-  Object old = agentDescriptions.register(dfd.getName(), dfd);
-	if(old != null)
-	    throw new AlreadyRegistered();
-	
-	if(isADF(dfd)) {
-		if(logger.isLoggable(Logger.INFO))
-			logger.log(Logger.INFO,"Added federation "+dfd.getName().getName()+" --> "+getName());
-	    children.add(dfd.getName());
-	    try {
-    		gui.addChildren(dfd.getName());
-	    } catch (Exception ex) {}
-	}
-	// for subscriptions
-	subManager.handleChange(dfd);
-
-	try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
-	    gui.addAgentDesc(dfd.getName());
-	    gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
-	}catch(Exception ex){}
+        //checkMandatorySlots(FIPAAgentManagementOntology.REGISTER, dfd);
+        Object old = agentDescriptions.register(dfd.getName(), dfd);
+        if(old != null)
+            throw new AlreadyRegistered();
+        
+        if(isADF(dfd)) {
+            if(logger.isLoggable(Logger.INFO))
+                logger.log(Logger.INFO,"Added federation "+dfd.getName().getName()+" --> "+getName());
+            children.add(dfd.getName());
+            try {
+                gui.addChildren(dfd.getName());
+            } catch (Exception ex) {}
+        }
+        // for subscriptions
+        subManager.handleChange(dfd, null);
+        
+        try{ //refresh the GUI if shown, exception thrown if the GUI was not shown
+            gui.addAgentDesc(dfd.getName());
+            gui.showStatusMsg("Registration of agent: " + dfd.getName().getName() + " done.");
+        }catch(Exception ex){}
 	
     }
 
     //this method is called into the prepareResponse of the DFFipaAgentManagementBehaviour to perform a Deregister action
     void DFDeregister(DFAgentDescription dfd) throws NotRegistered {
 	//checkMandatorySlots(FIPAAgentManagementOntology.DEREGISTER, dfd);
-      Object old = agentDescriptions.deregister(dfd.getName());
-
-      if(old == null)
-	  	throw new NotRegistered();
-      
-      
-      if (children.remove(dfd.getName()))
-		  try {
-		      gui.removeChildren(dfd.getName());
-		  } catch (Exception e) {}
-      // for subscriptions
-      subManager.handleChange(dfd);
-      
-      try{ 
-		  // refresh the GUI if shown, exception thrown if the GUI was not shown
-		  // this refresh must be here, otherwise the GUI is not synchronized with 
-		  // registration/deregistration made without using the GUI
-		  gui.removeAgentDesc(dfd.getName(),df.this.getAID());
-		  gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
-      }catch(Exception e1){}	
+        Object old = agentDescriptions.deregister(dfd.getName());
+        
+        if(old == null)
+            throw new NotRegistered();
+        
+        if (children.remove(dfd.getName()))
+            try {
+                gui.removeChildren(dfd.getName());
+            } catch (Exception e) {}
+        // for subscriptions
+        dfd.clearAllServices(); //clear all services since we are deregistering
+        subManager.handleChange(dfd, (DFAgentDescription)old);
+        try{
+            // refresh the GUI if shown, exception thrown if the GUI was not shown
+            // this refresh must be here, otherwise the GUI is not synchronized with
+            // registration/deregistration made without using the GUI
+            gui.removeAgentDesc(dfd.getName(),df.this.getAID());
+            gui.showStatusMsg("Deregistration of agent: " + dfd.getName().getName() +" done.");
+        }catch(Exception e1){}
     }
     
     
     void DFModify(DFAgentDescription dfd) throws NotRegistered {
-	//	checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
-		Object old = agentDescriptions.register(dfd.getName(), dfd);
-		if(old == null) {
-				// Rollback
-				agentDescriptions.deregister(dfd.getName());
-		    throw new NotRegistered();
-		}
-		// for subscription
-		subManager.handleChange(dfd);
-		try{
-		    gui.removeAgentDesc(dfd.getName(), df.this.getAID());
-		    gui.addAgentDesc(dfd.getName());
-		    gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
-		}catch(Exception e){}
+	//checkMandatorySlots(FIPAAgentManagementOntology.MODIFY, dfd);
+        Object old = agentDescriptions.register(dfd.getName(), dfd);
+        if(old == null) {
+            // Rollback
+            agentDescriptions.deregister(dfd.getName());
+            throw new NotRegistered();
+        }
+        // for subscription
+        subManager.handleChange(dfd, (DFAgentDescription)old);
+        try{
+            gui.removeAgentDesc(dfd.getName(), df.this.getAID());
+            gui.addAgentDesc(dfd.getName());
+            gui.showStatusMsg("Modify of agent: "+dfd.getName().getName() + " done.");
+        }catch(Exception e){}
 		
     }
 

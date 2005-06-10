@@ -131,7 +131,7 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
      Handle registrations/deregistrations/modifications by notifying 
      subscribed agents if necessary
    */
-  void handleChange(DFAgentDescription dfd) {
+  void handleChange(DFAgentDescription dfd, DFAgentDescription oldDfd) {
     // Create a temporary MemKB just to re-use the match() method. 
     DFMemKB memTemp = new DFMemKB(0);
     
@@ -139,7 +139,7 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
     while (e.hasMoreElements()) {
       SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
       DFAgentDescription template = getDFAgentDescriptionFromACL(sub.getMessage());
-      if ( memTemp.match(template, dfd) ) {
+      if ( memTemp.match(template, dfd) || ((oldDfd!=null) && memTemp.match(template, oldDfd))) {
         // This subscriber must be notified
         List results = new ArrayList();
         results.add(dfd);
