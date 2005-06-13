@@ -472,7 +472,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	              }
               }
               else {
-                myLogger.log(Logger.WARNING,"Cannot create an agent with no name");
+                myLogger.log(Logger.WARNING,"Cannot create an agent with no name. Class was "+s.getClassName());
               }              	
           }
 
@@ -498,6 +498,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void shutDown() {
+	  System.out.println("Killing local agents...");
     // Remove all non-system agents
     Agent[] allLocalAgents = localAgents.values();
 
@@ -523,7 +524,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
     try {
 
+	  System.out.println("Removing node...");
 	myServiceManager.removeNode(myNodeDescriptor);
+	  System.out.println("Shutting down IMTP...");
 	myIMTPManager.shutDown();
 
     }

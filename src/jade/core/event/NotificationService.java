@@ -286,7 +286,7 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(snifferName);
 		AID id = new AID(snifferName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, null, null); // GVFIXME:
+		    myContainer.initAgent(id, tn, null, null); // FIXME: Modify to use a proper owner Principal
 		    myContainer.powerUpLocalAgent(id);
 		    addMessageListener(tn);
 		}
@@ -338,7 +338,7 @@ public class NotificationService extends BaseService {
 		tn = new ToolNotifier(introspectorName);
 		AID id = new AID(introspectorName.getLocalName() + "-on-" + myID().getName(), AID.ISLOCALNAME);
 		try {
-		    myContainer.initAgent(id, tn, null, null); // GVFIXME:
+		    myContainer.initAgent(id, tn, null, null); // FIXME: Modify to use a proper owner Principal
 		    myContainer.powerUpLocalAgent(id);
 		    if (targetName.equals(myContainer.getAMS())) {
 			// If we are debugging the AMS, let's wait for the ToolNotifier 

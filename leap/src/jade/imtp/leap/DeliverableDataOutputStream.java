@@ -715,7 +715,8 @@ class DeliverableDataOutputStream extends DataOutputStream {
   }
   //#DOTNET_EXCLUDE_END
 
-  private void serializeNode(Node n) throws LEAPSerializationException {
+  // Package-scoped since it is used by the NodeSerializer
+  void serializeNode(Node n) throws LEAPSerializationException {
     try {
 	    writeString(n.getName());
 	    writeBoolean(n.hasPlatformManager());

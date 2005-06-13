@@ -38,93 +38,47 @@ import jade.util.Logger;
    for all back-ends in the local JVM 
    @author Giovanni Caire - TILAB
  */
+public class BackEndManager {
+  // The singleton BackEndManager
+  private static BackEndManager theInstance;
 
-class BackEndManager {
-	//public static final String PERMANENT = "jade_core_BackEndManager_permanent";
-	
-  // The Profile defining the configuration of this Container
-  protected Profile myProfile;
-
+  
   // The IMTP manager, used to access IMTP-dependent functionalities
   protected IMTPManager myIMTPManager;
 
-  // The platform Service Manager
-  private ServiceManager myServiceManager;
-
-  // The descriptor of the local node
-  private NodeDescriptor myNodeDescriptor;
+  // The node acting as parent
+  private Node myNode;
   
+  // The child nodes
   private Map children = new HashMap();
-  //private boolean permanent;
   
   private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
-  private static BackEndManager theInstance;
-  
-  public static BackEndManager getInstance(Profile p) throws IMTPException {
+  public static BackEndManager getInstance(Profile p) throws ProfileException {
   	if (theInstance == null) {
   		theInstance = new BackEndManager(p);
-		  Runtime.instance().beginContainer();
-  		theInstance.joinPlatform();
   	}
   	return theInstance;
   }
   
-  private BackEndManager(Profile p) {
-  	myProfile = p;
+  private BackEndManager(Profile p) throws ProfileException {
+  	if (p != null) {
+	    myIMTPManager = p.getIMTPManager();
+	    try {
+		    myNode = myIMTPManager.getLocalNode();
+	    }
+	    catch (IMTPException imtpe) {
+	    	throw new ProfileException("Cannot retrieve local node.", imtpe);
+	    }
+  	}
+  	else {
+  		throw new ProfileException("Cannot create BackEndManager: Null profile");
+  	}
   }
 	
-  private void joinPlatform() throws IMTPException {
-  	try {
-  		//permanent = myProfile.getBooleanProperty(PERMANENT, false);
-  		
-      myIMTPManager = myProfile.getIMTPManager();
-      myIMTPManager.initialize(myProfile);
-
-      // Get the Service Manager and the Service Finder
-      myServiceManager = myProfile.getServiceManager();
-
-      // Attach CommandProcessor and ServiceManager to the local node
-			BaseNode localNode = (BaseNode) myIMTPManager.getLocalNode();
-			localNode.setServiceManager(myServiceManager);
-
-      // Initialize the NodeDescriptor
-    	myNodeDescriptor = new NodeDescriptor(myIMTPManager.getLocalNode());
-	    
-    	// Actually join the platform (this call can modify the name of this node)
-		  myServiceManager.addNode(myNodeDescriptor, null);
-  	}
-  	catch (IMTPException imtpe) {
-  		// Let it through
-			Runtime.instance().endContainer();
-  		throw imtpe;
-  	}
-  	catch (Throwable t) {
-			Runtime.instance().endContainer();
-  		throw new IMTPException("Unexpected error in BackEndManager.joinPlatform(). ", t);
-  	}
-  }
-  
-  public void shutDown() {
-  	theInstance = null;
-  	
-    try {
-    	// Deregister services locally
-			myServiceManager.removeNode(myNodeDescriptor);
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-    }
-
-		// Make the local node terminate (this releases threads blocked in ping)
-		myIMTPManager.shutDown();
-		
-    // Notify the JADE Runtime that the node has terminated execution
-    Runtime.instance().endContainer();
-  }
   
   public Node getNode() {
-  	return myNodeDescriptor.getNode();
+  	return myNode;
   }
   
   public synchronized void register(NodeDescriptor child) {
@@ -143,9 +97,6 @@ class BackEndManager {
 	  	if (myLogger.isLoggable(Logger.CONFIG)) {
 	  		myLogger.log(Logger.CONFIG, "Child node "+child.getName()+" deregistered.");
 	  	}
-	  	//if (children.isEmpty() && !permanent) {
-	  	//	shutDown();
-	  	//}
   	}
   	catch (Exception e) {
   		myLogger.log(Logger.WARNING, "Error deregistering child node "+child.getName()+". "+e);

@@ -134,8 +134,11 @@ class LADT {
         else {
             r.lock();
             
-            agents.put(aid, new Row(a));
             Agent old = r.get();
+          	// Re-putting an existing agent must have no effect
+            if (a != old) {
+	            agents.put(aid, new Row(a));
+            }
             
             r.unlock();
             return old;

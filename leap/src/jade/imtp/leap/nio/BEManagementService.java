@@ -25,13 +25,7 @@ package jade.imtp.leap.nio;
 
 //#J2ME_EXCLUDE_FILE
 
-import jade.core.Profile;
-import jade.core.Specifier;
-import jade.core.BaseService;
-import jade.core.GenericCommand;
-import jade.core.ServiceException;
-import jade.core.ServiceHelper;
-import jade.core.Agent;
+import jade.core.*;
 import jade.security.JADESecurityException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
@@ -145,6 +139,13 @@ public class BEManagementService extends BaseService {
 		return OWNED_COMMANDS;
 	}
 	
+	public void init(AgentContainer ac, Profile p) throws ProfileException {
+		super.init(ac, p);
+		
+		// Initialize the BE-Manager
+		BackEndManager.getInstance(p);
+	}
+		
 	/** 
 	   This method is called by the JADE runtime just after this service 
 	   has been installed.
@@ -281,6 +282,7 @@ public class BEManagementService extends BaseService {
 				myLogger.log(Logger.CONFIG, myLogPrefix+"Can't read LEAP property file "+fileName+". Keep default. ["+e+"]");
 				// Ignore: no back end properties specified
 			}
+			leapProps.setProperty(BackEndContainer.USE_BACKEND_MANAGER, "true");
 			
 			// Initialize the PDPContextManager if specified
 			String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
@@ -953,9 +955,9 @@ public class BEManagementService extends BaseService {
 	      	//System.out.println(Thread.currentThread().getName()+": Selecting on "+mySelector);
 	      	n = mySelector.select();
 	      }
-	      // There seems to be a bug in java.nio (http://www.limewire.org/techdocs/nio2.html).
-	      // Just retry.
 	      catch (NullPointerException npe) {
+		      // There seems to be a bug in java.nio (http://www.limewire.org/techdocs/nio2.html).
+		      // Just retry.
 	        myLogger.log(Logger.WARNING, myServer.getLogPrefix()+"NullPointerException in select. Ignore and retry.");
 	      	continue;
 	      }
@@ -1087,7 +1089,9 @@ public class BEManagementService extends BaseService {
   				}
   			}
   			catch (Throwable t) {
-		  		myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception "+t);
+  				if (active) {
+			  		myLogger.log(Logger.WARNING, "BEManagementService-Ticker: Unexpected exception "+t);
+  				}
   			}
   		}
   	}

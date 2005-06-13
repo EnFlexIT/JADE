@@ -50,6 +50,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   private boolean invalidPlatformManager;
   private String platformName;
 	private Node localNode;
+	private NodeDescriptor localNodeDescriptor;
 
   private Map localServices;
 
@@ -127,20 +128,20 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 
 
   public void addNode(NodeDescriptor desc, ServiceDescriptor[] services) throws IMTPException, ServiceException, JADESecurityException {
+  	localNodeDescriptor = desc;
   	localNode = desc.getNode();
 	  try {
 			// Install all services locally
 	  	Vector ss = new Vector(services != null ? services.length : 0);
 		 	if (services != null) {
 		 		for (int i = 0; i < services.length; ++i) {
-		 			Service svc = services[i].getService();
-		 			installServiceLocally(svc);
+		 			installServiceLocally(services[i]);
 		 			ss.addElement(services[i]);
 		 		}
 		 	}
 
 			// Notify the platform manager. Get back a valid name and assign
-		 	// it to both the node and the container
+		 	// it to both the node, the node descriptor and the container (if any)
 			String name = null;
 		 	try {
 				name = myPlatformManager.addNode(desc, ss, false);
@@ -153,11 +154,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   				throw imtpe;
   			}
   		}
-	    localNode.setName(name);
-			ContainerID cid = desc.getContainer();
-			if(cid != null) {
-		    cid.setName(name);
-			}
+  		adjustName(name);
     }
     catch (IMTPException imtpe2) {
     	throw imtpe2;
@@ -199,17 +196,16 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   public void activateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
-		Service svc = desc.getService();
 		try {
 			// Install the service locally
-	    installServiceLocally(svc);
+	    installServiceLocally(desc);
 	    // Notify the platform manager (add a slice for this service on this node)
 			try {
-				myPlatformManager.addSlice(desc, new NodeDescriptor(localNode), false);
+				myPlatformManager.addSlice(desc, localNodeDescriptor, false);
   		}
   		catch (IMTPException imtpe) {
   			if (reconnect()) {
-		  		myPlatformManager.addSlice(desc, new NodeDescriptor(localNode), false);
+		  		myPlatformManager.addSlice(desc, localNodeDescriptor, false);
   			}
   			else {
   				throw imtpe;
@@ -218,7 +214,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 		catch(IMTPException imtpe2) {
 	    // Undo the local service installation
-	    uninstallServiceLocally(svc.getName());
+	    uninstallServiceLocally(desc.getName());
 	    // Rethrow the exception
 	    throw imtpe2;
 		}
@@ -249,7 +245,12 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   /////////////////////////////////////////////////
 
   public Service findService(String key) throws IMTPException, ServiceException {
-		return (Service) localServices.get(key);
+		Service svc = null;
+  	ServiceDescriptor svcDsc = (ServiceDescriptor) localServices.get(key);
+		if (svcDsc != null) {
+			svc = svcDsc.getService();
+		}
+		return svc;
   }
 
   public Service.Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
@@ -299,7 +300,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   // Private methods
   /////////////////////////////////////////////////
 
-  private void installServiceLocally(Service svc) throws IMTPException, ServiceException {
+  private void installServiceLocally(ServiceDescriptor svcDsc) throws IMTPException, ServiceException {
+  	Service svc = svcDsc.getService();
+  	
 		// Install the service filters
 		Filter fOut = svc.getCommandFilter(Filter.OUTGOING);
 		if(fOut != null) {
@@ -330,7 +333,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 
 		// Add the service to the local service finder so that it can be found
-		localServices.put(svc.getName(), svc);
+		localServices.put(svc.getName(), svcDsc);
 
     // If this service extends BaseService, attach it to the Command Processor
     if(svc instanceof BaseService) {
@@ -340,9 +343,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
   }
 
   private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
-		Service svc = (Service)localServices.get(name);
-
-		if (svc != null) {
+		ServiceDescriptor svcDsc = (ServiceDescriptor) localServices.get(name);
+		if (svcDsc != null) {
+			Service svc = svcDsc.getService();
+			
 			// Stop the service
 			svc.shutdown();
 			
@@ -374,7 +378,41 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		localServices.remove(name);
   }
 
-
+  // This is package scoped since it is called by BaseNode.platformManagerDead()
+	synchronized void reattach(String pmAddr) {
+		// We reattach to the recovered PM either if it is our PM or if our
+		// PM is invalid (a previous reattach/reconnect attempt failed).
+		// Otherwise we just do nothing
+  	if (invalidPlatformManager || pmAddr.equals(myPlatformManager.getLocalAddress())) {
+		  invalidPlatformManager = true;
+			try {
+				myPlatformManager = myIMTPManager.getPlatformManagerProxy(pmAddr);
+				String name = myPlatformManager.addNode(localNodeDescriptor, getLocalServices(), false);
+				if (!name.equals(localNodeDescriptor.getName())) {
+					myLogger.log(Logger.WARNING, "Container name changed re-attaching to PlatformManager: new name = "+name);
+				}
+				adjustName(name);
+				
+			  handlePMRefreshed(pmAddr);
+			  
+				// Issue a REATTACHED incoming V-Command
+			  System.out.println("Issuing REATTACHED Incoming command");
+				GenericCommand gCmd = new GenericCommand(Service.REATTACHED, null, null);
+				Object result = myCommandProcessor.processIncoming(gCmd);
+				if (result instanceof Throwable) {
+		    	myLogger.log(Logger.SEVERE, "Unexpected error processing REATTACHED command.");
+					((Throwable) result).printStackTrace();
+				}
+				
+        myLogger.log(Logger.INFO,"Re-attached to PlatformManager at "+pmAddr);
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.SEVERE,"Cannot re-attach to PlatformManager at "+pmAddr+". "+e);
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private synchronized boolean reconnect() {
 		// Check if the current PlatformManager is actually down (another thread
 		// may have reconnected in the meanwhile)
@@ -390,36 +428,53 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		  	String addr = (String) it.next();
 	      try {
 	      	myPlatformManager = (PlatformManager) backupManagers.get(addr);
-	        if(myLogger.isLoggable(Logger.INFO)) {
-	          myLogger.log(Logger.INFO,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
-	        }
+          myLogger.log(Logger.INFO,"Reconnecting to PlatformManager at address "+myPlatformManager.getLocalAddress());
+          
 				  myPlatformManager.adopt(localNode, null);
-				  clearCachedMainSlice();
-          if(myLogger.isLoggable(Logger.INFO)) {
-            myLogger.log(Logger.INFO,"Reconnection OK"); 
-          }
-				  myIMTPManager.reconnected(myPlatformManager);
-				  backupManagers.remove(addr);
-				  invalidPlatformManager = false;
+				  handlePMRefreshed(addr);
+				  
+          myLogger.log(Logger.INFO,"Reconnection OK");
 				  return true;
 	      }
 	      catch(Exception e) {
-	        if(myLogger.isLoggable(Logger.WARNING))
-	          myLogger.log(Logger.WARNING,"Reconnection failed");
-				  // Ignore it and try the next address...
+        	myLogger.log(Logger.WARNING,"Reconnection failed");
+					// Ignore it and try the next address...
 	      }
 		  }
 		  return false;
 		}
   }
 
-
-  private void clearCachedMainSlice() {
+  private void handlePMRefreshed(String pmAddr) {
+  	// Clear any cached slice of the Main container
 		Object[] services = localServices.values().toArray();
 		for (int i = 0; i < services.length; ++i) {
-			if (services[i] instanceof BaseService) {
-				((BaseService) services[i]).clearCachedSlice(MAIN_SLICE);
+			ServiceDescriptor svcDsc = (ServiceDescriptor) services[i];
+			Service svc = svcDsc.getService();
+			if (svc instanceof BaseService) {
+				((BaseService) svc).clearCachedSlice(MAIN_SLICE);
 			}
+		}
+	  myIMTPManager.reconnected(myPlatformManager);
+	  backupManagers.remove(pmAddr);
+	  invalidPlatformManager = false;
+  }
+  
+  private Vector getLocalServices() {
+		Object[] services = localServices.values().toArray();
+		Vector ss = new Vector(services.length);
+		for (int i = 0; i < services.length; ++i) {
+			ss.addElement(services[i]);
+		}
+		return ss;
+  }
+  	
+  private void adjustName(String name) {
+		localNodeDescriptor.setName(name);
+		localNode.setName(name);
+		ContainerID cid = localNodeDescriptor.getContainer();
+		if(cid != null) {
+		  cid.setName(name);
 		}
   }
   

@@ -75,7 +75,6 @@ public class MainContainerImpl implements MainContainer, AgentManager {
     private IMTPManager myIMTPManager;
     private PlatformManagerImpl myPlatformManager;
 
-    // FIXME: Temporary Hack
     private CommandProcessor myCommandProcessor;
 
     private List platformListeners = new LinkedList();

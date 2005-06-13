@@ -284,7 +284,15 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	
 		byte type = pkt.getType();
 		if (type == JICPProtocol.COMMAND_TYPE) {
-			return outManager.handleCommand(c, pkt);
+			if (peerActive) {
+				return outManager.handleCommand(c, pkt);
+			}
+			else {
+    		// The remote FrontEnd has terminated spontaneously -->
+    		// Kill the above container (this will also kill this NIOBEDispatcher).
+    		kill();
+    		return null;
+			}
 		}
 		else if (type == JICPProtocol.KEEP_ALIVE_TYPE) {
 			if (enableServerKeepAlive) {
@@ -720,33 +728,26 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	final synchronized JICPPacket handleCommand(Connection c, JICPPacket cmd) throws ICPException {
   		checkConnection(c);
   		JICPPacket reply = null;
-     	if (peerActive) {
-				byte sid = cmd.getSessionID();
-				if (sid == lastSid) {
-					myLogger.log(Logger.WARNING,myID+": Duplicated command from FE "+sid);
-					reply = lastResponse;
-				}
-				else {
-			    if(myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE, myID+": Received command "+sid+" from FE");
-			    }
-	
-					byte[] rspData = mySkel.handleCommand(cmd.getData());
-	        if(myLogger.isLoggable(Logger.FINER)) {
-						myLogger.log(Logger.FINER, myID+": Command "+sid+" from FE served ");
-	        }
-	
-				  reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
-				  reply.setSessionID(sid);
-				  lastSid = sid;
-				  lastResponse = reply;
-				}
-	  	}
-	  	else {
-    		// The remote FrontEnd has terminated spontaneously -->
-    		// Kill the above container (this will also kill this NIOBEDispatcher).
-    		kill();
-    	}
+			byte sid = cmd.getSessionID();
+			if (sid == lastSid) {
+				myLogger.log(Logger.WARNING,myID+": Duplicated command from FE "+sid);
+				reply = lastResponse;
+			}
+			else {
+		    if(myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE, myID+": Received command "+sid+" from FE");
+		    }
+
+				byte[] rspData = mySkel.handleCommand(cmd.getData());
+        if(myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, myID+": Command "+sid+" from FE served ");
+        }
+
+			  reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, getReconnectInfo(), rspData);
+			  reply.setSessionID(sid);
+			  lastSid = sid;
+			  lastResponse = reply;
+			}
 	  	return reply;
  		}
   	
@@ -760,16 +761,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   	
   	final synchronized boolean checkMaxDisconnectionTime(long currentTime) {
   		return (!isConnected()) && (currentTime > expirationDeadline);
-  	}
-  			
-	  /*private final byte getReconnectInfo() {
-	  	byte info = JICPProtocol.DEFAULT_INFO;
-			// If the inpConnection is null request the FrontEnd to reconnect
-			if (!inpManager.isConnected()) {
-				info |= JICPProtocol.RECONNECT_INFO;
-			}
-			return info;
-	  }*/
+  	}  			
   } // END of inner class OutputManager
   
 

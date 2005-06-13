@@ -71,6 +71,11 @@ public interface Service {
 	   container whenever a main replica is removed
 	 */
 	public static final String DEAD_REPLICA = "Dead-Replica";
+	/**
+	   Service independent vertical command issued on a peripheral 
+	   container when it re-attach to a recovered Main Container
+	 */
+	public static final String REATTACHED = "Reattached";
 	
     /**
        The <code>Slice</code> nested interface represents that part of

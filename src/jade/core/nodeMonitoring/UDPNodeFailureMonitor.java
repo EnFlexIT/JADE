@@ -96,7 +96,7 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
    * @return a <code>Collection</code> of <code>Node</code> instances
    */
   public Collection getChildNodes() {
-    return childNodes;
+    return childNodes.values();
   }
   
   /**

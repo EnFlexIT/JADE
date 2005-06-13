@@ -59,6 +59,8 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 
+import jade.util.Logger;
+
 /**
 
    The JADE service to manage the basic agent life cycle: creation,
@@ -163,13 +165,16 @@ public class BEAgentManagementService extends BaseService {
     boolean startedOnBE = false;
     Agent previous = null;
     // If an actual agent instance was passed as second argument, then this agent 
-    // is started within the Back-End container.
+    // is started within the Back-End container
     if((params.length > 1) && (params[1] instanceof Agent))  {
-	    // Add the new agent in the LADT
 			Agent instance = (Agent)params[1];
-	    previous = myContainer.addLocalAgent(agentID, instance);
-	    startedOnBE = true;
-			//createAgentOnBE(agentID, instance, cmd);
+			// If the instance is an AgentImage, this is a re-addition of an agent
+			// living in the FE --> just do nothing
+			if (!(instance instanceof BackEndContainer.AgentImage)) { 
+		    // Add the new agent in the LADT
+		    previous = myContainer.addLocalAgent(agentID, instance);
+		    startedOnBE = true;
+			}
     }
     else {
 	    // Add the new agent in the images table 
@@ -442,7 +447,7 @@ public class BEAgentManagementService extends BaseService {
 	private void handleKillContainer(VerticalCommand cmd) {
 	    myContainer.shutDown();
 	}
-
+	
 	/**
 	   Force the creation of an agent on the FrontEnd.
 	   Note that the agent to create can have a different owner with respect 

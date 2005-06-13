@@ -643,7 +643,8 @@ class DeliverableDataInputStream extends DataInputStream {
 	}
     }
 
-    private Node deserializeNode() throws LEAPSerializationException {
+  // Package-scoped since it is used by the NodeSerializer
+	Node deserializeNode() throws LEAPSerializationException {
     	try {
 		    String name = readString();
 		    boolean hasPM = readBoolean();

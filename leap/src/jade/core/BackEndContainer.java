@@ -141,7 +141,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
 
-      protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
+	protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 	  // Initialize all services (without activating them)
   	List services = new ArrayList();
 	  ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
@@ -150,6 +150,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  dsc = startService("jade.core.messaging.MessagingService", false);
 	  dsc.setMandatory(true);
 	  services.add(dsc);
+	  
     List l = myProfile.getSpecifiers(Profile.SERVICES);
     myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
     Iterator serviceSpecifiers = l.iterator();
@@ -207,52 +208,12 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     		}
     	}
     }
+	}
 
-	  /* Start all the container fundamental services (without activating them)
-  	List basicServices = new ArrayList();
-	  ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
-	  basicServices.add(dsc);
-	  dsc = startService("jade.core.messaging.MessagingService", false);
-	  basicServices.add(dsc);
-    List l = myProfile.getSpecifiers(Profile.SERVICES);
-    myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
-    Iterator serviceSpecifiers = l.iterator();
-    while(serviceSpecifiers.hasNext()) {
-		  Specifier s = (Specifier) serviceSpecifiers.next();
-		  String serviceClass = s.getClassName();
-		  if (serviceClass.equals("jade.core.security.SecurityService")) {
-		  	l.remove(s);
-		  	dsc = startService("jade.core.security.SecurityService", false);
-			  basicServices.add(dsc);
-			  break;
-		  }
-    }
 	
-    // Register with the platform 
-    ServiceDescriptor[] descriptors = new ServiceDescriptor[basicServices.size()];
-    for (int i = 0; i < descriptors.length; ++i) {
-    	descriptors[i] = (ServiceDescriptor) basicServices.get(i);
-    }
-    
-	  // Actually join the platform (this call can modify the name of this container)
-	  if (theBEManager != null) {
-    	myNodeDescriptor.setParentNode(theBEManager.getNode());
-	  }
-	  getServiceManager().addNode(myNodeDescriptor, descriptors);
-	  if (theBEManager != null) {
-	    theBEManager.register(myNodeDescriptor);
-	  }
-
-	  // Boot all basic services
-    for (int i = 0; i < descriptors.length; ++i) {
-    	descriptors[i].getService().boot(myProfile);
-    }*/
-      }
-
-    /////////////////////////////////////
-    // BackEnd interface implementation
-    /////////////////////////////////////
-
+	/////////////////////////////////////
+	// BackEnd interface implementation
+	/////////////////////////////////////
 
   /**
      A new agent has just started on the FrontEnd.
@@ -463,6 +424,35 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
   }
 
+	public Agent acquireLocalAgent(AID id) {
+		Agent ag = super.acquireLocalAgent(id);
+		if (ag == null) {
+			// The agent is not in the LADT. Likely it is in the FE --> Acquire its image
+		  // FIXME: The image is not "acquired". Likely we have to use a LADT 
+			// also for agent images
+			ag = (Agent) agentImages.get(id);
+		}
+		return ag;
+	}
+
+	public void releaseLocalAgent(AID id) {
+		// If the aquired agent was an image there is nothing to release (see FIXME above)
+		super.releaseLocalAgent(id);
+	}
+
+	public AID[] agentNames() {
+		AID[] realAgents = super.agentNames();
+		AID[] images = getAgentImages();
+		AID[] all = new AID[realAgents.length + images.length];
+		for (int i = 0; i < realAgents.length; ++i) {
+			all[i] = realAgents[i];
+		}
+		for (int i = 0; i < images.length; ++i) {
+			all[i + realAgents.length] = images[i];
+		}
+		return all;
+	}
+    
   /**
      This method is re-defined to avoid NullPointerException. In fact
      a search in the LADT would be done for the agent to be debugged, but
@@ -509,15 +499,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       }
 
       // "Kill" all agent images
-      AID[] ids = getAgentImages();
-      for (int i = 0; i < ids.length; ++i) {
-      	handleEnd(ids[i]);
-      }
-
-      if (agentImages.size() > 0) {
-    		myLogger.log(Logger.WARNING, "# "+agentImages.size()+" zombie agent images found.");
-	      agentImages.clear();
-      }
+      killAgentImages();
 		
       if (theBEManager != null) {
       	theBEManager.deregister(myNodeDescriptor);
@@ -525,7 +507,19 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       super.shutDown();
   }
 
-  
+	private void killAgentImages() {
+		AID[] ids = getAgentImages();
+		for (int i = 0; i < ids.length; ++i) {
+			handleEnd(ids[i]);
+		}
+		
+		if (agentImages.size() > 0) {
+			myLogger.log(Logger.WARNING, "# "+agentImages.size()+" zombie agent images found.");
+			agentImages.clear();
+		}
+	}
+
+	
   //////////////////////////////////////////////////////////
   // Methods related to the back-end replication mechanism
   //////////////////////////////////////////////////////////
@@ -656,9 +650,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
     }
 
     private BackEndManager initBEManager() {
-    	Profile p = new ProfileImpl(false);
     	try {
-    		return BackEndManager.getInstance(p);
+    		return BackEndManager.getInstance(null);
     	}
     	catch (Exception e) {
     		myLogger.log(Logger.WARNING, "Cannot retrieve BackEndManager. "+e);
@@ -749,14 +742,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
   // - While synchronizing outgoing messages are bufferd and 
   //   actually sent as soon as the synchronization process completes
   ////////////////////////////////////////////////////////////
+    
   // Flag indicating that the front-end synchronization process is in place
-  private boolean synchronizing = false;
-  // Flag indicating that the input-connection is ready
-  //private boolean inputConnectionReady = false;
-  
-  private Object inputConnectionLock = new Object();
+  private boolean synchronizing = false;  
   private Object frontEndSynchLock = new Object();
-  
   private List fronEndSynchBuffer = new ArrayList();
   
   /**
@@ -771,47 +760,29 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
    */
   private void resynch() {
   	synchronizing = true;
-		//inputConnectionReady = false;
   	Thread synchronizer = new Thread() {
   		public void run() {
   			while (!terminating) {
 	  			try {
-	  				// Wait for the input connection to be established.
-		  			//waitUntilInputConnectionReady();
 		  			myFrontEnd.synch();
 		  			notifySynchronized();
 				    myLogger.log(Logger.INFO, "Resynch completed");
 		  			break;
 	  			}
 	  			catch (IMTPException imtpe) {
-	  				// The input connection is down again. Go back waiting
+	  				// Since the synchronization process will be repeated, be
+	  				// sure we start from a clean situation
+	  				killAgentImages();
+	  				// The input connection is down again (or there was an IMTP
+	  				// error resynching). Go back waiting
 				    myLogger.log(Logger.INFO, "Can't issue SYNCH command to FE. Wait a bit and retry...");
 				    try {Thread.sleep(1000);} catch (Exception e) {}
-						//inputConnectionReady = false;
 	  			}
   			}
   		}
   	};
   	synchronizer.start();
   }
-
-  /*private void waitUntilInputConnectionReady() {
-  	synchronized (inputConnectionLock) {
-  		while (!inputConnectionReady) {
-  			try {
-  				inputConnectionLock.wait();
-  			}
-  			catch (Exception e) {}
-  		}
-  	}
-  }*/
-  
-  /*public void notifyInputConnectionReady() {
-  	synchronized (inputConnectionLock) {
-  		inputConnectionReady = true;
-  		inputConnectionLock.notifyAll();
-  	}
-  }*/
   
   private void postponeAfterFrontEndSynch(ACLMessage msg, String sender) {
   	// No need for synchronization since this is called within a synchronized block

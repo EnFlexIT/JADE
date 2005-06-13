@@ -378,9 +378,11 @@ public class PlatformManagerImpl implements PlatformManager {
 			// Stop monitoring (this has no effect if we were not monitoring the dead node)
 			Node parent = dsc.getParentNode();
 			if (parent != null) {
+				System.out.println("Terminating node has parent");
 				// If the dead node had a parent, notify the failure-monitor monitoring the parent
 				NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
 				if (failureMonitor != null) {
+					System.out.println("Removing failureMonitor child");
 					failureMonitor.removeChild(node);
 				}
 			}

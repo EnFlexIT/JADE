@@ -150,9 +150,12 @@ public class ContainerController {
 	    }
 	      
       AID agentID = new AID(nickname, AID.ISLOCALNAME);
+      // FIXME: This call skips the security checks on the local container
       try {
 					jade.core.NodeDescriptor nd = myImpl.getNodeDescriptor();
-          myImpl.initAgent(agentID, anAgent, nd.getOwnerPrincipal(),nd.getOwnerCredentials());
+					// The owner of the new agent is the owner of the local container.
+					// The new agent has NO initial credentials
+          myImpl.initAgent(agentID, anAgent, nd.getOwnerPrincipal(), null);
       }
       catch(Exception e) {
           throw new StaleProxyException(e);

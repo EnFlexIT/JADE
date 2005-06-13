@@ -143,7 +143,7 @@ public class ScalabilityTest {
 		
 		String prefix = Profile.getDefaultNetworkName();
 		for (int i = base; i < base+nCouples; i++) {
-			initCouple(pp.getProperty(MicroRuntime.HOST_KEY), pp.getProperty(MicroRuntime.PORT_KEY), pp.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY), pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY), prefix, i);
+			initCouple(pp.getProperty(MicroRuntime.HOST_KEY), pp.getProperty(MicroRuntime.PORT_KEY), pp.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY), pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY), pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY), prefix, i);
 			switch (mode) {
 			case SLOW_MODE:
 				waitABit();
@@ -253,7 +253,7 @@ public class ScalabilityTest {
   	return props;
 	}
 
-	private static void initCouple(String host, String port, String connectionManager, String mediatorClass, String prefix, int index) {
+	private static void initCouple(String host, String port, String connectionManager, String mediatorClass, String maxDiscTime, String prefix, int index) {
 		String senderClass = "jade.core.ScalabilityTest$BitrateSenderAgent";
 		String receiverClass = "jade.core.ScalabilityTest$BitrateReceiverAgent";
 		if (measure == RTT_MEASURE) {
@@ -274,13 +274,15 @@ public class ScalabilityTest {
 		if (mediatorClass != null) {
 			pp.setProperty(JICPProtocol.MEDIATOR_CLASS_KEY, mediatorClass);
 		}
+		if (maxDiscTime != null) {
+			pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, maxDiscTime);
+		}
 		String sName = "S-"+prefix+"-"+index;
 		pp.setProperty(PDPContextManager.MSISDN, sName);
 		String rName = "R-"+prefix+"-"+index;
 		String prop = sName+":"+senderClass+"("+rName+")";
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
 		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
-		pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, "10"); // Very short --> BackEnds die as soon as possible when their FrontEnds disconnects
 		FrontEndContainer fes = new FrontEndContainer(pp);
 		
 		pp = new Properties();
@@ -296,11 +298,13 @@ public class ScalabilityTest {
 		if (mediatorClass != null) {
 			pp.setProperty(JICPProtocol.MEDIATOR_CLASS_KEY, mediatorClass);
 		}
+		if (maxDiscTime != null) {
+			pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, maxDiscTime);
+		}
 		pp.setProperty(PDPContextManager.MSISDN, rName);
 		prop = rName+":"+receiverClass;
 		pp.setProperty(MicroRuntime.AGENTS_KEY, prop);
 		pp.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, "-1");
-		pp.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, "10"); // Very short --> BackEnds die as soon as possible when their FrontEnds disconnects
 		FrontEndContainer fer = new FrontEndContainer(pp);
 	}
 	

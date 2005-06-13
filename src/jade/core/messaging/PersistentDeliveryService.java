@@ -407,7 +407,7 @@ public class PersistentDeliveryService extends BaseService {
 
 
     /**
-       Outgoing commanf FILTER.
+       Outgoing command FILTER.
        Processes the INFORM_CREATED command. Note that we do this 
        in the postProcess() method so that we are sure the newly
        born agent is already in the GADT.

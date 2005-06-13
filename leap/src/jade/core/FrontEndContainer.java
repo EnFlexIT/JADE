@@ -272,7 +272,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   Request the FrontEnd container to synch.
 	 */
   public final void synch() throws IMTPException {
-  	logger.log(Logger.INFO,"Resynching...");
 		synchronized (this) {
 			Enumeration e = localAgents.keys();
 			while (e.hasMoreElements()) {
@@ -285,6 +284,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 						initInfo(info);
 					}
 				}
+				catch (IMTPException imtpe) {
+					// The connection is likely down again. Rethrow the exception
+					// to make the BE repeat the synchronization process
+			  	logger.log(Logger.WARNING,"IMTPException resynching. "+imtpe);
+			  	throw imtpe;					
+				}
 				catch (Exception ex) {
 			  	logger.log(Logger.SEVERE,"Exception resynching agent "+name+". "+ex);
 					ex.printStackTrace();
@@ -293,7 +298,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 			}
 		}
-  	logger.log(Logger.INFO,"Resynch OK");
   }
   	
 	/////////////////////////////////////

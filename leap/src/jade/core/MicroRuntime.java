@@ -195,7 +195,9 @@ public class MicroRuntime {
 						if(logger.isLoggable(Logger.SEVERE))
 							logger.log(Logger.SEVERE,"Interrupted in join");
 					}
-					terminator.run();
+					if (terminator != null) {
+						terminator.run();
+					}
 				}
 			} );
 		}

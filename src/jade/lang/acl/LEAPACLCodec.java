@@ -260,7 +260,7 @@ public class LEAPACLCodec implements ACLCodec {
   }
 
 
-  private final static void serializeAID(AID id, DataOutputStream dos) throws IOException, CodecException {
+  public final static void serializeAID(AID id, DataOutputStream dos) throws IOException, CodecException {
     byte presence = 0;
     String name = id.getName();
     Iterator addresses = id.getAllAddresses();
@@ -302,7 +302,7 @@ public class LEAPACLCodec implements ACLCodec {
 		//#CUSTOM_EXCLUDE_END
   }
   
-  private final static AID deserializeAID(DataInputStream dis) throws IOException, CodecException {
+  public final static AID deserializeAID(DataInputStream dis) throws IOException, CodecException {
     byte presence = dis.readByte();
     AID id = ((presence & 0x80) != 0 ? new AID(dis.readUTF(), AID.ISGUID) : new AID());
     

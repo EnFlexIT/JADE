@@ -28,8 +28,6 @@ package jade.core;
 
 import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
-import jade.util.leap.LinkedList;
-import jade.util.leap.List;
 import jade.util.leap.Map;
 
 import jade.core.nodeMonitoring.NodeMonitoringService;
@@ -117,7 +115,7 @@ public abstract class NodeFailureMonitor {
 	
   protected Node target;
   protected NodeEventListener listener;
-  protected List childNodes = new LinkedList();
+  protected Map childNodes = new HashMap();
   
   /**
    * Start the monitoring
@@ -139,7 +137,8 @@ public abstract class NodeFailureMonitor {
    * @param n child node
    */
   public synchronized void addChild(Node n) {
-    childNodes.add(n);
+    childNodes.put(n.getName(), n);
+		System.out.println("FailureMonitor child added. "+childNodes.size());
   }
   
   /**
@@ -147,7 +146,8 @@ public abstract class NodeFailureMonitor {
    * @param n child node
    */
   public synchronized void removeChild(Node n) {
-    childNodes.remove(n);
+    childNodes.remove(n.getName());
+		System.out.println("FailureMonitor child removed. "+childNodes.size());
   }
   
   /**
@@ -162,7 +162,7 @@ public abstract class NodeFailureMonitor {
    */
   protected synchronized void fireNodeAdded() {
     listener.nodeAdded(target);
-    Iterator iter = childNodes.iterator();
+    Iterator iter = childNodes.values().iterator();
     while (iter.hasNext()) {
       Node n = (Node) iter.next();
       listener.nodeAdded(n);
@@ -174,7 +174,8 @@ public abstract class NodeFailureMonitor {
    */
   protected synchronized void fireNodeRemoved() {
     listener.nodeRemoved(target);
-    Iterator iter = childNodes.iterator();
+		System.out.println("FailureMonitor fireNodeRemoved(). "+childNodes.size());
+    Iterator iter = childNodes.values().iterator();
     while (iter.hasNext()) {
       Node n = (Node) iter.next();
       listener.nodeRemoved(n);
@@ -186,7 +187,7 @@ public abstract class NodeFailureMonitor {
    */
   protected synchronized void fireNodeReachable() {
     listener.nodeReachable(target);
-    Iterator iter = childNodes.iterator();
+    Iterator iter = childNodes.values().iterator();
     while (iter.hasNext()) {
       Node n = (Node) iter.next();
       listener.nodeReachable(n);
@@ -198,7 +199,7 @@ public abstract class NodeFailureMonitor {
    */
   protected synchronized void fireNodeUnreachable() {
     listener.nodeUnreachable(target);
-    Iterator iter = childNodes.iterator();
+    Iterator iter = childNodes.values().iterator();
     while (iter.hasNext()) {
       Node n = (Node) iter.next();
       listener.nodeUnreachable(n);

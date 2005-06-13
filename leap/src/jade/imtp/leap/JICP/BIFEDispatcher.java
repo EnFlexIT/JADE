@@ -384,6 +384,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  	}
 	  	}
 	  	else {
+	  		System.out.println("Out Connection null: refreshingOut = "+refreshingOutput);
 	  		throw new ICPException("Unreachable");
 	  	}
   	}
@@ -544,7 +545,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
    */
 	public void run() {
 		connect(OUT);
-		refreshingOutput = false;
 	}
 	
 
@@ -580,18 +580,26 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 				  		// IOException when trying to reconnect.
 					  	try {
 					  		handleBENotFound();
-					  		c = createBackEnd();
-					  		handleReconnection(c, type);
+					  		// In some cases the INP connection may be re-established by another
+					  		// thread just after the BackEnd has been re-created but the 
+					  		// outConnection has not been set yet. In these cases the resynch
+					  		// process may fail since it finds the outConnection null.
+					  		// The synchronized block avoids this.
+					  		synchronized (this) {
+						  		c = createBackEnd();
+						  		handleReconnection(c, type);
+					  		}
 					  	}
 					  	catch (IMTPException imtpe) { 
+					  		imtpe.printStackTrace();
 					      throw new IOException("BE-recreation failed");
 					  	}
 				  	}
 				  	else {
-			  			// In case the outConnection still appears to be OK, refresh it
+			  			// In case the outConnection still appears to be OK, refresh it.
 				  		refreshOut();
-				  		// Then behave as if there was an IOException --> go to sleep for a while and try again
-			  			throw new IOException();
+				  		// Then behave as if there was an IOException --> go back sleeping
+				  		throw new IOException();
 				  	}
 		  		}
 		  		else {
@@ -648,6 +656,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 			}
 			
 			outConnection = c;
+			refreshingOutput = false;
 			// The Output connection is available again --> 
 			// Activate postponed commands flushing
 			waitingForFlush = myStub.flush();
@@ -662,7 +671,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	
 	private void handleError() {
 		myLogger.log(Logger.SEVERE, "Can't reconnect ("+System.currentTimeMillis()+")");
-
+		(new Exception("Dummy")).printStackTrace();
+		
 		if (myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTION_FAILURE, null);
 		}
