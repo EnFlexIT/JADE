@@ -37,7 +37,7 @@ class BehaviourList extends LinkedList implements Serializable {
   	 * Add a Behaviour to the tail of the list. This does not require
   	 * adjusting the current index
   	 */
-  	public void addElement(Behaviour b) {
+  	public synchronized void addElement(Behaviour b) {
   		add(b);
   	}
   	
@@ -50,7 +50,7 @@ class BehaviourList extends LinkedList implements Serializable {
      * the last element of the list. In this case the current index
      * must be set to 0
      */
-  	public boolean removeElement(Behaviour b) {
+  	public synchronized boolean removeElement(Behaviour b) {
   		int index = indexOf(b);
     	if(index != -1) {
       		remove(b);
@@ -81,14 +81,14 @@ class BehaviourList extends LinkedList implements Serializable {
   	/**
   	   Set the current index to the beginning of the list
   	*/
-  	public void begin() {
+  	public synchronized void begin() {
   		current = 0;
   	}
 
   	/**
   	   Check whether the current behaviour is the last in the list
   	*/
-  	public boolean currentIsLast() {
+  	private boolean currentIsLast() {
   		return (current == (size() - 1));
   	}
   	
@@ -96,7 +96,7 @@ class BehaviourList extends LinkedList implements Serializable {
   	 * Advance the current index (taking into account wrap around)
   	 * and return the new current Behaviour
   	 */ 
-  	public Behaviour next() {
+  	public synchronized Behaviour next() {
   		if (currentIsLast() || isEmpty()) {
   			current = 0;
   		}

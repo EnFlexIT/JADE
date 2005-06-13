@@ -325,72 +325,77 @@ public class ParallelBehaviour extends CompositeBehaviour {
      @param rce The event to handle.
   */
   protected void handle(RunnableChangedEvent rce) {
-    if(rce.isUpwards()) {
-      // Upwards notification
-      Behaviour b = rce.getSource();
-      
-      if (b == this) {
-      	// If the event is from this behaviour, set the new 
-      	// runnable state and notify upwards.
-      	super.handle(rce);
-      }
-      else {
-      	// If the event is from a child -->
-    	if(rce.isRunnable()) {
-    		// If this is a restart, remove the child from the
-    		// list of blocked children
-			Object rc = blockedChildren.remove(b);
-			
-			// Only if all children were blocked (this ParallelBehaviour was
-			// blocked too), restart this ParallelBehaviour and notify upwards
-			if( (rc != null) && !isRunnable() ) {
-	  			myEvent.init(true, NOTIFY_UP);
-	  			super.handle(myEvent);
-	  			// Also reset the currentExecuted flag so that a runnable
-	  			// child will be scheduled for execution
-	  			currentExecuted = true;
-			}
-    	}
-    	else {
-    		// If this is a block, put the child in the list of
-    		// blocked children
-			Object rc = blockedChildren.put(b, b);
-			
-			// Only if, with the addition of this child all sub-behaviours 
-			// are now blocked, block this ParallelBehaviour and notify upwards
-			if ( (rc != null) && (blockedChildren.size() == subBehaviours.size()) ) {
-	  			myEvent.init(false, NOTIFY_UP);
-	  			super.handle(myEvent);
-			}
-    	}
-      } // END of upwards notification from children
-      
-    } // END of upwards notification
-    else {
-      // Downwards notification	(from parent)
-      boolean r = rce.isRunnable();
-	  
-      // Set the new runnable state
-	  setRunnable(r);
-	  // Notify all children
-  	  Iterator it = getChildren().iterator();
-  	  while (it.hasNext()) {
-  	  	Behaviour b = (Behaviour) it.next();
-  		b.handle(rce);
-  	  }
-  	  // Clear or completely fill the list of blocked children 
-  	  // according to whether this is a block or restart
-  	  if (r) {
-  	  	blockedChildren.clear();
-  	  }
-  	  else {
-  	    it = getChildren().iterator();
-  	    while (it.hasNext()) {
-  	  		Behaviour b = (Behaviour) it.next();
-			blockedChildren.put(b, b);
-  	  	}
-  	  }
-    }  // END of downwards notification
+  	// This method may be executed by an auxiliary thread posting
+  	// a message into the Agent's message queue --> it must be
+  	// synchronized with sub-behaviour additions/removal.
+  	synchronized (subBehaviours) {
+	    if(rce.isUpwards()) {
+	      // Upwards notification
+	      Behaviour b = rce.getSource();
+	      
+	      if (b == this) {
+	      	// If the event is from this behaviour, set the new 
+	      	// runnable state and notify upwards.
+	      	super.handle(rce);
+	      }
+	      else {
+	      	// If the event is from a child -->
+	    	if(rce.isRunnable()) {
+	    		// If this is a restart, remove the child from the
+	    		// list of blocked children
+				Object rc = blockedChildren.remove(b);
+				
+				// Only if all children were blocked (this ParallelBehaviour was
+				// blocked too), restart this ParallelBehaviour and notify upwards
+				if( (rc != null) && !isRunnable() ) {
+		  			myEvent.init(true, NOTIFY_UP);
+		  			super.handle(myEvent);
+		  			// Also reset the currentExecuted flag so that a runnable
+		  			// child will be scheduled for execution
+		  			currentExecuted = true;
+				}
+	    	}
+	    	else {
+	    		// If this is a block, put the child in the list of
+	    		// blocked children
+				Object rc = blockedChildren.put(b, b);
+				
+				// Only if, with the addition of this child all sub-behaviours 
+				// are now blocked, block this ParallelBehaviour and notify upwards
+				if ( (rc != null) && (blockedChildren.size() == subBehaviours.size()) ) {
+		  			myEvent.init(false, NOTIFY_UP);
+		  			super.handle(myEvent);
+				}
+	    	}
+	      } // END of upwards notification from children
+	      
+	    } // END of upwards notification
+	    else {
+	      // Downwards notification	(from parent)
+	      boolean r = rce.isRunnable();
+		  
+	      // Set the new runnable state
+		  setRunnable(r);
+		  // Notify all children
+	  	  Iterator it = getChildren().iterator();
+	  	  while (it.hasNext()) {
+	  	  	Behaviour b = (Behaviour) it.next();
+	  		b.handle(rce);
+	  	  }
+	  	  // Clear or completely fill the list of blocked children 
+	  	  // according to whether this is a block or restart
+	  	  if (r) {
+	  	  	blockedChildren.clear();
+	  	  }
+	  	  else {
+	  	    it = getChildren().iterator();
+	  	    while (it.hasNext()) {
+	  	  		Behaviour b = (Behaviour) it.next();
+				blockedChildren.put(b, b);
+	  	  	}
+	  	  }
+	    }  // END of downwards notification
+  	}
   }
 
     //#APIDOC_EXCLUDE_END
