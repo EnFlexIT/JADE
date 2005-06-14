@@ -284,12 +284,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 						initInfo(info);
 					}
 				}
-				catch (IMTPException imtpe) {
+				/*catch (IMTPException imtpe) {
 					// The connection is likely down again. Rethrow the exception
 					// to make the BE repeat the synchronization process
 			  	logger.log(Logger.WARNING,"IMTPException resynching. "+imtpe);
 			  	throw imtpe;					
-				}
+				}*/
 				catch (Exception ex) {
 			  	logger.log(Logger.SEVERE,"Exception resynching agent "+name+". "+ex);
 					ex.printStackTrace();

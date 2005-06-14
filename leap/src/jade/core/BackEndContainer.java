@@ -772,10 +772,13 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	  			catch (IMTPException imtpe) {
 	  				// Since the synchronization process will be repeated, be
 	  				// sure we start from a clean situation
-	  				killAgentImages();
+	  				//killAgentImages();
+	  				
 	  				// The input connection is down again (or there was an IMTP
 	  				// error resynching). Go back waiting
-				    myLogger.log(Logger.INFO, "Can't issue SYNCH command to FE. Wait a bit and retry...");
+	  				if (myLogger.isLoggable(Logger.FINE)) {
+					    myLogger.log(Logger.FINE, "Can't issue SYNCH command to FE. Wait a bit and retry...");
+	  				}
 				    try {Thread.sleep(1000);} catch (Exception e) {}
 	  			}
   			}
