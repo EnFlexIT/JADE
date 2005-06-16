@@ -537,6 +537,24 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	se.printStackTrace();
     }
 
+
+		//start code patch provided by David Bernstein, 15/6/05
+    // unexport platform manager so gone if restarted in same JVM
+		try {
+				if ( myProfile.getBooleanProperty( Profile.MAIN, false ) && ( null != myMainContainer ) ) {
+						myIMTPManager.unexportPlatformManager(myMainContainer.getPlatformManager());
+				}
+    }
+    catch ( IMTPException imtpe ) {
+				Throwable t = imtpe.getNested();
+				// if was never bound, then ignore, else print
+				if ( ( null == t ) || !( t instanceof java.rmi.NotBoundException ) ) {
+						imtpe.printStackTrace();
+				}
+    }
+    //end code patch
+
+
     // Releases Thread resources
     myResourceManager.releaseResources();
 

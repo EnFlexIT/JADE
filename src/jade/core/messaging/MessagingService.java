@@ -214,6 +214,40 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     myMessageManager = MessageManager.instance(p);
   }
 
+		// kindly provided by David Bernstein, 15/6/2005
+		public void shutdown() {
+				// clone addresses (externally because leap list doesn't
+				// implement Cloneable) so don't get concurrent modification
+				// exception on the list as the MTPs are being uninstalled
+				List platformAddresses = new jade.util.leap.ArrayList();
+        Iterator routeIterator = routes.getAddresses();
+				while ( routeIterator.hasNext() ) {
+						platformAddresses.add( routeIterator.next() );
+				}
+				// make an uninstall-mtp command to re-use for each MTP installed
+        GenericCommand cmd = new GenericCommand( MessagingSlice.UNINSTALL_MTP, getName(), null );
+				// for each platform address, uninstall the MTP it represents
+        routeIterator = platformAddresses.iterator();
+				while ( routeIterator.hasNext() ) {
+						String route = (String)routeIterator.next();
+            try {
+								cmd.addParam( route );
+								receiverSink.consume( cmd );
+								cmd.removeParam( route );
+								if ( logger.isLoggable( Logger.FINER ) ) {
+										logger.log( Logger.FINER,"uninstalled MTP "+route );
+								}
+						}
+						catch ( Exception e ) {
+								if ( logger.isLoggable( Logger.SEVERE ) ) {
+										logger.log( Logger.SEVERE,"Exception uninstalling MTP "+route, e);
+								}
+						}
+				}
+    }
+
+
+
   /**
    * Retrieve the name of this service, that can be used to look up
    * its slices in the Service Finder.
