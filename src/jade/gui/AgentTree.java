@@ -626,26 +626,27 @@ public class RemoteAgentNode extends AgentNode{
   }
 
   public void removeAgentNode(String containerName, String agentName) {
-
-      AgentTreeModel model = getModel();
-      AgentTree.Node container = findContainerNode(containerName);
-      AgentTree.Node agent = findAgentNode(container, agentName);
-
-      if(agent != null) {
-	  model.removeNodeFromParent(agent);
-      }
-      else {
-	  // It can be a frozen agent
-	  AgentTree.Node frozenAgents = findFrozenAgentsFolder(container, FROZEN_AGENTS);
-	  if(frozenAgents != null) {
-	      agent = findAgentNode(frozenAgents, agentName);
-
-	      model.removeNodeFromParent(agent);
-	      if(frozenAgents.isLeaf()) {
-		  model.removeNodeFromParent(frozenAgents);
-	      }
-	  }
-      }
+		AgentTreeModel model = getModel();
+		AgentTree.Node container = findContainerNode(containerName);
+		if (container != null) {
+			AgentTree.Node agent = findAgentNode(container, agentName);
+			
+			if(agent != null) {
+				model.removeNodeFromParent(agent);
+			}
+			else {
+				// It can be a frozen agent
+				AgentTree.Node frozenAgents = findFrozenAgentsFolder(container, FROZEN_AGENTS);
+				if(frozenAgents != null) {
+					agent = findAgentNode(frozenAgents, agentName);
+					
+					model.removeNodeFromParent(agent);
+					if(frozenAgents.isLeaf()) {
+						model.removeNodeFromParent(frozenAgents);
+					}
+				}
+			}
+		}
   }
 
   public void addRemotePlatformNode(AID ams,APDescription desc){
