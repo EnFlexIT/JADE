@@ -19,12 +19,12 @@ import jade.util.Logger;
  * @author Fabio Bellifemine, Telecom Italia LAB
  * @version $Date$ $Revision$
  **/
-public abstract class GatewayAgent extends Agent {
+public class GatewayAgent extends Agent {
 
 	private  GatewayBehaviour myB = null; 
 		private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
-		/** subclasses must implement this method.
+		/** subclasses may implement this method.
 		 * The method is called each time a request to process a command
 		 * is received from the JSP Gateway.
 		 * <p> The recommended pattern is the following implementation:
@@ -41,7 +41,14 @@ else if (c instanceof Command2)
 		 * this command and release the command just when the Behaviour terminates,
 		 * i.e. in its <code>onEnd()</code> method.
 		 **/
-		abstract protected void processCommand(Object command);
+		protected void processCommand(Object command) {
+			if (command instanceof Behaviour) {
+				addBehaviour((Behaviour) command);
+			}
+			else {
+				myLogger.log(Logger.WARNING, "Unknown command "+command);
+			}
+		}
 
 
 		/**
