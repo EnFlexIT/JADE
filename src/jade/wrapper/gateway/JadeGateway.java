@@ -69,6 +69,22 @@ public class JadeGateway {
 		 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 		 **/
 		public final static void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
+			execute(command, 0);
+		}
+
+		/**
+		 * execute a command specifying a timeout. 
+		 * This method first check if the executor Agent is alive (if not it
+		 * creates container and agent), then it forwards the execution
+		 * request to the agent, finally it blocks waiting until the command
+		 * has been executed (i.e. the method <code>releaseCommand</code> 
+		 * is called by the executor agent)
+	   * @throws InterruptedException if the timeout expires or the Thread
+	   * executing this method is interrupted.
+		 * @throws StaleProxyException if the method was not able to execute the Command
+		 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
+		 **/
+		public final static void execute(Object command, long timeout) throws StaleProxyException,ControllerException,InterruptedException {
 				Event e = null;
 				synchronized (JadeGateway.class) {
 						checkJADE();
@@ -87,7 +103,7 @@ public class JadeGateway {
 						}
 				}
 				// wait until the answer is ready
-				e.waitUntilProcessed();
+				e.waitUntilProcessed(timeout);
 		}
 
 		/**
@@ -97,6 +113,9 @@ public class JadeGateway {
 		private final static void checkJADE() throws StaleProxyException,ControllerException {
 				if (myContainer == null) {
 						myContainer = Runtime.instance().createAgentContainer(profile); 
+						if (myContainer == null) {
+							throw new ControllerException("JADE startup failed.");
+						}
 				}
 				if (myAgent == null) {
 						myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, null);
@@ -136,6 +155,9 @@ public class JadeGateway {
 		 **/
 		public final static void init(String agentClassName, Properties jadeProfile) {
 				agentType = agentClassName;
+				if (agentType == null) {
+					agentType = GatewayAgent.class.getName();
+				}
 				jadeProps = jadeProfile;
 				profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
 		}

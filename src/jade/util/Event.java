@@ -140,8 +140,24 @@ import java.util.EventObject;
 	   object as set by the <code>notifyProcessed()</code> method.
 	 */
 	public synchronized Object waitUntilProcessed() throws InterruptedException {
+		return waitUntilProcessed(0);
+	}
+	
+	/**
+	   Blocks the calling thread until the <code>notifyProcessed()</code>
+	   method is called. 
+	   @return the result of the processing of this <code>Event</code> 
+	   object as set by the <code>notifyProcessed()</code> method.
+	   @throws InterruptedException if the timeout expires or the Thread
+	   executing this method is interrupted.
+	 */
+	public synchronized Object waitUntilProcessed(long timeout) throws InterruptedException {
 		while (!processed) {
-			wait();
+			wait(timeout);
+			if (!processed) {
+				// Timeout expired
+				throw new InterruptedException("Timeout expired");
+			}
 		}
 		return processingResult;
 	}
