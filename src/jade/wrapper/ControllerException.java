@@ -41,7 +41,7 @@ public class ControllerException extends Exception {
    * Creates a new exception object, with a given detail message.
    * @param message The detail message for the new exception object.
    */
-  ControllerException(String message) {
+  public ControllerException(String message) {
     super(message);
   }
 
