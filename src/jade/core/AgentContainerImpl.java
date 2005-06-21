@@ -421,18 +421,21 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
         myLogger.log(Logger.SEVERE,"Communication failure while joining agent platform: " + imtpe.getMessage());
         imtpe.printStackTrace();
         endContainer();
+        cleanIMTPManager();
         return false;
     }
     catch (JADESecurityException ae) {
         myLogger.log(Logger.SEVERE,"Authentication or authorization failure while joining agent platform.");
         ae.printStackTrace();
         endContainer();
+        cleanIMTPManager();
         return false;
     }
     catch (Exception e) {
         myLogger.log(Logger.SEVERE,"Some problem occurred while joining agent platform.");
         e.printStackTrace();
         endContainer();
+        cleanIMTPManager();
         return false;
     }
 
@@ -443,6 +446,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     return true;
   }
 
+  private void cleanIMTPManager() {
+  	// In case container startup failed, we clean IMTPManager resources. 
+  	// This is important when the JVM is not killed on JADE termination.
+  	if (myIMTPManager != null) {
+  		myIMTPManager.shutDown();
+  	}
+  }
+  
   private void startBootstrapAgents() {
       try {
           List l = myProfile.getSpecifiers(Profile.AGENTS);
