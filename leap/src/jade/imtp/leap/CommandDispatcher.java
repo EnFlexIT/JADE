@@ -685,14 +685,12 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
    * @param remoteObject the remote object related to the specified
    * skeleton.
    */
-  public void registerSkeleton(Skeleton skeleton, Object remotizedObject) {
+  public synchronized void registerSkeleton(Skeleton skeleton, Object remotizedObject) {
   	Integer id = null;
   	if(remotizedObject instanceof PlatformManager) {
-	    synchronized(this) {
-				id = new Integer(0);
-				name = "Service-Manager";
-				thePlatformManager = (PlatformManager) remotizedObject;
-	    }
+			id = new Integer(0);
+			name = "Service-Manager";
+			thePlatformManager = (PlatformManager) remotizedObject;
   	}
   	else {
 	    id = new Integer(nextID++);
@@ -841,6 +839,11 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       list.clear();
     } 
     icps.clear();
+    urls.clear();
+    addresses.clear();
+    thePlatformManager = null;
+    name = DEFAULT_NAME;
+    nextID = 1;
   } 
 
   // /////////////////////////////////////////

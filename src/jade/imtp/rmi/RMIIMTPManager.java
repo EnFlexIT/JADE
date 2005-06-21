@@ -348,7 +348,9 @@ public class RMIIMTPManager implements IMTPManager {
    */
   public void shutDown() {
   	try {
-      localNode.exit();
+  		if (localNode != null) {
+	      localNode.exit();
+  		}
   	}
   	catch (IMTPException imtpe) {
   		// Should never happen since this is a local call

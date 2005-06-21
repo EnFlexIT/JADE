@@ -271,8 +271,10 @@ public class LEAPIMTPManager implements IMTPManager {
    */
   public void shutDown() {
   	try {
-	    localNode.exit();
-      theDispatcher.deregisterSkeleton(localNode);
+  		if (localNode != null) {
+		    localNode.exit();
+	      theDispatcher.deregisterSkeleton(localNode);
+  		}
   	}
   	catch (IMTPException imtpe) {
   		// Should never happen since this is a local call
