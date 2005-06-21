@@ -43,6 +43,7 @@ public interface BEManagementHelper extends ServiceHelper {
 	   the front end of a given split container is running.
 	 */
 	public static final String FRONT_END_HOST = "frontendhost";
+	public static final String CONNECTED = "connected";
 	
 	/**
 	   @return a property associated to a given split container attached

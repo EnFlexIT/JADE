@@ -472,7 +472,13 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   protected void requestRefresh() {
   }
 
+	public boolean isConnected() {
+		return inpManager.isConnected() && outManager.isConnected();
+	}
 	
+	private void updateConnectedState() {
+		myProperties.put(BEManagementHelper.CONNECTED, (isConnected() ? "true" : "false"));
+	}
 	
   /**
      Inner class InputManager.
@@ -508,6 +514,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		connectionRefreshed = true;
   		waitingForFlush = myStub.flush();
   		//myContainer.notifyInputConnectionReady();
+  		updateConnectedState();
   	}
   	
   	synchronized void resetConnection() {
@@ -520,6 +527,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		// If there was someone waiting for a response on the 
   		// connection notify it.
   		//notifyAll();
+  		updateConnectedState();
   	}
 
 	  final void checkConnection(Connection c) throws ICPException {
@@ -557,7 +565,6 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				  		// If we are waiting for flushed packets and the current packet
 				  		// is a normal (i.e. non-flushed) one, then throw an exception -->
 			  			// The packet will be put in the queue of packets to be flushed
-			  			System.out.println("###### Dispatching in disconnected state.");
 				  		throw new ICPException("Unreachable");
 			  		}
 			  		
@@ -697,6 +704,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
   		}
   		// Set the new connection
   		myConnection = c;
+  		updateConnectedState();
   	}
   	
   	synchronized void resetConnection() {
@@ -705,6 +713,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				close(myConnection);
   		}
   		myConnection = null;
+  		updateConnectedState();
   	}
   	
   	synchronized void setExpirationDeadline() {
