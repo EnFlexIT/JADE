@@ -24,9 +24,6 @@ package jade;
 
 //#ALL_EXCLUDE_FILE
 
-
-import java.lang.Boolean;
-
 /**
    
    This class defines the necessary information for the configuration properties of JADE.

@@ -70,7 +70,8 @@ import starlight.util.Base64;
  */
 public class DFDBKB extends DBKB {
   
-  private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;  
+  private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
+  private static final int MAX_PROP_LENGTH = 255;
   private Logger logger;
 
   // Number of registrations after the last lease-time-cleanup
@@ -228,7 +229,7 @@ public class DFDBKB extends DBKB {
 	    stm_selServiceProtocols = conn.prepareStatement("SELECT protocol FROM serviceprotocol WHERE serviceid = ?");
 	    stm_selServiceLanguages = conn.prepareStatement("SELECT ontology FROM serviceontology WHERE serviceid = ?");
 	    stm_selServiceOntologies = conn.prepareStatement("SELECT language FROM servicelanguage WHERE serviceid = ?");
-	    stm_selServiceProperties = conn.prepareStatement("SELECT propkey, propval FROM serviceproperty WHERE serviceid = ?");
+	    stm_selServiceProperties = conn.prepareStatement("SELECT propkey, propval_str, propval_obj FROM serviceproperty WHERE serviceid = ?");
       stm_selDescrId = conn.prepareStatement("SELECT id FROM dfagentdescr WHERE aid = ?"); 
       stm_selServiceId = conn.prepareStatement("SELECT id FROM service WHERE descrid = ?");
       stm_selExpiredDescr = conn.prepareStatement("SELECT aid FROM dfagentdescr WHERE lease < ? AND lease <> '-1'");
@@ -245,7 +246,7 @@ public class DFDBKB extends DBKB {
 	    stm_insServiceProtocol = conn.prepareStatement("INSERT INTO serviceprotocol VALUES (?, ?)");
 	    stm_insServiceOntology = conn.prepareStatement("INSERT INTO serviceontology VALUES (?, ?)");
 	    stm_insServiceLanguage = conn.prepareStatement("INSERT INTO servicelanguage VALUES (?, ?)");
-	    stm_insServiceProperty = conn.prepareStatement("INSERT INTO serviceproperty VALUES (?, ?, ?, ?)");
+	    stm_insServiceProperty = conn.prepareStatement("INSERT INTO serviceproperty VALUES (?, ?, ?, ?, ?)");
       stm_insSubscription = conn.prepareStatement("INSERT INTO subscription VALUES (?, ?)");
       
       
@@ -441,55 +442,55 @@ public class DFDBKB extends DBKB {
     
     // Tables for DF registrations      
 	  createTable("dfagentdescr", new String[] {
-      "id VARCHAR(255)",  
-      "aid VARCHAR(255)",  
+      "id VARCHAR(" + MAX_PROP_LENGTH + ")",  
+      "aid VARCHAR(" + MAX_PROP_LENGTH + ")",  
 	 	  "lease VARCHAR(20)",   
 	 	  "PRIMARY KEY( id )"}); 
      
     createTable("agentaddress", new String[] {
-		  "id VARCHAR(255)", 
-      "aid VARCHAR(255)",   
-      "address VARCHAR(255)", 
+		  "id VARCHAR(" + MAX_PROP_LENGTH + ")", 
+      "aid VARCHAR(" + MAX_PROP_LENGTH + ")",   
+      "address VARCHAR(" + MAX_PROP_LENGTH + ")", 
       "PRIMARY KEY( id )"});
     
 	 	createTable("agentresolver", new String[] {
-		  "id VARCHAR(255)",
-		  "aid VARCHAR(255)",
-      "resolveraid VARCHAR(255)",
+		  "id VARCHAR(" + MAX_PROP_LENGTH + ")",
+		  "aid VARCHAR(" + MAX_PROP_LENGTH + ")",
+      "resolveraid VARCHAR(" + MAX_PROP_LENGTH + ")",
     	"PRIMARY KEY( id )"});	
     
 	 	createTable("agentuserdefslot", new String[] {
-  		"id VARCHAR(255)",
-  		"aid	VARCHAR(255)",
-      "slotkey	VARCHAR(255)",
+  		"id VARCHAR(" + MAX_PROP_LENGTH + ")",
+  		"aid	VARCHAR(" + MAX_PROP_LENGTH + ")",
+      "slotkey	VARCHAR(" + MAX_PROP_LENGTH + ")",
       "slotval	" + LONGVARCHAR_TYPE,
       "PRIMARY KEY( id )"});	 		 	
 
 	  createTable("ontology", new String[] {
-      "descrid VARCHAR(255)",
+      "descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
       "ontology VARCHAR(32)",
       "PRIMARY KEY( descrid, ontology )",
       "FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
       });
     
     createTable("protocol", new String[] {
-      "descrid VARCHAR(255)",
+      "descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
       "protocol VARCHAR(32)", 
       "PRIMARY KEY( descrid, protocol )", 
       "FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
       }); //TODO remove commented lines
 	  
 	  createTable("language", new String[] {
-      "descrid VARCHAR(255)",
+      "descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
       "language VARCHAR(32)",
       "PRIMARY KEY( descrid, language )",
       "FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
       });
 	  
 	  createTable("service", new String[] {
-		 "id VARCHAR(255)",
-		 "descrid VARCHAR(255)",
-     "sname VARCHAR(255)",
+		 "id VARCHAR(" + MAX_PROP_LENGTH + ")",
+		 "descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
+     "sname VARCHAR(" + MAX_PROP_LENGTH + ")",
      "stype VARCHAR(64)",
      "sownership VARCHAR(64)",
      "PRIMARY KEY( id )",
@@ -497,34 +498,35 @@ public class DFDBKB extends DBKB {
      });
 	  
 	  createTable("serviceprotocol", new String[] {
-     "serviceid VARCHAR(255)",
+     "serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
      "protocol VARCHAR(32)",
      "PRIMARY KEY( serviceid, protocol )",
      "FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 	  
 	  createTable("serviceontology", new String[] {
-     "serviceid VARCHAR(255)",
+     "serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
      "ontology VARCHAR(32)",
      "PRIMARY KEY( serviceid, ontology )",
      "FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 	  
 	  createTable("servicelanguage", new String[] {
-		  "serviceid VARCHAR(255)",
+		  "serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
       "language VARCHAR(32)",
       "PRIMARY KEY( serviceid, language )",
       "FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 	  
 	  createTable("serviceproperty", new String[] {
-		  "serviceid VARCHAR(255)",
-      "propkey VARCHAR(245)",
-      "propval " + LONGVARCHAR_TYPE,
+		  "serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
+      "propkey VARCHAR(" + MAX_PROP_LENGTH + ")",
+      "propval_obj " + LONGVARCHAR_TYPE,
+      "propval_str VARCHAR(" + MAX_PROP_LENGTH + ")",
       "propvalhash VARCHAR(100)",
       "PRIMARY KEY( serviceid, propkey )",
       "FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 	  
 		// Tables for subscriptions
 	  createTable("subscription", new String[] { 
-      "id	 VARCHAR(255)"   ,
+      "id	 VARCHAR(" + MAX_PROP_LENGTH + ")"   ,
       "aclm " + LONGVARCHAR_TYPE,
       "PRIMARY KEY( id )"});
 
@@ -696,10 +698,21 @@ public class DFDBKB extends DBKB {
             // a hash map for later search operations
             Object value = prop.getValue();
             String hashStr = getHashValue(value);
-            String valueStr = serializeObj(value);
+            // store plain String object value directly
+            // in 'propval_str' field otherwise store it in
+            // 'propval_obj' field
+            if ( (value instanceof String) && ( ((String) value).length() <= MAX_PROP_LENGTH ) ) {
+            	// set to NULL the serialized representation of the object
+            	stm_insServiceProperty.setString(3, null);
+            	stm_insServiceProperty.setString(4, (String) value);
+            }
+            else {
+                String valueStr = serializeObj(value);
+            	stm_insServiceProperty.setString(3, valueStr);
+            	stm_insServiceProperty.setString(4, null);
+            };
             
-            stm_insServiceProperty.setString(3, valueStr);
-            stm_insServiceProperty.setString(4, hashStr);
+            stm_insServiceProperty.setString(5, hashStr);
             stm_insServiceProperty.addBatch();
             executePropertiesBatch = true;            
           } catch (Exception e) {
@@ -1020,7 +1033,7 @@ public class DFDBKB extends DBKB {
 		AID id = null;
 		
 		ResultSet rs = null;
-    ResultSet rsS = null;
+		ResultSet rsS = null;
 		String descrId = null;
     
 		try{
@@ -1033,7 +1046,7 @@ public class DFDBKB extends DBKB {
 				id = getAID(aidN);
 				dfd.setName(id);
 				String sLease = rs.getString("lease");
-        descrId = rs.getString("id");
+				descrId = rs.getString("id");
 				long lease = Long.parseLong(sLease);
 				if (lease != -1) {
 					dfd.setLeaseTime(new Date(lease));
@@ -1042,7 +1055,7 @@ public class DFDBKB extends DBKB {
 			else {
 				return null;
 			}
-      closeResultSet(rs);
+			closeResultSet(rs);
 			
 			// Protocols
 			stm_selProtocols.setString(1, descrId);
@@ -1050,7 +1063,7 @@ public class DFDBKB extends DBKB {
 			while(rs.next()){
 				dfd.addProtocols(rs.getString("protocol"));
 			}
-      closeResultSet(rs);
+			closeResultSet(rs);
       
 			// Languages
 			stm_selLanguages.setString(1, descrId);
@@ -1058,7 +1071,7 @@ public class DFDBKB extends DBKB {
 			while(rs.next()){
 				dfd.addLanguages(rs.getString("language"));
 			}
-      closeResultSet(rs);
+			closeResultSet(rs);
       
 			// Ontologies
 			stm_selOntologies.setString(1, descrId);
@@ -1074,42 +1087,44 @@ public class DFDBKB extends DBKB {
 			while(rs.next()) {
 				ServiceDescription sd = new ServiceDescription();
 				String serviceId = rs.getString("id");
-        sd.setName(rs.getString("sname"));
+				sd.setName(rs.getString("sname"));
 				sd.setType(rs.getString("stype"));
 				sd.setOwnership(rs.getString("sownership"));
 				
 				// Service protocols
-        stm_selServiceProtocols.setString(1, serviceId);
+		        stm_selServiceProtocols.setString(1, serviceId);
 				rsS = stm_selServiceProtocols.executeQuery();
-        while(rsS.next()){
+		        while(rsS.next()){
 					sd.addProtocols(rsS.getString("protocol"));
 				}	
-        closeResultSet(rsS);
+		        closeResultSet(rsS);
         
 				// Service languages
-        stm_selServiceLanguages.setString(1, serviceId);
+		        stm_selServiceLanguages.setString(1, serviceId);
 				rsS = stm_selServiceLanguages.executeQuery();
-        while(rsS.next()){
+		        while(rsS.next()){
 					sd.addOntologies(rsS.getString("ontology"));
 				}	
-        closeResultSet(rsS);
-        
+		        closeResultSet(rsS);
+		        
 				// Service ontologies
-        stm_selServiceOntologies.setString(1, serviceId);
+		        stm_selServiceOntologies.setString(1, serviceId);
 				rsS = stm_selServiceOntologies.executeQuery();
-        while(rsS.next()){
-					sd.addLanguages(rsS.getString("language"));
+		        while(rsS.next()){
+		        	sd.addLanguages(rsS.getString("language"));
 				}
-        closeResultSet(rsS);
+		        closeResultSet(rsS);
        
 				// Service properties
-        stm_selServiceProperties.setString(1, serviceId);
-        rsS = stm_selServiceProperties.executeQuery();
+		        stm_selServiceProperties.setString(1, serviceId);
+		        rsS = stm_selServiceProperties.executeQuery();
 				while(rsS.next()){
 					Property prop = new Property();
 					prop.setName(rsS.getString("propkey"));
-          Object value = deserializeObj(rsS.getString("propval"));
-          prop.setValue(value);
+					String objStrVal = rsS.getString("propval_obj");
+					String strStrVal = rsS.getString("propval_str");
+					Object value = ( objStrVal == null )? strStrVal:deserializeObj(objStrVal);
+					prop.setValue(value);
 					sd.addProperties(prop);
 				}
         
@@ -1122,8 +1137,8 @@ public class DFDBKB extends DBKB {
 			
 		}
 		finally {
-      closeResultSet(rs);
-      closeResultSet(rsS);
+			closeResultSet(rs);
+			closeResultSet(rsS);
 		}
 		return dfd;
 	}

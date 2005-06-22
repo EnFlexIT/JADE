@@ -27,12 +27,10 @@ package jade.core.messaging;
 
 
 import java.io.IOException;
-import java.util.Date;
 
 import jade.core.AID;
 import jade.core.Profile;
 
-import jade.domain.FIPAAgentManagement.InternalError;
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
