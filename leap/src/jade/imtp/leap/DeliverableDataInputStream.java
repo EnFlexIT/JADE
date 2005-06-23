@@ -43,6 +43,8 @@ import java.util.Vector;
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.LEAPACLCodec;
+import jade.lang.acl.ACLCodec.CodecException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
@@ -464,24 +466,12 @@ class DeliverableDataInputStream extends DataInputStream {
      * Package scoped as it may be called by external serializers
      */
     AID deserializeAID() throws IOException, LEAPSerializationException {
-        AID id = new AID(readString(), true);
-        while (readBoolean()) {
-            id.addAddresses(readUTF());
-        } 
-				//#CUSTOM_EXCLUDE_BEGIN
-        while (readBoolean()) {
-            id.addResolvers(deserializeAID());
-        } 
-
-        // User def props must be set one by one
-        int size = readInt();
-        int i = 0;
-
-        while (i++ < size) {
-            id.addUserDefinedSlot(readString(), readString());
-        } 
-				//#CUSTOM_EXCLUDE_END
-        return id;
+    	try {
+	    	return LEAPACLCodec.deserializeAID(this);
+    	}
+    	catch (CodecException ce) {
+    		throw new LEAPSerializationException(ce.getMessage());
+    	}
     } 
 
     public AID[] deserializeAIDArray() throws IOException, LEAPSerializationException {

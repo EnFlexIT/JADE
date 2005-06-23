@@ -45,6 +45,7 @@ import jade.core.*;
 import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
+import jade.lang.acl.ACLCodec.CodecException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
@@ -560,29 +561,12 @@ class DeliverableDataOutputStream extends DataOutputStream {
    * Package scoped as it is called by the EnvelopSerializer
    */
   void serializeAID(AID id) throws IOException, LEAPSerializationException {
-    writeString(id.getName());
-
-    Iterator it = id.getAllAddresses();
-
-    while (it.hasNext()) {
-      writeBoolean(true);
-      writeUTF((String) it.next());
-    } 
-
-    writeBoolean(false);
-    //#CUSTOM_EXCLUDE_BEGIN
-    it = id.getAllResolvers();
-
-    while (it.hasNext()) {
-      writeBoolean(true);
-      serializeAID((AID) it.next());
-    } 
-
-    writeBoolean(false);
-
-    // User def slots can't be null!
-    serializeProperties(id.getAllUserDefinedSlot());
-    //#CUSTOM_EXCLUDE_END
+  	try {
+  		LEAPACLCodec.serializeAID(id, this);
+  	}
+  	catch (CodecException ce) {
+  		throw new LEAPSerializationException(ce.getMessage());
+  	}
   } 
 
   private void serializeAIDArray(AID[] aida) throws IOException, LEAPSerializationException {
