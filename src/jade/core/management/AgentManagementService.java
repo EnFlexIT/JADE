@@ -862,7 +862,8 @@ public class AgentManagementService extends BaseService {
 		AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 
 		try {
-		    mainSlice.bornAgent(target, myContainer.getID(), vCmd);
+			target.addUserDefinedSlot(AID.AGENT_CLASSNAME, instance.getClass().getName());
+	    mainSlice.bornAgent(target, myContainer.getID(), vCmd);
 		}
 		catch(IMTPException imtpe) {
 		    // Try to get a newer slice and repeat...

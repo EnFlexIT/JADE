@@ -126,6 +126,13 @@ public class AID implements Comparable, Serializable {
     public static final boolean ISGUID = true;
     /** constant to be used in the constructor of the AID **/
     public static final boolean ISLOCALNAME = false;
+    
+    /** 
+       Key to retrieve the agent class name as a user defined slot of 
+       the AID included in the AMSAgentDescription registered with 
+       the AMS.
+     */
+    public static final String AGENT_CLASSNAME = "X-agent-classname";
 
   /**
   * This method permits to set the symbolic name of an agent.
