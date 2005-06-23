@@ -38,7 +38,7 @@ import java.util.Date;
    @author Fabio Bellifemine - CSELT S.p.A.
    @version $Date$ $Revision$
  */
-public class DFAgentDescription implements Concept{
+public class DFAgentDescription implements Concept {
 
     private AID name;
     private List services = new ArrayList();

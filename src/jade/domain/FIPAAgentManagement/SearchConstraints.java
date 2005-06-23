@@ -25,6 +25,8 @@ Boston, MA  02111-1307, USA.
 package jade.domain.FIPAAgentManagement;
 import jade.content.Concept;
 
+import jade.content.Concept;
+
 /**
 * This class models a search constraint.
 * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
