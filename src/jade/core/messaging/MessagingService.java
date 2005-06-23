@@ -240,7 +240,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						}
 						catch ( Exception e ) {
 								if ( logger.isLoggable( Logger.SEVERE ) ) {
-										logger.log( Logger.SEVERE,"Exception uninstalling MTP "+route, e);
+										logger.log( Logger.SEVERE,"Exception uninstalling MTP "+route+". "+e);
 								}
 						}
 				}

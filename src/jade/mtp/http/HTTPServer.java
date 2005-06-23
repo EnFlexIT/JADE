@@ -173,8 +173,10 @@ public class HTTPServer extends Thread {
       }
     } 
     catch( Exception e ) {
-      if(logger.isLoggable(Logger.WARNING))
-	      logger.log(Logger.WARNING,"HTTP Server closed on port "+port);
+    	if (active) {
+	      if(logger.isLoggable(Logger.WARNING))
+		      logger.log(Logger.WARNING,"HTTP Server closed on port "+port);
+    	}
     } 
 	}
   

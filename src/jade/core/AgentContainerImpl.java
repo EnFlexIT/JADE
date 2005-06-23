@@ -478,8 +478,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
                   #MIDP_INCLUDE_END*/
 	              }
 	              catch (Throwable t) {
-	                if(myLogger.isLoggable(Logger.SEVERE))
-	                  myLogger.log(Logger.SEVERE,"Cannot create agent "+s.getName()+": "+t.getMessage());
+	              	myLogger.log(Logger.SEVERE,"Cannot create agent "+s.getName()+": "+t.getMessage());
 	              }
               }
               else {
@@ -509,7 +508,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
   }
 
   public void shutDown() {
-	  System.out.println("Killing local agents...");
     // Remove all non-system agents
     Agent[] allLocalAgents = localAgents.values();
 
@@ -534,12 +532,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
     }
 
     try {
-
-	  System.out.println("Removing node...");
 	myServiceManager.removeNode(myNodeDescriptor);
-	  System.out.println("Shutting down IMTP...");
 	myIMTPManager.shutDown();
-
     }
     catch(IMTPException imtpe) {
       imtpe.printStackTrace();
@@ -548,42 +542,23 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	se.printStackTrace();
     }
 
-
-		//start code patch provided by David Bernstein, 15/6/05
-    // unexport platform manager so gone if restarted in same JVM
-		try {
-				if ( myProfile.getBooleanProperty( Profile.MAIN, false ) && ( null != myMainContainer ) ) {
-						myIMTPManager.unexportPlatformManager(myMainContainer.getPlatformManager());
-				}
-    }
-    catch ( IMTPException imtpe ) {
-				Throwable t = imtpe.getNested();
-				// if was never bound, then ignore, else print
-				if ( ( null == t ) || !( t instanceof java.rmi.NotBoundException ) ) {
-						imtpe.printStackTrace();
-				}
-    }
-    //end code patch
-
-
     // Releases Thread resources
     myResourceManager.releaseResources();
 
     // Notify the JADE Runtime that the container has terminated execution
     endContainer();
-
   }
 
-  // calls Runtime.instance().endContainer()
-  // with the security priviledges of AgentContainerImpl
-  // no matter priviledges of who originaltely triggered this action
-  private void endContainer() {
-	try {
-		Runtime.instance().endContainer();
-	} catch(Exception e) {
-		e.printStackTrace();
+	// calls Runtime.instance().endContainer()
+	// with the security priviledges of AgentContainerImpl
+	// no matter priviledges of who originaltely triggered this action
+	private void endContainer() {
+		try {
+			Runtime.instance().endContainer();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
-  }
 
 
   ////////////////////////////////////////////
