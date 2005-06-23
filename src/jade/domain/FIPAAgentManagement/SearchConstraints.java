@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 
 package jade.domain.FIPAAgentManagement;
+import jade.content.Concept;
 
 /**
 * This class models a search constraint.
@@ -30,7 +31,7 @@ package jade.domain.FIPAAgentManagement;
 * @author Fabio Bellifemine - CSELT S.p.A.
 * @version $Date$ $Revision$
 */
-public class SearchConstraints {
+public class SearchConstraints implements Concept {
 
     private Long max_depth = null; 
 
