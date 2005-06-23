@@ -881,10 +881,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
         String origin = (String) command.getParamAt(2);
 
         if (origin.equals(name)) {
-
           // The forwarding mechanism is looping.
-          response = 
-            buildExceptionResponse(new UnreachableException("destination unreachable (and forward loop)."));
+          response = buildExceptionResponse(new UnreachableException("destination unreachable (and forward loop)."));
         } 
         else {
           try {
@@ -910,6 +908,13 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
       } 
 
       return serializeCommand(response);
+    } 
+    catch (LEAPSerializationException lse) {
+    	lse.printStackTrace();
+      // Note that if the call below throws an exception this is not handled by
+      // the CommandDispatcher. However this should never happen as an exception
+    	// response should always be serializable.
+      return serializeCommand(buildExceptionResponse(new DispatcherException(lse.toString())));
     } 
     catch (Exception e) {
       // Note that if the call below throws an exception this is not handled by
