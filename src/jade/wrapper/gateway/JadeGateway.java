@@ -129,21 +129,10 @@ public class JadeGateway {
 		* and finally calls checkJADE
 		**/
 		private final static void restartJADE() throws StaleProxyException,ControllerException {
-				try { // try to kill, but neglect any exception thrown
-						if (myAgent != null)
-								myAgent.kill();
-				} catch (Exception e) {
-				}
-				try { // try to kill, but neglect any exception thrown
-						if (myContainer != null)
-								myContainer.kill();
-				} catch (Exception e) {
-				}
-				myAgent = null;
-				myContainer = null;
-				// reinitialize the profile otherwise an exception would be thrown by JADE
-				init(agentType, jadeProps);
-				checkJADE();
+			shutdown();
+			// reinitialize the profile otherwise an exception would be thrown by JADE
+			init(agentType, jadeProps);
+			checkJADE();
 		}
 
 		/**
@@ -160,6 +149,24 @@ public class JadeGateway {
 				}
 				jadeProps = jadeProfile;
 				profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
+		}
+		
+		/**
+		 * Kill the JADE Container in case it is running.
+		 */
+		public final static void shutdown() {
+			try { // try to kill, but neglect any exception thrown
+					if (myAgent != null)
+							myAgent.kill();
+			} catch (Exception e) {
+			}
+			try { // try to kill, but neglect any exception thrown
+					if (myContainer != null)
+							myContainer.kill();
+			} catch (Exception e) {
+			}
+			myAgent = null;
+			myContainer = null;
 		}
 		
 		/** This private constructor avoids other objects to create a new instance of this singleton **/
