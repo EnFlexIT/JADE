@@ -6,7 +6,7 @@ import test.common.TestException;
 import test.udpmonitor.UDPMonitorTestHelper;
 
 /**
- * This test checks whether a peripheral container with deactivated <br />
+ * This test checks whether a peripheral container with deactivated 
  * UDP monitoring gets automatically removed from the platform.
  * 
  * The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 

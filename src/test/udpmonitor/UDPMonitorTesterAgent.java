@@ -61,12 +61,14 @@ public class UDPMonitorTesterAgent extends TesterAgent {
     return new TestGroup("test/udpmonitor/UDPMonitorTestsList.xml") {
       
       protected void initialize(Agent a) throws TestException {
+		  	String addClassPath = "../../tools/xercesImpl.jar";
+		  	String xmlParserArg = "-jade_mtp_http_parser org.apache.xerces.parsers.SAXParser";
         
-        // start main container with UDP monitoring as a new platform
-        String mtp = "jade.mtp.http.MessageTransportProtocol";
-        String proto = "http";
-        main = TestUtility.launchJadeInstance(MAIN_CONTAINER_NAME, null, 
-            new String("-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name "+MAIN_CONTAINER_NAME+" -port "+PORT+" -mtp "+mtp), new String[]{proto});
+        // Start main container with UDP monitoring as a new platform
+        String mtp = Test.DEFAULT_MTP;
+        String proto = Test.DEFAULT_PROTO;
+        main = TestUtility.launchJadeInstance(MAIN_CONTAINER_NAME, "+"+addClassPath, 
+            new String("-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name "+MAIN_CONTAINER_NAME+" -port "+PORT+" -mtp "+mtp+" "+xmlParserArg), new String[]{proto});
       
         // Construct the AID of the AMS of the remote platform a
         AID remoteAMS = new AID("ams@"+MAIN_CONTAINER_NAME, AID.ISGUID);
@@ -75,14 +77,14 @@ public class UDPMonitorTesterAgent extends TesterAgent {
           remoteAMS.addAddresses((String) iter.next());
         }
         
-        // Start a local container with an MTP
-        mtpCont = TestUtility.launchJadeInstance("Container-mtp", null, 
-            new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+mtp+"()"), null);
+        // Start a local container with an MTP to communicate with te remote platform
+        mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+"+addClassPath, 
+            new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+mtp+" "+xmlParserArg), null);
         
-        // start event receiver agent at local container
+        // Start event receiver agent at local container
         receiverAgent = TestUtility.createAgent(a, "EventReceiver", "test.udpmonitor.EventReceiverAgent", null);
 
-        // start AMS event listener agent at remote platform
+        // Start AMS event listener agent at remote platform
         String addr = receiverAgent.getAddressesArray()[0];
         String aidStr = receiverAgent.getName();
         listenerAgent = TestUtility.createAgent(a, LISTENER_AGENT_NAME, "test.udpmonitor.AMSEventListenerAgent", new String[] {aidStr, addr}, 

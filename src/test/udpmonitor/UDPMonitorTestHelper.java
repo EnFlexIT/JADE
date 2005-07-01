@@ -57,7 +57,7 @@ public class UDPMonitorTestHelper {
    */
   public static JadeController startPeripheralContainer(String name, int port) throws TestException {
     return TestUtility.launchJadeInstance(name
-      , null, "-container-name "+name+" -container -port "+port+" -host " + TestUtility.getLocalHostName() + " -mtp jade.mtp.iiop.MessageTransportProtocol"
+      , null, "-container-name "+name+" -container -port "+port+" -host " + TestUtility.getLocalHostName()
       , new String[] {});
   }
  
