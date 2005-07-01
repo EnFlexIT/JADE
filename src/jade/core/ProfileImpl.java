@@ -609,9 +609,9 @@ public class ProfileImpl extends Profile {
 
 
     private void setPropertyIfNot(String key, String value) {
-			String old = props.getProperty(key);
+			Object old = props.get(key);
 			if(old == null) {
-			    props.setProperty(key, value);
+			    props.put(key, value);
 			}
     }
 
