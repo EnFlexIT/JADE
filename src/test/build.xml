@@ -68,16 +68,9 @@
         __________________________________________________ -->
   <target name="separate" depends="init" 
           description="Compile files that must be in a separate classpath for mobility tests">
-  	<echo>NOTE that this target should be executed setting JAVA_HOME to jdk1.3 or earlier versions of Java to avoid problems when testing mobility on a PJAVA container
-  	</echo>
-  	
-  	       <!--
-	         compiler="javac1.1"
-	         -->
   	<javac srcdir="src/test" 
   	       destdir="classes" 
   	       includes="**/mobility/separate/**"
-  	       target="1.2"
 	         optimize="on"
   	       deprecation="off">
   	  <classpath refid="project.class.path"/>

@@ -507,17 +507,16 @@ public class AgentManagementService extends BaseService {
 	}
 
 	private void handleInformCreated(VerticalCommand cmd) throws NotFoundException, NameClashException, ServiceException {
-
-	    Object[] params = cmd.getParams();
-
-	    AID agentID = (AID)params[0];
-	    ContainerID cid = (ContainerID)params[1];
-
-			//log("Target sink consuming command INFORM_CREATED: Name is "+agentID.getName(), 2);
-                        if(myLogger.isLoggable(Logger.FINE))
-                           myLogger.log(Logger.FINE,"Target sink consuming command INFORM_CREATED: Name is "+agentID.getName());
-
-	    bornAgent(agentID, cid, cmd.getPrincipal(), cmd.getCredentials());
+	  Object[] params = cmd.getParams();
+	
+	  AID agentID = (AID)params[0];
+	  ContainerID cid = (ContainerID)params[1];
+	
+		if(myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE,"Target sink consuming command INFORM_CREATED: Name is "+agentID.getName());
+		}
+	
+	  bornAgent(agentID, cid, cmd.getPrincipal(), cmd.getCredentials());
 	}
 
 	private void handleInformKilled(VerticalCommand cmd) throws NotFoundException, ServiceException {
