@@ -74,12 +74,11 @@ import jade.util.Logger;
  */
 class UDPMonitorServer {
 
-  private static UDPMonitorServer instance;
   private Logger logger;
   
-  private static int port;
-  private static int pingDelayLimit;
-  private static int unreachLimit;
+  private int port;
+  private int pingDelayLimit;
+  private int unreachLimit;
   
   //#DOTNET_EXCLUDE_BEGIN
   private DatagramChannel server;
@@ -258,7 +257,7 @@ class UDPMonitorServer {
   	pingDelayLimit = pdl;
   	unreachLimit = ul;
   	
-    logger = Logger.getMyLogger(this.getClass().getName());
+    logger = Logger.getMyLogger(UDPNodeMonitoringService.NAME);
     deadlines = new HashMap();
     targets = new HashMap();
     try {
@@ -270,15 +269,15 @@ class UDPMonitorServer {
 		server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 		#DOTNET_INCLUDE_END*/
 	} catch (Exception e) { // .net requires I catch Exception instead of IOException
-       if(logger.isLoggable(Logger.SEVERE))
-        logger.log(Logger.SEVERE,"Cannot open UDP channel.");
+        logger.log(Logger.SEVERE,"Cannot open UDP channel. "+e);
+        e.printStackTrace();
     }
   }
   
   /**
    * Starts the UDP server
    */
-  private synchronized void startServer() {
+  synchronized void start() {
     try {
         // Start UDP server
 
@@ -328,16 +327,16 @@ class UDPMonitorServer {
      
         if(logger.isLoggable(Logger.CONFIG))
           logger.log(Logger.CONFIG,"(UDP port: " + port + ", ping_delay_limit: " + pingDelayLimit + ", unreachable_limit: " + unreachLimit + ")"); 
-		} catch (Exception e) { // .net requires I catch Exception instead of IOException
-      if(logger.isLoggable(Logger.SEVERE))
-        logger.log(Logger.SEVERE,"UDP monitoring server cannot be started");
+		} catch (Throwable t) { // .net requires I catch Exception instead of IOException
+      logger.log(Logger.SEVERE,"UDP monitoring server cannot be started. "+t);
+      t.printStackTrace();
     }
   }
   
   /**
    * Stops the UDP server
    */
-  private synchronized void stopServer() {
+  synchronized void stop() {
     try {
       pingHandler.stop();
       timer.cancel();
@@ -360,19 +359,7 @@ class UDPMonitorServer {
         logger.log(Logger.SEVERE,"Error shutting down the UDP monitor server");
     }
   }
-  
-  /**
-   * Returns an instance of the <code>UDPMonitorServer</code>
-   * @param profile profile including settings for the monitoring
-   * @throws IOException if the UDP server cannot be started up
-   *
-  public static UDPMonitorServer getInstance(Profile profile) {
-    if (instance == null) {
-      instance = new UDPMonitorServer(profile);
-    }
-    return instance;
-  }*/
-  
+    
   /**
    * Registers a <code>UDPNodeFailureMonitor</code>.
    * All nodes targeted by this monitor are now supervised
@@ -380,9 +367,6 @@ class UDPMonitorServer {
    * gets informed about any state changes.
    */
   public synchronized void register(UDPNodeFailureMonitor m) {
-    if (targets.size() == 0)  {
-      startServer();
-    }
     String nodeID = m.getNode().getName();
     targets.put(nodeID, m);
     addDeadline(nodeID, pingDelayLimit);
@@ -395,9 +379,6 @@ class UDPMonitorServer {
   public synchronized void deregister(UDPNodeFailureMonitor m) {
       String nodeId = m.getNode().getName();
       targets.remove(nodeId);
-      if (targets.size() == 0) {
-        stopServer();
-      }
   }
   
   /**

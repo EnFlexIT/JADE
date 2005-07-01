@@ -121,6 +121,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			try {
 				// Note that the server will be started as soon as a NodeFailureMonitor will register.
 				myServer = new UDPMonitorServer(port, pingDelayLimit, unreachLimit);
+				myServer.start();
 				myLogger.log(Logger.INFO, "UDPMonitorServer successfully created. Port = "+port+" pingdelaylimit = "+pingDelayLimit+" unreachablelimit = "+unreachLimit);
 			}
 			catch (Exception e)  {		  
@@ -154,8 +155,9 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	}
 	
 	public void shutdown() {
-		// No need to stop the server since it has been stopped when there were
-		// no more NodeFailureMonitor-s registered with it.
+		if (myServer != null) {
+      myServer.stop();
+		}
 		if (myClient != null) {
       myClient.stop();
 		}
