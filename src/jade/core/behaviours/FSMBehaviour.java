@@ -403,6 +403,14 @@ public class FSMBehaviour extends SerialBehaviour {
   	}
   }
   
+  /** 
+     Get the previously executed child
+     @see jade.core.behaviours.CompositeBehaviour#getCurrent
+  */
+  protected Behaviour getPrevious() {
+  	return getState(previousName);
+  }
+  
   /**
      Put this FSMBehaviour back in the initial condition.
    */ 
