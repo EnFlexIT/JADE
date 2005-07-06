@@ -375,31 +375,29 @@ public class AgentManagementService extends BaseService {
 	}
 
 	private void handleKillContainer(VerticalCommand cmd) throws IMTPException, ServiceException, NotFoundException {
+		Object[] params = cmd.getParams();
+		ContainerID cid = (ContainerID)params[0];
+		
+		if(myLogger.isLoggable(Logger.CONFIG)) {
+			myLogger.log(Logger.CONFIG,"Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName());
+		}
 
-	    Object[] params = cmd.getParams();
-	    ContainerID cid = (ContainerID)params[0];
-
-    	//log("Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName(), 3);
-            if(myLogger.isLoggable(Logger.CONFIG))
-               myLogger.log(Logger.CONFIG,"Source Sink consuming command KILL_CONTAINER. Container is "+cid.getName());
-
-	    // Forward to the correct slice
-	    AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
-	    try {
-	    	if (targetSlice != null) {
-	    		// If target slice is null the container has already exited in the meanwhile
-					targetSlice.exitContainer();
-	    	}
-	    }
-	    catch(IMTPException imtpe) {
+		// Forward to the correct slice
+		AgentManagementSlice targetSlice = (AgentManagementSlice)getSlice(cid.getName());
+		try {
+			try {
+				targetSlice.exitContainer();
+			}
+			catch(IMTPException imtpe) {
 				// Try to get a newer slice and repeat...
-	    	targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
-	    	if (targetSlice != null) {
-	    		// If target slice is null the container has already exited in the meanwhile
-					targetSlice.exitContainer();
-	    	}
-	    }
-
+				targetSlice = (AgentManagementSlice)getFreshSlice(cid.getName());
+				targetSlice.exitContainer();
+			}
+		}
+		catch (NullPointerException npe) {
+			// targetSlice not found --> The container does not exist
+			throw new NotFoundException("Container "+cid.getName()+" not found");
+		}
 	}
 
 	private void handleAddTool(VerticalCommand cmd) {

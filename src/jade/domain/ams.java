@@ -124,13 +124,6 @@ public class ams extends Agent implements AgentManager.Listener {
      AMS initialization
    */
   protected void setup() {
-    /*try {
-    	verbosity = Integer.parseInt(getProperty(VERBOSITY_KEY, "0"));
-    }
-    catch (Exception e) {
-    	// Keep default (0)
-    }*/
-
     // Agent Platform Description.
     theProfile.setName("\"" + getHap() + "\"");
     writeAPDescription(theProfile);
