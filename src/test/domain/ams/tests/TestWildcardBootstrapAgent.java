@@ -27,15 +27,16 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.behaviours.*;
-import jade.domain.*;
-import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.*;
 import test.common.*;
 import test.domain.ams.*;
 
 /**
  */
 public class TestWildcardBootstrapAgent extends Test {
+	
+	private static final String PREFIX = "prefix_";
+	private static final String SUFFIX = "suffix_";
+	private static final String CONTAINER_NAME = "dummy_container";
 	
 	private JadeController jc;
 	
@@ -44,9 +45,9 @@ public class TestWildcardBootstrapAgent extends Test {
   		public void action() {
   			try {
 	  			log("Creating container with wildcarded bootstrap agent...");
-	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+"#C"+POSTFIX+":jade.core.Agent"), null); 
+	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+"#C"+SUFFIX+":jade.core.Agent"), null); 
 	  			String containerName = jc.getContainerName();
-	  			AID wildcardAgent = new AID(PREFIX+containerName+POSTFIX, AID.ISLOCALNAME);
+	  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
 	  			try {
 		  			log("Killing agent "+wildcardAgent.getName()+"...");
 	  				TestUtility.killAgent(myAgent, wildcardAgent);
