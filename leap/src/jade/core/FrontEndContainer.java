@@ -65,7 +65,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	private AID dfAID;
 	
 	// The buffer of messages to be sent to the BackEnd
-	private Vector pending = new Vector(4);
+	private Vector pending;;
 	
 	// The BackEnd this FrontEndContainer is connected to
 	private BackEnd myBackEnd;
@@ -84,10 +84,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
 	FrontEndContainer(Properties p) {
 		configProperties = p;
-
-		// Start the thread for asynchronous message delivery
-		Thread t = new Thread(this);
-		t.start();
 			
 		// Connect to the BackEnd
 		try {
@@ -100,15 +96,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
 		}
 		catch (IMTPException imtpe) {
-		  if(logger.isLoggable(Logger.SEVERE))
-		  	logger.log(Logger.SEVERE,"IMTP error "+imtpe);
+	  	logger.log(Logger.SEVERE,"IMTP error "+imtpe);
 			imtpe.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
 		}
 		catch (Exception e) {
-		  if(logger.isLoggable(Logger.SEVERE))
-		  	logger.log(Logger.SEVERE,"Unexpected error "+e);
+	  	logger.log(Logger.SEVERE,"Unexpected error "+e);
 			e.printStackTrace();
 			MicroRuntime.handleTermination(true);
 			return;
@@ -125,8 +119,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 					initAgent(s.getName(), s.getClassName(), s.getArgs());
 				}
 				catch (Exception e) {
-		  		if(logger.isLoggable(Logger.SEVERE))
-		  			logger.log(Logger.SEVERE,"Exception creating new agent "+e);
+	  			logger.log(Logger.SEVERE,"Exception creating new agent "+e);
 				}
 			}
 			
@@ -142,8 +135,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		catch (Exception e1) {
-		  if(logger.isLoggable(Logger.SEVERE))
-		  	logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
+	  	logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
 	}
@@ -171,8 +163,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	}
   	catch (Exception e) {
   		String msg = "Exception creating new agent. ";
-  		if(logger.isLoggable(Logger.SEVERE))
-  			logger.log(Logger.SEVERE,msg+e);
+			logger.log(Logger.SEVERE,msg+e);
   		throw new IMTPException(msg, e);
   	}
   }
@@ -186,9 +177,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   	if(agent == null) {
     	throw new NotFoundException("KillAgent failed to find " + name);
   	}
+  	// Note that the agent will be removed from the local table in 
+  	// the handleEnd() method.
   	agent.doDelete();
-  	// Note that the agent will be removed from the local table in the 
-  	// handleEnd() method.
   }
   
   /**
@@ -236,8 +227,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public final void exit(boolean self) throws IMTPException {
   	if (!exiting) {
   		exiting = true;
-	  	if(logger.isLoggable(Logger.INFO))
-	  		logger.log(Logger.INFO,"Container shut down activated");
+  		logger.log(Logger.INFO,"Container shut down activated");
 	    
 	  	// Kill all agents 
 	  	synchronized (this) {
@@ -251,14 +241,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		    }
 	  		localAgents.clear();
 	  	}
-	  	if(logger.isLoggable(Logger.FINE))
-	  		logger.log(Logger.FINE,"Local agents terminated");
+  		logger.log(Logger.FINE,"Local agents terminated");
 	  	
 			// Shut down the connection with the BackEnd. The BackEnd will 
 	    // exit and deregister with the main
 	    myConnectionManager.shutdown();
-	  	if(logger.isLoggable(Logger.FINE))
-	  		logger.log(Logger.FINE,"Connection manager closed");
+  		logger.log(Logger.FINE,"Connection manager closed");
 	  	
 	    // Notify the JADE Runtime that the container has terminated execution
 	    MicroRuntime.handleTermination(self);
@@ -377,7 +365,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   
   public final void setPlatformAddresses(AID id) {
   	id.clearAllAddresses();
-  	for (int i = 2; i < platformInfo.length; ++i) {
+  	for (int i = 3; i < platformInfo.length; ++i) {
   		id.addAddresses(platformInfo[i]);
   	}
   }
@@ -448,8 +436,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   // Private methods
   ///////////////////////////////
   private final void initInfo(String[] info) {
-  	myId = new ContainerID(info[0], null);
-  	AID.setPlatformID(info[1]);
+  	myId = new ContainerID(info[1], null);
+  	AID.setPlatformID(info[2]);
   	platformInfo = info;
   	amsAID = new AID("ams", AID.ISLOCALNAME);
   	setPlatformAddresses(amsAID);
@@ -465,12 +453,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	      Agent agent = (Agent) Class.forName(className).newInstance();
 	      agent.setArguments(args);
 	      agent.setToolkit(this);
-	      previous = (Agent) localAgents.put(name, agent);
 	      // Notify the BackEnd (get back platform info if this is the first agent) 
 	      String[] info = myBackEnd.bornAgent(name);
-				if (info != null) {
+	      name = info[0];
+				if (info.length > 1) {
 					initInfo(info);
 				}
+	      previous = (Agent) localAgents.put(name, agent);
 			}
 			catch (Exception e) {
 				// If an exception occurs, roll back and restore the previous agent if any.
@@ -485,13 +474,20 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   }
   
   private void post(ACLMessage msg, String sender) {
+  	if (pending == null) {
+  		// Lazily create the vector of pending messages and the Thread 
+  		// for asynchronous message delivery
+  		pending = new Vector(4);
+			Thread t = new Thread(this);
+			t.start();
+  	}
+  			
   	synchronized(pending) {
 	  	pending.addElement(msg.clone());
 	  	pending.addElement(sender);
 			int size = pending.size();
 	  	if (size > 100 && size < 110) {
-	  		if(logger.isLoggable(Logger.INFO))
-	  			logger.log(Logger.INFO,size+" pending messages");
+  			logger.log(Logger.INFO,size+" pending messages");
 	  	}
 	  	pending.notifyAll();
   	}
@@ -509,8 +505,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  			}
 	  			catch (InterruptedException ie) {
 	  				// Should never happen
-	  				if(logger.isLoggable(Logger.SEVERE))
-	  					logger.log(Logger.SEVERE,ie.toString());
+  					logger.log(Logger.SEVERE,ie.toString());
 	  			}
 	  		}
 	  		msg = (ACLMessage) pending.elementAt(0);
@@ -525,8 +520,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  	catch (Exception e) {
 	  		// Should never happen. Note that "NotFound" here is referred 
 	  		// to the sender.
-	  		if(logger.isLoggable(Logger.SEVERE))
-	  			logger.log(Logger.SEVERE,e.toString());
+  			logger.log(Logger.SEVERE,e.toString());
 	  	}
 	  	// Notify terminating agents (if any) waiting for their messages to be delivered
 	  	synchronized (pending) {
