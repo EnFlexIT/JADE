@@ -25,28 +25,40 @@ package test.domain.ams.tests;
 
 import jade.core.Agent;
 import jade.core.AID;
-import jade.core.ContainerID;
 import jade.core.behaviours.*;
 import test.common.*;
-import test.domain.ams.*;
 
 /**
- * Test the creation of bootstrap agent having wildcards in its name.
+ * The test asks the AMS to create an agent that has wildcards in its name, and verify if it's
+ * correctly created. 
+ * 
+ * @author Tiziana Trucco
+ * @version $Date:  $ $Revision: $
+ *
+ * TODO To change the template for this generated type comment go to
+ * Window - Preferences - Java - Code Style - Code Templates
  */
-public class TestWildcardBootstrapAgent extends Test {
+
+
+public class TestWildcardCreateAgent extends Test {
 	
 	private static final String PREFIX = "prefix_";
 	private static final String SUFFIX = "_suffix";
 	private static final String CONTAINER_NAME = "dummy_container";
 	
-	private JadeController jc;
+	private JadeController jc = null;
 	
-  public Behaviour load(Agent a) throws TestException {  	
-  	return new OneShotBehaviour(a) {
+	public Behaviour load(Agent a) throws TestException {  	
+		
+		log("Creating container...");
+		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME), null);
+		
+		return new OneShotBehaviour(a) {
   		public void action() {
   			try {
-	  			log("Creating container with wildcarded bootstrap agent...");
-	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+"#C"+SUFFIX+":jade.core.Agent"), null); 
+	  			log("Creating agent with wildcards...");
+	  			TestUtility.createAgent(myAgent, PREFIX+"#C"+SUFFIX, Agent.class.getName(), null, null, jc.getContainerName());
+	  			log("Agent correctly created.");
 	  			String containerName = jc.getContainerName();
 	  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
 	  			try {
@@ -65,11 +77,12 @@ public class TestWildcardBootstrapAgent extends Test {
   			}
   		}
   	};
-  }
-  		
-  public void clean(Agent a) {
+	}
+	
+	public void clean(Agent a) {
   	if (jc != null) {
 	  	jc.kill();
   	}
   }
+	
 }

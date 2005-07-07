@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.JADEAgentManagement;
 
+import jade.core.AID;
 import jade.core.ContainerID;
 import jade.content.onto.*;
 import jade.content.schema.*;
@@ -42,6 +43,10 @@ import jade.domain.FIPAAgentManagement.AlreadyRegistered;
  */
 public class JADEManagementOntology extends Ontology implements JADEManagementVocabulary {
  
+	private static final String CONTAINER_WILDCARD = "#C";
+	
+	public static final String[] WILDCARDS = new String[]{CONTAINER_WILDCARD};
+	
   // The singleton instance of this ontology
 	private static Ontology theInstance = new JADEManagementOntology();
 	
@@ -183,5 +188,40 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     catch(OntologyException oe) {
       oe.printStackTrace();
     }
-  } 
+  }
+  
+  /**
+   * This method allows to replace wildcards with a set of defined values.
+   * @param nameWithWildcards - the name to be parsed
+   * @param values - the corresponding values for the wildcards, if null no substitution is made.
+   * @return the name without wildcards.
+   */
+  public static String adjustAgentName(String nameWithWildcards, String[] values){
+		//#MIDP_EXCLUDE_BEGIN  	
+  	if(values == null){
+  		return nameWithWildcards;
+  	}
+  	StringBuffer out = new StringBuffer(nameWithWildcards);
+  	int wL = WILDCARDS.length;
+  	int vL = values.length;
+  	int minLength = Math.min(wL, vL);
+  	
+  	for(int i=0; i<minLength; i++){
+  		int index = out.indexOf(WILDCARDS[i]);
+  		if(index>=0){
+  			//replace all occurrences of the wildcard with the corresponding value
+  			while(index >=0){
+  				out = out.replace(index, index+WILDCARDS[i].length(), values[i]);
+  				index = out.indexOf(WILDCARDS[i]);
+  			}
+  		}
+  	}
+  	return out.toString();
+		//#MIDP_EXCLUDE_END
+  	
+  	/*#MIDP_INCLUDE_BEGIN
+  	return nameWithWildcards;
+  	#MIDP_INCLUDE_END*/
+  }
+  
 }

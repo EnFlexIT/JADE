@@ -46,4 +46,13 @@ create a new agent on the same container, and a new agent on a new container. Th
 			</WhenTestPass>
 		</Test>
 		
+		<Test name="Test creation of agent with wildcards in name" skip="false">
+			<TestClassName>test.inProcess.test.TestWildcardCreateAgent</TestClassName>
+			<WhatTest> Test the usage of wildcards when starting agent using the in-process interface.
+      		</WhatTest>
+			<HowWorkTest> A new container is started and a new agent with wildcard in name is created on it.
+			</HowWorkTest>			
+			<WhenTestPass> The test passes if the agent is successfully created.
+			</WhenTestPass>
+		</Test>
 	</TestsList>

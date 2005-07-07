@@ -95,7 +95,8 @@ class AMSJadeAgentManagementBehaviour extends RequestManagementBehaviour{
   	// CREATE AGENT
   	if (action instanceof CreateAgent) {
   		theAMS.createAgentAction((CreateAgent) action, request.getSender(), requesterPrincipal, requesterCredentials);
-  		asynchNotificationKey = new AID(((CreateAgent) action).getAgentName(), AID.ISLOCALNAME);
+  		String agentName = JADEManagementOntology.adjustAgentName(((CreateAgent) action).getAgentName(), new String[] {((CreateAgent) action).getContainer().getName()});
+  		asynchNotificationKey = new AID(agentName, AID.ISLOCALNAME);
   	}
   	// KILL AGENT (asynchronous notification to requester)
   	else if (action instanceof KillAgent) {

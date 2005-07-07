@@ -95,6 +95,16 @@
 			</HowWorkTest>
 			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
 			</WhenTestPass> 
+		</Test>
+		
+		<Test name="Wildcards in agent name when asking AMS to create agents" skip="false">
+			<TestClassName>test.domain.ams.tests.TestWildcardCreateAgent</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent asking the AMS.
+			</WhatTest>
+			<HowWorkTest>A new container is started and the AMS is asking to create an agent with a name using wildcard.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			</WhenTestPass> 
 		</Test>				
 		
 	</TestsList>

@@ -30,6 +30,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.InternalError;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
@@ -223,6 +224,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      - Return the platform info to the FrontEnd if required
   */
   public String[] bornAgent(String name) throws JADESecurityException, IMTPException {
+  	  name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});
       AID id = new AID(name, AID.ISLOCALNAME);
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
       cmd.addParam(id);
@@ -246,13 +248,16 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       if (refreshPlatformInfo) {
 	  AID ams = getAMS();
 	  String[] addresses = ams.getAddressesArray();
-	  info = new String[2+addresses.length];
-	  info[0] = getID().getName();
-	  info[1] = ams.getHap();
+	  info = new String[3+addresses.length];
+	  info[0] = name;
+	  info[1] = getID().getName();
+	  info[2] = ams.getHap();
 	  for (int i = 0; i < addresses.length; ++i) {
-	      info[i+2] = addresses[i];
+	      info[i+3] = addresses[i];
 	  }
 	  refreshPlatformInfo = false;
+      }else{
+      	info = new String[]{name};
       }
 
       return info;

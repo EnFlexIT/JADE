@@ -38,6 +38,7 @@ import jade.core.messaging.GenericMessage;
 import jade.core.management.AgentManagementSlice;
 
 import jade.domain.FIPAAgentManagement.InternalError;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
@@ -103,6 +104,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
   private AID theAMS;
   private AID theDefaultDF;
+  
   
   
   // Default constructor
@@ -240,6 +242,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
         JADEPrincipal ownerPrincipal, Credentials initialCredentials)
       throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
 
+  	  //replaces wildcards
+  	  agentID.setLocalName(JADEManagementOntology.adjustAgentName(agentID.getLocalName(), new String[] {myID.getName()}));
+  	  
       // Setting the AID and toolkit here is redundant, but
       // allows services to retrieve their agent helper correctly
       // when processing the INFORM_CREATED command.
@@ -271,7 +276,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       	}
       }
   }
-
+ 
   public NodeDescriptor getNodeDescriptor() {
       return myNodeDescriptor;
   }
