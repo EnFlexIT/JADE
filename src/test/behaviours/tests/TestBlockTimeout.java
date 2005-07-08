@@ -60,7 +60,7 @@ public class TestBlockTimeout extends Test {
     	timeoutIncrease = Long.parseLong((String) getTestArgument(TIMEOUT_INCREASE_NAME));
 
     	// Launch a peripheral container
-	    jc = TestUtility.launchJadeInstance("Container", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), new String[] {});
+	    jc = TestUtility.launchJadeInstance("Container", null, "-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+Test.DEFAULT_PORT, new String[] {});
     	
 	    // Launch senders and receivers
   	  for (int i = 0; i < nAgents; ++i) {

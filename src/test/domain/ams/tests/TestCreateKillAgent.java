@@ -55,7 +55,7 @@ public class TestCreateKillAgent extends Test {
   	final DataStore store = ds;
   	final String key = resultKey;
   	
-		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
 		ret = Test.TEST_FAILED;
   	
 		SequentialBehaviour sb = new SequentialBehaviour(a) {
