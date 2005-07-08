@@ -47,11 +47,8 @@ public class TestRemoteRegistration extends Test {
   	final DataStore store = ds;
   	final String key = resultKey;
 
-  	String addClassPath = "../../tools/xercesImpl.jar";
-  	String xmlParserArg = "-jade_mtp_http_parser org.apache.xerces.parsers.SAXParser";
-
   	// Launch a remote platform
-		jcp = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+"+addClassPath, new String("-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP+" "+xmlParserArg), new String[]{Test.DEFAULT_PROTO}); 
+		jcp = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), new String[]{Test.DEFAULT_PROTO}); 
 
 		// Construct the AID of the AMS of the remote platform 
 		AID remoteAMS = new AID("ams@"+REMOTE_PLATFORM_NAME, AID.ISGUID);
@@ -62,7 +59,7 @@ public class TestRemoteRegistration extends Test {
 		
 		// Launch another container with an MTP to communicate with the 
 		// remote platform
-		jcc = TestUtility.launchJadeInstance("Container-1", "+"+addClassPath, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+Test.DEFAULT_MTP+" "+xmlParserArg), null); 
+		jcc = TestUtility.launchJadeInstance("Container-1", "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+Test.DEFAULT_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), null); 
 		
 		// Launch an agent on the remote platform. This agent will register to the local DF
 		id = TestUtility.createAgent(a, "Remote-registerer", "test.domain.df.tests.TestRemoteRegistration$RemoteRegistrationAgent", null, remoteAMS, null);

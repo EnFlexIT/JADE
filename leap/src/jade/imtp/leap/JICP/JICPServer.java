@@ -200,7 +200,6 @@ public class JICPServer extends Thread
      Shut down this JICP server
   */
   public synchronized void shutdown() {
-
 	  if(myLogger.isLoggable(Logger.FINE))
 	  myLogger.log(Logger.FINE,"Shutting down JICPServer...");
 
@@ -456,13 +455,10 @@ public class JICPServer extends Thread
 		          // Start the mediator
 		          JICPMediator m = startMediator(id, p);
 			  			closeConnection = !m.handleIncomingConnection(c, pkt, addr, port);
-	
-		          if(myLogger.isLoggable(Logger.FINE))
-						  	myLogger.log(Logger.FINE, "Reregistering mediator "+id);
-		          mediators.put(id, m);
+		          mediators.put(m.getID(), m);
 		          
 		          // Create an ad-hoc reply including the assigned mediator-id and the IP address
-		          String replyMsg = id+'#'+addr.getHostAddress();
+		          String replyMsg = m.getID()+'#'+addr.getHostAddress();
 		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 		          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 	        	}

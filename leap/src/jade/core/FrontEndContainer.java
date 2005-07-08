@@ -304,13 +304,15 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   public final void handleEnd(AID agentID) {
   	String name = agentID.getLocalName();
   	// Wait for messages (if any) sent by this agent to be transmitted
-  	synchronized (pending) {
-  		while (pending.contains(name)) {
-  			try {
-	  			pending.wait();
-  			}
-  			catch (Exception e) {}
-  		}
+  	if (pending != null) {
+	  	synchronized (pending) {
+	  		while (pending.contains(name)) {
+	  			try {
+		  			pending.wait();
+	  			}
+	  			catch (Exception e) {}
+	  		}
+	  	}
   	}
   	
   	if (!exiting) {

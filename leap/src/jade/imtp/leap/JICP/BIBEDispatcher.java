@@ -106,8 +106,6 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
   	catch (NumberFormatException nfe) {
       // Use default (1)
   	}
-  	// Override FrontEnd verbosity
-  	//myLogger = new Logger(myID, verbosity);
 
   	// Max disconnection time
     maxDisconnectionTime = JICPProtocol.DEFAULT_MAX_DISCONNECTION_TIME;
@@ -151,20 +149,17 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	start();
     }
 
-    if(myLogger.isLoggable(Logger.INFO)){
-       myLogger.log(Logger.INFO,"Created BIBEDispatcher V2.0 ID = "+myID+"\n- Max-disconnection-time = "+maxDisconnectionTime+"\n- Keep-alive-time = "+keepAliveTime);
-    }
-    startBackEndContainer(props);
+    myStub = new FrontEndStub(this);
+    mySkel = startBackEndContainer(props);
   }
 
-  protected final void startBackEndContainer(Properties props) throws ICPException {
+  protected final BackEndSkel startBackEndContainer(Properties props) throws ICPException {
     try {
-    	myStub = new FrontEndStub(this);
 
     	String nodeName = myID.replace(':', '_');
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
-			String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
 
+    	// TO BE REMOVED
 			// Add the mediator ID to the profile (it's used as a token
 			// to keep related replicas together)
 			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
@@ -173,17 +168,12 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
     	if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
-    	mySkel = new BackEndSkel(myContainer);
-
-			if(masterNode == null) {
-		    String masterAddr = myMediatorManager.getLocalHost() + ':' + myMediatorManager.getLocalPort();
-		    props.put(Profile.BE_REPLICA_ZERO_ADDRESS, masterAddr);
-		    myContainer.activateReplicas();
-			}
-
-      if(myLogger.isLoggable(Logger.FINE))
-         myLogger.log(Logger.FINE,"BackEndContainer "+myID+" successfully joined the platform: name is "+myContainer.here().getName());
-
+    	// Possibly the node name was re-assigned by the main
+    	myID = myContainer.here().getName();
+      if(myLogger.isLoggable(Logger.CONFIG)) {
+         myLogger.log(Logger.CONFIG,"BackEndContainer "+myID+" successfully joined the platform.");
+      }
+    	return new BackEndSkel(myContainer);
     }
     catch (ProfileException pe) {
     	// should never happen

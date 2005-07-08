@@ -61,14 +61,11 @@ public class UDPMonitorTesterAgent extends TesterAgent {
     return new TestGroup("test/udpmonitor/UDPMonitorTestsList.xml") {
       
       protected void initialize(Agent a) throws TestException {
-		  	String addClassPath = "../../tools/xercesImpl.jar";
-		  	String xmlParserArg = "-jade_mtp_http_parser org.apache.xerces.parsers.SAXParser";
-        
         // Start main container with UDP monitoring as a new platform
         String mtp = Test.DEFAULT_MTP;
         String proto = Test.DEFAULT_PROTO;
-        main = TestUtility.launchJadeInstance(MAIN_CONTAINER_NAME, "+"+addClassPath, 
-            new String("-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name "+MAIN_CONTAINER_NAME+" -port "+PORT+" -mtp "+mtp+" "+xmlParserArg), new String[]{proto});
+        main = TestUtility.launchJadeInstance(MAIN_CONTAINER_NAME, "+"+TestUtility.HTTP_MTP_CLASSPATH, 
+            new String("-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name "+MAIN_CONTAINER_NAME+" -port "+PORT+" -mtp "+mtp+" "+TestUtility.HTTP_MTP_ARG), new String[]{proto});
       
         // Construct the AID of the AMS of the remote platform a
         AID remoteAMS = new AID("ams@"+MAIN_CONTAINER_NAME, AID.ISGUID);
@@ -78,8 +75,8 @@ public class UDPMonitorTesterAgent extends TesterAgent {
         }
         
         // Start a local container with an MTP to communicate with te remote platform
-        mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+"+addClassPath, 
-            new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+mtp+" "+xmlParserArg), null);
+        mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+"+TestUtility.HTTP_MTP_CLASSPATH, 
+            new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+mtp+" "+TestUtility.HTTP_MTP_ARG), null);
         
         // Start event receiver agent at local container
         receiverAgent = TestUtility.createAgent(a, "EventReceiver", "test.udpmonitor.EventReceiverAgent", null);
