@@ -28,6 +28,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.Logger;
 import jade.security.JADESecurityException;
+import jade.imtp.leap.JICP.JICPProtocol;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.*;
@@ -94,6 +95,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			
 			myConnectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
+			String myID = configProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+			logger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
 		}
 		catch (IMTPException imtpe) {
 	  	logger.log(Logger.SEVERE,"IMTP error "+imtpe);
@@ -173,10 +176,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param name The name of the agent to kill.
 	 */
   public final void killAgent(String name) throws NotFoundException, IMTPException {
+  	
   	Agent agent = (Agent) localAgents.get(name);
   	if(agent == null) {
+  		System.out.println("FrontEndContainer killing: " + name + " NOT FOUND");
     	throw new NotFoundException("KillAgent failed to find " + name);
   	}
+  	
   	// Note that the agent will be removed from the local table in 
   	// the handleEnd() method.
   	agent.doDelete();

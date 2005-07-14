@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+	<TestsList> 
+		<Test name="Wildcard agent creation" skip="false">
+			<TestClassName>test.leap.split.tests.TestWildcardCreateAgent</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent at split-container bootstrap
+			</WhatTest>
+			<HowWorkTest>A new split-container is started specifying on the command line an agent including the #C wildcard in its name
+			</HowWorkTest>
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			</WhenTestPass> 
+		</Test>	
+	</TestsList>
