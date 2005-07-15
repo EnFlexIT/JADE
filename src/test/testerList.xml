@@ -115,7 +115,7 @@
       </Description>
 			<TestsListRif>test/udpmonitor/UDPMonitorTestsList.xml</TestsListRif>
 		</Tester>
-		<Tester name="LEAP Split-container" skip="false">
+		<Tester name="LEAP Split-container" skip="true">
 			<ClassName>test.leap.split.LeapSplitTesterAgent</ClassName>
 			<Description> This item included tests on leap split-container.
       </Description>
