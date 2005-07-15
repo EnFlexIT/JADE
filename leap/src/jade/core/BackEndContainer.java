@@ -108,6 +108,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			myConnectionManager = cm;
     }
 	
+    // BOOTSTRAP_AGENTS Modificare return value con: Nome piattaforma (getAMS().getHap()), indirizzi, tabella nome bootsrap agent - nome assegnato | Eccezione 
+    // Se ritorna null --> connect fallito
+    // Se e` un resynch --> ritorna solo nome piattaforma e indirizzi
     public boolean connect() {
 			try {
 				// Initialize the BackEndManager if required
@@ -121,15 +124,21 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 					myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
 		    }
 	
+		    // BOOTSTRAP_AGENTS Store Agent info and remove it from myProfile.
+		    
 		    myFrontEnd = myConnectionManager.getFrontEnd(this, null);
 		    myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ...");
 		    Runtime.instance().beginContainer();
 		    boolean connected = joinPlatform();
 		    if (connected) {
+		    	// BOOTSRAP_AGENTS Riempire StartupInfo con nome piattaforma e indirizzi
 		    	myLogger.log(Logger.FINE, "Join platform OK");
 		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
 				    myLogger.log(Logger.INFO, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
 		    		resynch();
+		    	}
+		    	else {
+		    		// BOOTSTRAP_AGENTS Notify the main container (bornAgent) about bootstrap agents on the FE
 		    	}
 		    }
 		    return connected;
@@ -223,6 +232,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      - Notify the Main
      - Return the platform info to the FrontEnd if required
   */
+  // BOOTSTRAP_AGENTS return only a string indicating the real agent name
   public String[] bornAgent(String name) throws JADESecurityException, IMTPException {
   	  name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});
       AID id = new AID(name, AID.ISLOCALNAME);

@@ -458,7 +458,9 @@ public class JICPServer extends Thread
 		          mediators.put(m.getID(), m);
 		          
 		          // Create an ad-hoc reply including the assigned mediator-id and the IP address
-		          String replyMsg = m.getID()+'#'+addr.getHostAddress();
+			        p.setProperty(JICPProtocol.MEDIATOR_ID_KEY, m.getID());
+			        p.setProperty(JICPProtocol.LOCAL_HOST_KEY, addr.getHostAddress());
+							String replyMsg = FrontEndStub.encodeCreateMediatorResponse(p);
 		          reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 		          reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 	        	}

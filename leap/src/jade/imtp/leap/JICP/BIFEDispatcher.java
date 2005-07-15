@@ -31,6 +31,7 @@ import jade.core.IMTPException;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
 import jade.core.TimerListener;
+import jade.core.Specifier;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.BackEndStub;
 import jade.imtp.leap.MicroSkeleton;
@@ -291,10 +292,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		    String replyMsg = new String(pkt.getData());
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
-		      int index = replyMsg.indexOf('#');
-		      myMediatorID = replyMsg.substring(0, index);
-		      props.setProperty(JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
-		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
+	      	BackEndStub.parseCreateMediatorResponse(replyMsg, props);
+		      myMediatorID = props.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		    	myLogger.log(Logger.INFO, "BackEnd OK");
@@ -591,7 +590,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 					  		}
 					  	}
 					  	catch (IMTPException imtpe) { 
-					  		imtpe.printStackTrace();
+					  		// Behave as if there was an IOException --> go back sleeping 
 					      throw new IOException("BE-recreation failed");
 					  	}
 				  	}
@@ -639,6 +638,112 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   	}
   }
 
+  private void connectInp() {
+  	int cnt = 0;
+  	long startTime = System.currentTimeMillis();
+  	while (active) {
+	  	try {
+  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+cnt+"(INP)");
+		  	Connection c = openConnection(mediatorTA, -1);
+		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{INP});
+		  	writePacket(pkt, c);
+		  	pkt = c.readPacket();
+			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+			  	String errorMsg = new String(pkt.getData());
+			  	myLogger.log(Logger.WARNING, "JICP Error (INP). "+errorMsg); 
+		  		c.close();
+	  			// In case the outConnection still appears to be OK, refresh it.
+		  		refreshOut();
+			  }
+			  else {
+				  // The local-host address may have changed
+				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+	  			myLogger.log(Logger.INFO, "Connect OK (INP)");
+				  handleReconnection(c, INP);
+			  }
+			  return;
+	  	}
+	  	catch (IOException ioe) {
+  			myLogger.log(Logger.WARNING, "Connect failed (INP). "+ioe);
+	  	}
+	  	
+			// Wait a bit before trying again
+  		cnt++;
+  		waitABit(retryTime);
+  	}
+  }
+
+  private void connectOut() {
+  	int cnt = 0;
+  	long startTime = System.currentTimeMillis();
+  	boolean backEndExists = true;
+  	while (active) {
+	  	try {
+	  		if (backEndExists) {
+	  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+cnt+" (OUT)");
+			  	Connection c = openConnection(mediatorTA, RESPONSE_TIMEOUT);
+			  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{OUT});
+			  	writePacket(pkt, c);
+			  	pkt = c.readPacket();
+				  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+				  	String errorMsg = new String(pkt.getData());
+				  	myLogger.log(Logger.WARNING, "JICP Error (OUT). "+errorMsg); 
+			  		c.close();
+			  		if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
+				  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
+			  			// there was a fault our max disconnection time expired. 
+			  			// Try to recreate the BackEnd
+				  		handleBENotFound();
+				  		backEndExists = false;
+				  		continue;
+			  		}
+			  		else {
+			  			// There was a JICP error. Abort  
+			  			handleError();
+			  			return;
+			  		}
+				  }
+				  else {
+					  // The local-host address may have changed
+					  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+		  			myLogger.log(Logger.INFO, "Connect OK (OUT)");
+					  handleReconnection(c, OUT);
+					  return;
+				  }
+	  		}
+	  		else {
+	  			// Try to recreate the BE
+		  		synchronized (this) {
+			  		Connection c = createBackEnd();
+			  		handleReconnection(c, OUT);
+		  		}
+			  }
+	  	}
+	  	catch (IOException ioe) {
+  			myLogger.log(Logger.WARNING, "Connect failed (OUT). "+ioe);
+	  	}
+	  	catch (IMTPException imtpe) {
+  			myLogger.log(Logger.WARNING, "BE recreation failed.");
+	  	}
+	  	
+  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
+  			handleError();
+  			return;
+  		}
+  		
+			// Wait a bit before trying again
+  		cnt++;
+  		waitABit(retryTime);
+  	}
+  }
+
+  private void waitABit(long period) {
+		try {
+			Thread.sleep(period);
+		}
+		catch (Exception e) {}
+  }
+  
 	protected synchronized void handleReconnection(Connection c, byte type) {
 		boolean transition = false;
 		if (type == INP) {
@@ -681,50 +786,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	}
   
   private String[] parseBackEndAddresses(String addressesText) {
-    Vector addrs = new Vector();
-
-    if(addressesText != null && !addressesText.equals("")) {
-	// Copy the string with the specifiers into an array of char
-	char[] addressesChars = new char[addressesText.length()];
-
-    	addressesText.getChars(0, addressesText.length(), addressesChars, 0);
-
-    	// Create the StringBuffer to hold the first address
-    	StringBuffer sbAddr = new StringBuffer();
-    	int i = 0;
-
-    	while(i < addressesChars.length) {
-	    char c = addressesChars[i];
-
-	    if((c != ',') && (c != ';') && (c != ' ') && (c != '\n') && (c != '\t')) {
-        	sbAddr.append(c);
-	    }
-	    else {
-
-        	// The address is terminated --> Add it to the result list
-        	String tmp = sbAddr.toString().trim();
-
-        	if (tmp.length() > 0) {
-		    // Add the Address to the list
-		    addrs.addElement(tmp);
-        	}
-
-        	// Create the StringBuffer to hold the next specifier
-        	sbAddr = new StringBuffer();
-	    }
-
-	    ++i;
-    	}
-
-    	// Handle the last specifier
-    	String tmp = sbAddr.toString().trim();
-
-    	if(tmp.length() > 0) {
-	    // Add the Address to the list
-	    addrs.addElement(tmp);
-    	}
-    }
-
+  	Vector addrs = Specifier.parseList(addressesText, ';');
     // Convert the list into an array of strings
     String[] result = new String[addrs.size()];
     for(int i = 0; i < result.length; i++) {
@@ -732,7 +794,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
     }
 
     return result;
-
   }
   
   

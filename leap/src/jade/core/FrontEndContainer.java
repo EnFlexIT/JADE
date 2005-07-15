@@ -86,6 +86,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	FrontEndContainer(Properties p) {
 		configProperties = p;
 			
+		// BOOTSTRAP_AGENTS Create all bootstrap agents instances
+		
 		// Connect to the BackEnd
 		try {
 			String connMgrClass = configProperties.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY);
@@ -110,6 +112,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			MicroRuntime.handleTermination(true);
 			return;
 		}
+		
+		// BOOTSTRAP_AGENTS Adjust names and start bootstrap agents
 		
 		// Lanch agents
 		String agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
@@ -535,6 +539,6 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	  		pending.notifyAll();
 	  	}
   	}
-  }
+  }  
 }
 

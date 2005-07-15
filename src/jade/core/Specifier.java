@@ -115,13 +115,19 @@ public class Specifier {
 	    tmp.append(className);
 	}
 	if (args != null) {
-	    tmp.append("(");
-	    for (int i=0; i<args.length; i++) {
-		tmp.append(args[i]);
-		if (i<args.length-1)
-		    tmp.append(" ");
-	    }
-	    tmp.append(")");
+		tmp.append("(");
+		for (int i=0; i<args.length; i++) {
+			tmp.append(args[i]);
+			if (i<args.length-1) {
+				//#ALL_EXCLUDE_BEGIN
+				tmp.append(" ");
+				//#ALL_EXCLUDE_END
+				/*#ALL_INCLUDE_BEGIN
+				tmp.append(",");
+				//#ALL_INCLUDE_END*/
+			}
+		}
+		tmp.append(")");
 	}
 	return tmp.toString();
     }
@@ -140,56 +146,53 @@ public class Specifier {
      @return A vector containing the parsed specifiers.
    */
   public static Vector parseSpecifierList(String specsLine) throws Exception {
-    Vector specs = new Vector();
+  	Vector specs = parseList(specsLine, ';');
+  	for (int i = 0; i < specs.size(); ++i) {
+  		String s = (String) specs.elementAt(i);
+  		if (s.length() > 0) {
+  			specs.setElementAt(parseSpecifier(s, ','), i);
+  		}
+  		else {
+  			specs.removeElementAt(i--);
+  		}
+  	}
+  	return specs;
+  } 
+
+  public static final Vector parseList(String list, char delimiter) {
+    Vector v = new Vector();
     
-    if (specsLine != null && !specsLine.equals("") && !specsLine.equals(NULL_SPECIFIER_LIST)) {
+    if (list != null && !list.equals("") && !list.equals(NULL_SPECIFIER_LIST)) {
 	    // Copy the string with the specifiers into an array of char
-  	  char[] specsChars = new char[specsLine.length()];
+  	  char[] specsChars = new char[list.length()];
 
-    	specsLine.getChars(0, specsLine.length(), specsChars, 0);
+    	list.getChars(0, list.length(), specsChars, 0);
 
-    	// Create the StringBuffer to hold the first specifier
-    	StringBuffer sbSpecifier = new StringBuffer();
+    	// Create the StringBuffer to hold the first element
+    	StringBuffer sbElement = new StringBuffer();
     	int          i = 0;
 
     	while (i < specsChars.length) {
       	char c = specsChars[i];
 
-      	if (c != ';') {
-        	sbSpecifier.append(c);
+      	if (c != delimiter) {
+        	sbElement.append(c);
       	} 
       	else {
-
-        	// The specifier is terminated --> Convert it into a Specifier object
-        	String tmp = sbSpecifier.toString().trim();
-
-        	if (tmp.length() > 0) {
-          	Specifier s = parseSpecifier(tmp, ',');
-
-          	// Add the Specifier to the list
-          	specs.addElement(s);
-        	} 
-
-        	// Create the StringBuffer to hold the next specifier
-        	sbSpecifier = new StringBuffer();
+        	// The element is terminated.
+      		v.add(sbElement.toString().trim());
+        	// Create the StringBuffer to hold the next element
+        	sbElement = new StringBuffer();
       	} 
-
       	++i;
     	} 
 
-    	// Handle the last specifier
-    	String tmp = sbSpecifier.toString().trim();
-
-    	if (tmp.length() > 0) {
-      	Specifier s = parseSpecifier(tmp, ',');
-
-      	// Add the Specifier to the list
-      	specs.addElement(s);
-    	} 
+    	// Append the last element
+  		v.add(sbElement.toString().trim());
     }
-  	return specs;
-  } 
-
+  	return v;
+  }
+  
   /**
    * Utility method that parses a stringified object specifier in the form
    * <p><code>name<b>:</b>className<b>(</b><i>separated arglist</i><b>)</b></code></p>

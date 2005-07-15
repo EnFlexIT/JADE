@@ -26,9 +26,12 @@ package jade.imtp.leap;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
+import jade.core.Specifier;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
+import jade.util.leap.Properties;
 import jade.security.JADESecurityException;
+import java.util.Vector;
 
 /**
  * Class declaration
@@ -116,6 +119,22 @@ public class BackEndStub extends MicroStub implements BackEnd {
 			// --> It must be a NotFoundException --> throw it
 			throw new NotFoundException((String) r.getParamAt(2));
 		}
+  }
+  
+  public static final void parseCreateMediatorResponse(String responseMessage, Properties pp) {
+  	Vector v = Specifier.parseList(responseMessage, '#');
+  	for (int i = 0; i < v.size(); ++i) {
+  		String s = (String) v.elementAt(i);
+  		try {
+				int index = s.indexOf('=');
+				String key = s.substring(0, index);
+				String value = s.substring(index+1);
+				pp.setProperty(key, value);
+  		}
+  		catch (Exception e) {
+  			Logger.println("Property format error: "+s);
+  		}
+  	}
   }
 }
 

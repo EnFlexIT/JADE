@@ -249,10 +249,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 		    String replyMsg = new String(pkt.getData());
 	      if (pkt.getType() != JICPProtocol.ERROR_TYPE) {
 				  // BackEnd creation successful
-		      int index = replyMsg.indexOf('#');
-		      myMediatorID = replyMsg.substring(0, index);
-		      props.setProperty(JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
-		      props.setProperty(JICPProtocol.LOCAL_HOST_KEY, replyMsg.substring(index+1));
+	      	BackEndStub.parseCreateMediatorResponse(replyMsg, props);
+		      myMediatorID = props.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
 		      myDisconnectionManager.setReachable();

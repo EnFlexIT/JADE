@@ -165,6 +165,7 @@ public class BIBEDispatcher extends Thread implements BEConnectionManager, Dispa
 			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
 
     	myContainer = new BackEndContainer(props, this);
+    	// BOOTSTRAP_AGENTS Gestire nuovo valore di ritorno
     	if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}

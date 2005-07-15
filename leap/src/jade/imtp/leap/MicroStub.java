@@ -38,7 +38,7 @@ public class MicroStub {
 	private int activeCnt = 0;
 	private boolean flushing = false;
 	private Thread flusher;
-  private Logger logger;
+  protected Logger logger;
 	
 	public MicroStub(Dispatcher d) {
 		myDispatcher = d;

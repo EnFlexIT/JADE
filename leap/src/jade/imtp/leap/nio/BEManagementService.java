@@ -31,6 +31,7 @@ import jade.util.Logger;
 import jade.util.leap.Properties;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.TransportProtocol;
+import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.JICP.*;
 import jade.security.JADESecurityException;
 
@@ -547,7 +548,9 @@ public class BEManagementService extends BaseService {
 							}
 									        
 			        // Create an ad-hoc reply including the assigned mediator-id and the IP address
-			        String replyMsg = mediator.getID()+'#'+address.getHostAddress();
+			        p.setProperty(JICPProtocol.MEDIATOR_ID_KEY, mediator.getID());
+			        p.setProperty(JICPProtocol.LOCAL_HOST_KEY, address.getHostAddress());
+							String replyMsg = FrontEndStub.encodeCreateMediatorResponse(p);
 			        reply = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, replyMsg.getBytes());
 			        reply.setSessionID((byte) 31); // Dummy session ID != from valid ones
 		      	}

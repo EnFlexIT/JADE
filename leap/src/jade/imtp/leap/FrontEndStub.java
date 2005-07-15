@@ -30,9 +30,11 @@ import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.PostponedException;
 import jade.core.AID;
+import jade.core.Profile;
+import jade.core.Specifier;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.util.Logger;
+import jade.imtp.leap.JICP.JICPProtocol;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -176,73 +178,24 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	}
   }
   
-  /**
-     Inner class AddressedMessage.
-   *
-  private static class AddressedMessage extends ACLMessage {
-  	private AID receiver;
-  	private ACLMessage wrapped;
+  public static final String encodeCreateMediatorResponse(Properties pp) {
+  	StringBuffer sb = new StringBuffer();
+  	appendProp(sb, Profile.PLATFORM_ID, pp);
+  	appendProp(sb, "addresses", pp);
+  	appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, pp);
+  	appendProp(sb, JICPProtocol.LOCAL_HOST_KEY, pp);
+  	appendProp(sb, Profile.AGENTS, pp);
+  	return sb.toString();
+  }
   	
-  	private AddressedMessage(AID receiver, ACLMessage msg) {
-  		super(msg.getPerformative());
-  		this.receiver = receiver;
-  		wrapped = msg;
+  private static final void appendProp(StringBuffer sb, String key, Properties pp) {
+  	Object val = pp.get(key);
+  	if (val != null) {
+	  	sb.append(key);
+	  	sb.append('=');
+	  	sb.append(val);
+	  	sb.append('#');
   	}
-  	
-		private static AddressedMessage wrap(AID r, ACLMessage msg) {
-			AddressedMessage wrapper = null;
-			if (msg != null) {
-				wrapper = new AddressedMessage(r, msg);
-				wrapper.setSender(msg.getSender());
-				Iterator it = msg.getAllReceiver();
-				while (it.hasNext()) {
-					wrapper.addReceiver((AID) it.next());
-				}
-				
-				it = msg.getAllReplyTo();
-				while (it.hasNext()) {
-					wrapper.addReplyTo((AID) it.next());
-				}
-				
-	    	wrapper.setLanguage(msg.getLanguage());
-	    	wrapper.setOntology(msg.getOntology());
-	    	wrapper.setProtocol(msg.getProtocol());
-	    	wrapper.setInReplyTo(msg.getInReplyTo());
-	      wrapper.setReplyWith(msg.getReplyWith()); 
-	    	wrapper.setConversationId(msg.getConversationId());
-	    	wrapper.setReplyByDate(msg.getReplyByDate());
-	    	if (msg.hasByteSequenceContent()) {
-	    		wrapper.setByteSequenceContent(msg.getByteSequenceContent());
-	    	}
-	    	else {
-	    		wrapper.setContent(msg.getContent());
-	    	}
-	    	wrapper.setEncoding(msg.getEncoding());
-	    	wrapper.setEnvelope(msg.getEnvelope());
-	    	
-	    	Properties p = msg.getAllUserDefinedParameters();
-	    	Enumeration e = p.propertyNames();
-	    	while (e.hasMoreElements()) {
-	    		String key = (String) e.nextElement();
-	    		String value = (String) p.getProperty(key);
-	    		wrapper.addUserDefinedParameter(key, value);
-	    	}	
-			}
-			return wrapper; 
-		}
-		
-		
-		// Redefines the getAllIntendedReceiver() method in order to return 
-		// the receiver.
-  	public Iterator getAllIntendedReceiver() {
-  		List l = new ArrayList(1);
-  		l.add(receiver);
-  		return l.iterator();
-  	}
-  	
-  	public synchronized Object clone() {
-  		return wrapped;
-  	}
-  }  // END of inner class AddressedMessage */
+  }
 }
 
