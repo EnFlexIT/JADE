@@ -180,7 +180,7 @@ public class Specifier {
       	} 
       	else {
         	// The element is terminated.
-      		v.add(sbElement.toString().trim());
+      		v.addElement(sbElement.toString().trim());
         	// Create the StringBuffer to hold the next element
         	sbElement = new StringBuffer();
       	} 
@@ -188,7 +188,7 @@ public class Specifier {
     	} 
 
     	// Append the last element
-  		v.add(sbElement.toString().trim());
+  		v.addElement(sbElement.toString().trim());
     }
   	return v;
   }

@@ -42,7 +42,7 @@ public class TestConnectionListener implements ConnectionListener, CommandListen
     f.setCommandListener(this);
 	}
 		
-	public void handleConnectionEvent(int ev) {
+	public void handleConnectionEvent(int ev, Object par) {
 		switch (ev) {
 		case BEFORE_CONNECTION:
 			f.append(new StringItem(null, "Before connection."));
