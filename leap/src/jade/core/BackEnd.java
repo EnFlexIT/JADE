@@ -37,11 +37,9 @@ public interface BackEnd {
 	/**
 	   Notify the BackEnd container that a new agent is born.
 	   @param name The name of the new agent.
-	   @return The BackEnd container name, the platform name and the 
-	   platform addresses (packaged as an array of String) if the newly
-	   born agent is the first one. Null otherwise.
+	   @return The name actually assigned to the newly born agent.
 	 */
-  String[] bornAgent(String name) throws IMTPException, JADESecurityException;
+  String bornAgent(String name) throws IMTPException, JADESecurityException;
 
   /**
 	   Notify the BackEnd container that an agent has died. 

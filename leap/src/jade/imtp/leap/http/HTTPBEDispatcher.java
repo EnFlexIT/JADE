@@ -114,30 +114,30 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
       myLogger.log(Logger.INFO, "Created HTTPBEDispatcher V2.0. ID = "+myID+"\n- MaxDisconnectionTime = "+maxDisconnectionTime);
     }
     
-    startBackEndContainer(props);
+    myStub = new FrontEndStub(this);
+    mySkel = startBackEndContainer(props);
   }
 
-  protected final void startBackEndContainer(Properties props) throws ICPException {
+  protected final BackEndSkel startBackEndContainer(Properties props) throws ICPException {
     try {
-    	myStub = new FrontEndStub(this);
-
     	String nodeName = myID.replace(':', '_');
     	props.setProperty(Profile.CONTAINER_NAME, nodeName);
-			//String masterNode = props.getProperty(Profile.MASTER_NODE_NAME);
-    	
+			
+			// TO BE REMOVED
 			// Add the mediator ID to the profile (it's used as a token
 			// to keep related replicas together)
-			//props.setProperty(Profile.BE_MEDIATOR_ID, myID);
+			props.setProperty(Profile.BE_MEDIATOR_ID, myID);
 			
     	myContainer = new BackEndContainer(props, this);
     	if (!myContainer.connect()) {
 				throw new ICPException("BackEnd container failed to join the platform");
 			}
-    	mySkel = new BackEndSkel(myContainer);
-
-	    if(myLogger.isLoggable(Logger.INFO)) {
-	      myLogger.log(Logger.INFO, "BackEndContainer successfully joined the platform: name is "+myContainer.here().getName());
-	    }
+    	//Possibly the node name was re-assigned by the main
+  		myID = myContainer.here().getName();
+  		if(myLogger.isLoggable(Logger.CONFIG)) {
+  			myLogger.log(Logger.CONFIG,"BackEndContainer "+myID+" successfully joined the platform.");
+  		}
+  		return new BackEndSkel(myContainer);
     }
     catch (ProfileException pe) {
     	// should never happen

@@ -266,6 +266,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  appendProp(sb, JICPProtocol.OWNER_KEY, props.getProperty(JICPProtocol.OWNER_KEY));
 	  appendProp(sb, MSISDN, props.getProperty(MSISDN));
 	  appendProp(sb, VERSION, props.getProperty(VERSION));
+	  appendProp(sb, MicroRuntime.AGENTS_KEY, props.getProperty(MicroRuntime.AGENTS_KEY));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
     // Try first with the current transport address, then with the various backup addresses
@@ -319,7 +320,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   }
   
   private void appendProp(StringBuffer sb, String key, String val) {
-  	if (val != null) {
+  	if ((val != null)&&(val.length()!=0)) {
 	  	sb.append(key);
 	  	sb.append('=');
 	  	sb.append(val);

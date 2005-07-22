@@ -50,7 +50,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	
 	/**
 	 */
-  public String[] bornAgent(String name) throws JADESecurityException, IMTPException {
+  public String bornAgent(String name) throws JADESecurityException, IMTPException {
 		//Logger.println("Executing BORN_AGENT");
   	Command c = new Command(BORN_AGENT);
   	c.addParam(name);
@@ -62,7 +62,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 			throw new JADESecurityException((String) r.getParamAt(2));
 		}
 		if (r.getParamCnt() > 0) {
-			return (String[]) r.getParamAt(0);
+			return (String) r.getParamAt(0);
 		}
 		else {
 			return null;
@@ -125,14 +125,17 @@ public class BackEndStub extends MicroStub implements BackEnd {
   	Vector v = Specifier.parseList(responseMessage, '#');
   	for (int i = 0; i < v.size(); ++i) {
   		String s = (String) v.elementAt(i);
-  		try {
-				int index = s.indexOf('=');
-				String key = s.substring(0, index);
-				String value = s.substring(index+1);
-				pp.setProperty(key, value);
-  		}
-  		catch (Exception e) {
-  			Logger.println("Property format error: "+s);
+  		if(s.length()>0){
+	  		try {
+					int index = s.indexOf('=');
+					String key = s.substring(0, index);
+					String value = s.substring(index+1);
+					pp.setProperty(key, value);
+	  		}
+	  		catch (Exception e) {
+	  			e.printStackTrace();
+	  			Logger.println("Property format error: "+s);
+	  		}
   		}
   	}
   }

@@ -158,6 +158,21 @@ public class Specifier {
   	}
   	return specs;
   } 
+  
+  /**
+   * This static utility method produces a string representation of a list of Specifier objects.
+   */
+  public static String encodeSpecifierList(Vector v){
+  	StringBuffer sb = new StringBuffer();
+  	Enumeration elements = v.elements();
+  	while(elements.hasMoreElements()){
+  		sb.append(elements.nextElement());
+  		if(elements.hasMoreElements()){
+  			sb.append(';');
+  		}
+  	}
+  	return sb.toString();
+  }
 
   public static final Vector parseList(String list, char delimiter) {
     Vector v = new Vector();

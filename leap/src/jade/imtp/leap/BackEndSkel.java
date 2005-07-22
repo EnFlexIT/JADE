@@ -65,11 +65,9 @@ public class BackEndSkel extends MicroSkeleton {
   		break;
   	case BackEndStub.BORN_AGENT:
   		try {
-  			String[] info = myBackEnd.bornAgent((String) c.getParamAt(0));
+  			String name = myBackEnd.bornAgent((String) c.getParamAt(0));
   			c.reset(Command.OK);
-      	if (info != null) {
-      		c.addParam(info);
-      	}
+  			c.addParam(name);
   		}
   		catch (JADESecurityException ae) {
   			c = createErrorRsp(ae, true);

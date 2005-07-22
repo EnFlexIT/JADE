@@ -39,8 +39,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
-
-import java.util.Vector;
+import jade.core.MicroRuntime;
 import java.util.Enumeration;
 
 /**
@@ -181,7 +180,7 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   public static final String encodeCreateMediatorResponse(Properties pp) {
   	StringBuffer sb = new StringBuffer();
   	appendProp(sb, Profile.PLATFORM_ID, pp);
-  	appendProp(sb, "addresses", pp);
+  	appendProp(sb, MicroRuntime.PLATFORM_ADDRESSES_KEY, pp);
   	appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, pp);
   	appendProp(sb, JICPProtocol.LOCAL_HOST_KEY, pp);
   	appendProp(sb, Profile.AGENTS, pp);
@@ -191,10 +190,13 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   private static final void appendProp(StringBuffer sb, String key, Properties pp) {
   	Object val = pp.get(key);
   	if (val != null) {
-	  	sb.append(key);
-	  	sb.append('=');
-	  	sb.append(val);
-	  	sb.append('#');
+  		String strVal = val.toString();
+  		if(strVal.length() > 0){
+		  	sb.append(key);
+		  	sb.append('=');
+		  	sb.append(val);
+		  	sb.append('#');
+	  	}
   	}
   }
 }

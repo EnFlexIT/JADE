@@ -57,9 +57,12 @@ public class MicroRuntime {
 	 */
 	public static final String PORT_KEY = "port";	
 	
-  //#APIDOC_EXCLUDE_BEGIN
 	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 
+  //#APIDOC_EXCLUDE_BEGIN
+	public static final String PLATFORM_KEY = "platform-id";
+	public static final String PLATFORM_ADDRESSES_KEY = "addresses";
+	
 	public static final String JVM_KEY = "jvm";
 
 	public static final String J2SE = "j2se";

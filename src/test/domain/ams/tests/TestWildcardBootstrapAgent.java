@@ -29,6 +29,7 @@ import jade.core.ContainerID;
 import jade.core.behaviours.*;
 import test.common.*;
 import test.domain.ams.*;
+import jade.domain.JADEAgentManagement.JADEManagementVocabulary;;
 
 /**
  * Test the creation of bootstrap agent having wildcards in its name.
@@ -46,7 +47,7 @@ public class TestWildcardBootstrapAgent extends Test {
   		public void action() {
   			try {
 	  			log("Creating container with wildcarded bootstrap agent...");
-	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+"#C"+SUFFIX+":jade.core.Agent"), null); 
+	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX+":jade.core.Agent"), null); 
 	  			String containerName = jc.getContainerName();
 	  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
 	  			try {

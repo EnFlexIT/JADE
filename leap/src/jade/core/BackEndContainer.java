@@ -45,6 +45,7 @@ import jade.util.Logger;
 
 import java.util.StringTokenizer;
 import java.util.Enumeration;
+import java.util.Vector;
 
 /**
    @author Giovanni Caire - TILAB
@@ -108,9 +109,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 			myConnectionManager = cm;
     }
 	
-    // BOOTSTRAP_AGENTS Modificare return value con: Nome piattaforma (getAMS().getHap()), indirizzi, tabella nome bootsrap agent - nome assegnato | Eccezione 
-    // Se ritorna null --> connect fallito
-    // Se e` un resynch --> ritorna solo nome piattaforma e indirizzi
+
     public boolean connect() {
 			try {
 				// Initialize the BackEndManager if required
@@ -124,21 +123,47 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 					myProfile.setParameter(BE_REPLICAS_SIZE, Integer.toString(replicasAddresses.length));
 		    }
 	
-		    // BOOTSTRAP_AGENTS Store Agent info and remove it from myProfile.
+		    Vector agentSpecs = Specifier.parseSpecifierList(myProfile.getParameter(Profile.AGENTS, null));
+		    myProfile.setParameter(Profile.AGENTS, null);
 		    
 		    myFrontEnd = myConnectionManager.getFrontEnd(this, null);
 		    myLogger.log(Logger.FINE, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" joining the platform ...");
 		    Runtime.instance().beginContainer();
 		    boolean connected = joinPlatform();
 		    if (connected) {
-		    	// BOOTSRAP_AGENTS Riempire StartupInfo con nome piattaforma e indirizzi
 		    	myLogger.log(Logger.FINE, "Join platform OK");
+		    	AID amsAID  = getAMS();
+		    	myProfile.setParameter(Profile.PLATFORM_ID, amsAID.getHap());
+		    	String[] addresses = amsAID.getAddressesArray();
+		    	if(addresses != null){
+		    		StringBuffer sb = new StringBuffer();
+		    		for(int i = 0; i <addresses.length; i++){
+		    			sb.append(addresses[i]);
+		    			if(i<addresses.length-1){
+		    				sb.append(';');
+		    			}
+		    		}
+		    		myProfile.setParameter(MicroRuntime.PLATFORM_ADDRESSES_KEY, sb.toString());
+		    	}
 		    	if ("true".equals(myProfile.getParameter(RESYNCH, "false"))) {
-				    myLogger.log(Logger.INFO, "BackEnd container "+myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
+				    myLogger.log(Logger.INFO, "BackEnd container "+ myProfile.getParameter(Profile.CONTAINER_NAME, null)+" re-synching ...");
 		    		resynch();
 		    	}
 		    	else {
-		    		// BOOTSTRAP_AGENTS Notify the main container (bornAgent) about bootstrap agents on the FE
+		    		//Notify the main container about bootstrap agents on the FE.
+		    		for(int i = 0; i< agentSpecs.size(); i++){
+		    			Specifier sp = (Specifier)agentSpecs.elementAt(i);
+		    			try{
+		    				String name = bornAgent(sp.getName());
+		    				sp.setClassName(name);
+		    				sp.setArgs(null);
+		    			}catch(Exception e){
+		    				myLogger.log(Logger.SEVERE,"Error creating agent "  + sp.getName() + ". " + e);
+		    				sp.setClassName(e.getClass().getName());
+		    				sp.setArgs(new Object[]{e.getMessage()});
+		    			}
+		    		}
+		    		myProfile.setParameter(Profile.AGENTS, Specifier.encodeSpecifierList(agentSpecs));
 		    	}
 		    }
 		    return connected;
@@ -232,8 +257,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
      - Notify the Main
      - Return the platform info to the FrontEnd if required
   */
-  // BOOTSTRAP_AGENTS return only a string indicating the real agent name
-  public String[] bornAgent(String name) throws JADESecurityException, IMTPException {
+  public String bornAgent(String name) throws JADESecurityException, IMTPException {
   	  name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});
       AID id = new AID(name, AID.ISLOCALNAME);
       GenericCommand cmd = new GenericCommand(jade.core.management.AgentManagementSlice.INFORM_CREATED, jade.core.management.AgentManagementSlice.NAME, null);
@@ -252,25 +276,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
       else if (ret instanceof Throwable) {
       	throw new IMTPException(null, (Exception) ret);
       }
-
-      // Prepare platform info to return if necessary
-      String[] info = null;
-      if (refreshPlatformInfo) {
-	  AID ams = getAMS();
-	  String[] addresses = ams.getAddressesArray();
-	  info = new String[3+addresses.length];
-	  info[0] = name;
-	  info[1] = getID().getName();
-	  info[2] = ams.getHap();
-	  for (int i = 0; i < addresses.length; ++i) {
-	      info[i+3] = addresses[i];
-	  }
-	  refreshPlatformInfo = false;
-      }else{
-      	info = new String[]{name};
-      }
-
-      return info;
+      return name;
   }
 
   /**

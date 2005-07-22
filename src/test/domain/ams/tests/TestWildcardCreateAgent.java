@@ -27,6 +27,7 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.core.behaviours.*;
 import test.common.*;
+import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
 
 /**
  * The test asks the AMS to create an agent that has wildcards in its name, and verify if it's
@@ -57,7 +58,7 @@ public class TestWildcardCreateAgent extends Test {
   		public void action() {
   			try {
 	  			log("Creating agent with wildcards...");
-	  			TestUtility.createAgent(myAgent, PREFIX+"#C"+SUFFIX, Agent.class.getName(), null, null, jc.getContainerName());
+	  			TestUtility.createAgent(myAgent, PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX, Agent.class.getName(), null, null, jc.getContainerName());
 	  			log("Agent correctly created.");
 	  			String containerName = jc.getContainerName();
 	  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);

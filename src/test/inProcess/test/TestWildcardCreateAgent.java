@@ -31,6 +31,7 @@ import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import test.common.*;
 import jade.wrapper.*;
+import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
 /**
  * Tests the creation using the in-process interface of an agent having wildcards in its name.
  * 
@@ -60,7 +61,7 @@ public class TestWildcardCreateAgent extends Test {
 					if(controller != null){
 						//creo l'agente con la in-process interface	
 						log("Creating agent with wildcards in container " + controller.getContainerName()+ " ...");
-						AgentController ac = controller.createNewAgent(PREFIX+"#C"+SUFFIX, Agent.class.getName(), null);
+						AgentController ac = controller.createNewAgent(PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX, Agent.class.getName(), null);
 						ac.start();
 						log("Agent created successfully.");
 					}

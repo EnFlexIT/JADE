@@ -54,10 +54,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	// The ID of this container
 	private ContainerID myId;
 	
-	// The name of this container 
-	// The name of the platform this container belongs to
+
 	// The addresses of the platform this container belongs to
-	private String[] platformInfo;
+	Vector platformAddresses;
 	
 	// The AID of the AMS
 	private AID amsAID;
@@ -86,8 +85,29 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	FrontEndContainer(Properties p) {
 		configProperties = p;
 			
-		// BOOTSTRAP_AGENTS Create all bootstrap agents instances
-		
+		//Create all agents without starting them
+		String agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
+		try {
+			Vector specs = Specifier.parseSpecifierList(agents);
+			Vector successfulAgents = new Vector();
+			for (Enumeration en=specs.elements(); en.hasMoreElements(); ) {
+				Specifier s = (Specifier) en.nextElement();
+				try {
+					localAgents.put(s.getName(), initAgentInstance(s.getName(), s.getClassName(), s.getArgs()));
+					successfulAgents.addElement(s);
+				}
+				catch (Throwable t) {
+					logger.log(Logger.SEVERE,"Exception creating agent "+t);
+				}
+			}
+			configProperties.setProperty(MicroRuntime.AGENTS_KEY, Specifier.encodeSpecifierList(successfulAgents));
+		}
+		catch(Exception e1){
+			configProperties.setProperty(MicroRuntime.AGENTS_KEY, null);
+			logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
+			e1.printStackTrace();
+		}
+			
 		// Connect to the BackEnd
 		try {
 			String connMgrClass = configProperties.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY);
@@ -97,8 +117,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			
 			myConnectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
 			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
-			String myID = configProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
-			logger.log(Logger.INFO, "--------------------------------------\nAgent container " + myID + " is ready.\n--------------------------------------------");
+			initInfo(configProperties);
+			
+			logger.log(Logger.INFO, "--------------------------------------\nAgent container " + myId.getName() + " is ready.\n--------------------------------------------");
+			
 		}
 		catch (IMTPException imtpe) {
 	  	logger.log(Logger.SEVERE,"IMTP error "+imtpe);
@@ -113,38 +135,44 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			return;
 		}
 		
-		// BOOTSTRAP_AGENTS Adjust names and start bootstrap agents
-		
-		// Lanch agents
-		String agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
-		try {
-			// Create all agents without starting them
+		// Start all agents that have been successfully accepted by the main.
+		// NOTE that after the BackEnd creation, each agent-specifier takes the form
+		// <original-name>:<str1>[(str2)] 
+		// where if str2 is NOT present --> the agent was accepted by  the main
+		// and str1 represents the actual agent name (with wild cards, if any, properly 
+		// replaced), else there was an exception and str1 is the exception class name 
+		// and str2 is the exception message.
+		agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
+		try{
 			Vector specs = Specifier.parseSpecifierList(agents);
-			for (Enumeration en=specs.elements(); en.hasMoreElements(); ) {
-				Specifier s = (Specifier) en.nextElement();
-				try {
-					initAgent(s.getName(), s.getClassName(), s.getArgs());
-				}
-				catch (Exception e) {
-	  			logger.log(Logger.SEVERE,"Exception creating new agent "+e);
-				}
-			}
-			
-			// Start agents only after they are all there
-			synchronized (this) {
-				Enumeration e = localAgents.keys();
-				while (e.hasMoreElements()) {
-					String name = (String) e.nextElement();
-					AID id = new AID(name, AID.ISLOCALNAME);
-					Agent a = (Agent) localAgents.get(name);
-					a.powerUp(id, new Thread(a));
+			// Start all agents  
+			Enumeration e = specs.elements();
+			while (e.hasMoreElements()) {
+				Specifier sp = (Specifier) e.nextElement();
+				Agent a = (Agent) localAgents.remove(sp.getName());
+				if(a != null){
+					Object[] args = sp.getArgs();
+					if((args != null) && args.length >0){
+						//there was an exception notifying the main...
+						logger.log(Logger.SEVERE, "Error starting agent " + sp.getName() + ". " + sp.getClassName() + " " + args[0]);
+					}else{
+						String actualName = sp.getClassName();
+						localAgents.put(actualName, a);
+						AID id = new AID(actualName, AID.ISLOCALNAME);
+						a.powerUp(id, new Thread(a));
+					}
+				}else{
+					logger.log(Logger.WARNING, "Agent " + sp.getName() + " not found locally.");
 				}
 			}
 		}
 		catch (Exception e1) {
-	  	logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
+			logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
+		//clear the agent specifiers to avoid sending them again to the back end  
+		//during recreations. 
+		configProperties.remove(MicroRuntime.AGENTS_KEY);
 	}
 	
 	/////////////////////////////////////
@@ -158,15 +186,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	 */
   public final void createAgent(String name, String className, String[] args) throws IMTPException {
   	try {
-	  	initAgent(name, className, (Object[]) args);
-			AID id = new AID(name, AID.ISLOCALNAME);
-			Agent a = (Agent) localAgents.get(name);
+	  	Agent a = initAgentInstance(name, className, (Object[]) args);
+	  	String newName = myBackEnd.bornAgent(name);
+	  	localAgents.put(newName, a);
+			AID id = new AID(newName, AID.ISLOCALNAME);
 			a.powerUp(id, new Thread(a));
-			//#NODEBUG_EXCLUDE_BEGIN
-    	//java.lang.Runtime rt = java.lang.Runtime.getRuntime();
-			//rt.gc();
-      //System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
-			//#NODEBUG_EXCLUDE_END
   	}
   	catch (Exception e) {
   		String msg = "Exception creating new agent. ";
@@ -276,11 +300,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				String name = (String) e.nextElement();
 		  	logger.log(Logger.INFO,"Resynching agent "+name);
 		    try {
-		    	// Notify the BackEnd (get back platform info if this is the first agent) 
-		      String[] info = myBackEnd.bornAgent(name);
-					if (info != null) {
-						initInfo(info);
-					}
+		    	// Notify the BackEnd (note that the agent name will never change in this case)
+		      myBackEnd.bornAgent(name);
 				}
 				catch (IMTPException imtpe) {
 					// The connection is likely down again. Rethrow the exception
@@ -377,8 +398,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   
   public final void setPlatformAddresses(AID id) {
   	id.clearAllAddresses();
-  	for (int i = 3; i < platformInfo.length; ++i) {
-  		id.addAddresses(platformInfo[i]);
+  	for (int i = 0; i < platformAddresses.size(); ++i) {
+  		id.addAddresses((String)platformAddresses.elementAt(i));
   	}
   }
   
@@ -447,43 +468,25 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   ///////////////////////////////
   // Private methods
   ///////////////////////////////
-  private final void initInfo(String[] info) {
-  	myId = new ContainerID(info[1], null);
-  	AID.setPlatformID(info[2]);
-  	platformInfo = info;
+  private final void initInfo(Properties pp) {
+  	myId = new ContainerID(pp.getProperty(JICPProtocol.MEDIATOR_ID_KEY), null);
+  	AID.setPlatformID(pp.getProperty(MicroRuntime.PLATFORM_KEY));
+  	platformAddresses = Specifier.parseList(pp.getProperty(MicroRuntime.PLATFORM_ADDRESSES_KEY), ';');
   	amsAID = new AID("ams", AID.ISLOCALNAME);
   	setPlatformAddresses(amsAID);
   	dfAID = new AID("df", AID.ISLOCALNAME);
   	setPlatformAddresses(dfAID);
   }
 
-  private final void initAgent(String name, String className, Object[] args) throws Exception {
-    synchronized (this) {
-	  	Agent previous = null;
-	    try {
-	    	// Create the new agent and add it to the local agents table
-	      Agent agent = (Agent) Class.forName(className).newInstance();
-	      agent.setArguments(args);
-	      agent.setToolkit(this);
-	      // Notify the BackEnd (get back platform info if this is the first agent) 
-	      String[] info = myBackEnd.bornAgent(name);
-	      name = info[0];
-				if (info.length > 1) {
-					initInfo(info);
-				}
-	      previous = (Agent) localAgents.put(name, agent);
-			}
-			catch (Exception e) {
-				// If an exception occurs, roll back and restore the previous agent if any.
-	      localAgents.remove(name);
-	      if(previous != null) {
-	        localAgents.put(name, previous);
-	      }
-	      // Re-throw the exception
-	      throw e;
-	    }
-    }
+  
+  private final Agent initAgentInstance(String name, String className, Object[] args) throws Exception {
+  	// Create the new agent and add it to the local agents table
+    Agent agent = (Agent) Class.forName(className).newInstance();
+    agent.setArguments(args);
+    agent.setToolkit(this);
+    return agent;
   }
+  
   
   private void post(ACLMessage msg, String sender) {
   	if (pending == null) {

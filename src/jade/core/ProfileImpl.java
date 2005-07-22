@@ -335,7 +335,11 @@ public class ProfileImpl extends Profile {
    * @param value is the property value
    */
     public void setParameter(String key, String value) {
-	props.setProperty(key, value);
+    	if(value==null){
+    		props.remove(key);
+    	}else{
+				props.setProperty(key, value);
+			}
     }
 
   /**

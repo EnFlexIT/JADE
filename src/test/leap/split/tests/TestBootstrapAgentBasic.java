@@ -27,6 +27,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
 import test.common.*;
 
 
@@ -39,7 +40,7 @@ import test.common.*;
  * @version $Date:  $ $Revision: $
  *
  */
-public class TestWildcardCreateAgent extends Test{
+public class TestBootstrapAgentBasic extends Test{
 	
 	private JadeController jc = null;
 	private static String PREFIX = "prefix_";
@@ -49,7 +50,7 @@ public class TestWildcardCreateAgent extends Test{
 	public Behaviour load(Agent a) throws TestException {  
 		
 		log("Creating split container...");
-		jc = TestUtility.launchSplitJadeInstance("Split-Container-1", null, new String("-host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT) + " " + PREFIX+"#C"+SUFFIX+":jade.core.Agent"));
+		jc = TestUtility.launchSplitJadeInstance("Split-Container-1", null, new String("-host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT) + " " + PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX+":jade.core.Agent"));
 		
 		return new OneShotBehaviour(a) {
 			public void action() {
