@@ -27,6 +27,7 @@ import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
+import jade.core.MicroRuntime;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
 import jade.core.TimerListener;
@@ -222,6 +223,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
       appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, "jade.imtp.leap.http.HTTPBEDispatcher");
       appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
       appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
+      //FIXME: AGGIUNTO DA verificare
+      appendProp(sb, MicroRuntime.AGENTS_KEY, props.getProperty(MicroRuntime.AGENTS_KEY));
       if(beAddrsText != null) {
 	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
       }
@@ -273,10 +276,12 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   }
   
   private void appendProp(StringBuffer sb, String key, String val) {
-  	sb.append(key);
-  	sb.append('=');
-  	sb.append(val);
-  	sb.append('#');
+  	if ((val != null)&&(val.length()!=0)) {
+	  	sb.append(key);
+	  	sb.append('=');
+	  	sb.append(val);
+	  	sb.append('#');
+  	}
   }
   
   //////////////////////////////////////////////

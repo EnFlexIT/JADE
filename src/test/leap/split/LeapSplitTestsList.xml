@@ -45,18 +45,60 @@
 			<TestClassName>test.leap.split.tests.TestBootstrapAgentBasic</TestClassName>
 			<WhatTest>Test the usage of wildcards in agent names when starting an agent at split-container bootstrap
 			</WhatTest>
-			<HowWorkTest>A new split-container is started specifying on the command line an agent including the #C wildcard in its name
+			<HowWorkTest>A new split-container is started specifying on the command line an agent including the %C wildcard in its name
 			</HowWorkTest>
-			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
 			</WhenTestPass> 
 		</Test>	
-		<Test name="Wildcard agent creation via AMS on basic container." skip="false">
-			<TestClassName>test.leap.split.tests.TestRemoteCommunicationBasic</TestClassName>
-			<WhatTest>Test the usage of wildcards in agent names when starting an agent via AMS.
+		<Test name="Bootstrap Wildcard agent creation on NIO split-container." skip="false">
+			<TestClassName>test.leap.split.tests.TestBootstrapAgentNIO</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting a bootstrap agent on a split-container using NIOBEDispatcher.
 			</WhatTest>
-			<HowWorkTest>A new split-container is started and the AMS is asked to start a new agent with the #C wildcard in its name
+			<HowWorkTest>A new split-container is started specifying on the command line an agent including the %C wildcard in its name
 			</HowWorkTest>
-			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
+			</WhenTestPass> 
+		</Test>	
+		<Test name="Bootstrap Wildcard agent creation on HTTP split-container." skip="false">
+			<TestClassName>test.leap.split.tests.TestBootstrapAgentHTTP</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting a bootstrap agent on a split-container using HTTPPeer.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started specifying on the command line an agent including the %C wildcard in its name
+			</HowWorkTest>
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
+			</WhenTestPass> 
+		</Test>	
+		<Test name="Wildcard agent creation via AMS on basic split-container and remote communication." skip="false">
+			<TestClassName>test.leap.split.tests.TestRemoteCommunicationBasic</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent via AMS and the remote communication with a remote platform via HTTP MTP.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started and the AMS is asked to start a ping agent on a remote platform.
+			A controller agent, started on the split-container using wild-card in name, sends a message to the pingAgent and waits for a reply.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name) and the 
+			the communication between agents works properly.
+			</WhenTestPass> 
+		</Test>
+		<Test name="Wildcard agent creation via AMS on split-container using HTTPPeer and remote communication." skip="false">
+			<TestClassName>test.leap.split.tests.TestRemoteCommunicationHTTP</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent via AMS and the remote communication with a remote platform via HTTP MTP.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started (using HTTPPeer) and the AMS is asked to start a ping agent on a remote platform.
+			A controller agent, started on the split-container using wild-card in name, sends a message to the pingAgent and waits for a reply.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name) and the 
+			the communication between agents works properly.
+			</WhenTestPass> 
+		</Test>	
+		<Test name="Wildcard agent creation via AMS on a NIO split-container and remote communication." skip="false">
+			<TestClassName>test.leap.split.tests.TestRemoteCommunicationNIO</TestClassName>
+			<WhatTest>Test the usage of wildcards in agent names when starting an agent via AMS and the remote communication with a remote platform via HTTP MTP.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started  and the AMS is asked to start a ping agent on a remote platform.
+			A controller agent, started on the split-container using wild-card in name, sends a message to the pingAgent and waits for a reply.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name) and the 
+			the communication between agents works properly.
 			</WhenTestPass> 
 		</Test>	
 	</TestsList>

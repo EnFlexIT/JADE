@@ -91,9 +91,9 @@
 			<TestClassName>test.domain.ams.tests.TestWildcardBootstrapAgent</TestClassName>
 			<WhatTest>Test the usage of wildcards in agent names when starting an agent at container bootstrap
 			</WhatTest>
-			<HowWorkTest>A new container is started specifying on the command line an agent including the #C wildcard in its name
+			<HowWorkTest>A new container is started specifying on the command line an agent including the %C wildcard in its name
 			</HowWorkTest>
-			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
 			</WhenTestPass> 
 		</Test>
 		
@@ -103,7 +103,7 @@
 			</WhatTest>
 			<HowWorkTest>A new container is started and the AMS is asking to create an agent with a name using wildcard.
 			</HowWorkTest>
-			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the #C wildcard substituted with the container name)
+			<WhenTestPass>The test passes if an agent is created with the expected name (i.e. with the %C wildcard substituted with the container name)
 			</WhenTestPass> 
 		</Test>				
 		
