@@ -411,7 +411,8 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   		}
 	  	
 	  	int status = 0;
-			connect(INP);
+	  	connectInp();
+		//connect(INP);
   		try {
 				while (isConnected()) {
 					status = 0;
@@ -483,7 +484,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  }
 	  
 	  private final void setConnection(Connection c) {
-	  	refreshingInput = false;
 	  	myConnection = c;
 	  }
 	  
@@ -496,7 +496,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      Close the current InputManager (if any) and start a new one
    */
   protected synchronized void refreshInp() {
-  	// Avoid 2 refresh at the same time.
+  	// Avoid 2 refreshing processes at the same time.
   	// Also avoid restoring the INP connection just after a DROP_DOWN
   	if (active && !refreshingInput && !connectionDropped) {
 	  	// Close the current InputManager	
@@ -544,10 +544,11 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      Asynchronously restore the OUT connection
    */
 	public void run() {
-		connect(OUT);
+		connectOut();
+		//connect(OUT);
 	}
 	
-
+	/* TO BE REMOVED
   private void connect(byte type) {
   	int cnt = 0;
   	long startTime = System.currentTimeMillis();
@@ -555,196 +556,224 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	  	try {
 	  		if (myLogger.isLoggable(Logger.INFO)) {
 	  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+type+"("+cnt+")");
+  		}
+  		int t = (type == OUT ? RESPONSE_TIMEOUT : -1);
+	  	Connection c = openConnection(mediatorTA, t);
+	  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
+	  	writePacket(pkt, c);
+	  	pkt = c.readPacket();
+		  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+		  	String errorMsg = new String(pkt.getData());
+		  	myLogger.log(Logger.WARNING, "JICP Error "+type+". "+errorMsg); 
+	  		c.close();
+	  		if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
+		  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
+	  			// there was a fault our max disconnection time expired. 
+	  			// Try to recreate the BackEnd
+			  	if (type == OUT) {
+			  		// BackEnd recreation is attempted only when restoring the 
+			  		// OUT connection since the BackEnd uses the connection that 
+			  		// creates it to receive outgoing commands. Moreover this ensures
+			  		// that (if the BackEnd is created on a different host) we do not
+			  		// end up with the INP and OUT connections pointing to different 
+			  		// hosts.
+			  		// Finally, if BE re-creation fails, we behave as if there was an 
+			  		// IOException when trying to reconnect.
+				  	try {
+				  		handleBENotFound();
+				  		// In some cases the INP connection may be re-established by another
+				  		// thread just after the BackEnd has been re-created but the 
+				  		// outConnection has not been set yet. In these cases the resynch
+				  		// process may fail since it finds the outConnection null.
+				  		// The synchronized block avoids this.
+				  		synchronized (this) {
+					  		c = createBackEnd();
+					  		handleReconnection(c, type);
+				  		}
+				  	}
+				  	catch (IMTPException imtpe) { 
+				  		// Behave as if there was an IOException --> go back sleeping 
+				      throw new IOException("BE-recreation failed");
+				  	}
+			  	}
+			  	else {
+		  			// In case the outConnection still appears to be OK, refresh it.
+			  		refreshOut();
+			  		// Then behave as if there was an IOException --> go back sleeping
+			  		throw new IOException();
+			  	}
 	  		}
-	  		int t = (type == OUT ? RESPONSE_TIMEOUT : -1);
-		  	Connection c = openConnection(mediatorTA, t);
-		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{type});
-		  	writePacket(pkt, c);
-		  	pkt = c.readPacket();
-			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-			  	String errorMsg = new String(pkt.getData());
-			  	myLogger.log(Logger.WARNING, "JICP Error "+type+". "+errorMsg); 
-		  		c.close();
-		  		if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
-			  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
-		  			// there was a fault our max disconnection time expired. 
-		  			// Try to recreate the BackEnd
-				  	if (type == OUT) {
-				  		// BackEnd recreation is attempted only when restoring the 
-				  		// OUT connection since the BackEnd uses the connection that 
-				  		// creates it to receive outgoing commands. Moreover this ensures
-				  		// that (if the BackEnd is created on a different host) we do not
-				  		// end up with the INP and OUT connections pointing to different 
-				  		// hosts.
-				  		// Finally, if BE re-creation fails, we behave as if there was an 
-				  		// IOException when trying to reconnect.
-					  	try {
-					  		handleBENotFound();
-					  		// In some cases the INP connection may be re-established by another
-					  		// thread just after the BackEnd has been re-created but the 
-					  		// outConnection has not been set yet. In these cases the resynch
-					  		// process may fail since it finds the outConnection null.
-					  		// The synchronized block avoids this.
-					  		synchronized (this) {
-						  		c = createBackEnd();
-						  		handleReconnection(c, type);
-					  		}
-					  	}
-					  	catch (IMTPException imtpe) { 
-					  		// Behave as if there was an IOException --> go back sleeping 
-					      throw new IOException("BE-recreation failed");
-					  	}
-				  	}
-				  	else {
-			  			// In case the outConnection still appears to be OK, refresh it.
-				  		refreshOut();
-				  		// Then behave as if there was an IOException --> go back sleeping
-				  		throw new IOException();
-				  	}
-		  		}
-		  		else {
-		  			// There was a JICP error. Abort  
-		  			handleError();
-		  		}
-			  }
-			  else {
-				  // The local-host address may have changed
-				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-		  		if (myLogger.isLoggable(Logger.INFO)) {
-		  			myLogger.log(Logger.INFO, "Connect OK "+type);
-		  		}
-				  handleReconnection(c, type);
-			  }
-			  return;
+	  		else {
+	  			// There was a JICP error. Abort  
+	  			handleError();
+	  		}
+		  }
+		  else {
+			  // The local-host address may have changed
+			  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+	  		if (myLogger.isLoggable(Logger.INFO)) {
+	  			myLogger.log(Logger.INFO, "Connect OK "+type);
+	  		}
+			  handleReconnection(c, type);
+		  }
+		  return;
+  	}
+  	catch (IOException ioe) {
+		myLogger.log(Logger.WARNING, "Connect failed "+type+". "+ioe);
+  		cnt++;
+	  	if (type == OUT) {
+	  		// Max disconnection time expiration is detected only when 
+	  		// restoring the OUT connection. In this way we avoid having
+	  		// one connection restored while the other is declared dead.
+	  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
+	  			handleError();
+	  			return;
+	  		}
 	  	}
-	  	catch (IOException ioe) {
-  			myLogger.log(Logger.WARNING, "Connect failed "+type+". "+ioe);
-	  		cnt++;
-		  	if (type == OUT) {
-		  		// Max disconnection time expiration is detected only when 
-		  		// restoring the OUT connection. In this way we avoid having
-		  		// one connection restored while the other is declared dead.
-		  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
-		  			handleError();
-		  			return;
-		  		}
-		  	}
-	  		
-  			// Wait a bit before trying again
+  		
+		// Wait a bit before trying again
   			try {
   				Thread.sleep(retryTime);
   			}
   			catch (Exception e) {}
 	  	}
   	}
-  }
+  }*/
+
 
   private void connectInp() {
-  	int cnt = 0;
-  	long startTime = System.currentTimeMillis();
-  	while (active) {
-	  	try {
-  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+cnt+"(INP)");
-		  	Connection c = openConnection(mediatorTA, -1);
-		  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{INP});
-		  	writePacket(pkt, c);
-		  	pkt = c.readPacket();
-			  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-			  	String errorMsg = new String(pkt.getData());
-			  	myLogger.log(Logger.WARNING, "JICP Error (INP). "+errorMsg); 
-		  		c.close();
-	  			// In case the outConnection still appears to be OK, refresh it.
-		  		refreshOut();
-			  }
-			  else {
-				  // The local-host address may have changed
-				  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-	  			myLogger.log(Logger.INFO, "Connect OK (INP)");
-				  handleReconnection(c, INP);
-			  }
-			  return;
-	  	}
-	  	catch (IOException ioe) {
-  			myLogger.log(Logger.WARNING, "Connect failed (INP). "+ioe);
-	  	}
-	  	
-			// Wait a bit before trying again
-  		cnt++;
-  		waitABit(retryTime);
-  	}
-  }
+		int cnt = 0;
+		while (active) {
+			try {
+				synchronized (this) { // Mutual exclusion with BE re-creation
+					myLogger.log(Logger.INFO, "Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + cnt + " (INP)");
+					Connection c = openConnection(mediatorTA, -1);
+					JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[] {INP});
+					writePacket(pkt, c);
+					pkt = c.readPacket();
+					if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+						String errorMsg = new String(pkt.getData());
+						myLogger.log(Logger.WARNING, "JICP Error (INP). " + errorMsg);
+						c.close();
+						// In case the outConnection still appears to be OK, refresh it.
+						refreshOut();
+						refreshingInput = false;
+					} else {
+						// The local-host address may have changed
+						props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+						myLogger.log(Logger.INFO, "Connect OK (INP)");
+						handleInpReconnection(c);
+					}
+					return;
+				}
+			} catch (IOException ioe) {
+				myLogger.log(Logger.WARNING, "Connect failed (INP). " + ioe);
+			}
 
-  private void connectOut() {
-  	int cnt = 0;
-  	long startTime = System.currentTimeMillis();
-  	boolean backEndExists = true;
-  	while (active) {
-	  	try {
-	  		if (backEndExists) {
-	  			myLogger.log(Logger.INFO, "Connecting to "+mediatorTA.getHost()+":"+mediatorTA.getPort()+" "+cnt+" (OUT)");
-			  	Connection c = openConnection(mediatorTA, RESPONSE_TIMEOUT);
-			  	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[]{OUT});
-			  	writePacket(pkt, c);
-			  	pkt = c.readPacket();
-				  if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
-				  	String errorMsg = new String(pkt.getData());
-				  	myLogger.log(Logger.WARNING, "JICP Error (OUT). "+errorMsg); 
-			  		c.close();
-			  		if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
-				  		// The JICPMediatorManager didn't find my Mediator anymore. Either 
-			  			// there was a fault our max disconnection time expired. 
-			  			// Try to recreate the BackEnd
-				  		handleBENotFound();
-				  		backEndExists = false;
-				  		continue;
-			  		}
-			  		else {
-			  			// There was a JICP error. Abort  
-			  			handleError();
-			  			return;
-			  		}
-				  }
-				  else {
-					  // The local-host address may have changed
-					  props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
-		  			myLogger.log(Logger.INFO, "Connect OK (OUT)");
-					  handleReconnection(c, OUT);
-					  return;
-				  }
-	  		}
-	  		else {
-	  			// Try to recreate the BE
-		  		synchronized (this) {
-			  		Connection c = createBackEnd();
-			  		handleReconnection(c, OUT);
-		  		}
-			  }
-	  	}
-	  	catch (IOException ioe) {
-  			myLogger.log(Logger.WARNING, "Connect failed (OUT). "+ioe);
-	  	}
-	  	catch (IMTPException imtpe) {
-  			myLogger.log(Logger.WARNING, "BE recreation failed.");
-	  	}
-	  	
-  		if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
-  			handleError();
-  			return;
-  		}
-  		
 			// Wait a bit before trying again
-  		cnt++;
-  		waitABit(retryTime);
-  	}
-  }
+			cnt++;
+			waitABit(retryTime);
+		}
+	}
 
-  private void waitABit(long period) {
+	private void connectOut() {
+		int cnt = 0;
+		long startTime = System.currentTimeMillis();
+		boolean backEndExists = true;
+		while (active) {
+			try {
+				if (backEndExists) {
+					myLogger.log(Logger.INFO, "Connecting to " + mediatorTA.getHost() + ":" + mediatorTA.getPort() + " " + cnt + " (OUT)");
+					Connection c = openConnection(mediatorTA, RESPONSE_TIMEOUT);
+					JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, mediatorTA.getFile(), new byte[] {OUT});
+					writePacket(pkt, c);
+					pkt = c.readPacket();
+					if (pkt.getType() == JICPProtocol.ERROR_TYPE) {
+						String errorMsg = new String(pkt.getData());
+						myLogger.log(Logger.WARNING, "JICP Error (OUT). " + errorMsg);
+						c.close();
+						if (errorMsg.equals(JICPProtocol.NOT_FOUND_ERROR)) {
+							// The JICPMediatorManager didn't find my Mediator anymore. Either 
+							// there was a fault our max disconnection time expired. 
+							// Try to recreate the BackEnd
+							handleBENotFound();
+							backEndExists = false;
+							continue;
+						} 
+						else {
+							// There was a JICP error. Abort  
+							handleError();
+							return;
+						}
+					} 
+					else {
+						// The local-host address may have changed
+						props.setProperty(JICPProtocol.LOCAL_HOST_KEY, new String(pkt.getData()));
+						myLogger.log(Logger.INFO, "Connect OK (OUT)");
+						handleOutReconnection(c);
+						return;
+					}
+				} 
+				else {
+					// Try to recreate the BE
+					synchronized (this) {
+						Connection c = createBackEnd();
+						handleOutReconnection(c);
+						return;
+					}
+				}
+			} 
+			catch (IOException ioe) {
+				myLogger.log(Logger.WARNING, "Connect failed (OUT). " + ioe);
+			} 
+			catch (IMTPException imtpe) {
+				myLogger.log(Logger.WARNING, "BE recreation failed.");
+			}
+
+			if ((System.currentTimeMillis() - startTime) > maxDisconnectionTime) {
+				handleError();
+				return;
+			}
+
+			// Wait a bit before trying again
+			cnt++;
+			waitABit(retryTime);
+		}
+	}
+
+	private void waitABit(long period) {
 		try {
 			Thread.sleep(period);
-		}
-		catch (Exception e) {}
-  }
+		} catch (Exception e) {}
+	}
   
+	protected synchronized void handleInpReconnection(Connection c) {
+		myInputManager.setConnection(c);
+		refreshingInput = false;
+		if (outConnection != null && myConnectionListener != null) {
+			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
+		}
+	}
+	
+	protected synchronized void handleOutReconnection(Connection c) {
+		if (connectionDropped) {
+			// If we have just reconnected after a connection drop-down,
+			// refresh the INP connection too.
+			connectionDropped = false;
+			refreshInp();
+		}
+		
+		outConnection = c;
+		refreshingOutput = false;
+		// The Output connection is available again --> 
+		// Activate postponed commands flushing
+		waitingForFlush = myStub.flush();
+		if (myInputManager.isConnected() && myConnectionListener != null) {
+			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
+		}
+	}
+		
+	/* TO BE REMOVED
 	protected synchronized void handleReconnection(Connection c, byte type) {
 		boolean transition = false;
 		if (type == INP) {
@@ -773,7 +802,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		if (transition && myConnectionListener != null) {
 			myConnectionListener.handleConnectionEvent(ConnectionListener.RECONNECTED, null);
 		}
-	}
+	}*/
 	
 	private void handleError() {
 		myLogger.log(Logger.SEVERE, "Can't reconnect ("+System.currentTimeMillis()+")");
@@ -945,7 +974,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
   protected void dispatchWhileDropped() {
   	myLogger.log(Logger.INFO, "Dispatch with connection dropped. Reconnecting.");
 		// The connectionDropped flag will be set to false as soon as we 
-		// re-establish the OUT connection. This is needed in handleReconnection()
+		// re-establish the OUT connection. This is needed in handleOutReconnection()
 		refreshOut();
   }
   
