@@ -223,9 +223,11 @@ public class AgentTree extends JPanel {
 
   public String getToolTipText() {
     if(addressmachine != null)
-      return name + ":" + addressmachine.getHostName() + "[" + addressmachine.getHostAddress() + "]";
+    	return name + " " + "[" + addressmachine.getHostAddress() + "]";
+      //return name + ":" + addressmachine.getHostName() + "[" + addressmachine.getHostAddress() + "]";
     else
-      return name + ":<Unknown Host> [???:???:???:???]";
+    	return name + " " + "[???:???:???:???]";
+      //return name + ":<Unknown Host> [???:???:???:???]";
   }
 
  } // End of ContainerNode
