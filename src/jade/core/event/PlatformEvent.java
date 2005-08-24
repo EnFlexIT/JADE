@@ -55,26 +55,21 @@ public class PlatformEvent extends JADEEvent implements jade.wrapper.PlatformEve
 
   /**
    * This constructor is used to create a PlatformEvent when a container is
-   * added or deleted.  If the id parameter is not either
+   * added, deleted, or requested to be killed.  If the id parameter is not either
    * {@link #ADDED_CONTAINER ADDED_CONTAINER} or
    * {@link #REMOVED_CONTAINER REMOVED_CONTAINER},
    * an {@link jade.domain.FIPAAgentManagement.InternalError InternalError}
    * exception will be thrown.
    * <p>
    * The {@link #getContainer() getContainer()} method can be used to get
-   * the event source.
+   * the target container.
    * The {@link #getAgent() getAgent()} and
-   * {@link #getNewContainer() getNewContainer()} methods will both return null
-   * values for a {@link #ADDED_CONTAINER ADDED_CONTAINER}
-   * or {@link #REMOVED_CONTAINER REMOVED_CONTAINER} event.
+   * {@link #getNewContainer() getNewContainer()} methods will both return null.
    * <p>
    * @param id The event ID must be either
    * {@link #ADDED_CONTAINER ADDED_CONTAINER} or
    * {@link #REMOVED_CONTAINER REMOVED_CONTAINER}.
-   * @param eventSource The container id of the source of the event.  The
-   * container ID of the main container should always be passed as the
-   * event source since only the main container generates a PlatformEvent
-   * when a container is added or removed.
+   * @param eventSource The container id of the source of the event.
    * <p>
    * @see #getContainer()
    */

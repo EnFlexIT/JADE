@@ -100,6 +100,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 		add(new PredicateSchema(OCCURRED), Occurred.class);  	
 		add(new ConceptSchema(ADDEDCONTAINER), AddedContainer.class);  	
   		add(new ConceptSchema(REMOVEDCONTAINER), RemovedContainer.class);
+  		add(new ConceptSchema(KILLCONTAINERREQUESTED), KillContainerRequested.class);
   		add(new ConceptSchema(ADDEDMTP), AddedMTP.class);
   		add(new ConceptSchema(REMOVEDMTP), RemovedMTP.class);
   		add(new ConceptSchema(BORNAGENT), BornAgent.class);
@@ -172,9 +173,13 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 
  		cs = (ConceptSchema)getSchema(ADDEDCONTAINER);
   		cs.add(ADDEDCONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
+  		cs.add(ADDEDCONTAINER_OWNERSHIP, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
   		
  		cs = (ConceptSchema)getSchema(REMOVEDCONTAINER);
   		cs.add(REMOVEDCONTAINER_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
+
+ 		cs = (ConceptSchema)getSchema(KILLCONTAINERREQUESTED);
+  		cs.add(KILLCONTAINERREQUESTED_CONTAINER, (ConceptSchema)getSchema(CONTAINERID));
 
  		cs = (ConceptSchema)getSchema(ADDEDMTP);
   		cs.add(ADDEDMTP_ADDRESS, (PrimitiveSchema)getSchema(BasicOntology.STRING));

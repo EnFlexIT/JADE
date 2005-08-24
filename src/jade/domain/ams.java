@@ -28,16 +28,11 @@ package jade.domain;
 //#APIDOC_EXCLUDE_FILE
 //#MIDP_EXCLUDE_FILE
 
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import jade.util.leap.Set;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 import jade.util.InputQueue;
@@ -63,7 +58,6 @@ import jade.lang.acl.MessageTemplate;
 import jade.content.*;
 import jade.content.lang.*;
 import jade.content.lang.sl.*;
-import jade.content.lang.Codec.*;
 import jade.content.onto.basic.Action;
 
 import jade.mtp.MTPException;
@@ -72,6 +66,8 @@ import jade.mtp.MTPDescriptor;
 import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
+
+import java.util.Date;
 
 /**
   Standard <em>Agent Management System</em> agent. This class
@@ -327,10 +323,24 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// KILL CONTAINER
 	void killContainerAction(final KillContainer kc, final AID requester, final JADEPrincipal requesterPrincipal, final Credentials requesterCredentials) throws FIPAException {
-    final ContainerID cid = kc.getContainer();
-       if(logger.isLoggable(Logger.FINE))
-         logger.log(Logger.FINE,"Agent "+requester+" requesting Kill-container "+cid);
+		final ContainerID cid = kc.getContainer();
+		if(logger.isLoggable(Logger.FINE)) {
+			logger.log(Logger.FINE,"Agent "+requester+" requesting Kill-container "+cid);
+		}
 
+		// Notify a KILL_CONTAINER_REQUESTED introspection event to all tools
+		KillContainerRequested kcr = new KillContainerRequested();
+		kcr.setContainer(cid);
+		EventRecord er = new EventRecord(kcr, here());
+		er.setWhen(new Date());
+		try {
+			notifyTools(er);
+		}
+		catch (Exception e) {
+			// Should never happen 
+			e.printStackTrace();
+		}
+		
 			Thread auxThread = new Thread() {
 			    public void run() {
 				try {
@@ -960,16 +970,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		    }
 
 		    // Notify all tools about the event
-		    toolNotification.clearAllReceiver();
-		    AID[] allTools = myPlatform.agentTools();
-		    for(int i = 0; i < allTools.length; i++) {
-			AID tool = allTools[i];
-			toolNotification.addReceiver(tool);
-		    }
-		    Occurred o = new Occurred();
-		    o.setWhat(er);
-		    getContentManager().fillContent(toolNotification, o);
-		    myAgent.send(toolNotification);
+		    notifyTools(er);
 		}
 	    	else {
 		    block();
@@ -982,6 +983,18 @@ public class ams extends Agent implements AgentManager.Listener {
     }
   } // END of EventManager inner class
 
+  private void notifyTools(EventRecord er) throws Exception {
+	  toolNotification.clearAllReceiver();
+	  AID[] allTools = myPlatform.agentTools();
+	  for(int i = 0; i < allTools.length; i++) {
+		AID tool = allTools[i];
+		toolNotification.addReceiver(tool);
+	  }
+	  Occurred o = new Occurred();
+	  o.setWhat(er);
+	  getContentManager().fillContent(toolNotification, o);
+	  send(toolNotification);
+  }
 
   //////////////////////////////////////////////////////////////////
   // Platform events input methods.

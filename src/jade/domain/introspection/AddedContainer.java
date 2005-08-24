@@ -23,8 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
-import java.util.Date;
-
 import jade.core.ContainerID;
 
 /**
