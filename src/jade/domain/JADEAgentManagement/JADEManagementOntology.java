@@ -206,12 +206,22 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
   	int minLength = Math.min(wL, vL);
   	
   	for(int i=0; i<minLength; i++){
+  		//#DOTNET_EXCLUDE_BEGIN
   		int index = out.indexOf(WILDCARDS[i]);
+  		//#DOTNET_EXCLUDE_END
+  		/*#DOTNET_INCLUDE_BEGIN
+  		int index = out.ToString().indexOf(WILDCARDS[i]);
+  		#DOTNET_INCLUDE_END*/
   		if(index>=0){
   			//replace all occurrences of the wildcard with the corresponding value
   			while(index >=0){
   				out = out.replace(index, index+WILDCARDS[i].length(), values[i]);
-  				index = out.indexOf(WILDCARDS[i]);
+  				//#DOTNET_EXCLUDE_BEGIN
+		  		index = out.indexOf(WILDCARDS[i]);
+		  		//#DOTNET_EXCLUDE_END
+		  		/*#DOTNET_INCLUDE_BEGIN
+		  		index = out.ToString().indexOf(WILDCARDS[i]);
+		  		#DOTNET_INCLUDE_END*/
   			}
   		}
   	}

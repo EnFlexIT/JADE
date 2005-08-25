@@ -236,18 +236,24 @@
 	  <delete dir="${vss}"/>
 	  <mkdir  dir="${vss}"/>
 	  <copy todir="${vss}" overwrite="yes">
-			<fileset dir="${src}">
-				<include name="**/*.java"/>
-			</fileset>
-		</copy>
-		<copy todir="${vss}" overwrite="yes">
-		  <fileset dir="${vs2003}">
-		    <include name="**/*.vjsproj"/>
-		    <include name="**/*.user"/>
-		    <include name="**/AssemblyInfo.java"/>
-		    <include name="**/JadeLeap.snk"/>
-			</fileset>
-		</copy>
+	    <fileset dir="${src}">
+	      <include name="**/*.java"/>
+	     </fileset>
+	  </copy>
+	  <echo>Generating project file...</echo>
+	  <exec dir="${vss}"
+	      executable="${vs2003}/GenerateProjectFile.exe"
+	      failonerror="true" >
+            <arg line="${src} ${vs2003}\JadeLeapDotNet.vjsproj.master"/>
+          </exec>
+	  <echo>Generation ended</echo>
+	  <copy todir="${vss}" overwrite="yes">
+	    <fileset dir="${vs2003}">
+	      <include name="**/*.user"/>
+	      <include name="**/AssemblyInfo.java"/>
+	      <include name="**/JadeLeap.snk"/>
+	    </fileset>
+	  </copy>
 	</target>
 	
 	<!-- CREATE EXECUTABLE -->
