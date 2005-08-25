@@ -31,8 +31,8 @@
 	<!-- SETUP -->
 	<target name="do-setup" depends="do-init"
 	        description="Setup the build environment">
-	  <!-- 1) Copy JADE sources -->
-	  <copy todir="${src}">
+	  	<!-- 1) Copy JADE sources -->
+	  	    <copy todir="${src}">
 			<fileset dir="${jade-src}">
 				<include name="**/starlight/**"/>
 				<include name="**/jade/**"/>
@@ -41,33 +41,33 @@
 				<exclude name="**/jade/mtp/http/**"/>
 				<exclude name="**/jade/tools/**"/>
 			</fileset>
-		</copy>
-	  <!-- 2) Copy LEAP sources -->
-	  <copy todir="${src}" overwrite="yes">
+		    </copy>
+	  	<!-- 2) Copy LEAP sources -->
+	    	    <copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 				<exclude name="**/jade/gui/**"/>
 			</fileset>
-		</copy>
+		    </copy>
 		<!-- 3) Copy additional JAVA files -->
-		<copy todir="${src}" overwrite="yes">
+		    <copy todir="${src}" overwrite="yes">
 			<fileset dir="${extras}">
 				<exclude name="**/*.java@"/>
 				<exclude name="**/*.java#"/>
 			</fileset>
-		</copy>
+		    </copy>
 		<!-- 4) Copy AssemblyInfo & key file -->
-		<copy todir="${src}" overwrite="yes">
+		    <copy todir="${src}" overwrite="yes">
 			<fileset dir="${vs2003}">
 				<include name="**/AssemblyInfo.java"/>
 				<include name="**/JadeLeap.snk"/>
 			</fileset>
 		</copy>
-	  <!-- 5) Preprocess the whole as if it were for PJAVA -->
-	  <pproc basedir="${src}" type="pjava"/>
-	  <!-- 6) Add files for agent tools -->
-	  <copy todir="${src}" overwrite="yes">
+	  	<!-- 5) Preprocess the whole as if it were for PJAVA -->
+	  	     <pproc basedir="${src}" type="pjava"/>
+	 	 <!-- 6) Add files for agent tools -->
+	  	     <copy todir="${src}" overwrite="yes">
 			<fileset dir="${jade-src}">
 				<include name="**/jade/tools/ToolAgent.java"/>
 				<include name="**/jade/tools/ToolNotifier.java"/>
@@ -118,7 +118,7 @@
 				<include name="**/jade/mtp/http/XMLCodec.java"/>
 			</fileset>
 		</copy>
-    <!-- 7) Copy jade.gui files -->
+    		<!-- 7) Copy jade.gui files -->
 		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${jade-src}">
 			  <include name="**/jade/gui/*.java"/>
@@ -129,19 +129,25 @@
 				<exclude name="**/jade/gui/TreeIconRenderer.java"/>
 			</fileset>
 		</copy>
-    <!-- 8) Copy jade.gui leap file -->
+    		<!-- 8) Copy jade.gui leap file -->
 		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
 				<include name="**/jade/gui/**"/>				
 			</fileset>
 		</copy>	
-    <!-- 9) Copy jade.gui.AgentTree file (modified .NET version) -->
+    		<!-- 9) Copy jade.gui.AgentTree file (modified .NET version) -->
 		<!-- <copy todir="${src}" overwrite="yes">
 			<fileset dir="${extras}">
 				<include name="**/jade/gui/AgentTree.java"/>
 			</fileset>
-    </copy> -->
-	  <!-- 9) Preprocess specific for .NET -->
+    		</copy> -->
+    		<!-- 9) Copy src\jade\util\leap files (to overwrite these in leap\src\jade\util\leap) -->
+		<copy todir="${src}" overwrite="yes">
+			<fileset dir="${jade-src}">
+				<include name="**/jade/util/leap/**"/>
+			</fileset>
+    		</copy>
+	  	<!-- 10) Preprocess specific for .NET -->
 		<pproc basedir="${src}" type="dotnet"/>
 	</target>
 
@@ -179,7 +185,7 @@
 	<!-- COMPILE -->
 	<target name="do-compile" depends="do-setup, do-parsers" unless="${env.VJSHARPTOOLS}"
 	  description="Compile sources">
-	  <echo>${env.VJSHARPTOOLS} prova - Visual J# compiler is: ${vjc}</echo>
+	  <echo>Visual J# compiler is: ${vjc}</echo>
 	  <copy todir="${root}" overwrite="yes">
 			<fileset dir="${vs2003}">
 				<include name="**/*.snk"/>
@@ -249,6 +255,7 @@
 	  <echo>Generation ended</echo>
 	  <copy todir="${vss}" overwrite="yes">
 	    <fileset dir="${vs2003}">
+	      <include name="**/*.vjsproj"/>
 	      <include name="**/*.user"/>
 	      <include name="**/AssemblyInfo.java"/>
 	      <include name="**/JadeLeap.snk"/>
