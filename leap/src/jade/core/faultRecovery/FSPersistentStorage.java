@@ -32,7 +32,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.io.*;
 import java.nio.ByteBuffer;
+//#DOTNET_EXCLUDE_BEGIN
 import java.nio.channels.FileChannel;
+//#DOTNET_EXCLUDE_END
 
 /**
    Default implementation of the PersistentStorage interface saving
@@ -77,11 +79,27 @@ class FSPersistentStorage implements PersistentStorage {
 	}
 	
 	public void clear() throws Exception {
+		//#DOTNET_EXCLUDE_BEGIN
 		File[] ff = locationDir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION));
 			}
 		} );
+		//#DOTNET_EXCLUDE_END
+		
+		/*#DOTNET_INCLUDE_BEGIN
+		String[] ss = locationDir.list(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION));
+			}
+		} );
+
+		File[] ff = new File[ss.length];
+		for(int i=0; i < ss.length; i++)
+		{
+			ff[i] = new File( locationDir.getPath(), ss[i] );
+		}
+		#DOTNET_INCLUDE_END*/
 		
 		for (int i = 0; i < ff.length; ++i) {
 			ff[i].delete();
@@ -133,11 +151,28 @@ class FSPersistentStorage implements PersistentStorage {
 	
 	public Map getAllNodes(boolean children) throws Exception {
 		final String end = NODE_POSTFIX+(children ? CHILD_EXTENSION : EXTENSION);
+		
+		//#DOTNET_EXCLUDE_BEGIN
 		File[] ff = locationDir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return (name.endsWith(end));
 			}
 		} );
+		//#DOTNET_EXCLUDE_END
+		
+		/*#DOTNET_INCLUDE_BEGIN
+		String[] ss = locationDir.list(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return (name.endsWith(end));
+			}
+		} );
+
+		File[] ff = new File[ss.length];
+		for(int i=0; i < ss.length; i++)
+		{
+			ff[i] = new File( locationDir.getPath(), ss[i] );
+		}
+		#DOTNET_INCLUDE_END*/
 		
 		Map nodes = new HashMap(ff.length);
 		for (int i = 0; i < ff.length; ++i) {
@@ -171,7 +206,9 @@ class FSPersistentStorage implements PersistentStorage {
 	}
 
 	private void writeContent(File file, byte [] content) throws Exception {
+		//#DOTNET_EXCLUDE_BEGIN
 		file.createNewFile();
+		//#DOTNET_EXCLUDE_END
 		
 		FileOutputStream fos = null;
 		try {
