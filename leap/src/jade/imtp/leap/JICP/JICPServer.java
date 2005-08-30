@@ -397,8 +397,7 @@ public class JICPServer extends Thread
 	
 		          // Starts a new Mediator and sends back its ID
 		          String s = new String(pkt.getData());
-		          Properties p = parseProperties(s);
-		          
+		          Properties p = FrontEndStub.parseCreateMediatorRequest(s);
 		          // If there is a PDPContextManager add the PDP context properties
 		          if (myPDPContextManager != null) {
                 try{
@@ -596,20 +595,6 @@ public class JICPServer extends Thread
   	// FIXME: to be implemented
   }
   	
-  private Properties parseProperties(String s) throws ICPException {
-  	System.out.println("$$$$$$$$$$$$$"+s);
-  	StringTokenizer st = new StringTokenizer(s, "=#");
-  	Properties p = new Properties();
-  	while (st.hasMoreTokens()) {
-  		String key = st.nextToken();
-  		if (!st.hasMoreTokens()) {
-  			throw new ICPException("Wrong initialization properties format.");
-  		}
-  		p.setProperty(key, st.nextToken());
-  	}
-  	return p;
-  }
-  
   private void mergeProperties(Properties p1, Properties p2) {
 		Enumeration e = p2.propertyNames();
 		while (e.hasMoreElements()) {

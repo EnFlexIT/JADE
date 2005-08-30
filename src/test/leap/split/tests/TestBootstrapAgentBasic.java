@@ -101,6 +101,7 @@ public class TestBootstrapAgentBasic extends Test{
 				try{
 					log("Retry killing split-container...");
 					TestUtility.killContainer(myAgent, containerName);
+					failed("Split-container does not exit successfully the first time.");
 				}catch(TestException te){
 					log("Exception occured as expected. " + te);
 					passed("Split-container successfully killed the first time.");

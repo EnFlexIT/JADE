@@ -344,7 +344,7 @@ public class HTTPBEDispatcher implements BEConnectionManager, Dispatcher, JICPMe
   	private static final int UNREACHABLE = 2;
   	private static final int TERMINATED = 3;
   	
-  	private static final long RESPONSE_TIMEOUT = 30000; // 30 sec
+  	private static final long RESPONSE_TIMEOUT = 5000; // 30 sec
   	
   	private static final int MAX_SID = 0x0f;
   	

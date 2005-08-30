@@ -41,6 +41,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.core.MicroRuntime;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
 
 /**
  * Class declaration
@@ -198,6 +199,19 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 		  	sb.append('#');
 	  	}
   	}
+  }
+  
+  public static final Properties parseCreateMediatorRequest(String s) throws ICPException {
+  	StringTokenizer st = new StringTokenizer(s, "=#");
+  	Properties p = new Properties();
+  	while (st.hasMoreTokens()) {
+  		String key = st.nextToken();
+  		if (!st.hasMoreTokens()) {
+  			throw new ICPException("Wrong initialization properties format.");
+  		}
+  		p.setProperty(key, st.nextToken());
+  	}
+  	return p;
   }
 }
 

@@ -101,4 +101,92 @@
 			the communication between agents works properly.
 			</WhenTestPass> 
 		</Test>	
+		<Test name="Test the ending of a basic split-container using the MicroRuntime stop method." skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNaturalDeathBasic</TestClassName>
+			<WhatTest>Test the killing of a Front End using the stopJADE method provided by the MicroRuntime.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started  and the AMS is asked to start a killer agent on it.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container is successfully killed by the agent.
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a HTTP split-container using the MicroRuntime stop method." skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNaturalDeathHTTP</TestClassName>
+			<WhatTest>Test the killing of a Front End using the stopJADE method provided by the MicroRuntime.
+			</WhatTest>
+			<HowWorkTest>A new split-container using HTTPPeer is started and the AMS is asked to start a killer agent on it.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container is successfully killed by the agent.
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a NIO split-container using the MicroRuntime stop method." skip="false">
+			<TestClassName>test.leap.split.tests.TestSplitContainerNaturalDeathNIO</TestClassName>
+			<WhatTest>Test the killing of a Front End using the stopJADE method provided by the MicroRuntime.
+			</WhatTest>
+			<HowWorkTest>A new split-container using NIOBEDispatcher is started  and the AMS is asked to start a killer agent on it.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container is successfully killed by the agent.
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a basic split-container using the exitwhenempty bootstrap option." skip="false">
+			<TestClassName>test.leap.split.tests.TestExitWhenEmptyOnSplitContainerBasic</TestClassName>
+			<WhatTest>Test the closure of a Front End using using the exitwhenempty bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started  and the AMS is asked to start a agent on it. After a timeout
+			the agent kills itself and consequently the container exits itself.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a HTTP split-container using the exitwhenempty bootstrap option." skip="false">
+			<TestClassName>test.leap.split.tests.TestExitWhenEmptyOnSplitContainerHTTP</TestClassName>
+			<WhatTest>Test the closure of a Front End using using the exitwhenempty bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container using HTTPPeer is started  and the AMS is asked to start a agent on it. After a timeout
+			the agent kills itself and consequently the container exits itself.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a NIO split-container using the exitwhenempty bootstrap option." skip="false">
+			<TestClassName>test.leap.split.tests.TestExitWhenEmptyOnSplitContainerNIO</TestClassName>
+			<WhatTest>Test the closure of a Front End using using the exitwhenempty bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container using NIOBEDispatcher is started  and the AMS is asked to start a agent on it. After a timeout
+			the agent kills itself and consequently the container exits itself.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a basic split-container due to unexpected shut down." skip="false">
+			<TestClassName>test.leap.split.tests.TestShutDownSplitContainerBasic</TestClassName>
+			<WhatTest>Test the shut down of a split container started with using the max-disconnection-time bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started, thent it is close (through jade controller kill method).
+			 After a while the AMS is asked to verify if the container exits successfully. 
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a HTTP split-container due to unexpected shut down." skip="false">
+			<TestClassName>test.leap.split.tests.TestShutDownSplitContainerHTTP</TestClassName>
+			<WhatTest>Test the shut down of a split container started with using the max-disconnection-time bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started, thent it is close (through jade controller kill method).
+			 After a while the AMS is asked to verify if the container exits successfully. 
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		<Test name="Test the ending of a NIO split-container due to unexpected shut down." skip="false">
+			<TestClassName>test.leap.split.tests.TestShutDownSplitContainerNIO</TestClassName>
+			<WhatTest>Test the shut down of a split container started with using the max-disconnection-time bootstrap option.
+			</WhatTest>
+			<HowWorkTest>A new split-container is started, thent it is close (through jade controller kill method).
+			 After a while the AMS is asked to verify if the container exits successfully. 
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the split-container exits successfully .
+			</WhenTestPass> 
+		</Test>
+		
 	</TestsList>

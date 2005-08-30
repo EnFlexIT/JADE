@@ -47,7 +47,7 @@ import test.common.*;
 
 public class TestSplitContainerBasic extends Test{
 
-	private JadeController jc;
+	private JadeController jc = null;
 	static final String PING_NAME = "ping";
 	String containerName;
 	AID pingAgent;
@@ -172,6 +172,7 @@ public class TestSplitContainerBasic extends Test{
 				try{
 					log("Retry killing split-container...");
 					TestUtility.killContainer(myAgent, containerName);
+					failed("Split-container does not exit successfully the first time.");
 				}catch(TestException te){
 					log("Exception occured as expected. " + te);
 					passed("Split-container successfully killed the first time.");
@@ -185,7 +186,9 @@ public class TestSplitContainerBasic extends Test{
 	
 	public void clean(Agent a) {
   	try {
-  		jc.kill();
+  		if(jc != null){
+  			jc.kill();
+  		}
   	}
   	catch (Exception e) {
   		e.printStackTrace();

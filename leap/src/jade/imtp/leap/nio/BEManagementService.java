@@ -485,7 +485,7 @@ public class BEManagementService extends BaseService {
 			        }
 			
 			        // Create a new Mediator
-			        Properties p = parseProperties(new String(pkt.getData()));
+			        Properties p = FrontEndStub.parseCreateMediatorRequest(new String(pkt.getData()));
 			        p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 			        
 			        String owner = p.getProperty(JICPProtocol.OWNER_KEY);
@@ -1143,19 +1143,6 @@ public class BEManagementService extends BaseService {
 	///////////////////////////////////////
   // Utility methods
   ///////////////////////////////////////
-  
-  protected Properties parseProperties(String s) throws ICPException {
-  	StringTokenizer st = new StringTokenizer(s, "=#");
-  	Properties p = new Properties();
-  	while (st.hasMoreTokens()) {
-  		String key = st.nextToken();
-  		if (!st.hasMoreTokens()) {
-  			throw new ICPException("Wrong initialization properties format.");
-  		}
-  		p.setProperty(key, st.nextToken());
-  	}
-  	return p;
-  }
   
   private void mergeProperties(Properties p1, Properties p2) {
 		Enumeration e = p2.propertyNames();

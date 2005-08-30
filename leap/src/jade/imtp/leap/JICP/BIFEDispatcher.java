@@ -131,6 +131,9 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    String tmp = props.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
 	    if (tmp != null) {
 	    	myMediatorClass = tmp;
+	    }else{
+	    	//set the default mediator class.
+	    	props.setProperty(JICPProtocol.MEDIATOR_CLASS_KEY, myMediatorClass);
 	    }
 	    if (myLogger.isLoggable(Logger.CONFIG)) {
 	    	myLogger.log(Logger.CONFIG, "Mediator class="+myMediatorClass);
@@ -155,6 +158,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    } 
 	    catch (Exception e) {
 				// Use default
+	    	props.setProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
 	    }
 	    if (myLogger.isLoggable(Logger.CONFIG)) {
 	    	myLogger.log(Logger.CONFIG, "Max discon. time="+maxDisconnectionTime);
@@ -167,6 +171,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 	    } 
 	    catch (Exception e) {
 				// Use default
+	    	props.setProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
 	    }
 	    if (myLogger.isLoggable(Logger.CONFIG)) {
 	    	myLogger.log(Logger.CONFIG, "Keep-alive time="+keepAliveTime);
@@ -252,21 +257,15 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
      - To re-attach to the platform after a fault of the BackEnd
    */
   private JICPConnection createBackEnd() throws IMTPException {
-    StringBuffer sb = new StringBuffer();
-    appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY, myMediatorClass);
-    appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, String.valueOf(maxDisconnectionTime));
-    appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, String.valueOf(keepAliveTime));
+    StringBuffer sb = BackEndStub.encodeCreateMediatorRequest(props);
     if(myMediatorID != null) {
     	// This is a request to re-create my expired back-end
-		  appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
-	    appendProp(sb, "outcnt", String.valueOf(outCnt));
-	    appendProp(sb, "lastsid", String.valueOf(lastSid));
+		  BackEndStub.appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, myMediatorID);
+		  BackEndStub.appendProp(sb, "outcnt", String.valueOf(outCnt));
+		  BackEndStub.appendProp(sb, "lastsid", String.valueOf(lastSid));
     }
-	  appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, beAddrsText);
-	  appendProp(sb, JICPProtocol.OWNER_KEY, props.getProperty(JICPProtocol.OWNER_KEY));
-	  appendProp(sb, MSISDN, props.getProperty(MSISDN));
-	  appendProp(sb, VERSION, props.getProperty(VERSION));
-	  appendProp(sb, MicroRuntime.AGENTS_KEY, props.getProperty(MicroRuntime.AGENTS_KEY));
+    BackEndStub.appendProp(sb, MSISDN, props.getProperty(MSISDN));
+    BackEndStub.appendProp(sb, VERSION, props.getProperty(VERSION));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
     // Try first with the current transport address, then with the various backup addresses
@@ -317,15 +316,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 
     // No address succeeded: try to handle the problem...
     throw new IMTPException("Error creating the BackEnd.");
-  }
-  
-  private void appendProp(StringBuffer sb, String key, String val) {
-  	if ((val != null)&&(val.length()!=0)) {
-	  	sb.append(key);
-	  	sb.append('=');
-	  	sb.append(val);
-	  	sb.append('#');
-  	}
   }
   
   //////////////////////////////////////////////
