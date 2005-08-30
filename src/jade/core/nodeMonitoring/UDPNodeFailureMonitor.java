@@ -68,27 +68,38 @@ class UDPNodeFailureMonitor extends NodeFailureMonitor {
   private long deadline = -1;
   private long lastPing = -1;
   private int state = -1;
+  private long key = 0;
   private UDPMonitorServer server;
+  private UDPNodeMonitoringService service;
   private Logger logger = Logger.getMyLogger(this.getClass().getName());
   
   
   /**
    * Constructor
+   */
+  UDPNodeFailureMonitor(UDPMonitorServer s, UDPNodeMonitoringService svc) {
+  	server = s;
+  	service = svc;
+  }
+
+  /**
+   * Start monitoring a given node
    * @param n target node to monitor
    * @param nel listener to inform about new events
    */
-  public UDPNodeFailureMonitor(UDPMonitorServer s) {
-  	server = s;
-  }
-
   public void start(Node n, NodeEventListener nel) {
   	super.start(n, nel);
     setState(STATE_CONNECTED);
+    // Request the node to be monitored to start sending UDP packets
+    key = System.currentTimeMillis();
+    service.activateUDP(target, key);
     server.register(this);
   }
 
   public void stop() {
     server.deregister(this);
+    // Request the node to be monitored to stop sending UDP packets
+    service.deactivateUDP(target, key);
   }
   
   /**

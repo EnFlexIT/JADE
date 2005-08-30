@@ -174,7 +174,6 @@ public abstract class NodeFailureMonitor {
    */
   protected synchronized void fireNodeRemoved() {
     listener.nodeRemoved(target);
-		System.out.println("FailureMonitor fireNodeRemoved(). "+childNodes.size());
     Iterator iter = childNodes.values().iterator();
     while (iter.hasNext()) {
       Node n = (Node) iter.next();

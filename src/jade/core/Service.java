@@ -40,7 +40,6 @@ import jade.util.leap.Serializable;
 
 */
 public interface Service {
-	
 	/**
 	   Service independent vertical command issued on the Main 
 	   container whenever a new node is added
@@ -71,6 +70,11 @@ public interface Service {
 	   container whenever a main replica is removed
 	 */
 	public static final String DEAD_REPLICA = "Dead-Replica";
+	/**
+	   Service independent vertical command issued on a peripheral 
+	   container when a fault of the PlatformManager is detected 
+	 */
+	public static final String DEAD_PLATFORM_MANAGER = "Dead-Platform-Manager";
 	/**
 	   Service independent vertical command issued on a peripheral 
 	   container when it re-attach to a recovered Main Container
