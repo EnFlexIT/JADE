@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import jade.core.Agent;
+import jade.core.AID;
 import jade.core.behaviours.*;
 
 import jade.domain.FIPAException;
@@ -52,6 +53,7 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
 	public static final String AMS_CANCELLATION = "tool-cancellation";
 	public static final String PLATFORM_EVENTS = "platform-events";
 	
+	private AID ams = null;
   private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
   private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
 
@@ -75,8 +77,9 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
 
 
   /**
-	   Default constructor. 
-	 */
+   * Construct an AMSSubscriber behaviour to receive notifications about platform events
+   * from the local AMS
+   */
   public AMSSubscriber() {
    	super();
    	
@@ -94,7 +97,21 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
     installHandlers(handlers);
   }
    
+  /**
+   * Construct an AMSSubscriber behaviour to receive notifications about platform events
+   * from the AMS of a remote platform.
+   * @param ams The AID of the remote platform AMS
+   */
+  public AMSSubscriber(AID ams) {
+	  this();
+	  this.ams = ams;
+  }
+  
   public void onStart() {
+	  if (ams == null) {
+		  ams = myAgent.getAMS();
+	  }
+	  
     // Register the Introspection ontology 
     myAgent.getContentManager().registerOntology(IntrospectionOntology.getInstance());
 
@@ -102,7 +119,7 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
     myAgent.getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
 
     // Fill the subscription message
-    AMSSubscription.addReceiver(myAgent.getAMS());
+    AMSSubscription.addReceiver(ams);
     AMSSubscription.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     AMSSubscription.setOntology(IntrospectionOntology.NAME);
     AMSSubscription.setReplyWith(AMS_SUBSCRIPTION);
@@ -110,7 +127,7 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
     AMSSubscription.setContent(PLATFORM_EVENTS);
 
     // Fill the cancellation message
-    AMSCancellation.addReceiver(myAgent.getAMS());
+    AMSCancellation.addReceiver(ams);
     AMSCancellation.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
     AMSCancellation.setOntology(IntrospectionOntology.NAME);
     AMSCancellation.setReplyWith(AMS_CANCELLATION);
