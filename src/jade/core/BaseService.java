@@ -220,7 +220,7 @@ public abstract class BaseService implements Service {
        This should be properly implemented
        by the services that have helpers.
      */
-    public ServiceHelper getHelper(Agent a) {
+    public ServiceHelper getHelper(Agent a) throws ServiceException {
          return null;
     }
 

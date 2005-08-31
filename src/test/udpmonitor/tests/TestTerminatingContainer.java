@@ -1,14 +1,9 @@
 package test.udpmonitor.tests;
 
-import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.domain.introspection.RemovedContainer;
-import test.common.JadeController;
-import test.udpmonitor.EventReceiverAgent;
-import test.udpmonitor.UDPMonitorTestHelper;
-import test.udpmonitor.UDPMonitorTesterAgent;
+import jade.core.behaviours.*;
+import jade.core.nodeMonitoring.UDPNodeMonitoringService;
+import test.common.*;
 
 /**
  * This test checks whether a peripheral container gets removed <br />
@@ -23,45 +18,63 @@ import test.udpmonitor.UDPMonitorTesterAgent;
  * @author Roland Mungenast - Profactor
  */
 public class TestTerminatingContainer extends TestMonitoredContainer {
-  
-  public Behaviour load(Agent a) {
-    
-      return new OneShotBehaviour(a) {
-        
-        JadeController container = null;
-        
-        public void action() {
-          
-          try {  
-            EventReceiverAgent.clear();
+	private JadeController jc = null;
 
-             // start a new peripheral container
-            log("(1) Starting new peripheral container.");
-            int port = ((Integer)getGroupArgument(UDPMonitorTesterAgent.MAIN_CONTAINER_PORT_KEY)).intValue();
-            container = startPeripheralContainer(port);
-            
-            // kill the container
-            log("(2) Killing container.");
-            AID ams = (AID)getGroupArgument(UDPMonitorTesterAgent.REMOTE_AMS_AID_KEY);
-            UDPMonitorTestHelper.killContainer(myAgent, ams, container.getContainerName());
- 
-            // container has to be removed immediately
-            int removed = EventReceiverAgent.getEventCnt(RemovedContainer.NAME); 
-          
-            if (removed == 1) {
-              passed("Container has been removed immediately ... OK");
-            } else {
-              failed("AMS hasn't fired a REMOVED CONTAINER event as expected.");
-            }
-            
-          } catch (Exception e) {
-            failed(e.toString());
-          
-          } finally {
-            container.kill();
-          }
-        } 
-      };
-    }
+	public Behaviour loadSpecific(Agent a) throws TestException {
+		expectedAddedContainer = 1;
+		expectedRemovedContainer = 1;
+		
+		SequentialBehaviour sb = new SequentialBehaviour(a);
+		
+		// Setp 1: Start a monitored peripheral container 
+		sb.addSubBehaviour(new OneShotBehaviour(a) {
+			public void action() {
+				log("Starting monitored peripheral container.");
+				try {
+					jc = startPeripheralContainer(myAgent, "-services jade.core.nodeMonitoring.UDPNodeMonitoringService");
+				}
+				catch (TestException te) {
+					te.printStackTrace();
+					failed("Error starting monitored peripheral container. "+te);
+				}
+			}
+		} );
+  
+		// Setp 2: Kill the peripheral container 
+		sb.addSubBehaviour(new OneShotBehaviour(a) {
+			public void action() {
+				log("Killing the peripheral container.");
+				try {
+					TestUtility.killContainer(myAgent, getRemoteAMS(), jc.getContainerName());
+				}
+				catch (TestException te) {
+					te.printStackTrace();
+					failed("Error killing peripheral container. "+te);
+				}
+			}
+		} );
+		
+		// Setp 3: Wait for a little while. The container should have been removed immediately
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000) {
+			public void onStart() {
+				log("Wait for a little while. The container should have been removed immediately...");
+				super.onStart();
+			}
+
+			public void onWake() {
+			}
+		} );
+	  
+		return sb;
+	}
+	
+	public void clean(Agent a) {
+		super.clean(a);
+		
+		if (jc != null) {
+			// The container should have already been removed, but ...
+			jc.kill();
+		}
+	}
 }
 

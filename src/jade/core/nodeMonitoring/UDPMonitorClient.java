@@ -168,6 +168,11 @@ class UDPMonitorClient {
 		return key;
 	}
 	
+	void setPingDelay(int delay) {
+		pingDelay = delay;
+		sender.interrupt();
+	}
+	
 	/**
 	 * Start sending UDP ping messages to the node failure server
 	 * @throws IOException if the 

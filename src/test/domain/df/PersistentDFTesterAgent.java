@@ -27,6 +27,7 @@ import jade.core.Agent;
 import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
+import jade.core.AgentContainer;
 import jade.wrapper.*;
 
 
@@ -86,7 +87,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 				try {
 					// Kill the persistent DF and restore the default one
 					jc.kill();
-			  	TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), "Main-Container");
+			  	TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), AgentContainer.MAIN_CONTAINER_NAME);
 				}
 				catch (Exception e) {
 					System.out.println("WARNING: can't restore default DF");
@@ -114,7 +115,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 
       Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
 
-      AgentContainer mc = rt.createMainContainer(pMain);
+      ContainerController mc = rt.createMainContainer(pMain);
 
       AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
       rma.start();

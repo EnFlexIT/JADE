@@ -1,21 +1,9 @@
 package test.udpmonitor.tests;
 
-
-
-
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.*;
 import jade.core.nodeMonitoring.UDPNodeMonitoringService;
-import jade.domain.introspection.AddedContainer;
-import jade.domain.introspection.RemovedContainer;
-import test.common.JadeController;
-import test.common.Test;
-import test.common.TestException;
-
-import test.udpmonitor.EventReceiverAgent;
-import test.udpmonitor.UDPMonitorTestHelper;
-import test.udpmonitor.UDPMonitorTesterAgent;
+import test.common.*;
 
 /**
  * This tests checks whether a peripheral container with activated <br />
@@ -27,100 +15,55 @@ import test.udpmonitor.UDPMonitorTesterAgent;
  * 
  * @author Roland Mungenast - Profactor
  */
-public class TestMonitoredContainer extends Test {
+public class TestMonitoredContainer extends TestBase {
+	private JadeController jc = null;
 
-  /** number of expected ADDED CONTAINER events **/
-  protected int expAddedCont;
+	public Behaviour loadSpecific(Agent a) throws TestException {
+		expectedAddedContainer = 1;
+		expectedRemovedContainer = 0;
+		
+		SequentialBehaviour sb = new SequentialBehaviour(a);
+		
+		// Setp 1: Start a monitored peripheral container 
+		sb.addSubBehaviour(new OneShotBehaviour(a) {
+			public void action() {
+				log("Starting monitored peripheral container.");
+				try {
+					jc = startPeripheralContainer(myAgent, "-services jade.core.nodeMonitoring.UDPNodeMonitoringService");
+				}
+				catch (TestException te) {
+					te.printStackTrace();
+					failed("Error starting monitored peripheral container. "+te);
+				}
+			}
+		} );
   
-  /** number of expected REMOVED CONTAINER events **/
-  protected int expRemovedCont;
-  
-  /** time to wait after the peripheral container has been started **/
-  protected int delay;
-  
-  /** specifies whether the created simple container has to be killed at the end of the test **/
-  protected boolean killContainer;
-  
-  /**
-   * Default constructor - initializes all test parameters
-   */
-  public TestMonitoredContainer() {
-    expAddedCont = 1;
-    expRemovedCont = 0;
-    delay = UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT * 3;
-    killContainer = true;
-  }
-  
-  /**
-   * Starts a peripheral container with activated UDP monitoring
-   */
-  protected JadeController startPeripheralContainer(int port) throws TestException {
-    // start container with activated UDP monitoring
-    return UDPMonitorTestHelper.startUDPMonitoredPeripheralContainer("udp-peripheral-container", port);
-  }
-  
-  // Evaluates the test results and calls either the method passed or failed
-  private void evaluateResults(int addedCont, int removedCont) {
-    if (addedCont == expAddedCont && removedCont == expRemovedCont) {
-      passed("AMS has fired "+expAddedCont+" ADDED CONTAINER and "+expRemovedCont+" REMOVED CONTAINER ... OK");
-      
-    } else {
-      if (addedCont != expAddedCont) 
-        failed("AMS fired " + addedCont + " ADDED CONTAINER event(s). Expected: "+expAddedCont+".");
-      if (removedCont != expRemovedCont)
-        failed("AMS fired " + removedCont + " REMOVED CONTAINER event(s). Expected: "+expRemovedCont+".");
-    }
-  }
+		// Setp 2: Wait for 3 times the unreachable limit  to be sure that no REMOVED-CONTAINER event is received  
+		sb.addSubBehaviour(new WakerBehaviour(a, UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT * 3) {
+			public void onStart() {
+				log("Wait for 3 times the unreachable limit to be sure that the peripheral container is not removed...");
+				super.onStart();
+			}
 
-  
-  public Behaviour load(Agent a) {
-  
-    return new OneShotBehaviour(a) {
-      
-      public void action() {       
-        
-        JadeController per = null;
-        
-        try {  
-          EventReceiverAgent.clear();
-
-          // start a new peripheral container
-          log("(1) Starting a new peripheral container.");
-          int port = ((Integer)getGroupArgument(UDPMonitorTesterAgent.MAIN_CONTAINER_PORT_KEY)).intValue();
-          per = startPeripheralContainer(port);
-          
-          int added = EventReceiverAgent.getEventCnt(AddedContainer.NAME);
-          
-          // wait some time
-          log("(2) Wait "+delay+" milliseconds.");
-          try {
-            Thread.sleep(delay); 
-          } catch (InterruptedException e) {
-            failed(e.toString());
-          }          
-          
-          int removed = EventReceiverAgent.getEventCnt(RemovedContainer.NAME);
-          evaluateResults(added, removed); 
-          
-          if (killContainer) {
-            log("(3) Killing container " + per.getContainerName());
-            per.kill();
-            EventReceiverAgent.waitForEvent(); // skip next REMOVED container event
-            EventReceiverAgent.clear();
-          }
-          
-        } catch (TestException e) {
-          failed(e.toString());
-        
-        } finally {
-          per.kill();
-        }
-      } 
-    };
-  }
-  
-  public void clean(Agent a) {
-    // nothing to do
-  }
- 
+			public void onWake() {
+			}
+		} );
+	  
+		return sb;
+	}	
+	
+	public void clean(Agent a) {
+		super.clean(a);
+		
+		if (jc != null) {
+			// We kill the peripheral container smoothly to avoid waiting the unreachable limit for its actual removal
+			try {
+				TestUtility.killContainer(a, getRemoteAMS(), jc.getContainerName());
+			} 
+			catch (TestException te) {
+				te.printStackTrace();
+				jc.kill();
+			}
+		}
+	}
 }

@@ -187,6 +187,17 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		return localSlice;
 	}
 	
+	// NOTE: This method is only used to support tests
+	protected void setClientsPingDelay(int delay) {
+		synchronized (myClients) {
+			Enumeration en = myClients.elements();
+			while (en.hasMoreElements()) {
+				UDPMonitorClient client = (UDPMonitorClient) en.nextElement();
+				client.setPingDelay(delay);
+			}
+		}		
+	}
+	
 	/**
 	 * Extracts an integer value from a given profile. If the value
 	 * is less than zero it returns the specified default value
@@ -213,7 +224,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 				}
 				catch (IMTPException imtpe) {
 					// Get a fresh slice and try again
-					slice = (UDPNodeMonitoringSlice) getSlice(n.getName());
+					slice = (UDPNodeMonitoringSlice) getFreshSlice(n.getName());
 					slice.activateUDP(myServiceManager.getLocalAddress(), myServer.getHost(), myServer.getPort(), myServer.getPingDelay(), key);
 				}
 			}

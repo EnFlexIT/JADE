@@ -1,9 +1,9 @@
 package test.udpmonitor.tests;
 
+import jade.core.Agent;
+import jade.core.behaviours.*;
 import jade.core.nodeMonitoring.UDPNodeMonitoringService;
-import test.common.JadeController;
-import test.common.TestException;
-import test.udpmonitor.UDPMonitorTestHelper;
+import test.common.*;
 
 /**
  * This test checks whether a peripheral container with deactivated 
@@ -15,23 +15,51 @@ import test.udpmonitor.UDPMonitorTestHelper;
  * 
  * @author Roland Mungenast - Profactor
  */
-public class TestUnmonitoredContainer extends 
-  TestMonitoredContainer {
+public class TestUnmonitoredContainer extends TestBase {
+	private JadeController jc = null;
+
+	public Behaviour loadSpecific(Agent a) throws TestException {
+		expectedAddedContainer = 1;
+		expectedRemovedContainer = 1;
+		
+		SequentialBehaviour sb = new SequentialBehaviour(a);
+		
+		// Setp 1: Start an unmonitored peripheral container 
+		sb.addSubBehaviour(new OneShotBehaviour(a) {
+			public void action() {
+				log("Starting unmonitored peripheral container.");
+				try {
+					jc = startPeripheralContainer(myAgent, "");
+				}
+				catch (TestException te) {
+					te.printStackTrace();
+					failed("Error starting unmonitored peripheral container. "+te);
+				}
+			}
+		} );
   
-  public TestUnmonitoredContainer() {
-    expAddedCont = 1;
-    expRemovedCont = 1;
-    delay = UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT + UDPNodeMonitoringService.DEFAULT_PING_DELAY_LIMIT;
-    killContainer = false;
-  }
-  
-  /**
-   * Starts a peripheral container with DEactivated UDP monitoring
-   */
-  protected JadeController startPeripheralContainer(int port) throws TestException {
-    // start container without UDP monitoring
-    return UDPMonitorTestHelper.startPeripheralContainer("simple-peripheral-container", port);
-  }
+		// Setp 2: Wait for ~ ping-delay-limit + unreachable-limit. The container should have been removed
+		sb.addSubBehaviour(new WakerBehaviour(a, UDPNodeMonitoringService.DEFAULT_PING_DELAY_LIMIT + UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT + 2000) {
+			public void onStart() {
+				log("Wait for ~ ping-delay-limit + unreachable-limit. The container should have been removed...");
+				super.onStart();
+			}
+
+			public void onWake() {
+			}
+		} );
+	  
+		return sb;
+	}	
+	
+	public void clean(Agent a) {
+		super.clean(a);
+		
+		if (jc != null) {
+			// The container should have already been removed, but the prosess should be still running
+			jc.kill();
+		}
+	}
   
 }
 
