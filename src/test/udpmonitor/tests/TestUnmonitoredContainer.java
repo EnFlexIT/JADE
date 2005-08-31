@@ -9,7 +9,7 @@ import test.common.*;
  * This test checks whether a peripheral container with deactivated 
  * UDP monitoring gets automatically removed from the platform.
  * 
- * The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+ * The test starts a peripheral container WITHOUT the UDPNodeMonitoringService and waits 
  * for the appropriate event from the AMS. Next it it waits the maximum time a node can be unreachable + the 
  * maximum time the server waits for a single ping and checks whether the container has been removed from the platform.
  * 

@@ -11,7 +11,7 @@
 			<TestClassName>test.udpmonitor.tests.TestMonitoredContainer</TestClassName>
 			<WhatTest>This test checks whether a peripheral container with activated UDP monitoring is sending ping messages in time</WhatTest>
 			<HowWorkTest> 
-				The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+				The test starts a peripheral container and waits 
 				for the appropriate event from the AMS. Next it waits (3 * maximum time a node can be unreachable) 
 				and checks whether the container is still alive.
 		    </HowWorkTest>
@@ -21,7 +21,7 @@
 			<TestClassName>test.udpmonitor.tests.TestUnmonitoredContainer</TestClassName>
 			<WhatTest>This test checks whether a peripheral container with deactivated UDP monitoring gets automatically removed from the platform</WhatTest>
 			<HowWorkTest> 
-				The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+				The test starts a peripheral container WITHOUT the UDPNodeMonitoringService and waits 
 				for the appropriate event from the AMS. Next it waits the maximum time a node can be unreachable + the 
 				maximum time the server waits for a single ping and checks whether the container has been removed from the platform.
 		    </HowWorkTest>
@@ -31,7 +31,7 @@
 			<TestClassName>test.udpmonitor.tests.TestLostConnection</TestClassName>
 			<WhatTest>This test checks whether a peripheral container gets removed from a platform when the container doesn't send ping messages anymore.</WhatTest>
 			<HowWorkTest> 
-				The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+				The test starts a peripheral container and waits 
 				for the appropriate event from the AMS. Next it kills the whole process of the container and checks whether the container gets
 				removed from the platform after the expiration of the ping delay limit and the unreachable limit.
 		    </HowWorkTest>
@@ -42,7 +42,7 @@
 			<TestClassName>test.udpmonitor.tests.TestLostConnection</TestClassName>
 			<WhatTest>This test checks whether a peripheral container gets removed immediately from a platform when it is killed</WhatTest>
 			<HowWorkTest> 
-				The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+				The test starts a peripheral container and waits 
 				for the appropriate event from the AMS. Next it kills the container and checks whether the container gets
 				immediately removed from the platform, ignoring the maximum allowed time for staying in the state UNREACHABLE.
 		    </HowWorkTest>
@@ -52,9 +52,9 @@
 			<TestClassName>test.udpmonitor.tests.TestReconnectingContainer</TestClassName>
 			<WhatTest>This test checks whether a temporal unreachable container doesn't get removed from the platform.</WhatTest>
 			<HowWorkTest> 
-				The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
-				for the appropriate event from the AMS. Next it kills the container, waits until the ping delay limit
-				has expired and then restarts the container with the same name.
+				The test starts a peripheral container with a modified version of the UDPNodeMonitoringService that supports 
+				interrupting UDPMonitorClients. This is used to make this container stop sending UDP pings for a while so that 
+				it appears to be unreachable.
 		    </HowWorkTest>
 			<WhenTestPass>The test passes if the AMS fires no "RemovedContainer" event. (i.e. the container doesn't get removed)</WhenTestPass>		
 		</Test>

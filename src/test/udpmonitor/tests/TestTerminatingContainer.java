@@ -9,7 +9,7 @@ import test.common.*;
  * This test checks whether a peripheral container gets removed <br />
  * immediately from a platform when it is killed.
  * <p>
- * The test starts an agent which subscribes at the AMS. Then it starts a <br />
+ * The test sstarts a 
  * peripheral container and waits  for the appropriate event from the AMS. Next <br />
  * it kills the container and checks whether the container gets immediately removed <br />
  * from the platform, ignoring the maximum allowed time for staying in the state UNREACHABLE.

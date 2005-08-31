@@ -8,9 +8,8 @@ import test.common.*;
 /**
  * This test checks whether a temporal unreachable container doesn't get removed from the platform.
  * <p>
- * The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
- * for the appropriate event from the AMS. Next it kills the container, waits until the ping delay limit
- * has expired and then restarts the container with the same name.
+ * The test starts a peripheral container with a modified version of the UDPNodeMonitoringService that supports
+ * interrupting UDPMonitorClients. This is used to make this container stop sending UDP pings for a while.
  * </p>
  * 
  * @author Roland Mungenast - Profactor

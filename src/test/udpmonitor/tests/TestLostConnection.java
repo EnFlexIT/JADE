@@ -9,7 +9,7 @@ import test.common.*;
  * This test checks whether a peripheral container gets removed from a platform <br />
  * when the container doesn't send ping messages anymore.
  * <p>
- * The test starts an agent which subscribes at the AMS. Then it starts a peripheral <br />
+ * The test starts a peripheral 
  * container and waits for the appropriate event from the AMS. Next it kills the whole <br />
  * process of the container and checks whether the container gets removed from the platform <br />
  * after the expiration of the ping delay limit and the unreachable limit.

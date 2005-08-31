@@ -9,7 +9,7 @@ import test.common.*;
  * This tests checks whether a peripheral container with activated <br />
  * UDP monitoring is sending ping messages in time.
  * 
- * The test starts an agent which subscribes at the AMS. Then it starts a peripheral container and waits 
+ * The test starts a peripheral container and waits 
  * for the appropriate event from the AMS. Next it waits (3 * maximum time a node can be unreachable) 
  * and checks whether the container is still alive.
  * 
