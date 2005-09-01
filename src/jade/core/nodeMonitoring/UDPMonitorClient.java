@@ -89,27 +89,30 @@ class UDPMonitorClient {
 
 			while (running) {
 				updatePing();
+				//#DOTNET_EXCLUDE_BEGIN
 				try {
-					//#DOTNET_EXCLUDE_BEGIN
-					channel.send(ping, new InetSocketAddress(serverHost, serverPort));
+					try {
+						channel.send(ping, new InetSocketAddress(serverHost, serverPort));
+					} 
+					catch (IOException e) {
+						logger.log(Logger.WARNING, "Error sending UDP ping message to "+serverHost+":"+serverPort+" for node " + node.getName());
+					} 
 					Thread.sleep(pingDelay - 5);
-				} catch (IOException e) {
-					if (logger.isLoggable(Logger.SEVERE))
-						logger.log(Logger.SEVERE, "Error sending UDP ping message for node " + node.getName());
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					// ignore --> the ping with the termination flag has to be sent immediately
 				}
 				//#DOTNET_EXCLUDE_END
 				/*#DOTNET_INCLUDE_BEGIN
-				 channel.Send(ping.getUByte(), ping.capacity(), serverHost, serverPort);
-				 Thread.sleep(pingDelay - 5);
-				 } 
-				 catch (Exception e) 
-				 {
-				 if(logger.isLoggable(Logger.SEVERE))
-				 logger.log(Logger.SEVERE,"Error sending UDP ping message for node " + node.getName());
-				 }
-				 #DOTNET_INCLUDE_END*/
+				try {
+				channel.Send(ping.getUByte(), ping.capacity(), serverHost, serverPort);
+				Thread.sleep(pingDelay - 5);
+				} 
+				catch (Exception e) 
+				{
+				logger.log(Logger.WARNING,"Error sending UDP ping message to "+serverHost+":"+serverPort+" for node " + node.getName());
+				}
+				#DOTNET_INCLUDE_END*/
 			}
 
 			try {
