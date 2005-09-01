@@ -127,7 +127,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		
 		if (ac.getMain() != null) {
 			// We are on the main container --> launch a UDPMonitorServer
-			String host = p.getParameter(Profile.MAIN_HOST, Profile.getDefaultNetworkName());
+			String host = Profile.getDefaultNetworkName(); 
 			int port = getPosIntValue(p, PORT, DEFAULT_PORT);
 			int pingDelay = getPosIntValue(p, PING_DELAY, DEFAULT_PING_DELAY);
 			int pingDelayLimit = getPosIntValue(p, PING_DELAY_LIMIT, DEFAULT_PING_DELAY_LIMIT);

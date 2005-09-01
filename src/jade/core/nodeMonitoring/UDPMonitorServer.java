@@ -299,7 +299,7 @@ class UDPMonitorServer {
 			//#DOTNET_EXCLUDE_BEGIN
 			server.configureBlocking(false);
 			server.socket().setReuseAddress(true);
-			server.socket().bind(new InetSocketAddress(Profile.getDefaultNetworkName(), port));
+			server.socket().bind(new InetSocketAddress(host, port));
 			//#DOTNET_EXCLUDE_END
 
 			/*#DOTNET_INCLUDE_BEGIN
