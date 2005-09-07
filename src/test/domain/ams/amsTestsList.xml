@@ -107,4 +107,14 @@
 			</WhenTestPass> 
 		</Test>				
 		
+		<Test name="Serializable agent argument" skip="false">
+			<TestClassName>test.domain.ams.tests.TestCreateAgentWithObjectArgs</TestClassName>
+			<WhatTest>Test requesting the AMS to create an agent with a Serializable object as argument.
+			</WhatTest>
+			<HowWorkTest>An agent is created passing a List object (Serializable) as argument. This agent gets the argument and sends it back to the tester agent inside an ACLMessage using the setContentObject() method.
+			</HowWorkTest>
+			<WhenTestPass>The test passes if the List object received by the tester agent includes the same elements as the List Object passed as argument to the created agent.  
+			</WhenTestPass> 
+		</Test>				
+		
 	</TestsList>
