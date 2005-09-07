@@ -37,6 +37,7 @@ import jade.core.behaviours.Behaviour;
 import jade.core.messaging.GenericMessage;
 import jade.core.management.AgentManagementSlice;
 
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 
@@ -306,8 +307,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
       AID.setPlatformID(myServiceManager.getPlatformName());
 
       // Build the Agent IDs for the AMS and for the Default DF.
-      theAMS = new AID("ams", AID.ISLOCALNAME);
-      theDefaultDF = new AID("df", AID.ISLOCALNAME);
+      theAMS = new AID(FIPANames.AMS, AID.ISLOCALNAME);
+      theDefaultDF = new AID(FIPANames.DEFAULT_DF, AID.ISLOCALNAME);
 
       // Create the ResourceManager
       myResourceManager = myProfile.getResourceManager();

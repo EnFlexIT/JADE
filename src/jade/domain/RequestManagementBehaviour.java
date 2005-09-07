@@ -48,6 +48,8 @@ import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.security.JADESecurityException;
 import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
 
+import jade.util.Logger;
+
 /**
    Base class for AMS and DF behaviours managing requests from agents.
    This class handles the FIPA-request protocol and in particular prepares
@@ -60,9 +62,11 @@ import jade.domain.FIPAAgentManagement.ExceptionVocabulary;
 */
 public abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	private ACLMessage notification;
+	private Logger myLogger;
 
   protected RequestManagementBehaviour(Agent a, MessageTemplate mt){
 		super(a,mt);
+		myLogger = Logger.getMyLogger(myAgent.getLocalName());
   }
  
   protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException; 
@@ -73,6 +77,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
    */
   protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
   	ACLMessage response = null;  
+  	Throwable t = null;
 		try{	
 			// Check the language is SL0, SL1, SL2 or SL. 
 	    isAnSLRequest(request);
@@ -90,37 +95,48 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 		        response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
+			t = oe;
 		}	
 		catch (CodecException ce) {
 			// Error decoding request --> NOT_UNDERSTOOD
 		  response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
+			t = ce;
 		}	
 		catch (RefuseException re) {
 			// RefuseException thrown during action execution --> REFUSE
 		  response = request.createReply();
 			response.setPerformative(ACLMessage.REFUSE);
 			response.setContent(prepareErrorContent(request.getContent(), re.getMessage()));
+			t = re;
 		}	
 		catch (FailureException fe) {
 			// FailureException thrown during action execution --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 			notification.setContent(prepareErrorContent(request.getContent(), fe.getMessage()));
+			t = fe;
 		}	
 		catch(FIPAException fe){
 			// Malformed request --> NOT_UNDERSTOOD
 		  response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+fe.getMessage()+")");
+			t = fe;
 		}
-		catch(Throwable t){
-			t.printStackTrace();
+		catch(Throwable tr){
+			tr.printStackTrace();
 			// Generic error --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
 			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+t.getMessage()+"\""));
+		}
+		if (t != null) {
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Error handling request: "+t);
+				t.printStackTrace();
+			}
 		}
 		return response;
   }

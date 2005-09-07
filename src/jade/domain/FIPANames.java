@@ -35,6 +35,9 @@ package jade.domain;
  **/
 
 public interface FIPANames {
+	public static final String AMS = "ams";
+	public static final String DEFAULT_DF = "df";
+	
     /**
      * Set of constants that identifies the Codec of ACL Messages and
      * that can be assigned via 

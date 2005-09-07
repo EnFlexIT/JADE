@@ -450,7 +450,7 @@ class UDPMonitorServer {
 		} else if (oldState == UDPNodeFailureMonitor.STATE_UNREACHABLE) {
 			newState = UDPNodeFailureMonitor.STATE_FINAL;
 		}
-
+		
 		if (newState != oldState)
 			mon.setState(newState);
 	}

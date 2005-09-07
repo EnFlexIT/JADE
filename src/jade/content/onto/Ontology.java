@@ -514,7 +514,9 @@ public class Ontology implements Serializable {
      * @throws OntologyException if the given object is not a valid term
      */
     public static void checkIsTerm(Object obj) throws OntologyException {
-    	if (obj instanceof String ||
+    	// FIXME: This method is likely to be removed as it does not add any value and creates problems
+    	// when using the Serializable Ontology
+    	/*if (obj instanceof String ||
     		  obj instanceof Boolean ||
     		  obj instanceof Integer ||
     		  obj instanceof Long ||
@@ -536,5 +538,6 @@ public class Ontology implements Serializable {
 
     	// If we reach this point the object is not a term
     	throw new OntologyException("Object "+obj+" of class "+obj.getClass().getName()+" is not a term");
+    	*/
     }
 }

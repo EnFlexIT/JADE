@@ -89,7 +89,7 @@ public interface AgentManager {
      * @throws UnreachableException if the container is unreachable 
      * @throws JADESecurityException if this action is not authorized
      **/
-  void create(String agentName, String className, String arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException;
+  void create(String agentName, String className, Object arguments[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException;
   void kill(AID agentID, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws NotFoundException, UnreachableException, JADESecurityException;
   void suspend(AID agentID) throws NotFoundException, UnreachableException, JADESecurityException;
   void activate(AID agentID) throws NotFoundException, UnreachableException, JADESecurityException;

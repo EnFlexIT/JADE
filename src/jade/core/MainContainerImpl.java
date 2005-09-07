@@ -444,7 +444,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
      Create an agent on a given container
      @see AgentManager#create(String agentName, String className, String arguments[], ContainerID cid, String ownership, CertificateFolder certs) throws UnreachableException, JADESecurityException, NotFoundException
    */
-  public void create(String name, String className, String args[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException {
+  public void create(String name, String className, Object args[], ContainerID cid, JADEPrincipal owner, Credentials initialCredentials, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws UnreachableException, JADESecurityException, NotFoundException, NameClashException {
 
       // Get the container where to create the agent
       // If it is not specified, assume it is the Main

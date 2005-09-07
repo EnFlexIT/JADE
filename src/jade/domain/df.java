@@ -262,7 +262,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
   private KB agentDescriptions = null;
   private KBSubscriptionManager subManager = null;	
   
-  private Logger logger = Logger.getMyLogger(this.getClass().getName());
+  private Logger logger;
   
   /*
    *  WebService Integration Gateway (WSIG) requirements
@@ -292,6 +292,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
     perform its role within <em><b>JADE</b></em> agent platform.
    */
 	protected void setup() {
+		logger = Logger.getMyLogger(getLocalName());
       
 		//#PJAVA_EXCLUDE_BEGIN
 		// Read configuration:

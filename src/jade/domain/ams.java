@@ -92,7 +92,7 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	private int amsMaxResults = DEFAULT_MAX_RESULTS;
 	
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	private Logger logger;
 
 	// The AgentPlatform where information about agents is stored
 	private AgentManager myPlatform;
@@ -122,6 +122,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	 beyond the default one.
 	 */
 	public ams(AgentManager ap) {
+		logger = Logger.getMyLogger(FIPANames.AMS);
 		myPlatform = ap;
 		myPlatform.addListener(this);
 	}
@@ -129,7 +130,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	/**
 	 AMS initialization
 	 */
-	protected void setup() {
+	protected void setup() {		
 		// Agent Platform Description.
 		theProfile.setName("\"" + getHap() + "\"");
 		writeAPDescription(theProfile);
@@ -218,16 +219,13 @@ public class ams extends Agent implements AgentManager.Listener {
 		final ContainerID container = ca.getContainer();
 		if (logger.isLoggable(Logger.FINE))
 			logger.log(Logger.FINE, "Agent " + requester + " requesting Create-agent " + agentID + " on container " + container);
-		// Prepare arguments as a String[]
+		// Prepare arguments as a Object[]
 		Iterator it = ca.getAllArguments();
 		ArrayList listArg = new ArrayList();
 		while (it.hasNext()) {
-			listArg.add(it.next().toString());
+			listArg.add(it.next());
 		}
-		final String[] args = new String[listArg.size()];
-		for (int n = 0; n < listArg.size(); n++) {
-			args[n] = (String) listArg.get(n);
-		}
+		final Object[] args = listArg.toArray();
 		final JADEPrincipal owner = ca.getOwner();
 		final Credentials initialCredentials = ca.getInitialCredentials();
 

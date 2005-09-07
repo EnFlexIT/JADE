@@ -187,7 +187,7 @@ public class AgentManagementService extends BaseService {
 	    Object[] params = cmd.getParams();
 	    String name = (String)params[0];
 	    String className = (String)params[1];
-	    String[]args = (String[])params[2];
+	    Object[]args = (Object[])params[2];
 	    ContainerID cid = (ContainerID)params[3];
 	    JADEPrincipal owner = (JADEPrincipal) params[4];
 	    Credentials initialCredentials = (Credentials) params[5];
