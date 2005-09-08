@@ -509,7 +509,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
           }
       }
       catch (ProfileException pe) {
-          System.out.println("Warning: error reading initial agents");
+          myLogger.log(Logger.WARNING, "Error reading initial agents. "+pe);
+          pe.printStackTrace();
       }
   }
 

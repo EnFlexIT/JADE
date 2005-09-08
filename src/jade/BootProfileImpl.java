@@ -118,29 +118,11 @@ public class BootProfileImpl extends ProfileImpl {
         String value = null;
         boolean flag = false;
         
-        // Configure Java runtime system to put the selected host address in RMI messages (e.g. a fully qualified name instead of a local name)
-
-  	    boolean isMain = !fetchAndVerifyBoolean(CONTAINER_KEY);
-  	                
-        try {
-
-            if (isMain) { //this is a main, then set the RMI Server to the value passed in the -host option or to the IP no
-                value = argProp.getProperty(MAIN_HOST);
-                if (value == null) {
-		    value = InetAddress.getLocalHost().getHostAddress();
-		}
-            } else { // this is a container, then set the RMI Server to the IP no. of the container
-                value = InetAddress.getLocalHost().getHostAddress();
-            }
-            System.getProperties().put("java.rmi.server.hostname", value);
-        } catch (java.net.UnknownHostException jnue) {
-            throw new PropertiesException("Unknown host: " + value);
-        }
 
         // Transfer argument properties into profile properties
 
         BasicProperties profileProp = (BasicProperties)getProperties();
-        
+        boolean isMain = !fetchAndVerifyBoolean(CONTAINER_KEY);
 	if (isMain) {
 	    profileProp.setProperty(Profile.MAIN, "true");
 	}
@@ -369,7 +351,6 @@ public class BootProfileImpl extends ProfileImpl {
      * @throws PropertiesException if there is a value but its not either "true" or "false".
      */
     protected boolean fetchAndVerifyBoolean(String aKey) throws PropertiesException {
-        boolean result = false;
         String value = argProp.getProperty(aKey);
         if (value != null) {
             if (value.equalsIgnoreCase("true")) {

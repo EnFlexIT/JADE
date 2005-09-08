@@ -48,14 +48,12 @@ import java.util.Vector;
  */
 class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManagerRMI {
   private PlatformManager impl;
-  private RMIIMTPManager manager;
 
 
   /** Creates new ServiceManagerRMIImpl */
   public ServiceManagerRMIImpl(PlatformManager pm, RMIIMTPManager mgr, int port) throws RemoteException {
 		super(port, mgr.getClientSocketFactory(), mgr.getServerSocketFactory());
 		impl = pm;
-		manager = mgr;
   }
   
   PlatformManager getPlatformManager() {
@@ -68,6 +66,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -78,6 +77,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -88,6 +88,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -98,6 +99,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -108,6 +110,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -117,9 +120,9 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		    impl.addReplica(newAddr, propagated);
 		}
 		catch(IMTPException imtpe) {
+		    // Note that addReplica() may activate remote calls --> An IMTPException in this case must be properly handled 
 			imtpe.printStackTrace();
-		    // It should never happen, since this is a local call
-		    throw new RemoteException("IMTPException in local call");
+		    throw new RemoteException("IMTPException in local call. "+imtpe);
 		}
   }
   
@@ -129,6 +132,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -139,6 +143,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -149,6 +154,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -159,6 +165,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }
@@ -169,6 +176,7 @@ class ServiceManagerRMIImpl extends UnicastRemoteObject implements ServiceManage
 		}
 		catch(IMTPException imtpe) {
 		    // It should never happen, since this is a local call
+			imtpe.printStackTrace();
 		    throw new RemoteException("IMTPException in local call");
 		}
   }

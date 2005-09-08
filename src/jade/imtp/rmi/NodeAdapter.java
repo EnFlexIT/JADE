@@ -68,10 +68,6 @@ class NodeAdapter extends BaseNode {
 	return adaptee;
     }
 
-    /*public Service.Slice getSlice(String serviceName) {
-	return super.getSlice(serviceName);
-    }*/
-
     public boolean ping(boolean hang) throws IMTPException {
 	try {
 	    return adaptee.ping(hang);

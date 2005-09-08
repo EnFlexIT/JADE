@@ -249,6 +249,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		return newName;
 	}
 
+	// This may throw IMTPException since localAddSlice() throws IMTPException
 	private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
 		Node node = dsc.getNode();
 
@@ -308,7 +309,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		return node.getName();
 	}
 
-	private void broadcastAddNode(NodeDescriptor dsc, Vector nodeServices) throws IMTPException, ServiceException {
+	private void broadcastAddNode(NodeDescriptor dsc, Vector nodeServices) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
@@ -332,7 +333,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void localRemoveNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
+	private void localRemoveNode(NodeDescriptor dsc, boolean propagated) throws ServiceException {
 		dsc = adjustDescriptor(dsc);
 		Node node = dsc.getNode();
 
@@ -365,11 +366,9 @@ public class PlatformManagerImpl implements PlatformManager {
 		// Stop monitoring (this has no effect if we were not monitoring the dead node)
 		Node parent = dsc.getParentNode();
 		if (parent != null) {
-			System.out.println("Terminating node has parent");
 			// If the dead node had a parent, notify the failure-monitor monitoring the parent
 			NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
 			if (failureMonitor != null) {
-				System.out.println("Removing failureMonitor child");
 				failureMonitor.removeChild(node);
 			}
 		}
@@ -387,7 +386,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void broadcastRemoveNode(NodeDescriptor dsc) throws IMTPException, ServiceException {
+	private void broadcastRemoveNode(NodeDescriptor dsc) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
@@ -407,6 +406,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
+	// This may throw IMTPException since IMTPManager.createSliceProxy throws IMTPException
 	private void localAddSlice(ServiceDescriptor serviceDsc, NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
 		Service service = serviceDsc.getService();
 
@@ -458,7 +458,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void broadcastAddSlice(ServiceDescriptor service, NodeDescriptor dsc) throws IMTPException, ServiceException {
+	private void broadcastAddSlice(ServiceDescriptor service, NodeDescriptor dsc) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
@@ -478,7 +478,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void localRemoveSlice(String serviceKey, String sliceKey, boolean propagated) throws IMTPException, ServiceException {
+	private void localRemoveSlice(String serviceKey, String sliceKey, boolean propagated) throws ServiceException {
 		ServiceEntry e = (ServiceEntry) services.get(serviceKey);
 
 		if (e != null) {
@@ -510,12 +510,11 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void broadcastRemoveSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
+	private void broadcastRemoveSlice(String serviceKey, String sliceKey) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
 			PlatformManager replica = (PlatformManager) rr[i];
-			replica.removeSlice(serviceKey, sliceKey, true);
 			try {
 				replica.removeSlice(serviceKey, sliceKey, true);
 			} catch (IMTPException imtpe) {
@@ -534,6 +533,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		replicas.put(newReplica.getLocalAddress(), newReplica);
 	}
 
+	// This may throw IMTPException since the new replica must be informed about the platform status
 	private void localAddReplica(PlatformManager newReplica, boolean propagated) throws IMTPException, ServiceException {
 		if (myLogger.isLoggable(Logger.INFO)) {
 			myLogger.log(Logger.INFO, "Adding replica <" + newReplica.getLocalAddress() + "> to the platform");
@@ -573,7 +573,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void broadcastAddReplica(String newAddr) throws IMTPException, ServiceException {
+	private void broadcastAddReplica(String newAddr) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
@@ -593,7 +593,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void localRemoveReplica(String address, boolean propagated) throws IMTPException, ServiceException {
+	private void localRemoveReplica(String address, boolean propagated) throws ServiceException {
 		if (myLogger.isLoggable(Logger.INFO)) {
 			myLogger.log(Logger.INFO, "Removing replica <" + address + "> from the platform");
 		}
@@ -643,7 +643,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 	}
 
-	private void broadcastRemoveReplica(String address) throws IMTPException, ServiceException {
+	private void broadcastRemoveReplica(String address) throws ServiceException {
 		// Avoid concurrent modification exception
 		Object[] rr = replicas.values().toArray();
 		for (int i = 0; i < rr.length; ++i) {
