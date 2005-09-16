@@ -38,20 +38,22 @@ import jade.util.Logger;
 class MobileAgentClassLoader extends ClassLoader {
 
     private AgentMobilitySlice classServer;
+    private String agentName;
     private String sliceName;
     private ServiceFinder finder;
-    private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
+    private Logger myLogger;
 
-    public MobileAgentClassLoader(String sn, ServiceFinder sf, Logger l) {
+    public MobileAgentClassLoader(String an, String sn, ServiceFinder sf) {
 	//#PJAVA_EXCLUDE_BEGIN
 	super(Thread.currentThread().getContextClassLoader());
 	//#PJAVA_EXCLUDE_END
 
 	try {
+		agentName = an;
 	    sliceName = sn;
 	    finder = sf;
 	    classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
-	    myLogger = l;
+	    myLogger = Logger.getMyLogger(AgentMobilityService.NAME);
 	}
 	catch(IMTPException imtpe) {
 	    // It should never happen...
@@ -73,12 +75,12 @@ class MobileAgentClassLoader extends ClassLoader {
                 myLogger.log(Logger.FINE,"Remote retrieval of code for class " + name);
                     }
 	    try {
-		classFile = classServer.fetchClassFile(name);
+		classFile = classServer.fetchClassFile(name, agentName);
 	    }
 	    catch(IMTPException imtpe) {
 		// Retry once with a newer slice
 		classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
-		classFile = classServer.fetchClassFile(name);
+		classFile = classServer.fetchClassFile(name, agentName);
 	    }
 	}
 	catch (IMTPException imtpe) {

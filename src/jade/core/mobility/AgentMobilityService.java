@@ -71,6 +71,8 @@ import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
 
+import jade.core.management.AgentManagementService;
+
 import jade.lang.acl.ACLMessage;
 
 import jade.security.Credentials;
@@ -85,14 +87,14 @@ import jade.util.leap.HashMap;
 import jade.util.Logger;
 
 /**
-
    The JADE service to manage mobility-related agent life cycle: migration
    and clonation.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
-
+   @author Giovanni Caire - TILAB
 */
 public class AgentMobilityService extends BaseService {
+	public static final String NAME = AgentMobilitySlice.NAME;
 
   public static final int AP_TRANSIT = 7;
   public static final int AP_COPY = 8;
@@ -156,6 +158,13 @@ public class AgentMobilityService extends BaseService {
 	return OWNED_COMMANDS;
     }
 
+    /**
+     * Retrieve the name of the container where the classes of a given agent can be found
+     */
+    public String getClassSite(Agent a) {
+    	return (String) sites.get(a);
+    }
+    
     // This inner class handles the messaging commands on the command
     // issuer side, turning them into horizontal commands and
     // forwarding them to remote slices when necessary.
@@ -346,8 +355,14 @@ public class AgentMobilityService extends BaseService {
 				try {
 				  // Cause the invocation of 'beforeMove()' and the
 				  // subsequent termination of the agent thread
-				  AgentMobilityHelperImpl mobHelper = (AgentMobilityHelperImpl) a.getHelper(AgentMobilityHelper.NAME);
-				  mobHelper.gone();
+					a.changeStateTo(new LifeCycle(AP_GONE) {
+						public boolean alive() {
+							return false;
+						}
+					});
+					
+				  //AgentMobilityHelperImpl mobHelper = (AgentMobilityHelperImpl) a.getHelper(AgentMobilityHelper.NAME);
+				  //mobHelper.gone();
 				  // Remove the gone agent from the LADT
 				  myContainer.removeLocalAgent(a.getAID());
 				}
@@ -685,9 +700,10 @@ public class AgentMobilityService extends BaseService {
 		    createAgent(agentID, serializedInstance, classSiteName, isCloned, startIt);
 		}
 		else if(cmdName.equals(AgentMobilitySlice.H_FETCHCLASSFILE)) {
-		    String name = (String)params[0];
+		    String className = (String)params[0];
+		    String agentName = (String)params[1];
 
-		    cmd.setReturnValue(fetchClassFile(name));
+		    cmd.setReturnValue(fetchClassFile(className, agentName));
 		}
 		else if(cmdName.equals(AgentMobilitySlice.H_MOVEAGENT)) {
 		    GenericCommand gCmd = new GenericCommand(AgentMobilityHelper.REQUEST_MOVE, AgentMobilitySlice.NAME, null);
@@ -759,7 +775,7 @@ public class AgentMobilityService extends BaseService {
 
 		// Reconstruct the serialized agent
 		//#DOTNET_EXCLUDE_BEGIN
-		ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), classSiteName, myContainer.getServiceFinder());
+		ObjectInputStream in = new Deserializer(new ByteArrayInputStream(serializedInstance), agentID.getName(), classSiteName, myContainer.getServiceFinder());
 		Agent instance = (Agent)in.readObject();
 		//#DOTNET_EXCLUDE_END
 		/*#DOTNET_INCLUDE_BEGIN
@@ -858,106 +874,146 @@ public class AgentMobilityService extends BaseService {
 	    }
 	}
 
-	private byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+	private byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException {
+		if (myLogger.isLoggable(Logger.FINE))
+			myLogger.log(Logger.FINE, "Fetching class " + className);
 
-	    //log("Fetching class " + name, 4);
-            if(myLogger.isLoggable(Logger.FINE))
-              myLogger.log(Logger.FINE,"Fetching class " + name);
+		String fileName = className.replace('.', '/') + ".class";
+		int length = -1;
+		InputStream classStream = ClassLoader.getSystemResourceAsStream(fileName);
+		if (classStream == null) {
+			// In PJAVA for some misterious reason getSystemResourceAsStream()
+			// does not work --> Try to do it by hand
+			if (myLogger.isLoggable(Logger.FINER))
+				myLogger.log(Logger.FINER, "Class not found as a system resource. Try manually");
 
-	    String fileName = name.replace('.', '/') + ".class";
-	    int length = -1;
-	    InputStream classStream = ClassLoader.getSystemResourceAsStream(fileName);
-	    if (classStream == null) {
-		// In PJAVA for some misterious reason getSystemResourceAsStream()
-		// does not work --> Try to do it by hand
-    if(myLogger.isLoggable(Logger.FINER))
-      myLogger.log(Logger.FINER,"Class not found as a system resource. Try manually");
+			String currentCp = System.getProperty("java.class.path");
+			StringTokenizer st = new StringTokenizer(currentCp, ";");
+			while (st.hasMoreTokens()) {
+				try {
+					String path = st.nextToken();
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, "Searching in path " + path);
+					}
+					if (path.endsWith(".jar")) {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "It's a jar file");
+						}
 
-		String currentCp = System.getProperty("java.class.path");
-		StringTokenizer st = new StringTokenizer(currentCp, ";");
-		while (st.hasMoreTokens()) {
-		    try {
-			String path = st.nextToken();
-			//log("Searching in path "+path, 5);
-                        if(myLogger.isLoggable(Logger.FINER))
-                          myLogger.log(Logger.FINER,"Searching in path "+path);
+						ClassInfo info = getClassStreamFromJar(fileName, path);
+						if (info != null) {
+							classStream = info.getClassStream();
+							length = info.getLength();
+							break;
+						}
+					} 
+					else {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "Trying file " + path + "/" + fileName);
+						}
 
-			if (path.endsWith(".jar")) {
-			    //log("It's a jar file", 5);
-                            if(myLogger.isLoggable(Logger.FINER))
-                               myLogger.log(Logger.FINER,"It's a jar file");
-
-
-			    File f = new File(path);
-			    if (f.exists()) {
-				//log("Jar file exists", 5);
-                              if(myLogger.isLoggable(Logger.FINER))
-                                 myLogger.log(Logger.FINER,"Jar file exists");
-
-			    }
-			    ZipFile zf = new ZipFile(f);
-			    ZipEntry e = zf.getEntry(fileName);
-			    if (e != null) {
-				//log("Entry "+fileName+" found", 5);
-                                if(myLogger.isLoggable(Logger.FINER))
-                                   myLogger.log(Logger.FINER,"Entry "+fileName+" found");
-
-				length = (int) e.getSize();
-				classStream = zf.getInputStream(e);
-				break;
-			    }
+						File f = new File(path + "/" + fileName);
+						if (f.exists()) {
+							if (myLogger.isLoggable(Logger.FINER)) {
+								myLogger.log(Logger.FINER, "File exists");
+							}
+							classStream = new FileInputStream(f);
+							break;
+						}
+					}
+				} 
+				catch (Exception e) {
+					if (myLogger.isLoggable(Logger.WARNING)) {
+						myLogger.log(Logger.WARNING, e.toString());
+					}
+				}
 			}
-			else {
-			    //log("Trying file "+path+"/"+fileName, 5);
-                            if(myLogger.isLoggable(Logger.FINER))
-                               myLogger.log(Logger.FINER,"Trying file "+path+"/"+fileName);
-
-			    File f = new File(path+"/"+fileName);
-			    if (f.exists()) {
-				//log("File exists", 5);
-                                if(myLogger.isLoggable(Logger.FINER))
-                                   myLogger.log(Logger.FINER,"File exists");
-
-				classStream = new FileInputStream(f);
-				break;
-			    }
+		}
+		if (classStream == null) {
+			// Maybe the agent was loaded from a separate Jar file
+			try {
+				AgentManagementService ams = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+				String jarName = ams.getAgentJarFileName(agentName);
+				ClassInfo info = getClassStreamFromJar(fileName, jarName);
+				classStream = info.getClassStream();
+				length = info.getLength();
 			}
-		    }
-		    catch (Exception e) {
-			//log(e.toString(), 5);
-                        if(myLogger.isLoggable(Logger.WARNING))
-                           myLogger.log(Logger.WARNING,e.toString());
-
-		    }
+			catch (NullPointerException npe) {
+				// No jarfile or class not forund in jarfile. Ignore
+			}
+			catch (Exception e) {
+				// Should never happen since findService() never throws exceptions
+				e.printStackTrace();
+			}
 		}
-	    }
-
-	    if (classStream == null) {
-        	//log("Class " + name + " not found", 4);
-                if(myLogger.isLoggable(Logger.WARNING))
-                   myLogger.log(Logger.WARNING,"Class " + name + " not found");
-
-	        throw new ClassNotFoundException(name);
-	    }
-	    try {
-		if (length == -1) {
-		    length = (int) classStream.available();
+		if (classStream == null) {
+			if (myLogger.isLoggable(Logger.WARNING)) {
+				myLogger.log(Logger.WARNING, "Class " + className + " not found");
+			}
+			throw new ClassNotFoundException(className);
 		}
-		byte[] bytes = new byte[length];
-		//log("Class " + name + " fetched. Length is " + length, 4);
-                if(myLogger.isLoggable(Logger.FINER))
-                   myLogger.log(Logger.FINER,"Class " + name + " fetched. Length is " + length);
+		
+		try {
+			if (length == -1) {
+				length = (int) classStream.available();
+			}
+			byte[] bytes = new byte[length];
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Class " + className + " fetched. Length is " + length);
+			}
 
-		DataInputStream dis = new DataInputStream(classStream);
-		dis.readFully(bytes);
-		return (bytes);
-	    }
-	    catch (IOException ioe) {
-		throw new ClassNotFoundException("IOException reading class bytes. "+ioe.getMessage());
-	    }
-
+			DataInputStream dis = new DataInputStream(classStream);
+			dis.readFully(bytes);
+			return (bytes);
+		} 
+		catch (IOException ioe) {
+			throw new ClassNotFoundException("IOException reading class bytes. " + ioe.getMessage());
+		}
 	}
 
+	private ClassInfo getClassStreamFromJar(String classFileName, String jarName) throws IOException {
+		File f = new File(jarName);
+		if (f.exists()) {
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Jar file exists");
+			}
+		}
+		ZipFile zf = new ZipFile(f);
+		ZipEntry e = zf.getEntry(classFileName);
+		if (e != null) {
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Entry " + classFileName + " found");
+			}
+
+			return new ClassInfo(zf.getInputStream(e), (int) e.getSize());
+		}
+		return null;
+	}
+	
+	
+	/**
+	 * Inner class ClassInfo
+	 * This utility bean class is used only to keey together some pieces of information related to a class
+	 */
+	private class ClassInfo {
+		private InputStream classStream;
+		private int length = -1;
+		
+		public ClassInfo(InputStream is, int l) {
+			classStream = is;
+			length = l;
+		}
+		
+		public InputStream getClassStream() {
+			return classStream;
+		}
+		
+		public int getLength() {
+			return length;
+		}
+	} // END of inner class ClassInfo
+	
+	
 	private void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException {
 	    //log("Activating incoming agent "+agentID, 1);
             if(myLogger.isLoggable(Logger.FINER))
@@ -1081,13 +1137,15 @@ public class AgentMobilityService extends BaseService {
      * Inner class Deserializer
      */
     private class Deserializer extends ObjectInputStream {
+    	private String agentName;
 	private String classSiteName;
 	private ServiceFinder finder;
 
         /**
          */
-        public Deserializer(InputStream inner, String sliceName, ServiceFinder sf) throws IOException {
+        public Deserializer(InputStream inner, String an, String sliceName, ServiceFinder sf) throws IOException {
             super(inner);
+            agentName = an;
 	    classSiteName = sliceName;
             finder = sf;
         }
@@ -1098,13 +1156,7 @@ public class AgentMobilityService extends BaseService {
         	throws IOException, ClassNotFoundException {
             MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(classSiteName);
             if (cl == null) {
-              //#PJAVA_EXCLUDE_BEGIN
-              cl = new MobileAgentClassLoader(classSiteName, finder, myLogger);
-              //#PJAVA_EXCLUDE_END
-              /*#PJAVA_INCLUDE_BEGIN
-                // Hack because protected variable myLogger is not accessible here
-                cl = new MobileAgentClassLoader(classSiteName, finder, null);
-                #PJAVA_INCLUDE_END*/
+              cl = new MobileAgentClassLoader(agentName, classSiteName, finder);
               loaders.put(classSiteName, cl);
             }
             Class c = cl.loadClass(v.getName());
@@ -1151,9 +1203,9 @@ public class AgentMobilityService extends BaseService {
 				myAgent.changeStateTo(new CopyLifeCycle(destination, newName, myMovable, AgentMobilityService.this));
 			}
 
-			void gone() {
+			/*void gone() {
 				myAgent.changeStateTo(new GoneLifeCycle(myMovable));
-			}
+			}*/
     }  // END of inner class AgentMobilityHelperImpl
 
 
@@ -1165,13 +1217,14 @@ public class AgentMobilityService extends BaseService {
   	private Movable myMovable;
   	private transient AgentMobilityService myService;
   	private Logger myLogger;
+  	private boolean firstTime = true;
 
   	private TransitLifeCycle(Location l, Movable m, AgentMobilityService s) {
   		super(AP_TRANSIT);
   		myDestination = l;
   		myMovable = m;
   		myService = s;
-  		myLogger = Logger.getMyLogger(myService.getClass().getName());
+  		myLogger = Logger.getMyLogger(myService.getName());
   	}
 
   	public void init() {
@@ -1183,8 +1236,11 @@ public class AgentMobilityService extends BaseService {
 
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 		  try {
-		  	// Issue an INFORM_MOVED vertical command
+		  	// Issue a single INFORM_MOVED vertical command
+			  if (firstTime) {
+				  firstTime = false;
 				informMoved(myAgent.getAID(), myDestination);
+			  }
 		  }
 		  catch (Exception e) {
 		  	if (myAgent.getState() == myState) {
@@ -1215,7 +1271,17 @@ public class AgentMobilityService extends BaseService {
 
 		public boolean transitionTo(LifeCycle newLF) {
 			int s = newLF.getState();
-			return (s == AP_GONE || s == Agent.AP_ACTIVE || s == Agent.AP_DELETED);
+			switch (s) {
+			case AP_GONE:
+				if (myMovable != null) {
+					myMovable.beforeMove();
+				}
+				// No break statement --> Fall through
+			case Agent.AP_ACTIVE:
+			case Agent.AP_DELETED:
+				return true;				
+			}
+			return false;
 		}
 
 		public void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException {
@@ -1257,7 +1323,7 @@ public class AgentMobilityService extends BaseService {
   		myNewName = newName;
   		myMovable = m;
   		myService = s;
-  		myLogger = Logger.getMyLogger(myService.getClass().getName());
+  		myLogger = Logger.getMyLogger(myService.getName());
   	}
 
   	public void init() {
@@ -1336,28 +1402,6 @@ public class AgentMobilityService extends BaseService {
   } // END of inner class CopyLifeCycle
 
 
-  /**
-     Inner class GoneLifeCycle
-   */
-  private static class GoneLifeCycle extends LifeCycle {
-  	private Movable myMovable;
-
-  	private GoneLifeCycle(Movable m) {
-  		super(AP_GONE);
-  		myMovable = m;
-  	}
-
-		public boolean alive() {
-			return false;
-		}
-
-		public void transitionFrom(LifeCycle from) {
-			if (myMovable != null) {
-				myMovable.beforeMove();
-			}
-		}
-  } // END of inner class GoneLifeCycle
-
 
     // The command sink, source side
     private final CommandSourceSink senderSink = new CommandSourceSink();
@@ -1369,14 +1413,6 @@ public class AgentMobilityService extends BaseService {
     protected Service.Slice getFreshSlice(String name) throws ServiceException {
     	return super.getFreshSlice(name);
     }
-
-  /*#PJAVA_INCLUDE_BEGIN
-  // PJAVA workaround as protected methods inherited from parent class
-  // are not accessible to inner classes
-  //public void log(String txt, int l) {
-    //super.log(txt,l);
-  //}
-  #PJAVA_INCLUDE_END*/
 
   private void initCredentials(Command cmd, AID id) {
   	Agent agent = myContainer.acquireLocalAgent(id);

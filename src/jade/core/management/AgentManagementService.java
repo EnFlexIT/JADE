@@ -55,6 +55,8 @@ import jade.util.Logger;
 
 //#J2ME_EXCLUDE_BEGIN
 import java.io.IOException;
+import java.io.File;
+import java.util.Hashtable;
 //#J2ME_EXCLUDE_END
 
 
@@ -67,7 +69,7 @@ import java.io.IOException;
 
 */
 public class AgentManagementService extends BaseService {
-  static final String NAME = "jade.core.management.AgentManagement";
+  public static final String NAME = AgentManagementSlice.NAME;
   
   /**
      The path where to search agent jar files
@@ -95,8 +97,9 @@ public class AgentManagementService extends BaseService {
 	// Read profile parameters
 	agentsPath = p.getParameter(AGENTS_PATH, null);
 	// Be sure it ends with /
-	if (agentsPath != null && !agentsPath.endsWith("/")) {
-		agentsPath = agentsPath+'/';
+	String separator = System.getProperty("file.separator");
+	if (agentsPath != null && !agentsPath.endsWith(separator)) {
+		agentsPath = agentsPath+separator;
 	}
     }
 
@@ -136,6 +139,9 @@ public class AgentManagementService extends BaseService {
 	return OWNED_COMMANDS;
     }
 
+    public String getAgentJarFileName(String agentName) {
+    	return (String) agentJars.get(agentName);
+    }
 
     // This inner class handles the messaging commands on the command
     // issuer side, turning them into horizontal commands and
@@ -303,6 +309,7 @@ public class AgentManagementService extends BaseService {
 
 	    // Remove the dead agent from the LADT of the container
 	    myContainer.removeLocalAgent(target);
+	    agentJars.remove(target.getName());
 
 	    // Notify the main container through its slice
 	    AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
@@ -554,28 +561,42 @@ public class AgentManagementService extends BaseService {
 	private void createAgent(AID agentID, String className, Object arguments[], JADEPrincipal owner, Credentials initialCredentials, boolean startIt) throws IMTPException, NotFoundException, NameClashException, JADESecurityException {
 	    Agent agent = null;
 	    try {
+	  String jarName = null;
 	  //#J2ME_EXCLUDE_BEGIN
-	  String jarName = className.replace('.', '_') + ".jar";
+	  jarName = className.replace('.', '_') + ".jar";
 	  if (agentsPath != null) {
 		  jarName = agentsPath+jarName;
 	  }
 	  try {
-		  JarClassLoader loader = new JarClassLoader(jarName, getClass().getClassLoader());
-		  agent = (Agent) loader.loadClass(className).newInstance();
+		  File file = new File(jarName);
+		  if (file.exists()) {
+			  JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
+			  agent = (Agent) loader.loadClass(className).newInstance();
+		  }
+		  else {
+			  jarName = null;
+		  }
 	  }
 	  catch (IOException ioe) {
-	  	// Should never happen
-	  	ioe.printStackTrace();
+		  myLogger.log(Logger.WARNING, "File "+jarName+" is not a valid Jar file. Try to laod agent "+agentID.getName()+" from the classpath");
 	  }
 	  //#J2ME_EXCLUDE_END
-	  /*#J2ME_INCLUDE_BEGIN
+	  
+	  if (agent == null) {
 		agent = (Agent)Class.forName(new String(className)).newInstance();
-	  #J2ME_INCLUDE_END*/
+	  }
+	  
 		agent.setArguments(arguments);
  
-		myContainer.initAgent(agentID, agent, owner, initialCredentials);
+		myContainer.initAgent(agentID, agent, owner, initialCredentials);		
 		if (startIt) {
 			myContainer.powerUpLocalAgent(agentID);
+		}
+		
+		// Store the jarName, if any, for later retrieval. We do that here since initAgent() may
+		// change the agent name.
+		if (jarName != null) {
+			agentJars.put(agentID.getName(), jarName);
 		}
 	    }
 	    catch(ClassNotFoundException cnfe) {
@@ -870,6 +891,7 @@ public class AgentManagementService extends BaseService {
 	}
 	catch(NameClashException nce) {
 	    myContainer.removeLocalAgent(target);
+	    agentJars.remove(target.getName());
 	    if(old != null) {
 		myContainer.addLocalAgent(target, old);
 	    }
@@ -877,14 +899,17 @@ public class AgentManagementService extends BaseService {
 	}
 	catch(IMTPException imtpe) {
 	    myContainer.removeLocalAgent(target);
+	    agentJars.remove(target.getName());
 	    throw imtpe;
 	}
 	catch(NotFoundException nfe) {
 	    myContainer.removeLocalAgent(target);
+	    agentJars.remove(target.getName());
 	    throw nfe;
 	}
 	catch(JADESecurityException ae) {
 	    myContainer.removeLocalAgent(target);
+	    agentJars.remove(target.getName());
 	    throw ae;
 	}
     }
@@ -903,6 +928,7 @@ public class AgentManagementService extends BaseService {
     private final CommandTargetSink receiverSink = new CommandTargetSink();
 
     private String agentsPath = null;
+    private Hashtable agentJars = new Hashtable();
 
     // Work-around for PJAVA compilation
     protected Service.Slice getFreshSlice(String name) throws ServiceException {

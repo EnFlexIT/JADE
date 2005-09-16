@@ -68,7 +68,7 @@ public interface AgentMobilitySlice extends Service.Slice {
     static final String H_CLONEDAGENT = "8";
 
     void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException;
-    byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException;
+    byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException;
 
     void moveAgent(AID agentID, Location where) throws IMTPException, NotFoundException;
     void copyAgent(AID agentID, Location where, String newName) throws IMTPException, NotFoundException;

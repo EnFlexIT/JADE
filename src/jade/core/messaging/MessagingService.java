@@ -1362,7 +1362,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * the Message Transport Service.
    */
   public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
-    if (receiver.equals(myContainer.getAMS()) && msg.getAttemptCnt() < 3 && !ie.getErrorMessage().startsWith("Not authorized")) {
+    /*if (receiver.equals(myContainer.getAMS()) && msg.getAttemptCnt() < 3 && !ie.getErrorMessage().startsWith("Not authorized")) {
     	// The receiver of the message was the AMS. The AMS must always be
     	// there --> It is probably due to a fault of the main container.
     	// Print a warning then wait a bit then try again: if there is a 
@@ -1373,7 +1373,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     	waitABit(3000);
     	deliverNow(msg, receiver);
     }
-    else {	
+    else {*/	
 	  	GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
 	    cmd.addParam(msg);
 	    cmd.addParam(receiver);
@@ -1386,7 +1386,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		    // It should never happen
 		    se.printStackTrace();
 	    }
-    }
+    //}
   }
 
 

@@ -25,6 +25,7 @@ package jade.core.management;
 
 //#J2ME_EXCLUDE_FILE
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
@@ -39,16 +40,21 @@ import java.util.zip.ZipEntry;
  */
 public class JarClassLoader extends ClassLoader {
   
+	public static final int BUFFER_SIZE = 1024;
+	
   /**
    * @param Path and name of the JAR file
    * @throws IOException If there are problems opening the file
    */
-  public JarClassLoader(String filename, ClassLoader parent) throws IOException{
+  public JarClassLoader(File f, ClassLoader parent) throws IOException{
     super(parent);
-  	File file = new File(filename);
+    if (f != null) {
+    	_file = new JarFile(f);
+    }
+  	/*File file = new File(filename);
     if(file.exists()){
       _file = new JarFile(new File(filename));
-    }
+    }*/
   }
   
   /**
@@ -66,11 +72,9 @@ public class JarClassLoader extends ClassLoader {
 	  	ZipEntry zEntry = _file.getEntry(className.replace('.', '/') + ".class");
 	    try{
 	      InputStream is = _file.getInputStream(zEntry);
-	      int length = is.available();
-	      byte[] rawClass = new byte[length];
-	      is.read(rawClass);
+	      byte[] rawClass = readFully(is);
 	      is.close();
-	      return defineClass(className, rawClass, 0, length);
+	      return defineClass(className, rawClass, 0, rawClass.length);
 	    }
 	    catch(IOException ioe){
 	      throw new ClassNotFoundException("IOError while reading jar file for class "+className+". "+ioe);
@@ -79,6 +83,16 @@ public class JarClassLoader extends ClassLoader {
     else {
     	throw new ClassNotFoundException(className);
     }
+  }
+  
+  private byte[] readFully(InputStream is) throws IOException{
+  	byte[] buffer = new byte[BUFFER_SIZE];
+  	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  	int read = 0;
+  	
+  	while((read=is.read(buffer))>= 0) baos.write(buffer,0,read);
+  	
+  	return baos.toByteArray();
   }
   
   private JarFile _file = null;

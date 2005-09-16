@@ -88,10 +88,11 @@ public class AgentMobilityProxy extends SliceProxy implements AgentMobilitySlice
 	}
     }
 
-    public byte[] fetchClassFile(String name) throws IMTPException, ClassNotFoundException {
+    public byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_FETCHCLASSFILE, AgentMobilitySlice.NAME, null);
-	    cmd.addParam(name);
+	    cmd.addParam(className);
+	    cmd.addParam(agentName);
 
 
 	    Node n = getNode();

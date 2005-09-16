@@ -40,7 +40,7 @@ public abstract class LifeCycle implements Serializable {
 	protected Agent myAgent;
 	protected int myState;
 	
-	protected LifeCycle(int s) {
+	public LifeCycle(int s) {
 		myState = s;
 	}
 	

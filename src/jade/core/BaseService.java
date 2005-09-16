@@ -274,7 +274,6 @@ public abstract class BaseService implements Service {
     }
     //#MIDP_EXCLUDE_END
 
-    private ServiceFinder myFinder;
     private IMTPManager myIMTPManager;
 
     private CommandProcessor myCommandProcessor = null;
@@ -282,5 +281,6 @@ public abstract class BaseService implements Service {
     private Map slices;
     private Map aliases;
 
-    protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(getClass().getName());
+    protected ServiceFinder myFinder;
+    protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(getName());
 }
