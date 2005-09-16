@@ -62,6 +62,8 @@ public class JICPServer extends Thread
 	implements PDPContextManager.Listener, JICPMediatorManager 
 	//#J2ME_EXCLUDE_END
 	{	
+	
+	public static final String ACCEPT_LOCAL_HOST_ONLY = "jade_imtp_leap_JICP_JICPServer_acceptlocalhostonly";
 		
 	private static final int LISTENING = 0;
 	private static final int TERMINATING = 1;
@@ -88,32 +90,32 @@ public class JICPServer extends Thread
   
 	private Logger myLogger;
 	
-  /**
-   * Constructor declaration
-   */
-  public JICPServer(Profile p, JICPPeer myPeer, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
-    cmdListener = l;
+	/**
+	 * Constructor declaration
+	 */
+	public JICPServer(Profile p, JICPPeer myPeer, ICP.Listener l, ConnectionFactory f, int max) throws ICPException {
+		cmdListener = l;
 		connFactory = f;
 		maxHandlers = max;
-  	myLogger = Logger.getMyLogger(getClass().getName());
+		myLogger = Logger.getMyLogger(getClass().getName());
 
-
-  	StringBuffer sb = null;
+		StringBuffer sb = null;
 		int idLength;
 		String peerID = myPeer.getID();
 		if (peerID != null) {
-  		sb = new StringBuffer(peerID);
+			sb = new StringBuffer(peerID);
 			sb.append('-');
 			idLength = sb.length();
-		}
+		} 
 		else {
 			sb = new StringBuffer();
 			idLength = 0;
 		}
-			
+
 		// Local host
 		sb.append(JICPProtocol.LOCAL_HOST_KEY);
 		host = p.getParameter(sb.toString(), null);
+		boolean acceptLocalHostOnly = false;
 		if (host == null) {
 			// Local host not specified --> try to get it using JICP GET_ADDRESS
 			sb.setLength(idLength);
@@ -121,78 +123,83 @@ public class JICPServer extends Thread
 			String remoteURL = p.getParameter(sb.toString(), null);
 			if (remoteURL != null) {
 				host = myPeer.getAddress(remoteURL);
+			} 
+			else {
+				// Retrieve local host automatically
+				host = Profile.getDefaultNetworkName();
 			}
-  		else {
-  			// Retrieve local host automatically
-  			host = Profile.getDefaultNetworkName();
-  		}
 		}
-			
+		else {
+			// If a local-host is explicitly set and the ACCEPT_LOCAL_HOST_ONLY property is specified,
+			// we will accept connections only on the specified local network address 
+			acceptLocalHostOnly = p.getBooleanProperty(ACCEPT_LOCAL_HOST_ONLY, false);
+		}
+
 		// Local port: a peripheral container can change it if busy...
-    int port = JICPProtocol.DEFAULT_PORT;
+		int port = JICPProtocol.DEFAULT_PORT;
 		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true);
 		sb.setLength(idLength);
 		sb.append(JICPProtocol.LOCAL_PORT_KEY);
 		String strPort = p.getParameter(sb.toString(), null);
-    try {
-      port = Integer.parseInt(strPort);
-    } 
-    catch (Exception e) {
-      // Try to use the Peer-ID as the port number
-    	try {
-    		port = Integer.parseInt(peerID);
-    	}
-    	catch (Exception e1) {
-    		// Keep default
-    	}
-    } 
-	  	
-    //#J2ME_EXCLUDE_BEGIN
-    // Get the accept-mediators option
-    acceptMediators = p.getBooleanProperty(ACCEPT_MEDIATORS, true);
-    
-    if (acceptMediators) {
+		try {
+			port = Integer.parseInt(strPort);
+		} 
+		catch (Exception e) {
+			// Try to use the Peer-ID as the port number
+			try {
+				port = Integer.parseInt(peerID);
+			} 
+			catch (Exception e1) {
+				// Keep default
+			}
+		}
+
+		//#J2ME_EXCLUDE_BEGIN
+		// Get the accept-mediators option
+		acceptMediators = p.getBooleanProperty(ACCEPT_MEDIATORS, true);
+
+		if (acceptMediators) {
 			// Read the LEAP configuration properties
 			sb.setLength(idLength);
 			sb.append(LEAP_PROPERTY_FILE);
-	    String fileName = p.getParameter(sb.toString(), LEAP_PROPERTY_FILE_DEFAULT); 
+			String fileName = p.getParameter(sb.toString(), LEAP_PROPERTY_FILE_DEFAULT);
 			try {
 				leapProps.load(fileName);
-			}
-			catch (Exception e) {
-				myLogger.log(Logger.FINE, "Can't read LEAP property file "+fileName+". "+e);
+			} catch (Exception e) {
+				myLogger.log(Logger.FINE, "Can't read LEAP property file " + fileName + ". " + e);
 				// Ignore: no back end properties specified
 			}
-			
+
 			// Initialize the PDPContextManager if specified
 			String pdpContextManagerClass = leapProps.getProperty(PDP_CONTEXT_MANAGER_CLASS);
 			if (pdpContextManagerClass != null) {
 				try {
-					myLogger.log(Logger.INFO, "Loading PDPContextManager of class "+pdpContextManagerClass);
+					myLogger.log(Logger.INFO, "Loading PDPContextManager of class " + pdpContextManagerClass);
 					myPDPContextManager = (PDPContextManager) Class.forName(pdpContextManagerClass).newInstance();
-					myPDPContextManager.init(leapProps); 
+					myPDPContextManager.init(leapProps);
 					myPDPContextManager.registerListener(this);
-				}
-				catch (Throwable t) {
+				} catch (Throwable t) {
 					t.printStackTrace();
 					myPDPContextManager = null;
 				}
 			}
-    }
+		}
 		//#J2ME_EXCLUDE_END
-		
-		// Create the ServerSocket
-		server = myPeer.getServerSocket(host, port, changePortIfBusy);
-		
-    setDaemon(true);
-    setName("JICPServer-"+getLocalPort());
-  }
+
+		// Create the ServerSocket.  
+		server = myPeer.getServerSocket((acceptLocalHostOnly ? host : null), port, changePortIfBusy);
+
+		setDaemon(true);
+		setName("JICPServer-" + getLocalPort());
+	}
 
   public int getLocalPort() {
   	return server.getLocalPort();
   }
   
   public String getLocalHost() {
+	  // If a local-host was not specified, we accept connection on all local network addresses,
+	  // but we expose the local host address we "prefer".
   	return host;
   }
   

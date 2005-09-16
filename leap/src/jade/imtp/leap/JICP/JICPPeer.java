@@ -160,30 +160,24 @@ public class JICPPeer implements ICP, ProtocolManager {
   }  
   
   protected ServerSocket getServerSocket(String host, int port, boolean changePortIfBusy) throws ICPException {
-    try {
-      //ServerSocket s = new ServerSocket(port, 50, InetAddress.getByName(host));
-      ServerSocket s = new ServerSocket(port);
-      return s;
-    } 
-    catch (BindException be) {
-    	if (changePortIfBusy) {
-    		// The specified port is busy. Let the system find a free one
-    		try {
-      		//return new ServerSocket(0, 50, InetAddress.getByName(host));
-      		return new ServerSocket(0);
-    		}
-    		catch (IOException ioe) {
-      		throw new ICPException("Cannot create server socket on a free port. ", ioe);
+		try {
+			return new ServerSocket(port, 50, (host != null ? InetAddress.getByName(host) : null));
+		} 
+		catch (BindException be) {
+			if (changePortIfBusy) {
+				// The specified port is busy. Let the system find a free one
+				try {
+					return new ServerSocket(0, 50, (host != null ? InetAddress.getByName(host) : null));
+				} catch (IOException ioe) {
+					throw new ICPException("Cannot create server socket on a free port. ", ioe);
 				}
-    	}
-    	else {
-	      throw new ICPException("Cannot bind server socket to host "+host+" port "+port);
-    	}
-    }
-    catch (IOException ioe2) {
-  		throw new ICPException("Cannot create server socket. ", ioe2);
+			} else {
+				throw new ICPException("Cannot bind server socket to host " + host + " port " + port);
+			}
+		} catch (IOException ioe2) {
+			throw new ICPException("Cannot create server socket. ", ioe2);
 		}
-  }
+	}
   
   /**
      Inner class Ticker
