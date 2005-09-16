@@ -56,5 +56,15 @@
 			</HowWorkTest>
 			<WhenTestPass> The test passes if the behaviour is correctly loaded and executed and the tester agent receives the expected notification sent withing the loaded behaviour.
 			</WhenTestPass>
+		</Test>	
+	
+		<Test name="Moving Jar agent" skip="false">
+			<TestClassName>test.mobility.tests.TestMovingJarAgent</TestClassName>
+			<WhatTest> Test the agent mobility for agents loaded from a separate Jar file.
+			</WhatTest>
+			<HowWorkTest> An agent whose code is stored in a separate jar file (not in the classpath) is created and then moved through the AMS.
+			</HowWorkTest>
+			<WhenTestPass> The test passes if the agent is correctly created and moved.
+			</WhenTestPass>
 		</Test>		
 	</TestsList>

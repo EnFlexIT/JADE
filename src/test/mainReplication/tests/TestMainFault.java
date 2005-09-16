@@ -113,7 +113,20 @@ public class TestMainFault extends Test {
   			log("3) Killing master main container...");
   			TestSuiteAgent.mainController.kill();
   			log("Master main container killed.");
-				pause();
+
+  			// TO BE REMOVED
+  			try {
+				System.out.println("AAAAAAAAAAAA Cerco di creare un agente appena dopo la morte del main !!!!!!!!!!!!");
+				AID id = TestUtility.createAgent(myAgent, "dummy", "jade.core.Agent", null);
+				System.out.println("AAAAAAAAAAAA Agente creato !!!!!!!!!!!!");
+				TestUtility.killAgent(myAgent, id);
+				System.out.println("AAAAAAAAAAAA Agente ucciso !!!!!!!!!!!!");
+			} catch (TestException e) {
+				System.out.println("AAAAAAAAAAAA Dovrebbe funzionare e invece non funziona !!!!!!!!!!!!");
+				e.printStackTrace();
+			}
+			
+			pause();
   		}
   	} );
   	

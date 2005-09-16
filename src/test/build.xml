@@ -78,15 +78,22 @@
     </javac> 
   	<delete file="src/test/separate.jar" quiet="true"/>
   	<delete file="src/test/separate-behaviours.jar" quiet="true"/>
+  	<delete file="src/test/test_mobility_separate_dummy_DummyAgent.jar" quiet="true"/>
 		<jar jarfile="src/test/separate.jar">
 			<fileset dir="classes">
   			<include name="**/test/mobility/separate/**"/>
   			<exclude name="**/test/mobility/separate/behaviours/**"/>
+  			<exclude name="**/test/mobility/separate/dummy/**"/>
 			</fileset>
 		</jar>
 		<jar jarfile="src/test/separate-behaviours.jar">
 			<fileset dir="classes">
   			<include name="**/test/mobility/separate/behaviours/**"/>
+			</fileset>
+		</jar>
+		<jar jarfile="src/test/test_mobility_separate_dummy_DummyAgent.jar">
+			<fileset dir="classes">
+  			<include name="**/test/mobility/separate/dummy/**"/>
 			</fileset>
 		</jar>
 		

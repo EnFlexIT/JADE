@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.6.5
 Created-By: Apache Ant 1.5.1
 MicroEdition-Configuration: CLDC-1.0
 MicroEdition-Profile: MIDP-1.0
