@@ -136,9 +136,10 @@ public class BackEndStub extends MicroStub implements BackEnd {
 					pp.setProperty(key, value);
 	  		}
 	  		catch (Exception e) {
-	  			e.printStackTrace();
 	  			Logger.println("Property format error: "+s);
+	  			e.printStackTrace();
 	  		}
+	  		pp.setProperty(MicroRuntime.CONTAINER_NAME_KEY, pp.getProperty(JICPProtocol.MEDIATOR_ID_KEY));
   		}
   	}
   }
