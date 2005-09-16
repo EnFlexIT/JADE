@@ -38,19 +38,16 @@ import java.io.DataInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
-import jade.lang.acl.ACLCodec.CodecException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.util.leap.Properties;
 import jade.util.leap.ArrayList;
-import java.util.Enumeration;
 import jade.mtp.MTPDescriptor;
 import jade.security.*;
 import jade.imtp.leap.JICP.JICPAddress;
@@ -398,49 +395,19 @@ class DeliverableDataInputStream extends DataInputStream {
     }
 
     /**
+     * Note that when delivering messages to agents we never deal with ACLMessage objects
+     * since they are ALWAYS encoded/decoded by the Messaging filters. However there may 
+     * be services that use ACLMessage objects as parameters in their HCommands  
      */
     private ACLMessage deserializeACL() throws IOException, LEAPSerializationException {
-        ACLMessage msg = new ACLMessage(readInt());
-
-        msg.setSender(readAID());
-
-        while (readBoolean()) {
-            msg.addReceiver(deserializeAID());
-        } 
-
-        while (readBoolean()) {
-            msg.addReplyTo(deserializeAID());
-        } 
-
-        msg.setLanguage(readString());
-        msg.setOntology(readString());
-
-        // Content
-        int flag = readInt();
-        if (flag == 1) {
-            msg.setByteSequenceContent((byte[]) readObject());
-        } 
-        else {
-            msg.setContent(readString());
-        } 
-
-        msg.setEncoding(readString());
-        msg.setProtocol(readString());
-        msg.setConversationId(readString());
-        msg.setReplyByDate(readDate());
-        msg.setInReplyTo(readString());
-        msg.setReplyWith(readString());
-
-	      //#CUSTOM_EXCLUDE_BEGIN
-        // User def props must be set one by one
-        int size = readInt();
-        for (int i=0; i<size; i++) {
-        		String key = (String) readObject();
-        		String val = (String) readObject();
-            msg.addUserDefinedParameter(key, val);
-        } 
-        msg.setEnvelope((Envelope) readObject());
-	      //#CUSTOM_EXCLUDE_END
+    	ACLMessage msg = LEAPACLCodec.deserializeACL(this);
+		//#CUSTOM_EXCLUDE_BEGIN
+    	if (readBoolean()) {
+    		Envelope env = deserializeEnvelope();
+    		msg.setEnvelope(env);
+    	}
+		//#CUSTOM_EXCLUDE_END
+    	
         return msg;
     } 
 
@@ -466,12 +433,7 @@ class DeliverableDataInputStream extends DataInputStream {
      * Package scoped as it may be called by external serializers
      */
     AID deserializeAID() throws IOException, LEAPSerializationException {
-    	try {
-	    	return LEAPACLCodec.deserializeAID(this);
-    	}
-    	catch (CodecException ce) {
-    		throw new LEAPSerializationException(ce.getMessage());
-    	}
+    	return LEAPACLCodec.deserializeAID(this);
     } 
 
     public AID[] deserializeAIDArray() throws IOException, LEAPSerializationException {

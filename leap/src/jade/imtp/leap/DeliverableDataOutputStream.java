@@ -38,24 +38,20 @@ import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 import jade.core.*;
 import jade.core.messaging.GenericMessage;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
-import jade.lang.acl.ACLCodec.CodecException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.leap.ArrayList;
-import jade.util.leap.List;
 import jade.mtp.MTPDescriptor;
 import jade.mtp.TransportAddress;
-import jade.security.*;
 import jade.imtp.leap.JICP.JICPAddress;
 import jade.imtp.leap.http.HTTPAddress;
 
@@ -508,65 +504,30 @@ class DeliverableDataOutputStream extends DataOutputStream {
   }
 
   /**
+   * Note that when delivering messages to agents we never deal with ACLMessage objects
+   * since they are ALWAYS encoded/decoded by the Messaging filters. However there may 
+   * be services that use ACLMessage objects as parameters in their HCommands  
    */
   private void serializeACL(ACLMessage msg) throws IOException, LEAPSerializationException {
-    writeInt(msg.getPerformative());
-    writeAID(msg.getSender());
-
-    Iterator it = msg.getAllReceiver();
-
-    while (it.hasNext()) {
-      writeBoolean(true);
-      serializeAID((AID) it.next());
-    } 
-
-    writeBoolean(false);
-
-    it = msg.getAllReplyTo();
-
-    while (it.hasNext()) {
-      writeBoolean(true);
-      serializeAID((AID) it.next());
-    } 
-
-    writeBoolean(false);
-    writeString(msg.getLanguage());
-    writeString(msg.getOntology());
-
-    // Content
-    if (msg.hasByteSequenceContent()) {
-      writeInt(1);
-      writeObject(msg.getByteSequenceContent());
-    } 
-    else {
-      writeInt(0);
-      writeString(msg.getContent());
-    } 
-
-    writeString(msg.getEncoding());
-    writeString(msg.getProtocol());
-    writeString(msg.getConversationId());
-    writeDate(msg.getReplyByDate());
-    writeString(msg.getInReplyTo());
-    writeString(msg.getReplyWith());
-
-    //#CUSTOM_EXCLUDE_BEGIN
-    // User def properties can't be null!
-    serializeProperties(msg.getAllUserDefinedParameters());
-    writeObject(msg.getEnvelope());
-    //#CUSTOM_EXCLUDE_END
+	  LEAPACLCodec.serializeACL(msg, this);
+	  //#CUSTOM_EXCLUDE_BEGIN
+	  // NOTE that the above call does not serialize the envelope
+	  Envelope env = msg.getEnvelope();
+	  if (env != null) {
+	      writeBoolean(true);
+	      serializeEnvelope(env);
+	  }
+	  else {
+		  writeBoolean(false);
+	  }
+	  //#CUSTOM_EXCLUDE_END
   } 
 
   /**
    * Package scoped as it is called by the EnvelopSerializer
    */
   void serializeAID(AID id) throws IOException, LEAPSerializationException {
-  	try {
-  		LEAPACLCodec.serializeAID(id, this);
-  	}
-  	catch (CodecException ce) {
-  		throw new LEAPSerializationException(ce.getMessage());
-  	}
+	LEAPACLCodec.serializeAID(id, this);
   } 
 
   private void serializeAIDArray(AID[] aida) throws IOException, LEAPSerializationException {
