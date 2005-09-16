@@ -41,7 +41,7 @@ import jade.domain.KBManagement.*;
  * @author Elisabetta Cortese - TILab
  *
  */
-public class DFMemKB extends MemKB{
+public class DFMemKB extends MemKB {
 
   boolean entriesToDelete = false; // gets true if there's at least one entry to delete for the method clean
   
@@ -85,7 +85,11 @@ public class DFMemKB extends MemKB{
 	}
 
 	// match
-	public boolean match(Object template, Object fact) {
+	public final boolean match(Object template, Object fact) {
+		return compare(template, fact);
+	}
+	
+	public static final boolean compare(Object template, Object fact) {
 
 		try {
 		  DFAgentDescription templateDesc = (DFAgentDescription)template;
@@ -153,7 +157,7 @@ public class DFMemKB extends MemKB{
 		    Iterator itFact = factDesc.getAllServices();
 		    while(!found && itFact.hasNext()) {
 		      ServiceDescription factSvc = (ServiceDescription)itFact.next();
-		      found = matchServiceDesc(templateSvc, factSvc);
+		      found = compareServiceDesc(templateSvc, factSvc);
 		    }
 		    if(!found)
 		      return false;
@@ -166,8 +170,8 @@ public class DFMemKB extends MemKB{
 		}
 	}
 
-	  // Helper method to match two Service Description objects
-	  private final boolean matchServiceDesc(ServiceDescription template, ServiceDescription fact) {
+	  // Helper method to compare two Service Description objects
+	  public static final boolean compareServiceDesc(ServiceDescription template, ServiceDescription fact) {
 	
 	    // Match name
 	    String n1 = template.getName();

@@ -175,7 +175,7 @@ public abstract class MemKB extends KB {
 
 
 	// Helper method to match two Agent Identifiers
-	protected final boolean matchAID(AID template, AID fact) {
+	public static final boolean matchAID(AID template, AID fact) {
 
 	  // Match the GUID in the ':name' slot
 	    String templateName = template.getName();
