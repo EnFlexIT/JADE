@@ -24,32 +24,29 @@ Boston, MA  02111-1307, USA.
 package jade.lang.acl;
 
 //#MIDP_EXCLUDE_BEGIN
-import java.io.Reader;
-import java.io.Writer;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.ClassNotFoundException;
 //#MIDP_EXCLUDE_END
 
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.Vector;
 
 import jade.util.leap.Serializable;
-import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.leap.EmptyIterator;
+
 import jade.util.leap.EnumIterator;
+import java.util.Vector;
 
 import jade.core.AID;
+//#CUSTOM_EXCLUDE_BEGIN
 import jade.domain.FIPAAgentManagement.Envelope;
+//#CUSTOM_EXCLUDE_END
 
 
 /**
@@ -137,7 +134,6 @@ public class ACLMessage implements Serializable {
 @serial
 */
 private int performative; // keeps the performative type of this object
-		//#CUSTOM_EXCLUDE_BEGIN
     /** This array of Strings keeps the names of the performatives **/
   private static final String[] performatives = new String[22];
   static { // initialization of the Vector of performatives
@@ -164,7 +160,6 @@ private int performative; // keeps the performative type of this object
     performatives[PROXY]="PROXY";
     performatives[PROPAGATE]="PROPAGATE";
   }
-		//#CUSTOM_EXCLUDE_END
 
  
   /**
@@ -236,9 +231,10 @@ private int performative; // keeps the performative type of this object
   */
   private String conversation_id = null;
 
-	//#CUSTOM_EXCLUDE_BEGIN
   private Properties userDefProps = null; 
+	//#CUSTOM_EXCLUDE_BEGIN
   private Envelope messageEnvelope;
+	//#CUSTOM_EXCLUDE_END
   
   /**
   Returns the list of the communicative acts as an array of <code>String</code>.
@@ -247,7 +243,6 @@ private int performative; // keeps the performative type of this object
   {
       return performatives;
   }
-	//#CUSTOM_EXCLUDE_END
   
   /**
      @deprecated Since every ACL Message must have a message type, you
@@ -627,23 +622,17 @@ private int performative; // keeps the performative type of this object
 			return source;
   }
 
-		private static final String UNSUPPORTED = "Unsupported";
   /**
     Returns the string corresponding to the integer for the performative
     @return the string corresponding to the integer for the performative; 
     "NOT-UNDERSTOOD" if the integer is out of range.
   */
   public static String getPerformative(int perf){
-			//#CUSTOM_EXCLUDE_BEGIN
     try {
       return performatives[perf];
     } catch (Exception e) {
       return performatives[NOT_UNDERSTOOD];
     }
-		//#CUSTOM_EXCLUDE_END
-		/*#CUSTOM_INCLUDE_BEGIN
-			throw new RuntimeException(UNSUPPORTED);
-			#CUSTOM_INCLUDE_END*/
   }
     
   /**
@@ -652,16 +641,11 @@ private int performative; // keeps the performative type of this object
   */
   public static int getInteger(String perf)
   {
-		//#CUSTOM_EXCLUDE_BEGIN
       String tmp = perf.toUpperCase();
       for (int i=0; i<performatives.length; i++)
 	  if (performatives[i].equals(tmp))
 	      return i;
       return -1;
-		//#CUSTOM_EXCLUDE_END
-		/*#CUSTOM_INCLUDE_BEGIN
-			throw new RuntimeException(UNSUPPORTED);
-			#CUSTOM_INCLUDE_END*/
     }
 
 
@@ -824,7 +808,6 @@ private int performative; // keeps the performative type of this object
   }
  
 
-//#CUSTOM_EXCLUDE_BEGIN
   /**
    * Add a new user defined parameter to this ACLMessage.
    * Notice that according to the FIPA specifications, the keyword of a
@@ -875,6 +858,7 @@ private int performative; // keeps the performative type of this object
 					 return (userDefProps.remove(key) != null);
    }
 
+//#CUSTOM_EXCLUDE_BEGIN
   /**
      Attaches an envelope to this message. The envelope is used by the
      <b><it>ACC</it></b> for inter-platform messaging.
@@ -921,7 +905,8 @@ private int performative; // keeps the performative type of this object
   public Envelope getEnvelope() {
     return messageEnvelope;
   }
-	//#CUSTOM_EXCLUDE_END
+//#CUSTOM_EXCLUDE_END
+  
   //#MIDP_EXCLUDE_BEGIN
 
   /**
@@ -1002,12 +987,12 @@ private int performative; // keeps the performative type of this object
     result.reply_byInMillisec = reply_byInMillisec;
     result.protocol = protocol;
     result.conversation_id = conversation_id;
-   //#CUSTOM_EXCLUDE_BEGIN
     result.userDefProps = userDefProps;
+    //#CUSTOM_EXCLUDE_BEGIN
     if(messageEnvelope != null) {
 	  	result.messageEnvelope = (Envelope)messageEnvelope.clone(); 
     }
-	  //#CUSTOM_EXCLUDE_END
+	//#CUSTOM_EXCLUDE_END
     result.dests = new Vector(dests.size());
 		for (int i=0; i<dests.size(); i++)
 		   result.dests.addElement(dests.elementAt(i));
@@ -1045,10 +1030,8 @@ private int performative; // keeps the performative type of this object
   reply_byInMillisec = 0;
   protocol = null;
   conversation_id = null;
-	//#CUSTOM_EXCLUDE_BEGIN
 	if (userDefProps != null)
 			userDefProps.clear();
-	//#CUSTOM_EXCLUDE_END
  }
 
   /**

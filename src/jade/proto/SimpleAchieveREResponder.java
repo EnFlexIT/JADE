@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.proto;
 
+//#CUSTOM_EXCLUDE_FILE
+
 import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.DataStore;
 import jade.core.CaseInsensitiveString;

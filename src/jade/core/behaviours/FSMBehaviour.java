@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.behaviours;
 
+//#CUSTOM_EXCLUDE_FILE
+
 import java.util.Hashtable;
 import jade.util.leap.*;
 import jade.util.leap.Serializable;

@@ -28,7 +28,6 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.Logger;
 import jade.security.JADESecurityException;
-import jade.imtp.leap.JICP.JICPProtocol;
 //#MIDP_EXCLUDE_BEGIN
 import jade.core.behaviours.Behaviour;
 import jade.security.*;
@@ -469,7 +468,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   // Private methods
   ///////////////////////////////
   private final void initInfo(Properties pp) {
-  	myId = new ContainerID(pp.getProperty(JICPProtocol.MEDIATOR_ID_KEY), null);
+  	myId = new ContainerID(pp.getProperty(MicroRuntime.CONTAINER_NAME_KEY), null);
   	AID.setPlatformID(pp.getProperty(MicroRuntime.PLATFORM_KEY));
   	platformAddresses = Specifier.parseList(pp.getProperty(MicroRuntime.PLATFORM_ADDRESSES_KEY), ';');
   	amsAID = new AID("ams", AID.ISLOCALNAME);

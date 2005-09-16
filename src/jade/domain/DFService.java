@@ -677,7 +677,6 @@ public class DFService extends FIPAService {
 					id.addAddresses((String) it.next());
 				}
 			}
-			//#CUSTOM_EXCLUDE_BEGIN
 			// Resolvers
 			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
 				Iterator it = parseAggregate(parser).iterator();
@@ -685,7 +684,6 @@ public class DFService extends FIPAService {
 					id.addResolvers((AID) it.next());
 				}
 			}
-			//#CUSTOM_EXCLUDE_END
 		}
 		parser.consumeChar(')');
 		return id;

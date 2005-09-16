@@ -22,6 +22,8 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
 package jade.proto.states;
 
+//#CUSTOM_EXCLUDE_FILE
+
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;

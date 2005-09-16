@@ -47,29 +47,22 @@ public class AID implements Comparable, Serializable {
   // Unique ID of the platform, used to build the GUID of resident agents.
   private static String platformID;
   
-  /**
-  @serial
-  */
   private String name; 
   private int hashCode;
   
-    private static final int EXPECTED_ADDRESSES_SIZE = 0;
-    //#CUSTOM_EXCLUDE_BEGIN
-    private static final int EXPECTED_RESOLVERS_SIZE = 0;
-    //#CUSTOM_EXCLUDE_END
+    private static final int EXPECTED_ADDRESSES_SIZE = 1;
+    private static final int EXPECTED_RESOLVERS_SIZE = 1;
 
 	//#MIDP_EXCLUDE_BEGIN
   private List addresses = new ArrayList(EXPECTED_ADDRESSES_SIZE);
   private List resolvers = new ArrayList(EXPECTED_RESOLVERS_SIZE);
-  private Properties userDefSlots = new Properties();
 	//#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
   private Vector addresses = new Vector(EXPECTED_ADDRESSES_SIZE,1);
-	//#CUSTOM_EXCLUDE_BEGIN
   private Vector resolvers = new Vector(EXPECTED_RESOLVERS_SIZE,1);
-  private Properties userDefSlots = new Properties();
-  //#CUSTOM_EXCLUDE_END
 		#MIDP_INCLUDE_END*/
+  
+  private Properties userDefSlots = new Properties();
 
  
 
@@ -224,7 +217,6 @@ public class AID implements Comparable, Serializable {
 			#MIDP_INCLUDE_END*/
   }
 
-  //#CUSTOM_EXCLUDE_BEGIN
   /**
   * This method permits to add the AID of a resolver (an agent where name 
   * resolution services for the agent can be contacted) 
@@ -432,7 +424,6 @@ public class AID implements Comparable, Serializable {
 	s.append(")");
 	return s.toString();
     }
-  //#CUSTOM_EXCLUDE_END
 
   /**
   * Clone the AID object.
@@ -449,15 +440,12 @@ public class AID implements Comparable, Serializable {
         result.addresses = new Vector(addresses.size());
 				for (int i=0; i<addresses.size(); i++)
 				   result.addresses.addElement(addresses.elementAt(i));
-				//#CUSTOM_EXCLUDE_BEGIN
         result.resolvers = new Vector(resolvers.size());
 				for (int i=0; i<resolvers.size(); i++)
 				   result.resolvers.addElement(resolvers.elementAt(i));
-				//#CUSTOM_EXCLUDE_END
 					#MIDP_INCLUDE_END*/
 
 
-				//#CUSTOM_EXCLUDE_BEGIN
 
         // Copying user defined slots
         //Enumeration enum = userDefSlots.propertyNames();
@@ -467,7 +455,7 @@ public class AID implements Comparable, Serializable {
         //                              (String) userDefSlots.getProperty(key));
         //}
         result.userDefSlots = userDefSlots;
-				//#CUSTOM_EXCLUDE_END
+        
         return result;
     } 
 

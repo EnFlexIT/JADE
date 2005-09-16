@@ -509,7 +509,6 @@ the default SearchContraints are used.
 					id.addAddresses((String) it.next());
 				}
 			}
-			//#CUSTOM_EXCLUDE_BEGIN
 			// Resolvers
 			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
 				Iterator it = parseAggregate(parser).iterator();
@@ -517,7 +516,6 @@ the default SearchContraints are used.
 					id.addResolvers((AID) it.next());
 				}
 			}
-			//#CUSTOM_EXCLUDE_END
 		}
 		parser.consumeChar(')');
 		return id;

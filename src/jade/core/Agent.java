@@ -786,7 +786,6 @@ public class Agent implements Runnable, Serializable
   	#MIDP_INCLUDE_END*/
   }
   
-//#CUSTOM_EXCLUDE_BEGIN
   /**
      Set message queue size. This method allows to change the number
      of ACL messages that can be buffered before being actually read
@@ -828,7 +827,6 @@ public class Agent implements Runnable, Serializable
   public int getQueueSize() {
     return msgQueue.getMaxSize();
   }
-//#CUSTOM_EXCLUDE_END
 
   
   /////////////////////////////////

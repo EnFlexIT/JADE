@@ -23,17 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
-import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
-import jade.lang.acl.ACLCodec.CodecException;
-import jade.domain.FIPAAgentManagement.Envelope;
-import jade.util.leap.Properties;
-import jade.util.leap.Iterator;
-import jade.util.Logger;
 
-import java.util.Date;
-import java.util.Enumeration;
 import java.io.*;
 
 /**
@@ -102,11 +94,7 @@ class SerializationEngine {
         } 
         else if (o instanceof ACLMessage) {   // ACLMessage
             dos.writeByte(ACL_ID);
-            try {
-              LEAPACLCodec.serializeACL((ACLMessage) o, dos);
-            } catch (CodecException ce){
-              throw new LEAPSerializationException("Error serializing ACL",ce);
-            }
+            LEAPACLCodec.serializeACL((ACLMessage) o, dos);
         } 
         else if (o instanceof String[]) {     // Array of Strings
             dos.writeByte(STRING_ARRAY_ID);
@@ -174,9 +162,6 @@ class SerializationEngine {
     }      // END of try
     catch (IOException e) {
     	throw new LEAPSerializationException("I/O Error Deserializing a generic object");
-    } 
-    catch (CodecException ce) {
-    	throw new LEAPSerializationException("Error Deserializing an ACL message");
     } 
   }
 

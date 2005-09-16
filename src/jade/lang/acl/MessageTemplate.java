@@ -62,29 +62,19 @@ public class MessageTemplate implements Serializable {
 
     // Names of the various fields of an ACL messages.
     private static final int CONVERSATION_ID = 0;
-		//#CUSTOM_EXCLUDE_BEGIN
     private static final int ENCODING = 1;
-		//#CUSTOM_EXCLUDE_END
     private static final int IN_REPLY_TO = 2;
-		//#CUSTOM_EXCLUDE_BEGIN
     private static final int LANGUAGE = 3;
-		//#CUSTOM_EXCLUDE_END
     private static final int ONTOLOGY = 4;
-		//#CUSTOM_EXCLUDE_BEGIN
     private static final int PROTOCOL = 5;
     private static final int REPLY_BY = 6;    
     private static final int REPLY_WITH = 7;
     private static final int RECEIVER = 9;
     private static final int REPLY_TO = 10;
-		//#CUSTOM_EXCLUDE_END
     private static final int PERFORMATIVE = 11;
-		//#CUSTOM_EXCLUDE_BEGIN
     private static final int CONTENT = 12;
-		//#CUSTOM_EXCLUDE_END
     private static final int SENDER = 13;
-		//#CUSTOM_EXCLUDE_BEGIN
     private static final int REPLY_BY_DATE = 14;
-		//#CUSTOM_EXCLUDE_END
 
   /**
   This interface must be overriden in order to define an application 
@@ -108,7 +98,6 @@ public class MessageTemplate implements Serializable {
       boolean match(ACLMessage msg);
   }
 
-  //#CUSTOM_EXCLUDE_BEGIN
   private static class AndExpression implements MatchExpression {
 
     private MatchExpression op1;
@@ -164,7 +153,6 @@ public class MessageTemplate implements Serializable {
 	  return  "(NOT " + op.toString()+")";
       }
   } // End of NotExpression class
-	//#CUSTOM_EXCLUDE_END
  
   private static class Literal implements MatchExpression{
 
@@ -183,52 +171,45 @@ public class MessageTemplate implements Serializable {
 	  this.matchValue = matchValue;
 	  this.slotName = SENDER;
       }
- 		  //#CUSTOM_EXCLUDE_BEGIN
       //Literal for the receiver and replyTo slot.
       Literal(AID[] matchValue, int slotName){
 	  this.matchValue = matchValue;
 	  this.slotName = slotName;
       }
- 		  //#CUSTOM_EXCLUDE_END
 
       //Literal for the performative slot
       Literal(int matchValue){
 	  this.perfValue = matchValue;
 	  this.slotName = PERFORMATIVE;
       }
-   		//#CUSTOM_EXCLUDE_BEGIN
       //literal for the reply_by_date slot.
       Literal(Date matchValue){
 	  this.matchValue=matchValue;
 	  this.slotName = REPLY_BY_DATE;
       }
- 		  //#CUSTOM_EXCLUDE_END
       public boolean match(ACLMessage msg) {
 	  switch(slotName){
 
 	  case CONVERSATION_ID:
 	       return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getConversationId());
-		//#CUSTOM_EXCLUDE_BEGIN
-	  case ENCODING:
-	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getEncoding());
-		//#CUSTOM_EXCLUDE_END
-	  case IN_REPLY_TO:
-	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getInReplyTo());
-		//#CUSTOM_EXCLUDE_BEGIN
-	  case(LANGUAGE ):
+	  case REPLY_WITH:
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyWith());
+	  case PERFORMATIVE:
+	      return (perfValue == msg.getPerformative());
+	  case LANGUAGE:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getLanguage());
-		//#CUSTOM_EXCLUDE_END
 	  case ONTOLOGY:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getOntology());
-		//#CUSTOM_EXCLUDE_BEGIN
 	  case PROTOCOL:
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getProtocol());
+	  case ENCODING:
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getEncoding());
+	  case IN_REPLY_TO:
+	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getInReplyTo());
 	      //  case(REPLY_BY):
 	      // return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyBy());
 	  case REPLY_BY_DATE:
 	      return ((Date)matchValue).equals(msg.getReplyByDate());
-	  case REPLY_WITH:
-	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getReplyWith());
 	  case RECEIVER:
 	      if(matchValue != null){
 		  AID[] receivers = (AID[])matchValue;
@@ -268,13 +249,8 @@ public class MessageTemplate implements Serializable {
 		  return true;
 	      }else
 		  return false;
-		//#CUSTOM_EXCLUDE_END
-	  case PERFORMATIVE:
-	      return (perfValue == msg.getPerformative());
-		//#CUSTOM_EXCLUDE_BEGIN
 	  case CONTENT://FIXME: verificare il caso in cui il contenuto e'in byte.
 	      return CaseInsensitiveString.equalsIgnoreCase((String)matchValue,msg.getContent());
-		//#CUSTOM_EXCLUDE_END
 	  case SENDER:
 	      if(matchValue != null)
 		  return ((AID)matchValue).equals(msg.getSender());
@@ -284,7 +260,8 @@ public class MessageTemplate implements Serializable {
 	  default:return false;
 	  }
       }
-		//#CUSTOM_EXCLUDE_BEGIN
+      
+		//#MIDP_EXCLUDE_BEGIN
       //only for debug purpose.
       public String toString(){
 
@@ -344,10 +321,9 @@ public class MessageTemplate implements Serializable {
 	  }
 	      
       }
-		//#CUSTOM_EXCLUDE_END
+		//#MIDP_EXCLUDE_END
   } // End of Literal class
     
-		//#CUSTOM_EXCLUDE_BEGIN
     private static class MatchAllLiteral implements MatchExpression{
 	//use this literal for a MessageTemplate who matches all ACLMessages
 	MatchAllLiteral(){
@@ -459,7 +435,8 @@ public class MessageTemplate implements Serializable {
 	}
 
     }//end class CustomMsgLiteral
-		//#CUSTOM_EXCLUDE_END
+    
+    
   /**
   @serial
   */
@@ -473,7 +450,6 @@ public class MessageTemplate implements Serializable {
     toMatch = e;
   }
 
-	//#CUSTOM_EXCLUDE_BEGIN
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message.
@@ -484,7 +460,7 @@ public class MessageTemplate implements Serializable {
     public static MessageTemplate MatchAll() {
       return new MessageTemplate(new MatchAllLiteral());
       }
-	//#CUSTOM_EXCLUDE_END
+    
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:sender</code> slot.
@@ -495,7 +471,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchSender(AID value) {
     return new MessageTemplate(new Literal(value));
   }
-	//#CUSTOM_EXCLUDE_BEGIN
+  
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:receiver</code> slot.
@@ -507,7 +483,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchReceiver(AID[] values) {
        return new MessageTemplate(new Literal(values,RECEIVER));
   }
-	//#CUSTOM_EXCLUDE_BEGIN
+  
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:content</code> slot.
@@ -529,7 +505,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchReplyWith(String value) {
     return new MessageTemplate(new Literal(value, REPLY_WITH));
   }
-		//#CUSTOM_EXCLUDE_END
+  
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:in-reply-to</code> slot.
@@ -540,7 +516,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchInReplyTo(String value) {
     return new MessageTemplate(new Literal(value,IN_REPLY_TO));
   }
-		//#CUSTOM_EXCLUDE_BEGIN
+  
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:reply-to</code> slot.
@@ -574,7 +550,7 @@ public class MessageTemplate implements Serializable {
   public static MessageTemplate MatchEncoding(String value) {
     return new MessageTemplate(new Literal(value,ENCODING));
   }
-	//#CUSTOM_EXCLUDE_END
+  
   /**
      This <em>Factory Method</em> returns a message template that
      matches any message with a given <code>:ontology</code> slot.
@@ -586,7 +562,6 @@ public class MessageTemplate implements Serializable {
       return new MessageTemplate(new Literal(value,ONTOLOGY));
   }
 
-		//#CUSTOM_EXCLUDE_BEGIN
     /**
        This <em>Factory Method</em> returns a message template that
        matches any message with a given <code>:reply-by</code> slot.
@@ -608,7 +583,7 @@ public class MessageTemplate implements Serializable {
     public static MessageTemplate MatchProtocol(String value) {
 	return new MessageTemplate(new Literal(value, PROTOCOL));
     }
-		//#CUSTOM_EXCLUDE_END
+    
     /**
        This <em>Factory Method</em> returns a message template that
        matches any message with a given <code>:conversation-id</code> slot.
@@ -630,7 +605,7 @@ public class MessageTemplate implements Serializable {
     public static MessageTemplate MatchPerformative(int value){
 	return new MessageTemplate(new Literal(value));
     }
-		//#CUSTOM_EXCLUDE_BEGIN    
+    
     /**
        This <em>Factory Method</em> returns a message template that
        matches ACL messages against a given one, passed as
@@ -656,7 +631,6 @@ public class MessageTemplate implements Serializable {
        @return A new <code>MessageTemplate</code>, matching the given
        message according to the above algorithm.
     */
-    
     public static MessageTemplate MatchCustom(ACLMessage msg, boolean matchPerformative) {
 	ACLMessage message = (ACLMessage)msg.clone();
 	return new MessageTemplate(new CustomMsgLiteral(message, matchPerformative));
@@ -707,7 +681,7 @@ public class MessageTemplate implements Serializable {
 	MessageTemplate result = new MessageTemplate(e);
 	return result;
     }
- 		//#CUSTOM_EXCLUDE_END
+    
     /**
        Matches an ACL message against this <code>MessageTemplate</code>
        object.
@@ -718,7 +692,6 @@ public class MessageTemplate implements Serializable {
     public boolean match(ACLMessage msg) {
 	return toMatch.match(msg);
     }
-		//#CUSTOM_EXCLUDE_BEGIN    
 
     /**
        Retrieve a string representation of this message template.
@@ -728,5 +701,4 @@ public class MessageTemplate implements Serializable {
     public String toString(){
 	return toMatch.toString();
     }
-		//#CUSTOM_EXCLUDE_END
 }

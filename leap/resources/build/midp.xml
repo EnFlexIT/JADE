@@ -80,8 +80,11 @@
 				<exclude name="**/jade/imtp/leap/sms/*"/>
 			</fileset>
 		</copy>
-	  <!-- 3) Preprocess the whole -->
+	  <!-- 3) Preprocess the whole for MIDP -->
 	  <pproc basedir="${src}" type="midp"/>
+	  
+	  <!-- 4) Preprocess the whole for CUSTOM directives -->
+	  <pproc basedir="${src}" type="${additional-pproc-type}"/>
 	</target>
 
 	

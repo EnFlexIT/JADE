@@ -396,9 +396,9 @@ public abstract class Behaviour implements Serializable {
   public Behaviour root() {
  	  //#CUSTOM_EXCLUDE_BEGIN
   	Behaviour p = getParent();
-    if (p != null)
+    if (p != null) {
       return p.root();
-    else
+    }
  	  //#CUSTOM_EXCLUDE_END
       return this;
   }

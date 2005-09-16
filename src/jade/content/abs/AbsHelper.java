@@ -109,7 +109,6 @@ public class AbsHelper {
 				}
 				aid.set(BasicOntology.AID_ADDRESSES, addresses);
 			}
-			//#CUSTOM_EXCLUDE_BEGIN
 			// Resolvers
       i = obj.getAllResolvers();
       if (i.hasNext()) {
@@ -120,7 +119,6 @@ public class AbsHelper {
 				}
 				aid.set(BasicOntology.AID_RESOLVERS, resolvers);
 			}
-			//#CUSTOM_EXCLUDE_END
       return aid;
     } 
 
@@ -247,7 +245,6 @@ public class AbsHelper {
 	  	  			ret.addAddresses(addr);
 						}
 					}
-					//#CUSTOM_EXCLUDE_BEGIN
         	// Resolvers
 					AbsAggregate resolvers = (AbsAggregate) aid.getAbsObject(BasicOntology.AID_RESOLVERS);
 					if (resolvers != null) {
@@ -256,7 +253,6 @@ public class AbsHelper {
 	    				ret.addResolvers(res);
 						}
 					}
-					//#CUSTOM_EXCLUDE_END
         	return ret;
         }
         catch (Exception e) {

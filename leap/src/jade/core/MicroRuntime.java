@@ -60,6 +60,7 @@ public class MicroRuntime {
 	public static final String CONN_MGR_CLASS_KEY = "connection-manager";	
 
   //#APIDOC_EXCLUDE_BEGIN
+	public static final String CONTAINER_NAME_KEY = "container-name";
 	public static final String PLATFORM_KEY = "platform-id";
 	public static final String PLATFORM_ADDRESSES_KEY = "addresses";
 	

@@ -66,12 +66,18 @@ public class OutgoingEncodingFilter extends Filter {
 
 
   /**
-   * Receive a command object for processing.
-   *
-   * @param cmd A <code>VerticalCommand</code> describing what operation has
-   * been requested from previous layers (that can be the actual
-   * prime source of the command or previous filters in the chain).
-   */
+   * Process the SEND_MESSAGE VCommand encoding the ACLMessage with the 
+   * proper representation and adjusting Envelope fields:
+   * 1) If the receiver lives in the local container 
+   *   --> Do not encode (to speed up performances)
+   *   --> Don't touch the envelope
+   * 2) If the receiver lives in a remote container
+   *   --> Encode using the specified representation or "LEAP" if no representation is specified
+   *   --> If an envelope is present adjust its fields
+   * 3) If the receiver lives in a remote platform
+   *   --> Encode using the specified representation or "String" if no representation is specified
+   *   --> Create a default envelope if not present and adjust its fields
+   */ 
   public boolean accept(VerticalCommand cmd) {
     String name = cmd.getName();
     Object[] params = cmd.getParams();
@@ -107,15 +113,15 @@ public class OutgoingEncodingFilter extends Filter {
           //DEBUG
           //          System.out.println("[EncodingService] Local message");
           return true;
-        } else {
+        } 
+        else {
           // add necessary fields to the envelope
           prepareEnvelope(msg, receiver, gmsg);
 
         }
       }
 
-      // in both cases (intra and inter), encode the message 
-      // using the specified encoding
+      // Encode the message using the specified encoding
       try{
         byte[] payload = encodeMessage(msg);
         // DEBUG
@@ -138,7 +144,7 @@ public class OutgoingEncodingFilter extends Filter {
 
 
   /**
-   * This method puts into the envelope the missing information
+   * This method puts into the envelope the missing information if required
    */
   public void prepareEnvelope(ACLMessage msg, AID receiver, GenericMessage gmsg) {
     Envelope env = msg.getEnvelope();
@@ -154,9 +160,9 @@ public class OutgoingEncodingFilter extends Filter {
 	    }
   	}
     else {
+    	// The agent lives outside the platform
   		gmsg.setForeignReceiver(true);
     	if (env == null) {
-	    	// The agent lives outside the platform
 		    msg.setDefaultEnvelope();
 		    env = msg.getEnvelope();
     	}
@@ -165,8 +171,8 @@ public class OutgoingEncodingFilter extends Filter {
 	    }
     }
     
-    // If no ACL representation is found, then default one (LEAP for 
-    // local receivers, String for foreign receivers) 
+    // If no ACL representation is set, use the default one ("LEAP" for 
+    // local receivers and "String" for foreign receivers) 
     String rep = env.getAclRepresentation();
     if(rep == null)
 	    env.setAclRepresentation(defaultRepresentation);

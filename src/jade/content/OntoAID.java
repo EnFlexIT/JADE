@@ -78,18 +78,16 @@ public class OntoAID extends AID implements Concept {
 				while (it.hasNext()) {
 					wrapper.addAddresses((String) it.next());
 				}
-				//#CUSTOM_EXCLUDE_BEGIN
 				it = id.getAllResolvers();
 				while (it.hasNext()) {
 					// This automatically performs the wrapping
 					wrapper.addResolvers((AID) it.next()); 
 				}
-				//#CUSTOM_EXCLUDE_END
 			}
 		}
 		return wrapper; 
 	}
-	//#CUSTOM_EXCLUDE_BEGIN
+	
 	/**
 	 * This method is redefined so that resolvers AID are automatically
 	 * wrapped into OntoAIDs
@@ -97,7 +95,7 @@ public class OntoAID extends AID implements Concept {
 	public void addResolvers(AID aid) {
 		super.addResolvers(wrap(aid));
 	}
-	//#CUSTOM_EXCLUDE_END
+	
 	// FIXME: clone method should be redefined too	
 }
 

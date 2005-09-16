@@ -252,10 +252,9 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 
   /**
      A new agent has just started on the FrontEnd.
-     - Create an image for the new agent and set its CertificateFolder
-     unless there is already a pending image (see createAgent()).
-     - Notify the Main
-     - Return the platform info to the FrontEnd if required
+     Adjust the agent name taking into account wild-cards.
+     Issue an INFORM_CREATED vertical command.
+     @return the actual name of the agent
   */
   public String bornAgent(String name) throws JADESecurityException, IMTPException {
   	  name = JADEManagementOntology.adjustAgentName(name, new String[]{getID().getName()});

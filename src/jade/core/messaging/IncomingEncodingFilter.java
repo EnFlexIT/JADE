@@ -63,19 +63,13 @@ public class IncomingEncodingFilter extends Filter {
     String name = cmd.getName();
     Object[] params = cmd.getParams();
     if(name.equals(MessagingSlice.SEND_MESSAGE)) {
-      //DEBUG
-      //System.out.println("-- Filtering an SEND_MESSAGE command (incoming) --");
-      // Params could be an ACLMessage or Envelope + payload
-      // encapsulated inside a GenericMessage object.
       GenericMessage gmsg = (GenericMessage)params[1];
 
-      //DEBUG
-      //System.out.println(gmsg);
       // The command always contains a non-null ACLMessage (for the purpose
       // of notification of failures), but it contains the real ACLMessage
       // when the payload is null
       if(gmsg.getPayload()==null){
-        // If this is a real ACLMessage, nothing to do!
+        // If a real ACLMessage is present, just do nothing!
         return true;
       }
       else {

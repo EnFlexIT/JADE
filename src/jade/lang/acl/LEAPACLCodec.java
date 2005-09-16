@@ -32,10 +32,8 @@ import java.util.Enumeration;
 import java.util.Date;
 
 import jade.core.AID;
-import jade.domain.FIPAAgentManagement.Envelope;
 import jade.util.leap.Properties;
 import jade.util.leap.Iterator;
-import jade.lang.acl.ACLCodec.CodecException;
 
 /**
  * This class implements the LEAP codec for ACLMessages.
@@ -62,9 +60,7 @@ public class LEAPACLCodec implements ACLCodec {
       return baos.toByteArray();
     } catch (IOException ioe){
       ioe.printStackTrace();
-    } catch (CodecException ce){
-      ce.printStackTrace();
-    }
+    } 
     return new byte[0];
   }
 
@@ -100,7 +96,7 @@ public class LEAPACLCodec implements ACLCodec {
 
   /**
    */
-  public final static void serializeACL(ACLMessage msg, DataOutputStream dos) throws IOException, CodecException {
+  public final static void serializeACL(ACLMessage msg, DataOutputStream dos) throws IOException {
     dos.writeByte(msg.getPerformative());
 
     byte presence1 = 0;
@@ -114,16 +110,10 @@ public class LEAPACLCodec implements ACLCodec {
     String inReplyTo = msg.getInReplyTo();
     String replyWith = msg.getReplyWith();
     Date replyBy = msg.getReplyByDate();
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
-    Envelope envelope = null;
-		envelope = msg.getEnvelope();
     Properties props = msg.getAllUserDefinedParameters();
     if (props.size() > 63) {
-    	throw new CodecException("Cannot serialize more than 63 params",null);
+    	throw new IOException("Cannot serialize more than 63 params");
     }
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
 
     if (sender != null) { presence1 |= 0x80; }
     if (language != null) { presence1 |= 0x40; }
@@ -134,12 +124,7 @@ public class LEAPACLCodec implements ACLCodec {
     if (inReplyTo != null) { presence1 |= 0x02; }
     if (replyWith != null) { presence1 |= 0x01; }
     if (replyBy != null) { presence2 |= 0x80; }
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
-    if (envelope != null) { presence2 |= 0x40; }
     presence2 |= (props.size() & 0x3F);
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence1);
     dos.writeByte(presence2);
 
@@ -152,14 +137,9 @@ public class LEAPACLCodec implements ACLCodec {
     if (inReplyTo != null) { dos.writeUTF(inReplyTo); }
     if (replyWith != null) { dos.writeUTF(replyWith); }
     if (replyBy != null) { dos.writeLong(replyBy.getTime()); }
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
-    if (envelope != null) { serializeEnvelope(envelope, dos); }
 
     // User defined parameters
     serializeProperties(props, dos);
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END    
     // Receivers
     Iterator it = msg.getAllReceiver();
     while (it.hasNext()) {
@@ -203,7 +183,7 @@ public class LEAPACLCodec implements ACLCodec {
 
   /**
    */
-  public final static ACLMessage deserializeACL(DataInputStream dis) throws IOException, CodecException {
+  public final static ACLMessage deserializeACL(DataInputStream dis) throws IOException {
   	ACLMessage msg = new ACLMessage((int) dis.readByte());
 
     byte presence1 = dis.readByte();
@@ -218,9 +198,6 @@ public class LEAPACLCodec implements ACLCodec {
     if ((presence1 & 0x02) != 0) { msg.setInReplyTo(dis.readUTF()); }
     if ((presence1 & 0x01) != 0) { msg.setReplyWith(dis.readUTF()); }
     if ((presence2 & 0x80) != 0) { msg.setReplyByDate(new Date(dis.readLong())); }
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
-    if ((presence2 & 0x40) != 0) { msg.setEnvelope(deserializeEnvelope(dis)); }
     // User defined properties
     int propsSize = presence2 & 0x3F;
     for (int i = 0; i < propsSize; ++i) {
@@ -228,8 +205,6 @@ public class LEAPACLCodec implements ACLCodec {
     	String val = dis.readUTF();
     	msg.addUserDefinedParameter(key, val);
     }
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
     
     // Receivers
     while (dis.readBoolean()) {
@@ -260,27 +235,19 @@ public class LEAPACLCodec implements ACLCodec {
   }
 
 
-  public final static void serializeAID(AID id, DataOutputStream dos) throws IOException, CodecException {
+  public final static void serializeAID(AID id, DataOutputStream dos) throws IOException {
     byte presence = 0;
     String name = id.getName();
     Iterator addresses = id.getAllAddresses();
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     Iterator resolvers = id.getAllResolvers();
     Properties props = id.getAllUserDefinedSlot();
     if (props.size() > 31) {
-    	throw new CodecException("Cannot serialize more than 31 slots",null);
+    	throw new IOException("Cannot serialize more than 31 slots");
     }
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
     if (name != null) { presence |= 0x80; }
     if (addresses.hasNext()) { presence |= 0x40; }
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     if (resolvers.hasNext()) { presence |= 0x20; }
     presence |= (props.size() & 0x1F);
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
     dos.writeByte(presence);
     
     if (name != null) { dos.writeUTF(name); }
@@ -289,8 +256,6 @@ public class LEAPACLCodec implements ACLCodec {
     	dos.writeUTF((String) addresses.next());
     	dos.writeBoolean(addresses.hasNext());
     }
-		//#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     // Resolvers
     while (resolvers.hasNext()) {
     	serializeAID((AID) resolvers.next(), dos);
@@ -298,11 +263,9 @@ public class LEAPACLCodec implements ACLCodec {
     }
     // User defined slots
     serializeProperties(props, dos);
-		//#CUSTOMJ2SE_EXCLUDE_END
-		//#CUSTOM_EXCLUDE_END
   }
   
-  public final static AID deserializeAID(DataInputStream dis) throws IOException, CodecException {
+  public final static AID deserializeAID(DataInputStream dis) throws IOException {
     byte presence = dis.readByte();
     AID id = ((presence & 0x80) != 0 ? new AID(dis.readUTF(), AID.ISGUID) : new AID());
     
@@ -312,15 +275,12 @@ public class LEAPACLCodec implements ACLCodec {
     		id.addAddresses(dis.readUTF());
     	} while (dis.readBoolean());
     }
-    //#CUSTOM_EXCLUDE_BEGIN
-		//#CUSTOMJ2SE_EXCLUDE_BEGIN
     // Resolvers
     if ((presence & 0x20) != 0) {
     	do {
     		id.addResolvers(deserializeAID(dis));
     	} while (dis.readBoolean());
-    }
-    
+    }    
     // User defined slots
     int propsSize = presence & 0x1F;
     for (int i = 0; i < propsSize; ++i) {
@@ -328,25 +288,10 @@ public class LEAPACLCodec implements ACLCodec {
     	String val = dis.readUTF();
     	id.addUserDefinedSlot(key, val);
     }
-		//#CUSTOMJ2SE_EXCLUDE_END
-    //#CUSTOM_EXCLUDE_END
   	return id;
   }
-  
-  //#CUSTOM_EXCLUDE_BEGIN
-  //#CUSTOMJ2SE_EXCLUDE_BEGIN
-  private final static void serializeEnvelope(Envelope env, DataOutputStream dos) throws IOException, CodecException {
-    //  	System.out.println("LEAPACLCodec.serializeEnvelope() not yet implemented");
-  	// FIXME: To be implemented
-  }
-  
-  private final static Envelope deserializeEnvelope(DataInputStream dis) throws IOException, CodecException {
-    //  	System.out.println("LEAPACLCodec.deserializeEnvelope() not yet implemented");
-  	// FIXME: To be implemented
-  	return null;
-  }
-  
-  private static final void serializeProperties(Properties props, DataOutputStream dos) throws IOException, CodecException {
+    
+  private static final void serializeProperties(Properties props, DataOutputStream dos) throws IOException {
     Enumeration e = props.keys();
     while (e.hasMoreElements()) {
     	String key = (String) e.nextElement();
@@ -354,8 +299,4 @@ public class LEAPACLCodec implements ACLCodec {
     	dos.writeUTF(props.getProperty(key));
     }
   }  
-  //#CUSTOMJ2SE_EXCLUDE_END
-  //#CUSTOM_EXCLUDE_END
-
-
 }

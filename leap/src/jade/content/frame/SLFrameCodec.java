@@ -234,7 +234,6 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
 			}
 			f.put(SL0Vocabulary.AID_ADDRESSES, addresses);
 		}
-	  //#CUSTOM_EXCLUDE_BEGIN
 		// Resolvers
 		i = id.getAllResolvers();
 		if (i.hasNext()) {
@@ -245,7 +244,6 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
 			}
 			f.put(SL0Vocabulary.AID_RESOLVERS, resolvers);
 		}
-    //#CUSTOM_EXCLUDE_END
 		return f;
   }
   
@@ -260,7 +258,6 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
 				id.addAddresses((String) addresses.elementAt(i));
 			}
 		}
-    //#CUSTOM_EXCLUDE_BEGIN
 		// Resolvers
 		OrderedFrame resolvers = (OrderedFrame) f.get(SL0Vocabulary.AID_RESOLVERS);
 		if (resolvers != null) {
@@ -269,7 +266,6 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
 				id.addResolvers(res);
 			}
 		}
-	  //#CUSTOM_EXCLUDE_END
 		return id;
   }
 }
