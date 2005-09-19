@@ -296,7 +296,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		      myMediatorID = props.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		      // Complete the mediator address with the mediator ID
 		      mediatorTA = new JICPAddress(mediatorTA.getHost(), mediatorTA.getPort(), myMediatorID, null);
-		    	myLogger.log(Logger.INFO, "BackEnd OK");
+		    	myLogger.log(Logger.INFO, "BackEnd OK: mediator-id = "+myMediatorID);
 		    	// The BE has just been created --> refresh the INP connection too
 		    	refreshInp();
 				  return con;	      

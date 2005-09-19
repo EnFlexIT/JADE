@@ -53,10 +53,10 @@ import jade.security.JADESecurityException;
 
 import jade.util.Logger;
 
+import java.util.Hashtable;
 //#J2ME_EXCLUDE_BEGIN
 import java.io.IOException;
 import java.io.File;
-import java.util.Hashtable;
 //#J2ME_EXCLUDE_END
 
 
