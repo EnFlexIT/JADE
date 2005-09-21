@@ -121,9 +121,6 @@ class MessageManager {
 	   Activate the asynchronous delivery of a GenericMessage
    */
 	public void deliver(GenericMessage msg, AID receiverID, Channel ch) {
-		if (myLogger.isLoggable(Logger.FINEST)) {
-			myLogger.log(Logger.FINEST, "Enqueuing message "+stringify(msg)+" for agent "+receiverID.getName());
-		}
 		outBox.addLast(receiverID, msg, ch);
 	}
 	
@@ -140,22 +137,16 @@ class MessageManager {
  				PendingMsg pm = outBox.get();
  				GenericMessage msg = pm.getMessage();
  				AID receiverID = pm.getReceiver();
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Serving message "+stringify(msg)+" for agent "+receiverID.getName());
-				}
     		
  				// Deliver the message
 				Channel ch = pm.getChannel();
 		    	try {
 			    	ch.deliverNow(msg, receiverID);
-					if (myLogger.isLoggable(Logger.FINEST)) {
-						myLogger.log(Logger.FINEST, "Message served.");
-					}
 		    	}
 		    	catch (Throwable t) {
 		    		// A MessageManager deliverer thread must never die
 		    		myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". "+t);
-					  ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
+					ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
 				}
 		    	outBox.handleServed(receiverID);
 	 		}

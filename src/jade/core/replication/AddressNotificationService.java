@@ -55,8 +55,6 @@ import jade.util.Logger;
 */
 public class AddressNotificationService extends BaseService {
 
-   private Logger logger = Logger.getMyLogger(this.getClass().getName());
-
     public void init(AgentContainer ac, Profile p) throws ProfileException {
 	super.init(ac, p);
 
@@ -246,9 +244,8 @@ public class AddressNotificationService extends BaseService {
 
 
     private void addAddress(String addr) throws IMTPException {
-    	//log("Adding PlatformManager address "+addr, 2);
-            if (logger.isLoggable(Logger.CONFIG))
-              logger.log(Logger.CONFIG,"Adding PlatformManager address "+addr);
+            if (myLogger.isLoggable(Logger.CONFIG))
+            	myLogger.log(Logger.CONFIG,"Adding PlatformManager address "+addr);
 			myServiceManager.addAddress(addr);
     }
 

@@ -85,8 +85,6 @@ public class MainReplicationService extends BaseService {
 
 	private static final boolean INCLUDE_MYSELF = true;
 
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
-
 	private static final String[] OWNED_COMMANDS = new String[] {};
 
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
@@ -343,8 +341,8 @@ public class MainReplicationService extends BaseService {
 
 		public void stopMonitoring() {
 			if (nodeMonitor != null) {
-				if (logger.isLoggable(Logger.CONFIG))
-					logger.log(Logger.CONFIG, "Stop monitoring node <" + nodeMonitor.getNode().getName() + ">");
+				if (myLogger.isLoggable(Logger.CONFIG))
+					myLogger.log(Logger.CONFIG, "Stop monitoring node <" + nodeMonitor.getNode().getName() + ">");
 				nodeMonitor.stop();
 			}
 		}
@@ -524,8 +522,8 @@ public class MainReplicationService extends BaseService {
 					// FIXME: What about principal and ownership?
 					myMain.bornAgent(agents[i], containers[i], null, null, true);
 					//log("Agent "+agents[i].getName()+" inserted into GADT", 2);
-					if (logger.isLoggable(Logger.CONFIG))
-						logger.log(Logger.CONFIG, "Agent " + agents[i].getName() + " inserted into GADT");
+					if (myLogger.isLoggable(Logger.CONFIG))
+						myLogger.log(Logger.CONFIG, "Agent " + agents[i].getName() + " inserted into GADT");
 
 				} catch (NotFoundException nfe) {
 					// It should never happen...
@@ -551,8 +549,8 @@ public class MainReplicationService extends BaseService {
 				// If the name is already in the GADT, throws NameClashException
 				myMain.bornAgent(name, cid, principal, ownership, false);
 				//log("Agent "+name.getName()+" inserted into GADT", 2);
-				if (logger.isLoggable(Logger.CONFIG))
-					logger.log(Logger.CONFIG, "Agent " + name.getName() + " inserted into GADT");
+				if (myLogger.isLoggable(Logger.CONFIG))
+					myLogger.log(Logger.CONFIG, "Agent " + name.getName() + " inserted into GADT");
 
 			} catch (NameClashException nce) {
 				try {
@@ -570,8 +568,8 @@ public class MainReplicationService extends BaseService {
 					// Ping failed: forcibly replace the dead agent...
 					myMain.bornAgent(name, cid, principal, ownership, true);
 					//log("Agent "+name.getName()+" inserted into GADT", 2);
-					if (logger.isLoggable(Logger.CONFIG))
-						logger.log(Logger.CONFIG, "Agent " + name.getName() + " inserted into GADT");
+					if (myLogger.isLoggable(Logger.CONFIG))
+						myLogger.log(Logger.CONFIG, "Agent " + name.getName() + " inserted into GADT");
 
 				}
 			}
@@ -634,14 +632,14 @@ public class MainReplicationService extends BaseService {
 
 		public void nodeAdded(Node n) {
 			//log("Start monitoring node <"+n.getName()+">", 2);
-			if (logger.isLoggable(Logger.CONFIG))
-				logger.log(Logger.CONFIG, "Start monitoring node <" + n.getName() + ">");
+			if (myLogger.isLoggable(Logger.CONFIG))
+				myLogger.log(Logger.CONFIG, "Start monitoring node <" + n.getName() + ">");
 
 		}
 
 		public void nodeRemoved(Node n) {
-			if (logger.isLoggable(Logger.CONFIG)) {
-				logger.log(Logger.CONFIG, "Node <" + n.getName() + "> TERMINATED");
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> TERMINATED");
 			}
 
 			try {
@@ -665,7 +663,7 @@ public class MainReplicationService extends BaseService {
 
 				// Become the new leader if it is the case...
 				if ((oldLabel != 0) && (myLabel == 0)) {
-					logger.log(Logger.INFO, "-- I'm the new leader ---");
+					myLogger.log(Logger.INFO, "-- I'm the new leader ---");
 					myContainer.becomeLeader();
 				}
 
@@ -678,15 +676,15 @@ public class MainReplicationService extends BaseService {
 
 		public void nodeUnreachable(Node n) {
 			//log("Node <"+n.getName()+"> UNREACHABLE", 2);
-			if (logger.isLoggable(Logger.CONFIG))
-				logger.log(Logger.CONFIG, "Node <" + n.getName() + "> UNREACHABLE");
+			if (myLogger.isLoggable(Logger.CONFIG))
+				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> UNREACHABLE");
 
 		}
 
 		public void nodeReachable(Node n) {
 			//log("Node <"+n.getName()+"> REACHABLE", 2);
-			if (logger.isLoggable(Logger.CONFIG))
-				logger.log(Logger.CONFIG, "Node <" + n.getName() + "> REACHABLE");
+			if (myLogger.isLoggable(Logger.CONFIG))
+				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> REACHABLE");
 
 		}
 
@@ -729,7 +727,7 @@ public class MainReplicationService extends BaseService {
 				slice.serve(cmd);
 				Object ret = cmd.getReturnValue();
 				if (ret instanceof Throwable) {
-					logger.log(Logger.SEVERE, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName);
+					myLogger.log(Logger.SEVERE, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName);
 					((Throwable) ret).printStackTrace();
 				}
 			}

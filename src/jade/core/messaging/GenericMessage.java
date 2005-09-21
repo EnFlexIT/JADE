@@ -56,7 +56,7 @@ public class GenericMessage implements Serializable {
   private transient Credentials senderCredentials;
   private boolean isAMSFailure = false;
   private transient boolean foreignReceiver = false;
-  private transient int attemptCnt = 0;
+  private String traceID = null;
 
   public GenericMessage(){
   }
@@ -124,12 +124,12 @@ public class GenericMessage implements Serializable {
   	foreignReceiver = b;
   }
   
-  final int getAttemptCnt() {
-  	return attemptCnt;
+  public final String getTraceID() {
+  	return traceID;
   }
   
-  final void incAttemptCnt() {
-  	attemptCnt++;
+  public final void setTraceID(String id) {
+  	traceID = id;
   }
   
 	//#MIDP_EXCLUDE_BEGIN

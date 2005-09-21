@@ -101,8 +101,6 @@ public class PersistentDeliveryService extends BaseService {
 
 	static final String ACL_USERDEF_DUE_DATE = "JADE-persistentdelivery-duedate";
 
-        private Logger logger = Logger.getMyLogger(this.getClass().getName());
-
     private static final String[] OWNED_COMMANDS = new String[] {
 	/*PersistentDeliverySlice.ACTIVATE_MESSAGE_STORE,
 	PersistentDeliverySlice.DEACTIVATE_MESSAGE_STORE,
@@ -366,8 +364,8 @@ public class PersistentDeliveryService extends BaseService {
 	    AID receiver = (AID)params[1];
     	ACLMessage acl = msg.getACLMessage();
 
-      if(logger.isLoggable(Logger.FINE))
-        logger.log(Logger.FINE,"Processing failed message "+MessageManager.stringify(msg)+" for agent "+receiver.getName());
+      if(myLogger.isLoggable(Logger.FINE))
+    	  myLogger.log(Logger.FINE,"Processing failed message "+MessageManager.stringify(msg)+" for agent "+receiver.getName());
 
 
 	    // FIXME: We should check if the failure is due to a "not found receiver"
@@ -389,13 +387,13 @@ public class PersistentDeliveryService extends BaseService {
 				}
 
 		    if(accepted) {
-          logger.log((firstTime ? Logger.INFO : Logger.FINE) ,"Message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" stored on node "+slice.getNode().getName());
+		    	myLogger.log((firstTime ? Logger.INFO : Logger.FINE) ,"Message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" stored on node "+slice.getNode().getName());
 		    	// The message was stored --> Veto the NOTIFY_FAILURE command
 					return false;
 		    }
 		}
 		catch(Exception e) {
-        logger.log(Logger.WARNING,"Error trying to store message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" on node "+slice.getNode().getName());
+			myLogger.log(Logger.WARNING,"Error trying to store message "+MessageManager.stringify(msg)+" for agent "+receiver.getName()+" on node "+slice.getNode().getName());
 		    // Ignore it and try other slices...
 		}
 	    }
@@ -447,7 +445,7 @@ public class PersistentDeliveryService extends BaseService {
 							    slice.flushMessages(agentID);
 							}
 							catch(Exception e) {
-                logger.log(Logger.WARNING,"Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName());
+								myLogger.log(Logger.WARNING,"Error trying to flush messages for agent "+agentID.getName()+" on node "+slice.getNode().getName());
 						    // Ignore it and try other slices...
 							}
 				    }
@@ -577,12 +575,12 @@ public class PersistentDeliveryService extends BaseService {
 			if (dueDate > now || dueDate == PersistentDeliveryFilter.NEVER) {
 				try {
 				    if (firstTime) {
-				      if(logger.isLoggable(Logger.INFO))
-				        logger.log(Logger.INFO,"Storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
+				      if(myLogger.isLoggable(Logger.INFO))
+				    	  myLogger.log(Logger.INFO,"Storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
 				    }
 				    else {
-		          if(logger.isLoggable(Logger.FINE))
-				        logger.log(Logger.FINE,"Re-storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
+		          if(myLogger.isLoggable(Logger.FINE))
+		        	  myLogger.log(Logger.FINE,"Re-storing message\n"+MessageManager.stringify(msg)+" for agent "+receiver.getName()+"\nDue date is "+dueDate);
 				    }
 				    myManager.storeMessage(storeName, msg, receiver);
 				    return true;
@@ -602,7 +600,7 @@ public class PersistentDeliveryService extends BaseService {
 	private void flushMessages(AID receiver) {
 	    int cnt = myManager.flushMessages(receiver);
 	    if (cnt > 0) {
-        logger.log(Logger.INFO,"Delivered "+cnt+" messages to agent "+receiver);
+	    	myLogger.log(Logger.INFO,"Delivered "+cnt+" messages to agent "+receiver);
 	    }
 	}
 
@@ -637,7 +635,7 @@ public class PersistentDeliveryService extends BaseService {
 		    if(className != null) {
 				Class c = Class.forName(className);
 				messageFilter = (PersistentDeliveryFilter)c.newInstance();
-				logger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
+				myLogger.log(Logger.INFO,"Using message filter of type "+messageFilter.getClass().getName());
 		    }
 		}
 		catch(Exception e) {
