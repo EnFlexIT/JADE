@@ -48,6 +48,9 @@ class OutBox {
 	 * a new message.
 	 */
 	void addLast(AID receiverID, GenericMessage msg, Channel ch) {
+		boolean logActivated = myLogger.isLoggable(Logger.FINER);
+		if (logActivated)
+			myLogger.log(Logger.FINER,"Entering addLast for receiver "+receiverID.getName());
 		if (msg.getPayload() != null) {
 			ACLMessage acl = msg.getACLMessage();
 			if (acl != null) {
@@ -60,17 +63,26 @@ class OutBox {
 		
 		synchronized (this) {
 			Box b = (Box) messagesByReceiver.get(receiverID);
+			if (logActivated) {
+				String msgDebug = (b==null)? "No box for receiver "+receiverID.getName():"Box for receiver "+receiverID.getName()+" busy ?  "+b.isBusy();
+				myLogger.log(Logger.FINER,msgDebug);
+			}
 			if (b == null){
 				// There is no Box of messages for this receiver yet. Create a new one 
 				b = new Box(receiverID);
 				messagesByReceiver.put(receiverID, b);
 				messagesByOrder.add(b);
+				if (logActivated)
+					myLogger.log(Logger.FINER,"Box created for receiver "+receiverID.getName());
 			}
+			if (logActivated)
+				myLogger.log(Logger.FINER,"Message entered in box for receiver "+receiverID.getName());
 			b.addLast(new PendingMsg(msg, receiverID, ch, -1));
-			//log("Message added", 2);
 			// Wakes up all deliverers
 			notifyAll();
 		}
+		if (logActivated)
+			myLogger.log(Logger.FINER,"Exiting addLast for receiver "+receiverID.getName());
 	}
 
 	/**
@@ -123,13 +135,12 @@ class OutBox {
 	 * inside a synchronized block.
    */
 	private final Box getNextIdle(){
-		
-		//log("Searching for an idle receiver. Current size is "+messagesByOrder.size(),2);
 		for (int i = 0; i < messagesByOrder.size(); ++i) {
 			Box b = (Box) messagesByOrder.get();
 			if (!b.isBusy()) {
 				b.setBusy(true);
-				//log("Idele receiver found: "+b.getReceiver().getName(),2);
+				if( myLogger.isLoggable(Logger.FINER) )
+					myLogger.log(Logger.FINER,"Setting box busy for receiver "+b.getReceiver().getName());
 				return b;
 			}
 		}
@@ -142,15 +153,23 @@ class OutBox {
 	 * Otherwise just mark it as idel (not busy).
    */
 	synchronized final void handleServed( AID receiverID ){
+		boolean logActivated = myLogger.isLoggable(Logger.FINER);
+		if (logActivated)
+			myLogger.log(Logger.FINER,"Entering handleServed for "+receiverID.getName());
 		Box b = (Box) messagesByReceiver.get(receiverID);
 		if (b.isEmpty()) {
 			messagesByReceiver.remove(receiverID);
 			messagesByOrder.remove(b);
-			//log("Removed entry for receiver "+receiverId.getName(), 2);
+			if (logActivated)
+				myLogger.log(Logger.FINER,"Removed box for receiver "+receiverID.getName());
 		}
 		else {
 			b.setBusy(false);
+			if (logActivated)
+				myLogger.log(Logger.FINER,"Freeing box for receiver "+receiverID.getName());
 		}
+		if (logActivated)
+			myLogger.log(Logger.FINER,"Exiting handleServed for "+receiverID.getName());
 	}
 
 	private void increaseSize(int k) {
