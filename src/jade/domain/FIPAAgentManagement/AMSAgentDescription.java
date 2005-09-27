@@ -66,6 +66,13 @@ public class AMSAgentDescription implements Concept {
        state.
     */
     public static final String TRANSIT = "transit";
+    
+    /**
+    String constant for the <code>latent</code> agent life-cycle
+    state. JADE specific state indicating an agent waiting to be restored after a 
+    crash of the main container
+    */
+    public static final String LATENT = "latent";
 
     private AID name;
     private String ownership;

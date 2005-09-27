@@ -49,7 +49,6 @@ public class AgentDescriptor {
     private AMSAgentDescription description;
     //  private AgentProxy proxy;
     private boolean foreign;
-    private boolean latent;
     private ContainerID containerID;
     private JADEPrincipal principal;
     private Credentials amsDelegation;
@@ -84,16 +83,7 @@ public class AgentDescriptor {
 	return !foreign;
     }
     
-    // Is this agent descriptor latent (refers to an agent onto a died container) - applis to replicated containers
-    public boolean isLatent() {
-    	return latent;
-    }
-    
-    public void setLatent(boolean value) {
-    	latent = value;
-    }
-
-    // Container ID
+   // Container ID
     public void setContainerID(ContainerID cid) {
 	containerID = cid;
     }

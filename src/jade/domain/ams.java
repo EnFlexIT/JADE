@@ -971,6 +971,8 @@ public class ams extends Agent implements AgentManager.Listener {
 	//////////////////////////////////////////////////////////////////
 
 	public void resetEvents(boolean sendSnapshot) {
+		// FIXME: in this method here() does not work since the agent toolkit is
+		// not yet initialized.
 
 		// Put the initial event in the event queue
 		eventQueue.clear();
@@ -1014,26 +1016,29 @@ public class ams extends Agent implements AgentManager.Listener {
 				// Send all agent names, along with their container name.
 				AID[] agents = myPlatform.agentNames();
 				for (int j = 0; j < agents.length; j++) {
-
 					AID agentName = agents[j];
-					ContainerID c = myPlatform.getContainerID(agentName);
+					// FIXME: Check if we have to lock the AgentDescriptor
 					AMSAgentDescription amsd = myPlatform.getAMSDescription(agentName);
+					if (! amsd.getState().equals(AMSAgentDescription.LATENT)) {
 
-					BornAgent ba = new BornAgent();
-					// Note that "agentName" may not include agent addresses
-					AID id = agentName;
-					if (amsd != null) {
-						if (amsd.getName() != null) {
-							id = amsd.getName();
+						ContainerID c = myPlatform.getContainerID(agentName);
+	
+						BornAgent ba = new BornAgent();
+						// Note that "agentName" may not include agent addresses
+						AID id = agentName;
+						if (amsd != null) {
+							if (amsd.getName() != null) {
+								id = amsd.getName();
+							}
+							ba.setState(amsd.getState());
+							ba.setOwnership(amsd.getOwnership());
 						}
-						ba.setState(amsd.getState());
-						ba.setOwnership(amsd.getOwnership());
+						ba.setAgent(id);
+						ba.setWhere(c);
+	
+						er = new EventRecord(ba, here());
+						eventQueue.put(er);
 					}
-					ba.setAgent(id);
-					ba.setWhere(c);
-
-					er = new EventRecord(ba, here());
-					eventQueue.put(er);
 				}
 			} catch (NotFoundException nfe) {
 				// It should never happen

@@ -229,8 +229,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	    fireDeadAgent(old.getContainerID(), name);
 	}
 	else {
-	    platformAgents.put(name, old);
-	    throw new NameClashException("Agent " + name + " already present in the platform ");
+		if (! old.getDescription().getState().equals(AMSAgentDescription.LATENT) ) {
+			platformAgents.put(name, old);
+			throw new NameClashException("Agent " + name + " already present in the platform ");
+		}
 	}
       }
       else {
@@ -1497,14 +1499,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	for(int i = 0; i < allIDs.length; i++) {
 	    AgentDescriptor ad = platformAgents.acquire(allIDs[i]);
 	    ContainerID id = ad.getContainerID();
-	    platformAgents.release(allIDs[i]);
 	    if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
-		try {
-		    deadAgent(allIDs[i]);
-		}
-		catch(NotFoundException nfe) {
-		    nfe.printStackTrace();
-		}
+	    	// FIXME: Use a more generic mechanism
+	    	if (! allIDs[i].getLocalName().equalsIgnoreCase("ams") ) {
+	    	    platformAgents.release(allIDs[i]);
+	    		try {
+	    		    deadAgent(allIDs[i]);
+	    		}
+	    		catch(NotFoundException nfe) {
+	    		    nfe.printStackTrace();
+	    		}
+	    	}
+	    	else {
+	    		ad.getDescription().setState(AMSAgentDescription.LATENT);
+	    	    platformAgents.release(allIDs[i]);
+	    	}
+	    }
+	    else {
+    	    platformAgents.release(allIDs[i]);
 	    }
 	}
     }
