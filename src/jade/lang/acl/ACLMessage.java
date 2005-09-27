@@ -161,6 +161,11 @@ private int performative; // keeps the performative type of this object
     performatives[PROPAGATE]="PROPAGATE";
   }
 
+  /**
+   * User defined parameter key specifying, when set to "true", that if the delivery of a 
+   * message fails, no FAILURE notification has to be sent back to the sender.
+   */
+  public static final String IGNORE_FAILURE = "JADE-ignore-failure";
  
   /**
   @serial

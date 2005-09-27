@@ -125,7 +125,7 @@ public class AID implements Comparable, Serializable {
        the AID included in the AMSAgentDescription registered with 
        the AMS.
      */
-    public static final String AGENT_CLASSNAME = "X-agent-classname";
+    public static final String AGENT_CLASSNAME = "JADE-agent-classname";
 
   /**
   * This method permits to set the symbolic name of an agent.

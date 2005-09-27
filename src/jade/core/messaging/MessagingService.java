@@ -1348,6 +1348,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
    * the Message Transport Service.
    */
   public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
+	  ACLMessage acl = msg.getACLMessage();
+	  if (acl != null && "true".equals(acl.getUserDefinedParameter(ACLMessage.IGNORE_FAILURE))) {
+		  // Ignore the failure 
+		  return;
+	  }
+	  
 	  	GenericCommand cmd = new GenericCommand(MessagingSlice.NOTIFY_FAILURE, MessagingSlice.NAME, null);
 	    cmd.addParam(msg);
 	    cmd.addParam(receiver);
@@ -1471,7 +1477,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		  ACLMessage acl = msg.getACLMessage();
 		  if (acl != null && tracingTemplate != null) {
 			  if (tracingTemplate.match(acl)) {
-				  msg.setTraceID(myContainer.getID().getName()+"-"+traceCnt);
+				  msg.setTraceID("####"+myContainer.getID().getName()+"-"+traceCnt);
 				  traceCnt++;
 				  return true;
 			  }
