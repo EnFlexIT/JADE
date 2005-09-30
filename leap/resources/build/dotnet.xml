@@ -141,12 +141,6 @@
 				<include name="**/jade/gui/AgentTree.java"/>
 			</fileset>
     		</copy> -->
-    		<!-- 9) Copy src\jade\util\leap files (to overwrite these in leap\src\jade\util\leap) -->
-		<copy todir="${src}" overwrite="yes">
-			<fileset dir="${jade-src}">
-				<include name="**/jade/util/leap/**"/>
-			</fileset>
-    		</copy>
 	  	<!-- 10) Preprocess specific for .NET -->
 		<pproc basedir="${src}" type="dotnet"/>
 	</target>
@@ -247,10 +241,14 @@
 	     </fileset>
 	  </copy>
 	  <echo>Generating project file...</echo>
-	  <exec dir="${vss}"
+	  	          <echo>${src}</echo>
+	          <echo>${vs2003}\JadeLeapDotNet.vjsproj.master</echo>
+	          <echo>${vss}\JadeLeapDotNet.vjsproj</echo>
+
+	  <exec dir="."
 	      executable="${vs2003}/GenerateProjectFile.exe"
 	      failonerror="true" >
-            <arg line="${src} ${vs2003}\JadeLeapDotNet.vjsproj.master"/>
+            <arg line="${src} ${vs2003}\JadeLeapDotNet.vjsproj.master ${vss}\JadeLeapDotNet.vjsproj"/>
           </exec>
 	  <echo>Generation ended</echo>
 	  <copy todir="${vss}" overwrite="yes">
@@ -291,6 +289,7 @@
 		    <include name="**/content/**"/>
 		    <include name="**/hallo/**"/>
 		    <include name="**/messaging/**"/>
+		    <include name="**/mobile/**"/>
 		    <include name="**/ontology/**"/>
 		    <include name="**/party/**"/>
 		    <include name="**/PingAgent/**"/>
@@ -307,6 +306,7 @@
 		    <include name="**/content/**"/>
 		    <include name="**/hallo/**"/>
 		    <include name="**/messaging/**"/>
+		    <include name="**/mobile/**"/>
 		    <include name="**/ontology/**"/>
 		    <include name="**/party/**"/>
 		    <include name="**/PingAgent/**"/>
