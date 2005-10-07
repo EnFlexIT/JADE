@@ -60,7 +60,6 @@ public class AgentDescriptor {
 
     public AgentDescriptor(boolean isForeign) {
 	foreign = isForeign;
-	latent = false;
     }
 
     // AMS description

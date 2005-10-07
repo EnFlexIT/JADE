@@ -366,7 +366,9 @@ public class RemoteAgentNode extends AgentNode{
   TreeIconRenderer treeR;
   mapDescriptor=new HashMap();
   tree=new JTree();
-  tree.setFont(f);
+  if (f != null) {
+	  tree.setFont(f);
+  }
   tree.setModel(new AgentTreeModel(new SuperContainer("AgentPlatforms")));
   tree.setLargeModel(false);
   selModel = tree.getSelectionModel();
