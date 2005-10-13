@@ -72,7 +72,7 @@ public abstract class LifeCycle implements Serializable {
 	}
 	
 	/**
-	   States whether or not this is a termination state
+	   Specifies whether or not this is a termination state
 	 */	   
 	public boolean alive() {
 		return true;
@@ -99,6 +99,14 @@ public abstract class LifeCycle implements Serializable {
 	   change.
 	 */
 	public boolean transitionTo(LifeCycle to) {
+		return false;
+	}
+	
+	/**
+	 * Specifies whether or not the agent should react to incoming messages when in this 
+	 * LifeCycle state.  
+	 */
+	public boolean isMessageAware() {
 		return false;
 	}
 	

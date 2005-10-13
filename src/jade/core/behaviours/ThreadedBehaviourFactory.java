@@ -132,6 +132,19 @@ public class ThreadedBehaviourFactory {
 	}
 	
 	/**
+	 * @return All the wrapper behaviours currently used by theis ThreadedBehaviourFactory
+	 */
+	public Behaviour[] getWrappers() {
+		synchronized (threadedBehaviours) {
+			Behaviour[] wrappers = new Behaviour[threadedBehaviours.size()];
+			for (int i = 0; i < wrappers.length; ++i) {
+				wrappers[i] = (Behaviour) threadedBehaviours.elementAt(i);
+			}
+			return wrappers;
+		}
+	}
+	
+	/**
 	   Inner class ThreadedBehaviourWrapper
 	 */
 	private class ThreadedBehaviourWrapper extends Behaviour implements Runnable {

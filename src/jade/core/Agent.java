@@ -1105,7 +1105,7 @@ public class Agent implements Runnable, Serializable
       	setActiveState(AP_ACTIVE);
       }
     }
-    if(myLifeCycle.getState() == AP_ACTIVE) {
+    if(myLifeCycle.isMessageAware()) {
       activateAllBehaviours();
       synchronized(msgQueue) {
         msgQueue.notifyAll(); // Wakes up the embedded thread
@@ -1491,6 +1491,10 @@ public class Agent implements Runnable, Serializable
 		
 		public void transitionFrom(LifeCycle from) {
 			activateAllBehaviours();
+		}
+		
+		public boolean isMessageAware() {
+			return true;
 		}
   } // END of inner class ActiveLifeCycle
   

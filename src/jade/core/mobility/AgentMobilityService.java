@@ -353,16 +353,13 @@ public class AgentMobilityService extends BaseService {
 				dest.handleTransferResult(agentID, transferResult, messages);
 				
 				try {
-				  // Cause the invocation of 'beforeMove()' and the
-				  // subsequent termination of the agent thread
+				  // Cause the termination of the agent thread
 					a.changeStateTo(new LifeCycle(AP_GONE) {
 						public boolean alive() {
 							return false;
 						}
 					});
 					
-				  //AgentMobilityHelperImpl mobHelper = (AgentMobilityHelperImpl) a.getHelper(AgentMobilityHelper.NAME);
-				  //mobHelper.gone();
 				  // Remove the gone agent from the LADT
 				  myContainer.removeLocalAgent(a.getAID());
 				}
@@ -1202,10 +1199,6 @@ public class AgentMobilityService extends BaseService {
 			public void clone(Location destination, String newName) {
 				myAgent.changeStateTo(new CopyLifeCycle(destination, newName, myMovable, AgentMobilityService.this));
 			}
-
-			/*void gone() {
-				myAgent.changeStateTo(new GoneLifeCycle(myMovable));
-			}*/
     }  // END of inner class AgentMobilityHelperImpl
 
 
@@ -1218,6 +1211,7 @@ public class AgentMobilityService extends BaseService {
   	private transient AgentMobilityService myService;
   	private Logger myLogger;
   	private boolean firstTime = true;
+  	private boolean messageAware = false;
 
   	private TransitLifeCycle(Location l, Movable m, AgentMobilityService s) {
   		super(AP_TRANSIT);
@@ -1236,9 +1230,14 @@ public class AgentMobilityService extends BaseService {
 
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 		  try {
-		  	// Issue a single INFORM_MOVED vertical command
+		  	// Call beforeMove() and issue an INFORM_MOVED vertical command
 			  if (firstTime) {
 				  firstTime = false;
+				  if (myMovable != null) {
+					  messageAware = true;
+					  myMovable.beforeMove();
+					  messageAware = false;
+				}
 				informMoved(myAgent.getAID(), myDestination);
 			  }
 		  }
@@ -1262,7 +1261,6 @@ public class AgentMobilityService extends BaseService {
 		}
 
 		public void end() {
-    	//System.err.println("***  Agent " + myAgent.getName() + " moved in a forbidden situation ***");
             if(myLogger.isLoggable(Logger.SEVERE))
               myLogger.log(Logger.SEVERE,"***  Agent " + myAgent.getName() + " moved in a forbidden situation ***");
 
@@ -1271,19 +1269,13 @@ public class AgentMobilityService extends BaseService {
 
 		public boolean transitionTo(LifeCycle newLF) {
 			int s = newLF.getState();
-			switch (s) {
-			case AP_GONE:
-				if (myMovable != null) {
-					myMovable.beforeMove();
-				}
-				// No break statement --> Fall through
-			case Agent.AP_ACTIVE:
-			case Agent.AP_DELETED:
-				return true;				
-			}
-			return false;
+			return (s == AP_GONE || s == Agent.AP_ACTIVE || s == Agent.AP_DELETED);
 		}
 
+		public boolean isMessageAware() {
+			return messageAware;
+		}
+		
 		public void informMoved(AID agentID, Location where) throws ServiceException, JADESecurityException, NotFoundException, IMTPException {
 	    GenericCommand cmd = new GenericCommand(AgentMobilityHelper.INFORM_MOVED, AgentMobilitySlice.NAME, null);
 	    cmd.addParam(agentID);
@@ -1316,6 +1308,8 @@ public class AgentMobilityService extends BaseService {
   	private Movable myMovable;
   	private transient AgentMobilityService myService;
   	private Logger myLogger;
+  	private boolean firstTime = true;
+  	private boolean messageAware = false;
 
   	private CopyLifeCycle(Location l, String newName, Movable m, AgentMobilityService s) {
   		super(AP_COPY);
@@ -1334,11 +1328,17 @@ public class AgentMobilityService extends BaseService {
 		}
 
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
-			if (myMovable != null) {
-		  	myMovable.beforeClone();
-			}
 		  try {
-			  informCloned(myAgent.getAID(), myDestination, myNewName);
+			  	// Call beforeClone() and issue an INFORM_CLONED vertical command
+			  if (firstTime) {
+				  firstTime = false;
+				  if (myMovable != null) {
+					  messageAware = true;
+					  myMovable.beforeClone();
+					  messageAware = false;
+				}
+				informCloned(myAgent.getAID(), myDestination, myNewName);
+			  }
 		  }
 		  catch (Exception e) {
 		  	if (myAgent.getState() == myState) {
@@ -1368,6 +1368,10 @@ public class AgentMobilityService extends BaseService {
 			return (s == Agent.AP_ACTIVE || s == Agent.AP_DELETED);
 		}
 
+		public boolean isMessageAware() {
+			return messageAware;
+		}
+		
 		public void end() {
     	//System.err.println("***  Agent " + myAgent.getName() + " cloned in a forbidden situation ***");
             if(myLogger.isLoggable(Logger.SEVERE))
