@@ -926,11 +926,12 @@ public class AgentMobilityService extends BaseService {
 				}
 			}
 		}
+		//#J2ME_EXCLUDE_BEGIN
 		if (classStream == null) {
 			// Maybe the agent was loaded from a separate Jar file
 			try {
-				AgentManagementService ams = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
-				String jarName = ams.getAgentJarFileName(agentName);
+				AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+				String jarName = amSrv.getCodeLocator().getAgentCodeLocation(new AID(agentName, AID.ISGUID));
 				ClassInfo info = getClassStreamFromJar(fileName, jarName);
 				classStream = info.getClassStream();
 				length = info.getLength();
@@ -943,6 +944,7 @@ public class AgentMobilityService extends BaseService {
 				e.printStackTrace();
 			}
 		}
+		//#J2ME_EXCLUDE_END
 		if (classStream == null) {
 			if (myLogger.isLoggable(Logger.WARNING)) {
 				myLogger.log(Logger.WARNING, "Class " + className + " not found");
