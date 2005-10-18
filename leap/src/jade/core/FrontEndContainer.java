@@ -77,6 +77,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	// Flag indicating that the shutdown procedure is in place
 	private boolean exiting = false;
+	// Flag indicating that the startup procedure is in place
+	private boolean starting = true;
 
 	/**
 	   Construct a FrontEndContainer and connect to the BackEnd.
@@ -170,8 +172,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			e1.printStackTrace();
 		}
 		//clear the agent specifiers to avoid sending them again to the back end  
-		//during recreations. 
+		//during BE re-creations. 
 		configProperties.remove(MicroRuntime.AGENTS_KEY);
+		
+		notifyStarted();
 	}
 	
 	/////////////////////////////////////
@@ -203,7 +207,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param name The name of the agent to kill.
 	 */
   public final void killAgent(String name) throws NotFoundException, IMTPException {
-  	
+	  waitUntilStarted();
   	Agent agent = (Agent) localAgents.get(name);
   	if(agent == null) {
   		System.out.println("FrontEndContainer killing: " + name + " NOT FOUND");
@@ -220,6 +224,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param name The name of the agent to suspend.
 	 */
   public final void suspendAgent(String name) throws NotFoundException, IMTPException {
+	  waitUntilStarted();
   	Agent agent = (Agent) localAgents.get(name);
   	if(agent == null) {
     	throw new NotFoundException("SuspendAgent failed to find " + name);
@@ -232,6 +237,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param name The name of the agent to resume.
 	 */
   public final void resumeAgent(String name) throws NotFoundException, IMTPException {
+	  waitUntilStarted();
   	Agent agent = (Agent) localAgents.get(name);
   	if(agent == null) {
     	throw new NotFoundException("ResumeAgent failed to find " + name);
@@ -245,6 +251,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   @param sender The name of the receiver agent.
 	 */
   public final void messageIn(ACLMessage msg, String receiver) throws NotFoundException, IMTPException {
+	  waitUntilStarted();
   	if (receiver != null) {
 	  	Agent agent = (Agent) localAgents.get(receiver);
 	  	if(agent == null) {
@@ -263,7 +270,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   		logger.log(Logger.INFO,"Container shut down activated");
 	    
 	  	// Kill all agents 
-	  	synchronized (this) {
+	  	synchronized (localAgents) {
 		    Enumeration e = localAgents.elements();
 		  	while (e.hasMoreElements()) {
 		      // Kill agent and wait for its termination
@@ -293,7 +300,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	   Request the FrontEnd container to synch.
 	 */
   public final void synch() throws IMTPException {
-		synchronized (this) {
+		synchronized (localAgents) {
 			Enumeration e = localAgents.keys();
 			while (e.hasMoreElements()) {
 				String name = (String) e.nextElement();
@@ -318,6 +325,25 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		}
   }
   	
+  /**
+   * It may happen that a message for a bootstrap agent using wildcards in its name is received before 
+   * the actual agent name is assigned --> This method is called in messageIn() and other agent-related 
+   * methods to avoid that. 
+   */
+  private synchronized void waitUntilStarted() {
+	  try {
+		  while (starting) {
+			  wait();
+		  }
+	  }
+	  catch (Exception e) {}
+  }
+
+  private synchronized void notifyStarted() {
+	  starting = false;
+	  notifyAll();
+  }
+  
 	/////////////////////////////////////
 	// AgentToolkit interface implementation
 	/////////////////////////////////////
@@ -349,9 +375,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
   		// If this agent is ending because the container is exiting
   		// just do nothing. The BackEnd will notify the main.
 	    try {
-	    	synchronized (this) {
-		      localAgents.remove(name);
-	    	}
+		  localAgents.remove(name);
 	  	  myBackEnd.deadAgent(name);
 	  	  
 	  	  // If there are no more agents and the exitwhenempty option 
