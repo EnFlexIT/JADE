@@ -581,9 +581,11 @@ class DeliverableDataInputStream extends DataInputStream {
 	    
 	    dsc.setParentNode(readNode());
 	    dsc.setUsername(readString());
+	    
 	    if (readBoolean()) {
-	    	dsc.setPassword(deserializeByteArray());
+	    	dsc.setPassword(deserializePasswordByteArray());
 	    }
+
 	    dsc.setPrincipal((JADEPrincipal) readObject());
 	    dsc.setOwnerPrincipal((JADEPrincipal) readObject());
 	    dsc.setOwnerCredentials((Credentials) readObject());
@@ -741,6 +743,20 @@ class DeliverableDataInputStream extends DataInputStream {
         }    
     }
 
+    private byte[] deserializePasswordByteArray() throws LEAPSerializationException { 
+        try {
+            byte b = readByte();
+        	byte[] ba = new byte[readInt()];
+            read(ba, 0, ba.length);
+            return ba;
+        } 
+        catch (IOException ioe) {
+            throw new LEAPSerializationException("Error deserializing Byte Array");
+        }    
+    }    
+    
+    
+    
     private Properties deserializeProperties() throws LEAPSerializationException {
         try {
             Properties p = new Properties();
