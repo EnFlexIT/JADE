@@ -24,22 +24,16 @@ Boston, MA  02111-1307, USA.
 
 package jade.domain.introspection;
 
-import jade.util.leap.List;
-import jade.util.leap.LinkedList;
-import jade.util.leap.Map;
-import jade.util.leap.HashMap;
-
-import jade.core.AID;
 import jade.core.AgentState;
 import jade.core.BehaviourID;
 import jade.core.ContainerID;
 import jade.core.Channel;
-import jade.core.event.*;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
 
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.domain.FIPAAgentManagement.APDescription;
 import jade.domain.FIPAAgentManagement.APService;
@@ -79,7 +73,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 
   private IntrospectionOntology() {
   		
-  	  super(NAME, BasicOntology.getInstance(), new BCReflectiveIntrospector());
+  	  super(NAME, new Ontology[]{BasicOntology.getInstance(), SerializableOntology.getInstance()}, new BCReflectiveIntrospector());
 
 	  try {
 	        add(new ConceptSchema(META_RESETEVENTS), ResetEvents.class);
@@ -122,6 +116,8 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
   		
   		add(new AgentActionSchema(STARTNOTIFY), StartNotify.class);
   		add(new AgentActionSchema(STOPNOTIFY), StopNotify.class);
+  		add(new AgentActionSchema(GETKEYS), GetKeys.class);
+  		add(new AgentActionSchema(GETVALUE), GetValue.class);
   		
   		ConceptSchema cs = (ConceptSchema)getSchema(EVENTRECORD);
   		cs.add(EVENTRECORD_WHAT, (TermSchema)TermSchema.getBaseSchema());
@@ -283,6 +279,9 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 	    as = (AgentActionSchema)getSchema(STOPNOTIFY);
 		as.add(STOPNOTIFY_OBSERVED, (ConceptSchema)getSchema(BasicOntology.AID));
 		as.add(STOPNOTIFY_EVENTS, (PrimitiveSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+	
+	    as = (AgentActionSchema)getSchema(GETVALUE);
+		as.add(GETVALUE_KEY, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 	
 		PredicateSchema ps = (PredicateSchema)getSchema(OCCURRED);
 	    ps.add(OCCURRED_WHAT, (ConceptSchema)getSchema(EVENTRECORD));

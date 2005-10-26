@@ -835,7 +835,10 @@ public class BEManagementService extends BaseService {
 	  
 	  protected NIOMediator startMediator(String id, Properties p) throws Exception {
 			String className = p.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY);
-			if (className != null) {
+			if (className == null) {
+				// Default NIOMediator class
+				className = NIOBEDispatcher.class.getName();
+			}
 	  		NIOMediator m = (NIOMediator) Class.forName(className).newInstance();
 	  		mergeProperties(p, leapProps);
 	  		if (myLogger.isLoggable(Logger.CONFIG)) {
@@ -843,10 +846,6 @@ public class BEManagementService extends BaseService {
 	  		}
 	  		m.init(this, id, p);
 	  		return m;
-			}
-			else {
-				throw new ICPException("No mediator class specified.");
-			}
 	  }	  
 	} // END of inner class IOEventServer
 	

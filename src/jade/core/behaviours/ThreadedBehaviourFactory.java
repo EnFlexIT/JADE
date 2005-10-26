@@ -285,10 +285,10 @@ public class ThreadedBehaviourFactory {
 				exitValue = myBehaviour.onEnd();
 			}
 			catch (InterruptedException ie) {
-				System.out.println("Threaded behaviour "+getBehaviourName()+" interrupted before termination");
+				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			catch (Agent.Interrupted ae) {
-				System.out.println("Threaded behaviour "+getBehaviourName()+" interrupted before termination");
+				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			terminate();
 		}

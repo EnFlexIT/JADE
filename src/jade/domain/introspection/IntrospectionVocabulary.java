@@ -202,6 +202,11 @@ public interface IntrospectionVocabulary {
   public static final String STOPNOTIFY_OBSERVED= "observed";
   public static final String STOPNOTIFY_EVENTS = "events";
 
+  public static final String GETKEYS = "get-keys";
+  
+  public static final String GETVALUE = "get-value";
+  public static final String GETVALUE_KEY = "key";
+  
   // Predicates
   public static final String OCCURRED = "occurred";
   public static final String OCCURRED_WHAT = "what";
