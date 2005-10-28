@@ -50,7 +50,10 @@ public class CaseInsensitiveString implements Serializable {
      */
     public CaseInsensitiveString(String name) {
         s = name;
-        hashCode = s.toLowerCase().hashCode();
+				// the contract of String is to return 0 as the hash of an empty string
+				// so I am assuming here than a null string is equal to an empty string
+				// this trick avoid generating a null pointer exception
+        hashCode = (s == null ? 0 : s.toLowerCase().hashCode());
     }
 
     /**
