@@ -58,7 +58,7 @@ class OutBox {
 			}
 		}
 		
-		// This must fall outside the synchronized block
+		// This must fall outside the synchronized block because the method calls Thread.sleep
 		increaseSize(msg.length());
 		
 		synchronized (this) {
@@ -173,20 +173,35 @@ class OutBox {
 	}
 
 	private void increaseSize(int k) {
-		size += k;
-		if (size > maxSize) {
-			if (!overMaxSize) {
-				myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize);
-				overMaxSize = true;
+		long sleepTime = 0;
+		synchronized (this) {
+			size += k;
+			if (size > maxSize) {
+				if (!overMaxSize) {
+					myLogger.log(Logger.WARNING, "MessageManager queue size > "+maxSize);
+					overMaxSize = true;
+				}
+				sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
 			}
-			long sleepTime = (1 + ((size - maxSize) / 1000000)) * 100;
-			try {
-				Thread.sleep(sleepTime);
-			}
-			catch (InterruptedException ie) {}
 		}
-	}
+			if (sleepTime > 0) {
+				try { // delay a bit this Thread because the queue is becoming too big
+					Thread.sleep(sleepTime);
+				}
+				catch (InterruptedException ie) {}
+			}
+		}
 
+	/**
+	 * The method decreases the value of size and, eventually,
+	 * set to false the value of overMaxSize.
+	 * <p>
+	 * This method should have been declared synchronized.
+	 * For possible better peformance, it is not declared synchronized because 
+	 * it is a private method and it is called only
+	 * by the method get() which is already synchronized.
+	 * @param k the value by which size must be decremented
+	 */
 	private void decreaseSize(int k) {
 		size -= k;
 		if (size < maxSize) {
