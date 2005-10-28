@@ -393,17 +393,20 @@ public class LEAPCodec extends ByteArrayCodec {
     }
     
     private final String readString(DataInputStream stream, byte tag) throws Throwable {
+				String s = null;
     	if ((tag&MODIFIER) != 0) {
     		int index = stream.readUnsignedByte();
-    		return (String) stringReferences.elementAt(index);
+				if (index < stringReferences.size()) {
+						s= (String) stringReferences.elementAt(index);
+				}
     	}
     	else {
-    		String s = stream.readUTF();
+    		s = stream.readUTF();
     		if ((s.length() > 1) && (stringReferences.size() < 256)) {
     			stringReferences.addElement(s);
     		}
-    		return s;
     	}
+			return s;
     }
 }
 
