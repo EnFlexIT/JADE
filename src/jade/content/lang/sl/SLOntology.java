@@ -46,7 +46,7 @@ public class SLOntology
 	implements SLVocabulary {
 		
 	// NAME
-  public static final String ONTOLOGY_NAME = "SL-ONTOLOGY";
+  public static final String ONTOLOGY_NAME = jade.domain.FIPANames.Ontology.SL_ONTOLOGY;;
 	
   // The singleton instance of this ontology
 	private static Ontology theInstance = new SLOntology();

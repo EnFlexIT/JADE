@@ -590,6 +590,24 @@ public class SLCodec extends StringCodec {
 				}
 		  }
     }
+    
+    /**
+     * Restore parser after deserialization. <br>
+     * The readResolve method is called when ObjectInputStream has read an object from the stream 
+     * and is preparing to return it to the caller. <br>
+     * The readResolve method is not invoked on the object until the object is fully constructed. 
+     */
+    protected Object	readResolve() throws java.io.ObjectStreamException
+    {
+    	parser = new SLParser(new StringReader(""));
+    	int	slType	= jade.domain.FIPANames.ContentLanguage.FIPA_SL0.equals(getName()) ? 0
+    			: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 1 
+    					: jade.domain.FIPANames.ContentLanguage.FIPA_SL2.equals(getName()) ? 2 : 3;
+    	
+    	parser.setSLType(slType);
+    	return this; 
+    }
+
 //#MIDP_EXCLUDE_END
 }
 

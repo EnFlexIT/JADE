@@ -151,6 +151,24 @@ public interface FIPANames {
 	public static final String FIPA_SL  = "fipa-sl";
     }
 
+    
+    /**
+     * Set of constants that identifies the Ontology of ACL Messages and
+     * that can be assigned via 
+     * <code> ACLMessage.setOntology(FIPANames.Ontology.SL0_ONTOLOGY); </code>
+     **/
+    public static interface Ontology {
+    	/** constant for FIPA SL-0 Ontology	 **/
+    	public static final String SL0_ONTOLOGY = "SL0-ONTOLOGY";
+    	/** constant for FIPA SL-1 Ontology	 **/
+    	public static final String SL1_ONTOLOGY = "SL1-ONTOLOGY";
+    	/** constant for FIPA SL-2 Ontology	 **/
+    	public static final String SL2_ONTOLOGY = "SL2-ONTOLOGY";
+      	/** constant for FIPA SL Ontology	 **/
+    	public static final String SL_ONTOLOGY = "SL-ONTOLOGY";
+    }
+    
+    
     /**
      * Set of constants that identifies the Message Transport Protocols. 
      **/

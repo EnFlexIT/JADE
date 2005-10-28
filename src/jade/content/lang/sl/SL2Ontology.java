@@ -37,7 +37,7 @@ import jade.core.CaseInsensitiveString;
  */
 class SL2Ontology extends SL1Ontology implements SL2Vocabulary {
 	// NAME
-  public static final String ONTOLOGY_NAME = "SL2-ONTOLOGY";
+  public static final String ONTOLOGY_NAME = jade.domain.FIPANames.Ontology.SL2_ONTOLOGY;;
 	
   // The singleton instance of this ontology
 	private static Ontology theInstance = new SL2Ontology(ONTOLOGY_NAME, SL1Ontology.getInstance(), null);

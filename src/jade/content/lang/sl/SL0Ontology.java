@@ -36,7 +36,7 @@ import jade.core.CaseInsensitiveString;
  */
 class SL0Ontology extends Ontology implements SL0Vocabulary {
 	// NAME
-  public static final String ONTOLOGY_NAME = "SL0-ONTOLOGY";
+  public static final String ONTOLOGY_NAME = jade.domain.FIPANames.Ontology.SL0_ONTOLOGY;
 	
   // The singleton instance of this ontology
 	private static Ontology theInstance = new SL0Ontology(ONTOLOGY_NAME, BasicOntology.getInstance(), null);
