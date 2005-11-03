@@ -47,6 +47,7 @@ import jade.core.Node;
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
 import jade.core.CaseInsensitiveString;
+import jade.core.Agent;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
@@ -95,6 +96,8 @@ import jade.util.HashCache;
 public class MessagingService extends BaseService implements MessageManager.Channel {
 	public static final String NAME = MessagingSlice.NAME;
 	
+  public static final String ENABLE_MONITOR = "jade_core_messaging_MessagingService_enablemonitor";
+  public static final String MONITOR_AGENT_NAME = "messaging-monitor-%C";
   public static final String CACHE_SIZE = "jade_core_messaging_MessagingService_cachesize";
   public static final int CACHE_SIZE_DEFAULT = 100;
   
@@ -213,6 +216,144 @@ public class MessagingService extends BaseService implements MessageManager.Chan
     myMessageManager = MessageManager.instance(p);
   }
 
+  /**
+   * Performs the active initialization step of a kernel-level
+   * service: Activates the ACL codecs and MTPs as specified in the given
+   * <code>Profile</code> instance.
+   *
+   * @param myProfile The <code>Profile</code> instance containing
+   * the list of ACL codecs and MTPs to activate on this node.
+   * @throws ServiceException If a problem occurs during service
+   * initialization.
+   */
+  public void boot(Profile myProfile) throws ServiceException {
+    this.myProfile = myProfile;
+
+    try {
+	    // Activate the default ACL String codec anyway
+	    ACLCodec stringCodec = new StringACLCodec();
+	    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
+
+      // Activate the efficient encoding for intra-platform encoding
+      ACLCodec efficientCodec = new LEAPACLCodec();
+      messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
+
+	    // Codecs
+	    List l = myProfile.getSpecifiers(Profile.ACLCODECS);
+	    Iterator codecs = l.iterator();
+	    while (codecs.hasNext()) {
+        Specifier spec = (Specifier) codecs.next();
+        String className = spec.getClassName();
+        try{
+          Class c = Class.forName(className);
+          ACLCodec codec = (ACLCodec)c.newInstance();
+          messageEncodings.put(codec.getName().toLowerCase(), codec);
+          //System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+          if (myLogger.isLoggable(Logger.CONFIG))
+        	  myLogger.log(Logger.CONFIG,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
+
+          // FIXME: notify the AMS of the new Codec to update the APDescritption.
+        }
+        catch(ClassNotFoundException cnfe){
+          throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.", cnfe);
+        }
+        catch(InstantiationException ie) {
+          throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)", ie);
+        }
+        catch(IllegalAccessException iae) {
+          throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
+        }
+	    }
+
+	    // MTPs
+	    l = myProfile.getSpecifiers(Profile.MTPS);
+	    PrintWriter f = null;
+	    StringBuffer sb = null;
+
+	    Iterator mtps = l.iterator();
+	    while (mtps.hasNext()) {
+        Specifier spec = (Specifier) mtps.next();
+        String className = spec.getClassName();
+        String addressURL = null;
+        Object[] args = spec.getArgs();
+        if (args != null && args.length > 0) {
+          addressURL = args[0].toString();
+          if(addressURL.equals("")) {
+            addressURL = null;
+          }
+        }
+
+        MessagingSlice s = (MessagingSlice)getSlice(getLocalNode().getName());
+        MTPDescriptor mtp = s.installMTP(addressURL, className);
+        String[] mtpAddrs = mtp.getAddresses();
+	    	if (f == null) { 
+			    String fileName = myProfile.getParameter(Profile.FILE_DIR, "") + "MTPs-" + myContainer.getID().getName() + ".txt";
+			    f = new PrintWriter(new FileWriter(fileName));
+			    sb = new StringBuffer("MTP addresses:");
+	    	}
+        f.println(mtpAddrs[0]);
+        sb.append("\n");
+        sb.append(mtpAddrs[0]);
+	    }
+			
+	    if (f != null) {
+	    	myLogger.log(Logger.INFO, sb.toString());
+		    f.close();
+	    }
+    }
+    catch (ProfileException pe1) {
+	    //System.err.println("Error reading MTPs/Codecs");
+            if (myLogger.isLoggable(Logger.SEVERE))
+            	myLogger.log(Logger.SEVERE,"Error reading MTPs/Codecs");
+	    pe1.printStackTrace();
+    }
+    catch(ServiceException se) {
+	    //System.err.println("Error installing local MTPs");
+            if (myLogger.isLoggable(Logger.SEVERE))
+            	myLogger.log(Logger.SEVERE,"Error installing local MTPs");
+	    se.printStackTrace();
+    }
+    catch(jade.lang.acl.ACLCodec.CodecException ce) {
+	    //System.err.println("Error installing ACL Codec");
+            if (myLogger.isLoggable(Logger.SEVERE))
+            	myLogger.log(Logger.SEVERE,"Error installing ACL Codec");
+	    ce.printStackTrace();
+    }
+    catch(MTPException me) {
+	    //System.err.println("Error installing MTP");
+            if (myLogger.isLoggable(Logger.SEVERE))
+            	myLogger.log(Logger.SEVERE,"Error installing MTP");
+	    me.printStackTrace();
+    }
+    catch(IOException ioe) {
+	    //System.err.println("Error writing platform address");
+            if (myLogger.isLoggable(Logger.SEVERE))
+            	myLogger.log(Logger.SEVERE,"Error writing platform address");
+	    ioe.printStackTrace();
+    }
+    catch(IMTPException imtpe) {
+	    // Should never happen as this is a local call
+	    imtpe.printStackTrace();
+    }
+    
+    //#J2ME_EXCLUDE_BEGIN
+    if (myProfile.getBooleanProperty(ENABLE_MONITOR, false)) {
+    	Agent monitor = new MessagingMonitorAgent();
+    	try {
+			// The owner of the monitor agent is the owner of the local container.
+			// The monitor agent has NO initial credentials
+    		AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
+    		myContainer.initAgent(monitorId, monitor, myContainer.getNodeDescriptor().getOwnerPrincipal(), null);
+		    myContainer.powerUpLocalAgent(monitorId);
+    	}
+    	catch (Exception e) {
+    		myLogger.log(Logger.WARNING, "Error starting MessagingMonitorAgent. "+e);
+    		e.printStackTrace();
+    	}
+    }
+    //#J2ME_EXCLUDE_END
+  }
+  
 		// kindly provided by David Bernstein, 15/6/2005
 		public void shutdown() {
 				// clone addresses (externally because leap list doesn't
@@ -1028,128 +1169,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 
   } // End of ServiceComponent class
 
-
-
-  /**
-   * Performs the active initialization step of a kernel-level
-   * service: Activates the ACL codecs and MTPs as specified in the given
-   * <code>Profile</code> instance.
-   *
-   * @param myProfile The <code>Profile</code> instance containing
-   * the list of ACL codecs and MTPs to activate on this node.
-   * @throws ServiceException If a problem occurs during service
-   * initialization.
-   */
-  public void boot(Profile myProfile) throws ServiceException {
-    this.myProfile = myProfile;
-
-    try {
-	    // Activate the default ACL String codec anyway
-	    ACLCodec stringCodec = new StringACLCodec();
-	    messageEncodings.put(stringCodec.getName().toLowerCase(), stringCodec);
-
-      // Activate the efficient encoding for intra-platform encoding
-      ACLCodec efficientCodec = new LEAPACLCodec();
-      messageEncodings.put(efficientCodec.getName().toLowerCase(), efficientCodec);
-
-	    // Codecs
-	    List l = myProfile.getSpecifiers(Profile.ACLCODECS);
-	    Iterator codecs = l.iterator();
-	    while (codecs.hasNext()) {
-        Specifier spec = (Specifier) codecs.next();
-        String className = spec.getClassName();
-        try{
-          Class c = Class.forName(className);
-          ACLCodec codec = (ACLCodec)c.newInstance();
-          messageEncodings.put(codec.getName().toLowerCase(), codec);
-          //System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
-          if (myLogger.isLoggable(Logger.CONFIG))
-        	  myLogger.log(Logger.CONFIG,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
-
-          // FIXME: notify the AMS of the new Codec to update the APDescritption.
-        }
-        catch(ClassNotFoundException cnfe){
-          throw new jade.lang.acl.ACLCodec.CodecException("ERROR: The class " +className +" for the ACLCodec not found.", cnfe);
-        }
-        catch(InstantiationException ie) {
-          throw new jade.lang.acl.ACLCodec.CodecException("The class " + className + " raised InstantiationException (see NestedException)", ie);
-        }
-        catch(IllegalAccessException iae) {
-          throw new jade.lang.acl.ACLCodec.CodecException("The class " + className  + " raised IllegalAccessException (see nested exception)", iae);
-        }
-	    }
-
-	    // MTPs
-	    l = myProfile.getSpecifiers(Profile.MTPS);
-	    PrintWriter f = null;
-	    StringBuffer sb = null;
-
-	    Iterator mtps = l.iterator();
-	    while (mtps.hasNext()) {
-        Specifier spec = (Specifier) mtps.next();
-        String className = spec.getClassName();
-        String addressURL = null;
-        Object[] args = spec.getArgs();
-        if (args != null && args.length > 0) {
-          addressURL = args[0].toString();
-          if(addressURL.equals("")) {
-            addressURL = null;
-          }
-        }
-
-        MessagingSlice s = (MessagingSlice)getSlice(getLocalNode().getName());
-        MTPDescriptor mtp = s.installMTP(addressURL, className);
-        String[] mtpAddrs = mtp.getAddresses();
-	    	if (f == null) { 
-			    String fileName = myProfile.getParameter(Profile.FILE_DIR, "") + "MTPs-" + myContainer.getID().getName() + ".txt";
-			    f = new PrintWriter(new FileWriter(fileName));
-			    sb = new StringBuffer("MTP addresses:");
-	    	}
-        f.println(mtpAddrs[0]);
-        sb.append("\n");
-        sb.append(mtpAddrs[0]);
-	    }
-			
-	    if (f != null) {
-	    	myLogger.log(Logger.INFO, sb.toString());
-		    f.close();
-	    }
-    }
-    catch (ProfileException pe1) {
-	    //System.err.println("Error reading MTPs/Codecs");
-            if (myLogger.isLoggable(Logger.SEVERE))
-            	myLogger.log(Logger.SEVERE,"Error reading MTPs/Codecs");
-	    pe1.printStackTrace();
-    }
-    catch(ServiceException se) {
-	    //System.err.println("Error installing local MTPs");
-            if (myLogger.isLoggable(Logger.SEVERE))
-            	myLogger.log(Logger.SEVERE,"Error installing local MTPs");
-	    se.printStackTrace();
-    }
-    catch(jade.lang.acl.ACLCodec.CodecException ce) {
-	    //System.err.println("Error installing ACL Codec");
-            if (myLogger.isLoggable(Logger.SEVERE))
-            	myLogger.log(Logger.SEVERE,"Error installing ACL Codec");
-	    ce.printStackTrace();
-    }
-    catch(MTPException me) {
-	    //System.err.println("Error installing MTP");
-            if (myLogger.isLoggable(Logger.SEVERE))
-            	myLogger.log(Logger.SEVERE,"Error installing MTP");
-	    me.printStackTrace();
-    }
-    catch(IOException ioe) {
-	    //System.err.println("Error writing platform address");
-            if (myLogger.isLoggable(Logger.SEVERE))
-            	myLogger.log(Logger.SEVERE,"Error writing platform address");
-	    ioe.printStackTrace();
-    }
-    catch(IMTPException imtpe) {
-	    // Should never happen as this is a local call
-	    imtpe.printStackTrace();
-    }
-  }
 
   
   ///////////////////////////////////////////////

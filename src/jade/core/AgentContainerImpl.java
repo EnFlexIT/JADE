@@ -67,6 +67,10 @@ import jade.security.Credentials;
 */
 class AgentContainerImpl implements AgentContainer, AgentToolkit {
 
+	public static final String ENABLE_MONITOR = "jade_core_AgentContainerImpl_enablemonitor";
+	public static final String MONITOR_AGENT_NAME = "monitor-%C";
+	public static final String MONITOR_AGENT_CLASS = "jade.core.ContainerMonitorAgent";
+	
   private Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
   // Local agents, indexed by agent name
@@ -507,6 +511,21 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
               	}
               }
           }
+          
+          //#MIDP_EXCLUDE_BEGIN
+          // If the -jade_core_AgentContainerImpl_enablemonitor option is specified activate a ContainerMonitorAgent
+          if (myProfile.getBooleanProperty(ENABLE_MONITOR, false)) {
+        	  AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
+        	  try {
+        		  getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(monitorId, MONITOR_AGENT_CLASS, new Object[]{this, localAgents});
+	        	  powerUpLocalAgent(monitorId);
+        	  }
+        	  catch (Throwable t) {
+        		  myLogger.log(Logger.WARNING, "Cannot strat ContainerMonitor agent. "+t);
+        		  t.printStackTrace();
+        	  }
+          }
+          //#MIDP_EXCLUDE_END
       }
       catch (ProfileException pe) {
           myLogger.log(Logger.WARNING, "Error reading initial agents. "+pe);

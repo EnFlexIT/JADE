@@ -145,7 +145,9 @@ public class RoundList implements Serializable{
 		return l.iterator();
 	}
 		
-
+	public Object[] toArray() {
+		return l.toArray();
+	}
 	
 	/** Returns a string representation of this collection. 
 	 * The string representation consists of a list of the collection's elements 

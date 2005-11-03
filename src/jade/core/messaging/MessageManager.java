@@ -63,6 +63,7 @@ class MessageManager {
 	private static final int  MAX_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 
 	private OutBox outBox;
+	private Thread[] deliverers;
 
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
@@ -103,13 +104,14 @@ class MessageManager {
 		
 		try {
 			ResourceManager rm = p.getResourceManager();
+			deliverers = new Thread[poolSize];
 			for (int i = 0; i < poolSize; ++i) {
 				String name = "Deliverer-"+i;
-				Thread t = rm.getThread(ResourceManager.TIME_CRITICAL, name, new Deliverer());
+				deliverers[i] = rm.getThread(ResourceManager.TIME_CRITICAL, name, new Deliverer());
 				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, "Starting deliverer "+name+". Thread="+t);
+					myLogger.log(Logger.FINE, "Starting deliverer "+name+". Thread="+deliverers[i]);
 				}
-				t.start();
+				deliverers[i].start();
 			}
 		}
 		catch (ProfileException pe) {
@@ -215,6 +217,19 @@ class MessageManager {
   	else {
   		return ("unavailable");
   	}
+  }
+  
+  // For debugging purpose
+  String[] getQueueStatus() {
+	  return outBox.getStatus();
+  }
+  
+  String[] getThreadPoolStatus() {
+	  String[] status = new String[deliverers.length];
+	  for (int i = 0; i < deliverers.length; ++i) {
+		  status[i] = "(Deliverer-"+i+" :alive "+deliverers[i].isAlive()+")";
+	  }
+	  return status;
   }
 }
 

@@ -104,6 +104,16 @@ class LADT {
                 notifyAll();
             }
         }
+        
+        // For debugging purpose
+        public String toString() {
+        	if (value != null) {
+				return "("+value.getName()+" :owner "+(owner != null ? owner.toString() : "null")+")";
+        	}
+        	else {
+        		return "null";
+        	}
+        }
 
     } // End of Row class
 
@@ -216,4 +226,16 @@ class LADT {
 
     }
 
+    // For debugging purpose
+    public String[] getStatus() {
+        synchronized(agents) {
+            Object[] objs = agents.values().toArray();
+            String[] status = new String[objs.length];
+            for(int i = 0; i < objs.length; i++) {
+                Row r = (Row)objs[i];
+                status[i] = r.toString();
+            }
+            return status;
+        }
+    }
 }

@@ -40,6 +40,7 @@ class OutBox {
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
 	
+	
 	/**
 	 * Add a message to the tail of the Box of messages for the indicated 
 	 * receiver. If a Box for the indicated receiver is not yet present, a 
@@ -113,9 +114,13 @@ class OutBox {
 		// Wait until an idle (i.e. not busy) receiver is found
 		while( (b = getNextIdle()) == null ){
 			try{
-				//log("Go to sleep", 2);
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Deliverer "+Thread.currentThread()+" go to sleep...");
+				}
 				wait();
-				//log("Wake up", 2);
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Deliverer "+Thread.currentThread()+" wake up");
+				}
 			}
 			catch (InterruptedException ie) {
 				// Just do nothing
@@ -219,12 +224,10 @@ class OutBox {
 	private class Box {
 	    private final AID receiver;
 	    private boolean busy;
-	    //private MessageManager.Channel channel;  
 	    private final List messages;
 		
 		public Box(AID r) {
 			receiver = r;
-			//channel = ch;
 			busy = false;
 			messages = new LinkedList(); 
 		}
@@ -233,10 +236,6 @@ class OutBox {
 			return receiver;
 		}
 
-	  /*      private MessageManager.Channel getChannel() {
-		    return channel;
-		}*/
-		
 		private void setBusy(boolean b){
 			busy = b;
 		}
@@ -248,26 +247,29 @@ class OutBox {
 		private void addLast(PendingMsg pm) {
 			messages.add(pm);
 		}
-		/*private void addLast(ACLMessage msg) {
-			messages.add(msg);
-		}*/
-		
-		/*private void addFirst(PendingMsg pm) {
-			messages.add(0, pm);
-		}*/
-		/*private void addFirst(ACLMessage msg) {
-			messages.add(0, msg);
-		}*/
 		
 		private PendingMsg removeFirst() {
 			return (PendingMsg) messages.remove(0);
 		}
-		/*private ACLMessage removeFirst() {
-			return (ACLMessage) messages.remove(0);
-		}*/
 		
 		private boolean isEmpty() {
 			return messages.isEmpty();
 		}	
+		
+		// For debugging purpose
+		public String toString() {
+			return "("+receiver.getName()+" :busy "+busy+" :message-cnt "+messages.size()+")";
+		}
 	} // END of inner class Box
+	
+	
+	// For debugging purpose
+	synchronized String[] getStatus() {
+		Object[] boxes = messagesByOrder.toArray();
+		String[] status = new String[boxes.length];
+		for (int i = 0; i < boxes.length; ++i) {
+			status[i] = boxes[i].toString();
+		}
+		return status;
+	}	
 }
