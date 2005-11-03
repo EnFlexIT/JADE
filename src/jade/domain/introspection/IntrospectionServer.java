@@ -15,11 +15,22 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 import java.lang.reflect.*;
+import java.io.Serializable;
 
 public class IntrospectionServer extends CyclicBehaviour {
 	private Codec codec;
 	private Ontology onto;
 	private MessageTemplate template;
+	
+	private static Class serializableClass;
+	
+	static {
+		try {
+			serializableClass = Class.forName("java.io.Serializable");
+		}
+		catch (Exception e) {
+		}
+	}
 	
 	public IntrospectionServer(Agent a) {
 		super(a);
@@ -98,8 +109,11 @@ public class IntrospectionServer extends CyclicBehaviour {
 		for (int i = 0; i < mm.length; ++i) {
 			Method method = mm[i];
 			if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
-				String key = method.getName().substring(3);
-				keys.add(key);
+				Class retType = method.getReturnType();
+				if (retType.isPrimitive() || (serializableClass != null && serializableClass.isAssignableFrom(retType))) {
+					String key = method.getName().substring(3);
+					keys.add(key);
+				}
 			}
 		}
 		Result r = new Result(aExpr, keys);
@@ -111,7 +125,10 @@ public class IntrospectionServer extends CyclicBehaviour {
 	
 	protected void serveGetValue(jade.lang.acl.ACLMessage request, Action aExpr, GetValue action) throws Exception {
 		Method method = myAgent.getClass().getMethod("get"+action.getKey(), new Class[]{});
-		Object value = method.invoke(myAgent, (Object[]) null);		
+		Object value = method.invoke(myAgent, (Object[]) null);	
+		if (value == null) {
+			value = "null";
+		}
 		Result r = new Result(aExpr, value);
 		jade.lang.acl.ACLMessage reply = request.createReply();
 		myAgent.getContentManager().fillContent(reply, r);

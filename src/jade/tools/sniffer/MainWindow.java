@@ -141,8 +141,7 @@ public class MainWindow
 		 MainWindow.this.mySniffer.doDelete();
 	     }
      });
-     mainPanel.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-     mainPanel.treeAgent.register("FIPACONTAINER",null,"images/foldergreen.gif");
+     mainPanel.treeAgent.setNewPopupMenu(AgentTree.AGENT_TYPE, popA);
      getContentPane().add(new ToolBar(actPro),"North");
      getContentPane().add(mainPanel,"Center");
      //#DOTNET_EXCLUDE_END
@@ -321,15 +320,17 @@ public class MainWindow
   //#DOTNET_EXCLUDE_BEGIN
   Runnable addIt = new Runnable() {
    public void run() {
-    MutableTreeNode node = mainPanel.treeAgent.createNewNode(name,0);
-    mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+    //MutableTreeNode node = mainPanel.treeAgent.createNewNode(name,0);
+    //mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+	mainPanel.treeAgent.addContainerNode(name, addr);
    }
   };
   SwingUtilities.invokeLater(addIt);
   //#DOTNET_EXCLUDE_END
   /*#DOTNET_INCLUDE_BEGIN
-  AgentTree.Node node = mainPanel.treeAgent.createNewNode(name,0);
-  mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+  //AgentTree.Node node = mainPanel.treeAgent.createNewNode(name,0);
+  //mainPanel.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+  mainPanel.treeAgent.addContainerNode(name, addr);
   #DOTNET_INCLUDE_END*/
 
  }
@@ -368,16 +369,18 @@ public class MainWindow
    Runnable addIt = new Runnable() {
    public void run() {
      String agentName = agentID.getName();
-     AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName, 1);
-     mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+     //AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName, 1);
+     mainPanel.treeAgent.addAgentNode(agentName, "agentAddress", containerName);
+     //mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
    }
   };
   SwingUtilities.invokeLater(addIt);
   //#DOTNET_EXCLUDE_END
   /*#DOTNET_INCLUDE_BEGIN
   String agentName = agentID.getName();
-  AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName, 1);
-  mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+  //AgentTree.Node node = mainPanel.treeAgent.createNewNode(agentName, 1);
+  mainPanel.treeAgent.addAgentNode(agentName, "agentAddress", containerName);
+  //mainPanel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
   #DOTNET_INCLUDE_END*/
  }
 

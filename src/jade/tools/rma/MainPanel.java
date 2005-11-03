@@ -90,9 +90,9 @@ class MainPanel extends JPanel
 
     add(pan);
    
-    treeAgent.listenerTree(this);
-    popM=new PopupMouser(treeAgent.tree,treeAgent);
-    treeAgent.tree.addMouseListener(popM);
+    treeAgent.tree.addTreeSelectionListener(this);
+    //popM=new PopupMouser(treeAgent.tree,treeAgent);
+    //treeAgent.tree.addMouseListener(popM);
 
   }
 
@@ -226,33 +226,13 @@ class MainPanel extends JPanel
   } //END drop(dropEvent)
 
  public void  valueChanged(TreeSelectionEvent e) {
-   String wholePath;
-   String typeNode;
    TreePath paths[] = treeAgent.tree.getSelectionPaths();
-   AgentTree.Node current;
-   AgentTree.ContainerNode currentC;
    Object[] relCur;
    
    if (paths!=null) {
-    current=(AgentTree.Node)paths[0].getLastPathComponent();
-     int numPaths=paths.length;
-     //selArea.setText(" ");
-      
-     /*OLd version to show the path of the agent.
-     for(int i=0;i<numPaths;i++) {
-       relCur= paths[i].getPath();
-        wholePath="";
-        for (int j=0;j<relCur.length;j++) {
-         if (relCur[j] instanceof AgentTree.Node) {
-           current=(AgentTree.Node)relCur[j];
-           wholePath=wholePath.concat(current.getName()+".");
-         }
-        }
-       selArea.append(wholePath+" \n");
-     }*/        
      
      java.util.ArrayList agentPaths = new java.util.ArrayList();
-     for(int i=0; i<numPaths;i++)
+     for(int i=0; i < paths.length;i++)
      {
         relCur = paths[i].getPath();
         for(int j=0;j<relCur.length;j++)

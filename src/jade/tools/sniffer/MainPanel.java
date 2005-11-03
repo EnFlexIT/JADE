@@ -110,8 +110,8 @@ public class MainPanel
     textArea.setText("                                                                 No Message");
     textArea.setEditable(false);
     add(textArea,"South");
-    popM=new PopupMouser(treeAgent.tree,treeAgent);
-    treeAgent.tree.addMouseListener(popM);
+    //popM=new PopupMouser(treeAgent.tree,treeAgent);
+    //treeAgent.tree.addMouseListener(popM);
     //#DOTNET_EXCLUDE_END
 
  }

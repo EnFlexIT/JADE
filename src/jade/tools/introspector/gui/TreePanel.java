@@ -60,9 +60,9 @@ class TreePanel extends JPanel implements TreeSelectionListener {
     pane.setContinuousLayout(true);
 
    
-    treeAgent.listenerTree(this);
-    popM=new PopUpMouser(treeAgent.tree,treeAgent);
-    treeAgent.tree.addMouseListener(popM);
+    treeAgent.tree.addTreeSelectionListener(this);
+    //popM=new PopUpMouser(treeAgent.tree,treeAgent);
+    //treeAgent.tree.addMouseListener(popM);
     add(pane,BorderLayout.CENTER);
   }
 

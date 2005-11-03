@@ -509,10 +509,8 @@ public class rma extends ToolAgent {
       try
        {
          Class c = Class.forName("jade.security.impl.JADEPrincipalImpl");
-         System.out.println("Loaded class: " + c);
          intendedOwner = (JADEPrincipal) c.newInstance();
          java.lang.reflect.Method setName = c.getDeclaredMethod("setName", new Class[]{ String.class });
-         System.out.println("Got method: " + setName);
          setName.invoke(intendedOwner, new Object[] {ownerName});
        } catch (Exception e)
        {

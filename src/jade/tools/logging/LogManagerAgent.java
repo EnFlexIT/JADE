@@ -32,11 +32,11 @@ import jade.core.Agent;
 
 public class LogManagerAgent extends Agent{
 
-private LogManagerGui myGui;
+	private LogManagerGui myGui;
 
 	protected void setup(){
 		myGui = new LogManagerGui(this);
 		myGui.showCorrect();		
-		}
-
 	}
+
+}

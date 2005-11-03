@@ -69,8 +69,7 @@ public IntrospectorGUI(Introspector i) {
     debugger = i;
 
     panel = new TreePanel(this);
-    panel.treeAgent.register("FIPAAGENT", new TreeAgentPopupMenu(debugger, panel.treeAgent), "images/runtree.gif");
-    panel.treeAgent.register("FIPACONTAINER", null, "images/foldergreen.gif");
+    panel.treeAgent.setNewPopupMenu(AgentTree.AGENT_TYPE, new TreeAgentPopupMenu(debugger, panel.treeAgent));
 
     scroll = new JScrollPane();
     desk = new JDesktopPane();
@@ -285,8 +284,9 @@ public IntrospectorGUI(Introspector i) {
     Runnable addIt = new Runnable() {
       public void run() {
 	String agentName = agentID.getName();
-       	AgentTree.Node node = panel.treeAgent.createNewNode(agentName, 1);
-        panel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
+       	//AgentTree.Node node = panel.treeAgent.createNewNode(agentName, 1);
+        panel.treeAgent.addAgentNode(agentName, "agentAddress", containerName);
+        //panel.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -320,8 +320,9 @@ public IntrospectorGUI(Introspector i) {
   public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {
-        MutableTreeNode node = panel.treeAgent.createNewNode(name, 0);
-        panel.treeAgent.addContainerNode((AgentTree.ContainerNode)node, "FIPACONTAINER", addr);
+        //MutableTreeNode node = panel.treeAgent.createNewNode(name, 0);
+        //panel.treeAgent.addContainerNode((AgentTree.ContainerNode)node, "FIPACONTAINER", addr);
+        panel.treeAgent.addContainerNode(name, addr);
       }
     };
     SwingUtilities.invokeLater(addIt);

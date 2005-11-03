@@ -86,24 +86,23 @@ class MainWindow extends JFrame {
     popC = new PopupMenuContainer(actPro);
     popP = new PopupMenuPlatform(actPro);
     popRP = new PopupMenuRemotePlatform(actPro);
-    tree.treeAgent.register("FIPAAGENT",popA,"images/runtree.gif");
-    tree.treeAgent.register("FROZENAGENT",popFA,"images/freezeagent.gif");
-    tree.treeAgent.register("FROZENCONTAINER", null, "images/frozenagents.gif");
-    tree.treeAgent.register("FIPACONTAINER",popC,"images/foldergreen.gif");
-    tree.treeAgent.register("REMOTEPLATFORM",popRP ,"images/folderlightblue.gif");
+    tree.treeAgent.setNewPopupMenu(AgentTree.AGENT_TYPE, popA);
+    tree.treeAgent.setNewPopupMenu(AgentTree.FROZEN_AGENT_TYPE, popFA);
+    tree.treeAgent.setNewPopupMenu(AgentTree.CONTAINER_TYPE, popC);
+    tree.treeAgent.setNewPopupMenu(AgentTree.REMOTE_PLATFORM_TYPE, popRP);
     JPopupMenu popupRemote = new JPopupMenu();
     JMenuItem temp = popupRemote.add((RMAAction)actPro.actions.get(actPro.CUSTOM_ACTION));
     temp.setIcon(null);
     temp = popupRemote.add((RMAAction)actPro.actions.get(actPro.REGISTERREMOTEAGENTWITHAMS_ACTION));
     temp.setIcon(null);
     temp.setEnabled(false);
-    tree.treeAgent.register("REMOTEAGENT", popupRemote, "images/runtree.gif");
-    tree.treeAgent.setNewPopupMenu("SUPERCONTAINER",popP);
+    tree.treeAgent.setNewPopupMenu(AgentTree.REMOTE_AGENT_TYPE, popupRemote);
+    tree.treeAgent.setNewPopupMenu(AgentTree.TREE_ROOT_TYPE, popP);
     JPopupMenu popLocalPlatform = new JPopupMenu();
     JMenuItem tmp = popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.VIEWPLATFORM_ACTION));
     tmp.setIcon(null);
     popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.MANAGE_MTPS_ACTION));
-    tree.treeAgent.setNewPopupMenu("LOCALPLATFORM",popLocalPlatform);
+    tree.treeAgent.setNewPopupMenu(AgentTree.LOCAL_PLATFORM_TYPE, popLocalPlatform);
     
     setForeground(Color.black);
     setBackground(Color.lightGray);
@@ -167,8 +166,9 @@ class MainWindow extends JFrame {
   public void addContainer(final String name, final InetAddress addr) {
     Runnable addIt = new Runnable() {
       public void run() {
-        MutableTreeNode node = tree.treeAgent.createNewNode(name, 0);
-        tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+        //MutableTreeNode node = tree.treeAgent.createNewNode(name, 0);
+        //tree.treeAgent.addContainerNode((AgentTree.ContainerNode)node,"FIPACONTAINER",addr);
+        tree.treeAgent.addContainerNode(name, addr);
 	containerNames.add(name);
 	manageDlg.setData(containerNames, addresses);
       }
@@ -196,14 +196,14 @@ class MainWindow extends JFrame {
     Runnable addIt = new Runnable() {
       public void run() {
 	      String agentName = agentID.getName();
-       	AgentTree.Node node = tree.treeAgent.createNewNode(agentName, 1);
+       	//AgentTree.Node node = tree.treeAgent.createNewNode(agentName, 1);
        	Iterator add = agentID.getAllAddresses();
        	String agentAddresses = "";
        	while(add.hasNext())
        		agentAddresses = agentAddresses + add.next() + " ";
         
-        //tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, "agentAddress", "FIPAAGENT");
-       		tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, agentAddresses, "FIPAAGENT");
+       	tree.treeAgent.addAgentNode(agentName, agentAddresses, containerName);
+       	//tree.treeAgent.addAgentNode((AgentTree.AgentNode)node, containerName, agentName, agentAddresses, "FIPAAGENT");
       }
     };
     SwingUtilities.invokeLater(addIt);
@@ -290,7 +290,7 @@ class MainWindow extends JFrame {
   	Runnable addIt = new Runnable(){
   	public void run(){
   		PopupMenuPlatform menu = new PopupMenuPlatform(actPro);
-  		tree.treeAgent.register("REMOTEPLATFORMS",menu, "images/folderblue.gif");
+  	    tree.treeAgent.setNewPopupMenu(AgentTree.REMOTE_PLATFORMS_FOLDER_TYPE, menu);
   		tree.treeAgent.addRemotePlatformsFolderNode();
   		
   	}

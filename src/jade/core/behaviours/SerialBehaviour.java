@@ -64,6 +64,7 @@ public abstract class SerialBehaviour extends CompositeBehaviour {
      its currently active child is blocked, and becomes ready again
      when its current child is ready. This method takes care of the
      various possibilities.
+     
      @param rce The event to handle.
   */
   protected void handle(RunnableChangedEvent rce) {

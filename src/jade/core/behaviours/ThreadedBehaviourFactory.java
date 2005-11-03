@@ -150,7 +150,7 @@ public class ThreadedBehaviourFactory {
 	private class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
 		private Thread myThread;
 		private Behaviour myBehaviour;
-		private boolean restarted = false;
+		private volatile boolean restarted = false;
 		private boolean finished = false;
 		private int exitValue;
 	
@@ -219,16 +219,12 @@ public class ThreadedBehaviourFactory {
 			super.reset();
 		}
 			
-  	/**
-  	   Propagate a restart() call (typically this happens when this 
-  	   ThreadedBehaviourWrapped is directly added to the agent Scheduler
-  	   and a message is received) to the wrapped threaded behaviour.
-  	   
-		   This is synchronized to avoid that, in case the wrapped behaviour
-		   is a SerialBehaviour we end up with the current child still blocked
-		   while the thread is restarted.
+		/**
+		   Propagate a restart() call (typically this happens when this 
+		   ThreadedBehaviourWrapped is directly added to the agent Scheduler
+		   and a message is received) to the wrapped threaded behaviour.
 		 */
-		public synchronized void restart() {
+		public void restart() {
 			myBehaviour.restart();
 		}
 		
@@ -239,15 +235,15 @@ public class ThreadedBehaviourFactory {
 		   to the wrapped threaded behaviour.
 		   If the event is a restart, also notify the dedicated thread.
 		 */
-  	protected void handle(RunnableChangedEvent rce) {
-  		super.handle(rce);
-  		if (!rce.isUpwards()) {
-  			myBehaviour.handle(rce);
-	  		if (rce.isRunnable()) {
-	  			go();
-	  		}
-  		}
-  	}
+		protected void handle(RunnableChangedEvent rce) {
+			super.handle(rce);
+			if (!rce.isUpwards()) {
+				myBehaviour.handle(rce);
+				if (rce.isRunnable()) {
+					go();
+				}
+			}
+		}
   		
 		private synchronized void go() {
 			restarted = true;
@@ -258,14 +254,20 @@ public class ThreadedBehaviourFactory {
 			try {
 				threadedBehaviours.addElement(this);
 				while (true) {
+					
 					restarted = false;
 					myBehaviour.actionWrapper();
 					
 					synchronized (this) {
 						// If the behaviour was restarted from outside during the action()
 						// method, give it another chance
-						if (restarted) {
-							myBehaviour.setRunnable(true);
+						if (restarted && (!myBehaviour.isRunnable())) {
+							// We can't just set the runnable state of myBehaviour to true since, if myBehaviour
+							// is a CompositeBehaviour, we may end up with myBehaviour runnable, but some of its children not runnable. 
+							// However we can't call myBehaviour.restart() here because there could be a deadlock between a thread
+							// posting a message and the current thread (monitors are this and the agent scheduler)
+							myBehaviour.myEvent.init(true, Behaviour.NOTIFY_DOWN);
+							myBehaviour.handle(myBehaviour.myEvent);
 						}
 						
 						if (myBehaviour.done()) {
@@ -332,45 +334,45 @@ public class ThreadedBehaviourFactory {
 			return false;
 		}
 		
-  	protected void handle(RunnableChangedEvent rce) {
-  		// This is always an UPWARDS event from the threaded behaviour, but
-  		// there is no need to propagate it to the wrapper since it will 
-  		// immediately block again. It would be just a waste of time.
-  		if (rce.isRunnable()) {
-  			myChild.go();
-  		}
-  	}
+		protected void handle(RunnableChangedEvent rce) {
+			// This is always an UPWARDS event from the threaded behaviour, but
+			// there is no need to propagate it to the wrapper since it will 
+			// immediately block again. It would be just a waste of time.
+			if (rce.isRunnable()) {
+				myChild.go();
+			}
+		}
   	
-  	/**
-  	   Redefine the root() method so that both the DummyParentBehaviour
-  	   and the ThreadedBehaviourWrapper are invisible in the behaviours hierarchy
-  	 */
-  	public Behaviour root() {
-  		Behaviour r = myChild.root();
-  		if (r == myChild) {
-  			return myChild.getBehaviour();
-  		}
-  		else {
-  			return r;
-  		}
-  	}
+		/**
+		 * Redefine the root() method so that both the DummyParentBehaviour
+		 * and the ThreadedBehaviourWrapper are invisible in the behaviours hierarchy
+		 */
+		public Behaviour root() {
+			Behaviour r = myChild.root();
+			if (r == myChild) {
+				return myChild.getBehaviour();
+			}
+			else {
+				return r;
+			}
+		}
   	
-	  protected void scheduleFirst() {
-	  }
+		protected void scheduleFirst() {
+		}
 	  
-	  protected void scheduleNext(boolean currentDone, int currentResult) {
-	  }
+		protected void scheduleNext(boolean currentDone, int currentResult) {
+		}
 	  
-	  protected boolean checkTermination(boolean currentDone, int currentResult) {
-	  	return false;
-	  }
+		protected boolean checkTermination(boolean currentDone, int currentResult) {
+			return false;
+		}
 	  
-	  protected Behaviour getCurrent() {
-	  	return null;
-	  }
+		protected Behaviour getCurrent() {
+			return null;
+		}
 	  
-	  public jade.util.leap.Collection getChildren() {
-	  	return null;
-	  }
+		public jade.util.leap.Collection getChildren() {
+			return null;
+		}
 	} // END of inner class DummyParentBehaviour
 }

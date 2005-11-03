@@ -211,7 +211,7 @@ class ActionProcessor {
  private void platformAct(AgentTree.Node node){
 
   PlatformAction ac = (PlatformAction) action; 
- 	if((node instanceof AgentTree.localPlatformFolderNode) || (node instanceof AgentTree.RemotePlatformNode))
+ 	if((node instanceof AgentTree.LocalPlatformFolderNode) || (node instanceof AgentTree.RemotePlatformNode))
  		ac.doAction(node);
  	
  }

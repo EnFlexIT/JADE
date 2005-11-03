@@ -41,7 +41,7 @@ class ViewAPDescriptionAction extends PlatformAction {
 
   public void doAction(AgentTree.Node node ) {
     //String containerName = node.getName();
-  	if(node instanceof AgentTree.localPlatformFolderNode)
+  	if(node instanceof AgentTree.LocalPlatformFolderNode)
     	myRMA.viewAPDescription("Local Agent Platform Description");
     	else
     	if(node instanceof AgentTree.RemotePlatformNode){
