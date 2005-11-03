@@ -417,13 +417,9 @@ public class ProfileImpl extends Profile {
     //#MIDP_EXCLUDE_BEGIN
   	// Check if the list of specs is already in the properties as a list
     List l = null;
-    try {
-      l = (List) props.get(key);
-    }
-    catch (ClassCastException cce) {
-    }
-    if (l != null) {
-      return l;
+    Object o = props.get(key);
+    if (o instanceof List) { // null isn't an instance of anything
+      return (List) o;
     }
     //#MIDP_EXCLUDE_END
 
