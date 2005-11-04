@@ -117,4 +117,12 @@
 			</WhenTestPass> 
 		</Test>				
 		
+		<Test name="Searching with AMS with max-results=-1" skip="false">
+			<TestClassName>test.domain.ams.tests.TestSearchConstraints</TestClassName>
+			<WhatTest>Searches with the AMS with different values of SearchConstraints and maxResults and checks that the proper number of AMSAgentDescriptions are returned.</WhatTest>
+			<HowWorkTest> 
+Searches with the AMS with different values of SearchConstraints and maxResults and checks that the proper number of AMSAgentDescriptions are returned.
+		    </HowWorkTest>
+			<WhenTestPass> The test passes if the number of returned results is correct.</WhenTestPass>
+		</Test>
 	</TestsList>

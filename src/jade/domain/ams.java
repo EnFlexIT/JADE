@@ -153,7 +153,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		
 		String sMaxResults = getProperty(MAX_RESULTS, String.valueOf(DEFAULT_MAX_RESULTS));
 		try {
-			amsMaxResults = Integer.parseInt(sLogDelay);
+			amsMaxResults = Integer.parseInt(sMaxResults);
 		}
 		catch (Exception e) {
 			logger.log(Logger.WARNING, "Wrong max result limit "+sMaxResults+". It must be an integer value.");
