@@ -129,8 +129,19 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			Vector ss = new Vector(services != null ? services.length : 0);
 			if (services != null) {
 				for (int i = 0; i < services.length; ++i) {
-					installServiceLocally(services[i]);
-					ss.addElement(services[i]);
+					try {
+						installServiceLocally(services[i]);
+						ss.addElement(services[i]);
+					}
+					catch (Exception e) {
+						if (services[i].isMandatory()) {
+							throw e;
+						}
+						else {
+					  		myLogger.log(Logger.WARNING,"Exception installing service " + services[i].getService() + ". " + e);
+					  		e.printStackTrace();
+						}
+					}
 				}
 			}
 
@@ -284,12 +295,16 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 		Filter fIn = svc.getCommandFilter(Filter.INCOMING);
 		if (fIn != null) {
+			if (fIn == fOut) {
+				// NOTE that fOut is certainly != null
+				myCommandProcessor.removeFilter(fOut, Filter.OUTGOING);
+				throw new ServiceException("The same filter object cannot be used as both incoming and outgoing filter.");
+			}
 			fIn.setServiceName(svc.getName());
 			myCommandProcessor.addFilter(fIn, Filter.INCOMING);
 		}
 
 		// Install the service sinks
-		String[] commandNames = svc.getOwnedCommands();
 		Sink sSrc = svc.getCommandSink(Sink.COMMAND_SOURCE);
 		if (sSrc != null) {
 			myCommandProcessor.registerSink(sSrc, Sink.COMMAND_SOURCE, svc.getName());
