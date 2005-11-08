@@ -857,14 +857,19 @@ public class PlatformManagerImpl implements PlatformManager {
 		Node node = dsc.getNode();
 		Node parent = dsc.getParentNode();
 		if (parent != null) {
-			// This is a child node --> Do not monitor it directly if the parent is already monitored
-			NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
-			if (failureMonitor != null) {
-				failureMonitor.addChild(node);
-				if (myLogger.isLoggable(Logger.CONFIG)) {
-					myLogger.log(Logger.INFO, "Node <" + node.getName() + "> added as child of node " + parent.getName());
-				}
+			// This is a child node --> Do not monitor it directly if the parent is already monitored or is the local node
+			if (isLocalNode(parent)) {
 				needMonitor = false;
+			}
+			else {
+				NodeFailureMonitor failureMonitor = (NodeFailureMonitor) monitors.get(parent.getName());
+				if (failureMonitor != null) {
+					failureMonitor.addChild(node);
+					if (myLogger.isLoggable(Logger.CONFIG)) {
+						myLogger.log(Logger.INFO, "Node <" + node.getName() + "> added as child of node " + parent.getName());
+					}
+					needMonitor = false;
+				}
 			}
 		}
 		if (needMonitor) {

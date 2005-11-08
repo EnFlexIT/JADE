@@ -406,7 +406,7 @@ public class BEAgentManagementService extends BaseService {
     Object[] params = cmd.getParams();
     AID agentID = (AID)params[0];
     String className = (String)params[1];
-    String[]args = (String[])params[2];
+    Object[]args = (Object[])params[2];
     JADEPrincipal owner = (JADEPrincipal) params[3];
     Credentials initialCredentials = (Credentials) params[4];
     createAgent(agentID, className, args, owner, initialCredentials);

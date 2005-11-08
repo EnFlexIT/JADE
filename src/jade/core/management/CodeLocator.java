@@ -85,25 +85,18 @@ public class CodeLocator {
 			return null;
 	}
 
-	public synchronized String getAgentMainClass(AID name) {
-		String mobileAgentUID = (String) _agentsUsingJar.get(name);
-		if (mobileAgentUID != null) {
-			Row r = (Row) _jarHash.get(mobileAgentUID);
-			return r != null ? r.getMainClass() : null;
-		} else
-			return null;
-	}
-
 	private synchronized String getCodeByHash(String mobileAgentUID) {
 		Row r = (Row) _jarHash.get(mobileAgentUID);
 		return r != null ? r.getLocation() : null;
 	}
 
 	public synchronized String registerAgent(AID name, byte[] code) throws Exception {
+		System.out.println("registeragent1");
 		return registerAgent(name, new ByteArrayInputStream(code));
 	}
 
 	public synchronized String registerAgent(AID name, InputStream codestream) throws Exception {
+		System.out.println("registeragent2");
 		File f = null;
 
 		do {
@@ -123,6 +116,7 @@ public class CodeLocator {
 	}
 
 	public synchronized String registerAgent(AID name, File f, boolean userCreatedJar) throws Exception {
+		System.out.println("registeragent3 usercreated: "+ userCreatedJar);
 		JarFile jf = new JarFile(f);
 		Manifest man = null;
 		Attributes att = null;
@@ -158,21 +152,24 @@ public class CodeLocator {
 			if (!(new File(TMP_JAR)).renameTo(f)) {
 				System.out.println("####################### RENAME didn't work properly");
 			}
-	
+			System.out.println("registeragent: l'arxiu " + f.getPath() + " existeix? " + f.exists());
 			// Register agent.
 			return registerJar(name, f.getPath(), jarUID, userCreatedJar);
 		}
 		finally {
-			try {jf.close();} catch (Exception e) {}
+			try {jf.close();} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	private String registerJar(AID name, String path, String jarUID, boolean userCreatedJar) {
 		//Check for an equal hash registered JAR.
 		Row r = (Row) _jarHash.get(jarUID);
+		System.out.println("Register JAR. Valor de la fila: " + r);
 		if (r == null) {
 			// FIXME: We should use the Agent class name
-			_jarHash.put(jarUID, new Row(path, name.getClass().getName(), userCreatedJar));
+			_jarHash.put(jarUID, new Row(path, userCreatedJar));
 			_agentsUsingJar.put(name, jarUID);
 			return path;
 		} else {
@@ -218,6 +215,8 @@ public class CodeLocator {
 		jos.flush();
 		jos.close();
 		fos.close();
+		
+		System.out.println("CopyJar: l'arxiu " + path + " existeix? " + new File(path).exists());
 	}
 
 	private String calculateJarUID(JarFile jf) throws IOException, NoSuchAlgorithmException {
@@ -267,23 +266,23 @@ public class CodeLocator {
 	
 	public synchronized void removeAgentRef(AID name) {
 		String jarUID = (String) _agentsUsingJar.get(name);
+		
 		if (jarUID != null) {
+			_agentsUsingJar.remove(name);
 			Row r = (Row) _jarHash.get(jarUID);
 			if (r != null) {
 				if (r.value() > 1) {
 					r.decRef();
-					if (!r.userCreatedJar())
-						_agentsUsingJar.remove(name);
-				} else {
+							
+				} else
 					removeAgentCode(jarUID);
-				}
 			}
 		}
 	}
 
 	private synchronized void removeAgentCode(String mobileAgentUID) {
 		Row r = (Row) _jarHash.get(mobileAgentUID);
-		if (r != null)
+		if ((r != null) && !r.userCreatedJar())
 			new File(r.getLocation()).delete();
 		_jarHash.remove(mobileAgentUID);
 	}
@@ -332,53 +331,15 @@ public class CodeLocator {
 
 	private Random _random;
 
-	/* private static class ByteHash {
-	 
-	 public ByteHash(byte[] hash) {
-	 _hash = hash;
-	 }
-	 
-	 public boolean equals(Object o) {
-	 
-	 if (!(o instanceof ByteHash)) 
-	 return false;
-	 
-	 ByteHash passedHash = (ByteHash) o;
-	 
-	 return Arrays.equals(passedHash.getHash(),_hash);
-	 }
-	 
-	 public int hashCode() {
-	 int result = 19;
-	 
-	 for (int i = 0; i < _hash.length; i++) {
-	 result = 23 * (result%(Integer.MAX_VALUE/24)) + _hash[i];
-	 }
-	 return result;
-	 }
-	 
-	 public byte[] getHash() {
-	 return _hash;
-	 }
-	 
-	 byte[] _hash;
-	 
-	 }
-	 */
 	private static class Row {
-		public Row(String location, String mainClass, boolean userCreated) {
+		public Row(String location, boolean userCreated) {
 			_refs = 1;
 			_location = location;
-			_mainClass = mainClass;
 			_userCreatedJar = userCreated;
 		}
 
 		public String getLocation() {
 			return _location;
-		}
-
-		public String getMainClass() {
-			return _mainClass;
 		}
 
 		public void incRef() {
@@ -400,8 +361,6 @@ public class CodeLocator {
 		private int _refs;
 
 		private String _location;
-
-		private String _mainClass;
 
 		private boolean _userCreatedJar;
 	}
