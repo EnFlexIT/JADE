@@ -1,5 +1,7 @@
 package jade.wrapper.gateway;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.util.leap.Iterator;
 import jade.util.leap.HashMap;
 

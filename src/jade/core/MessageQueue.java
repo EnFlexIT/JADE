@@ -141,7 +141,7 @@ class MessageQueue {
 			#MIDP_INCLUDE_END*/
   }
 
-    //#MIDP_EXCLUDE_BEGIN
+    //#J2ME_EXCLUDE_BEGIN
 
     // For persistence service
     private void setMessages(java.util.List l) {
@@ -156,7 +156,7 @@ class MessageQueue {
 	return null;
     }
 
-    //#MIDP_EXCLUDE_END
+    //#J2ME_EXCLUDE_END
 
 
     // For persistence service

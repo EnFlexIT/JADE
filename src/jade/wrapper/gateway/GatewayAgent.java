@@ -1,5 +1,7 @@
 package jade.wrapper.gateway;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.core.Agent;
 import jade.core.behaviours.*;
 import java.util.HashMap;

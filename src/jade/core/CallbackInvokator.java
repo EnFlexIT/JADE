@@ -47,6 +47,7 @@ public class CallbackInvokator implements jade.util.leap.Serializable {
 		Method callbackMethod = null;
 		try {
 			callbackMethod = agentClass.getDeclaredMethod(name, (Class[]) null);
+			//#J2ME_EXCLUDE_BEGIN
 			//#DOTNET_EXCLUDE_BEGIN
 			boolean accessibilityChanged = false;
 			if (!callbackMethod.isAccessible()) {
@@ -59,14 +60,17 @@ public class CallbackInvokator implements jade.util.leap.Serializable {
 				}
 			}					
 			//#DOTNET_EXCLUDE_END
+			//#J2ME_EXCLUDE_END
 			try { 			
 				callbackMethod.invoke(a, (Object[]) null);
+				//#J2ME_EXCLUDE_BEGIN
 				//#DOTNET_EXCLUDE_BEGIN
 				// Restore accessibility if changed
 				if (accessibilityChanged) {
 					callbackMethod.setAccessible(false);
 				}
 				//#DOTNET_EXCLUDE_END
+				//#J2ME_EXCLUDE_END
 			}
 			catch (Exception e) {
 				System.out.println("Error executing callback method "+name+"() of agent "+a.getName()+". "+e);

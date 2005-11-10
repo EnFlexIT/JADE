@@ -142,13 +142,10 @@ public interface ServiceManager {
        Deactivates a service on the local container. Depending on
        whether the service is enabled also on other containers, this
        method can cause the complete service deactivation on the
-       platform or just the detchmnent of he service slice
+       platform or just the detchmnent of the service slice
        corresponding to this container.
 
-       @param desc The <code>ServiceDescriptor</code> object, used to
-       find the service to deactivate. At the very least, the
-       descriptor must contain the name of the service, that is used
-       as a key in service finding operations.
+       @param name The name of the service to be deactivated. 
 
        @throws IMTPException If an underlying network error forbids to
        tell whether the requested operation was possible. In that
@@ -159,7 +156,7 @@ public interface ServiceManager {
 
        @see jade.core.ServiceFinder
     */
-    void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException;
+    void deactivateService(String name) throws IMTPException, ServiceException;
 
 
 }

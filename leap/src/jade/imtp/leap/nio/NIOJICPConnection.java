@@ -51,19 +51,24 @@ public class NIOJICPConnection extends Connection {
 			headerBuf.clear();
 			int n = myChannel.read(headerBuf);
 			if (n > 0) {
+				//System.out.println("Read "+n+" bytes");
 				idle = false;
 				headerBuf.flip();
 				type = headerBuf.get();
+				//System.out.println("type = "+type);
 				info = headerBuf.get();
+				//System.out.println("info = "+info);
 				sessionID = -1;
 				if ((info & JICPProtocol.SESSION_ID_PRESENT_INFO) != 0) {
 					sessionID = headerBuf.get();
+					//System.out.println("SessionID = "+sessionID);
 				}
 				if ((info & JICPProtocol.RECIPIENT_ID_PRESENT_INFO) != 0) {
 					byte recipientIDLength = headerBuf.get();
 					byte[] bb = new byte[recipientIDLength];
 					headerBuf.get(bb);
 					recipientID = new String(bb);
+					//System.out.println("RecipientID = "+recipientID);
 				}
 				if ((info & JICPProtocol.DATA_PRESENT_INFO) != 0) {
 		    	int b1 = (int) headerBuf.get();
@@ -72,9 +77,10 @@ public class NIOJICPConnection extends Connection {
 		    	int b3 = (int) headerBuf.get();
 		    	int b4 = (int) headerBuf.get();
 		    	payloadLength |= ((b4 << 24) & 0xff000000) | ((b3 << 16) & 0x00ff0000);
+				//System.out.println("PayloadLength = "+payloadLength);
 		    	// FIXME: Set a meaningful maximum packet size
 		    	if (payloadLength > JICPPacket.MAX_SIZE) {
-		    		throw new IOException("Packet size greater that maximum allowed size. "+payloadLength);
+		    		throw new IOException("Packet size greater than maximum allowed size. "+payloadLength);
 		    	}
 		    		
 		    	payload = new byte[payloadLength];

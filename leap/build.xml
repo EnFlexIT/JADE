@@ -13,7 +13,6 @@
 
 	<!-- JAVA classes -->
 	<property name="boot-java-classes" value="${java-home}/jre/lib/rt.jar"/>
-	<property name="boot-java-1.1-classes" value="${java-1.1-home}/lib/classes.zip"/>
 
    
 	<!-- Directories -->
@@ -75,14 +74,10 @@
 	</target>
 	
 	
-	<!-- PJAVA (java-1.1-home must be set in the buildLEAP.properties file) -->
-	<target name = "pjava" depends = "pjava-do, pjava-dont"
-	        description = "Set the pjava property --> pjava.xml will be called (unless java-1.1-home is not set)"/>
-	<target name = "pjava-do" if = "java-1.1-home">
+	<!-- PJAVA -->
+	<target name = "pjava" 
+	        description = "Set the pjava property --> pjava.xml will be called">
 		<property name = "pjava"  value = "true"/>
-	</target>
-	<target name = "pjava-dont" unless = "java-1.1-home">
-		<echo> WARNING: 'java-1.1-home' not specified in buildLEAP.properties. Skipping pjava build.</echo>
 	</target>
 
 

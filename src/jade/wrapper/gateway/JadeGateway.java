@@ -1,8 +1,9 @@
 package jade.wrapper.gateway; 
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.core.Runtime;
 import jade.core.ProfileImpl;
-import jade.core.Profile;
 import jade.util.Event;
 import jade.util.leap.Properties;
 import jade.util.Logger;

@@ -25,6 +25,7 @@ package jade.domain.JADEAgentManagement;
 
 import jade.core.AID;
 import jade.core.ContainerID;
+import jade.core.PlatformID;
 import jade.content.onto.*;
 import jade.content.schema.*;
 import jade.domain.FIPAAgentManagement.ExceptionOntology;
@@ -71,8 +72,9 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     try {
     	//#MIDP_EXCLUDE_BEGIN
     	// Concepts definitions
-    	add(new ConceptSchema(CONTAINERID), ContainerID.class);
     	add(new ConceptSchema(LOCATION));
+    	add(new ConceptSchema(CONTAINERID), ContainerID.class);
+    	add(new ConceptSchema(PLATFORMID), PlatformID.class);
 
     	// AgentActions definitions
     	add(new AgentActionSchema(SHUTDOWNPLATFORM), ShutdownPlatform.class);
@@ -97,8 +99,9 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	
 			/*#MIDP_INCLUDE_BEGIN    	
     	// Concepts definitions
-    	add(new ConceptSchema(CONTAINERID));
     	add(new ConceptSchema(LOCATION));
+    	add(new ConceptSchema(CONTAINERID));
+    	add(new ConceptSchema(PLATFORMID));
     	
     	// AgentActions definitions
     	add(new AgentActionSchema(SHUTDOWNPLATFORM));
@@ -129,6 +132,9 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	cs = (ConceptSchema) getSchema(CONTAINERID);
     	cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
 
+    	cs = (ConceptSchema) getSchema(PLATFORMID);
+    	cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
+    	
     	AgentActionSchema as = (AgentActionSchema) getSchema(SHUTDOWNPLATFORM);
 
     	as = (AgentActionSchema) getSchema(KILLCONTAINER);

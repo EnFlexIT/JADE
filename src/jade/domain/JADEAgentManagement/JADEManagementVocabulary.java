@@ -44,6 +44,8 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
 
   public static final String CONTAINERID = "container-ID";
   
+  public static final String PLATFORMID = "platform-ID";
+  
   // Actions supported by the ams
   public static final String QUERYAGENTSONLOCATION = "query-agents-on-location";
   public static final String QUERYAGENTSONLOCATION_LOCATION = "location";

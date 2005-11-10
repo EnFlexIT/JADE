@@ -184,11 +184,15 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
   	appendProp(sb, MicroRuntime.PLATFORM_ADDRESSES_KEY, pp);
   	appendProp(sb, JICPProtocol.MEDIATOR_ID_KEY, pp);
   	appendProp(sb, JICPProtocol.LOCAL_HOST_KEY, pp);
-  	appendProp(sb, Profile.AGENTS, pp);
+  	appendProp(sb, Profile.AGENTS, pp, false);
   	return sb.toString();
   }
   	
   private static final void appendProp(StringBuffer sb, String key, Properties pp) {
+	  appendProp(sb, key, pp, true);
+  }
+  
+  private static final void appendProp(StringBuffer sb, String key, Properties pp, boolean appendHash) {
   	Object val = pp.get(key);
   	if (val != null) {
   		String strVal = val.toString();
@@ -196,7 +200,9 @@ public class FrontEndStub extends MicroStub implements FrontEnd {
 		  	sb.append(key);
 		  	sb.append('=');
 		  	sb.append(val);
-		  	sb.append('#');
+		  	if (appendHash) {
+			  	sb.append('#');
+		  	}
 	  	}
   	}
   }

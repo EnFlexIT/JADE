@@ -87,11 +87,11 @@
 		<javac srcdir="${src}"
 		       destdir="${classes}"
 		       debug="${debug-build}"
+		       debuglevel="vars,lines,source"
 		       optimize="${optimised-build}"
 		       deprecation="off"
-		       classpath="${boot-java-1.1-classes}"
-		       bootclasspath="${boot-java-1.1-classes}"
-		       compiler="javac1.1"
+		       fork="yes"
+		       compiler="classic"
 		       target="1.1"/>
 	</target>
 

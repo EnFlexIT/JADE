@@ -214,21 +214,25 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 	}
 
-	public void deactivateService(ServiceDescriptor desc) throws IMTPException, ServiceException {
-		// Notify the platform manager (remove the slice for this service on this node)
-		String name = desc.getName();
-		try {
-			myPlatformManager.removeSlice(name, localNode.getName(), false);
-		} catch (IMTPException imtpe) {
-			if (reconnect()) {
+	public void deactivateService(String name) throws IMTPException, ServiceException {
+		ServiceDescriptor desc = (ServiceDescriptor) localServices.get(name);
+		if (desc != null) {
+			// Notify the platform manager (remove the slice for this service on this node)
+			try {
 				myPlatformManager.removeSlice(name, localNode.getName(), false);
-			} else {
-				throw imtpe;
+			} 
+			catch (IMTPException imtpe) {
+				if (reconnect()) {
+					myPlatformManager.removeSlice(name, localNode.getName(), false);
+				} 
+				else {
+					throw imtpe;
+				}
 			}
+	
+			// Uninstall the service locally
+			uninstallServiceLocally(name);
 		}
-
-		// Uninstall the service locally
-		uninstallServiceLocally(name);
 	}
 
 	/////////////////////////////////////////////////
@@ -327,7 +331,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		if (svc instanceof BaseService) {
 			BaseService bs = (BaseService) svc;
 			bs.setCommandProcessor(myCommandProcessor);
-		}
+		}		
 	}
 
 	private void uninstallServiceLocally(String name) throws IMTPException, ServiceException {
