@@ -48,4 +48,10 @@ public interface LogManager {
 	 */
 	public List getLogLevels();
 	
+	/**
+	 * Returns a user friendly name of the logging system
+	 * @return user friendly name of the logging system
+	 */
+	public String getName();
+	
 }
