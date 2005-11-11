@@ -6,6 +6,7 @@ import jade.content.AgentAction;
 
 public class SetLevel implements AgentAction {
 	private int level;
+	private String logger;
 	
 	public SetLevel() {
 		this(1);
@@ -22,4 +23,13 @@ public class SetLevel implements AgentAction {
 	public int getLevel() {
 		return level;
 	}
+
+	public String getLogger() {
+		return logger;
+	}
+
+	public void setLogger(String logger) {
+		this.logger = logger;
+	}
+	
 }

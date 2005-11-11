@@ -6,6 +6,7 @@ import jade.content.AgentAction;
 
 public class SetFile implements AgentAction {
 	private String file;
+	private String logger;
 	
 	public SetFile() {
 		
@@ -23,5 +24,11 @@ public class SetFile implements AgentAction {
 		return file;
 	}
 	
+	public String getLogger() {
+		return logger;
+	}
 
+	public void setLogger(String logger) {
+		this.logger = logger;
+	}
 }

@@ -47,7 +47,9 @@ public interface LogManagementVocabulary {
 
 	public static final String SET_LEVEL = "SET-LEVEL";
 	public static final String SET_LEVEL_LEVEL = "level";
+	public static final String SET_LEVEL_LOGGER = "logger";
 
 	public static final String SET_FILE = "SET-FILE";
 	public static final String SET_FILE_FILE = "file";
+	public static final String SET_FILE_LOGGER = "logger";
 }

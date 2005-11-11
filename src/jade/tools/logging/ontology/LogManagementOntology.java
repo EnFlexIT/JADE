@@ -81,9 +81,12 @@ public class LogManagementOntology extends Ontology implements LogManagementVoca
 
 			as = (AgentActionSchema) getSchema(SET_LEVEL);
 			as.add(SET_LEVEL_LEVEL, (PrimitiveSchema) getSchema(BasicOntology.INTEGER));
+			as.add(SET_LEVEL_LOGGER, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 
 			as = (AgentActionSchema) getSchema(SET_FILE);
-			as.add(SET_FILE, (PrimitiveSchema) getSchema(BasicOntology.STRING));
+			as.add(SET_FILE_FILE, (PrimitiveSchema) getSchema(BasicOntology.STRING));
+			as.add(SET_FILE_LOGGER, (PrimitiveSchema)getSchema(BasicOntology.STRING));
+			
 		} catch (OntologyException oe) {
 			oe.printStackTrace();
 		}
