@@ -8,11 +8,11 @@ public class GetAllLoggers implements AgentAction {
 	private String type;
 	private String filter;
 	
-	public void setName(String type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 	
-	public String getName() {
+	public String getType() {
 		return type;
 	}
 	

@@ -23,8 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.logging;
 
-// Import required Jade classes 
+// Import required Jade classes
+
 import jade.core.Agent;
+import jade.util.leap.List;
 
 /**
 @author Rosalba Bochicchio - TILAB

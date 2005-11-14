@@ -51,4 +51,5 @@ public class LoggerInfo implements Concept {
 	public String getFile() {
 		return file;
 	}	
+	
 }
