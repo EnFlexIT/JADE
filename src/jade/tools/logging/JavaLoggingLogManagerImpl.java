@@ -37,6 +37,7 @@ import jade.util.leap.ArrayList;
 public class JavaLoggingLogManagerImpl implements LogManager {
 
 	public static final String JAVA_LOGGING_LOG_MANAGER_CLASS = "jade.tools.logging.JavaLoggingLogManagerImpl";
+	private static final String DEFAULT_ROOT_LOGGER_NAME = "DEFAULT_ROOT_LOGGER";
 	private static List levels = new ArrayList();
 	
 	static {
@@ -94,14 +95,14 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 			this.loggers = new ArrayList();
 			for(Enumeration e = logManager.getLoggerNames();e.hasMoreElements();){
 				String logName = (String)e.nextElement();
-			
-				Logger theLogger = this.logManager.getLogger(logName); //FIXME: root level has emtpy name
+				Logger theLogger = this.logManager.getLogger(logName); 
 				//retrieving the level
 				Level level = theLogger.getLevel();
 				//If the result is null, this logger's effective level will be inherited from its parent. 
 				//The value is the one specified for the property level in the configuration file 			
 				int loggerLevel = ((level != null) ? level.intValue() : Level.parse(this.logManager.getProperty(".level")).intValue());
-				LoggerInfo logInfoElem = new LoggerInfo(logName, loggerLevel);
+				//root level has emtpy name
+				LoggerInfo logInfoElem = new LoggerInfo((logName.length()== 0 ? DEFAULT_ROOT_LOGGER_NAME : logName), loggerLevel);
 				
 				//if a FileHandler has been specified it's not possibile to retrieve the fileName 
 				
@@ -132,7 +133,17 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 	
 	
 	public void setLogLevel(String name, int level){
-		//FIXME: come trattare il caso del root logger: quello con nome vuoto ?
+		
+		//update the LogInfo associated.
+		for(int i=0; i<this.loggers.size(); i++){
+			LoggerInfo lInfo = (LoggerInfo)this.loggers.get(i);
+			if(lInfo.getName().equalsIgnoreCase(name)){
+				lInfo.setLevel(level);
+				break;
+			}
+		}	
+		if(name.equals(DEFAULT_ROOT_LOGGER_NAME))
+			name = "";
 		Logger logger = logManager.getLogger(name);
 		Level  newLoggerLevel = Level.INFO;
 		if(level == Level.ALL.intValue()){
@@ -164,36 +175,26 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 		for (int j=0; j<handlers.length; j++){
 			handlers[j].setLevel(newLoggerLevel);
 		}
-		//update the LogInfo associated.
-		for(int i=0; i<this.loggers.size(); i++){
-			LoggerInfo lInfo = (LoggerInfo)this.loggers.get(i);
-			if(lInfo.getName().equalsIgnoreCase(name)){
-				lInfo.setLevel(level);
-				break;
-			}
-		}	
 	}
 		
 	public void setFile(String name, String  fileHandler){
 		try {
-			Logger logger = logManager.getLogger(name);
-			logger.addHandler(new FileHandler(fileHandler));
 			//update the LogInfo associated.
 			for(int i=0; i<this.loggers.size(); i++){
 				LoggerInfo lInfo = (LoggerInfo)this.loggers.get(i);
 				if(lInfo.getName().equalsIgnoreCase(name)){
-					//FIXME: in questo caso perdo il nome del file prima settato
-					//li devo mantenere in una lista ? ha senso mantenere questa informazione ?
-					//visto che a successive istanziazioni si perdono i riferimenti ai files ?
 					lInfo.setFile(fileHandler);
 					break;
 				}
 			}
+			if(name.equals(DEFAULT_ROOT_LOGGER_NAME))
+				name = "";
+			Logger logger = logManager.getLogger(name);
+			logger.addHandler(new FileHandler(fileHandler));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
 	}
-	
 	
 	/**
 	 * Returns  a list of <code>LevelInfo</code> object each one describing a level valid for the selected logging system. 
