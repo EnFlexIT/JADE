@@ -98,26 +98,12 @@
 		<mkdir dir="${classes}/jade/tools/sniffer/images"/>
 		<mkdir dir="${classes}/jade/tools/rma/images"/>
 		<mkdir dir="${classes}/jade/gui/images"/>
-		<copy todir="${classes}/jade/tools/dfgui/images">
-		    <fileset dir="${src}/jade/tools/dfgui/images" includes="*.gif"/>
-		</copy>
-		<copy todir="${classes}/jade/tools/DummyAgent/images">
-		    <fileset dir="${src}/jade/tools/DummyAgent/images" includes="*.gif"/>
-		</copy>
-		<copy todir="${classes}/jade/tools/introspector/gui/images">
-		    <fileset dir="${src}/jade/tools/introspector/gui/images" includes="*.gif *.jpg"/>
-		</copy>
-		<copy todir="${classes}/jade/tools/sniffer/images">
-		    <fileset dir="${src}/jade/tools/sniffer/images" includes="*.gif *.jpg"/>
-		</copy>
-		<copy todir="${classes}/jade/tools/rma/images">
-		    <fileset dir="${src}/jade/tools/rma/images" includes="*.gif *.jpg"/>
-		</copy>
-		<copy todir="${classes}/jade/tools/logging/images">
-		    <fileset dir="${src}/jade/tools/logging/images" includes="*.gif *.jpg"/>
-		</copy>
-		<copy todir="${classes}/jade/gui/images">
-		    <fileset dir="${src}/jade/gui/images" includes="*.gif *.jpg"/>
+		<copy todir="${classes}">
+			<fileset dir="${src}">
+				<include name="**/*.png"/>
+				<include name="**/*.gif"/>
+				<include name="**/*.jpg"/>
+			</fileset>
 		</copy>
 	</target>
 
