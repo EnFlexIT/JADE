@@ -344,7 +344,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// The monitor agent has NO initial credentials
     		AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
     		myContainer.initAgent(monitorId, monitor, myContainer.getNodeDescriptor().getOwnerPrincipal(), null);
-		    myContainer.powerUpLocalAgent(monitorId);
+    		// The agent will be powered-up together with all other bootstrap agents
     	}
     	catch (Exception e) {
     		myLogger.log(Logger.WARNING, "Error starting MessagingMonitorAgent. "+e);

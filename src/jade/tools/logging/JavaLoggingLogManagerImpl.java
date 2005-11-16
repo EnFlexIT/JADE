@@ -37,6 +37,20 @@ import jade.util.leap.ArrayList;
 public class JavaLoggingLogManagerImpl implements LogManager {
 
 	public static final String JAVA_LOGGING_LOG_MANAGER_CLASS = "jade.tools.logging.JavaLoggingLogManagerImpl";
+	private static List levels = new ArrayList();
+	
+	static {
+		levels.add(new LevelInfo(Level.ALL.getName() ,Level.ALL.intValue()));
+		levels.add(new LevelInfo(Level.SEVERE.getName() ,Level.SEVERE.intValue()));
+		levels.add(new LevelInfo(Level.WARNING.getName() ,Level.WARNING.intValue()));
+		levels.add(new LevelInfo(Level.INFO.getName() ,Level.INFO.intValue()));
+		levels.add(new LevelInfo(Level.CONFIG.getName() ,Level.CONFIG.intValue()));
+		levels.add(new LevelInfo(Level.FINE.getName() ,Level.FINE.intValue()));
+		levels.add(new LevelInfo(Level.FINER.getName() ,Level.FINER.intValue()));
+		levels.add(new LevelInfo(Level.FINEST.getName() ,Level.FINEST.intValue()));
+		levels.add(new LevelInfo(Level.OFF.getName() ,Level.OFF.intValue()));
+	}
+	
 	
 	private java.util.logging.LogManager logManager = java.util.logging.LogManager.getLogManager();
 	private static final String LOGGER_FRIENDLY_NAME = "Java Util Logging";
@@ -160,7 +174,7 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 		}	
 	}
 		
-	public void addFile(String name, String  fileHandler){
+	public void setFile(String name, String  fileHandler){
 		try {
 			Logger logger = logManager.getLogger(name);
 			logger.addHandler(new FileHandler(fileHandler));
@@ -186,16 +200,6 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 	 * @return a list of <code>LevelInfo</code> object each one describing a level valid for the selected logging system.
 	 */
 	public List getLogLevels(){
-		List out = new ArrayList(7);
-		out.add(new LevelInfo(Level.ALL.getName() ,Level.ALL.intValue()));
-		out.add(new LevelInfo(Level.SEVERE.getName() ,Level.SEVERE.intValue()));
-		out.add(new LevelInfo(Level.WARNING.getName() ,Level.WARNING.intValue()));
-		out.add(new LevelInfo(Level.INFO.getName() ,Level.INFO.intValue()));
-		out.add(new LevelInfo(Level.CONFIG.getName() ,Level.CONFIG.intValue()));
-		out.add(new LevelInfo(Level.FINE.getName() ,Level.FINE.intValue()));
-		out.add(new LevelInfo(Level.FINER.getName() ,Level.FINER.intValue()));
-		out.add(new LevelInfo(Level.FINEST.getName() ,Level.FINEST.intValue()));
-		out.add(new LevelInfo(Level.OFF.getName() ,Level.OFF.intValue()));
-		return out;
+		return levels;
 	}
 }

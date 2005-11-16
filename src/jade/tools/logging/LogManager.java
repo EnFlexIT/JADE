@@ -40,7 +40,7 @@ public interface LogManager {
 	
 	public void setLogLevel(String name, int level);
 	
-	public void addFile(String name, String  fileHandler);
+	public void setFile(String name, String  fileHandler);
 	
 	/**
 	 * Returns  a list of <code>LevelInfo</code> object each one describing a level valid for the selected logging system. 

@@ -129,7 +129,7 @@ public class LogHelperAgent extends Agent {
 		//FIXME: risolvere il problema del root logger quello senza nome !!!!!
 		private ACLMessage handleSetFile(SetFile action, ACLMessage reply) throws RefuseException{
 			if(logManager != null){
-				logManager.addFile(action.getFile(), action.getLogger());
+				logManager.setFile(action.getFile(), action.getLogger());
 			}else{
 				throw new RefuseException("missing initialization of log manager");
 			}

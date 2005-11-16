@@ -1,44 +1,80 @@
-/*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
-
-GNU Lesser General Public License
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-*****************************************************************/
-
 package jade.tools.logging;
 
-// Import required Jade classes
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
 
-import jade.core.Agent;
-import jade.util.leap.List;
+import jade.core.*;
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.domain.introspection.*;
+import jade.tools.logging.gui.LogManagerGUI;
 
 /**
-@author Rosalba Bochicchio - TILAB
-*/
-
-public class LogManagerAgent extends Agent{
-
-	private LogManagerGui myGui;
-
-	protected void setup(){
-		myGui = new LogManagerGui(this);
-		myGui.showCorrect();		
+ * This tool agent support local and remote management of logs in JADE containers.
+ * 
+ * @author Giovanni Caire - TILAB
+ * @author Rosalba Bochicchio - TILAB
+ */
+public class LogManagerAgent extends Agent {
+	private LogManagerGUI myGui;
+	private APDescription myPlatformProfile;
+	
+	private AMSSubscriber myAMSSubscriber;
+	
+	protected void setup() {
+		myAMSSubscriber = new AMSSubscriber() {
+			protected void installHandlers(Map handlersTable) {
+				handlersTable.put(IntrospectionVocabulary.META_RESETEVENTS, new EventHandler() {
+					public void handle(Event ev) {
+						myGui.resetTree();
+					}
+				});
+				
+				handlersTable.put(IntrospectionVocabulary.ADDEDCONTAINER, new EventHandler() {
+					public void handle(Event ev) {
+						AddedContainer ac = (AddedContainer) ev;
+						ContainerID cid = ac.getContainer();
+						String name = cid.getName();
+						String address = cid.getAddress();
+						try {
+							InetAddress addr = InetAddress.getByName(address);
+							myGui.addContainer(name, addr);
+						} catch (UnknownHostException uhe) {
+							myGui.addContainer(name, null);
+						}
+					}
+				});
+				
+				handlersTable.put(IntrospectionVocabulary.REMOVEDCONTAINER, new EventHandler() {
+					public void handle(Event ev) {
+						RemovedContainer rc = (RemovedContainer) ev;
+						ContainerID cid = rc.getContainer();
+						String name = cid.getName();
+						myGui.removeContainer(name);
+					}
+				});
+				
+				//handle the APDescription provided by the AMS
+				handlersTable.put(IntrospectionVocabulary.PLATFORMDESCRIPTION, new EventHandler() {
+					public void handle(Event ev) {
+						PlatformDescription pd = (PlatformDescription) ev;
+						APDescription APdesc = pd.getPlatform();
+						myPlatformProfile = APdesc;
+						myGui.refreshLocalPlatformName(myPlatformProfile.getName());
+					}
+				});
+				
+			}
+		};
+		
+		addBehaviour(myAMSSubscriber);
+		
+		myGui = new LogManagerGUI(this);
+		myGui.showCorrect();	
 	}
-
+	
+	protected void takeDown() {
+		myGui.dispose();
+		send(myAMSSubscriber.getCancel());
+	}
 }

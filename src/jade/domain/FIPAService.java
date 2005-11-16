@@ -152,7 +152,7 @@ public class FIPAService {
 				}
 				else {
 					// We received a REFUSE, NOT_UNDERSTOOD, FAILURE or OUT_OF_SEQUENCE --> ERROR
-					throw new FIPAException(reply.getContent());
+					throw new FIPAException(reply);
 				}
 			}
 		}

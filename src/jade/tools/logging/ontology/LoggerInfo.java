@@ -52,4 +52,7 @@ public class LoggerInfo implements Concept {
 		return file;
 	}	
 	
+	public String toString() {
+		return name;
+	}
 }
