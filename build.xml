@@ -71,36 +71,11 @@ ant dist - to create the distribution files
     <delete dir="${build}/demo"/> -->
     <javac srcdir="${src}" destdir="${build}" nowarn="on" optimize="${javac.optimize}" debug="${javac.debug}" debuglevel="lines,vars,source" deprecation="on" excludes="demo/**,examples/**,test/**" >
 	</javac>
-    <copy todir="${build}/jade/tools/DummyAgent/images">
-      <fileset dir="${src}/jade/tools/DummyAgent/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/logging/images">
-      <fileset dir="${src}/jade/tools/logging/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/sniffer/images">
-      <fileset dir="${src}/jade/tools/sniffer/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/dfgui/images">
-      <fileset dir="${src}/jade/tools/dfgui/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/rma/images">
-      <fileset dir="${src}/jade/tools/rma/images"/>
-    </copy>
-    <copy todir="${build}/jade/gui/images">
-      <fileset dir="${src}/jade/gui/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/introspector/gui/images">
-      <fileset dir="${src}/jade/tools/introspector/gui/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/testagent/images">
-      <fileset dir="${src}/jade/tools/testagent/images"/>
-    </copy>
-    <copy todir="${build}/jade/tools/gui/images">
-      <fileset dir="${src}/jade/tools/gui/images"/>
-    </copy>
-    <copy todir="${build}/jade/gui/help">
-      <fileset dir="${src}/jade/gui/help">
-        <include name="*.html"/>
+    <copy todir="${build}">
+      <fileset dir="${src}">
+        <include name="**/*.png"/>
+        <include name="**/*.gif"/>
+        <include name="**/*.jpg"/>
       </fileset>
     </copy>
     <rmic classname="jade.imtp.rmi.ServiceManagerRMIImpl" base="${build}"/>
