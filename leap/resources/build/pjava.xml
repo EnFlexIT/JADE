@@ -46,6 +46,10 @@
 		</copy>
 	  <!-- 3) Preprocess the whole -->
 	  <pproc basedir="${src}" type="pjava"/>
+	  <!-- 4) Copy the lib commons-codec -->
+	  <copy todir="${lib}/commons-codec" overwrite="yes">
+			<fileset dir="../lib/commons-codec"/>
+	  </copy>
 	</target>
 
 	
@@ -90,6 +94,8 @@
 		       debuglevel="vars,lines,source"
 		       optimize="${optimised-build}"
 		       deprecation="off"
+		       classpath="${boot-java-1.1-classes};${lib}/commons-codec/commons-codec-1.3.jar"
+		       bootclasspath="${boot-java-1.1-classes}"
 		       fork="yes"
 		       compiler="classic"
 		       target="1.1"/>

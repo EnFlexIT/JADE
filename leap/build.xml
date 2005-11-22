@@ -315,7 +315,7 @@
 	<antcall description="Build the binary distribution for j2se,midp,pjava" target="bin-dist"/>   
 	</target>
 
-	<target name="bin-dist" description="Build the binary distribution for j2se,midp,pjava"> <!-- depends="all, rebuild"-->
+	<target name="bin-dist" description="Build the binary distribution for j2se,midp,pjava" depends="all, rebuild">
 	    <copy todir="j2se/lib" overwrite="yes">
 		 <fileset dir="${jade-home}">
 			<include name="COPYING"/>
