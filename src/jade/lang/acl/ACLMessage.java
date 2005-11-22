@@ -168,6 +168,12 @@ private int performative; // keeps the performative type of this object
   public static final String IGNORE_FAILURE = "JADE-ignore-failure";
  
   /**
+   * User defined parameter key specifying that the corresponding value must be replaced by the JADE runtime
+   * by an ISO8601 encoded time-stamp at posting time.
+   */
+  public static final String POST_TIME_STAMP = "JADE-post-ts";
+ 
+  /**
   @serial
   */
   private AID source = null;

@@ -7,6 +7,9 @@ import java.util.Map;
 import jade.core.*;
 import jade.domain.FIPAAgentManagement.APDescription;
 import jade.domain.introspection.*;
+import jade.content.lang.sl.SLCodec;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
+import jade.tools.logging.ontology.LogManagementOntology;
 import jade.tools.logging.gui.LogManagerGUI;
 
 /**
@@ -22,6 +25,10 @@ public class LogManagerAgent extends Agent {
 	private AMSSubscriber myAMSSubscriber;
 	
 	protected void setup() {
+		getContentManager().registerLanguage(new SLCodec());
+		getContentManager().registerOntology(JADEManagementOntology.getInstance());
+		getContentManager().registerOntology(LogManagementOntology.getInstance());
+		
 		myAMSSubscriber = new AMSSubscriber() {
 			protected void installHandlers(Map handlersTable) {
 				handlersTable.put(IntrospectionVocabulary.META_RESETEVENTS, new EventHandler() {

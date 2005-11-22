@@ -117,9 +117,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
   // The concrete agent container, providing access to LADT, etc.
   private AgentContainer myContainer;
 
-  // A handle to the persistent delivery service
-  private Service persistentDeliveryService;
-
   // The local slice for this service
   private final ServiceComponent localSlice = new ServiceComponent();
 

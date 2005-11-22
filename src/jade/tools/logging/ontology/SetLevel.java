@@ -5,15 +5,15 @@ package jade.tools.logging.ontology;
 import jade.content.AgentAction;
 
 public class SetLevel implements AgentAction {
-	private int level;
+	private int level = 1;
 	private String logger;
 	
 	public SetLevel() {
-		this(1);
 	}
 	
-	public SetLevel(int level) {
-		setLevel(level);
+	public SetLevel(String logger, int level) {
+		this.logger = logger;
+		this.level = level;
 	}
 	
 	public void setLevel(int level) {

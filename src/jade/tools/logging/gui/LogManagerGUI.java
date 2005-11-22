@@ -9,14 +9,21 @@ import java.net.URL;
 import java.util.Map;
 import java.util.HashMap;
 
+import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.core.AID;
+import jade.core.ContainerID;
 import jade.gui.AgentTree;
-import jade.tools.logging.ontology.*;
 import jade.tools.logging.LogManager;
 import jade.tools.logging.JavaLoggingLogManagerImpl;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
+import jade.domain.FIPAService;
+import jade.domain.JADEAgentManagement.CreateAgent;
+import jade.domain.JADEAgentManagement.KillAgent;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.gui.AclGui;
+import jade.lang.acl.ACLMessage;
 
 /**
  * LogManager agent main GUI
@@ -211,13 +218,15 @@ public class LogManagerGUI extends JFrame {
 			else {
 				System.out.println("Window NOT found");
 				AID controller = null;
+				int state = 0; 
 				try {
 					if (!containerName.equals(myAgent.here().getName())) {
-						// FIXME: Request the AMS to start a Controller on the requested container
-						throw new FIPAException("Not yet implemented");
+						// Request the AMS to start a Controller on the requested container
+						controller = createController(containerName);
 					}
-				
-					window = new ContainerLogWindow(containerName, controller, defaultLogManager, this);
+					state = 1;
+					
+					window = new ContainerLogWindow(myAgent, containerName, controller, defaultLogManager, this);
 					window.pack();
 					window.setSize(600, 400);
 					window.setVisible(true);
@@ -226,7 +235,8 @@ public class LogManagerGUI extends JFrame {
 					window.moveToFront();
 				}
 				catch (FIPAException fe) {
-					int res = JOptionPane.showConfirmDialog(this, "Cannot retrieve logging information from container "+containerName+"\nWould you like to see the message?", "WARNING", JOptionPane.YES_NO_OPTION);
+					String msg = (state == 0 ? "Cannot create Log Helper agent on container "+containerName : "Cannot retrieve logging information from container "+containerName);
+					int res = JOptionPane.showConfirmDialog(this, msg+"\nWould you like to see the message?", "WARNING", JOptionPane.YES_NO_OPTION);
 					if (res == JOptionPane.YES_OPTION) {
 						AclGui.showMsgInDialog(fe.getACLMessage(), this);
 					}
@@ -243,7 +253,8 @@ public class LogManagerGUI extends JFrame {
 			if (window != null) {
 				AID controller = window.getController();
 				if (controller != null) {
-					// FIXME: Kill the controller
+					// Kill the controller
+					killController(controller);
 				}
 				// Close the window for the seleced container
 				EventQueue.invokeLater(new Runnable() {
@@ -283,4 +294,67 @@ public class LogManagerGUI extends JFrame {
 		}
 		return null;
 	}
+
+	private ACLMessage createAMSRequest() {
+		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+		request.addReceiver(myAgent.getAMS());
+		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+		request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+		request.setOntology(JADEManagementOntology.getInstance().getName());
+		return request;
+	}
+	
+	private AID createController(String containerName) throws FIPAException {
+		ACLMessage request = createAMSRequest();
+		
+		CreateAgent ca = new CreateAgent();
+		String localName = myAgent.getLocalName()+"-helper-on-"+containerName;
+		ca.setAgentName(localName);
+		ca.setClassName("jade.tools.logging.LogHelperAgent");
+		ca.addArguments(myAgent.getAID());
+		ca.setContainer(new ContainerID(containerName, null));
+		
+		Action act = new Action();
+		act.setActor(myAgent.getAMS());
+		act.setAction(ca);
+		
+		try {
+			myAgent.getContentManager().fillContent(request, act);
+			ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request, 10000);
+			if (inform != null) {
+				return new AID(localName, AID.ISLOCALNAME);
+			}
+			else {
+				throw new FIPAException("Response timeout expired");
+			}
+		}
+		catch (FIPAException fe) {
+			throw fe;
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private void killController(AID controller) {
+		ACLMessage request = createAMSRequest();
+		
+		KillAgent ka = new KillAgent();
+		ka.setAgent(controller);
+		
+		Action act = new Action();
+		act.setActor(myAgent.getAMS());
+		act.setAction(ka);
+		
+		try {
+			myAgent.getContentManager().fillContent(request, act);
+			FIPAService.doFipaRequestClient(myAgent, request, 10000);
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+	}	
 }

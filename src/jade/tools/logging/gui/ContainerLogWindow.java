@@ -23,15 +23,21 @@
 
 package jade.tools.logging.gui;
 
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
 import jade.core.AID;
+import jade.core.Agent;
+import jade.core.ContainerID;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
-import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
 import jade.tools.logging.LogManager;
 import jade.tools.logging.ontology.*;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
+import jade.domain.FIPAService;
 import jade.gui.AclGui;
+import jade.lang.acl.ACLMessage;
 
 import java.awt.*;
 import java.net.URL;
@@ -51,10 +57,12 @@ import javax.swing.table.TableColumnModel;
  * @author Giovanni Caire - TILAB
  */
 public class ContainerLogWindow extends JInternalFrame implements InternalFrameListener {	
-	private static final int NAME_COLUMN  		= 0;
-	private static final int LEVEL_COLUMN 	= 1;		
-	private static final int HANDLERS_COLUMN 		= 2;		
-	private static final int FILE_COLUMN 	= 3;
+	private static final int NAME_COLUMN = 0;
+	private static final int LEVEL_COLUMN = 1;		
+	private static final int HANDLERS_COLUMN = 2;		
+	private static final int FILE_COLUMN = 3;
+	
+	private Agent myAgent;
 	
 	private String containerName;
 	private AID controller;
@@ -67,8 +75,10 @@ public class ContainerLogWindow extends JInternalFrame implements InternalFrameL
 	
 	private AbstractAction setLoggingSystemAction = new SetLoggingSystemAction(this);
 	
-	public ContainerLogWindow(String containerName, AID controller, LogManager logManager, LogManagerGUI gui) throws FIPAException {
+	public ContainerLogWindow(Agent a, String containerName, AID controller, LogManager logManager, LogManagerGUI gui) throws FIPAException {
 		super(containerName);
+		
+		myAgent = a;
 		
 		this.containerName = containerName;
 		this.controller = controller;
@@ -134,8 +144,7 @@ public class ContainerLogWindow extends JInternalFrame implements InternalFrameL
 	private List retrieveLogInfo() throws FIPAException {
 		List tmp = null;
 		if (controller != null) {
-			// FIXME: to be implemented
-			throw new FIPAException("Not yet implemented");
+			tmp = remoteRetrieveLogInfo(controller);
 		}
 		else {
 			tmp = myLogManager.getAllLogInfo();
@@ -157,8 +166,7 @@ public class ContainerLogWindow extends JInternalFrame implements InternalFrameL
 	
 	private void setLogLevel(String name, int level) throws FIPAException {
 		if (controller != null) {
-			// FIXME: to be implemented
-			throw new FIPAException("Not yet implemented");
+			remoteSetLogLevel(controller, name, level);
 		}
 		else {
 			myLogManager.setLogLevel(name, level);
@@ -167,8 +175,7 @@ public class ContainerLogWindow extends JInternalFrame implements InternalFrameL
 	
 	private void setLogFile(String name, String fileName) throws FIPAException {
 		if (controller != null) {
-			// FIXME: to be implemented
-			throw new FIPAException("Not yet implemented");
+			remoteSetLogFile(controller, name, fileName);
 		}
 		else {
 			myLogManager.setFile(name, fileName);
@@ -329,5 +336,97 @@ public class ContainerLogWindow extends JInternalFrame implements InternalFrameL
 			}
 		}
 	}
+	
+	
+	////////////////////////////////////////////
+	// Private utility methods
+	////////////////////////////////////////////
+	private ACLMessage createHelperRequest(AID helper) {
+		ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+		request.addReceiver(helper);
+		request.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+		request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+		request.setOntology(LogManagementOntology.getInstance().getName());
+		return request;
+	}
+	
+	private List remoteRetrieveLogInfo(AID helper) throws FIPAException {
+		ACLMessage request = createHelperRequest(helper);
+		
+		GetAllLoggers gal = new GetAllLoggers(myLogManager.getClass().getName(), null);
+		
+		Action act = new Action();
+		act.setActor(helper);
+		act.setAction(gal);
+		
+		try {
+			myAgent.getContentManager().fillContent(request, act);
+			ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request, 10000);
+			if (inform != null) {
+				Result res = (Result) myAgent.getContentManager().extractContent(inform);
+				return res.getItems();
+			}
+			else {
+				throw new FIPAException("Response timeout expired");
+			}
+		}
+		catch (FIPAException fe) {
+			throw fe;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new FIPAException(e.getMessage());
+		}
+	}
+	
+	private void remoteSetLogLevel(AID helper, String name, int level) throws FIPAException {
+		ACLMessage request = createHelperRequest(helper);
+		
+		SetLevel sl = new SetLevel(name, level);
+		
+		Action act = new Action();
+		act.setActor(helper);
+		act.setAction(sl);
+		
+		try {
+			myAgent.getContentManager().fillContent(request, act);
+			ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request, 10000);
+			if (inform == null) {
+				throw new FIPAException("Response timeout expired");
+			}
+		}
+		catch (FIPAException fe) {
+			throw fe;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new FIPAException(e.getMessage());
+		}
+	}
+	
+	private void remoteSetLogFile(AID helper, String name, String file) throws FIPAException {
+		ACLMessage request = createHelperRequest(helper);
+		
+		SetFile sf = new SetFile(name, file);
+		
+		Action act = new Action();
+		act.setActor(helper);
+		act.setAction(sf);
+		
+		try {
+			myAgent.getContentManager().fillContent(request, act);
+			ACLMessage inform = FIPAService.doFipaRequestClient(myAgent, request, 10000);
+			if (inform == null) {
+				throw new FIPAException("Response timeout expired");
+			}
+		}
+		catch (FIPAException fe) {
+			throw fe;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new FIPAException(e.getMessage());
+		}
+	}	
 }
 

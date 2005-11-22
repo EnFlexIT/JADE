@@ -35,9 +35,9 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 public class JavaLoggingLogManagerImpl implements LogManager {
-
+	
 	public static final String JAVA_LOGGING_LOG_MANAGER_CLASS = "jade.tools.logging.JavaLoggingLogManagerImpl";
-	private static final String DEFAULT_ROOT_LOGGER_NAME = "DEFAULT_ROOT_LOGGER";
+	private static final String DEFAULT_ROOT_LOGGER_NAME = "__ROOT_LOGGER";
 	private static List levels = new ArrayList();
 	
 	static {
@@ -101,8 +101,11 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 				//If the result is null, this logger's effective level will be inherited from its parent. 
 				//The value is the one specified for the property level in the configuration file 			
 				int loggerLevel = ((level != null) ? level.intValue() : Level.parse(this.logManager.getProperty(".level")).intValue());
-				//root level has emtpy name
-				LoggerInfo logInfoElem = new LoggerInfo((logName.length()== 0 ? DEFAULT_ROOT_LOGGER_NAME : logName), loggerLevel);
+				if (logName == null || logName.length() == 0) {
+					// This is the ROOT Logger --> Use a non-empty predefined name
+					logName = DEFAULT_ROOT_LOGGER_NAME;
+				}
+				LoggerInfo logInfoElem = new LoggerInfo(logName, loggerLevel);
 				
 				//if a FileHandler has been specified it's not possibile to retrieve the fileName 
 				
@@ -142,8 +145,10 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 				break;
 			}
 		}	
-		if(name.equals(DEFAULT_ROOT_LOGGER_NAME))
+		if(name.equals(DEFAULT_ROOT_LOGGER_NAME)) {
 			name = "";
+		}
+		
 		Logger logger = logManager.getLogger(name);
 		Level  newLoggerLevel = Level.INFO;
 		if(level == Level.ALL.intValue()){
@@ -167,11 +172,13 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 		}
 		logger.setLevel(newLoggerLevel);
 		//Set level for handlers associated to logger
-		Handler[] pHandlers = logger.getParent().getHandlers();
-		Handler[] handlers = logger.getHandlers();
-		for (int i=0; i<pHandlers.length; i++){
-			pHandlers[i].setLevel(newLoggerLevel);
+		if (logger.getParent() != null) {
+			Handler[] pHandlers = logger.getParent().getHandlers();
+			for (int i=0; i<pHandlers.length; i++){
+				pHandlers[i].setLevel(newLoggerLevel);
+			}
 		}
+		Handler[] handlers = logger.getHandlers();
 		for (int j=0; j<handlers.length; j++){
 			handlers[j].setLevel(newLoggerLevel);
 		}
@@ -187,8 +194,9 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 					break;
 				}
 			}
-			if(name.equals(DEFAULT_ROOT_LOGGER_NAME))
+			if(name.equals(DEFAULT_ROOT_LOGGER_NAME)) {
 				name = "";
+			}
 			Logger logger = logManager.getLogger(name);
 			logger.addHandler(new FileHandler(fileHandler));
 		} catch (IOException e) {
