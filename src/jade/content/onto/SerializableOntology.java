@@ -32,6 +32,7 @@ import jade.content.schema.ObjectSchema;
 import jade.content.schema.PrimitiveSchema;
 import jade.content.schema.ConceptSchema;
 
+import org.apache.commons.codec.binary.Base64;
 import java.io.*;
 
 /**
@@ -86,7 +87,7 @@ public class SerializableOntology extends Ontology {
 			try {
 				AbsPrimitive absValue = (AbsPrimitive) abs.getAbsObject(SERIALIZABLE_VALUE);
 				String stringValue = absValue.getString();
-				byte[] value = starlight.util.Base64.decode(stringValue.toCharArray());
+				byte[] value = Base64.decodeBase64(stringValue.getBytes());
 	      ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value));
 	      return in.readObject();
 			}
@@ -115,7 +116,7 @@ public class SerializableOntology extends Ontology {
     		ObjectOutputStream out = new ObjectOutputStream(baos);
     		out.writeObject(obj);
     		AbsConcept absSerializable = new AbsConcept(SERIALIZABLE);
-				String stringValue = new String(starlight.util.Base64.encode(baos.toByteArray()));
+				String stringValue = new String(Base64.encodeBase64(baos.toByteArray()));
     		absSerializable.set(SERIALIZABLE_VALUE, stringValue);
     		return absSerializable;
   		}

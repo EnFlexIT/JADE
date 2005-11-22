@@ -12,9 +12,10 @@
 		<p>[originally for JADE 2.5 but works fine for JADE 3.x also]</p>
 		<p>JADE can be run in several different ways, on one or on many computers. The easiest way is to run a single JADE platform on one computer and use the main container.</p>
 		<p>Once you have unzipped JADE, you need to make Jade's jar files visible on the classpath. To save typing out could make a one line batch file with the following (on a single line).,</p>
-		<li>java  -classpath .;.\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar jade.Boot %1 %2 %3 %4 %5 %6 %7 %8 %9
-
-		<li>
+		
+<li>java -classpath .;.\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\<tt>commons-codec\commons-codec-1.3</tt>.jar 
+  jade.Boot %1 %2 %3 %4 %5 %6 %7 %8 %9 
+<li>
 		<li><a href="JadeJavaPaths.html">Note on Paths</a>.
 		<li>
 		<li>We will call this batch file <a href="runjade.bat">runjade.bat.</a>
@@ -49,7 +50,7 @@
 		<h3>Compiling the PingAgent</h3>
 		<p>The source for the PingAgent is in the src\PingAgent directory. I moved it to examples\PingAgent\ under the jade directory. This directory structure matches the package structure declared in the PingAgent.java source file.</p>
 		<p>You need to compile the PingAgent. I find it convenient to use another one line batch file for compilation (from the Jade directory). The one line might be:</p>
-		<p>javac  -classpath .\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\base64.jar;.  %1 %2 %3 %4 %5 %6 %7 %8 %9</p>
+		<p>javac  -classpath .\lib\jade.jar;.\lib\jadeTools.jar;.\lib\iiop.jar;.\lib\commons-codec\commons-codec-1.3.jar;.  %1 %2 %3 %4 %5 %6 %7 %8 %9</p>
 		<p>(all on one line) </p>
 		<p>I call this file <a href="compileJade.bat">compilejade.bat</a>.</p>
 		<p>Then compile the Ping Agent with,</p>

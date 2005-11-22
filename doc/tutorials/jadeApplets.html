@@ -44,24 +44,26 @@ during this tutorial.
 The steps that have to be followed are:
 
 <ul>
-<li>Generate a testing key pair.</li>
-<li>Export a self-signed certificate(or get a real certificate from a well-known CA).</li>
-<li>Import certificate in the Java Plug-in if the Java Plug-in is 1.3.0_01 or greater, or else import the
-self-signed certificate using the web browser(s) you'll be testing on.</li>
-<li>Create the jar archive (this may include the necessary JADE classes)</li>
-<li>Sign the generated jar archive.</li>
-<li>If the generated jar file includes only your classes and not the JADE classes then sign the
-JADE jar files too (i.e. jade.jar, Base64.jar, iiop.jar, jadeTools.jar, http.jar and so on)</li>
-<li>Prepare the html file by adding in the archive attribute all the necessary jar files (the ones signed before)</li>
+  <li>Generate a testing key pair.</li>
+  <li>Export a self-signed certificate(or get a real certificate from a well-known 
+    CA).</li>
+  <li>Import certificate in the Java Plug-in if the Java Plug-in is 1.3.0_01 or 
+    greater, or else import the self-signed certificate using the web browser(s) 
+    you'll be testing on.</li>
+  <li>Create the jar archive (this may include the necessary JADE classes)</li>
+  <li>Sign the generated jar archive.</li>
+  <li>If the generated jar file includes only your classes and not the JADE classes 
+    then sign the JADE jar files too (i.e. jade.jar, <tt>commons-codec\commons-codec-1.3</tt>.jar, 
+    iiop.jar, jadeTools.jar, http.jar and so on)</li>
+  <li>Prepare the html file by adding in the archive attribute all the necessary 
+    jar files (the ones signed before)</li>
 </ul>
-
-The example associated to this tutorial shows how to use JADE in applets. The tested features are: creating
-an agent container within the applet, installing the HTTP MTP on the applet container, creating an agent
-within the applet container, exchange of messages between an applet JADE agent and another JADE agent
-living on another container, and migration of an agent to an applet container and from an applet container
-to another container.
-
-</p>
+The example associated to this tutorial shows how to use JADE in applets. The 
+tested features are: creating an agent container within the applet, installing 
+the HTTP MTP on the applet container, creating an agent within the applet container, 
+exchange of messages between an applet JADE agent and another JADE agent living 
+on another container, and migration of an agent to an applet container and from 
+an applet container to another container. </p> 
 <h3>JADE Applet Example description</h3>
 
 <p>The example has two main parts: the server part and the client applet part. <br>
@@ -88,16 +90,19 @@ migration of a mobile agent.</li>
 <p>
 The example contains the following folder structure:
 <ul>
-<li><b>src</b> - contains the Java sources organized in 3 packages: server(implementing the server,
-the server agent and its behaviour), mobile agent(implementing the mobile agent and its behaviour), client
-(implementing the applet, the applet agent and its behaviour)</li>
-<li><b>lib</b> - contains the <i>clientapplet.jar</i> file; in this folder the JADE jar files(jade.jar, Base64.jar, iiop.jar, jadeTools.jar,
-http.jar, sax2.jar) should be copied when running the example.</li>
-<li><b>classes</b> - contains the compiled classes</li>
-<li><b>doc</b> - contains the generated Java doc files</li>
-<li><b>in the root</b> the following files can be found: the ant build.xml file,
-some *.bat files for generating, exporting and importing a certificate,
-the startServer.bat file that starts the server and the clientJadeApplet.html that starts the client applet.</li>
+  <li><b>src</b> - contains the Java sources organized in 3 packages: server(implementing 
+    the server, the server agent and its behaviour), mobile agent(implementing 
+    the mobile agent and its behaviour), client (implementing the applet, the 
+    applet agent and its behaviour)</li>
+  <li><b>lib</b> - contains the <i>clientapplet.jar</i> file; in this folder the 
+    JADE jar files(jade.jar, <tt>commons-codec\commons-codec-1.3</tt>.jar, iiop.jar, 
+    jadeTools.jar, http.jar, sax2.jar) should be copied when running the example.</li>
+  <li><b>classes</b> - contains the compiled classes</li>
+  <li><b>doc</b> - contains the generated Java doc files</li>
+  <li><b>in the root</b> the following files can be found: the ant build.xml file, 
+    some *.bat files for generating, exporting and importing a certificate, the 
+    startServer.bat file that starts the server and the clientJadeApplet.html 
+    that starts the client applet.</li>
 </ul>
 </p>
 
@@ -109,7 +114,7 @@ The following steps should be performed:
 <li>The JADE Applets example must be downloaded from the <a href="http://jade.cselt.it/">JADE</a> download page</li>
 <li>After downloading you MUST unzip the JADE Applets package under the root of the jade distribution tree.
 You should end having a hierarchy like jade/add-ons/jadeapplets.</li>
-<li>Run the target <b>copy-jade-lib</b> from build.xml using ant tool - this will copy the jade.jar, Base64.jar,
+<li>Run the target <b>copy-jade-lib</b> from build.xml using ant tool - this will copy the jade.jar, commons-codec\commons-codec-1.3.jar,
 iiop.jar, jadeTools.jar, http.jar, sax2.jar from the JADE distribution to the lib folder.</li>
 <li>Run the target <b>jade-lib-sign</b> - this will sign the JADE jar files</li>
 <li>Run the target <b>compile</b> to compile everything in <i>classes</i> folder</li>

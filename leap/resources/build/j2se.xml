@@ -48,6 +48,10 @@
 		</copy>
 	  <!-- 3) Preprocess the whole -->
 	  <pproc basedir="${src}" type="j2se"/>
+	  <!-- 4) Copy the lib commons-codec -->
+	  <copy todir="${lib}/commons-codec" overwrite="yes">
+		<fileset dir="../lib/commons-codec"/>
+	  </copy>
 	</target>
 
 	
@@ -88,6 +92,7 @@
 		<javac srcdir="${src}"
 		       destdir="${classes}"
 		       debug="${debug-build}"
+			   classpath="${lib}/commons-codec/commons-codec-1.3.jar"
 		       debuglevel="vars,lines,source"
 		       optimize="${optimised-build}"
 		       deprecation="off"/>

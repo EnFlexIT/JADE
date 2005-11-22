@@ -69,7 +69,7 @@ ant dist - to create the distribution files
     <!-- Compile the java code from ${src} into ${build} -->
     <!--   <delete dir="${build}/examples"/>
     <delete dir="${build}/demo"/> -->
-    <javac srcdir="${src}" destdir="${build}" nowarn="on" optimize="${javac.optimize}" debug="${javac.debug}" debuglevel="lines,vars,source" deprecation="on" excludes="demo/**,examples/**,test/**" >
+    <javac srcdir="${src}" destdir="${build}" classpath="lib/commons-codec/commons-codec-1.3.jar" nowarn="on" optimize="${javac.optimize}" debug="${javac.debug}" debuglevel="lines,vars,source" deprecation="on" excludes="demo/**,examples/**,test/**" >
 	</javac>
     <copy todir="${build}">
       <fileset dir="${src}">
@@ -146,11 +146,6 @@ ant dist - to create the distribution files
     <jar jarfile="${lib}/http.jar">
       <fileset dir="${build}" includes="**/jade/mtp/http/*"/>
     </jar>
-    <!-- Create the Base64.jar file -->
-		<delete file="${lib}/Base64.jar" quiet="true"/>
-    <jar jarfile="${lib}/Base64.jar">
-      <fileset dir="${build}" includes="**/starlight/util/*"/>
-    </jar>
     <!-- Create the jade.jar file -->
 		<delete file="${lib}/jade.jar" quiet="true"/>
     <jar jarfile="${lib}/jade.jar" manifest="${build}/jade.mf">
@@ -158,7 +153,6 @@ ant dist - to create the distribution files
       	<exclude name="**/examples/**"/>
       	<exclude name="**/demo/**"/>
       	<exclude name="**/test/**"/>
-       	<exclude name="**/starlight/**"/>
        	<exclude name="**/FIPA/**"/>
       	<exclude name="**/jade/tools/**"/>
       	<exclude name="**/jade/gui/**"/>
@@ -232,7 +226,6 @@ ant dist - to create the distribution files
   <target name="dist_src" depends="init,parser">
     <jar jarfile="${dist}/JADE-src-${version}.zip">
       <fileset dir="${dist}" includes="jade/src/FIPA/**"/>
-      <fileset dir="${dist}" includes="jade/src/starlight/**"/>
       <fileset dir="${dist}" includes="jade/src/jade/**"/>
       <fileset dir="${dist}" includes="jade/build.xml"/>
       <fileset dir="${dist}" includes="jade/README"/>
@@ -242,6 +235,7 @@ ant dist - to create the distribution files
       <fileset dir="${dist}" includes="jade/src/*.idl"/>
       <fileset dir="${dist}" includes="jade/src/*.html"/>
       <fileset dir="${dist}" includes="jade/classes/*.mf"/>
+      <fileset dir="${dist}" includes="jade/lib/commons-codec/**"/>
     </jar>
   </target>
   <target name="dist_examples" depends="init">

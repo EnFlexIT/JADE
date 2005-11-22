@@ -45,7 +45,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
 import jade.lang.acl.StringACLCodec;
 
-import starlight.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 
 class FileMessageStorage implements MessageStorage {
 
@@ -149,7 +149,9 @@ class FileMessageStorage implements MessageStorage {
         try {
           // NL (23/01/04) GenericMessage are now stored using Java serialization
           String encodedMsg = in.readLine();
-          ByteArrayInputStream istream = new ByteArrayInputStream(Base64.decode(encodedMsg.toCharArray())); 
+          // String.getBytes is, in general, an irreversible operation. However, in this case, because
+          // the content was previously encoded Base64, we can expect that we will have only valid Base64 chars. 
+          ByteArrayInputStream istream = new ByteArrayInputStream(Base64.decodeBase64(encodedMsg.getBytes())); 
           ObjectInputStream p = new ObjectInputStream(istream);
           GenericMessage message = (GenericMessage) p.readObject();
           istream.close(); 
@@ -293,7 +295,7 @@ class FileMessageStorage implements MessageStorage {
 	    ByteArrayOutputStream ostream = new ByteArrayOutputStream(); 
       ObjectOutputStream p = new ObjectOutputStream(ostream);
       p.writeObject(msg);
-      String strMessage = new String(Base64.encode(ostream.toByteArray()));
+      String strMessage = new String(Base64.encodeBase64(ostream.toByteArray()));
       ostream.close();
       out.write(strMessage, 0, strMessage.length());
       out.newLine();

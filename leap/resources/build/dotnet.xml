@@ -143,6 +143,10 @@
     		</copy> -->
 	  	<!-- 10) Preprocess specific for .NET -->
 		<pproc basedir="${src}" type="dotnet"/>
+		<!-- 11) Copy the lib commons-codec -->
+		<copy todir="${lib}/commons-codec" overwrite="yes">
+			<fileset dir="../lib/commons-codec"/>
+		 </copy>
 	</target>
 
 	

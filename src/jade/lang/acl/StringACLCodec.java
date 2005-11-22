@@ -33,7 +33,7 @@ import jade.util.leap.Properties;
 import java.util.Enumeration;
 import java.util.Date;
 
-import starlight.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * This class implements the FIPA String codec for ACLMessages.
@@ -111,9 +111,9 @@ public class StringACLCodec implements ACLCodec {
 	    try { // decode Base64
 		String content = msg.getContent();
 		if ((content != null) && (content.length() > 0)) {
-		    char[] cc = new char[content.length()];
-		    content.getChars(0,content.length(),cc,0);
-		    msg.setByteSequenceContent(Base64.decode(cc));
+		    //char[] cc = new char[content.length()];
+		    //content.getChars(0,content.length(),cc,0);
+		    msg.setByteSequenceContent(Base64.decodeBase64(content.getBytes()));
 		    msg.removeUserDefinedParameter(BASE64ENCODING_KEY); // reset the slot value for encoding
 		}
 	    } catch(java.lang.StringIndexOutOfBoundsException e){
@@ -235,7 +235,7 @@ public class StringACLCodec implements ACLCodec {
       if (msg.hasByteSequenceContent()) {
 	  str.append(":X-"+ BASE64ENCODING_KEY + " " + BASE64ENCODING_VALUE + "\n");
 	  try {
-	      String b64 = new String(Base64.encode(msg.getByteSequenceContent()));
+	      String b64 = new String(Base64.encodeBase64(msg.getByteSequenceContent()));
 	      str.append(CONTENT + " \"" + b64 + "\" \n");
 	  } catch(java.lang.NoClassDefFoundError jlncdfe) {
 	      System.err.println("\n\t===== E R R O R !!! =======\n");

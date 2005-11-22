@@ -19,12 +19,21 @@
 		<p>You can obtain the free JBuilder Personal from, http://www.borland.com/jbuilder/personal/index.html. For Windows it comes in a 59MB zip file. For UNIX systems (various) it comes in a 71MB .tar.gz file. It also comes in 5 human language versions. On MS Windows you unzip it into a temp folder and then run the install program. JBuilder comes with its own JRE.</p>
 		<p>To run JBuilder you must install a file containing a key in your home directory. This is emailed to you when you register with Borland. I comes with documentation telling you what JBuilder considers to be your home directory on the various operating systems.</p>
 		<h2>Making the JADE Libraries Known to JBuilder</h2>
-		<p>The JADE main libraries are jade.jar, jadeTools.jar, iiop.jar, and base64.jar. You may also want to include some add-ons such as http.jar (and crimson.jar). To allow JBuilder to access these, do the following: (This step only needs to be done once.)</p>
+		
+<p>The JADE main libraries are jade.jar, jadeTools.jar, iiop.jar, and commons-codec-1.3.jar. 
+  You may also want to include some add-ons such as http.jar (and crimson.jar). 
+  To allow JBuilder to access these, do the following: (This step only needs to 
+  be done once.)</p>
 		<p>Click Tools-&gt;Configure Libraries. This window pops up:</p>
 		<p><img src="images/jb_lib_conf_win.gif" alt="" height="471" width="717" border="0"></p>
 		<p>Select User Home and click the New button. Another window pops up:</p>
 		<p><img src="images/jb_lib_add.gif" alt="" height="432" width="558" border="0"></p>
-		<p>Fill a name, e.g., JadeLib but leave the location alone. Click the Add button and navigate to, and select, the jade.jar file on your system. Click OK in the file window. Repeat the process for jadeTools.jar, iiop.jar, base64.jar, and any JADE add-ons you like. (These can be added any time later.) When the libraries have been added you get this:</p>
+		
+<p>Fill a name, e.g., JadeLib but leave the location alone. Click the Add button 
+  and navigate to, and select, the jade.jar file on your system. Click OK in the 
+  file window. Repeat the process for jadeTools.jar, iiop.jar, commons-codec-1.3.jar, 
+  and any JADE add-ons you like. (These can be added any time later.) When the 
+  libraries have been added you get this:</p>
 		<p><img src="images/jb_lib_add_finished.gif" alt="" height="432" width="558" border="0"></p>
 		<p>Click OK. And on the previous window, also click OK. Now JBuilder knows about JADE. However, you still have to tell your projects about JADE.</p>
 		<h3>JADE API Documentation</h3>

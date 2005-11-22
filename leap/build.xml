@@ -312,6 +312,33 @@
     	<include name="leap/dotnet/extras/**"/>
     	<include name="leap/dotnet/VS2003S/**"/>
     </jar>
+	<antcall description="Build the binary distribution for j2se,midp,pjava" target="bin-dist"/>   
+	</target>
+
+	<target name="bin-dist" description="Build the binary distribution for j2se,midp,pjava"> <!-- depends="all, rebuild"-->
+	    <copy todir="j2se/lib" overwrite="yes">
+		 <fileset dir="${jade-home}">
+			<include name="COPYING"/>
+			<include name="License"/>
+		 </fileset>
+	    </copy>
+		<jar jarfile="${dist}/JadeLeapJ2se-${version}.zip" basedir="${dist}/leap/j2se/lib"/>
+
+	    <copy todir="pjava/lib" overwrite="yes">
+		 <fileset dir="${jade-home}">
+			<include name="COPYING"/>
+			<include name="License"/>
+		 </fileset>
+	    </copy>
+		<jar jarfile="${dist}/JadeLeapPjava-${version}.zip" basedir="${dist}/leap/pjava/lib"/>
+
+		<copy todir="midp/lib" overwrite="yes">
+		 <fileset dir="${jade-home}">
+			<include name="COPYING"/>
+			<include name="License"/>
+		 </fileset>
+	    </copy>
+		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${dist}/leap/midp/lib"/>
 	</target>
 
 	<!-- Create the JADE-LEAP snapshot zip files -->

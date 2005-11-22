@@ -218,7 +218,7 @@
   <!--  __________________________________________________
                             run
         __________________________________________________ -->
-  <target name="run" description="run the test suite" depends="compile">
+  <target name="run" description="run the test suite" depends="compile, separate">
    <java classname="test.common.testSuite.TestSuiteAgent" fork="true" dir="src/test">
   	  <classpath refid="project.class.path"/>
    </java>
