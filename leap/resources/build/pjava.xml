@@ -28,7 +28,6 @@
 	  <!-- 1) Copy JADE sources -->
 	  <copy todir="${src}">
 			<fileset dir="${jade-src}">
-				<include name="**/starlight/**"/>
 				<include name="**/jade/**"/>
 				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
@@ -94,8 +93,7 @@
 		       debuglevel="vars,lines,source"
 		       optimize="${optimised-build}"
 		       deprecation="off"
-		       classpath="${boot-java-1.1-classes};${lib}/commons-codec/commons-codec-1.3.jar"
-		       bootclasspath="${boot-java-1.1-classes}"
+		       classpath="${lib}/commons-codec/commons-codec-1.3.jar"
 		       fork="yes"
 		       compiler="classic"
 		       target="1.1"/>
