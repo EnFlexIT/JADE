@@ -248,7 +248,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
 		
 		//replaces wildcards
-		agentID.setLocalName(JADEManagementOntology.adjustAgentName(agentID.getLocalName(), new String[] {myID.getName()}));
+		agentID.setName(JADEManagementOntology.adjustAgentName(agentID.getName(), new String[] {myID.getName()}));
 		
 		// Setting the AID and toolkit here is redundant, but
 		// allows services to retrieve their agent helper correctly
