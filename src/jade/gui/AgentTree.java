@@ -543,16 +543,17 @@ public class AgentTree extends JPanel {
 	}
 
 	public void addAgentNode(String agentName, String agentAddress, String containerName) {
+		addAgentNode(agentName, agentAddress, containerName, "Running", null);
+	}
+	
+	public void addAgentNode(String agentName, String agentAddress, String containerName, String agentState, String ownership) {
 		AgentNode node = new AgentNode(agentName);
 		node.setAddress(agentAddress);
-		node.setState("Running");
+		node.setState(agentState);
+		node.setOwnership(ownership);
 		
 		AgentTreeModel model = getModel();
 		MutableTreeNode root = (MutableTreeNode) model.getRoot();
-		//node.setType(agentType);
-		//AgentTree.AgentNode nod = (AgentTree.AgentNode) node;
-		//nod.address(agentAddress);
-		//nod.setState("Running");
 		
 		// Search for the folder of the local Platform
 		Enumeration folders = root.children();

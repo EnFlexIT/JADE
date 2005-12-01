@@ -106,6 +106,20 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
     else if (obj instanceof Integer || obj instanceof Long || obj instanceof Boolean) {
     	sb.append(obj);
     }
+    //#MIDP_EXCLUDE_BEGIN
+    else if (obj instanceof Double) {
+    	sb.append(obj);
+    }
+    //#MIDP_EXCLUDE_END
+    else if (obj instanceof byte[]) {
+    	byte[] b = (byte[]) obj;
+    	sb.append('#');
+    	sb.append(b.length);
+    	sb.append('"');
+    	// FIXME: Should we use Base64 encoding?
+    	sb.append(new String(b));
+    	sb.append('"');
+    }
     else if (obj instanceof String) {
 			String s = (String)obj;
 			if (CaseInsensitiveString.equalsIgnoreCase("true",s) || CaseInsensitiveString.equalsIgnoreCase("false",s)) {
@@ -116,7 +130,7 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
     	sb.append(s);
     }
     else {
-    	throw new FrameException("Can't encode "+obj);
+    	throw new FrameException("Can't encode "+obj+" of class "+obj.getClass().getName());
     }
   }
   
