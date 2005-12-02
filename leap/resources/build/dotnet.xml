@@ -4,6 +4,7 @@
 	<!-- PROPERTIES specific for .NET -->
 	<property name="src" value="${dotnet-root}/src"/>
 	<property name="lib" value="${dotnet-root}/lib"/>
+	<property name="extralib" value="${dotnet-root}/extralib"/>
 	<property name="bin" value="${dotnet-root}/bin"/>
 	<property name="doc" value="${dotnet-root}/doc"/>
 	<property name="vjc" value="${dotnet-home}/vjc.exe"/>
@@ -34,7 +35,6 @@
 	  	<!-- 1) Copy JADE sources -->
 	  	    <copy todir="${src}">
 			<fileset dir="${jade-src}">
-				<include name="**/starlight/**"/>
 				<include name="**/jade/**"/>
 				<exclude name="**/jade/imtp/**"/>
 				<exclude name="**/jade/mtp/iiop/**"/>
@@ -72,6 +72,7 @@
 				<include name="**/jade/tools/ToolAgent.java"/>
 				<include name="**/jade/tools/ToolNotifier.java"/>
 				<include name="**/jade/tools/sl/SLFormatter.java"/>
+				<!--
 				<include name="**/jade/tools/sniffer/ActionProcessor.java"/>
 				<include name="**/jade/tools/sniffer/Agent.java"/>
 				<include name="**/jade/tools/sniffer/AgentAction.java"/>
@@ -101,6 +102,7 @@
 				<include name="**/jade/tools/sniffer/ViewMessage.java"/>
 				<include name="**/jade/tools/sniffer/WriteLogFileAction.java"/>
 				<include name="**/jade/tools/sniffer/WriteMessageListAction.java"/>
+				-->
 				<include name="**/jade/util/EnhancedProperties.java"/>
 				<include name="**/jade/util/ExpandedProperties.java"/>
 				<include name="**/jade/util/ImportableProperties.java"/>
@@ -118,7 +120,8 @@
 				<include name="**/jade/mtp/http/XMLCodec.java"/>
 			</fileset>
 		</copy>
-    		<!-- 7) Copy jade.gui files -->
+    	<!-- 7) Copy jade.gui files -->
+		<!--
 		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${jade-src}">
 			  <include name="**/jade/gui/*.java"/>
@@ -129,13 +132,16 @@
 				<exclude name="**/jade/gui/TreeIconRenderer.java"/>
 			</fileset>
 		</copy>
-    		<!-- 8) Copy jade.gui leap file -->
+		-->
+    	<!-- 8) Copy jade.gui leap file -->
+		<!--
 		<copy todir="${src}" overwrite="yes">
 			<fileset dir="${leap-src}">
 				<include name="**/jade/gui/**"/>				
 			</fileset>
 		</copy>	
-    		<!-- 9) Copy jade.gui.AgentTree file (modified .NET version) -->
+    		-->
+		<!-- 9) Copy jade.gui.AgentTree file (modified .NET version) -->
 		<!-- <copy todir="${src}" overwrite="yes">
 			<fileset dir="${extras}">
 				<include name="**/jade/gui/AgentTree.java"/>
@@ -143,10 +149,6 @@
     		</copy> -->
 	  	<!-- 10) Preprocess specific for .NET -->
 		<pproc basedir="${src}" type="dotnet"/>
-		<!-- 11) Copy the lib commons-codec -->
-		<copy todir="${lib}/commons-codec" overwrite="yes">
-			<fileset dir="../lib/commons-codec"/>
-		 </copy>
 	</target>
 
 	
@@ -196,6 +198,7 @@
 	    <arg line="/r:System.Windows.Forms.dll" />
 	    <arg line="/r:System.Drawing.dll" />
 	    <arg line="/r:VJSSupUILib.dll" />
+		<arg line="/r:${extralib}/Commons-Codec.dll" />
 	    <!-- arg line="/main:jade.Boot" /-->
 	    <arg line="/out:${lib}/${vs2003Sol}.dll" />
 	  </exec>
