@@ -206,7 +206,12 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
   	if(values == null){
   		return nameWithWildcards;
   	}
+	//#DOTNET_EXCLUDE_BEGIN
   	StringBuffer out = new StringBuffer(nameWithWildcards);
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+  	System.Text.StringBuilder out = new System.Text.StringBuilder(nameWithWildcards);
+  	#DOTNET_INCLUDE_END*/
   	int wL = WILDCARDS.length;
   	int vL = values.length;
   	int minLength = Math.min(wL, vL);
@@ -221,11 +226,12 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
   		if(index>=0){
   			//replace all occurrences of the wildcard with the corresponding value
   			while(index >=0){
+				//#DOTNET_EXCLUDE_BEGIN
   				out = out.replace(index, index+WILDCARDS[i].length(), values[i]);
-  				//#DOTNET_EXCLUDE_BEGIN
-		  		index = out.indexOf(WILDCARDS[i]);
+  				index = out.indexOf(WILDCARDS[i]);
 		  		//#DOTNET_EXCLUDE_END
 		  		/*#DOTNET_INCLUDE_BEGIN
+				out = out.Replace(WILDCARDS[i], values[i], index, index+WILDCARDS[i].length());
 		  		index = out.ToString().indexOf(WILDCARDS[i]);
 		  		#DOTNET_INCLUDE_END*/
   			}
