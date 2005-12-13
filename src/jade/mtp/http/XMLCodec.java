@@ -213,7 +213,11 @@ public class XMLCodec extends DefaultHandler
     }
     else if (o instanceof byte[]) {
       type = PROP_BYTE_TYPE;
-      v = new String(Base64.encodeBase64((byte[])o));
+      try {
+		v = new String(Base64.encodeBase64((byte[])o), "US-ASCII");
+	} catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+	}
     }
     else if (o instanceof Serializable) {
       type = PROP_SER_TYPE;
@@ -224,7 +228,7 @@ public class XMLCodec extends DefaultHandler
 	  oos.close();
 	  byte[] bytes = bos.toByteArray();
 	  if(bytes != null)
-	      v = new String(Base64.encodeBase64(bytes));
+	      v = new String(Base64.encodeBase64(bytes), "US-ASCII");
       }catch(IOException ioe){
 	  return;
       }
@@ -243,7 +247,7 @@ public class XMLCodec extends DefaultHandler
   private void decodeProp(StringBuffer acc, Property p) {
     if(propType.equals(PROP_SER_TYPE)){
       try{
-        byte[] serdata = acc.toString().getBytes();
+        byte[] serdata = acc.toString().getBytes("US-ASCII");
         ObjectInputStream ois = new ObjectInputStream( 
           new ByteArrayInputStream(Base64.decodeBase64(serdata)));
         p.setValue((Serializable)ois.readObject());
@@ -251,7 +255,12 @@ public class XMLCodec extends DefaultHandler
 	  // nothing, we leave value of this property as null;
       }
     }else if(propType.equals(PROP_BYTE_TYPE)){
-      byte[] bytes = acc.toString().getBytes();
+      byte[] bytes=null;
+	try {
+		bytes = acc.toString().getBytes("US-ASCII");
+	} catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+	}
       p.setValue(Base64.decodeBase64(bytes));
     }else{
       p.setValue(acc.toString());

@@ -1485,7 +1485,7 @@ public class DFDBKB extends DBKB {
    */
 	private void registerSubscription(String convID, String aclM){
     try {
-      String base64Str = new String(Base64.encodeBase64(aclM.getBytes())); 
+      String base64Str = new String(Base64.encodeBase64(aclM.getBytes("US-ASCII")), "US-ASCII"); 
       // --> convert string to Base64 encoding
       stm_insSubscription.setString(1, convID);
       stm_insSubscription.setString(2, base64Str);
@@ -1511,7 +1511,7 @@ public class DFDBKB extends DBKB {
       rs = stm_selSubscriptions.executeQuery();
       while (rs.next()) {
         String base64Str = rs.getString("aclm");
-        String aclmStr = new String(Base64.decodeBase64(base64Str.getBytes()));
+        String aclmStr = new String(Base64.decodeBase64(base64Str.getBytes("US-ASCII")), "US-ASCII");
         ACLMessage aclm = codec.decode(aclmStr.getBytes(), ACLCodec.DEFAULT_CHARSET);
         subscriptions.add(sr.createSubscription(aclm));
       }
@@ -1608,7 +1608,7 @@ public class DFDBKB extends DBKB {
       oos.writeObject(obj);
       oos.close();
       byte[] data = baos.toByteArray(); 
-      return new String(Base64.encodeBase64(data));
+      return new String(Base64.encodeBase64(data), "US-ASCII");
     }
     
     /**
@@ -1620,7 +1620,7 @@ public class DFDBKB extends DBKB {
     private Object deserializeObj(String str) throws IOException, ClassNotFoundException {
       if (str == null)
         return null;
-      byte[] data = Base64.decodeBase64(str.getBytes());
+      byte[] data = Base64.decodeBase64(str.getBytes("US-ASCII"));
       ByteArrayInputStream bais = new ByteArrayInputStream(data);
       ObjectInputStream ois = new ObjectInputStream(bais);
       return ois.readObject();
@@ -1646,7 +1646,7 @@ public class DFDBKB extends DBKB {
         byte[] data = baos.toByteArray();
         MessageDigest md = MessageDigest.getInstance(HASH_ALGORITHM);
         byte[] digest = md.digest(data);
-        return new String(Base64.encodeBase64(digest));
+        return new String(Base64.encodeBase64(digest), "US-ASCII");
         
       } catch (Exception e) {
         throw new Exception("Couldn't create " + HASH_ALGORITHM + " hash for given object.", e);

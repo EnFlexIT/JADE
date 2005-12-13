@@ -113,7 +113,7 @@ public class StringACLCodec implements ACLCodec {
 		if ((content != null) && (content.length() > 0)) {
 		    //char[] cc = new char[content.length()];
 		    //content.getChars(0,content.length(),cc,0);
-		    msg.setByteSequenceContent(Base64.decodeBase64(content.getBytes()));
+		    msg.setByteSequenceContent(Base64.decodeBase64(content.getBytes("US-ASCII")));
 		    msg.removeUserDefinedParameter(BASE64ENCODING_KEY); // reset the slot value for encoding
 		}
 	    } catch(java.lang.StringIndexOutOfBoundsException e){
@@ -129,6 +129,9 @@ public class StringACLCodec implements ACLCodec {
 		    Thread.currentThread().sleep(3000);
 		}catch(InterruptedException ie) {
 		}
+	    } catch(UnsupportedEncodingException e3){
+		System.err.println("\t\t===== E R R O R !!! =======\n");
+		System.err.println("Missing support for US-ASCII encoding for Base64 conversions");
 	    }
 	} //end of if CaseInsensitiveString
     }
@@ -235,11 +238,21 @@ public class StringACLCodec implements ACLCodec {
       if (msg.hasByteSequenceContent()) {
 	  str.append(":X-"+ BASE64ENCODING_KEY + " " + BASE64ENCODING_VALUE + "\n");
 	  try {
-	      String b64 = new String(Base64.encodeBase64(msg.getByteSequenceContent()));
+	      String b64 = new String(Base64.encodeBase64(msg.getByteSequenceContent()), "US-ASCII");
 	      str.append(CONTENT + " \"" + b64 + "\" \n");
 	  } catch(java.lang.NoClassDefFoundError jlncdfe) {
 	      System.err.println("\n\t===== E R R O R !!! =======\n");
 	      System.err.println("Missing support for Base64 conversions");
+	      System.err.println("Please refer to the documentation for details.");
+	      System.err.println("=============================================\n\n");
+	      System.err.println("");
+	      try {
+		  Thread.currentThread().sleep(3000);
+	      } catch(InterruptedException ie) {
+	      }
+      } catch(UnsupportedEncodingException e2) {
+	      System.err.println("\n\t===== E R R O R !!! =======\n");
+	      System.err.println("Missing support for US-ASCII encoding for Base64 conversions");
 	      System.err.println("Please refer to the documentation for details.");
 	      System.err.println("=============================================\n\n");
 	      System.err.println("");

@@ -87,7 +87,7 @@ public class SerializableOntology extends Ontology {
 			try {
 				AbsPrimitive absValue = (AbsPrimitive) abs.getAbsObject(SERIALIZABLE_VALUE);
 				String stringValue = absValue.getString();
-				byte[] value = Base64.decodeBase64(stringValue.getBytes());
+				byte[] value = Base64.decodeBase64(stringValue.getBytes("US-ASCII"));
 	      ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(value));
 	      return in.readObject();
 			}
@@ -116,7 +116,7 @@ public class SerializableOntology extends Ontology {
     		ObjectOutputStream out = new ObjectOutputStream(baos);
     		out.writeObject(obj);
     		AbsConcept absSerializable = new AbsConcept(SERIALIZABLE);
-				String stringValue = new String(Base64.encodeBase64(baos.toByteArray()));
+				String stringValue = new String(Base64.encodeBase64(baos.toByteArray()), "US-ASCII");
     		absSerializable.set(SERIALIZABLE_VALUE, stringValue);
     		return absSerializable;
   		}

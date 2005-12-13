@@ -151,7 +151,7 @@ class FileMessageStorage implements MessageStorage {
           String encodedMsg = in.readLine();
           // String.getBytes is, in general, an irreversible operation. However, in this case, because
           // the content was previously encoded Base64, we can expect that we will have only valid Base64 chars. 
-          ByteArrayInputStream istream = new ByteArrayInputStream(Base64.decodeBase64(encodedMsg.getBytes())); 
+          ByteArrayInputStream istream = new ByteArrayInputStream(Base64.decodeBase64(encodedMsg.getBytes("US-ASCII"))); 
           ObjectInputStream p = new ObjectInputStream(istream);
           GenericMessage message = (GenericMessage) p.readObject();
           istream.close(); 
@@ -295,7 +295,7 @@ class FileMessageStorage implements MessageStorage {
 	    ByteArrayOutputStream ostream = new ByteArrayOutputStream(); 
       ObjectOutputStream p = new ObjectOutputStream(ostream);
       p.writeObject(msg);
-      String strMessage = new String(Base64.encodeBase64(ostream.toByteArray()));
+      String strMessage = new String(Base64.encodeBase64(ostream.toByteArray()), "US-ASCII");
       ostream.close();
       out.write(strMessage, 0, strMessage.length());
       out.newLine();
