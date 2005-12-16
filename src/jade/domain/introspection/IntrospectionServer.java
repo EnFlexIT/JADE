@@ -87,6 +87,12 @@ public class IntrospectionServer extends CyclicBehaviour {
 				reply(request, jade.lang.acl.ACLMessage.NOT_UNDERSTOOD);
 				ce.printStackTrace();
 			}
+			catch (ValueEncodingException vee) {
+				jade.lang.acl.ACLMessage msg = request.createReply();
+				msg.setPerformative(jade.lang.acl.ACLMessage.FAILURE);
+				msg.setContent("VALUE_NOT_ENCODABLE");
+				myAgent.send(msg);
+			}
 			catch (Throwable t) {
 				reply(request, jade.lang.acl.ACLMessage.FAILURE);
 				t.printStackTrace();
@@ -131,12 +137,23 @@ public class IntrospectionServer extends CyclicBehaviour {
 		}
 		Result r = new Result(aExpr, value);
 		jade.lang.acl.ACLMessage reply = request.createReply();
-		myAgent.getContentManager().fillContent(reply, r);
-		reply.setPerformative(jade.lang.acl.ACLMessage.INFORM);
-		myAgent.send(reply);
+		try {
+			myAgent.getContentManager().fillContent(reply, r);
+			reply.setPerformative(jade.lang.acl.ACLMessage.INFORM);
+			myAgent.send(reply);
+		}
+		catch (OntologyException oe) {
+			throw new ValueEncodingException();
+		}
+		catch (CodecException ce) {
+			throw new ValueEncodingException();
+		}
 	}
 	
 	protected void serveUnknownAction(jade.lang.acl.ACLMessage request, Action aExpr, Object action) {
 		reply(request, jade.lang.acl.ACLMessage.REFUSE);
+	}
+	
+	private class ValueEncodingException extends Exception {	
 	}
 }

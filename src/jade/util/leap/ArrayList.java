@@ -131,6 +131,10 @@ public class ArrayList implements List, Serializable {
         return realHiddenList.remove(o);
     } 
 
+    public String toString() {
+    	return realHiddenList.toString();
+    }
+    
     /**
      * @see jade.util.leap.Collection interface
      */

@@ -147,7 +147,7 @@ public class ThreadedBehaviourFactory {
 	/**
 	   Inner class ThreadedBehaviourWrapper
 	 */
-	private class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
+	public class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
 		private Thread myThread;
 		private Behaviour myBehaviour;
 		private volatile boolean restarted = false;
@@ -308,11 +308,11 @@ public class ThreadedBehaviourFactory {
 			}
 		}
 			
-		private final Thread getThread() {
+		public final Thread getThread() {
 			return myThread;
 		}
 		
-		private final Behaviour getBehaviour() {
+		public final Behaviour getBehaviour() {
 			return myBehaviour;
 		}
 	} // END of inner class ThreadedBehaviourWrapper

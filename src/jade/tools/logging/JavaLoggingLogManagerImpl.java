@@ -95,40 +95,45 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 			this.loggers = new ArrayList();
 			for(Enumeration e = logManager.getLoggerNames();e.hasMoreElements();){
 				String logName = (String)e.nextElement();
-				Logger theLogger = this.logManager.getLogger(logName); 
-				//retrieving the level
-				Level level = theLogger.getLevel();
-				//If the result is null, this logger's effective level will be inherited from its parent. 
-				//The value is the one specified for the property level in the configuration file 			
-				int loggerLevel = ((level != null) ? level.intValue() : Level.parse(this.logManager.getProperty(".level")).intValue());
-				if (logName == null || logName.length() == 0) {
-					// This is the ROOT Logger --> Use a non-empty predefined name
-					logName = DEFAULT_ROOT_LOGGER_NAME;
-				}
-				LoggerInfo logInfoElem = new LoggerInfo(logName, loggerLevel);
-				
-				//if a FileHandler has been specified it's not possibile to retrieve the fileName 
-				
-				//retrieves all the handlers associated to the logger
-				//root handlers are inheredited by default
-				List loggerHandlers = (this.rootHandlers == null ? new ArrayList() : new ArrayList(this.rootHandlers));
-				//root logger handlers have been already set.
-				if(!logName.equals("")){
-					Handler[] handlers = theLogger.getHandlers();
-					//if an handler has been specified at runtime it will have a format
-					//i.e java.util.logging.FileHandler@1234556 so we remove the last part.
-					//add the file handler specified by the user only if fileHandler is not a root handler
-					for (int i=0;i<handlers.length;i++){
-						String temp = handlers[i].toString();
-						if (!fhExists){
-			          String userHandler = (temp.indexOf('@') < 0 ? temp : temp.substring(0, temp.indexOf('@')));
-			          loggerHandlers.add(userHandler);
+				try {
+					Logger theLogger = this.logManager.getLogger(logName); 
+					//retrieving the level
+					Level level = theLogger.getLevel();
+					//If the result is null, this logger's effective level will be inherited from its parent. 
+					//The value is the one specified for the property level in the configuration file 			
+					int loggerLevel = ((level != null) ? level.intValue() : Level.parse(this.logManager.getProperty(".level")).intValue());
+					if (logName == null || logName.length() == 0) {
+						// This is the ROOT Logger --> Use a non-empty predefined name
+						logName = DEFAULT_ROOT_LOGGER_NAME;
+					}
+					LoggerInfo logInfoElem = new LoggerInfo(logName, loggerLevel);
+					
+					//if a FileHandler has been specified it's not possibile to retrieve the fileName 
+					
+					//retrieves all the handlers associated to the logger
+					//root handlers are inheredited by default
+					List loggerHandlers = (this.rootHandlers == null ? new ArrayList() : new ArrayList(this.rootHandlers));
+					//root logger handlers have been already set.
+					if(!logName.equals("")){
+						Handler[] handlers = theLogger.getHandlers();
+						//if an handler has been specified at runtime it will have a format
+						//i.e java.util.logging.FileHandler@1234556 so we remove the last part.
+						//add the file handler specified by the user only if fileHandler is not a root handler
+						for (int i=0;i<handlers.length;i++){
+							String temp = handlers[i].toString();
+							if (!fhExists){
+				          String userHandler = (temp.indexOf('@') < 0 ? temp : temp.substring(0, temp.indexOf('@')));
+				          loggerHandlers.add(userHandler);
+							}
 						}
 					}
+					logInfoElem.setHandlers(loggerHandlers);
+					
+					this.loggers.add(logInfoElem); //non sono in ordine alfabetico (dovrebbe essere la gui a mostrarle in quell'ordine.
 				}
-				logInfoElem.setHandlers(loggerHandlers);
-				
-				this.loggers.add(logInfoElem); //non sono in ordine alfabetico (dovrebbe essere la gui a mostrarle in quell'ordine.
+				catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 		return this.loggers;

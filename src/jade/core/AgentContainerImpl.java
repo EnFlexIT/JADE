@@ -512,7 +512,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				}
 			}
 			
-			//#MIDP_EXCLUDE_BEGIN
+			//#J2ME_EXCLUDE_BEGIN
 			// If the -jade_core_AgentContainerImpl_enablemonitor option is specified activate a ContainerMonitorAgent
 			if (myProfile.getBooleanProperty(ENABLE_MONITOR, false)) {
 				AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
@@ -525,7 +525,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 					t.printStackTrace();
 				}
 			}
-			//#MIDP_EXCLUDE_END
+			//#J2ME_EXCLUDE_END
 		}
 		catch (ProfileException pe) {
 			myLogger.log(Logger.WARNING, "Error reading initial agents. "+pe);

@@ -1501,4 +1501,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			return false;
 		}
 	}
+	
+	public String[] getMessageManagerQueueStatus() {
+		MessageManager mm = MessageManager.instance(null);
+		return mm.getQueueStatus();
+	}
+	
+	public String[] getMessageManagerThreadPoolStatus() {
+		MessageManager mm = MessageManager.instance(null);
+		return mm.getThreadPoolStatus();
+	}	
 }
