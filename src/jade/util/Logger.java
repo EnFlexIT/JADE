@@ -348,9 +348,16 @@ public class Logger
 		}
 		
 		public void log(int level, String msg) {
-	    if(level >= myLevel){
+	      if(level >= myLevel){
 		    println(myName+": "+msg);
-	    }
+	      }
+		}
+		
+		public void log(int level, String msg, Throwable t) {
+	      if(level >= myLevel){
+	        String tMsg = (t != null ? " ["+t+"]" : "");
+		    println(myName+": "+msg+tMsg);
+	      }
 		}		
 	#J2ME_INCLUDE_END*/
 
