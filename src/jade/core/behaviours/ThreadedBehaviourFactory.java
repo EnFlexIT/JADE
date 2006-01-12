@@ -1,25 +1,25 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
-
-GNU Lesser General Public License
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-*****************************************************************/
+ JADE - Java Agent DEvelopment Framework is a framework to develop
+ multi-agent systems in compliance with the FIPA specifications.
+ Copyright (C) 2000 CSELT S.p.A. 
+ 
+ GNU Lesser General Public License
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation, 
+ version 2.1 of the License. 
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the
+ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ Boston, MA  02111-1307, USA.
+ *****************************************************************/
 
 package jade.core.behaviours;
 
@@ -31,49 +31,58 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 /**
-   This class provides support for executing JADE Behaviours 
-   in dedicated Java Threads. In order to do that it is sufficient 
-   to add to an agent a normal JADE Behaviour "wrapped" into 
-   a "threaded behaviour" as returned by the <code>wrap()</code> method
-   of this class (see the example below).
-   
-	 <pr><hr><blockquote><pre>
-	 ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
-	 Behaviour b = // create a JADE behaviour
-	 addBehaviour(tbf.wrap(b));
-	 </pre></blockquote><hr>
-   
-   This class also provides methods to control the termination of 
-   the threads dedicated to the execution of wrapped behaviours
-   
-   <br>
-   <b>NOT available in MIDP</b>
-   <br>
-   
-   @author Giovanni Caire - TILAB
+ This class provides support for executing JADE Behaviours 
+ in dedicated Java Threads. In order to do that it is sufficient 
+ to add to an agent a normal JADE Behaviour "wrapped" into 
+ a "threaded behaviour" as returned by the <code>wrap()</code> method
+ of this class (see the example below).
+ 
+ <pr><hr><blockquote><pre>
+ ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
+ Behaviour b = // create a JADE behaviour
+ addBehaviour(tbf.wrap(b));
+ </pre></blockquote><hr>
+ 
+ This class also provides methods to control the termination of 
+ the threads dedicated to the execution of wrapped behaviours
+ 
+ <br>
+ <b>NOT available in MIDP</b>
+ <br>
+ 
+ @author Giovanni Caire - TILAB
  */
 public class ThreadedBehaviourFactory {
+	// Thread states (only for debugging purpose)
+	private static final String CREATED_STATE = "CREATED";
+	private static final String RUNNING_STATE = "RUNNING";
+	private static final String CHECKING_STATE = "CHECKING";
+	private static final String BLOCKED_STATE = "BLOCKED";
+	private static final String TERMINATED_STATE = "TERMINATED";
+	private static final String INTERRUPTED_STATE = "INTERRUPTED";
+	private static final String ERROR_STATE = "ERROR";
+	
 	private Vector threadedBehaviours = new Vector();
-
+	
 	/**
-	   Wraps a normal JADE Behaviour into a "threaded behaviour" so that
-	   <code>b</code> will be executed by a dedicated Therad.
+	 Wraps a normal JADE Behaviour into a "threaded behaviour" so that
+	 <code>b</code> will be executed by a dedicated Therad.
 	 */
 	public Behaviour wrap(Behaviour b) {
 		return new ThreadedBehaviourWrapper(b);
 	}
 	
 	/**
-	   @return The number of active threads dedicated to the execution of 
-	   wrapped behaviours.
+	 @return The number of active threads dedicated to the execution of 
+	 wrapped behaviours.
 	 */
 	public int size() {
 		return threadedBehaviours.size();
 	}
 	
 	/**
-	   Interrupt all threads dedicated to the execution of 
-	   wrapped behaviours.
+	 Interrupt all threads dedicated to the execution of 
+	 wrapped behaviours.
 	 */
 	public void interrupt() {
 		synchronized (threadedBehaviours) { 
@@ -87,36 +96,36 @@ public class ThreadedBehaviourFactory {
 			}
 		}
 	}
-
+	
 	/**
-	   Blocks until all threads dedicated to the execution of threaded 
-	   behaviours complete.
-	   @param timeout The maximum timeout to wait for threaded behaviour
-	   termination.
-	   @return <code>true</code> if all threaded behaviour have actually
-	   completed, <code>false</code> otherwise.
+	 Blocks until all threads dedicated to the execution of threaded 
+	 behaviours complete.
+	 @param timeout The maximum timeout to wait for threaded behaviour
+	 termination.
+	 @return <code>true</code> if all threaded behaviour have actually
+	 completed, <code>false</code> otherwise.
 	 */
 	public synchronized boolean waitUntilEmpty(long timeout) {
 		long time = System.currentTimeMillis();
 		long deadline = time + timeout;
-  	try {
-	    while(!threadedBehaviours.isEmpty()) {
-	    	if (timeout > 0 && time >= deadline) {
-	    		// Timeout expired
-	    		break;
-	    	}
-	      wait(deadline - time);
-	      time = System.currentTimeMillis();
-		  }
-  	}
-  	catch (InterruptedException ie) {
-  		// Interrupted while waiting for threaded behaviour termination
-  	}
-  	return threadedBehaviours.isEmpty();  	
+		try {
+			while(!threadedBehaviours.isEmpty()) {
+				if (timeout > 0 && time >= deadline) {
+					// Timeout expired
+					break;
+				}
+				wait(deadline - time);
+				time = System.currentTimeMillis();
+			}
+		}
+		catch (InterruptedException ie) {
+			// Interrupted while waiting for threaded behaviour termination
+		}
+		return threadedBehaviours.isEmpty();  	
 	}
-
+	
 	/**
-	   @return the Thread dedicated to the execution of the Behaviour <code>b</code>
+	 @return the Thread dedicated to the execution of the Behaviour <code>b</code>
 	 */
 	public Thread getThread(Behaviour b) {
 		synchronized(threadedBehaviours) {
@@ -145,7 +154,7 @@ public class ThreadedBehaviourFactory {
 	}
 	
 	/**
-	   Inner class ThreadedBehaviourWrapper
+	 Inner class ThreadedBehaviourWrapper
 	 */
 	public class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
 		private Thread myThread;
@@ -153,11 +162,14 @@ public class ThreadedBehaviourFactory {
 		private volatile boolean restarted = false;
 		private boolean finished = false;
 		private int exitValue;
-	
+		// Only for debugging purpose
+		private volatile String threadState = CREATED_STATE;
+		
 		private ThreadedBehaviourWrapper(Behaviour b) {
 			super(b.myAgent);
 			myBehaviour = b;
 			myBehaviour.setParent(new DummyParentBehaviour(myAgent, this));
+			myThread = new Thread(this);
 		}
 		
 		public void onStart() {
@@ -167,7 +179,6 @@ public class ThreadedBehaviourFactory {
 			myBehaviour.parent.setAgent(myAgent);
 			
 			// Start the dedicated thread
-			myThread = new Thread(this);
 			myThread.setName(myAgent.getLocalName()+"#"+myBehaviour.getBehaviourName());
 			myThread.start();
 		}
@@ -193,11 +204,11 @@ public class ThreadedBehaviourFactory {
 		}
 		
 		/**
-		   Propagate the parent to the wrapped behaviour. 
-		   NOTE that the <code>parent</code> member variable of the wrapped behaviour
-		   must point to the DummyParentBehaviour --> From the wrapped behaviour
-		   accessing the actual parent must always be retrieved through the
-		   getParent() method.
+		 Propagate the parent to the wrapped behaviour. 
+		 NOTE that the <code>parent</code> member variable of the wrapped behaviour
+		 must point to the DummyParentBehaviour --> From the wrapped behaviour
+		 accessing the actual parent must always be retrieved through the
+		 getParent() method.
 		 */
 		protected void setParent(CompositeBehaviour parent) {
 			super.setParent(parent);
@@ -218,22 +229,22 @@ public class ThreadedBehaviourFactory {
 			myBehaviour.reset();
 			super.reset();
 		}
-			
+		
 		/**
-		   Propagate a restart() call (typically this happens when this 
-		   ThreadedBehaviourWrapped is directly added to the agent Scheduler
-		   and a message is received) to the wrapped threaded behaviour.
+		 Propagate a restart() call (typically this happens when this 
+		 ThreadedBehaviourWrapped is directly added to the agent Scheduler
+		 and a message is received) to the wrapped threaded behaviour.
 		 */
 		public void restart() {
 			myBehaviour.restart();
 		}
 		
 		/**
-		   Propagate a DOWNWARDS event (typically this happens when this
-		   ThreadedBehaviourWrapper is added as a child of a CompositeBehaviour
-		   and the latter, or an ancestor, is blocked/restarted)
-		   to the wrapped threaded behaviour.
-		   If the event is a restart, also notify the dedicated thread.
+		 Propagate a DOWNWARDS event (typically this happens when this
+		 ThreadedBehaviourWrapper is added as a child of a CompositeBehaviour
+		 and the latter, or an ancestor, is blocked/restarted)
+		 to the wrapped threaded behaviour.
+		 If the event is a restart, also notify the dedicated thread.
 		 */
 		protected void handle(RunnableChangedEvent rce) {
 			super.handle(rce);
@@ -244,13 +255,14 @@ public class ThreadedBehaviourFactory {
 				}
 			}
 		}
-  		
+		
 		private synchronized void go() {
 			restarted = true;
 			notifyAll();
 		}
 		
 		public void run() {
+			threadState = RUNNING_STATE;
 			try {
 				threadedBehaviours.addElement(this);
 				while (true) {
@@ -258,6 +270,7 @@ public class ThreadedBehaviourFactory {
 					restarted = false;
 					myBehaviour.actionWrapper();
 					
+					threadState = CHECKING_STATE;
 					synchronized (this) {
 						// If the behaviour was restarted from outside during the action()
 						// method, give it another chance
@@ -275,22 +288,32 @@ public class ThreadedBehaviourFactory {
 						}
 						else {
 							if (!myBehaviour.isRunnable()) {
+								threadState = BLOCKED_STATE;
 								wait();
+								threadState = CHECKING_STATE;
 							}
 						}
 					}
+					threadState = RUNNING_STATE;
 					
 					if (Thread.currentThread().isInterrupted()) {
 						throw new InterruptedException();
 					}
 				}
 				exitValue = myBehaviour.onEnd();
+				threadState = TERMINATED_STATE;
 			}
 			catch (InterruptedException ie) {
+				threadState = INTERRUPTED_STATE;
 				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			catch (Agent.Interrupted ae) {
+				threadState = INTERRUPTED_STATE;
 				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
+			}
+			catch (Throwable t) {
+				threadState = ERROR_STATE;
+				t.printStackTrace();
 			}
 			terminate();
 		}
@@ -298,7 +321,7 @@ public class ThreadedBehaviourFactory {
 		private void interrupt() {
 			myThread.interrupt();
 		}
-
+		
 		private void terminate() {
 			finished = true;
 			super.restart();
@@ -307,7 +330,7 @@ public class ThreadedBehaviourFactory {
 				ThreadedBehaviourFactory.this.notifyAll();
 			}
 		}
-			
+		
 		public final Thread getThread() {
 			return myThread;
 		}
@@ -315,12 +338,16 @@ public class ThreadedBehaviourFactory {
 		public final Behaviour getBehaviour() {
 			return myBehaviour;
 		}
+		
+		public final String getThreadState() {
+			return threadState;
+		}
 	} // END of inner class ThreadedBehaviourWrapper
 	
 	/**
-	   Inner class DummyParentBehaviour.
-	   This class has the only purpose of propagating restart events
-	   in the actual wrapped behaviour to the ThreadedBehaviourWrapper.
+	 Inner class DummyParentBehaviour.
+	 This class has the only purpose of propagating restart events
+	 in the actual wrapped behaviour to the ThreadedBehaviourWrapper.
 	 */
 	private class DummyParentBehaviour extends CompositeBehaviour {
 		private ThreadedBehaviourWrapper myChild;
@@ -342,7 +369,7 @@ public class ThreadedBehaviourFactory {
 				myChild.go();
 			}
 		}
-  	
+		
 		/**
 		 * Redefine the root() method so that both the DummyParentBehaviour
 		 * and the ThreadedBehaviourWrapper are invisible in the behaviours hierarchy
@@ -356,21 +383,21 @@ public class ThreadedBehaviourFactory {
 				return r;
 			}
 		}
-  	
+		
 		protected void scheduleFirst() {
 		}
-	  
+		
 		protected void scheduleNext(boolean currentDone, int currentResult) {
 		}
-	  
+		
 		protected boolean checkTermination(boolean currentDone, int currentResult) {
 			return false;
 		}
-	  
+		
 		protected Behaviour getCurrent() {
 			return null;
 		}
-	  
+		
 		public jade.util.leap.Collection getChildren() {
 			return null;
 		}

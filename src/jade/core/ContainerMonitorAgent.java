@@ -9,11 +9,14 @@ import jade.core.behaviours.*;
 import jade.core.messaging.MessagingService;
 import jade.domain.introspection.IntrospectionServer;
 import jade.lang.acl.*;
+import java.util.StringTokenizer;
 
 public class ContainerMonitorAgent extends Agent {
 	public static final String CONTAINER_MONITOR_ONTOLOGY = "container-monitor";
 	
+	public static final String HELP_ACTION = "HELP";
 	public static final String DUMP_AGENTS_ACTION = "DUMP-AGENTS";
+	public static final String DUMP_MESSAGEQUEUE_ACTION = "DUMP-MESSAGEQUEUE";
 	public static final String DUMP_MESSAGEMANAGER_ACTION = "DUMP-MESSAGEMANAGER";
 	public static final String DUMP_LADT_ACTION = "DUMP-LADT";
 	
@@ -37,18 +40,28 @@ public class ContainerMonitorAgent extends Agent {
 				if (msg != null) {
 					ACLMessage reply = msg.createReply();
 					String content = msg.getContent();
+					String contentUC = content.toUpperCase();
 					try {
-						if (content.equalsIgnoreCase(DUMP_AGENTS_ACTION)) {
+						if (contentUC.startsWith(DUMP_AGENTS_ACTION)) {
 							reply.setPerformative(ACLMessage.INFORM);
 							reply.setContent(getAgentsDump());
 						}
-						else if (content.equalsIgnoreCase(DUMP_MESSAGEMANAGER_ACTION)) {
+						if (contentUC.startsWith(DUMP_MESSAGEQUEUE_ACTION)) {
+							String agentName = getParameter(content);
+							reply.setPerformative(ACLMessage.INFORM);
+							reply.setContent(getMessageQueueDump(agentName));
+						}
+						else if (contentUC.startsWith(DUMP_MESSAGEMANAGER_ACTION)) {
 							reply.setPerformative(ACLMessage.INFORM);
 							reply.setContent(getMessageManagerDump());
 						}
-						else if (content.equalsIgnoreCase(DUMP_LADT_ACTION)) {
+						else if (contentUC.startsWith(DUMP_LADT_ACTION)) {
 							reply.setPerformative(ACLMessage.INFORM);
 							reply.setContent(getLADTDump());
+						}
+						else if (contentUC.startsWith(HELP_ACTION)) {
+							reply.setPerformative(ACLMessage.INFORM);
+							reply.setContent(getHelp());
 						}
 						else {
 							reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
@@ -68,6 +81,26 @@ public class ContainerMonitorAgent extends Agent {
 		});
 	}
 	
+	public String getHelp() {
+		StringBuffer sb = new StringBuffer("Supported actions:\n");
+		sb.append(DUMP_AGENTS_ACTION);
+		sb.append('\n');
+		sb.append(DUMP_MESSAGEQUEUE_ACTION);
+		sb.append(" <agent-local-name>");
+		sb.append('\n');
+		sb.append(DUMP_LADT_ACTION);
+		sb.append('\n');
+		sb.append(DUMP_MESSAGEMANAGER_ACTION);
+		sb.append('\n');
+		return sb.toString();
+	}
+	
+	private String getParameter(String content) throws Exception {
+		StringTokenizer st = new StringTokenizer(content, " ");
+		st.nextToken();
+		return st.nextToken();
+	}
+	
 	public String[] getLADTStatus() {
 		return myLADT.getStatus();
 	}
@@ -79,9 +112,9 @@ public class ContainerMonitorAgent extends Agent {
 		sb.append(myContainer.getID().getName());
 		sb.append(" agents DUMP\n");
 		sb.append("-------------------------------------------------------------\n");
-	    AID[] agents = myLADT.keys();
+	    Agent[] agents = myLADT.values();
 	    for (int i = 0; i < agents.length; ++i) {
-	    	Agent a = myLADT.acquire(agents[i]);
+	    	Agent a = agents[i];
 	    	if (a != null) {
 	    		try {
 		    		sb.append("Agent "+a.getName()+"\n");
@@ -98,9 +131,6 @@ public class ContainerMonitorAgent extends Agent {
 	    		}
 	    		catch (Exception e) {
 	    			e.printStackTrace();
-	    		}
-	    		finally {
-	    			myLADT.release(agents[i]);
 	    		}
 	    	}
 	    }
@@ -122,15 +152,17 @@ public class ContainerMonitorAgent extends Agent {
 			}
 		}
 		else if (b instanceof ThreadedBehaviourFactory.ThreadedBehaviourWrapper) {
+			ThreadedBehaviourFactory.ThreadedBehaviourWrapper w = (ThreadedBehaviourFactory.ThreadedBehaviourWrapper) b;
 			sb.append(prefix+"- Type = Threaded\n");
 			sb.append(prefix+"- Thread Information\n");
-			Thread t = ((ThreadedBehaviourFactory.ThreadedBehaviourWrapper) b).getThread();
+			Thread t = w.getThread();
 			if (t != null) {
 				sb.append(prefix+"  - Alive = "+t.isAlive()+"\n");
 				sb.append(prefix+"  - Interrupted = "+t.isInterrupted()+"\n");
+				sb.append(prefix+"  - Thread-state = "+w.getThreadState()+"\n");
 			}
 			sb.append(prefix+"- Threaded Behaviour Information\n");
-			Behaviour tb = ((ThreadedBehaviourFactory.ThreadedBehaviourWrapper) b).getBehaviour();
+			Behaviour tb = w.getBehaviour();
 			sb.append(prefix+"  - Name = "+tb.getBehaviourName()+"\n");
 			appendBehaviourInfo(tb, sb, prefix+"  ");
 		}
@@ -211,6 +243,36 @@ public class ContainerMonitorAgent extends Agent {
 		catch (Exception e1) {
 		}
 		return null;
+	}
+	
+	public String getMessageQueueDump(String agentName) {
+		// WE don't use acquire() to avoid risk of blocking in case there is a deadlock
+	    Agent[] agents = myLADT.values();
+	    for (int i = 0; i < agents.length; ++i) {
+	    	if (agents[i].getLocalName().equalsIgnoreCase(agentName)) {
+	    		StringBuffer sb = new StringBuffer();
+	    		sb.append("-------------------------------------------------------------\n");
+	    		sb.append("Agent ");
+	    		sb.append(agentName);
+	    		sb.append(" MessageQueue DUMP\n");
+	    		sb.append("-------------------------------------------------------------\n");
+	    		Object[] messages = agents[i].getMessageQueue().getAllMessages();
+	    		if (messages.length > 0) {
+		    		for (int j = 0; j < messages.length; ++j) {
+		    			sb.append("Message # ");
+		    			sb.append(j);
+		    			sb.append('\n');
+		    			sb.append(messages[j]);
+		    			sb.append('\n');
+		    		}
+	    		}
+	    		else {
+	    			sb.append("Queue is empty\n");
+	    		}
+	    		return sb.toString();
+	    	}
+	    }
+		return "Agent "+agentName+" not found!";
 	}
 	
 	public String getLADTDump() {

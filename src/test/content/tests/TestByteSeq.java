@@ -49,6 +49,7 @@ public class TestByteSeq extends Test{
 					Exists e = new Exists(t);
 					myAgent.getContentManager().fillContent(msg, e);
 					l.log("Content correctly encoded");
+	  				l.log(msg.getContent());
 					return msg;
 				}
 				

@@ -54,12 +54,10 @@ public abstract class ObjectSchema implements Serializable {
 	 */
 	public static final int UNLIMITED = -1;
 	
-	//protected String          typeName = null;
 	public static final String         BASE_NAME = "Object";
-	//private static ObjectSchema baseSchema = new ObjectSchema();
 	protected static ObjectSchema baseSchema = null;
 	
-	private boolean encodingByOrder = false;
+	protected boolean encodingByOrder = false;
 	
 	/**
 	 * Retrieve the generic base schema for all objects.

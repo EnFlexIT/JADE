@@ -53,6 +53,10 @@ public class AbsPrimitiveSlotsHolder extends AbsObjectImpl {
         set(name, AbsPrimitive.wrap(value));
     } 
 
+    public void set(String name, AbsObject value) {
+        super.set(name, value);
+    } 
+    
     /**
      * Utility method that allows setting attributes of type
      * <code>boolean</code> without the need of wrapping the new value

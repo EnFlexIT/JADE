@@ -1472,18 +1472,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		return super.getFreshSlice(name);
 	}
 	
-	/*#PJAVA_INCLUDE_BEGIN
-	 // PJAVA workaround as protected methods inherited from parent class
-	  // are not accessible to inner classes
-	   //public void log(String txt, int l) {
-	    //super.log(txt,l);
-	     //}
-	      #PJAVA_INCLUDE_END*/
 	
 	// Only for debugging:
 	// This template can be manually defined to trace only certain messages
 	private MessageTemplate tracingTemplate = MessageTemplate.MatchAll();
-	private int traceCnt = 0;
+	private volatile int traceCnt = 0;
 	
 	private boolean checkTracing(GenericMessage msg) {
 		if (msg.getTraceID() != null) {

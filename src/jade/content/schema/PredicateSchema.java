@@ -42,6 +42,7 @@ public class PredicateSchema extends ContentElementSchema {
      */
     private PredicateSchema() {
         super(BASE_NAME);
+        encodingByOrder = true;
     }
 
     /**
@@ -51,6 +52,7 @@ public class PredicateSchema extends ContentElementSchema {
      */
     public PredicateSchema(String typeName) {
         super(typeName);
+        encodingByOrder = true;
     }
 
     /**

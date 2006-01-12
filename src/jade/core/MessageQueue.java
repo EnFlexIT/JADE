@@ -141,8 +141,7 @@ class MessageQueue {
 		 #MIDP_INCLUDE_END*/
 	}
 	
-	//#J2ME_EXCLUDE_BEGIN
-	
+	//#J2ME_EXCLUDE_BEGIN	
 	// For persistence service
 	private void setMessages(java.util.List l) {
 		// FIXME: To be implemented
@@ -155,7 +154,6 @@ class MessageQueue {
 		System.out.println(">>> MessageQueue::getMessages() <<<");
 		return null;
 	}
-	
 	//#J2ME_EXCLUDE_END
 	
 	
@@ -172,4 +170,10 @@ class MessageQueue {
 		persistentID = l;
 	}
 	
+	//#MIDP_EXCLUDE_BEGIN
+	// For debugging purpose
+	Object[] getAllMessages() {
+		return list.toArray();
+	}
+	//#MIDP_EXCLUDE_END
 }

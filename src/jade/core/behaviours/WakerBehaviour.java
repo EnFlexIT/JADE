@@ -182,4 +182,8 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 	public final boolean done() {
 		return finished;
 	}
+	
+	public final long getWakeupTime() {
+		return wakeupTime;
+	}
 }

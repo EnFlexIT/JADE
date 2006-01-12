@@ -38,7 +38,6 @@ import jade.core.*;
  */
 public abstract class TickerBehaviour extends SimpleBehaviour {
 	private long wakeupTime, period;
-	private int state;
 	private boolean finished;
 	private int tickCount = 0;
 	
@@ -54,7 +53,6 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 			throw new IllegalArgumentException("Period must be greater than 0");
 		}
 		this.period = period;
-		state = 0;
 	}
 	
 	public void onStart() {
@@ -111,7 +109,6 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	 */
 	public void reset() {
 		super.reset();
-		state = 0;
 		finished = false;
 		tickCount = 0;
 	}
