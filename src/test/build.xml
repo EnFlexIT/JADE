@@ -6,18 +6,23 @@
   
   <property environment="env"/>
   <path id="project.class.path">
-    <!--pathelement path="${env.CLASSPATH}"/-->
+    <!-- LEAP classes. Move the following line before the fileset of JADE classes to run the Test Suite with LEAP -->
     <pathelement location="leap/j2se/classes"/>
-    <pathelement location="classes"/>
-    <pathelement location="add-ons/benchmark/classes"/>
+
+    <!-- JADE classes --> 
     <fileset dir="lib">
         <include name="*.jar"/>
     </fileset>
+
+    <!-- Tests classes -->
+    <pathelement location="classes"/>
+
+    <!-- Test suite framework classes -->
+    <pathelement location="add-ons/testSuite/classes"/>
+
+    <!-- Others -->
+    <pathelement location="add-ons/benchmark/classes"/>
   </path>
-
-
-  
-  
   
 
   
@@ -35,30 +40,28 @@
                                compile
          _______________________________________________ -->
   <target name="compile" depends="init" description="compile the tests">
-    <echo message="Compiling JADE and the examples " />
-  	<ant antfile="build.xml" target="examples"/>
-    <echo message="Compiling the testSuite add-on" />
-  	<ant antfile="add-ons/testSuite/build.xml" target="compile"/>
+    <echo message="-------------- Compiling JADE and the examples --------------- " />
+    <ant antfile="build.xml" target="examples"/>
 
-  	<!-- Compile the java code source files -->
-  	<javac srcdir="src" 
-  	       destdir="classes" 
-  	       optimize="on" 
-  	       deprecation="off">
-  	  <classpath refid="project.class.path"/>
+    <echo message="-------------- Compiling the testSuite add-on ----------------" />
+    <ant antfile="build.xml" target="compile" dir="add-ons/testSuite"/>
+
+    <echo message="-------------- Compiling Tests ----------------" />
+    <javac srcdir="src" destdir="classes" optimize="on" deprecation="off">
+      <classpath refid="project.class.path"/>
       <include name="test/**"/>
-  		<exclude name="test/TestAgent.java"/>
-  		<exclude name="test/mobility/separate/**"/>
-  		<exclude name="test/leap/midp/**"/>
-  	</javac>
+      <exclude name="test/TestAgent.java"/>
+      <exclude name="test/mobility/separate/**"/>
+      <exclude name="test/leap/midp/**"/>
+    </javac>
   				
-  	<!-- RMIC the TSDaemon -->
-    <rmic classname="test.common.remote.TSDaemon" base="classes"/>
-    
-    <!-- Copy xml configuration files -->
+    <!-- Copy xml and properties configuration files -->
     <copy todir="classes" overWrite="yes">
-     <fileset dir="src" includes="**/*.xml **/*.dtd **/**/*.xml **/**/*.dtd **/**/**/*.xml **/**/**/*.dtd **/**/**/**/*.xml **/**/**/**/*.dtd"/>
-     <fileset dir="src" includes="**/*.properties **/**/*.properties **/**/**/*.properties **/**/**/**/*.properties"/>
+      <fileset dir="src">
+        <include name="**/*.xml"/>
+        <include name="**/*.properties"/>
+        <include name="**/*.dtd"/>
+      </fileset>
     </copy>
   </target>
 

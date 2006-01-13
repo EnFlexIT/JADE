@@ -217,6 +217,7 @@ public abstract class Profile {
 	 **/
 	public static final String FILE_DIR = "file-dir";
 	
+	private static final String LOCALHOST = "localhost";
 	
 	//#APIDOC_EXCLUDE_BEGIN
 	
@@ -315,7 +316,7 @@ public abstract class Profile {
 	
 	
 	public static String getDefaultNetworkName() {
-		String host = "localhost";
+		String host = LOCALHOST;
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			host = java.net.InetAddress.getLocalHost().getHostAddress(); 
@@ -334,6 +335,10 @@ public abstract class Profile {
 	//#MIDP_EXCLUDE_BEGIN
 	public static boolean isLocalHost(String host) {
 	    // Check that the local-host is actually local
+		if (LOCALHOST.equalsIgnoreCase(host)) {
+			return true;
+		}
+		
 	    try {
 	        InetAddress localHostAddrs[] = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
 	        InetAddress hostAddrs[] = InetAddress.getAllByName(host);

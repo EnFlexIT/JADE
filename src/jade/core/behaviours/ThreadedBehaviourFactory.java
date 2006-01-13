@@ -169,7 +169,6 @@ public class ThreadedBehaviourFactory {
 			super(b.myAgent);
 			myBehaviour = b;
 			myBehaviour.setParent(new DummyParentBehaviour(myAgent, this));
-			myThread = new Thread(this);
 		}
 		
 		public void onStart() {
@@ -179,6 +178,7 @@ public class ThreadedBehaviourFactory {
 			myBehaviour.parent.setAgent(myAgent);
 			
 			// Start the dedicated thread
+			myThread = new Thread(this);
 			myThread.setName(myAgent.getLocalName()+"#"+myBehaviour.getBehaviourName());
 			myThread.start();
 		}

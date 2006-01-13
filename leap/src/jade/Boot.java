@@ -1,5 +1,3 @@
-/*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * JADE - Java Agent DEvelopment Framework is a framework to develop
@@ -327,15 +325,9 @@ public class Boot extends MIDlet implements Runnable {
       Runtime.instance().invokeOnTermination(this);
       Runtime.instance().startUp(p);
 			rt.gc();
-			
-			//#NODEBUG_EXCLUDE_BEGIN
-      //System.out.println("Used memory = "+((rt.totalMemory()-rt.freeMemory())/1024)+"K");
-			//#NODEBUG_EXCLUDE_END
     } 
     catch (Exception e) {
-      if(logger.isLoggable(Logger.SEVERE))
-	      logger.log(Logger.SEVERE,"Error creating the Profile Manager ["+e.getMessage()+"]");
-      e.printStackTrace();
+	  logger.log(Logger.SEVERE,"Error creating the Profile Manager", e);
       Agent.midlet = null;
       midlet = null;
       notifyDestroyed();
@@ -343,30 +335,25 @@ public class Boot extends MIDlet implements Runnable {
   } 
 
   public void pauseApp() {
-		if(logger.isLoggable(Logger.INFO))
-			logger.log(Logger.INFO,"pauseApp() called");
   } 
 
   public void destroyApp(boolean unconditional) {
-		if(logger.isLoggable(Logger.INFO))
-			logger.log(Logger.INFO,"destroyApp() called");
-		// If the MIDlet is killed, kill JADE too
-  	Runtime.instance().shutDown();
+    // If the MIDlet is killed, kill JADE too
+    Runtime.instance().shutDown();
   } 
   
   public void run() {
   	// When JADE terminates, kill the MIDlet too (if still there)
   	if (Agent.midlet != null) {
-  		if(logger.isLoggable(Logger.INFO))
-  			logger.log(Logger.INFO, "Destroying MIDlet now");
+  		logger.log(Logger.INFO, "Destroying MIDlet now");
 	    Agent.midlet.notifyDestroyed();
-		}
+	}
   	Agent.midlet = null;
     midlet = null;
   }
   
   protected void customize(Profile p) {
-    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.1"));
+    Display.getDisplay(this).setCurrent(new Form("JADE-LEAP 3.4"));
   }
 #MIDP_INCLUDE_END*/
 }

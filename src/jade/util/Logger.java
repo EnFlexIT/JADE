@@ -228,13 +228,13 @@ public class Logger
 		}
 		catch (Throwable t){
 			// Maybe the record-store has been closed from the outside. Retry.
-      theRecordStore = null;
-      try {
-      	write(log);
+            theRecordStore = null;
+            try {
+      	      write(log);
 			}
 			catch (Throwable t1) {
-        t.printStackTrace();
-      	theRecordStore = null;
+              t.printStackTrace();
+      	      theRecordStore = null;
 			}
 		}		
 		#MIDP_INCLUDE_END*/
@@ -270,7 +270,9 @@ public class Logger
 		public synchronized static Logger getMyLogger(String name){
 			Logger l = (Logger) loggers.get(name);
 			if (l == null) {
-				String key = name.replace('.', '_')+"_loglevel";
+				StringBuffer sb = new StringBuffer(name.replace('.', '_'));
+				sb.append("_loglevel");
+				String key = sb.toString();
 				int level = INFO;
 				if (verbosityLevels != null) {
 					try {
@@ -348,15 +350,20 @@ public class Logger
 		}
 		
 		public void log(int level, String msg) {
-	      if(level >= myLevel){
-		    println(myName+": "+msg);
-	      }
+		  log(level, msg, null);
 		}
 		
 		public void log(int level, String msg, Throwable t) {
 	      if(level >= myLevel){
-	        String tMsg = (t != null ? " ["+t+"]" : "");
-		    println(myName+": "+msg+tMsg);
+	        StringBuffer sb = new StringBuffer(myName);
+	        sb.append(": ");
+	        sb.append(msg);
+	        if (t != null) {
+	          sb.append('[');
+	          sb.append(t);
+	          sb.append(']');
+	        }
+		    println(sb.toString());
 	      }
 		}		
 	#J2ME_INCLUDE_END*/
@@ -388,28 +395,30 @@ public class Logger
 	
 	
   /*#MIDP_INCLUDE_BEGIN
-    private static final String OUTPUT = "OUTPUT";
-		private static RecordStore theRecordStore;
-		private static int cnt = 0;
+	private static final String OUTPUT = "OUTPUT";
+	private static RecordStore theRecordStore;
+	private static volatile int cnt = 0;
 
-    static {
-			try {
-				RecordStore.deleteRecordStore(OUTPUT);
-			}
-			catch (Exception e) {
-				// The RS does not exist yet --> No need to reset it
-			}
+	static {
+		try {
+			RecordStore.deleteRecordStore(OUTPUT);
 		}
+		catch (Exception e) {
+			// The RS does not exist yet --> No need to reset it
+		}
+	}
 
-		private static void write(String log) throws Throwable {
-			if (theRecordStore == null) {
-        // Opens the RecordStore
-        theRecordStore =	RecordStore.openRecordStore(OUTPUT, true);
-      }
-			byte[] bb = (String.valueOf(cnt)+") "+log).getBytes();
-			theRecordStore.addRecord(bb,0,bb.length);
-			cnt++;
+	private static void write(String msg) throws Throwable {
+		if (theRecordStore == null) {
+			theRecordStore = RecordStore.openRecordStore(OUTPUT, true);
 		}
+		StringBuffer sb = new StringBuffer(cnt);
+        cnt++;
+		sb.append(") ");
+		sb.append(msg);
+        byte[] bb = sb.toString().getBytes();
+        theRecordStore.addRecord(bb,0,bb.length);
+	}
 		
     private static PrintStream initLogStream(Properties pp) {
       return null;

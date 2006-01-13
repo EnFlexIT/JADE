@@ -72,6 +72,7 @@ import jade.core.NameClashException;
 import jade.core.NotFoundException;
 
 import jade.core.management.AgentManagementService;
+import jade.core.management.CodeLocator;
 
 import jade.lang.acl.ACLMessage;
 
@@ -452,7 +453,15 @@ public class AgentMobilityService extends BaseService {
 	    String newName = (String)params[2];
 
 	    try {
-
+	    //Register the clone in the Code Locator in the case its father is a jar agent
+	    AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+	    CodeLocator cl = amSrv.getCodeLocator();
+	    String jarName = cl.getAgentCodeLocation(agentID);
+	    if(myLogger.isLoggable(Logger.FINER))
+	      myLogger.log(Logger.FINE," adding clone " + newName  + " to code locator. Binding to jar: " + jarName);
+            if (jarName!=null)
+              cl.registerAgent(new AID(newName,AID.ISLOCALNAME),new File(jarName),false);
+                                                                                                    
 	  //log("Cloning agent " + agentID + " on container " + where.getName(), 1);
           if(myLogger.isLoggable(Logger.INFO))
             myLogger.log(Logger.INFO,"Cloning agent " + agentID + " on container " + where.getName());
@@ -527,6 +536,9 @@ public class AgentMobilityService extends BaseService {
 	    }
 	    catch(ServiceException se) {
 		throw new IMTPException("Destination container not found in handleInformCloned()", se);
+	    }
+	    catch(Exception e){
+	        throw new IMTPException("Error accessing to agent's code in handleInformCloned()", e);
 	    }
 	    finally {
 		myContainer.releaseLocalAgent(agentID);

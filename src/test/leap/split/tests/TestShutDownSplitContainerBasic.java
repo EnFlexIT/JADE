@@ -56,15 +56,17 @@ public class TestShutDownSplitContainerBasic extends Test {
 		
 		//step 3: verify if max-disconnection time successfully end the container.
 		sb.addSubBehaviour(new WakerBehaviour(a, 80000){
+			public void onStart() {
+				log("Wait for the max disconnection time to expire...");
+			}
 			public void handleElapsedTimeout() {
 				//check if the container has been successfully ended.
 				try{
 					log("Try killing split-container..." + containerName);
 					TestUtility.killContainer(myAgent, containerName);
-					failed("The container does NOT exit as expected when disconnection time elapsed.");
+					failed("The container was still there after max disconnection time expiration.");
 				}catch(TestException te){
-					log("Exception occured as expected. " + te);
-					passed("Split-container exit after max disconnection time.");
+					passed("Exception occured as expected: The container was properly removed after max disconnection time expiration");
 				}
 			}
 		});
