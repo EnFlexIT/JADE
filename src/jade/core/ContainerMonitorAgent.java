@@ -140,7 +140,7 @@ public class ContainerMonitorAgent extends Agent {
 	
 	private void appendBehaviourInfo(Behaviour b, StringBuffer sb, String prefix) {
 		sb.append(prefix+"- Class = "+b.getClass().getName()+"\n");
-		sb.append(prefix+"- State = "+b.getState()+"\n");
+		sb.append(prefix+"- State = "+b.getExecutionState()+"\n");
 		sb.append(prefix+"- Runnable = "+b.isRunnable()+"\n");
 		if (b instanceof CompositeBehaviour) {
 			sb.append(prefix+"- Type = "+getCompositeType((CompositeBehaviour) b)+"\n");

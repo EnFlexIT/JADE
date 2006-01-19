@@ -1962,7 +1962,7 @@ public class Agent implements Runnable, Serializable
 	// Notify the toolkit of the change in behaviour state
 	// Public as it is called by the Scheduler and by the Behaviour class 
 	public void notifyChangeBehaviourState(Behaviour b, String from, String to) {
-		b.setState(to);
+		b.setExecutionState(to);
 		if (generateBehaviourEvents) {
 			myToolkit.handleChangeBehaviourState(myAID, b, from, to);
 		}

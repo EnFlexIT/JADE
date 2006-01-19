@@ -168,7 +168,7 @@ public abstract class Behaviour implements Serializable {
 	 Flag indicating whether this Behaviour is runnable or not
 	 */
 	private volatile boolean runnableState = true;
-	private volatile String state = STATE_READY;
+	private volatile String executionState = STATE_READY;
 	
 	//#APIDOC_EXCLUDE_BEGIN
 	
@@ -345,11 +345,11 @@ public abstract class Behaviour implements Serializable {
 		//#MIDP_EXCLUDE_END
 	}
 	
-	public final void setState(String s) {
-		state = s;
+	public final void setExecutionState(String s) {
+		executionState = s;
 	}
-	public final String getState() {
-		return state;
+	public final String getExecutionState() {
+		return executionState;
 	}
 	//#APIDOC_EXCLUDE_END
 	
