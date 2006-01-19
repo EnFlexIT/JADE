@@ -27,8 +27,7 @@ public abstract class GatewayBehaviour extends CyclicBehaviour {
 	 */
 	private final HashMap commandQueue = new HashMap(2);
 
-	private final Logger myLogger = Logger.getMyLogger(this.getClass()
-			.getName());
+	private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 
 	public void action() {
 		Event e = (Event) myAgent.getO2AObject();
@@ -38,9 +37,9 @@ public abstract class GatewayBehaviour extends CyclicBehaviour {
 		}
 		// put the event into the command Queue
 		commandQueue.put(e.getSource(), e);
-		if (myLogger.isLoggable(Logger.INFO))
-			myLogger.log(Logger.INFO, myAgent.getLocalName()
-					+ " started execution of command " + e.getSource());
+		if (myLogger.isLoggable(Logger.INFO)) {
+			myLogger.log(Logger.INFO, myAgent.getLocalName() + " started execution of command " + e.getSource());
+		}
 		// call the processCommand method such as the command is executed
 		processCommand(e.getSource());
 	}
@@ -69,14 +68,15 @@ public abstract class GatewayBehaviour extends CyclicBehaviour {
 	 * @param command is the same object that was passed in the processCommand method
 	 **/
 	final public void releaseCommand(Object command) {
-		if (myLogger.isLoggable(Logger.INFO))
-			myLogger.log(Logger.INFO, myAgent.getLocalName()
-					+ " terminated execution of command " + command);
 		// remove the command from the queue
 		Event e = (Event) commandQueue.remove(command);
 		// notify that the command has been processed such as the JADEGateway is waken-up
-		if (e != null)
+		if (e != null) {
+			if (myLogger.isLoggable(Logger.INFO)) {
+				myLogger.log(Logger.INFO, myAgent.getLocalName() + " terminated execution of command " + command);
+			}
 			e.notifyProcessed(null);
+		}
 	}
 	
 	public int onEnd() {
