@@ -521,8 +521,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 					powerUpLocalAgent(monitorId);
 				}
 				catch (Throwable t) {
-					myLogger.log(Logger.WARNING, "Cannot strat ContainerMonitor agent. "+t);
-					t.printStackTrace();
+					myLogger.log(Logger.WARNING, "Cannot strat ContainerMonitor agent. Check that the misc add-on is in the classpath.");
 				}
 			}
 			//#J2ME_EXCLUDE_END
