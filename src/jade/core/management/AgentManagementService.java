@@ -74,7 +74,7 @@ public class AgentManagementService extends BaseService {
 	/**
 	 The path where to search agent jar files
 	 */
-	public static final String AGENTS_PATH = "jade_AgentManagement_agentspath";
+	public static final String AGENTS_PATH = "jade_core_management_AgentManagementService_agentspath";
 	
 	private static final String[] OWNED_COMMANDS = new String[] {
 		AgentManagementSlice.REQUEST_CREATE,
