@@ -1,10 +1,9 @@
 MicroEdition-Configuration: CLDC-1.0
 MicroEdition-Profile: MIDP-1.0
-MIDlet-1: JADE-split, , jade.MicroBoot
-MIDlet-2: JADE-standalone, , jade.Boot
-MIDlet-3: Config, , jade.util.leap.Config
-MIDlet-4: View-output, , jade.util.leap.OutputViewer
-MIDlet-LEAP-conf: jad
+MIDlet-1: JADE, , jade.MicroBoot
+MIDlet-2: Config, , jade.util.leap.Config
+MIDlet-3: View-output, , jade.util.leap.OutputViewer
+LEAP-conf: conf
 MIDlet-Name: JADE-LEAP
 MIDlet-Vendor: TILAB
-MIDlet-Version: 3.0
+MIDlet-Version: 3.4

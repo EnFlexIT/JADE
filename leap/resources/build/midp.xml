@@ -110,35 +110,40 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" depends="do-setup"
-	        description="Compile sources">
-    <echo>MIDP version: ${midp-version}</echo>
-    <echo>Bootclasspath: ${boot-midp-classes}</echo>
+	<target name="do-compile" depends="do-setup" description="Compile sources">
+		<echo>MIDP version: ${midp-version}</echo>
+		<echo>Bootclasspath: ${boot-midp-classes}</echo>
 		<javac srcdir="${src}"
 		       destdir="${unverified}"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="on"
-		       bootclasspath="${boot-midp-classes}"/>
+		       bootclasspath="${boot-midp-classes}"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.2"
+		       target="1.1"/>
 		<preverify unverified="${unverified}" verified="${classes}"/>
 	</target>
 
 	
 	<!-- LIB -->
-	<target name="do-lib" depends="do-compile"
-	        description="Create Jade-leap jar file">
+	<target name="do-lib" depends="do-compile" description="Create Jade-leap jar file">
 		<delete file="${lib}/JadeLeap.jar" quiet="true"/>
-        <condition property="manifest-file" 
-                   value="resources/build/jade-leap.manifest">
-          <equals arg1="${midp-version}" arg2="1.0" trim="true" />
-        </condition>
-        <condition property="manifest-file" 
-                   value="resources/build/jade-leap-midp20.manifest">
-          <equals arg1="${midp-version}" arg2="2.0" trim="true" />
-        </condition>
+		<condition property="manifest-file" value="resources/build/jade-leap.manifest">
+			<equals arg1="${midp-version}" arg2="1.0" trim="true" />
+		</condition>
+		<condition property="manifest-file" value="resources/build/jade-leap-midp20.manifest">
+			<equals arg1="${midp-version}" arg2="2.0" trim="true" />
+		</condition>
 		<jar jarfile="${lib}/JadeLeap.jar" basedir="${classes}" manifest="${manifest-file}"/>
-        <!-- Update jad file -->          
-        <updatejad jad="jade-leap.jad" />
+		
+		<!-- Update jad file -->          
+		<copy file="${manifest-file}" toFile="jade-leap.jad" overWrite="yes" />
+		<manifest file="jade-leap.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="${lib}/JadeLeap.jar" />
+		</manifest>
+		<updatejad jad="jade-leap.jad" />
 	</target>
 
 	
@@ -157,8 +162,7 @@
 
 
 	<!-- DEMO -->
-	<target name="do-demo" depends="do-init, do-compile"
-	        description="Build the demo">
+	<target name="do-demo" depends="do-init, do-compile" description="Build the demo">
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-unverified}" quiet="true"/>
 		<delete dir = "${demo-classes}" quiet="true"/>
@@ -166,12 +170,12 @@
 		<mkdir dir="${demo-unverified}"/>
 		<mkdir dir="${demo-classes}"/>
 		
-	  <copy todir="${demo-preprocessed}" overwrite="yes">
+		<copy todir="${demo-preprocessed}" overwrite="yes">
 			<fileset dir="${demo-src}">
 			</fileset>
 		</copy>
 		
-	  <pproc basedir="${demo-preprocessed}" type="midp"/>
+		<pproc basedir="${demo-preprocessed}" type="midp"/>
 	  
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-unverified}"
@@ -180,6 +184,9 @@
 		       optimize="${optimised-build}"
 		       deprecation="off"
 		       bootclasspath="${boot-midp-classes}"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.2"
 		       target="1.1"/>
 		       
 		<preverify unverified="${demo-unverified}" verified="${demo-classes}" classpath="${classes}"/>		
@@ -192,8 +199,17 @@
 		<delete file="${demo}/demoMidp.jar" quiet="true"/>
 		<jar jarfile="${demo}/demoMidp.jar" basedir="${demo-classes}" manifest="${demo}/demo.manifest"/>
 
+		<!-- Update MIDP version according to buildLEAP.properties file -->  
+		<manifest file="${demo}/demo.manifest" mode="update">
+			<attribute name="MicroEdition-Profile" value="MIDP-${midp-version}" />
+		</manifest>
+        
 		<!-- Update jad file -->          
-    <updatejad jad="${demo}/demo.jad" />
+		<copy file="${demo}/demo.manifest" toFile="${demo}/demo.jad" overWrite="yes" />
+		<manifest file="${demo}/demo.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="demoMidp.jar" />
+		</manifest>
+		<updatejad jad="${demo}/demo.jad" />
 	</target>
 
 </project>
