@@ -93,22 +93,22 @@ public class HTTPServer extends Thread {
 		}
 		timeout = t;
 		try {
-			//#DOTNET_EXCLUDE_BEGIN 
+			//#PJAVA_EXCLUDE_BEGIN 
 			server = HTTPSocketFactory.getInstance().createServerSocket(port);
-			//#DOTNET_EXCLUDE_END
-			/*#DOTNET_INCLUDE_BEGIN
+			//#PJAVA_EXCLUDE_END
+			/*#PJAVA_INCLUDE_BEGIN
 			 server = new ServerSocket(port);
-			 #DOTNET_INCLUDE_END*/
+			 #PJAVA_INCLUDE_END*/
 		}
 		catch (IOException ioe) {
 			if (changePortIfBusy) {
 				// The specified port is busy. Let the system find a free one
-				//#DOTNET_EXCLUDE_BEGIN	
+				//#PJAVA_EXCLUDE_BEGIN	
 				server = HTTPSocketFactory.getInstance().createServerSocket(0);
-				//#DOTNET_EXCLUDE_END
-				/*#DOTNET_INCLUDE_BEGIN
+				//#PJAVA_EXCLUDE_END
+				/*#PJAVA_INCLUDE_BEGIN
 				 server = new ServerSocket(0);
-				 #DOTNET_INCLUDE_END*/
+				 #PJAVA_INCLUDE_END*/
 				if(logger.isLoggable(Logger.WARNING))
 					logger.log(Logger.WARNING,"Port "+p+" is already in used, selected another one");
 			}

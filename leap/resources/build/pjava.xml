@@ -84,9 +84,24 @@
 
 
 	<!-- COMPILE -->
-	<target name="do-compile" depends="do-setup, do-parsers"
-	        description="Compile sources">
-	  
+	<target name="do-compile" depends="do-setup, do-parsers, compile1, compile2" description="Compile sources"/>
+	
+	<target name="compile1" if="java-1.1-home" description="Compile sources using JDK1.1. classes as bootclasspath">	  
+		<javac srcdir="${src}"
+		       destdir="${classes}"
+		       debug="${debug-build}"
+		       debuglevel="vars,lines,source"
+		       optimize="${optimised-build}"
+		       deprecation="off"
+		       classpath="${java-1.1-home}/lib/classes.zip;${lib}/commons-codec/commons-codec-1.3.jar"
+		       bootclasspath="${java-1.1-home}/lib/classes.zip"
+		       fork="yes"
+		       compiler="classic"
+		       source="1.1"
+		       target="1.1"/>
+	</target>
+	
+	<target name="compile2" unless="java-1.1-home" description="Compile sources using JAVA_HOME classes as bootclasspath">	  
 		<javac srcdir="${src}"
 		       destdir="${classes}"
 		       debug="${debug-build}"
@@ -96,7 +111,7 @@
 		       classpath="${lib}/commons-codec/commons-codec-1.3.jar"
 		       fork="yes"
 		       compiler="classic"
-		       source="1.2"
+		       source="1.1"
 		       target="1.1"/>
 	</target>
 
@@ -146,7 +161,7 @@
 		       deprecation="off"
 		       fork="yes"
 		       compiler="classic"
-		       source="1.2"
+		       source="1.1"
 		       target="1.1"/>
 		       
 	  <copy todir="${demo-classes}">

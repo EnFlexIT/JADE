@@ -202,7 +202,7 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
    * @return the name without wildcards.
    */
   public static String adjustAgentName(String nameWithWildcards, String[] values){
-		//#MIDP_EXCLUDE_BEGIN  	
+	//#J2ME_EXCLUDE_BEGIN  	
   	if(values == null){
   		return nameWithWildcards;
   	}
@@ -238,11 +238,11 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
   		}
   	}
   	return out.toString();
-		//#MIDP_EXCLUDE_END
+	//#J2ME_EXCLUDE_END
   	
-  	/*#MIDP_INCLUDE_BEGIN
+  	/*#J2ME_INCLUDE_BEGIN
   	return nameWithWildcards;
-  	#MIDP_INCLUDE_END*/
+  	#J2ME_INCLUDE_END*/
   }
   
 }

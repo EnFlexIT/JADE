@@ -303,10 +303,10 @@ public class LEAPIMTPManager implements IMTPManager {
 	 .......
 	 
 	 If there is no ICP indication set it as follows. 
-	 a) Peripheral container / J2SE 
+	 a) Peripheral container / J2SE or PJAVA
 	 - There is at least 1 ICP already active --> Nothing
 	 - There are no ICPs already active --> JICPPeer
-	 b) Peripheral container / PJAVA or MIDP --> JICPBMPeer
+	 b) Peripheral container / MIDP --> Throws a ProfileException
 	 c) Main container / J2SE or PJAVA --> JICPPeer
 	 */
 	private void setDefaults() throws ProfileException {
@@ -327,17 +327,14 @@ public class LEAPIMTPManager implements IMTPManager {
 			// ICPS for a "Peripheral Container"
 			if (theProfile.getParameter(ICPS, null) == null) {
 				String jvm = theProfile.getParameter(Profile.JVM, null);
-				if (Profile.J2SE.equals(jvm)) {
-					// Set default ICPS for J2SE
-					if (theDispatcher.getLocalURLs().size() == 0) {
-						theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
-					}
+				if (Profile.MIDP.equals(jvm)) {
+					// Should never happen
+					throw new ProfileException("Stand-alone execution mode not supported in MIDP");
 				}
 				else {
-					// Set default ICPS for PJAVA and MIDP (same)
-					theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPBMPeer");
-					if (theProfile.getParameter(JICPProtocol.REMOTE_URL_KEY, null) == null) {
-						theProfile.setParameter(JICPProtocol.REMOTE_URL_KEY, mainURL);
+					// Set default ICPS for J2SE and PJAVA
+					if (theDispatcher.getLocalURLs().size() == 0) {
+						theProfile.setParameter(ICPS, "jade.imtp.leap.JICP.JICPPeer");
 					}
 				}
 			}

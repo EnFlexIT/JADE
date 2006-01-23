@@ -365,29 +365,27 @@
 	
 	<!-- ******** Minimize a jar file ******** -->
 	
-  <target name = "minimize" description = "" depends = "init">
-  	<basename property="name" file="${JAR}" suffix=".jar"/>
-  	<dirname property="dir" file="${JAR}"/>
-  	<property name="base" value="${dir}/${name}"/>
+	<target name = "minimize" description = "" depends = "init">
+		<input message="Insert the pathname of the jar file to minimize -->" addproperty="JAR"/>
+		<basename property="name" file="${JAR}" suffix=".jar"/>
+ 		<dirname property="dir" file="${JAR}"/>
+ 		<property name="base" value="${dir}/${name}"/>
   	
-  	<!-- Where to find the .dlc file (same as the jar unless specified) -->
-  	<condition property="dlcfile" value="${DLC}">
-  		<isset property="DLC"/>
-  	</condition>
-  	<condition property="dlcfile" value="${base}.dlc">
-  		<not>
-	  		<isset property="DLC"/>
-	  	</not>
-  	</condition>
+		<!-- Where to find the .dlc file (same as the jar by default) -->
+		<input message="Insert the pathname of the .dlc (Dynamically Loaded Classes) file to drive the minimization -->" addproperty="DLC" defaultvalue="${base}.dlc"/>
   	
-  	<!-- Detect all classes that are referenced starting from the .dlc file --> 
+		<!-- Where to find the manifest (from the jar by default) -->
+		<input message="Insert the pathname of the manifest file to include in the minimized jar (press ENTER to use the original manifest) -->" addproperty="manifest" defaultValue="*"/>
+		<echo> ${manifest} </echo>
+
+		<!-- Detect all classes that are referenced starting from the .dlc file --> 
 		<java classname="leapTools.Package" fork="true">
 			<classpath>
 				<pathelement location="resources\antTasks\packagingtool.jar"/>
 				<pathelement location="${boot-midp-classes}"/>
 				<pathelement location="${JAR}"/>
 			</classpath>
-			<arg line="-d ${base}-tmp.jar -f ${dlcfile} -e -s"/>
+			<arg line="-d ${base}-tmp.jar -f ${DLC} -e -s"/>
 		</java>
 		
 		<mkdir dir="${tmp}/t1"/>
@@ -399,26 +397,36 @@
 		<!-- Remove from t1 all .class files that are not in t2 -->
 		<minimize basedir="${tmp}/t1" checkdir="${tmp}/t2" verbose="true"/>
 		
-  	<!-- Where to find the manifest (from the jar unless specified) -->
-  	<condition property="manifest" value="${MANIFEST}">
-  		<isset property="MANIFEST"/>
-  	</condition>
-  	<condition property="manifest" value="${tmp}/t1/meta-inf/Manifest.mf">
-  		<not>
-	  		<isset property="MANIFEST"/>
-	  	</not>
-  	</condition>
-  	<echo> ${manifest} </echo>
+
+		<condition property="MANIFEST" value="${tmp}/t1/meta-inf/Manifest.mf">
+			<equals arg1="${manifest}" arg2="*"/>
+		</condition>
+		<condition property="MANIFEST" value="${manifest}">
+			<not>
+				<equals arg1="${manifest}" arg2="*"/>
+			</not>
+		</condition>
+		<echo> ${MANIFEST} </echo>
   	
 		<!-- Produce the minimized jar -->
 		<delete file="${base}-min.jar" quiet="true"/>
-	  <jar jarfile="${base}-min.jar" basedir="${tmp}/t1" manifest="${manifest}"/>
+		<jar jarfile="${base}-min.jar" basedir="${tmp}/t1" manifest="${MANIFEST}"/>
+
+		
+		<!-- Create the JAD -->
+		<copy file="${MANIFEST}" toFile="${base}-min.jad" overWrite="yes" />
+		<manifest file="${base}-min.jad" mode="update">
+			<attribute name="MIDlet-Jar-URL" value="${name}-min.jar" />
+		</manifest>
+		<updatejad jad="${base}-min.jad" />
+
 	       
-	  <!-- Delete temp files and directories -->
-	  <delete file="${base}-tmp.jar" quiet="true"/>
-	  <delete dir="${tmp}/t1"/>
-	  <delete dir="${tmp}/t2"/>
+		<!-- Delete temp files and directories -->
+		<delete file="${base}-tmp.jar" quiet="true"/>
+		<delete dir="${tmp}/t1"/>
+		<delete dir="${tmp}/t2"/>
 	</target>
+
 	
 	<!-- CREATE Visual Studio 2003 complete Solution for .NET version  -->
 	<target name="solution" depends="solution-dotnet"

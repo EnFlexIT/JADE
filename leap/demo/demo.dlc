@@ -1,7 +1,4 @@
-jade.core.AgentState
-jade.core.MicroRuntime
-jade.imtp.leap.JICP.BIFEDispatcher
-jade.util.leap.Config
-jade.util.leap.OutputViewer
 chat.client.Start
 chat.client.ChatClientAgent
+jade.imtp.leap.JICP.BIFEDispatcher
+jade.util.leap.OutputViewer

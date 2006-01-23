@@ -412,7 +412,8 @@ public class Logger
 		if (theRecordStore == null) {
 			theRecordStore = RecordStore.openRecordStore(OUTPUT, true);
 		}
-		StringBuffer sb = new StringBuffer(cnt);
+		StringBuffer sb = new StringBuffer();
+		sb.append(cnt);
         cnt++;
 		sb.append(") ");
 		sb.append(msg);
