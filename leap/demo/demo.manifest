@@ -6,6 +6,7 @@ MicroEdition-Profile: MIDP-1.0
 MIDlet-1: JADE-Chat, , chat.client.Start
 MIDlet-2: View-output, , jade.util.leap.OutputViewer
 LEAP-conf: jad
+LEAP-host: localhost
 MIDlet-Name: JADE-Demo
 MIDlet-Vendor: TILAB
 MIDlet-Version: 1.0

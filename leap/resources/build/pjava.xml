@@ -139,23 +139,22 @@
 	
 	
 	<!-- DEMO -->
-	<target name="do-demo" depends="do-init, do-compile"
-	        description="Build the demo">
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-classes}" quiet="true"/>
 		<mkdir dir="${demo-preprocessed}"/>
 		<mkdir dir="${demo-classes}"/>
 		
-	  <copy todir="${demo-preprocessed}" overwrite="yes">
+		<copy todir="${demo-preprocessed}" overwrite="yes">
 			<fileset dir="${demo-src}">
 			</fileset>
 		</copy>
 		
-	  <pproc basedir="${demo-preprocessed}" type="pjava"/>
+		<pproc basedir="${demo-preprocessed}" type="pjava"/>
 	  
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-classes}"
-		       classpath="${classes}"
+		       classpath="${lib}/JadeLeap.jar"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="off"
@@ -164,7 +163,7 @@
 		       source="1.1"
 		       target="1.1"/>
 		       
-	  <copy todir="${demo-classes}">
+		<copy todir="${demo-classes}">
 			<fileset dir="${classes}">
 			</fileset>
 		</copy>
@@ -172,5 +171,28 @@
 		<delete file="${root}/demo/demoPjava.jar" quiet="true"/>
 		<jar jarfile="${root}/demo/demoPjava.jar" basedir="${demo-classes}"/>
 	</target>
+
+	<target name="check-resources">
+		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
+		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
+
+		<antcall target="get-leap-jar"/>
+	</target>
+
+	<target name="get-leap-jar" unless="JadeLeap">
+		<antcall target="create-leap-jar"/>
+		<antcall target="input-leap-jar"/>
+	</target>
+
+	<target name="create-leap-jar" if="jade-sources-available">
+		<antcall target="do-lib"/>
+	</target>
+
+	<target name="input-leap-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE-LEAP jar file for PJAVA/CDC -->" addProperty="JadeLeap"/>
+		<mkdir dir="${lib}"/>
+		<copy file="${JadeLeap}" tofile="${lib}/JadeLeap.jar"/>
+	</target>
+
 	
 </project>

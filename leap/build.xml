@@ -115,7 +115,7 @@
 	        description="Set time stamp">
 	  <tstamp/>
 	  
-		<ant antfile="build.xml" target="doTag" dir="${jade-home}"/>
+		<antcall target="jade-tag"/>
 	  
     <condition property="boot-midp-classes-tmp" 
                value="${j2me-wtk-home}/lib/midpapi.zip">
@@ -145,6 +145,13 @@
 		<mkdir dir="${tmp}"/>
 	</target>
 	
+	<target name="jade-tag" if="jade-exists" depends="check-jade">
+		<ant antfile="build.xml" target="doTag" dir="${jade-home}"/>
+	</target>	
+	
+	<target name="check-jade">
+		<available file="${jade-home}/build.xml" property="jade-exists"/>
+	</target>
 	
 	<!-- SETUP the build environment for the selected java environments -->
 	<target name="setup" depends="init, setup-j2se, setup-pjava, setup-midp, setup-dotnet"

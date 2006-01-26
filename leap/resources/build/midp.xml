@@ -162,7 +162,7 @@
 
 
 	<!-- DEMO -->
-	<target name="do-demo" depends="do-init, do-compile" description="Build the demo">
+	<target name="do-demo" depends="do-init, check-resources" description="Build the demo">
 		<delete dir = "${demo-preprocessed}" quiet="true"/>
 		<delete dir = "${demo-unverified}" quiet="true"/>
 		<delete dir = "${demo-classes}" quiet="true"/>
@@ -179,7 +179,7 @@
 	  
 		<javac srcdir="${demo-preprocessed}"
 		       destdir="${demo-unverified}"
-		       classpath="${classes}"
+		       classpath="${lib}/JadeLeap.jar"
 		       debug="${debug-build}"
 		       optimize="${optimised-build}"
 		       deprecation="off"
@@ -189,12 +189,9 @@
 		       source="1.2"
 		       target="1.1"/>
 		       
-		<preverify unverified="${demo-unverified}" verified="${demo-classes}" classpath="${classes}"/>		
+		<preverify unverified="${demo-unverified}" verified="${demo-classes}" classpath="${lib}/JadeLeap.jar"/>		
 	  
-		<copy todir="${demo-classes}">
-			<fileset dir="${classes}">
-			</fileset>
-		</copy>
+		<unjar src="${lib}/JadeLeap.jar" dest="${demo-classes}"/>
 		
 		<delete file="${demo}/demoMidp.jar" quiet="true"/>
 		<jar jarfile="${demo}/demoMidp.jar" basedir="${demo-classes}" manifest="${demo}/demo.manifest"/>
@@ -210,6 +207,28 @@
 			<attribute name="MIDlet-Jar-URL" value="demoMidp.jar" />
 		</manifest>
 		<updatejad jad="${demo}/demo.jad" />
+	</target>
+
+	<target name="check-resources">
+		<available file="${lib}/JadeLeap.jar" property="JadeLeap" value="${lib}/JadeLeap.jar"/>
+		<available file="${jade-home}/src/jade/Boot.java" property="jade-sources-available" value="true"/>
+
+		<antcall target="get-leap-jar"/>
+	</target>
+
+	<target name="get-leap-jar" unless="JadeLeap">
+		<antcall target="create-leap-jar"/>
+		<antcall target="input-leap-jar"/>
+	</target>
+
+	<target name="create-leap-jar" if="jade-sources-available">
+		<antcall target="do-lib"/>
+	</target>
+
+	<target name="input-leap-jar" unless="jade-sources-available">
+		<input message="Insert the pathname of the JADE-LEAP jar file for MIDP -->" addProperty="JadeLeap"/>
+		<mkdir dir="${lib}"/>
+		<copy file="${JadeLeap}" tofile="${lib}/JadeLeap.jar"/>
 	</target>
 
 </project>
