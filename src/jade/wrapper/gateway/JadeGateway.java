@@ -54,7 +54,7 @@ public class JadeGateway {
 	 * @param key - the property key. 
 	 * @param defaultValue - a default value
 	 * @return the value with the specified key value
-	 * @see java.util.Properties#getProfileProperty(String, String)
+	 * @see java.util.Properties#getProperty(String, String)
 	 **/
 	public final static String getProfileProperty(String key, String defaultValue) {
 		return profile.getParameter(key, defaultValue);

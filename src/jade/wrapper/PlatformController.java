@@ -121,7 +121,7 @@ public interface PlatformController
      * @throws ControllerException If any else goes wrong. All other exceptions are caught
      * and rethrown as a ControllerException.
      */
-    public AgentController createNewAgent(String nickname, String className,
+    public AgentController createNewAgent(String nickName, String className,
                                        Object[] args) throws ControllerException;
 
     /**

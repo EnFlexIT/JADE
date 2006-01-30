@@ -259,12 +259,12 @@ public class AgentMobilityService extends BaseService {
 			AID agentID = (AID)params[0];
 			Location where = (Location)params[1];
 			
-			if(myLogger.isLoggable(Logger.INFO))
-				myLogger.log(Logger.INFO,"Moving agent " + agentID + " on container " + where.getName());
+			if(myLogger.isLoggable(Logger.CONFIG))
+				myLogger.log(Logger.CONFIG,"Moving agent " + agentID.getName() + " on container " + where.getName());
 			
 			Agent a = myContainer.acquireLocalAgent(agentID);
 			if (a == null) {
-				myLogger.log(Logger.SEVERE,"Internal error: handleMove() called with a wrong name (" + agentID + ") !!!");
+				myLogger.log(Logger.SEVERE,"Internal error: handleMove() called with a wrong name (" + agentID.getName() + ") !!!");
 				return;
 			}
 			String proto = where.getProtocol();
@@ -285,7 +285,7 @@ public class AgentMobilityService extends BaseService {
 				
 				dest = (AgentMobilitySlice) getSlice(where.getName());
 				if (dest == null) {
-					myLogger.log(Logger.SEVERE,"Destination does not exist or does not support mobility");
+					myLogger.log(Logger.SEVERE,"Destination "+where.getName()+" does not exist or does not support mobility");
 					return;
 				}
 				if(myLogger.isLoggable(Logger.FINE)) {
@@ -300,7 +300,7 @@ public class AgentMobilityService extends BaseService {
 				encoder.writeObject(a);
 				byte[] bytes = out.toByteArray();
 				if(myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE,"Agent " + agentID + " correctly serialized");
+					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " correctly serialized");
 				}
 				
 				// Gets the container where the agent classes can be retrieved
@@ -322,7 +322,7 @@ public class AgentMobilityService extends BaseService {
 				
 				transferState = 2;
 				if(myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE,"Agent " + agentID + " correctly created on destination container");
+					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " correctly created on destination container");
 				}
 				
 				AgentMobilitySlice mainSlice = (AgentMobilitySlice)getSlice(MAIN_SLICE);
@@ -344,7 +344,7 @@ public class AgentMobilityService extends BaseService {
 				
 				if (transferResult == TRANSFER_COMMIT) {
 					if(myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE,"Identity of agent " + agentID + " correctly transferred");
+						myLogger.log(Logger.FINE,"Identity of agent " + agentID.getName() + " correctly transferred");
 					}
 					
 					// Send received messages to the destination container. Note that
@@ -370,15 +370,15 @@ public class AgentMobilityService extends BaseService {
 					}
 					sites.remove(a);
 					if(myLogger.isLoggable(Logger.FINE)) {
-						myLogger.log(Logger.FINE,"Agent " + agentID + " correctly gone");
+						myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " correctly gone");
 					}
 				}
 				else {
-					myLogger.log(Logger.WARNING,"Error transferring identity of agent " + agentID);
+					myLogger.log(Logger.WARNING,"Error transferring identity of agent " + agentID.getName());
 					
 					a.restoreBufferedState();
 					dest.handleTransferResult(agentID, transferResult, messages);
-					myLogger.log(Logger.WARNING,"Migration of agent " + agentID + "aborted");
+					myLogger.log(Logger.WARNING,"Migration of agent " + agentID.getName() + "aborted");
 				}
 			}
 			//#DOTNET_EXCLUDE_BEGIN
@@ -467,8 +467,8 @@ public class AgentMobilityService extends BaseService {
 				//#J2ME_EXCLUDE_END	
 				
 				//log("Cloning agent " + agentID + " on container " + where.getName(), 1);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Cloning agent " + agentID + " on container " + where.getName());
+				if(myLogger.isLoggable(Logger.CONFIG))
+					myLogger.log(Logger.CONFIG,"Cloning agent " + agentID + " on container " + where.getName());
 				
 				Agent a = myContainer.acquireLocalAgent(agentID);
 				if (a == null) {
@@ -498,8 +498,8 @@ public class AgentMobilityService extends BaseService {
 				
 				AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
 				//log("Destination container for agent " + agentID + " found", 2);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Destination container for agent " + agentID + " found");
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Destination container for agent " + agentID + " found");
 				
 				
 				// Serialize the agent
@@ -508,8 +508,8 @@ public class AgentMobilityService extends BaseService {
 				encoder.writeObject(a);
 				byte[] bytes = out.toByteArray();
 				//log("Agent " + agentID + " correctly serialized", 2);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Agent " + agentID + " correctly serialized");
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Agent " + agentID + " correctly serialized");
 				
 				
 				// Gets the container where the agent classes can be retrieved
@@ -530,8 +530,8 @@ public class AgentMobilityService extends BaseService {
 					dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
 				}
 				//log("Cloned Agent " + newID + " correctly created on destination container", 1);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Cloned Agent " + newID + " correctly created on destination container");
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Cloned Agent " + newID + " correctly created on destination container");
 				
 			}
 			catch (IOException ioe) {
@@ -782,8 +782,8 @@ public class AgentMobilityService extends BaseService {
 		private void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException {
 			try {
 				//log("Incoming agent " + agentID, 1);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Incoming agent " + agentID);
+				if(myLogger.isLoggable(Logger.CONFIG))
+					myLogger.log(Logger.CONFIG,"Incoming agent " + agentID.getName());
 				
 				
 				// Reconstruct the serialized agent
@@ -802,8 +802,8 @@ public class AgentMobilityService extends BaseService {
 				 #DOTNET_INCLUDE_END*/
 				
 				//log("Agent " + agentID + " reconstructed", 2);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Agent " + agentID + " reconstructed");
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Agent " + agentID + " reconstructed");
 				
 				
 				
@@ -871,8 +871,8 @@ public class AgentMobilityService extends BaseService {
 				}
 				
 				//log("Agent " + agentID + " inserted into LADT", 1);
-				if(myLogger.isLoggable(Logger.INFO))
-					myLogger.log(Logger.INFO,"Agent " + agentID + " inserted into LADT");
+				if(myLogger.isLoggable(Logger.FINE))
+					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " inserted into LADT");
 				
 			}
 			catch(IOException ioe) {
@@ -1052,8 +1052,8 @@ public class AgentMobilityService extends BaseService {
 					
 					myContainer.powerUpLocalAgent(agentID);
 					//log("Incoming agent " + agentID + " activated", 1);
-					if(myLogger.isLoggable(Logger.INFO))
-						myLogger.log(Logger.INFO,"Incoming agent " + agentID + " activated");
+					if(myLogger.isLoggable(Logger.CONFIG))
+						myLogger.log(Logger.CONFIG,"Incoming agent " + agentID.getName() + " activated");
 					
 				}
 			}
@@ -1069,8 +1069,8 @@ public class AgentMobilityService extends BaseService {
 		
 		private boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException {
 			//log("Transferring identity of agent "+agentID+" from "+src.getName()+" to "+dest.getName(), 2);
-			if(myLogger.isLoggable(Logger.INFO))
-				myLogger.log(Logger.INFO,"Transferring identity of agent "+agentID+" from "+src.getName()+" to "+dest.getName());
+			if(myLogger.isLoggable(Logger.FINE))
+				myLogger.log(Logger.FINE,"Transferring identity of agent "+agentID+" from "+src.getName()+" to "+dest.getName());
 			
 			
 			MainContainer impl = myContainer.getMain();
@@ -1091,8 +1091,8 @@ public class AgentMobilityService extends BaseService {
 							srcReady = srcSlice.prepare();
 						}
 						//log("Source "+src.getName()+" "+srcReady, 2);
-						if(myLogger.isLoggable(Logger.INFO))
-							myLogger.log(Logger.INFO,"Source "+src.getName()+" "+srcReady);
+						if(myLogger.isLoggable(Logger.FINE))
+							myLogger.log(Logger.FINE,"Source "+src.getName()+" "+srcReady);
 						
 						
 						try {
@@ -1103,8 +1103,8 @@ public class AgentMobilityService extends BaseService {
 							destReady = destSlice.prepare();
 						}
 						//log("Destination "+dest.getName()+" "+destReady, 2);
-						if(myLogger.isLoggable(Logger.INFO))
-							myLogger.log(Logger.INFO,"Destination "+dest.getName()+" "+destReady);
+						if(myLogger.isLoggable(Logger.FINE))
+							myLogger.log(Logger.FINE,"Destination "+dest.getName()+" "+destReady);
 						
 						
 						if(srcReady && destReady) {

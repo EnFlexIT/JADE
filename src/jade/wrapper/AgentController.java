@@ -63,9 +63,6 @@ public class AgentController {
      This constructor should not be called by applications.
      The method <code>AgentContainer.createAgent()</code> should
      be used instead.
-     @param id The <code>AID</code> of the agent to be wrapped by this proxy.
-     @param a The real JADE agent, that will be wrapped by this proxy.
-     @see jade.wrapper.AgentContainer#createNewAgent(String, String, Object[]) 
    */
   public AgentController(AID id, ContainerProxy cp, jade.core.AgentContainer ac) {
     agentID = id;

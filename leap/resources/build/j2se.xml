@@ -172,7 +172,7 @@
                      windowtitle="${apidoc-title}"
                      use="true"
                      packagenames="jade.*"
-                     excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.core.nodeMonitoring, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.domain.persistence, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
+                     excludepackagenames="jade.content.frame, jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.core.nodeMonitoring, jade.core.faultRecovery, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.domain.persistence, jade.gui, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.*"/>
                      <!--
                      Reacher documentation: Need to remove APIDOC exclude from AgentState, BehaviourID and Agent state-value constants
                      excludepackagenames="jade.core.event, jade.core.management, jade.core.messaging, jade.core.mobility, jade.core.replication, jade.domain.DFGUIManagement, jade.domain.KBManagement, jade.imtp.*, jade.mtp.*, jade.security.*, jade.tools.applet, jade.tools.dfgui, jade.tools.DummyAgent, jade.tools.introspector.*, jade.tools.gui, jade.tools.rma, jade.tools.sniffer, jade.tools.testagent.*"/>
