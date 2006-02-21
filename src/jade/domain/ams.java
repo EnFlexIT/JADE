@@ -1080,6 +1080,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		DeadAgent da = new DeadAgent();
 		da.setAgent(agentID);
 		da.setWhere(cid);
+		if (ev.getContainerRemoved()) {
+			da.setContainerRemoved(new Boolean(true));
+		}
 
 		EventRecord er = new EventRecord(da, here());
 		er.setWhen(ev.getTime());

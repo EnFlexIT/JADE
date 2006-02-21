@@ -40,7 +40,7 @@ import jade.util.leap.List;
 public interface MainContainer {
 
     void bornAgent(AID name, ContainerID cid, JADEPrincipal principal, String ownership, boolean forceReplacement) throws NameClashException, NotFoundException;
-    void deadAgent(AID name) throws NotFoundException;
+    void deadAgent(AID name, boolean containerRemoved) throws NotFoundException;
     void suspendedAgent(AID name) throws NotFoundException;
     void resumedAgent(AID name) throws NotFoundException;
   	void movedAgent(AID agentID, ContainerID from, ContainerID to) throws NotFoundException;

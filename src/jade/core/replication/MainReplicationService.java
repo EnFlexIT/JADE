@@ -576,7 +576,7 @@ public class MainReplicationService extends BaseService {
 		}
 
 		private void deadAgent(AID name) throws NotFoundException {
-			myMain.deadAgent(name);
+			myMain.deadAgent(name, false);
 		}
 
 		private void suspendedAgent(AID name) throws NotFoundException {

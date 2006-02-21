@@ -6,19 +6,27 @@
   
   <property environment="env"/>
   <path id="project.class.path">
-    <!-- LEAP classes. Move the following line before the fileset of JADE classes to run the Test Suite with LEAP -->
-    <pathelement location="leap/j2se/classes"/>
-
-    <!-- JADE classes --> 
+    <!-- JADE classes. Comment this to run the TestSuite with LEAP
     <fileset dir="lib">
         <include name="*.jar"/>
+        <include name="commons-codec/*.jar"/>
+    </fileset>
+    -->
+
+    <!-- LEAP classes. Uncomment this to run the Test Suite with LEAP -->
+    <fileset dir="leap/j2se/lib/">
+        <include name="*.jar"/>
+        <include name="commons-codec/*.jar"/>
     </fileset>
 
+    <!-- JADE examples -->
+    <pathelement location="src/test/jadeExamples.jar"/>
+
     <!-- Tests classes -->
-    <pathelement location="classes"/>
+    <pathelement location="src/test/tests.jar"/>
 
     <!-- Test suite framework classes -->
-    <pathelement location="add-ons/testSuite/classes"/>
+    <pathelement location="add-ons/testSuite/lib/testSuite.jar"/>
 
     <!-- Others -->
     <pathelement location="add-ons/benchmark/classes"/>
@@ -44,7 +52,7 @@
     <ant antfile="build.xml" target="examples"/>
 
     <echo message="-------------- Compiling the testSuite add-on ----------------" />
-    <ant antfile="build.xml" target="compile" dir="add-ons/testSuite"/>
+    <ant antfile="build.xml" target="lib" dir="add-ons/testSuite"/>
 
     <echo message="-------------- Compiling Tests ----------------" />
     <javac srcdir="src" destdir="classes" optimize="on" deprecation="off">
@@ -65,6 +73,26 @@
     </copy>
   </target>
 
+
+  <!--   _______________________________________________
+                               lib
+         _______________________________________________ -->
+  <target name="lib" depends="compile" description="Package all tests into a single jar file">
+    <echo message="-------------- Packaging all JADE examples into jadeExamples.jar --------------- " />
+    <jar jarfile="src/test/jadeExamples.jar">
+      <fileset dir="classes">
+        <include name="**/examples/**"/>
+      </fileset>
+    </jar>
+
+    <echo message="-------------- Packaging all tests in tests.jar --------------- " />
+    <jar jarfile="src/test/tests.jar">
+      <fileset dir="classes">
+        <include name="**/test/**"/>
+        <exclude name="**/test/mobility/separate/**"/>
+      </fileset>
+    </jar>
+  </target>
 
     
   <!--  __________________________________________________
@@ -221,7 +249,7 @@
   <!--  __________________________________________________
                             run
         __________________________________________________ -->
-  <target name="run" description="run the test suite" depends="compile, separate">
+  <target name="run" description="run the test suite" depends="lib, separate">
    <java classname="test.common.testSuite.TestSuiteAgent" fork="true" dir="src/test">
   	  <classpath refid="project.class.path"/>
    </java>
@@ -231,7 +259,7 @@
   <!--  __________________________________________________
                             runAutomatic
         __________________________________________________ -->
-  <target name="runAutomatic" description="run immediately and automatically the test suite" depends="compile, separate">
+  <target name="runAutomatic" description="run immediately and automatically the test suite" depends="lib, separate">
    <java classname="test.common.testSuite.TestSuiteAgent" fork="true" dir="src/test">
       <sysproperty key="test.common.testSuite.TestSuiteAgent.runAutomatic" value="true"/>
   	  <classpath refid="project.class.path"/>

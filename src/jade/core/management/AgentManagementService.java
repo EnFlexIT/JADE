@@ -731,7 +731,7 @@ public class AgentManagementService extends BaseService {
 		private void deadAgent(AID name) throws NotFoundException {
 			MainContainer impl = myContainer.getMain();
 			if(impl != null) {
-				impl.deadAgent(name);
+				impl.deadAgent(name, false);
 				/*#CUSTOMJ2SE_INCLUDE_BEGIN
 				 notifyDead(name);
 				 #CUSTOMJ2SE_INCLUDE_END*/

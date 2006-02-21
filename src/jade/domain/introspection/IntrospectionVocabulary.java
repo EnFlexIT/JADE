@@ -78,6 +78,7 @@ public interface IntrospectionVocabulary {
   public static final String DEADAGENT = "dead-agent";
   public static final String DEADAGENT_AGENT = "agent";
   public static final String DEADAGENT_WHERE = "where";
+  public static final String DEADAGENT_CONTAINER_REMOVED = "container-removed";
 
   public static final String SUSPENDEDAGENT = "suspended-agent";
   public static final String SUSPENDEDAGENT_AGENT = "agent";

@@ -36,8 +36,6 @@ import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
 
-import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
 
 /**
  * @author Federico Bergenti - Universita` di Parma
@@ -75,7 +73,12 @@ public class AbsHelper {
      * @return the abstract descriptor.
      * @throws OntologyException
      */
-    public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto, String AggregateType) throws OntologyException {
+    //#J2ME_EXCLUDE_BEGIN
+    public static AbsAggregate externaliseIterator(java.util.Iterator obj, Ontology onto, String AggregateType) throws OntologyException {
+    	//#J2ME_EXCLUDE_END
+        /*#J2ME_INCLUDE_BEGIN
+        public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto, String AggregateType) throws OntologyException {
+        #J2ME_EXCLUDE_END*/
         AbsAggregate ret = new AbsAggregate(AggregateType);
 
         try {

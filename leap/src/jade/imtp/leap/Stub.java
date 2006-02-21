@@ -44,93 +44,93 @@ import jade.util.Logger;
  * @author Giovanni Caire - Telecom Italia LAB
  */
 class Stub {
-  protected static final String UNRCH_ERROR_MSG = "Remote object unreachable";
-  protected static final String DISP_ERROR_MSG = "Dispatcher error";
-  
-  // The addresses of the remote object
-  protected List              remoteTAs = new ArrayList();
-
-  // The ID of the remote object
-  protected int               remoteID;
-
-  // The local singleton CommandDispatcher
-  //protected CommandDispatcher theDispatcher = null;
-  protected StubHelper theDispatcher = null;
-
+	protected static final String UNRCH_ERROR_MSG = "Remote object unreachable";
+	protected static final String DISP_ERROR_MSG = "Dispatcher error";
+	
+	// The addresses of the remote object
+	protected List              remoteTAs = new ArrayList();
+	
+	// The ID of the remote object
+	protected int               remoteID;
+	
+	// The local singleton CommandDispatcher
+	//protected CommandDispatcher theDispatcher = null;
+	protected StubHelper theDispatcher = null;
+	
 	protected Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
-  /**
-   * Default Constructor
-   */
-  protected Stub() {
-    //theDispatcher = CommandDispatcher.getDispatcher();
-  }
-
-  /**
-   * Build a stub for a given already remotized object.
-   * Note that TAs are added separately as we don't know
-   * at this stage whether this is a Stub to reach a remote
-   * object or a Stub for a local object.
-   */
-  protected Stub(int id) {
-    this();
-    remoteID = id;
-  }
-
-  protected void bind(StubHelper sh) {
-  	theDispatcher = sh;
-  }
-  
-  /**
-   * Add a TransportAddress to the list of addresses of the remote
-   * object this is a stub of
-   */
-  protected void addTA(TransportAddress ta) {
-      remoteTAs.add(ta);
-  } 
-
-  protected void removeTA(TransportAddress ta) {
-      remoteTAs.remove(ta);
-  }
-
-  protected void clearTAs() {
-      remoteTAs.clear();
-  }
-
-  /**
-   * Check whether an exception occurred in the remote site
-   */
-  protected int checkResult(Command result, String[] expectedExceptions) throws IMTPException {
-    if (result.getCode() == Command.ERROR) {
-    	
-      // An exception was thrown in the remote container.
-      // Check if it is one of the expected exceptions.
-      String exceptionName = (String) result.getParamAt(0);
-
-      if (expectedExceptions != null) {
-	      for (int i = 0; i < expectedExceptions.length; ++i) {
-	        // FIXME: This check does not work for extended exceptions
-	        if (exceptionName.equals(expectedExceptions[i])) {
+	/**
+	 * Default Constructor
+	 */
+	protected Stub() {
+		//theDispatcher = CommandDispatcher.getDispatcher();
+	}
 	
-	          // Return the index of the expected exception (first index is 1)
-	          return i+1;
-	        } 
-	      }
-      }
-
-      // The exception thrown is not among the expected exceptions -->
-      // Print a notification and throw IMTPException
-      myLogger.log(Logger.WARNING, "EXCEPTION in remote container: "+exceptionName);
-      throw new IMTPException(exceptionName+" occurred in remote container ["
-                              +(String) result.getParamAt(1)+"]");
-    } 
-    else if (result.getCode() != Command.OK) {
-      throw new IMTPException("Unknown code in result command");
-    } 
-
-    // If no exception occurred, return 0
-    return 0;
-  } 
-
+	/**
+	 * Build a stub for a given already remotized object.
+	 * Note that TAs are added separately as we don't know
+	 * at this stage whether this is a Stub to reach a remote
+	 * object or a Stub for a local object.
+	 */
+	protected Stub(int id) {
+		this();
+		remoteID = id;
+	}
+	
+	protected void bind(StubHelper sh) {
+		theDispatcher = sh;
+	}
+	
+	/**
+	 * Add a TransportAddress to the list of addresses of the remote
+	 * object this is a stub of
+	 */
+	protected void addTA(TransportAddress ta) {
+		remoteTAs.add(ta);
+	} 
+	
+	protected void removeTA(TransportAddress ta) {
+		remoteTAs.remove(ta);
+	}
+	
+	protected void clearTAs() {
+		remoteTAs.clear();
+	}
+	
+	/**
+	 * Check whether an exception occurred in the remote site
+	 */
+	protected int checkResult(Command result, String[] expectedExceptions) throws IMTPException {
+		if (result.getCode() == Command.ERROR) {
+			
+			// An exception was thrown in the remote container.
+			// Check if it is one of the expected exceptions.
+			String exceptionName = (String) result.getParamAt(0);
+			
+			if (expectedExceptions != null) {
+				for (int i = 0; i < expectedExceptions.length; ++i) {
+					// FIXME: This check does not work for extended exceptions
+					if (exceptionName.equals(expectedExceptions[i])) {
+						
+						// Return the index of the expected exception (first index is 1)
+						return i+1;
+					} 
+				}
+			}
+			
+			// The exception thrown is not among the expected exceptions -->
+			// Print a notification and throw IMTPException
+			myLogger.log(Logger.WARNING, "EXCEPTION in remote container: "+exceptionName);
+			throw new IMTPException(exceptionName+" occurred in remote container ["
+					+(String) result.getParamAt(1)+"]");
+		} 
+		else if (result.getCode() != Command.OK) {
+			throw new IMTPException("Unknown code in result command");
+		} 
+		
+		// If no exception occurred, return 0
+		return 0;
+	} 
+	
 }
 

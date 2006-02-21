@@ -221,7 +221,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				// and then restore it and throw an Exception 
 				if(forceReplacement) {
 					System.out.println("Replacing a dead agent ...");
-					fireDeadAgent(old.getContainerID(), name);
+					fireDeadAgent(old.getContainerID(), name, false);
 				}
 				else {
 					if (! old.getDescription().getState().equals(AMSAgentDescription.LATENT) ) {
@@ -245,7 +245,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	/**
 	 Notify the platform that an agent has just died
 	 */
-	public void deadAgent(AID name) throws NotFoundException {
+	public void deadAgent(AID name, boolean containerRemoved) throws NotFoundException {
 		AgentDescriptor ad = platformAgents.acquire(name);
 		if(ad == null)
 			throw new NotFoundException("DeadAgent failed to find " + name);
@@ -253,7 +253,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		platformAgents.remove(name);
 		
 		// Notify listeners
-		fireDeadAgent(cid, name);
+		fireDeadAgent(cid, name, containerRemoved);
 	}
 	
 	/**
@@ -1407,8 +1407,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 	}
 	
-	private void fireDeadAgent(ContainerID cid, AID agentID) {
-		PlatformEvent ev = new PlatformEvent(PlatformEvent.DEAD_AGENT, agentID, cid);
+	private void fireDeadAgent(ContainerID cid, AID agentID, boolean containerRemoved) {
+		PlatformEvent ev = new PlatformEvent(PlatformEvent.DEAD_AGENT, agentID, cid, containerRemoved);
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
@@ -1494,7 +1494,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				if (! allIDs[i].getLocalName().equalsIgnoreCase("ams") ) {
 					platformAgents.release(allIDs[i]);
 					try {
-						deadAgent(allIDs[i]);
+						deadAgent(allIDs[i], true);
 					}
 					catch(NotFoundException nfe) {
 						nfe.printStackTrace();

@@ -124,6 +124,8 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	
 	
 	protected void toolSetup() {
+		state = ACTIVE_STATE;
+		
 		myLogger = Logger.getMyLogger(getName());
 		
 		// Send 'subscribe' message to the AMS
@@ -131,9 +133,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 		
 		// Handle incoming 'inform' messages from the AMS
 		AMSSubscribe.addSubBehaviour(new NotifierAMSListenerBehaviour());
-		addBehaviour(AMSSubscribe);
-		
-		state = ACTIVE_STATE;
+		addBehaviour(AMSSubscribe);		
 	}
 	
 	protected void toolTakeDown() {

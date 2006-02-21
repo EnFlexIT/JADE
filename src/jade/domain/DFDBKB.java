@@ -1141,7 +1141,7 @@ public class DFDBKB extends DBKB {
 					prop.setName(rsS.getString("propkey"));
 					String objStrVal = rsS.getString("propval_obj");
 					String strStrVal = rsS.getString("propval_str");
-					Object value = ( objStrVal == null )? strStrVal:deserializeObj(objStrVal);
+					Object value = ( objStrVal == null )? strStrVal : deserializeObj(objStrVal);
 					prop.setValue(value);
 					sd.addProperties(prop);
 				}
@@ -1619,7 +1619,7 @@ public class DFDBKB extends DBKB {
 	 */
 	private String serializeObj(Object obj) throws IOException {
 		if (obj == null)
-			return "null";
+			return null;
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
