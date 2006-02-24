@@ -67,12 +67,12 @@ public class MicroBoot {
     		props.load(propsFile);
     	}
 	  	if (props.getProperty(MicroRuntime.JVM_KEY) == null) {
-	  		//PJAVA_EXCLUDE_BEGIN
+	  		//#PJAVA_EXCLUDE_BEGIN
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.J2SE);
-	  		//PJAVA_EXCLUDE_END
-	  		/*PJAVA_INCLUDE_BEGIN
+	  		//#PJAVA_EXCLUDE_END
+	  		/*#PJAVA_INCLUDE_BEGIN
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.PJAVA);
-	  		PJAVA_INCLUDE_END*/
+	  		#PJAVA_INCLUDE_END*/
 	  	}
   	
     	MicroRuntime.startJADE(props, new Runnable() {
