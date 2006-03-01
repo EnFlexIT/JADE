@@ -1413,6 +1413,7 @@ public class Agent implements Runnable, Serializable
 	 Inner class ActiveLifeCycle
 	 */
 	private class ActiveLifeCycle extends LifeCycle {
+		private static final long serialVersionUID = 11111;
 		private ActiveLifeCycle() {
 			super(AP_INITIATED);
 		}
@@ -1502,6 +1503,7 @@ public class Agent implements Runnable, Serializable
 	 Inner class DeletedLifeCycle
 	 */
 	private class DeletedLifeCycle extends LifeCycle {
+		private static final long serialVersionUID = 11112;
 		private DeletedLifeCycle() {
 			super(AP_DELETED);
 		}
@@ -1520,6 +1522,7 @@ public class Agent implements Runnable, Serializable
 	 Inner class SuspendedLifeCycle
 	 */
 	private class SuspendedLifeCycle extends LifeCycle {
+		private static final long serialVersionUID = 11113;
 		private SuspendedLifeCycle() {
 			super(AP_SUSPENDED);
 		}

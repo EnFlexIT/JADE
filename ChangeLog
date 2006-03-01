@@ -1,3 +1,152 @@
+MAJOR CHANGES in JADE 3.4 (28th February 2006)  
+==========================================================================
+GENERAL IMPROVEMENTS:	
+- Notification of agent deregistrations with the DF (Pavel Tichy)
+The notification to subscriber will contain new set of services, i.e.: 
+  1) registration - all registered services 
+  2) modification - modified set of services (some can be removed some can be added in comparison to previously registered list) 
+  3) deregistration - empty set of service 
+- Modified persistent DF DB schema in order to store String service properties as plain String instead of enconding them in Base64
+- Added support for db-abortonerror DF property.
+- Added support for Iterated search when using the persistent DF.
+- AMS: modified killContainer() to throw NotFoundException if the container to kill does not exist.
+- AMS: Added -jade_domain_ams_maxresult option to modify the AMS maximum number of results to include in a search response.
+- Added support for Serializable agent arguments in agent creation through the ams.
+- AMSSubscriber: added support for subscribing to the AMS of a remote platform
+- Added support for timeout in JadeGateway command processing.
+- Added check to prevent main-peripheral container inconsistencies in JadeGateway
+- Added default implementation of GatewayAgent processCommand() method automatically dealing with "behaviour commands"  
+- Added method shutdown() in JadeGateway to kill the JadeGateway container
+- Modified UDPNodeMonitoring service to automatically propagate settings from the main container to peripheral containers.
+- Modified UDPNodeMonitoring service to also work between replicated main containers 
+- ProfileImpl modified to preserve services settings when reusing an old Properties object inside a new Profile
+- Added method getPrevious() in FSMBehaviour to retrieve the previous state
+- Added initial support for starting agents from separate jar files (i.e. jar files not included in the classpath)
+- Added support for %C wild-card in agent names.
+- Restructured the AgentTree class and modified rma, sniffer and introspector GUIs accordingly.
+- Modified tooltip of container host in AgentTree to get host address instead of name. 
+  Getting the host name from the Swing thread is dangerous as in particular cases it may block for a long time. 
+- Restructured some code in MessagingService and added support for message traceability.
+- Added support for ACLMessage.IGNORE_FAILURES user defined properties in message delivery.
+- Modified MessagingService to avoid sending back FAILURE messages to the AMS.
+- Added method getWrappers() in ThreadedBehaviourFactory class
+- Integrated CodeLocator (by Joan Ametller - UAB) in AgentManagementService and AgentMobilityService to support MigrationService
+- Added IntrospectionServer behaviour to inspect agent fields at runtime
+- Added support for runtime platform introspection through the -jade_core_AgentContainerImpl_enablemonitor option
+- New version of the LogManager agent Supporting management of logs in remote containers too.
+- Added class PlatformID: a Location representing a platform (by Joan Ametller).
+- Replaced starlight Base64 codec (that was distributed under GPL license) with commons-codec (that is distributed under ASL license).
+  (Suggestion of Geoffrey De Smet)
+- Modified jade.proto.Initiator class to put the Vector of actually sent messages in the DataStore at the ALL_INITIATIONS_KEY key
+- Added support for iterated-fipa-request protocol 
+- Added single-session version of responder protocol classes 
+
+
+LEAP:
+- Added FaultRecoveryService. By activating this service both on the main and on peripheral containers,
+a platform can survive to a fault and a successive restart of the main container. The FaultRecoveryService
+provides an alternative fault tolerance support with respect to the MainReplicationService and should be used in
+situations where there is the possibility that all replicated main-containers crash at the same time.
+- Added support for retrieval of BE connected status from BEManagementHelper 
+- DeliverableDataInputStream/DeleivarebleDataOutputStream modified to use the LEAPACLCodec to serialize/deserialize AID and ACLMessages
+- FrontEndContainer modified to make the BE repeat the resynch process if synchronization fails
+- Simplified reconnection/BE-recreation procedure in BIFEDispatcher by separating input and output related methods
+- JICPServer: Added support for management of local host addresses.
+- Restored single-connection BE-FE dispatcher classes.
+- Removed support for stand-alone container in MIDP 
+- Added method log(level, message, Throwable) in the PJAVA and MIDP versions of jade.util.Logger.
+- Added "tail" command in OutputViewer
+- Modified jade.util.leap.Properties class to read manifest properties as LEAP-<prop-name> instead of MIDlet-LEAP-<prop-name> (indication by Markus Backer)
+- Modified build scripts to support MIDP compilation with JDK1.5
+- Modified build scripts to remove pjava dependency from JDK1.1.x
+- Modified target minimize to get jar, dlc and manifest interactively
+- Several updates from Federico Pieri to keep the .NET version up to date.
+- Fixed several details in the demo
+- Revisited user guide
+
+
+ADD-ONS:
+- Semantics Framework
+  - New add-on developed by France Telecom (JADE-Board member). 
+    Created new Semantic Framework add-on to exploit the semantics of FIPA ACL.
+
+- Inter-Platform Migration Service
+  - New add-on developed by Universita Autonoma de Barcelona
+    By installing this service agents can migrate not only between containers in the same platform, but also between different JADE platforms.
+    This occurs when an agent specifies a PlatformID object as the destination when it calls doMove() or doClone().
+ 
+- ASCML
+  - New add-on developed by University of Aachen. 
+    By means of this add-on it is possible to declaratively define societies of agents and then 
+    automatically deploy scenarios compliant to these societies specifying which agents to start 
+    which dependencies relates them and son on.
+
+- XMPP
+  - New add-on developed by Vicente J. Botti (Departamento de Sistemas Informaticos y Computacion Universidad Politecnica de Valencia).
+    This add-on includes a new JADE MTP that supports communicating agents and FIPA platforms using a more natural way to develop conversations: 
+    Jabber, an Instant Messaging (IM) protocol designed to sustain lengthy bidirectional communications among entities on the Internet. 
+
+
+- Untraceability Service
+  - New add-on developed by Rafal Leszczyna at European Commission Joint Research Centre.
+    A typical scenario of employing a mobile agent is composed of the following steps: 
+    i) an agent's goal is described, ii) the agent is dispatched from a container (called a base container/station or a source container/station) 
+    and it roams until the goal is achieved, iii) the agent returns to the base station with results. 
+    To allow such scenario, a mobile agent must store somewhere the address of its base container. Usually it saves it explicitly in its state. 
+    This makes the address available to all. Anyone interested may learn the agent's place of origin which gives a strong indication of the agent's owner. 
+    Such feature is undesirable in many agent applications where privacy of agents' owners should be respected. 
+    The Untraceability Service allows an implementation of the above scenario while the address of the base station is kept secret.
+  
+- TestSuite
+  - TestGroupExecutor modified to perform test cleanup also when a test is skipped.
+  - Modified TestUtility.createAgent() methods to treat arguments as Objects
+  - Added the possibility of specifying a timeout in TestUtility.requestAMSAction()
+
+- XMLCodec
+  - Fixed some problems and added utility methods to export/import ontological entities to/from intuitive and easy-to-read/write XML files
+
+
+BUG FIXES:
+- Fixed synchronization problem in ParallelBehaviour.handle()
+- JADE platform shutdown modified to properly close the HTTP-MTP and the RMI.
+(patch kindly provided by David Bernstein on 15/6/2005)
+- AgentContainerImpl modified to properly shutdown IMTPManager after unsuccessful startup.
+- DFAgentDescription, SearchConstraints now implement Concept in order to make "happy" the Ontology. (reported by Alexander Pokahr on Wed 22/06/2005 14:23)
+- Some fixes and improvements (from David Bernstein) in SocketProxyAgent: 
+  1. made SocketProxyAgent.DEFAULT_PORT public
+  2. changed ad hoc file logging to JADE logging
+  3. classes separated into their own source files
+  4. try agent startup arguments before "<agent-name>.inf" config file
+  5. add in BlueJade JadeBridge class and have it take its default port from SocketProxyAgent
+  6. some commenting and formatting cleanup
+  7. added ACLMessage version of sendMessage() in addition to string version in JadeBridge
+  8. WaitAnswersBehaviour: made message template less restrictive for case where the response comes not from the first agent in the receiver list
+  9. fixed bug in method run() of  Connection class for SocketProxyAgent: use of uninitialized field prevents message from being read from input stream. Fix adapted from BlueJade.
+- Fixed problem related to main container replication in pure JADE when launching the master and backup on different hosts.
+- Fixed AMS unexistence problem after main container crash with replicated main containers by means of the "latent" state.
+- Fixed bug in DeliverableDataInputStream when deserializing password (JADe-S) as reported by Alex Schustal
+- Fixed synchronization problem in OutBox (MessagingService) as reported by Rick Kissh.
+- Added deserialization capability in the SLCodec through the method readObject on the basis of the bug fix proposed by Alexander Pokahr.
+  Added set of constants in FIPANames for representing SL-ontologies.
+- Bug fix: an execption was thrown by the constructor of CaseInsensitiveString when null was passed as a parameter
+- Fixed deadlock in ThreadedBehaviourFactory (monitors: Scheduler and ThreadedBehaviourWrapper)
+- Fixed ClassCastException in ProfileImpl by Geoffrey De Smet
+- Fixed bug in AMS search max-result reported by Alexander Pokahr.
+- Fixed problem when using the same object as both outgoing and incoming filter of a service as indicated by Joan Ametller
+
+
+DOCUMENTATION:
+- Updated the Administrator's guide to reflect changes in UDPNodeMonitoring service.
+- Added tutorial on XMPP MTP
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+NO code-related backward incompatibilities are foreseen in this release.
+However due to licensing problems the Starlight Base64 class is no longer included in the JADE distribution.
+As a consequence code directly referencing that class will no longer compile. The org.apache.commons.codec.binary.Base64
+class should be used instead.
+
+
+
 MAJOR CHANGES in JADE 3.3 (2nd March 2005)  
 ==========================================================================
 GENERAL IMPROVEMENTS:	
@@ -10,7 +159,7 @@ GENERAL IMPROVEMENTS:
 	of containers and temporary disconnections
 - DF
 	- Several optimizations in the search mechanism
-	- Fixed support for other DB that MS Access.
+	- Fixed support for other DB than MS Access.
 	- Added easy configuration to use HSQLDB through the jade_domain_df_db-default
 	- Added support for customized DFKBFactory objects
 	- Added jade_domain_df_db-cleantables option to reset DFDB tables at startup 
