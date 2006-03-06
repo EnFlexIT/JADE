@@ -71,7 +71,7 @@ public class AgentContainer extends ContainerController implements PlatformContr
 
   public void removePlatformListener(Listener aListener) throws ControllerException {
   	initPlatformController();
-  	myPlatformController.addPlatformListener(aListener);
+  	myPlatformController.removePlatformListener(aListener);
   }
   
 }
