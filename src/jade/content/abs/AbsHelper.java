@@ -78,7 +78,7 @@ public class AbsHelper {
     	//#J2ME_EXCLUDE_END
         /*#J2ME_INCLUDE_BEGIN
         public static AbsAggregate externaliseIterator(Iterator obj, Ontology onto, String AggregateType) throws OntologyException {
-        #J2ME_EXCLUDE_END*/
+        #J2ME_INCLUDE_END*/
         AbsAggregate ret = new AbsAggregate(AggregateType);
 
         try {
