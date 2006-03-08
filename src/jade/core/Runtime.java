@@ -25,7 +25,7 @@ package jade.core;
    
 import jade.util.leap.LinkedList;
 import jade.util.Logger;
-
+ 
 /**
    The singleton instance (accessible through the 
    <code>instance()</code> static method) of this class allows
