@@ -133,6 +133,7 @@ BUG FIXES:
 - Fixed ClassCastException in ProfileImpl by Geoffrey De Smet
 - Fixed bug in AMS search max-result reported by Alexander Pokahr.
 - Fixed problem when using the same object as both outgoing and incoming filter of a service as indicated by Joan Ametller
+- Fixed bug in AgentContainer.removePlatformListener() as indicated by Jay D. Askren
 
 
 DOCUMENTATION:
