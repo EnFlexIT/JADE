@@ -66,6 +66,7 @@ public class MicroBoot {
     	if (propsFile != null) {
     		props.load(propsFile);
     	}
+    	Logger.initialize(props);
 	  	if (props.getProperty(MicroRuntime.JVM_KEY) == null) {
 	  		//#PJAVA_EXCLUDE_BEGIN
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.J2SE);
@@ -83,23 +84,19 @@ public class MicroBoot {
 		    	}
 		    	catch (InterruptedException ie) {
 		    	}
-		      if(logger.isLoggable(Logger.INFO))
 		      	logger.log(Logger.INFO,"Exiting now!");
-		      System.exit(0);
+		        System.exit(0);
 		    } 
 		  });
     }
     catch (IllegalArgumentException iae) {
-      if(logger.isLoggable(Logger.SEVERE))
-      	logger.log(Logger.SEVERE,"Error reading command line configuration properties. "+iae.getMessage());
+      logger.log(Logger.SEVERE,"Error reading command line configuration properties. "+iae.getMessage());
       iae.printStackTrace();
       printUsage();
       System.exit(-1);
     }
     catch (IOException ioe) {
-      if(logger.isLoggable(Logger.SEVERE))
-      	logger.log(Logger.SEVERE,"Error reading configuration properties from file "+propsFile+". "+ioe.getMessage());
-      ioe.printStackTrace();
+      logger.log(Logger.SEVERE,"Error reading configuration properties from file "+propsFile+".", ioe);
       printUsage();
       System.exit(-1);
     }
@@ -199,7 +196,8 @@ public class MicroBoot extends MIDlet implements Runnable {
 	  	if (props.getProperty(MicroRuntime.JVM_KEY) == null) {
 	  		props.setProperty(MicroRuntime.JVM_KEY, MicroRuntime.MIDP);
 	  	}
-  	
+	  	Logger.initialize(props);
+	  	
   		customize(props);
 
       // small trick - moving much memory consuming instruction to the point where it is not so important
