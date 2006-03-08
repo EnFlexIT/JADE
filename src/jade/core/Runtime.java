@@ -22,7 +22,7 @@ Boston, MA  02111-1307, USA.
 *****************************************************************/
   
 package jade.core;
- 
+   
 import jade.util.leap.LinkedList;
 import jade.util.Logger;
 
@@ -304,7 +304,7 @@ public class Runtime {
    */
   public static String getVersionInfo() {
 			String CVSname = "$Name$"; //this keyword is automatically replaced by the target doTag of build.xml
-		String CVSdate = " - revision $WCREV$ of $WCDATE$"; // these keywords are automatically replaced by WCREV with subversion
+		String CVSdate = " - revision 5752 of 2005/07/15 14:22:11"; // these keywords are automatically replaced by WCREV with subversion
     String name = CVSname; 
     if(name.indexOf("JADE") == -1)
     	name = "JADE snapshot";
