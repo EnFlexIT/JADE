@@ -529,12 +529,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// as a temporary holder for the sender principal and credentials to the
 			msg.setSenderPrincipal(cmd.getPrincipal());
 			msg.setSenderCredentials(cmd.getCredentials());
-			if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-				myLogger.log(Logger.FINE, "MessagingService source sink handling message "+MessageManager.stringify(msg)+" for receiver "+dest.getName()+". TraceID = "+msg.getTraceID());
+			checkTracing(msg);
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, "MessagingService source sink handling message "+MessageManager.stringify(msg)+" for receiver "+dest.getName()+". TraceID = "+msg.getTraceID());
 			}
 			myMessageManager.deliver(msg, dest, MessagingService.this);
-			if (myLogger.isLoggable(Logger.FINER) && checkTracing(msg)) {
-				myLogger.log(Logger.FINER, msg.getTraceID()+" - Message enqueued to MessageManager.");
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message enqueued to MessageManager.");
 			}
 		}
 		
@@ -704,13 +705,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			AID receiverID = (AID)params[0];
 			GenericMessage msg = (GenericMessage)params[1];
 			AID senderID = (AID)params[2];
-			if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-				myLogger.log(Logger.FINE, msg.getTraceID()+" MessagingService target sink posting message to receiver "+receiverID.getLocalName());
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
 				
 			}
 			postMessage(msg.getACLMessage(), senderID);
-			if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-				myLogger.log(Logger.FINE, msg.getTraceID()+" Message posted");
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
 				
 			}
 		}
@@ -1026,8 +1027,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					AID senderAID = (AID)params[0];
 					GenericMessage msg = (GenericMessage)params[1];
 					AID receiverID = (AID)params[2];
-					if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-						myLogger.log(Logger.FINE, "Messaging slice received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
+					if (msg.getTraceID() != null) {
+						myLogger.log(Logger.INFO, "MessagingService slice received message "+MessageManager.stringify(msg)+" for receiver "+receiverID.getLocalName()+". Trace ID = "+msg.getTraceID());
 					}
 					gCmd.addParam(senderAID);
 					gCmd.addParam(msg);
@@ -1174,8 +1175,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	// Entry point for the ACL message delivery
 	public void deliverNow(GenericMessage msg, AID receiverID) {
-		if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-			myLogger.log(Logger.FINE, msg.getTraceID()+" - Serving message delivery");
+		if (msg.getTraceID() != null) {
+			myLogger.log(Logger.INFO, msg.getTraceID()+" - Serving message delivery");
 		}
 		try {
 			if (!msg.hasForeignReceiver()) {
@@ -1217,8 +1218,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	void deliverInLocalPlatfrom(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException, JADESecurityException {
-		if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-			myLogger.log(Logger.FINE, msg.getTraceID() + " - Activating local-platform delivery");
+		if (msg.getTraceID() != null) {
+			myLogger.log(Logger.INFO, msg.getTraceID() + " - Activating local-platform delivery");
 		}
 		
 		MainContainer impl = myContainer.getMain();
@@ -1236,18 +1237,21 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			MessagingSlice cachedSlice = (MessagingSlice) cachedSlices.get(receiverID);
 			if (cachedSlice != null) { // Cache hit :-)
 				try {
+					if (msg.getTraceID() != null) {
+						myLogger.log(Logger.INFO, msg.getTraceID() + " - Delivering message to cached slice "+cachedSlice.getNode().getName());
+					}
 					cachedSlice.dispatchLocally(msg.getSender(), msg, receiverID);
-					if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-						myLogger.log(Logger.FINE, msg.getTraceID() + " - Delivery OK.");
+					if (msg.getTraceID() != null) {
+						myLogger.log(Logger.INFO, msg.getTraceID() + " - Delivery OK.");
 					}
 					return;
 				} catch (IMTPException imtpe) {
-					if (myLogger.isLoggable(Logger.FINEST) && checkTracing(msg)) {
-						myLogger.log(Logger.FINEST, msg.getTraceID() + " - Cached slice for receiver " + receiverID.getName() + " unreachable.");
+					if (msg.getTraceID() != null) {
+						myLogger.log(Logger.FINE, msg.getTraceID() + " - Cached slice for receiver " + receiverID.getName() + " unreachable.");
 					}
 				} catch (NotFoundException nfe) {
-					if (myLogger.isLoggable(Logger.FINEST) && checkTracing(msg)) {
-						myLogger.log(Logger.FINEST, msg.getTraceID() + " - Receiver " + receiverID.getName() + " not found on cached slice container.");
+					if (msg.getTraceID() != null) {
+						myLogger.log(Logger.FINE, msg.getTraceID() + " - Receiver " + receiverID.getName() + " not found on cached slice container.");
 					}
 				}
 				// Eliminate stale cache entry
@@ -1283,46 +1287,49 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	private MessagingSlice oneShotDeliver(ContainerID cid, GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, JADESecurityException {
-		if (myLogger.isLoggable(Logger.FINER) && checkTracing(msg)) {
-			myLogger.log(Logger.FINER, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" lives on container "+cid.getName());
+		if (msg.getTraceID() != null) {
+			myLogger.log(Logger.FINE, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" lives on container "+cid.getName());
 		}
 		
 		MessagingSlice targetSlice = (MessagingSlice) getSlice(cid.getName());
 		try {
 			try {
+				if (msg.getTraceID() != null) {
+					myLogger.log(Logger.INFO, msg.getTraceID()+" - Delivering message to slice "+targetSlice.getNode().getName());
+				}
 				targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
 			} 
 			catch (IMTPException imtpe) {
 				// Try to get a newer slice and repeat...
-				if (myLogger.isLoggable(Logger.FINEST) && checkTracing(msg)) {
-					myLogger.log(Logger.FINEST, msg.getTraceID()+" - Messaging slice on container "+cid.getName()+" unreachable. Try to get a fresh one.");
+				if (msg.getTraceID() != null) {
+					myLogger.log(Logger.FINE, msg.getTraceID()+" - Messaging slice on container "+cid.getName()+" unreachable. Try to get a fresh one.");
 				}
 				
 				targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
-				if (myLogger.isLoggable(Logger.FINEST) && (targetSlice != null) && checkTracing(msg)) {
-					myLogger.log(Logger.FINEST, msg.getTraceID()+" - Fresh slice for container "+cid.getName()+" found.");
+				if (msg.getTraceID() != null && (targetSlice != null)) {
+					myLogger.log(Logger.FINE, msg.getTraceID()+" - Fresh slice for container "+cid.getName()+" found.");
 				}
 				
 				targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
 			}
-			if (myLogger.isLoggable(Logger.FINE) && checkTracing(msg)) {
-				myLogger.log(Logger.FINE, msg.getTraceID()+" - Delivery OK");
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, msg.getTraceID()+" - Delivery OK");
 			}
 			return targetSlice;
 		} 
 		catch (NotFoundException nfe) {
 			// The agent was found in the GADT, but not on the container when it is supposed to 
 			// be. Possibly it moved elsewhere in the meanwhile. ==> Try again.
-			if (myLogger.isLoggable(Logger.FINEST) && checkTracing(msg)) {
-				myLogger.log(Logger.FINEST, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" not found on container "+cid.getName()+". Possibly he moved elsewhere --> Retry");
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.FINE, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" not found on container "+cid.getName()+". Possibly he moved elsewhere --> Retry");
 			}
 		} 
 		catch (NullPointerException npe) {
-			// This is thrown since targetSlice is null: The agent was found in the GADT, 
+			// This is thrown if targetSlice is null: The agent was found in the GADT, 
 			// but his container does not exist anymore. Possibly the agent moved elsewhere in 
 			// the meanwhile ==> Try again.
-			if (myLogger.isLoggable(Logger.FINEST) && checkTracing(msg)) {
-				myLogger.log(Logger.FINEST, msg.getTraceID()+" - Container "+cid.getName()+" for receiver "+receiverID.getLocalName()+" does not exist anymore. Possibly the receiver moved elsewhere --> Retry");
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.FINE, msg.getTraceID()+" - Container "+cid.getName()+" for receiver "+receiverID.getLocalName()+" does not exist anymore. Possibly the receiver moved elsewhere --> Retry");
 			}
 		}
 		
@@ -1474,24 +1481,15 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	
 	// Only for debugging:
-	// This template can be manually defined to trace only certain messages
-	private MessageTemplate tracingTemplate = MessageTemplate.MatchAll();
 	private volatile int traceCnt = 0;
 	
-	private boolean checkTracing(GenericMessage msg) {
-		if (msg.getTraceID() != null) {
-			return true;
-		}
-		else {
-			ACLMessage acl = msg.getACLMessage();
-			if (acl != null && tracingTemplate != null) {
-				if (tracingTemplate.match(acl)) {
-					msg.setTraceID("####"+myContainer.getID().getName()+"-"+traceCnt);
-					traceCnt++;
-					return true;
-				}
+	private void checkTracing(GenericMessage msg) {
+		ACLMessage acl = msg.getACLMessage();
+		if (acl != null) {
+			if ("true".equals(acl.getAllUserDefinedParameters().get(ACLMessage.TRACE))) {
+				msg.setTraceID(ACLMessage.getPerformative(acl.getPerformative())+"-"+msg.getSender().getLocalName()+"-"+traceCnt);
+				traceCnt++;
 			}
-			return false;
 		}
 	}
 	

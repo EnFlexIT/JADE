@@ -183,4 +183,8 @@ public abstract class BaseNode implements Node, Serializable {
     // node. This map is used to dispatch incoming commands to the
     // service they belong to.
     private transient Map localSlices;
+    
+    public String toString() {
+    	return myName;
+    }
 }

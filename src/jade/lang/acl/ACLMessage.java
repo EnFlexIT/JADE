@@ -174,6 +174,11 @@ public class ACLMessage implements Serializable {
 	public static final String POST_TIME_STAMP = "JADE-post-ts";
 	
 	/**
+	 * User defined parameter key specifying that the JADE tracing mechanism should be activated for this message.
+	 */
+	public static final String TRACE = "JADE-trace";
+	
+	/**
 	 @serial
 	 */
 	private AID source = null;

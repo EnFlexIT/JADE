@@ -180,4 +180,9 @@ class NodeStub extends Stub implements Node {
 			throw new IMTPException(UNRCH_ERROR_MSG, ue);
 		}
 	}
+	
+	public String toString() {
+		String address = (remoteTAs != null && remoteTAs.size() > 0 ? remoteTAs.get(0) : "null").toString();
+		return "["+name+", "+remoteID+", "+address+"]";
+	}
 }

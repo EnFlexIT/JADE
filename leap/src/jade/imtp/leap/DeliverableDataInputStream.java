@@ -451,6 +451,7 @@ class DeliverableDataInputStream extends DataInputStream {
   	Envelope env = (Envelope) readObject();
   	GenericMessage gm = new GenericMessage(env, payload);
   	gm.setAMSFailure(readBoolean());
+  	gm.setTraceID((String) readObject());
   	return gm;
   }
   

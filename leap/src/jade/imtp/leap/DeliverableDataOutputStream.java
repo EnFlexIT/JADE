@@ -547,6 +547,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
     
 		writeObject(gm.getEnvelope());
   	writeBoolean(gm.isAMSFailure());
+  	writeObject(gm.getTraceID());
   }
   
   /**

@@ -77,9 +77,9 @@ public class PlatformManagerImpl implements PlatformManager {
 	private Profile myProfile;
 
 	/**
-	 Private class ServiceEntry.
+	   Inner class ServiceEntry (package scoped for debugging purpose)
 	 */
-	private class ServiceEntry {
+	class ServiceEntry {
 
 		public ServiceEntry(Service s) {
 			myService = s;
@@ -150,16 +150,20 @@ public class PlatformManagerImpl implements PlatformManager {
 			return myService;
 		}
 
+		// For debugging purpose only
+		Map getSlicesMap() {
+			return slices;
+		}
+		
 		private Service myService;
-
 		private Map slices;
 
-	} // End of ServiceEntry class
+	} // End of inner class ServiceEntry class
 
 	/**
-	 Inner class SliceEntry
+	   Inner class SliceEntry (package-scoped for debugging purpose)
 	 */
-	private class SliceEntry {
+	class SliceEntry {
 
 		public SliceEntry(Service.Slice s, Node n) {
 			mySlice = s;
@@ -175,10 +179,9 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 
 		private Service.Slice mySlice;
-
 		private Node myNode;
 
-	} // End of SliceEntry class
+	} // End of inner class SliceEntry class
 
 	/**
 	 Constructs a new Service Manager implementation complying with
@@ -287,6 +290,7 @@ public class PlatformManagerImpl implements PlatformManager {
 			}
 		}
 
+		
 		// Add the node to the global node list
 		nodes.put(dsc.getName(), dsc);
 
@@ -955,5 +959,11 @@ public class PlatformManagerImpl implements PlatformManager {
 			services = ss;
 		}
 	} // END of inner class NodeInfo
+	
+	
+	// For debugging purpose only
+	Map getServicesMap() {
+		return services;
+	}
 
 }

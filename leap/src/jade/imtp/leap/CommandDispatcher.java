@@ -693,7 +693,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 			thePlatformManager = (PlatformManager) remotizedObject;
   	}
   	else {
-	    id = new Integer(nextID++);
+	    id = new Integer((int) (System.currentTimeMillis() & 0xffffff));
   	}
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE, "Registering skeleton "+skeleton+" for remotized object "+remotizedObject+". ID is "+id);

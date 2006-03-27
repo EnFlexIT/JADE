@@ -139,6 +139,8 @@ BUG FIXES:
 DOCUMENTATION:
 - Updated the Administrator's guide to reflect changes in UDPNodeMonitoring service.
 - Added tutorial on XMPP MTP
+- Revisisted LEAP User Guide
+- Added Document on methodology for JADE based systems
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 NO code-related backward incompatibilities are foreseen in this release.

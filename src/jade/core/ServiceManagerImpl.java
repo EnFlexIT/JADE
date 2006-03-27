@@ -285,7 +285,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	}
 
 	/////////////////////////////////////////////////
-	// Private methods
+	// Other service installation related methods
 	/////////////////////////////////////////////////
 
 	private void installServiceLocally(ServiceDescriptor svcDsc) throws IMTPException, ServiceException {
@@ -370,21 +370,16 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		localServices.remove(name);
 	}
 
-	private void invalidatePlatformManager() {
-		if (!invalidPlatformManager) {
-			invalidPlatformManager = true;
-			// Issue a DEAD_PLATFORM_MANAGER incoming vertical command
-			GenericCommand gCmd = new GenericCommand(Service.DEAD_PLATFORM_MANAGER, null, null);
-			gCmd.addParam(myPlatformManager.getLocalAddress());
-			Object result = myCommandProcessor.processIncoming(gCmd);
-			if (result instanceof Throwable) {
-				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_PLATFORM_MANAGER command.");
-				((Throwable) result).printStackTrace();
-			}
-		}
-	}
 	
-	// This is package scoped since it is called by BaseNode.platformManagerDead()
+	////////////////////////////////////////////////////
+	// Main container fault management related methods
+	////////////////////////////////////////////////////
+	/**
+	 * This method implements the platform reattachement procedure that is activated after a fault
+	 * and a successive recover of the Main Container.
+	 * This is package scoped since it is called by BaseNode.platformManagerDead()
+	 * @see jade.core.faultRecovery.FaultRecoveryService
+	 */
 	synchronized void reattach(String pmAddr) {
 		// We reattach to the recovered PM either if it is our PM or if our
 		// PM is invalid (a previous reattach/reconnect attempt failed).
@@ -418,6 +413,11 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 	}
 
+	/**
+	 * This method implements the main reconnection procedure that is activated when the main container this container 
+	 * is connected to crashes and a backup main container becomes the leader.
+	 * @see jade.core.replication.MainReplicationService
+	 */
 	private synchronized boolean reconnect() {
 		// Check if the current PlatformManager is actually down (another thread
 		// may have reconnected in the meanwhile)
@@ -451,6 +451,20 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 	}
 
+	private void invalidatePlatformManager() {
+		if (!invalidPlatformManager) {
+			invalidPlatformManager = true;
+			// Issue a DEAD_PLATFORM_MANAGER incoming vertical command
+			GenericCommand gCmd = new GenericCommand(Service.DEAD_PLATFORM_MANAGER, null, null);
+			gCmd.addParam(myPlatformManager.getLocalAddress());
+			Object result = myCommandProcessor.processIncoming(gCmd);
+			if (result instanceof Throwable) {
+				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_PLATFORM_MANAGER command.");
+				((Throwable) result).printStackTrace();
+			}
+		}
+	}
+	
 	private void handlePMRefreshed(String pmAddr) {
 		// Clear any cached slice of the Main container
 		Object[] services = localServices.values().toArray();
@@ -475,6 +489,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		return ss;
 	}
 
+	
+	//////////////////////////////////////////////////
+	// Private utility methods
+	//////////////////////////////////////////////////
 	private void adjustName(String name) {
 		localNodeDescriptor.setName(name);
 		localNode.setName(name);
