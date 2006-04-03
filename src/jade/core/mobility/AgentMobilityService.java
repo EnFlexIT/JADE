@@ -458,7 +458,7 @@ public class AgentMobilityService extends BaseService {
 				AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
 				CodeLocator cl = amSrv.getCodeLocator();
 				String jarName = cl.getAgentCodeLocation(agentID);
-				if(myLogger.isLoggable(Logger.FINER)) {
+				if(myLogger.isLoggable(Logger.FINE)) {
 					myLogger.log(Logger.FINE," adding clone " + newName  + " to code locator. Binding to jar: " + jarName);
 				}
 				if (jarName!=null) {
@@ -485,19 +485,11 @@ public class AgentMobilityService extends BaseService {
 					return;
 				}
 				
-				/* --- This code should go into the Security Service ---
-				 
-				 // Check for security permissions
-				  // Note that CONTAINER_CLONE_TO will be checked on the destination container
-				   myContainer.getAuthority().checkAction(Authority.AGENT_CLONE, myContainer.getAgentPrincipal(agentID), a.getCertificateFolder() );
-				   myContainer.getAuthority().checkAction(Authority.CONTAINER_CLONE_FROM, myContainer.getContainerPrincipal(), a.getCertificateFolder() );
-				   
-				   log("Permissions for agent " + agentID + " OK", 2);
-				   // --- End of code that should go into the Security Service ---
-				    */
-				
 				AgentMobilitySlice dest = (AgentMobilitySlice)getSlice(where.getName());
-				//log("Destination container for agent " + agentID + " found", 2);
+				if (dest == null) {
+					myLogger.log(Logger.SEVERE,"Destination "+where.getName()+" does not exist or does not support mobility");
+					return;
+				}
 				if(myLogger.isLoggable(Logger.FINE))
 					myLogger.log(Logger.FINE,"Destination container for agent " + agentID + " found");
 				
@@ -529,7 +521,6 @@ public class AgentMobilityService extends BaseService {
 					dest = (AgentMobilitySlice)getFreshSlice(where.getName());
 					dest.createAgent(newID, bytes, classSiteName, CLONING, CREATE_AND_START);
 				}
-				//log("Cloned Agent " + newID + " correctly created on destination container", 1);
 				if(myLogger.isLoggable(Logger.FINE))
 					myLogger.log(Logger.FINE,"Cloned Agent " + newID + " correctly created on destination container");
 				
