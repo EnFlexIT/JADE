@@ -59,7 +59,7 @@ public class DFHSQLKB extends DFDBKB {
   }
   
  
-  protected void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
+  protected void setDBConnection(String url, String user, String passwd) throws SQLException {
     Properties props = new Properties();
     props.put("user", user);
     props.put("passwd", passwd);

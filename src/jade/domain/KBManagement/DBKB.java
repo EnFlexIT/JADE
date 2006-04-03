@@ -27,9 +27,19 @@ package jade.domain.KBManagement;
 
 //#J2ME_EXCLUDE_FILE
 
+import jade.core.AID;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.proto.SubscriptionResponder;
+import jade.util.Logger;
+import jade.util.leap.List;
+import jade.util.leap.ArrayList;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * This class provides an abstract implementation of the 
@@ -49,6 +59,8 @@ public abstract class DBKB extends KB {
 	 * Used database connection
 	 */
 	protected Connection conn = null;
+	
+	private String url, username, password;
 	
 	/**
 	 * Specifies whether the KB should delete all existing tables for the DF at startup
@@ -97,11 +109,11 @@ public abstract class DBKB extends KB {
 	 * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
 	 * @throws SQLException an error occured while opening a connection to the database
 	 */
-	public DBKB(String drv, String url, String user, String passwd, int maxResultLimit, boolean cleanTables) throws SQLException {
+	public DBKB(String drv, String url, String username, String password, int maxResultLimit, boolean cleanTables) throws SQLException {
 		super(maxResultLimit);
 		this.cleanTables = cleanTables;
 		loadDBDriver(drv);
-		setDBConnection(drv, url, user, passwd);
+		setDBConnection(url, username, password);
 		setup();
 	}
 	
@@ -128,20 +140,28 @@ public abstract class DBKB extends KB {
 	/**
 	 * Establishes a new connection to the database and stores a reference in the
 	 * local attribute <code>conn</code>
-	 * @param drv database driver
 	 * @param url database URL
 	 * @param user database user
 	 * @param passwd database password
 	 * @throws SQLException if a database access error occurs
 	 */
-	protected void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
+	protected void setDBConnection(String url, String username, String password) throws SQLException {
 		// Connect to the DB
-		if (user != null) {
-			conn = DriverManager.getConnection(url, user, passwd);
+		if (username != null) {
+			conn = DriverManager.getConnection(url, username, password);
 		}
 		else {
 			conn = DriverManager.getConnection(url);
 		}
+		// Store these value for later connection recreation 
+		this.url = url;
+		this.username = username;
+		this.password = password;
+	}
+	
+	protected void refreshDBConnection() throws SQLException {
+		try {conn.close();} catch (Exception e) {}
+		setDBConnection(url, username, password);
 	}
 	
 	/**
@@ -149,4 +169,163 @@ public abstract class DBKB extends KB {
 	 * connection to the database has been established. 
 	 */
 	abstract protected void setup() throws SQLException;
+	
+	
+	protected Object insert(Object name, Object fact) {
+		try {
+			return insertSingle(name, fact);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				return insertSingle(name, fact);
+			}
+			catch (Exception e) {
+				// Log the original error
+				logger.log(Logger.SEVERE,"DB error inserting DFD for agent "+((DFAgentDescription) fact).getName().getName(), sqle); 
+			}
+		}
+		return null;
+	}
+	
+	protected abstract Object insertSingle(Object name, Object fact) throws SQLException;
+	
+	protected Object remove(Object name) {
+		try {
+			return removeSingle(name);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				return removeSingle(name);
+			}
+			catch (Exception e) {
+				// Log the original error
+				logger.log(Logger.SEVERE,"DB error removing DFD for agent "+((AID) name).getName(), sqle); 
+			}
+		}
+		return null;
+	}
+
+	protected abstract Object removeSingle(Object name) throws SQLException;
+	
+	public List search(Object template, int maxResult) {
+		try {
+			return searchSingle(template, maxResult);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				return searchSingle(template, maxResult);
+			}
+			catch (Exception e) {
+				// Log the original error
+				e.printStackTrace();
+				logger.log(Logger.SEVERE,"DB error during search operation.", sqle); 
+			}
+		}
+		return new ArrayList();
+	}
+
+	protected abstract List searchSingle(Object template, int maxResult) throws SQLException;
+	
+	public KBIterator iterator(Object template) {
+		try {
+			return iteratorSingle(template);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				return iteratorSingle(template);
+			}
+			catch (Exception e) {
+				// Log the original error
+				e.printStackTrace();
+				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+			}
+		}
+		return new EmptyKBIterator();
+	}
+
+	protected abstract KBIterator iteratorSingle(Object template) throws SQLException;
+	
+	public void subscribe(Object template, SubscriptionResponder.Subscription s) throws NotUnderstoodException{
+		try {
+			subscribeSingle(template, s);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				subscribeSingle(template, s);
+			}
+			catch (Exception e) {
+				// Log the original error
+				e.printStackTrace();
+				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+			}
+		}
+	}
+
+	protected abstract void subscribeSingle(Object template, SubscriptionResponder.Subscription s) throws SQLException, NotUnderstoodException;
+	
+	// Note that getSubscriptions() is only called just after a registration/deregistration/modification -->
+	// The connection refresh process is useless in this case.
+	public abstract Enumeration getSubscriptions();
+	
+	public void unsubscribe(SubscriptionResponder.Subscription s) {
+		try {
+			unsubscribeSingle(s);
+		}
+		catch (SQLException sqle) {
+			try {
+				// Refresh the connection and retry.
+				logger.log(Logger.WARNING, "Refreshing DB connection...");
+				refreshDBConnection();
+				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				unsubscribeSingle(s);
+			}
+			catch (Exception e) {
+				// Log the original error
+				e.printStackTrace();
+				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+			}
+		}
+	}
+
+	protected abstract void unsubscribeSingle(SubscriptionResponder.Subscription s) throws SQLException;
+	
+	
+	/**
+	 * Inner class EmptyKBIterator
+	 */
+	protected class EmptyKBIterator implements KBIterator {
+		public boolean hasNext() {
+			return false;
+		}
+		
+		public Object next() {
+			throw new NoSuchElementException("");
+		}
+		
+		public void remove() {
+		}
+		
+		public void close() {
+		}		
+	} // END of inner class EmptyKBIterator
 }

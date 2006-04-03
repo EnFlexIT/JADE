@@ -165,14 +165,6 @@ public abstract class MemKB extends KB {
 		}
 	}
 
-	/*public void setSubscriptionResponder(SubscriptionResponder sResp){
-		sr = sResp;
-	}
-
-	public void setLeaseManager(LeaseManager leaseMng){
-		lm = leaseMng;
-	}*/
-
 
 	// Helper method to match two Agent Identifiers
 	public static final boolean matchAID(AID template, AID fact) {

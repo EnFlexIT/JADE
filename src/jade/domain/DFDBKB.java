@@ -72,7 +72,6 @@ public class DFDBKB extends DBKB {
 	
 	private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	private static final int MAX_PROP_LENGTH = 255;
-	private Logger logger;
 	
 	// Number of registrations after the last lease-time-cleanup
 	private int regsCnt = 0;
@@ -208,8 +207,8 @@ public class DFDBKB extends DBKB {
 		return bestMatch;
 	}
 	
-	protected void setDBConnection(String drv, String url, String user, String passwd) throws SQLException {
-		super.setDBConnection(drv, url, user, passwd);
+	protected void setDBConnection(String url, String user, String passwd) throws SQLException {
+		super.setDBConnection(url, user, passwd);
 		
 		//  reconnect and activate cursors when using a SQL Server database
 		DatabaseMetaData md = conn.getMetaData();
@@ -221,9 +220,15 @@ public class DFDBKB extends DBKB {
 					url = url + ";";
 				url = url + "SelectMethod=cursor";
 				conn.close();
-				super.setDBConnection(drv, url, user, passwd);
+				super.setDBConnection(url, user, passwd);
 			}
 		}
+	}
+	
+	protected void refreshDBConnection() throws SQLException {
+		super.refreshDBConnection();
+		conn.setAutoCommit(false);
+		initPrepStmts();
 	}
 	
 	/**
@@ -463,26 +468,26 @@ public class DFDBKB extends DBKB {
 				"id VARCHAR(" + MAX_PROP_LENGTH + ")",  
 				"aid VARCHAR(" + MAX_PROP_LENGTH + ")",  
 				"lease VARCHAR(20)",   
-		"PRIMARY KEY( id )"}); 
+				"PRIMARY KEY( id )"}); 
 		
 		createTable(AGENTADDRESS, new String[] {
 				"id VARCHAR(" + MAX_PROP_LENGTH + ")", 
 				"aid VARCHAR(" + MAX_PROP_LENGTH + ")",   
 				"address VARCHAR(" + MAX_PROP_LENGTH + ")", 
-		"PRIMARY KEY( id )"});
+				"PRIMARY KEY( id )"});
 		
 		createTable(AGENTRESOLVER, new String[] {
 				"id VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"aid VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"resolveraid VARCHAR(" + MAX_PROP_LENGTH + ")",
-		"PRIMARY KEY( id )"});	
+				"PRIMARY KEY( id )"});	
 		
 		createTable(AGENTUSERDEFSLOT, new String[] {
 				"id VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"aid	VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"slotkey	VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"slotval	" + LONGVARCHAR_TYPE,
-		"PRIMARY KEY( id )"});	 		 	
+				"PRIMARY KEY( id )"});	 		 	
 		
 		createTable(ONTOLOGY, new String[] {
 				"descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
@@ -496,7 +501,7 @@ public class DFDBKB extends DBKB {
 				"protocol VARCHAR(32)", 
 				"PRIMARY KEY( descrid, protocol )", 
 				"FOREIGN KEY( descrid ) REFERENCES dfagentdescr( id )"
-		}); //TODO remove commented lines
+		});
 		
 		createTable(LANGUAGE, new String[] {
 				"descrid VARCHAR(" + MAX_PROP_LENGTH + ")",
@@ -519,19 +524,19 @@ public class DFDBKB extends DBKB {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"protocol VARCHAR(32)",
 				"PRIMARY KEY( serviceid, protocol )",
-		"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
+				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
 		createTable(SERVICEONTOLOGY, new String[] {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"ontology VARCHAR(32)",
 				"PRIMARY KEY( serviceid, ontology )",
-		"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
+				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
 		createTable(SERVICELANGUAGE, new String[] {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"language VARCHAR(32)",
 				"PRIMARY KEY( serviceid, language )",
-		"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
+				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
 		createTable(SERVICEPROPERTY, new String[] {
 				"serviceid VARCHAR(" + MAX_PROP_LENGTH + ")",
@@ -540,13 +545,13 @@ public class DFDBKB extends DBKB {
 				"propval_str VARCHAR(" + MAX_PROP_LENGTH + ")",
 				"propvalhash VARCHAR(100)",
 				"PRIMARY KEY( serviceid, propkey )",
-		"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
+				"FOREIGN KEY( serviceid ) REFERENCES service( id )"});
 		
 		// Tables for subscriptions
 		createTable(SUBSCRIPTION, new String[] { 
 				"id	 VARCHAR(" + MAX_PROP_LENGTH + ")"   ,
 				"aclm " + LONGVARCHAR_TYPE,
-		"PRIMARY KEY( id )"});
+				"PRIMARY KEY( id )"});
 		
 		createIndices();
 		
@@ -721,10 +726,12 @@ public class DFDBKB extends DBKB {
 						// 'propval_obj' field
 						if ( (value instanceof String) && ( ((String) value).length() <= MAX_PROP_LENGTH ) ) {
 							// set to NULL the serialized representation of the object
+							//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
 							stm_insServiceProperty.setString(3, null);
 							stm_insServiceProperty.setString(4, (String) value);
 						}
 						else {
+							//System.out.println("DF Handling Object property "+prop.getName()+": value = "+value);
 							String valueStr = serializeObj(value);
 							stm_insServiceProperty.setString(3, valueStr);
 							stm_insServiceProperty.setString(4, null);
@@ -760,18 +767,16 @@ public class DFDBKB extends DBKB {
 	 *  Insert a new DFD object.
 	 *  @return the previous DFD (if any) corresponding to the same AID
 	 */
-	public Object insert(Object name, Object fact) {
-		
+	protected Object insertSingle(Object name, Object fact) throws SQLException {
 		DFAgentDescription dfd = (DFAgentDescription) fact;
 		AID agentAID = dfd.getName();
 		String agentName = agentAID.getName();
 		DFAgentDescription dfdToReturn = null;
 		String batchErrMsg = "";
 		
-		try {
-			
+		try {	
 			// -- Remove the previous DFD if any
-			dfdToReturn = (DFAgentDescription) remove(dfd.getName());
+			dfdToReturn = (DFAgentDescription) removeSingle(dfd.getName());
 			
 			// -- add new DFD
 			
@@ -835,22 +840,16 @@ public class DFDBKB extends DBKB {
 				regsCnt = 0;
 			}
 			
-			conn.commit();
-			
-		} catch (BatchUpdateException bue) {
-			batchErrMsg = "\n" + getBatchUpdateErroMsg(bue);
-			
-		} catch (Exception e) {
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE,"Error inserting DFD for agent "+dfd.getName()+batchErrMsg, e); 
-			
+			conn.commit();		
+		} catch (SQLException sqle) {
+			// Rollback the transaction
 			try {
 				conn.rollback();
-			} catch (SQLException re) {
-				if(logger.isLoggable(Logger.SEVERE))
-					logger.log(Logger.SEVERE,"Rollback for incomplete insertion of DFD for agent "+dfd.getName() + " failed.");
+			} catch (SQLException se) {
+				logger.log(Logger.SEVERE,"Rollback for incomplete insertion of DFD for agent "+dfd.getName() + " failed.", se);
 			}
-			
+			// Re-throw the exception
+			throw sqle;
 		} 
 		
 		return dfdToReturn;
@@ -860,7 +859,7 @@ public class DFDBKB extends DBKB {
 	 * Remove the DFD object corresponding to the indicated AID.
 	 * @return the removed DFD (if any) 
 	 */
-	protected Object remove(Object name) {
+	protected Object removeSingle(Object name) throws SQLException {
 		AID agentAID = (AID) name;
 		String n = agentAID.getName();
 		
@@ -875,8 +874,7 @@ public class DFDBKB extends DBKB {
 	/**
 	 * Retrieve the DFDs matching the given template
 	 */
-	public List search(Object template, int maxResult){
-		String errorMsg = "Error searching for DFDs matching template.";
+	protected List searchSingle(Object template, int maxResult) throws SQLException {
 		List matchingAIDs = new ArrayList();
 		
 		// Get the names of all DFDs matching the template
@@ -886,14 +884,7 @@ public class DFDBKB extends DBKB {
 		
 		try {
 			select = createSelect((DFAgentDescription) template);
-			
-		} catch(Exception e) {
-			if(logger.isLoggable(Logger.SEVERE)) {
-				logger.log(Logger.SEVERE, errorMsg + " Couldn't create the SQL SELECT statement.", e);
-			}
-		}
-		
-		try {
+					
 			s = conn.createStatement();
 			if (maxResult >= 0) {
 				s.setMaxRows(maxResult);
@@ -904,12 +895,15 @@ public class DFDBKB extends DBKB {
 			while(rs.next()) { 
 				String aidS = rs.getString("aid");
 				matchingAIDs.add(aidS);
-			}
-			
-		} catch(SQLException se){
-			if(logger.isLoggable(Logger.SEVERE)) {
-				logger.log(Logger.SEVERE, errorMsg + " DB operation: "+select, se);
-			}
+			}			
+		} 
+		catch(SQLException sqle) {
+			// Let it through
+			throw sqle;
+		}
+		catch(Exception e) {
+			logger.log(Logger.SEVERE, "Couldn't create the SQL SELECT statement.", e);
+			throw new SQLException("Couldn't create the SQL SELECT statement. "+e.getMessage());
 		}
 		finally {
 			closeResultSet(rs);
@@ -928,7 +922,7 @@ public class DFDBKB extends DBKB {
 	
 	/**
 	 */
-	public KBIterator iterator(Object template) {
+	protected KBIterator iteratorSingle(Object template) throws SQLException {
 		String select = null;
 		ResultSet rs = null;
 		Statement s = null;
@@ -943,17 +937,14 @@ public class DFDBKB extends DBKB {
 		} 
 		catch(SQLException se){
 			logger.log(Logger.SEVERE, "Error accessing DB: "+select, se);
-			se.printStackTrace();
 			closeResultSet(rs);
 			closeStatement(s);
+			throw se;
 		}
 		catch(Exception e) {
 			logger.log(Logger.SEVERE, "Error creating SQL SELECT statement.", e);
-			e.printStackTrace();
+			throw new SQLException("Error creating SQL SELECT statement. "+e.getMessage());
 		}
-		
-		// Return an empty iterator
-		return new DFDBKBIterator();
 	}
 	
 	
@@ -964,9 +955,6 @@ public class DFDBKB extends DBKB {
 		private Statement s = null;
 		private ResultSet rs = null;
 		private boolean hasMoreElements = false;
-		
-		public DFDBKBIterator() {
-		}
 		
 		public DFDBKBIterator(Statement s, ResultSet rs) throws SQLException {
 			this.s = s;
@@ -1046,7 +1034,7 @@ public class DFDBKB extends DBKB {
 	/**
 	 Reconstruct the DFD corresponding to the given AID name (if any)
 	 */
-	private DFAgentDescription getDFD(String aidN){
+	private DFAgentDescription getDFD(String aidN) throws SQLException {
 		DFAgentDescription dfd = null;
 		AID id = null;
 		
@@ -1054,8 +1042,7 @@ public class DFDBKB extends DBKB {
 		ResultSet rsS = null;
 		String descrId = null;
 		
-		try{
-			
+		try{	
 			// Check if there is a DFD corresponding to aidN and get lease time
 			stm_selLease.setString(1, aidN);
 			rs = stm_selLease.executeQuery();
@@ -1079,7 +1066,7 @@ public class DFDBKB extends DBKB {
 			stm_selProtocols.setString(1, descrId);
 			rs = stm_selProtocols.executeQuery();
 			while(rs.next()){
-				dfd.addProtocols(rs.getString("protocol"));
+				dfd.addProtocols(rs.getString(PROTOCOL));
 			}
 			closeResultSet(rs);
 			
@@ -1087,7 +1074,7 @@ public class DFDBKB extends DBKB {
 			stm_selLanguages.setString(1, descrId);
 			rs = stm_selLanguages.executeQuery();
 			while(rs.next()){
-				dfd.addLanguages(rs.getString("language"));
+				dfd.addLanguages(rs.getString(LANGUAGE));
 			}
 			closeResultSet(rs);
 			
@@ -1095,7 +1082,7 @@ public class DFDBKB extends DBKB {
 			stm_selOntologies.setString(1, descrId);
 			rs = stm_selOntologies.executeQuery();
 			while(rs.next()){
-				dfd.addOntologies(rs.getString("ontology"));
+				dfd.addOntologies(rs.getString(ONTOLOGY));
 			}
 			closeResultSet(rs);
 			
@@ -1113,7 +1100,7 @@ public class DFDBKB extends DBKB {
 				stm_selServiceProtocols.setString(1, serviceId);
 				rsS = stm_selServiceProtocols.executeQuery();
 				while(rsS.next()){
-					sd.addProtocols(rsS.getString("protocol"));
+					sd.addProtocols(rsS.getString(PROTOCOL));
 				}	
 				closeResultSet(rsS);
 				
@@ -1121,7 +1108,7 @@ public class DFDBKB extends DBKB {
 				stm_selServiceLanguages.setString(1, serviceId);
 				rsS = stm_selServiceLanguages.executeQuery();
 				while(rsS.next()){
-					sd.addOntologies(rsS.getString("ontology"));
+					sd.addOntologies(rsS.getString(ONTOLOGY));
 				}	
 				closeResultSet(rsS);
 				
@@ -1129,7 +1116,7 @@ public class DFDBKB extends DBKB {
 				stm_selServiceOntologies.setString(1, serviceId);
 				rsS = stm_selServiceOntologies.executeQuery();
 				while(rsS.next()){
-					sd.addLanguages(rsS.getString("language"));
+					sd.addLanguages(rsS.getString(LANGUAGE));
 				}
 				closeResultSet(rsS);
 				
@@ -1149,10 +1136,13 @@ public class DFDBKB extends DBKB {
 				dfd.addServices(sd);
 			}
 		}
-		catch(Exception se){
-			if(logger.isLoggable(Logger.WARNING))
-				logger.log(Logger.WARNING,"Error reconstructing DFD for agent "+aidN, se);
-			
+		catch (SQLException sqle) {
+			// Let it through
+			throw sqle;
+		}
+		catch (Exception e) {
+			logger.log(Logger.SEVERE, "Unexpected error retrieving DFD for agent "+aidN, e);
+			throw new SQLException("Unexpected error retrieving DFD for agent "+aidN+". "+e.getMessage());
 		}
 		finally {
 			closeResultSet(rs);
@@ -1243,7 +1233,7 @@ public class DFDBKB extends DBKB {
 	/**
 	 *  Delete the DFD object corresponding to the indicated agent name.
 	 */
-	private void remove(String aid) {  		
+	private void remove(String aid) throws SQLException {  		
 		ResultSet rs = null;
 		
 		try {   
@@ -1283,11 +1273,13 @@ public class DFDBKB extends DBKB {
 					logger.log(Logger.FINE,"No DF description found to remove for agent '"+aid+"'");
 			}
 		}
-		catch(SQLException se){
-			
-			if(logger.isLoggable(Logger.WARNING))
-				logger.log(Logger.WARNING, "Error removing DFD for agent "+aid, se);
-			
+		catch(SQLException sqle){
+			try {
+				conn.rollback();
+			} catch (SQLException se) {
+				logger.log(Logger.SEVERE,"Rollback for incomplete remotion of DFD for agent "+aid + " failed.", se);
+			}
+			throw sqle;
 		} finally {
 			closeResultSet(rs);
 		}
@@ -1320,7 +1312,7 @@ public class DFDBKB extends DBKB {
 		Iterator iter = dfdTemplate.getAllLanguages();
 		int i=0;
 		while(iter.hasNext()){
-			String tmp = "language"+i;
+			String tmp = LANGUAGE+i;
 			lAs.add(", language "+tmp);
 			lWhere.add(tmp+".language='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
@@ -1330,7 +1322,7 @@ public class DFDBKB extends DBKB {
 		iter = dfdTemplate.getAllOntologies();
 		i = 0;
 		while(iter.hasNext()){
-			String tmp = "ontology"+i;
+			String tmp = ONTOLOGY+i;
 			lAs.add(", ontology "+tmp);
 			lWhere.add(tmp+".ontology='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
@@ -1340,7 +1332,7 @@ public class DFDBKB extends DBKB {
 		iter = dfdTemplate.getAllProtocols();
 		i = 0;
 		while(iter.hasNext()){
-			String tmp = "protocol"+i;
+			String tmp = PROTOCOL+i;
 			lAs.add(", protocol "+tmp);
 			lWhere.add(tmp+".protocol='"+(String)iter.next()+"'");
 			lWhere.add(tmp+".descrid=dfagentdescr.id");
@@ -1355,7 +1347,7 @@ public class DFDBKB extends DBKB {
 			String serviceType = service.getType();
 			String serviceOwner = service.getOwnership();
 			// Service name, type and ownership
-			String tmp = "service"+i;
+			String tmp = SERVICE+i;
 			lAs.add(", service "+tmp);
 			if(serviceName != null){
 				lWhere.add(tmp+".sname='"+serviceName+"'");
@@ -1373,7 +1365,7 @@ public class DFDBKB extends DBKB {
 			Iterator iterS = service.getAllLanguages();
 			int j = 0;
 			while(iterS.hasNext()){
-				String tmp1 = "servicelanguage"+j;
+				String tmp1 = SERVICELANGUAGE+j;
 				lAs.add(", servicelanguage "+tmp1);
 				lWhere.add(tmp1+".language='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
@@ -1383,7 +1375,7 @@ public class DFDBKB extends DBKB {
 			iterS = service.getAllOntologies();
 			j = 0;
 			while(iterS.hasNext()){
-				String tmp1 = "serviceontology"+j;
+				String tmp1 = SERVICEONTOLOGY+j;
 				lAs.add(", serviceontology "+tmp1);
 				lWhere.add(tmp1+".ontology='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
@@ -1393,7 +1385,7 @@ public class DFDBKB extends DBKB {
 			iterS = service.getAllProtocols();
 			j = 0;
 			while(iterS.hasNext()){
-				String tmp1 = "serviceprotocol"+j;
+				String tmp1 = SERVICEPROTOCOL+j;
 				lAs.add(", serviceprotocol "+tmp1);
 				lWhere.add(tmp1+".protocol='"+(String)iterS.next()+"'");
 				lWhere.add(tmp1+".serviceid="+tmp+".id");
@@ -1403,7 +1395,7 @@ public class DFDBKB extends DBKB {
 			iterS = service.getAllProperties();
 			j = 0;
 			while(iterS.hasNext()){
-				String tmp1 = "serviceproperty"+j;
+				String tmp1 = SERVICEPROPERTY+j;
 				lAs.add(", serviceproperty "+tmp1);
 				Property prop = (Property) iterS.next();	
 				
@@ -1489,7 +1481,7 @@ public class DFDBKB extends DBKB {
 	
 	private StringACLCodec codec = new StringACLCodec();
 	
-	public void subscribe(Object dfd, SubscriptionResponder.Subscription s) throws NotUnderstoodException{
+	protected void subscribeSingle(Object dfd, SubscriptionResponder.Subscription s) throws SQLException, NotUnderstoodException{
 		ACLMessage aclM = s.getMessage();
 		String msgStr = aclM.toString();
 		String convID = aclM.getConversationId();
@@ -1501,17 +1493,28 @@ public class DFDBKB extends DBKB {
 	 * @param convID conversation id (used as primary key)
 	 * @param aclM ACL message for the subscription
 	 */
-	private void registerSubscription(String convID, String aclM){
+	private void registerSubscription(String convID, String aclM) throws SQLException {
 		try {
 			String base64Str = new String(Base64.encodeBase64(aclM.getBytes("US-ASCII")), "US-ASCII"); 
 			// --> convert string to Base64 encoding
 			stm_insSubscription.setString(1, convID);
 			stm_insSubscription.setString(2, base64Str);
 			stm_insSubscription.execute();
-			
-		} catch (Exception e) {
-			if(logger.isLoggable(Logger.SEVERE))
-				logger.log(Logger.SEVERE, "Error registering subscription", e);
+			conn.commit();			
+		} 
+		catch (SQLException sqle) {
+			// Rollback the transaction
+			try {
+				conn.rollback();
+			} catch (SQLException se) {
+				logger.log(Logger.SEVERE,"Rollback for incomplete subscription failed.", se);
+			}
+			// Re-throw the exception
+			throw sqle;
+		}
+		catch (Exception e) {
+			logger.log(Logger.SEVERE, "Error encoding subscription message in Base64.", e);
+			throw new SQLException("Error encoding subscription message in Base64. "+e.getMessage());
 		}
 	}
 	
@@ -1545,7 +1548,7 @@ public class DFDBKB extends DBKB {
 	}
 	
 	
-	public void unsubscribe(SubscriptionResponder.Subscription sub){
+	protected void unsubscribeSingle(SubscriptionResponder.Subscription sub) throws SQLException {
 		ACLMessage aclM = sub.getMessage();
 		String convID = aclM.getConversationId();
 		boolean deleted = deregisterSubscription(convID);
@@ -1561,16 +1564,22 @@ public class DFDBKB extends DBKB {
 	 * @return <code>true</code> if an entry has been found and removed  
 	 * - otherwise <code>false</code>
 	 */
-	public boolean deregisterSubscription(String convID) {
+	private boolean deregisterSubscription(String convID) throws SQLException {
 		
 		try {
 			stm_delSubscription.setString(1, convID);
 			int rowCount = stm_delSubscription.executeUpdate();
+			conn.commit();
 			return (rowCount != 0);
-		} catch (SQLException e) {
-			if(logger.isLoggable(Logger.WARNING))
-				logger.log(Logger.WARNING, "Cannot remove subscription with id '"+convID+"' from database", e);
-			return false;
+		} catch (SQLException sqle) {
+			// Rollback the transaction
+			try {
+				conn.rollback();
+			} catch (SQLException se) {
+				logger.log(Logger.SEVERE,"Rollback for incomplete un-subscription failed.", se);
+			}
+			// Re-throw the exception
+			throw sqle;
 		}
 	}
 	

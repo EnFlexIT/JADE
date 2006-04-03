@@ -44,7 +44,7 @@
 		<Tester name="Persistent_DF" skip="true">
 			<ClassName>test.domain.df.PersistentDFTesterAgent</ClassName>
 			<Description> This item includes tests related to the persistence of Yellow Pages service provided by the DF agent.</Description>
-			<TestsListRif>test\\domain\\df\\persistentDFTestsList.xml</TestsListRif>
+			<TestsListRif>test/domain/df/persistentDFTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="JADE Management Ontology" skip="false">
 			<ClassName>test.domain.JADEManagementOntologyTesterAgent</ClassName>

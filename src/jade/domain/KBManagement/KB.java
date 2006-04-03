@@ -45,7 +45,7 @@ import java.util.Enumeration;
 public abstract class KB {
 	protected LeaseManager lm;
 	protected SubscriptionResponder sr;
-	private Logger logger = Logger.getMyLogger(this.getClass().getName());
+	protected Logger logger = Logger.getMyLogger(this.getClass().getName());
 	private int maxResultLimit = -1;
 	
 	public KB(int maxResultLimit) {
