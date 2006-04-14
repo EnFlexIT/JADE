@@ -249,6 +249,7 @@ public class ParallelBehaviour extends CompositeBehaviour {
 	 Remove a sub behaviour from this <code>ParallelBehaviour</code>
 	 */
 	public void removeSubBehaviour(Behaviour b) {
+		terminatedChildren.removeElement(b);
 		boolean rc = subBehaviours.removeElement(b);
 		
 		if(rc) {
