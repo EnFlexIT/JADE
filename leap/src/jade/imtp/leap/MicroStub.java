@@ -1,25 +1,25 @@
 /*****************************************************************
-JADE - Java Agent DEvelopment Framework is a framework to develop 
-multi-agent systems in compliance with the FIPA specifications.
-Copyright (C) 2000 CSELT S.p.A. 
-
-GNU Lesser General Public License
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation, 
-version 2.1 of the License. 
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-*****************************************************************/
+ JADE - Java Agent DEvelopment Framework is a framework to develop 
+ multi-agent systems in compliance with the FIPA specifications.
+ Copyright (C) 2000 CSELT S.p.A. 
+ 
+ GNU Lesser General Public License
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation, 
+ version 2.1 of the License. 
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the
+ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ Boston, MA  02111-1307, USA.
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -38,17 +38,17 @@ public class MicroStub {
 	private int activeCnt = 0;
 	private boolean flushing = false;
 	private Thread flusher;
-  protected Logger logger;
+	protected Logger logger;
 	
 	public MicroStub(Dispatcher d) {
 		myDispatcher = d;
-    logger = Logger.getMyLogger(getClass().getName());
+		logger = Logger.getMyLogger(getClass().getName());
 	}
 	
 	protected Command executeRemotely(Command c, long timeout) throws IMTPException {
 		try {
-  		disableFlush();
-  		byte[] cmd = SerializationEngine.serialize(c);
+			disableFlush();
+			byte[] cmd = SerializationEngine.serialize(c);
 			byte[] rsp = myDispatcher.dispatch(cmd, flushing);
 			if (pendingCommands.size() > 0) {
 				System.out.println("############# Dispatch succeeded with "+pendingCommands.size()+" pending commands.");
@@ -60,7 +60,7 @@ public class MicroStub {
 					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site processing command "+c.getCode()+". "+(String) r.getParamAt(2));
 					if(logger.isLoggable(Logger.SEVERE))
 						logger.log(Logger.SEVERE,msg);
-      		throw new IMTPException(msg);
+					throw new IMTPException(msg);
 				}
 				else if (((String) r.getParamAt(1)).equals("jade.core.IMTPException")) {
 					throw new IMTPException((String) r.getParamAt(2));
@@ -75,8 +75,8 @@ public class MicroStub {
 				throw new IMTPException("Destination unreachable", icpe);
 			}
 			else {
+				logger.log(Logger.WARNING, "Dispatch failed. Command postponed. "+icpe.getMessage());
 				// FIXME: if timeout > 0 we should add a timer
-				System.out.println("############# Dispatch failed. Command postponed");
 				postpone(c);
 				return null;
 			}
@@ -95,9 +95,9 @@ public class MicroStub {
 		}
 		pendingCommands.addElement(c);
 		int size = pendingCommands.size();
-  	if (size > 100 && size < 110) {
-  		logger.log(Logger.WARNING,size+" postponed commands");
-  	}
+		if (size > 100 && size < 110) {
+			logger.log(Logger.WARNING,size+" postponed commands");
+		}
 	}
 	
 	
@@ -168,10 +168,10 @@ public class MicroStub {
 	}
 	
 	/**
-	   Note that normal command-dispatching and postponed command
-	   flushing can't occur at the same time, but different commands
-	   can be dispatched in parallel. This is the reason for this
-	   lock/unlock mechanism instead of a simple synchronization.
+	 Note that normal command-dispatching and postponed command
+	 flushing can't occur at the same time, but different commands
+	 can be dispatched in parallel. This is the reason for this
+	 lock/unlock mechanism instead of a simple synchronization.
 	 */
 	private void disableFlush() {
 		if (Thread.currentThread() != flusher) {
@@ -187,7 +187,7 @@ public class MicroStub {
 			}
 		}
 	}
-		
+	
 	private void enableFlush() {
 		if (Thread.currentThread() != flusher) {
 			synchronized (pendingCommands) {
