@@ -95,6 +95,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 			add(new ConceptSchema(ADDEDCONTAINER), AddedContainer.class);  	
 			add(new ConceptSchema(REMOVEDCONTAINER), RemovedContainer.class);
 			add(new ConceptSchema(KILLCONTAINERREQUESTED), KillContainerRequested.class);
+			add(new ConceptSchema(SHUTDOWNPLATFORMREQUESTED), ShutdownPlatformRequested.class);
 			add(new ConceptSchema(ADDEDMTP), AddedMTP.class);
 			add(new ConceptSchema(REMOVEDMTP), RemovedMTP.class);
 			add(new ConceptSchema(BORNAGENT), BornAgent.class);

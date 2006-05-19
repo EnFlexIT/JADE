@@ -61,6 +61,8 @@ public interface IntrospectionVocabulary {
   public static final String KILLCONTAINERREQUESTED = "kill-container-requested";
   public static final String KILLCONTAINERREQUESTED_CONTAINER = "container";
   
+  public static final String SHUTDOWNPLATFORMREQUESTED = "shutdown-platform-requested";
+  
   public static final String ADDEDMTP = "added-mtp";
   public static final String ADDEDMTP_ADDRESS = "address";
   public static final String ADDEDMTP_WHERE = "where";

@@ -378,6 +378,17 @@ public class ams extends Agent implements AgentManager.Listener {
 		if (logger.isLoggable(Logger.FINE))
 			logger.log(Logger.FINE, "Agent " + requester + " requesting Shutdown-platform ");
 
+		// Notify a SHUTDOWN_PLATFORM_REQUESTED introspection event to all tools
+		ShutdownPlatformRequested spr = new ShutdownPlatformRequested();
+		EventRecord er = new EventRecord(spr, here());
+		er.setWhen(new Date());
+		try {
+			notifyTools(er);
+		} catch (Exception e) {
+			// Should never happen 
+			e.printStackTrace();
+		}
+		
 		Thread auxThread = new Thread() {
 			public void run() {
 				try {
