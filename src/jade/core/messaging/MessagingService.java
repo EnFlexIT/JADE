@@ -702,14 +702,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 		private void handleSendMessage(VerticalCommand cmd) throws NotFoundException {
 			Object[] params = cmd.getParams();
-			AID receiverID = (AID)params[0];
+			AID senderID = (AID)params[0];
 			GenericMessage msg = (GenericMessage)params[1];
-			AID senderID = (AID)params[2];
+			AID receiverID = (AID)params[2];
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - MessagingService target sink posting message to receiver "+receiverID.getLocalName());
 				
 			}
-			postMessage(msg.getACLMessage(), senderID);
+			postMessage(msg.getACLMessage(), receiverID);
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message posted");
 				

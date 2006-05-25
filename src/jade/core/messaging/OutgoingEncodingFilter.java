@@ -82,11 +82,7 @@ public class OutgoingEncodingFilter extends Filter {
 		String name = cmd.getName();
 		Object[] params = cmd.getParams();
 		
-		// The awaited command should contain an ACLMessage
-		if(name.equals(MessagingSlice.SEND_MESSAGE)) {
-			// DEBUG
-			//System.out.println("-- Filtering a SEND_MESSAGE command (outgoing)--");
-			
+		if (name.equals(MessagingSlice.SEND_MESSAGE)) {
 			GenericMessage gmsg = (GenericMessage)params[1];
 			AID sender = (AID) params[0];
 			AID receiver = (AID) params[2];
@@ -100,37 +96,27 @@ public class OutgoingEncodingFilter extends Filter {
 			catch (NullPointerException e) {
 				msg.setSender(sender);
 			}
-			//DEBUG
-			//System.out.println(gmsg);
 			
-			// check if the agent is on the same container or not
-			synchronized (myAgentContainer){
-				if (myAgentContainer.acquireLocalAgent(receiver)!=null){
-					// local container
-					myAgentContainer.releaseLocalAgent(receiver);
-					// message should not be encoded
-					// command is not modified
-					//DEBUG
-					//          System.out.println("[EncodingService] Local message");
-					return true;
-				} 
-				else {
-					// add necessary fields to the envelope
-					prepareEnvelope(msg, receiver, gmsg);
-					
-				}
+			// Check if the receiver is on the same container or not
+			if (myAgentContainer.acquireLocalAgent(receiver) != null){
+				myAgentContainer.releaseLocalAgent(receiver);
+				// Receiver is local --> do not encode the message
+				return true;
+			} 
+			else {
+				// add necessary fields to the envelope
+				prepareEnvelope(msg, receiver, gmsg);
+				
 			}
 			
 			// Encode the message using the specified encoding
 			try{
 				byte[] payload = encodeMessage(msg);
-				// DEBUG
-				//        System.out.println("[EncodingService] msg encoded.");
 				Envelope env =  msg.getEnvelope();
 				if (env!=null)
 					env.setPayloadLength(new Long(payload.length));
 				
-				// update the ACLMessage: some information is kept because it is 
+				// Update the ACLMessage: some information is kept because it is 
 				// required in other services
 				((GenericMessage)cmd.getParams()[1]).update(msg,env,payload);
 				

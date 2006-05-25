@@ -26,6 +26,7 @@ package jade.core.behaviours;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.Agent;
+import jade.core.NotFoundException;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -58,6 +59,7 @@ public class ThreadedBehaviourFactory {
 	private static final String RUNNING_STATE = "RUNNING";
 	private static final String CHECKING_STATE = "CHECKING";
 	private static final String BLOCKED_STATE = "BLOCKED";
+	private static final String SUSPENDED_STATE = "SUSPENDED";
 	private static final String TERMINATED_STATE = "TERMINATED";
 	private static final String INTERRUPTED_STATE = "INTERRUPTED";
 	private static final String ERROR_STATE = "ERROR";
@@ -65,45 +67,38 @@ public class ThreadedBehaviourFactory {
 	private Vector threadedBehaviours = new Vector();
 	
 	/**
-	 Wraps a normal JADE Behaviour into a "threaded behaviour" so that
-	 <code>b</code> will be executed by a dedicated Therad.
+	 * Wraps a normal JADE Behaviour <code>b</code> into a "threaded behaviour". Adding the 
+	 * wrapper behaviour to an agent results in executing <code>b</code> in a dedicated Java Therad.
 	 */
 	public Behaviour wrap(Behaviour b) {
 		return new ThreadedBehaviourWrapper(b);
 	}
 	
 	/**
-	 @return The number of active threads dedicated to the execution of 
-	 wrapped behaviours.
+	 * @return The number of active threads dedicated to the execution of 
+	 * wrapped behaviours.
 	 */
 	public int size() {
 		return threadedBehaviours.size();
 	}
 	
 	/**
-	 Interrupt all threads dedicated to the execution of 
-	 wrapped behaviours.
+	 * Interrupt all threaded behaviours managed by this ThreadedBehaviourFactory
 	 */
 	public void interrupt() {
-		synchronized (threadedBehaviours) { 
-			// Mutual exclusion with threaded behaviour addition/removal
-			ThreadedBehaviourWrapper[] tt = new ThreadedBehaviourWrapper[threadedBehaviours.size()];
-			for (int i = 0; i < tt.length; ++i) {
-				tt[i] = (ThreadedBehaviourWrapper) threadedBehaviours.elementAt(i);
-			}
-			for (int i = 0; i < tt.length; ++i) {
-				tt[i].interrupt();
-			}
+		ThreadedBehaviourWrapper[] tt = getWrappers();
+		for (int i = 0; i < tt.length; ++i) {
+			tt[i].interrupt();
 		}
 	}
 	
 	/**
-	 Blocks until all threads dedicated to the execution of threaded 
-	 behaviours complete.
-	 @param timeout The maximum timeout to wait for threaded behaviour
-	 termination.
-	 @return <code>true</code> if all threaded behaviour have actually
-	 completed, <code>false</code> otherwise.
+	 * Blocks until all threads dedicated to the execution of threaded 
+	 * behaviours complete.
+	 * @param timeout The maximum timeout to wait for threaded behaviour
+	 * termination.
+	 * @return <code>true</code> if all threaded behaviour have actually
+	 * completed, <code>false</code> otherwise.
 	 */
 	public synchronized boolean waitUntilEmpty(long timeout) {
 		long time = System.currentTimeMillis();
@@ -125,15 +120,78 @@ public class ThreadedBehaviourFactory {
 	}
 	
 	/**
+	 * Interrupt a threaded behaviour. This method should be used to abort a threaded behaviour 
+	 * instead of getThread().interrupt() because i) the latter may have no effect if called just after 
+	 * the threaded behaviour suspended itself and ii) the threaded behaviour may be suspended
+	 * and in this case its Thread is null.
+	 * @return the Thread that was interrupted if any.
+	 */
+	public Thread interrupt(Behaviour b) throws NotFoundException {
+		ThreadedBehaviourWrapper wrapper = getWrapper(b);
+		if (wrapper != null) {
+			return wrapper.interrupt();
+		}
+		else {
+			throw new NotFoundException(b.getBehaviourName());
+		}
+	}
+	
+	/**
+	 * Suspend a threaded behaviour. This method has only effect if called by the threaded behaviour
+	 * itself and has the effect of releasing its dedicated Java Thread. This can later be restored 
+	 * by means of the <code>resume()</code> method.
+	 */
+	public void suspend(Behaviour b) {
+		ThreadedBehaviourWrapper wrapper = getWrapper(b);
+		if (wrapper != null) {
+			wrapper.suspend();
+		}
+	}
+	
+	/**
+	 * Resume a threaded behaviour. Assign a new Java Thread to a threaded behaviour that is
+	 * currently suspended.
+	 */
+	public void resume(Behaviour b) {
+		ThreadedBehaviourWrapper wrapper = getWrapper(b);
+		if (wrapper != null) {
+			wrapper.resume();
+		}
+	}
+	
+	/**
 	 @return the Thread dedicated to the execution of the Behaviour <code>b</code>
 	 */
 	public Thread getThread(Behaviour b) {
-		synchronized(threadedBehaviours) {
+		ThreadedBehaviourWrapper tb = getWrapper(b);
+		if (tb != null) {
+			return tb.getThread();
+		}
+		return null;
+	}
+	
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	 * This method is declared public for debugging purpose only
+	 * @return All the wrapper behaviours currently used by this ThreadedBehaviourFactory
+	 */
+	public ThreadedBehaviourWrapper[] getWrappers() {
+		synchronized (threadedBehaviours) {
+			ThreadedBehaviourWrapper[] wrappers = new ThreadedBehaviourWrapper[threadedBehaviours.size()];
+			for (int i = 0; i < wrappers.length; ++i) {
+				wrappers[i] = (ThreadedBehaviourWrapper) threadedBehaviours.elementAt(i);
+			}
+			return wrappers;
+		}
+	}
+	
+	private ThreadedBehaviourWrapper getWrapper(Behaviour b) {
+		synchronized (threadedBehaviours) {
 			Enumeration e = threadedBehaviours.elements();
 			while (e.hasMoreElements()) {
 				ThreadedBehaviourWrapper tb = (ThreadedBehaviourWrapper) e.nextElement();
 				if (tb.getBehaviour().equals(b)) {
-					return tb.getThread();
+					return tb;
 				}
 			}
 			return null;
@@ -141,26 +199,15 @@ public class ThreadedBehaviourFactory {
 	}
 	
 	/**
-	 * @return All the wrapper behaviours currently used by theis ThreadedBehaviourFactory
-	 */
-	public Behaviour[] getWrappers() {
-		synchronized (threadedBehaviours) {
-			Behaviour[] wrappers = new Behaviour[threadedBehaviours.size()];
-			for (int i = 0; i < wrappers.length; ++i) {
-				wrappers[i] = (Behaviour) threadedBehaviours.elementAt(i);
-			}
-			return wrappers;
-		}
-	}
-	
-	/**
-	 Inner class ThreadedBehaviourWrapper
+	 * Inner class ThreadedBehaviourWrapper
+	 * This class is declared public for debugging purpose only
 	 */
 	public class ThreadedBehaviourWrapper extends Behaviour implements Runnable {
 		private Thread myThread;
 		private Behaviour myBehaviour;
 		private volatile boolean restarted = false;
 		private boolean finished = false;
+		private volatile boolean suspended = false;
 		private int exitValue;
 		// Only for debugging purpose
 		private volatile String threadState = CREATED_STATE;
@@ -177,10 +224,14 @@ public class ThreadedBehaviourFactory {
 			myBehaviour.setAgent(myAgent);
 			myBehaviour.parent.setAgent(myAgent);
 			
+			start();
+		}
+		
+		private void start() {
 			// Start the dedicated thread
 			myThread = new Thread(this);
 			myThread.setName(myAgent.getLocalName()+"#"+myBehaviour.getBehaviourName());
-			myThread.start();
+			myThread.start();			
 		}
 		
 		public void action() {
@@ -196,7 +247,7 @@ public class ThreadedBehaviourFactory {
 		public int onEnd() {
 			// This check only makes sense if the ThreadedBehaviourWrapper is a child
 			// of a SerialBehaviour. In this case in fact the ThreadedBehaviourWrapper 
-			// terminates, but the parent remains blocked.
+			// terminates, but the parent must remain blocked.
 			if (!myBehaviour.isRunnable()) {
 				block();
 			}
@@ -226,6 +277,7 @@ public class ThreadedBehaviourFactory {
 		public void reset() {
 			restarted = false;
 			finished = false;
+			suspended = false;
 			myBehaviour.reset();
 			super.reset();
 		}
@@ -261,12 +313,28 @@ public class ThreadedBehaviourFactory {
 			notifyAll();
 		}
 		
+		private synchronized void suspend() {
+			if (Thread.currentThread() == myThread) {
+				suspended = true;
+			}
+		}
+		
+		private synchronized void resume() {
+			if (suspended) {
+				suspended = false;
+				if (myThread == null) {
+					start();
+				}
+			}
+		}
+		
 		public void run() {
+			if (threadState == CREATED_STATE) {
+				threadedBehaviours.addElement(this);
+			}
 			threadState = RUNNING_STATE;
 			try {
-				threadedBehaviours.addElement(this);
 				while (true) {
-					
 					restarted = false;
 					myBehaviour.actionWrapper();
 					
@@ -287,6 +355,16 @@ public class ThreadedBehaviourFactory {
 							break;
 						}
 						else {
+							// If we were interrupted, avoid doing anything else and terminate
+							if (Thread.currentThread().isInterrupted()) {
+								throw new InterruptedException();
+							}
+							// If the Behaviour suspended itself during the action() method --> Release the embedded Thread
+							if (suspended) {
+								threadState = SUSPENDED_STATE;
+								myThread = null;
+								return;
+							}
 							if (!myBehaviour.isRunnable()) {
 								threadState = BLOCKED_STATE;
 								wait();
@@ -295,10 +373,6 @@ public class ThreadedBehaviourFactory {
 						}
 					}
 					threadState = RUNNING_STATE;
-					
-					if (Thread.currentThread().isInterrupted()) {
-						throw new InterruptedException();
-					}
 				}
 				exitValue = myBehaviour.onEnd();
 				threadState = TERMINATED_STATE;
@@ -318,8 +392,23 @@ public class ThreadedBehaviourFactory {
 			terminate();
 		}
 		
-		private void interrupt() {
-			myThread.interrupt();
+		/**
+		 * Interrupt a threaded behaviour. This method should always be used instead of 
+		 * getThread().interrupt() because the latter may have no effect if called just after 
+		 * the threaded behaviour suspended itself
+		 */
+		private synchronized Thread interrupt() {
+			if (myThread != null) {
+				myThread.interrupt();
+				return myThread;
+			}
+			else {
+				if (threadState == SUSPENDED_STATE) {
+					threadState = INTERRUPTED_STATE;
+					terminate();
+				}
+				return null;
+			}
 		}
 		
 		private void terminate() {
@@ -343,6 +432,8 @@ public class ThreadedBehaviourFactory {
 			return threadState;
 		}
 	} // END of inner class ThreadedBehaviourWrapper
+	//#APIDOC_EXCLUDE_END
+	
 	
 	/**
 	 Inner class DummyParentBehaviour.
