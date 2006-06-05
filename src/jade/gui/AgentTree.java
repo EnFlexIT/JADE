@@ -147,6 +147,9 @@ public class AgentTree extends JPanel {
 		public abstract void setType(String type);
 		public abstract String getToolTipText();
 
+		public String toString() {
+			return (getType() != null ? getType()+"-"+name : name);
+		}
 	} // END of inner class Node
 
 	
@@ -181,7 +184,6 @@ public class AgentTree extends JPanel {
 		public String getToolTipText() {
 			return ("Local Agent");
 		}
-
 	}  // END of inner class AgentNode
 
 
