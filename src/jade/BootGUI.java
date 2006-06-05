@@ -391,7 +391,7 @@ public class BootGUI extends JDialog {
                                         box.getSelectedItem().toString());
                     }
 
-                    if (type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE)) {
+                    else if (type.equalsIgnoreCase(PropertyType.BOOLEAN_TYPE)) {
 
                         //JCheckBox
                         JCheckBox box =
