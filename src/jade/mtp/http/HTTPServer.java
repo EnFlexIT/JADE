@@ -51,17 +51,16 @@ import jade.mtp.MTPException;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.util.Logger;
 
+//#DOTNET_EXCLUDE_BEGIN
+import javax.xml.parsers.SAXParserFactory;
+//#DOTNET_EXCLUDE_END
+
 
 public class HTTPServer extends Thread {
 	// Codec class
 	
-	//#DOTNET_EXCLUDE_BEGIN
 	//static String CODEC = "org.apache.xerces.parsers.SAXParser";
 	static String CODEC   = "org.apache.crimson.parser.XMLReaderImpl";
-	//#DOTNET_EXCLUDE_END
-	/*#DOTNET_INCLUDE_BEGIN
-	 static String CODEC   = ""; // this constant is not used by .NET
-	 #DOTNET_INCLUDE_END*/
 	
 	private int port;
 	private InChannel.Dispatcher dispatcher;
@@ -81,16 +80,18 @@ public class HTTPServer extends Thread {
 	boolean active = true;
 	
 	/** Constructor: Store the information*/
-	public HTTPServer(int p, InChannel.Dispatcher d, int m, String s, int t, boolean changePortIfBusy) 
-	throws IOException { 
+	public HTTPServer(int p, InChannel.Dispatcher d, int m, String s, int t, boolean changePortIfBusy) throws IOException { 
 		port       = p;
 		dispatcher = d;
 		maxKA      = m;
 		threads    = new Vector(maxKA);
-		if (s != null) {
-			CODEC = s;
-			logger.log(Logger.INFO, "HTTP-MTP Using XML parser "+CODEC);
+		//#DOTNET_EXCLUDE_BEGIN
+		CODEC = getSaxParserName(s);
+		if (CODEC == null) {
+			throw new IOException("NO XML Parser specified");
 		}
+		//#DOTNET_EXCLUDE_END
+		logger.log(Logger.INFO, "HTTP-MTP Using XML parser "+CODEC);
 		timeout = t;
 		try {
 			//#PJAVA_EXCLUDE_BEGIN 
@@ -135,6 +136,31 @@ public class HTTPServer extends Thread {
 			// Does nothing as we asked to close
 		}
 	}
+	
+	//#DOTNET_EXCLUDE_BEGIN
+	private String getSaxParserName(String s) {
+		if (s != null) {
+			// SAXParser specified by means of the jade_mtp_http_parser JADE option
+			return s;
+		}
+		else {
+			String saxFactory = System.getProperty( "org.xml.sax.driver" );
+			if( saxFactory != null ) {
+				// SAXParser specified by means of the org.xml.sax.driver Java option
+				return saxFactory;
+			}
+			else {
+				// Use the JVM default SAX Parser
+				try {
+					return SAXParserFactory.newInstance().newSAXParser().getXMLReader().getClass().getName();
+				}
+				catch (Throwable t) {
+				}
+			}
+		}	
+		return null;
+	}
+	//#DOTNET_EXCLUDE_END
 	
 	int getLocalPort() {
 		return server.getLocalPort();
