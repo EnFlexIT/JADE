@@ -14,13 +14,29 @@ import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 
 /**
- * This class is the entry point for using the functionalities of
- * a simple gateway useful to issue commands to a JADE Agent.
- * The class is responsible for creating, and keeping alive, a JADE Container
- * and a JADE Agent.
- * <p> The package must be used as follows:
+ * This class provides a simple yet powerful gateway between some non-JADE code and a JADE based 
+ * multi agent system. It is particularly suited to be used inside a Servlet or a JSP.
+ * The class maintains an internal JADE agent (of class <code>GatewayAgent</code>
+ * that acts as entry point in the JADE based system.
+ * The activation/termination of this agent (and its underlying container) are completely managed
+ * by the JadeGateway class and developers do not need to care about them.
+ * The suggested way of using the JadeGateway class is creating proper behaviours that perform the commands 
+ * that the external system must issue to the JADE based system and pass them as parameters to the execute() 
+ * method. When the execute() method returns the internal agent of the JadeGateway as completely executed
+ * the behaviour and outputs (if any) can be retrieved from the behaviour object using ad hoc methods 
+ * as exemplified below.
+ <code>
+ DoSomeActionBehaviour b = new DoSomeActionBehaviour(....);
+ JadeGateway.execute(b);
+ // At this point b has been completely executed --> we can get results
+ result = b.getResult();
+ </code>
+ * <br>
+ * When using the JadeGateway class as described above <code>null</code> should be
+ * passed as first parameter to the <code>init()</code> method. 
+ * <p> Alternatively programmers can
  * <ul>
- * <li> create an application-specific class that extends <code>GatewayAgent</code>, that implements its method <code>processCommand</code>
+ * <li> create an application-specific class that extends <code>GatewayAgent</code>, that redefine its method <code>processCommand</code>
  * and that is the agent responsible for processing all command-requests
  * <li> initialize this JadeGateway by calling its method <code>init</code> with the
  * name of the class of the application-specific agent 
@@ -30,10 +46,6 @@ import jade.wrapper.StaleProxyException;
  * The method <code>execute</code> will return only after the method <code>GatewayAgent.releaseCommand(command)</code> has been called
  * by your application-specific agent.
  * </ul>
- * An alternative way of using this functionality is to extend the GatewayBehaviour instead
- * of GatewayAgent; notice that that allows re-use at the behaviour level rather than at
- * the agent level: it is really an implementation choice left to the programmer and both
- * choices are equivalently good.
  * <b>NOT available in MIDP</b>
  * @author Fabio Bellifemine, Telecom Italia LAB
  * @version $Date$ $Revision$
@@ -75,12 +87,12 @@ public class JadeGateway {
 	}
 	
 	/**
-	 * execute a command specifying a timeout. 
+	 * Execute a command specifying a timeout. 
 	 * This method first check if the executor Agent is alive (if not it
 	 * creates container and agent), then it forwards the execution
 	 * request to the agent, finally it blocks waiting until the command
-	 * has been executed (i.e. the method <code>releaseCommand</code> 
-	 * is called by the executor agent)
+	 * has been executed. In case the command is a behaviour this method blocks 
+	 * until the behaviour has been completely executed. 
 	 * @throws InterruptedException if the timeout expires or the Thread
 	 * executing this method is interrupted.
 	 * @throws StaleProxyException if the method was not able to execute the Command
@@ -110,9 +122,10 @@ public class JadeGateway {
 	
 	/**
 	 * This method checks if both the container, and the agent, are up and running.
-	 * If not, then the method is responsible for renewing myContainer
+	 * If not, then the method is responsible for renewing myContainer.
+	 * Normally programmers do not need to invoke this method explicitly.
 	 **/
-	private final static void checkJADE() throws StaleProxyException,ControllerException {
+	public final static void checkJADE() throws StaleProxyException,ControllerException {
 		if (myContainer == null) {
 			myContainer = Runtime.instance().createAgentContainer(profile); 
 			if (myContainer == null) {
@@ -139,7 +152,8 @@ public class JadeGateway {
 	
 	/**
 	 * Initialize this gateway by passing the proper configuration parameters
-	 * @param agentClassName is the fully-qualified class name of the agent to be executed 
+	 * @param agentClassName is the fully-qualified class name of the JadeGateway internal agent. If null is passed
+	 * the default class will be used. 
 	 * @param jadeProfile the properties that contain all parameters for running JADE (see jade.core.Profile).
 	 * Typically these properties will have to be read from a JADE configuration file.
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
