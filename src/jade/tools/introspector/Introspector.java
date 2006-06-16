@@ -332,6 +332,7 @@ public class Introspector extends ToolAgent {
 	private void requestDebugOn(AID name) {
 		try {
 			ACLMessage msg = getRequest();
+			msg.setOntology(JADEManagementOntology.NAME);
 			DebugOn dbgOn = new DebugOn();
 			dbgOn.setDebugger(getAID());
 			dbgOn.addDebuggedAgents(name);
@@ -365,6 +366,7 @@ public class Introspector extends ToolAgent {
 				proceed(name);
 				
 				ACLMessage msg = getRequest();
+				msg.setOntology(JADEManagementOntology.NAME);
 				DebugOff dbgOff = new DebugOff();
 				dbgOff.setDebugger(getAID());
 				dbgOff.addDebuggedAgents(name);
@@ -392,6 +394,7 @@ public class Introspector extends ToolAgent {
 		// Stop debugging all the agents
 		if(!windowMap.isEmpty()) {
 			ACLMessage msg = getRequest();
+			msg.setOntology(JADEManagementOntology.NAME);
 			DebugOff dbgOff = new DebugOff();
 			dbgOff.setDebugger(getAID());
 			Iterator it = windowMap.keySet().iterator();
@@ -649,6 +652,7 @@ public class Introspector extends ToolAgent {
 				proceed(amsId);
 				
 				ACLMessage msg = getRequest();
+				msg.setOntology(JADEManagementOntology.NAME);
 				DebugOff dbgOff = new DebugOff();
 				dbgOff.setDebugger(getAID());
 				dbgOff.addDebuggedAgents(amsId);
