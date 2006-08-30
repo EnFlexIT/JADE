@@ -472,16 +472,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// Behaviour dealing with FIPA management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
-		mt1 = MessageTemplate.and(mt1, MessageTemplate.not(MessageTemplate.MatchProtocol("iterated-fipa-request")));
+		mt1 = MessageTemplate.and(mt1, MessageTemplate.not(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.ITERATED_FIPA_REQUEST)));
 		fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
 		addBehaviour(fipaRequestResponder);
 		
 		// Behaviour dealing with iterated searches according to the iterated-fipa-request protocol
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
-		// FIXME: Use a proper constant
-		mt1 = MessageTemplate.and(mt1, MessageTemplate.MatchProtocol("iterated-fipa-request"));
+		mt1 = MessageTemplate.and(mt1, MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.ITERATED_FIPA_REQUEST));
 		iteratedSearchResponder = new DFIteratedSearchManagementBehaviour(this, mt1);
-		addBehaviour(fipaRequestResponder);
+		addBehaviour(iteratedSearchResponder);
 		
 		// Behaviour dealing with JADE management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(JADEManagementOntology.getInstance().getName()));

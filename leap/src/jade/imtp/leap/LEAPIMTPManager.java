@@ -211,7 +211,7 @@ public class LEAPIMTPManager implements IMTPManager {
 			catch (IMTPException imtpe) {
 				Throwable t = imtpe.getNested();
 				if ((t != null) && (t instanceof UnreachableException)) {
-					// The master main container does not exists. Become the leader
+					// The master main container does not exist. Become the leader
 					logger.log(Logger.INFO,"No master main container found at "+masterPMAddr+". Take the leadership");
 					masterPMAddr = null;
 					theProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, "false");

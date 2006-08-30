@@ -89,6 +89,12 @@ public abstract class Profile {
 	 */
 	public static final String LOCAL_SERVICE_MANAGER = "backupmain";
 	
+	/**
+	 This constant is the name of the property whose Boolean value
+	 tells whether startup options should be dumped. Default is false
+	 */
+	public static final String DUMP_OPTIONS = "dump-options";
+	
 	//#APIDOC_EXCLUDE_BEGIN
 	public static final String MASTER_NODE_NAME = "master-node-name";
 	public static final String BE_BASE_NAME = "be-base-name";

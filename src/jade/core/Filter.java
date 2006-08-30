@@ -76,7 +76,7 @@ public abstract class Filter {
 	
 	// The preferred position in the filter chain. Package scoped since
 	// it can be directly accessed by the CommandProcessor
-	int preferredPosition = LAST;
+	int preferredPosition = LAST - 10;
 	
 	/**
 	 Receive a command object for processing.

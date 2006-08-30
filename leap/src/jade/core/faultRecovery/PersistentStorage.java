@@ -46,9 +46,11 @@ public interface PersistentStorage {
 	
 	void storeNode(String name, boolean isChild, byte[] nn) throws Exception;
 	void removeNode(String name) throws Exception;
+	void setUnreachable(String name) throws Exception;
+	void resetUnreachable(String name) throws Exception;
 	Map getAllNodes(boolean children) throws Exception;
 
-	void storeTool(String name, byte[] tt) throws Exception;
-	void removeTool(String name) throws Exception;
-	Map getAllTools() throws Exception;
+	void storeAgent(String name, byte[] aa) throws Exception;
+	void removeAgent(String name) throws Exception;
+	Map getAllAgents() throws Exception;
 }

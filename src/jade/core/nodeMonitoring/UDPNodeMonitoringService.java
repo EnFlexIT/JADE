@@ -109,6 +109,19 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	 */
 	public static final int DEFAULT_UNREACHABLE_LIMIT = 10000;
 
+	/**
+	   Vertical command issued on the Main Container 
+	   when a ping packet is received from an unknown node
+	 */
+	public static final String ORPHAN_NODE = "Orphan-Node";
+	
+	private static final String[] OWNED_COMMANDS = new String[] {
+		NODE_UNREACHABLE,
+		NODE_REACHABLE,
+		ORPHAN_NODE
+	};
+	
+	
 	private UDPMonitorServer myServer;
 	private Hashtable myClients = new Hashtable(2);
 	
@@ -121,6 +134,10 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		return NAME;
 	}
 
+	public String[] getOwnedCommands() {
+		return OWNED_COMMANDS;
+	}
+	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);	
 		myServiceManager = ac.getServiceManager();
@@ -134,7 +151,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			int unreachLimit = getPosIntValue(p, UNREACHABLE_LIMIT, DEFAULT_UNREACHABLE_LIMIT);
 			
 			try {
-				myServer = new UDPMonitorServer(host, port, pingDelay, pingDelayLimit, unreachLimit);
+				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit);
 				myServer.start();
 				myLogger.log(Logger.INFO, "UDPMonitorServer successfully started. Port = " + port + " pingdelaylimit = " + pingDelayLimit + " unreachablelimit = " + unreachLimit);
 			} catch (Exception e) {
@@ -277,6 +294,18 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 				myLogger.log(Logger.INFO, "UDP Monitor Client for "+label+" stopped.");
 				myClients.remove(label);
 			}
+		}
+	}
+	
+	void handleOrphanNode(String nodeID) {
+		try {
+			GenericCommand cmd = new GenericCommand(ORPHAN_NODE, NAME, null);
+			cmd.addParam(nodeID);
+			submit(cmd);
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
 		}
 	}
 	

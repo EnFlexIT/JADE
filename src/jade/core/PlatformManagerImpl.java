@@ -74,8 +74,6 @@ public class PlatformManagerImpl implements PlatformManager {
 
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
-	private Profile myProfile;
-
 	/**
 	   Inner class ServiceEntry (package scoped for debugging purpose)
 	 */
@@ -196,7 +194,6 @@ public class PlatformManagerImpl implements PlatformManager {
 		myCommandProcessor = p.getCommandProcessor();
 		myIMTPManager = p.getIMTPManager();
 		myMain = new MainContainerImpl(p, this);
-		myProfile = p;
 
 		nodes = new HashMap();
 		services = new HashMap();
@@ -886,9 +883,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		NodeEventListener listener = new NodeEventListener() {
 
 			public void nodeAdded(Node n) {
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, "--- Node <" + n.getName() + "> ALIVE ---");
-				}
+				myLogger.log(Logger.INFO, "--- Node <" + n.getName() + "> ALIVE ---");
 			}
 
 			public void nodeRemoved(Node n) {
@@ -896,15 +891,11 @@ public class PlatformManagerImpl implements PlatformManager {
 			}
 
 			public void nodeUnreachable(Node n) {
-				if (myLogger.isLoggable(Logger.WARNING)) {
-					myLogger.log(Logger.WARNING, "--- Node <" + n.getName() + "> UNREACHABLE ---");
-				}
+				myLogger.log(Logger.WARNING, "--- Node <" + n.getName() + "> UNREACHABLE ---");
 			}
 
 			public void nodeReachable(Node n) {
-				if (myLogger.isLoggable(Logger.INFO)) {
-					myLogger.log(Logger.INFO, "--- Node <" + n.getName() + "> REACHABLE ---");
-				}
+				myLogger.log(Logger.INFO, "--- Node <" + n.getName() + "> REACHABLE ---");
 			}
 
 		};

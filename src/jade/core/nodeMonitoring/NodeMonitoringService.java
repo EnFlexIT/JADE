@@ -38,12 +38,32 @@ import jade.core.NodeFailureMonitor;
    mechanisms such as the UDPNodeMonitoringService
  */
 public abstract class NodeMonitoringService extends BaseService {
+	/**
+	   Vertical command issued on the Main Container 
+	   when a peripheral node becomes unreachable
+	 */
+	public static final String NODE_UNREACHABLE = "Node-Unreachable";
+	/**
+	   Vertical command issued on the Main Container 
+	   when a peripheral node returns reachable after being unreachable for a while
+	 */
+	public static final String NODE_REACHABLE = "Node-Unreachable";
+	
+	private static final String[] OWNED_COMMANDS = new String[] {
+		NODE_UNREACHABLE,
+		NODE_REACHABLE
+	};
+	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
 		
 		if (ac.getMain() != null) {
 			NodeFailureMonitor.init(this);
 		}
+	}
+	
+	public String[] getOwnedCommands() {
+		return OWNED_COMMANDS;
 	}
 	
 	public abstract NodeFailureMonitor getFailureMonitor(); 	

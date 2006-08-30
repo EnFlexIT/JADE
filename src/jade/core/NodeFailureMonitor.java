@@ -110,134 +110,163 @@ import jade.core.nodeMonitoring.NodeMonitoringService;
  * @see jade.core.NodeEventListener
  */
 public abstract class NodeFailureMonitor {
-
+	
 	private static NodeMonitoringService theMonitoringService;
 	
-  protected Node target;
-  protected NodeEventListener listener;
-  protected Map childNodes = new HashMap();
-  
-  /**
-   * Start the monitoring
-   * @param n target node to monitor
-   * @param nel listener to inform about new events
-   */
-  public void  start(Node n, NodeEventListener nel) {
-    target = n;
-    listener = nel;
-  }
-  	
-  /**
-   * Stop the monitoring
-   */
-  public abstract void stop();
-  
-  /**
-   * Add a child node for monitoring. 
-   * @param n child node
-   */
-  public synchronized void addChild(Node n) {
-    childNodes.put(n.getName(), n);
+	protected Node target;
+	protected NodeEventListener listener;
+	protected Map childNodes = new HashMap();
+	
+	/**
+	 * Start the monitoring
+	 * @param n target node to monitor
+	 * @param nel listener to inform about new events
+	 */
+	public void  start(Node n, NodeEventListener nel) {
+		target = n;
+		listener = nel;
+	}
+	
+	/**
+	 * Stop the monitoring
+	 */
+	public abstract void stop();
+	
+	/**
+	 * Add a child node for monitoring. 
+	 * @param n child node
+	 */
+	public synchronized void addChild(Node n) {
+		childNodes.put(n.getName(), n);
 		System.out.println("FailureMonitor child added. "+childNodes.size());
-  }
-  
-  /**
-   * Remove a child node from monitoring
-   * @param n child node
-   */
-  public synchronized void removeChild(Node n) {
-    childNodes.remove(n.getName());
+	}
+	
+	/**
+	 * Remove a child node from monitoring
+	 * @param n child node
+	 */
+	public synchronized void removeChild(Node n) {
+		childNodes.remove(n.getName());
 		System.out.println("FailureMonitor child removed. "+childNodes.size());
-  }
-  
-  /**
-   * Return the monitored target node
-   */
-  public Node getNode() {
-    return target;
-  }
-  
-  /**
-   * Fire a NODE ADDED event
-   */
-  protected synchronized void fireNodeAdded() {
-    listener.nodeAdded(target);
-    Iterator iter = childNodes.values().iterator();
-    while (iter.hasNext()) {
-      Node n = (Node) iter.next();
-      listener.nodeAdded(n);
-    }  
-  }
-  
-  /**
-   * Fire a NODE REMOVED event
-   */
-  protected synchronized void fireNodeRemoved() {
-    listener.nodeRemoved(target);
-    Iterator iter = childNodes.values().iterator();
-    while (iter.hasNext()) {
-      Node n = (Node) iter.next();
-      listener.nodeRemoved(n);
-    }
-  }
-  
-  /**
-   * Fire a NODE REACHABLE event
-   */
-  protected synchronized void fireNodeReachable() {
-    listener.nodeReachable(target);
-    Iterator iter = childNodes.values().iterator();
-    while (iter.hasNext()) {
-      Node n = (Node) iter.next();
-      listener.nodeReachable(n);
-    }  
-  }
-  
-  /**
-   * Fire a NODE UNREACHABLE event
-   */
-  protected synchronized void fireNodeUnreachable() {
-    listener.nodeUnreachable(target);
-    Iterator iter = childNodes.values().iterator();
-    while (iter.hasNext()) {
-      Node n = (Node) iter.next();
-      listener.nodeUnreachable(n);
-    }  
-  }
- 
-   
-  
-  /////////////////////////////////////////////////////
-  // Static methods
-  /////////////////////////////////////////////////////
-  
-  
-  /**
-     Factory method to create NodeFailureMonitor objects
-     @return a new instance of a <code>NodeFailureMonitor</code>.
-   */
-  public static NodeFailureMonitor getFailureMonitor() {
-  	NodeFailureMonitor nfm = null;
-  	if (theMonitoringService != null) {
-  		nfm = theMonitoringService.getFailureMonitor();
-  	}
-  	
-  	if (nfm == null) {
-  		// Use the default NodeFailureMonitor
-  		try {
-  			nfm = (NodeFailureMonitor) Class.forName("jade.core.nodeMonitoring.BlockingNodeFailureMonitor").newInstance();
-  		}
-  		catch (Throwable t) {
-  			// Should never happen
-  			t.printStackTrace();
-  		}
-  	}
-  	
-  	return nfm;
-  }
-  
-  
-  public static void init(NodeMonitoringService nms) {
-  	theMonitoringService = nms;
-  }  
+	}
+	
+	/**
+	 * Return the monitored target node
+	 */
+	public Node getNode() {
+		return target;
+	}
+	
+	/**
+	 * Fire a NODE ADDED event
+	 */
+	protected synchronized void fireNodeAdded() {
+		listener.nodeAdded(target);
+		Iterator iter = childNodes.values().iterator();
+		while (iter.hasNext()) {
+			Node n = (Node) iter.next();
+			listener.nodeAdded(n);
+		}  
+	}
+	
+	/**
+	 * Fire a NODE REMOVED event
+	 */
+	protected synchronized void fireNodeRemoved() {
+		listener.nodeRemoved(target);
+		Iterator iter = childNodes.values().iterator();
+		while (iter.hasNext()) {
+			Node n = (Node) iter.next();
+			listener.nodeRemoved(n);
+		}
+	}
+	
+	/**
+	 * Fire a NODE REACHABLE event
+	 */
+	protected synchronized void fireNodeReachable() {
+		listener.nodeReachable(target);
+		issueNodeReachable(target);
+		Iterator iter = childNodes.values().iterator();
+		while (iter.hasNext()) {
+			Node n = (Node) iter.next();
+			listener.nodeReachable(n);
+			issueNodeReachable(n);
+		} 
+	}
+	
+	/**
+	 * Fire a NODE UNREACHABLE event
+	 */
+	protected synchronized void fireNodeUnreachable() {
+		listener.nodeUnreachable(target);
+		issueNodeUnreachable(target);
+		Iterator iter = childNodes.values().iterator();
+		while (iter.hasNext()) {
+			Node n = (Node) iter.next();
+			listener.nodeUnreachable(n);
+			issueNodeUnreachable(target);
+		}  
+	}
+	
+	private void issueNodeReachable(Node n) {
+		if (theMonitoringService != null) {
+			GenericCommand cmd = new GenericCommand(NodeMonitoringService.NODE_REACHABLE, theMonitoringService.getName(), null);
+			cmd.addParam(n);
+			try {
+				theMonitoringService.submit(cmd);
+			}
+			catch (ServiceException se) {
+				// Should never happen
+				se.printStackTrace();
+			}
+		}		
+	}
+	
+	private void issueNodeUnreachable(Node n) {
+		if (theMonitoringService != null) {
+			GenericCommand cmd = new GenericCommand(NodeMonitoringService.NODE_UNREACHABLE, theMonitoringService.getName(), null);
+			cmd.addParam(n);
+			try {
+				theMonitoringService.submit(cmd);
+			}
+			catch (ServiceException se) {
+				// Should never happen
+				se.printStackTrace();
+			}
+		}		
+	}
+	
+	
+	/////////////////////////////////////////////////////
+	// Static methods
+	/////////////////////////////////////////////////////	
+	/**
+	 Factory method to create NodeFailureMonitor objects
+	 @return a new instance of a <code>NodeFailureMonitor</code>.
+	 */
+	public static NodeFailureMonitor getFailureMonitor() {
+		NodeFailureMonitor nfm = null;
+		if (theMonitoringService != null) {
+			nfm = theMonitoringService.getFailureMonitor();
+		}
+		
+		if (nfm == null) {
+			// Use the default NodeFailureMonitor
+			try {
+				nfm = (NodeFailureMonitor) Class.forName("jade.core.nodeMonitoring.BlockingNodeFailureMonitor").newInstance();
+			}
+			catch (Throwable t) {
+				// Should never happen
+				t.printStackTrace();
+			}
+		}
+		
+		return nfm;
+	}
+	
+	
+	public static void init(NodeMonitoringService nms) {
+		theMonitoringService = nms;
+	}  
 }

@@ -78,9 +78,6 @@ public class rma extends ToolAgent {
 	
 	private APDescription myPlatformProfile;
 	
-	//logging
-	private static Logger logger;
-	
 	// Sends requests to the AMS
 	private class AMSClientBehaviour extends SimpleAchieveREInitiator {
 		

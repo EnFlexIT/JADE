@@ -208,7 +208,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 		// create the command filters related to the encoding of ACL messages
 		encOutFilter = new OutgoingEncodingFilter(messageEncodings, myContainer, this);
-		encInFilter = new IncomingEncodingFilter(messageEncodings);
+		encInFilter = new IncomingEncodingFilter(messageEncodings, this);
 		
 		myMessageManager = MessageManager.instance(p);
 	}
@@ -245,7 +245,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					Class c = Class.forName(className);
 					ACLCodec codec = (ACLCodec)c.newInstance();
 					messageEncodings.put(codec.getName().toLowerCase(), codec);
-					//System.out.println("Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
 					if (myLogger.isLoggable(Logger.CONFIG))
 						myLogger.log(Logger.CONFIG,"Installed "+ codec.getName()+ " ACLCodec implemented by " + className + "\n");
 					
@@ -464,6 +463,28 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		return OWNED_COMMANDS;
 	}
 	
+	void notifyLocalMTPs() {
+		Iterator it = routes.getLocalMTPs();
+		while (it.hasNext()) {
+			RoutingTable.MTPInfo info = (RoutingTable.MTPInfo) it.next();
+			MTPDescriptor mtp = info.getDescriptor();
+			ContainerID cid = myContainer.getID();
+			
+			try {
+				MessagingSlice mainSlice = (MessagingSlice)getSlice(MAIN_SLICE);
+				try {
+					mainSlice.newMTP(mtp, cid);
+				}
+				catch(IMTPException imtpe) {
+					mainSlice = (MessagingSlice)getFreshSlice(MAIN_SLICE);
+					mainSlice.newMTP(mtp, cid);
+				}
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "Error notifying local MTP "+mtp.getName()+" to Main Container.", e);
+			}
+		}
+	}
 	
 	/**
 	 * Inner class CommandSourceSink
@@ -526,7 +547,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			GenericMessage msg = (GenericMessage)params[1];
 			AID dest = (AID)params[2];
 			// Since message delivery is asynchronous we use the GenericMessage
-			// as a temporary holder for the sender principal and credentials to the
+			// as a temporary holder for the sender principal and credentials
 			msg.setSenderPrincipal(cmd.getPrincipal());
 			msg.setSenderCredentials(cmd.getCredentials());
 			checkTracing(msg);
@@ -853,8 +874,8 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					TransportAddress ta = proto.strToAddr(address);
 					proto.activate(dispatcher, ta, myProfile);
 				}
-				routes.addLocalMTP(address, proto);
 				MTPDescriptor result = new MTPDescriptor(proto.getName(), className, new String[] {address}, proto.getSupportedProtocols());
+				routes.addLocalMTP(address, proto, result);
 				
 				String[] pp = result.getSupportedProtocols();
 				for (int i = 0; i < pp.length; ++i) {
@@ -902,11 +923,13 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		
 		private void uninstallMTP(String address) throws IMTPException, ServiceException, NotFoundException, MTPException {
 			
-			MTP proto = routes.removeLocalMTP(address);
-			if(proto != null) {
+			RoutingTable.MTPInfo info = routes.removeLocalMTP(address);
+			if(info != null) {
+				MTP proto = info.getMTP();
 				TransportAddress ta = proto.strToAddr(address);
 				proto.deactivate(ta);
-				MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
+				MTPDescriptor desc = info.getDescriptor();
+				//MTPDescriptor desc = new MTPDescriptor(proto.getName(), proto.getClass().getName(), new String[] {address}, proto.getSupportedProtocols());
 				
 				String[] addresses = desc.getAddresses();
 				for(int i = 0; i < addresses.length; i++) {
@@ -916,8 +939,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				GenericCommand gCmd = new GenericCommand(MessagingSlice.DEAD_MTP, MessagingSlice.NAME, null);
 				gCmd.addParam(desc);
 				gCmd.addParam(myContainer.getID());
-				submit(gCmd);
-				
+				submit(gCmd);				
 			}
 			else {
 				throw new MTPException("No such address was found on this container: " + address);
@@ -1130,19 +1152,19 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		private void addRoute(MTPDescriptor mtp, String sliceName) throws IMTPException, ServiceException {
 			// Be sure the slice is fresh --> bypass the service cache
 			MessagingSlice slice = (MessagingSlice)getFreshSlice(sliceName);
-			routes.addRemoteMTP(mtp, sliceName, slice);
-			
-			String[] pp = mtp.getSupportedProtocols();
-			for (int i = 0; i < pp.length; ++i) {
-				// log("Added Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
-				if (myLogger.isLoggable(Logger.CONFIG))
-					myLogger.log(Logger.CONFIG,"Added Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
+			if (routes.addRemoteMTP(mtp, sliceName, slice)) {
+				// This is actually a new MTP --> Add the new address to all local agents.
+				// NOTE that a notification about a remote MTP can be received more than once in case of fault and successive recovery of the Main Container
+				String[] pp = mtp.getSupportedProtocols();
+				for (int i = 0; i < pp.length; ++i) {
+					if (myLogger.isLoggable(Logger.CONFIG))
+						myLogger.log(Logger.CONFIG,"Added Route-Via-Slice("+sliceName+") for protocol "+pp[i]);			
+				}
 				
-			}
-			
-			String[] addresses = mtp.getAddresses();
-			for(int i = 0; i < addresses.length; i++) {
-				myContainer.addAddressToLocalAgents(addresses[i]);
+				String[] addresses = mtp.getAddresses();
+				for(int i = 0; i < addresses.length; i++) {
+					myContainer.addAddressToLocalAgents(addresses[i]);
+				}
 			}
 		}
 		
@@ -1153,7 +1175,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			
 			String[] pp = mtp.getSupportedProtocols();
 			for (int i = 0; i < pp.length; ++i) {
-				//log("Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i], 1);
 				if (myLogger.isLoggable(Logger.CONFIG))
 					myLogger.log(Logger.CONFIG,"Removed Route-Via-Slice("+sliceName+") for protocol "+pp[i]);
 				
@@ -1201,18 +1222,30 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		} 
 		catch (NotFoundException nfe) {
 			// The receiver does not exist --> Send a FAILURE message
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver does not exist.", nfe);
+			}
 			notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
 		} 
 		catch (IMTPException imtpe) {
 			// Can't reach the destination container --> Send a FAILURE message
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver unreachable.", imtpe);
+			}
 			notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + imtpe.getMessage()));
 		} 
 		catch (ServiceException se) {
 			// Service error during delivery --> Send a FAILURE message
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Service error delivering message.", se);
+			}
 			notifyFailureToSender(msg, receiverID, new InternalError("Service error: " + se.getMessage()));
 		} 
 		catch (JADESecurityException jse) {
 			// Delivery not authorized--> Send a FAILURE message
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Not authorized.", jse);
+			}
 			notifyFailureToSender(msg, receiverID, new InternalError("Not authorized: " + jse.getMessage()));
 		}
 	}
@@ -1247,11 +1280,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					return;
 				} catch (IMTPException imtpe) {
 					if (msg.getTraceID() != null) {
-						myLogger.log(Logger.FINE, msg.getTraceID() + " - Cached slice for receiver " + receiverID.getName() + " unreachable.");
+						myLogger.log(Logger.INFO, msg.getTraceID() + " - Cached slice for receiver " + receiverID.getName() + " unreachable.");
 					}
 				} catch (NotFoundException nfe) {
 					if (msg.getTraceID() != null) {
-						myLogger.log(Logger.FINE, msg.getTraceID() + " - Receiver " + receiverID.getName() + " not found on cached slice container.");
+						myLogger.log(Logger.INFO, msg.getTraceID() + " - Receiver " + receiverID.getName() + " not found on cached slice container.");
 					}
 				}
 				// Eliminate stale cache entry
@@ -1288,7 +1321,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	private MessagingSlice oneShotDeliver(ContainerID cid, GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, JADESecurityException {
 		if (msg.getTraceID() != null) {
-			myLogger.log(Logger.FINE, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" lives on container "+cid.getName());
+			myLogger.log(Logger.FINER, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" lives on container "+cid.getName());
 		}
 		
 		MessagingSlice targetSlice = (MessagingSlice) getSlice(cid.getName());
@@ -1302,12 +1335,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			catch (IMTPException imtpe) {
 				// Try to get a newer slice and repeat...
 				if (msg.getTraceID() != null) {
-					myLogger.log(Logger.FINE, msg.getTraceID()+" - Messaging slice on container "+cid.getName()+" unreachable. Try to get a fresh one.");
+					myLogger.log(Logger.FINER, msg.getTraceID()+" - Messaging slice on container "+cid.getName()+" unreachable. Try to get a fresh one.");
 				}
 				
 				targetSlice = (MessagingSlice) getFreshSlice(cid.getName());
 				if (msg.getTraceID() != null && (targetSlice != null)) {
-					myLogger.log(Logger.FINE, msg.getTraceID()+" - Fresh slice for container "+cid.getName()+" found.");
+					myLogger.log(Logger.FINER, msg.getTraceID()+" - Fresh slice for container "+cid.getName()+" found.");
 				}
 				
 				targetSlice.dispatchLocally(msg.getSender(), msg, receiverID);
@@ -1321,7 +1354,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// The agent was found in the GADT, but not on the container when it is supposed to 
 			// be. Possibly it moved elsewhere in the meanwhile. ==> Try again.
 			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.FINE, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" not found on container "+cid.getName()+". Possibly he moved elsewhere --> Retry");
+				myLogger.log(Logger.FINER, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" not found on container "+cid.getName()+". Possibly he moved elsewhere --> Retry");
 			}
 		} 
 		catch (NullPointerException npe) {
@@ -1329,7 +1362,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// but his container does not exist anymore. Possibly the agent moved elsewhere in 
 			// the meanwhile ==> Try again.
 			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.FINE, msg.getTraceID()+" - Container "+cid.getName()+" for receiver "+receiverID.getLocalName()+" does not exist anymore. Possibly the receiver moved elsewhere --> Retry");
+				myLogger.log(Logger.FINER, msg.getTraceID()+" - Container "+cid.getName()+" for receiver "+receiverID.getLocalName()+" does not exist anymore. Possibly the receiver moved elsewhere --> Retry");
 			}
 		}
 		
@@ -1486,7 +1519,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	private void checkTracing(GenericMessage msg) {
 		ACLMessage acl = msg.getACLMessage();
 		if (acl != null) {
-			if ("true".equals(acl.getAllUserDefinedParameters().get(ACLMessage.TRACE))) {
+			if (myLogger.isLoggable(Logger.FINE) || "true".equals(acl.getAllUserDefinedParameters().get(ACLMessage.TRACE))) {
 				msg.setTraceID(ACLMessage.getPerformative(acl.getPerformative())+"-"+msg.getSender().getLocalName()+"-"+traceCnt);
 				traceCnt++;
 			}

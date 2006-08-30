@@ -209,9 +209,12 @@ public class IteratedAchieveREInitiator extends AchieveREInitiator {
 		b.setDataStore(getDataStore());
 	}    
 	
-	protected boolean isSessionTerminated(ACLMessage inform) {
-		// FIXME: to be implemented
-		return false;
+	/**
+	 * Check if the responder has closed the session just after sending this <code>inform</code> message.
+	 */
+	public static boolean isSessionTerminated(ACLMessage inform) {
+		String terminatedStr = inform.getUserDefinedParameter(SSIteratedAchieveREResponder.ACL_USERDEF_TERMINATED_SESSION);
+		return "true".equals(terminatedStr);
 	}
 }
 

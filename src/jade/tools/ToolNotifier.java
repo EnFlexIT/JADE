@@ -41,6 +41,8 @@ import jade.core.event.MessageEvent;
 import jade.core.event.MessageListener;
 import jade.core.event.AgentEvent;
 import jade.core.event.AgentListener;
+import jade.core.event.NotificationHelper;
+import jade.core.event.NotificationService;
 
 import jade.domain.FIPANames;
 import jade.domain.introspection.*;
@@ -58,7 +60,6 @@ import jade.util.Logger;
 
 import jade.tools.ToolAgent;
 
-import jade.content.*;
 import jade.content.onto.basic.*;
 
 
@@ -91,9 +92,8 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 					DeadAgent da = (DeadAgent)ev;
 					AID dead = da.getAgent();
 					removeObservedAgent(dead);
-					if(isEmpty() || dead.equals(observerAgent)) {
-						// FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
-						doDelete();
+					if (dead.equals(observerAgent)) {
+						suicide();
 					}
 				}
 			});
@@ -104,10 +104,6 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 					AID moved = ma.getAgent();
 					if (!here().equals(ma.getTo())) {
 						removeObservedAgent(moved);
-						if(isEmpty()) {
-							// FIXME: should do 'removeMessageListener(this);', but has no container objref for this...
-							doDelete();
-						}
 					}
 				}
 			});
@@ -151,6 +147,7 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 			informStartNotify(id);
 		}
 		else {
+			// Observing myself would generate an endless loop
 			myLogger.log(Logger.WARNING, "ToolNotifier "+getName()+": Cannot observe myself!");
 		}
 	}
@@ -158,6 +155,9 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	public void removeObservedAgent(AID id) {
 		observedAgents.remove(id);
 		notifyPendingEvents(id);
+		if (isEmpty()) {
+			suicide();
+		}
 	}
 	
 	public AID getObserver() {
@@ -166,6 +166,19 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 	
 	public boolean isEmpty() {
 		return observedAgents.isEmpty();
+	}
+	
+	private void suicide() {
+		try {
+			NotificationHelper helper = (NotificationHelper) getHelper(NotificationService.NAME);
+			helper.deregisterMessageListener(this);
+			helper.deregisterAgentListener(this);
+		}
+		catch (Exception e) {
+			// Should never happen
+			e.printStackTrace();
+		}
+		doDelete();
 	}
 	
 	/////////////////////////////////////

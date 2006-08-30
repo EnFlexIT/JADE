@@ -73,6 +73,8 @@ class UDPMonitorServer {
 
 	private Logger logger;
 	
+	private UDPNodeMonitoringService myService = null;
+	
 	private String host;
 	private int port;
 	private int pingDelay;
@@ -247,7 +249,8 @@ class UDPMonitorServer {
 	/**
 	 * Constructs a new UDPMonitorServer object
 	 */
-	UDPMonitorServer(String h, int p, int pd, int pdl, int ul) {
+	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul) {
+		myService = s;
 		host = h;
 		port = p;
 		pingDelay = pd;
@@ -429,6 +432,7 @@ class UDPMonitorServer {
 		else {
 			if (logger.isLoggable(Logger.INFO))
 				logger.log(Logger.INFO, "UDP ping message with the unknown node ID '" + nodeID + "' has been received");
+			myService.handleOrphanNode(nodeID);
 		}
 	}
 

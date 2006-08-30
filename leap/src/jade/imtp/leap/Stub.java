@@ -34,6 +34,11 @@
 
 package jade.imtp.leap;
 
+//#MIDP_EXCLUDE_BEGIN
+import java.io.IOException;
+import java.io.ObjectInputStream;
+//#MIDP_EXCLUDE_END
+
 import jade.core.*;
 import jade.mtp.TransportAddress;
 import jade.util.leap.List;
@@ -43,7 +48,7 @@ import jade.util.Logger;
 /**
  * @author Giovanni Caire - Telecom Italia LAB
  */
-class Stub {
+class Stub implements jade.util.leap.Serializable {
 	protected static final String UNRCH_ERROR_MSG = "Remote object unreachable";
 	protected static final String DISP_ERROR_MSG = "Dispatcher error";
 	
@@ -54,16 +59,15 @@ class Stub {
 	protected int               remoteID;
 	
 	// The local singleton CommandDispatcher
-	//protected CommandDispatcher theDispatcher = null;
-	protected StubHelper theDispatcher = null;
+	protected transient StubHelper theDispatcher = null;
 	
-	protected Logger myLogger = Logger.getMyLogger(getClass().getName());
+	protected transient Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
 	/**
 	 * Default Constructor
 	 */
 	protected Stub() {
-		//theDispatcher = CommandDispatcher.getDispatcher();
+		theDispatcher = CommandDispatcher.getDispatcher();
 	}
 	
 	/**
@@ -132,5 +136,12 @@ class Stub {
 		return 0;
 	} 
 	
+	//#MIDP_EXCLUDE_BEGIN
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		ois.defaultReadObject();
+		theDispatcher = CommandDispatcher.getDispatcher();
+		myLogger = Logger.getMyLogger(getClass().getName());
+	}
+	//#MIDP_EXCLUDE_END
 }
 

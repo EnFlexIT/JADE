@@ -58,6 +58,7 @@ public class TestMainFault extends Test {
 	
 	private HashMap agents = new HashMap();
 	private AMSSubscriber subscriber;
+	private ThreadedBehaviourFactory tbf = new ThreadedBehaviourFactory();
 	
 	public Behaviour load(Agent a) throws TestException {
 		if (TestSuiteAgent.mainController == null) {
@@ -109,7 +110,7 @@ public class TestMainFault extends Test {
 		// Step 3: Kill the master main container
 		// We give some time to the RMA to register as a tool 
 		sb.addSubBehaviour(new WakerBehaviour(a, 10000) {
-			protected void handleElapsedTimeout() {
+			protected void onWake() {
 				log("3) Killing master main container...");
 				TestSuiteAgent.mainController.kill();
 				log("Master main container killed.");
@@ -137,7 +138,7 @@ public class TestMainFault extends Test {
 				super.onStart();
 			}
 			
-			protected void handleElapsedTimeout() {
+			protected void onWake() {
 				log("4) Checking platform activity ...");
 				try {
 					check(myAgent, 1, backupMain.getContainerName());
@@ -168,8 +169,9 @@ public class TestMainFault extends Test {
 		} );
 		
 		// Step 6: Kill the new master main container
-		sb.addSubBehaviour(new OneShotBehaviour(a) {
-			public void action() {
+		// We give some time to the RMA to register as a tool 
+		sb.addSubBehaviour(new WakerBehaviour(a, 10000) {
+			public void onWake() {
 				log("6) Killing new master main container...");
 				backupMain.kill();
 				log("New master main container killed.");
@@ -184,7 +186,7 @@ public class TestMainFault extends Test {
 				super.onStart();
 			}
 			
-			protected void handleElapsedTimeout() {
+			protected void onWake() {
 				log("7) Checking platform activity ...");
 				try {
 					check(myAgent, 2, TestSuiteAgent.mainController.getContainerName());
@@ -274,7 +276,8 @@ public class TestMainFault extends Test {
 			}
 		};
 		
-		a.addBehaviour(subscriber);
+		// We use a threaded behaviour to allow AMS notifications to be received while the tester is performing some blocking operation with the AMS
+		a.addBehaviour(tbf.wrap(subscriber));
 		
 		return sb;
 	}

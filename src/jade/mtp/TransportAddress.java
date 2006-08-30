@@ -25,13 +25,11 @@ Boston, MA  02111-1307, USA.
 
 package jade.mtp;
 
-public interface TransportAddress {
+public interface TransportAddress extends jade.util.leap.Serializable {
 
   String getProto();
   String getHost();
   String getPort();
   String getFile();
   String getAnchor();
-  
-
 }

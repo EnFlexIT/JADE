@@ -120,6 +120,12 @@ public interface FIPANames {
 	   The FIPA-Iterated-Contract-Net interaction protocol.
 	 */
 	public static final String FIPA_ITERATED_CONTRACT_NET = "fipa-iterated-contract-net";
+	
+	/**
+	   The Iterated-Fipa-Request interaction protocol.
+	   Note that this protocol is defined in JADE and is not a standard FIPA protocol. 
+	 */
+	public static final String ITERATED_FIPA_REQUEST = "iterated-fipa-request";
     }
 
     /**

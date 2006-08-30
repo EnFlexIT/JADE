@@ -1099,6 +1099,7 @@ public class AgentMobilityService extends BaseService {
 						
 						
 						if(srcReady && destReady) {
+							// FIXME: We should issue a TRANSFER_IDENTITY V-Command to allow migration tracing and prevention
 							// Commit transaction
 							impl.movedAgent(agentID, (ContainerID)src, (ContainerID)dest);
 							return true;

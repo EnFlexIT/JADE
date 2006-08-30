@@ -247,8 +247,7 @@ public class ProfileImpl extends Profile {
 		}
 		
 		String localHost = props.getProperty(LOCAL_HOST);
-		if(localHost == null) {
-			
+		if(localHost == null) {		
 			if(isFirstMain()) {
 				// Default for a sole main container: use the MAIN_HOST property
 				localHost = host;
@@ -257,7 +256,6 @@ public class ProfileImpl extends Profile {
 				// Default for a peripheral container or an added main container: use the local host
 				localHost = getDefaultNetworkName();
 			}
-			
 			props.setProperty(LOCAL_HOST, localHost);
 		}
 		
@@ -271,8 +269,7 @@ public class ProfileImpl extends Profile {
 				// Default for a peripheral container or an added main container: use the default port
 				lp = Integer.toString(DEFAULT_PORT);
 			}
-			props.setProperty(LOCAL_PORT, lp);
-			
+			props.setProperty(LOCAL_PORT, lp);	
 		}
 		
 		setPropertyIfNot(SERVICES, DEFAULT_SERVICES);
@@ -410,7 +407,6 @@ public class ProfileImpl extends Profile {
 	public List getSpecifiers(String key) throws ProfileException {
 		//#MIDP_EXCLUDE_BEGIN
 		// Check if the list of specs is already in the properties as a list
-		List l = null;
 		Object o = props.get(key);
 		if (o instanceof List) { // null isn't an instance of anything
 			return (List) o;

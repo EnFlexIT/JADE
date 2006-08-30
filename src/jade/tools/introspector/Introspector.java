@@ -44,8 +44,6 @@ import jade.core.behaviours.*;
 
 import jade.content.AgentAction;
 
-import jade.tools.introspector.gui.IntrospectorGUI;
-
 import jade.domain.FIPANames;
 import jade.domain.FIPAService;
 import jade.domain.introspection.*;
@@ -86,10 +84,7 @@ public class Introspector extends ToolAgent {
 	
 	private Set allAgents = null;
 	private Hashtable preload = null;
-	
-	//logging service
-	private static Logger logger = Logger.getMyLogger(Introspector.class.getName());
-	
+		
 	private class AMSRequester extends SimpleAchieveREInitiator {
 		
 		private String actionName;

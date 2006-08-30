@@ -48,9 +48,10 @@ class FSPersistentStorage implements PersistentStorage {
 
 	private static final String EXTENSION = ".fsps";
 	private static final String CHILD_EXTENSION = ".fsps_c";
+	private static final String UNREACHABLE_EXTENSION = ".unreachable";	
 	private static final String LOCAL_ADDRESS_NAME = "address";
 	private static final String NODE_POSTFIX = "-node";
-	private static final String TOOL_POSTFIX = "-tool";
+	private static final String AGENT_POSTFIX = "-agent";
 	
 	private String fileSeparator;
 	private File locationDir;
@@ -82,7 +83,7 @@ class FSPersistentStorage implements PersistentStorage {
 		//#DOTNET_EXCLUDE_BEGIN
 		File[] ff = locationDir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION));
+				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION) || name.endsWith(UNREACHABLE_EXTENSION));
 			}
 		} );
 		//#DOTNET_EXCLUDE_END
@@ -90,7 +91,7 @@ class FSPersistentStorage implements PersistentStorage {
 		/*#DOTNET_INCLUDE_BEGIN
 		String[] ss = locationDir.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION));
+				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION) || name.endsWith(UNREACHABLE_EXTENSION));
 			}
 		} );
 
@@ -134,6 +135,11 @@ class FSPersistentStorage implements PersistentStorage {
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE, "Node "+name+" saved in persistent storage");
 		}
+		// If the newly stored node was already in the persistent storage as an unreachable node --> remove it
+		File uf = getUnreachableFile(f);
+		if (uf.exists()) {
+			uf.delete();
+		}
 	}
 	
 	public void removeNode(String name) throws Exception {
@@ -145,6 +151,32 @@ class FSPersistentStorage implements PersistentStorage {
 			f.delete();
 			if (myLogger.isLoggable(Logger.FINE)) {
 				myLogger.log(Logger.FINE, "Node "+name+" removed from persistent storage");
+			}
+		}
+	}
+	
+	public void setUnreachable(String name) throws Exception {
+		File f = getFSPSFile(name+NODE_POSTFIX, EXTENSION);
+		if (!f.exists()) {
+			f = getFSPSFile(name+NODE_POSTFIX, CHILD_EXTENSION);
+		}
+		if (f.exists()) {
+			f.renameTo(getUnreachableFile(f));
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Node "+name+" marked as unreachable");
+			}
+		}
+	}
+	
+	public void resetUnreachable(String name) throws Exception {
+		File f = getFSPSFile(name+NODE_POSTFIX, EXTENSION+UNREACHABLE_EXTENSION);
+		if (!f.exists()) {
+			f = getFSPSFile(name+NODE_POSTFIX, CHILD_EXTENSION+UNREACHABLE_EXTENSION);
+		}
+		if (f.exists()) {
+			f.renameTo(getReachableFile(f));
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Node "+name+" restored as reachable");
 			}
 		}
 	}
@@ -181,17 +213,54 @@ class FSPersistentStorage implements PersistentStorage {
 		return nodes;
 	}
 
-	public void storeTool(String name, byte[] tt) throws Exception {
-		// FIXME: to be implemented
+	public void storeAgent(String name, byte[] aa) throws Exception {
+		File f = getFSPSFile(name+AGENT_POSTFIX, EXTENSION);
+		writeContent(f, aa);
+		if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Agent "+name+" saved in persistent storage");
+		}
 	}
 	
-	public void removeTool(String name) throws Exception {
-		// FIXME: to be implemented
+	public void removeAgent(String name) throws Exception {
+		File f = getFSPSFile(name+AGENT_POSTFIX, EXTENSION);
+		if (f.exists()) {
+			f.delete();
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Agent "+name+" removed from persistent storage");
+			}
+		}
 	}
 	
-	public Map getAllTools() throws Exception {
-		// FIXME: to be implemented
-		return new HashMap();
+	public Map getAllAgents() throws Exception {
+		final String end = AGENT_POSTFIX+EXTENSION;
+		
+		//#DOTNET_EXCLUDE_BEGIN
+		File[] ff = locationDir.listFiles(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return (name.endsWith(end));
+			}
+		} );
+		//#DOTNET_EXCLUDE_END
+		
+		/*#DOTNET_INCLUDE_BEGIN
+		String[] ss = locationDir.list(new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return (name.endsWith(end));
+			}
+		} );
+
+		File[] ff = new File[ss.length];
+		for(int i=0; i < ss.length; i++)
+		{
+			ff[i] = new File( locationDir.getPath(), ss[i] );
+		}
+		#DOTNET_INCLUDE_END*/
+		
+		Map agents = new HashMap(ff.length);
+		for (int i = 0; i < ff.length; ++i) {
+			agents.put(getAgentName(ff[i].getName()), readContent(ff[i]));
+		}
+		return agents;
 	}
 	
 	private String getNodeName(String filename) {
@@ -200,9 +269,26 @@ class FSPersistentStorage implements PersistentStorage {
 		return filename.substring(0, length);
 	}
 	
+	private String getAgentName(String filename) {
+		int index = filename.indexOf(EXTENSION);
+		int length = index - 6; // 6 is the length of "-agent"
+		return filename.substring(0, length);
+	}
+	
 	private File getFSPSFile(String name, String ext) {
 		String fileName = locationDir.getPath()+fileSeparator+name+ext;
 		return new File(fileName);
+	}
+	
+	private File getUnreachableFile(File f) {
+		String unreachableName = locationDir.getPath()+fileSeparator+f.getName()+UNREACHABLE_EXTENSION;
+		return new File(unreachableName);
+	}
+
+	private File getReachableFile(File f) {
+		int length = f.getName().length() - 12; // 12 is the length of ".unreachable"
+		String reachableName = locationDir.getPath()+fileSeparator+f.getName().substring(0, length);
+		return new File(reachableName);
 	}
 
 	private void writeContent(File file, byte [] content) throws Exception {

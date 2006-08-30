@@ -149,7 +149,6 @@ public class Sniffer extends ToolAgent {
   private Hashtable preload = null;
   private ExpandedProperties properties = null;
 
-  private static Logger logger = Logger.getMyLogger(Sniffer.class.getName());
   private ArrayList agentsUnderSniff = new ArrayList();
 
 
@@ -172,8 +171,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleAgree(ACLMessage reply) {
-	  if(Sniffer.logger.isLoggable(Logger.FINE))
-	    Sniffer.logger.log(Logger.FINE,"AGREE received");
+	  if(logger.isLoggable(Logger.FINE))
+	    logger.log(Logger.FINE,"AGREE received");
     }
 
     protected void handleFailure(ACLMessage reply) {
@@ -181,8 +180,8 @@ public class Sniffer extends ToolAgent {
     }
 
     protected void handleInform(ACLMessage reply) {
-	  if(Sniffer.logger.isLoggable(Logger.FINE))
-	    Sniffer.logger.log(Logger.FINE,"INFORM received");
+	  if(logger.isLoggable(Logger.FINE))
+	    logger.log(Logger.FINE,"INFORM received");
     }
 
   } // End of AMSClientBehaviour class

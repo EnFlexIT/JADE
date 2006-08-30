@@ -25,30 +25,24 @@ package jade.tools;
 
 //#APIDOC_EXCLUDE_FILE
  
-import jade.util.leap.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import jade.core.Agent;
-import jade.core.behaviours.*;
-
-import jade.domain.FIPAException;
+import jade.core.ServiceException;
+import jade.core.event.ContainerEvent;
+import jade.core.event.ContainerListener;
+import jade.core.event.NotificationHelper;
+import jade.core.event.NotificationService;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.JADEAgentManagement.*;
 import jade.domain.introspection.*;
-import jade.domain.introspection.Event;
-import jade.domain.introspection.EventRecord;
-import jade.domain.introspection.Occurred;
 
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
+import jade.util.Logger;
 
 import jade.content.lang.sl.SLCodec;
 
 /**
- 
  This abstract class is the common ancestor of all JADE tools (RMA,
  Sniffer, Introspector, etc.). It provides suitable behaviours to
  interact with the AMS, registering for interesting events and
@@ -56,12 +50,14 @@ import jade.content.lang.sl.SLCodec;
  
  @author Giovanni Rimassa - Universita' di Parma
  @version $Date$ $Revision$
- 
  */
 public abstract class ToolAgent extends Agent {
 	
 	private ACLMessage AMSSubscription = new ACLMessage(ACLMessage.SUBSCRIBE);
 	private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
+	
+	private transient ContainerListener myContainerListener = null;
+	protected transient Logger logger;
 	
 	
 	// This is left here for backward compatibility
@@ -134,19 +130,8 @@ public abstract class ToolAgent extends Agent {
 		return AMSRequest;
 	}
 	
-	public final void setup() {
-		
-		// Register the supported ontologies
-		getContentManager().registerOntology(JADEManagementOntology.getInstance());
-		getContentManager().registerOntology(IntrospectionOntology.getInstance());
-		getContentManager().registerOntology(FIPAManagementOntology.getInstance());
-		
-		// register the supported languages
-		SLCodec codec = new SLCodec();
-		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
-		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);
-		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);
-		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);
+	public final void setup() {	
+		init();
 		
 		// Fill ACL messages fields
 		AMSSubscription.setSender(getAID());
@@ -156,9 +141,7 @@ public abstract class ToolAgent extends Agent {
 		AMSSubscription.setOntology(IntrospectionOntology.NAME);
 		AMSSubscription.setReplyWith(AMSSubscriber.AMS_SUBSCRIPTION);
 		AMSSubscription.setConversationId(getLocalName());
-		
-		String content = AMSSubscriber.PLATFORM_EVENTS;
-		AMSSubscription.setContent(content);
+		AMSSubscription.setContent(AMSSubscriber.PLATFORM_EVENTS);
 		
 		AMSCancellation.setSender(getAID());
 		AMSCancellation.clearAllReceiver();
@@ -171,70 +154,95 @@ public abstract class ToolAgent extends Agent {
 		
 		// Call tool-specific setup
 		toolSetup();
-		
 	}
 	
 	protected final void takeDown() {
+		clean();
+		
 		// Call tool-specific takedown
 		toolTakeDown();
 	}
 	
 	protected void afterClone() {
-		refillContentManager();
+		init();
+	}
+	
+	protected void beforeMove() {
+		clean();
 	}
 	
 	protected void afterMove() {
-		refillContentManager();
+		init();
 	}
 	
 	protected void afterLoad() {
-		refillContentManager();
+		init();
 	}
 	
 	protected void afterThaw() {
-		refillContentManager();
+		init();
 	}
 	
 	protected void afterReload() {
-		refillContentManager();
+		init();
 	}
 	
 	protected void beforeSave() {
 	}
 	
 	protected void beforeFreeze() {
+		clean();
 	}
 	
 	protected void beforeReload() {
+		clean();
 	}
 	
-	private void refillContentManager() {
+	private void init() {
+		logger = Logger.getMyLogger(getName());
+		
 		// Register the supported ontologies
 		getContentManager().registerOntology(JADEManagementOntology.getInstance());
 		getContentManager().registerOntology(IntrospectionOntology.getInstance());
 		getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 		
-		// register the supported languages
-		getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL0);
+		// Register the supported languages
+		SLCodec codec = new SLCodec();
+		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL0);
+		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL1);
+		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL2);
+		getContentManager().registerLanguage(codec, FIPANames.ContentLanguage.FIPA_SL);
 		
-		AMSSubscription.setSender(getAID());
-		AMSSubscription.clearAllReceiver();
-		AMSSubscription.addReceiver(getAMS());
-		AMSSubscription.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-		AMSSubscription.setOntology(IntrospectionOntology.NAME);
-		AMSSubscription.setReplyWith(AMSSubscriber.AMS_SUBSCRIPTION);
-		AMSSubscription.setConversationId(getLocalName());
-		
-		String content = AMSSubscriber.PLATFORM_EVENTS;
-		AMSSubscription.setContent(content);
-		
-		AMSCancellation.setSender(getAID());
-		AMSCancellation.clearAllReceiver();
-		AMSCancellation.addReceiver(getAMS());
-		AMSCancellation.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-		AMSCancellation.setOntology(IntrospectionOntology.NAME);
-		AMSCancellation.setReplyWith(AMSSubscriber.AMS_CANCELLATION);
-		AMSCancellation.setConversationId(getLocalName());
+		// Register to be notified about the REATTACHED event in order to handle Main Container faults
+		try {
+			NotificationHelper helper = (NotificationHelper) getHelper(NotificationService.NAME);
+			myContainerListener = new ContainerListener() {
+				public void bornAgent(ContainerEvent ev) {
+				}
+				public void deadAgent(ContainerEvent ev) {
+				}
+				public void reattached(ContainerEvent ev) {
+					// The Main Container lost my subscription --> Subscribe again
+					send(getSubscribe());
+				}
+			};
+			helper.registerContainerListener(myContainerListener);
+		}
+		catch (ServiceException se) {
+			// Just print a warning since this does not affect the normal operation of a ToolAgent
+			logger.log(Logger.WARNING, "NotificationService not installed. Some tool may not work properly.");
+		}
 	}
 	
+	private void clean() {
+		if (myContainerListener != null) {
+			try {
+				NotificationHelper helper = (NotificationHelper) getHelper(NotificationService.NAME);
+				helper.deregisterContainerListener(myContainerListener);
+			}
+			catch (ServiceException se) {
+				// Just do nothing since this does not affect the normal operation of a ToolAgent
+			}
+		}
+	}
 }

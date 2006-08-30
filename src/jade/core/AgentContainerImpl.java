@@ -289,9 +289,16 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected void init() throws IMTPException, ProfileException {
 		myCommandProcessor = myProfile.getCommandProcessor();
 		
-		// Create and initialize the IMTPManager
-		myIMTPManager = myProfile.getIMTPManager();
-		myIMTPManager.initialize(myProfile);
+		try {
+			// Create and initialize the IMTPManager
+			myIMTPManager = myProfile.getIMTPManager();
+			myIMTPManager.initialize(myProfile);
+		}
+		finally {
+			if (myProfile.getBooleanProperty(Profile.DUMP_OPTIONS, false)) {
+				myLogger.log(Logger.INFO, "Startup options dump:\n"+myProfile);
+			}
+		}
 		
 		// Get the Service Manager and the Service Finder
 		myServiceManager = myProfile.getServiceManager();
@@ -376,9 +383,17 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		// name of this container
 		myServiceManager.addNode(myNodeDescriptor, descriptors);
 		
+		//#MIDP_EXCLUDE_BEGIN
+		// If we are the master main container --> initialize the AMS and DF. Do that before booting all services 
+		// since during service boot some messages may be directed to the AMS or DF
+		boolean isMaster = !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false);
+		if(myMainContainer != null && isMaster) {
+			myMainContainer.initSystemAgents(this);
+		}
+		//#MIDP_EXCLUDE_END
+		
 		// Boot all services
-		for (int i = 0; i < descriptors.length; ++i) {
-			
+		for (int i = 0; i < descriptors.length; ++i) {	
 			ServiceDescriptor currentServDesc = descriptors[i];
 			try {
 				currentServDesc.getService().boot(myProfile);
@@ -395,10 +410,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 		
 		//#MIDP_EXCLUDE_BEGIN
-		// If we are the master main container --> start the AMS and DF
-		if(myMainContainer != null) {
-			boolean startThem = !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false);
-			myMainContainer.initSystemAgents(this, startThem);
+		// If we are the master main container --> start the AMS and DF.
+		if(myMainContainer != null && isMaster) {
+			myMainContainer.startSystemAgents(this);
 		}
 		//#MIDP_EXCLUDE_END
 	}
@@ -567,7 +581,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			se.printStackTrace();
 		}
 		
-		// Releases Thread resources
+		// Release Thread resources
 		myResourceManager.releaseResources();
 		
 		// Notify the JADE Runtime that the container has terminated execution
@@ -1111,6 +1125,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	public void becomeLeader() {
 		//#MIDP_EXCLUDE_BEGIN
 		try {
+			myMainContainer.initSystemAgents(this);
 			myMainContainer.startSystemAgents(this);
 		}
 		catch(Exception e) {

@@ -88,6 +88,10 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	public MainContainerImpl(Profile p, PlatformManagerImpl pm) throws ProfileException {
 		myCommandProcessor = p.getCommandProcessor();
 		myPlatformManager = pm;
+		// The AMS must be instantiated before the installation of kernel services to
+		// avoid NullPointerException in case a service provides an AMS-behaviour 
+		theAMS = new ams(this);
+		defaultDF = new df();
 	}
 	
 	public PlatformManager getPlatformManager() {
@@ -139,22 +143,50 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		fireRemovedContainer(cid);
 	}
 	
-	void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, JADESecurityException {
+	void initSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, JADESecurityException {
 		ContainerID cid = ac.getID();
+		NodeDescriptor dsc = getDescriptor(cid.getName());
+		// The owner of both the AMS and the DF is the owner of the main container.
+		JADEPrincipal cp = dsc.getOwnerPrincipal();		
+		try {
+			AID amsId = ac.getAMS();
+			// The AMS has NO initial credentials 
+			ac.initAgent(amsId, theAMS, cp, null); 
+		}
+		catch(Exception e) {
+			throw new IMTPException("Exception during AMS initialization", e);
+		}
 		
-		// Start the AMS
-		theAMS = new ams(this);
+		try {
+			AID dfId = ac.getDefaultDF();
+			// The DF has NO initial credentials 
+			ac.initAgent(dfId, defaultDF, cp, null);
+		}
+		catch(Exception e) {
+			throw new IMTPException("Exception during Default DF initialization", e);
+		}
+	}
+	
+	// Start the AMS and the Default DF
+	void startSystemAgents(AgentContainer ac) throws IMTPException, NotFoundException, JADESecurityException {
+		theAMS.resetEvents(true);
+		AID amsId = ac.getAMS();
+		ac.powerUpLocalAgent(amsId);
+		theAMS.waitUntilStarted();
 		
+		AID dfId = ac.getDefaultDF();
+		ac.powerUpLocalAgent(dfId);
+		defaultDF.waitUntilStarted();
+	}
+	
+	/*void initSystemAgents(AgentContainer ac, boolean startThem) throws IMTPException, NotFoundException, JADESecurityException {
 		// Notify the AMS about the main container existence
+		ContainerID cid = ac.getID();
 		fireAddedContainer(cid);
-		
-		// Start the Default DF
-		defaultDF = new df();
 		
 		if(startThem) {
 			startSystemAgents(ac);
 		}
-		
 	}
 	
 	// Start the AMS and the Default DF
@@ -187,8 +219,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		catch(Exception e) {
 			throw new IMTPException("Exception during Default DF startup", e);
 		}
-		
-	}
+	}*/
 	
 	void installAMSBehaviour(Behaviour b) {
 		theAMS.addBehaviour(b);
