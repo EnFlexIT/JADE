@@ -130,6 +130,10 @@ public class HashMap implements Map, Serializable {
 		realHiddenMap.clear();
 	} 
 
+	public String toString() {
+		return realHiddenMap.toString();
+	}
+	
     /**
      * @see jade.util.leap.Map interface
      */

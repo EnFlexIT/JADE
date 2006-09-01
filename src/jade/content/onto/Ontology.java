@@ -540,4 +540,8 @@ public class Ontology implements Serializable {
     	throw new OntologyException("Object "+obj+" of class "+obj.getClass().getName()+" is not a term");
     	*/
     }
+    
+    public String toString() {
+    	return getClass().getName()+"-"+name;
+    }
 }
