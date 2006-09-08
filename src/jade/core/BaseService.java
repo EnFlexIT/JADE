@@ -262,10 +262,14 @@ public abstract class BaseService implements Service {
 	}
 	
 	void clearCachedSlice(String name) {
-		// First look through the name alias table
-		String realName = lookupAlias(name);
-		// Invalidate the cache entry
-		slices.remove(realName);
+		// slices may be null when calling this method on the Main Container, but on a service not active on the Main Container
+		// --> In this case the service has not been initialized.
+		if (slices != null) {
+			// First look through the name alias table
+			String realName = lookupAlias(name);
+			// Invalidate the cache entry
+			slices.remove(realName);
+		}
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN

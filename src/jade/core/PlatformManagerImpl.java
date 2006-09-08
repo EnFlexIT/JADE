@@ -488,6 +488,11 @@ public class PlatformManagerImpl implements PlatformManager {
 					myLogger.log(Logger.CONFIG, "Removing slice for service <" + serviceKey + "> on node <" + sliceKey + ">");
 				}
 			}
+			// Clear the cache 
+			Service svc = e.getService();
+			if (svc instanceof BaseService) {
+				((BaseService) svc).clearCachedSlice(sliceKey);
+			}
 
 			NodeDescriptor dsc = getDescriptor(sliceKey);
 			if (dsc != null && isLocalNode(dsc.getNode())) {

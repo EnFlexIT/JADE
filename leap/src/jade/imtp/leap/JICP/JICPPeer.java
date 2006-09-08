@@ -60,11 +60,15 @@ public class JICPPeer implements ICP, ProtocolManager {
 
   private String myID;
   
+  private int connectionTimeout = 0;
+  
   /**
    * Start listening for internal platform messages on the specified port
    */
   public TransportAddress activate(ICP.Listener l, String peerID, Profile p) throws ICPException {
     myID = peerID;
+    
+    connectionTimeout = Integer.parseInt(p.getParameter("jade_imtp_leap_JICP_JICPPeer_connectiontimeout", "0"));
     
   	// Start the client
   	client = new JICPClient(getProtocol(), getConnectionFactory(), POOL_SIZE);
@@ -154,7 +158,9 @@ public class JICPPeer implements ICP, ProtocolManager {
 				return new JICPConnection(s);
 			}
 			public Connection createConnection(TransportAddress ta) throws IOException {
-				return new JICPConnection(ta);
+				JICPConnection con = new JICPConnection(ta, connectionTimeout);
+				con.setReadTimeout(connectionTimeout);
+				return con;
 			}
     };
   }  

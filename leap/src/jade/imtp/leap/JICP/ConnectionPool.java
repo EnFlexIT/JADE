@@ -130,18 +130,18 @@ class ConnectionPool {
 	}
 	
 	synchronized void shutdown() {
-    Iterator it = connections.values().iterator();
-
-    while (it.hasNext()) {
-      List l = (List) it.next();
-      for (int i = 0; i < l.size(); i++) {
-      	ConnectionWrapper cw = (ConnectionWrapper) l.get(i);
-      	cw.close();
-      }
-      l.clear();
-    } 
-    connections.clear();
-    closed = true;
+		Iterator it = connections.values().iterator();
+		
+		while (it.hasNext()) {
+			List l = (List) it.next();
+			for (int i = 0; i < l.size(); i++) {
+				ConnectionWrapper cw = (ConnectionWrapper) l.get(i);
+				cw.close();
+			}
+			l.clear();
+		} 
+		connections.clear();
+		closed = true;
 	}
 }
 

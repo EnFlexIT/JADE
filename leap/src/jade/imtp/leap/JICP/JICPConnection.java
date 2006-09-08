@@ -65,15 +65,20 @@ public class JICPConnection extends Connection {
   protected JICPConnection() {
   }
   
+  public JICPConnection(TransportAddress ta) throws IOException {
+	  this(ta, 0);
+  }
+  
   /**
    * Constructor declaration
    */
-  public JICPConnection(TransportAddress ta) throws IOException {
+  public JICPConnection(TransportAddress ta, int timeout) throws IOException {
 		//#MIDP_EXCLUDE_BEGIN
   	// For some reason the local address or port may be in use
   	while (true) {
   		try {  		
-  			sc = new Socket(ta.getHost(), Integer.parseInt(ta.getPort()));
+  			sc = new Socket();
+  			sc.connect(new InetSocketAddress(ta.getHost(), Integer.parseInt(ta.getPort())), timeout);
   			is = sc.getInputStream();
   			os = getOutputStream();
     		break;
