@@ -46,7 +46,7 @@ public class FIPAService {
 	
 	private synchronized static int getNextInt() {
 		int ret = cnt;
-		cnt = (cnt < 9999 ? cnt++ : 0);
+		cnt = (cnt < 9999 ? (++cnt) : 0);
 		return ret;
 	}
 	
