@@ -58,6 +58,7 @@ abstract class SSResponder extends FSMBehaviour {
 	 */
 	public final String REPLY_KEY = "__Reply_key" + hashCode();
 	
+	private static final int OUT_OF_SEQUENCE_EXIT_CODE = -98765; // Very strange number
 	
 	//#APIDOC_EXCLUDE_BEGIN
 	// FSM states names
@@ -80,7 +81,7 @@ abstract class SSResponder extends FSMBehaviour {
 		initiationKey = (useInitiationKey ? INITIATION_KEY : RECEIVED_KEY);
 		
 		registerDefaultTransition(RECEIVE_NEXT, CHECK_IN_SEQ);
-		registerDefaultTransition(CHECK_IN_SEQ, HANDLE_OUT_OF_SEQUENCE);
+		registerTransition(CHECK_IN_SEQ, HANDLE_OUT_OF_SEQUENCE, OUT_OF_SEQUENCE_EXIT_CODE);
 		registerDefaultTransition(HANDLE_OUT_OF_SEQUENCE, RECEIVE_NEXT, new String[] {HANDLE_OUT_OF_SEQUENCE});
 		registerDefaultTransition(SEND_REPLY, DUMMY_FINAL);
 		
@@ -100,7 +101,7 @@ abstract class SSResponder extends FSMBehaviour {
 		registerDSState(b, HANDLE_OUT_OF_SEQUENCE);
 		
 		// SEND_REPLY
-		b = new NextReplySender(myAgent, REPLY_KEY, INITIATION_KEY);
+		b = new NextReplySender(myAgent, REPLY_KEY, initiationKey);
 		registerDSState(b, SEND_REPLY);
 		
 		// DUMMY_FINAL
@@ -248,7 +249,7 @@ abstract class SSResponder extends FSMBehaviour {
 				ret = received.getPerformative();
 			}
 			else {
-				ret = -1;
+				ret = OUT_OF_SEQUENCE_EXIT_CODE;
 			}
 		}
 		

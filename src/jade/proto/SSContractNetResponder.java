@@ -86,9 +86,9 @@ public class SSContractNetResponder extends SSResponder {
 		
 		registerDefaultTransition(HANDLE_CFP, SEND_REPLY);
 		registerTransition(SEND_REPLY, RECEIVE_NEXT, ACLMessage.PROPOSE);
-		registerTransition(RECEIVE_NEXT, HANDLE_ACCEPT_PROPOSAL, ACLMessage.ACCEPT_PROPOSAL, new String[]{SEND_REPLY, RECEIVE_NEXT}); 
-		registerTransition(RECEIVE_NEXT, HANDLE_REJECT_PROPOSAL, ACLMessage.REJECT_PROPOSAL); 
 		registerTransition(RECEIVE_NEXT, HANDLE_REJECT_PROPOSAL, MsgReceiver.TIMEOUT_EXPIRED); 
+		registerTransition(CHECK_IN_SEQ, HANDLE_ACCEPT_PROPOSAL, ACLMessage.ACCEPT_PROPOSAL, new String[]{SEND_REPLY}); 
+		registerTransition(CHECK_IN_SEQ, HANDLE_REJECT_PROPOSAL, ACLMessage.REJECT_PROPOSAL); 
 		registerDefaultTransition(HANDLE_ACCEPT_PROPOSAL, SEND_REPLY);
 		registerDefaultTransition(HANDLE_REJECT_PROPOSAL, DUMMY_FINAL);
 		
@@ -260,12 +260,16 @@ public class SSContractNetResponder extends SSResponder {
 		handleOutOfSequence(cfp, propose, msg);
 	}
 	
+	protected boolean checkInSequence(ACLMessage received) {
+		return received.getPerformative() == ACLMessage.ACCEPT_PROPOSAL || received.getPerformative() == ACLMessage.REJECT_PROPOSAL;
+	}
+	
 	protected void beforeReply(ACLMessage reply) {
 		if (proposeSent) {
 			// If this is the reply to an ACCEPT_PROPOSAL force the 
-			// protocol termination to avoid, in the case the user erroneously
-			// sent back another PROPOSE message, ending up in a MsgReceiver
-			// atate that will never exit.
+			// protocol termination to avoid (in case the user erroneously
+			// sent back another PROPOSE message) ending up in a MsgReceiver
+			// state that will never exit.
 			forceTransitionTo(DUMMY_FINAL);
 		}
 	}
