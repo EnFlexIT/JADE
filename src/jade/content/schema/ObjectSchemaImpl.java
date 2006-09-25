@@ -362,7 +362,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 	private boolean validate(CaseInsensitiveString slotName, AbsObject value, Ontology onto) throws OntologyException {
 		// DEBUG
 		if(logger.isLoggable(Logger.FINE))
-			logger.log(Logger.FINE,"Validating "+(value != null ? value : "null")+" as a value for slot "+slotName);
+			logger.log(Logger.FINE,"Validating "+(value != null ? value.toString() : "null")+" as a value for slot "+slotName);
 		// NOTE: for performance reasons we don't want to scan the schema
 		// to check if slotValue is a valid slot and THEN to scan again
 		// the schema to validate value. This is the reason for the

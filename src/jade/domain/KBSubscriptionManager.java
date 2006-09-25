@@ -132,14 +132,11 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 	 subscribed agents if necessary
 	 */
 	void handleChange(DFAgentDescription dfd, DFAgentDescription oldDfd) {
-		// Create a temporary MemKB just to re-use the match() method. 
-		DFMemKB memTemp = new DFMemKB(0);
-		
 		Enumeration e = kBase.getSubscriptions();
 		while (e.hasMoreElements()) {
 			SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
 			DFAgentDescription template = getDFAgentDescriptionFromACL(sub.getMessage());
-			if ( memTemp.match(template, dfd) || ((oldDfd!=null) && memTemp.match(template, oldDfd))) {
+			if ( DFMemKB.compare(template, dfd) || ((oldDfd!=null) && DFMemKB.compare(template, oldDfd))) {
 				// This subscriber must be notified
 				List results = new ArrayList();
 				results.add(dfd);
@@ -158,6 +155,7 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 	private void notify(SubscriptionResponder.Subscription sub, List results, AbsIRE absIota) {
 		try {
 			ACLMessage notification = sub.getMessage().createReply();
+			notification.addUserDefinedParameter(ACLMessage.IGNORE_FAILURE, "true");
 			notification.setPerformative(ACLMessage.INFORM);
 			AbsPredicate absEquals = new AbsPredicate(SLVocabulary.EQUALS);
 			absEquals.set(SLVocabulary.EQUALS_LEFT, absIota);

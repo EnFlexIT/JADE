@@ -84,6 +84,15 @@ public class Message extends jade.lang.acl.ACLMessage implements Serializable {
 	#DOTNET_INCLUDE_END*/
       this.addReceiver((AID)i.next());
 
+    this.clearAllReplyTo();
+    //#DOTNET_EXCLUDE_BEGIN
+    for (Iterator i=msg.getAllReplyTo(); i.hasNext(); )
+	//#DOTNET_EXCLUDE_END
+	/*#DOTNET_INCLUDE_BEGIN
+    for (jade.util.leap.Iterator i=msg.getAllReplyTo(); i.hasNext(); )
+	#DOTNET_INCLUDE_END*/
+      this.addReplyTo((AID)i.next());
+
     this.setSender(msg.getSender());
     this.setContent(msg.getContent());
     this.setReplyWith(msg.getReplyWith());

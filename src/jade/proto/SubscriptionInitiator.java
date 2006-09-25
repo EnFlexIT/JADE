@@ -224,59 +224,6 @@ public class SubscriptionInitiator extends Initiator {
 		return prepareSubscriptions(initiation);
 	}
 	
-	/**
-	 Create and initialize the Sessions and sends the initiation messages.
-	 This method is called internally by the framework and is not intended 
-	 to be called by the user
-	 *    
-	 protected void sendInitiations(Vector initiations) {
-	 long currentTime = System.currentTimeMillis();
-	 long minTimeout = -1;
-	 long deadline = -1;
-	 
-	 String conversationID = createConvId(initiations);
-	 replyTemplate = MessageTemplate.MatchConversationId(conversationID);
-	 int cnt = 0; // counter of sessions
-	 for (Enumeration e=initiations.elements(); e.hasMoreElements(); ) {
-	 ACLMessage subscription = (ACLMessage) e.nextElement();
-	 if (subscription != null) {
-	 // Update the list of sessions on the basis of the receivers
-	  // FIXME: Maybe this should take the envelope into account first
-	   
-	   ACLMessage toSend = (ACLMessage)subscription.clone();
-	   toSend.setConversationId(conversationID);
-	   for (Iterator receivers = subscription.getAllReceiver(); receivers.hasNext(); ) {
-	   toSend.clearAllReceiver();
-	   AID r = (AID)receivers.next();
-	   toSend.addReceiver(r);
-	   String sessionKey = "R" + hashCode()+  "_" + Integer.toString(cnt);
-	   toSend.setReplyWith(sessionKey);
-	   sessions.put(sessionKey, new Session());
-	   adjustReplyTemplate(toSend);
-	   myAgent.send(toSend);
-	   // Store the subscription message actually sent. It can 
-	    // be useful to retrieve it to create the CANCEL message
-	     getDataStore().put(r, toSend);
-	     cnt++;
-	     }
-	     
-	     // Update the timeout (if any) used to wait for replies according
-	      // to the reply-by field. Get the miminum  
-	       Date d = subscription.getReplyByDate();
-	       if (d != null) {
-	       long timeout = d.getTime()- currentTime;
-	       if (timeout > 0 && (timeout < minTimeout || minTimeout <= 0)) {
-	       minTimeout = timeout;
-	       deadline = d.getTime();
-	       }
-	       }
-	       }
-	       }
-	       // Finally set the MessageTemplate and timeout used in the RECEIVE_REPLY 
-	        // state to accept replies
-	         replyReceiver.setTemplate(replyTemplate);
-	         replyReceiver.setDeadline(deadline);
-	         }*/
 	
 	/**
 	 Check whether a reply is in-sequence and update the appropriate Session.

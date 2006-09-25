@@ -68,6 +68,7 @@ public class LoaderBehaviour extends Behaviour {
 	private Codec codec = new LEAPCodec();
 	private Ontology onto = BehaviourLoadingOntology.getInstance();
 	private ContentManager myContentManager = new ContentManager();
+	private ClassLoader localLoader;
 	
 	private MessageTemplate myTemplate = MessageTemplate.and(
 		MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
@@ -88,11 +89,21 @@ public class LoaderBehaviour extends Behaviour {
 	}
 	
 	/**
-	   Construct a LoaderBehaviour to be executed by the given agent.
+	   Construct a LoaderBehaviour to be executed by a given agent.
 	 */
 	public LoaderBehaviour(Agent a) {
 		super(a);
 		init();
+	}
+	
+	/**
+	   Construct a LoaderBehaviour to be executed by a given agent and that will use a given class loader to load behaviours whose code
+	   is not embedded in the LoadBehaviour request.
+	 */
+	public LoaderBehaviour(Agent a, ClassLoader cl) {
+		super(a);
+		init();
+		localLoader = cl;
 	}
 	
 	/**
@@ -123,8 +134,13 @@ public class LoaderBehaviour extends Behaviour {
 							b = loadFromZip(className, zip);
 						}
 						else {
-							// Try from the local classpath
-							b = (Behaviour) Class.forName(className).newInstance();
+							// Try using the local loader
+							if (localLoader != null) {
+								b = (Behaviour) localLoader.loadClass(className).newInstance();
+							}
+							else {
+								b = (Behaviour) Class.forName(className).newInstance();
+							}
 						}
 						
 						// Set parameters
@@ -210,6 +226,8 @@ public class LoaderBehaviour extends Behaviour {
 		// local ContentManager
 		myContentManager.registerLanguage(codec);
 		myContentManager.registerOntology(onto);
+		
+		localLoader = getClass().getClassLoader();
 	}
 		
 	private Behaviour loadFromCode(String className, final byte[] code) throws ClassNotFoundException, InstantiationException, IllegalAccessException {	
