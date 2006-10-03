@@ -172,6 +172,7 @@ public class CodeLocator {
 			// of agents refering to that jar file
 			_agentsUsingJar.put(name, jarUID);
 			r.incRef();
+			if (!userCreatedJar) deleteFile(path);
 			return r.getLocation();
 		}
 	}

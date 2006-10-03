@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.domain;
 
@@ -59,54 +59,63 @@ import jade.util.Logger;
    immediately or must be delayed at a later time) depends on the specific 
    action.
    @author Giovanni Caire - Tilab
-*/
+ */
 public abstract class RequestManagementBehaviour extends SimpleAchieveREResponder {
 	private ACLMessage notification;
 	private Logger myLogger;
 
-  protected RequestManagementBehaviour(Agent a, MessageTemplate mt){
+	protected RequestManagementBehaviour(Agent a, MessageTemplate mt){
 		super(a,mt);
-		myLogger = Logger.getMyLogger(myAgent.getLocalName());
-  }
- 
-  protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException; 
+		if (myAgent != null) {
+			myLogger = Logger.getMyLogger(myAgent.getLocalName());
+		}
+	}
 
-  /**
-   * @return null when the AGREE message can be skipper, the AGREE message
-   * otherwise.
-   */
-  protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-  	ACLMessage response = null;  
-  	Throwable t = null;
+	public void onStart() {
+		if (myLogger == null) {
+			myLogger = Logger.getMyLogger(myAgent.getLocalName());
+		}
+		super.onStart();
+	}
+	
+	protected abstract ACLMessage performAction(Action slAction, ACLMessage request) throws JADESecurityException, FIPAException; 
+
+	/**
+	 * @return null when the AGREE message can be skipper, the AGREE message
+	 * otherwise.
+	 */
+	protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
+		ACLMessage response = null;  
+		Throwable t = null;
 		try{	
 			// Check the language is SL0, SL1, SL2 or SL. 
-	    isAnSLRequest(request);
+			isAnSLRequest(request);
 
-	    // Extract the content
-	    Action slAction = (Action) myAgent.getContentManager().extractContent(request);
-	    
-	    // Perform the action
-	    notification = performAction(slAction, request);
-	    
-	    // Action OK 
+			// Extract the content
+			Action slAction = (Action) myAgent.getContentManager().extractContent(request);
+
+			// Perform the action
+			notification = performAction(slAction, request);
+
+			// Action OK 
 		} 
 		catch (OntologyException oe) {
 			// Error decoding request --> NOT_UNDERSTOOD
-		        response = request.createReply();
+			response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
 			t = oe;
 		}	
 		catch (CodecException ce) {
 			// Error decoding request --> NOT_UNDERSTOOD
-		  response = request.createReply();
+			response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+ExceptionVocabulary.UNRECOGNISEDVALUE+" content)");
 			t = ce;
 		}	
 		catch (RefuseException re) {
 			// RefuseException thrown during action execution --> REFUSE
-		  response = request.createReply();
+			response = request.createReply();
 			response.setPerformative(ACLMessage.REFUSE);
 			response.setContent(prepareErrorContent(request.getContent(), re.getMessage()));
 			t = re;
@@ -120,7 +129,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 		}	
 		catch(FIPAException fe){
 			// Malformed request --> NOT_UNDERSTOOD
-		  response = request.createReply();
+			response = request.createReply();
 			response.setPerformative(ACLMessage.NOT_UNDERSTOOD);
 			response.setContent("("+fe.getMessage()+")");
 			t = fe;
@@ -130,7 +139,7 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 			// Generic error --> FAILURE
 			notification = request.createReply();
 			notification.setPerformative(ACLMessage.FAILURE);
-			
+
 			notification.setContent(prepareErrorContent(request.getContent(), ExceptionVocabulary.INTERNALERROR+" \""+t+"\""));
 		}
 		if (t != null) {
@@ -140,34 +149,34 @@ public abstract class RequestManagementBehaviour extends SimpleAchieveREResponde
 			}
 		}
 		return response;
-  }
-    
-  /**
+	}
+
+	/**
      Just return the (already prepared) notification message (if any).
-   */
-  protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
+	 */
+	protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException{	
 		return notification;       
-  }
-    
-  //to reset the action
-  public void reset(){
+	}
+
+	//to reset the action
+	public void reset(){
 		super.reset();
 		notification = null;
-  }
+	}
 
-  private void isAnSLRequest(ACLMessage msg) throws FIPAException { 
+	private void isAnSLRequest(ACLMessage msg) throws FIPAException { 
 		String language = msg.getLanguage();
 		if ( (!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL0, language)) &&
-	  	   (!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL1, language)) &&
-	    	 (!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL2, language)) &&
-	     	 (!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL, language))) {
+				(!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL1, language)) &&
+				(!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL2, language)) &&
+				(!CaseInsensitiveString.equalsIgnoreCase(FIPANames.ContentLanguage.FIPA_SL, language))) {
 			throw new UnsupportedValue("language");
-    }
-  }
+		}
+	}
 
-  private String prepareErrorContent(String content, String e) {
-  	String tmp = content.trim();
-  	tmp = tmp.substring(1, tmp.length()-1);
-  	return "("+tmp+" "+e+")";
-  }
+	private String prepareErrorContent(String content, String e) {
+		String tmp = content.trim();
+		tmp = tmp.substring(1, tmp.length()-1);
+		return "("+tmp+" "+e+")";
+	}
 }

@@ -745,9 +745,11 @@ public class Agent implements Runnable, Serializable
 		return myToolkit.here();
 	}
 	
+	//#APIDOC_EXCLUDE_BEGIN
 	/**
+	 * This method is used internally by the framework and should NOT be used by programmers.
 	 * This is used by the agent container to wait for agent termination.
-	 * We have alreader called doDelete on the thread which would have
+	 * We have already called doDelete on the thread which would have
 	 * issued an interrupt on it. However, it still may decide not to exit.
 	 * So we will wait no longer than 5 seconds for it to exit and we
 	 * do not care of this zombie agent.
@@ -755,7 +757,7 @@ public class Agent implements Runnable, Serializable
 	 * by using custom class loader and dynamic proxies and JDK 1.3.
 	 * FIXME: the timeout value should be got by Profile
 	 */
-	void join() {
+	public void join() {
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			if(myThread == null) {
@@ -785,6 +787,7 @@ public class Agent implements Runnable, Serializable
 		 } 
 		 #MIDP_INCLUDE_END*/
 	}
+	//#APIDOC_EXCLUDE_END
 	
 	/**
 	 Set message queue size. This method allows to change the number
@@ -1644,18 +1647,19 @@ public class Agent implements Runnable, Serializable
 	//#MIDP_EXCLUDE_END
 	
 	// This method is used by the Agent Container to fire up a new agent for the first time
-	void powerUp(AID id, Thread t) {
-		// Set this agent's name and address and start its embedded thread
-		myName = id.getLocalName();
-		myHap = id.getHap();
-		
-		synchronized (this) { // Mutual exclusion with Agent.addPlatformAddress()
+	// Mutual exclusion with itself and Agent.addPlatformAddress()
+	synchronized void powerUp(AID id, Thread t) {
+		if (myThread == null) {
+			// Set this agent's name and address and start its embedded thread
+			myName = id.getLocalName();
+			myHap = id.getHap();
+			
 			myAID = id;
 			myToolkit.setPlatformAddresses(myAID);
+			
+			myThread = t;
+			myThread.start();
 		}
-		
-		myThread = t;
-		myThread.start();
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
