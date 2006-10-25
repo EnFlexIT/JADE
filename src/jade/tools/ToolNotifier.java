@@ -449,6 +449,9 @@ public class ToolNotifier extends ToolAgent implements MessageListener, AgentLis
 				removePendingEvent(jev);
 				finished = true;
 			}
+			else {
+				block();
+			}
 		}
 		
 		public boolean done() {

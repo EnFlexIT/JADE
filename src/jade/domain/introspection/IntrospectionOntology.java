@@ -137,6 +137,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 			cs.add(BEHAVIOURID_CLASS_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING));
 			cs.add(BEHAVIOURID_KIND, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 			cs.add(BEHAVIOURID_CHILDREN, (ConceptSchema)getSchema(BEHAVIOURID), 0, ObjectSchema.UNLIMITED);
+			cs.add(BEHAVIOURID_CODE, (PrimitiveSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 			
 			cs = (ConceptSchema)getSchema(ACLMESSAGE);
 			cs.add(ACLMESSAGE_ENVELOPE, (ConceptSchema)getSchema(ENVELOPE), ObjectSchema.OPTIONAL);

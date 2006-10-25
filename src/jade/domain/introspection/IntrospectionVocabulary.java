@@ -163,6 +163,7 @@ public interface IntrospectionVocabulary {
   public static final String BEHAVIOURID_CLASS_NAME = "class-name";
   public static final String BEHAVIOURID_KIND = "kind";
   public static final String BEHAVIOURID_CHILDREN = "children";
+  public static final String BEHAVIOURID_CODE = "code";
   
   public static final String ACLMESSAGE = "acl-message";
   public static final String ACLMESSAGE_ENVELOPE = "envelope";

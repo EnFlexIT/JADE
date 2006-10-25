@@ -66,10 +66,10 @@ public class FSMBehaviour extends SerialBehaviour {
 	
 	private Map states = new HashMap();
 	private Behaviour current = null;
-	protected List lastStates = new ArrayList();
+	private List lastStates = new ArrayList();
 	private String firstName = null;
-	protected String currentName = null;
-	protected String previousName = null;
+	private String currentName = null;
+	private String previousName = null;
 	private int lastExitValue;
 	
 	// These variables are used to force a transition on a given state at runtime

@@ -46,6 +46,7 @@ import jade.content.Concept;
  */
 public class BehaviourID implements Concept {
 	
+	private int code;
 	private String name;
 	private String className;
 	private String kind; 
@@ -66,7 +67,7 @@ public class BehaviourID implements Concept {
 	 described with this ID.
 	 */
 	public BehaviourID (Behaviour b) {
-		
+		code = b.hashCode();
 		name = b.getBehaviourName();
 		className = b.getClass().getName();      
 		kind = getClassKind(b.getClass());      
@@ -120,6 +121,21 @@ public class BehaviourID implements Concept {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 Set the code of this behaviour ID
+	 @param code The code to give to this behaviour ID.
+	 */
+	public void setCode(int code) {
+		this.code = code;
+	}
+	
+	/**
+	 Retrieve the code of this behaviour ID.
+	 */
+	public int getCode() {
+		return code;
 	}
 	
 	/**
@@ -179,7 +195,7 @@ public class BehaviourID implements Concept {
 	public Iterator getAllChildren() {
 		return children.iterator();
 	}
-	
+		
 	/**
 	 Tells whether this behaviour ID has children.
 	 @return If the children collection is empty, <code>true</code>
@@ -201,14 +217,26 @@ public class BehaviourID implements Concept {
 	 <code>true</code>. Otherwise, <code>false</code> is returned.
 	 */
 	public boolean equals(Object o) {
-		boolean bEqual = false;
 		if (o != null && o instanceof BehaviourID) {
 			BehaviourID b = (BehaviourID)o;
-			bEqual = (b.hashCode() == hashCode());
+			return (checkEquals(name, b.name) && checkEquals(className, b.className) && checkEquals(kind, b.kind));
 		}
-		return bEqual;
+		else {
+			return false;
+		}
 	}
 	
+	
+	
+	private boolean checkEquals(String s1, String s2) {
+		if (s1 != null) {
+			return (s1.equals(s2));
+		}
+		else {
+			return s2 == null;
+		}
+	}
+
 	/**
 	 Hash code operation, compliant with identity-by-name. This
 	 method returns an hash code for a behaviour ID, so that two

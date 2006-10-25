@@ -531,22 +531,5 @@ public abstract class Behaviour implements Serializable {
 	}  
 	
 	
-	//#MIDP_EXCLUDE_BEGIN
-	
-	// For persistence service
-	private Long persistentID;
-	
-	// For persistence service
-	private Long getPersistentID() {
-		return persistentID;
-	}
-	
-	// For persistence service
-	private void setPersistentID(Long l) {
-		persistentID = l;
-	}
-	
-	//#MIDP_EXCLUDE_END
-	
 	//#CUSTOM_EXCLUDE_END
 }

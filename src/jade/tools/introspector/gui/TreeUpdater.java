@@ -117,7 +117,7 @@ public class TreeUpdater implements Runnable {
                 BehaviourTreeNode bNode = (BehaviourTreeNode)node.getUserObject();
                 BehaviourID b = bNode.getBehaviour();
 
-                if (b.equals(behaviour))
+                if (b.getCode() == behaviour.getCode() && b.equals(behaviour))
                 {
                     Object[]o=node.getPath();
                     TreePath tp= new TreePath(o);
