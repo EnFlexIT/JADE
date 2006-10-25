@@ -120,6 +120,7 @@ public class CodeLocator {
 				//Manifest exists: Check if it already contains the JAR_UID attribute.
 				att = man.getMainAttributes();
 				if ((jarUID = att.getValue(JAR_UID_ATTR)) != null) {
+					jf.close();
 					return registerJar(name, f.getPath(), jarUID, userCreatedJar);
 				}
 			}
@@ -139,12 +140,14 @@ public class CodeLocator {
 			jf.close();
 			
 			// Rename the new JAR with the original name
-			System.out.println("################ Deleting file "+f.getPath());
+			//System.out.println("################ Deleting file "+f.getPath());
 			if (!f.delete()) {
-				System.out.println("####################### DELETE didn't work properly");
+				System.out.println("####################### DELETE of " 
+						+ f.getPath() + "didn't work properly");
 			}
 			if (!(new File(TMP_JAR)).renameTo(f)) {
-				System.out.println("####################### RENAME didn't work properly");
+				System.out.println("####################### RENAME of "
+						+ f.getPath() + "didn't work properly");
 			}
 			
 			// Register agent.
