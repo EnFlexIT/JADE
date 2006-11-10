@@ -33,51 +33,54 @@ import jade.content.Concept;
  */
 public class AbsConcept extends AbsPrimitiveSlotsHolder implements AbsTerm, Concept {
 
-    /**
-     * Construct an Abstract descriptor to hold a concept of
-     * the proper type (e.g. PERSON, ADDRESS...).
-     * @param typeName The name of the type of the concept held by 
-     * this abstract descriptor.
-     */
-    public AbsConcept(String typeName) {
-        super(typeName);
+	/**
+	 * Construct an Abstract descriptor to hold a concept of
+	 * the proper type (e.g. PERSON, ADDRESS...).
+	 * @param typeName The name of the type of the concept held by 
+	 * this abstract descriptor.
+	 */
+	public AbsConcept(String typeName) {
+		super(typeName);
+	}
+
+	/**
+	 * Sets an attribute of the concept held by this
+	 * abstract descriptor.
+	 * @param name The name of the attribute to be set.
+	 * @param value The new value of the attribute.
+	 */
+	public void set(String name, AbsTerm value) {
+		super.set(name, value);
+	} 
+
+	/**
+	 * Gets the value of an attribute of the concept 
+	 * held by this abstract descriptor.
+	 * @param name The name of the attribute.
+	 * @return value The value of the attribute.
+	 */
+	public AbsTerm getAbsTerm(String name) {
+		return (AbsTerm)getAbsObject(name);
+	}
+
+	// Easy way to access the Java class representing AbsConcept.
+	// Useful in MIDP where XXX.class is not available
+	private static Class absConceptClass = null;
+	public static Class getJavaClass() {
+		if (absConceptClass == null) {
+			try {
+				absConceptClass = Class.forName("jade.content.abs.AbsConcept");
+			}
+			catch (Exception e) {
+				// Should never happen
+				e.printStackTrace();
+			}
+		}
+		return absConceptClass;
+	}
+
+    public int getAbsType() {
+    	return ABS_CONCEPT;
     }
-
-    /**
-     * Sets an attribute of the concept held by this
-     * abstract descriptor.
-     * @param name The name of the attribute to be set.
-     * @param value The new value of the attribute.
-     */
-    public void set(String name, AbsTerm value) {
-        super.set(name, value);
-    } 
-
-    /**
-     * Gets the value of an attribute of the concept 
-     * held by this abstract descriptor.
-     * @param name The name of the attribute.
-     * @return value The value of the attribute.
-     */
-    public AbsTerm getAbsTerm(String name) {
-        return (AbsTerm)getAbsObject(name);
-    }
-
-    // Easy way to access the Java class representing AbsConcept.
- 		// Useful in MIDP where XXX.class is not available
-		private static Class absConceptClass = null;
- 		public static Class getJavaClass() {
- 			if (absConceptClass == null) {
- 				try {
- 					absConceptClass = Class.forName("jade.content.abs.AbsConcept");
- 				}
- 				catch (Exception e) {
- 					// Should never happen
- 					e.printStackTrace();
- 				}
- 			}
- 			return absConceptClass;
- 		}
-
 }
 

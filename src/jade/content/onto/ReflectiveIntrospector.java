@@ -47,150 +47,147 @@ import jade.core.CaseInsensitiveString;
 public class ReflectiveIntrospector implements Introspector {
 
 	/**
-   * Translate an object of a class representing an element in an
-   * ontology into a proper abstract descriptor 
-   * @param obj The Object to be translated
-   * @param schema The schema for the ontological element this object
-   * is an instance of.
-   * @param javaClass The class of the Object to be translated
-   * @param referenceOnto The reference ontology in the context of
-   * this translation. 
-   * @return The Abstract descriptor produced by the translation 
-   * @throws OntologyException If some error occurs during the translation
-   */
-  public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-    				throws OntologyException {
-        try {
-            AbsObject    abs = schema.newInstance();            
-            String[]     names = schema.getNames();
+	 * Translate an object of a class representing an element in an
+	 * ontology into a proper abstract descriptor 
+	 * @param obj The Object to be translated
+	 * @param schema The schema for the ontological element this object
+	 * is an instance of.
+	 * @param javaClass The class of the Object to be translated
+	 * @param referenceOnto The reference ontology in the context of
+	 * this translation. 
+	 * @return The Abstract descriptor produced by the translation 
+	 * @throws OntologyException If some error occurs during the translation
+	 */
+	public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) throws OntologyException {
+		try {
+			AbsObject    abs = schema.newInstance();            
+			String[]     names = schema.getNames();
 
-            // Loop on slots
-      			for (int i = 0; i < names.length; ++i) {
-      				String slotName = names[i];
-      				
-      				// Retrieve the accessor method from the class and call it
-      				String methodName = "get" + translateName(slotName);
-      				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-        			Object slotValue = invokeAccessorMethod(getMethod, obj);
-        			if (slotValue != null) {
-      					// Agregate slots require a special handling 
-      					ObjectSchema slotSchema = schema.getSchema(slotName);
-      					if (slotSchema instanceof AggregateSchema) {
-      						List l = (List) slotValue;
-      						if (!l.isEmpty() || schema.isMandatory(slotName)) {
-        						AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
-          					AbsHelper.setAttribute(abs, slotName, absSlotValue);
-      						}
-      					}
-      					else {
-        					AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
-          				AbsHelper.setAttribute(abs, slotName, absSlotValue);
-      					}
-        			}             	
-            } 
+			// Loop on slots
+			for (int i = 0; i < names.length; ++i) {
+				String slotName = names[i];
 
-            return abs;
-        } 
-        catch (OntologyException oe) {
-            throw oe;
-        } 
-        catch (Throwable t) {
-            throw new OntologyException("Schema and Java class do not match", t);
-        } 
-    } 
+				// Retrieve the accessor method from the class and call it
+				String methodName = "get" + translateName(slotName);
+				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
+				Object slotValue = invokeAccessorMethod(getMethod, obj);
+				if (slotValue != null) {
+					// Agregate slots require a special handling 
+					ObjectSchema slotSchema = schema.getSchema(slotName);
+					if (slotSchema instanceof AggregateSchema) {
+						List l = (List) slotValue;
+						if (!l.isEmpty() || schema.isMandatory(slotName)) {
+							AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
+							AbsHelper.setAttribute(abs, slotName, absSlotValue);
+						}
+					}
+					else {
+						AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
+						AbsHelper.setAttribute(abs, slotName, absSlotValue);
+					}
+				}             	
+			} 
 
-    //#APIDOC_EXCLUDE_BEGIN
-    protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
-        try {
-            return method.invoke(obj, (Object[]) null);
-        } 
-        catch (Exception e) {
-            throw new OntologyException("Error invoking accessor method "+method.getName()+" on object "+obj, e);
-        } 
-    } 
-    //#APIDOC_EXCLUDE_END
+			return abs;
+		} 
+		catch (OntologyException oe) {
+			throw oe;
+		} 
+		catch (Throwable t) {
+			throw new OntologyException("Schema and Java class do not match", t);
+		} 
+	} 
 
-  /**
-   * Translate an abstract descriptor into an object of a proper class 
-   * representing an element in an ontology 
-   * @param abs The abstract descriptor to be translated
-   * @param schema The schema for the ontological element this abstract descriptor
-   * is an instance of.
-   * @param javaClass The class of the Object to be produced by the translation
-   * @param referenceOnto The reference ontology in the context of
-   * this translation. 
-   * @return The Java object produced by the translation 
-   * @throws UngroundedException If the abstract descriptor to be translated 
-   * contains a variable
-   * @throws OntologyException If some error occurs during the translation
-   */
-  public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-            throws UngroundedException, OntologyException {
+	//#APIDOC_EXCLUDE_BEGIN
+	protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
+		try {
+			return method.invoke(obj, (Object[]) null);
+		} 
+		catch (Exception e) {
+			throw new OntologyException("Error invoking accessor method "+method.getName()+" on object "+obj, e);
+		} 
+	} 
+	//#APIDOC_EXCLUDE_END
 
-        try {
-            Object       obj = javaClass.newInstance();            
-            String[]     names = schema.getNames();
+	/**
+	 * Translate an abstract descriptor into an object of a proper class 
+	 * representing an element in an ontology 
+	 * @param abs The abstract descriptor to be translated
+	 * @param schema The schema for the ontological element this abstract descriptor
+	 * is an instance of.
+	 * @param javaClass The class of the Object to be produced by the translation
+	 * @param referenceOnto The reference ontology in the context of
+	 * this translation. 
+	 * @return The Java object produced by the translation 
+	 * @throws UngroundedException If the abstract descriptor to be translated 
+	 * contains a variable
+	 * @throws OntologyException If some error occurs during the translation
+	 */
+	public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) throws UngroundedException, OntologyException {
+		try {
+			Object       obj = javaClass.newInstance();            
+			String[]     names = schema.getNames();
 
-    				// LOOP on slots 
-    				for (int i = 0; i < names.length; ++i) {
-      				String slotName = names[i];
-      				AbsObject absSlotValue = abs.getAbsObject(slotName);
-      				if (absSlotValue != null) {
-      					Object slotValue = referenceOnto.toObject(absSlotValue);
-      					
-      					// Retrieve the modifier method from the class and call it
-  	    				String methodName = "set" + translateName(slotName);
-      					Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
-          			invokeSetterMethod(setMethod, obj, slotValue);
-        			}             	
-            } 
+			// LOOP on slots 
+			for (int i = 0; i < names.length; ++i) {
+				String slotName = names[i];
+				AbsObject absSlotValue = abs.getAbsObject(slotName);
+				if (absSlotValue != null) {
+					Object slotValue = referenceOnto.toObject(absSlotValue);
 
-            return obj;
-        } 
-        catch (OntologyException oe) {
-            throw oe;
-        } 
-        catch (InstantiationException ie) {
-            throw new OntologyException("Class "+javaClass+" can't be instantiated", ie);
-        } 
-        catch (IllegalAccessException iae) {
-            throw new OntologyException("Class "+javaClass+" does not have an accessible constructor", iae);
-        } 
-        catch (Throwable t) {
-            throw new OntologyException("Schema and Java class do not match", t);
-        } 
-    } 
+					// Retrieve the modifier method from the class and call it
+					String methodName = "set" + translateName(slotName);
+					Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
+					invokeSetterMethod(setMethod, obj, slotValue);
+				}             	
+			} 
 
-    //#APIDOC_EXCLUDE_BEGIN
-    protected void invokeSetterMethod(Method method, Object obj, 
-                                 Object value) throws OntologyException {
-    	try {
-        Object[] params = new Object[] {value};
-        try {
-          method.invoke(obj, params);
-        }
-    		catch (IllegalArgumentException iae) {
-    			// Maybe the method required an int argument and we supplied 
-    			// a Long. Similarly maybe the method required a float and 
-    			// we supplied a Double. Try these possibilities
-    			if (value instanceof Long) {
-    				Integer i = new Integer((int) ((Long) value).longValue());
-    				params[0] = i;
-    			}
-    			else if (value instanceof Double) {
-    				Float f = new Float((float) ((Double) value).doubleValue());
-    				params[0] = f;
-    			}
-    			method.invoke(obj, params);
-    		}
-      } 
-      catch (Exception e) {
-          throw new OntologyException("Error invoking setter method "+method.getName()+" on object "+obj+" with parameter "+value, e);
-      }
-    } 
-    //#APIDOC_EXCLUDE_END
+			return obj;
+		} 
+		catch (OntologyException oe) {
+			throw oe;
+		} 
+		catch (InstantiationException ie) {
+			throw new OntologyException("Class "+javaClass+" can't be instantiated", ie);
+		} 
+		catch (IllegalAccessException iae) {
+			throw new OntologyException("Class "+javaClass+" does not have an accessible constructor", iae);
+		} 
+		catch (Throwable t) {
+			throw new OntologyException("Schema and Java class do not match", t);
+		} 
+	} 
 
-    /**
+	//#APIDOC_EXCLUDE_BEGIN
+	protected void invokeSetterMethod(Method method, Object obj, 
+			Object value) throws OntologyException {
+		try {
+			Object[] params = new Object[] {value};
+			try {
+				method.invoke(obj, params);
+			}
+			catch (IllegalArgumentException iae) {
+				// Maybe the method required an int argument and we supplied 
+				// a Long. Similarly maybe the method required a float and 
+				// we supplied a Double. Try these possibilities
+				if (value instanceof Long) {
+					Integer i = new Integer((int) ((Long) value).longValue());
+					params[0] = i;
+				}
+				else if (value instanceof Double) {
+					Float f = new Float((float) ((Double) value).doubleValue());
+					params[0] = f;
+				}
+				method.invoke(obj, params);
+			}
+		} 
+		catch (Exception e) {
+			throw new OntologyException("Error invoking setter method "+method.getName()+" on object "+obj+" with parameter "+value, e);
+		}
+	} 
+	//#APIDOC_EXCLUDE_END
+
+	/**
        Check the structure of a java class associated to an ontological element 
        to ensure that translations to/from abstract descriptors and java objects
        (instances of that class) can be accomplished by this introspector.
@@ -199,22 +196,22 @@ public class ReflectiveIntrospector implements Introspector {
        @param onto The Ontology that uses this Introspector
        @throws OntologyException if the java class does not have the correct 
        structure
-     */
-    public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
-    	// FIXME: Not yet implemented
-    }
-    
-  //#APIDOC_EXCLUDE_BEGIN
-  protected Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
-  	Method[] methods = c.getMethods();
-    for(int i = 0; i < methods.length; i++) {
-      String ithName = methods[i].getName();
-      if(CaseInsensitiveString.equalsIgnoreCase(ithName, name))
+	 */
+	public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
+		// FIXME: Not yet implemented
+	}
+
+	//#APIDOC_EXCLUDE_BEGIN
+	protected Method findMethodCaseInsensitive(String name, Class c) throws OntologyException {
+		Method[] methods = c.getMethods();
+		for(int i = 0; i < methods.length; i++) {
+			String ithName = methods[i].getName();
+			if(CaseInsensitiveString.equalsIgnoreCase(ithName, name))
 				return methods[i];
-    }
-    throw new OntologyException("Method " + name + " not found in class "+c.getName());
-  }
-  
+		}
+		throw new OntologyException("Method " + name + " not found in class "+c.getName());
+	}
+
 	protected String translateName(String name) {
 		StringBuffer buf = new StringBuffer();
 
@@ -226,13 +223,13 @@ public class ReflectiveIntrospector implements Introspector {
 			switch (c) {
 			case ':':
 				// Just ignore it
-	     	break;
+				break;
 			case '-':
 				// Don't copy the character, but capitalize the next
 				// one so that x-y becomes xY
-	     	capitalize = true;
+				capitalize = true;
 				break;
- 			default:
+			default:
 				if (capitalize) {
 					buf.append(Character.toUpperCase(c));
 					capitalize = false;
@@ -244,6 +241,6 @@ public class ReflectiveIntrospector implements Introspector {
 		} 
 		return buf.toString();
 	} 
-  //#APIDOC_EXCLUDE_END
+	//#APIDOC_EXCLUDE_END
 }
 

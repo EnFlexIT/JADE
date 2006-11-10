@@ -32,6 +32,16 @@ import jade.util.leap.Serializable;
  * @author Giovanni Caire - TILAB
  */
 public interface AbsObject extends Serializable {
+	public static final int UNKNOWN = -1;
+	public static final int ABS_PREDICATE = 1;
+	public static final int ABS_CONCEPT = 2;
+	public static final int ABS_AGENT_ACTION = 3;
+	public static final int ABS_PRIMITIVE = 4;
+	public static final int ABS_AGGREGATE = 5;
+	public static final int ABS_IRE = 6;
+	public static final int ABS_VARIABLE = 7;
+	public static final int ABS_CONTENT_ELEMENT_LIST = 8;
+	
     /**
      * @return The name of the type of the object held by this
      * abstract descriptor.
@@ -64,9 +74,6 @@ public interface AbsObject extends Serializable {
      */
     public int getCount();
 
-    /**
-     * @deprecated Use <code>toString()</code> instead
-     */
-    /*public void dump();*/
+    public int getAbsType();
 }
 
