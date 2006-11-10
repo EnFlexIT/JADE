@@ -303,18 +303,32 @@ public class Runtime {
      Return the version number and date of this JADE Runtime.
 	 */
 	public static String getVersionInfo() {
-		String CVSname = "$Name$"; //this keyword is automatically replaced by the target doTag of build.xml
-		String CVSdate = " - revision $WCREV$ of $WCDATE$"; // these keywords are automatically replaced by WCREV with subversion
-		String name = CVSname; 
-		if(name.indexOf("JADE") == -1)
+		String version = getVersion();
+		String name = null;
+		if (version.equals("$Version$")) {
+			// The $Version$ keyword was not replaced --> This is NOT an official release --> The has the form JADE Snapshot - revision XXXX of YYYY/MM/DD hh:mm:ss
 			name = "JADE snapshot";
-		else 
-		{
-			name = name.replace('-', ' ');
-			name = name.replace('_', '.');
-			name = name.trim();
 		}
-		return name + CVSdate;
+		else {
+			// This is an official release --> The name has the form JADE version - revision XXXX of YYYY/MM/DD hh:mm:ss
+			name = "JADE "+version;
+		}
+		return name + " - revision "+getRevision()+" of "+getDate();
+	}
+	
+	public static String getVersion() {
+		String version = "$Version$"; // The $Version$ keyword is automatically replaced by the target doTag of build.xml
+		return version;
+	}
+	
+	public static String getRevision() {
+		String revision = "$WCREV$"; // The $WCREV$ keyword is automatically replaced by WCREV with subversion
+		return revision;
+	}
+	
+	public static String getDate() {
+		String date = "$WCDATE$"; // The $WCDATE$ keyword is automatically replaced by WCREV with subversion
+		return date;
 	}
 }
 
