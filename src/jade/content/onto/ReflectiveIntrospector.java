@@ -75,11 +75,7 @@ public class ReflectiveIntrospector implements Introspector {
 					// Agregate slots require a special handling 
 					ObjectSchema slotSchema = schema.getSchema(slotName);
 					if (slotSchema instanceof AggregateSchema) {
-						List l = (List) slotValue;
-						if (!l.isEmpty() || schema.isMandatory(slotName)) {
-							AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
-							AbsHelper.setAttribute(abs, slotName, absSlotValue);
-						}
+						externaliseAndSetAggregateSlot(abs, schema, slotName, slotValue, slotSchema, referenceOnto);
 					}
 					else {
 						AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
@@ -97,6 +93,14 @@ public class ReflectiveIntrospector implements Introspector {
 			throw new OntologyException("Schema and Java class do not match", t);
 		} 
 	} 
+
+	protected void externaliseAndSetAggregateSlot(AbsObject abs, ObjectSchema schema, String slotName, Object slotValue, ObjectSchema slotSchema, Ontology referenceOnto) throws OntologyException {
+		List l = (List) slotValue;
+		if (!l.isEmpty() || schema.isMandatory(slotName)) {
+			AbsObject absSlotValue = AbsHelper.externaliseList(l, referenceOnto, slotSchema.getTypeName()); 
+			AbsHelper.setAttribute(abs, slotName, absSlotValue);
+		}
+	}
 
 	//#APIDOC_EXCLUDE_BEGIN
 	protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
@@ -133,7 +137,13 @@ public class ReflectiveIntrospector implements Introspector {
 				String slotName = names[i];
 				AbsObject absSlotValue = abs.getAbsObject(slotName);
 				if (absSlotValue != null) {
-					Object slotValue = referenceOnto.toObject(absSlotValue);
+					Object slotValue = null;
+					if (absSlotValue.getAbsType() == AbsObject.ABS_AGGREGATE) {
+						slotValue = internaliseAggregateSlot((AbsAggregate) absSlotValue, referenceOnto);
+					}
+					else {
+						slotValue = referenceOnto.toObject(absSlotValue);
+					}
 
 					// Retrieve the modifier method from the class and call it
 					String methodName = "set" + translateName(slotName);
@@ -157,6 +167,10 @@ public class ReflectiveIntrospector implements Introspector {
 			throw new OntologyException("Schema and Java class do not match", t);
 		} 
 	} 
+
+	private Object internaliseAggregateSlot(AbsAggregate absAggregate, Ontology referenceOnto) throws OntologyException {
+		return AbsHelper.internaliseList(absAggregate, referenceOnto);
+	}
 
 	//#APIDOC_EXCLUDE_BEGIN
 	protected void invokeSetterMethod(Method method, Object obj, 
