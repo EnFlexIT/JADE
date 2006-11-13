@@ -97,7 +97,7 @@ ant dist - to create the distribution files
 	          _______________________________________________ -->
 	  <target name="doTag" depends="SubWCRev" if="tagThisVersion.is.true" description="Set the JADE version number in jade.core.Runtime.">
 	    <echo>tagging new release: JADE-${version}</echo>
-	  	<replace file="src/jade/core/Runtime.java" token="$Name$" value="JADE-${version}" summary="yes"/>
+	  	<replace file="src/jade/core/Runtime.java" token="$Version$" value="${version}" summary="yes"/>
 	  </target>
 	
   <!--     _______________________________________________
@@ -109,6 +109,7 @@ ant dist - to create the distribution files
      <arg line=". src\jade\core\Runtime.java src\jade\core\Runtime.java"/>
     </exec>
   </target>
+
   <!--     _______________________________________________
                               parser
          _______________________________________________ -->
@@ -218,15 +219,17 @@ ant dist - to create the distribution files
                                dist
          _______________________________________________ -->
   <!-- Make distribution zip file and put in ${dist} -->
-  <target name="dist" depends="check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+  <target name="dist" depends="reminder_javadoc,check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+  <target name="reminder_javadoc">
+    <echo>REMINDER!!!!! The javadoc documentation for user should be generated through the ANT target apidoc of the leap distribution. That target filters out irrelevant files and packages.</echo>
+  </target>
   <target name="check_javacc_dist" unless="javacc.home.is.set">
-    <echo>The javadoc documentation for user should be generated through the ANT target apidoc of the leap distribution. That target filters out irrelevant files and packages.</echo>
     <echo>javacc task is being skipped and THE DISTRIBUTION FILES MIGHT NOT BE PROPERLY GENERATED. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
   <target name="dist_src" depends="init,parser">
     <jar jarfile="${dist}/JADE-src-${version}.zip">
       <fileset dir="${dist}" includes="jade/src/FIPA/**"/>
-      <fileset dir="${dist}" includes="jade/src/jade/**"/>
+      <fileset dir="${dist}" includes="jade/src/jade/**" excludes="jade/src/test/**"/>
       <fileset dir="${dist}" includes="jade/build.xml"/>
       <fileset dir="${dist}" includes="jade/README"/>
       <fileset dir="${dist}" includes="jade/COPYNG"/>

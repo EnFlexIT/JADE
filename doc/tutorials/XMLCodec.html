@@ -17,243 +17,204 @@ content="text/html; charset=iso-8859-1">
 	font-size:10.0pt;
 	font-family:"Courier New";}
 --></style>
-<h1><span lang="EN-GB">How to use the XML support with JADE</span></h1>
 
-<p><i><span lang="EN-GB">Author: Filippo Quarta</span><span lang="EN-GB"></i><nb>(Telecom Italia Lab)</span></p>
+<h1><span lang="EN-GB">Using the XMLCodec add-on</span></h1>
 
-<p><i><span lang="EN-GB">Date: March 10, 2003 </span><span lang="EN-GB"></span></i></p>
+<p><i><span lang="EN-GB">Author: Giovanni Caire </span></i><span lang="EN-GB">(Telecom Italia)</span></p>
 
-<p><i><span lang="EN-GB">Java platform: </span><span lang="IT"></i><a href="http://java.sun.com/j2se/1.3/"><i><span lang="EN-GB"></i></a><a
-href="http://java.sun.com/j2se/1.3/"><i>Sun JDK 1.2 Windows</i></a><a
-href="http://java.sun.com/j2se/1.3/"><i></span></i></a><a
-href="http://java.sun.com/j2se/1.3/"><i></span></i></a><a
-href="http://java.sun.com/j2se/1.3/"><i><span lang="IT"></i></a><i> </span><span lang="EN-GB"></span></i></p>
+<p><i><span lang="EN-GB">Date: November 10, 2006</span><span lang="EN-GB"></span></i></p>
 
-<p><i><span lang="IT"></i><a href="http://jade.cselt.it/"><i><span lang="FR"></i></a><a
-href="http://jade.cselt.it/"><i>JADE</i></a><a
-href="http://jade.cselt.it/"><i></span></i></a><a
-href="http://jade.cselt.it/"><i></span></i></a><a
-href="http://jade.cselt.it/"><i><span lang="FR"></i></a><i> version 3.0</span></i></p>
+<p><i><span lang="EN-GB">Java platform: </span><span lang="EN-GB">Sun JDK 1.4 or later</span></i></p>
 
-<p><i><span lang="FR">Java API for XML Processing (e.g. </span><span lang="IT"></i><a
-href="http://xml.apache.org/xerces-j/index.html" target="new"><i><span lang="FR"></i></a><a
-href="http://java.sun.com/xml/jaxp/index.html">http://java.sun.com/xml/jaxp/index.html</a><a
-href="http://xml.apache.org/xerces-j/index.html" target="new"></span></a><a
-href="http://xml.apache.org/xerces-j/index.html" target="new"></span></a><a
-href="http://xml.apache.org/xerces-j/index.html" target="new"><span lang="FR"></a>)</span></p>
+<p><i><span lang="EN-GB"><a href="http://jade.tilab.com/">JADE</a></span><span lang="EN-GB"> 
+  version 3.0 or later</span></i></p>
+<p>&nbsp;</p>
 
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
-">This tutorial describes how to
-install and use the XML support with JADE; the XML support
-permits to use a concrete syntax, for ACLmessage content, based
-on XML/XML Schema. The XMLCodec.java class implements the Codec
-interface of JADE (jade.content.lang.Codec) and allows converting
-back and forth between arrays of byte in XML format and
-AbsContentElement (abstract descriptor of the message content).
-Since XMLCodec package uses the package jade.content and its
-sub-packages, it requires JADE 3.0.</span><span lang="EN-GB"></span></p>
+<h2><span lang="EN-GB">Introduction</span></h2>
+
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;"> This 
+  tutorial describes how to use the XMLCodec add-on in combination with the JADE 
+  support for content languages and ontologies to encode and decode content expressions 
+  (i.e. expressions that can be included in the content slot of ACL messages) 
+  according to an XML-based syntax. </span></p>
+<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">Furthermore 
+  the add-on provides utility methods/export and import whatever ontological element 
+  (regardless of whether or not it represents a Content Element) to/from an XML 
+  format.</span></p>
 
 <h2><span lang="EN-GB">Installation.</span></h2>
 
 <p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
-">In order to install XML
-support&nbsp;the following steps must be performed:</span></p>
+">In order to install XMLCodec add-on the following steps must be performed:</span></p>
 
 <ul type="disc">
-    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">The XMLCodec must be
-        downloaded from the </span><span lang="IT" style="font-size:11.0pt;"><a href="http://jade.cselt.it/"
-        target="new"><span lang="EN-GB"></a><a href="http://jade.cselt.it/"
-        target="new">JADE</a><a href="http://jade.cselt.it/"
-        target="new"></span></a><a href="http://jade.cselt.it/"
-        target="new"></span></a><a href="http://jade.cselt.it/"
-        target="new"><span lang="EN-GB" style="font-size:11.0pt;
-     "></a> download page. </span></li>
-    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">After downloading you
-        must unzip the XMLCodec package under the root of the
-        jade distribution tree. You should end having a hierarchy
-        like jade/add-ons/XMLCodec. </span></li>
-    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">A </span><span lang="IT" style="font-size:11.0pt;"><a
-        href="http://www.megginson.com/SAX/" target="new"><span lang="EN-GB"></a><a
-        href="http://www.megginson.com/SAX/" target="new">SAX</a><a
-        href="http://www.megginson.com/SAX/" target="new"></span></a><a
-        href="http://www.megginson.com/SAX/" target="new"></span></a><a
-        href="http://www.megginson.com/SAX/" target="new"><span lang="EN-GB" style="font-size:11.0pt;"></a>
-        parser (e.g. </span><span lang="IT" style="font-size:11.0pt;
-     "><a
-        href="http://xml.apache.org/xerces-j/index.html"
-        target="new"><span lang="EN-GB"></a><a
-        href="http://java.sun.com/xml/jaxp/index.html">http://java.sun.com/xml/jaxp/index.html</a><a
-        href="http://xml.apache.org/xerces-j/index.html"
-        target="new"></span></a><a
-        href="http://xml.apache.org/xerces-j/index.html"
-        target="new"></span></a><a
-        href="http://xml.apache.org/xerces-j/index.html"
-        target="new"><span lang="EN-GB" style="font-size:11.0pt;"></a>) must be downloaded and installed into
-        the system. </span></li>
-    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">The xml parser jar file
-        must be added to the CLASSPATH or specified in the
-        -classpath argument when starting the virtual machine </span></li>
+  <li style="text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">Download 
+    the add-on from the add-ons area of the </span><span lang="IT" style="font-size:11.0pt;"><span lang="EN-GB"><a href="http://jade.tilab.com">JADE 
+    web site</a></span></span></li>
+  <li style="text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">Unzip 
+    the XMLCodec package in the root directory of the jade distribution. A directory 
+    <em>&lt;jade-home&gt;/add-ons/XMLCodec</em> should be created, being &lt;jade-home&gt; 
+    the root directory of the jade distribution. </span></li>
+  <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">Add 
+    the <em>XMLCodec.jar</em> file included in the <em>XMLCodec/lib</em> directory 
+    to the CLASSPATH. </span></li>
 </ul>
 
-<h2><span lang="EN-GB">Compiling</span></h2>
+<h2><span lang="EN-GB">Compilation</span></h2>
 
 <p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
-">The default JADE Makefile rules
-don't take the XMLCodec into account. For handling the
-compilation process of the XMLCodec you have to use the
-'build.xml' ant-file located in the XMLCodec directory. The
-following rules are available:</span></p>
+">The XMLCodec add-on can be re-compiled by means of the following ant targets 
+  defined in the <em>XMLCodec/build.xml</em> file:</span></p>
 
 <ul type="disc">
     <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant - compiles the
         XMLCodec classes </span></li>
-    <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant lib - creates the
-        XMLCodec.jar archive in the lib directory </span></li>
+    
+  <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant 
+    lib - creates the XMLCodec.jar archive in the <em>lib</em> directory </span></li>
     <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant clean - removes the
         compiled classes and the XMLCodec.jar archive </span></li>
     <li style="     text-align:justify;"><span lang="EN-GB" style="font-size:11.0pt;">ant examples &#150;
         compiles the example classes</span><span lang="EN-GB" style="font-size:11.0pt;"></span></li>
 </ul>
 
-<h2><span lang="EN-GB">Configuration and Usage</span></h2>
+<h2><span lang="EN-GB">Using the XMLCodec add-on to encode/decode content expressions</span></h2>
 
 <p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;
-">The current configuration uses
-Xerces as the default SAX parser. So if you don't want to make
-any changes you just have to download Xerces from the link
-provided above and make sure it is added to the classpath when
-starting (either by including it into the $CLASSPATH environment
-variable - %CLASSPATH% under windows or by specifing it on the
-command line). </span></p>
-
-<p><span lang="EN-GB" style="font-size:11.0pt;">Here is an example of how you would start the platform to use
-the xml content language support:</span></p>
-
-<p><code><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">java -classpath
-./lib/jade.jar:./lib/iiop.jar:./add-ons/XMLCodec/lib/XMLCodec.jar
-jade.Boot </span><span lang="EN-GB" style="font-size:11.0pt;"></code>( for Unix )</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;"> <br>
-</span><span lang="EN-GB" style="font-size:11.0pt;">or</span><span lang="EN-GB" style="font-size:11.0pt;
-font-family:&quot;Courier New&quot;;"><br>
-</span><code><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">java -classpath
-.\lib\jade.jar;.\lib\iiop.jar;.\add-ons\XMLCodec\lib\XMLCodec.jar
-jade.Boot</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
-"></code> </span><span lang="EN-GB" style="font-size:11.0pt;
-">( for Windows )</span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
-"></span></p>
-
-<p><span lang="EN-GB" style="font-size:11.0pt;">If you want to use another xml parser you have to specify in
-the command line the system property <em>org.xml.sax.parser<span style="font-style:normal">.</span></span></em></p>
-
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">When an agent wants to send an XML
-encoded message, it must register the language with the </span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;">registerLanguage()
-</span><span lang="EN-GB" style="font-size:11.0pt;">method of the </span><span lang="EN-GB" style="font-size:11.0pt;
-font-family:&quot;Courier New&quot;;">ContentManager</span><span lang="EN-GB" style="font-size:11.0pt;"> class. For example (assuming </span><span lang="EN-GB" style="font-size:
-11.0pt;font-family:&quot;Courier New&quot;;">manager</span><span lang="EN-GB" style="font-size:11.0pt;">
-is the </span><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
-">ContentManager</span><span lang="EN-GB" style="font-size:11.0pt;">):</span></p>
-
-<p align="center" style="text-align:center"><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
-">manager.registerLanguage(new
-XMLCodec());</span></p>
-
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">Moreover it is recommended to set
-the language of the message. For example (assuming ACLmsg is the
-ACL message):</span></p>
-
-<p style="text-align:justify"><span>&nbsp;&nbsp; </span></p>
-
-<p align="center" style="text-align:center"><span lang="EN-GB" style="font-size:11.0pt;font-family:&quot;Courier New&quot;;
-">ACLmsg.setLanguage(XMLCodec.NAME);</span><span lang="EN-GB" style="font-size:11.0pt;"></span></p>
-
-<p style="text-align:justify"><span>&nbsp;&nbsp;&nbsp; </span></p>
-
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">Using XMLCodec, the messages are
-arrays of byte in XML format; the tags used are those defined in
-the subsequent XML schema.</span></p>
-
-<p style="text-align:justify">&lt;?xml
-version=&quot;1.0&quot;?&gt;<br>
-&lt;xsd:schema
-xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt; <br>
+">The <font face="Courier New, Courier, mono">jade.content.lang.xml.XMLCodec</font> 
+  class implemnts the <font face="Courier New, Courier, mono">jade.content.lang.Codec</font> 
+  interface and can therefore be used as other JADE codecs such as the SLCodec 
+  or the LEAPCodec. The code below, where an agent informs another agent that 
+  John is the father of Bill and Mary using the PeopleOntology, shows an example 
+  (look at the Tutorial on content languages and ontologies available on the JADE 
+  web site for details about codecs and ontologies).</span></p>
+  
+<p style="text-align:justify"><code>...<br>
+private Codec xmlCodec = new XMLCodec();<br>
+private Ontology onto = PeopleOntology.getInstance();<br>
+...<br>
+protected void setup() { 
+<blockquote>
+...<br>
+getContentManager().registerLanguage(xmlCodec);<br>
+...<br>
+ACLMessage msg = new ACLMessage(ACLMessage.INFORM);<br>
+// Fill message receiver and other message slots<br>
+msg.setOntology(onto.getName())<br>
+msg.setLanguage(XMLCodec.NAME);<br>
 <br>
-&lt;xsd:complexType name=&quot;Content&quot;
-abstract=&quot;true&quot;&gt;<br>
-&lt;/xsd:complexType&gt;<br>
-<br>
-&lt;xsd:complexType name=&quot;Predicate&quot;
-abstract=&quot;true&quot;&gt;<br>
-&lt;xsd:complexContent&gt;<br>
-&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
-&lt;/xsd:extension&gt;<br>
-&lt;/xsd:complexContent&gt;<br>
-&lt;/xsd:complexType&gt;<br>
-<br>
-&lt;xsd:complexType name=&quot;Action&quot;
-abstract=&quot;true&quot;&gt;<br>
-&lt;xsd:complexContent&gt;<br>
-&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
-&lt;/xsd:extension&gt;<br>
-&lt;/xsd:complexContent&gt;<br>
-&lt;/xsd:complexType&gt;<br>
-<br>
-&lt;xsd:complexType name=&quot;Concept&quot;
-abstract=&quot;true&quot;&gt;<br>
-&lt;xsd:complexContent&gt;<br>
-&lt;xsd:extension base=&quot;Content&quot;&gt;<br>
-&lt;/xsd:extension&gt;<br>
-&lt;/xsd:complexContent&gt;<br>
-&lt;/xsd:complexType&gt;<br>
-<br>
-&lt;xsd:element name=&quot;CONTENT_ELEMENT&quot;
-type=&quot;Content&quot;/&gt;<br>
-&lt;/xsd:schema&gt;<br>
+FatherOf fo = new FatherOf();<br>
+Man m = new Man();<br>
+m.setName("John");<br>
+fo.setFather(m);<br>
+List children = new ArrayList();<br>
+m = new Man();<br>
+m.setName("Bill");<br>
+children.add(m);<br>
+Woman w = new Woman();<br>
+w.setName("Mary");<br>
+children.add(w);<br>
+fo.setChildren(children);<br>
+try {
+<blockquote>
+getContentManager().fillContent(msg, fo);<br>
+send(msg);
+</blockquote>
+}<br>
+catch (Exception e) {
+<blockquote>
+e.printStackTrace();
+</blockquote>
+}<br>
+...
+</blockquote>
+}<br>
+...
+</code>
 </p>
+<br>
+<br>
+<p style="text-align:justify">If we sniffed the message prepared and sent by the 
+  code above and we printed its content we would see the following output.</p>
+<p style="text-align:justify"><font face="Arial, Helvetica, sans-serif"> &lt;father-of&gt;<br>
+  &nbsp;&nbsp;&lt;man&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;John&lt;/name&gt;<br>
+  &nbsp;&nbsp;&lt;/man&gt;<br>
+  &nbsp;&nbsp;&lt;children&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;man&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;Bill&lt;/name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;/man&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;woman&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;Mary&lt;/name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;/woman&gt;<br>
+  &nbsp;&nbsp;&lt;/children&gt;<br>
+  &lt;/father-of&gt;<br>
+  </font></p>
+  
+<h2 style="text-align:justify">Using the XMLCodec add-on to export/import ontological 
+  elements to/from XML form </h2>
+<p style="text-align:justify">Besides the methods of the <font face="Courier New, Courier, mono">jade.content.lang.Codec</font> 
+  interface, the <font face="Courier New, Courier, mono">jade.content.lang.xml.XMLCodec</font> 
+  class also provides utility methods that can be used to export/import whatever 
+  ontological element (i.e. whatever object whose class is associated to a schema 
+  in an ontology) to/from an XML format regardless of whether or not it represents 
+  a content element. As an example the code below shows how to export a <font face="Courier New, Courier, mono">DFAgentDescription</font> 
+  to XML. It should be noticed that this feature does not involve the agent <font face="Courier New, Courier, mono">ContentManager</font> 
+  and therefore there is no need to register neither the codec nor the ontologies 
+  with it.</p>
 
-<h2><span lang="EN-GB">Examples</span></h2>
+<p style="text-align:justify"> <code> ...<br>
+  DFAgentDescription dfd = new DFAgentDescription();<br>
+  dfd.setName(new AID("a", AID.ISLOCALNAME));<br>
+  ServiceDescription sd = new ServiceDescription();<br>
+  sd.setName("foo1");<br>
+  sd.setType("bar1");<br>
+  dfd.addServices(sd);<br>
+  ServiceDescription sd = new ServiceDescription();<br>
+  sd.setName("foo2");<br>
+  sd.setType("bar2");<br>
+  dfd.addServices(sd);<br>
+  try {<br>
+  &nbsp;&nbsp;String s = xmlCodec.encodeObject(FIPAManagementOntology.getInstance(), 
+  dfd, true);<br>
+  &nbsp;&nbsp;System.out.println(s);<br>
+  }<br>
+  catch (Exception e) {<br>
+  &nbsp;&nbsp;e.printStackTrace();<br>
+  }<br>
+  ...<br>
+  </code></p>
+<p style="text-align:justify">The output produced by the above code is as follows 
+  (the third parameter of the <font face="Courier New, Courier, mono">encodeObject(</font>) 
+  method set to <font face="Courier New, Courier, mono">true</font> indicates 
+  that the XML must be indented).</p>
 
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">After setting properly the
-CLASSPATH, execute the following command to start Sender and
-Receiver agents: </span></p>
+<p style="text-align:justify"><font face="Arial, Helvetica, sans-serif"> &lt;df-agent-description&gt;<br>
+  &nbsp;&nbsp;&lt;name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;agent-identifier&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;a@foo-platform&lt;/name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;/agent-identifier&gt;<br>
+  &nbsp;&nbsp;&lt;/name&gt;<br>
+  &nbsp;&nbsp;&lt;services&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;service-description&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;foo1&lt;/name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;type&gt;bar1&lt;/type&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;/service-description&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;service-description&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;name&gt;foo2&lt;/name&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;type&gt;bar2&lt;/type&gt;<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&lt;/service-description&gt;<br>
+  &nbsp;&nbsp;&lt;/services&gt;<br>
+  &lt;/df-agent-description&gt;<br>
+  </font> </p>
 
-<p align="left" class="MsoBodyText" style="text-align:left"><code><span lang="EN-GB" style="font-size:11.0pt;">java
-jade.Boot </span><span lang="EN-GB" style="font-size:11.0pt;"></code>receiver:examples.xmlcontent.Receiver
-sender:examples.xmlcontent.Sender</span></p>
 
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">To see the messages XML format,
-execute the following command:</span></p>
-
-<p align="left" class="MsoBodyText" style="text-align:left"><code><span lang="EN-GB" style="font-size:11.0pt;">java
-jade.Boot &#150;gui</span><span lang="EN-GB" style="font-size:11.0pt;"></span></code></p>
-
-<p style="text-align:justify"><span lang="EN-GB" style="font-size:11.0pt;">after, utilize the gui to run
-receiver and sender agents; utilize the sniffer agent to see the
-messages.</span></p>
 <span lang="IT">
 <hr>
-</span>
-<p align="center" style="text-align:center"><span lang="IT"><a
-href="http://jade.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;
-font-family:Arial;"></a><a href="http://jade.cselt.it/">JADE</a><a
-href="http://jade.cselt.it/"></span></a><a href="http://jade.cselt.it/"></span></a><a
-href="http://jade.cselt.it/"><span lang="EN-GB"></a> is a trademark of </span><span lang="IT"><a
-href="http://www.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a href="http://www.cselt.it/">CSELT</a><a
-href="http://www.cselt.it/"></span></a><a href="http://www.cselt.it/"></span></a><a
-href="http://www.cselt.it/"><span lang="EN-GB"></a>. </span><span lang="IT"><a href="http://jade.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a
-href="http://jade.cselt.it/">JADE</a><a
-href="http://jade.cselt.it/"></span></a><a href="http://jade.cselt.it/"></span></a><a
-href="http://jade.cselt.it/"><span lang="EN-GB"></a> has been developed jointly by </span><span lang="IT"><a
-href="http://www.cselt.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a href="http://www.cselt.it/">CSELT</a><a
-href="http://www.cselt.it/"></span></a><a href="http://www.cselt.it/"></span></a><a
-href="http://www.cselt.it/"><span lang="EN-GB"></a> and the </span><span lang="IT"><a
-href="http://www.ce.unipr.it/"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"></a><a
-href="http://www.ce.unipr.it/">Computer Engineering Group</a><a
-href="http://www.ce.unipr.it/"></span></a><a
-href="http://www.ce.unipr.it/"></span></a><a
-href="http://www.ce.unipr.it/"><span lang="EN-GB"></a> of the </span><span lang="IT"><a
-href="http://www.unipr.it/"><span lang="EN-GB" style="font-size:10.0pt;
-font-family:Arial;"></a><a href="http://www.unipr.it/">University
-of Parma</a><a href="http://www.unipr.it/"></span></a><a
-href="http://www.unipr.it/"></span></a><a href="http://www.unipr.it/"><span lang="EN-GB"></a><a
-href="http://www.unipr.it/"></span></a></p>
+</span> 
+<p align="center" style="text-align:center"><span lang="IT"><span lang="EN-GB" style="font-size:10.0pt;
+font-family:Arial;"><a href="http://jade.tilab.com/">JADE</a></span></span><span lang="EN-GB"> 
+  is a trademark of </span><span lang="IT"><span lang="EN-GB" style="font-size:10.0pt;font-family:Arial;"><a href="http://www.telecomitalia.it/">Telecom 
+  Italia</a></span></span><span lang="EN-GB">. </span></p>
 </body>
 </html>
