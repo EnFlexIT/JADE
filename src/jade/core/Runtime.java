@@ -305,7 +305,7 @@ public class Runtime {
 	public static String getVersionInfo() {
 		String version = getVersion();
 		String name = null;
-		if (version.equals("$Version$")) {
+		if (version.startsWith("$")) {
 			// The $Version$ keyword was not replaced --> This is NOT an official release --> The has the form JADE Snapshot - revision XXXX of YYYY/MM/DD hh:mm:ss
 			name = "JADE snapshot";
 		}
