@@ -1,3 +1,84 @@
+MAJOR CHANGES in JADE 3.4.1 (15th November 2006)  
+==========================================================================
+GENERAL IMPROVEMENTS:	
+- Modified HTTP MTP to properly select the XML parser (by Krešimir Jurasovic - University of Zagreb).
+- Substituted getHostName() with getCanonicalHostName() in HTTP MTP to resolve domain problems.
+- Added support for low-level container introspection by means of the ContainerMonitorAgent (jade_core_AgentContainerImpl_enablemonitor parameter).
+- Added method getParam(int index) to JADE commands (jade.core.Command class).
+- Modified message tracing mechanism to take the ACLMessage.TRACE user define property into account.
+- Improved agent cloning error management.
+- Added generation of ShutdownPlatformRequested AMS event (Introspection Ontology)
+- Modified ThreadedBehaviourFactory to support Threaded-behaviour suspension.
+- Modified default behaviour of jade.wrapper.gatreway.GatewayAgent to automatically call releaseCommand() when a Behaviour is passed in the execute() method of the JadeGateway class.
+- Refactored Notification Service to i) use sinks for owned commands, and ii) dispatch ContainerEvents.
+- Modified Agent.powerUp() method to avoid starting the agent thread two times. 
+
+BUG-FIXES:
+- Fixed bug in SSResponder when initiator and responder are the same agent
+- Fixed bug in ParallelBehaviour related to remotion of already terminated children (indicated by Juan A. Suárez-Romero - University of A Coruña)
+- Fixed deadlock problem in OutgoingEncodingFilter due to useless synchronized block on AgentContainerImpl.
+- Fixed bug notified by Maciej Gawinecki so that when trying to kill multiple agents at the same time from the RMA only the first one was actually killed (jade.tools.ToolAgent class).
+- Fixed bug in jade.BootGUI (notified by Maciej Gawinecki, fix by Walter, Patrick A).
+- Fixed problems in jade.proto.SSIteratedAchieveREResponder.
+- Fixed bug in conversation ID generation (in some cases it was not unique) in the FIPAService.doFipaRequestClient() method.
+- Fixed problem about jar file removal in CodeLocator (by Jordi Cucurull Juan).
+- Fixed problem with the -main configuration option in BootProfileImpl.
+- Fixed problem in the visualization of pending/sent messages in the Introspector agent.
+- Fixed problem in Introspector agent related to behaviour status updating.
+- Fixed bug in ToolNotifier: an inner behaviour did not block waiting for incoming messages --> in certain cases a terrible waste of CPU could be experienced.
+ 
+ 
+LEAP:
+- Modified CommandDispatcher skeleton ID generation mechanism to avoid problems when a container terminates and then restarts with the same name
+- Modified to support socket timeout configuration (jade_imtp_leap_JICP_JICPPeer_connectiontimeout parameter)
+- Fixed problem with reconnection after DROP_DOWN in single-connection BE-FE dispatcher class (jade.imtp.leap.nio.BackEndDispatcher)
+
+
+ADD-ONS:
+- Semantics Framework
+  - Improved the interface of OntologicalAction (new constructor) and SemanticBehaviour (RUNNING constant)
+  - Improved the simplification of EqualsNode (between an IRE and a value) and the toString method of MatchResult
+
+- Beangenerator
+  - Fixed problem with Protege owl import
+
+- ASCML
+  - parameters without name are passed to an agent as value-only and not as 'name=value' (AgentLauncherThread.java)
+  - added close-button in ParameterDialog
+  - dialog may now set to be not visible (ExceptionDialog.java)
+  - when changing the name of the society instance, check if the society instance is the default-society of the society type and if so, also change the name of the default society instance within the society type (SocietyInstance.java)
+  - Reworked the whole ToolRequester code to be expandable more easily.
+  - fixed bug in passing parameters to a newly created agent (AgentLauncherThread.java)
+  - fixed bug. Because of this bug, it was not possible to create more than one new Agent-/SocietyType.  
+  - fixed bug: in case some references could not be resolved a society type is loaded into the repository anyway (ModelManager.java)
+
+- WSIG
+  - Several updates and bug fixes
+
+- Persistence
+  - Updated to run with Hibernate 3.x. 
+  - Added a lot of sanity checks to avoid NullPointerExceptions
+  - Updated examples not to use deprecated methods
+  - Provided minimal demo to experience persistence features
+
+- Test Suite Framework
+  - Added support for retrieving the ID of a remote JADE instance started by means of the TSDaemon through the getJadeInstanceId() method.
+  - Added system property tsdaemon.port and tsdaemon.name for TSDaemon configuratraion.
+
+
+DOCUMENTATION:
+- New Tutorial on JadeGateway usage by Viktor Kelemen
+- Hardly improved JadeGateway javadoc
+- Fixed error in code example in the Programmer's Guide as indicated by Fábio Silva Carvalho
+- Completely revisited Persistence Guide
+- Completely revisited WSIG Guide
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+NONE
+
+
+
 MAJOR CHANGES in JADE 3.4 (28th February 2006)  
 ==========================================================================
 GENERAL IMPROVEMENTS:	
