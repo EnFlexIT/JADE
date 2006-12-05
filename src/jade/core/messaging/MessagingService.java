@@ -31,9 +31,6 @@ import java.io.IOException;
 
 import java.util.Date;
 
-
-import jade.core.ServiceFinder;
-
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
@@ -61,12 +58,10 @@ import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 
-import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ACLCodec;
-import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.LEAPACLCodec;
 import jade.lang.acl.StringACLCodec;
 

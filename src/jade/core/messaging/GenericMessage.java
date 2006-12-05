@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.core.messaging;
@@ -49,112 +49,126 @@ import java.io.IOException;
  */
 public class GenericMessage implements Serializable {
 
-  private transient ACLMessage msg;
-  private Envelope env;
-  private byte[] payload;
-  private transient JADEPrincipal senderPrincipal;
-  private transient Credentials senderCredentials;
-  private boolean isAMSFailure = false;
-  private transient boolean foreignReceiver = false;
-  private String traceID = null;
+	private transient ACLMessage msg;
+	private Envelope env;
+	private byte[] payload;
+	private transient JADEPrincipal senderPrincipal;
+	private transient Credentials senderCredentials;
+	private boolean isAMSFailure = false;
+	private transient boolean foreignReceiver = false;
+	private transient boolean modifiable = true;
+	private String traceID = null;
 
-  public GenericMessage(){
-  }
-  
-  public GenericMessage(ACLMessage msg){
-    this.msg = msg;
-  }
+	public GenericMessage(){
+	}
 
-  public GenericMessage(Envelope env, byte[] payload){
-    this.env = env;
-    this.payload = payload;
-  }
+	public GenericMessage(ACLMessage msg){
+		this.msg = msg;
+	}
 
-  public final byte[] getPayload(){
-    return payload;
-  }
+	public GenericMessage(Envelope env, byte[] payload){
+		this.env = env;
+		this.payload = payload;
+	}
 
-  public final Envelope getEnvelope(){
-    return env;
-  }
+	public final byte[] getPayload(){
+		return payload;
+	}
 
-  public final ACLMessage getACLMessage(){
-    return msg;
-  }
+	public final Envelope getEnvelope(){
+		return env;
+	}
 
-  public final void setACLMessage(ACLMessage msg){
-    this.msg = msg;
-  }
+	public final ACLMessage getACLMessage(){
+		return msg;
+	}
 
-  public final void update(ACLMessage msg, Envelope env, byte[]payload){
-    this.msg = msg;
-    this.env = env;
-    this.payload = payload;
-  }
+	public final void setACLMessage(ACLMessage msg){
+		this.msg = msg;
+	}
 
-  final void setSenderPrincipal(JADEPrincipal senderPrincipal) {
-  	this.senderPrincipal = senderPrincipal;
-  }
-  
-  final JADEPrincipal getSenderPrincipal() {
-  	return senderPrincipal;
-  }
-  
-  final void setSenderCredentials(Credentials senderCredentials) {
-  	this.senderCredentials = senderCredentials;
-  }
-  
-  final Credentials getSenderCredentials() {
-  	return senderCredentials;
-  }
+	public final void update(ACLMessage msg, Envelope env, byte[]payload){
+		this.msg = msg;
+		this.env = env;
+		this.payload = payload;
+	}
 
-  public final boolean isAMSFailure() {
-    return isAMSFailure;
-  }
+	final void setSenderPrincipal(JADEPrincipal senderPrincipal) {
+		this.senderPrincipal = senderPrincipal;
+	}
 
-  public final void setAMSFailure(boolean b) {
-    isAMSFailure=b;
-  }
-  
-  final boolean hasForeignReceiver() {
-  	return foreignReceiver;
-  }
-  
-  final void setForeignReceiver(boolean b) {
-  	foreignReceiver = b;
-  }
-  
-  public final String getTraceID() {
-  	return traceID;
-  }
-  
-  public final void setTraceID(String id) {
-  	traceID = id;
-  }
-  
+	final JADEPrincipal getSenderPrincipal() {
+		return senderPrincipal;
+	}
+
+	final void setSenderCredentials(Credentials senderCredentials) {
+		this.senderCredentials = senderCredentials;
+	}
+
+	final Credentials getSenderCredentials() {
+		return senderCredentials;
+	}
+
+	public final boolean isAMSFailure() {
+		return isAMSFailure;
+	}
+
+	public final void setAMSFailure(boolean b) {
+		isAMSFailure=b;
+	}
+
+	final boolean hasForeignReceiver() {
+		return foreignReceiver;
+	}
+
+	final void setForeignReceiver(boolean b) {
+		foreignReceiver = b;
+	}
+
+	public final boolean isModifiable() {
+		return modifiable;
+	}
+
+	/**
+	 * Allow setting the value of the <code>modifiable</code> flag. If this flag is true (default)
+	 * the MessageManager, when receiving a GenericMessage with the payload already set, nullifies the content slot
+	 * of the embedded ACLMessage to save space. 
+	 */
+	public final void setModifiable(boolean b) {
+		modifiable = b;
+	}
+
+	public final String getTraceID() {
+		return traceID;
+	}
+
+	public final void setTraceID(String id) {
+		traceID = id;
+	}
+
 	//#MIDP_EXCLUDE_BEGIN
-  private void writeObject(ObjectOutputStream out) throws IOException {
-  	// Updates the payload if not present, before serialising
-    if (payload==null){
-      payload = (new LEAPACLCodec()).encode(msg, null);
-    }
-    out.defaultWriteObject();
-  }
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		// Updates the payload if not present, before serialising
+		if (payload==null){
+			payload = (new LEAPACLCodec()).encode(msg, null);
+		}
+		out.defaultWriteObject();
+	}
 	//#MIDP_EXCLUDE_END
 
-  public final AID getSender(){
-    if (msg!=null) return msg.getSender();
-    else if (env!=null) return env.getFrom();
-    else return null;
-  }
+	public final AID getSender(){
+		if (msg!=null) return msg.getSender();
+		else if (env!=null) return env.getFrom();
+		else return null;
+	}
 
-  // DEBUG
-  public String toString(){
-    return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
-  }
+	// DEBUG
+	public String toString(){
+		return "GenericMessage\n\t"+msg+"\n\t"+env+"\n\t"+((payload==null)?"null payload":payload.toString())+"\n";
+	}
 
-  public final int length() {
-  	int length = 0;
+	public final int length() {
+		int length = 0;
 		if (payload != null) {
 			length = payload.length;
 		}
@@ -167,5 +181,5 @@ public class GenericMessage implements Serializable {
 			}
 		}
 		return length;
-  }
+	}
 }

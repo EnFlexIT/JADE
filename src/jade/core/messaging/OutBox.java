@@ -52,7 +52,7 @@ class OutBox {
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
 		if (logActivated)
 			myLogger.log(Logger.FINER,"Entering addLast for receiver "+receiverID.getName());
-		if (msg.getPayload() != null) {
+		if (msg.getPayload() != null && msg.isModifiable()) {
 			ACLMessage acl = msg.getACLMessage();
 			if (acl != null) {
 				acl.setContent(null);
