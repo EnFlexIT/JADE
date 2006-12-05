@@ -23,7 +23,7 @@
  */
 
 package jade.util;
- 
+
 import java.util.Vector;
 import jade.core.behaviours.Behaviour;
 
@@ -46,11 +46,11 @@ public class InputQueue {
 	private Vector queue = new Vector();
 	private Behaviour myManager;
 
-    /**
+	/**
        Default constructor.
-    */
-    public InputQueue() {
-    }
+	 */
+	public InputQueue() {
+	}
 
 	/**
 	   Associate this <code>InputQueue</code> object with the indicated
@@ -67,7 +67,7 @@ public class InputQueue {
 			myManager.restart();
 		}
 	}
-	
+
 	/**
 	   Insert an object into the queue. If there is a <code>Behaviour</code>
 	   associated to this <code>InputQueue</code> it will be restarted.
@@ -75,14 +75,14 @@ public class InputQueue {
 	 */
 	public synchronized void put(Object obj) {
 		queue.addElement(obj);
-		
+
 		// Restart the manager behaviour (if any) so that it can manage
 		// the object
 		if (myManager != null) {
 			myManager.restart();
 		}
 	}	
-	
+
 	/**
 	   Extract the first object in the queue (if any).
 	   @return The first object in the queue or <code>null</code> if
@@ -97,11 +97,11 @@ public class InputQueue {
 		return obj;
 	}			
 
-    /**
+	/**
        Remove all elements from this queue.
-    */
-        public synchronized void clear() {
-	    queue.removeAllElements();
+	 */
+	public synchronized void clear() {
+		queue.removeAllElements();
 	}
 
 }

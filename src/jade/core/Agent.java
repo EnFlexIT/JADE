@@ -1553,6 +1553,9 @@ public class Agent implements Runnable, Serializable
 			System.out.println("ERROR: Agent " + myName + " died without being properly terminated !!!");
 			System.out.println("State was " + myLifeCycle.getState());
 		}
+		// Reset the interrupted state of the Agent Thread
+		Thread.interrupted();
+		
 		myBufferedLifeCycle = myLifeCycle;
 		myLifeCycle = myActiveLifeCycle;
 		takeDown();

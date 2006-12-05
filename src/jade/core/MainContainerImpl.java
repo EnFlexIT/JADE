@@ -763,7 +763,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			myLogger.log(Logger.FINE, "Shutting down agent platform.");
 		}
 		
-		// FIXME: Here we probably need issue a KILL_PLATFORM VCommand for security check.
+		// FIXME: Here we probably need to issue a KILL_PLATFORM VCommand for security check.
 		// In facts, even if the requester does not have the permission to kill the whole platform
 		// auxiliary nodes are killed in any case
 		

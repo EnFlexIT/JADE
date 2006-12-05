@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -30,34 +30,33 @@ class LightResourceManager implements ResourceManager {
 	private static final int USER_AGENTS_PRIORITY = Thread.NORM_PRIORITY;
 	private static final int SYSTEM_AGENTS_PRIORITY = Thread.NORM_PRIORITY;
 	private static final int TIME_CRITICAL_PRIORITY = Thread.MAX_PRIORITY;
-      
-  public LightResourceManager() {
-  }
-  
-  public Thread getThread(int type, String name, Runnable r) {
-  	Thread t = new Thread(r);
-  	switch (type) {
-  	case USER_AGENTS:
-      t.setPriority(USER_AGENTS_PRIORITY);
-  		break;
-  	case SYSTEM_AGENTS:
-      t.setPriority(SYSTEM_AGENTS_PRIORITY);
-  		break;
-  	case TIME_CRITICAL:
-      t.setPriority(TIME_CRITICAL_PRIORITY);
-  		break;
-  	}
-  	
-  	return t;
-  }
-  
-  public void releaseResources() {
-  }
-  	
+
+	public LightResourceManager() {
+	}
+
+	public Thread getThread(int type, String name, Runnable r) {
+		Thread t = new Thread(r);
+		switch (type) {
+		case USER_AGENTS:
+			t.setPriority(USER_AGENTS_PRIORITY);
+			break;
+		case SYSTEM_AGENTS:
+			t.setPriority(SYSTEM_AGENTS_PRIORITY);
+			break;
+		case TIME_CRITICAL:
+			t.setPriority(TIME_CRITICAL_PRIORITY);
+			break;
+		}
+
+		return t;
+	}
+
+	public void releaseResources() {
+	}
+
 }
-  	
-  		
-  		
-  
-  
-      
+
+
+
+
+

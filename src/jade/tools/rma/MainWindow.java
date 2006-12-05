@@ -122,6 +122,7 @@ class MainWindow extends JFrame {
 		int centerY = (int)screenSize.getHeight() / 2;
 		setLocation(centerX - 300, centerY - 200);
 		tree.adjustDividersLocation();
+		
 		setVisible(true);
 		toFront();
 	}

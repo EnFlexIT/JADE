@@ -940,7 +940,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		if (instance == null) {
 			throw new NotFoundException("powerUpLocalAgent() failed to find agent "+agentID.getName());
 		}
-		Thread t = myResourceManager.getThread(ResourceManager.USER_AGENTS, agentID.getLocalName(), instance);
+		int type = (agentID.equals(theAMS) || agentID.equals(theDefaultDF) ? ResourceManager.SYSTEM_AGENTS : ResourceManager.USER_AGENTS);
+		Thread t = myResourceManager.getThread(type, agentID.getLocalName(), instance);
 		instance.powerUp(agentID, t);
 		localAgents.release(agentID);
 	}
