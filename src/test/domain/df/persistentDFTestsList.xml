@@ -167,7 +167,7 @@
 		    </HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 			</Test>		
-		<Test name="Multiple Subscriptions" skip="false">
+		<Test name="Multiple Subscribers" skip="false">
 			<TestClassName>test.domain.df.tests.TestMultipleSubscriptions</TestClassName>
 			<WhatTest> Tests the case in which 2 or more agents subscribed to the DF.</WhatTest>
 			<HowWorkTest> 
@@ -177,10 +177,18 @@
 				Registers a DFD matching the template specified by the subscribed agents.
 				Then waits for INFORM messages from the subscribed agents who are expected 
 				to forward to the tester agent the notifications they receive from the DF.
-		  </HowWorkTest>
+			</HowWorkTest>
 			<WhenTestPass> The test passes if the tester agent gets an INFORM message from each subscriber within a 10 sec.timeout.</WhenTestPass>
 		</Test>
 		
+		<Test name="Subscription to multiple templates" skip="false">
+			<TestClassName>test.domain.df.tests.TestSubscriptionToMultipleTemplates</TestClassName>
+			<WhatTest> Tests the case in which an agent subscribes to the DF to be notified about registrations matching 2 different templates.</WhatTest>
+			<HowWorkTest>The test activates two SubscriptionInitiator each one with its own template. Then two descriptions (matching template 1 and 2 respectively) are registered and deregistered.  
+			</HowWorkTest>
+			<WhenTestPass>The test passes if both initiators receive 2 notifications (registration and deregistration) within a 60-second timeout.</WhenTestPass>
+		</Test>
+
 		<Test name="DF Persistence" skip="false">
 			<TestClassName>test.domain.df.tests.TestPersistence</TestClassName>
 			<WhatTest> Tests if the subscription service is supported by the persistent JADE DF, 
@@ -207,9 +215,9 @@
 			    <LI>After 20 sec modify 2nd DFD (still matching) with that DF (should get back another notification;</LI>
 			    <LI>After 25 sec modify 3rd DFD (now matching) with that DF (should get back another notification;</LI>
 			    </UL>			
-		    </HowWorkTest>
+			</HowWorkTest>
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
-			</Test>		
+		</Test>		
 		
 	</TestsList>
 

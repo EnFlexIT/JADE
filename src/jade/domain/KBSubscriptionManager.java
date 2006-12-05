@@ -32,6 +32,9 @@ import java.util.Enumeration;
 import jade.util.leap.ArrayList;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
+import jade.util.leap.Map;
+import jade.util.leap.HashMap;
+import jade.util.Logger;
 
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.KBManagement.*;
@@ -48,7 +51,10 @@ import jade.content.abs.*;
  * @author Elisabetta Cortese - TILab
  *
  */
-class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager{
+class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager {
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
+	
+	private Map subscriptionsCache = null;
 	
 	KB kBase;
 	ContentManager cm;
@@ -68,9 +74,12 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 		SearchConstraints constraints = null;
 		AbsIRE absIota = null;
 		
-		try{
+		try {
 			// Get DFD template and search constraints from the subscription message 
 			ACLMessage subMessage = sub.getMessage();
+			if (myLogger.isLoggable(Logger.CONFIG)) {
+				myLogger.log(Logger.CONFIG, "Registering subscription "+subMessage.getConversationId()+". Agent is "+subMessage.getSender().getName());
+			}
 			
 			absIota = (AbsIRE) cm.extractAbsContent(subMessage);
 			AbsPredicate absResult = absIota.getProposition();
@@ -84,7 +93,12 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 			// Register the Subscription
 			kBase.subscribe(dfdTemplate, sub);
 			
-		}catch(Exception e){
+			// Update the cache
+			if (subscriptionsCache != null) {
+				subscriptionsCache.put(subMessage.getConversationId(), new SubscriptionInfo(sub, dfdTemplate, absIota));
+			}
+		}
+		catch(Exception e) {
 			throw new NotUnderstoodException(e.getMessage());
 		}
 		// Search for DFDs that already match the specified template.
@@ -103,55 +117,70 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 	}
 	
 	
-	//OK
-	// degeregister the subscritpion from hashtable
 	public boolean deregister( SubscriptionResponder.Subscription sub ) throws FailureException {
+		if (myLogger.isLoggable(Logger.CONFIG)) {
+			ACLMessage subMessage = sub.getMessage();
+			myLogger.log(Logger.CONFIG, "Deregistering subscription "+subMessage.getConversationId()+". Agent is "+subMessage.getSender().getName());
+		}
 		kBase.unsubscribe(sub);
+		
+		// Update the cache
+		if (subscriptionsCache != null) {
+			subscriptionsCache.remove(sub.getMessage().getConversationId());
+		}
 		return false;
 	}
 	
-	
-	private DFAgentDescription getDFAgentDescriptionFromACL(ACLMessage aclM){
-		DFAgentDescription dfd = null;
-		try{
-			AbsIRE absIota = (AbsIRE) cm.extractAbsContent(aclM);
-			AbsPredicate absResult = absIota.getProposition();
-			AbsAgentAction absAction = (AbsAgentAction) absResult.getAbsObject(BasicOntology.RESULT_ACTION);
-			AbsAgentAction absSearch = (AbsAgentAction) absAction.getAbsObject(BasicOntology.ACTION_ACTION);
-			Search search = (Search) FIPAManagementOntology.getInstance().toObject(absSearch);
-			
-			dfd = (DFAgentDescription) search.getDescription();
-		}catch(Exception e){
-			e.printStackTrace();
-		} 
-		return dfd;
-	}
 	
 	/**
 	 Handle registrations/deregistrations/modifications by notifying 
 	 subscribed agents if necessary
 	 */
 	void handleChange(DFAgentDescription dfd, DFAgentDescription oldDfd) {
-		Enumeration e = kBase.getSubscriptions();
-		while (e.hasMoreElements()) {
-			SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
-			DFAgentDescription template = getDFAgentDescriptionFromACL(sub.getMessage());
+		if (subscriptionsCache == null) {
+			subscriptionsCache = initSubscriptionsCache();
+		}
+		Iterator it = subscriptionsCache.values().iterator();
+		while (it.hasNext()) {
+			SubscriptionInfo info = (SubscriptionInfo) it.next();
+			DFAgentDescription template = info.getTemplate();
 			if ( DFMemKB.compare(template, dfd) || ((oldDfd!=null) && DFMemKB.compare(template, oldDfd))) {
 				// This subscriber must be notified
 				List results = new ArrayList();
 				results.add(dfd);
-				ACLMessage aclSub = sub.getMessage();
-				AbsIRE absIota=null;
-				try{
-					absIota = (AbsIRE) cm.extractAbsContent(aclSub);
-				}catch(Exception ex){
-					ex.printStackTrace();
+				if (myLogger.isLoggable(Logger.FINE)) {
+					ACLMessage subMessage = info.getSubscription().getMessage();
+					myLogger.log(Logger.FINE, "Notifying subscribed agent "+subMessage.getSender().getName()+" ["+subMessage.getSender().getName()+"] ");
 				}
-				notify(sub, results, absIota);
+				notify(info.getSubscription(), results, info.getAbsIota());
 			}
 		}
 	}
 	
+	private Map initSubscriptionsCache() {
+		Map m = new HashMap();
+		Enumeration e = kBase.getSubscriptions();
+		while (e.hasMoreElements()) {
+			SubscriptionResponder.Subscription sub = (SubscriptionResponder.Subscription) e.nextElement();
+			
+			try {
+				AbsIRE absIota = (AbsIRE) cm.extractAbsContent(sub.getMessage());
+				AbsPredicate absResult = absIota.getProposition();
+				AbsAgentAction absAction = (AbsAgentAction) absResult.getAbsObject(BasicOntology.RESULT_ACTION);
+				AbsAgentAction absSearch = (AbsAgentAction) absAction.getAbsObject(BasicOntology.ACTION_ACTION);
+				Search search = (Search) FIPAManagementOntology.getInstance().toObject(absSearch);		
+				DFAgentDescription template = (DFAgentDescription) search.getDescription();
+				
+				m.put(sub.getMessage().getConversationId(), new SubscriptionInfo(sub, template, absIota));
+			}
+			catch (Exception ex) {
+				// Should never happen since, this has already been decoded correctly once
+				ex.printStackTrace();
+			}
+		}
+		return m;
+	}
+
 	private void notify(SubscriptionResponder.Subscription sub, List results, AbsIRE absIota) {
 		try {
 			ACLMessage notification = sub.getMessage().createReply();
@@ -168,6 +197,36 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 		catch (Exception e) {
 			e.printStackTrace();
 			//FIXME: Check whether a FAILURE message should be sent back.       
+		}
+	}
+	
+	
+	/**
+	 * Inner class SubscriptionInfo
+	 * This class associates a Subscription object with the DFAgentDescription that acts as
+	 * template for that Subscription object
+	 */
+	private class SubscriptionInfo {
+		private SubscriptionResponder.Subscription subscription;
+		private DFAgentDescription template;
+		private AbsIRE absIota;
+		
+		private SubscriptionInfo(SubscriptionResponder.Subscription subscription, DFAgentDescription template, AbsIRE absIota) {
+			this.subscription = subscription;
+			this.template = template;
+			this.absIota = absIota;
+		}
+		
+		public SubscriptionResponder.Subscription getSubscription() {
+			return subscription;
+		}
+		
+		public DFAgentDescription getTemplate() {
+			return template;
+		}
+		
+		public AbsIRE getAbsIota() {
+			return absIota;
 		}
 	}
 }

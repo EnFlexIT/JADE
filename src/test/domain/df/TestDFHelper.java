@@ -134,7 +134,7 @@ public class TestDFHelper {
 	}
 
 	/**
-	   Return a template that should not matche a DFD including SD2
+	   Return a template that should not match a DFD including SD2
 	 */
 	public static DFAgentDescription getSampleTemplate4() {
 		DFAgentDescription dfd = new DFAgentDescription();
