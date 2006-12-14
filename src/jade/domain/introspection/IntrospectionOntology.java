@@ -192,6 +192,7 @@ public class IntrospectionOntology extends Ontology implements IntrospectionVoca
 			cs.add(BORNAGENT_WHERE, (ConceptSchema)getSchema(CONTAINERID), ObjectSchema.OPTIONAL);
 			cs.add(BORNAGENT_STATE, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 			cs.add(BORNAGENT_OWNERSHIP, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
+			cs.add(BORNAGENT_CLASS_NAME, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 			
 			cs = (ConceptSchema)getSchema(DEADAGENT);
 			cs.add(DEADAGENT_AGENT, (ConceptSchema)getSchema(BasicOntology.AID));

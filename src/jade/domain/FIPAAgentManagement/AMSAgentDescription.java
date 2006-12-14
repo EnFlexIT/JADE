@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.domain.FIPAAgentManagement;
@@ -28,111 +28,111 @@ import jade.core.AID;
 import jade.content.Concept;
 
 /**
-* This class implements the concept of the fipa-agent-management ontology
-* representing the description of an Agent in the AMS catalogue.
-* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-* @see jade.domain.AMSService
-* @author Fabio Bellifemine - CSELT S.p.A.
-* @version $Date$ $Revision$
-*/
+ * This class implements the concept of the fipa-agent-management ontology
+ * representing the description of an Agent in the AMS catalogue.
+ * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+ * @see jade.domain.AMSService
+ * @author Fabio Bellifemine - CSELT S.p.A.
+ * @version $Date$ $Revision$
+ */
 public class AMSAgentDescription implements Concept {
 
-    /**
+	/**
        String constant for the <code>initiated</code> agent life-cycle
        state.
-    */
-    public static final String INITIATED = "initiated";
+	 */
+	public static final String INITIATED = "initiated";
 
-    /**
+	/**
        String constant for the <code>active</code> agent life-cycle
        state.
-    */
-    public static final String ACTIVE = "active";
+	 */
+	public static final String ACTIVE = "active";
 
-    /**
+	/**
        String constant for the <code>suspended</code> agent life-cycle
        state.
-    */
-    public static final String SUSPENDED = "suspended";
+	 */
+	public static final String SUSPENDED = "suspended";
 
-    /**
+	/**
        String constant for the <code>waiting</code> agent life-cycle
        state.
-    */
-    public static final String WAITING = "waiting";
+	 */
+	public static final String WAITING = "waiting";
 
-    /**
+	/**
        String constant for the <code>transit</code> agent life-cycle
        state.
-    */
-    public static final String TRANSIT = "transit";
-    
-    /**
+	 */
+	public static final String TRANSIT = "transit";
+
+	/**
     String constant for the <code>latent</code> agent life-cycle
     state. JADE specific state indicating an agent waiting to be restored after a 
     crash of the main container
-    */
-    public static final String LATENT = "latent";
+	 */
+	public static final String LATENT = "latent";
 
-    private AID name;
-    private String ownership;
-    private String state;
+	private AID name;
+	private String ownership;
+	private String state;
 
-    /**
+	/**
        Default constructor.
-    */
-    public AMSAgentDescription() {
-    }
+	 */
+	public AMSAgentDescription() {
+	}
 
-    /**
+	/**
        Set the <code>name</code> slot of this object.
        @param n The agent identifier for the name.
-    */
-    public void setName(AID n){
-	name = n;
-    }
+	 */
+	public void setName(AID n){
+		name = n;
+	}
 
-    /**
+	/**
        Set the <code>ownership</code> slot of this object.
        @param n The string for the ownership.
-    */
-    public void setOwnership(String n) {
-	ownership = n;
-    }
+	 */
+	public void setOwnership(String n) {
+		ownership = n;
+	}
 
-    /**
+	/**
        Set the <code>state</code> slot of this object.
        @param n The string for the state.
-    */
-    public void setState(String n) {
-	state = n;
-    }
+	 */
+	public void setState(String n) {
+		state = n;
+	}
 
-    /**
+	/**
        Retrieve the <code>name</code> slot of this object.
        @return The value of the <code>name</code> slot, or
        <code>null</code> if no value was set.
-    */
-    public AID getName(){
-	return name;
-    }
+	 */
+	public AID getName(){
+		return name;
+	}
 
-   /**
+	/**
        Retrieve the <code>ownership</code> slot of this object.
        @return The value of the <code>ownership</code> slot, or
        <code>null</code> if no value was set.
-    */
-    public String getOwnership(){
-	return ownership;
-    }
+	 */
+	public String getOwnership(){
+		return ownership;
+	}
 
-   /**
+	/**
        Retrieve the <code>state</code> slot of this object.
        @return The value of the <code>state</code> slot, or
        <code>null</code> if no value was set.
-    */
-    public String getState(){
-	return state;
-    }
+	 */
+	public String getState(){
+		return state;
+	}
 
 }

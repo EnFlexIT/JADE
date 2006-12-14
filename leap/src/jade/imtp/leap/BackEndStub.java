@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -28,6 +28,7 @@ import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.core.MicroRuntime;
 import jade.core.NotFoundException;
+import jade.core.ServiceException;
 import jade.core.Specifier;
 import jade.imtp.leap.JICP.JICPProtocol;
 import jade.lang.acl.ACLMessage;
@@ -46,17 +47,18 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	static final int SUSPENDED_AGENT = 22;
 	static final int RESUMED_AGENT = 23;
 	static final int MESSAGE_OUT = 24;
-	
+	static final int SERVICE_METHOD = 25;
+
 	public BackEndStub(Dispatcher d) {
 		super(d);
 	}	
-	
+
 	/**
 	 */
-  public String bornAgent(String name) throws JADESecurityException, IMTPException {
+	public String bornAgent(String name) throws JADESecurityException, IMTPException {
 		//Logger.println("Executing BORN_AGENT");
-  	Command c = new Command(BORN_AGENT);
-  	c.addParam(name);
+		Command c = new Command(BORN_AGENT);
+		c.addParam(name);
 		// The BORN_AGENT command must not be postponed
 		Command r = executeRemotely(c, 0);
 		if (r.getCode() == Command.ERROR) {
@@ -70,106 +72,137 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		else {
 			return null;
 		}
-  }
+	}
 
-  /**
+	/**
 	 */
-  public void deadAgent(String name) throws IMTPException {
-  	//Logger.println("Executing DEAD_AGENT");
-  	Command c = new Command(DEAD_AGENT);
-  	c.addParam(name);
+	public void deadAgent(String name) throws IMTPException {
+		//Logger.println("Executing DEAD_AGENT");
+		Command c = new Command(DEAD_AGENT);
+		c.addParam(name);
 		executeRemotely(c, -1);
-  }
-  
-  /**
+	}
+
+	/**
 	 */
-  public void suspendedAgent(String name) throws NotFoundException, IMTPException {
-  	//Logger.println("Executing SUSPENDED_AGENT");
-  	Command c = new Command(SUSPENDED_AGENT);
-  	c.addParam(name);
+	public void suspendedAgent(String name) throws NotFoundException, IMTPException {
+		//Logger.println("Executing SUSPENDED_AGENT");
+		Command c = new Command(SUSPENDED_AGENT);
+		c.addParam(name);
 		Command r = executeRemotely(c, -1);
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote BackEnd
 			// --> It must be a NotFoundException --> throw it
 			throw new NotFoundException((String) r.getParamAt(2));
 		}
-  }
-  
-  /**
+	}
+
+	/**
 	 */
-  public void resumedAgent(String name) throws NotFoundException, IMTPException {
-  	//Logger.println("Executing RESUMED_AGENT");
-  	Command c = new Command(RESUMED_AGENT);
-  	c.addParam(name);
+	public void resumedAgent(String name) throws NotFoundException, IMTPException {
+		//Logger.println("Executing RESUMED_AGENT");
+		Command c = new Command(RESUMED_AGENT);
+		c.addParam(name);
 		Command r = executeRemotely(c, -1);
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote BackEnd
 			// --> It must be a NotFoundException --> throw it
 			throw new NotFoundException((String) r.getParamAt(2));
 		}
-  }
-  
-  /**
+	}
+
+	/**
 	 */
-  public void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException {
-  	//Logger.println("Executing MESSAGE_OUT");
-  	Command c = new Command(MESSAGE_OUT);
-  	c.addParam(msg);
-  	c.addParam(sender);
+	public void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException {
+		//Logger.println("Executing MESSAGE_OUT");
+		Command c = new Command(MESSAGE_OUT);
+		c.addParam(msg);
+		c.addParam(sender);
 		Command r = executeRemotely(c, -1);
 		if (r != null && r.getCode() == Command.ERROR) {
 			// One of the expected exceptions occurred in the remote BackEnd
 			// --> It must be a NotFoundException --> throw it
 			throw new NotFoundException((String) r.getParamAt(2));
 		}
-  }
-  
-  public static final void parseCreateMediatorResponse(String responseMessage, Properties pp) {
-  	Vector v = Specifier.parseList(responseMessage, '#');
-  	for (int i = 0; i < v.size(); ++i) {
-  		String s = (String) v.elementAt(i);
-  		if(s.length()>0){
-	  		try {
+	}
+
+	/**
+	 */
+	public Object serviceMethod(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
+		//Logger.println("Executing SERVICE_METHOD");
+		Command c = new Command(SERVICE_METHOD);
+		c.addParam(actor);
+		c.addParam(serviceName);
+		c.addParam(methodName);
+		if (methodParams != null) {
+			for (int i = 0; i < methodParams.length; ++i) {
+				c.addParam(methodParams[i]);
+			}
+		}
+		Command r = executeRemotely(c, 0);
+		if (r != null && r.getCode() == Command.ERROR) {
+			// One of the expected exceptions occurred in the remote BackEnd --> throw it
+			if (((String) r.getParamAt(1)).equals("jade.core.NotFoundException")) {
+				throw new NotFoundException((String) r.getParamAt(2));
+			}
+			if (((String) r.getParamAt(1)).equals("jade.core.ServiceException")) {
+				throw new ServiceException((String) r.getParamAt(2));
+			}
+		}
+		if (r.getParamCnt() > 0) {
+			return (String) r.getParamAt(0);
+		}
+		else {
+			return null;
+		}
+	}
+
+	public static final void parseCreateMediatorResponse(String responseMessage, Properties pp) {
+		Vector v = Specifier.parseList(responseMessage, '#');
+		for (int i = 0; i < v.size(); ++i) {
+			String s = (String) v.elementAt(i);
+			if(s.length()>0){
+				try {
 					int index = s.indexOf('=');
 					String key = s.substring(0, index);
 					String value = s.substring(index+1);
 					pp.setProperty(key, value);
-	  		}
-	  		catch (Exception e) {
-	  			Logger.println("Property format error: "+s);
-	  			e.printStackTrace();
-	  		}
-	  		String mediatorId = pp.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
-	  		if (mediatorId != null) {
-		  		pp.setProperty(MicroRuntime.CONTAINER_NAME_KEY, mediatorId);
-	  		}
-  		}
-  	}
-  }
-  /**
-   * The method encodes the create mediator request, setting all the common properties 
-   * retrived in the passed property parameter.
-   * @param pp 
-   * @return a StringBuffer to allow the dispatcher to add dispatcher specific properties.
-   */
-  public static final StringBuffer encodeCreateMediatorRequest(Properties pp){
-  	StringBuffer sb = new StringBuffer();
-  	appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY,pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY));
-  	appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
-  	appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, pp.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES));
-  	appendProp(sb, JICPProtocol.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
- 	  appendProp(sb, MicroRuntime.AGENTS_KEY, pp.getProperty(MicroRuntime.AGENTS_KEY));
- 	 	appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, pp.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
-  	return sb;
-  }
-  
-  public static void appendProp(StringBuffer sb, String key, String val) {
-  	if ((val != null)&&(val.length()!=0)) {
-	  	sb.append(key);
-	  	sb.append('=');
-	  	sb.append(val);
-	  	sb.append('#');
-  	}
-  }
+				}
+				catch (Exception e) {
+					Logger.println("Property format error: "+s);
+					e.printStackTrace();
+				}
+				String mediatorId = pp.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
+				if (mediatorId != null) {
+					pp.setProperty(MicroRuntime.CONTAINER_NAME_KEY, mediatorId);
+				}
+			}
+		}
+	}
+	/**
+	 * The method encodes the create mediator request, setting all the common properties 
+	 * retrived in the passed property parameter.
+	 * @param pp 
+	 * @return a StringBuffer to allow the dispatcher to add dispatcher specific properties.
+	 */
+	public static final StringBuffer encodeCreateMediatorRequest(Properties pp){
+		StringBuffer sb = new StringBuffer();
+		appendProp(sb, JICPProtocol.MEDIATOR_CLASS_KEY,pp.getProperty(JICPProtocol.MEDIATOR_CLASS_KEY));
+		appendProp(sb, JICPProtocol.MAX_DISCONNECTION_TIME_KEY, pp.getProperty(JICPProtocol.MAX_DISCONNECTION_TIME_KEY));
+		appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, pp.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES));
+		appendProp(sb, JICPProtocol.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
+		appendProp(sb, MicroRuntime.AGENTS_KEY, pp.getProperty(MicroRuntime.AGENTS_KEY));
+		appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, pp.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
+		return sb;
+	}
+
+	public static void appendProp(StringBuffer sb, String key, String val) {
+		if ((val != null)&&(val.length()!=0)) {
+			sb.append(key);
+			sb.append('=');
+			sb.append(val);
+			sb.append('#');
+		}
+	}
 }
 

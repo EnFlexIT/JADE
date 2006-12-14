@@ -1,3 +1,27 @@
+MAJOR CHANGES in JADE x.y (???)
+==========================================================================
+GENERAL IMPROVEMENTS:	
+- Modified DF to cache subscription relevant information. This speeds up performances when detecting subscribed agents to be notified about registration updates
+- Modified FullResourceManager to avoid annoying stack traces at platform shutdown
+- Modified MainContainerImpl to start the AMS and DF threads in the SystemAgent Thread Group
+
+BUG-FIXES:
+ 
+
+LEAP:
+
+
+ADD-ONS:
+
+
+DOCUMENTATION:
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+NONE
+
+
+
 MAJOR CHANGES in JADE 3.4.1 (15th November 2006)  
 ==========================================================================
 GENERAL IMPROVEMENTS:	

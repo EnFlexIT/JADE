@@ -58,8 +58,7 @@ public class MicroStub {
 				if (!((Boolean) r.getParamAt(0)).booleanValue()) {
 					// Unexpected exception thrown in the remote site
 					String msg = new String("Exception "+(String) r.getParamAt(1)+" occurred in remote site processing command "+c.getCode()+". "+(String) r.getParamAt(2));
-					if(logger.isLoggable(Logger.SEVERE))
-						logger.log(Logger.SEVERE,msg);
+					logger.log(Logger.SEVERE,msg);
 					throw new IMTPException(msg);
 				}
 				else if (((String) r.getParamAt(1)).equals("jade.core.IMTPException")) {

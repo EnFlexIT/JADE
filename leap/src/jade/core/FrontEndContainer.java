@@ -64,7 +64,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	private AID dfAID;
 	
 	// The buffer of messages to be sent to the BackEnd
-	private Vector pending;;
+	private Vector pending;
 	
 	// The BackEnd this FrontEndContainer is connected to
 	private BackEnd myBackEnd;

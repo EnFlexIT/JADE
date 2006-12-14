@@ -96,7 +96,11 @@ class PlatformControllerImpl implements PlatformController {
 	}
 	
 	/**
-	 * Kill the agent platform. Kills all agents.
+	 * Kill the agent platform with all its agents.
+	 * <br>
+	 * <b>NOTE</b> that this method must not be executed within an agent Thread. 
+	 * This in fact would cause a deadlock condition. If an agent needs to invoke it
+	 * it should spawn a dedicated Thread.
 	 * @throws ControllerException If any probelms other than illegal state occur.
 	 * @throws IllegalStateException If state is illegal for this activity.
 	 */

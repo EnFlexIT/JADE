@@ -1073,6 +1073,7 @@ public class ams extends Agent implements AgentManager.Listener {
 		ba.setWhere(cid);
 		ba.setState(AMSAgentDescription.ACTIVE);
 		ba.setOwnership(ownership);
+		ba.setClassName((String) agentID.getAllUserDefinedSlot().get(AID.AGENT_CLASSNAME));
 
 		EventRecord er = new EventRecord(ba, here());
 		er.setWhen(ev.getTime());

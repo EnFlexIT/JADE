@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -28,6 +28,7 @@ package jade.imtp.leap;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
+import jade.core.ServiceException;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 import jade.security.JADESecurityException;
@@ -37,83 +38,103 @@ import jade.security.JADESecurityException;
  * @author Giovanni Caire - TILAB
  */
 public class BackEndSkel extends MicroSkeleton {
-	
+
 	private BackEnd myBackEnd;
-	
+
 	public BackEndSkel(BackEnd be) {
 		myBackEnd = be;
 	}
-	
+
 	/**
 	   Call the method of the local BackEnd corresponding to command <code>c</code>.
-   */
-  Command executeCommand(Command c) throws Throwable {
-  	switch (c.getCode()) {
-  	case BackEndStub.MESSAGE_OUT:
-  		try {
-  			//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_OUT");
-  			myBackEnd.messageOut((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
-  			//Logger.println(Thread.currentThread().getName()+": MESSAGE_OUT executed");
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case BackEndStub.BORN_AGENT:
-  		try {
-  			String name = myBackEnd.bornAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  			c.addParam(name);
-  		}
-  		catch (JADESecurityException ae) {
-  			c = createErrorRsp(ae, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case BackEndStub.DEAD_AGENT:
-  		try {
-  			myBackEnd.deadAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case BackEndStub.SUSPENDED_AGENT:
-  		try {
-  			myBackEnd.suspendedAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	case BackEndStub.RESUMED_AGENT:
-  		try {
-  			myBackEnd.resumedAgent((String) c.getParamAt(0));
-  			c.reset(Command.OK);
-  		}
-  		catch (NotFoundException nfe) {
-  			c = createErrorRsp(nfe, true);
-  		}
-  		catch (IMTPException imtpe) {
-  			c = createErrorRsp(imtpe, true);
-  		}
-  		break;
-  	default:
-  		throw new IMTPException("Unsupported command "+c.getCode());
-  	}
-  	
-  	return c;
-  }
+	 */
+	Command executeCommand(Command c) throws Throwable {
+		switch (c.getCode()) {
+		case BackEndStub.MESSAGE_OUT:
+			try {
+				//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_OUT");
+				myBackEnd.messageOut((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
+				//Logger.println(Thread.currentThread().getName()+": MESSAGE_OUT executed");
+				c.reset(Command.OK);
+			}
+			catch (NotFoundException nfe) {
+				c = createErrorRsp(nfe, true);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		case BackEndStub.BORN_AGENT:
+			try {
+				String name = myBackEnd.bornAgent((String) c.getParamAt(0));
+				c.reset(Command.OK);
+				c.addParam(name);
+			}
+			catch (JADESecurityException ae) {
+				c = createErrorRsp(ae, true);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		case BackEndStub.DEAD_AGENT:
+			try {
+				myBackEnd.deadAgent((String) c.getParamAt(0));
+				c.reset(Command.OK);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		case BackEndStub.SUSPENDED_AGENT:
+			try {
+				myBackEnd.suspendedAgent((String) c.getParamAt(0));
+				c.reset(Command.OK);
+			}
+			catch (NotFoundException nfe) {
+				c = createErrorRsp(nfe, true);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		case BackEndStub.RESUMED_AGENT:
+			try {
+				myBackEnd.resumedAgent((String) c.getParamAt(0));
+				c.reset(Command.OK);
+			}
+			catch (NotFoundException nfe) {
+				c = createErrorRsp(nfe, true);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		case BackEndStub.SERVICE_METHOD:
+			try {
+				Object[] methodParams = new Object[c.getParamCnt()-3];
+				for (int i = 0; i < methodParams.length; ++i) {
+					methodParams[i] = c.getParamAt(i+3);
+				}
+				Object result = myBackEnd.serviceMethod((String) c.getParamAt(0), (String) c.getParamAt(0), (String) c.getParamAt(0), methodParams);
+				c.reset(Command.OK);
+				c.addParam(result);
+			}
+			catch (NotFoundException nfe) {
+				c = createErrorRsp(nfe, true);
+			}
+			catch (ServiceException se) {
+				c = createErrorRsp(se, true);
+			}
+			catch (IMTPException imtpe) {
+				c = createErrorRsp(imtpe, true);
+			}
+			break;
+		default:
+			throw new IMTPException("Unsupported command "+c.getCode());
+		}
+
+		return c;
+	}
 }
 

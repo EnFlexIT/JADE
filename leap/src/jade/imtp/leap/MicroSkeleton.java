@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -31,38 +31,38 @@ package jade.imtp.leap;
 public abstract class MicroSkeleton {
 	public byte[] handleCommand(byte[] cmd) {
 		byte[] rsp = null;
-    try {
-    	Command c = SerializationEngine.deserialize(cmd);
-      Command r = executeCommand(c);
-    	rsp = SerializationEngine.serialize(r);
-    } 
-    catch (Throwable tr) {
-    	// These can be exceptions at the IMTP level (serialization or 
-    	// unsupported command) or unexpected exceptions at the upper level
-    	tr.printStackTrace();
-    	Command r = createErrorRsp(tr, false);
-    	try {
-    		rsp = SerializationEngine.serialize(r);
-    	}
-    	catch (LEAPSerializationException lse) {
-    		// This should never happen 
-    		lse.printStackTrace();
-    	}
-    } 
-    return rsp;
+		try {
+			Command c = SerializationEngine.deserialize(cmd);
+			Command r = executeCommand(c);
+			rsp = SerializationEngine.serialize(r);
+		} 
+		catch (Throwable tr) {
+			// These can be exceptions at the IMTP level (serialization or 
+			// unsupported command) or unexpected exceptions at the upper level
+			tr.printStackTrace();
+			Command r = createErrorRsp(tr, false);
+			try {
+				rsp = SerializationEngine.serialize(r);
+			}
+			catch (LEAPSerializationException lse) {
+				// This should never happen 
+				lse.printStackTrace();
+			}
+		} 
+		return rsp;
 	}
 
 	/**
 	   Skeleton implementations must implement this method.
-   */
-  abstract Command executeCommand(Command c) throws Throwable;
+	 */
+	abstract Command executeCommand(Command c) throws Throwable;
 
-  protected Command createErrorRsp(Throwable tr, boolean expected) { 
-    Command rsp = new Command(Command.ERROR);
+	protected Command createErrorRsp(Throwable tr, boolean expected) { 
+		Command rsp = new Command(Command.ERROR);
 		rsp.addParam(new Boolean(expected));
-    rsp.addParam(tr.getClass().getName());
-    rsp.addParam(tr.getMessage());
-    return rsp;
-  }
+		rsp.addParam(tr.getClass().getName());
+		rsp.addParam(tr.getMessage());
+		return rsp;
+	}
 }
 

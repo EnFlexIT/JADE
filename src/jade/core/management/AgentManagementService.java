@@ -885,14 +885,16 @@ public class AgentManagementService extends BaseService {
 			// Notify the main container through its slice
 			AgentManagementSlice mainSlice = (AgentManagementSlice)getSlice(MAIN_SLICE);
 			
+			// We propagate the class-name to the main, but we don't want to keep it in the actual agent AID. 
+			AID cloned = (AID) target.clone();
+			cloned.addUserDefinedSlot(AID.AGENT_CLASSNAME, instance.getClass().getName());
 			try {
-				target.addUserDefinedSlot(AID.AGENT_CLASSNAME, instance.getClass().getName());
-				mainSlice.bornAgent(target, myContainer.getID(), vCmd);
+				mainSlice.bornAgent(cloned, myContainer.getID(), vCmd);
 			}
 			catch(IMTPException imtpe) {
 				// Try to get a newer slice and repeat...
 				mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
-				mainSlice.bornAgent(target, myContainer.getID(), vCmd);
+				mainSlice.bornAgent(cloned, myContainer.getID(), vCmd);
 			}
 		}
 		catch(NameClashException nce) {

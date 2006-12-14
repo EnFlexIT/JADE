@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -39,117 +39,117 @@ class SerializationEngine {
 	private static final byte ACL_ID = 2;
 	private static final byte STRING_ARRAY_ID = 3;
 	private static final byte BOOLEAN_ID = 4;
-	
+
 	final static byte[] serialize(Command cmd) throws LEAPSerializationException {
-  	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
-    try {
-      dos.writeByte(cmd.getCode());
-      int paramCnt = cmd.getParamCnt();
-      dos.writeByte(paramCnt);
-      for (int i = 0; i < paramCnt; ++i) {
-      	serializeObject(cmd.getParamAt(i), dos);
-      }
-      byte[] bb = baos.toByteArray();
-      //Logger.println("Serialized command. Type = "+cmd.getCode()+". Length = "+(bb != null ? bb.length : 0));
-      return bb;
-    } 
-    catch (IOException ioe) {
-      throw new LEAPSerializationException("Error serializing Command");
-    }
+		try {
+			dos.writeByte(cmd.getCode());
+			int paramCnt = cmd.getParamCnt();
+			dos.writeByte(paramCnt);
+			for (int i = 0; i < paramCnt; ++i) {
+				serializeObject(cmd.getParamAt(i), dos);
+			}
+			byte[] bb = baos.toByteArray();
+			//Logger.println("Serialized command. Type = "+cmd.getCode()+". Length = "+(bb != null ? bb.length : 0));
+			return bb;
+		} 
+		catch (IOException ioe) {
+			throw new LEAPSerializationException("Error serializing Command");
+		}
 	}
 
 	final static Command deserialize(byte[] data) throws LEAPSerializationException {
-    try { 
+		try { 
 			DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
-    	int type = (int) dis.readByte();
-      Command cmd = new Command(type);
-      int paramCnt = (int) dis.readByte();
-      for (int i = 0; i < paramCnt; ++i) {
-        cmd.addParam(deserializeObject(dis, data));
-      } 
-      //Logger.println("De-serialized command. Type = "+cmd.getCode()+". Length = "+(data != null ? data.length : 0));
-      return cmd;
-    } 
-    catch (Exception e) {
-      throw new LEAPSerializationException("Error deserializing Command "+e);
-    }
+			int type = (int) dis.readByte();
+			Command cmd = new Command(type);
+			int paramCnt = (int) dis.readByte();
+			for (int i = 0; i < paramCnt; ++i) {
+				cmd.addParam(deserializeObject(dis, data));
+			} 
+			//Logger.println("De-serialized command. Type = "+cmd.getCode()+". Length = "+(data != null ? data.length : 0));
+			return cmd;
+		} 
+		catch (Exception e) {
+			throw new LEAPSerializationException("Error deserializing Command "+e);
+		}
 	}
-	
-  /**
-   * Writes an object whose class is not known from the context to
-   * a given DataOutputStream.
-   * @param o the object to be written.
-   * @param dos the DataOutputStream.
-   * @exception LEAPSerializationException if an error occurs during
-   * serialization or the object is an instance of a class that cannot be
-   * serialized.
-   */
-  private final static void serializeObject(Object o, DataOutputStream dos) throws LEAPSerializationException {
-    try {
-      if (o != null) {
-        if (o instanceof String) {            // String
-            dos.writeByte(STRING_ID);
-            dos.writeUTF((String) o);
-        } 
-        else if (o instanceof ACLMessage) {   // ACLMessage
-            dos.writeByte(ACL_ID);
-            LEAPACLCodec.serializeACL((ACLMessage) o, dos);
-        } 
-        else if (o instanceof String[]) {     // Array of Strings
-            dos.writeByte(STRING_ARRAY_ID);
-            serializeStringArray((String[]) o, dos);
-        } 
-        else if (o instanceof Boolean) {      // Boolean
-            dos.writeByte(BOOLEAN_ID);
-            dos.writeBoolean(((Boolean) o).booleanValue());
-        } 
-        else {
-        	throw new LEAPSerializationException("Unknown class "+o.getClass().getName());
-        }
-      }
-      else {
-      	dos.writeByte(NULL_ID);
-      }
-    }  // END of try
-    catch (IOException ioe) {
-    	throw new LEAPSerializationException("I/O Error Serializing object "+o+". "+ioe.getMessage());
-    } 
-  }
-  
-  /**
-   * Reads an object whose class is not known from the context from
-   * a given DataInputStream.
-   * @param dis The DataInputStream.
-   * @return the object that has been read.
-   * @exception LEAPSerializationException if an error occurs during
-   * deserialization or the object is an instance of a class that cannot be
-   * deserialized.
-   */
-  private final static Object deserializeObject(DataInputStream dis, byte[] data) throws LEAPSerializationException {
-    String className = null;    
-    try {
-      byte id = dis.readByte();
-      switch (id) {
-      case NULL_ID:
-      	return null;
-      case STRING_ID:
-      	return dis.readUTF();
-      case ACL_ID:
-      	return LEAPACLCodec.deserializeACL(dis);
-      case STRING_ARRAY_ID:
-      	return deserializeStringArray(dis);
-      case BOOLEAN_ID:
-      	return new Boolean(dis.readBoolean());
-      default:
-      	/*System.out.println("Packet was:");
+
+	/**
+	 * Writes an object whose class is not known from the context to
+	 * a given DataOutputStream.
+	 * @param o the object to be written.
+	 * @param dos the DataOutputStream.
+	 * @exception LEAPSerializationException if an error occurs during
+	 * serialization or the object is an instance of a class that cannot be
+	 * serialized.
+	 */
+	private final static void serializeObject(Object o, DataOutputStream dos) throws LEAPSerializationException {
+		try {
+			if (o != null) {
+				if (o instanceof String) {            // String
+					dos.writeByte(STRING_ID);
+					dos.writeUTF((String) o);
+				} 
+				else if (o instanceof ACLMessage) {   // ACLMessage
+					dos.writeByte(ACL_ID);
+					LEAPACLCodec.serializeACL((ACLMessage) o, dos);
+				} 
+				else if (o instanceof String[]) {     // Array of Strings
+					dos.writeByte(STRING_ARRAY_ID);
+					serializeStringArray((String[]) o, dos);
+				} 
+				else if (o instanceof Boolean) {      // Boolean
+					dos.writeByte(BOOLEAN_ID);
+					dos.writeBoolean(((Boolean) o).booleanValue());
+				} 
+				else {
+					throw new LEAPSerializationException("Unknown class "+o.getClass().getName());
+				}
+			}
+			else {
+				dos.writeByte(NULL_ID);
+			}
+		}  // END of try
+		catch (IOException ioe) {
+			throw new LEAPSerializationException("I/O Error Serializing object "+o+". "+ioe.getMessage());
+		} 
+	}
+
+	/**
+	 * Reads an object whose class is not known from the context from
+	 * a given DataInputStream.
+	 * @param dis The DataInputStream.
+	 * @return the object that has been read.
+	 * @exception LEAPSerializationException if an error occurs during
+	 * deserialization or the object is an instance of a class that cannot be
+	 * deserialized.
+	 */
+	private final static Object deserializeObject(DataInputStream dis, byte[] data) throws LEAPSerializationException {
+		String className = null;    
+		try {
+			byte id = dis.readByte();
+			switch (id) {
+			case NULL_ID:
+				return null;
+			case STRING_ID:
+				return dis.readUTF();
+			case ACL_ID:
+				return LEAPACLCodec.deserializeACL(dis);
+			case STRING_ARRAY_ID:
+				return deserializeStringArray(dis);
+			case BOOLEAN_ID:
+				return new Boolean(dis.readBoolean());
+			default:
+				/*System.out.println("Packet was:");
       	jade.imtp.leap.JICP.JICPPacket pkt = jade.imtp.leap.JICP.BIFEDispatcher.lastResponseCazzo;
       	System.out.println("Type = "+pkt.getType());
       	System.out.println("Info = "+pkt.getInfo());
       	System.out.println("Sid = "+pkt.getSessionID());
       	System.out.println("recipientID = "+pkt.getRecipientID());
       	System.out.println("Data.length = "+pkt.getData().length);
-      		
+
 				System.out.println("Data to deserialize is:");
 				for (int i = 0; i < data.length; ++i) {
 					System.out.print(data[i]+" ");
@@ -157,29 +157,29 @@ class SerializationEngine {
 						System.out.println("");
 					}
 				}*/
-      	throw new LEAPSerializationException("Unknown class ID: "+id);
-      }
-    }      // END of try
-    catch (IOException e) {
-    	throw new LEAPSerializationException("I/O Error Deserializing a generic object");
-    } 
-  }
+				throw new LEAPSerializationException("Unknown class ID: "+id);
+			}
+		}      // END of try
+		catch (IOException e) {
+			throw new LEAPSerializationException("I/O Error Deserializing a generic object");
+		} 
+	}
 
-  
-  private final static void serializeStringArray(String[] ss, DataOutputStream dos) throws IOException, LEAPSerializationException {
-  	dos.writeByte(ss.length);
-  	for (int i = 0; i < ss.length; ++i) {
-  		dos.writeUTF(ss[i]);
-  	}
-  }
-  
-  private final static String[] deserializeStringArray(DataInputStream dis) throws IOException, LEAPSerializationException {
-  	String[] ss = new String[dis.readByte()];
-  	for (int i = 0; i < ss.length; ++i) {
-  		ss[i] = dis.readUTF();
-  	}
-  	return ss;
-  }
+
+	private final static void serializeStringArray(String[] ss, DataOutputStream dos) throws IOException, LEAPSerializationException {
+		dos.writeByte(ss.length);
+		for (int i = 0; i < ss.length; ++i) {
+			dos.writeUTF(ss[i]);
+		}
+	}
+
+	private final static String[] deserializeStringArray(DataInputStream dis) throws IOException, LEAPSerializationException {
+		String[] ss = new String[dis.readByte()];
+		for (int i = 0; i < ss.length; ++i) {
+			ss[i] = dis.readUTF();
+		}
+		return ss;
+	}
 
 
 }

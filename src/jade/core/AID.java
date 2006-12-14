@@ -454,7 +454,7 @@ public class AID implements Comparable, Serializable {
 		//    result.addUserDefinedSlot(key, 
 		//                              (String) userDefSlots.getProperty(key));
 		//}
-		result.userDefSlots = userDefSlots;
+		result.userDefSlots = (Properties) userDefSlots.clone();
 		
 		return result;
 	} 

@@ -305,11 +305,10 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 */
 	public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
 		// Check whether the sender exists
-		final AID id = new AID(sender, AID.ISLOCALNAME);
+		AID id = new AID(sender, AID.ISLOCALNAME);
 		
-		AgentImage image = null;
 		synchronized (frontEndSynchLock) {
-			image = (AgentImage) agentImages.get(id);
+			AgentImage image = getAgentImage(id);
 			if (image == null) {
 				if (synchronizing) {
 					// The image is not yet there since the front-end is synchronizing.
@@ -327,6 +326,18 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		handleSend(msg, id, false);
 	}
 	
+	public Object serviceMethod(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
+		AID id = new AID(actor, AID.ISLOCALNAME);
+		AgentImage image = getAgentImage(id);
+		ServiceHelper helper = image.getHelper(serviceName);
+		if (helper == null) {
+			throw new ServiceException("Service "+serviceName+"does not have a Service-helper");
+		}
+		// FIXME: Check if a BECodec exists for the indicated service and, in case, use it to decode parameters in a service specific way 
+		// FIXME: Invoke method methodName on helper object using Reflection
+		// FIXME: If a result is present and a BECodec exists use it to encode the result in a service specific way
+		throw new ServiceException("Not yet implemented");
+	}
 	
 	///////////////////////////////////////////////
 	// Methods called by the BEManagementService
