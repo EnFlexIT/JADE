@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package test.content;
 
@@ -47,45 +47,45 @@ public class ContentTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
 	public static final String CODEC_CLASS_NAME = "codec";
 	private static final String CODEC_CLASS_DEFAULT = "jade.content.lang.sl.SLCodec";
-		
+
 	public static final String MSG_NAME = "msg";
-	
+
 	private static final String RESPONDER_NAME = "responder";
-	
+
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/content/contentTestsList.xml"){		
-			
+
 			private AID resp;
-			
+
 			public void initialize(Agent a) throws TestException {
 				// Load the codec to be used in the tests
-    		Codec codec = null;
-    		String codecClassName = (String) getArgument(CODEC_CLASS_NAME);
-    		try {
-    			codec = (Codec) Class.forName(codecClassName).newInstance();
-    		}
-    		catch (Exception e) {
-    			throw new TestException("Error loading codec "+codecClassName, e);
-    		}
-    		System.out.println("Test group performed using the "+codec.getName()+" language");
-				
-    		// Register the codec and ontology in the Agent's content manager
-    		a.getContentManager().registerLanguage(codec);
-    		a.getContentManager().registerOntology(TestOntology.getInstance());
-    		
-    		// Create and configure the responder agent
+				Codec codec = null;
+				String codecClassName = (String) getArgument(CODEC_CLASS_NAME);
+				try {
+					codec = (Codec) Class.forName(codecClassName).newInstance();
+				}
+				catch (Exception e) {
+					throw new TestException("Error loading codec "+codecClassName, e);
+				}
+				System.out.println("Test group performed using the "+codec.getName()+" language");
+
+				// Register the codec and ontology in the Agent's content manager
+				a.getContentManager().registerLanguage(codec);
+				a.getContentManager().registerOntology(TestOntology.getInstance());
+
+				// Create and configure the responder agent
 				resp = TestUtility.createAgent(a, RESPONDER_NAME, "test.content.Responder", null, a.getAMS(), a.here().getName());
 
 				// Prepare the message that will be used in all tests
 				ACLMessage msg  = new ACLMessage(ACLMessage.INFORM);
 				msg.addReceiver(resp);
-  			msg.setLanguage(codec.getName());
-  			msg.setOntology(TestOntology.getInstance().getName());
-  			msg.setConversationId(Responder.TEST_CONVERSATION);
-  			msg.setReplyWith(Responder.TEST_RESPONSE_ID);
+				msg.setLanguage(codec.getName());
+				msg.setOntology(TestOntology.getInstance().getName());
+				msg.setConversationId(Responder.TEST_CONVERSATION);
+				msg.setReplyWith(Responder.TEST_RESPONSE_ID);
 				setArgument(MSG_NAME, msg);
 			}
-			
+
 			public void shutdown(Agent a) {
 				try {
 					TestUtility.killAgent(a, resp);
@@ -95,34 +95,34 @@ public class ContentTesterAgent extends TesterAgent {
 				}
 			}
 		};
-				
+
 		tg.specifyArgument(CODEC_CLASS_NAME, "Codec class name", CODEC_CLASS_DEFAULT);
-		
+
 		return tg;
 	}
-	
+
 	// Main method that allows launching this test as a stand-alone program	
 	public static void main(String[] args) {
 		try {
-      // Get a hold on JADE runtime
-      Runtime rt = Runtime.instance();
+			// Get a hold on JADE runtime
+			Runtime rt = Runtime.instance();
 
-      // Exit the JVM when there are no more containers around
-      rt.setCloseVM(true);
+			// Exit the JVM when there are no more containers around
+			rt.setCloseVM(true);
 
-      Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
+			Profile pMain = new ProfileImpl(null, Test.DEFAULT_PORT, null);
 
-      AgentContainer mc = rt.createMainContainer(pMain);
+			AgentContainer mc = rt.createMainContainer(pMain);
 
-      AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
-      rma.start();
+			AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
+			rma.start();
 
-      AgentController tester = mc.createNewAgent("tester", "test.content.ContentTesterAgent", args);
-      tester.start();
+			AgentController tester = mc.createNewAgent("tester", "test.content.ContentTesterAgent", args);
+			tester.start();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
- 
+
 }

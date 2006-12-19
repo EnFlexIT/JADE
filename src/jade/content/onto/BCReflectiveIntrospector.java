@@ -147,7 +147,9 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 					// Retrieve the modifier method from the class and call it
 					ObjectSchema slotSchema = schema.getSchema(slotName);
 					String methodName;
+					// Note that here checking if absSlotValue is an AbsAggregate would be wrong as we have add methods only if the schema of the slot is AggregateSchema
 					if (slotSchema instanceof AggregateSchema) {
+						// FIXME: Here we should check for Long --> Integer casting, but how?
 						methodName = "add" + translateName(slotName);
 						Method addMethod = findMethodCaseInsensitive(methodName, javaClass);
 						invokeAddMethod(addMethod, obj, slotValue);

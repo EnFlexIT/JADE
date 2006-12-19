@@ -26,8 +26,6 @@ package test.content.testOntology;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
-import jade.content.abs.*;
-import examples.content.musicShopOntology.*;
 
 /**
  * Ontology containing concepts and predicates used for testing 
@@ -36,56 +34,56 @@ import examples.content.musicShopOntology.*;
  */
 public class MultipleInheritanceOntology extends Ontology {
 	// NAME
-  public static final String ONTOLOGY_NAME = "Inheritance-ontology";
-	
+	public static final String ONTOLOGY_NAME = "Inheritance-ontology";
+
 	// VOCABULARY
-  public static final String HOUSE = "HOUSE";
-  public static final String HOUSE_ROOMS = "rooms";
-  
-  public static final String VEHICLE = "VEHICLE";
-  public static final String VEHICLE_MAXSPEED = "max-speed";
-  
-  public static final String MOTORVEHICLE = "MOTORVEHICLE";
-  public static final String MOTORVEHICLE_MECPIECES = "mec-pieces";
-  
-  public static final String CAMPER = "CAMPER";
-  
-  // The singleton instance of this ontology
+	public static final String HOUSE = "HOUSE";
+	public static final String HOUSE_ROOMS = "rooms";
+
+	public static final String VEHICLE = "VEHICLE";
+	public static final String VEHICLE_MAXSPEED = "max-speed";
+
+	public static final String MOTORVEHICLE = "MOTORVEHICLE";
+	public static final String MOTORVEHICLE_MECPIECES = "mec-pieces";
+
+	public static final String CAMPER = "CAMPER";
+
+	// The singleton instance of this ontology
 	private static Ontology theInstance = new MultipleInheritanceOntology();
-	
+
 	public static Ontology getInstance() {
 		return theInstance;
 	}
-	
-  /**
-   * Constructor
-   */
-  private MultipleInheritanceOntology() {
-  	super(ONTOLOGY_NAME, TestOntology.getInstance(), new ReflectiveIntrospector());
 
-    try {
-    	add(new ConceptSchema(HOUSE), House.class);
-    	add(new ConceptSchema(VEHICLE), Vehicle.class);
-    	add(new ConceptSchema(MOTORVEHICLE), MotorVehicle.class);
-    	add(new ConceptSchema(CAMPER), Camper.class);
-    	
-    	ConceptSchema cs = (ConceptSchema) getSchema(HOUSE);
-    	cs.add(HOUSE_ROOMS, (PrimitiveSchema) getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
-    	
-    	cs = (ConceptSchema) getSchema(VEHICLE);
-    	cs.add(VEHICLE_MAXSPEED, (PrimitiveSchema) getSchema(BasicOntology.INTEGER));
-    	
-    	cs = (ConceptSchema) getSchema(MOTORVEHICLE);
-    	cs.addSuperSchema((ConceptSchema) getSchema(VEHICLE));
-    	cs.add(MOTORVEHICLE_MECPIECES, (AggregateSchema) getSchema(BasicOntology.SET));
-    	
-    	cs = (ConceptSchema) getSchema(CAMPER);
-    	cs.addSuperSchema((ConceptSchema) getSchema(HOUSE));
-    	cs.addSuperSchema((ConceptSchema) getSchema(MOTORVEHICLE));
-    } 
-    catch (OntologyException oe) {
-    	oe.printStackTrace();
-    } 
+	/**
+	 * Constructor
+	 */
+	private MultipleInheritanceOntology() {
+		super(ONTOLOGY_NAME, TestOntology.getInstance(), new ReflectiveIntrospector());
+
+		try {
+			add(new ConceptSchema(HOUSE), House.class);
+			add(new ConceptSchema(VEHICLE), Vehicle.class);
+			add(new ConceptSchema(MOTORVEHICLE), MotorVehicle.class);
+			add(new ConceptSchema(CAMPER), Camper.class);
+
+			ConceptSchema cs = (ConceptSchema) getSchema(HOUSE);
+			cs.add(HOUSE_ROOMS, (PrimitiveSchema) getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+
+			cs = (ConceptSchema) getSchema(VEHICLE);
+			cs.add(VEHICLE_MAXSPEED, (PrimitiveSchema) getSchema(BasicOntology.INTEGER));
+
+			cs = (ConceptSchema) getSchema(MOTORVEHICLE);
+			cs.addSuperSchema((ConceptSchema) getSchema(VEHICLE));
+			cs.add(MOTORVEHICLE_MECPIECES, (AggregateSchema) getSchema(BasicOntology.SET));
+
+			cs = (ConceptSchema) getSchema(CAMPER);
+			cs.addSuperSchema((ConceptSchema) getSchema(HOUSE));
+			cs.addSuperSchema((ConceptSchema) getSchema(MOTORVEHICLE));
+		} 
+		catch (OntologyException oe) {
+			oe.printStackTrace();
+		} 
 	}
 
 }

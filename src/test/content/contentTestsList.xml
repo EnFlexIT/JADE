@@ -153,9 +153,15 @@
 		</Test>		
 		<Test name="BC Reflective Introspector" skip="false">
 			<TestClassName>test.content.tests.TestBCReflectiveIntrospector</TestClassName>
-			<WhatTest> Tests a ACLMessage content.</WhatTest>
+			<WhatTest> Tests the 2.x Backward-Compatible reflective Introspector</WhatTest>
 			<HowWorkTest> It includes a concept with an attribute of type sequence using the Backward compatible Reflective Introspector.</HowWorkTest>
 			<WhenTestPass> Test passed if no exception is fired.</WhenTestPass>
+		</Test>		
+		<Test name="CF Reflective Introspector" skip="false">
+			<TestClassName>test.content.tests.TestCFReflectiveIntrospector</TestClassName>
+			<WhatTest> Tests the Collection-Framework-based reflective Introspector</WhatTest>
+			<HowWorkTest>The test encodes and successively decodes a content expression refering to an ontology (LEAP-Ontology) that has among its base ontologies another one (CF-Ontology) using the CFReflectiveIntrospector. The latter, on its turn has among its base ontologies another one using the BCReflectiveIntrospector. The content expression includes a mixture of java.util.List and jade.util.leap.List slots.</HowWorkTest>
+			<WhenTestPass> Test passed if no exception is fired and the decoded content is consistent with the original one.</WhenTestPass>
 		</Test>		
 		<Test name="Abs Descriptor As Concept" skip="false">
 			<TestClassName>test.content.tests.TestAbsDescriptorAsConcept</TestClassName>

@@ -73,8 +73,8 @@ public class ReflectiveIntrospector implements Introspector {
 				Object slotValue = invokeAccessorMethod(getMethod, obj);
 				if (slotValue != null) {
 					// Agregate slots require a special handling 
-					ObjectSchema slotSchema = schema.getSchema(slotName);
-					if (slotSchema instanceof AggregateSchema) {
+					if (isAggregateObject(slotValue)) {
+						ObjectSchema slotSchema = schema.getSchema(slotName);
 						externaliseAndSetAggregateSlot(abs, schema, slotName, slotValue, slotSchema, referenceOnto);
 					}
 					else {
@@ -94,6 +94,11 @@ public class ReflectiveIntrospector implements Introspector {
 		} 
 	} 
 
+	//#APIDOC_EXCLUDE_BEGIN
+	protected boolean isAggregateObject(Object slotValue) {
+		return slotValue instanceof List;
+	}
+
 	protected void externaliseAndSetAggregateSlot(AbsObject abs, ObjectSchema schema, String slotName, Object slotValue, ObjectSchema slotSchema, Ontology referenceOnto) throws OntologyException {
 		List l = (List) slotValue;
 		if (!l.isEmpty() || schema.isMandatory(slotName)) {
@@ -102,7 +107,6 @@ public class ReflectiveIntrospector implements Introspector {
 		}
 	}
 
-	//#APIDOC_EXCLUDE_BEGIN
 	protected Object invokeAccessorMethod(Method method, Object obj) throws OntologyException {
 		try {
 			return method.invoke(obj, (Object[]) null);
@@ -138,6 +142,7 @@ public class ReflectiveIntrospector implements Introspector {
 				AbsObject absSlotValue = abs.getAbsObject(slotName);
 				if (absSlotValue != null) {
 					Object slotValue = null;
+					// Agregate slots require a special handling 
 					if (absSlotValue.getAbsType() == AbsObject.ABS_AGGREGATE) {
 						slotValue = internaliseAggregateSlot((AbsAggregate) absSlotValue, referenceOnto);
 					}
@@ -168,11 +173,13 @@ public class ReflectiveIntrospector implements Introspector {
 		} 
 	} 
 
-	private Object internaliseAggregateSlot(AbsAggregate absAggregate, Ontology referenceOnto) throws OntologyException {
-		return AbsHelper.internaliseList(absAggregate, referenceOnto);
+	//#APIDOC_EXCLUDE_BEGIN
+	protected Object internaliseAggregateSlot(AbsAggregate absAggregate, Ontology referenceOnto) throws OntologyException {
+		List l = AbsHelper.internaliseList(absAggregate, referenceOnto);
+		// FIXME: Here we should check for Long --> Integer casting, but how?
+		return l;
 	}
 
-	//#APIDOC_EXCLUDE_BEGIN
 	protected void invokeSetterMethod(Method method, Object obj, 
 			Object value) throws OntologyException {
 		try {

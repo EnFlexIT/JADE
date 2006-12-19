@@ -80,7 +80,7 @@ public class AggregateSchema extends TermSchema {
 	   */
   	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
 			// Check the type of the abstract descriptor
-  		if (!(abs instanceof AbsAggregate)) {
+  		if (abs.getAbsType() != AbsObject.ABS_AGGREGATE) {
   			throw new OntologyException(abs+" is not an AbsAggregate");
   		}
   		
