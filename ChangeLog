@@ -5,6 +5,7 @@ GENERAL IMPROVEMENTS:
 - Modified FullResourceManager to avoid annoying stack traces at platform shutdown
 - Modified MainContainerImpl to start the AMS and DF threads in the SystemAgent Thread Group
 - Created CFReflectiveIntrospector to support usage of java.util classes in ontological classes
+- Committed automatically generated SL and ACL parser classes
 
 BUG-FIXES:
  
