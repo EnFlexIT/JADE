@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.LEAPACLCodec;
 
@@ -39,6 +40,8 @@ class SerializationEngine {
 	private static final byte ACL_ID = 2;
 	private static final byte STRING_ARRAY_ID = 3;
 	private static final byte BOOLEAN_ID = 4;
+	private static final byte INTEGER_ID = 5;
+	private static final byte AID_ID = 6;
 
 	final static byte[] serialize(Command cmd) throws LEAPSerializationException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -96,6 +99,10 @@ class SerializationEngine {
 					dos.writeByte(ACL_ID);
 					LEAPACLCodec.serializeACL((ACLMessage) o, dos);
 				} 
+				else if (o instanceof AID) {   // AID
+					dos.writeByte(AID_ID);
+					LEAPACLCodec.serializeAID((AID) o, dos);
+				} 
 				else if (o instanceof String[]) {     // Array of Strings
 					dos.writeByte(STRING_ARRAY_ID);
 					serializeStringArray((String[]) o, dos);
@@ -103,6 +110,10 @@ class SerializationEngine {
 				else if (o instanceof Boolean) {      // Boolean
 					dos.writeByte(BOOLEAN_ID);
 					dos.writeBoolean(((Boolean) o).booleanValue());
+				} 
+				else if (o instanceof Integer) {      // Integer
+					dos.writeByte(INTEGER_ID);
+					dos.writeInt(((Integer) o).intValue());
 				} 
 				else {
 					throw new LEAPSerializationException("Unknown class "+o.getClass().getName());
@@ -127,7 +138,6 @@ class SerializationEngine {
 	 * deserialized.
 	 */
 	private final static Object deserializeObject(DataInputStream dis, byte[] data) throws LEAPSerializationException {
-		String className = null;    
 		try {
 			byte id = dis.readByte();
 			switch (id) {
@@ -137,10 +147,14 @@ class SerializationEngine {
 				return dis.readUTF();
 			case ACL_ID:
 				return LEAPACLCodec.deserializeACL(dis);
+			case AID_ID:
+				return LEAPACLCodec.deserializeAID(dis);
 			case STRING_ARRAY_ID:
 				return deserializeStringArray(dis);
 			case BOOLEAN_ID:
 				return new Boolean(dis.readBoolean());
+			case INTEGER_ID:
+				return new Integer(dis.readInt());
 			default:
 				/*System.out.println("Packet was:");
       	jade.imtp.leap.JICP.JICPPacket pkt = jade.imtp.leap.JICP.BIFEDispatcher.lastResponseCazzo;

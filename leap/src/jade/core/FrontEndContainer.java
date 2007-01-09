@@ -50,10 +50,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	// The table of local agents
 	private Hashtable localAgents = new Hashtable(1);
 	
+	// The table of locally installed services
+	private Hashtable localServices = new Hashtable(1);
+	
 	// The ID of this container
 	private ContainerID myId;
-	
-	
+		
 	// The addresses of the platform this container belongs to
 	Vector platformAddresses;
 	
@@ -86,7 +88,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	FrontEndContainer(Properties p) {
 		configProperties = p;
 		
-		//Create all agents without starting them
+		// Create all agents without starting them
 		String agents = configProperties.getProperty(MicroRuntime.AGENTS_KEY);
 		try {
 			Vector specs = Specifier.parseSpecifierList(agents);
@@ -98,14 +100,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 					successfulAgents.addElement(s);
 				}
 				catch (Throwable t) {
-					logger.log(Logger.SEVERE,"Exception creating agent "+t);
+					logger.log(Logger.SEVERE, "Exception creating agent "+t);
 				}
 			}
 			configProperties.setProperty(MicroRuntime.AGENTS_KEY, Specifier.encodeSpecifierList(successfulAgents));
 		}
 		catch(Exception e1){
 			configProperties.setProperty(MicroRuntime.AGENTS_KEY, null);
-			logger.log(Logger.SEVERE,"Exception parsing agent specifiers "+e1);
+			logger.log(Logger.SEVERE, "Exception parsing agent specifiers "+e1);
 			e1.printStackTrace();
 		}
 		
@@ -136,6 +138,27 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			return;
 		}
 		
+		// Install services if any
+		String services = configProperties.getProperty(MicroRuntime.SERVICES_KEY);
+		try {
+			Vector svcClasses = Specifier.parseList(services, ';');
+			for (Enumeration en=svcClasses.elements(); en.hasMoreElements(); ) {
+				try {
+					FEService svc = (FEService) Class.forName((String) en.nextElement()).newInstance();
+					svc.init(myBackEnd);
+					localServices.put(svc.getName(), svc);
+				}
+				catch (Throwable t) {
+					logger.log(Logger.SEVERE, "Exception creating service "+t);
+				}
+			}
+		}
+		catch(Exception e1){
+			configProperties.setProperty(MicroRuntime.SERVICES_KEY, null);
+			logger.log(Logger.SEVERE, "Exception parsing service specifiers "+e1);
+			e1.printStackTrace();
+		}
+			
 		// Start all agents that have been successfully accepted by the main.
 		// NOTE that after the BackEnd creation, each agent-specifier takes the form
 		// <original-name>:<str1>[(str2)] 
@@ -472,18 +495,12 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	//#MIDP_EXCLUDE_END
 	
 	public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
-		String helperClassName = configProperties.getProperty(serviceName);
-		if (helperClassName != null) {
-			try {
-				ServiceHelper sh = (ServiceHelper) Class.forName(helperClassName).newInstance();
-				return sh;
-			}
-			catch (Throwable t) {
-				throw new ServiceException("Error creating helper for service "+serviceName, t);
-			}
+		FEService svc = (FEService) localServices.get(serviceName);
+		if (svc != null) {
+			return svc.getHelper(a);
 		}
 		else {
-			throw new ServiceException("Missing helper class name for service "+serviceName);
+			throw new ServiceNotActiveException(serviceName);
 		}
 	}
 	

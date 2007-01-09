@@ -47,7 +47,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 	static final int SUSPENDED_AGENT = 22;
 	static final int RESUMED_AGENT = 23;
 	static final int MESSAGE_OUT = 24;
-	static final int SERVICE_METHOD = 25;
+	static final int SERVICE_INVOKATION = 25;
 
 	public BackEndStub(Dispatcher d) {
 		super(d);
@@ -128,9 +128,9 @@ public class BackEndStub extends MicroStub implements BackEnd {
 
 	/**
 	 */
-	public Object serviceMethod(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
+	public Object serviceInvokation(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
 		//Logger.println("Executing SERVICE_METHOD");
-		Command c = new Command(SERVICE_METHOD);
+		Command c = new Command(SERVICE_INVOKATION);
 		c.addParam(actor);
 		c.addParam(serviceName);
 		c.addParam(methodName);

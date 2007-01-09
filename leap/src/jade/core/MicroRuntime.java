@@ -46,6 +46,12 @@ public class MicroRuntime {
 	public static final String AGENTS_KEY = "agents";
 	
 	/**
+	 The configuration property key that maps to the list of services 
+	 that have to be installed.
+	 */
+	public static final String SERVICES_KEY = "services";
+	
+	/**
 	 The configuration property key that maps to the host where to connect to
 	 the JADE mediator.
 	 */

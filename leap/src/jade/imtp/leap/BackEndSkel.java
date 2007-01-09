@@ -110,13 +110,13 @@ public class BackEndSkel extends MicroSkeleton {
 				c = createErrorRsp(imtpe, true);
 			}
 			break;
-		case BackEndStub.SERVICE_METHOD:
+		case BackEndStub.SERVICE_INVOKATION:
 			try {
 				Object[] methodParams = new Object[c.getParamCnt()-3];
 				for (int i = 0; i < methodParams.length; ++i) {
 					methodParams[i] = c.getParamAt(i+3);
 				}
-				Object result = myBackEnd.serviceMethod((String) c.getParamAt(0), (String) c.getParamAt(0), (String) c.getParamAt(0), methodParams);
+				Object result = myBackEnd.serviceInvokation((String) c.getParamAt(0), (String) c.getParamAt(0), (String) c.getParamAt(0), methodParams);
 				c.reset(Command.OK);
 				c.addParam(result);
 			}

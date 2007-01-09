@@ -43,6 +43,7 @@ import jade.core.messaging.*;
 
 import jade.util.Logger;
 
+import java.lang.reflect.Method;
 import java.util.StringTokenizer;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -76,6 +77,8 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	private BackEndManager theBEManager;
 	
 	private Map agentImages = new HashMap(1);
+	
+	private Map serviceBECodecs = null; // Lazy initialization
 	
 	private String[] replicasAddresses;
 	
@@ -326,19 +329,74 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		handleSend(msg, id, false);
 	}
 	
-	public Object serviceMethod(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
+	public Object serviceInvokation(String actor, String serviceName, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
 		AID id = new AID(actor, AID.ISLOCALNAME);
 		AgentImage image = getAgentImage(id);
 		ServiceHelper helper = image.getHelper(serviceName);
 		if (helper == null) {
 			throw new ServiceException("Service "+serviceName+"does not have a Service-helper");
 		}
-		// FIXME: Check if a BECodec exists for the indicated service and, in case, use it to decode parameters in a service specific way 
-		// FIXME: Invoke method methodName on helper object using Reflection
-		// FIXME: If a result is present and a BECodec exists use it to encode the result in a service specific way
-		throw new ServiceException("Not yet implemented");
+		BECodec codec = getBECodec(serviceName);
+		Object[] decodedParams = codec.decodeParams(methodName, methodParams);
+		try {
+			Method m = null;
+			Method[] mm = helper.getClass().getMethods();
+			for (int i = 0; i < mm.length; ++i) {
+				if (mm[i].getName().equals(methodName)) {
+					if (isCompatible(mm[i], decodedParams)) {
+						m = mm[i];
+						break;
+					}
+				}
+			}
+			if (m != null) {
+				Object result = m.invoke(helper, decodedParams);
+				return codec.encodeResult(methodName, result);
+			}
+			else {
+				throw new ServiceException("No valid "+methodName+" method found in service helper");
+			}
+		}
+		catch (ServiceException se) {
+			throw se;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new ServiceException("Unexpected error, ", e);
+		}
 	}
 	
+	private boolean isCompatible(Method method, Object[] decodedParams) {
+		// FIXME: To be implemented
+		return true;
+	}
+
+	private BECodec getBECodec(String serviceName) {
+		if (serviceBECodecs == null) {
+			serviceBECodecs = new HashMap(2);
+		}
+		BECodec codec = (BECodec) serviceBECodecs.get(serviceName);
+		if (codec == null) {
+			try {
+				codec = (BECodec) Class.forName(serviceName+"BECodec").newInstance();	
+			}
+			catch (Exception e) {
+				// The service does not have a BECodec --> Use a dummy one
+				codec = new BECodec() {
+					public Object[] decodeParams(String methodName, Object[] methodParams) {
+						return methodParams;
+					}
+					public Object encodeResult(String methodName, Object result) {
+						return result;
+					}
+					
+				};
+			}
+			serviceBECodecs.put(serviceName, codec);
+		}
+		return codec;
+	}
+
 	///////////////////////////////////////////////
 	// Methods called by the BEManagementService
 	///////////////////////////////////////////////

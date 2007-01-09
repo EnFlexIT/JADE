@@ -25,20 +25,8 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
-
-
 public class ServiceNotActiveException extends ServiceException {
-
-    public ServiceNotActiveException() {
-	super("A requested was not active on this node.");
-    }
-
     public ServiceNotActiveException(String serviceName) {
-	super("The service <" + serviceName + "> was not active on this node");
+    	super("The service <" + serviceName + "> is not active on this node");
     }
-
-    public ServiceNotActiveException(String serviceName, Throwable cause) {
-	super("The service <" + serviceName + "> was not active on this node", cause);
-    }
-
 }
