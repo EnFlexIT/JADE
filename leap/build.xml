@@ -315,9 +315,7 @@
     	<include name="leap/demo/src/**"/>
     	<include name="leap/resources/**"/>
     	<include name="leap/src/**"/>
-    	<include name="leap/dotnet/examples/dummy/**"/>
-    	<include name="leap/dotnet/extras/**"/>
-    	<include name="leap/dotnet/VS2003S/**"/>
+    	<include name="leap/dotnet/**"/>
     </jar>
 	<antcall description="Build the binary distribution for j2se,midp,pjava" target="bin-dist"/>   
 	</target>

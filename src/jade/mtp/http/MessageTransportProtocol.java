@@ -195,7 +195,12 @@ public class MessageTransportProtocol implements MTP {
             port = IN_PORT;
             changePortIfBusy = true;
           }
-          hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),port, useHttps);
+		  //#PJAVA_EXCLUDE_BEGIN
+		  hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),port, useHttps);
+		  //#PJAVA_EXCLUDE_END
+		  /*#PJAVA_INCLUDE_BEGIN
+		     hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port, useHttps);
+		     #PJAVA_INCLUDE_END*/
 				}
 		    catch( UnknownHostException ukhexc ) {
 		      throw new MTPException("Cannot activate MTP on default address: Unknown Host");
@@ -263,7 +268,12 @@ public class MessageTransportProtocol implements MTP {
       HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy); 
       int actualPort = srv.getLocalPort();
       if (actualPort != port) {
-	      hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
+			//#PJAVA_EXCLUDE_BEGIN
+			hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
+			//#PJAVA_EXCLUDE_END
+			/*#PJAVA_INCLUDE_BEGIN
+			hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort, useHttps);
+			#PJAVA_INCLUDE_END*/
       }	
       //Save the reference to HTTPServer
       addr2srv.put(hta.toString(),srv);
