@@ -32,6 +32,9 @@ import java.io.*;
 
 //#J2ME_EXCLUDE_BEGIN
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.Map;
+import java.util.HashMap;
 //#J2ME_EXCLUDE_END
 
 /*#MIDP_INCLUDE_BEGIN
@@ -161,6 +164,7 @@ public class Logger
 	public static final Level OFF		=	Level.OFF;
 
 
+	private static Map wrappers = new HashMap();
 
     /**
      * Private method to construct a logger for a named subsystem.
@@ -194,18 +198,48 @@ public class Logger
 	/**
 	   Find or create a logger for a named subsystem.
 	   @param name The name of the logger.
-     @return myLogger the instance of the Logger.
+       @return the instance of the Logger.
 	 */
-	public static Logger getMyLogger(String name) {
+	public synchronized static Logger getMyLogger(String name) {
 		java.util.logging.LogManager mng = java.util.logging.LogManager.getLogManager(); 
-		Logger lg = (Logger) mng.getLogger(name);
+		java.util.logging.Logger lg = mng.getLogger(name);
 		if (lg == null) {
 			lg = new Logger(name, (String)null);
 			mng.addLogger(lg);
-			lg = (Logger) mng.getLogger(name);
+			lg = mng.getLogger(name);
+		}
+		else if (!(lg instanceof Logger)) {
+			// Someone created a java logger for the named subsystem before this method is invoked
+			lg = getWrapper(lg);		
 		}
 		
-		return lg;
+		return (Logger) lg;
+	}
+	
+	private static Logger getWrapper(java.util.logging.Logger lg) {
+		Logger jadeLogger = (Logger) wrappers.get(lg.getName());
+		if (jadeLogger == null) {
+			jadeLogger = new LoggerWrapper(lg);
+			wrappers.put(lg.getName(), jadeLogger);
+		}
+		return jadeLogger;
+	}
+	
+	
+	/**
+	 * Inner class LoggerWrapper
+	 */
+	private static class LoggerWrapper extends Logger {
+		private java.util.logging.Logger realLogger;
+		
+		private LoggerWrapper(java.util.logging.Logger lg) {
+			super(lg.getName(), (String) null);
+			realLogger = lg;
+		}
+		
+		public void log(LogRecord r) {
+			realLogger.log(r);
+		}
 	}
 	
 	/**
