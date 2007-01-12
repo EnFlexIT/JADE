@@ -8,7 +8,7 @@ GENERAL IMPROVEMENTS:
 - Committed automatically generated SL and ACL parser classes
 
 BUG-FIXES:
- 
+- Included fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
 
 LEAP:
 - Added support for ServiceHelper retrieval and usage in split container execution mode
