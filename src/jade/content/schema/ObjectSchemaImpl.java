@@ -40,6 +40,8 @@ import jade.util.Logger;
 class ObjectSchemaImpl extends ObjectSchema {
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
+    static final String RESULT_SLOT_NAME = "__Result_SLOT_123"; 
+    
 	private class SlotDescriptor implements Serializable {
 		private String       name = null;
 		private ObjectSchema schema = null;
@@ -106,7 +108,11 @@ class ObjectSchemaImpl extends ObjectSchema {
 			slotNames = new Vector();
 		}
 		if (slots.put(ciName, new SlotDescriptor(name, slotSchema, optionality)) == null) {
-			slotNames.addElement(ciName);
+			// We treat Action results as if they were slots. However we don't want the special
+			// RESULT_SLOT_NAME to be included among slot names
+			if (!name.equals(RESULT_SLOT_NAME)) {
+				slotNames.addElement(ciName);
+			}
 		}
 	}
 

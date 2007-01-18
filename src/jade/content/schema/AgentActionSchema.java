@@ -43,6 +43,7 @@ import jade.content.onto.*;
 public class AgentActionSchema extends ConceptSchema {
     public static final String         BASE_NAME = "AgentAction";
     private static AgentActionSchema baseSchema = new AgentActionSchema();
+    
 
     /**
      * Construct a schema that vinculates an entity to be a generic
@@ -142,4 +143,40 @@ public class AgentActionSchema extends ConceptSchema {
 				return false;
 			}
   	}
+  	
+  	/**
+  	 * Define that the result produced by the execution of an action belonging to this 
+  	 * schema has a structure conforming to a given schema.
+  	 * @param resultSchema the schema of the result
+  	 */
+  	public void setResult(TermSchema resultSchema) {
+  		// We treat the result as if it were a slot to inherit all mechanisms to deal with super-schemas and facets
+  		add(RESULT_SLOT_NAME, resultSchema, OPTIONAL);
+  	}
+  	
+  	/**
+  	 * Define that the result produced by the execution of an action belonging to this 
+  	 * schema is an aggregate of n (with n between cardMin and cardMax) elements each one having 
+  	 * a structure conforming to a given schema.
+  	 * @param elementsSchema the schema of the elements in the result aggregate
+  	 * @param cardMin the result must include at least <code>cardMin</code> elements
+  	 * @param cardMax the result must include at most <code>cardMax</code> elements
+  	 */
+	public void setResult(TermSchema elementsSchema, int cardMin, int cardMax) {
+		add(RESULT_SLOT_NAME, elementsSchema, cardMin, cardMax);
+	}
+	
+	public TermSchema getResultSchema() {
+		try {
+			return (TermSchema) getSchema(RESULT_SLOT_NAME);
+		}
+		catch (OntologyException oe) {
+			// Result schema not defined
+			return null;
+		}
+	}
+	
+	public Facet[] getResultFacets() {
+		return getFacets(RESULT_SLOT_NAME);
+	}
 }
