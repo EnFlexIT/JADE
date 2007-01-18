@@ -50,6 +50,14 @@ public class CardinalityFacet implements Facet {
 		this.cardMax = cardMax;
 	}
 	
+	public int getCardMin(){
+		return this.cardMin;	
+	}
+	
+	public int getCardMax(){
+		return this.cardMax;	
+	}	
+	
 	/**
 	   Check that
 	   the number of elements in an AbsAggregate is within

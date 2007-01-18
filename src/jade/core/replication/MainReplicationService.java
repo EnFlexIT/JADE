@@ -80,7 +80,8 @@ import jade.util.Logger;
 
  */
 public class MainReplicationService extends BaseService {
-
+	public static final String NAME = MainReplicationSlice.NAME;
+	
 	private static final boolean EXCLUDE_MYSELF = false;
 
 	private static final boolean INCLUDE_MYSELF = true;

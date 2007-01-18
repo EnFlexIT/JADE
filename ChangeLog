@@ -6,6 +6,7 @@ GENERAL IMPROVEMENTS:
 - Modified MainContainerImpl to start the AMS and DF threads in the SystemAgent Thread Group
 - Created CFReflectiveIntrospector to support usage of java.util classes in ontological classes
 - Committed automatically generated SL and ACL parser classes
+- Added dump-options option to print out configuration options at container startup
 
 BUG-FIXES:
 - Included fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 

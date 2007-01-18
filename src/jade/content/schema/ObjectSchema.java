@@ -240,10 +240,13 @@ public abstract class ObjectSchema implements Serializable {
 	protected abstract boolean descendsFrom(ObjectSchema s);
 	
 	/**
-	 * Get the facets defined upon a slot of the objectschema.
-	 * @param slotName The name of the slot which the facets are related to.
+	 * Get the facets defined upon a slot. More in details this method returns
+	 * all facets defined in this schema plus all facets defined in super-schemas 
+	 * up to the schema actually declaring the given slot. 
+	 * @param slotName the name of the slot 
+	 * @return the facets defined upon a slot or null if the specified slot is not found.
 	 */
 	public abstract Facet[] getFacets(String slotName);
-	
+
 }
 

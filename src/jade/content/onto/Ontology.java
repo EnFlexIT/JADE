@@ -25,16 +25,20 @@
 package jade.content.onto;
 
 import java.util.Hashtable;
-import java.util.Date;
+import java.util.Enumeration;
+//#J2ME_EXCLUDE_BEGIN
+import java.util.List;
+import java.util.ArrayList;
+//#J2ME_EXCLUDE_END
 
-import jade.content.Term;
 import jade.content.abs.AbsObject;
 import jade.content.schema.ObjectSchema;
-import jade.util.leap.List;
-import jade.util.leap.Iterator;
+import jade.content.schema.AgentActionSchema;
+import jade.content.schema.ConceptSchema;
+import jade.content.schema.PredicateSchema;
+
 import jade.util.leap.Serializable;
 import jade.util.Logger;
-import jade.core.CaseInsensitiveString;
 
 /**
  *  An application-specific ontology describes the elements that agents
@@ -542,4 +546,54 @@ public class Ontology implements Serializable {
 	public String toString() {
 		return getClass().getName()+"-"+name;
 	}
+
+
+	//#J2ME_EXCLUDE_BEGIN
+	/**
+	 * Retrieve the names of all concepts defined in this ontology (including extended ontologies).
+	 * It should be noticed that an agent-action is itself a concept and therefore the returned list 
+	 * also includes names of agent-actions defined in this ontology.
+	 * @return the names of all concepts defined in this ontology (including extended ontologies)
+	 */
+	public List getConceptNames(){
+		List names = new ArrayList();
+		for (Enumeration e = elements.keys(); e.hasMoreElements();){
+			String key  = (String)e.nextElement();
+			if ((elements.get(key) instanceof ConceptSchema) ){
+			  names.add(key);
+			}
+		}
+		return names;
+	}
+
+	/**
+	 * Retrieve the names of all agent actions defined in this ontology (including extended ontologies).
+	 * @return the names of all agent actions defined in this ontology (including extended ontologies)
+	 */
+	public List getActionNames(){
+		List names = new ArrayList();
+		for (Enumeration e = elements.keys(); e.hasMoreElements();){
+			String key  = (String)e.nextElement();
+			if ((elements.get(key) instanceof AgentActionSchema) ){
+				names.add(key);
+			}
+		}
+		return names;
+	}
+
+	/**
+	 * Retrieve the names of all predicatess defined in this ontology (including extended ontologies).
+	 * @return the names of all predicatess defined in this ontology (including extended ontologies)
+	 */
+	public List getPredicateNames(){
+		List names = new ArrayList();
+		for (Enumeration e = elements.keys(); e.hasMoreElements();){
+			String key  = (String)e.nextElement();
+			if ((elements.get(key) instanceof PredicateSchema) ){
+			  names.add(key);
+			}
+		}
+		return names;
+	}
+	//#J2ME_EXCLUDE_END
 }

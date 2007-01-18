@@ -216,7 +216,8 @@ public class ProfileImpl extends Profile {
 		
 		// SET DEFAULT VALUES
 		
-		setPropertyIfNot(MAIN, "true");
+		boolean containerProp = getBooleanProperty("container", false);
+		setPropertyIfNot(MAIN, String.valueOf(!containerProp));
 		
 		String host = props.getProperty(MAIN_HOST);
 		if(host == null) {
@@ -300,7 +301,7 @@ public class ProfileImpl extends Profile {
 		// If this is a Main Container and the '-nomtp' option is not
 		// given, activate the default HTTP MTP (unless some MTPs have
 		// been directly provided).
-		if(isMain() && !getBooleanProperty("nomtp", false) && (props.getProperty(MTPS) == null)) {
+		if(isMain() && (!getBooleanProperty("nomtp", false)) && (props.getProperty(MTPS) == null)) {
 			Specifier s = new Specifier();
 			s.setClassName("jade.mtp.http.MessageTransportProtocol"); 
 			List l = new ArrayList(1);
@@ -465,13 +466,7 @@ public class ProfileImpl extends Profile {
 	 profile object.
 	 */
 	public String toString() {
-		StringBuffer str = new StringBuffer("(Profile");
-		String[] properties = propsToStringArray();
-		if (properties != null)
-			for (int i=0; i<properties.length; i++)
-				str.append(" "+properties[i]);
-		str.append(")");
-		return str.toString();
+		return props.toString();
 	}
 	
 	//#APIDOC_EXCLUDE_BEGIN
@@ -609,25 +604,8 @@ public class ProfileImpl extends Profile {
 		props.setProperty(aKey, Integer.toString(aValue));
 	}
 	
-	private String[] propsToStringArray() {
-		String[] result = new String[props.size()];
-		int i = 0;
-		for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-			String key = (String) e.nextElement();
-			String value = props.getProperty(key);
-			if (value != null) {
-				result[i++] = key + "=" + value;
-			}
-			else {
-				result[i++] = key + "=";
-			}
-		}
-		return result;
-	}
-	
 	
 	//#APIDOC_EXCLUDE_BEGIN
-	
 	protected boolean isMain() {
 		return getBooleanProperty(MAIN, false);
 	}
@@ -636,9 +614,7 @@ public class ProfileImpl extends Profile {
 	// option is set to false or not set
 	protected boolean isFirstMain() {
 		return isMain() && !getBooleanProperty(LOCAL_SERVICE_MANAGER, false);
-	}
-	
-	
+	}	
 	//#APIDOC_EXCLUDE_END
 	
 }
