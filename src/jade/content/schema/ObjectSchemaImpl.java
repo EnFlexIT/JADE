@@ -538,7 +538,8 @@ class ObjectSchemaImpl extends ObjectSchema {
 		if (facets != null) {
 			Vector v = (Vector)facets.get(caseInsensitiveSlotName);
 			if (v != null) {
-				allFacets.addAll(v);
+				// We don't use Vector.addAll() for MIDP compatibility
+				addAll(allFacets, v);
 			}
 		}
 		
@@ -550,7 +551,8 @@ class ObjectSchemaImpl extends ObjectSchema {
 					ObjectSchemaImpl superSchema = (ObjectSchemaImpl) superSchemas.elementAt(i);
 					if (superSchema.containsSlot(slotName)) {
 						found = true;
-						allFacets.addAll(superSchema.getAllFacets(slotName));
+						// We don't use Vector.addAll() for MIDP compatibility
+						addAll(allFacets, superSchema.getAllFacets(slotName));
 					}
 				}
 			}
@@ -560,6 +562,12 @@ class ObjectSchemaImpl extends ObjectSchema {
 		}
 		
 		return (found ? allFacets : null);
+	}
+
+	private final void addAll(Vector v1, Vector v2) {
+		for (int i = 0; i < v2.size(); ++i) {
+			v1.addElement(v2.elementAt(i));
+		}
 	}
 	
 	private final SlotDescriptor getOwnSlot(CaseInsensitiveString ciName) {

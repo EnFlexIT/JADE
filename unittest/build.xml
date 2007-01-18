@@ -70,10 +70,10 @@
 	____________________________________________________ -->	
 	<target name="unittest" depends="cleanreport, compile" description="Run JADE unit tests">
 		<echo>Executing JADE unit tests...</echo>
-		<junit fork="no" haltonfailure="yes" printsummary="yes">
+		<junit fork="no" haltonfailure="no" printsummary="yes">
 			<formatter type="xml" />
 
-			<batchtest haltonfailure="yes" todir="${report}">
+			<batchtest todir="${report}">
 				<fileset dir="${src}">
 					<include name="**/*Test.java"/>
 				</fileset>

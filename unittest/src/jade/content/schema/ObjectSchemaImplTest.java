@@ -27,14 +27,14 @@ public class ObjectSchemaImplTest {
 		Facet f1 = new TestFacet1();
 		Facet f2 = new TestFacet2();
 		
-		ObjectSchema s1 = new ObjectSchemaImpl("S1");
+		ObjectSchemaImpl s1 = new ObjectSchemaImpl("S1");
 		s1.add("slot1", basic.getSchema(BasicOntology.STRING));
 		s1.addFacet("slot1", f1);
 		s1.add("slot2", basic.getSchema(BasicOntology.STRING));
 		s1.addFacet("slot2", f1);
 		s1.add("slot3", basic.getSchema(BasicOntology.STRING));
 		
-		ObjectSchema s2 = new ObjectSchemaImpl("S2");
+		ObjectSchemaImpl s2 = new ObjectSchemaImpl("S2");
 		s2.addSuperSchema(s1);
 		s2.addFacet("slot1", f2);
 		s2.addFacet("slot3", f2);
