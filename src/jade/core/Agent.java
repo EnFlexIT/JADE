@@ -1699,7 +1699,7 @@ public class Agent implements Runnable, Serializable
 	
 	
 	/**
-	 Thi method is executed when blockingReceive() is called
+	 This method is executed when blockingReceive() is called
 	 from a separate Thread. 
 	 It does not affect the agent state.
 	 */

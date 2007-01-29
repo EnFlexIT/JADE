@@ -53,6 +53,7 @@ import java.rmi.server.UID;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
 import java.util.Vector;
@@ -69,7 +70,7 @@ import org.apache.commons.codec.binary.Base64;
  * @author Roland Mungenast - Profactor
  */
 public class DFDBKB extends DBKB {
-	
+	private static final int MAX_PRELOAD_CNT = 1000;
 	private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	private static final int MAX_PROP_LENGTH = 255;
 	
@@ -107,6 +108,13 @@ public class DFDBKB extends DBKB {
 	private PreparedStatement stm_selServiceProperties;
 	private PreparedStatement stm_selExpiredDescr;
 	private PreparedStatement stm_selSubscriptions;
+	
+	private PreparedStatement stm_selAllProtocols;
+	private PreparedStatement stm_selCountAllProtocols;
+	private PreparedStatement stm_selAllLanguages;
+	private PreparedStatement stm_selCountAllLanguages;
+	private PreparedStatement stm_selAllOntologies;
+	private PreparedStatement stm_selCountAllOntologies;
 	
 	private PreparedStatement stm_insAgentDescr;
 	private PreparedStatement stm_insAgentAddress;
@@ -256,6 +264,13 @@ public class DFDBKB extends DBKB {
 			stm_selServiceId = conn.prepareStatement("SELECT id FROM service WHERE descrid = ?");
 			stm_selExpiredDescr = conn.prepareStatement("SELECT aid FROM dfagentdescr WHERE lease < ? AND lease <> '-1'");
 			stm_selSubscriptions = conn.prepareStatement("SELECT * FROM subscription");
+
+			stm_selAllProtocols = conn.prepareStatement("SELECT descrid, protocol FROM protocol ORDER BY descrid");
+			stm_selCountAllProtocols = conn.prepareStatement("SELECT COUNT(*) FROM protocol");
+			stm_selAllLanguages = conn.prepareStatement("SELECT descrid, language FROM language ORDER BY descrid");
+			stm_selCountAllLanguages = conn.prepareStatement("SELECT COUNT(*) FROM language");
+			stm_selAllOntologies = conn.prepareStatement("SELECT descrid, ontology FROM ontology ORDER BY descrid");
+			stm_selCountAllOntologies = conn.prepareStatement("SELECT COUNT(*) FROM ontology");
 			
 			stm_insAgentDescr = conn.prepareStatement("INSERT INTO dfagentdescr VALUES (?, ?, ?)");
 			stm_insAgentAddress = conn.prepareStatement("INSERT INTO agentaddress VALUES (?, ?, ?)");
@@ -720,24 +735,25 @@ public class DFDBKB extends DBKB {
 						// serialize value to a string and calcualte 
 						// a hash map for later search operations
 						Object value = prop.getValue();
-						String hashStr = getHashValue(value);
 						// store plain String object value directly
 						// in 'propval_str' field otherwise store it in
-						// 'propval_obj' field
-						if ( (value instanceof String) && ( ((String) value).length() <= MAX_PROP_LENGTH ) ) {
-							// set to NULL the serialized representation of the object
-							//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
-							stm_insServiceProperty.setString(3, null);
-							stm_insServiceProperty.setString(4, (String) value);
-						}
-						else {
+						// 'propval_obj' field and fill hash field (this will be used in search phase to allow matching Serializable objects)
+						if ( needSerialization(value) ) {
 							//System.out.println("DF Handling Object property "+prop.getName()+": value = "+value);
 							String valueStr = serializeObj(value);
 							stm_insServiceProperty.setString(3, valueStr);
 							stm_insServiceProperty.setString(4, null);
+							String hashStr = getHashValue(value);
+							stm_insServiceProperty.setString(5, hashStr);
+						}
+						else {
+							// set to NULL the serialized representation of the object and its hash
+							//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
+							stm_insServiceProperty.setString(3, null);
+							stm_insServiceProperty.setString(4, (String) value);
+							stm_insServiceProperty.setString(5, null);
 						};
 						
-						stm_insServiceProperty.setString(5, hashStr);
 						stm_insServiceProperty.addBatch();
 						executePropertiesBatch = true;            
 					} catch (Exception e) {
@@ -761,6 +777,10 @@ public class DFDBKB extends DBKB {
 				stm_insServiceProperty.executeBatch();
 			}
 		}
+	}
+	
+	private static final boolean needSerialization(Object value) {
+		return !((value instanceof String) && ( ((String) value).length() <= MAX_PROP_LENGTH ));		
 	}
 	
 	/**
@@ -913,13 +933,57 @@ public class DFDBKB extends DBKB {
 		// For each matching AID reconstruct the complete DFD
 		List dfds = new ArrayList(matchingAIDs.size());
 		Iterator it = matchingAIDs.iterator();
-		while (it.hasNext()) {
-			dfds.add(getDFD((String) it.next()));
+		// FIXME: Define a proper constant and possibly a proper configuration option
+		if (matchingAIDs.size() < 10) {
+			while (it.hasNext()) {
+				dfds.add(getDFD((String) it.next()));
+			}
+		}
+		else {
+			// If we found several matching agents we preload protocols languages and ontologies once for all 
+			// instead of making several queries one per agent.
+			Map allLanguages = preloadIdValueTable(stm_selCountAllLanguages, stm_selAllLanguages);
+			Map allOntologies = preloadIdValueTable(stm_selCountAllOntologies, stm_selAllOntologies);
+			Map allProtocols = preloadIdValueTable(stm_selCountAllProtocols, stm_selAllProtocols);
+			while (it.hasNext()) {
+				dfds.add(getDFD((String) it.next(), allLanguages, allOntologies, allProtocols));
+			}
 		}
 		
 		return dfds;
 	}
 	
+	private Map preloadIdValueTable(PreparedStatement cntStm, PreparedStatement stm) throws SQLException {
+		Map m = null;
+		ResultSet rs = cntStm.executeQuery();
+		rs.next();
+		long recordCount = rs.getLong(1);
+		closeResultSet(rs);
+		if (recordCount < MAX_PRELOAD_CNT) {
+			// If there are more than MAX_PRELOAD_CNT elements return null. In fact it is more time consuming constructing the preload Map 
+			// than performing all queries in the DB.
+			rs = stm.executeQuery();
+			
+			if (true) {
+				m = new HashMap();
+				String currentId = null;
+				List l = null;
+				while(rs.next()){
+					String id = rs.getString(1); // id (using the index is faster)
+					if (!id.equals(currentId)) {
+						l =  new ArrayList();
+						m.put(id, l);
+						currentId = id;
+					}
+					l.add(rs.getString(2)); // value (protocol, language, ontology ... depending on the passed statement)
+				}
+				closeResultSet(rs);
+			}
+		}
+		return m;
+	}
+
+
 	/**
 	 */
 	protected KBIterator iteratorSingle(Object template) throws SQLException {
@@ -1031,10 +1095,14 @@ public class DFDBKB extends DBKB {
 		return id;
 	}
 	
+	private DFAgentDescription getDFD(String aidN) throws SQLException {
+		return getDFD(aidN, null, null, null);
+	}
+	
 	/**
 	 Reconstruct the DFD corresponding to the given AID name (if any)
 	 */
-	private DFAgentDescription getDFD(String aidN) throws SQLException {
+	private DFAgentDescription getDFD(String aidN, Map allLanguages, Map allOntologies, Map allProtocols) throws SQLException {
 		DFAgentDescription dfd = null;
 		AID id = null;
 		
@@ -1063,28 +1131,13 @@ public class DFDBKB extends DBKB {
 			closeResultSet(rs);
 			
 			// Protocols
-			stm_selProtocols.setString(1, descrId);
-			rs = stm_selProtocols.executeQuery();
-			while(rs.next()){
-				dfd.addProtocols(rs.getString(PROTOCOL));
-			}
-			closeResultSet(rs);
+			loadProtocols(descrId, dfd, allProtocols);		
 			
 			// Languages
-			stm_selLanguages.setString(1, descrId);
-			rs = stm_selLanguages.executeQuery();
-			while(rs.next()){
-				dfd.addLanguages(rs.getString(LANGUAGE));
-			}
-			closeResultSet(rs);
+			loadLanguages(descrId, dfd, allLanguages);
 			
 			// Ontologies
-			stm_selOntologies.setString(1, descrId);
-			rs = stm_selOntologies.executeQuery();
-			while(rs.next()){
-				dfd.addOntologies(rs.getString(ONTOLOGY));
-			}
-			closeResultSet(rs);
+			loadOntologies(descrId, dfd, allOntologies);
 			
 			// Services
 			stm_selServices.setString(1, descrId);
@@ -1152,6 +1205,66 @@ public class DFDBKB extends DBKB {
 	}
 	
 	
+	private final void loadOntologies(String descrId, DFAgentDescription dfd, Map allOntologies) throws SQLException {
+		if (allOntologies != null) {
+			List ontos = (List) allOntologies.get(descrId);
+			if (ontos != null) {
+				Iterator it = ontos.iterator();
+				while (it.hasNext()) {
+					dfd.addOntologies((String) it.next());
+				}
+			}
+		}
+		else {
+			stm_selOntologies.setString(1, descrId);
+			ResultSet rs = stm_selOntologies.executeQuery();
+			while(rs.next()){
+				dfd.addOntologies(rs.getString(ONTOLOGY));
+			}
+			closeResultSet(rs);
+		}
+	}
+
+	private final void loadLanguages(String descrId, DFAgentDescription dfd, Map allLanguages) throws SQLException {
+		if (allLanguages != null) {
+			List langs = (List) allLanguages.get(descrId);
+			if (langs != null) {
+				Iterator it = langs.iterator();
+				while (it.hasNext()) {
+					dfd.addLanguages((String) it.next());
+				}
+			}
+		}
+		else {
+			stm_selLanguages.setString(1, descrId);
+			ResultSet rs = stm_selLanguages.executeQuery();
+			while(rs.next()){
+				dfd.addLanguages(rs.getString(LANGUAGE));
+			}
+			closeResultSet(rs);
+		}
+	}
+
+	private final void loadProtocols(String descrId, DFAgentDescription dfd, Map allProtocols) throws SQLException {
+		if (allProtocols != null) {
+			List protos = (List) allProtocols.get(descrId);
+			if (protos != null) {
+				Iterator it = protos.iterator();
+				while (it.hasNext()) {
+					dfd.addProtocols((String) it.next());
+				}
+			}
+		}
+		else {
+			stm_selProtocols.setString(1, descrId);
+			ResultSet rs = stm_selProtocols.executeQuery();
+			while(rs.next()){
+				dfd.addProtocols(rs.getString(PROTOCOL));
+			}
+			closeResultSet(rs);
+		}
+	}
+
 	/**
 	 * Deletes the AID corresponding to the indicated agent name
 	 * including all its resolver AIDs (if there are no df descriptions left for them)
@@ -1293,7 +1406,7 @@ public class DFDBKB extends DBKB {
 	 */
 	private String createSelect(DFAgentDescription dfdTemplate) throws Exception {
 		
-		StringBuffer select = new StringBuffer("SELECT dfagentdescr.aid, dfagentdescr.lease FROM dfagentdescr");
+		StringBuffer select = new StringBuffer("SELECT dfagentdescr.aid FROM dfagentdescr");
 		
 		List lAs = new ArrayList();
 		List lWhere = new ArrayList();
@@ -1402,9 +1515,15 @@ public class DFDBKB extends DBKB {
 				if (prop.getName() != null)
 					lWhere.add(tmp1+".propkey='"+prop.getName()+"'");
 				
-				if (prop.getValue() != null) {
-					String hashStr = getHashValue(prop.getValue());
-					lWhere.add(tmp1+".propvalhash='"+ hashStr +"'");
+				Object value = prop.getValue();
+				if (value != null) {
+					if (needSerialization(value)) {
+						String hashStr = getHashValue(prop.getValue());
+						lWhere.add(tmp1+".propvalhash='"+ hashStr +"'");
+					}
+					else {
+						lWhere.add(tmp1+".propval_str='"+ value +"'");
+					}
 				}
 				lWhere.add(tmp1+".serviceid="+tmp+".id");  
 				j++;

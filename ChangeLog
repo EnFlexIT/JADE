@@ -7,6 +7,8 @@ GENERAL IMPROVEMENTS:
 - Created CFReflectiveIntrospector to support usage of java.util classes in ontological classes
 - Committed automatically generated SL and ACL parser classes
 - Added dump-options option to print out configuration options at container startup
+- Added methods to get predicate, concept and action names from an ontology
+- Added method to define action-result type in AgentActionSchema
 
 BUG-FIXES:
 - Included fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
