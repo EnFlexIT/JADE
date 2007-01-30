@@ -36,6 +36,7 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
@@ -56,9 +57,10 @@ public abstract class DBKB extends KB {
 	protected String driver = "sun.jdbc.odbc.JdbcOdbcDriver";
 	
 	/**
-	 * Used database connection
+	 * This ThreadLocal is used to hold connections and associated additional information
+	 * (such as prepared statements) currently used by each Thread
 	 */
-	protected Connection conn = null;
+	private ThreadLocal connections = new ThreadLocal();
 	
 	private String url, username, password;
 	
@@ -66,6 +68,27 @@ public abstract class DBKB extends KB {
 	 * Specifies whether the KB should delete all existing tables for the DF at startup
 	 */
 	protected boolean cleanTables;
+	
+	protected class ConnectionWrapper {
+		private Connection conn;
+		private Object info;
+		
+		public ConnectionWrapper(Connection conn) {
+			this.conn = conn;
+		}
+		public Connection getConnection() {
+			return conn;
+		}
+		public void setConnection(Connection conn) {
+			this.conn = conn;
+		}
+		public Object getInfo() {
+			return info;
+		}
+		public void setInfo(Object info) {
+			this.info = info;
+		}
+	}
 	
 	/**
 	 * Constructs a new <code>DFKB</code> and establishes a connection to the database
@@ -113,9 +136,31 @@ public abstract class DBKB extends KB {
 		super(maxResultLimit);
 		this.cleanTables = cleanTables;
 		loadDBDriver(drv);
-		setDBConnection(url, username, password);
-		setup();
+		
+		// Store these value for later connection recreation 
+		this.url = url;
+		this.username = username;
+		this.password = password;
+		
+		// Activate cursors when using a SQL Server database
+		Connection conn = getConnectionWrapper().getConnection();
+		DatabaseMetaData md = conn.getMetaData();
+		String dbName = md.getDatabaseProductName();	
+		if (dbName.toLowerCase().indexOf("sql server") != -1) {  
+			if (url.toLowerCase().indexOf("selectmethod") == -1) {
+				if (!url.endsWith(";"))
+					url = url + ";";
+				url = url + "SelectMethod=cursor";
+				this.url = url;
+				invalidateConnectionWrapper();
+			}
+		}
 	}
+	
+	/**
+	 * This method is called by the KB Factory and is a placeholder for implementation specific KB initializations. 
+	 */
+	abstract public void setup() throws SQLException;
 	
 	/**
 	 * Loads an JDBC driver
@@ -123,7 +168,7 @@ public abstract class DBKB extends KB {
 	 * if the default JDBC-ODBC driver should be used
 	 * @throws SQLException if the driver cannot be loaded
 	 */
-	protected void loadDBDriver(String drv) throws SQLException {
+	private void loadDBDriver(String drv) throws SQLException {
 		//  Load DB driver
 		try {
 			if(drv != null) {
@@ -137,38 +182,39 @@ public abstract class DBKB extends KB {
 		}
 	}
 	
-	/**
-	 * Establishes a new connection to the database and stores a reference in the
-	 * local attribute <code>conn</code>
-	 * @param url database URL
-	 * @param user database user
-	 * @param passwd database password
-	 * @throws SQLException if a database access error occurs
-	 */
-	protected void setDBConnection(String url, String username, String password) throws SQLException {
-		// Connect to the DB
+	protected Connection createDBConnection(String url, String username, String password) throws SQLException {
 		if (username != null) {
-			conn = DriverManager.getConnection(url, username, password);
+			return DriverManager.getConnection(url, username, password);
 		}
 		else {
-			conn = DriverManager.getConnection(url);
+			return DriverManager.getConnection(url);
 		}
-		// Store these value for later connection recreation 
-		this.url = url;
-		this.username = username;
-		this.password = password;
 	}
-	
-	protected void refreshDBConnection() throws SQLException {
-		try {conn.close();} catch (Exception e) {}
-		setDBConnection(url, username, password);
+		
+	protected final ConnectionWrapper getConnectionWrapper() throws SQLException {
+		ConnectionWrapper wrapper = (ConnectionWrapper) connections.get();
+		if (wrapper == null) {
+			Connection conn = createDBConnection(url, username, password);
+			wrapper = new ConnectionWrapper(conn);
+			initConnectionWrapper(wrapper);
+			connections.set(wrapper);
+		}
+		return wrapper;
 	}
 	
 	/**
-	 * This method is called by the constructor after a
-	 * connection to the database has been established. 
-	 */
-	abstract protected void setup() throws SQLException;
+	 * Subclasses can redefine this method to provide implementation specific ConnectionWrapper initializations
+	 */  
+	protected void initConnectionWrapper(ConnectionWrapper wrapper) throws SQLException {	
+	}
+	
+	private void invalidateConnectionWrapper() throws SQLException {
+		ConnectionWrapper wrapper = (ConnectionWrapper) connections.get();
+		if (wrapper != null) {
+			try {wrapper.getConnection().close();} catch (Exception e) {}
+			connections.remove();
+		}
+	}
 	
 	
 	protected Object insert(Object name, Object fact) {
@@ -178,14 +224,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				return insertSingle(name, fact);
 			}
 			catch (Exception e) {
 				// Log the original error
 				logger.log(Logger.SEVERE,"DB error inserting DFD for agent "+((DFAgentDescription) fact).getName().getName(), sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 		return null;
@@ -200,14 +247,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				return removeSingle(name);
 			}
 			catch (Exception e) {
 				// Log the original error
 				logger.log(Logger.SEVERE,"DB error removing DFD for agent "+((AID) name).getName(), sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 		return null;
@@ -222,15 +270,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				return searchSingle(template, maxResult);
 			}
 			catch (Exception e) {
 				// Log the original error
-				e.printStackTrace();
 				logger.log(Logger.SEVERE,"DB error during search operation.", sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 		return new ArrayList();
@@ -245,15 +293,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				return iteratorSingle(template);
 			}
 			catch (Exception e) {
 				// Log the original error
-				e.printStackTrace();
 				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 		return new EmptyKBIterator();
@@ -268,15 +316,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				subscribeSingle(template, s);
 			}
 			catch (Exception e) {
 				// Log the original error
-				e.printStackTrace();
 				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 	}
@@ -294,15 +342,15 @@ public abstract class DBKB extends KB {
 		catch (SQLException sqle) {
 			try {
 				// Refresh the connection and retry.
-				logger.log(Logger.WARNING, "Refreshing DB connection...");
-				refreshDBConnection();
-				logger.log(Logger.INFO, "DB connection correctly refreshed");
+				logger.log(Logger.WARNING, "Invalidating DB connection...");
+				invalidateConnectionWrapper();
+				//logger.log(Logger.INFO, "DB connection correctly refreshed");
 				unsubscribeSingle(s);
 			}
 			catch (Exception e) {
 				// Log the original error
-				e.printStackTrace();
 				logger.log(Logger.SEVERE,"DB error during iterated search operation.", sqle); 
+				try {invalidateConnectionWrapper();} catch(Exception e1) {}
 			}
 		}
 	}

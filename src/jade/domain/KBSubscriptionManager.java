@@ -30,6 +30,7 @@ package jade.domain;
 import java.util.Enumeration;
 
 import jade.util.leap.ArrayList;
+import jade.util.leap.Collection;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import jade.util.leap.Map;
@@ -54,7 +55,8 @@ import jade.content.abs.*;
 class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager {
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 	
-	private Map subscriptionsCache = null;
+	private Map subscriptionsCache = new HashMap();
+	private SubscriptionInfo[] subscriptions = null;
 	
 	KB kBase;
 	ContentManager cm;
@@ -94,8 +96,11 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 			kBase.subscribe(dfdTemplate, sub);
 			
 			// Update the cache
-			if (subscriptionsCache != null) {
-				subscriptionsCache.put(subMessage.getConversationId(), new SubscriptionInfo(sub, dfdTemplate, absIota));
+			synchronized (subscriptionsCache) {
+				if (subscriptions != null) {
+					subscriptionsCache.put(subMessage.getConversationId(), new SubscriptionInfo(sub, dfdTemplate, absIota));
+					subscriptions = toArray(subscriptionsCache);
+				}
 			}
 		}
 		catch(Exception e) {
@@ -125,8 +130,11 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 		kBase.unsubscribe(sub);
 		
 		// Update the cache
-		if (subscriptionsCache != null) {
-			subscriptionsCache.remove(sub.getMessage().getConversationId());
+		synchronized (subscriptionsCache) {
+			if (subscriptions != null) {
+				subscriptionsCache.remove(sub.getMessage().getConversationId());
+				subscriptions = toArray(subscriptionsCache);
+			}
 		}
 		return false;
 	}
@@ -134,15 +142,19 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 	
 	/**
 	 Handle registrations/deregistrations/modifications by notifying 
-	 subscribed agents if necessary
+	 subscribed agents if necessary. 
+	 NOTE that if a df poolsize > 0 is specified this method is executed in a different Thread
+	 --> This is the reason for the synchronized blocks
 	 */
 	void handleChange(DFAgentDescription dfd, DFAgentDescription oldDfd) {
-		if (subscriptionsCache == null) {
-			subscriptionsCache = initSubscriptionsCache();
+		synchronized (subscriptionsCache) {
+			if (subscriptions == null) {
+				subscriptionsCache = loadSubscriptionsCache();
+				subscriptions = toArray(subscriptionsCache);
+			}
 		}
-		Iterator it = subscriptionsCache.values().iterator();
-		while (it.hasNext()) {
-			SubscriptionInfo info = (SubscriptionInfo) it.next();
+		for (int i = 0; i < subscriptions.length; ++i) {
+			SubscriptionInfo info = subscriptions[i];
 			DFAgentDescription template = info.getTemplate();
 			if ( DFMemKB.compare(template, dfd) || ((oldDfd!=null) && DFMemKB.compare(template, oldDfd))) {
 				// This subscriber must be notified
@@ -150,14 +162,14 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 				results.add(dfd);
 				if (myLogger.isLoggable(Logger.FINE)) {
 					ACLMessage subMessage = info.getSubscription().getMessage();
-					myLogger.log(Logger.FINE, "Notifying subscribed agent "+subMessage.getSender().getName()+" ["+subMessage.getSender().getName()+"] ");
+					myLogger.log(Logger.FINE, "Notifying subscribed agent "+subMessage.getSender().getName()+" ["+subMessage.getConversationId()+"] ");
 				}
 				notify(info.getSubscription(), results, info.getAbsIota());
 			}
 		}
 	}
 	
-	private Map initSubscriptionsCache() {
+	private Map loadSubscriptionsCache() {
 		Map m = new HashMap();
 		Enumeration e = kBase.getSubscriptions();
 		while (e.hasMoreElements()) {
@@ -200,6 +212,17 @@ class KBSubscriptionManager implements SubscriptionResponder.SubscriptionManager
 		}
 	}
 	
+	private static final SubscriptionInfo[] toArray(Map m) {
+		Collection c = m.values();
+		SubscriptionInfo[] result = new SubscriptionInfo[c.size()];
+		Iterator it = c.iterator();
+		int i = 0;
+		while (it.hasNext()) {
+			result[i] = (SubscriptionInfo) it.next();
+			++i;
+		}
+		return result;
+	}
 	
 	/**
 	 * Inner class SubscriptionInfo

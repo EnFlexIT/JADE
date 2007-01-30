@@ -25,6 +25,7 @@ package jade.domain;
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -59,7 +60,7 @@ public class DFHSQLKB extends DFDBKB {
   }
   
  
-  protected void setDBConnection(String url, String user, String passwd) throws SQLException {
+  protected Connection createDBConnection(String url, String user, String passwd) throws SQLException {
     Properties props = new Properties();
     props.put("user", user);
     props.put("passwd", passwd);
@@ -67,7 +68,7 @@ public class DFHSQLKB extends DFDBKB {
     props.put("hsqldb.cache_size_scale", CACHE_SIZE_SCALE);
     props.put("hsqldb.gc_interval", GC_INTERVAL);
     
-    conn = DriverManager.getConnection(url, props);
+    return DriverManager.getConnection(url, props);
   }
  
   protected String getLongVarCharType() {
@@ -84,6 +85,6 @@ public class DFHSQLKB extends DFDBKB {
         sql += ")";
     }
     stmt.executeUpdate(sql);
-    conn.commit();
+    getConnectionWrapper().getConnection().commit();
   }
 }

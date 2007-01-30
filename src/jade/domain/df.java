@@ -23,7 +23,6 @@
 
 package jade.domain;
 
-//#APIDOC_EXCLUDE_FILE
 //#MIDP_EXCLUDE_FILE
 
 import java.util.Vector;
@@ -73,7 +72,7 @@ import jade.content.onto.basic.*;
  <p>
  Standard <em>Directory Facilitator</em> agent. This class implements
  <em><b>FIPA</b></em> <em>DF</em> agent. <b>JADE</b> applications
- cannot use this class directly, but interact with it through
+ typically don't use this class directly, but interact with the DF agent through
  <em>ACL</em> message passing. The <code>DFService</code> class provides
  a number of static methods that facilitate this task.
  More <em>DF</em> agents can be created
@@ -182,6 +181,17 @@ import jade.content.onto.basic.*;
  a sub class of jade.domain.DFKBFactory.
  </td>
  </tr>
+ <tr>
+ <td>
+ <code>jade_domain_df_poolsize</code>
+ </td> 
+ <td> 
+ The dimension of the pool of thread dedicated to serving registration, deregistration and search
+ requests. If <code>0</code> (default) is specified then registration, deregistration and search 
+ requests are served directly by the df agent Thread. This parameter is ignored when using a 
+ volatile (in-memory) knowledge base.
+ </td>
+ </tr>
  </table>
  
  <p>
@@ -209,6 +219,7 @@ import jade.content.onto.basic.*;
  @version $Date$ $Revision$
  */
 public class df extends GuiAgent implements DFGUIAdapter {
+	//#APIDOC_EXCLUDE_BEGIN
 	
 	// FIXME The size of the cache must be read from the Profile
 	private final static int SEARCH_ID_CACHE_SIZE = 16;
@@ -234,17 +245,16 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	
 	private Codec codec = new SLCodec();
 	
-	private DFFipaAgentManagementBehaviour fipaRequestResponder;
-	private DFIteratedSearchManagementBehaviour iteratedSearchResponder; 
-	private DFJadeAgentManagementBehaviour jadeRequestResponder;
-	private DFAppletManagementBehaviour appletRequestResponder;
-	private SubscriptionResponder dfSubscriptionResponder;
 	//#PJAVA_EXCLUDE_BEGIN
+	// This is used in case a pool-size != 0 is specified to serve FIPA requests
+	private ThreadedBehaviourFactory tbf;
+	
 	private AMSSubscriber amsSubscriber;
 	//#PJAVA_EXCLUDE_END
 	
 	// Configuration parameter keys
 	private static final String AUTOCLEANUP = "jade_domain_df_autocleanup";
+	private static final String POOLSIZE = "jade_domain_df_poolsize";
 	private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
 	private static final String MAX_RESULTS = "jade_domain_df_maxresult";
 	private static final String DB_DRIVER = "jade_domain_df_db-driver";
@@ -300,6 +310,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		// Values in a property file override those in the profile if
 		// both are specified.
 		String sAutocleanup = getProperty(AUTOCLEANUP, null);
+		String sPoolsize = getProperty(POOLSIZE, null);
 		String sMaxLeaseTime = getProperty(MAX_LEASE_TIME, null);
 		String sMaxResults = getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS);
 		String dbUrl = getProperty(DB_URL, null);
@@ -317,6 +328,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			try {
 				p.load((String) args[0]);
 				sAutocleanup = p.getProperty(AUTOCLEANUP, sAutocleanup);
+				sPoolsize = p.getProperty(POOLSIZE, sPoolsize);
 				sMaxLeaseTime = p.getProperty(MAX_LEASE_TIME, sMaxLeaseTime);
 				sMaxResults = p.getProperty(MAX_RESULTS, sMaxResults);
 				dbUrl = p.getProperty(DB_URL, dbUrl);
@@ -434,9 +446,15 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		if (agentDescriptions == null){
 			sb.append("- Type = volatile\n");
 			agentDescriptions = kbFactory.getDFMemKB(maxResultLimit);
+			if (sPoolsize != null) {
+				logger.log(Logger.WARNING, "Ignoring pool-size indication ("+sPoolsize+"). Parameter not supported when using volatile KB");
+				sPoolsize = null;
+			}
 		}
 		
+		logger.log(Logger.CONFIG, sb.toString());	
 		//#PJAVA_EXCLUDE_END
+		
 		/*#PJAVA_INCLUDE_BEGIN
 		 agentDescriptions = new DFMemKB(Integer.parseInt(getProperty(MAX_RESULTS, DEFAULT_MAX_RESULTS)));
 		 #PJAVA_INCLUDE_END*/
@@ -461,30 +479,49 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		// Behaviour dealing with FIPA management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
 		mt1 = MessageTemplate.and(mt1, MessageTemplate.not(MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.ITERATED_FIPA_REQUEST)));
-		fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
+		//#PJAVA_EXCLUDE_BEGIN
+		int poolSize = getIntegerProperty(sPoolsize, POOLSIZE);
+		if (poolSize == 0) {
+			DFFipaAgentManagementBehaviour fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
+			addBehaviour(fipaRequestResponder);
+		}
+		else {
+			logger.log(Logger.INFO, "DF FIPA request pool-size = "+poolSize);
+			tbf = new ThreadedBehaviourFactory();
+			for (int i = 0; i < poolSize; ++i) {
+				DFFipaAgentManagementBehaviour fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
+				fipaRequestResponder.setBehaviourName(getLocalName()+"#FIPAManagementResponder-"+i);
+				addBehaviour(tbf.wrap(fipaRequestResponder));
+			}
+		}
+		//#PJAVA_EXCLUDE_END
+		/*#PJAVA_INCLUDE_BEGIN
+		DFFipaAgentManagementBehaviour fipaRequestResponder = new DFFipaAgentManagementBehaviour(this, mt1);
 		addBehaviour(fipaRequestResponder);
+		#PJAVA_INCLUDE_END*/
+		
 		
 		// Behaviour dealing with iterated searches according to the iterated-fipa-request protocol
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()));
 		mt1 = MessageTemplate.and(mt1, MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.ITERATED_FIPA_REQUEST));
-		iteratedSearchResponder = new DFIteratedSearchManagementBehaviour(this, mt1);
+		DFIteratedSearchManagementBehaviour iteratedSearchResponder = new DFIteratedSearchManagementBehaviour(this, mt1);
 		addBehaviour(iteratedSearchResponder);
 		
 		// Behaviour dealing with JADE management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(JADEManagementOntology.getInstance().getName()));
-		jadeRequestResponder = new DFJadeAgentManagementBehaviour(this, mt1);
+		DFJadeAgentManagementBehaviour jadeRequestResponder = new DFJadeAgentManagementBehaviour(this, mt1);
 		addBehaviour(jadeRequestResponder);
 		
 		// Behaviour dealing with DFApplet management actions
 		mt1 = MessageTemplate.and(mt, MessageTemplate.MatchOntology(DFAppletOntology.getInstance().getName()));
-		appletRequestResponder = new DFAppletManagementBehaviour(this, mt1);
+		DFAppletManagementBehaviour appletRequestResponder = new DFAppletManagementBehaviour(this, mt1);
 		addBehaviour(appletRequestResponder);
-		
+
 		// Behaviour dealing with subscriptions
 		mt1 = MessageTemplate.and(
 				MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()),
 				MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchPerformative(ACLMessage.CANCEL)));
-		dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
+		SubscriptionResponder dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
 			// If the CANCEL message has a meaningful content, use it. 
 			// Otherwise deregister the Subscription with the same convID (default)
 			protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
@@ -582,10 +619,22 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			try {
 				b = Boolean.valueOf(sValue).booleanValue();
 			} catch (Exception e) {
-				logger.log(Logger.WARNING,"Parsing error for parameter " + name, e);
+				logger.log(Logger.WARNING, "\""+sValue+"\" is not a valid value for boolean parameter" + name, e);
 			}
 		}
 		return b;
+	}
+	
+	private int getIntegerProperty(String sValue, String name) {
+		int n = 0;
+		if (sValue != null) {
+			try {
+				n = Integer.parseInt(sValue);
+			} catch (Exception e) {
+				logger.log(Logger.WARNING, "\""+sValue+"\" is not a valid value for integer parameter" + name, e);
+			}
+		}
+		return n;
 	}
 	
 	private String getValue(String s) {
@@ -602,6 +651,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		if (amsSubscriber != null) {
 			// Unsubscribe from the AMS
 			send(amsSubscriber.getCancel());
+		}
+		
+		if (tbf != null) {
+			tbf.interrupt();
 		}
 		//#PJAVA_EXCLUDE_END
 		
@@ -1584,5 +1637,5 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			return false;
 		}
 	}  
-	
+	//#APIDOC_EXCLUDE_END
 }

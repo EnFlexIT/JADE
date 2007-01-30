@@ -74,9 +74,6 @@ public class DFDBKB extends DBKB {
 	private static final int MAX_REGISTER_WITHOUT_CLEAN = 100;
 	private static final int MAX_PROP_LENGTH = 255;
 	
-	// Number of registrations after the last lease-time-cleanup
-	private int regsCnt = 0;
-	
 	// Table names
 	private static final String SUBSCRIPTION = "subscription";
 	private static final String SERVICEPROTOCOL = "serviceprotocol";
@@ -92,160 +89,76 @@ public class DFDBKB extends DBKB {
 	private static final String AGENTADDRESS = "agentaddress";
 	private static final String DFAGENTDESCR = "dfagentdescr";
 	
-	// prepared SQL statements
-	private PreparedStatement stm_selNrOfDescrForAID;
-	private PreparedStatement stm_selAgentAddresses;
-	private PreparedStatement stm_selAgentResolverAIDs;
-	private PreparedStatement stm_selAgentUserDefSlot;
-	private PreparedStatement stm_selLease;
-	private PreparedStatement stm_selProtocols;
-	private PreparedStatement stm_selLanguages;
-	private PreparedStatement stm_selOntologies;
-	private PreparedStatement stm_selServices;
-	private PreparedStatement stm_selServiceProtocols;
-	private PreparedStatement stm_selServiceLanguages;
-	private PreparedStatement stm_selServiceOntologies;
-	private PreparedStatement stm_selServiceProperties;
-	private PreparedStatement stm_selExpiredDescr;
-	private PreparedStatement stm_selSubscriptions;
+	// Number of registrations after the last lease-time-cleanup
+	private int regsCnt = 0;
 	
-	private PreparedStatement stm_selAllProtocols;
-	private PreparedStatement stm_selCountAllProtocols;
-	private PreparedStatement stm_selAllLanguages;
-	private PreparedStatement stm_selCountAllLanguages;
-	private PreparedStatement stm_selAllOntologies;
-	private PreparedStatement stm_selCountAllOntologies;
-	
-	private PreparedStatement stm_insAgentDescr;
-	private PreparedStatement stm_insAgentAddress;
-	private PreparedStatement stm_insAgentUserDefSlot;
-	private PreparedStatement stm_insAgentResolverAID;
-	private PreparedStatement stm_insLanguage;
-	private PreparedStatement stm_insOntology;
-	private PreparedStatement stm_insProtocol;
-	private PreparedStatement stm_insService;
-	private PreparedStatement stm_insServiceProtocol;
-	private PreparedStatement stm_insServiceOntology;
-	private PreparedStatement stm_insServiceLanguage;
-	private PreparedStatement stm_insServiceProperty;
-	private PreparedStatement stm_insSubscription;
-	private PreparedStatement stm_delAgentDescr;
-	private PreparedStatement stm_delAgentUserDefSlot;
-	private PreparedStatement stm_delAgentResolver;
-	private PreparedStatement stm_delAgentAddress;
-	
-	private PreparedStatement stm_selDescrId; 
-	private PreparedStatement stm_selServiceId;
-	private PreparedStatement stm_delService;
-	private PreparedStatement stm_delLanguage;
-	private PreparedStatement stm_delProtocol;
-	private PreparedStatement stm_delOntology;
-	
-	private PreparedStatement stm_delServiceLanguage;
-	private PreparedStatement stm_delServiceOntology;
-	private PreparedStatement stm_delServiceProtocol;
-	private PreparedStatement stm_delServiceProperty;
-	private PreparedStatement stm_delSubscription;
+	private boolean tablesReady = false;
 	
 	/**
 	 * Default data type for very long strings
 	 */
 	protected String DEFAULT_LONGVARCHAR_TYPE = "LONGVARCHAR";
 	
-	/**
-	 * Constructor
-	 * @param maxResultLimit internal limit for the number of maximum search results.
-	 * @param drv database driver
-	 * @param url database URL
-	 * @param user database user name
-	 * @param passwd database password
-	 * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
-	 * @throws SQLException an error occured while opening a connection to the database
-	 */
-	public DFDBKB(int maxResultLimit, String drv, String url, String user, String passwd, boolean cleanTables) throws SQLException {
-		super(drv, url, user, passwd, maxResultLimit, cleanTables);
-	}
+	// This is used to generate unique IDs
+	private String localIPAddress;
 	
-	/**
-	 * Initializes all used SQL statements, the DB tables and the logging
-	 */
-	protected void setup() throws SQLException {
-		logger = Logger.getMyLogger(this.getClass().getName());
+	private class PreparedStatements {
+		// prepared SQL statements
+		private PreparedStatement stm_selNrOfDescrForAID;
+		private PreparedStatement stm_selAgentAddresses;
+		private PreparedStatement stm_selAgentResolverAIDs;
+		private PreparedStatement stm_selAgentUserDefSlot;
+		private PreparedStatement stm_selLease;
+		private PreparedStatement stm_selProtocols;
+		private PreparedStatement stm_selLanguages;
+		private PreparedStatement stm_selOntologies;
+		private PreparedStatement stm_selServices;
+		private PreparedStatement stm_selServiceProtocols;
+		private PreparedStatement stm_selServiceLanguages;
+		private PreparedStatement stm_selServiceOntologies;
+		private PreparedStatement stm_selServiceProperties;
+		private PreparedStatement stm_selExpiredDescr;
+		private PreparedStatement stm_selSubscriptions;
 		
-		try {
-			conn.setAutoCommit(false); // deactivate auto commit for better performance
-		} catch (Exception e) {
-			if(logger.isLoggable(Logger.WARNING)) {
-				logger.log(Logger.WARNING, "Disabling auto-commit failed.");
-			}
-		}
+		private PreparedStatement stm_selAllProtocols;
+		private PreparedStatement stm_selCountAllProtocols;
+		private PreparedStatement stm_selAllLanguages;
+		private PreparedStatement stm_selCountAllLanguages;
+		private PreparedStatement stm_selAllOntologies;
+		private PreparedStatement stm_selCountAllOntologies;
 		
-		if (cleanTables) {
-			// Drop all existing tables for the DF if required
-			dropDFTables();
-		}
-		createDFTables();
-		initPrepStmts();
-		clean();
-	}
-	
-	/**
-	 * Returns the name of the SQL type used in the
-	 * database to represent very long strings.
-	 */
-	protected String getLongVarCharType() {
-		String bestMatch = DEFAULT_LONGVARCHAR_TYPE;
-		try {
-			// get the datatype with the highest precision from the meta data information
-			DatabaseMetaData md = conn.getMetaData();
-			ResultSet typeInfo = md.getTypeInfo();
-			long maxPrecision = -1;
-			while (typeInfo.next()) {
-				long jdbcType = Long.parseLong(typeInfo.getString("DATA_TYPE"));
-				long precision = Long.parseLong(typeInfo.getString("PRECISION"));
-				
-				if (jdbcType == Types.LONGVARCHAR && precision > maxPrecision) {
-					maxPrecision = precision;
-					bestMatch = typeInfo.getString("TYPE_NAME");
-				}
-			}
-		} catch (SQLException e) {
-			// ignored --> default value will be returned
-		}
-		return bestMatch;
-	}
-	
-	protected void setDBConnection(String url, String user, String passwd) throws SQLException {
-		super.setDBConnection(url, user, passwd);
+		private PreparedStatement stm_insAgentDescr;
+		private PreparedStatement stm_insAgentAddress;
+		private PreparedStatement stm_insAgentUserDefSlot;
+		private PreparedStatement stm_insAgentResolverAID;
+		private PreparedStatement stm_insLanguage;
+		private PreparedStatement stm_insOntology;
+		private PreparedStatement stm_insProtocol;
+		private PreparedStatement stm_insService;
+		private PreparedStatement stm_insServiceProtocol;
+		private PreparedStatement stm_insServiceOntology;
+		private PreparedStatement stm_insServiceLanguage;
+		private PreparedStatement stm_insServiceProperty;
+		private PreparedStatement stm_insSubscription;
+		private PreparedStatement stm_delAgentDescr;
+		private PreparedStatement stm_delAgentUserDefSlot;
+		private PreparedStatement stm_delAgentResolver;
+		private PreparedStatement stm_delAgentAddress;
 		
-		//  reconnect and activate cursors when using a SQL Server database
-		DatabaseMetaData md = conn.getMetaData();
-		String dbName = md.getDatabaseProductName();
+		private PreparedStatement stm_selDescrId; 
+		private PreparedStatement stm_selServiceId;
+		private PreparedStatement stm_delService;
+		private PreparedStatement stm_delLanguage;
+		private PreparedStatement stm_delProtocol;
+		private PreparedStatement stm_delOntology;
 		
-		if (dbName.toLowerCase().indexOf("sql server") != -1) {  
-			if (url.toLowerCase().indexOf("selectmethod") == -1) {
-				if (!url.endsWith(";"))
-					url = url + ";";
-				url = url + "SelectMethod=cursor";
-				conn.close();
-				super.setDBConnection(url, user, passwd);
-			}
-		}
-	}
-	
-	protected void refreshDBConnection() throws SQLException {
-		super.refreshDBConnection();
-		conn.setAutoCommit(false);
-		initPrepStmts();
-	}
-	
-	/**
-	 * Initializes all used SQL  prepared statements
-	 * @throws SQLException
-	 */
-	protected void initPrepStmts() {
-		
-		try {
+		private PreparedStatement stm_delServiceLanguage;
+		private PreparedStatement stm_delServiceOntology;
+		private PreparedStatement stm_delServiceProtocol;
+		private PreparedStatement stm_delServiceProperty;
+		private PreparedStatement stm_delSubscription;
+
+		private PreparedStatements(Connection conn) throws SQLException {
 			// select statements
 			stm_selNrOfDescrForAID = conn.prepareStatement("SELECT COUNT(*) FROM dfagentdescr WHERE aid = ?");
 			stm_selAgentAddresses = conn.prepareStatement("SELECT address FROM agentaddress WHERE aid = ?");
@@ -301,23 +214,108 @@ public class DFDBKB extends DBKB {
 			stm_delServiceProtocol = conn.prepareStatement("DELETE FROM serviceprotocol WHERE serviceid = ?");
 			stm_delServiceProperty = conn.prepareStatement("DELETE FROM serviceproperty WHERE serviceid = ?");
 			stm_delSubscription = conn.prepareStatement("DELETE FROM subscription WHERE id = ?");
-			
-		} catch (SQLException e) {
-			if(logger.isLoggable(Logger.SEVERE)) 
-				logger.log(Logger.SEVERE, "Error preparing SQL statements for DF", e);
 		}
 	}
 	
 	/**
+	 * Constructor
+	 * @param maxResultLimit internal limit for the number of maximum search results.
+	 * @param drv database driver
+	 * @param url database URL
+	 * @param user database user name
+	 * @param passwd database password
+	 * @param cleanTables specifies whether the KB should delete all existing tables for the DF at startup
+	 * @throws SQLException an error occured while opening a connection to the database
+	 */
+	public DFDBKB(int maxResultLimit, String drv, String url, String user, String passwd, boolean cleanTables) throws SQLException {
+		super(drv, url, user, passwd, maxResultLimit, cleanTables);
+	}
+	
+	/**
+	 * Initializes all used SQL statements, the DB tables and the logging
+	 */
+	public void setup() throws SQLException {
+		logger = Logger.getMyLogger(this.getClass().getName());
+		
+		try {
+			localIPAddress = InetAddress.getLocalHost().getHostAddress();
+		} catch (Exception e) {
+			localIPAddress = "localhost";
+		} 
+		
+		ConnectionWrapper wrapper = getConnectionWrapper();
+		Connection conn = wrapper.getConnection();
+		try {
+			conn.setAutoCommit(false); // deactivate auto commit for better performance
+		} catch (Exception e) {
+			if(logger.isLoggable(Logger.WARNING)) {
+				logger.log(Logger.WARNING, "Disabling auto-commit failed.");
+			}
+		}
+		
+		if (cleanTables) {
+			// Drop all existing tables for the DF if required
+			dropDFTables();
+		}
+		createDFTables();
+		tablesReady = true;
+		PreparedStatements ps = new PreparedStatements(conn);
+		wrapper.setInfo(ps);
+		clean();
+	}
+	
+	protected void initConnectionWrapper(ConnectionWrapper wrapper) throws SQLException {
+		Connection conn = wrapper.getConnection();
+		try {
+			conn.setAutoCommit(false); // deactivate auto commit for better performance
+		} catch (Exception e) {
+			if(logger.isLoggable(Logger.WARNING)) {
+				logger.log(Logger.WARNING, "Disabling auto-commit failed.");
+			}
+		}
+
+		// We cannot initialize the prepared-statements if the tables are not there yet
+		if (tablesReady) {
+			PreparedStatements ps = new PreparedStatements(conn);
+			wrapper.setInfo(ps);
+		}
+	}
+
+	private PreparedStatements getPreparedStatements() throws SQLException {
+		ConnectionWrapper wrapper = getConnectionWrapper();
+		return (PreparedStatements)wrapper.getInfo();
+	}
+
+	/**
+	 * Returns the name of the SQL type used in the
+	 * database to represent very long strings.
+	 */
+	protected String getLongVarCharType() {
+		String bestMatch = DEFAULT_LONGVARCHAR_TYPE;
+		try {
+			// get the datatype with the highest precision from the meta data information
+			DatabaseMetaData md = getConnectionWrapper().getConnection().getMetaData();
+			ResultSet typeInfo = md.getTypeInfo();
+			long maxPrecision = -1;
+			while (typeInfo.next()) {
+				long jdbcType = Long.parseLong(typeInfo.getString("DATA_TYPE"));
+				long precision = Long.parseLong(typeInfo.getString("PRECISION"));
+				
+				if (jdbcType == Types.LONGVARCHAR && precision > maxPrecision) {
+					maxPrecision = precision;
+					bestMatch = typeInfo.getString("TYPE_NAME");
+				}
+			}
+		} catch (SQLException e) {
+			// ignored --> default value will be returned
+		}
+		return bestMatch;
+	}
+		
+	/**
 	 * Returns a global unique identifier
 	 */
 	protected String getGUID() {
-		String localIPAddress;
-		try {
-			localIPAddress = InetAddress.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e) {
-			localIPAddress = "localhost";
-		} 
 		UID uid = new UID();
 		return localIPAddress + ":" + uid;
 	}
@@ -328,7 +326,7 @@ public class DFDBKB extends DBKB {
 	protected void dropTable(Statement stmt, String tableName) {
 		try {
 			stmt.execute("DROP TABLE " + tableName + " CASCADE CONSTRAINTS"); 
-			conn.commit();
+			getConnectionWrapper().getConnection().commit();
 		} catch (SQLException e) {
 			// Check if the exception is because the table does not exist
 			if (tableExists(tableName)) {
@@ -344,7 +342,7 @@ public class DFDBKB extends DBKB {
 		
 		logger.log(Logger.INFO, "Cleaning DF tables...");
 		
-		Statement stmt = conn.createStatement();
+		Statement stmt = getConnectionWrapper().getConnection().createStatement();
 		
 		dropTable(stmt, SUBSCRIPTION); 
 		dropTable(stmt, SERVICEPROTOCOL);
@@ -372,7 +370,7 @@ public class DFDBKB extends DBKB {
 		Statement stmt = null;
 		
 		try {
-			stmt = conn.createStatement();
+			stmt = getConnectionWrapper().getConnection().createStatement();
 			stmt.execute("SELECT COUNT(*) FROM "+name);
 			return true;
 			
@@ -401,8 +399,9 @@ public class DFDBKB extends DBKB {
 	protected void createTable(String name, String[] entries) {
 		if (!tableExists(name)) {
 			Statement stmt = null;
-			
+
 			try {
+				Connection conn = getConnectionWrapper().getConnection();
 				stmt = conn.createStatement();
 				
 				String sql = "CREATE TABLE " + name + " (";
@@ -440,6 +439,7 @@ public class DFDBKB extends DBKB {
 		Statement stmt = null;
 		
 		try {
+			Connection conn = getConnectionWrapper().getConnection();
 			stmt = conn.createStatement();
 			stmt.execute("CREATE INDEX dfagentDescrIdx ON dfagentdescr( aid )");
 			stmt.execute("CREATE INDEX leaseIdx ON dfagentdescr( lease )");
@@ -598,10 +598,11 @@ public class DFDBKB extends DBKB {
 	 */
 	private void saveResolverAID(AID aid, AID resolverAid) throws SQLException {
 		saveAID(resolverAid);
-		stm_insAgentResolverAID.setString(1, getGUID());
-		stm_insAgentResolverAID.setString(2, aid.getName());
-		stm_insAgentResolverAID.setString(3, resolverAid.getName());
-		stm_insAgentResolverAID.addBatch(); 
+		PreparedStatements pss = getPreparedStatements();
+		pss.stm_insAgentResolverAID.setString(1, getGUID());
+		pss.stm_insAgentResolverAID.setString(2, aid.getName());
+		pss.stm_insAgentResolverAID.setString(3, resolverAid.getName());
+		pss.stm_insAgentResolverAID.addBatch(); 
 	}
 	
 	/**
@@ -609,46 +610,47 @@ public class DFDBKB extends DBKB {
 	 */
 	private void saveAID(AID aid) throws SQLException {
 		String name = aid.getName();
-		
+		PreparedStatements pss = getPreparedStatements();
+
 		// Addresses
 		Iterator iter = aid.getAllAddresses();
 		if (iter.hasNext()) {
-			stm_insAgentAddress.clearBatch();
+			pss.stm_insAgentAddress.clearBatch();
 			while( iter.hasNext()){
-				stm_insAgentAddress.setString(1, getGUID());
-				stm_insAgentAddress.setString(2, name);
-				stm_insAgentAddress.setString(3, (String)iter.next());
-				stm_insAgentAddress.addBatch();
+				pss.stm_insAgentAddress.setString(1, getGUID());
+				pss.stm_insAgentAddress.setString(2, name);
+				pss.stm_insAgentAddress.setString(3, (String)iter.next());
+				pss.stm_insAgentAddress.addBatch();
 			}
-			stm_insAgentAddress.executeBatch();
+			pss.stm_insAgentAddress.executeBatch();
 		}
 		
 		
 		// User defined slots
 		Properties props = aid.getAllUserDefinedSlot();
 		if (props.size() > 0) {
-			stm_insAgentUserDefSlot.clearBatch();
+			pss.stm_insAgentUserDefSlot.clearBatch();
 			java.util.Iterator pIter = props.entrySet().iterator();
 			while (pIter.hasNext()) {
 				Map.Entry entry = (Map.Entry)pIter.next();
-				stm_insAgentUserDefSlot.setString(1, getGUID());
-				stm_insAgentUserDefSlot.setString(2, name);
-				stm_insAgentUserDefSlot.setString(3, (String)entry.getKey());
-				stm_insAgentUserDefSlot.setString(4, (String)entry.getValue());
-				stm_insAgentUserDefSlot.addBatch();
+				pss.stm_insAgentUserDefSlot.setString(1, getGUID());
+				pss.stm_insAgentUserDefSlot.setString(2, name);
+				pss.stm_insAgentUserDefSlot.setString(3, (String)entry.getKey());
+				pss.stm_insAgentUserDefSlot.setString(4, (String)entry.getValue());
+				pss.stm_insAgentUserDefSlot.addBatch();
 			}
-			stm_insAgentUserDefSlot.executeBatch();
+			pss.stm_insAgentUserDefSlot.executeBatch();
 		}
 		
 		// Resolvers
 		iter = aid.getAllResolvers();
 		if (iter.hasNext()) {
-			stm_insAgentResolverAID.clearBatch();
+			pss.stm_insAgentResolverAID.clearBatch();
 			while(iter.hasNext()){
 				AID resolverAID = (AID)iter.next();
 				saveResolverAID(aid, resolverAID);
 			}  
-			stm_insAgentResolverAID.executeBatch();
+			pss.stm_insAgentResolverAID.executeBatch();
 		}
 	}
 	
@@ -658,8 +660,10 @@ public class DFDBKB extends DBKB {
 	 */
 	private Collection getResolverAIDs(String aid) throws SQLException {
 		ArrayList res = new ArrayList();
-		stm_selAgentResolverAIDs.setString(1, aid);
-		ResultSet rs = stm_selAgentResolverAIDs.executeQuery();
+		PreparedStatements pss = getPreparedStatements();
+
+		pss.stm_selAgentResolverAIDs.setString(1, aid);
+		ResultSet rs = pss.stm_selAgentResolverAIDs.executeQuery();
 		while(rs.next()){
 			res.add(rs.getString(1));
 		}
@@ -674,11 +678,12 @@ public class DFDBKB extends DBKB {
 	 */
 	private void saveServices(String descrId, Iterator iter) throws SQLException {
 		if (iter.hasNext()) {
-			stm_insService.clearBatch();
-			stm_insServiceOntology.clearBatch();
-			stm_insServiceOntology.clearBatch();
-			stm_insServiceLanguage.clearBatch();
-			stm_insServiceProperty.clearBatch();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_insService.clearBatch();
+			pss.stm_insServiceOntology.clearBatch();
+			pss.stm_insServiceOntology.clearBatch();
+			pss.stm_insServiceLanguage.clearBatch();
+			pss.stm_insServiceProperty.clearBatch();
 			
 			boolean executeProtocolsBatch = false;
 			boolean executeOntologiesBatch = false;
@@ -688,38 +693,38 @@ public class DFDBKB extends DBKB {
 			while(iter.hasNext()){
 				ServiceDescription service = (ServiceDescription)iter.next();
 				String serviceId = getGUID();
-				stm_insService.clearParameters();
-				stm_insService.setString(1, serviceId);
-				stm_insService.setString(2, descrId);
-				stm_insService.setString(3, service.getName());
-				stm_insService.setString(4, service.getType());
-				stm_insService.setString(5, service.getOwnership());
-				stm_insService.addBatch();
+				pss.stm_insService.clearParameters();
+				pss.stm_insService.setString(1, serviceId);
+				pss.stm_insService.setString(2, descrId);
+				pss.stm_insService.setString(3, service.getName());
+				pss.stm_insService.setString(4, service.getType());
+				pss.stm_insService.setString(5, service.getOwnership());
+				pss.stm_insService.addBatch();
 				
 				// Service - Protocols
 				Iterator iterS = service.getAllProtocols();
 				while(iterS.hasNext()){
-					stm_insServiceProtocol.setString(1, serviceId);
-					stm_insServiceProtocol.setString(2, (String)iterS.next());
-					stm_insServiceProtocol.addBatch();
+					pss.stm_insServiceProtocol.setString(1, serviceId);
+					pss.stm_insServiceProtocol.setString(2, (String)iterS.next());
+					pss.stm_insServiceProtocol.addBatch();
 					executeProtocolsBatch = true;
 				}
 				
 				// Service - Ontologies
 				iterS = service.getAllOntologies();
 				while(iterS.hasNext()){
-					stm_insServiceOntology.setString(1, serviceId);
-					stm_insServiceOntology.setString(2, (String)iterS.next());
-					stm_insServiceOntology.addBatch();
+					pss.stm_insServiceOntology.setString(1, serviceId);
+					pss.stm_insServiceOntology.setString(2, (String)iterS.next());
+					pss.stm_insServiceOntology.addBatch();
 					executeOntologiesBatch = true;
 				}
 				
 				// Service - Languages
 				iterS = service.getAllLanguages();
 				while(iterS.hasNext()){
-					stm_insServiceLanguage.setString(1, serviceId);
-					stm_insServiceLanguage.setString(2, (String)iterS.next());
-					stm_insServiceLanguage.addBatch();
+					pss.stm_insServiceLanguage.setString(1, serviceId);
+					pss.stm_insServiceLanguage.setString(2, (String)iterS.next());
+					pss.stm_insServiceLanguage.addBatch();
 					executeLanguagesBatch = true;
 				}
 				
@@ -729,8 +734,8 @@ public class DFDBKB extends DBKB {
 					
 					Property prop = (Property)iterS.next();
 					try {
-						stm_insServiceProperty.setString(1, serviceId);
-						stm_insServiceProperty.setString(2, prop.getName());
+						pss.stm_insServiceProperty.setString(1, serviceId);
+						pss.stm_insServiceProperty.setString(2, prop.getName());
 						
 						// serialize value to a string and calcualte 
 						// a hash map for later search operations
@@ -741,20 +746,20 @@ public class DFDBKB extends DBKB {
 						if ( needSerialization(value) ) {
 							//System.out.println("DF Handling Object property "+prop.getName()+": value = "+value);
 							String valueStr = serializeObj(value);
-							stm_insServiceProperty.setString(3, valueStr);
-							stm_insServiceProperty.setString(4, null);
+							pss.stm_insServiceProperty.setString(3, valueStr);
+							pss.stm_insServiceProperty.setString(4, null);
 							String hashStr = getHashValue(value);
-							stm_insServiceProperty.setString(5, hashStr);
+							pss.stm_insServiceProperty.setString(5, hashStr);
 						}
 						else {
 							// set to NULL the serialized representation of the object and its hash
 							//System.out.println("DF Handling String property "+prop.getName()+": value = "+value);
-							stm_insServiceProperty.setString(3, null);
-							stm_insServiceProperty.setString(4, (String) value);
-							stm_insServiceProperty.setString(5, null);
+							pss.stm_insServiceProperty.setString(3, null);
+							pss.stm_insServiceProperty.setString(4, (String) value);
+							pss.stm_insServiceProperty.setString(5, null);
 						};
 						
-						stm_insServiceProperty.addBatch();
+						pss.stm_insServiceProperty.addBatch();
 						executePropertiesBatch = true;            
 					} catch (Exception e) {
 						if(logger.isLoggable(Logger.SEVERE))
@@ -763,18 +768,18 @@ public class DFDBKB extends DBKB {
 					}
 				}
 			}
-			stm_insService.executeBatch();
+			pss.stm_insService.executeBatch();
 			if (executeProtocolsBatch) {
-				stm_insServiceProtocol.executeBatch();
+				pss.stm_insServiceProtocol.executeBatch();
 			}
 			if (executeOntologiesBatch) {
-				stm_insServiceOntology.executeBatch();
+				pss.stm_insServiceOntology.executeBatch();
 			}
 			if (executeLanguagesBatch) {
-				stm_insServiceLanguage.executeBatch();
+				pss.stm_insServiceLanguage.executeBatch();
 			}
 			if (executePropertiesBatch) {
-				stm_insServiceProperty.executeBatch();
+				pss.stm_insServiceProperty.executeBatch();
 			}
 		}
 	}
@@ -794,21 +799,23 @@ public class DFDBKB extends DBKB {
 		DFAgentDescription dfdToReturn = null;
 		String batchErrMsg = "";
 		
-		try {	
+		Connection conn = getConnectionWrapper().getConnection();
+		PreparedStatements pss = getPreparedStatements();
+		try {
 			// -- Remove the previous DFD if any
 			dfdToReturn = (DFAgentDescription) removeSingle(dfd.getName());
-			
+
 			// -- add new DFD
-			
+
 			// DF Agent Description
 			Date leaseTime = dfd.getLeaseTime();
 			long lt = (leaseTime != null ? leaseTime.getTime() : -1);
 			String descrId = getGUID();
-			
-			stm_insAgentDescr.setString(1, descrId);
-			stm_insAgentDescr.setString(2, agentName);
-			stm_insAgentDescr.setString(3, String.valueOf(lt));
-			stm_insAgentDescr.executeUpdate();
+
+			pss.stm_insAgentDescr.setString(1, descrId);
+			pss.stm_insAgentDescr.setString(2, agentName);
+			pss.stm_insAgentDescr.setString(3, String.valueOf(lt));
+			pss.stm_insAgentDescr.executeUpdate();
 			
 			
 			// AID
@@ -817,37 +824,37 @@ public class DFDBKB extends DBKB {
 			// Languages
 			Iterator iter = dfd.getAllLanguages();
 			if (iter.hasNext()) {
-				stm_insLanguage.clearBatch();
+				pss.stm_insLanguage.clearBatch();
 				while(iter.hasNext()){
-					stm_insLanguage.setString(1, descrId);
-					stm_insLanguage.setString(2, (String)iter.next());
-					stm_insLanguage.addBatch();
+					pss.stm_insLanguage.setString(1, descrId);
+					pss.stm_insLanguage.setString(2, (String)iter.next());
+					pss.stm_insLanguage.addBatch();
 				}
-				stm_insLanguage.executeBatch();
+				pss.stm_insLanguage.executeBatch();
 			}
 			
 			// Ontologies
 			iter = dfd.getAllOntologies();
 			if (iter.hasNext()) {
-				stm_insOntology.clearBatch();
+				pss.stm_insOntology.clearBatch();
 				while(iter.hasNext()){
-					stm_insOntology.setString(1, descrId);
-					stm_insOntology.setString(2, (String)iter.next());
-					stm_insOntology.addBatch();
+					pss.stm_insOntology.setString(1, descrId);
+					pss.stm_insOntology.setString(2, (String)iter.next());
+					pss.stm_insOntology.addBatch();
 				}
-				stm_insOntology.executeBatch();
+				pss.stm_insOntology.executeBatch();
 			}
 			
 			// Protocols
 			iter = dfd.getAllProtocols();
 			if (iter.hasNext()) {
-				stm_insProtocol.clearBatch();
+				pss.stm_insProtocol.clearBatch();
 				while(iter.hasNext()){
-					stm_insProtocol.setString(1, descrId);
-					stm_insProtocol.setString(2, (String)iter.next());
-					stm_insProtocol.addBatch();
+					pss.stm_insProtocol.setString(1, descrId);
+					pss.stm_insProtocol.setString(2, (String)iter.next());
+					pss.stm_insProtocol.addBatch();
 				}
-				stm_insProtocol.executeBatch();
+				pss.stm_insProtocol.executeBatch();
 			}
 			
 			// Services
@@ -856,8 +863,8 @@ public class DFDBKB extends DBKB {
 			regsCnt++;
 			// clear outdated entries after a certain number of new registrations
 			if(regsCnt > MAX_REGISTER_WITHOUT_CLEAN){
-				clean();
 				regsCnt = 0;
+				clean();
 			}
 			
 			conn.commit();		
@@ -890,7 +897,7 @@ public class DFDBKB extends DBKB {
 		
 		return dfd;
 	}
-	
+
 	/**
 	 * Retrieve the DFDs matching the given template
 	 */
@@ -905,7 +912,7 @@ public class DFDBKB extends DBKB {
 		try {
 			select = createSelect((DFAgentDescription) template);
 					
-			s = conn.createStatement();
+			s = getConnectionWrapper().getConnection().createStatement();
 			if (maxResult >= 0) {
 				s.setMaxRows(maxResult);
 				s.setFetchSize(maxResult);
@@ -942,9 +949,10 @@ public class DFDBKB extends DBKB {
 		else {
 			// If we found several matching agents we preload protocols languages and ontologies once for all 
 			// instead of making several queries one per agent.
-			Map allLanguages = preloadIdValueTable(stm_selCountAllLanguages, stm_selAllLanguages);
-			Map allOntologies = preloadIdValueTable(stm_selCountAllOntologies, stm_selAllOntologies);
-			Map allProtocols = preloadIdValueTable(stm_selCountAllProtocols, stm_selAllProtocols);
+			PreparedStatements pss = getPreparedStatements();
+			Map allLanguages = preloadIdValueTable(pss.stm_selCountAllLanguages, pss.stm_selAllLanguages);
+			Map allOntologies = preloadIdValueTable(pss.stm_selCountAllOntologies, pss.stm_selAllOntologies);
+			Map allProtocols = preloadIdValueTable(pss.stm_selCountAllProtocols, pss.stm_selAllProtocols);
 			while (it.hasNext()) {
 				dfds.add(getDFD((String) it.next(), allLanguages, allOntologies, allProtocols));
 			}
@@ -994,7 +1002,7 @@ public class DFDBKB extends DBKB {
 		try {
 			select = createSelect((DFAgentDescription) template);
 			
-			s = conn.createStatement();
+			s = getConnectionWrapper().getConnection().createStatement();
 			rs = s.executeQuery(select);
 			
 			return new DFDBKBIterator(s, rs);
@@ -1068,10 +1076,11 @@ public class DFDBKB extends DBKB {
 		
 		ResultSet rs = null;
 		AID id = new AID(aidN, AID.ISGUID);
-		
+
+		PreparedStatements pss = getPreparedStatements();
 		// AID addresses
-		stm_selAgentAddresses.setString(1, aidN);
-		rs = stm_selAgentAddresses.executeQuery();
+		pss.stm_selAgentAddresses.setString(1, aidN);
+		rs = pss.stm_selAgentAddresses.executeQuery();
 		while(rs.next()){
 			id.addAddresses(rs.getString(1));
 		}
@@ -1084,8 +1093,8 @@ public class DFDBKB extends DBKB {
 		}
 		
 		// AID User defined slots
-		stm_selAgentUserDefSlot.setString(1, aidN);
-		rs = stm_selAgentUserDefSlot.executeQuery();
+		pss.stm_selAgentUserDefSlot.setString(1, aidN);
+		rs = pss.stm_selAgentUserDefSlot.executeQuery();
 		while(rs.next()) {
 			String key = rs.getString("slotkey");
 			String value = rs.getString("slotval");
@@ -1110,10 +1119,11 @@ public class DFDBKB extends DBKB {
 		ResultSet rsS = null;
 		String descrId = null;
 		
-		try{	
+		try{
+			PreparedStatements pss = getPreparedStatements();
 			// Check if there is a DFD corresponding to aidN and get lease time
-			stm_selLease.setString(1, aidN);
-			rs = stm_selLease.executeQuery();
+			pss.stm_selLease.setString(1, aidN);
+			rs = pss.stm_selLease.executeQuery();
 			if (rs.next()) {
 				dfd = new DFAgentDescription();
 				id = getAID(aidN);
@@ -1140,8 +1150,8 @@ public class DFDBKB extends DBKB {
 			loadOntologies(descrId, dfd, allOntologies);
 			
 			// Services
-			stm_selServices.setString(1, descrId);
-			rs = stm_selServices.executeQuery();
+			pss.stm_selServices.setString(1, descrId);
+			rs = pss.stm_selServices.executeQuery();
 			while(rs.next()) {
 				ServiceDescription sd = new ServiceDescription();
 				String serviceId = rs.getString("id");
@@ -1150,32 +1160,32 @@ public class DFDBKB extends DBKB {
 				sd.setOwnership(rs.getString("sownership"));
 				
 				// Service protocols
-				stm_selServiceProtocols.setString(1, serviceId);
-				rsS = stm_selServiceProtocols.executeQuery();
+				pss.stm_selServiceProtocols.setString(1, serviceId);
+				rsS = pss.stm_selServiceProtocols.executeQuery();
 				while(rsS.next()){
 					sd.addProtocols(rsS.getString(PROTOCOL));
 				}	
 				closeResultSet(rsS);
 				
 				// Service languages
-				stm_selServiceLanguages.setString(1, serviceId);
-				rsS = stm_selServiceLanguages.executeQuery();
+				pss.stm_selServiceLanguages.setString(1, serviceId);
+				rsS = pss.stm_selServiceLanguages.executeQuery();
 				while(rsS.next()){
 					sd.addOntologies(rsS.getString(ONTOLOGY));
 				}	
 				closeResultSet(rsS);
 				
 				// Service ontologies
-				stm_selServiceOntologies.setString(1, serviceId);
-				rsS = stm_selServiceOntologies.executeQuery();
+				pss.stm_selServiceOntologies.setString(1, serviceId);
+				rsS = pss.stm_selServiceOntologies.executeQuery();
 				while(rsS.next()){
 					sd.addLanguages(rsS.getString(LANGUAGE));
 				}
 				closeResultSet(rsS);
 				
 				// Service properties
-				stm_selServiceProperties.setString(1, serviceId);
-				rsS = stm_selServiceProperties.executeQuery();
+				pss.stm_selServiceProperties.setString(1, serviceId);
+				rsS = pss.stm_selServiceProperties.executeQuery();
 				while(rsS.next()){
 					Property prop = new Property();
 					prop.setName(rsS.getString("propkey"));
@@ -1216,8 +1226,9 @@ public class DFDBKB extends DBKB {
 			}
 		}
 		else {
-			stm_selOntologies.setString(1, descrId);
-			ResultSet rs = stm_selOntologies.executeQuery();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_selOntologies.setString(1, descrId);
+			ResultSet rs = pss.stm_selOntologies.executeQuery();
 			while(rs.next()){
 				dfd.addOntologies(rs.getString(ONTOLOGY));
 			}
@@ -1236,8 +1247,9 @@ public class DFDBKB extends DBKB {
 			}
 		}
 		else {
-			stm_selLanguages.setString(1, descrId);
-			ResultSet rs = stm_selLanguages.executeQuery();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_selLanguages.setString(1, descrId);
+			ResultSet rs = pss.stm_selLanguages.executeQuery();
 			while(rs.next()){
 				dfd.addLanguages(rs.getString(LANGUAGE));
 			}
@@ -1256,8 +1268,9 @@ public class DFDBKB extends DBKB {
 			}
 		}
 		else {
-			stm_selProtocols.setString(1, descrId);
-			ResultSet rs = stm_selProtocols.executeQuery();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_selProtocols.setString(1, descrId);
+			ResultSet rs = pss.stm_selProtocols.executeQuery();
 			while(rs.next()){
 				dfd.addProtocols(rs.getString(PROTOCOL));
 			}
@@ -1270,9 +1283,10 @@ public class DFDBKB extends DBKB {
 	 * including all its resolver AIDs (if there are no df descriptions left for them)
 	 */
 	private void removeAID(String aid) throws SQLException {
+		PreparedStatements pss = getPreparedStatements();
 		// check whether there exists a DF description for the agent
-		stm_selNrOfDescrForAID.setString(1, aid);
-		ResultSet rs = stm_selNrOfDescrForAID.executeQuery();
+		pss.stm_selNrOfDescrForAID.setString(1, aid);
+		ResultSet rs = pss.stm_selNrOfDescrForAID.executeQuery();
 		int found = 0;
 		if (rs.next())
 			found = Integer.parseInt(rs.getString(1));
@@ -1280,8 +1294,8 @@ public class DFDBKB extends DBKB {
 		// no description found --> delete
 		if (found == 0) {
 			// user definded slots
-			stm_delAgentUserDefSlot.setString(1, aid);
-			stm_delAgentUserDefSlot.execute();
+			pss.stm_delAgentUserDefSlot.setString(1, aid);
+			pss.stm_delAgentUserDefSlot.execute();
 			
 			// resolvers
 			Collection resolverAIDs = getResolverAIDs(aid);
@@ -1290,12 +1304,12 @@ public class DFDBKB extends DBKB {
 				removeAID((String)iter.next());
 			}
 			
-			stm_delAgentResolver.setString(1, aid);
-			stm_delAgentResolver.execute();
+			pss.stm_delAgentResolver.setString(1, aid);
+			pss.stm_delAgentResolver.execute();
 			
 			// address
-			stm_delAgentAddress.setString(1, aid);
-			stm_delAgentAddress.execute();
+			pss.stm_delAgentAddress.setString(1, aid);
+			pss.stm_delAgentAddress.execute();
 		}
 		
 		
@@ -1307,75 +1321,78 @@ public class DFDBKB extends DBKB {
 	 */
 	private void removeServices(String descrId) throws SQLException {
 		ResultSet rs = null;
-		stm_selServiceId.setString(1, descrId);
-		rs = stm_selServiceId.executeQuery();
+		PreparedStatements pss = getPreparedStatements();
+		pss.stm_selServiceId.setString(1, descrId);
+		rs = pss.stm_selServiceId.executeQuery();
 		
 		boolean executeBatch = false;
 		while (rs.next()) {
 			String serviceId = rs.getString("id");
 			
-			stm_delServiceLanguage.setString(1, serviceId);
-			stm_delServiceLanguage.addBatch();
+			pss.stm_delServiceLanguage.setString(1, serviceId);
+			pss.stm_delServiceLanguage.addBatch();
 			
-			stm_delServiceOntology.setString(1, serviceId);
-			stm_delServiceOntology.addBatch();
+			pss.stm_delServiceOntology.setString(1, serviceId);
+			pss.stm_delServiceOntology.addBatch();
 			
-			stm_delServiceProtocol.setString(1, serviceId);
-			stm_delServiceProtocol.addBatch();
+			pss.stm_delServiceProtocol.setString(1, serviceId);
+			pss.stm_delServiceProtocol.addBatch();
 			
-			stm_delServiceProperty.setString(1, serviceId);
-			stm_delServiceProperty.addBatch();
+			pss.stm_delServiceProperty.setString(1, serviceId);
+			pss.stm_delServiceProperty.addBatch();
 			
-			stm_delService.setString(1, descrId);
-			stm_delService.addBatch();
+			pss.stm_delService.setString(1, descrId);
+			pss.stm_delService.addBatch();
 			
 			executeBatch = true;
 		}
 		rs.close();
 		
 		if (executeBatch) {
-			stm_delServiceLanguage.executeBatch();
-			stm_delServiceOntology.executeBatch();
-			stm_delServiceProtocol.executeBatch();
-			stm_delServiceProperty.executeBatch();
-			stm_delService.executeBatch();
+			pss.stm_delServiceLanguage.executeBatch();
+			pss.stm_delServiceOntology.executeBatch();
+			pss.stm_delServiceProtocol.executeBatch();
+			pss.stm_delServiceProperty.executeBatch();
+			pss.stm_delService.executeBatch();
 		}
 	}
-	
-	
+
+
 	/**
 	 *  Delete the DFD object corresponding to the indicated agent name.
 	 */
 	private void remove(String aid) throws SQLException {  		
 		ResultSet rs = null;
+		Connection conn = getConnectionWrapper().getConnection();
 		
 		try {   
+			PreparedStatements pss = getPreparedStatements();
 			// get description ID
-			stm_selDescrId.setString(1, aid);
-			rs = stm_selDescrId.executeQuery();
+			pss.stm_selDescrId.setString(1, aid);
+			rs = pss.stm_selDescrId.executeQuery();
 			
 			if (rs.next()) {
 				String descrId = rs.getString("id");
 				closeResultSet(rs);
 				
 				// ontologies
-				stm_delOntology.setString(1, descrId);
-				stm_delOntology.execute();
+				pss.stm_delOntology.setString(1, descrId);
+				pss.stm_delOntology.execute();
 				
 				// protocols
-				stm_delProtocol.setString(1, descrId);
-				stm_delProtocol.execute();
+				pss.stm_delProtocol.setString(1, descrId);
+				pss.stm_delProtocol.execute();
 				
 				// languages
-				stm_delLanguage.setString(1, descrId);
-				stm_delLanguage.execute();
+				pss.stm_delLanguage.setString(1, descrId);
+				pss.stm_delLanguage.execute();
 				
 				// services
 				removeServices(descrId);
 				
 				// agent description
-				stm_delAgentDescr.setString(1, descrId);
-				stm_delAgentDescr.execute();
+				pss.stm_delAgentDescr.setString(1, descrId);
+				pss.stm_delAgentDescr.execute();
 				
 				// AID
 				removeAID(aid);
@@ -1574,9 +1591,9 @@ public class DFDBKB extends DBKB {
 		ResultSet rs = null;
 		long currTime = System.currentTimeMillis();
 		try{
-			List l = new ArrayList();
-			stm_selExpiredDescr.setString(1, String.valueOf(currTime));
-			rs = stm_selExpiredDescr.executeQuery();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_selExpiredDescr.setString(1, String.valueOf(currTime));
+			rs = pss.stm_selExpiredDescr.executeQuery();
 			
 			while(rs.next()){
 				remove(rs.getString("aid"));
@@ -1613,12 +1630,14 @@ public class DFDBKB extends DBKB {
 	 * @param aclM ACL message for the subscription
 	 */
 	private void registerSubscription(String convID, String aclM) throws SQLException {
+		Connection conn = getConnectionWrapper().getConnection();
 		try {
+			PreparedStatements pss = getPreparedStatements();
 			String base64Str = new String(Base64.encodeBase64(aclM.getBytes("US-ASCII")), "US-ASCII"); 
 			// --> convert string to Base64 encoding
-			stm_insSubscription.setString(1, convID);
-			stm_insSubscription.setString(2, base64Str);
-			stm_insSubscription.execute();
+			pss.stm_insSubscription.setString(1, convID);
+			pss.stm_insSubscription.setString(2, base64Str);
+			pss.stm_insSubscription.execute();
 			conn.commit();			
 		} 
 		catch (SQLException sqle) {
@@ -1648,7 +1667,7 @@ public class DFDBKB extends DBKB {
 		ResultSet rs = null;
 		
 		try {
-			rs = stm_selSubscriptions.executeQuery();
+			rs = getPreparedStatements().stm_selSubscriptions.executeQuery();
 			while (rs.next()) {
 				String base64Str = rs.getString("aclm");
 				String aclmStr = new String(Base64.decodeBase64(base64Str.getBytes("US-ASCII")), "US-ASCII");
@@ -1684,10 +1703,12 @@ public class DFDBKB extends DBKB {
 	 * - otherwise <code>false</code>
 	 */
 	private boolean deregisterSubscription(String convID) throws SQLException {
-		
+
+		Connection conn = getConnectionWrapper().getConnection();
 		try {
-			stm_delSubscription.setString(1, convID);
-			int rowCount = stm_delSubscription.executeUpdate();
+			PreparedStatements pss = getPreparedStatements();
+			pss.stm_delSubscription.setString(1, convID);
+			int rowCount = pss.stm_delSubscription.executeUpdate();
 			conn.commit();
 			return (rowCount != 0);
 		} catch (SQLException sqle) {

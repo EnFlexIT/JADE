@@ -1519,25 +1519,27 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		AID[] allIDs = platformAgents.keys();
 		for(int i = 0; i < allIDs.length; i++) {
 			AgentDescriptor ad = platformAgents.acquire(allIDs[i]);
-			ContainerID id = ad.getContainerID();
-			if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
-				// FIXME: Use a more generic mechanism
-				if (! allIDs[i].getLocalName().equalsIgnoreCase("ams") ) {
-					platformAgents.release(allIDs[i]);
-					try {
-						deadAgent(allIDs[i], true);
+			if (ad != null) {
+				ContainerID id = ad.getContainerID();
+				if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
+					// FIXME: Use a more generic mechanism
+					if (! allIDs[i].getLocalName().equalsIgnoreCase("ams") ) {
+						platformAgents.release(allIDs[i]);
+						try {
+							deadAgent(allIDs[i], true);
+						}
+						catch(NotFoundException nfe) {
+							nfe.printStackTrace();
+						}
 					}
-					catch(NotFoundException nfe) {
-						nfe.printStackTrace();
+					else {
+						ad.getDescription().setState(AMSAgentDescription.LATENT);
+						platformAgents.release(allIDs[i]);
 					}
 				}
 				else {
-					ad.getDescription().setState(AMSAgentDescription.LATENT);
 					platformAgents.release(allIDs[i]);
 				}
-			}
-			else {
-				platformAgents.release(allIDs[i]);
 			}
 		}
 	}

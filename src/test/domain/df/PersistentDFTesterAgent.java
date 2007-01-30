@@ -48,6 +48,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 	public static final String DB_PASSWORD_KEY = "db-password";
 	public static final String DB_ADDITIONAL_CP_KEY = "db-additional-classpath";
 	public static final String PERSISTENT_DF_CONTAINER_KEY = "container";
+	public static final String POOLSIZE_KEY = "poolsize";
 	
 	protected TestGroup getTestGroup() {
 		TestGroup tg = new TestGroup("test/domain/df/persistentDFTestsList.xml") {
@@ -81,6 +82,11 @@ public class PersistentDFTesterAgent extends TesterAgent {
 					passwordOption = "-jade_domain_df_db-password "+password;
 				}
 				
+				String poolsize = (String) getArgument(POOLSIZE_KEY);
+				String poolsizeOption = "";
+				if (poolsize != null && poolsize.trim().length() > 0) {
+					poolsizeOption = "-jade_domain_df_poolsize "+poolsize;
+				}
 				
 				String addClasspath = (String) getArgument(DB_ADDITIONAL_CP_KEY);
 				if (addClasspath != null && addClasspath.trim().length() > 0) {
@@ -91,7 +97,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 				TestUtility.killAgent(a, a.getDefaultDF());
 				jc = TestUtility.launchJadeInstance("Persistent", addClasspath, "-container -host "+TestUtility.getLocalHostName()
 						+ " -port "+String.valueOf(Test.DEFAULT_PORT)
-						+ " " + urlOption + " " + driverOption + " " + usernameOption + " " + passwordOption + " " + dbDefaultOption, new String[] {});
+						+ " " + urlOption + " " + driverOption + " " + usernameOption + " " + passwordOption + " " + dbDefaultOption + " " + poolsizeOption, new String[] {});
 				
 				TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), jc.getContainerName());
 				setArgument(PERSISTENT_DF_CONTAINER_KEY, jc.getContainerName());
@@ -115,6 +121,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 		tg.specifyArgument(DB_DRIVER_KEY, "DB Driver", null);
 		tg.specifyArgument(DB_USERNAME_KEY, "DB username", null);
 		tg.specifyArgument(DB_PASSWORD_KEY, "DB password", null);
+		tg.specifyArgument(POOLSIZE_KEY, "FIPA request serving pool-size", "2");
 		tg.specifyArgument(DB_ADDITIONAL_CP_KEY, "DB Additional classpath", null);
 		
 		return tg;
