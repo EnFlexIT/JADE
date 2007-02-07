@@ -346,10 +346,12 @@ class MainWindow extends JFrame {
 		Runnable removeIt = new Runnable() {
 			public void run() {
 				List addrs = (List)addresses.get(where);
-				addrs.remove(address);
-				if(addrs.isEmpty())
-					addresses.remove(where);
-				manageDlg.setData(containerNames, addresses);
+				if (addrs != null) {
+					addrs.remove(address);
+					if(addrs.isEmpty())
+						addresses.remove(where);
+					manageDlg.setData(containerNames, addresses);
+				}
 			}
 		};
 		SwingUtilities.invokeLater(removeIt);

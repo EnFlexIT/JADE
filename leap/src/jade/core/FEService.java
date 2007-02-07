@@ -23,13 +23,22 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+/**
+ * JADE kernel services providing a service-helper and whishing this helper to be available in the 
+ * split execution mode too, need to provide a FEService class.
+ * When starting a split container the <code>services</code> option works exactly as when starting a  
+ * normal container, but the indicated classes must be concrete implementations of the <code>FEService</code>
+ * abstract class.
+ * 
+ * @author Giovanni Caire - Telecom Italia
+ */
 public abstract class FEService {
 	private BackEnd myBackEnd;
 	
 	public abstract String getName();
 	public abstract ServiceHelper getHelper(Agent a);
 	
-	public Object invoke(String actor, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
+	protected Object invoke(String actor, String methodName, Object[] methodParams) throws NotFoundException, ServiceException, IMTPException {
 		return myBackEnd.serviceInvokation(actor, getName(), methodName, methodParams);
 	}
 	

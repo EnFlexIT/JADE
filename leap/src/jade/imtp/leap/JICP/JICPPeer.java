@@ -178,7 +178,7 @@ public class JICPPeer implements ICP, ProtocolManager {
 					throw new ICPException("Cannot create server socket on a free port. ", ioe);
 				}
 			} else {
-				throw new ICPException("Cannot bind server socket to host " + host + " port " + port);
+				throw new ICPException("Cannot bind server socket to "+(host != null ? "host "+host : "localhost")+ " port " + port);
 			}
 		} catch (IOException ioe2) {
 			throw new ICPException("Cannot create server socket. ", ioe2);

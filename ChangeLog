@@ -1,6 +1,8 @@
 MAJOR CHANGES in JADE x.y (???)
 ==========================================================================
 GENERAL IMPROVEMENTS:	
+- Modified DF to support a pool of thread serving registration, deregistration and search requests when using DB-based KnowledgeBase
+- Optimized DF search when using DB-based KnowledgeBase
 - Modified DF to cache subscription relevant information. This speeds up performances when detecting subscribed agents to be notified about registration updates
 - Modified FullResourceManager to avoid annoying stack traces at platform shutdown
 - Modified MainContainerImpl to start the AMS and DF threads in the SystemAgent Thread Group
@@ -11,7 +13,7 @@ GENERAL IMPROVEMENTS:
 - Added method to define action-result type in AgentActionSchema
 
 BUG-FIXES:
-- Included fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
+- Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
 
 LEAP:
 - Added support for ServiceHelper retrieval and usage in split container execution mode

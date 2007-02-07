@@ -68,6 +68,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	// The buffer of messages to be sent to the BackEnd
 	private Vector pending;
 	
+	// The list of agents that have pending messages waiting to be delivered
+	// This is used to delay the termination of an agent in case it has pending messages
+	private Vector senderAgents;
+	
 	// The BackEnd this FrontEndContainer is connected to
 	private BackEnd myBackEnd;
 	
@@ -385,7 +389,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		// Wait for messages (if any) sent by this agent to be transmitted
 		if (pending != null) {
 			synchronized (pending) {
-				while (pending.contains(name)) {
+				while (senderAgents.contains(name)) {
 					try {
 						pending.wait();
 					}
@@ -530,14 +534,18 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	private void post(ACLMessage msg, String sender) {
 		if (pending == null) {
-			// Lazily create the vector of pending messages and the Thread 
-			// for asynchronous message delivery
+			// Lazily create the vector of pending messages, the Thread 
+			// for asynchronous message delivery and the vector of senderAgents
 			pending = new Vector(4);
+			senderAgents = new Vector(1);
 			Thread t = new Thread(this);
 			t.start();
 		}
 		
 		synchronized(pending) {
+			if (!senderAgents.contains(sender)) {
+				senderAgents.addElement(sender);
+			}	
 			pending.addElement(msg.clone());
 			pending.addElement(sender);
 			int size = pending.size();
@@ -577,9 +585,14 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 				// to the sender.
 				logger.log(Logger.SEVERE,e.toString());
 			}
+			
 			// Notify terminating agents (if any) waiting for their messages to be delivered
 			synchronized (pending) {
-				pending.notifyAll();
+				if (!pending.contains(sender)) {
+					// No more pending messages from this agent
+					senderAgents.removeElement(sender);
+					pending.notifyAll();
+				}
 			}
 		}
 	}  

@@ -671,19 +671,26 @@ public class AgentManagementService extends BaseService {
 					//#CUSTOMJ2SE_EXCLUDE_BEGIN
 					try {
 						ContainerID oldCid = impl.getContainerID(name);
-						Node n = impl.getContainerNode(oldCid).getNode();
-						
-						// Perform a non-blocking ping to check...
-						n.ping(false);
-						
-						// Ping succeeded: rethrow the NameClashException
-						throw nce;
+						if (oldCid != null) {
+							Node n = impl.getContainerNode(oldCid).getNode();
+							
+							// Perform a non-blocking ping to check...
+							n.ping(false);
+							
+							// Ping succeeded: rethrow the NameClashException
+							throw nce;
+						}
+						else {
+							// The old agent is registered with the AMS, but does not live in the platform --> cannot check if it still exists
+							throw nce;
+						}
 					}
 					catch(NameClashException nce2) {
-						throw nce2; // Let this one through...
+						// This is the re-thrown NameClashException --> let it through
+						throw nce2;
 					}
 					catch(Exception e) {
-						// Ping failed: forcibly replace the dead agent...
+						// Either the old agent disappeared in the meanwhile or the Ping failed: forcibly replace the old agent...
 						impl.bornAgent(name, cid, principal, ownership, true);
 					}
 					//#CUSTOMJ2SE_EXCLUDE_END
@@ -877,7 +884,7 @@ public class AgentManagementService extends BaseService {
 		// Connect the new instance to the local container
 		Agent old = myContainer.addLocalAgent(target, instance);
 		if (instance == old) {
-			// This is a re-addition of an existing agent to a recovered main container
+			// This is a re-addition of an existing agent to a recovered main container (FaultRecoveryService)
 			old = null;
 		}
 		

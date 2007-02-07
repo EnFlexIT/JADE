@@ -623,7 +623,6 @@ public class SubscriptionInitiator extends Initiator {
 		Vector l = new Vector();
 		getDataStore().put(ALL_RESPONSES_KEY, l);
 	}
-	//#APIDOC_EXCLUDE_END
 	
 	
 	protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
@@ -633,6 +632,7 @@ public class SubscriptionInitiator extends Initiator {
 		
 		return new Session();
 	}
+	//#APIDOC_EXCLUDE_END
 	
 	/**
 	 Inner class Session

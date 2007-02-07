@@ -1128,6 +1128,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		try {
 			myMainContainer.initSystemAgents(this);
 			myMainContainer.startSystemAgents(this);
+			myMainContainer.restartReplicatedAgents(this);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

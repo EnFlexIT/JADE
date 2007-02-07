@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -37,76 +37,76 @@ import jade.security.JADEPrincipal;
    @author Giovanni Rimassa - Universita' di Parma
    @author Giovanni Caire - TILAB
    @version $Date$ $Revision$
-*/
+ */
 
 public class AgentDescriptor {
 
-    public static final boolean NATIVE_AGENT = false;
-    public static final boolean FOREIGN_AGENT = true;
+	public static final boolean NATIVE_AGENT = false;
+	public static final boolean FOREIGN_AGENT = true;
 
 
 
-    private AMSAgentDescription description;
-    //  private AgentProxy proxy;
-    private boolean foreign;
-    private ContainerID containerID;
-    private JADEPrincipal principal;
-    private Credentials amsDelegation;
+	private AMSAgentDescription description;
+	//  private AgentProxy proxy;
+	private boolean foreign;
+	private ContainerID containerID;
+	private JADEPrincipal principal;
+	private Credentials amsDelegation;
 
 
-    public AgentDescriptor() {
-	this(NATIVE_AGENT);
-    }
+	public AgentDescriptor() {
+		this(NATIVE_AGENT);
+	}
 
-    public AgentDescriptor(boolean isForeign) {
-	foreign = isForeign;
-    }
+	public AgentDescriptor(boolean isForeign) {
+		foreign = isForeign;
+	}
 
-    // AMS description
-    public void setDescription(AMSAgentDescription dsc) {
-	description = dsc;
-    }
+	// AMS description
+	public void setDescription(AMSAgentDescription dsc) {
+		description = dsc;
+	}
 
-    public AMSAgentDescription getDescription() {
-	return description;
-    }
+	public AMSAgentDescription getDescription() {
+		return description;
+	}
 
-    // Is this agent a foreign agent?
-    public boolean isForeign() {
-	return foreign;
-    }
+	// Is this agent a foreign agent?
+	public boolean isForeign() {
+		return foreign;
+	}
 
 
-    // Is this agent a native agent?
-    public boolean isNative() {
-	return !foreign;
-    }
-    
-   // Container ID
-    public void setContainerID(ContainerID cid) {
-	containerID = cid;
-    }
+	// Is this agent a native agent?
+	public boolean isNative() {
+		return !foreign;
+	}
 
-    public ContainerID getContainerID() {
-	return containerID;
-    }
+	// Container ID
+	public void setContainerID(ContainerID cid) {
+		containerID = cid;
+	}
 
-    // Agent principal
-    public void setPrincipal(JADEPrincipal p) {
-	principal = p;
-    }
+	public ContainerID getContainerID() {
+		return containerID;
+	}
 
-    public JADEPrincipal getPrincipal() {
-	return principal;
-    }
+	// Agent principal
+	public void setPrincipal(JADEPrincipal p) {
+		principal = p;
+	}
 
-    // AMS delegation
-    public void setAMSDelegation(Credentials cf) {
-	amsDelegation = cf;
-    }
+	public JADEPrincipal getPrincipal() {
+		return principal;
+	}
 
-    public Credentials getAMSDelegation() {
-	return amsDelegation;
-    }
+	// AMS delegation
+	public void setAMSDelegation(Credentials cf) {
+		amsDelegation = cf;
+	}
+
+	public Credentials getAMSDelegation() {
+		return amsDelegation;
+	}
 
 }

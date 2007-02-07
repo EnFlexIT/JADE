@@ -24,6 +24,7 @@ package jade.core;
 
 //#MIDP_EXCLUDE_FILE
 
+
 public interface BECodec {
 	Object[] decodeParams(String methodName, Object[] methodParams);
 	Object encodeResult(String methodName, Object result);
