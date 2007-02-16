@@ -58,6 +58,7 @@ public class JadeGateway {
 	// jade profile properties
 	private static ProfileImpl profile;
 	private static Properties jadeProps;
+	private static Object[] agentArguments;
 	private static final Logger myLogger = Logger.getMyLogger(JadeGateway.class.getName());
 	
 	
@@ -133,7 +134,7 @@ public class JadeGateway {
 			}
 		}
 		if (myAgent == null) {
-			myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, null);
+			myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, agentArguments);
 			myAgent.start();
 		}
 	}
@@ -153,12 +154,13 @@ public class JadeGateway {
 	/**
 	 * Initialize this gateway by passing the proper configuration parameters
 	 * @param agentClassName is the fully-qualified class name of the JadeGateway internal agent. If null is passed
-	 * the default class will be used. 
+	 * the default class will be used.
+	 * @param agentArgs is the list of agent arguments
 	 * @param jadeProfile the properties that contain all parameters for running JADE (see jade.core.Profile).
 	 * Typically these properties will have to be read from a JADE configuration file.
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
-	public final static void init(String agentClassName, Properties jadeProfile) {
+	public final static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
 		agentType = agentClassName;
 		if (agentType == null) {
 			agentType = GatewayAgent.class.getName();
@@ -169,6 +171,11 @@ public class JadeGateway {
 			jadeProps.setProperty(Profile.MAIN, "false");
 		}
 		profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
+		agentArguments = agentArgs;
+	}
+
+	public final static void init(String agentClassName, Properties jadeProfile) {
+		init(agentClassName, null, jadeProfile);
 	}
 	
 	/**
