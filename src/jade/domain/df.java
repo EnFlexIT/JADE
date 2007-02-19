@@ -393,6 +393,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		
 		// ---------- Persistent KB ----------
 		boolean cleanTables = getBooleanProperty(sCleanTables, DB_CLEANTABLES);
+		if (isRestarting()) {
+			// Avoid cleaing tables if we are restarting
+			cleanTables = false;
+		}
 		boolean dbDefault = getBooleanProperty(sDBDefault, DB_DEFAULT);
 		boolean dbAbortOnError = getBooleanProperty(sDBAbortOnError, DB_ABORTONERROR);
 		

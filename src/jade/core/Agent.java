@@ -456,23 +456,6 @@ public class Agent implements Runnable, Serializable
 	//#APIDOC_EXCLUDE_END
 	
 	
-	/**
-	 Get the Agent ID for the platform AMS.
-	 @return An <code>AID</code> object, that can be used to contact
-	 the AMS of this platform.
-	 */
-	public final AID getAMS() {
-		return myToolkit.getAMS();  
-	}
-	/**
-	 Get the Agent ID for the platform default DF.
-	 @return An <code>AID</code> object, that can be used to contact
-	 the default DF of this platform.
-	 */
-	public final AID getDefaultDF() {
-		return myToolkit.getDefaultDF();
-	}
-	
 	private transient MessageQueue msgQueue;
 	private transient AgentToolkit myToolkit;
 	//#MIDP_EXCLUDE_BEGIN
@@ -499,6 +482,8 @@ public class Agent implements Runnable, Serializable
 	// Free running counter that increments by one for each message
 	// received.
 	private int messageCounter = 0 ;
+	
+	private boolean restarting = false;
 	
 	private LifeCycle myLifeCycle;
 	private LifeCycle myBufferedLifeCycle;
@@ -588,9 +573,10 @@ public class Agent implements Runnable, Serializable
 	}
 	
 	
-	/** Declared transient because the container changes in case
+	/** 
+	 * Declared transient because the container changes in case
 	 * of agent migration.
-	 **/
+	 */
 	private transient jade.wrapper.AgentContainer myContainer = null;
 	
 	/**
@@ -646,6 +632,37 @@ public class Agent implements Runnable, Serializable
 	 **/
 	public Object[] getArguments() {
 		return arguments;
+	}
+	
+	void setRestarting(boolean restarting) {
+		this.restarting = restarting;
+	}
+	
+	/**
+	 * This method returns <code>true</code> when this agent is restarting after a crash.
+	 * The restarting indication is automatically reset as soon as the <code>setup()</code> method of 
+	 * this agent terminates.
+	 * @return <code>true</code> when this agent is restarting after a crash. <code>false</code> otherwise.
+	 */
+	public final boolean isRestarting() {
+		return restarting;
+	}
+	/**
+	 Get the Agent ID for the platform AMS.
+	 @return An <code>AID</code> object, that can be used to contact
+	 the AMS of this platform.
+	 */
+	public final AID getAMS() {
+		return myToolkit.getAMS();  
+	}
+	
+	/**
+	 Get the Agent ID for the platform default DF.
+	 @return An <code>AID</code> object, that can be used to contact
+	 the default DF of this platform.
+	 */
+	public final AID getDefaultDF() {
+		return myToolkit.getDefaultDF();
 	}
 	
 	
@@ -1430,6 +1447,7 @@ public class Agent implements Runnable, Serializable
 			//#MIDP_EXCLUDE_BEGIN
 			notifyStarted();
 			//#MIDP_EXCLUDE_END
+			restarting = false;
 			setup();
 		}
 		

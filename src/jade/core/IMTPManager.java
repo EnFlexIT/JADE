@@ -25,6 +25,7 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 
+import jade.mtp.TransportAddress;
 import jade.util.leap.List;
 
 /**
@@ -118,5 +119,9 @@ public interface IMTPManager {
        waiting for intra-platform remote calls.
      */
     List getLocalAddresses() throws IMTPException;
+    
+    /**
+     */
+    TransportAddress stringToAddr(String addr) throws IMTPException;
 }
 

@@ -28,6 +28,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 //#MIDP_EXCLUDE_END
 
+import jade.util.Logger;
 import jade.util.leap.List;
 
 /**
@@ -223,7 +224,7 @@ public abstract class Profile {
 	 **/
 	public static final String FILE_DIR = "file-dir";
 	
-	private static final String LOCALHOST = "localhost";
+	public static final String LOCALHOST_CONSTANT = "localhost";
 	
 	//#APIDOC_EXCLUDE_BEGIN
 	
@@ -322,7 +323,7 @@ public abstract class Profile {
 	
 	
 	public static String getDefaultNetworkName() {
-		String host = LOCALHOST;
+		String host = LOCALHOST_CONSTANT;
 		//#MIDP_EXCLUDE_BEGIN
 		try {
 			host = java.net.InetAddress.getLocalHost().getHostAddress(); 
@@ -340,8 +341,9 @@ public abstract class Profile {
 	
 	//#MIDP_EXCLUDE_BEGIN
 	public static boolean isLocalHost(String host) {
-	    // Check that the local-host is actually local
-		if (LOCALHOST.equalsIgnoreCase(host)) {
+		return compareHostNames(host, LOCALHOST_CONSTANT);
+	    /* Check that the local-host is actually local
+		if (LOCALHOST_CONSTANT.equalsIgnoreCase(host)) {
 			return true;
 		}
 		
@@ -376,7 +378,57 @@ public abstract class Profile {
 	    catch (UnknownHostException uhe) {
 	    	// An unknown host is certainly false
 	    	return false;
-	    }
+	    }*/
+	}
+	
+	/**
+	 * Compares two host names regardless of whether they include domain or not.
+	 * Note: this method does not work if "localhost" is used as host name.
+	 */
+	public static boolean compareHostNames(String host1, String host2) {
+		if (host1.equalsIgnoreCase(host2)) {
+			return true;
+		}
+
+		try {
+			if (host1.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
+				host1 = InetAddress.getLocalHost().getHostName();
+			}
+			if (host2 != null && host2.equalsIgnoreCase(LOCALHOST_CONSTANT)) {
+				host2 = InetAddress.getLocalHost().getHostName();
+			}
+
+			InetAddress host1Addrs[] = InetAddress.getAllByName(host1);
+			InetAddress host2Addrs[] = InetAddress.getAllByName(host2);
+
+			// The trick here is to compare the InetAddress
+			// objects, not the strings since the one string might be a
+			// fully qualified Internet domain name for the host and the
+			// other might be a simple name.
+			// Example: myHost.hpl.hp.com and myHost might
+			// acutally be the same host even though the hostname strings do
+			// not match.  When the InetAddress objects are compared, the IP
+			// addresses will be compared.
+			int i = 0;
+			boolean isEqual = false;
+
+			while ((!isEqual) && (i < host1Addrs.length)) {
+				int j = 0;
+
+				while ((!isEqual) && (j < host2Addrs.length)) {
+					isEqual = host1Addrs[i].equals(host2Addrs[j]);
+					j++;
+				}
+
+				i++;
+			}
+			return isEqual;
+		}
+		catch (UnknownHostException uhe) {
+			// If we can't retrieve the necessary information and the two strings are not the same,
+			// we have no chance to make a correct comparison --> return false
+			return false;
+		}
 	}
 	//#MIDP_EXCLUDE_END
 	

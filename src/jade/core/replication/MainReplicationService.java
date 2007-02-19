@@ -26,6 +26,7 @@ package jade.core.replication;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.AgentManager;
+import jade.core.Channel;
 import jade.core.ServiceFinder;
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
@@ -57,7 +58,22 @@ import jade.core.AgentManager.Listener;
 import jade.core.event.MTPEvent;
 import jade.core.event.PlatformEvent;
 
+import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.introspection.AddedContainer;
+import jade.domain.introspection.AddedMTP;
+import jade.domain.introspection.BornAgent;
+import jade.domain.introspection.ChangedAgentOwnership;
+import jade.domain.introspection.DeadAgent;
+import jade.domain.introspection.EventRecord;
+import jade.domain.introspection.FrozenAgent;
+import jade.domain.introspection.MovedAgent;
+import jade.domain.introspection.PlatformDescription;
+import jade.domain.introspection.RemovedContainer;
+import jade.domain.introspection.RemovedMTP;
+import jade.domain.introspection.ResumedAgent;
+import jade.domain.introspection.SuspendedAgent;
+import jade.domain.introspection.ThawedAgent;
 
 import jade.mtp.MTPDescriptor;
 
@@ -68,6 +84,7 @@ import jade.security.JADESecurityException;
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;
 import jade.util.leap.Iterator;
+import jade.util.InputQueue;
 import jade.util.Logger;
 
 /**
@@ -81,6 +98,7 @@ import jade.util.Logger;
  */
 public class MainReplicationService extends BaseService {
 	public static final String NAME = MainReplicationSlice.NAME;
+	public static final String SNAPSHOT_ON_FAILURE = "jade_core_replication_MainReplicationService_snapshotonfailure";
 	
 	private static final boolean EXCLUDE_MYSELF = false;
 
@@ -100,6 +118,7 @@ public class MainReplicationService extends BaseService {
 		outFilter = new CommandOutgoingFilter();
 		inFilter = new CommandIncomingFilter();
 
+		snapshotOnFailure = p.getBooleanProperty(SNAPSHOT_ON_FAILURE, false);
 	}
 
 	public String getName() {
@@ -230,13 +249,13 @@ public class MainReplicationService extends BaseService {
 
 	
 	/**
-	 * Inner class CommandOutgoingFilter
+	 * Inner class CommandIncomingFilter
 	 * Keep agents and MTPs information in synch among replicas 
 	 */
 	private class CommandIncomingFilter extends Filter {
 
-		public boolean accept(VerticalCommand cmd) {
-			try {
+		public void postProcess(VerticalCommand cmd) {
+ 			try {
 				String name = cmd.getName();
 
 				if (name.equals(jade.core.management.AgentManagementSlice.INFORM_CREATED)) {
@@ -254,25 +273,25 @@ public class MainReplicationService extends BaseService {
 			catch (Throwable t) {
 				cmd.setReturnValue(t);
 			}
-
-			// Never veto a command
-			return true;
 		}
 
 		private void handleInformCreated(VerticalCommand cmd) throws IMTPException, NotFoundException, NameClashException, JADESecurityException, ServiceException {
-
-			Object[] params = cmd.getParams();
-
-			AID agentID = (AID) params[0];
-			ContainerID cid = (ContainerID) params[1];
-
-			GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
-			hCmd.addParam(agentID);
-			hCmd.addParam(cid);
-			hCmd.setPrincipal(cmd.getPrincipal());
-			hCmd.setCredentials(cmd.getCredentials());
-
-			broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+			Object ret = cmd.getReturnValue();
+			// Avoid propagating to other slices in case the agent creation failed due to a name-clash
+			if (!(ret != null && ret instanceof NameClashException)) {
+				Object[] params = cmd.getParams();
+	
+				AID agentID = (AID) params[0];
+				ContainerID cid = (ContainerID) params[1];
+	
+				GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
+				hCmd.addParam(agentID);
+				hCmd.addParam(cid);
+				hCmd.setPrincipal(cmd.getPrincipal());
+				hCmd.setCredentials(cmd.getCredentials());
+	
+				broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
+			}
 		}
 
 		private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
@@ -644,10 +663,21 @@ public class MainReplicationService extends BaseService {
 			}
 
 			try {
+				replicas.remove(monitoredLabel);
+				
+				// GC-ADD-18022007-START
+				// Possibly the AMS is dead --> Start intercepting platform and MTP events on behalf of the 
+				// new AMS if any. 
+				AMSEventQueueFeeder feeder = null;
+				if (!snapshotOnFailure) {
+					feeder = new AMSEventQueueFeeder(new InputQueue(), myContainer.getID());
+					myMain.addListener(feeder);
+				}
+				// GC-ADD-18022007-END
+				
 				myPlatformManager.removeReplica(monitoredSvcMgr, false);
 				myPlatformManager.removeNode(new NodeDescriptor(n), false);
 
-				replicas.remove(monitoredLabel);
 				// Broadcast a 'removeReplica()' method (exclude yourself from bcast)
 				GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_REMOVEREPLICA, MainReplicationSlice.NAME, null);
 				hCmd.addParam(monitoredSvcMgr);
@@ -662,11 +692,19 @@ public class MainReplicationService extends BaseService {
 				MainReplicationSlice newSlice = (MainReplicationSlice) replicas.get(monitoredLabel);
 				attachTo(monitoredLabel, newSlice);
 
+				// GC-MODIFY-18022007-START
 				// Become the new leader if it is the case...
 				if ((oldLabel != 0) && (myLabel == 0)) {
 					myLogger.log(Logger.INFO, "-- I'm the new leader ---");
-					myContainer.becomeLeader();
+					myContainer.becomeLeader(feeder);
 				}
+				else {
+					if (feeder != null) {
+						// NO new AMS --> No need for intercepting events anymore
+						myMain.removeListener(feeder);
+					}
+				}
+				// GC-MODIFY-18022007-END
 
 			} catch (IMTPException imtpe) {
 				imtpe.printStackTrace();
@@ -704,16 +742,14 @@ public class MainReplicationService extends BaseService {
 	private ServiceComponent localSlice;
 
 	private Filter outFilter;
-
 	private Filter inFilter;
 
 	private int myLabel = -1;
-
 	private final List replicas = new LinkedList();
+	private boolean snapshotOnFailure = false;
 
 	// Owned copies of Main Container and Service Manager
 	private MainContainerImpl myMain;
-
 	private PlatformManager myPlatformManager;
 
 	private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
@@ -728,6 +764,9 @@ public class MainReplicationService extends BaseService {
 				slice.serve(cmd);
 				Object ret = cmd.getReturnValue();
 				if (ret instanceof Throwable) {
+					// FIXME: This may happen due to the fact that the replica is terminating. E.g. a tool running on 
+					// the terminating replica that deregisters from the AMS: the DeadTool event may be processed
+					// when the replica is already dead. In these cases we should find a way to hide the exception
 					myLogger.log(Logger.SEVERE, "Error propagating H-command " + cmd.getName() + " to slice " + sliceName);
 					((Throwable) ret).printStackTrace();
 				}

@@ -20,9 +20,6 @@
 package jade.imtp.rmi;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import java.io.IOException;
 
 import java.rmi.*;
 import java.rmi.registry.*;
@@ -35,7 +32,6 @@ import jade.core.*;
 import jade.security.JADESecurityException;
 import jade.mtp.TransportAddress;
 import jade.util.Logger;
-import jade.util.PropertiesException;
 
 import java.util.Vector;
 
@@ -379,6 +375,9 @@ public class RMIIMTPManager implements IMTPManager {
 		}
 	}
 	
+	public boolean compareAddresses(String addr1, String addr2) throws IMTPException {
+		return addr1.equalsIgnoreCase(addr2);
+	}
 	
 	
 	/**
@@ -399,7 +398,116 @@ public class RMIIMTPManager implements IMTPManager {
 		return null;
 	}
 	
+	private static final char SLASH = '/';
+	private static final char COLON = ':';
+	private static final char DIESIS = '#';
 	
+	public TransportAddress stringToAddr(String url) throws IMTPException {
+		// FIXME: Refactor this code with jade.imtp.leap.TrasportProtocol.parseURL()
+		if (url == null) {
+			throw new IMTPException("Null URL");
+		} 
+
+		String protocol = null;
+		String host = null;
+		String port = null;
+		String file = null;
+		String anchor = null;
+		int    fieldStart = 0;
+		int    fieldEnd;
+
+		// Protocol
+		fieldEnd = url.indexOf(COLON, fieldStart);
+
+		if (fieldEnd > 0 && url.charAt(fieldEnd+1) == SLASH && url.charAt(fieldEnd+2) == SLASH) {
+			protocol = url.substring(fieldStart, fieldEnd);
+		} 
+		else {
+			throw new IMTPException("Invalid URL: "+url+".");
+		} 
+
+		fieldStart = fieldEnd+3;
+
+		// Host
+		fieldEnd = url.indexOf(COLON, fieldStart);
+
+		if (fieldEnd > 0) {
+
+			// A port is specified after the host
+			host = url.substring(fieldStart, fieldEnd);
+			fieldStart = fieldEnd+1;
+
+			// Port
+			fieldEnd = url.indexOf(SLASH, fieldStart);
+
+			if (fieldEnd > 0) {
+
+				// A file is specified after the port
+				port = url.substring(fieldStart, fieldEnd);
+				fieldStart = fieldEnd+1;
+
+				// File
+				fieldEnd = url.indexOf(DIESIS, fieldStart);
+
+				if (fieldEnd > 0) {
+
+					// An anchor is specified after the file
+					file = url.substring(fieldStart, fieldEnd);
+					fieldStart = fieldEnd+1;
+
+					// Anchor
+					anchor = url.substring(fieldStart, url.length());
+				} 
+				else {
+
+					// No anchor is specified after the file
+					file = url.substring(fieldStart, url.length());
+				} 
+			} 
+			else {
+
+				// No file is specified after the port
+				port = url.substring(fieldStart, url.length());
+			} 
+		} 
+		else {
+
+			// No port is specified after the host
+			fieldEnd = url.indexOf(SLASH, fieldStart);
+
+			if (fieldEnd > 0) {
+
+				// A file is specified after the host
+				host = url.substring(fieldStart, fieldEnd);
+				fieldStart = fieldEnd+1;
+
+				// File
+				fieldEnd = url.indexOf(DIESIS, fieldStart);
+
+				if (fieldEnd > 0) {
+
+					// An anchor is specified after the file
+					file = url.substring(fieldStart, fieldEnd);
+					fieldStart = fieldEnd+1;
+
+					// Anchor
+					anchor = url.substring(fieldStart, url.length());
+				} 
+				else {
+
+					// No anchor is specified after the file
+					file = url.substring(fieldStart, url.length());
+				} 
+			} 
+			else {
+
+				// No file is specified after the host
+				host = url.substring(fieldStart, url.length());
+			} 
+		} 
+
+		return new RMIAddress(host, port, file, anchor);
+	} 
 	
 	
 	/**

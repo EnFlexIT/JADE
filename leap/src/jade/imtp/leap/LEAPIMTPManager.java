@@ -359,5 +359,14 @@ public class LEAPIMTPManager implements IMTPManager {
 		return host;
 	}
 	
+	public TransportAddress stringToAddr(String addr) throws IMTPException {
+		try {
+			return theDispatcher.stringToAddr(addr);
+		}
+		catch (DispatcherException de) {
+			throw new IMTPException(de.getMessage());
+		}
+	}
+	
 }
 

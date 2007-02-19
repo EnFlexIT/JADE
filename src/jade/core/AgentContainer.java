@@ -25,8 +25,10 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
+import jade.domain.AMSEventQueueFeeder;
 import jade.lang.acl.ACLMessage;
 
+import jade.util.InputQueue;
 import jade.util.leap.List;
 
 import jade.security.JADESecurityException;
@@ -82,5 +84,7 @@ public interface AgentContainer {
 
     void shutDown();
 
-    void becomeLeader();
+	// GC-MODIFY-18022007-START
+    void becomeLeader(AMSEventQueueFeeder feeder);
+	// GC-MODIFY-18022007-END
 }

@@ -79,7 +79,7 @@ import java.util.Date;
  @author Giovanni Caire - TILAB
  @version $Date$ $Revision$
  */
-public class ams extends Agent implements AgentManager.Listener {
+public class ams extends Agent /*implements AgentManager.Listener*/ {
 	public static final String PERIODIC_LOG_DELAY = "jade_domain_ams_periodiclogdelay";
 	public static final String MAX_RESULTS = "jade_domain_ams_maxresult";
 
@@ -105,6 +105,8 @@ public class ams extends Agent implements AgentManager.Listener {
 
 	// Buffer for AgentPlatform notifications
 	private InputQueue eventQueue = new InputQueue();
+	
+	private AMSEventQueueFeeder queueFeeder; 
 
 	private Hashtable pendingNewAgents = new Hashtable();
 	private Hashtable pendingDeadAgents = new Hashtable();
@@ -124,7 +126,9 @@ public class ams extends Agent implements AgentManager.Listener {
 	public ams(AgentManager ap) {
 		logger = Logger.getMyLogger(FIPANames.AMS);
 		myPlatform = ap;
-		myPlatform.addListener(this);
+		// GC-MODIFY-18022007-START
+		//myPlatform.addListener(this);
+		// GC-MODIFY-18022007-END
 	}
 
 	/**
@@ -985,6 +989,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		// FIXME: in this method here() does not work since the agent toolkit is
 		// not yet initialized.
 
+		// GC-ADD-18022007-START
+		queueFeeder = new AMSEventQueueFeeder(eventQueue, here());
+		myPlatform.addListener(queueFeeder);
+		// GC-ADD-18022007-END
+		
 		// Put the initial event in the event queue
 		eventQueue.clear();
 		ResetEvents re = new ResetEvents();
@@ -1058,9 +1067,21 @@ public class ams extends Agent implements AgentManager.Listener {
 		}
 	}
 
+	// GC-ADD-18022007-START
+	public void setQueueFeeder(AMSEventQueueFeeder feeder) {
+		queueFeeder = feeder;
+		queueFeeder.setAms(this);
+		eventQueue = queueFeeder.getQueue();
+	}
+	
+	public AMSEventQueueFeeder getQueueFeeder() {
+		return queueFeeder;
+	}
+	// GC-ADD-18022007-START
+	
 	/**
 	 Put a BornAgent event in the AMS event queue
-	 */
+	 *
 	public void bornAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1078,11 +1099,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(ba, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a DeadAgent event in the AMS event queue
-	 */
+	 *
 	public void deadAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1099,11 +1120,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(da, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a SuspendedAgent event in the AMS event queue
-	 */
+	 *
 	public void suspendedAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1117,11 +1138,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(sa, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a ResumedAgent event in the AMS event queue
-	 */
+	 *
 	public void resumedAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1135,11 +1156,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(ra, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a FrozenAgent event in the AMS event queue
-	 */
+	 *
 	public void frozenAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1155,11 +1176,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(fa, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a ThawedAgent event in the AMS event queue
-	 */
+	 *
 	public void thawedAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1175,11 +1196,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(ta, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a MovedAgent event in the AMS event queue
-	 */
+	 *
 	public void movedAgent(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1195,11 +1216,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(ma, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a ChangedAgentOwnership event in the AMS event queue
-	 */
+	 *
 	public void changedAgentPrincipal(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1215,11 +1236,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(cao, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put an AddedContainer event in the AMS event queue
-	 */
+	 *
 	public void addedContainer(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1232,11 +1253,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(ac, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a RemovedContainer event in the AMS event queue
-	 */
+	 *
 	public void removedContainer(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
@@ -1249,21 +1270,21 @@ public class ams extends Agent implements AgentManager.Listener {
 		EventRecord er = new EventRecord(rc, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a XXX event in the AMS event queue
-	 */
+	 *
 	public synchronized void changedContainerPrincipal(PlatformEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, ev.toString());
 		// FIXME: There is no element in the IntrospectionOntology
 		// corresponding to this event
-	}
+	}*/
 
 	/**
 	 Put a AddedMTP event in the AMS event queue
-	 */
+	 *
 	public synchronized void addedMTP(MTPEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, "MTPEvent [added MTP]");
@@ -1288,11 +1309,11 @@ public class ams extends Agent implements AgentManager.Listener {
 		er = new EventRecord(ap, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
 	/**
 	 Put a RemovedMTP event in the AMS event queue
-	 */
+	 *
 	public synchronized void removedMTP(MTPEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, "MTPEvent [removed MTP]");
@@ -1316,8 +1337,9 @@ public class ams extends Agent implements AgentManager.Listener {
 		er = new EventRecord(ap, here());
 		er.setWhen(ev.getTime());
 		eventQueue.put(er);
-	}
+	}*/
 
+	/*
 	public void messageIn(MTPEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, "MTPEvent [message in]");
@@ -1326,7 +1348,7 @@ public class ams extends Agent implements AgentManager.Listener {
 	public void messageOut(MTPEvent ev) {
 		if (logger.isLoggable(Logger.CONFIG))
 			logger.log(Logger.CONFIG, "MTPEvent [message out]");
-	}
+	}*/
 
 	//////////////////////////////////////////////////
 	// Utility methods

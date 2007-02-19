@@ -25,6 +25,7 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
+import jade.mtp.TransportAddress;
 import jade.security.JADESecurityException;
 
 import jade.util.leap.Map;
@@ -53,6 +54,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	private NodeDescriptor localNodeDescriptor;
 	private Map localServices;
 	private Map backupManagers;
+	
+	private boolean terminating = false;
 
 	private jade.util.Logger myLogger;
 
@@ -112,9 +115,33 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 
 		backupManagers.remove(addr);
-		if (addr.equals(myPlatformManager.getLocalAddress())) {
+		if (compareAddresses(addr, myPlatformManager.getLocalAddress())) {
 			reconnect();
 		}
+	}
+
+	private boolean compareAddresses(String addr1, String addr2) {
+		//#MIDP_EXCLUDE_BEGIN
+		try {
+			TransportAddress ta1 = myIMTPManager.stringToAddr(addr1);
+			TransportAddress ta2 = myIMTPManager.stringToAddr(addr2);
+			if (CaseInsensitiveString.equalsIgnoreCase(ta1.getProto(), ta2.getProto())) {
+				if (CaseInsensitiveString.equalsIgnoreCase(ta1.getPort(), ta2.getPort())) {
+					if (Profile.compareHostNames(ta1.getHost(), ta2.getHost())) {
+						return true;
+					}
+				}				
+			}
+			return false;
+		}
+		catch (Exception e) {
+			// If we can't parse the addresses, just compare them as strings
+			return CaseInsensitiveString.equalsIgnoreCase(addr1, addr2);
+		}
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		return CaseInsensitiveString.equalsIgnoreCase(addr1, addr2);
+		#MIDP_INCLUDE_END*/
 	}
 
 	public String getLocalAddress() throws IMTPException {
@@ -172,6 +199,8 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	public void removeNode(NodeDescriptor desc) throws IMTPException, ServiceException {
 		// Do not notify the platform manager. The node termination will cause the deregistration...
 
+		terminating = true;
+		
 		// Uninstall all services locally
 		Object[] names = localServices.keySet().toArray();
 		for (int i = 0; i < names.length; i++) {
@@ -419,36 +448,38 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	 * @see jade.core.replication.MainReplicationService
 	 */
 	private synchronized boolean reconnect() {
-		// Check if the current PlatformManager is actually down (another thread
-		// may have reconnected in the meanwhile)
-		try {
-			myPlatformManager.ping();
-			return true;
-		} 
-		catch (IMTPException imtpe) {
-			// The current PlatformManager is actually down --> try to reconnect
-			invalidatePlatformManager();
-			
-			Iterator it = backupManagers.keySet().iterator();
-			while (it.hasNext()) {
-				String addr = (String) it.next();
-				try {
-					myPlatformManager = (PlatformManager) backupManagers.get(addr);
-					myLogger.log(Logger.INFO, "Reconnecting to PlatformManager at address " + myPlatformManager.getLocalAddress());
-
-					myPlatformManager.adopt(localNode, null);
-					handlePMRefreshed(addr);
-
-					myLogger.log(Logger.INFO, "Reconnection OK");
-					return true;
-				} 
-				catch (Exception e) {
-					myLogger.log(Logger.WARNING, "Reconnection failed");
-					// Ignore it and try the next address...
+		if (!terminating) {
+			// Check if the current PlatformManager is actually down (another thread
+			// may have reconnected in the meanwhile)
+			try {
+				myPlatformManager.ping();
+				return true;
+			} 
+			catch (IMTPException imtpe) {
+				// The current PlatformManager is actually down --> try to reconnect
+				invalidatePlatformManager();
+				
+				Iterator it = backupManagers.keySet().iterator();
+				while (it.hasNext()) {
+					String addr = (String) it.next();
+					try {
+						myPlatformManager = (PlatformManager) backupManagers.get(addr);
+						myLogger.log(Logger.INFO, "Reconnecting to PlatformManager at address " + myPlatformManager.getLocalAddress());
+	
+						myPlatformManager.adopt(localNode, null);
+						handlePMRefreshed(addr);
+	
+						myLogger.log(Logger.INFO, "Reconnection OK");
+						return true;
+					} 
+					catch (Exception e) {
+						myLogger.log(Logger.WARNING, "Reconnection failed");
+						// Ignore it and try the next address...
+					}
 				}
 			}
-			return false;
 		}
+		return false;
 	}
 
 	private void invalidatePlatformManager() {

@@ -26,6 +26,8 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 //#MIDP_EXCLUDE_FILE
 
+import java.util.Vector;
+
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
@@ -38,6 +40,8 @@ import jade.core.behaviours.Behaviour;
 import jade.core.event.PlatformEvent;
 import jade.core.event.MTPEvent;
 
+import jade.domain.AMSEventQueueFeeder;
+import jade.domain.FIPANames;
 import jade.domain.ams;
 import jade.domain.df;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
@@ -51,6 +55,7 @@ import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
+import jade.util.InputQueue;
 import jade.util.Logger;
 
 /**
@@ -69,10 +74,17 @@ import jade.util.Logger;
  */
 public class MainContainerImpl implements MainContainer, AgentManager {
 	
+	/**
+	 * Profile option that specifies the classes of agents that must be restarted in
+	 * case of fault of the master Main Contaier
+	 */
+	private static final String REPLICATED_AGENTS = "jade_core_MainContainerImpl_replicatedagents";
+	
 	// The two mandatory system agents.
 	private ams theAMS;
 	private df defaultDF;
 	private Map replicatedAgents = new HashMap();
+	private Vector replicatedAgentClasses;
 	
 	private ContainerID localContainerID;
 	private PlatformManagerImpl myPlatformManager;
@@ -90,6 +102,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	
 	public MainContainerImpl(Profile p, PlatformManagerImpl pm) throws ProfileException {
 		myCommandProcessor = p.getCommandProcessor();
+		replicatedAgentClasses = Specifier.parseList(p.getParameter(REPLICATED_AGENTS, ""), ';');
 		myPlatformManager = pm;
 		// The AMS must be instantiated before the installation of kernel services to
 		// avoid NullPointerException in case a service provides an AMS-behaviour 
@@ -119,7 +132,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		systemAgent.doDelete();
 		systemAgent.join();
 		systemAgent.resetToolkit();
-		removeListener(theAMS);
+		removeListener(theAMS.getQueueFeeder());
 		
 	}
 	
@@ -146,12 +159,13 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		fireRemovedContainer(cid);
 	}
 	
-	void initSystemAgents(AgentContainer localContainer) throws IMTPException, NotFoundException, JADESecurityException {
+	void initSystemAgents(AgentContainer localContainer, boolean restarting) throws IMTPException, NotFoundException, JADESecurityException {
 		ContainerID cid = localContainer.getID();
 		NodeDescriptor dsc = getDescriptor(cid.getName());
 		// The owner of both the AMS and the DF is the owner of the main container.
 		JADEPrincipal cp = dsc.getOwnerPrincipal();		
 		try {
+			((Agent) theAMS).setRestarting(restarting);
 			AID amsId = localContainer.getAMS();
 			// The AMS has NO initial credentials 
 			localContainer.initAgent(amsId, theAMS, cp, null); 
@@ -161,6 +175,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 		
 		try {
+			((Agent) defaultDF).setRestarting(restarting);
 			AID dfId = localContainer.getDefaultDF();
 			// The DF has NO initial credentials 
 			localContainer.initAgent(dfId, defaultDF, cp, null);
@@ -170,9 +185,15 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		}
 	}
 	
+	// GC-MODIFY-18022007-START
 	// Start the AMS and the Default DF
-	void startSystemAgents(AgentContainer localContainer) throws IMTPException, NotFoundException, JADESecurityException {
-		theAMS.resetEvents(true);
+	void startSystemAgents(AgentContainer localContainer, AMSEventQueueFeeder feeder) throws IMTPException, NotFoundException, JADESecurityException {
+		if (feeder != null) {
+			theAMS.setQueueFeeder(feeder);
+		}
+		else {
+			theAMS.resetEvents(true);
+		}
 		AID amsId = localContainer.getAMS();
 		localContainer.powerUpLocalAgent(amsId);
 		theAMS.waitUntilStarted();
@@ -181,6 +202,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		localContainer.powerUpLocalAgent(dfId);
 		defaultDF.waitUntilStarted();
 	}
+	// GC-MODIFY-18022007-END
 	
 	void restartReplicatedAgents(AgentContainer localContainer) throws IMTPException, NotFoundException, JADESecurityException {
 		ContainerID cid = localContainer.getID();
@@ -195,6 +217,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 				if (className != null) {
 					myLogger.log(Logger.INFO, "Restarting replicated agent "+aid.getName());
 					Agent agent = (Agent)Class.forName(className).newInstance();
+					agent.setRestarting(true);
 					localContainer.initAgent(aid, agent, cp, null); 
 					localContainer.powerUpLocalAgent(aid);
 				}
@@ -202,17 +225,24 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 					myLogger.log(Logger.WARNING, "Missing class-name for replicated agent "+aid.getName()+". Cannot restart it");
 				}
 			}
+			catch(NameClashException nce) {
+				// This agent was not in the crashed master main, but in another backup main --> It is still alive
+				// --> Just do nothing
+			}
 			catch(Exception e) {
 				myLogger.log(Logger.SEVERE, "Exception restarting replicated agent "+aid.getName(), e);
 			}
 		}
 	}
 	
+	/**
+	 * Store the AID of a newly born agent if it has started on a remote Main Container 
+	 * and its class is one of those to be replicated
+	 */
 	private void checkReplication(AID aid, ContainerID cid) {
 		try {
-			// FIXME: Check if aid has a class-name to be replicated instead of startsWith("test")
 			String className = aid.getAllUserDefinedSlot().getProperty(AID.AGENT_CLASSNAME);
-			if (aid.getLocalName().startsWith("test") && (!cid.equals(localContainerID)) && getContainerNode(cid).getNode().hasPlatformManager()) {
+			if (replicatedAgentClasses.contains(className) && (!cid.equals(localContainerID)) && getContainerNode(cid).getNode().hasPlatformManager()) {
 				replicatedAgents.put(aid, className);
 			}
 		}
@@ -1527,9 +1557,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			if (ad != null) {
 				ContainerID id = ad.getContainerID();
 				if(CaseInsensitiveString.equalsIgnoreCase(id.getName(), name)) {
-					if (aid.equals(theAMS) || aid.equals(defaultDF) || replicatedAgents.containsKey(aid)) {
+					String localName = aid.getLocalName();
+					if (localName.equals(FIPANames.AMS) || localName.equals(FIPANames.DEFAULT_DF) || replicatedAgents.containsKey(aid)) {
 						ad.getDescription().setState(AMSAgentDescription.LATENT);
 						platformAgents.release(aid);
+						// GC-ADD-18022007-START
+						// Notify listeners 
+						fireDeadAgent(cid, aid, true);
+						// GC-ADD-18022007-END
 					}
 					else {
 						platformAgents.release(aid);

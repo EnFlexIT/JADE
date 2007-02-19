@@ -44,150 +44,150 @@ import java.util.Vector;
  */
 public abstract class TransportProtocol {
 
-		private static final char SLASH = '/';
-    private static final char COLON = ':';
-    private static final char DIESIS = '#';
+	private static final char SLASH = '/';
+	private static final char COLON = ':';
+	private static final char DIESIS = '#';
 
-  /**
-   * FIXME: should throw a dedicated exception
-   */
-  public abstract String addrToString(TransportAddress ta) throws ICPException;
+	/**
+	 * FIXME: should throw a dedicated exception
+	 */
+	public abstract String addrToString(TransportAddress ta) throws ICPException;
 
-  /**
-   * FIXME: should throw a dedicated exception
-   */
-  public abstract TransportAddress stringToAddr(String s) throws ICPException;
+	/**
+	 * FIXME: should throw a dedicated exception
+	 */
+	public abstract TransportAddress stringToAddr(String s) throws ICPException;
 
-  /**
-   */
-  public abstract TransportAddress buildAddress(String host, String port, String file, 
-          String anchor);
+	/**
+	 */
+	public abstract TransportAddress buildAddress(String host, String port, String file, 
+			String anchor);
 
-  /**
-   * Method declaration
-   * 
-   * @return
-   * 
-   * @see
-   */
-  public abstract String getName();
+	/**
+	 * Method declaration
+	 * 
+	 * @return
+	 * 
+	 * @see
+	 */
+	public abstract String getName();
 
-  /**
-   * FIXME: should throw a dedicated exception
-   */
-  protected Vector parseURL(String url) throws ICPException {
-    if (url == null) {
-      throw new ICPException("Null URL");
-    } 
+	/**
+	 * FIXME: should throw a dedicated exception
+	 */
+	protected Vector parseURL(String url) throws ICPException {
+		if (url == null) {
+			throw new ICPException("Null URL");
+		} 
 
-    String protocol = null;
-    String host = null;
-    String port = null;
-    String file = null;
-    String anchor = null;
-    int    fieldStart = 0;
-    int    fieldEnd;
+		String protocol = null;
+		String host = null;
+		String port = null;
+		String file = null;
+		String anchor = null;
+		int    fieldStart = 0;
+		int    fieldEnd;
 
-    // Protocol
-    fieldEnd = url.indexOf(COLON, fieldStart);
+		// Protocol
+		fieldEnd = url.indexOf(COLON, fieldStart);
 
-    if (fieldEnd > 0 && url.charAt(fieldEnd+1) == SLASH && url.charAt(fieldEnd+2) == SLASH) {
-      protocol = url.substring(fieldStart, fieldEnd);
-    } 
-    else {
-      throw new ICPException("Invalid URL: "+url+".");
-    } 
+		if (fieldEnd > 0 && url.charAt(fieldEnd+1) == SLASH && url.charAt(fieldEnd+2) == SLASH) {
+			protocol = url.substring(fieldStart, fieldEnd);
+		} 
+		else {
+			throw new ICPException("Invalid URL: "+url+".");
+		} 
 
-    fieldStart = fieldEnd+3;
+		fieldStart = fieldEnd+3;
 
-    // Host
-    fieldEnd = url.indexOf(COLON, fieldStart);
+		// Host
+		fieldEnd = url.indexOf(COLON, fieldStart);
 
-    if (fieldEnd > 0) {
+		if (fieldEnd > 0) {
 
-      // A port is specified after the host
-      host = url.substring(fieldStart, fieldEnd);
-      fieldStart = fieldEnd+1;
+			// A port is specified after the host
+			host = url.substring(fieldStart, fieldEnd);
+			fieldStart = fieldEnd+1;
 
-      // Port
-      fieldEnd = url.indexOf(SLASH, fieldStart);
+			// Port
+			fieldEnd = url.indexOf(SLASH, fieldStart);
 
-      if (fieldEnd > 0) {
+			if (fieldEnd > 0) {
 
-        // A file is specified after the port
-        port = url.substring(fieldStart, fieldEnd);
-        fieldStart = fieldEnd+1;
+				// A file is specified after the port
+				port = url.substring(fieldStart, fieldEnd);
+				fieldStart = fieldEnd+1;
 
-        // File
-        fieldEnd = url.indexOf(DIESIS, fieldStart);
+				// File
+				fieldEnd = url.indexOf(DIESIS, fieldStart);
 
-        if (fieldEnd > 0) {
+				if (fieldEnd > 0) {
 
-          // An anchor is specified after the file
-          file = url.substring(fieldStart, fieldEnd);
-          fieldStart = fieldEnd+1;
+					// An anchor is specified after the file
+					file = url.substring(fieldStart, fieldEnd);
+					fieldStart = fieldEnd+1;
 
-          // Anchor
-          anchor = url.substring(fieldStart, url.length());
-        } 
-        else {
+					// Anchor
+					anchor = url.substring(fieldStart, url.length());
+				} 
+				else {
 
-          // No anchor is specified after the file
-          file = url.substring(fieldStart, url.length());
-        } 
-      } 
-      else {
+					// No anchor is specified after the file
+					file = url.substring(fieldStart, url.length());
+				} 
+			} 
+			else {
 
-        // No file is specified after the port
-        port = url.substring(fieldStart, url.length());
-      } 
-    } 
-    else {
+				// No file is specified after the port
+				port = url.substring(fieldStart, url.length());
+			} 
+		} 
+		else {
 
-      // No port is specified after the host
-      fieldEnd = url.indexOf(SLASH, fieldStart);
+			// No port is specified after the host
+			fieldEnd = url.indexOf(SLASH, fieldStart);
 
-      if (fieldEnd > 0) {
+			if (fieldEnd > 0) {
 
-        // A file is specified after the host
-        host = url.substring(fieldStart, fieldEnd);
-        fieldStart = fieldEnd+1;
+				// A file is specified after the host
+				host = url.substring(fieldStart, fieldEnd);
+				fieldStart = fieldEnd+1;
 
-        // File
-        fieldEnd = url.indexOf(DIESIS, fieldStart);
+				// File
+				fieldEnd = url.indexOf(DIESIS, fieldStart);
 
-        if (fieldEnd > 0) {
+				if (fieldEnd > 0) {
 
-          // An anchor is specified after the file
-          file = url.substring(fieldStart, fieldEnd);
-          fieldStart = fieldEnd+1;
+					// An anchor is specified after the file
+					file = url.substring(fieldStart, fieldEnd);
+					fieldStart = fieldEnd+1;
 
-          // Anchor
-          anchor = url.substring(fieldStart, url.length());
-        } 
-        else {
+					// Anchor
+					anchor = url.substring(fieldStart, url.length());
+				} 
+				else {
 
-          // No anchor is specified after the file
-          file = url.substring(fieldStart, url.length());
-        } 
-      } 
-      else {
+					// No anchor is specified after the file
+					file = url.substring(fieldStart, url.length());
+				} 
+			} 
+			else {
 
-        // No file is specified after the host
-        host = url.substring(fieldStart, url.length());
-      } 
-    } 
+				// No file is specified after the host
+				host = url.substring(fieldStart, url.length());
+			} 
+		} 
 
-    Vector urlFields = new Vector(5);
+		Vector urlFields = new Vector(5);
 
-    urlFields.addElement(protocol);
-    urlFields.addElement(host);
-    urlFields.addElement(port);
-    urlFields.addElement(file);
-    urlFields.addElement(anchor);
+		urlFields.addElement(protocol);
+		urlFields.addElement(host);
+		urlFields.addElement(port);
+		urlFields.addElement(file);
+		urlFields.addElement(anchor);
 
-    return urlFields;
-  } 
+		return urlFields;
+	} 
 
 }
 

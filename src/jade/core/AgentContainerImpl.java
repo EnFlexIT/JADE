@@ -29,6 +29,7 @@ import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
+import jade.util.InputQueue;
 import jade.util.Logger;
 
 import jade.lang.acl.ACLMessage;
@@ -37,6 +38,7 @@ import jade.core.behaviours.Behaviour;
 import jade.core.messaging.GenericMessage;
 import jade.core.management.AgentManagementSlice;
 
+import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
@@ -388,7 +390,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		// since during service boot some messages may be directed to the AMS or DF
 		boolean isMaster = !myProfile.getBooleanProperty(Profile.LOCAL_SERVICE_MANAGER, false);
 		if(myMainContainer != null && isMaster) {
-			myMainContainer.initSystemAgents(this);
+			myMainContainer.initSystemAgents(this, false);
 		}
 		//#MIDP_EXCLUDE_END
 		
@@ -412,7 +414,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_BEGIN
 		// If we are the master main container --> start the AMS and DF.
 		if(myMainContainer != null && isMaster) {
-			myMainContainer.startSystemAgents(this);
+			myMainContainer.startSystemAgents(this, null);
 		}
 		//#MIDP_EXCLUDE_END
 	}
@@ -1122,12 +1124,13 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			throw new ServiceException("An error occurred during service deactivation", t);
 		}
 	}
-	
-	public void becomeLeader() {
+
+	// GC-MODIFY-18022007-START
+	public void becomeLeader(AMSEventQueueFeeder feeder) {
 		//#MIDP_EXCLUDE_BEGIN
 		try {
-			myMainContainer.initSystemAgents(this);
-			myMainContainer.startSystemAgents(this);
+			myMainContainer.initSystemAgents(this, true);
+			myMainContainer.startSystemAgents(this, feeder);
 			myMainContainer.restartReplicatedAgents(this);
 		}
 		catch(Exception e) {
@@ -1135,6 +1138,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 		//#MIDP_EXCLUDE_END
 	}
+	// GC-MODIFY-18022007-END
 	
 	
 	//#ALL_EXCLUDE_BEGIN
