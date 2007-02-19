@@ -1447,8 +1447,8 @@ public class Agent implements Runnable, Serializable
 			//#MIDP_EXCLUDE_BEGIN
 			notifyStarted();
 			//#MIDP_EXCLUDE_END
-			restarting = false;
 			setup();
+			restarting = false;
 		}
 		
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
