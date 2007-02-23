@@ -68,7 +68,17 @@ public abstract class Profile {
 	public static final String MAIN_PORT = "port";
 	
 	/**
-	 This constant is the name of the property whise value contains
+	 This constant is the name of the property whose Boolean value
+	 tells whether to activate multicast detection of main container.
+	 When true, main containers publish their addresses through
+	 a service reachable on a multicast address (by default 239.255.10.99,
+	 port 1199) and peripheral containers obtain the address of master
+	 main container via a multicast request. The default is false. 
+	 */
+	public static final String DETECT_MAIN = "detect-main";
+	
+	/**
+	 This constant is the name of the property whose value contains
 	 the host name the container must bind on. The host name must
 	 refer to the local machine, and is generally needed only when
 	 multiple network interfaces are present or a non-default name is

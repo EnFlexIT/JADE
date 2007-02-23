@@ -11,6 +11,7 @@ GENERAL IMPROVEMENTS:
 - Added dump-options option to print out configuration options at container startup
 - Added methods to get predicate, concept and action names from an ontology
 - Added method to define action-result type in AgentActionSchema
+- Added Main-Container detection via multicast (option -detect-main)
 
 BUG-FIXES:
 - Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 

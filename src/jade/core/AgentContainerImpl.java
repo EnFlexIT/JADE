@@ -292,10 +292,22 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected void init() throws IMTPException, ProfileException {
 		myCommandProcessor = myProfile.getCommandProcessor();
 		
+		//#MIDP_EXCLUDE_BEGIN
+		if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, false)) {
+			// FIXME check correctness of cast to ProfileImpl
+			MainDetectionManager.detect((ProfileImpl)myProfile);
+		}
+		//#MIDP_EXCLUDE_END
+
 		try {
 			// Create and initialize the IMTPManager
 			myIMTPManager = myProfile.getIMTPManager();
 			myIMTPManager.initialize(myProfile);
+			//#MIDP_EXCLUDE_BEGIN
+			if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, false) && ((ProfileImpl)myProfile).isMain()) {
+					MainDetectionManager.export((ProfileImpl)myProfile, myIMTPManager);
+			}
+			//#MIDP_EXCLUDE_END
 		}
 		finally {
 			if (myProfile.getBooleanProperty(Profile.DUMP_OPTIONS, false)) {
@@ -575,6 +587,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		
 		try {
 			myServiceManager.removeNode(myNodeDescriptor);
+			//#MIDP_EXCLUDE_BEGIN
+			MainDetectionManager.unexport();
+			//#MIDP_EXCLUDE_END
 			myIMTPManager.shutDown();
 		}
 		catch(IMTPException imtpe) {
