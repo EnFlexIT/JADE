@@ -20,6 +20,8 @@ LEAP:
 
 
 ADD-ONS:
+- Persistence Add-on
+  - Some fix to properly support MySql DB (by Vincenzo Gioviale) 
 
 
 DOCUMENTATION:

@@ -72,8 +72,9 @@ public interface AgentContainer {
     void fillListFromReadyBehaviours(List behaviours, Agent a);
     void fillListFromBlockedBehaviours(List behaviours, Agent a);
 
-    //void commitMigration(Agent instance);
-    //void abortMigration(Agent instance);
+	// GC-MODIFY-18022007-START
+    void becomeLeader(AMSEventQueueFeeder feeder);
+	// GC-MODIFY-18022007-END
     //#MIDP_EXCLUDE_END
 
     void addAddressToLocalAgents(String address);
@@ -84,7 +85,4 @@ public interface AgentContainer {
 
     void shutDown();
 
-	// GC-MODIFY-18022007-START
-    void becomeLeader(AMSEventQueueFeeder feeder);
-	// GC-MODIFY-18022007-END
 }
