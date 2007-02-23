@@ -25,7 +25,9 @@ package jade.core;
 
 //#APIDOC_EXCLUDE_FILE
 
+//#MIDP_EXCLUDE_BEGIN
 import jade.domain.AMSEventQueueFeeder;
+//#MIDP_EXCLUDE_END
 import jade.lang.acl.ACLMessage;
 
 import jade.util.InputQueue;

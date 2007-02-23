@@ -25,16 +25,12 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
-import jade.core.AgentManager;
-import jade.core.Channel;
-import jade.core.ServiceFinder;
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
 import jade.core.BaseService;
 import jade.core.ServiceException;
-import jade.core.Sink;
 import jade.core.Filter;
 import jade.core.Node;
 import jade.core.NodeDescriptor;
@@ -42,7 +38,6 @@ import jade.core.NodeEventListener;
 import jade.core.NodeFailureMonitor;
 
 import jade.core.AgentContainer;
-import jade.core.MainContainer;
 import jade.core.MainContainerImpl;
 import jade.core.PlatformManager;
 import jade.core.Profile;
@@ -50,30 +45,12 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
-import jade.core.UnreachableException;
 
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.AgentManager.Listener;
-import jade.core.event.MTPEvent;
-import jade.core.event.PlatformEvent;
 
 import jade.domain.AMSEventQueueFeeder;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
-import jade.domain.introspection.AddedContainer;
-import jade.domain.introspection.AddedMTP;
-import jade.domain.introspection.BornAgent;
-import jade.domain.introspection.ChangedAgentOwnership;
-import jade.domain.introspection.DeadAgent;
-import jade.domain.introspection.EventRecord;
-import jade.domain.introspection.FrozenAgent;
-import jade.domain.introspection.MovedAgent;
-import jade.domain.introspection.PlatformDescription;
-import jade.domain.introspection.RemovedContainer;
-import jade.domain.introspection.RemovedMTP;
-import jade.domain.introspection.ResumedAgent;
-import jade.domain.introspection.SuspendedAgent;
-import jade.domain.introspection.ThawedAgent;
 
 import jade.mtp.MTPDescriptor;
 

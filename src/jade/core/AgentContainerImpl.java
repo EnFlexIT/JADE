@@ -29,7 +29,6 @@ import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
-import jade.util.InputQueue;
 import jade.util.Logger;
 
 import jade.lang.acl.ACLMessage;
@@ -38,7 +37,9 @@ import jade.core.behaviours.Behaviour;
 import jade.core.messaging.GenericMessage;
 import jade.core.management.AgentManagementSlice;
 
+//#MIDP_EXCLUDE_BEGIN
 import jade.domain.AMSEventQueueFeeder;
+//#MIDP_EXCLUDE_END
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
@@ -1126,8 +1127,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 
 	// GC-MODIFY-18022007-START
+	//#MIDP_EXCLUDE_BEGIN
 	public void becomeLeader(AMSEventQueueFeeder feeder) {
-		//#MIDP_EXCLUDE_BEGIN
 		try {
 			myMainContainer.initSystemAgents(this, true);
 			myMainContainer.startSystemAgents(this, feeder);
@@ -1136,8 +1137,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		//#MIDP_EXCLUDE_END
 	}
+	//#MIDP_EXCLUDE_END
 	// GC-MODIFY-18022007-END
 	
 	
