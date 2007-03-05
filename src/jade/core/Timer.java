@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -34,53 +34,44 @@ actions after a given amount of time. It should not
 be used by application developers. 
 @author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
-*/
-public class Timer /*implements Comparable*/ {
+ */
+public class Timer {
 
-  private long expireTimeMillis;
-  private boolean fired;
-  private TimerListener owner;
+	private long expireTimeMillis;
+	private boolean fired;
+	private TimerListener owner;
 
-  public Timer(long when, TimerListener tl) {
-    expireTimeMillis = when;
-    owner = tl;
-    fired = false;
-  }
+	public Timer(long when, TimerListener tl) {
+		expireTimeMillis = when;
+		owner = tl;
+		fired = false;
+	}
 
-  /*public int compareTo(Object o) {
-    if(equals(o))
-      return 0;
-    else {
-      Timer t = (Timer)o;
-      return (expireTimeMillis <= t.expireTimeMillis) ? -1 : 1;
-    }
-  }*/
-
-  public boolean equals(Object o) {
-    Timer t = (Timer)o;
-    return (expireTimeMillis == t.expireTimeMillis);
-  }
+	public boolean equals(Object o) {
+		Timer t = (Timer)o;
+		return (expireTimeMillis == t.expireTimeMillis);
+	}
 
 
-  // Called by the TimerDispatcher
+	// Called by the TimerDispatcher
 
-  boolean isExpired() {
-    return expireTimeMillis < System.currentTimeMillis();
-  }
-  
-  void fire() {
-  	if (!fired) {
-  		fired = true;
-	  	owner.doTimeOut(this);
-  	}
-  }
+	boolean isExpired() {
+		return expireTimeMillis < System.currentTimeMillis();
+	}
 
-  long expirationTime() {
-    return expireTimeMillis;
-  }
+	void fire() {
+		if (!fired) {
+			fired = true;
+			owner.doTimeOut(this);
+		}
+	}
 
-  void setExpirationTime(long t) {
-    expireTimeMillis = t;
-  }
+	final long expirationTime() {
+		return expireTimeMillis;
+	}
+
+	void setExpirationTime(long t) {
+		expireTimeMillis = t;
+	}
 
 }

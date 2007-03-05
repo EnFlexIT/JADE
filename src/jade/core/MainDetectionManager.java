@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-//#MIDP_EXCLUDE_FILE
+//#J2ME_EXCLUDE_FILE
 
 class MainDetectionManager {
 
@@ -356,7 +356,7 @@ class MainDetectionManager {
 	 */
 	private static String buildGetMainRequest(String platformName, String proto) {
 		// build request
-		StringBuilder msg = new StringBuilder(PROTO_CMD_GETMAIN);
+		StringBuffer msg = new StringBuffer(PROTO_CMD_GETMAIN);
 		if (platformName != null) {
 			msg.append('@');
 			msg.append(platformName);

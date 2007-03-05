@@ -212,7 +212,8 @@ public abstract class DBKB extends KB {
 		ConnectionWrapper wrapper = (ConnectionWrapper) connections.get();
 		if (wrapper != null) {
 			try {wrapper.getConnection().close();} catch (Exception e) {}
-			connections.remove();
+			// FIXME: For JDK1.4 compatibility we can't use remove(). For our purposes there is no difference  
+			connections.set(null);
 		}
 	}
 	
