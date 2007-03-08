@@ -199,6 +199,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		theAMS.waitUntilStarted();
 		
 		AID dfId = localContainer.getDefaultDF();
+		
 		localContainer.powerUpLocalAgent(dfId);
 		defaultDF.waitUntilStarted();
 	}
@@ -1563,7 +1564,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 						platformAgents.release(aid);
 						// GC-ADD-18022007-START
 						// Notify listeners 
-						fireDeadAgent(cid, aid, true);
+						// fireDeadAgent(cid, aid, true);
 						// GC-ADD-18022007-END
 					}
 					else {

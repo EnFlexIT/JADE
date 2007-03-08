@@ -43,9 +43,12 @@ public class ContainerID implements Location {
 
     private String name;
     private String address;
+    private Boolean main;
+	private String port;
+	private String protocol;
 
 
-    /**
+	/**
        The default costructor builds an uninitialized container ID.
     */
     public ContainerID() {
@@ -60,11 +63,17 @@ public class ContainerID implements Location {
     */
     public ContainerID(String n, TransportAddress a) {
 	name = n;
-	if(a != null)
+	if(a != null){
 	    address = a.getHost();
-	else
+		port = a.getPort();
+		protocol = a.getProto();
+
+	}
+	else{
 	    address = "<Unknown Host>";
-    }
+		protocol = DEFAULT_IMTP;
+	}
+	}
 
     /**
        Set the name of the described container.
@@ -92,7 +101,7 @@ public class ContainerID implements Location {
        @param p The name of the chosen IMTP.
     */
     public void setProtocol(String p) {
-	// Ignore it
+	protocol = p;
     }
 
     /**
@@ -104,7 +113,7 @@ public class ContainerID implements Location {
        @return The name of the IMTP used in the described container.
     */
     public String getProtocol() {
-	return DEFAULT_IMTP;
+	return protocol;
     }
 
     /**
@@ -126,7 +135,15 @@ public class ContainerID implements Location {
 	return address;
     }
 
-    /**
+	public String getPort() {
+		return port;
+	}
+
+	public void setPort(String port) {
+		this.port = port;
+	}
+
+	/**
        Retrieve a string identifying the described container. The
        string is composed by the container name, the <i>@</i> symbol
        and the transport URL string.
@@ -179,5 +196,14 @@ public class ContainerID implements Location {
     public int hashCode() {
   	return name.toLowerCase().hashCode();
     }
+
+	public void setMain(Boolean main) {
+		this.main = main;
+		
+	}
+
+	public Boolean getMain() {
+		return main;
+	}
 	
 }

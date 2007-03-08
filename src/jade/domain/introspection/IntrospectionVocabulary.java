@@ -155,6 +155,10 @@ public interface IntrospectionVocabulary {
   public static final String CONTAINERID = "container-ID";
   public static final String CONTAINERID_NAME = "name";
   public static final String CONTAINERID_ADDRESS = "address";
+  public static final String CONTAINERID_MAIN = "main";
+  public static final String CONTAINERID_PORT = "port";
+  public static final String CONTAINERID_PROTOCOL = "protocol";
+
   
   public static final String AGENTSTATE = "agent-state";
   public static final String AGENTSTATE_NAME = "name";

@@ -617,6 +617,7 @@ public class PlatformManagerImpl implements PlatformManager {
 					if (!n.hasPlatformManager()) {
 						try {
 							n.platformManagerDead(address, getLocalAddress());
+
 						} catch (IMTPException imtpe) {
 							// The node daid while no one was monitoring it
 							removeTerminatedNode(n);
@@ -827,6 +828,12 @@ public class PlatformManagerImpl implements PlatformManager {
 	private void adjustContainerName(Node n, ContainerID cid) {
 		String name = null;
 		NodeDescriptor old = null;
+		if (n.hasPlatformManager()) {
+			cid.setMain(new Boolean(true));
+		}else{
+			cid.setMain(new Boolean(false));
+		}
+		
 		if (cid.getName() == null || cid.getName().equals(NO_NAME)) {
 			if (n.hasPlatformManager()) {
 				// Use the Main-Container-<N> name schema
@@ -834,6 +841,7 @@ public class PlatformManagerImpl implements PlatformManager {
 					name = AgentContainer.MAIN_CONTAINER_NAME + (mainContainerNo == 0 ? "" : "-" + mainContainerNo);
 					mainContainerNo++;
 					old = (NodeDescriptor) nodes.get(name);
+					
 				} while (old != null);
 			} else {
 				do {
@@ -846,6 +854,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		} else {
 			// The new container comes with a user defined name.
 			// If it is already in use add a progressive number
+			
 			name = cid.getName();
 			int cnt = 1;
 			old = (NodeDescriptor) nodes.get(name);
@@ -855,6 +864,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				old = (NodeDescriptor) nodes.get(name);
 			}
 			cid.setName(name);
+			
 		}
 	}
 

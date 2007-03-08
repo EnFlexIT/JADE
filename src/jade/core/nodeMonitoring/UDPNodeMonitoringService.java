@@ -153,7 +153,9 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			try {
 				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit);
 				myServer.start();
-				myLogger.log(Logger.INFO, "UDPMonitorServer successfully started. Port = " + port + " pingdelaylimit = " + pingDelayLimit + " unreachablelimit = " + unreachLimit);
+                //port can be changed if it is already binded to
+                port = myServer.getPort();
+                myLogger.log(Logger.INFO, "UDPMonitorServer successfully started. Port = " + port + " pingdelaylimit = " + pingDelayLimit + " unreachablelimit = " + unreachLimit);
 			} catch (Exception e) {
 				String s = "Error creating UDP monitoring server";
 				myLogger.log(Logger.SEVERE, s);

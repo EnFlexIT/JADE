@@ -38,6 +38,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.BindException;
 //#DOTNET_EXCLUDE_END
 
 /*#DOTNET_INCLUDE_BEGIN
@@ -301,9 +302,14 @@ class UDPMonitorServer {
 
 			//#DOTNET_EXCLUDE_BEGIN
 			server.configureBlocking(false);
-			server.socket().setReuseAddress(true);
-			server.socket().bind(new InetSocketAddress(host, port));
-			//#DOTNET_EXCLUDE_END
+            try {
+                server.socket().bind(new InetSocketAddress(host, port));
+            } catch (BindException e){
+                server.socket().bind(null);
+                port  = server.socket().getLocalPort();
+                logger.log(Logger.INFO, "New UDP monitoring server port  " + port);
+            }
+            //#DOTNET_EXCLUDE_END
 
 			/*#DOTNET_INCLUDE_BEGIN
 			 server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -405,9 +411,8 @@ class UDPMonitorServer {
 	protected void pingReceived(String nodeID, boolean isTerminating) {
 
 		if (logger.isLoggable(Logger.FINEST)) {
-			logger.log(Logger.FINEST, "UDP ping message for node '" + nodeID + "' received. (termination-flag: " + isTerminating + ")");
+			logger.log(Logger.FINE, "UDP ping message for node '" + nodeID + "' received. (termination-flag: " + isTerminating + ")");
 		}
-
 		UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
 
 		if (mon != null) {

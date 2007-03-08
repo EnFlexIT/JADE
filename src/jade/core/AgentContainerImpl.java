@@ -293,7 +293,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		myCommandProcessor = myProfile.getCommandProcessor();
 		
 		//#J2ME_EXCLUDE_BEGIN
-		if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, false)) {
+        // main-host option takes precendence over dectect-main
+        if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, false) && !myProfile.getBooleanProperty(Profile.MAIN_HOST, false)) {
 			// FIXME check correctness of cast to ProfileImpl
 			MainDetectionManager.detect((ProfileImpl)myProfile);
 		}
