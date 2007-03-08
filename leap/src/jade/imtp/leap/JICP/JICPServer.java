@@ -143,7 +143,8 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		
 		// Local port: a peripheral container can change it if busy...
 		int port = JICPProtocol.DEFAULT_PORT;
-		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true);
+		boolean changePortIfBusy = !p.getBooleanProperty(Profile.MAIN, true) || p.getBooleanProperty(LEAPIMTPManager.CHANGE_PORT_IF_BUSY, false);
+
 		sb.setLength(idLength);
 		sb.append(JICPProtocol.LOCAL_PORT_KEY);
 		String strPort = p.getParameter(sb.toString(), null);

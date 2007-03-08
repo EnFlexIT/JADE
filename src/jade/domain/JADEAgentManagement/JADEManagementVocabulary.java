@@ -43,6 +43,11 @@ public interface JADEManagementVocabulary extends ExceptionVocabulary {
   public static final String LOCATION_PROTOCOL = "protocol";
 
   public static final String CONTAINERID = "container-ID";
+  public static final String CONTAINERID_MAIN = "main";
+  public static final String CONTAINERID_PORT = "port";
+  public static final String CONTAINERID_PROTOCOL = "protocol";
+
+  
   
   public static final String PLATFORMID = "platform-ID";
   

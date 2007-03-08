@@ -83,4 +83,8 @@ class NodeSkel extends Skeleton {
 
 		return command;
   }
+  
+  public String toString() {
+	  return getClass().getName()+"["+myNode.getName()+"]";
+  }
 }

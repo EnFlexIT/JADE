@@ -131,8 +131,11 @@ public class JADEManagementOntology extends Ontology implements JADEManagementVo
     	
     	cs = (ConceptSchema) getSchema(CONTAINERID);
     	cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
+    	cs.add(CONTAINERID_MAIN, (PrimitiveSchema)getSchema(BasicOntology.BOOLEAN), ObjectSchema.OPTIONAL);
+		cs.add(CONTAINERID_PORT, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
+		cs.add(CONTAINERID_PROTOCOL, (PrimitiveSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
 
-    	cs = (ConceptSchema) getSchema(PLATFORMID);
+		cs = (ConceptSchema) getSchema(PLATFORMID);
     	cs.addSuperSchema((ConceptSchema) getSchema(LOCATION));
     	
     	AgentActionSchema as = (AgentActionSchema) getSchema(SHUTDOWNPLATFORM);

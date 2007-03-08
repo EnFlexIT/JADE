@@ -900,6 +900,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 					response = s.processCommand(command);
 				}
 				else {
+					System.out.println("WARNING!!!!! Incoming command for missing skeleton "+id+". Currently registered skeletons = "+skeletons);
 					response = buildExceptionResponse(new DispatcherException("No skeleton for object-id "+id));
 				}
 			} 
