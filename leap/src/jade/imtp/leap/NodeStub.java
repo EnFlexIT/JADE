@@ -105,10 +105,10 @@ class NodeStub extends Stub implements Node {
 	public boolean ping(boolean hang) throws IMTPException {
 		Command cmd;
 		if(hang) {
-			cmd = new Command(Command.PING_NODE_BLOCKING, remoteID);
+			cmd = new Command(Command.PING_NODE_BLOCKING, remoteID, true);
 		}
 		else {
-			cmd = new Command(Command.PING_NODE_NONBLOCKING, remoteID);
+			cmd = new Command(Command.PING_NODE_NONBLOCKING, remoteID, true);
 		}
 		cmd.addParam(new Boolean(hang));
 		

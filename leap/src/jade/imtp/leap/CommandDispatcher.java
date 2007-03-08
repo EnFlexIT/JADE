@@ -286,7 +286,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		//#J2ME_EXCLUDE_END
 		if (response == null) {
 			try {
-				response = dispatchSerializedCommand(destTAs, serializeCommand(command), name);
+				response = dispatchSerializedCommand(destTAs, serializeCommand(command), command.getRequireFreshConnection(), name);
 			} 
 			catch (LEAPSerializationException lse) {
 				throw new DispatcherException("Error serializing command "+command+" ["+lse.getMessage()+"]");
@@ -328,20 +328,18 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if none of the destination addresses
 	 * is reachable.
 	 */
-	protected Command dispatchSerializedCommand(List destTAs, byte[] commandPayload, String origin) 
+	private Command dispatchSerializedCommand(List destTAs, byte[] commandPayload, boolean requireFreshConnection, String origin) 
 	throws DispatcherException, UnreachableException {
 		
 		// Be sure that the destination addresses are correctly specified
 		if (destTAs == null || destTAs.size() == 0) {
-			throw new DispatcherException("no destination address specified.");
-			
+			throw new DispatcherException("no destination address specified.");		
 		} 
 		
 		byte[] responsePayload = null;
-		try {
-			
+		try {		
 			// Try to dispatch the command directly
-			responsePayload = dispatchDirectly(destTAs, commandPayload);
+			responsePayload = dispatchDirectly(destTAs, commandPayload, requireFreshConnection);
 			
 			// Runtime.instance().gc(23);
 		} 
@@ -352,7 +350,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 			}
 			
 			if (routerTA != null) {
-				responsePayload = dispatchThroughRouter(destTAs, commandPayload, origin);
+				responsePayload = dispatchThroughRouter(destTAs, commandPayload, requireFreshConnection, origin);
 			}
 			else {
 				throw ue;
@@ -389,15 +387,14 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if none of the destination addresses
 	 * is reachable.
 	 */
-	protected byte[] dispatchDirectly(List destTAs, 
-			byte[] commandPayload) throws UnreachableException {
+	private byte[] dispatchDirectly(List destTAs, byte[] commandPayload, boolean requireFreshConnection) throws UnreachableException {
 		
 		// Loop on destinaltion addresses (No need to check again
 		// that the list of addresses is not-null and not-empty)
 		UnreachableException lastException = null;
 		for (int i = 0; i < destTAs.size(); i++) {
 			try {
-				return send((TransportAddress) destTAs.get(i), commandPayload);
+				return send((TransportAddress) destTAs.get(i), commandPayload, requireFreshConnection);
 			} 
 			catch (UnreachableException ue) {
 				lastException = ue;
@@ -431,7 +428,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if none of the destination addresses
 	 * is reachable.
 	 */
-	protected byte[] dispatchThroughRouter(List destTAs, byte[] commandPayload, String origin) throws DispatcherException, UnreachableException {
+	private byte[] dispatchThroughRouter(List destTAs, byte[] commandPayload, boolean requireFreshConnection, String origin) throws DispatcherException, UnreachableException {
 		// Build a FORWARD command
 		Command forward = new Command(Command.FORWARD);
 		forward.addParam(commandPayload);
@@ -441,7 +438,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		// Runtime.instance().gc(26);
 		
 		try {
-			return send(routerTA, serializeCommand(forward));
+			return send(routerTA, serializeCommand(forward), requireFreshConnection);
 		} 
 		catch (LEAPSerializationException lse) {
 			throw new DispatcherException("error serializing FORWARD command ["+lse.getMessage()+"].");
@@ -787,7 +784,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @throws UnreachableException if the destination address is not
 	 * reachable.
 	 */
-	protected byte[] send(TransportAddress ta, byte[] commandPayload) throws UnreachableException {
+	private byte[] send(TransportAddress ta, byte[] commandPayload, boolean requireFreshConnection) throws UnreachableException {
 		
 		// Get the ICPs suitable for the given TransportAddress.
 		List list = (List) icps.get(ta.getProto().toLowerCase());
@@ -800,7 +797,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		ICPException lastException = null;
 		for (int i = 0; i < list.size(); i++) {
 			try {
-				return ((ICP) list.get(i)).deliverCommand(ta, commandPayload);
+				return ((ICP) list.get(i)).deliverCommand(ta, commandPayload, requireFreshConnection);
 			} 
 			catch (ICPException icpe) {
 				lastException = icpe;
@@ -886,7 +883,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 				} 
 				else {
 					try {
-						response = dispatchSerializedCommand(destTAs, originalPayload, origin);
+						response = dispatchSerializedCommand(destTAs, originalPayload, false, origin);
 					} 
 					catch (UnreachableException ue) {
 						response = buildExceptionResponse(ue);

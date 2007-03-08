@@ -18,6 +18,7 @@ BUG-FIXES:
 
 LEAP:
 - Added support for ServiceHelper retrieval and usage in split container execution mode
+- Added support for automatically changing the local port of the Main Container in case the specified port (or the default one) is busy (jade_imtp_leap_LEAPIMTPManager_changeportifbusy option).   
 
 
 ADD-ONS:
@@ -26,8 +27,8 @@ ADD-ONS:
 
 
 DOCUMENTATION:
+- New tutorial on JADE-JESS integration by Henrique Lopes Cardoso (University of Porto)
 - Updated tutorial on Content Languages and Ontologies with information about the new CFReflectiveIntrospector
-
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 NONE

@@ -47,68 +47,78 @@ import java.util.Vector;
  * @author Giovanni Rimassa - FRAMeTech s.r.l.
  */
 public class Command {
-  /**
-   * Unspecified object id
-   */
-  public static final int        DUMMY_ID = -1;
+	/**
+	 * Unspecified object id
+	 */
+	public static final int        DUMMY_ID = -1;
 
-  /**
-   * Command identifier code for response command.
-   */
+	/**
+	 * Command identifier code for response command.
+	 */
 
-  // Lower limit for service and node management related commands
-  static final int SERVICE_BASE = 0;
+	// Lower limit for service and node management related commands
+	static final int SERVICE_BASE = 0;
 
-  // Service and node management related command IDs
-  public static final int GET_PLATFORM_NAME = 1;
-  public static final int ADD_NODE = 2;
-  public static final int REMOVE_NODE = 3;
-  public static final int ACTIVATE_SERVICE = 4;
-  public static final int DEACTIVATE_SERVICE = 5;
-  public static final int FIND_SLICE_NODE = 6;
-  public static final int FIND_ALL_NODES = 7;
-  public static final int ACCEPT_COMMAND = 8;
-  public static final int PING_NODE_BLOCKING = 9;
-  public static final int PING_NODE_NONBLOCKING = 10;
-  public static final int EXIT_NODE = 11;
-  public static final int INTERRUPT_NODE = 12;
-  public static final int SERVICE_MANAGER_ADOPT = 13;
-  public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
-  public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
-  public static final int PLATFORM_MANAGER_DEAD = 16;
+	// Service and node management related command IDs
+	public static final int GET_PLATFORM_NAME = 1;
+	public static final int ADD_NODE = 2;
+	public static final int REMOVE_NODE = 3;
+	public static final int ACTIVATE_SERVICE = 4;
+	public static final int DEACTIVATE_SERVICE = 5;
+	public static final int FIND_SLICE_NODE = 6;
+	public static final int FIND_ALL_NODES = 7;
+	public static final int ACCEPT_COMMAND = 8;
+	public static final int PING_NODE_BLOCKING = 9;
+	public static final int PING_NODE_NONBLOCKING = 10;
+	public static final int EXIT_NODE = 11;
+	public static final int INTERRUPT_NODE = 12;
+	public static final int SERVICE_MANAGER_ADOPT = 13;
+	public static final int SERVICE_MANAGER_ADD_REPLICA = 14;
+	public static final int SERVICE_MANAGER_UPDATE_COUNTERS = 15;
+	public static final int PLATFORM_MANAGER_DEAD = 16;
 
-  public static final int        OK = 1;
-  public static final int        ERROR = 2;
-  public static final int        FORWARD = 37;
+	public static final int        OK = 1;
+	public static final int        ERROR = 2;
+	public static final int        FORWARD = 37;
 
-  /**
-   * Code defining the type of command.
-   */
-  private int             commandCode;
+	/**
+	 * Code defining the type of command.
+	 */
+	private int             commandCode;
 
-  /**
-   * Identifier of the remote object this Command is directed to.
-   */
-  private int             objectID;
+	/**
+	 * Identifier of the remote object this Command is directed to.
+	 */
+	private int             objectID;
 
-  /**
-   * This list represents the argument list of this platform command.
-   */
-  private Vector            commandParameters;
+	/**
+	 * This list represents the argument list of this platform command.
+	 */
+	private Vector            commandParameters;
+	
+	private boolean requireFreshConnection = false;
 
-  /**
-   */
-  Command(int code) {
-    commandCode = code;
-    objectID = DUMMY_ID;
-  }
+	/**
+	 */
+	Command(int code) {
+		commandCode = code;
+		objectID = DUMMY_ID;
+	}
 
-  /**
-   */
-  Command(int code, int id) {
-    commandCode = code;
-    objectID = id;
-  }
+	/**
+	 */
+	Command(int code, int id) {
+		commandCode = code;
+		objectID = id;
+	}
+
+	/**
+	 */
+	Command(int code, int id, boolean requireFreshConnection) {
+		commandCode = code;
+		objectID = id;
+		this.requireFreshConnection = requireFreshConnection;
+	}
 
 	/**
 	   Allows reusing the same object to deal with another command.
@@ -121,68 +131,72 @@ public class Command {
 			commandParameters.removeAllElements();
 		}
 	}
-  
-  /**
-   * Return the command identifier code of this command.
-   * @return the command identifier code specifying the type of command
-   */
-  int getCode() {
-    return commandCode;
-  } 
 
-  /**
-   * Method declaration
-   * 
-   * @return
-   * 
-   * @see
-   */
-  int getObjectID() {
-    return objectID;
-  } 
+	/**
+	 * Return the command identifier code of this command.
+	 * @return the command identifier code specifying the type of command
+	 */
+	int getCode() {
+		return commandCode;
+	} 
 
-  /**
-   * Add a deliverable parameter, i.e., an object implementing the
-   * <code>Deliverable</code> interface or a <code>java.lang.String</code> or a
-   * <code>java.lang.StringBuffer</code> object to the end of the
-   * argument list of this command object.
-   * @param param the parameter object to be added at the end of the argument
-   * list
-   * @see Deliverable
-   * @see DeliverableDataInputStream#readObject()
-   * @see DeliverableDataOutputStream#writeObject( java.lang.Object )
-   */
-  void addParam(Object param) {
-  	if (commandParameters == null) {
-  		commandParameters = new Vector();
-  	}
-    commandParameters.addElement(param);
-  } 
+	/**
+	 * Method declaration
+	 * 
+	 * @return
+	 * 
+	 * @see
+	 */
+	int getObjectID() {
+		return objectID;
+	} 
 
-  /**
-   * Return the number of parameters in this command object.
-   */
-  int getParamCnt() {
-  	if (commandParameters == null) {
-  		return 0;
-  	}
-  	else {
-	    return commandParameters.size();
-  	}
-  } 
+	/**
+	 * Add a deliverable parameter, i.e., an object implementing the
+	 * <code>Deliverable</code> interface or a <code>java.lang.String</code> or a
+	 * <code>java.lang.StringBuffer</code> object to the end of the
+	 * argument list of this command object.
+	 * @param param the parameter object to be added at the end of the argument
+	 * list
+	 * @see Deliverable
+	 * @see DeliverableDataInputStream#readObject()
+	 * @see DeliverableDataOutputStream#writeObject( java.lang.Object )
+	 */
+	void addParam(Object param) {
+		if (commandParameters == null) {
+			commandParameters = new Vector();
+		}
+		commandParameters.addElement(param);
+	} 
 
-  /**
-   * Return the parameter at the specified index of this command object.
-   * @param index the parameter index
-   * @return the parameter at the specified index
-   */
-  Object getParamAt(int index) {
-  	if (commandParameters == null) {
-  		throw new IndexOutOfBoundsException(String.valueOf(index));
-  	}
-  	else {
-	    return commandParameters.elementAt(index);
-  	}
-  } 
+	/**
+	 * Return the number of parameters in this command object.
+	 */
+	int getParamCnt() {
+		if (commandParameters == null) {
+			return 0;
+		}
+		else {
+			return commandParameters.size();
+		}
+	} 
+
+	/**
+	 * Return the parameter at the specified index of this command object.
+	 * @param index the parameter index
+	 * @return the parameter at the specified index
+	 */
+	Object getParamAt(int index) {
+		if (commandParameters == null) {
+			throw new IndexOutOfBoundsException(String.valueOf(index));
+		}
+		else {
+			return commandParameters.elementAt(index);
+		}
+	} 
+	
+	boolean getRequireFreshConnection() {
+		return requireFreshConnection;
+	}
 }
 

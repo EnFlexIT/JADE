@@ -104,8 +104,8 @@ public class JICPPeer implements ICP, ProtocolManager {
   /**
    * deliver a serialized command to a given transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
-    byte[] respPayload = client.send(ta, JICPProtocol.COMMAND_TYPE, payload);
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload, boolean requireFreshConnection) throws ICPException {
+    byte[] respPayload = client.send(ta, JICPProtocol.COMMAND_TYPE, payload, requireFreshConnection);
 
     return (respPayload);
   } 
@@ -130,7 +130,7 @@ public class JICPPeer implements ICP, ProtocolManager {
     try {
       TransportAddress pingAddr = getProtocol().stringToAddr(pingURL);
 
-      respPayload = client.send(pingAddr, JICPProtocol.GET_ADDRESS_TYPE, new byte[0]);
+      respPayload = client.send(pingAddr, JICPProtocol.GET_ADDRESS_TYPE, new byte[0], false);
     } 
     catch (ICPException icpe) {
       throw new ICPException("JICP GET_ADDRESS error. Cannot retrieve local hostname: "

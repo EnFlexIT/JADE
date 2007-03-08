@@ -67,7 +67,7 @@ class ConnectionPool {
 		size = 0;
 	}
 	
-	synchronized ConnectionWrapper acquire(TransportAddress ta) throws ICPException {
+	synchronized ConnectionWrapper acquire(TransportAddress ta, boolean requireFreshConnection) throws ICPException {
 		if (!closed) {
 			ConnectionWrapper cw = null;
 			String url = myProtocol.addrToString(ta);
@@ -76,12 +76,21 @@ class ConnectionPool {
 				l = new ArrayList();
 				connections.put(url, l);
 			}
-			Iterator it = l.iterator();
-			while (it.hasNext()) {
-				cw = (ConnectionWrapper) it.next();
-				if (cw.lock()) {
-					cw.setReused();
-					return cw;
+			if (requireFreshConnection) {
+				// We are checking a given destination. This means that this destination may be no longer valid
+				// --> In order to avoid keeping invalid connections that can lead to very long waiting times, 
+				// close all non-used connections towards this destination.
+				l = closeConnections(l);
+				connections.put(url, l);
+			}
+			else {
+				Iterator it = l.iterator();
+				while (it.hasNext()) {
+					cw = (ConnectionWrapper) it.next();
+					if (cw.lock()) {
+						cw.setReused();
+						return cw;
+					}
 				}
 			}
 			// If we get here no connection is available --> create a new one
@@ -109,6 +118,22 @@ class ConnectionPool {
 		}
 	}
 	
+	private List closeConnections(List l) {
+		List validConnections = new ArrayList();
+		Iterator it = l.iterator();
+		while (it.hasNext()) {
+			ConnectionWrapper cw = (ConnectionWrapper) it.next();
+			if (cw.lock()) {
+				cw.close();
+				cw.unlock();
+			}
+			else {
+				validConnections.add(cw);
+			}
+		}
+		return validConnections;
+	}
+
 	synchronized void release(ConnectionWrapper cw) {
 		cw.unlock();
 	}

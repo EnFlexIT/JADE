@@ -83,7 +83,7 @@ public interface ICP {
   /**
    * Deliver a command to the specified transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException;
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload, boolean requireFreshConnection) throws ICPException;
 
   /**
    * Returns the protocol supported by this ICP

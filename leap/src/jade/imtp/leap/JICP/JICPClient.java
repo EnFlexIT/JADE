@@ -72,14 +72,14 @@ class JICPClient {
 	 * 
 	 * @throws ICPException
 	 */
-	public byte[] send(TransportAddress ta, byte dataType, byte[] data) throws ICPException {
+	public byte[] send(TransportAddress ta, byte dataType, byte[] data, boolean requireFreshConnection) throws ICPException {
 		ConnectionWrapper cw = null;
 		boolean done = false;
 		
 		while (true) {
 			try {
 				// Acquire a connection wrapper from the pool
-				cw = pool.acquire(ta);
+				cw = pool.acquire(ta, requireFreshConnection);
 				
 				// Prepare JICP information
 				byte dataInfo = JICPProtocol.DEFAULT_INFO;

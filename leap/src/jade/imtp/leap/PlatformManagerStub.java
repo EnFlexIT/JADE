@@ -244,7 +244,7 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 	
 	public void ping() throws IMTPException {
 		try {
-			Command cmd = new Command(PING, remoteID);
+			Command cmd = new Command(PING, remoteID, true);
 			
 			Command result = theDispatcher.dispatchCommand(remoteTAs, cmd);
 			

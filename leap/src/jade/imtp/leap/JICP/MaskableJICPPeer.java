@@ -101,9 +101,9 @@ public class MaskableJICPPeer extends JICPPeer {
   /**
    * deliver a serialized command to a given transport address
    */
-  public byte[] deliverCommand(TransportAddress ta, byte[] payload) throws ICPException {
+  public byte[] deliverCommand(TransportAddress ta, byte[] payload, boolean requireFreshConnection) throws ICPException {
     if (!isMasked(ta.getHost())) {
-      return super.deliverCommand(ta, payload);
+      return super.deliverCommand(ta, payload, requireFreshConnection);
     } 
     else {
       throw new ICPException("Destination masked");
