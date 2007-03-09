@@ -54,6 +54,8 @@ public class LEAPIMTPManager implements IMTPManager {
 	 */
 	static final String MAIN_URL = "main-url";
 	
+	public static final String CHANGE_PORT_IF_BUSY = "jade_imtp_leap_LEAPIMTPManager_changeportifbusy";
+	
 	private static final String ICPS = "icps";
 	private static final String ROUTER_URL = "router-url";
 	

@@ -1346,7 +1346,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			return targetSlice;
 		} 
 		catch (NotFoundException nfe) {
-			// The agent was found in the GADT, but not on the container when it is supposed to 
+			// The agent was found in the GADT, but not on the container where it is supposed to 
 			// be. Possibly it moved elsewhere in the meanwhile. ==> Try again.
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.FINER, msg.getTraceID()+" - Receiver "+receiverID.getLocalName()+" not found on container "+cid.getName()+". Possibly he moved elsewhere --> Retry");

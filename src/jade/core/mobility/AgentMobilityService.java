@@ -267,12 +267,6 @@ public class AgentMobilityService extends BaseService {
 				myLogger.log(Logger.SEVERE,"Internal error: handleMove() called with a wrong name (" + agentID.getName() + ") !!!");
 				return;
 			}
-			String proto = where.getProtocol();
-			if(!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
-				myLogger.log(Logger.SEVERE,"Mobility protocol not supported. Aborting transfer");
-				a.restoreBufferedState();
-				return;
-			}
 			
 			int transferState = 0;
 			List messages = new ArrayList();
@@ -475,13 +469,6 @@ public class AgentMobilityService extends BaseService {
 					//System.out.println("Internal error: handleClone() called with a wrong name (" + agentID + ") !!!");
 					if(myLogger.isLoggable(Logger.SEVERE))
 						myLogger.log(Logger.SEVERE,"Internal error: handleClone() called with a wrong name (" + agentID + ") !!!");
-					return;
-				}
-				String proto = where.getProtocol();
-				if (!CaseInsensitiveString.equalsIgnoreCase(proto, ContainerID.DEFAULT_IMTP)) {
-					//System.out.println("Mobility protocol not supported. Abort cloning");
-					if(myLogger.isLoggable(Logger.SEVERE))
-						myLogger.log(Logger.SEVERE,"Mobility protocol not supported. Abort cloning");
 					return;
 				}
 				

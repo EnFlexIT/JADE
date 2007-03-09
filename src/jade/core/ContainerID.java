@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -31,109 +31,99 @@ import jade.mtp.TransportAddress;
    and a few other data about them.
 
    @author Giovanni Rimassa - Universita' di Parma
-*/
+ */
 public class ContainerID implements Location {
 
-    /**
+	/**
        String constant identifying the JADE default Internal Message
        Transport Protocol, connecting different containers within the
        same JADE platform.
-     */
-    public static final String DEFAULT_IMTP ="JADE-IMTP"; 
+	 */
+	public static final String DEFAULT_IMTP ="JADE-IMTP"; 
 
-    private String name;
-    private String address;
-    private Boolean main;
+	private String name;
+	private String address;
+	private Boolean main;
 	private String port;
 	private String protocol;
 
 
 	/**
        The default costructor builds an uninitialized container ID.
-    */
-    public ContainerID() {
-    }
+	 */
+	public ContainerID() {
+	}
 
-    /**
+	/**
        Build a container ID with the given container name and
        transport address.
        @param n The name of the described container.
        @param a The network address of the node where the described
        container is deployed.
-    */
-    public ContainerID(String n, TransportAddress a) {
-	name = n;
-	if(a != null){
-	    address = a.getHost();
-		port = a.getPort();
-		protocol = a.getProto();
+	 */
+	public ContainerID(String n, TransportAddress a) {
+		name = n;
+		if(a != null){
+			address = a.getHost();
+			port = a.getPort();
+			protocol = a.getProto();
 
-	}
-	else{
-	    address = "<Unknown Host>";
-		protocol = DEFAULT_IMTP;
-	}
+		}
+		else{
+			address = "<Unknown Host>";
+			protocol = DEFAULT_IMTP;
+		}
 	}
 
-    /**
+	/**
        Set the name of the described container.
        @param n The name to give to the described container.
-    */
-    public void setName(String n) {
-	name = n;
-    }
+	 */
+	public void setName(String n) {
+		name = n;
+	}
 
-    /**
+	/**
        Retrieve the name of the described container.
        @return The container name if one is set, or <code>null</code>
        otherwise.
-    */
-    public String getName() {
-	return name;
-    }
+	 */
+	public String getName() {
+		return name;
+	}
 
-    /**
-       Set the IMTP type used to reach the described
+	/**
+       Set the IMTP protocol used to reach the described
        container.
-       <i>Notice that presently this method does nothing, because only
-       the default JADE IMTP is supported.</i>
+       @param p The name of the chosen IMTP protocol.
+	 */
+	public void setProtocol(String p) {
+		protocol = p;
+	}
 
-       @param p The name of the chosen IMTP.
-    */
-    public void setProtocol(String p) {
-	protocol = p;
-    }
+	/**
+       Retrieves the IMTP protocol used to reach the described container.
+       @return The name of the IMTP protocol used in the described container.
+	 */
+	public String getProtocol() {
+		return protocol;
+	}
 
-    /**
-       Retrieves the IMTP type used to reach the described container.
-       <i>Notice that, since only the default JADE IMTP is supported,
-       this method presently returns the</i> <code>DEFAULT_IMTP</code>
-       <i>constant</i>.
+	/**
+       Set the IP address (as a string) of the host, the described container is running on.
+       @param a The string representation of the IP address of the host, the described container is running on.
+	 */
+	public void setAddress(String a) {
+		address = a;
+	}
 
-       @return The name of the IMTP used in the described container.
-    */
-    public String getProtocol() {
-	return protocol;
-    }
-
-    /**
-       Set the transport address string.
-       @param a The string representation of the URL for the IMTP
-       transport endpoint of the described container.
-    */
-    public void setAddress(String a) {
-	address = a;
-    }
-
-    /**
-       Retrieve the transport address string.
-       @return The string representation of the URL for the IMTP
-       transport endpoint of the described container. If no address
-       string was set, <code>null</code> is returned.
-    */
-    public String getAddress() {
-	return address;
-    }
+	/**
+       Retrieve the IP address of the host, the described container is running on.
+       @return The string representation of the IP address of the host, the described container is running on.
+	 */
+	public String getAddress() {
+		return address;
+	}
 
 	public String getPort() {
 		return port;
@@ -149,22 +139,22 @@ public class ContainerID implements Location {
        and the transport URL string.
 
        @return The ID string for the described container.
-    */
-    public String getID() {
-	return name + '@' + DEFAULT_IMTP + "://" + address;
-    }
+	 */
+	public String getID() {
+		return name + '@' + protocol + "://" + address;
+	}
 
-    /**
+	/**
        Retrieve a string representation for this container ID. The
        string returned is the ID string of the described container.
 
        @return The string representation of this container ID.
-    */
-    public String toString() {
-	return getID();
-    }
+	 */
+	public String toString() {
+		return getID();
+	}
 
-    /**
+	/**
        Equality operation over container IDs. Two
        <code>ContainerID</code> objects are considered equal if and
        only if their name is the same (a case insensitive string
@@ -176,34 +166,34 @@ public class ContainerID implements Location {
        <code>ContainerID</code> class and has the same name (case
        insensitively) as the current object, then <code>true</code> is
        returned. Otherwise, this method returns <code>false</code>.
-    */
-    public boolean equals(Object obj) {
-  	try {
-	    ContainerID cid = (ContainerID) obj;
-	    return CaseInsensitiveString.equalsIgnoreCase(name, cid.getName());
-  	}
-  	catch (ClassCastException cce) {
-	    return false;
-  	}
-    }
+	 */
+	public boolean equals(Object obj) {
+		try {
+			ContainerID cid = (ContainerID) obj;
+			return CaseInsensitiveString.equalsIgnoreCase(name, cid.getName());
+		}
+		catch (ClassCastException cce) {
+			return false;
+		}
+	}
 
-    /**
+	/**
        Hash code operation, compliant with identity-by-name. This
        method returns an hash code for a container ID, so that two
        container IDs with the same name (case insensitively) have the
        same hash code.
-    */
-    public int hashCode() {
-  	return name.toLowerCase().hashCode();
-    }
+	 */
+	public int hashCode() {
+		return name.toLowerCase().hashCode();
+	}
 
 	public void setMain(Boolean main) {
 		this.main = main;
-		
+
 	}
 
 	public Boolean getMain() {
 		return main;
 	}
-	
+
 }

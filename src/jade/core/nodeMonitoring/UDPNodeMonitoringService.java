@@ -263,6 +263,9 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	
 	void deactivateUDP(Node n, long key) {
 		try {
+			// Ping the node first to avoid using a stale network connection (in case the remote node is dead).
+			// In that case in fact we could wait for a long time before getting the socket exception
+			n.ping(false);
 			UDPNodeMonitoringSlice slice = (UDPNodeMonitoringSlice) getSlice(n.getName());
 			// Note that there can't be caching problems in this case since they were (if present) already solved in activateUDP() 
 			if (slice != null) {

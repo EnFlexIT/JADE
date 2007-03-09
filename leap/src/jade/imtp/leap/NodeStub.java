@@ -165,7 +165,7 @@ class NodeStub extends Stub implements Node {
 	}
 	
 	public void platformManagerDead(String deadPMAddress, String notifyingPMAddress) throws IMTPException {
-		Command cmd = new Command(Command.PLATFORM_MANAGER_DEAD, remoteID);
+		Command cmd = new Command(Command.PLATFORM_MANAGER_DEAD, remoteID, true);
 		cmd.addParam(deadPMAddress);
 		cmd.addParam(notifyingPMAddress);
 		
