@@ -113,7 +113,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	private AID theAMS;
 	private AID theDefaultDF;
 	
-	
+	// This is used to avoid killing this container just after its creation and 
+	// possibly before the monitoring PING is received. In that case in fact the Main Container does 
+	// not deregister it.
+	private long creationTime = -1;
+
 	
 	// Default constructor
 	AgentContainerImpl() {
@@ -245,12 +249,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	 credentials as the union of the initial credential and the ownership 
 	 certificate.
 	 */
-	public void initAgent(
-			AID agentID, Agent instance,
-			JADEPrincipal ownerPrincipal, Credentials initialCredentials)
-	throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
+	public void initAgent(AID agentID, Agent instance,
+	                      JADEPrincipal ownerPrincipal, Credentials initialCredentials)
+	                      throws NameClashException, IMTPException, NotFoundException, JADESecurityException {
 		
-		//replaces wildcards
+		// Replaces wildcards
 		agentID.setName(JADEManagementOntology.adjustAgentName(agentID.getName(), new String[] {myID.getName()}));
 		
 		// Setting the AID and toolkit here is redundant, but
@@ -398,6 +401,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		// This call performs the real connection to the platform and can modify the 
 		// name of this container
 		myServiceManager.addNode(myNodeDescriptor, descriptors);
+		creationTime = System.currentTimeMillis();
 		
 		//#MIDP_EXCLUDE_BEGIN
 		// If we are the master main container --> initialize the AMS and DF. Do that before booting all services 
@@ -563,6 +567,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 	
 	public void shutDown() {
+		checkCreationTime();
+		
 		// Remove all non-system agents
 		Agent[] allLocalAgents = localAgents.values();
 		
@@ -607,7 +613,14 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		endContainer();
 	}
 	
-	// calls Runtime.instance().endContainer()
+	private void checkCreationTime() {
+		long time = System.currentTimeMillis();
+		if ((time - creationTime) < 3000) {
+			try {Thread.sleep(3000 - (time - creationTime));} catch (Exception e) {}
+		}
+	}
+	
+	// Call Runtime.instance().endContainer()
 	// with the security priviledges of AgentContainerImpl
 	// no matter priviledges of who originaltely triggered this action
 	private void endContainer() {

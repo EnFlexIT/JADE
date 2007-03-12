@@ -41,42 +41,42 @@ import jade.core.*;
  */
 abstract class Skeleton {
 
-  /**
-   * Processes a Command and returns another Command representing
-   * the response.
-   */
-  Command processCommand(Command command) {
-    Command resp = null;
-    try {
-      resp = executeCommand(command);
-    } 
-    catch (Throwable tr) {
-      resp = new Command(Command.ERROR);
+	/**
+	 * Processes a Command and returns another Command representing
+	 * the response.
+	 */
+	Command processCommand(Command command) {
+		Command resp = null;
+		try {
+			resp = executeCommand(command);
+		} 
+		catch (Throwable tr) {
+			resp = new Command(Command.ERROR);
 
-      resp.addParam(tr.getClass().getName());
-      resp.addParam(tr.getMessage());
-      // FIXME: Is it correct not to print the stack trace when a declared exception 
-      // occurs? 
-      if ((tr instanceof Error) || (tr instanceof RuntimeException)) { 
-	      tr.printStackTrace();
-      }
-    } 
+			resp.addParam(tr.getClass().getName());
+			resp.addParam(tr.getMessage());
+			// FIXME: Is it correct not to print the stack trace when a declared exception 
+			// occurs? 
+			if ((tr instanceof Error) || (tr instanceof RuntimeException)) { 
+				tr.printStackTrace();
+			}
+		} 
 
-    return resp;
-  } 
+		return resp;
+	} 
 
-  /**
-   * Method declaration
-   *
-   * @param command
-   *
-   * @return
-   *
-   * @throws Throwable
-   *
-   * @see
-   */
-  abstract Command executeCommand(Command command) throws Throwable;
+	/**
+	 * Method declaration
+	 *
+	 * @param command
+	 *
+	 * @return
+	 *
+	 * @throws Throwable
+	 *
+	 * @see
+	 */
+	abstract Command executeCommand(Command command) throws Throwable;
 
 }
 

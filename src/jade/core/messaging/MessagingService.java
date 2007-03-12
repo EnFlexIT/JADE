@@ -91,8 +91,6 @@ import jade.util.HashCache;
 public class MessagingService extends BaseService implements MessageManager.Channel {
 	public static final String NAME = MessagingSlice.NAME;
 	
-	public static final String ENABLE_MONITOR = "jade_core_messaging_MessagingService_enablemonitor";
-	public static final String MONITOR_AGENT_NAME = "messaging-monitor-%C";
 	public static final String CACHE_SIZE = "jade_core_messaging_MessagingService_cachesize";
 	public static final int CACHE_SIZE_DEFAULT = 100;
 	
@@ -326,23 +324,6 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			// Should never happen as this is a local call
 			imtpe.printStackTrace();
 		}
-		
-		//#J2ME_EXCLUDE_BEGIN
-		if (myProfile.getBooleanProperty(ENABLE_MONITOR, false)) {
-			Agent monitor = new MessagingMonitorAgent();
-			try {
-				// The owner of the monitor agent is the owner of the local container.
-				// The monitor agent has NO initial credentials
-				AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
-				myContainer.initAgent(monitorId, monitor, myContainer.getNodeDescriptor().getOwnerPrincipal(), null);
-				// The agent will be powered-up together with all other bootstrap agents
-			}
-			catch (Exception e) {
-				myLogger.log(Logger.WARNING, "Error starting MessagingMonitorAgent. "+e);
-				e.printStackTrace();
-			}
-		}
-		//#J2ME_EXCLUDE_END
 	}
 	
 	// kindly provided by David Bernstein, 15/6/2005
@@ -1522,12 +1503,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	public String[] getMessageManagerQueueStatus() {
-		MessageManager mm = MessageManager.instance(null);
-		return mm.getQueueStatus();
+		return myMessageManager.getQueueStatus();
 	}
 	
 	public String[] getMessageManagerThreadPoolStatus() {
-		MessageManager mm = MessageManager.instance(null);
-		return mm.getThreadPoolStatus();
+		return myMessageManager.getThreadPoolStatus();
 	}	
 }

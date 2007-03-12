@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.imtp.leap;
 
@@ -38,60 +38,60 @@ import jade.core.ServiceException;
    @author Giovanni Caire - TILAB
  */
 class NodeLEAP extends BaseNode {
-    // This monitor is used to hang a remote ping() call in order to
-    // detect node failures.
-    private Object terminationLock = new Object();
-    private boolean terminating = false;
-    
-    public NodeLEAP(String name, boolean hasPM) {
-			super(name, hasPM);
-    }
+	// This monitor is used to hang a remote ping() call in order to
+	// detect node failures.
+	private Object terminationLock = new Object();
+	private boolean terminating = false;
 
-    public Object accept(HorizontalCommand cmd) throws IMTPException {
-			try {
-			    if(terminating) {
+	public NodeLEAP(String name, boolean hasPM) {
+		super(name, hasPM);
+	}
+
+	public Object accept(HorizontalCommand cmd) throws IMTPException {
+		try {
+			if(terminating) {
 				throw new IMTPException("Dead node");
-			    }
-		    return serveHorizontalCommand(cmd);
 			}
-			catch(ServiceException se) {
-			  throw new IMTPException("Service Error", se);
+			return serveHorizontalCommand(cmd);
+		}
+		catch(ServiceException se) {
+			throw new IMTPException("Service Error", se);
+		}
+	}
+
+	public boolean ping(boolean hang) throws IMTPException {
+		if(hang) {
+			waitTermination();
+		}
+		return terminating;
+	}
+
+	public void exit() throws IMTPException {
+		// Unblock threads hung in ping() method (this will deregister the container)
+		terminating = true;
+		notifyTermination();
+	}
+
+	public void interrupt() throws IMTPException {
+		notifyTermination();
+	}
+
+
+	private void waitTermination() {
+		synchronized(terminationLock) {
+			try {
+				terminationLock.wait();
 			}
-    }
-
-    public boolean ping(boolean hang) throws IMTPException {
-      if(hang) {
-			  waitTermination();
-      }
-      return terminating;
-    }
-
-    public void exit() throws IMTPException {
-			// Unblock threads hung in ping() method (this will deregister the container)
-			terminating = true;
-			notifyTermination();
-    }
-
-    public void interrupt() throws IMTPException {
-			notifyTermination();
-    }
-
-    
-    private void waitTermination() {
-			synchronized(terminationLock) {
-		    try {
-					terminationLock.wait();
-		    }
-		    catch(InterruptedException ie) {
-					System.out.println("PING wait interrupted");
-					// Do nothing
-		    }
+			catch(InterruptedException ie) {
+				System.out.println("PING wait interrupted");
+				// Do nothing
 			}
-    }
+		}
+	}
 
-    private void notifyTermination() {
-      synchronized(terminationLock) {
-			  terminationLock.notifyAll();
-      }
-    }
+	private void notifyTermination() {
+		synchronized(terminationLock) {
+			terminationLock.notifyAll();
+		}
+	}
 }

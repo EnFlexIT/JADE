@@ -6,6 +6,7 @@ package jade.core.messaging;
 import jade.core.Agent;
 import jade.domain.introspection.*;
 
+// TO BE REMOVED
 public class MessagingMonitorAgent extends Agent {
 	protected void setup() {
 		addBehaviour(new IntrospectionServer(this));
