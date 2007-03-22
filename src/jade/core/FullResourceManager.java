@@ -44,8 +44,8 @@ class FullResourceManager implements ResourceManager {
 		try {
 			Class.forName("java.awt.Frame").newInstance();
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (Throwable t) {
+			// Ignore failure (e.g. in case we don't have the display)
 		}
 		
 		parent = new ThreadGroup("JADE") {

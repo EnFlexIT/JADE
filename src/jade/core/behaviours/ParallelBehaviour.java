@@ -328,11 +328,11 @@ public class ParallelBehaviour extends CompositeBehaviour {
 					if(rce.isRunnable()) {
 						// If this is a restart, remove the child from the
 						// list of blocked children
-						Object rc = blockedChildren.remove(b);
+						Object child = blockedChildren.remove(b);
 						
 						// Only if all children were blocked (this ParallelBehaviour was
 						// blocked too), restart this ParallelBehaviour and notify upwards
-						if( (rc != null) && !isRunnable() ) {
+						if( (child != null) && !isRunnable() ) {
 							myEvent.init(true, NOTIFY_UP);
 							super.handle(myEvent);
 							// Also reset the currentExecuted flag so that a runnable
@@ -343,11 +343,11 @@ public class ParallelBehaviour extends CompositeBehaviour {
 					else {
 						// If this is a block, put the child in the list of
 						// blocked children
-						Object rc = blockedChildren.put(b, b);
+						Object child = blockedChildren.put(b, b);
 						
 						// Only if, with the addition of this child all sub-behaviours 
 						// are now blocked, block this ParallelBehaviour and notify upwards
-						if ( (rc != null) && (blockedChildren.size() == subBehaviours.size()) ) {
+						if ( (child == null) && (blockedChildren.size() == subBehaviours.size()) ) {
 							myEvent.init(false, NOTIFY_UP);
 							super.handle(myEvent);
 						}

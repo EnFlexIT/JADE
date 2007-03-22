@@ -141,7 +141,7 @@ public class ContainerID implements Location {
        @return The ID string for the described container.
 	 */
 	public String getID() {
-		return name + '@' + protocol + "://" + address;
+		return name + '@' + address;
 	}
 
 	/**

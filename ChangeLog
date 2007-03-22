@@ -1,7 +1,8 @@
 MAJOR CHANGES in JADE x.y (???)
 ==========================================================================
 GENERAL IMPROVEMENTS:	
-- Modified DF to support a pool of thread serving registration, deregistration and search requests when using DB-based KnowledgeBase
+- Modified DF to support a pool of thread serving registration, deregistration and search requests when using DB-based KnowledgeBase (option jade_domain_df_poolsize)
+- Modified DF to support turning off content validation mode (option jade_domain_df_disablevalidation) 
 - Optimized DF search when using DB-based KnowledgeBase
 - Modified DF to cache subscription relevant information. This speeds up performances when detecting subscribed agents to be notified about registration updates
 - Modified FullResourceManager to avoid annoying stack traces at platform shutdown
@@ -11,7 +12,9 @@ GENERAL IMPROVEMENTS:
 - Added dump-options option to print out configuration options at container startup
 - Added methods to get predicate, concept and action names from an ontology
 - Added method to define action-result type in AgentActionSchema
-- Added Main-Container detection via multicast (option -detect-main)
+- Added Main-Container detection via multicast (option detect-main)
+- Modified MainReplicationService to support detailed REMOVED_CONTAINER and DEAD_AGENT events notification instead of just RESET meta-event
+- Modified ContainerID class to include main/non-main indication
 
 BUG-FIXES:
 - Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
@@ -25,13 +28,21 @@ ADD-ONS:
 - Persistence Add-on
   - Some fix to properly support MySql DB (by Vincenzo Gioviale) 
 
+- JADE-SHARP 
+  - New add-on allowing Microsoft .NET clients (fully compatible with .NET Compact Framework) to connect to a JADE-based multi agent system and to exchange ACLMessages with remote agents
+
 
 DOCUMENTATION:
 - New tutorial on JADE-JESS integration by Henrique Lopes Cardoso (University of Porto)
 - Updated tutorial on Content Languages and Ontologies with information about the new CFReflectiveIntrospector
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
-NONE
+API: NONE
+
+EXPECTED BEHAVIOUR:
+- When using Main Container replication, tool-agents now receive detailed REMOVED_CONTAINER and DEAD_AGENT events instead of just the RESET meta-event. 
+A fully backward-compatible behaviour can be obtained by setting to true the jade_core_replication_MainReplicationService_snapshotonfailure configuration option
+
 
 
 

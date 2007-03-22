@@ -117,6 +117,14 @@ import jade.content.onto.basic.*;
  </tr>
  <tr>
  <td>
+ <code>jade_domain_df_disablevalidation</code>
+ </td>
+ <td>
+ Turns off content validation on incoming/outgoing messages (defaults to false)
+ </td>
+ </tr>
+ <tr>
+ <td>
  <code>jade_domain_df_db-default</code>
  </td>
  <td>
@@ -257,6 +265,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	private static final String POOLSIZE = "jade_domain_df_poolsize";
 	private static final String MAX_LEASE_TIME = "jade_domain_df_maxleasetime";
 	private static final String MAX_RESULTS = "jade_domain_df_maxresult";
+	private static final String DISABLE_VALIDATION = "jade_domain_df_disablevalidation";
 	private static final String DB_DRIVER = "jade_domain_df_db-driver";
 	private static final String DB_URL = "jade_domain_df_db-url";
 	private static final String DB_USERNAME = "jade_domain_df_db-username";
@@ -302,6 +311,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	protected void setup() {
 		logger = Logger.getMyLogger(getLocalName());
 		
+		String sDisableValidation = getProperty(DISABLE_VALIDATION, "false");
 		//#PJAVA_EXCLUDE_BEGIN
 		// ---------- Read configuration ----------
 		// If an argument is specified, it indicates the name of a properties
@@ -331,6 +341,7 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				sPoolsize = p.getProperty(POOLSIZE, sPoolsize);
 				sMaxLeaseTime = p.getProperty(MAX_LEASE_TIME, sMaxLeaseTime);
 				sMaxResults = p.getProperty(MAX_RESULTS, sMaxResults);
+				sDisableValidation = p.getProperty(DISABLE_VALIDATION, sDisableValidation);
 				dbUrl = p.getProperty(DB_URL, dbUrl);
 				dbDriver = p.getProperty(DB_DRIVER, dbDriver);
 				dbUsername = p.getProperty(DB_USERNAME, dbUsername);
@@ -475,6 +486,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		getContentManager().registerOntology(FIPAManagementOntology.getInstance());
 		getContentManager().registerOntology(JADEManagementOntology.getInstance());
 		getContentManager().registerOntology(DFAppletOntology.getInstance());
+		
+		boolean disableValidation = getBooleanProperty(sDisableValidation, DISABLE_VALIDATION);
+		if (disableValidation) {
+			getContentManager().setValidationMode(false);
+		}
 		
 		// Create and add behaviours
 		MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
