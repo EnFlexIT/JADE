@@ -99,7 +99,7 @@ class MulticastMainDetectionListener implements Runnable {
 		String myPlatform = profile.getParameter(Profile.PLATFORM_ID, null);
 		if (platformName != null && !platformName.equals(myPlatform)) {
 			// not my platform, bail out with no response
-			logger.log(Logger.FINER, "MulticastMainDetectionListener::serveGetMain(): my platform is \""+myPlatform+"\" while request is for platform \""+platformName+"\": I'm not going to answer");
+			logger.log(Logger.FINER, "MulticastMainDetectionListener::serveGetMain(): my platform is \""+myPlatform+"\" while request is for platform \""+platformName+"\" --> Do not reply");
 			return null;
 		}
 
@@ -146,6 +146,8 @@ class MulticastMainDetectionListener implements Runnable {
 			if (profile.isFirstMain()) {
 				// only master main replies to [get main] commands
 				result = serveGetMain(request);
+			} else {
+				logger.log(Logger.FINER, "MulticastMainDetectionListener::executeRequest(): I'm not master --> Do not reply");
 			}
 		} else if (request.indexOf(MainDetectionManager.PROTO_CMD_PING) == 0) {
 			throw new Exception("Command not implemented yet");

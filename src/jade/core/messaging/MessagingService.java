@@ -1508,5 +1508,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	public String[] getMessageManagerThreadPoolStatus() {
 		return myMessageManager.getThreadPoolStatus();
-	}	
+	}
+
+
+	protected void clearCachedSlice(String name) {
+		if (cachedSlices != null){
+			cachedSlices.clear();
+			myLogger.log(Logger.INFO, "Clearing cache");
+		}
+		super.clearCachedSlice(name);
+	}
 }

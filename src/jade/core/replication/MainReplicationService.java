@@ -691,17 +691,11 @@ public class MainReplicationService extends BaseService {
 		}
 
 		public void nodeUnreachable(Node n) {
-			//log("Node <"+n.getName()+"> UNREACHABLE", 2);
-			if (myLogger.isLoggable(Logger.CONFIG))
-				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> UNREACHABLE");
-
+			myLogger.log(Logger.WARNING, "Main node <" + n.getName() + "> UNREACHABLE");
 		}
 
 		public void nodeReachable(Node n) {
-			//log("Node <"+n.getName()+"> REACHABLE", 2);
-			if (myLogger.isLoggable(Logger.CONFIG))
-				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> REACHABLE");
-
+			myLogger.log(Logger.INFO, "Main Node <" + n.getName() + "> REACHABLE");
 		}
 
 		// The active object monitoring the remote node

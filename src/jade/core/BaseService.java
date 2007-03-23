@@ -97,7 +97,7 @@ public abstract class BaseService implements Service {
 		
 		// if there's not a suitable slice, ask the service finder,
 		// then cache the result in the slices table.
-		if(s == null) {
+	    if(s == null) {
 			try {
 				s = myFinder.findSlice(getName(), realName);
 				slices.put(realName, s);
@@ -261,7 +261,7 @@ public abstract class BaseService implements Service {
 		return getSlice(name);
 	}
 	
-	void clearCachedSlice(String name) {
+	protected void clearCachedSlice(String name) {
 		// slices may be null when calling this method on the Main Container, but on a service not active on the Main Container
 		// --> In this case the service has not been initialized.
 		if (slices != null) {
