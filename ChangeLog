@@ -26,7 +26,10 @@ LEAP:
 
 ADD-ONS:
 - Persistence Add-on
-  - Some fix to properly support MySql DB (by Vincenzo Gioviale) 
+  - Some fix to properly support MySql DB (by Vincenzo Gioviale)
+- Misc Add-on
+  - Added dump of threads owned by an Agent (its Thread and its threaded behaviours)
+  - Added dump of all threads in a container   
 
 - JADE-SHARP 
   - New add-on allowing Microsoft .NET clients (fully compatible with .NET Compact Framework) to connect to a JADE-based multi agent system and to exchange ACLMessages with remote agents
