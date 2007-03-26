@@ -780,8 +780,8 @@ GENERAL IMPROVEMENTS:
 - a new set of icons has been used in the RMA, provided by Itai Shirav.
 - jade.proto.FIPAProtocolNames has been deprecated and will be soon removed
 - added possibility to start a Sniffer agent automatically sniffing a set 
-	of agents indicated as arguments (by Karl-Heinz Krempels) 
-
+  of agents indicated as arguments (by Karl-Heinz Krempels)
+- added package scoped method getThread in the class Agent
 	
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 - default value of SearchConstraints.maxResults is 1 instead of infinite

@@ -1685,6 +1685,14 @@ public class Agent implements Runnable, Serializable
 		}
 	}
 	
+	//#J2ME_EXCLUDE_BEGIN
+	// Return agent thread
+	// Package scooped as it is called by JadeMisc add-on for container monitor purpose
+	Thread getThread() {
+		return myThread;
+	}
+	//#J2ME_EXCLUDE_END
+	
 	//#MIDP_EXCLUDE_BEGIN
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		// Updates the queue maximum size field, before serialising
