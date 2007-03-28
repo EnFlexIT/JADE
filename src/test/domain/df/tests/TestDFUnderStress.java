@@ -54,275 +54,271 @@ import test.common.TestUtility;
 public class TestDFUnderStress extends Test {
 
 	private static final long serialVersionUID = 1L;
+	
 	private static final int NUMBER_OF_PROPS = 5;
 	private static final int NUMBER_OF_SUBSCRIBERS = 10;
 	private static final int NUMBER_OF_CONTAINERS = 3;
 	private static final int NUMBER_OF_AGENTS = 100;
-	protected static final String AGENT_START_CHAR = "a";
-	protected static final String CONTAINER_START_CHAR = "c";
-	public List<String> times = new ArrayList<String>();
+	private static final String AGENT_PREFIX = "a-";
+	private static final String CONTAINER_PREFIX = "c-";
+	private static final String SUBSCRIBERS_CONTAINER = "Subscribers-Container";
+	private static final String AGENT_NAME_PROP =  "agent-name";
+	
+	
+	private long startTime;
+	private int totAgents = NUMBER_OF_CONTAINERS * NUMBER_OF_AGENTS;
+	private List<String> summary = new ArrayList<String>();
 
 	public Behaviour load(Agent a) throws TestException {
-		//Creating Container with n (= class variable NUMBER_OF_SUBSCRIBERS)  agents subsribing to df
-		TestUtility.launchJadeInstance("Container", null,
-				"-container-name Subscribers -container -host "
-				+ TestUtility.getContainerHostName(a, null) + " -port "
-				+ Test.DEFAULT_PORT, new String[] {});
-		try {
-			for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; ++i) {
-				String agentName = new String("s" + i);
-				// Create Agents
-				TestUtility.createAgent(a,agentName,"test.domain.df.tests.TestDFUnderStress$SubscriberAgent",
-						null, a.getAMS(), "Subscribers");
+		String mainHost = TestUtility.getContainerHostName(a, null);
+		// Create a container with some agents subscribing to the DF
+		log("--- Starting container for subscriber agents...");
+		TestUtility.launchJadeInstance(SUBSCRIBERS_CONTAINER, null, "-container-name "+SUBSCRIBERS_CONTAINER+" -container -host " + mainHost + " -port " + Test.DEFAULT_PORT, new String[] {});
+		log("--- Starting "+NUMBER_OF_SUBSCRIBERS+" subscriber agents...");
+		for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; ++i) {
+			String agentName = new String("s-" + i);
+			TestUtility.createAgent(a,agentName,"test.domain.df.tests.TestDFUnderStress$SubscriberAgent", null, a.getAMS(), SUBSCRIBERS_CONTAINER);
+		}
+
+		for (int j = 0; j < NUMBER_OF_CONTAINERS; j++) {
+			String containerName = CONTAINER_PREFIX+j;
+			log("--- Starting container "+containerName+"...");
+			TestUtility.launchJadeInstance(containerName, null, "-container-name "+containerName + " -container -host "+ mainHost + " -port " + Test.DEFAULT_PORT, new String[] {});
+			log("--- Starting "+NUMBER_OF_AGENTS+" registering agents...");
+			for (int i = 0; i < NUMBER_OF_AGENTS; ++i) {
+				String agentName = new String(AGENT_PREFIX + j +"-"+ i);
+				TestUtility.createAgent(a, agentName, "test.domain.df.tests.TestDFUnderStress$RegisteringAgent", null, a.getAMS(), containerName);
 			}
-
-		} catch (TestException te) {
-			failed("Error creating agents: " + te);
-			te.printStackTrace();
 		}
+		
+		// Main test behaviour
+		SequentialBehaviour main = new SequentialBehaviour();
+		
 
-		//tester agent registers to the df
-		final DFAgentDescription template = new DFAgentDescription();
-		try {
-			DFService.register(a, template);
-		} catch (FIPAException e) {
-			failed("Error in registering tester agent to df: "+e);
-			e.printStackTrace();
-		}
-
-		//tester agent subscribes itself to the df
-		final DFAgentDescription subsTemplate = new DFAgentDescription();
-		ACLMessage message = DFService.createSubscriptionMessage(a, a.getDefaultDF(), subsTemplate, null);
-		final SubscriptionInitiator initiator = new SubscriptionInitiator(a, message) {
+		// Step 1) Subscribe to the DF with a null template and collect notifications about all NEW registrations. In parallel, wait a bit to give all 
+		// registering agents enough time to startup and then send them the startup message
+		ParallelBehaviour step1 = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ALL) {
+			public void onStart() {
+				log("--- Step 1:");
+			}
+		};
+		
+		DFAgentDescription subsTemplate = new DFAgentDescription();
+		ACLMessage subs1 = DFService.createSubscriptionMessage(a, a.getDefaultDF(), subsTemplate, null);
+		step1.addSubBehaviour(new SubscriptionInitiator(a, subs1) {
 			private static final long serialVersionUID = 1L;
 			public int counter = 0;
-			private long startTime = 0;
-			private long elapsedTime = 0;
 
 			public void onStart() {
-				System.out.println("Subscribing to the DF. A notification should immediately be received");
+				log("--- Subscribing to the DF");
 				super.onStart();
 			}
 
 			protected void handleInform(ACLMessage inform) {
-				//System.out.println("Tester Agent: Notification received from DF");
 				try {
 					DFAgentDescription[] results = DFService.decodeNotification(inform.getContent());
-					if (results.length > 0) {
-						//System.out.println("Length of result "+results.length);
-						for (int i = 0; i < results.length; ++i) {
-							DFAgentDescription dfd = results[i];
-							//System.out.println("Dfd for TesterAgent "+dfd.getName());
-							if(dfd.getName().getLocalName().startsWith(AGENT_START_CHAR)){
-								if(counter == 0){
-									startTime = System.currentTimeMillis();
-									times.add(String.valueOf(startTime));
-								}
-								counter++; 
+					for (int i = 0; i < results.length; ++i) {
+						DFAgentDescription dfd = results[i];
+						if(dfd.getName().getLocalName().startsWith(AGENT_PREFIX) && isRegistration(dfd)){
+							counter++; 
+							if (counter % 10 == 0) {
+								log("--- # "+counter+" registration notifications received");
 							}
 						}
+						else {
+							failed("--- Unexpected notification received: agent = "+dfd.getName().getLocalName()+", is-registration = "+isRegistration(dfd));
+						}
 					}
-					//Evaluating time of handling NUMBER_OF_CONTAINERS*NUMBER_OF_AGENTS INFORM messages from df) 
-					if(counter == NUMBER_OF_CONTAINERS*NUMBER_OF_AGENTS){
-						long endTime = System.currentTimeMillis();
-						times.add(String.valueOf(endTime));
-						elapsedTime = endTime - startTime;
-						times.add(String.valueOf(elapsedTime));
-						//Tester agent unsubscribes itself from df
+					
+					if (counter == totAgents){
+						long elapsedTime = System.currentTimeMillis() - startTime;
+						log("--- All expected registration notifications received in "+elapsedTime+" ms");
+						summary.add("Step1 time = "+elapsedTime+" ms");
 						cancel(myAgent.getDefaultDF(), true);
 					}						
-				} catch (FIPAException fe) {
-					failed("Error in handling INFORM messages incoming from df to tester agent "+fe);
+				} 
+				catch (FIPAException fe) {
+					failed("--- Error handling INFORM messages from df. "+fe);
 					fe.printStackTrace();
 				} 
 			}
-		};
+		} );
 
-		//Main behaviour... will be returned
-		SequentialBehaviour sb = new SequentialBehaviour();
-		
-		//First parallel behaviour: on first side there is the behaviour for the tester agent subscribing to the df
-		//on second side there is the creation of n containers (n=class variable NUMBER_OF_CONTAINERS) with m
-		//agents each (m=class variable NUMBER_OF_AGENTS)
-		ParallelBehaviour pb = new ParallelBehaviour(a,	ParallelBehaviour.WHEN_ALL);
-		pb.addSubBehaviour(initiator);
-
-		//Creating n containers (n=class variable NUMBER_OF_CONTAINERS) with m agents each (m=class variable NUMBER_OF_AGENTS)
-		pb.addSubBehaviour(new OneShotBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			public void action() {
-				try {
-					for (int j = 0; j < NUMBER_OF_CONTAINERS; j++) {
-						TestUtility.launchJadeInstance("Container", null,
-								"-container-name "+CONTAINER_START_CHAR + j + " -container -host "+ TestUtility.getContainerHostName(myAgent, null)
-								+ " -port " + Test.DEFAULT_PORT,new String[] {});
-						for (int i = 0; i < NUMBER_OF_AGENTS; ++i) {
-							String agentName = new String(AGENT_START_CHAR + j + i);
-							TestUtility.createAgent(myAgent,agentName,"test.domain.df.tests.TestDFUnderStress$NormalAgent",
-									null, myAgent.getAMS(), CONTAINER_START_CHAR + j);
-						}
-					}
-				} catch (TestException e) {
-					failed("Error creating containers and agents "+e);
-					e.printStackTrace();
-				}
-
+		step1.addSubBehaviour(new WakerBehaviour(a, 10000) {
+			public void onStart() {
+				log("--- Wait a bit before sending the startup message...");
+				super.onStart();
 			}
-
-			public int onEnd() {
-				//Sending message to each agent. Each agent in his startup has a blockingReceive() method
+			
+			public void onWake() {
+				log("--- Issuing startup message");
+				startTime = System.currentTimeMillis();
 				for (int j = 0; j < NUMBER_OF_CONTAINERS; j++) {						
 					for (int i = 0; i < NUMBER_OF_AGENTS; ++i) {
-						String agentName = new String(AGENT_START_CHAR + j + i);
+						String agentName = new String(AGENT_PREFIX + j +"-"+ i);
 						AID aid = new AID(agentName,AID.ISLOCALNAME);
 						ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 						msg.addReceiver(aid);
 						myAgent.send(msg);
 					}
 				}
-				return super.onEnd();
 			}
-
 		});
-
-		sb.addSubBehaviour(pb);
-
-		//Secoind parallel behaviour: on first side there is the behaviour for the tester agent subscribing againt 
-		//to the df on second side there is the kill of n containers (n=class variable NUMBER_OF_CONTAINERS) with m
-		//agents each (m=class variable NUMBER_OF_AGENTS). In the handleInform method of SubscribeInitiator behaviour
-		//we will handle the only message informing tester agent of previous registrations and the 
-		//NUMBER_OF_CONTAINERS*NUMBER_OF_AGENTS messages of the deregistration
-		ParallelBehaviour pb1 = new ParallelBehaviour(a,ParallelBehaviour.WHEN_ALL);
-		final DFAgentDescription secondSubsTemplate = new DFAgentDescription();
-		ACLMessage secondMessage = DFService.createSubscriptionMessage(a, a.getDefaultDF(), secondSubsTemplate, null);
-		pb1.addSubBehaviour(new SubscriptionInitiator(a,secondMessage){
-			private static final long serialVersionUID = 1L;
+		
+		main.addSubBehaviour(step1);
+		
+		
+		// Step 2) Wait a bit then subscribe again with a null template and collect notifications about all OLD registrations
+		SequentialBehaviour step2 = new SequentialBehaviour(a) {
+			public void onStart() {
+				log("--- Step 2:");
+			}
+		};
+		
+		step2.addSubBehaviour(new WakerBehaviour(a, 5000) {
+			public void onStart() {
+				log("--- Wait a bit before subscribing again...");
+				super.onStart();
+			}
+			
+			public void onWake() {
+				// Just do nothing
+			}
+		});
+		
+		ACLMessage subs2 = DFService.createSubscriptionMessage(a, a.getDefaultDF(), subsTemplate, null);
+		step2.addSubBehaviour(new SubscriptionInitiator(a, subs2) {
+			private static final long serialVersionUID = 2L;
 			public int counter = 0;
-			private long startTime = 0;
-			private long elapsedTime = 0;
-			private long endTime = 0;
-
 
 			public void onStart() {
-				System.out.println("Subscribing to the DF. A notification should immediately be received");
+				log("--- Subscribing to the DF");
+				startTime = System.currentTimeMillis();
 				super.onStart();
 			}
 
 			protected void handleInform(ACLMessage inform) {
-				//System.out.println("Tester Agent: Notification received from DF Second registration ");
-				int counterLocal = 0;
-				long startLocal = 0 ,endLocal = 0, elapsedLocal = 0;
 				try {
 					DFAgentDescription[] results = DFService.decodeNotification(inform.getContent());
-					if (results != null && results.length > 0 && checkForServices(results)) {
-						//One single message: registration phase
-						for (int i = 0; i < results.length; ++i) {
-							DFAgentDescription dfd = results[i];
-							//System.out.println("Dfd for TesterAgent "+ dfd.getName());
-							if (dfd.getName().getLocalName().startsWith(AGENT_START_CHAR)) {
-								if (counterLocal == 0) {
-									startLocal = System.currentTimeMillis();
-									times.add(String.valueOf(startLocal));
-								}
-								counterLocal++;
+					for (int i = 0; i < results.length; ++i) {
+						DFAgentDescription dfd = results[i];
+						if(dfd.getName().getLocalName().startsWith(AGENT_PREFIX) && isRegistration(dfd)){
+							counter++; 
+							if (counter % 10 == 0) {
+								log("--- # "+counter+" registration notifications received");
 							}
 						}
-						if (counterLocal == NUMBER_OF_CONTAINERS * NUMBER_OF_AGENTS) {
-							endLocal =  System.currentTimeMillis();
-							times.add(String.valueOf(endLocal));
-							elapsedLocal = endLocal - startLocal;
-							times.add(String.valueOf(elapsedLocal));
+						else {
+							failed("--- Unexpected notification received: agent = "+dfd.getName().getLocalName()+", is-registration = "+isRegistration(dfd));
 						}
-					}else{
-						//n different messagges; deregistration phase
-						//System.out.println("Length of result " + results.length);
-						for (int i = 0; i < results.length; ++i) {
-							DFAgentDescription dfd = results[i];
-							//System.out.println("Dfd for TesterAgent "+ dfd.getName());
-							if (dfd.getName().getLocalName().startsWith(AGENT_START_CHAR)) {
-								if (counter == 0) {
-									startTime = System.currentTimeMillis();
-									times.add(String.valueOf(startTime));
-								}
-								counter++;
-							}
-						}
-						if (counter == NUMBER_OF_CONTAINERS * NUMBER_OF_AGENTS) {
-							endTime = System.currentTimeMillis();
-							times.add(String.valueOf(endTime));
-							elapsedTime =  endTime - startTime;
-							times.add(String.valueOf(elapsedTime));
-							printTimes();
-							passed("OK");
-						}
-						
-					}					
-				} catch (FIPAException fe) {
-					failed("Error in handling INFORM messages incoming from df to tester agent "+fe);
+					}
+					
+					if (counter == totAgents){
+						long elapsedTime = System.currentTimeMillis() - startTime;
+						log("--- All expected registration notifications received in "+elapsedTime+" ms");
+						summary.add("Step2 time = "+elapsedTime+" ms");
+						cancel(myAgent.getDefaultDF(), true);
+					}						
+				} 
+				catch (FIPAException fe) {
+					failed("--- Error handling INFORM messages from df. "+fe);
 					fe.printStackTrace();
 				} 
 			}
+		} );
+		
+		main.addSubBehaviour(step2);
+		
+		
+		// Step 3) Subscribe once more to the DF with a null template and collect notifications about de-registrations. 
+		// In parallel, wait a bit and then kill all containers with registering agents
+		ParallelBehaviour step3 = new ParallelBehaviour(a, ParallelBehaviour.WHEN_ALL) {
+			public void onStart() {
+				log("--- Step 3:");
+			}			
+		};
+		
+		ACLMessage subs3 = DFService.createSubscriptionMessage(a, a.getDefaultDF(), subsTemplate, null);
+		step3.addSubBehaviour(new SubscriptionInitiator(a, subs3) {
+			private static final long serialVersionUID = 3L;
+			public int counter = 0;
 
-			//Print times taken during the test
-			private void printTimes() {
-				for(int i = 0; i<times.size(); i=i+3){
-					System.out.println("---------TIMES"+i/3+"-----------");
-					System.out.println("START:"+times.get(i));
-					System.out.println("END:"+times.get(i+1));
-					System.out.println("ELAPSED:"+times.get(i+2));
-					System.out.println("-------------------------");
-					System.out.println("-------------------------");
-				}
-				
+			public void onStart() {
+				log("--- Subscribing to the DF");
+				super.onStart();
 			}
 
-			//if dFAgentDescription doesn't have services we are during agent deregistration from df  
-			private boolean checkForServices(DFAgentDescription[] results) {
-				//System.out.println("Result size in checkForService : "+ results.length);
-				for (int i = 0; i < results.length; ++i) {
-					Iterator allServices = results[i].getAllServices();
-					if (allServices.hasNext()) {
-						return true;
-					}
-				}
-				return false;
-			}
-
-
-		});
-
-		//Kill containers with NUMBER_OF_AGENTS each
-		pb1.addSubBehaviour(new WakerBehaviour(a,10000){
-			private static final long serialVersionUID = 1L;
-
-			protected void onWake() {
+			protected void handleInform(ACLMessage inform) {
 				try {
-					for (int j = 0 ; j < NUMBER_OF_CONTAINERS ; j++){
-						TestUtility.killContainer(myAgent, "c"+j);
+					DFAgentDescription[] results = DFService.decodeNotification(inform.getContent());
+					for (int i = 0; i < results.length; ++i) {
+						DFAgentDescription dfd = results[i];
+						if(dfd.getName().getLocalName().startsWith(AGENT_PREFIX) && !isRegistration(dfd)){
+							counter++; 
+							if (counter % 10 == 0) {
+								log("--- # "+counter+" de-registration notifications received ");
+							}
+						}
+						else {
+							// Just do nothing: Here we receive notifications about all current registrations again
+						}
 					}
-				} catch (TestException e) {
-					failed("Error in kill Container");
-					e.printStackTrace();
-				}
-				super.onWake();
+					
+					if (counter == totAgents){
+						long elapsedTime = System.currentTimeMillis() - startTime;
+						log("--- All expected de-registration notifications received in "+elapsedTime+" ms");
+						summary.add("Step3 time = "+elapsedTime+" ms");
+						cancel(myAgent.getDefaultDF(), true);
+						passed("--- Test successful. Summary: "+summary);
+					}						
+				} 
+				catch (FIPAException fe) {
+					failed("--- Error handling INFORM messages from df. "+fe);
+					fe.printStackTrace();
+				} 
 			}
+		} );
 
+		step3.addSubBehaviour(new WakerBehaviour(a, 10000) {
+			public void onStart() {
+				log("--- Wait a bit before killing containers with registering agents...");
+				super.onStart();
+			}
+			
+			protected void onWake() {
+				log("--- Killing containers with registering agents");
+				startTime = System.currentTimeMillis();
+				for (int j = 0 ; j < NUMBER_OF_CONTAINERS ; j++){
+					String containerName = CONTAINER_PREFIX+j;
+					try {
+						TestUtility.killContainer(myAgent, containerName);
+						log("--- Container "+containerName+" killed");
+					} catch (TestException e) {
+						failed("--- Error killing container "+containerName);
+						e.printStackTrace();
+					}
+				}
+			}
 		});
+		
+		main.addSubBehaviour(step3);
 
-		sb.addSubBehaviour(pb1);
-
-		return sb;
+		return main;
 	}
 
 	//in clean method we kill container with subscribers agents.
 	public void clean(Agent a) {
 		try {
-			TestUtility.killContainer(a, "Subscribers");
+			TestUtility.killContainer(a, SUBSCRIBERS_CONTAINER);
 		} catch (TestException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private boolean isRegistration(DFAgentDescription dfd) {
+		Iterator it = dfd.getAllServices();
+		return it.hasNext();
 	}
 
 
@@ -336,13 +332,8 @@ public class TestDFUnderStress extends Test {
 
 			codec = new SLCodec();
 			getContentManager().registerLanguage(codec);
-			getContentManager().registerOntology(
-					FIPAManagementOntology.getInstance());
-			try {
-				DFService.register(this, getDefaultDF(), getDescription());
-			} catch (FIPAException e) {
-				e.printStackTrace();
-			}
+			getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+			
 			// Prepare the subscription message
 			DFAgentDescription template = new DFAgentDescription();
 			ACLMessage message = DFService.createSubscriptionMessage(this, getDefaultDF(), template, null);
@@ -350,15 +341,11 @@ public class TestDFUnderStress extends Test {
 				private static final long serialVersionUID = 1L;
 
 				protected void handleInform(ACLMessage inform) {
-					/*System.out.println("Agent " + getLocalName()
-							+ ": Notification received from DF");*/
 					try {
 						DFAgentDescription[] results = DFService.decodeNotification(inform.getContent());
 						if (results.length > 0) {
 							for (int i = 0; i < results.length; ++i) {
 								DFAgentDescription dfd = results[i];
-								/*System.out.println("dfd for Agent "+getLocalName()+
-										"dfd "+dfd.getName());*/
 							}
 						}
 					} catch (FIPAException fe) {
@@ -382,7 +369,7 @@ public class TestDFUnderStress extends Test {
 		}
 	}
 
-	public static class NormalAgent extends Agent {
+	public static class RegisteringAgent extends Agent {
 
 		private static final long serialVersionUID = 1L;
 		protected static final int NUMBER_OF_SEARCH = 2;
@@ -390,13 +377,13 @@ public class TestDFUnderStress extends Test {
 		private Codec codec;
 
 		protected void setup() {
-			
-			blockingReceive();
 			// Register language and ontology
 			codec = new SLCodec();
 			getContentManager().registerLanguage(codec);
-			getContentManager().registerOntology(
-					FIPAManagementOntology.getInstance());
+			getContentManager().registerOntology(FIPAManagementOntology.getInstance());
+			
+			blockingReceive();
+			System.out.println("Agent "+getLocalName()+" - startup message received");
 			try {
 				DFService.register(this, getDefaultDF(), getDescription());
 			} catch (FIPAException e) {
@@ -408,12 +395,22 @@ public class TestDFUnderStress extends Test {
 				private static final long serialVersionUID = 1L;
 
 				public void action() {
-					DFAgentDescription dfAgent = new DFAgentDescription();
+					DFAgentDescription template = new DFAgentDescription();
+					ServiceDescription sd = new ServiceDescription();
+					sd.addProperties(new Property(AGENT_NAME_PROP, myAgent.getLocalName()));
+					template.addServices(sd);
+					
 					for (int i = 0; i < NUMBER_OF_SEARCH; i++) {
 						try {
-							DFService.search(myAgent, dfAgent);
+							DFAgentDescription[] dfds = DFService.search(myAgent, template);
+							if (dfds.length != 1) {
+								System.out.println("Agent "+getLocalName()+" - unexpected DF search result: found "+dfds.length+" items(s) while 1 was expected");
+							}
+							else if (!dfds[0].getName().equals(myAgent.getAID())) {
+								System.out.println("Agent "+getLocalName()+" - unexpected DF search result: found agent "+dfds[0].getName().getLocalName()+" while "+myAgent.getAID().getLocalName()+" was expected");
+							}				 
 						} catch (FIPAException e) {
-							System.out.println("Error in searching in the df: "+e);
+							System.out.println("Agent "+getLocalName()+" - error searching in the df: "+e);
 							e.printStackTrace();
 						}
 					}
@@ -429,10 +426,11 @@ public class TestDFUnderStress extends Test {
 			dfd.setName(getAID());
 			ServiceDescription sd = new ServiceDescription();
 			sd.setName(getLocalName() + "-Service");
-			sd.setType("DFStressNormalAgent");
+			sd.setType("DFStressRegisteringAgent");
 			sd.addProtocols(FIPANames.InteractionProtocol.FIPA_REQUEST);
 			sd.addOntologies("fipa-agent-management");
 			sd.setOwnership("JADE");
+			sd.addProperties(new Property(AGENT_NAME_PROP, getLocalName()));
 			for (int i = 0; i < NUMBER_OF_PROPS ; i++) {
 				sd.addProperties(new Property("a"+i,"b"+i));
 			}

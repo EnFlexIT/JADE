@@ -1205,16 +1205,12 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		} 
 		catch (IMTPException imtpe) {
 			// Can't reach the destination container --> Send a FAILURE message
-			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver unreachable.", imtpe);
-			}
+			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver unreachable.", imtpe);
 			notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + imtpe.getMessage()));
 		} 
 		catch (ServiceException se) {
 			// Service error during delivery --> Send a FAILURE message
-			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Service error delivering message.", se);
-			}
+			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Service error delivering message.", se);
 			notifyFailureToSender(msg, receiverID, new InternalError("Service error: " + se.getMessage()));
 		} 
 		catch (JADESecurityException jse) {

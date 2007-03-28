@@ -67,11 +67,18 @@ class ConnectionPool {
 		size = 0;
 	}
 	
-	synchronized ConnectionWrapper acquire(TransportAddress ta, boolean requireFreshConnection) throws ICPException {
-		if (!closed) {
-			ConnectionWrapper cw = null;
+	// The actual connection creation operation must NOT be included in the synchronized block. In facts
+	// in certain cases it may take a lot of time due to TCP timeouts expiration.
+	ConnectionWrapper acquire(TransportAddress ta, boolean requireFreshConnection) throws ICPException {
+		ConnectionWrapper cw = null;
+		List l = null;
+		synchronized (this) {
+			if (closed) {
+				throw new ICPException("Pool closed");			
+			}
+			
 			String url = myProtocol.addrToString(ta);
-			List l = (List) connections.get(url);
+			l = (List) connections.get(url);
 			if (l == null) {
 				l = new ArrayList();
 				connections.put(url, l);
@@ -80,8 +87,7 @@ class ConnectionPool {
 				// We are checking a given destination. This means that this destination may be no longer valid
 				// --> In order to avoid keeping invalid connections that can lead to very long waiting times, 
 				// close all non-used connections towards this destination.
-				l = closeConnections(l);
-				connections.put(url, l);
+				closeConnections(l);
 			}
 			else {
 				Iterator it = l.iterator();
@@ -93,45 +99,46 @@ class ConnectionPool {
 					}
 				}
 			}
-			// If we get here no connection is available --> create a new one
-			try {
-				Connection c = myFactory.createConnection(ta);
+		}
+		
+		// If we get here no connection is available --> create a new one
+		try {
+			Connection c = myFactory.createConnection(ta);
+			synchronized (this) {
+				cw = new ConnectionWrapper(c);
 				if (size < maxSize) {
 					// Reusable connection --> Store it
-					cw = new ConnectionWrapper(c);
 					l.add(cw);
 					size++;
 				}
 				else {
 					// OneShot connection --> don't even store it
-					cw = new ConnectionWrapper(c);
 					cw.setOneShot();
 				}
 				return cw;
 			}
-			catch (IOException ioe) {
-				throw new ICPException("Error creating connection. ", ioe);
-			}
 		}
-		else {
-			throw new ICPException("Pool closed");
+		catch (IOException ioe) {
+			throw new ICPException("Error creating connection. ", ioe);
 		}
 	}
 	
-	private List closeConnections(List l) {
-		List validConnections = new ArrayList();
+	private void closeConnections(List l) {
+		List closedConnections = new ArrayList();
 		Iterator it = l.iterator();
 		while (it.hasNext()) {
 			ConnectionWrapper cw = (ConnectionWrapper) it.next();
 			if (cw.lock()) {
 				cw.close();
 				cw.unlock();
-			}
-			else {
-				validConnections.add(cw);
+				closedConnections.add(cw);
 			}
 		}
-		return validConnections;
+		// Now remove all closed connections
+		it = closedConnections.iterator();
+		while (it.hasNext()) {
+			l.remove(it.next());
+		}
 	}
 
 	synchronized void release(ConnectionWrapper cw) {
