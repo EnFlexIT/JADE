@@ -72,7 +72,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 				blockTime = period;
 			}
 			// Maybe this behaviour has been removed within the onTick() method
-			if (myAgent != null) {
+			if (myAgent != null && !finished) {
 				block(blockTime);
 			}
 		}
