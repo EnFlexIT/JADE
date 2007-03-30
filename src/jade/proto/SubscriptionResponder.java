@@ -35,7 +35,9 @@ import jade.domain.FIPANames;
 import jade.proto.states.*;
 import jade.util.leap.*;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**
@@ -348,6 +350,25 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	}
 	
 	/**
+	 * Utility method that retrieves all Subscription-s done by a given agent
+	 */
+	public Vector getSubscriptions(AID subscriber) {
+		// Synchronization is needed to avoid concurrent modification exception in case this method is 
+		// invoked from within a separate Thread
+		synchronized (subscriptions) {
+			Vector ss = new Vector();
+			Enumeration en = subscriptions.elements();
+			while (en.hasMoreElements()) {
+				Subscription s = (Subscription) en.nextElement();
+				if (s.getMessage().getSender().equals(subscriber)) {
+					ss.addElement(s);
+				}
+			}
+			return ss;
+		}
+	}
+	
+	/**
 	 This is called by a Subscription object when a notification has
 	 to be sent to the corresponding subscribed agent.
 	 Executed in mutual exclusion with sendNotifications(). Note that this
@@ -497,6 +518,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 				myResponder.subscriptions.remove(convId);
 			}
 		}
+		
+		// FIXME: Add equals() and hashCode() methods based on the SUBSCRIBE message conversation-id 
 	} // END of inner class Subscription
 	
 	//#MIDP_EXCLUDE_BEGIN
@@ -506,5 +529,4 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	}
 	
 	//#MIDP_EXCLUDE_END
-	
 }

@@ -97,6 +97,7 @@ public class PersistentDFTesterAgent extends TesterAgent {
 				TestUtility.killAgent(a, a.getDefaultDF());
 				jc = TestUtility.launchJadeInstance("Persistent", addClasspath, "-container -host "+TestUtility.getLocalHostName()
 						+ " -port "+String.valueOf(Test.DEFAULT_PORT)
+						+ " -jade_domain_df_autocleanup true -jade_domain_df_db-abortonerror true"
 						+ " " + urlOption + " " + driverOption + " " + usernameOption + " " + passwordOption + " " + dbDefaultOption + " " + poolsizeOption, new String[] {});
 				
 				TestUtility.createAgent(a, "df", "jade.domain.df", null, a.getAMS(), jc.getContainerName());

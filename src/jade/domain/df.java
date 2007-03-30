@@ -25,6 +25,7 @@ package jade.domain;
 
 //#MIDP_EXCLUDE_FILE
 
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Date;
 
@@ -290,7 +291,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	
 	private KB agentDescriptions = null;
 	private KBSubscriptionManager subManager = null;	
-	
+	private SubscriptionResponder dfSubscriptionResponder;
+		
 	private Logger logger;
 	
 	
@@ -541,16 +543,18 @@ public class df extends GuiAgent implements DFGUIAdapter {
 		mt1 = MessageTemplate.and(
 				MessageTemplate.MatchOntology(FIPAManagementOntology.getInstance().getName()),
 				MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.SUBSCRIBE), MessageTemplate.MatchPerformative(ACLMessage.CANCEL)));
-		SubscriptionResponder dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
+		dfSubscriptionResponder = new SubscriptionResponder(this, mt1, subManager) {
 			// If the CANCEL message has a meaningful content, use it. 
 			// Otherwise deregister the Subscription with the same convID (default)
 			protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
 				try {
 					Action act = (Action) myAgent.getContentManager().extractContent(cancel);
 					ACLMessage subsMsg = (ACLMessage)act.getAction();
-					Subscription s = createSubscription(subsMsg);
-					mySubscriptionManager.deregister(s);
-					s.close();
+					Subscription s = getSubscription(subsMsg);
+					if (s != null) {
+						mySubscriptionManager.deregister(s);
+						s.close();
+					}
 				}
 				catch(Exception e) {
 					if(logger.isLoggable(Logger.CONFIG))
@@ -613,9 +617,10 @@ public class df extends GuiAgent implements DFGUIAdapter {
 				protected void installHandlers(java.util.Map handlersTable) {
 					handlersTable.put(IntrospectionVocabulary.DEADAGENT, new EventHandler() {
 						public void handle(Event ev) {
+							DeadAgent da = (DeadAgent)ev;
+							AID id = da.getAgent();
+							// Deregister the dead agent in case it was registered
 							try {
-								DeadAgent da = (DeadAgent)ev;
-								AID id = da.getAgent();
 								DFAgentDescription dfd = new DFAgentDescription();
 								dfd.setName(id);
 								DFDeregister(dfd);
@@ -623,6 +628,8 @@ public class df extends GuiAgent implements DFGUIAdapter {
 							catch (Exception e) {
 								// Just do nothing
 							}
+							// Unsubscribe the dead agent in case it was subscribed
+							unsubscribeDeadAgent(id);
 						}
 					});
 					
@@ -631,7 +638,28 @@ public class df extends GuiAgent implements DFGUIAdapter {
 			addBehaviour(amsSubscriber);
 		}
 		//#PJAVA_EXCLUDE_END
+		
+		// In case some subscription is already present in the KB (e.g. because the DF is using a DB-based KB and 
+		// it has just restarted) reinitialize the SubscriptionResponder protocol.
+		// NOTE that this must be done after all components taking part in the subscription mechanism have been properly initialized
+		Enumeration ss = agentDescriptions.getSubscriptions();
+		while (ss.hasMoreElements()) {
+			SubscriptionResponder.Subscription s = (SubscriptionResponder.Subscription) ss.nextElement();
+			dfSubscriptionResponder.createSubscription(s.getMessage());
+		}
 	}  // End of method setup()
+
+	private void unsubscribeDeadAgent(AID id) {
+		Vector ss = dfSubscriptionResponder.getSubscriptions(id);
+		for (int i = 0; i < ss.size(); i++) {
+			try {
+				subManager.deregister((SubscriptionResponder.Subscription) ss.elementAt(i));
+			}
+			catch (Exception e) {
+				logger.log(Logger.WARNING, "Error deregistering subscription of dead agent "+id.getName(), e);
+			}
+		}
+	}
 
 	private boolean getBooleanProperty(String sValue, String name) {
 		boolean b = false;
@@ -1567,6 +1595,11 @@ public class df extends GuiAgent implements DFGUIAdapter {
 	void storePendingRequest(Object key, ACLMessage request) {
 		pendingRequests.put(key, request);
 	}
+
+	void removePendingRequest(Object key) {
+		pendingRequests.remove(key);
+	}
+
 	
 	/**
 	 Send the notification related to an action that has been processed 

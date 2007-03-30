@@ -77,6 +77,7 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
   	}
   	// SEARCH
   	else if (action instanceof Search) {
+  		theDF.storePendingRequest(action, request);
   		result = theDF.searchAction((Search) action, request.getSender());
   		if (result == null) {
   			asynchNotificationRequired = true;
@@ -87,6 +88,7 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
   	}
   	
   	if (!asynchNotificationRequired) {
+  		theDF.removePendingRequest(action);
   		// The requested action has been completed. Prepare the notification
 	  	ACLMessage notification = request.createReply();
 	  	notification.setPerformative(ACLMessage.INFORM);
@@ -108,9 +110,7 @@ class DFFipaAgentManagementBehaviour extends RequestManagementBehaviour {
 	  	return notification;
   	}
 		else {
-			// The requested action is being processed by a Behaviour. Store
-			// the request message for later retrieval.
-  		theDF.storePendingRequest(action, request);
+			// The requested action is being processed by a Behaviour.
   		return null;
   	}
   }

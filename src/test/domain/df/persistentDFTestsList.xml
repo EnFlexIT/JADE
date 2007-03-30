@@ -219,5 +219,18 @@
 			<WhenTestPass> The test passes if all the above operations have the expected effect and no exception is thrown.</WhenTestPass>
 		</Test>		
 		
+		<Test name="DF UnderStress" skip="true">
+			<TestClassName>test.domain.df.tests.TestDFUnderStress</TestClassName>
+			<WhatTest> Tests how df works when it has to hold many operations </WhatTest>
+			<HowWorkTest>tester agent registers itself to the df and makes a subscription. start of a 
+			container with 10 agents subscribing to the df and of three other containers with 100 agents 
+			in each one. Check of time that tester agent waits before receiving 300 notifications of registration 
+			from df. Tester agent unsubscribe itself and makes another subscription. heck of time that tester agent 
+			waits before receiving the only message from df (having inside information of all the agents
+			previously registered). Kill of previously mentioned three containers and check of time 
+			that tester agent waits before receiving 300 notifications of deregistration from df;
+			</HowWorkTest>
+			<WhenTestPass>The test passes always. Times measured are printed at the end</WhenTestPass>
+		</Test>
 	</TestsList>
 
