@@ -46,6 +46,7 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
+import jade.core.behaviours.Behaviour;
 
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
@@ -903,6 +904,7 @@ public class AgentManagementService extends BaseService {
 				mainSlice = (AgentManagementSlice)getFreshSlice(MAIN_SLICE);
 				mainSlice.bornAgent(cloned, myContainer.getID(), vCmd);
 			}
+			customize(instance);
 		}
 		catch(NameClashException nce) {
 			removeLocalAgent(target);
@@ -922,6 +924,16 @@ public class AgentManagementService extends BaseService {
 		catch(JADESecurityException ae) {
 			removeLocalAgent(target);
 			throw ae;
+		}
+	}
+	
+	private void customize(Agent agent) {
+		try {
+			Behaviour amfServer = (Behaviour) Class.forName("jade.amf.AttributeManagementServer").newInstance();
+			agent.addBehaviour(amfServer);
+		}
+		catch (Exception e) {
+			// The AMF code is not in the classpath --> Just do nothing
 		}
 	}
 	

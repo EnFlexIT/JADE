@@ -13,7 +13,7 @@ import jade.tools.logging.ontology.LogManagementOntology;
 import jade.tools.logging.gui.LogManagerGUI;
 
 /**
- * This tool agent support local and remote management of logs in JADE containers.
+ * This tool agent supports local and remote management of logs in JADE containers.
  * 
  * @author Giovanni Caire - TILAB
  * @author Rosalba Bochicchio - TILAB

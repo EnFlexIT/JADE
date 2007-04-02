@@ -547,15 +547,16 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			}
 			
 			//#J2ME_EXCLUDE_BEGIN
-			// If the -jade_core_AgentContainerImpl_enablemonitor option is specified activate a ContainerMonitorAgent
-			if (myProfile.getBooleanProperty(ENABLE_MONITOR, false)) {
+			// If the Misc add-on is in the classpath and the -jade_core_AgentContainerImpl_enablemonitor option is not explicitly set to false, activate a ContainerMonitorAgent
+			if (myProfile.getBooleanProperty(ENABLE_MONITOR, true)) {
 				AID monitorId = new AID(MONITOR_AGENT_NAME, AID.ISLOCALNAME);
 				try {
 					getContainerProxy(myNodeDescriptor.getOwnerPrincipal(), myNodeDescriptor.getOwnerCredentials()).createAgent(monitorId, MONITOR_AGENT_CLASS, new Object[]{this, localAgents});
 					powerUpLocalAgent(monitorId);
+					myLogger.log(Logger.INFO, "Container-Monitor agent activated");
 				}
 				catch (Throwable t) {
-					myLogger.log(Logger.WARNING, "Cannot strat ContainerMonitor agent. Check that the misc add-on is in the classpath.");
+					// The Misc add-on is not in the classpath --> Just do nothing
 				}
 			}
 			//#J2ME_EXCLUDE_END
