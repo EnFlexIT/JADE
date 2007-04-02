@@ -223,6 +223,11 @@ class MessageManager {
 	String[] getQueueStatus() {
 		return outBox.getStatus();
 	}
+	
+	// For debugging purpose
+	int getQueueSize() {
+		return outBox.getSize();
+	}
 
 	String[] getThreadPoolStatus() {
 		String[] status = new String[deliverers.length];
@@ -230,6 +235,11 @@ class MessageManager {
 			status[i] = "(Deliverer-"+i+" :alive "+deliverers[i].isAlive()+")";
 		}
 		return status;
+	}
+	
+	// For debugging purpose
+	Thread[] getThreadPool() {
+		return deliverers;
 	}
 }
 

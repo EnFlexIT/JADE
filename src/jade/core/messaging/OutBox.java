@@ -272,4 +272,9 @@ class OutBox {
 		}
 		return status;
 	}	
+	
+	// For debugging purpose 
+	int getSize() {
+		return size;
+	}
 }

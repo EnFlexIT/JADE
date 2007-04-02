@@ -1505,8 +1505,17 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	public String[] getMessageManagerThreadPoolStatus() {
 		return myMessageManager.getThreadPoolStatus();
 	}
-
-
+	
+	// For debugging purpose
+	public int getQueueSize() {
+		return myMessageManager.getQueueSize();
+	}
+	
+	// For debugging purpose
+	public Thread[] getThreadPool() {
+		return myMessageManager.getThreadPool();
+	}
+	
 	protected void clearCachedSlice(String name) {
 		if (cachedSlices != null){
 			cachedSlices.clear();
