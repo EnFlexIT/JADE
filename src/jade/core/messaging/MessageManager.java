@@ -63,8 +63,9 @@ class MessageManager {
 	private static final int  MAX_QUEUE_SIZE_DEFAULT = 10000000; // 10MBytes
 
 	private OutBox outBox;
-	private Thread[] deliverers;
-
+	private Thread[] delivererThreads;
+	private Deliverer[] deliverers;
+	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 	private MessageManager() {
@@ -104,14 +105,16 @@ class MessageManager {
 
 		try {
 			ResourceManager rm = p.getResourceManager();
-			deliverers = new Thread[poolSize];
+			delivererThreads = new Thread[poolSize];
+			deliverers = new Deliverer[poolSize];
 			for (int i = 0; i < poolSize; ++i) {
 				String name = "Deliverer-"+i;
-				deliverers[i] = rm.getThread(ResourceManager.TIME_CRITICAL, name, new Deliverer());
+				deliverers[i] = new Deliverer();
+				delivererThreads[i] = rm.getThread(ResourceManager.TIME_CRITICAL, name, deliverers[i]);
 				if (myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE, "Starting deliverer "+name+". Thread="+deliverers[i]);
+					myLogger.log(Logger.FINE, "Starting deliverer "+name+". Thread="+delivererThreads[i]);
 				}
-				deliverers[i].start();
+				delivererThreads[i].start();
 			}
 		}
 		catch (ProfileException pe) {
@@ -132,6 +135,9 @@ class MessageManager {
  	   Inner class Deliverer
 	 */
 	class Deliverer implements Runnable {
+		
+		// For debugging purpose
+		private long servedCnt = 0;
 
 		public void run() {
 			while (true) {
@@ -150,8 +156,13 @@ class MessageManager {
 					myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". "+t);
 					ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
 				}
+				servedCnt++;
 				outBox.handleServed(receiverID);
 			}
+		}
+		
+		long getServedCnt() {
+			return servedCnt;
 		}
 	} // END of inner class Deliverer	
 
@@ -225,21 +236,22 @@ class MessageManager {
 	}
 	
 	// For debugging purpose
-	int getQueueSize() {
-		return outBox.getSize();
+	String getGlobalInfo() {
+		return "Submitted-messages = "+outBox.getSubmittedCnt()+", Served-messages = "+outBox.getServedCnt()+", Queue-size (byte) = "+outBox.getSize();
 	}
 
+	// For debugging purpose
 	String[] getThreadPoolStatus() {
-		String[] status = new String[deliverers.length];
-		for (int i = 0; i < deliverers.length; ++i) {
-			status[i] = "(Deliverer-"+i+" :alive "+deliverers[i].isAlive()+")";
+		String[] status = new String[delivererThreads.length];
+		for (int i = 0; i < delivererThreads.length; ++i) {
+			status[i] = "(Deliverer-"+i+" :alive "+delivererThreads[i].isAlive()+" :Served-messages "+deliverers[i].getServedCnt()+")";
 		}
 		return status;
 	}
 	
 	// For debugging purpose
 	Thread[] getThreadPool() {
-		return deliverers;
+		return delivererThreads;
 	}
 }
 

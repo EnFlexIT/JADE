@@ -32,7 +32,11 @@ class OutBox {
 	// The messages to be delivered organized as a round list of the Boxes of
 	// messages for the currently addressed receivers 
 	private final RoundList messagesByOrder = new RoundList();
-	
+		
+	// For debugging purposes 
+	private long submittedCnt = 0;
+	private long servedCnt = 0;
+
 	private Logger myLogger;
 	
 	OutBox(int s) {
@@ -79,6 +83,7 @@ class OutBox {
 			if (logActivated)
 				myLogger.log(Logger.FINER,"Message entered in box for receiver "+receiverID.getName());
 			b.addLast(new PendingMsg(msg, receiverID, ch, -1));
+			submittedCnt++;
 			// Wakes up all deliverers
 			notifyAll();
 		}
@@ -158,6 +163,7 @@ class OutBox {
 	 * Otherwise just mark it as idel (not busy).
    */
 	synchronized final void handleServed( AID receiverID ){
+		servedCnt++;
 		boolean logActivated = myLogger.isLoggable(Logger.FINER);
 		if (logActivated)
 			myLogger.log(Logger.FINER,"Entering handleServed for "+receiverID.getName());
@@ -224,6 +230,7 @@ class OutBox {
 	private class Box {
 	    private final AID receiver;
 	    private boolean busy;
+	    private String owner;
 	    private final List messages;
 		
 		public Box(AID r) {
@@ -238,6 +245,9 @@ class OutBox {
 
 		private void setBusy(boolean b){
 			busy = b;
+			//#J2ME_EXCLUDE_BEGIN
+			owner = (busy ? Thread.currentThread().getName() : null);
+			//#J2ME_EXCLUDE_END
 		}
 		
 		private boolean isBusy(){
@@ -258,7 +268,7 @@ class OutBox {
 		
 		// For debugging purpose
 		public String toString() {
-			return "("+receiver.getName()+" :busy "+busy+" :message-cnt "+messages.size()+")";
+			return "("+receiver.getName()+" :busy "+busy+ (owner != null ? " :owner "+owner : "") + " :message-cnt "+messages.size()+")";
 		}
 	} // END of inner class Box
 	
@@ -276,5 +286,13 @@ class OutBox {
 	// For debugging purpose 
 	int getSize() {
 		return size;
+	}
+	
+	long getSubmittedCnt() {
+		return submittedCnt;
+	}
+	
+	long getServedCnt() {
+		return servedCnt;
 	}
 }

@@ -19,19 +19,19 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.tools.DummyAgent;
 
-// Import required Java classes 
+//Import required Java classes 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
 import java.util.*;
 
-// Import required Jade classes
+//Import required Jade classes
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.*;
@@ -40,7 +40,7 @@ import jade.domain.FIPAAgentManagement.Envelope;
 /**
 @author Giovanni Caire - CSELT S.p.A
 @version $Date$ $Revision$
-*/
+ */
 
 class DummyBehaviour extends CyclicBehaviour {
 	DummyBehaviour(Agent a) {
@@ -64,7 +64,7 @@ class DummyBehaviour extends CyclicBehaviour {
 			// in the queued message list!
 			// This can be done by using the invokeLater static method of the SwingUtilities class 
 			// as below
-	
+
 			SwingUtilities.invokeLater(new EDTRequester((DummyAgent)myAgent, msg));
 		}
 		else {
@@ -75,7 +75,7 @@ class DummyBehaviour extends CyclicBehaviour {
 	class EDTRequester implements Runnable {
 		DummyAgent agent;
 		ACLMessage msg;
-		
+
 		EDTRequester(DummyAgent a, ACLMessage m) {
 			agent = a;
 			msg = m;
@@ -84,17 +84,16 @@ class DummyBehaviour extends CyclicBehaviour {
 		public void run() {
 			agent.getGui().queuedMsgListModel.add(0, (Object) new MsgIndication(msg, MsgIndication.INCOMING, new Date()));
 			StringACLCodec codec = new StringACLCodec();
-		  try {
-		  	String charset;
-        Envelope e;
-        if (((e = msg.getEnvelope()) == null) ||
-            ((charset = e.getPayloadEncoding()) == null)) {
-          charset = ACLCodec.DEFAULT_CHARSET;
-        }
-        codec.decode(codec.encode(msg,charset),charset);
-		  } catch (ACLCodec.CodecException ce) {
-					ce.printStackTrace();
-		  }
+			try {
+				String charset;
+				Envelope e;
+				if (((e = msg.getEnvelope()) == null) || ((charset = e.getPayloadEncoding()) == null)) {
+					charset = ACLCodec.DEFAULT_CHARSET;
+				}
+				codec.decode(codec.encode(msg,charset),charset);
+			} catch (ACLCodec.CodecException ce) {
+				ce.printStackTrace();
+			}
 		}
 	}
 

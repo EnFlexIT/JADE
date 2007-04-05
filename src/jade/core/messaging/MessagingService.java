@@ -1498,21 +1498,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		}
 	}
 	
+	// For debugging purpose
 	public String[] getMessageManagerQueueStatus() {
 		return myMessageManager.getQueueStatus();
 	}
 	
+	// For debugging purpose
 	public String[] getMessageManagerThreadPoolStatus() {
 		return myMessageManager.getThreadPoolStatus();
 	}
 	
 	// For debugging purpose
-	public int getQueueSize() {
-		return myMessageManager.getQueueSize();
+	public String getMessageManagerGlobalInfo() {
+		return myMessageManager.getGlobalInfo();
 	}
 	
 	// For debugging purpose
-	public Thread[] getThreadPool() {
+	public Thread[] getMessageManagerThreadPool() {
 		return myMessageManager.getThreadPool();
 	}
 	
