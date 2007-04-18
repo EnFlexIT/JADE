@@ -50,9 +50,6 @@ import java.util.Vector;
  * @author Giovanni Caire - TILAB
  */
 public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
-	public static final String MSISDN = "msisdn";
-	public static final String VERSION = "version";
-	
 	private static final int RESPONSE_TIMEOUT = 30000;
 	
 	private MicroSkeleton mySkel = null;
@@ -73,11 +70,12 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	
 	private Timer kaTimer, cdTimer;
 		
-	private CommandServer myCommandServer;
+	private IncomingCommandServer myCommandServer;
 	private ConnectionReader myConnectionReader;
 	private Connection myConnection = null;
 	public boolean refreshingConnection = false;
 	private Object connectionLock = new Object();
+	private Object responseLock = new Object();
 	private ConnectionListener myConnectionListener;
 	
 	private boolean active = true;
@@ -100,6 +98,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	 */
 	public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {
 		myProperties = props;
+	  	myMediatorID = myProperties.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
 		try {
 			
 			String tmp = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
@@ -206,6 +205,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			myStub = new BackEndStub(this);
 			
 			Connection c = createBackEnd();
+			active = true;
 			startConnectionReader(c);
 			
 			return myStub;
@@ -230,8 +230,6 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			BackEndStub.appendProp(sb, "outcnt", String.valueOf(outCnt));
 			BackEndStub.appendProp(sb, "lastsid", String.valueOf(lastSid));
 		}
-		BackEndStub.appendProp(sb, MSISDN, myProperties.getProperty(MSISDN));
-		BackEndStub.appendProp(sb, VERSION, myProperties.getProperty(VERSION));
 		JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 		
 		// Try first with the current transport address, then with the various backup addresses
@@ -439,7 +437,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 					if (active && !connectionDropped) {
 						myLogger.log(Logger.WARNING, "CR Exception "+ioe);
 						// This synchronized check avoids that an old connection reader suddenly realizes that its connection is down
-						// and tries to refresh an already restored
+						// and tries to refresh an already restored connection
 						if (this == FrontEndDispatcher.this.myConnectionReader) {
 							handleDisconnection();
 						}
@@ -513,26 +511,32 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 		}
 	}
 	
-	private synchronized JICPPacket waitForResponse(int sessionID, long timeout) {
-		try {
-			while (lastOutgoingResponse == null ) {
-				wait(timeout);
-				if (lastOutgoingResponse != null && (sessionID != -1 && lastOutgoingResponse.getSessionID() != sessionID)) {
-					myLogger.log(Logger.WARNING, "Wrong sessionID in response from BE: type="+lastOutgoingResponse.getType()+" info="+lastOutgoingResponse.getInfo()+" SID="+lastOutgoingResponse.getSessionID()+" while "+sessionID+" was expected.");
-					// Go back waiting
-					lastOutgoingResponse = null;
-					continue;
+	private JICPPacket waitForResponse(int sessionID, long timeout) {
+		// Mutual exclusion with notifyOutgoingResponseReceived()
+		synchronized(responseLock) {
+			try {
+				while (lastOutgoingResponse == null ) {
+					responseLock.wait(timeout);
+					if (lastOutgoingResponse != null && (sessionID != -1 && lastOutgoingResponse.getSessionID() != sessionID)) {
+						myLogger.log(Logger.WARNING, "Wrong sessionID in response from BE: type="+lastOutgoingResponse.getType()+" info="+lastOutgoingResponse.getInfo()+" SID="+lastOutgoingResponse.getSessionID()+" while "+sessionID+" was expected.");
+						// Go back waiting
+						lastOutgoingResponse = null;
+						continue;
+					}
+					break;
 				}
-				break;
 			}
+			catch (Exception e) {}
+			return lastOutgoingResponse;
 		}
-		catch (Exception e) {}
-		return lastOutgoingResponse;
 	}
 	
-	private synchronized void notifyOutgoingResponseReceived(JICPPacket rsp) {
-		lastOutgoingResponse = rsp;
-		notifyAll();
+	private void notifyOutgoingResponseReceived(JICPPacket rsp) {
+		// Mutual exclusion with waitForResponse()
+		synchronized(responseLock) {
+			lastOutgoingResponse = rsp;
+			responseLock.notifyAll();
+		}
 	}
 	
 	
@@ -680,7 +684,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	
 	/**
 	 * Refresh the connection drop-down timer.
-	 * Mutual exclusion with updateKeepAlive() and updateConnectionDropDown()
+	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
 	 */
 	private synchronized void updateConnectionDropDown() {
 		if (connectionDropDownTime > 0) {
@@ -693,7 +697,7 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	}
 	
 	/**
-	 * Mutual exclusion with updateKeepAlive() and updateConnectionDropDown()
+	 * Mutual exclusion with updateKeepAlive(), updateConnectionDropDown() and doTimeOut()
 	 */	
 	public synchronized void doTimeOut(Timer t) {
 		if (t == kaTimer) { 
@@ -794,20 +798,24 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	//////////////////////////////////////////////////////////////////
 	private void serveCommand(JICPPacket command) {
 		if (myCommandServer == null) {
-			myCommandServer = new CommandServer();
+			myCommandServer = new IncomingCommandServer();
 			myCommandServer.start();
 		}
 		myCommandServer.serve(command);
 	}
 	
 	/**
-	 * Inner class CommandServer
+	 * Inner class IncomingCommandServer
+	 * Serving incoming commands asynchronously is necessary to support commands whose serving process 
+	 * involves issuing one or more outgoing commands. If such commands were served directly by the 
+	 * ConnectionReader thread, in facts, there would be no chance to get the response to triggered 
+	 * outgoing commands. 
 	 */
-	private class CommandServer extends Thread {
+	private class IncomingCommandServer extends Thread {
 		private JICPPacket currentCommand = null;
 		private JICPPacket lastResponse = null;
 		
-		public CommandServer() {
+		public IncomingCommandServer() {
 			super();
 			//#MIDP_EXCLUDE_BEGIN
 			setName("CommandServer");
@@ -869,5 +877,5 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 			currentCommand = null;
 			notifyAll();
 		}
-	}
+	} // END of inner class IncomingCommandServer
 }

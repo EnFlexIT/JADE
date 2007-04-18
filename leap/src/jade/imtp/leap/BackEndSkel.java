@@ -52,9 +52,7 @@ public class BackEndSkel extends MicroSkeleton {
 		switch (c.getCode()) {
 		case BackEndStub.MESSAGE_OUT:
 			try {
-				//Logger.println(Thread.currentThread().getName()+": Executing MESSAGE_OUT");
 				myBackEnd.messageOut((ACLMessage) c.getParamAt(0), (String) c.getParamAt(1));
-				//Logger.println(Thread.currentThread().getName()+": MESSAGE_OUT executed");
 				c.reset(Command.OK);
 			}
 			catch (NotFoundException nfe) {

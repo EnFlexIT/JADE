@@ -593,7 +593,7 @@ public class BackEndDispatcher implements NIOMediator, BEConnectionManager, Disp
 			JICPPacket reply = null;
 			byte sid = cmd.getSessionID();
 			if (sid == lastSid) {
-				myLogger.log(Logger.WARNING,myID+": Duplicated packet from BE: pkt-type="+cmd.getType()+" info="+cmd.getInfo()+" SID="+sid);
+				myLogger.log(Logger.WARNING,myID+": Duplicated packet from FE: pkt-type="+cmd.getType()+" info="+cmd.getInfo()+" SID="+sid);
 				reply = lastResponse;
 			}
 			else {

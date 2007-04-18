@@ -51,9 +51,6 @@ import java.util.Enumeration;
  * @author Giovanni Caire - TILAB
  */
 public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerListener, Runnable {
-	public static final String MSISDN = "msisdn";
-	public static final String VERSION = "version";
-	
 	protected static final byte INP = (byte) 1;
 	protected static final byte OUT = (byte) 0;
 	
@@ -101,6 +98,7 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
    */
   public BackEnd getBackEnd(FrontEnd fe, Properties props) throws IMTPException {  	
   	this.props = props;
+  	myMediatorID = props.getProperty(JICPProtocol.MEDIATOR_ID_KEY);
   	try {
 
 	    beAddrsText = props.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES);
@@ -264,8 +262,6 @@ public class BIFEDispatcher implements FEConnectionManager, Dispatcher, TimerLis
 		  BackEndStub.appendProp(sb, "outcnt", String.valueOf(outCnt));
 		  BackEndStub.appendProp(sb, "lastsid", String.valueOf(lastSid));
     }
-    BackEndStub.appendProp(sb, MSISDN, props.getProperty(MSISDN));
-    BackEndStub.appendProp(sb, VERSION, props.getProperty(VERSION));
     JICPPacket pkt = new JICPPacket(JICPProtocol.CREATE_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, null, sb.toString().getBytes());
 
     // Try first with the current transport address, then with the various backup addresses

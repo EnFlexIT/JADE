@@ -306,7 +306,7 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	 Note that the NotFoundException here is referred to the sender and
 	 indicates an inconsistency between the FrontEnd and the BackEnd
 	 */
-	public void messageOut(final ACLMessage msg, String sender) throws NotFoundException, IMTPException {
+	public void messageOut(ACLMessage msg, String sender) throws NotFoundException, IMTPException {
 		// Check whether the sender exists
 		AID id = new AID(sender, AID.ISLOCALNAME);
 		

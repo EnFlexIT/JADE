@@ -37,7 +37,6 @@ package jade.imtp.leap.JICP;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.Profile;
-import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.security.JADESecurityException;
 import jade.util.Logger;
@@ -48,7 +47,6 @@ import java.net.*;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
-import java.util.StringTokenizer;
 
 /**
  * Class declaration
@@ -412,6 +410,15 @@ implements PDPContextManager.Listener, JICPMediatorManager
 							// Starts a new Mediator and sends back its ID
 							String s = new String(pkt.getData());
 							Properties p = FrontEndStub.parseCreateMediatorRequest(s);
+							
+							// If the platform-name is specified refuse the request: JICPServer does not accept this kind of mediator creation request
+							String pn = p.getProperty(Profile.PLATFORM_ID);
+							if (pn != null) {
+								myLogger.log(Logger.WARNING, "CREATE_MEDIATOR request with specified platform-name: "+pn);
+								reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, new JADESecurityException("Platform-name specified"));
+								break;
+							}
+							
 							// If there is a PDPContextManager add the PDP context properties
 							if (myPDPContextManager != null) {
 								try{
@@ -435,7 +442,7 @@ implements PDPContextManager.Listener, JICPMediatorManager
 									// Security attack: Someone is pretending to be someone other
 									if(myLogger.isLoggable(Logger.WARNING))
 										myLogger.log(Logger.WARNING,"CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+addr);
-									reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
+									reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, new JADESecurityException("Inconsistent mediator-id and msisdn"));
 									break;
 								}	
 								// An existing front-end whose back-end was lost. The BackEnd must resynch 

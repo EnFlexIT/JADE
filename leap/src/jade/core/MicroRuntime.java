@@ -78,7 +78,7 @@ public class MicroRuntime {
 	//#APIDOC_EXCLUDE_END
 	
 	private static Runnable terminator;
-	private static FrontEnd myFrontEnd;
+	private static FrontEndContainer myFrontEnd;
 	private static boolean terminated;
 	
 	/**
@@ -177,6 +177,12 @@ public class MicroRuntime {
 				// Should never happen as this is a local call
 				imtpe.printStackTrace();
 			}
+		}
+	}
+	
+	public static void detach() {
+		if (myFrontEnd != null) {
+			myFrontEnd.detach();
 		}
 	}
 	

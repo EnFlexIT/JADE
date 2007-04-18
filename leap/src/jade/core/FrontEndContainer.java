@@ -43,8 +43,6 @@ import java.util.Enumeration;
  */
 
 class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
-	private static final String CONN_MGR_CLASS_DEFAULT = "jade.imtp.leap.JICP.BIFEDispatcher";
-	
 	Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	// The table of local agents
@@ -73,10 +71,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	private Vector senderAgents;
 	
 	// The BackEnd this FrontEndContainer is connected to
-	private BackEnd myBackEnd;
-	
-	// The manager of the connection with the BackEnd
-	private FEConnectionManager myConnectionManager;
+	private BackEndWrapper myBackEnd;
 	
 	// The configuration properties for this FrontEndContainer
 	private Properties configProperties;
@@ -117,17 +112,8 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		
 		// Connect to the BackEnd
 		try {
-			String connMgrClass = configProperties.getProperty(MicroRuntime.CONN_MGR_CLASS_KEY);
-			if (connMgrClass == null) {
-				connMgrClass = CONN_MGR_CLASS_DEFAULT;
-			}
-			
-			myConnectionManager = (FEConnectionManager) Class.forName(connMgrClass).newInstance();
-			myBackEnd = myConnectionManager.getBackEnd(this, configProperties);
-			initInfo(configProperties);
-			
+			myBackEnd = new BackEndWrapper(this, configProperties);
 			logger.log(Logger.INFO, "--------------------------------------\nAgent container " + myId.getName() + " is ready.\n--------------------------------------------");
-			
 		}
 		catch (IMTPException imtpe) {
 			logger.log(Logger.SEVERE,"IMTP error "+imtpe);
@@ -203,6 +189,10 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		configProperties.remove(MicroRuntime.AGENTS_KEY);
 		
 		notifyStarted();
+	}
+	
+	void detach() {
+		myBackEnd.detach();
 	}
 	
 	/////////////////////////////////////
@@ -312,7 +302,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			
 			// Shut down the connection with the BackEnd. The BackEnd will 
 			// exit and deregister with the main
-			myConnectionManager.shutdown();
+			myBackEnd.detach();
 			logger.log(Logger.FINE,"Connection manager closed");
 			
 			// Notify the JADE Runtime that the container has terminated execution
@@ -512,7 +502,7 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	///////////////////////////////
 	// Private methods
 	///////////////////////////////
-	private final void initInfo(Properties pp) {
+	final void initInfo(Properties pp) {
 		myId = new ContainerID(pp.getProperty(MicroRuntime.CONTAINER_NAME_KEY), null);
 		AID.setPlatformID(pp.getProperty(MicroRuntime.PLATFORM_KEY));
 		platformAddresses = Specifier.parseList(pp.getProperty(MicroRuntime.PLATFORM_ADDRESSES_KEY), ';');

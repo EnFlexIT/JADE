@@ -120,6 +120,8 @@ public class BEManagementService extends BaseService {
 	private Ticker myTicker;
 	private ServiceHelper myHelper;
 	
+	private String platformName;
+	
 	// The list of addresses considered malicious. Connections from
 	// these addresses will be rejected.
 	// FIXME: The mechanism for filling/clearing this list is not yet
@@ -142,6 +144,8 @@ public class BEManagementService extends BaseService {
 	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
+		
+		platformName = ac.getPlatformID();
 		
 		// Initialize the BE-Manager
 		BackEndManager.getInstance(p);
@@ -480,12 +484,21 @@ public class BEManagementService extends BaseService {
 				}
 				case JICPProtocol.CREATE_MEDIATOR_TYPE: {
 					if (mediator == null) {
+						// Create a new Mediator
 						if(myLogger.isLoggable(Logger.INFO)) {
 							myLogger.log(Logger.INFO, myLogPrefix+"CREATE_MEDIATOR request received from "+ address + ":" + port);
 						}
 						
-						// Create a new Mediator
 						Properties p = FrontEndStub.parseCreateMediatorRequest(new String(pkt.getData()));
+						
+						// If the platform-name is specified check if it is consistent
+						String pn = p.getProperty(Profile.PLATFORM_ID);
+						if (pn != null && !pn.equals(platformName)) {
+							myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request with wrong platform name: "+pn);
+							reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, new JADESecurityException("Wrong platform-name"));
+							break;
+						}
+						
 						p.setProperty(BEManagementHelper.FRONT_END_HOST, address.getHostAddress());
 						
 						String owner = p.getProperty(JICPProtocol.OWNER_KEY);
@@ -505,9 +518,9 @@ public class BEManagementService extends BaseService {
 						String msisdn = p.getProperty(PDPContextManager.MSISDN);
 						if(id != null) {
 							if (msisdn != null && !msisdn.equals(id)) {
-								// Security attack: Someone is pretending to be someone other
+								// Security attack: Someone is pretending to be someone else
 								myLogger.log(Logger.WARNING, myLogPrefix+"Security attack! CREATE_MEDIATOR request with mediator-id != MSISDN. Address is: "+address);
-								reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, null);
+								reply = new JICPPacket(JICPProtocol.NOT_AUTHORIZED_ERROR, new JADESecurityException("Inconsistent mediator-id and msisdn"));
 								break;
 							}	
 							// An existing front-end whose back-end was lost. The BackEnd must resynch 
