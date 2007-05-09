@@ -43,7 +43,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 
-import sun.misc.BASE64Encoder;
+import org.apache.commons.codec.binary.Base64;
+
+//import sun.misc.BASE64Encoder;
 
 /**
  * This class maintains the mapping between agents and jar files
@@ -61,8 +63,7 @@ public class CodeLocator {
 	private static final int SIZE_CREATE_JAR_BUFFER = 4096;	
 	private static final int SIZE_HASH_JAR_BUFFER = 4096;
 	
-	private static BASE64Encoder b64Encoder = new BASE64Encoder();
-	
+	//private static BASE64Encoder b64Encoder = new BASE64Encoder();
 	private final String TMP_JAR;
 	
 	public CodeLocator(String agentsPath) {
@@ -106,7 +107,6 @@ public class CodeLocator {
 			fos.write(buffy, 0, bytes);
 		codestream.close();
 		fos.close();
-		
 		return registerAgent(name, f, false);
 	}
 	
@@ -149,7 +149,6 @@ public class CodeLocator {
 				System.out.println("####################### RENAME of "
 						+ f.getPath() + "didn't work properly");
 			}
-			
 			// Register agent.
 			return registerJar(name, f.getPath(), jarUID, userCreatedJar);
 		}
@@ -241,7 +240,8 @@ public class CodeLocator {
 				finalDigest = xor(finalDigest, md.digest());
 			}
 		}
-		return b64Encoder.encode(finalDigest);
+		return new String(Base64.encodeBase64(finalDigest), "US-ASCII");
+		//return b64Encoder.encode(finalDigest);
 		
 	}
 	

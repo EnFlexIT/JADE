@@ -287,7 +287,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			if (obj instanceof List) {
 				return AbsHelper.externaliseList((List) obj, referenceOnto, SEQUENCE);
 			}
-
+			
 			if (obj instanceof Iterator) {
 				return AbsHelper.externaliseIterator((Iterator) obj, referenceOnto, SEQUENCE);
 			}

@@ -1153,7 +1153,12 @@ public class AgentMobilityService extends BaseService {
 				cl = new MobileAgentClassLoader(agentName, classSiteName, finder);
 				loaders.put(classSiteName, cl);
 			}
+			//#J2ME_EXCLUDE_BEGIN
+			Class c = Class.forName(v.getName(), true, cl);
+			//#J2ME_EXCLUDE_END
+			/*#J2ME_INCLUDE_BEGIN
 			Class c = cl.loadClass(v.getName());
+			#J2ME_INCLUDE_END*/
 			return c;
 		}
 	}    // END of inner class Deserializer

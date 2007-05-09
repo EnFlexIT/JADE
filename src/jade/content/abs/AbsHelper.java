@@ -65,6 +65,23 @@ public class AbsHelper {
 		return ret;
 	} 
 
+	//#J2ME_EXCLUDE_BEGIN
+	public static AbsAggregate externaliseList(java.util.List obj, Ontology onto, String AggregateType) throws OntologyException {
+		AbsAggregate ret = new AbsAggregate(AggregateType);
+
+		try {
+			for (int i = 0; i < obj.size(); i++) {
+				ret.add((AbsTerm) (onto.fromObject(obj.get(i))));
+			}
+		}
+		catch (ClassCastException cce) {
+			throw new OntologyException("Non term object in aggregate");
+		}
+
+		return ret;
+	} 
+	//#J2ME_EXCLUDE_END
+
 	/**
 	 * Converts an <code>Iterator</code> into a <code>AbsAggregate</code> using
 	 * the specified ontology.

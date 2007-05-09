@@ -28,6 +28,7 @@ package jade.core.behaviours;
 import java.util.Hashtable;
 import jade.util.leap.*;
 import jade.util.leap.Serializable;
+import jade.util.Logger;
 
 import jade.core.Agent;
 
@@ -78,6 +79,10 @@ public class FSMBehaviour extends SerialBehaviour {
 	private String forcedTransitionDest = null;
 	
 	private TransitionTable theTransitionTable = new TransitionTable();
+	
+	//#J2ME_EXCLUDE_BEGIN
+	private Logger myLogger = Logger.getMyLogger(FSMBehaviour.class.getName());
+	//#J2ME_EXCLUDE_END
 	
 	/**
 	 Default constructor, does not set the owner agent.
@@ -353,12 +358,18 @@ public class FSMBehaviour extends SerialBehaviour {
 	 represents a final state. false otherwise
 	 @see jade.core.behaviours.CompositeBehaviour#checkTermination
 	 */
-	protected boolean checkTermination(boolean currentDone, int currentResult) { 
+	protected boolean checkTermination(boolean currentDone, int currentResult) {
+		boolean ret = false;
 		if (currentDone) {
 			lastExitValue = currentResult;
-			return lastStates.contains(currentName);
+			ret = lastStates.contains(currentName);
 		}
-		return false;
+		//#J2ME_EXCLUDE_BEGIN
+		if (myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "FSM-Behaviour "+getBehaviourName()+": checkTermination() returning "+ret);
+		}
+		//#J2ME_EXCLUDE_END
+		return ret;
 	}  		
 	
 	/** 

@@ -150,6 +150,10 @@ public class AgentTree extends JPanel {
 		public String toString() {
 			return (getType() != null ? getType()+"-"+name : name);
 		}
+		
+		public int compareTo(Node n) {
+			return name.compareTo(n.getName());
+		}
 	} // END of inner class Node
 
 	
@@ -570,10 +574,56 @@ public class AgentTree extends JPanel {
 					String contName = containerNode.getName();
 					if (contName.equalsIgnoreCase(containerName)) {
 						// Add this new agent to this container and return
-						model.insertNodeInto(node, containerNode, containerNode.getChildCount());
+						int position = getPosition(node, containerNode);
+						model.insertNodeInto(node, containerNode, position); 
 						return;
 					}
 				}
+			}
+		}
+	}
+	
+	private int getPosition(Node node, Node containerNode) {
+		int size = containerNode.getChildCount();
+		if (size == 0) {
+			// This is the first child
+			return 0;
+		}
+		else {
+			int k = node.compareTo((Node) containerNode.getChildAt(0));
+			if (k < 0) {
+				// Insert new child at the beginning of the list
+				return 0;
+			}
+			else {
+				k = node.compareTo((Node) containerNode.getChildAt(size-1));
+				if (k >= 0) {
+					// Insert new child at the end of the list
+					return size;
+				}
+				else {
+					// Insert new child "somewhere" in the list
+					return getPosition(node, containerNode, 0, size-1);
+				}
+			}
+		}
+	}
+	
+	private int getPosition(Node node, Node containerNode, int down, int up) {
+		if ((up - down) == 1) {
+			return up;
+		}
+		else {
+			int middle = (up + down) / 2;
+			int k = node.compareTo((Node) containerNode.getChildAt(middle)); 
+			if (k == 0) {
+				return middle+1;
+			}
+			else if (k < 0) {
+				return getPosition(node, containerNode, down, middle);
+			}
+			else {
+				return getPosition(node, containerNode, middle, up);
 			}
 		}
 	}

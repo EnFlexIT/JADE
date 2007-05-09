@@ -38,6 +38,7 @@ import java.util.Vector;
  * @author LEAP
  */
 public class Specifier {
+	public static final char SPECIFIER_SEPARATOR = ';';
 	public static final String NULL_SPECIFIER_LIST = "null";
 	
     private String   name = null;
@@ -146,7 +147,7 @@ public class Specifier {
      @return A vector containing the parsed specifiers.
    */
   public static Vector parseSpecifierList(String specsLine) throws Exception {
-  	Vector specs = parseList(specsLine, ';');
+  	Vector specs = parseList(specsLine, SPECIFIER_SEPARATOR);
   	for (int i = 0; i < specs.size(); ++i) {
   		String s = (String) specs.elementAt(i);
   		if (s.length() > 0) {
@@ -168,7 +169,7 @@ public class Specifier {
   	while(elements.hasMoreElements()){
   		sb.append(elements.nextElement());
   		if(elements.hasMoreElements()){
-  			sb.append(';');
+  			sb.append(SPECIFIER_SEPARATOR);
   		}
   	}
   	return sb.toString();

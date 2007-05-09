@@ -1,44 +1,65 @@
 MAJOR CHANGES in JADE x.y (???)
 ==========================================================================
-GENERAL IMPROVEMENTS:	
+GENERAL IMPROVEMENTS:
+DF	
+- Modified DF to automatically remove subscriptions of dead agents when the autocleanup option is specified
 - Modified DF to support a pool of thread serving registration, deregistration and search requests when using DB-based KnowledgeBase (option jade_domain_df_poolsize)
 - Modified DF to support turning off content validation mode (option jade_domain_df_disablevalidation) 
 - Optimized DF search when using DB-based KnowledgeBase
 - Modified DF to cache subscription relevant information. This speeds up performances when detecting subscribed agents to be notified about registration updates
+
+Content language and ontologies
+- Created CFReflectiveIntrospector to support usage of java.util classes in ontological classes
+- Added methods to get predicate, concept and action names from an ontology
+- Committed automatically generated SL and ACL parser classes
+- Added method to define action-result type in AgentActionSchema
+
+Kernel
+- Added automatic Main-Container detection via multicast (option detect-main)
+- Modified MainReplicationService to support detailed REMOVED_CONTAINER and DEAD_AGENT events notification instead of just RESET meta-event
 - Modified FullResourceManager to avoid annoying stack traces at platform shutdown
 - Modified MainContainerImpl to start the AMS and DF threads in the SystemAgent Thread Group
-- Created CFReflectiveIntrospector to support usage of java.util classes in ontological classes
-- Committed automatically generated SL and ACL parser classes
 - Added dump-options option to print out configuration options at container startup
-- Added methods to get predicate, concept and action names from an ontology
-- Added method to define action-result type in AgentActionSchema
-- Added Main-Container detection via multicast (option detect-main)
-- Modified MainReplicationService to support detailed REMOVED_CONTAINER and DEAD_AGENT events notification instead of just RESET meta-event
 - Modified ContainerID class to include main/non-main indication
 - added package scoped method getThread in the class Agent
 - added package scoped methods getSize in jade.core.messaging.OutBox
 - added package scoped methods getThreadPoolStatus and getThreadPool in jade.core.messaging.MessageManager
 - added public methods getQueueSize and getThreadPool in jade.core.messaging.MessagingService
+- Modified CodeLocator to use Base64 encoder by Apache commons-codec instead of sun.misc.BASE64Encoder as suggested by Jordi Cucurull Juan
+- Modified AgentMobilityService to work with Java6 (load incoming agent classes by calling Class.forName(<class-name>, true, cl) instead of cl.loadClass(<class-name>)
 
-
+Tools
+- Modified AgentTree class to show agents within a container in alphabetical order
+ 
 BUG-FIXES:
 - Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
+- Fixed problem with Mobility and Java6 due to Java6 backward incompatibility https://glassfish.dev.java.net/issues/show_bug.cgi?id=714
 
 LEAP:
 - Added support for ServiceHelper retrieval and usage in split container execution mode
-- Added support for automatically changing the local port of the Main Container in case the specified port (or the default one) is busy (jade_imtp_leap_LEAPIMTPManager_changeportifbusy option).   
+- Added support for automatically changing the local port of the Main Container in case the specified port (or the default one) is busy (jade_imtp_leap_LEAPIMTPManager_changeportifbusy option). 
+- Added detach/attach functionality to the split execution mode   
+- Modified LEAP ConnectionPool to move connection creation outside a synchronized block. This avoids blocking all threads trying to interact with remote containers when one is taking a lot of time opening a network connection (e.g. due to TCP timeouts)
+- Fixed bug in single-connection FE-BE connector class (jade.imtp.leap.JICP.FrontEndDispatcher) related to duplicated session-ID
+- Fixed bug when restarting JADE-LEAP inside Tomcat (or another application that uses different classloaders each time) "No skeleton for object-id" reported first by Jaran Nilsen
 
 
 ADD-ONS:
 - Persistence Add-on
   - Some fix to properly support MySql DB (by Vincenzo Gioviale)
+
 - Misc Add-on
   - Added dump of threads owned by an Agent (its Thread and its threaded behaviours)
   - Added dump of all threads in a container   
   - Added dump of deliverer threads
 
-- JADE-SHARP 
+- JADE-SHARP Add-on
   - New add-on allowing Microsoft .NET clients (fully compatible with .NET Compact Framework) to connect to a JADE-based multi agent system and to exchange ACLMessages with remote agents
+
+- Security Add-on
+  - Fixed bug (OutOfMemoryError) in encryption mechanism when encoding block-size is 0
+  - Fixed bug (ArrayIndexOutOfBoundException) in PermissionFIlter while checking an incoming KILL_CONTAINER command
+  - Reorganized messaging example to allow showing that a message is encrypted using the Sniffer
 
 
 DOCUMENTATION:
