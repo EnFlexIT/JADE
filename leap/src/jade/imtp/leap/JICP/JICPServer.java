@@ -37,10 +37,7 @@ package jade.imtp.leap.JICP;
 //#MIDP_EXCLUDE_FILE
 
 import jade.core.Profile;
-import jade.imtp.leap.FrontEndStub;
-import jade.imtp.leap.ICP;
-import jade.imtp.leap.ICPException;
-import jade.imtp.leap.LEAPIMTPManager;
+import jade.imtp.leap.*;
 import jade.security.JADESecurityException;
 import jade.util.Logger;
 import jade.util.leap.Properties;
@@ -48,9 +45,9 @@ import jade.util.leap.Properties;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+
+import java.net.*;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
