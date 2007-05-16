@@ -582,7 +582,7 @@ public class AgentManagementService extends BaseService {
 							e.printStackTrace();
 						}
 						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
-						agent = (Agent) loader.loadClass(className).newInstance();
+						agent = (Agent) Class.forName(className, true, loader).newInstance();
 					}
 				}
 				catch (IOException ioe) {
