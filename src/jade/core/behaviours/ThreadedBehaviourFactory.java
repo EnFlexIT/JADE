@@ -135,6 +135,21 @@ public class ThreadedBehaviourFactory {
 			throw new NotFoundException(b.getBehaviourName());
 		}
 	}
+
+	/**
+	 * This method calls stop() on the Thread that is executing the indicated 
+	 * behaviour.
+	 * @deprecated  
+	 */
+	public void stop(Behaviour b) throws NotFoundException {
+		ThreadedBehaviourWrapper wrapper = getWrapper(b);
+		if (wrapper != null) {
+			wrapper.stop();
+		}
+		else {
+			throw new NotFoundException(b.getBehaviourName());
+		}
+	}
 	
 	/**
 	 * Suspend a threaded behaviour. This method has only effect if called by the threaded behaviour
@@ -338,7 +353,6 @@ public class ThreadedBehaviourFactory {
 					restarted = false;
 					myBehaviour.actionWrapper();
 					
-					threadState = CHECKING_STATE;
 					synchronized (this) {
 						// If the behaviour was restarted from outside during the action()
 						// method, give it another chance
@@ -356,7 +370,7 @@ public class ThreadedBehaviourFactory {
 						}
 						else {
 							// If we were interrupted, avoid doing anything else and terminate
-							if (Thread.currentThread().isInterrupted()) {
+							if (Thread.currentThread().isInterrupted() || threadState == INTERRUPTED_STATE) {
 								throw new InterruptedException();
 							}
 							// If the Behaviour suspended itself during the action() method --> Release the embedded Thread
@@ -368,7 +382,6 @@ public class ThreadedBehaviourFactory {
 							if (!myBehaviour.isRunnable()) {
 								threadState = BLOCKED_STATE;
 								wait();
-								threadState = CHECKING_STATE;
 							}
 						}
 					}
@@ -385,6 +398,10 @@ public class ThreadedBehaviourFactory {
 				threadState = INTERRUPTED_STATE;
 				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
+			catch (java.lang.ThreadDeath td) {
+				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
+				throw td;
+			}
 			catch (Throwable t) {
 				threadState = ERROR_STATE;
 				t.printStackTrace();
@@ -399,6 +416,7 @@ public class ThreadedBehaviourFactory {
 		 */
 		private synchronized Thread interrupt() {
 			if (myThread != null) {
+				threadState = INTERRUPTED_STATE;
 				myThread.interrupt();
 				return myThread;
 			}
@@ -409,6 +427,14 @@ public class ThreadedBehaviourFactory {
 				}
 				return null;
 			}
+		}
+		
+		private synchronized void stop() {
+			if (myThread != null) {
+				myThread.stop();
+			}
+			
+			terminate();
 		}
 		
 		private void terminate() {
