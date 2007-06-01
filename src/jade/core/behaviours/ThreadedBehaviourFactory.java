@@ -137,21 +137,6 @@ public class ThreadedBehaviourFactory {
 	}
 
 	/**
-	 * This method calls stop() on the Thread that is executing the indicated 
-	 * behaviour.
-	 * @deprecated  
-	 */
-	public void stop(Behaviour b) throws NotFoundException {
-		ThreadedBehaviourWrapper wrapper = getWrapper(b);
-		if (wrapper != null) {
-			wrapper.stop();
-		}
-		else {
-			throw new NotFoundException(b.getBehaviourName());
-		}
-	}
-	
-	/**
 	 * Suspend a threaded behaviour. This method has only effect if called by the threaded behaviour
 	 * itself and has the effect of releasing its dedicated Java Thread. This can later be restored 
 	 * by means of the <code>resume()</code> method.
@@ -428,15 +413,7 @@ public class ThreadedBehaviourFactory {
 				return null;
 			}
 		}
-		
-		private synchronized void stop() {
-			if (myThread != null) {
-				myThread.stop();
-			}
-			
-			terminate();
-		}
-		
+
 		private void terminate() {
 			finished = true;
 			super.restart();
