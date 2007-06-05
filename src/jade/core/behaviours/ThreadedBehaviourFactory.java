@@ -384,8 +384,13 @@ public class ThreadedBehaviourFactory {
 				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			catch (java.lang.ThreadDeath td) {
-				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
-				throw td;
+				try {
+					System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
+					terminate();
+				}
+				finally {
+					throw td;
+				}
 			}
 			catch (Throwable t) {
 				threadState = ERROR_STATE;
