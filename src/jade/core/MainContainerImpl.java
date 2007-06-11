@@ -1271,12 +1271,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		for (int i = 0; i < allIds.length; ++i) {
 			AID    id = allIds[i];
 			AgentDescriptor ad = platformAgents.acquire(id);
-			ContainerID cid1 = ad.getContainerID();
-			
-			if (cid.equals(cid1)) {
-				agents.add(id);
-			} 
-			platformAgents.release(id);
+			if (ad != null) {
+				ContainerID cid1 = ad.getContainerID();
+				
+				if (cid.equals(cid1)) {
+					agents.add(id);
+				} 
+				platformAgents.release(id);
+			}
 		} 
 		return agents;
 	}

@@ -28,12 +28,17 @@ Kernel
 - Modified CodeLocator to use Base64 encoder by Apache commons-codec instead of sun.misc.BASE64Encoder as suggested by Jordi Cucurull Juan
 - Modified AgentMobilityService to work with Java6 (load incoming agent classes by calling Class.forName(<class-name>, true, cl) instead of cl.loadClass(<class-name>)
 
+MTP
+- Integrated patch by Arend Freije (Minihouse) to avoid http MTP block all delivery processes when one takes a lot of time.
+
 Tools
 - Modified AgentTree class to show agents within a container in alphabetical order
  
 BUG-FIXES:
 - Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 
 - Fixed problem with Mobility and Java6 due to Java6 backward incompatibility https://glassfish.dev.java.net/issues/show_bug.cgi?id=714
+- Added sanity check in MainContainerImpl.containerAgents() as indicated by Carlo Corda.
+- Added sanity check on MainContainerImpl to deal with terminating agents while a query-agents-on-location action is served. 
 
 LEAP:
 - Added support for ServiceHelper retrieval and usage in split container execution mode
