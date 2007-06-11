@@ -67,7 +67,7 @@ public class CodeLocator {
 		// Notify listeners.
 		Enumeration subs = _subscriptions.elements();
 		while (subs.hasMoreElements()) {
-			((CodeLocatorEvents) subs.nextElement()).registerAgent(name, cl);
+			((CodeLocatorListener) subs.nextElement()).handleRegisterAgent(name, cl);
 		}
 		
 	}
@@ -90,7 +90,7 @@ public class CodeLocator {
 			// Notify listeners.
 			Enumeration subs = _subscriptions.elements();
 			while (subs.hasMoreElements()) {
-				((CodeLocatorEvents) subs.nextElement()).updateAgent(name, clOld, cl);
+				((CodeLocatorListener) subs.nextElement()).handleUpdateAgent(name, clOld, cl);
 			}
 			
 			return true;
@@ -116,7 +116,7 @@ public class CodeLocator {
 		// Notify listeners.
 		Enumeration subs = _subscriptions.elements();
 		while (subs.hasMoreElements()) {
-			((CodeLocatorEvents) subs.nextElement()).removeAgent(name, cl);
+			((CodeLocatorListener) subs.nextElement()).handleRemoveAgent(name, cl);
 		}
 
 	}
@@ -146,7 +146,7 @@ public class CodeLocator {
 			// Notify listeners.
 			Enumeration subs = _subscriptions.elements();
 			while (subs.hasMoreElements()) {
-				clNewTemp = ((CodeLocatorEvents) subs.nextElement()).cloneAgent(oldName, newName, cl);
+				clNewTemp = ((CodeLocatorListener) subs.nextElement()).handleCloneAgent(oldName, newName, cl);
 				if (clNewTemp != null) clNew = clNewTemp;
 			}
 			
@@ -198,17 +198,17 @@ public class CodeLocator {
 	 * @param cle Class with a method per event which should
 	 * be overloaded by users.
 	 */
-	public synchronized void subscribeToEvents(CodeLocatorEvents cle) {
+	public synchronized void subscribeToEvents(CodeLocatorListener cle) {
 		_subscriptions.add(cle);
 	}
 	
 	/**
 	 * Method to unsubscribe to CodeLocator events.
-	 * @param cle CodeLocatorEvents class to unsubscribe.
+	 * @param cle CodeLocatorListener class to unsubscribe.
 	 * @return True - Unsubscription ok.
 	 * 			False - Subscription not found.
 	 */
-	public synchronized boolean unSubscribeToEvents(CodeLocatorEvents cle) {
+	public synchronized boolean unSubscribeToEvents(CodeLocatorListener cle) {
 		return _subscriptions.remove(cle);
 	}
 	

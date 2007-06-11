@@ -33,14 +33,14 @@ import jade.core.AID;
  * @author <a href="mailto:jcucurull@deic.uab.cat">Jordi Cucurull Juan</a>
  *
  */
-public abstract class CodeLocatorEvents {
+public abstract class CodeLocatorListener {
 
 	/**
 	 * Event triggered when an agent is registered to the CodeLocator.
 	 * @param name Agent Identification of the registered agent.
 	 * @param cl ClassLoader associated to the agent.
 	 */
-	public void registerAgent(AID name, ClassLoader cl) {
+	public void handleRegisterAgent(AID name, ClassLoader cl) {
 		
 	}
 	
@@ -51,7 +51,7 @@ public abstract class CodeLocatorEvents {
 	 * @param clOld Old ClassLoader associated to the agent.
 	 * @param clNew New ClassLoader associated to the agent.
 	 */
-	public void updateAgent(AID name, ClassLoader clOld, ClassLoader clNew) {
+	public void handleUpdateAgent(AID name, ClassLoader clOld, ClassLoader clNew) {
 		
 	}
 	
@@ -60,10 +60,9 @@ public abstract class CodeLocatorEvents {
 	 * @param oldName Source agent identification.
 	 * @param newName Target agent identification.
 	 * @param cl ClassLoader associated to the source agent.
-	 * @return New ClassLoader to the target agent or null to not inluence
-	 * on it.
+	 * @return New ClassLoader to the target agent or null to not influence it.
 	 */
-	public ClassLoader cloneAgent(AID oldName, AID newName, ClassLoader cl) {
+	public ClassLoader handleCloneAgent(AID oldName, AID newName, ClassLoader cl) {
 		return null;
 	}
 	
@@ -72,7 +71,7 @@ public abstract class CodeLocatorEvents {
 	 * @param name Agent Identification of the removed agent.
 	 * @param cl ClassLoader associated to the agent.
 	 */
-	public void removeAgent(AID name, ClassLoader cl) {
+	public void handleRemoveAgent(AID name, ClassLoader cl) {
 		
 	}
 	
