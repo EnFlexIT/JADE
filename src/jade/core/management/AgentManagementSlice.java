@@ -130,7 +130,7 @@ public interface AgentManagementSlice extends Service.Slice {
        action.
     */
     static final String KILL_CONTAINER = "Kill-Container";
-
+ 
     /**
        This command name represents the action of adding a new tool to
        the platform.

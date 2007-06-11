@@ -36,10 +36,11 @@ import java.util.zip.ZipEntry;
  * This ClassLoader is intended to be used to load agent classes
  * packed within a jar file. If the specified jar does not exist this ClassLoader
  * will attempt to load classes from the system ClassLoader.
- * @author <a href="mailto:Joan.Ametller@gmail.com">Joan Ametller Esquerra </a>
- * @author <a href="mailto:jcucurull@deic.uab.cat">Jordi Cucurull Juan</a>
  * 
- * @version 1.1
+ * @author <a href="mailto:jcucurull@deic.uab.cat">Jordi Cucurull Juan</a>
+ * @author <a href="mailto:Joan.Ametller@gmail.com">Joan Ametller Esquerra </a>
+ * 
+ * @version 1.2
  */
 public class JarClassLoader extends ClassLoader {
 
@@ -52,82 +53,73 @@ public class JarClassLoader extends ClassLoader {
 	public JarClassLoader(File f, ClassLoader parent) throws IOException {
 		super(parent);
 		_file = f;
-	}
-
-	/**
-	 * Method to open the JAR file until the "close" method
-	 * is called. This optimizes the consecutive class loading.
-	 *
-	 */
-	public void enablePersistentOpen() throws IOException {
-		if (_file != null) {
-			_jarFile = new JarFile(_file);
-		}
-
-		_persistentOpenFile = true;
-	}
-
-	/**
-	 * Method to disable the persistent mode of the JAR classloader.
-	 * @throws IOException File cannot be closed
-	 */
-	public void disablePersistentOpen() throws IOException {
-		_persistentOpenFile = false;
-		if (_jarFile != null)
-			_jarFile.close();
+		_jarFile = new JarFile(_file);
 	}
 	
 	/**
-	 * Method which in other releases closed the JAR file.
-	 * Currently this file is opened and close at every "findclass"
-	 * call or when it is specified by the methods "enablePersistentOpen"
-	 * and "disablePersistentOpen".
-	 * @throws IOException Currently this exception is never returned.
-	 * @deprecated
+	 * Method which close the JAR file.
 	 */
-	public void close() throws IOException {
+	public void close() {
+		try {
+			_jarFile.close();
+		} catch (IOException ioe) {
+			System.out.println("JarClassLoader: Error closing Jar file: " + _jarFile.getName());
+		}
+		
+	}
+	
+	/**
+	 * Get the Jar filename.
+	 * @return String - Jar absolute path.
+	 */
+	public String getJarFileName() {
+		
+		return _file.getAbsolutePath();
 	}
 
+	/**
+	 * Get a class from within the JAR file used in this classloader.
+	 */
 	protected Class findClass(String className) throws ClassNotFoundException {
 
-		if (!_persistentOpenFile) {
+		String resourceName = className.replace('.', '/') + ".class";
+		
+		InputStream is = getResourceAsStream(resourceName);
+				
+		if (is != null) {
 			try {
-				if (_file != null) {
-					_jarFile = new JarFile(_file);
-				}
-			} catch (IOException ioe) {
-				throw new ClassNotFoundException();
-			}
-		}
-
-		if (_jarFile != null) {
-			ZipEntry zEntry = _jarFile.getEntry(className.replace('.', '/')
-					+ ".class");
-
-			try {
-				InputStream is = _jarFile.getInputStream(zEntry);
 				byte[] rawClass = readFully(is);
 				is.close();
 				return defineClass(className, rawClass, 0, rawClass.length);
 			} catch (IOException ioe) {
-				throw new ClassNotFoundException(
-						"IOError while reading jar file for class " + className
-								+ ". " + ioe);
-			}
-			finally {
-				if (!_persistentOpenFile) {
-					if (_jarFile != null)
-						try {
-							_jarFile.close();
-						} catch (IOException ioe) {
-							System.out.println("JARClassloader: Error closing a Jar file.");
-						}
-				}	
+				throw new ClassNotFoundException
+				("Error getting class: " + className + " from JAR file: " + getJarFileName() + " " + ioe);
 			}
 		} else {
-			throw new ClassNotFoundException(className);
+			throw new ClassNotFoundException("Error getting class: " + className + " from JAR file: " + getJarFileName());
 		}
 		
+	}
+
+	
+	
+	/**
+	 * Get a resource from within this classloader.
+	 */
+	public InputStream getResourceAsStream(String name) {
+		if (_jarFile != null) {
+			
+			ZipEntry zEntry = _jarFile.getEntry(name);
+			
+			try {
+				return _jarFile.getInputStream(zEntry);
+			} catch (IOException ioe) {
+				return null;
+			}
+			
+		} else {
+			return null;
+		}
 	}
 
 	private byte[] readFully(InputStream is) throws IOException {
@@ -143,7 +135,18 @@ public class JarClassLoader extends ClassLoader {
 
 	private JarFile _jarFile = null;
 	private File _file = null;
-	private boolean _persistentOpenFile = false;
+
+	/**
+	 * Clean up the JarClassLoader. This means closing the JAR file
+	 * if it has not explicitly done before by using the provided 
+	 * close() method.
+	 */
+	protected void finalize() throws Throwable {
+		
+		// Close the JarFile.
+		_jarFile.close();
+		
+		super.finalize();
+	}
 
 }
-

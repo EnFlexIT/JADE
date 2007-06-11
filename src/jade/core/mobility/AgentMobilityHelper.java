@@ -101,6 +101,8 @@ public interface AgentMobilityHelper extends ServiceHelper {
     */
     static final String INFORM_CLONED = "Inform-Cloned";
 
+    
+    
     //void informCloned(AID agentID, Location where, String newName) throws ServiceException, JADESecurityException, IMTPException, NotFoundException, NameClashException;
 
 }

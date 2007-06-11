@@ -25,339 +25,195 @@ package jade.core.management;
 
 //#J2ME_EXCLUDE_FILE
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import jade.util.leap.HashMap;
 import jade.core.AID;
-import java.io.InputStream;
-import java.io.File;
-import java.util.Enumeration;
-import java.util.Random;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.io.IOException;
-
-import org.apache.commons.codec.binary.Base64;
-
-//import sun.misc.BASE64Encoder;
 
 /**
- * This class maintains the mapping between agents and jar files
  * 
- * @author <a href="mailto:Joan.Ametller@uab.es">Joan Ametller Esquerra</a>
- * @author Carles Garrigues
- * @author <a href="mailto:Jordi.Cucurull@uab.es">Jordi Cucurull Juan</a>
+ * Class that maps agents and classloaders.
+ * 
+ * The access to the methods should be made inside a synchronized
+ * block against the CodeLocator instance.
+ * 
+ * @author <a href="mailto:jcucurull@deic.uab.cat">Jordi Cucurull Juan</a>
+ * @version 2.0
  * 
  */
-//TODO: Arreglar el sincronisme.
+
 public class CodeLocator {
 	
-	private static final String JAR_UID_ATTR = "jar-UID";
-	private static final String HASH_ALGORITHM = "MD5";	
-	private static final int SIZE_CREATE_JAR_BUFFER = 4096;	
-	private static final int SIZE_HASH_JAR_BUFFER = 4096;
-	
-	//private static BASE64Encoder b64Encoder = new BASE64Encoder();
-	private final String TMP_JAR;
-	
-	public CodeLocator(String agentsPath) {
-		_agentsUsingJar = new HashMap();
-		_jarHash = new HashMap();
-		_jarFolder = agentsPath;
-		TMP_JAR = _jarFolder + File.separator + "tmp.jar";
-		_random = new Random();
+	public CodeLocator() {
+		_agents = new HashMap();
+		_subscriptions = new Vector();
 	}
 	
-	public synchronized String getAgentCodeLocation(AID name) {
-		String mobileAgentUID = (String) _agentsUsingJar.get(name);
-		if (mobileAgentUID != null) {
-			Row r = (Row) _jarHash.get(mobileAgentUID);
-			return r != null ? r.getLocation() : null;
-		} else
-			return null;
-	}
-	
-	private synchronized String getCodeByHash(String mobileAgentUID) {
-		Row r = (Row) _jarHash.get(mobileAgentUID);
-		return r != null ? r.getLocation() : null;
-	}
-	
-	public synchronized String registerAgent(AID name, byte[] code) throws Exception {
-		return registerAgent(name, new ByteArrayInputStream(code));
-	}
-	
-	public synchronized String registerAgent(AID name, InputStream codestream) throws Exception {
-		File f = null;
+	/**
+	 * Register an agent to the CodeLocator. 
+	 * @param name Agent name.
+	 * @param cl Agent associated classloader.
+	 * @param localCode Indicates the code is local (i.e. has not get to
+	 * by any migration service) and cannot be modified.
+	 * @throws Exception
+	 */
+	public synchronized void registerAgent(AID name, ClassLoader cl) throws Exception {
 		
-		do {
-			f = new File(_jarFolder + File.separator + randomString(8) + ".jar");
-		} while (f.exists());
+		_agents.put(name, cl);
 		
-		// Store code to disk.
-		FileOutputStream fos = new FileOutputStream(f);
-		byte[] buffy = new byte[512];
-		int bytes;
-		while ((bytes = codestream.read(buffy)) != -1)
-			fos.write(buffy, 0, bytes);
-		codestream.close();
-		fos.close();
-		return registerAgent(name, f, false);
+		// Notify listeners.
+		Enumeration subs = _subscriptions.elements();
+		while (subs.hasMoreElements()) {
+			((CodeLocatorEvents) subs.nextElement()).registerAgent(name, cl);
+		}
+		
+	}
+
+	/**
+	 * Update an agent ClassLoader in the CodeLocator. 
+	 * @param name Agent name.
+	 * @param cl Agent associated classloader.
+	 * @return True - Agent is updated.
+	 * 			False - Agent cannot be updated.
+	 * @throws Exception
+	 */
+
+	public synchronized boolean updateAgent(AID name, ClassLoader cl) throws Exception {
+
+		if (_agents.containsKey(name)) {
+			ClassLoader clOld = (ClassLoader) _agents.get(name);
+			_agents.put(name, cl);
+			
+			// Notify listeners.
+			Enumeration subs = _subscriptions.elements();
+			while (subs.hasMoreElements()) {
+				((CodeLocatorEvents) subs.nextElement()).updateAgent(name, clOld, cl);
+			}
+			
+			return true;
+			
+		} else {
+			return false;
+		}
 	}
 	
-	public synchronized String registerAgent(AID name, File f, boolean userCreatedJar) throws Exception {
-		JarFile jf = new JarFile(f);
-		Manifest man = null;
-		Attributes att = null;
-		String jarUID = null;
-		try {
-			if ((man = jf.getManifest()) != null) {
-				//Manifest exists: Check if it already contains the JAR_UID attribute.
-				att = man.getMainAttributes();
-				if ((jarUID = att.getValue(JAR_UID_ATTR)) != null) {
-					jf.close();
-					return registerJar(name, f.getPath(), jarUID, userCreatedJar);
+	/**
+	 * Remove an agent fromt the list.
+	 * @param name Agent name.
+	 */
+	public synchronized void removeAgent(AID name) {
+
+		ClassLoader cl = (ClassLoader) _agents.remove(name);
+
+		// If agent use JarClassLoader close it.
+		if (cl instanceof JarClassLoader) {
+			((JarClassLoader) cl).close();
+		}
+		
+		// Notify listeners.
+		Enumeration subs = _subscriptions.elements();
+		while (subs.hasMoreElements()) {
+			((CodeLocatorEvents) subs.nextElement()).removeAgent(name, cl);
+		}
+
+	}
+	
+	/**
+	 * Remove an agent fromt the list.
+	 * @param name Agent name.
+	 */
+	public synchronized void cloneAgent(AID oldName, AID newName) {
+
+		if (_agents.containsKey(oldName)) {
+			
+			ClassLoader cl = (ClassLoader) _agents.get(oldName);
+			ClassLoader clNew = null;
+			ClassLoader clNewTemp = null;
+			
+			// JarClassLoader clonning.
+			if (cl instanceof JarClassLoader) {
+				JarClassLoader jcl = (JarClassLoader) cl;
+				try {
+					clNew = new JarClassLoader(new File(jcl.getJarFileName()), jcl.getParent());
+				} catch (IOException ioe) {
+					System.out.println("CodeLocator: Error clonning JarClassLoader.");
 				}
 			}
-			else {
-				// Manifest does not exist: create one
-				man = new Manifest();
-				att = man.getMainAttributes();
+			
+			// Notify listeners.
+			Enumeration subs = _subscriptions.elements();
+			while (subs.hasMoreElements()) {
+				clNewTemp = ((CodeLocatorEvents) subs.nextElement()).cloneAgent(oldName, newName, cl);
+				if (clNewTemp != null) clNew = clNewTemp;
 			}
 			
-			// Create a new JAR including the jar-UID attribute in its manifest
-			jarUID = calculateJarUID(jf);
-			att.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-			att.putValue(JAR_UID_ATTR, jarUID);
-			
-			// Do a temporary copy of JAR with the new manifest.
-			copyJar(jf, TMP_JAR, man);
-			jf.close();
-			
-			// Rename the new JAR with the original name
-			//System.out.println("################ Deleting file "+f.getPath());
-			if (!f.delete()) {
-				System.out.println("####################### DELETE of " 
-						+ f.getPath() + "didn't work properly");
-			}
-			if (!(new File(TMP_JAR)).renameTo(f)) {
-				System.out.println("####################### RENAME of "
-						+ f.getPath() + "didn't work properly");
-			}
-			// Register agent.
-			return registerJar(name, f.getPath(), jarUID, userCreatedJar);
+			// Assign the new classloader if returned.
+			if (clNew == null) _agents.put(newName, cl);
+			else _agents.put(newName, clNew);
 		}
-		finally {
-			try {jf.close();} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+
 	}
 	
-	private String registerJar(AID name, String path, String jarUID, boolean userCreatedJar) {
-		//Check for an equal hash registered JAR.
-		Row r = (Row) _jarHash.get(jarUID);
+	/**
+	 * Check if the agent is registered.
+	 * @param name Agent name.
+	 * @return True - The agent is registered.
+	 * 			False - The agent is not registered.
+	 */
+	public synchronized boolean isRegistered(AID name) {
 		
-		if (r == null) {
-			// FIXME: We should use the Agent class name
-			_jarHash.put(jarUID, new Row(path, userCreatedJar));
-			_agentsUsingJar.put(name, jarUID);
-			return path;
-		} else {
-			// A jar file with the same code already exists (other agents of the same class are already 
-			// active in the local container) --> avoid dupplications and just increment the number 
-			// of agents refering to that jar file
-			_agentsUsingJar.put(name, jarUID);
-			r.incRef();
-			if (!userCreatedJar) deleteFile(path);
-			return r.getLocation();
-		}
+		return _agents.containsKey(name);
+
 	}
 	
-	private void deleteFile(String path) {
-		File f = new File(path);
-		f.delete();
-	}
-	
-	private void copyJar(JarFile jf, String path, Manifest man) throws IOException {
-		Enumeration entries = jf.entries();
-		FileOutputStream fos = new FileOutputStream(path);
-		JarOutputStream jos = new JarOutputStream(fos, man);
-		
-		ZipEntry ze;
-		InputStream is;
-		int readed = 0;
-		byte[] buffer = new byte[SIZE_CREATE_JAR_BUFFER];
-		
-		while (entries.hasMoreElements()) {
-			ze = (ZipEntry) entries.nextElement();
-			//Prevent to copy manifest files.
-			if (!ze.getName().startsWith("META-INF")) {
-				is = jf.getInputStream(ze);
-				jos.putNextEntry(ze);
-				while ((readed = is.read(buffer)) >= 0)
-					jos.write(buffer, 0, readed);
-				
-				is.close();
-				jos.closeEntry();
-			}
-		}
-		
-		jos.flush();
-		jos.close();
-		fos.close();
+	/**
+	 * Get the agent associated classloader.
+	 * @param name Agent name.
+	 * @return The agent ClassLoader. 
+	 * @throws Throws and exception if the agent is not found.
+	 */
+	public synchronized ClassLoader getAgentClassLoader(AID name) throws Exception {
+
+		return (ClassLoader) _agents.get(name);
 		
 	}
 	
-	private String calculateJarUID(JarFile jf) throws IOException, NoSuchAlgorithmException {
-		
-		MessageDigest md = MessageDigest.getInstance(HASH_ALGORITHM);
-		Enumeration entries = jf.entries();
-		ZipEntry ze;
-		InputStream is;
-		int readed = 0;
-		byte[] buffer = new byte[SIZE_HASH_JAR_BUFFER];
-		byte[] finalDigest = new byte[16];
-		
-		if (!entries.hasMoreElements())
-			throw new IOException();
-		
-		while (entries.hasMoreElements()) {
-			
-			ze = (ZipEntry) entries.nextElement();
-			//Prevent to get hash of directory or manifest files.
-			if ((!ze.isDirectory()) && (!ze.getName().startsWith("META-INF"))) {
-				md.reset();
-				is = jf.getInputStream(ze);
-				while ((readed = is.read(buffer)) >= 0)
-					md.update(buffer, 0, readed);
-				is.close();
-				finalDigest = xor(finalDigest, md.digest());
-			}
-		}
-		return new String(Base64.encodeBase64(finalDigest), "US-ASCII");
-		//return b64Encoder.encode(finalDigest);
-		
+	/**
+	 * Change the agent name.
+	 * @param oldName Old agent name.
+	 * @param newName New agent name.
+	 */
+	public synchronized void changeAgentName(AID oldName, AID newName) {
+
+		ClassLoader cl = (ClassLoader) _agents.remove(oldName);
+		if (cl != null) _agents.put(newName, cl);
 	}
 	
-	private byte[] xor(byte[] first, byte[] second) {
-		byte[] result = new byte[first.length];
-		for (int i = 0; i < first.length; i++) {
-			result[i] = (byte) (first[i] ^ second[i]);
-		}
-		return result;
+	/**
+	 * Method to subscribe to CodeLocator basic events from
+	 * an external class. 
+	 * @param cle Class with a method per event which should
+	 * be overloaded by users.
+	 */
+	public synchronized void subscribeToEvents(CodeLocatorEvents cle) {
+		_subscriptions.add(cle);
 	}
 	
-	synchronized void changeAgentName(AID oldName, AID newName) {
-		String jarUID = (String) _agentsUsingJar.get(oldName);
-		if (jarUID != null) {
-			_agentsUsingJar.put(newName, jarUID);
-		}
+	/**
+	 * Method to unsubscribe to CodeLocator events.
+	 * @param cle CodeLocatorEvents class to unsubscribe.
+	 * @return True - Unsubscription ok.
+	 * 			False - Subscription not found.
+	 */
+	public synchronized boolean unSubscribeToEvents(CodeLocatorEvents cle) {
+		return _subscriptions.remove(cle);
 	}
 	
-	public synchronized void removeAgentRef(AID name) {
-		String jarUID = (String) _agentsUsingJar.get(name);
-		
-		if (jarUID != null) {
-			_agentsUsingJar.remove(name);
-			Row r = (Row) _jarHash.get(jarUID);
-			if (r != null) {
-				if (r.value() > 1) {
-					r.decRef();
-					
-				} else
-					removeAgentCode(jarUID);
-			}
-		}
-	}
+	private HashMap _agents;
+	private Vector _subscriptions;
 	
-	private synchronized void removeAgentCode(String mobileAgentUID) {
-		Row r = (Row) _jarHash.get(mobileAgentUID);
-		if ((r != null) && !r.userCreatedJar())
-			new File(r.getLocation()).delete();
-		_jarHash.remove(mobileAgentUID);
-	}
-	
-	private String randomString(int length) {
-		StringBuffer randomName = new StringBuffer();
-		int c;
-		for (int i = 0; i < length; i++) {
-			if (_random.nextBoolean())
-				c = _random.nextInt(26) + 97;
-			else
-				c = _random.nextInt(10) + 48;
-			randomName.append((char) c);
-		}
-		return randomName.toString();
-	}
-	
-	private class OutputStreamHasher extends OutputStream {
-		
-		public OutputStreamHasher(OutputStream os, MessageDigest md) {
-			super();
-			_os = os;
-			_md = md;
-		}
-		
-		public void write(int b) throws IOException {
-			_md.update((byte) b);
-			_os.write(b);
-		}
-		
-		public void write(byte[] b, int off, int len) throws IOException {
-			_md.update(b, off, len);
-			_os.write(b, off, len);
-		}
-		
-		private OutputStream _os;
-		
-		private MessageDigest _md;
-	}
-	
-	private HashMap _agentsUsingJar;
-	
-	private HashMap _jarHash;
-	
-	private String _jarFolder;
-	
-	private Random _random;
-	
-	private static class Row {
-		public Row(String location, boolean userCreated) {
-			_refs = 1;
-			_location = location;
-			_userCreatedJar = userCreated;
-		}
-		
-		public String getLocation() {
-			return _location;
-		}
-		
-		public void incRef() {
-			_refs++;
-		}
-		
-		public void decRef() {
-			_refs--;
-		}
-		
-		public int value() {
-			return _refs;
-		}
-		
-		public boolean userCreatedJar() {
-			return _userCreatedJar;
-		}
-		
-		private int _refs;
-		
-		private String _location;
-		
-		private boolean _userCreatedJar;
-	}
+
 }

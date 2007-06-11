@@ -70,6 +70,7 @@ import jade.core.NameClashException;
 import jade.core.NotFoundException;
 
 import jade.core.management.AgentManagementService;
+import jade.core.management.AgentManagementSlice;
 //#J2ME_EXCLUDE_BEGIN
 import jade.core.management.CodeLocator;
 //#J2ME_EXCLUDE_END
@@ -109,6 +110,7 @@ public class AgentMobilityService extends BaseService {
 		AgentMobilityHelper.INFORM_CLONED
 	};
 	
+	private static final int SIZE_JAR_BUFFER = 4096;
 	
 	static final boolean MIGRATION = false;
 	static final boolean CLONING = true;
@@ -143,7 +145,9 @@ public class AgentMobilityService extends BaseService {
 	}
 	
 	public Filter getCommandFilter(boolean direction) {
-		return null;
+		if (direction == Filter.OUTGOING) {
+            return _outFilter;
+		} else return null;
 	}
 	
 	public Sink getCommandSink(boolean side) {
@@ -449,14 +453,34 @@ public class AgentMobilityService extends BaseService {
 			try {
 				//#J2ME_EXCLUDE_BEGIN	
 				//Register the clone in the Code Locator in the case its father is a jar agent
+				String containerName = myContainer.getID().getName();
+				Agent agent = myContainer.acquireLocalAgent(agentID);
+				String codeContainerName = getClassSite(agent);
+				myContainer.releaseLocalAgent(agentID);
+
+				//Check if the code is in the same container or in a remote one.
 				AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
-				CodeLocator cl = amSrv.getCodeLocator();
-				String jarName = cl.getAgentCodeLocation(agentID);
-				if(myLogger.isLoggable(Logger.FINE)) {
-					myLogger.log(Logger.FINE," adding clone " + newName  + " to code locator. Binding to jar: " + jarName);
-				}
-				if (jarName!=null) {
-					cl.registerAgent(new AID(newName,AID.ISLOCALNAME),new File(jarName),false);
+				CodeLocator codeLocator = amSrv.getCodeLocator();
+				
+				if (codeContainerName == null) codeContainerName = containerName;
+				if (containerName.equals(codeContainerName)) {
+					if (codeLocator.isRegistered(agentID)) {
+						if(myLogger.isLoggable(Logger.FINE)) {
+							myLogger.log(Logger.FINE," adding clone " + newName  + " to code locator.");
+						}
+						
+						codeLocator.cloneAgent(agentID, new AID(newName,AID.ISLOCALNAME));
+					}	
+				} else {
+					//Send a CLONE_CODE_LOCATOR_ENTRY command to the container with the agent code.
+					AgentMobilitySlice codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
+					try {
+						codeSlice.cloneCodeLocatorEntry(agentID, new AID(newName,AID.ISLOCALNAME));
+					} catch (IMTPException imtpe) {
+						// Try to get a newer slice and repeat...
+						codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
+						codeSlice.cloneCodeLocatorEntry(agentID, new AID(newName,AID.ISLOCALNAME));
+					}
 				}
 				//#J2ME_EXCLUDE_END	
 				
@@ -519,9 +543,9 @@ public class AgentMobilityService extends BaseService {
 			catch(ServiceException se) {
 				throw new IMTPException("Destination container not found in handleInformCloned()", se);
 			}
-			catch(Exception e){
-				throw new IMTPException("Error accessing to agent's code in handleInformCloned()", e);
-			}
+			//catch(Exception e){
+				//throw new IMTPException("Error accessing to agent's code in handleInformCloned()", e);
+			//}
 			finally {
 				myContainer.releaseLocalAgent(agentID);
 			}
@@ -649,6 +673,73 @@ public class AgentMobilityService extends BaseService {
 		
 	} // End of CommandTargetSink class
 	
+	private class CommandOutgoingFilter extends Filter {
+
+		protected boolean accept(VerticalCommand cmd) {
+			String name = cmd.getName();
+			if (name.equals(AgentManagementSlice.INFORM_KILLED)) {
+				try {
+					handleInformKilled(cmd);
+				} catch (NotFoundException nfe) {
+					if (myLogger.isLoggable(Logger.WARNING))
+						myLogger.log(Logger.WARNING,
+								"CommandOutgoingFilter: Error deleting remote CodeLocator entry: " + nfe);
+				} catch (ServiceException se) {
+					if (myLogger.isLoggable(Logger.WARNING))
+						myLogger.log(Logger.WARNING,
+								"CommandOutgoingFilter: Error deleting remote CodeLocator entry: " + se);
+				} catch (IMTPException imtpe) {
+					if (myLogger.isLoggable(Logger.WARNING))
+						myLogger.log(Logger.WARNING,
+								"CommandOutgoingFilter: Error deleting remote CodeLocator entry: " + imtpe);
+				}
+				
+			}
+			
+			return true;
+		}
+		
+		private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
+			
+			Object[] params = cmd.getParams();
+			AID target = (AID)params[0];
+
+			//log("Source Sink consuming command INFORM_KILLED. Name is "+target.getName(), 3);
+			if(myLogger.isLoggable(Logger.CONFIG))
+				myLogger.log(Logger.CONFIG,"Outgoing Filer accepting command INFORM_KILLED. Name is "+target.getName());
+			
+			// Remove CodeLocator entry.
+			//#J2ME_EXCLUDE_BEGIN
+			String containerName = myContainer.getID().getName();
+			Agent agent = myContainer.acquireLocalAgent(target);
+			String codeContainerName = getClassSite(agent);
+			myContainer.releaseLocalAgent(target);
+
+			//Check if the agent have migrated or not.
+			if (codeContainerName != null) {
+		
+				// Check if the code is in a remote container (if its local it has
+				// been removed by the AgentManagementService).
+				if (!containerName.equals(codeContainerName)) {
+
+					//Send a REMOVE_CODE_LOCATOR_ENTRY command to the container with the agent code.
+					AgentMobilitySlice codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
+					try {
+						codeSlice.removeCodeLocatorEntry(target);						
+					} catch (IMTPException imtpe) {
+						// Try to get a newer slice and repeat...
+						codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
+						codeSlice.removeCodeLocatorEntry(target);
+					}
+				}
+			}
+			//#J2ME_EXCLUDE_END
+
+		}
+		
+		
+	} // End of CommandOutgoingFilter class
+	
 	
 	/**
 	 Inner mix-in class for this service: this class receives
@@ -680,7 +771,7 @@ public class AgentMobilityService extends BaseService {
 			try {
 				String cmdName = cmd.getName();
 				Object[] params = cmd.getParams();
-				
+
 				if(cmdName.equals(AgentMobilitySlice.H_CREATEAGENT)) {
 					AID agentID = (AID)params[0];
 					byte[] serializedInstance = (byte[])params[1];
@@ -745,6 +836,18 @@ public class AgentMobilityService extends BaseService {
 					
 					result = gCmd;
 				}
+				else if(cmdName.equals(AgentMobilitySlice.H_CLONECODELOCATORENTRY)) {
+					AID oldAgentID = (AID)params[0];
+					AID newAgentID = (AID)params[1];
+					
+					handleCloneCodeLocatorEntry(oldAgentID, newAgentID);
+				}
+				else if(cmdName.equals(AgentMobilitySlice.H_REMOVECODELOCATORENTRY)) {
+					AID agentID = (AID)params[0];
+
+					handleRemoveCodeLocatorEntry(agentID);
+				}
+				
 			}
 			catch(Throwable t) {
 				cmd.setReturnValue(t);
@@ -877,9 +980,9 @@ public class AgentMobilityService extends BaseService {
 				// does not work --> Try to do it by hand
 				if (myLogger.isLoggable(Logger.FINER))
 					myLogger.log(Logger.FINER, "Class not found as a system resource. Try manually");
-				
+
 				String currentCp = System.getProperty("java.class.path");
-				StringTokenizer st = new StringTokenizer(currentCp, ";");
+				StringTokenizer st = new StringTokenizer(currentCp, File.pathSeparator);
 				while (st.hasMoreTokens()) {
 					try {
 						String path = st.nextToken();
@@ -890,7 +993,7 @@ public class AgentMobilityService extends BaseService {
 							if (myLogger.isLoggable(Logger.FINER)) {
 								myLogger.log(Logger.FINER, "It's a jar file");
 							}
-							
+
 							ClassInfo info = getClassStreamFromJar(fileName, path);
 							if (info != null) {
 								classStream = info.getClassStream();
@@ -925,8 +1028,12 @@ public class AgentMobilityService extends BaseService {
 				// Maybe the agent was loaded from a separate Jar file
 				try {
 					AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
-					String jarName = amSrv.getCodeLocator().getAgentCodeLocation(new AID(agentName, AID.ISGUID));
-					ClassInfo info = getClassStreamFromJar(fileName, jarName);
+					ClassLoader cLoader = amSrv.getCodeLocator().getAgentClassLoader(new AID(agentName, AID.ISGUID));
+					InputStream is = cLoader.getResourceAsStream(fileName);
+
+					// We assign length -1 because in a generic InputStream
+					// the length is not known a priori.
+					ClassInfo info = new ClassInfo(is, -1);
 					classStream = info.getClassStream();
 					length = info.getLength();
 				}
@@ -947,17 +1054,27 @@ public class AgentMobilityService extends BaseService {
 			}
 			
 			try {
-				if (length == -1) {
-					length = (int) classStream.available();
-				}
-				byte[] bytes = new byte[length];
+				
+				// Length is used no more because we read until the end of the stream.
+				//if (length == -1) {
+				//	length = (int) classStream.available();
+				//}
+				
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				byte[] bytes = new byte[SIZE_JAR_BUFFER];
+				int read = 0;
 				if (myLogger.isLoggable(Logger.FINER)) {
 					myLogger.log(Logger.FINER, "Class " + className + " fetched. Length is " + length);
 				}
 				
 				DataInputStream dis = new DataInputStream(classStream);
-				dis.readFully(bytes);
-				return (bytes);
+				while ((read = dis.read(bytes)) >= 0) {
+					baos.write(bytes, 0, read);
+				}
+				
+				dis.close();
+				
+				return (baos.toByteArray());
 			} 
 			catch (IOException ioe) {
 				throw new ClassNotFoundException("IOException reading class bytes. " + ioe.getMessage());
@@ -1120,6 +1237,34 @@ public class AgentMobilityService extends BaseService {
 				
 				return false;
 			}
+		}
+		
+		private void handleCloneCodeLocatorEntry(AID oldAgentID, AID newAgentID) throws ServiceException, IMTPException, NotFoundException {
+			
+			AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+			CodeLocator codeLocator = amSrv.getCodeLocator();
+			
+			if (codeLocator.isRegistered(oldAgentID)) {
+				if(myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE," adding clone " + newAgentID.getName()  + " to code locator.");
+				}
+				
+				codeLocator.cloneAgent(oldAgentID, newAgentID);
+			}
+
+		}
+		
+		private void handleRemoveCodeLocatorEntry(AID agentID) throws IMTPException, ServiceException {
+			
+			if(myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE,"Target sink consuming command REMOVE_CODE_LOCATOR_ENTRY");
+			}
+
+			// Remove entry from CodeLocator.
+			AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
+			CodeLocator codeLocator = amSrv.getCodeLocator();
+			codeLocator.removeAgent(agentID);
+
 		}
 		
 	} // End of ServiceComponent class
@@ -1414,6 +1559,9 @@ public class AgentMobilityService extends BaseService {
 	
 	// The command sink, target side
 	private final CommandTargetSink receiverSink = new CommandTargetSink();
+	
+	// Filter for outgoing commands
+	private final Filter _outFilter = new CommandOutgoingFilter();
 	
 	// Work-around for PJAVA compilation
 	protected Service.Slice getFreshSlice(String name) throws ServiceException {

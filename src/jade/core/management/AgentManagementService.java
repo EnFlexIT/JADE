@@ -23,7 +23,6 @@
 
 package jade.core.management;
 
-import jade.core.ServiceFinder;
 import jade.core.HorizontalCommand;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
@@ -54,7 +53,6 @@ import jade.security.JADESecurityException;
 
 import jade.util.Logger;
 
-import java.util.Hashtable;
 //#J2ME_EXCLUDE_BEGIN
 import java.io.IOException;
 import java.io.File;
@@ -98,7 +96,7 @@ public class AgentManagementService extends BaseService {
 		//#J2ME_EXCLUDE_BEGIN
 		// Initialize the code locator
 		agentsPath = p.getParameter(AGENTS_PATH, ".");
-		codeLocator = new CodeLocator(agentsPath);
+		codeLocator = new CodeLocator();
 		//#J2ME_EXCLUDE_END
 	}
 	
@@ -140,9 +138,6 @@ public class AgentManagementService extends BaseService {
 	
 	public void removeLocalAgent(AID target) {
 		myContainer.removeLocalAgent(target);
-		//#J2ME_EXCLUDE_BEGIN
-		codeLocator.removeAgentRef(target);
-		//#J2ME_EXCLUDE_END
 	}
 	
 	//#J2ME_EXCLUDE_BEGIN
@@ -310,11 +305,16 @@ public class AgentManagementService extends BaseService {
 		private void handleInformKilled(VerticalCommand cmd) throws IMTPException, NotFoundException, ServiceException {
 			Object[] params = cmd.getParams();
 			AID target = (AID)params[0];
-			
+
 			//log("Source Sink consuming command INFORM_KILLED. Name is "+target.getName(), 3);
 			if(myLogger.isLoggable(Logger.CONFIG))
 				myLogger.log(Logger.CONFIG,"Source Sink consuming command INFORM_KILLED. Name is "+target.getName());
 			
+			// Remove CodeLocator entry.
+			//#J2ME_EXCLUDE_BEGIN
+			codeLocator.removeAgent(target);
+			//#J2ME_EXCLUDE_END
+
 			// Remove the dead agent from the LADT of the container
 			removeLocalAgent(target);
 			
@@ -574,15 +574,16 @@ public class AgentManagementService extends BaseService {
 				File file = new File(jarName);
 				try {
 					if (file.exists()) {
+						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
+						agent = (Agent) Class.forName(className, true, loader).newInstance();
 						try {
-							codeLocator.registerAgent(agentID, file, true);
+							codeLocator.registerAgent(agentID, loader);
 						}
 						catch (Exception e) {
 							myLogger.log(Logger.WARNING, "Error registering jar file "+file.getPath()+" to CodeLocator. Agent "+agentID.getName()+" may not be able to move properly");
 							e.printStackTrace();
 						}
-						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
-						agent = (Agent) Class.forName(className, true, loader).newInstance();
+						
 					}
 				}
 				catch (IOException ioe) {
@@ -601,6 +602,7 @@ public class AgentManagementService extends BaseService {
 				//#J2ME_EXCLUDE_BEGIN
 				// initAgent() may change the agent name.
 				codeLocator.changeAgentName(oldAgentID, agentID);
+
 				//#J2ME_EXCLUDE_END
 				if (startIt) {
 					myContainer.powerUpLocalAgent(agentID);
@@ -763,7 +765,7 @@ public class AgentManagementService extends BaseService {
 		private void exitContainer() {
 			myContainer.shutDown();
 		}
-		
+
 		
 	} // End of CommandTargetSink class
 	
@@ -870,6 +872,7 @@ public class AgentManagementService extends BaseService {
 					
 					result = gCmd;
 				}
+				
 			}
 			catch(Throwable t) {
 				cmd.setReturnValue(t);

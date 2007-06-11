@@ -37,6 +37,7 @@ import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.core.NotFoundException;
 import jade.core.NameClashException;
+import jade.core.management.AgentManagementSlice;
 
 import jade.security.Credentials;
 import jade.security.JADESecurityException;
@@ -279,5 +280,54 @@ public class AgentMobilityProxy extends SliceProxy implements AgentMobilitySlice
 	    throw new IMTPException("Unable to access remote node", se);
 	}
     }
+    
+    public void cloneCodeLocatorEntry(AID oldAgentID, AID newAgentID) throws IMTPException, NotFoundException {
+    	try {
+    	    GenericCommand cmd = new GenericCommand(H_CLONECODELOCATORENTRY, AgentMobilitySlice.NAME, null);
+    	    cmd.addParam(oldAgentID);
+    	    cmd.addParam(newAgentID);
+    	    
+    	    Node n = getNode();
+    	    Object result = n.accept(cmd);
+    	    if((result != null) && (result instanceof Throwable)) {
+    		if(result instanceof IMTPException) {
+    		    throw (IMTPException)result;
+    		}
+    		else if(result instanceof NotFoundException) {
+    		    throw (NotFoundException)result;
+    		}
+    		else {
+    		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+    		}
+    	    }
+    	}
+    	catch(ServiceException se) {
+    	    throw new IMTPException("Unable to access remote node", se);
+    	}
+        }
 
+    public void removeCodeLocatorEntry(AID name) throws IMTPException, NotFoundException {
+    	try {
+    	    GenericCommand cmd = new GenericCommand(H_REMOVECODELOCATORENTRY, AgentMobilitySlice.NAME, null);
+    	    cmd.addParam(name);
+    
+    	    Node n = getNode();
+    	    Object result = n.accept(cmd);
+
+    	    if((result != null) && (result instanceof Throwable)) {
+    		if(result instanceof IMTPException) {
+    		    throw (IMTPException)result;
+    		}
+    		else if(result instanceof NotFoundException) {
+    		    throw (NotFoundException)result;
+    		}
+    		else {
+    		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+    		}
+    	    }
+    	}
+    	catch(ServiceException se) {
+    	    throw new IMTPException("Unable to access remote node", se);
+    	}
+        }
 }

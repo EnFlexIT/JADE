@@ -66,6 +66,8 @@ public interface AgentMobilitySlice extends Service.Slice {
     static final String H_TRANSFERIDENTITY = "6";
     static final String H_HANDLETRANSFERRESULT = "7";
     static final String H_CLONEDAGENT = "8";
+    static final String H_CLONECODELOCATORENTRY = "9";
+    static final String H_REMOVECODELOCATORENTRY = "10";
 
     void createAgent(AID agentID, byte[] serializedInstance, String classSiteName, boolean isCloned, boolean startIt) throws IMTPException, ServiceException, NotFoundException, NameClashException, JADESecurityException;
     byte[] fetchClassFile(String className, String agentName) throws IMTPException, ClassNotFoundException;
@@ -78,5 +80,8 @@ public interface AgentMobilitySlice extends Service.Slice {
     boolean transferIdentity(AID agentID, Location src, Location dest) throws IMTPException, NotFoundException;
     void handleTransferResult(AID agentID, boolean result, List messages) throws IMTPException, NotFoundException;
     void clonedAgent(AID agentID, ContainerID cid, Credentials creds) throws IMTPException, JADESecurityException, NotFoundException, NameClashException;
+    void cloneCodeLocatorEntry(AID oldAgentID, AID newAgentID) throws IMTPException, NotFoundException;
 
+    void removeCodeLocatorEntry(AID name) throws IMTPException, NotFoundException;
+    
 }
