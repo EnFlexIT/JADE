@@ -26,6 +26,7 @@ Kernel
 - added package scoped methods getThreadPoolStatus and getThreadPool in jade.core.messaging.MessageManager
 - added public methods getQueueSize and getThreadPool in jade.core.messaging.MessagingService
 - Modified CodeLocator to use Base64 encoder by Apache commons-codec instead of sun.misc.BASE64Encoder as suggested by Jordi Cucurull Juan
+- Modified CodeLocator to deal with ClassLoader instead of jar files by Jordi Cucurull Juan
 - Modified AgentMobilityService to work with Java6 (load incoming agent classes by calling Class.forName(<class-name>, true, cl) instead of cl.loadClass(<class-name>)
 
 MTP

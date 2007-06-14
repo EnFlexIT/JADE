@@ -112,13 +112,19 @@
 		<Tester name="UDP Monitoring" skip="false">
 			<ClassName>test.udpmonitor.UDPMonitorTesterAgent</ClassName>
 			<Description> This item includes tests for the UDP monitoring introduced in JADE 3.3 
-      </Description>
+			</Description>
 			<TestsListRif>test/udpmonitor/UDPMonitorTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="LEAP Split-container" skip="true">
 			<ClassName>test.leap.split.LeapSplitTesterAgent</ClassName>
 			<Description> This item included tests on leap split-container.
-      </Description>
+			</Description>
 			<TestsListRif>test/leap/split/LeapSplitTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Topic-based message delivery" skip="false">
+			<ClassName>test.topic.TopicTesterAgent</ClassName>
+			<Description> This item includes tests about the topic-based message delivery mechanism implemented by the TopicManagement service.
+			</Description>
+			<TestsListRif>test/topic/topicTestsList.xml</TestsListRif>
 		</Tester>
 	</TesterList>

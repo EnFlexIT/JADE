@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Relative reference to the DTD file does not work when the test suite is in a jar file
+<!DOCTYPE TestsList SYSTEM "../../common/xml/listTests.dtd" [
+	<!ENTITY % inline "#PCDATA|em|br|UL|LI|b">
+	]>
+-->
+
+<TestsList> 
+		<Test name="Basic topic registration and deregistration" skip="false">
+			<TestClassName>test.topic.tests.TestRegistrationDeregistration</TestClassName>
+			<WhatTest>This test checks the basic features of the TopicManagementService, i.e. registering and deregistering to a given topic  
+			</WhatTest>
+			<HowWorkTest>LOAD PHASE: An agent able to send messages about topic T on demand is created. The tester agent i) registers to topic T, ii) triggers the emission of a message about topic T, ii) deregisters from topic T and iv) triggers the emission of another message about topic T
+			</HowWorkTest>
+			<WhenTestPass>The test passes if only the first message about topic T is received
+			</WhenTestPass>
+		</Test>
+		<Test name="Multiple topic registrations" skip="false">
+			<TestClassName>test.topic.tests.TestMultipleRegistrations</TestClassName>
+			<WhatTest>This test checks that the TopicManagementService correctly delivers a message about topic T to all (more than one in this case) agents that registered to topic T
+			</WhatTest>
+			<HowWorkTest>LOAD PHASE: An agent able to send messages about topic T on demand and two agents registering to topic T are created,  i) The tester agent triggers the emission of a message about topic T, ii) The tester agent waits for notifications about both registered agents
+			</HowWorkTest>
+			<WhenTestPass>The test passes if both registered agents correcty receive the message about topic T
+			</WhenTestPass>
+		</Test>
+</TestsList>
+
