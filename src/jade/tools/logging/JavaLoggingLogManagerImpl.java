@@ -98,10 +98,10 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 				try {
 					Logger theLogger = this.logManager.getLogger(logName); 
 					//retrieving the level
-					Level level = theLogger.getLevel();
+					Level level = getLevel(theLogger);
+					int loggerLevel = level.intValue();
 					//If the result is null, this logger's effective level will be inherited from its parent. 
 					//The value is the one specified for the property level in the configuration file 			
-					int loggerLevel = ((level != null) ? level.intValue() : Level.parse(this.logManager.getProperty(".level")).intValue());
 					if (logName == null || logName.length() == 0) {
 						// This is the ROOT Logger --> Use a non-empty predefined name
 						logName = DEFAULT_ROOT_LOGGER_NAME;
@@ -140,6 +140,22 @@ public class JavaLoggingLogManagerImpl implements LogManager {
 	}
 	
 	
+	private Level getLevel(Logger logger) {
+		if (logger != null) {
+			Level l = logger.getLevel();
+			if (l != null) {
+				return l;
+			}
+			else {
+				return getLevel(logger.getParent());
+			}
+		}
+		else {
+			return Level.INFO;
+		}
+	}
+
+
 	public void setLogLevel(String name, int level){
 		
 		//update the LogInfo associated.
