@@ -231,6 +231,8 @@ public class ParallelBehaviour extends CompositeBehaviour {
 			// was blocked too), restart this ParallelBehaviour and notify 
 			// upwards
 			if (!isRunnable()) {
+				if(myAgent != null)
+					myAgent.removeTimer(this);
 				myEvent.init(true, NOTIFY_UP);
 				super.handle(myEvent);
 				if(myAgent != null)

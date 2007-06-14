@@ -483,6 +483,11 @@ public abstract class Behaviour implements Serializable {
 	 */
 	public void restart() {
 		myEvent.init(true, NOTIFY_UP);
+
+		
+		if(myAgent != null) {
+			myAgent.removeTimer(this);
+		}
 		handle(myEvent);
 		if(myAgent != null) {
 			myAgent.notifyRestarted(this);

@@ -357,6 +357,15 @@ public class Agent implements Runnable, Serializable
 	 @see jade.core.behaviours.Behaviour#restart()
 	 */
 	public void notifyRestarted(Behaviour b) {
+		// Did this restart() cause the root behaviour to become runnable ?
+		// If so, put the root behaviour back into the ready queue.
+		Behaviour root = b.root();
+		if(root.isRunnable()) {
+			myScheduler.restart(root);
+		}
+	}
+
+	public void removeTimer(Behaviour b) {
 		// The mapping for b in general has already been removed in doTimeOut().
 		// There is however a case related to ParallelBehaviours where 
 		// notifyRestarted() is not called as a consequence of a timer
@@ -365,13 +374,6 @@ public class Agent implements Runnable, Serializable
 		Timer t = pendingTimers.getPeer(b);
 		if(t != null) {
 			pendingTimers.removeMapping(b);
-		}
-		
-		// Did this restart() cause the root behaviour to become runnable ?
-		// If so, put the root behaviour back into the ready queue.
-		Behaviour root = b.root();
-		if(root.isRunnable()) {
-			myScheduler.restart(root);
 		}
 	}
 	
