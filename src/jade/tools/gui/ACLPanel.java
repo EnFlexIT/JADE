@@ -363,7 +363,6 @@ public class ACLPanel extends JPanel {
         t.setDate(theDate);
       }
       catch (Exception ee) {
-//      static void showMessageDialog(Component parentComponent, Object message, String title, int messageType)           Brings
         JOptionPane.showMessageDialog(this, ee.getMessage(), "Incorrect date format", JOptionPane.ERROR_MESSAGE);
         if(logger.isLoggable(Logger.WARNING))
         	logger.log(Logger.WARNING,"Incorrect date format");
@@ -399,7 +398,6 @@ public class ACLPanel extends JPanel {
         t.setDate(theDate);
       }
       catch (Exception ee) {
-//      static void showMessageDialog(Component parentComponent, Object message, String title, int messageType)           Brings
         JOptionPane.showMessageDialog(this, ee.getMessage(), "Incorrect date format", JOptionPane.ERROR_MESSAGE);
         if(logger.isLoggable(Logger.WARNING))
         	logger.log(Logger.WARNING,"Incorrect date format");
