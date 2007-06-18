@@ -128,6 +128,8 @@ public class JadeGateway {
 	 **/
 	public final static void checkJADE() throws StaleProxyException,ControllerException {
 		if (myContainer == null) {
+			initProfile();
+			
 			myContainer = Runtime.instance().createAgentContainer(profile); 
 			if (myContainer == null) {
 				throw new ControllerException("JADE startup failed.");
@@ -146,8 +148,6 @@ public class JadeGateway {
 	 **/
 	private final static void restartJADE() throws StaleProxyException,ControllerException {
 		shutdown();
-		// reinitialize the profile otherwise an exception would be thrown by JADE
-		init(agentType, jadeProps);
 		checkJADE();
 	}
 	
@@ -165,17 +165,23 @@ public class JadeGateway {
 		if (agentType == null) {
 			agentType = GatewayAgent.class.getName();
 		}
+		
 		jadeProps = jadeProfile;
 		if (jadeProps != null) {
 			// Since we will create a non-main container --> force the "main" property to be false
 			jadeProps.setProperty(Profile.MAIN, "false");
 		}
-		profile = (jadeProfile == null ? new ProfileImpl(false) : new ProfileImpl(jadeProfile));
+		
 		agentArguments = agentArgs;
 	}
 
 	public final static void init(String agentClassName, Properties jadeProfile) {
 		init(agentClassName, null, jadeProfile);
+	}
+	
+	private final static void initProfile() {
+		// to initialize the profile every restart, otherwise an exception would be thrown by JADE
+		profile = (jadeProps == null ? new ProfileImpl(false) : new ProfileImpl(jadeProps));
 	}
 	
 	/**
@@ -194,6 +200,14 @@ public class JadeGateway {
 		}
 		myAgent = null;
 		myContainer = null;
+	}
+	
+	/**
+	 * Return the state of JadeGateway
+	 * @return true if the container and the gateway agent are active, false otherwise
+	 */
+	public final static boolean isGatewayActive() {
+		return myContainer != null && myAgent != null;
 	}
 	
 	/** This private constructor avoids other objects to create a new instance of this singleton **/
