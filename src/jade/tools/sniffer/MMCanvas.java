@@ -124,8 +124,9 @@ public class MMCanvas
   private HashMap mapToColor = new HashMap();
   // Removed green, orange, and pink.  They were too hard to see.
   //#DOTNET_EXCLUDE_BEGIN
-  private Color colorTable[] = {Color.blue, Color.black, Color.cyan, 
-  Color.magenta, Color.red, Color.white, Color.yellow};
+  private Color colorTable[] = {new Color(200, 0, 150), Color.blue, new Color(230, 230, 0), Color.red, Color.black, Color.magenta, Color.cyan, 
+  Color.pink, new Color(0, 200, 150), Color.green};
+  private Color noConversationColor = Color.gray;
   //#DOTNET_EXCLUDE_END
   /*#DOTNET_INCLUDE_BEGIN
   	private Color colorTable[] = 
@@ -133,8 +134,9 @@ public class MMCanvas
 			Color.get_Blue(), Color.get_Black(), Color.get_Cyan(), 
 			Color.get_Magenta(), Color.get_Red(), Color.get_White(), Color.get_Yellow()
 		};
+  private Color noConversationColor = Color.gray;
   #DOTNET_INCLUDE_END*/
-  private Integer colorCounter = new Integer(-1);
+  private int colorCounter = 0;
   
   public MMCanvas(boolean type,MainWindow mWnd, PanelCanvas panCan, MainPanel mPan, MMCanvas other ) {
    super();
@@ -396,7 +398,33 @@ public class MMCanvas
            //    " CID:" + mess.getConversationId() +
            //    " RW:" + mess.getReplyWith() +
            //    " RT:" + mess.getInReplyTo());
+           
+           Object conversationKey = null;
            if (mess.getConversationId() != null) {
+        	   conversationKey = mess.getConversationId();
+           }
+           else if (mess.getReplyWith() != null) {
+        	   conversationKey = mess.getReplyWith();
+           }
+           else if (mess.getInReplyTo() != null) {
+        	   conversationKey = mess.getInReplyTo();
+           }
+           
+           Color messageColor = null;
+           if (conversationKey != null) {
+	           if (mapToColor.containsKey(conversationKey)) {
+	               colorIndex = (Integer)mapToColor.get(conversationKey);        	   
+	           }
+	           else {
+	        	   colorIndex = getNewColorIndex();
+	        	   mapToColor.put(conversationKey, colorIndex);
+	           }
+	           messageColor = colorTable[colorIndex.intValue() % colorTable.length];
+           }
+           else {
+        	   messageColor = noConversationColor;
+           }
+           /*if (mess.getConversationId() != null) {
              if (mapToColor.containsKey(mess.getConversationId())) {
                 colorIndex = (Integer)mapToColor.get(mess.getConversationId());
                 //System.out.println("Found CID:" + colorIndex);
@@ -435,9 +463,11 @@ public class MMCanvas
              //System.out.println("RT:" + mess.getInReplyTo() + " was: " + mapToColor.get(mess.getInReplyTo()));
              mapToColor.put(mess.getInReplyTo(), colorIndex);
            }
-           //System.out.println("Done");
+           //System.out.println("Done");*/
+           
+           
 		   //#DOTNET_EXCLUDE_BEGIN
-           g.setColor(colorTable[colorIndex.intValue() % colorTable.length]);
+           g.setColor(messageColor);
            g.drawRect(x1-3,y-4,4,8);
            g.fillRect(x1-3,y-4,4,8);
 
@@ -611,6 +641,20 @@ public class MMCanvas
   }
  } // Method
 
+  private Integer getNewColorIndex() {
+	  for (int i = 0; i < colorTable.length; ++i) {
+		  Integer index = new Integer(i);
+		  if (!mapToColor.containsValue(index)) {
+			  return index;
+		  }
+	  }
+	  Integer index = new Integer(colorCounter);
+	  colorCounter++;
+	  if (colorCounter >= colorTable.length) {
+		  colorCounter = 0;
+	  }
+	  return index;
+  }
   /**
    * Method invoked everytime the use clicks on a blue arrow: it updates the TextMessage
    * component displaying the type of the message.
