@@ -22,19 +22,19 @@
  * Boston, MA  02111-1307, USA.
  * **************************************************************
  */
-package examples.hallo;
+package examples.hello;
 
 import jade.core.Agent;
 
 /**
-   This example show a minimal agent that just prints "Hallo World!" 
+   This example shows a minimal agent that just prints "Hallo World!" 
    and then terminates.
    @author Giovanni Caire - TILAB
  */
-public class HalloWorldAgent extends Agent {
+public class HelloWorldAgent extends Agent {
 
   protected void setup() {
-  	System.out.println("Hallo World! My name is "+getLocalName());
+  	System.out.println("Hello World! My name is "+getLocalName());
   	
   	// Make this agent terminate
   	doDelete();

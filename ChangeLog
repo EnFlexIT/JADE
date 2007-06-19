@@ -34,6 +34,7 @@ MTP
 
 Tools
 - Modified AgentTree class to show agents within a container in alphabetical order
+- Improved management of colors in the Sniffer
  
 BUG-FIXES:
 - Integraed fix by Geoffrey De Smet to properly deal with loggers that are not JADE loggers. 

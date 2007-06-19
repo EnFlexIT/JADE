@@ -486,6 +486,16 @@ public class MessageTemplate implements Serializable {
 	
 	/**
 	 This <em>Factory Method</em> returns a message template that
+	 matches any message about a given topic.
+	 @param topic An AID representing the topic to be matched
+	 @return A new <code>MessageTemplate</code> matching messages about the given topic
+	 */
+	public static MessageTemplate MatchTopic(AID topic) {
+		return new MessageTemplate(new Literal(new AID[]{topic}, RECEIVER));
+	}
+	
+	/**
+	 This <em>Factory Method</em> returns a message template that
 	 matches any message with a given <code>:content</code> slot.
 	 @param value The value the message slot will be matched against.
 	 @return A new <code>MessageTemplate</code> matching the given
