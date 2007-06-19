@@ -145,8 +145,8 @@ public class AgentActionSchema extends ConceptSchema {
   	}
   	
   	/**
-  	 * Define that the result produced by the execution of an action belonging to this 
-  	 * schema has a structure conforming to a given schema.
+  	 * Define that the result produced by the execution of an action described by this 
+  	 * schema has a structure conforming to a given term schema.
   	 * @param resultSchema the schema of the result
   	 */
   	public void setResult(TermSchema resultSchema) {
@@ -155,9 +155,9 @@ public class AgentActionSchema extends ConceptSchema {
   	}
   	
   	/**
-  	 * Define that the result produced by the execution of an action belonging to this 
+  	 * Define that the result produced by the execution of an action described by this 
   	 * schema is an aggregate of n (with n between cardMin and cardMax) elements each one having 
-  	 * a structure conforming to a given schema.
+  	 * a structure conforming to a given term schema.
   	 * @param elementsSchema the schema of the elements in the result aggregate
   	 * @param cardMin the result must include at least <code>cardMin</code> elements
   	 * @param cardMax the result must include at most <code>cardMax</code> elements
