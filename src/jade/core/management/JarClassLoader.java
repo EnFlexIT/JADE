@@ -112,7 +112,9 @@ public class JarClassLoader extends ClassLoader {
 			ZipEntry zEntry = _jarFile.getEntry(name);
 			
 			try {
-				return _jarFile.getInputStream(zEntry);
+				if (zEntry != null) {
+					return _jarFile.getInputStream(zEntry);
+				} else return null;
 			} catch (IOException ioe) {
 				return null;
 			}
