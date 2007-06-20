@@ -23,7 +23,7 @@
 	<property name="midp-root" value="${root}/midp"/>	
 	<property name="dotnet-root" value="${root}/dotnet"/>	
 	<property name="tmp" value="${root}/tmp"/>	
-	<property name="dist" value="${jade-home}"/>	
+	<property name="dist" value="${jade-home}/add-ons"/>	
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
@@ -297,26 +297,32 @@
 	<!-- ******** JADE-LEAP distribution targets ********* -->
 
 	<!-- Create the JADE-LEAP distribution zip files -->
-	<target name="dist" depends="init"
-	        description="Create the LEAP distribution file">
+	<target name="dist" depends="init" description="Create the LEAP distribution file">
+		<echo message="GENERATE THE PDF FORM OF THE LEAP USER GUIDE, PUT IT IN THE LOCAL DIRECTORY (jade/leap) AND THEN PRESS ENTER -->"/>
+		<input/>
+		<mkdir dir="${jade-home}/doc"/>
+		<mkdir dir="${jade-home}/doc/tutorials"/>
+		<copy file="LEAPUserGuide.pdf" todir="${jade-home}/doc/tutorials"/>
+
+
 		<delete file="${dist}/LeapAddon-${version}.zip" quiet="true"/>
-    <jar jarfile="${dist}/LeapAddon-${version}.zip" basedir="${dist}">
-    	<include name="leap/License"/>
-    	<include name="leap/COPYING"/>
-    	<include name="leap/README.txt"/>
-    	<include name="leap/buildLEAP.properties"/>
-    	<include name="leap/build.xml"/>
-    	<include name="leap/jade-leap.jad"/>
-    	<include name="leap/LEAPUserGuide.pdf"/>
-    	<include name="leap/demo/*.bat"/>
-    	<include name="leap/demo/demo.jad"/>
-    	<include name="leap/demo/demo.manifest"/>
-    	<include name="leap/demo/demo.dlc"/>
-    	<include name="leap/demo/src/**"/>
-    	<include name="leap/resources/**"/>
-    	<include name="leap/src/**"/>
-    	<include name="leap/dotnet/**"/>
-    </jar>
+		<jar jarfile="${dist}/LeapAddon-${version}.zip" basedir="${jade-home}">
+			<include name="leap/License"/>
+			<include name="leap/COPYING"/>
+			<include name="leap/README.txt"/>
+			<include name="leap/buildLEAP.properties"/>
+			<include name="leap/build.xml"/>
+			<include name="leap/jade-leap.jad"/>
+			<include name="leap/demo/*.bat"/>
+			<include name="leap/demo/demo.jad"/>
+			<include name="leap/demo/demo.manifest"/>
+			<include name="leap/demo/demo.dlc"/>
+			<include name="leap/demo/src/**"/>
+			<include name="leap/resources/**"/>
+			<include name="leap/src/**"/>
+			<include name="leap/dotnet/**"/>
+			<include name="doc/tutorials/LEAPUserGuide.pdf"/>
+		</jar>
 	<antcall description="Build the binary distribution for j2se,midp,pjava" target="bin-dist"/>   
 	</target>
 
