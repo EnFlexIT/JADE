@@ -75,6 +75,7 @@ DOCUMENTATION:
 - New examples about the topic-based message delivery mechanism
 - Updated the Programmer's Guide with information about the topic-based message delivery mechanism
 - Updated the Administrator's Guide with information about the automatic main detection mechanism
+- Adjusted javadoc information for kernel level services classes
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 API: NONE
