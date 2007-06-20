@@ -23,8 +23,6 @@
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
 
 import jade.util.leap.List;
 import jade.util.leap.LinkedList;

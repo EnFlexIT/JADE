@@ -23,10 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
 /**
- An implementation of the <code>Slice</code> interface,
+ An implementation of the <code>Service.Slice</code> interface,
  supporting routed dispatching of horizontal commands.
 */
 public class SliceProxy implements Service.Slice 

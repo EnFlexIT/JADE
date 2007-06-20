@@ -29,15 +29,9 @@ import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.ProfileException;
-import jade.core.Specifier;
 
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
-import jade.util.leap.List;
 import jade.util.leap.Properties;
 import jade.util.Logger;
-import java.util.StringTokenizer;
-import java.util.Stack;
 import java.util.Enumeration;
 import java.io.*;
 

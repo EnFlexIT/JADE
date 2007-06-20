@@ -24,8 +24,6 @@
 package jade.core;
 
 
-//#APIDOC_EXCLUDE_FILE
-
 
 /**
  The <code>Command</code> interface has to be implemented by all

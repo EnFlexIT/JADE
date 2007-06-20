@@ -23,7 +23,6 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
 
 import jade.core.behaviours.Behaviour;
 import jade.util.leap.Serializable;
@@ -33,7 +32,7 @@ import jade.util.leap.Serializable;
    The <code>Service</code> interface represents a centralized view of
    a JADE kernel-level service. Most JADE services are actually
    distributed, and each part of theirs, that is deployed at a given
-   network node, is called <em>service slice</em>. The various slices
+   network node (container), is called <em>service slice</em>. The various slices
    of a service work together to carry out that service's task.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
@@ -130,6 +129,7 @@ public interface Service {
 
 	}
 
+	//#APIDOC_EXCLUDE_BEGIN
 	//#DOTNET_EXCLUDE_BEGIN
 	// 15/4/05 We had to deprecate this class because of the .NET integration
 	/**
@@ -189,6 +189,7 @@ public interface Service {
 		*/
 	}
 	//#DOTNET_EXCLUDE_END
+	//#APIDOC_EXCLUDE_END
 
 	/**
        Retrieve the name of this service, that can be used to look up

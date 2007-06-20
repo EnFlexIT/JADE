@@ -24,7 +24,6 @@ Boston, MA  02111-1307, USA.
 package jade;
 
 import jade.core.MicroRuntime;
-import jade.core.IMTPException;
 import jade.util.leap.Properties;
 import jade.util.Logger;
 import java.io.IOException;

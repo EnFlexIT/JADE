@@ -23,8 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
+/**
+ * This exception is thrown when trying to access a JADE kernel level service that is 
+ * not installed in the local node. 
+ */
 public class ServiceNotActiveException extends ServiceException {
     public ServiceNotActiveException(String serviceName) {
     	super("The service <" + serviceName + "> is not active on this node");

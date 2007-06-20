@@ -23,6 +23,7 @@ Boston, MA  02111-1307, USA.
 package jade.core;
 
 //#MIDP_EXCLUDE_FILE
+//#APIDOC_EXCLUDE_FILE
 
 
 public interface BECodec {

@@ -28,7 +28,6 @@ package jade;
 import java.applet.Applet;
 
 import jade.core.MicroRuntime;
-import jade.core.IMTPException;
 import jade.util.leap.Properties;
 
 

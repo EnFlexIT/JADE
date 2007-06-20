@@ -23,8 +23,6 @@
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
 
 import jade.core.behaviours.Behaviour;
 
@@ -39,6 +37,9 @@ import jade.util.leap.HashMap;
  The <code>BaseService</code> abstract class partially implements
  the <code>Service</code> interface, providing a simple and uniform
  mechanism for slice management and service discovery.
+ Developers interested in creating JADE kernel level services should
+ extend <code>BaseService</code> instead of directly implementing the 
+ <code>Service</code> interface
  
  @author Giovanni Rimassa - FRAMeTech s.r.l.
  

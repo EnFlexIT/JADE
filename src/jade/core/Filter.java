@@ -23,8 +23,6 @@
 
 package jade.core;
 
-//#APIDOC_EXCLUDE_FILE
-
 
 /**
  Base class for command filters, that allow to

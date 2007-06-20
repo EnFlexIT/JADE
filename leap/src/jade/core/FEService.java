@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.core;
 
+//#APIDOC_EXCLUDE_FILE
+
 /**
  * JADE kernel services providing a service-helper and whishing this helper to be available in the 
  * split execution mode too, need to provide a FEService class.
