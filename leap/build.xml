@@ -27,7 +27,7 @@
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
-	<property name="version" value="3.4"/>	
+	<property name="version" value="3.5"/>	
 	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
 
 	<!-- Properties for compiling the demo -->
@@ -333,7 +333,7 @@
 			<include name="License"/>
 		 </fileset>
 	    </copy>
-		<jar jarfile="${dist}/JadeLeapJ2se-${version}.zip" basedir="${dist}/leap/j2se/lib"/>
+		<jar jarfile="${dist}/JadeLeapJ2se-${version}.zip" basedir="${jade-home}/leap/j2se/lib"/>
 
 	    <copy todir="pjava/lib" overwrite="yes">
 		 <fileset dir="${jade-home}">
@@ -341,7 +341,7 @@
 			<include name="License"/>
 		 </fileset>
 	    </copy>
-		<jar jarfile="${dist}/JadeLeapPjava-${version}.zip" basedir="${dist}/leap/pjava/lib"/>
+		<jar jarfile="${dist}/JadeLeapPjava-${version}.zip" basedir="${jade-home}/leap/pjava/lib"/>
 
 		<copy todir="midp/lib" overwrite="yes">
 		 <fileset dir="${jade-home}">
@@ -349,7 +349,7 @@
 			<include name="License"/>
 		 </fileset>
 	    </copy>
-		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${dist}/leap/midp/lib"/>
+		<jar jarfile="${dist}/JadeLeapMidp-${version}.zip" basedir="${jade-home}/leap/midp/lib"/>
 	</target>
 
 	<!-- Create the JADE-LEAP snapshot zip files -->
