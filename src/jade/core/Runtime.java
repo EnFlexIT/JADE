@@ -306,7 +306,7 @@ public class Runtime {
 		String version = getVersion();
 		String name = null;
 		if (version.startsWith("$")) {
-			// The $Version$ keyword was not replaced --> This is NOT an official release --> The has the form JADE Snapshot - revision XXXX of YYYY/MM/DD hh:mm:ss
+			// The $ surrounded Version keyword was not replaced --> This is NOT an official release --> The has the form JADE Snapshot - revision XXXX of YYYY/MM/DD hh:mm:ss
 			name = "JADE snapshot";
 		}
 		else {
@@ -317,17 +317,17 @@ public class Runtime {
 	}
 	
 	public static String getVersion() {
-		String version = "$Version$"; // The $Version$ keyword is automatically replaced by the target doTag of build.xml
+		String version = "$Version$"; // The $ surrounded Version keyword is automatically replaced by the target doTag of build.xml
 		return version;
 	}
 	
 	public static String getRevision() {
-		String revision = "5917"; // The 5917 keyword is automatically replaced by WCREV with subversion
+		String revision = "$WCREV$"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
 		return revision;
 	}
 	
 	public static String getDate() {
-		String date = "2006/12/19 16:00:22"; // The 2006/12/19 16:00:22 keyword is automatically replaced by WCREV with subversion
+		String date = "$WCDATE$"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
 		return date;
 	}
 }
