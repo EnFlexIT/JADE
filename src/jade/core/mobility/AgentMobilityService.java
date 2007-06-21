@@ -144,11 +144,13 @@ public class AgentMobilityService extends BaseService {
 		return new AgentMobilityHelperImpl();
 	}
 	
+	//#J2ME_EXCLUDE_BEGIN
 	public Filter getCommandFilter(boolean direction) {
 		if (direction == Filter.OUTGOING) {
             return _outFilter;
 		} else return null;
 	}
+	//#J2ME_EXCLUDE_END
 	
 	public Sink getCommandSink(boolean side) {
 		if(side == Sink.COMMAND_SOURCE) {
@@ -673,6 +675,8 @@ public class AgentMobilityService extends BaseService {
 		
 	} // End of CommandTargetSink class
 	
+	
+	//#J2ME_EXCLUDE_BEGIN
 	private class CommandOutgoingFilter extends Filter {
 
 		protected boolean accept(VerticalCommand cmd) {
@@ -709,7 +713,6 @@ public class AgentMobilityService extends BaseService {
 				myLogger.log(Logger.CONFIG,"Outgoing Filer accepting command INFORM_KILLED. Name is "+target.getName());
 			
 			// Remove CodeLocator entry.
-			//#J2ME_EXCLUDE_BEGIN
 			String containerName = myContainer.getID().getName();
 			Agent agent = myContainer.acquireLocalAgent(target);
 			String codeContainerName = getClassSite(agent);
@@ -733,12 +736,9 @@ public class AgentMobilityService extends BaseService {
 					}
 				}
 			}
-			//#J2ME_EXCLUDE_END
-
 		}
-		
-		
 	} // End of CommandOutgoingFilter class
+	//#J2ME_EXCLUDE_END
 	
 	
 	/**
@@ -836,6 +836,7 @@ public class AgentMobilityService extends BaseService {
 					
 					result = gCmd;
 				}
+				//#J2ME_EXCLUDE_BEGIN
 				else if(cmdName.equals(AgentMobilitySlice.H_CLONECODELOCATORENTRY)) {
 					AID oldAgentID = (AID)params[0];
 					AID newAgentID = (AID)params[1];
@@ -847,7 +848,7 @@ public class AgentMobilityService extends BaseService {
 
 					handleRemoveCodeLocatorEntry(agentID);
 				}
-				
+				//#J2ME_EXCLUDE_END
 			}
 			catch(Throwable t) {
 				cmd.setReturnValue(t);
@@ -1239,6 +1240,7 @@ public class AgentMobilityService extends BaseService {
 			}
 		}
 		
+		//#J2ME_EXCLUDE_BEGIN		
 		private void handleCloneCodeLocatorEntry(AID oldAgentID, AID newAgentID) throws ServiceException, IMTPException, NotFoundException {
 			
 			AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
@@ -1264,9 +1266,8 @@ public class AgentMobilityService extends BaseService {
 			AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
 			CodeLocator codeLocator = amSrv.getCodeLocator();
 			codeLocator.removeAgent(agentID);
-
 		}
-		
+		//#J2ME_EXCLUDE_END
 	} // End of ServiceComponent class
 	
 	
@@ -1560,8 +1561,10 @@ public class AgentMobilityService extends BaseService {
 	// The command sink, target side
 	private final CommandTargetSink receiverSink = new CommandTargetSink();
 	
+	//#J2ME_EXCLUDE_BEGIN
 	// Filter for outgoing commands
 	private final Filter _outFilter = new CommandOutgoingFilter();
+	//#J2ME_EXCLUDE_END
 	
 	// Work-around for PJAVA compilation
 	protected Service.Slice getFreshSlice(String name) throws ServiceException {
