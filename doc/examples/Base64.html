@@ -48,7 +48,7 @@ vlink="#0000FF" alink="#0000FF">
 <p>Author: Fabio Bellifemine (TILab S.p.a)<br>
 Date: 6/01/2001</p>
 
-<p><span lang="EN-GB"> </p>
+<p> </p><span lang="EN-GB">
 
 <p><font face="Arial,Helvetica">This examples shows how to transport serialized Java objects
 inside an ACLMessage.<br>
@@ -65,7 +65,8 @@ reader:examples.Base64.ObjectReaderAgent</font> </p>
 
 <p><font face="Arial,Helvetica">java jade.Boot -port 1099 writer:examples.Base64.ObjectWriterAgent</font> </p>
 
-<p><font face="Arial,Helvetica">java jade.Boot -port 1200 reader:examples.eBase64.ObjectReaderAgent</font> </p>
+<p><font face="Arial,Helvetica">java jade.Boot -port 1200 reader:examples.Base64.ObjectReaderAgent</font> 
+</p>
 
 <p><font face="Arial,Helvetica">in this case, you must also federated the DF of
 the two platforms such that the ObjectWriterAgent's search is propagated to the
@@ -129,11 +130,12 @@ agents.</font>&nbsp; <br>
         an ACLMessage with a content encoded in Base64 to
         the&nbsp; ObjectReaderAgent.</font> <font
         face="Arial,Helvetica">&nbsp;</font> <br>
-        <font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp;
-          3. sends the same message by using the BitEfficient ACLCodec (notice that
-        the message is actually coded only and only if the receiver belongs to another platform) first, and the XML ACLCodec then<br>
+      <font face="Arial,Helvetica">&nbsp;&nbsp;&nbsp; 3. sends the same message 
+      by using the BitEfficient ACLCodec (notice that the message is actually 
+      coded only if the receiver belongs to another platform) first, and the XML 
+      ACLCodec then<br>
         &nbsp;&nbsp;&nbsp; 4. sends an ACLMessage with a content encoded as a String<br>
-        &nbsp;&nbsp;&nbsp; 5. sends the same message by using again BitfficientACLCodec and XMLACLCodec</font> <font>
+        &nbsp;&nbsp;&nbsp; 5. sends the same message by using again BitfficientACLCodec and XMLACLCodec</font> <font>&nbsp;
 
           </font>
 
@@ -153,7 +155,7 @@ agents.</font>&nbsp; <br>
     </tr>
 </table>
 
-<p></span> &nbsp;</p>
+</span><p><span lang="EN-GB"></span> &nbsp;</p>
 
 <hr>
 
