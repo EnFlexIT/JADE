@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -29,38 +29,41 @@ import jade.core.behaviours.Behaviour;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 //#MIDP_EXCLUDE_END
+import jade.util.leap.Properties;
 
 /**
 @author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
-*/
+ */
 
 interface AgentToolkit {
-  Location here();
-  void handleEnd(AID agentID);
-  void handleChangedAgentState(AID agentID, int from, int to);
-  void handleSend(ACLMessage msg, AID sender, boolean needClone);
+	Location here();
+	void handleEnd(AID agentID);
+	void handleChangedAgentState(AID agentID, int from, int to);
+	void handleSend(ACLMessage msg, AID sender, boolean needClone);
 
-  //#MIDP_EXCLUDE_BEGIN
-  void handlePosted(AID agentID, ACLMessage msg);
-  void handleReceived(AID agentID, ACLMessage msg);
-  void handleBehaviourAdded(AID agentID, Behaviour b);
-  void handleBehaviourRemoved(AID agentID, Behaviour b);
-  void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
+	//#MIDP_EXCLUDE_BEGIN
+	void handlePosted(AID agentID, ACLMessage msg);
+	void handleReceived(AID agentID, ACLMessage msg);
+	void handleBehaviourAdded(AID agentID, Behaviour b);
+	void handleBehaviourRemoved(AID agentID, Behaviour b);
+	void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to);
 
-  // FIXME: Needed due to the Persistence Service being an add-on
-  //void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
-  //void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
-  //void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
+	// FIXME: Needed due to the Persistence Service being an add-on
+	//void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+	//void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException;
+	//void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException;
 
-  jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials);
-  //#MIDP_EXCLUDE_END
-  
-  ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
+	jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials);
 
-  void setPlatformAddresses(AID id);
-  AID getAMS();
-  AID getDefaultDF();
-  String getProperty(String key, String aDefault);
+	Properties getBootProperties();
+	//#MIDP_EXCLUDE_END
+
+	ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException;
+
+	void setPlatformAddresses(AID id);
+	AID getAMS();
+	AID getDefaultDF();
+	String getProperty(String key, String aDefault);
 
 }

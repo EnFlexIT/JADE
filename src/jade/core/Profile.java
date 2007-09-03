@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 
 import jade.util.Logger;
 import jade.util.leap.List;
+import jade.util.leap.Properties;
 
 /**
  * This class allows retrieving configuration-dependent classes.
@@ -274,10 +275,17 @@ public abstract class Profile {
 	/**
 	 */
 	public abstract ResourceManager getResourceManager() throws ProfileException;
-	
-	
+
 	//#APIDOC_EXCLUDE_END
 	
+	
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Retrieve the configuration properties as they were passed to this Profile object, i.e. without 
+	 * internal initializations automatically performed by the Profile class. 
+	 */
+	public abstract Properties getBootProperties();
+	//#MIDP_EXCLUDE_END
 	
 	/**
 	 * Retrieve a String value from the configuration properties.

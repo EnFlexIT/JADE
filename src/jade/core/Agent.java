@@ -2,19 +2,19 @@
  JADE - Java Agent DEvelopment Framework is a framework to develop 
  multi-agent systems in compliance with the FIPA specifications.
  Copyright (C) 2000 CSELT S.p.A. 
- 
+
  GNU Lesser General Public License
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation, 
  version 2.1 of the License. 
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the
  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -52,6 +52,7 @@ import jade.util.leap.ArrayList;
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 //#MIDP_EXCLUDE_END
+import jade.util.leap.Properties;
 
 /*#MIDP_INCLUDE_BEGIN
  import javax.microedition.midlet.*;
@@ -68,11 +69,11 @@ import jade.util.leap.HashMap;
  starting, suspending and killing an agent. </b></li>
  <li> <b> Scheduling and execution of multiple concurrent activities. </b></li>
  </ul>
- 
+
  Application programmers must write their own agents as
  <code>Agent</code> subclasses, adding specific behaviours as needed
  and exploiting <code>Agent</code> class capabilities.
- 
+
  @author Giovanni Rimassa - Universita' di Parma
  @author Giovanni Caire - TILAB
  @version $Date$ $Revision$
@@ -83,7 +84,7 @@ public class Agent implements Runnable, Serializable
 //#APIDOC_EXCLUDE_END
 {
 	private static final long     serialVersionUID = 3487495895819000L;
-	
+
 	/**
 	 Inner class Interrupted.
 	 This class is used to handle change state requests that occur
@@ -95,8 +96,8 @@ public class Agent implements Runnable, Serializable
 			super();
 		}
 	}  // END of inner class Interrupted
-	
-	
+
+
 	/**
 	 Inner class AssociationTB.
 	 This class manages bidirectional associations between Timer and
@@ -112,7 +113,7 @@ public class Agent implements Runnable, Serializable
 	private class AssociationTB {
 		private Hashtable BtoT = new Hashtable();
 		private Hashtable TtoB = new Hashtable();
-		
+
 		public void clear() {
 			synchronized (theDispatcher) {
 				Enumeration e = timers();
@@ -120,30 +121,30 @@ public class Agent implements Runnable, Serializable
 					Timer t = (Timer) e.nextElement();
 					theDispatcher.remove(t);
 				}
-				
+
 				BtoT.clear();
 				TtoB.clear();
-				
+
 				//#J2ME_EXCLUDE_BEGIN
-				
+
 				// For persistence service
 				persistentPendingTimers.clear();
-				
+
 				//#J2ME_EXCLUDE_END
 			} //end synch
 		}
-		
+
 		public void addPair(Behaviour b, Timer t) {
 			TBPair pair = new TBPair(Agent.this, t, b);
 			addPair(pair);
 		}
-		
+
 		public void addPair(TBPair pair) {
 			synchronized (theDispatcher) {
 				if(pair.getOwner() == null) {
 					pair.setOwner(Agent.this);
 				}
-				
+
 				pair.setTimer(theDispatcher.add(pair.getTimer()));
 				TBPair old = (TBPair)BtoT.put(pair.getBehaviour(), pair);
 				if(old != null) {
@@ -156,31 +157,31 @@ public class Agent implements Runnable, Serializable
 				// Note that timers added to the TimerDispatcher are unique --> there
 				// can't be an old value to handle
 				TtoB.put(pair.getTimer(), pair);
-				
+
 				//#J2ME_EXCLUDE_BEGIN
 				// For persistence service
 				persistentPendingTimers.add(pair);
 				//#J2ME_EXCLUDE_END
 			} //end synch
 		}
-		
+
 		public void removeMapping(Behaviour b) {
 			synchronized (theDispatcher) {
 				TBPair pair = (TBPair)BtoT.remove(b);
 				if(pair != null) {
 					TtoB.remove(pair.getTimer());
-					
+
 					//#J2ME_EXCLUDE_BEGIN
 					// For persistence service
 					persistentPendingTimers.remove(pair);
 					//#J2ME_EXCLUDE_END
-					
+
 					theDispatcher.remove(pair.getTimer());
 				}
 			} //end synch
 		}
-		
-		
+
+
 		public Timer getPeer(Behaviour b) {
 			// this is not synchronized because BtoT is an Hashtable (that is already synch!)
 			TBPair pair = (TBPair)BtoT.get(b);
@@ -191,7 +192,7 @@ public class Agent implements Runnable, Serializable
 				return null;
 			}
 		}
-		
+
 		public Behaviour getPeer(Timer t) {
 			// this is not synchronized because BtoT is an Hashtable (that is already synch!)
 			TBPair pair = (TBPair)TtoB.get(t);
@@ -202,65 +203,65 @@ public class Agent implements Runnable, Serializable
 				return null;
 			}
 		}
-		
+
 		private Enumeration timers() {
 			return TtoB.keys();
 		}
-		
-		
+
+
 	} // End of inner class AssociationTB 
-	
+
 	/** Inner class TBPair
 	 *
 	 */
 	private static class TBPair {
-		
+
 		public TBPair() {
 			expirationTime = -1;
 		}
-		
+
 		public TBPair(Agent a, Timer t, Behaviour b) {
 			owner = a;
 			myTimer = t;
 			expirationTime = t.expirationTime();
 			myBehaviour = b;
 		}
-		
+
 		public void setTimer(Timer t) {
 			myTimer = t;
 		}
-		
+
 		public Timer getTimer() {
 			return myTimer;
 		}
-		
+
 		public Behaviour getBehaviour() {
 			return myBehaviour;
 		}
-		
+
 		public void setBehaviour(Behaviour b) {
 			myBehaviour = b;
 		}
-		
-		
+
+
 		public Agent getOwner() {
 			return owner;
 		}
-		
+
 		public void setOwner(Agent o) {
 			owner = o;
 			createTimerIfNeeded();
 		}
-		
+
 		public long getExpirationTime() {
 			return expirationTime;
 		}
-		
+
 		public void setExpirationTime(long when) {
 			expirationTime = when;
 			createTimerIfNeeded();
 		}
-		
+
 		// If both the owner and the expiration time have been set,
 		// but the Timer object is still null, create one
 		private void createTimerIfNeeded() {
@@ -270,15 +271,15 @@ public class Agent implements Runnable, Serializable
 				}
 			}
 		}  
-		
+
 		private Timer myTimer;
 		private long expirationTime;
 		private Behaviour myBehaviour;
 		private Agent owner;
-		
+
 	} // End of inner class TBPair 
-	
-	
+
+
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 Inner class CondVar
@@ -286,24 +287,24 @@ public class Agent implements Runnable, Serializable
 	 */
 	private static class CondVar {
 		private boolean value = false;
-		
+
 		public synchronized void waitOn() throws InterruptedException {
 			while(!value) {
 				wait();
 			}
 		}
-		
+
 		public synchronized void set() {
 			value = true;
 			notifyAll();
 		}
-		
+
 	} // End of inner class CondVar 
 	//#MIDP_EXCLUDE_END
-	
-	
+
+
 	//#APIDOC_EXCLUDE_BEGIN
-	
+
 	/**
 	 Schedules a restart for a behaviour, after a certain amount of
 	 time has passed.
@@ -318,7 +319,7 @@ public class Agent implements Runnable, Serializable
 		Timer t = new Timer(System.currentTimeMillis() + millis, this);
 		pendingTimers.addPair(b, t);
 	}
-	
+
 	/**
 	 Restarts the behaviour associated with t. 
 	 This method runs within the time-critical Timer Dispatcher thread and
@@ -346,7 +347,7 @@ public class Agent implements Runnable, Serializable
 			System.out.println("Warning: No mapping found for expired timer "+t.expirationTime());
 		}
 	}
-	
+
 	/**
 	 Notifies this agent that one of its behaviours has been restarted
 	 for some reason. This method clears any timer associated with
@@ -376,88 +377,88 @@ public class Agent implements Runnable, Serializable
 			pendingTimers.removeMapping(b);
 		}
 	}
-	
-	
+
+
 	/**
 	 Out of band value for Agent Platform Life Cycle states.
 	 */
 	public static final int AP_MIN = 0;   // Hand-made type checking
-	
+
 	/**
 	 Represents the <em>initiated</em> agent state.
 	 */
 	public static final int AP_INITIATED = 1;
-	
+
 	/**
 	 Represents the <em>active</em> agent state.
 	 */
 	public static final int AP_ACTIVE = 2;
-	
+
 	/**
 	 Represents the <em>idle</em> agent state.
 	 */
 	public static final int AP_IDLE = 3;
-	
+
 	/**
 	 Represents the <em>suspended</em> agent state.
 	 */
 	public static final int AP_SUSPENDED = 4;
-	
+
 	/**
 	 Represents the <em>waiting</em> agent state.
 	 */
 	public static final int AP_WAITING = 5;
-	
+
 	/**
 	 Represents the <em>deleted</em> agent state.
 	 */
 	public static final int AP_DELETED = 6;
-	
-	
+
+
 	/**
 	 Out of band value for Agent Platform Life Cycle states.
 	 */
 	public static final int AP_MAX = 13;    // Hand-made type checking
-	
+
 	//#MIDP_EXCLUDE_BEGIN  
-	
+
 	/**
 	 These constants represent the various Domain Life Cycle states
 	 */
-	
+
 	/**
 	 Out of band value for Domain Life Cycle states.
 	 */
 	public static final int D_MIN = 9;     // Hand-made type checking
-	
+
 	/**
 	 Represents the <em>active</em> agent state.
 	 */
 	public static final int D_ACTIVE = 10;
-	
+
 	/**
 	 Represents the <em>suspended</em> agent state.
 	 */
 	public static final int D_SUSPENDED = 20;
-	
+
 	/**
 	 Represents the <em>retired</em> agent state.
 	 */
 	public static final int D_RETIRED = 30;
-	
+
 	/**
 	 Represents the <em>unknown</em> agent state.
 	 */
 	public static final int D_UNKNOWN = 40;
-	
+
 	/**
 	 Out of band value for Domain Life Cycle states.
 	 */
 	public static final int D_MAX = 41;    // Hand-made type checking
 	//#MIDP_EXCLUDE_END
 	//#APIDOC_EXCLUDE_END
-	
-	
+
+
 	private transient MessageQueue msgQueue;
 	private transient AgentToolkit myToolkit;
 	//#MIDP_EXCLUDE_BEGIN
@@ -467,26 +468,26 @@ public class Agent implements Runnable, Serializable
 	private transient Map o2aLocks;
 	private transient Object suspendLock;
 	//#MIDP_EXCLUDE_END
-	
+
 	private String myName = null;  
 	private AID myAID = null;
 	private String myHap = null;
-	
+
 	private transient Object stateLock;
-	
+
 	private transient Thread myThread;
 	private transient TimerDispatcher theDispatcher;
-	
+
 	private Scheduler myScheduler;
-	
+
 	private transient AssociationTB pendingTimers;
-	
+
 	// Free running counter that increments by one for each message
 	// received.
 	private int messageCounter = 0 ;
-	
+
 	private boolean restarting = false;
-	
+
 	private LifeCycle myLifeCycle;
 	private LifeCycle myBufferedLifeCycle;
 	private LifeCycle myActiveLifeCycle;
@@ -494,7 +495,7 @@ public class Agent implements Runnable, Serializable
 	//#MIDP_EXCLUDE_BEGIN
 	private transient LifeCycle mySuspendedLifeCycle;
 	//#MIDP_EXCLUDE_END
-	
+
 	/**
 	 This flag is used to distinguish the normal AP_ACTIVE state from
 	 the particular case in which the agent state is set to AP_ACTIVE
@@ -504,18 +505,18 @@ public class Agent implements Runnable, Serializable
 	 should have no effect.
 	 */
 	private boolean terminating = false;
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	// For persistence service
 	private void setTerminating(boolean b) {
 		terminating = b;
 	}
-	
+
 	// For persistence service
 	private boolean getTerminating() {
 		return terminating;
 	}
-	
+
 	/** 
 	 When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
 	 or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
@@ -523,15 +524,15 @@ public class Agent implements Runnable, Serializable
 	 */
 	private boolean generateBehaviourEvents = false;
 	//#MIDP_EXCLUDE_END
-	
+
 	/*#MIDP_INCLUDE_BEGIN
 	 public static MIDlet midlet;
-	 
+
 	 // Flag for agent interruption (necessary as Thread.interrupt()
 	  // is not available in MIDP)
 	   private boolean isInterrupted = false;
 	   #MIDP_INCLUDE_END*/
-	
+
 	/**
 	 Default constructor.
 	 */
@@ -552,7 +553,7 @@ public class Agent implements Runnable, Serializable
 		myScheduler = new Scheduler(this);
 		theDispatcher = TimerDispatcher.getTimerDispatcher();
 	}
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 Constructor to be used by special "agents" that will never powerUp.
@@ -560,27 +561,27 @@ public class Agent implements Runnable, Serializable
 	Agent(AID id) {
 		setAID(id);
 	}
-	
+
 	// For persistence service
 	private Long persistentID;
-	
+
 	// For persistence service
 	private Long getPersistentID() {
 		return persistentID;
 	}
-	
+
 	// For persistence service
 	private void setPersistentID(Long l) {
 		persistentID = l;
 	}
-	
-	
+
+
 	/** 
 	 * Declared transient because the container changes in case
 	 * of agent migration.
 	 */
 	private transient jade.wrapper.AgentContainer myContainer = null;
-	
+
 	/**
 	 * Return a controller for the container this agent lives in. 
 	 * <br>
@@ -609,8 +610,8 @@ public class Agent implements Runnable, Serializable
 		return myContainer;
 	}
 	//#MIDP_EXCLUDE_END
-	
-	
+
+
 	private transient Object[] arguments = null;  // array of arguments
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
@@ -624,7 +625,7 @@ public class Agent implements Runnable, Serializable
 		arguments=args;
 	}
 	//#APIDOC_EXCLUDE_END
-	
+
 	/**
 	 * Get the array of arguments passed to this agent.
 	 * <p> Take care that the arguments are transient and they do not
@@ -635,11 +636,11 @@ public class Agent implements Runnable, Serializable
 	public Object[] getArguments() {
 		return arguments;
 	}
-	
+
 	void setRestarting(boolean restarting) {
 		this.restarting = restarting;
 	}
-	
+
 	/**
 	 * This method returns <code>true</code> when this agent is restarting after a crash.
 	 * The restarting indication is automatically reset as soon as the <code>setup()</code> method of 
@@ -657,7 +658,7 @@ public class Agent implements Runnable, Serializable
 	public final AID getAMS() {
 		return myToolkit.getAMS();  
 	}
-	
+
 	/**
 	 Get the Agent ID for the platform default DF.
 	 @return An <code>AID</code> object, that can be used to contact
@@ -666,8 +667,8 @@ public class Agent implements Runnable, Serializable
 	public final AID getDefaultDF() {
 		return myToolkit.getDefaultDF();
 	}
-	
-	
+
+
 	/**
 	 Method to query the agent local name.
 	 @return A <code>String</code> containing the local agent name
@@ -676,7 +677,7 @@ public class Agent implements Runnable, Serializable
 	public final String getLocalName() {
 		return myName;
 	}
-	
+
 	/**
 	 Method to query the agent complete name (<em><b>GUID</b></em>).
 	 @return A <code>String</code> containing the complete agent name
@@ -690,7 +691,7 @@ public class Agent implements Runnable, Serializable
 			return myName;
 		}
 	}
-	
+
 	/**
 	 * Method to query the Home Agent Platform. This is the name of
 	 * the platform where the agent has been created, therefore it will 
@@ -705,7 +706,7 @@ public class Agent implements Runnable, Serializable
 	public final String getHap() {
 		return myHap;
 	}
-	
+
 	/**
 	 Method to query the private Agent ID. Note that this Agent ID is
 	 <b>different</b> from the one that is registered with the
@@ -716,13 +717,13 @@ public class Agent implements Runnable, Serializable
 	public final AID getAID() {
 		return myAID;
 	}
-	
+
 	void setAID(AID id) {
 		myName = id.getLocalName();
 		myHap = id.getHap();
 		myAID = id;
 	}
-	
+
 	/**
 	 This method adds a new platform address to the AID of this Agent.
 	 It is called by the container when a new MTP is activated
@@ -738,7 +739,7 @@ public class Agent implements Runnable, Serializable
 			myAID.addAddresses(address);
 		}
 	}
-	
+
 	/**
 	 This method removes an old platform address from the AID of this Agent.
 	 It is called by the container when a new MTP is deactivated
@@ -754,7 +755,7 @@ public class Agent implements Runnable, Serializable
 			myAID.removeAddresses(address);
 		}
 	}
-	
+
 	/**
 	 Method to retrieve the location this agent is currently at.
 	 @return A <code>Location</code> object, describing the location
@@ -763,7 +764,7 @@ public class Agent implements Runnable, Serializable
 	public Location here() {
 		return myToolkit.here();
 	}
-	
+
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
 	 * This method is used internally by the framework and should NOT be used by programmers.
@@ -807,7 +808,7 @@ public class Agent implements Runnable, Serializable
 		 #MIDP_INCLUDE_END*/
 	}
 	//#APIDOC_EXCLUDE_END
-	
+
 	/**
 	 Set message queue size. This method allows to change the number
 	 of ACL messages that can be buffered before being actually read
@@ -826,7 +827,7 @@ public class Agent implements Runnable, Serializable
 		msgQueueMaxSize = newSize;
 		//#MIDP_EXCLUDE_END
 	}
-	
+
 	/**
 	 * This method retrieves the current lenght of the message queue
 	 * of this agent.
@@ -836,7 +837,7 @@ public class Agent implements Runnable, Serializable
 	public int getCurQueueSize() {
 		return msgQueue.size();
 	}
-	
+
 	/**
 	 Reads message queue size. A zero value means that the message
 	 queue is unbounded (its size is limited only by amount of
@@ -849,8 +850,8 @@ public class Agent implements Runnable, Serializable
 	public int getQueueSize() {
 		return msgQueue.getMaxSize();
 	}
-	
-	
+
+
 	/////////////////////////////////
 	// Agent state management
 	/////////////////////////////////
@@ -879,11 +880,11 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	public void restoreBufferedState() {
 		changeStateTo(myBufferedLifeCycle);
 	}
-	
+
 	/**
 	 The ActiveLifeCycle handles different internal states (INITIATED, 
 	 ACTIVE, WAITING, IDLE). This method switches between them.
@@ -906,7 +907,7 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
 	 Read current agent state. This method can be used to query an
@@ -917,13 +918,13 @@ public class Agent implements Runnable, Serializable
 		return myLifeCycle.getState();
 	}
 	//#APIDOC_EXCLUDE_END
-	
-	
+
+
 	//#MIDP_EXCLUDE_BEGIN
 	public AgentState getAgentState() {
 		return AgentState.getInstance(getState());
 	}
-	
+
 	/**
 	 This is only called by the NotificationService to provide the Introspector
 	 agent with a snapshot of the behaviours currently loaded in the agent
@@ -931,25 +932,25 @@ public class Agent implements Runnable, Serializable
 	Scheduler getScheduler() {
 		return myScheduler;
 	}
-	
+
 	/**
 	 This is only called by AgentContainerImpl
 	 */
 	MessageQueue getMessageQueue() {
 		return msgQueue;
 	}
-	
+
 	// For persistence service
 	private void setMessageQueue(MessageQueue mq) {
 		msgQueue = mq;
 	}
-	
-	
+
+
 	/////////////////////////////
 	// Mobility related code
 	/////////////////////////////
 	private transient AgentMobilityHelper mobHelper;
-	
+
 	private void initMobHelper() throws ServiceException {
 		if (mobHelper == null) {
 			mobHelper = (AgentMobilityHelper) getHelper(AgentMobilityHelper.NAME);
@@ -957,22 +958,22 @@ public class Agent implements Runnable, Serializable
 				public void beforeMove() {
 					Agent.this.beforeMove();
 				}
-				
+
 				public void afterMove() {
 					Agent.this.afterMove();
 				}
-				
+
 				public void beforeClone() {
 					Agent.this.beforeClone();
 				}
-				
+
 				public void afterClone() {
 					Agent.this.afterClone();
 				}
 			} );
 		}
 	}
-	
+
 	/**
 	 Make this agent move to a remote location. This method
 	 is intended to support agent mobility and is called either by the
@@ -996,8 +997,8 @@ public class Agent implements Runnable, Serializable
 			return;
 		}
 	}
-	
-	
+
+
 	/**
 	 Make this agent be cloned on another location. This method
 	 is intended to support agent mobility and is called either by the
@@ -1023,7 +1024,7 @@ public class Agent implements Runnable, Serializable
 		}
 	}  
 	//#MIDP_EXCLUDE_END
-	
+
 	/**
 	 Make a state transition from <em>active</em> or <em>waiting</em>
 	 to <em>suspended</em> within Agent Platform Life Cycle; the
@@ -1047,7 +1048,7 @@ public class Agent implements Runnable, Serializable
 		changeStateTo(mySuspendedLifeCycle);
 		//#MIDP_EXCLUDE_END
 	}
-	
+
 	/**
 	 Make a state transition from <em>suspended</em> to
 	 <em>active</em> or <em>waiting</em> (whichever state the agent
@@ -1067,7 +1068,7 @@ public class Agent implements Runnable, Serializable
 		restoreBufferedState();
 		//#MIDP_EXCLUDE_END
 	}
-	
+
 	/**
 	 Make a state transition from <em>active</em> to <em>waiting</em>
 	 within Agent Platform Life Cycle. This method has only effect 
@@ -1080,7 +1081,7 @@ public class Agent implements Runnable, Serializable
 	public void doWait() {
 		doWait(0);
 	}
-	
+
 	/**
 	 Make a state transition from <em>active</em> to <em>waiting</em>
 	 within Agent Platform Life Cycle. This method adds a timeout to
@@ -1091,7 +1092,7 @@ public class Agent implements Runnable, Serializable
 	public void doWait(long millis) {
 		if (Thread.currentThread().equals(myThread)) {
 			setActiveState(AP_WAITING);
-			
+
 			synchronized(msgQueue) {
 				try {
 					// Blocks on msgQueue monitor for a while
@@ -1111,7 +1112,7 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	/**
 	 Make a state transition from <em>waiting</em> to <em>active</em>
 	 within Agent Platform Life Cycle. This method is called from
@@ -1133,7 +1134,7 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	/**
 	 Make a state transition from <em>active</em>, <em>suspended</em>
 	 or <em>waiting</em> to <em>deleted</em> state within Agent
@@ -1148,7 +1149,7 @@ public class Agent implements Runnable, Serializable
 		}
 		changeStateTo(myDeletedLifeCycle);
 	}
-	
+
 	// This is called only by the scheduler
 	void idle() throws InterruptedException {
 		setActiveState(AP_IDLE);
@@ -1157,7 +1158,7 @@ public class Agent implements Runnable, Serializable
 		waitOn(myScheduler, 0);
 		setActiveState(AP_ACTIVE);
 	}
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 Write this agent to an output stream; this method can be used to
@@ -1178,7 +1179,7 @@ public class Agent implements Runnable, Serializable
 		out.writeUTF(myName);
 		out.writeObject(this);
 	}
-	
+
 	/**
 	 Read a previously saved agent from an input stream and restarts
 	 it under its former name. This method can realize some sort of
@@ -1204,7 +1205,7 @@ public class Agent implements Runnable, Serializable
 	 cnfe.printStackTrace();
 	 }
 	 }*/
-	
+
 	/**
 	 Read a previously saved agent from an input stream and restarts
 	 it under a different name. This method can realize agent cloning
@@ -1233,7 +1234,7 @@ public class Agent implements Runnable, Serializable
 	 cnfe.printStackTrace();
 	 }
 	 }*/
-	
+
 	/**
 	 This method reads a previously saved agent, replacing the current
 	 state of this agent with the one previously saved. The stream
@@ -1251,7 +1252,7 @@ public class Agent implements Runnable, Serializable
 	public void restore(InputStream s) throws IOException {
 		// FIXME: Not implemented
 	}
-	
+
 	/**
 	 This method should not be used by application code. Use the
 	 same-named method of <code>jade.wrapper.Agent</code> instead.
@@ -1265,7 +1266,7 @@ public class Agent implements Runnable, Serializable
 		// disabled.
 		if(o2aQueue == null)
 			return;
-		
+
 		CondVar cond = null;
 		// the following block is synchronized because o2aQueue.add and o2aLocks.put must be
 		// an atomic operation
@@ -1274,25 +1275,25 @@ public class Agent implements Runnable, Serializable
 			// first element
 			if((o2aQueueSize != 0) && (o2aQueue.size() == o2aQueueSize))
 				o2aQueue.remove(0);
-			
+
 			o2aQueue.add(o);
-			
+
 			// If we are going to block, then activate behaviours after storing the CondVar object
 			if(blocking) {
 				cond = new CondVar();
-				
+
 				// Store lock for later, when getO2AObject will be called
 				o2aLocks.put(o, cond);
 			}
 		} // end synchronization
-		
+
 		// Reactivate the agent. This method is synchronized on the scheduler
 		activateAllBehaviours();
 		if (blocking)
 			// Sleep on the condition. This method is synchronized on the condvar
 			cond.waitOn();
 	}
-	
+
 	/**
 	 This method picks an object (if present) from the internal
 	 object-to-agent communication queue. In order for this method to
@@ -1312,35 +1313,35 @@ public class Agent implements Runnable, Serializable
 	 @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
 	 */
 	public Object getO2AObject() {
-		
+
 		// Return 'null' if object-to-agent communication is disabled
 		if(o2aQueue == null)
 			return null;
-		
+
 		CondVar cond = null;
 		Object result = null;
 		synchronized (o2aQueue) {
 			if(o2aQueue.isEmpty())
 				return null;
-			
+
 			// Retrieve the first object from the object-to-agent
 			// communication queue
 			result = o2aQueue.remove(0);
-			
+
 			// If some thread issued a blocking putO2AObject() call with this
 			// object, wake it up. cond.set is synchronized on CondVar object
 			cond = (CondVar)o2aLocks.remove(result);
 		}
-		
+
 		if(cond != null) {
 			cond.set();
 		}
-		
+
 		return result;
-		
+
 	}
-	
-	
+
+
 	/**
 	 This method declares this agent attitude towards object-to-agent
 	 communication, that is, whether the agent accepts to communicate
@@ -1354,38 +1355,38 @@ public class Agent implements Runnable, Serializable
 	 this parameter specifiies the maximum number of Java objects that
 	 will be queued. If the passed value is 0, no maximum limit is set
 	 up for the queue.
-	 
+
 	 @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
 	 @see jade.core.Agent#getO2AObject()
-	 
+
 	 */
 	public void setEnabledO2ACommunication(boolean enabled, int queueSize) {
 		if(enabled) {
 			if(o2aQueue == null)
 				o2aQueue = new ArrayList(queueSize);
-			
+
 			// Ignore a negative value
 			if(queueSize >= 0)
 				o2aQueueSize = queueSize;
 		}
 		else {
-			
+
 			// Wake up all threads blocked in putO2AObject() calls
 			Iterator it = o2aLocks.values().iterator();
 			while(it.hasNext()) {
 				CondVar cv = (CondVar)it.next();
 				if (cv != null) cv.set();
 			}
-			
+
 			o2aQueue = null;
 		}
-		
+
 	}
 	//#MIDP_EXCLUDE_END
-	
-	
+
+
 	//#APIDOC_EXCLUDE_BEGIN
-	
+
 	/**
 	 This method is the main body of every agent. It 
 	 provides startup and cleanup hooks for application 
@@ -1428,9 +1429,9 @@ public class Agent implements Runnable, Serializable
 		myLifeCycle.end();
 	}		
 	//#APIDOC_EXCLUDE_END
-	
-	
-	
+
+
+
 	/**
 	 Inner class ActiveLifeCycle
 	 */
@@ -1439,11 +1440,11 @@ public class Agent implements Runnable, Serializable
 		private ActiveLifeCycle() {
 			super(AP_INITIATED);
 		}
-		
+
 		public void setState(int s) {
 			myState = s;
 		}
-		
+
 		public void init() {
 			setActiveState(AP_ACTIVE);
 			//#MIDP_EXCLUDE_BEGIN
@@ -1452,22 +1453,22 @@ public class Agent implements Runnable, Serializable
 			setup();
 			restarting = false;
 		}
-		
+
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 			// Select the next behaviour to execute
 			Behaviour currentBehaviour = myScheduler.schedule();
 			// Remember how many messages arrived
 			int oldMsgCounter = messageCounter;
-			
+
 			// Just do it!
 			currentBehaviour.actionWrapper();
-			
+
 			// If the current Behaviour has blocked and more messages arrived
 			// in the meanwhile, restart the behaviour to give it another chance
 			if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable())) {
 				currentBehaviour.restart();
 			}
-			
+
 			// When it is needed no more, delete it from the behaviours queue
 			if(currentBehaviour.done()) {
 				currentBehaviour.onEnd();
@@ -1493,11 +1494,11 @@ public class Agent implements Runnable, Serializable
 				}
 			}
 		}
-		
+
 		public void end() {
 			clean(false);
 		}
-		
+
 		public boolean transitionTo(LifeCycle to) {
 			// We can go to whatever state unless we are terminating
 			if (!terminating) {
@@ -1511,17 +1512,17 @@ public class Agent implements Runnable, Serializable
 				return false;
 			}
 		}
-		
+
 		public void transitionFrom(LifeCycle from) {
 			activateAllBehaviours();
 		}
-		
+
 		public boolean isMessageAware() {
 			return true;
 		}
 	} // END of inner class ActiveLifeCycle
-	
-	
+
+
 	/**
 	 Inner class DeletedLifeCycle
 	 */
@@ -1530,16 +1531,16 @@ public class Agent implements Runnable, Serializable
 		private DeletedLifeCycle() {
 			super(AP_DELETED);
 		}
-		
+
 		public void end() {
 			clean(true);
 		}
-		
+
 		public boolean alive() {
 			return false;
 		}		
 	} // END of inner class DeletedLifeCycle
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 Inner class SuspendedLifeCycle
@@ -1549,24 +1550,24 @@ public class Agent implements Runnable, Serializable
 		private SuspendedLifeCycle() {
 			super(AP_SUSPENDED);
 		}
-		
+
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 			waitUntilActivate();
 		}
-		
+
 		public void end() {
 			clean(false);
 		}
-		
+
 		public boolean transitionTo(LifeCycle to) {
 			// We can only die or resume
 			return (to.getState() == AP_ACTIVE || to.getState() == AP_DELETED); 
 		}		
 	} // END of inner class SuspendedLifeCycle
-	
+
 	//#MIDP_EXCLUDE_END
-	
-	
+
+
 	//#APIDOC_EXCLUDE_BEGIN
 	public void clean(boolean ok) {
 		if (!ok) {
@@ -1577,7 +1578,7 @@ public class Agent implements Runnable, Serializable
 		// Reset the interrupted state of the Agent Thread
 		Thread.interrupted();
 		//#MIDP_EXCLUDE_END
-		
+
 		myBufferedLifeCycle = myLifeCycle;
 		myLifeCycle = myActiveLifeCycle;
 		takeDown();
@@ -1586,7 +1587,7 @@ public class Agent implements Runnable, Serializable
 		myLifeCycle = myBufferedLifeCycle;
 	}
 	//#APIDOC_EXCLUDE_END
-	
+
 	/**
 	 This protected method is an empty placeholder for application
 	 specific startup code. Agent developers can override it to
@@ -1595,7 +1596,7 @@ public class Agent implements Runnable, Serializable
 	 and is able to send and receive messages. However, the agent
 	 execution model is still sequential and no behaviour scheduling
 	 is active yet.
-	 
+
 	 This method can be used for ordinary startup tasks such as
 	 <b>DF</b> registration, but is essential to add at least a
 	 <code>Behaviour</code> object to the agent, in order for it to be
@@ -1604,7 +1605,7 @@ public class Agent implements Runnable, Serializable
 	 @see jade.core.behaviours.Behaviour
 	 */
 	protected void setup() {}
-	
+
 	/**
 	 This protected method is an empty placeholder for application
 	 specific cleanup code. Agent developers can override it to
@@ -1614,13 +1615,13 @@ public class Agent implements Runnable, Serializable
 	 agents. However, no behaviour scheduling is active anymore and
 	 the Agent Platform Life Cycle state is already set to
 	 <em>deleted</em>.
-	 
+
 	 This method can be used for ordinary cleanup tasks such as
 	 <b>DF</b> deregistration, but explicit removal of all agent
 	 behaviours is not needed.
 	 */
 	protected void takeDown() {}
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 * This empty placeholder shall be overridden by user defined agents 
@@ -1638,7 +1639,7 @@ public class Agent implements Runnable, Serializable
 	 <br>
 	 */
 	protected void beforeMove() {}
-	
+
 	/**
 	 Actions to perform after moving. This empty placeholder method can be
 	 overridden by user defined agents to execute some actions just after
@@ -1648,7 +1649,7 @@ public class Agent implements Runnable, Serializable
 	 <br>
 	 */
 	protected void afterMove() {}
-	
+
 	/**
 	 * This empty placeholder method shall be overridden by user defined agents 
 	 * to execute some actions before copying an agent to another agent container.
@@ -1659,7 +1660,7 @@ public class Agent implements Runnable, Serializable
 	 * @see afterClone()
 	 */
 	protected void beforeClone() {}
-	
+
 	/**
 	 Actions to perform after cloning. This empty placeholder method can be
 	 overridden by user defined agents to execute some actions just after
@@ -1670,7 +1671,7 @@ public class Agent implements Runnable, Serializable
 	 */
 	protected void afterClone() {}
 	//#MIDP_EXCLUDE_END
-	
+
 	// This method is used by the Agent Container to fire up a new agent for the first time
 	// Mutual exclusion with itself and Agent.addPlatformAddress()
 	synchronized void powerUp(AID id, Thread t) {
@@ -1678,15 +1679,15 @@ public class Agent implements Runnable, Serializable
 			// Set this agent's name and address and start its embedded thread
 			myName = id.getLocalName();
 			myHap = id.getHap();
-			
+
 			myAID = id;
 			myToolkit.setPlatformAddresses(myAID);
-			
+
 			myThread = t;
 			myThread.start();
 		}
 	}
-	
+
 	//#J2ME_EXCLUDE_BEGIN
 	// Return agent thread
 	// Package scooped as it is called by JadeMisc add-on for container monitor purpose
@@ -1694,18 +1695,18 @@ public class Agent implements Runnable, Serializable
 		return myThread;
 	}
 	//#J2ME_EXCLUDE_END
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		// Updates the queue maximum size field, before serialising
 		msgQueueMaxSize = msgQueue.getMaxSize();
-		
+
 		out.defaultWriteObject();
 	}
-	
+
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-		
+
 		// Restore transient fields (apart from myThread, which will be set when the agent will be powered up)
 		msgQueue = new MessageQueue(msgQueueMaxSize);
 		stateLock = new Object();
@@ -1717,15 +1718,15 @@ public class Agent implements Runnable, Serializable
 			o2aQueue = new ArrayList(o2aQueueSize);
 		o2aLocks = new HashMap();
 		myToolkit = DummyToolkit.instance();
-		
+
 		//#PJAVA_EXCLUDE_BEGIN
 		//For persistence service
 		persistentPendingTimers = new java.util.HashSet();
 		//#PJAVA_EXCLUDE_END
 	}
 	//#MIDP_EXCLUDE_END
-	
-	
+
+
 	/**
 	 This method is executed when blockingReceive() is called
 	 from a separate Thread. 
@@ -1742,7 +1743,7 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	private void waitUntilActivate() throws InterruptedException {
 		synchronized(suspendLock) {
@@ -1750,7 +1751,7 @@ public class Agent implements Runnable, Serializable
 		}
 	}
 	//#MIDP_EXCLUDE_END
-	
+
 	/**
 	 This method adds a new behaviour to the agent. This behaviour
 	 will be executed concurrently with all the others, using a
@@ -1766,7 +1767,7 @@ public class Agent implements Runnable, Serializable
 		b.setAgent(this);
 		myScheduler.add(b);
 	}
-	
+
 	/**
 	 This method removes a given behaviour from the agent. This method
 	 is called automatically when a top level behaviour terminates,
@@ -1779,7 +1780,7 @@ public class Agent implements Runnable, Serializable
 		myScheduler.remove(b);
 		b.setAgent(null);
 	}
-	
+
 	/**
 	 Send an <b>ACL</b> message to another agent. This methods sends
 	 a message to the agent specified in <code>:receiver</code>
@@ -1800,7 +1801,7 @@ public class Agent implements Runnable, Serializable
 		}
 		myToolkit.handleSend(msg, myAID, true);
 	}
-	
+
 	/**
 	 Receives an <b>ACL</b> message from the agent message
 	 queue. This method is non-blocking and returns the first message
@@ -1813,7 +1814,7 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage receive() {
 		return receive(null);
 	}
-	
+
 	/**
 	 Receives an <b>ACL</b> message matching a given template. This
 	 method is non-blocking and returns the first matching message in
@@ -1843,7 +1844,7 @@ public class Agent implements Runnable, Serializable
 		}
 		return msg;
 	}
-	
+
 	/**
 	 Receives an <b>ACL</b> message from the agent message
 	 queue. This method is blocking and suspends the whole agent until
@@ -1856,7 +1857,7 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage blockingReceive() {
 		return blockingReceive(null, 0);
 	}
-	
+
 	/**
 	 Receives an <b>ACL</b> message from the agent message queue,
 	 waiting at most a specified amount of time.
@@ -1867,7 +1868,7 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage blockingReceive(long millis) {
 		return blockingReceive(null, millis);
 	}
-	
+
 	/**
 	 Receives an <b>ACL</b> message matching a given message
 	 template. This method is blocking and suspends the whole agent
@@ -1883,8 +1884,8 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage blockingReceive(MessageTemplate pattern) {
 		return blockingReceive(pattern, 0);
 	}
-	
-	
+
+
 	/**
 	 Receives an <b>ACL</b> message matching a given message template,
 	 waiting at most a specified time.
@@ -1912,9 +1913,9 @@ public class Agent implements Runnable, Serializable
 					waitUntilWake(timeToWait);
 				}
 				long elapsedTime = System.currentTimeMillis() - startTime;
-				
+
 				msg = receive(pattern);
-				
+
 				if(millis != 0) {
 					timeToWait -= elapsedTime;
 					if(timeToWait <= 0)
@@ -1924,7 +1925,7 @@ public class Agent implements Runnable, Serializable
 		}
 		return msg;
 	}
-	
+
 	/**
 	 Puts a received <b>ACL</b> message back into the message
 	 queue. This method can be used from an agent behaviour when it
@@ -1938,11 +1939,11 @@ public class Agent implements Runnable, Serializable
 			msgQueue.addFirst(msg);
 		}
 	}
-	
+
 	final void setToolkit(AgentToolkit at) {
 		myToolkit = at;
 	}
-	
+
 	final void resetToolkit() {
 		//#MIDP_EXCLUDE_BEGIN
 		myToolkit = DummyToolkit.instance();
@@ -1951,8 +1952,8 @@ public class Agent implements Runnable, Serializable
 		 myToolkit = null;
 		 #MIDP_INCLUDE_END*/
 	}
-	
-	
+
+
 	//#MIDP_EXCLUDE_BEGIN
 	//#APIDOC_EXCLUDE_BEGIN
 	/**
@@ -1972,14 +1973,14 @@ public class Agent implements Runnable, Serializable
 		}
 	}
 	//#APIDOC_EXCLUDE_END
-	
-	
+
+
 	// Notify creator that the start-up phase has completed
 	private synchronized void notifyStarted() {
 		notifyAll();
 	}
-	
-	
+
+
 	// Notify toolkit of the added behaviour
 	// Package scooped as it is called by the Scheduler
 	void notifyAddBehaviour(Behaviour b) {
@@ -1987,7 +1988,7 @@ public class Agent implements Runnable, Serializable
 			myToolkit.handleBehaviourAdded(myAID, b);
 		}
 	}
-	
+
 	// Notify the toolkit of the removed behaviour
 	// Package scooped as it is called by the Scheduler
 	void notifyRemoveBehaviour(Behaviour b) {
@@ -1995,10 +1996,10 @@ public class Agent implements Runnable, Serializable
 			myToolkit.handleBehaviourRemoved(myAID, b);
 		}
 	}
-	
-	
+
+
 	//#APIDOC_EXCLUDE_BEGIN
-	
+
 	// Notify the toolkit of the change in behaviour state
 	// Public as it is called by the Scheduler and by the Behaviour class 
 	public void notifyChangeBehaviourState(Behaviour b, String from, String to) {
@@ -2007,30 +2008,30 @@ public class Agent implements Runnable, Serializable
 			myToolkit.handleChangeBehaviourState(myAID, b, from, to);
 		}
 	}
-	
+
 	public void setGenerateBehaviourEvents(boolean b) {
 		generateBehaviourEvents = b;
 	}
 	//#APIDOC_EXCLUDE_END
-	
-	
+
+
 	// For persistence service
 	private boolean getGenerateBehaviourEvents() {
 		return generateBehaviourEvents;
 	}
-	
-	
+
+
 	// Notify toolkit that the current agent has changed its state
 	private void notifyChangedAgentState(int oldState, int newState) {
 		myToolkit.handleChangedAgentState(myAID, oldState, newState);
 	}
-	
+
 	//#MIDP_EXCLUDE_END
-	
+
 	private void activateAllBehaviours() {
 		myScheduler.restartAll();
 	}
-	
+
 	/**
 	 Put a received message into the agent message queue. The message
 	 is put at the back end of the queue. This method is called by
@@ -2052,10 +2053,10 @@ public class Agent implements Runnable, Serializable
 			}
 		}
 	}
-	
+
 	//#CUSTOM_EXCLUDE_BEGIN
 	private jade.content.ContentManager theContentManager = null;
-	
+
 	/**
 	 * Retrieves the agent's content manager 
 	 * @return The content manager.
@@ -2066,10 +2067,10 @@ public class Agent implements Runnable, Serializable
 		}
 		return theContentManager;
 	}
-	
+
 	// All the agent's service helper
 	private transient Hashtable helpersTable;
-	
+
 	/**
 	 * Retrieves the agent's service helper
 	 * @return The service helper.
@@ -2079,7 +2080,7 @@ public class Agent implements Runnable, Serializable
 		if (helpersTable == null) {
 			helpersTable = new Hashtable();
 		}
-		
+
 		se = (ServiceHelper) helpersTable.get(serviceName);
 		// is the helper already into the agent's helpersTable ?
 		if (se == null) {
@@ -2096,7 +2097,7 @@ public class Agent implements Runnable, Serializable
 		return se;
 	}
 	//#CUSTOM_EXCLUDE_END
-	
+
 	/**
 	 Retrieve a configuration property set in the <code>Profile</code>
 	 of the local container (first) or as a System property.
@@ -2116,8 +2117,14 @@ public class Agent implements Runnable, Serializable
 		}
 		return val;
 	}
-	
-	
+
+	//#MIDP_EXCLUDE_BEGIN
+	public Properties getBootProperties() {
+		return myToolkit.getBootProperties();
+	}
+	//#MIDP_EXCLUDE_END
+
+
 	/**
 	 This method is used to interrupt the agent's thread.
 	 In J2SE/PJAVA it just calls myThread.interrupt(). In MIDP, 
@@ -2138,7 +2145,7 @@ public class Agent implements Runnable, Serializable
 		/*#MIDP_INCLUDE_BEGIN
 		 synchronized (this) {
 		 isInterrupted = true;
-		 
+
 		 // case 1: Nothing to do.
 		  // case 2: Signal on msgQueue.
 		   synchronized (msgQueue) {msgQueue.notifyAll();} 
@@ -2147,7 +2154,7 @@ public class Agent implements Runnable, Serializable
 		    }
 		    #MIDP_INCLUDE_END*/
 	} 
-	
+
 	/**
 	 Since in MIDP Thread.interrupt() does not exist and a simulated
 	 interruption is used to "interrupt" the agent's thread, we must 
@@ -2173,58 +2180,58 @@ public class Agent implements Runnable, Serializable
 		 } 
 		 #MIDP_INCLUDE_END*/
 	}
-	
+
 	//#J2ME_EXCLUDE_BEGIN
 	// For persistence service -- Hibernate needs java.util collections
 	private java.util.Set getBehaviours() {
 		Behaviour[] behaviours = myScheduler.getBehaviours();
 		java.util.Set result = new java.util.HashSet();
 		result.addAll(java.util.Arrays.asList(behaviours));
-		
+
 		return result;
 	}
-	
+
 	// For persistence service -- Hibernate needs java.util collections
 	private void setBehaviours(java.util.Set behaviours) {
 		Behaviour[] arr = new Behaviour[behaviours.size()];
-		
+
 		arr = (Behaviour[])behaviours.toArray(arr);
-		
+
 		// Reconnect all the behaviour -> agent pointers
 		for(int i = 0; i < arr.length; i++) {
 			arr[i].setAgent(this);
 		}
-		
+
 		myScheduler.setBehaviours(arr);
 	}
-	
-	
+
+
 	// For persistence service -- Hibernate needs java.util collections
 	private transient java.util.Set persistentPendingTimers = new java.util.HashSet();
-	
-	
+
+
 	// For persistence service -- Hibernate needs java.util collections
 	private java.util.Set getPendingTimers() {
 		return persistentPendingTimers;
 	}
-	
+
 	// For persistence service -- Hibernate needs java.util collections
 	private void setPendingTimers(java.util.Set timers) {
-		
+
 		if(!persistentPendingTimers.equals(timers)) {
 			// Clear the timers table, and install the new timers.
 			pendingTimers.clear();
-			
+
 			java.util.Iterator it = timers.iterator();
 			while(it.hasNext()) {
 				TBPair pair = (TBPair)it.next();
 				pendingTimers.addPair(pair);
 			}
 		}
-		
+
 		persistentPendingTimers = timers;
-		
+
 	}
-	
+
 	//#J2ME_EXCLUDE_END
 }

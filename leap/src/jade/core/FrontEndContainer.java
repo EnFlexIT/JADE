@@ -457,6 +457,11 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
+	public Properties getBootProperties(){
+		/* TODO To be completed */
+		return null;
+	}
+	
 	public void handleMove(AID agentID, Location where) throws JADESecurityException, IMTPException, NotFoundException {
 	}
 	

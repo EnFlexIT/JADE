@@ -28,6 +28,7 @@ package jade.core;
 import jade.util.leap.Iterator;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
+import jade.util.leap.Properties;
 
 import jade.util.Logger;
 
@@ -934,6 +935,12 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	public String getProperty(String key, String aDefault) {
 		return myProfile.getParameter(key, aDefault);
 	}
+
+	//#MIDP_EXCLUDE_BEGIN
+	public Properties getBootProperties(){
+		return myProfile.getBootProperties();
+	}
+	//#MIDP_EXCLUDE_END
 
 	public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
 		try {

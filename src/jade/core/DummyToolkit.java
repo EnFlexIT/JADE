@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -27,11 +27,9 @@ package jade.core;
 
 import jade.lang.acl.ACLMessage;
 import jade.core.behaviours.Behaviour;
-//__SECURITY__BEGIN
 import jade.security.JADEPrincipal;
-import jade.security.JADESecurityException;
 import jade.security.Credentials;
-//__SECURITY__END
+import jade.util.leap.Properties;
 
 /**
  * This is a degenerate toolkit which is used before the actual one is
@@ -41,54 +39,58 @@ import jade.security.Credentials;
  */
 final class DummyToolkit implements AgentToolkit {
 
-    static AgentToolkit at = null;
-    
-    static AgentToolkit instance() {
-        if (at == null) {
-            at = new DummyToolkit();
-        }
-        return at;
-    }
+	static AgentToolkit at = null;
 
-    public Location here() {
-        return null;
-    }
-    
-    //FIXME should we here throw an InternalError also?
-    public void handleEnd(AID agentID) {}
-    public void handleSend(ACLMessage msg, AID sender, boolean needClone) {}
-    public void handlePosted(AID agentID, ACLMessage msg) {}
-    public void handleReceived(AID agentID, ACLMessage msg) {}
-    public void handleChangedAgentState(AID agentID, int from, int to) {}
-    public void handleBehaviourAdded(AID agentID, Behaviour b) {}
-    public void handleBehaviourRemoved(AID agentID, Behaviour b) {}
-    public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {}
+	static AgentToolkit instance() {
+		if (at == null) {
+			at = new DummyToolkit();
+		}
+		return at;
+	}
 
-    // FIXME: Needed due to the Persistence Service being an add-on
-    public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
-    public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
-    public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {}
+	public Location here() {
+		return null;
+	}
 
-  	public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials) {
-  		return null;
-  	}
-    
-    public void setPlatformAddresses(AID id) {}
-    
-    public AID getAMS() {
-        return null;
-    }
-    
-    public AID getDefaultDF() {
-        return null;
-    }
-    
+	//FIXME should we here throw an InternalError also?
+	public void handleEnd(AID agentID) {}
+	public void handleSend(ACLMessage msg, AID sender, boolean needClone) {}
+	public void handlePosted(AID agentID, ACLMessage msg) {}
+	public void handleReceived(AID agentID, ACLMessage msg) {}
+	public void handleChangedAgentState(AID agentID, int from, int to) {}
+	public void handleBehaviourAdded(AID agentID, Behaviour b) {}
+	public void handleBehaviourRemoved(AID agentID, Behaviour b) {}
+	public void handleChangeBehaviourState(AID agentID, Behaviour b, String from, String to) {}
+
+	// FIXME: Needed due to the Persistence Service being an add-on
+	public void handleSave(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
+	public void handleReload(AID agentID, String repository) throws ServiceException, NotFoundException, IMTPException {}
+	public void handleFreeze(AID agentID, String repository, ContainerID bufferContainer) throws ServiceException, NotFoundException, IMTPException {}
+
+	public jade.wrapper.AgentContainer getContainerController(JADEPrincipal principal, Credentials credentials) {
+		return null;
+	}
+
+	public void setPlatformAddresses(AID id) {}
+
+	public AID getAMS() {
+		return null;
+	}
+
+	public AID getDefaultDF() {
+		return null;
+	}
+
 	public String getProperty(String key, String aDefault) {
 		return null;
 	}
 
-    public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
-        return null;
-    }
+	public Properties getBootProperties() {
+		return null;
+	}
+
+	public ServiceHelper getHelper(Agent a, String serviceName) throws ServiceException {
+		return null;
+	}
 
 }

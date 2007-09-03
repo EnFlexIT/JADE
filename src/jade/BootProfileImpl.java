@@ -34,6 +34,7 @@ import java.util.Vector;         // J2ME CLDC OK
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import jade.util.leap.Properties;
 import jade.util.BasicProperties;
 import jade.util.ExpandedProperties;
 import jade.util.PropertiesException;
@@ -91,7 +92,9 @@ public class BootProfileImpl extends ProfileImpl {
 	 */
 	public BootProfileImpl(String[] args) throws PropertiesException {
 		this();
-		setArgProperties(new ExpandedProperties(args));
+		ExpandedProperties properties = new ExpandedProperties(args);
+		bootProps = (Properties)properties.clone();
+		setArgProperties(properties);
 	}        
 
 	/**

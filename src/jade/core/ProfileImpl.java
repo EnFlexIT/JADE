@@ -57,6 +57,7 @@ import java.util.Enumeration;
 public class ProfileImpl extends Profile {
 	
 	private Properties props = null;
+	protected Properties bootProps = null;
 	
 	
 	// Keys to retrieve the implementation classes for configurable
@@ -199,7 +200,7 @@ public class ProfileImpl extends Profile {
 	
 	
 	private void init() {
-		
+		bootProps = (Properties)props.clone();
 		// Set JVM parameter if not set
 		if(props.getProperty(JVM) == null) {
 			//#PJAVA_EXCLUDE_BEGIN
@@ -319,7 +320,17 @@ public class ProfileImpl extends Profile {
 	public Properties getProperties() {
 		return props;
 	}      
-	
+
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Retrieve the configuration properties as they were passed to this Profile object, i.e. without 
+	 * internal initializations automatically performed by the Profile class. 
+	 */
+	public Properties getBootProperties() {
+		return bootProps;
+	}
+	//#MIDP_EXCLUDE_END
+
 	/**
 	 * Assign the given value to the given property name.
 	 *

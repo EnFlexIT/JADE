@@ -118,7 +118,7 @@ public class SerializableOntology extends Ontology {
 				return absSerializable;
 			}
 			catch (Throwable t) {
-				throw new OntologyException("Error in object deserialization.", t);
+				throw new OntologyException("Error in object serialization.", t);
 			}
 		}
 		else {
