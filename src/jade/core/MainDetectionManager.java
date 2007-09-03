@@ -69,6 +69,8 @@ class MainDetectionManager {
 	// source port for datagram packets
 	private final static int SRC_PORT = 1198;
 
+	private static final String MATCH_ALL_PLATFORMS = "*";
+
 	// multicast listening class
 	private static MulticastMainDetectionListener listener;
 
@@ -248,7 +250,7 @@ class MainDetectionManager {
 				// first of all, check protocol version in response
 				int i = checkProtocolVersion(s);
 				s = s.substring(0, i);
-		
+
 				// then, check for errors returned by Main
 				i = s.indexOf(PROTO_RESP_OK);
 				if (i != 0) {
@@ -377,11 +379,17 @@ class MainDetectionManager {
 		MainAddr result = null;
 		// get platform name and protocol
 		String platformName = profile.getParameter(Profile.PLATFORM_ID, null);
+		if (platformName == null) {
+			throw new ProfileException("platform id is mandatory when using automatic main detection; use \""+MATCH_ALL_PLATFORMS+"\" to match all");
+		}
+		if (MATCH_ALL_PLATFORMS.equals(platformName)) {
+			platformName = null;
+		}
 		String proto = profile.getParameter(Profile.MAIN_PROTO, null);
 
 		// build request
 		String msg = buildGetMainRequest(platformName, proto);
-		
+
 		// send multicast query to search for a main
 		List responses = multicAsk(msg, profile);
 		if (responses != null) {
@@ -393,7 +401,7 @@ class MainDetectionManager {
 
 	public static void detect(ProfileImpl profile) throws ProfileException {
 		logger.log(Logger.FINER, "MainDetectionManager::detect(...)");
-		if (!profile.isMain()) {
+		if (!profile.isFirstMain()) {
 			MainAddr mainAddress = getMainAddress(profile);
 			if (mainAddress == null) {
 				// FIXME is the right exception to throw?
