@@ -64,6 +64,7 @@ import jade.util.leap.Iterator;
 import jade.util.InputQueue;
 import jade.util.Logger;
 
+
 /**
  A kernel-level service to manage a ring of Main Containers,
  keeping the various replicas in sync and providing failure
@@ -444,9 +445,9 @@ public class MainReplicationService extends BaseService {
 		}
 
 		private void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException, ServiceException {
-			MainReplicationSlice slice = (MainReplicationSlice) getSlice(sliceName);
+			//Get a fresh slice: in this way the address is always right (and old address is overridden!!!
+			MainReplicationSlice slice = (MainReplicationSlice) getFreshSlice(sliceName);
 			replicas.add(sliceIndex, slice);
-
 			// If first in line, close the ring by monitoring the newly arrived slice,
 			// and start sending data to the new slice...
 			if (myLabel == 0) {
