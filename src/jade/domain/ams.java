@@ -772,6 +772,7 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 							}
 							ba.setState(amsd.getState());
 							ba.setOwnership(amsd.getOwnership());
+							ba.setClassName(id.getAllUserDefinedSlot().getProperty(AID.AGENT_CLASSNAME));
 						}
 						ba.setAgent(id);
 						ba.setWhere(cid);

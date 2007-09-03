@@ -82,7 +82,7 @@ public class SSIteratedAchieveREResponder extends SSResponder {
 		registerDefaultTransition(HANDLE_REQUEST, SEND_REPLY);
 		registerTransition(SEND_REPLY, RECEIVE_NEXT, ACLMessage.INFORM);
 		registerTransition(RECEIVE_NEXT, HANDLE_CANCEL, MsgReceiver.TIMEOUT_EXPIRED); 
-		registerTransition(CHECK_IN_SEQ, HANDLE_REQUEST, ACLMessage.REQUEST, new String[]{HANDLE_REQUEST, SEND_REPLY, RECEIVE_NEXT, CHECK_IN_SEQ}); 
+		registerTransition(CHECK_IN_SEQ, HANDLE_REQUEST, initiationPerformative, new String[]{HANDLE_REQUEST, SEND_REPLY, RECEIVE_NEXT, CHECK_IN_SEQ}); 
 		registerTransition(CHECK_IN_SEQ, HANDLE_CANCEL, ACLMessage.CANCEL); 
 		registerDefaultTransition(HANDLE_CANCEL, DUMMY_FINAL);
 		
