@@ -656,38 +656,6 @@ public class DFService extends FIPAService {
 		return dfd;
 	}
 	
-	/**
-	 The parser content has the form:
-	 agent-identifier ......) <possibly something else>
-	 */
-	private static AID parseAID(SimpleSLTokenizer parser) throws Exception {
-		AID id = new AID("", AID.ISGUID); // Dummy temporary name
-		// Skip "agent-identifier"
-		parser.getElement();
-		while (parser.nextToken().startsWith(":")) {
-			String slotName = parser.getElement();
-			// Name
-			if (slotName.equals(SL0Vocabulary.AID_NAME)) {
-				id.setName(parser.getElement());
-			}
-			// Addresses
-			else if (slotName.equals(SL0Vocabulary.AID_ADDRESSES)) {
-				Iterator it = parseAggregate(parser).iterator();
-				while (it.hasNext()) {
-					id.addAddresses((String) it.next());
-				}
-			}
-			// Resolvers
-			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
-				Iterator it = parseAggregate(parser).iterator();
-				while (it.hasNext()) {
-					id.addResolvers((AID) it.next());
-				}
-			}
-		}
-		parser.consumeChar(')');
-		return id;
-	}
 	
 	/**
 	 The parser content has the form:

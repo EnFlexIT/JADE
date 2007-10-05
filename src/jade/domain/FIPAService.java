@@ -25,6 +25,8 @@ package jade.domain;
 
 import jade.util.leap.*; 
 
+import jade.content.lang.sl.SL0Vocabulary;
+import jade.content.lang.sl.SimpleSLTokenizer;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
@@ -159,4 +161,68 @@ public class FIPAService {
 		// The timeout has expired
 		return null;
 	}
+	
+	/**
+	 The parser content has the form:
+	 agent-identifier ......) <possibly something else>
+	 */
+	public static AID parseAID(SimpleSLTokenizer parser) throws Exception {
+		AID id = new AID("", AID.ISGUID); // Dummy temporary name
+		// Skip "agent-identifier"
+		parser.getElement();
+		while (parser.nextToken().startsWith(":")) {
+			String slotName = parser.getElement();
+			// Name
+			if (slotName.equals(SL0Vocabulary.AID_NAME)) {
+				id.setName(parser.getElement());
+			}
+			// Addresses
+			else if (slotName.equals(SL0Vocabulary.AID_ADDRESSES)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addAddresses((String) it.next());
+				}
+			}
+			// Resolvers
+			else if (slotName.equals(SL0Vocabulary.AID_RESOLVERS)) {
+				Iterator it = parseAggregate(parser).iterator();
+				while (it.hasNext()) {
+					id.addResolvers((AID) it.next());
+				}
+			}
+		}
+		parser.consumeChar(')');
+		return id;
+	}
+	
+	/**
+	 The parser content has the form:
+	 (sequence <val> <val> ......) <possibly something else>
+	 or 
+	 (set <val> <val> ......) <possibly something else>
+	 */
+	private static List parseAggregate(SimpleSLTokenizer parser) throws Exception {
+		List l = new ArrayList();
+		// Skip first (
+		parser.consumeChar('(');
+		// Skip "sequence" or "set" (no matter)
+		parser.getElement();
+		String next = parser.nextToken();
+		while (!next.startsWith(")")) {
+			if (!next.startsWith("(")) {
+				l.add(parser.getElement());
+			}
+			else {
+				parser.consumeChar('(');
+				next = parser.nextToken();
+				if (next.equals(SL0Vocabulary.AID)) {
+					l.add(parseAID(parser));
+				}
+			}
+			next = parser.nextToken();
+		}
+		parser.consumeChar(')');
+		return l;
+	}
+
 }
