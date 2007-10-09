@@ -145,7 +145,6 @@ public class TopicManagementService extends BaseService {
 						gMsg.setModifiable(false);
 						for (int i = 0; i < interestedAgents.length; ++i) {
 							AID target = interestedAgents[i];
-							System.out.println("Forwarding message to agent "+target.getName()+". Content = "+msg.getContent());
 							if (myLogger.isLoggable(Logger.FINE)) {
 								myLogger.log(Logger.FINE, "Forwarding message to agent "+target.getName());
 							}

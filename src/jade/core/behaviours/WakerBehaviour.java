@@ -73,6 +73,7 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 	 */
 	public WakerBehaviour(Agent a, Date wakeupDate) {
 		super(a);
+		timeout = 0;
 		wakeupTime = wakeupDate.getTime();
 		state = 0;
 		finished = false;
@@ -153,10 +154,8 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 	 * @param wakeupDate is the new time when the task must be executed again
 	 */
 	public void reset(Date wakeupDate) {
-		super.reset();
+		reset();
 		wakeupTime = wakeupDate.getTime();
-		state = 0;
-		finished = false;
 	}
 	
 	/**
@@ -165,8 +164,16 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 	 * must be waken up again. 
 	 */
 	public void reset(long timeout) {
-		wakeupTime = -1;
+		reset();
 		this.timeout = timeout;
+	}
+	
+	/**
+	 * This method must be called to reset the behaviour and starts again
+	 */
+	public void reset() {
+		super.reset();
+		wakeupTime = -1;
 		state = 0;
 		finished = false;
 	}
