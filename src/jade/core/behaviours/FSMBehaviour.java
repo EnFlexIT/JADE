@@ -228,6 +228,24 @@ public class FSMBehaviour extends SerialBehaviour {
 		theTransitionTable.addTransition(t);
 	}
 	
+	/**
+	 * Deregister the transition from a given source state and identfied by a 
+	 * given termination event. 
+	 * @param source The name of the source state
+	 * @param event The termination event that identifies the transition to be removed
+	 */
+	public void deregisterTransition(String source, int event) {
+		theTransitionTable.removeTransition(source, event);
+	}
+	
+	/**
+	 * Deregister the default transition from a given source state.
+	 * @param source The name of the source state
+	 */
+	public void deregisterDefaultTransition(String source) {
+		theTransitionTable.removeTransition(source);
+	}
+	
 	/** 
 	 Retrieve the child behaviour associated to the FSM state with
 	 the given name.
@@ -456,17 +474,14 @@ public class FSMBehaviour extends SerialBehaviour {
 		void addTransition(Transition t) {
 			String key1 = t.getFromState();
 			
-			TransitionsFromState tfs = null;
+			TransitionsFromState tfs = (TransitionsFromState) transitions.get(key1);
 			
-			if (!transitions.containsKey(key1)) {
+			if (tfs == null) {
 				tfs = new TransitionsFromState();
 				transitions.put(key1, tfs);
 			}
-			else {
-				tfs = (TransitionsFromState) transitions.get(key1);
-			}
 			
-			if(t.isDefault()) {
+			if (t.isDefault()) {
 				tfs.setDefaultTransition(t);
 			}
 			else {
@@ -491,10 +506,9 @@ public class FSMBehaviour extends SerialBehaviour {
 		void removeTransition(String s1) {
 			TransitionsFromState tfs = (TransitionsFromState)transitions.get(s1);
 			if(tfs != null) {
-				Transition t = tfs.getDefaultTransition();
 				tfs.setDefaultTransition(null);
 				
-				if(tfs.isEmpty()) {
+				if (tfs.isEmpty()) {
 					transitions.remove(s1);
 				}
 			}
