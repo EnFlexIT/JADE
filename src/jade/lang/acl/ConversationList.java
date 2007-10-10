@@ -1,6 +1,7 @@
 package jade.lang.acl;
 
 import jade.core.Agent;
+import jade.util.leap.Serializable;
 
 import java.util.Vector;
 
@@ -10,7 +11,7 @@ import java.util.Vector;
    that matches only messages that do not belong to any of these 
    conversations. 
  */
-public class ConversationList {
+public class ConversationList implements Serializable{
 	private Vector conversations = new Vector();
 	protected Agent myAgent = null;
 	protected int cnt = 0;
