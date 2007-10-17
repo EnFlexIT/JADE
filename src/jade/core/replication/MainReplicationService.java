@@ -25,7 +25,10 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
+import java.util.Vector;
+
 import jade.core.HorizontalCommand;
+import jade.core.PlatformManagerImpl;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -39,7 +42,6 @@ import jade.core.NodeFailureMonitor;
 
 import jade.core.AgentContainer;
 import jade.core.MainContainerImpl;
-import jade.core.PlatformManager;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
@@ -135,7 +137,11 @@ public class MainReplicationService extends BaseService {
 
 			// Temporarily store the slices into an array...
 			MainReplicationSlice[] temp = new MainReplicationSlice[slices.length];
-
+			// Besides notifying GADT information, the MainReplication slice that will monitor this newly started
+			// slice will also have to issue a NEW_NODE VCommand and a NEW_SLICE VCommands for each local service
+			// to allow services to notify service specific information
+			NodeDescriptor dsc = myContainer.getNodeDescriptor();
+			Vector localServices = myContainer.getServiceManager().getLocalServices();
 			String localNodeName = getLocalNode().getName();
 			for (int i = 0; i < slices.length; i++) {
 				try {
@@ -146,7 +152,7 @@ public class MainReplicationService extends BaseService {
 					temp[label] = slice;
 
 					if (!sliceName.equals(localNodeName)) {
-						slice.addReplica(localNodeName, myPlatformManager.getLocalAddress(), myLabel);
+						slice.addReplica(localNodeName, myPlatformManager.getLocalAddress(), myLabel, dsc, localServices);
 					}
 
 					if (label == myLabel - 1) {
@@ -334,7 +340,7 @@ public class MainReplicationService extends BaseService {
 
 		public ServiceComponent() {
 			myMain = (MainContainerImpl) myContainer.getMain();
-			myPlatformManager = myMain.getPlatformManager();
+			myPlatformManager = (PlatformManagerImpl) myMain.getPlatformManager();
 		}
 
 		public void stopMonitoring() {
@@ -393,7 +399,9 @@ public class MainReplicationService extends BaseService {
 					String sliceName = (String) params[0];
 					String smAddr = (String) params[1];
 					int sliceIndex = ((Integer) params[2]).intValue();
-					addReplica(sliceName, smAddr, sliceIndex);
+					NodeDescriptor dsc = (NodeDescriptor) params[3];
+					Vector services = (Vector) params[4]; 
+					addReplica(sliceName, smAddr, sliceIndex, dsc, services);
 				} else if (cmdName.equals(MainReplicationSlice.H_REMOVEREPLICA)) {
 					String smAddr = (String) params[0];
 					int sliceIndex = ((Integer) params[1]).intValue();
@@ -444,8 +452,8 @@ public class MainReplicationService extends BaseService {
 			return myPlatformManager.getLocalAddress();
 		}
 
-		private void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException, ServiceException {
-			//Get a fresh slice: in this way the address is always right (and old address is overridden!!!
+		private void addReplica(String sliceName, String smAddr, int sliceIndex, NodeDescriptor dsc, Vector services) throws IMTPException, ServiceException {
+			//Get a fresh slice: in this way the address is always right (and old address is overridden!!!)
 			MainReplicationSlice slice = (MainReplicationSlice) getFreshSlice(sliceName);
 			replicas.add(sliceIndex, slice);
 			// If first in line, close the ring by monitoring the newly arrived slice,
@@ -488,6 +496,17 @@ public class MainReplicationService extends BaseService {
 				AID[] tools = myMain.agentTools();
 				for (int i = 0; i < tools.length; i++) {
 					slice.newTool(tools[i]);
+				}
+				
+				// Finally issue a NEW_NODE VCommand and a NEW_SLICE VCommand for each service to allow
+				// local services to propagate service specific information to their slices in the new 
+				// Main Container node.
+				try {
+					myPlatformManager.addMainContainerNode(dsc, services);
+				}
+				catch (JADESecurityException jse) {
+					// Should we do something more?
+					myLogger.log(Logger.WARNING, "Unauthorized Main Container node "+dsc.getNode().getName(), jse);
 				}
 
 			}
@@ -722,7 +741,7 @@ public class MainReplicationService extends BaseService {
 
 	// Owned copies of Main Container and Service Manager
 	private MainContainerImpl myMain;
-	private PlatformManager myPlatformManager;
+	private PlatformManagerImpl myPlatformManager;
 
 	private void broadcastToReplicas(HorizontalCommand cmd, boolean includeSelf) throws IMTPException, ServiceException {
 		Object[] slices = replicas.toArray();

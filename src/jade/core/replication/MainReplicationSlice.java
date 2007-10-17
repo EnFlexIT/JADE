@@ -25,6 +25,9 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
+import java.util.Vector;
+
+import jade.core.NodeDescriptor;
 import jade.core.Service;
 import jade.core.AID;
 import jade.core.ContainerID;
@@ -77,20 +80,9 @@ public interface MainReplicationSlice extends Service.Slice {
     // is called directly.
     int getLabel() throws IMTPException;
     String getPlatformManagerAddress() throws IMTPException;
-    void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException;
+    void addReplica(String sliceName, String smAddr, int sliceIndex, NodeDescriptor dsc, Vector services) throws IMTPException;
     void removeReplica(String smAddr, int sliceIndex) throws IMTPException;
-
     void fillGADT(AID[] agents, ContainerID[] containers) throws IMTPException;
-
-    //void bornAgent(AID name, ContainerID cid, Credentials creds) throws IMTPException, NameClashException, NotFoundException, JADESecurityException;
-    //void deadAgent(AID name) throws IMTPException, NotFoundException;
     void suspendedAgent(AID name) throws IMTPException, NotFoundException;
-    //void resumedAgent(AID name) throws IMTPException, NotFoundException;
-
-    //void newMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
-    //void deadMTP(MTPDescriptor mtp, ContainerID cid) throws IMTPException;
-
     void newTool(AID tool) throws IMTPException;
-    //void deadTool(AID tool) throws IMTPException;
-
 }

@@ -1,3 +1,38 @@
+MAJOR CHANGES in JADE XXX (XXX)
+==========================================================================
+GENERAL IMPROVEMENTS:
+- detect-main (to be done)
+- Added support to deregister transitions in FSMBehaviour 
+- Modified MainReplicationService to issue NEW_NODE and NEW_SLICE VCommands when a Main Container replica enters the ring
+- Added method dump() to BaseService to support runtime service inspection by means of the ContainerMonitorAgent
+- Added method getLocalServices() in ServiceManager interface
+ 
+BUG-FIXES:
+- Fixed bug in SSAchieveREResponder related to the receiption of successive messages when a performative different than REQUEST was used (Fix by Chris Audley)
+- Fixed bug in WakerBehaviour reset() method
+
+LEAP:
+
+
+ADD-ONS:
+- Misc Add-on
+  - Added support for DUMP-SERVICE action
+
+- JADE-SHARP Add-on
+
+
+DOCUMENTATION:
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+API: NONE
+
+EXPECTED BEHAVIOUR:
+- detect-main
+
+
+
+
+
 MAJOR CHANGES in JADE 3.5 (25 June 2007)
 ==========================================================================
 GENERAL IMPROVEMENTS:

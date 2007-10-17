@@ -511,7 +511,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		invalidPlatformManager = false;
 	}
 
-	private Vector getLocalServices() {
+	public Vector getLocalServices() {
 		Object[] services = localServices.values().toArray();
 		Vector ss = new Vector(services.length);
 		for (int i = 0; i < services.length; ++i) {

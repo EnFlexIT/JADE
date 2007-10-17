@@ -260,15 +260,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		if (!propagated) {
 			// In this case we issue the command before adding the node
 			// for authorization purposes
-			GenericCommand gCmd = new GenericCommand(Service.NEW_NODE, null, null);
-			gCmd.addParam(dsc);
-			Object result = myCommandProcessor.processIncoming(gCmd);
-			if (result instanceof JADESecurityException) {
-				throw (JADESecurityException) result;
-			} else if (result instanceof Throwable) {
-				myLogger.log(Logger.WARNING, "Unexpected error processing NEW_NODE command. Node is " + dsc.getName());
-				((Throwable) result).printStackTrace();
-			}
+			issueNewNodeCommand(dsc);
 		}
 
 		// Add the new node
@@ -449,13 +441,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		}
 
 		if (!propagated) {
-			GenericCommand gCmd = new GenericCommand(Service.NEW_SLICE, serviceKey, null);
-			gCmd.addParam(sliceKey);
-			Object result = myCommandProcessor.processIncoming(gCmd);
-			if (result instanceof Throwable) {
-				myLogger.log(Logger.WARNING, "Unexpected error processing NEW_SLICE command. Service is " + serviceKey + " node is " + sliceKey);
-				((Throwable) result).printStackTrace();
-			}
+			issueNewSliceCommand(serviceKey, sliceKey);
 		}
 	}
 
@@ -679,6 +665,19 @@ public class PlatformManagerImpl implements PlatformManager {
 		// Just do nothing
 	}
 
+	/**
+	 * This method is invoked by the MainReplicationService when a new MainReplication slice is added
+	 * and has the effect of issuing a NEW_NODE VCommand and one NEW_SLICE VCommand for each service 
+	 * installed in the node hosting the new MainReplication slice. This allows services to propagate 
+	 * service specific information to their new slice
+	 */
+	public void addMainContainerNode(NodeDescriptor dsc, Vector services) throws JADESecurityException {
+		issueNewNodeCommand(dsc);
+		for (int i = 0; i < services.size(); ++i) {
+			ServiceDescriptor srvDsc = (ServiceDescriptor) services.get(i);
+			issueNewSliceCommand(srvDsc.getService().getName(), dsc.getNode().getName());
+		}
+	}
 	////////////////////////////////
 	// Service finding methods
 	////////////////////////////////
@@ -723,6 +722,28 @@ public class PlatformManagerImpl implements PlatformManager {
 	//////////////////////////////////
 	// Private methods
 	//////////////////////////////////
+	private void issueNewNodeCommand(NodeDescriptor dsc) throws JADESecurityException {
+		GenericCommand gCmd = new GenericCommand(Service.NEW_NODE, null, null);
+		gCmd.addParam(dsc);
+		Object result = myCommandProcessor.processIncoming(gCmd);
+		if (result instanceof JADESecurityException) {
+			throw (JADESecurityException) result;
+		} else if (result instanceof Throwable) {
+			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_NODE command. Node is " + dsc.getName());
+			((Throwable) result).printStackTrace();
+		}
+	}
+	
+	private void issueNewSliceCommand(String serviceName, String sliceKey) {
+		GenericCommand gCmd = new GenericCommand(Service.NEW_SLICE, serviceName, null);
+		gCmd.addParam(sliceKey);
+		Object result = myCommandProcessor.processIncoming(gCmd);
+		if (result instanceof Throwable) {
+			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_SLICE command. Service is " + serviceName + " node is " + sliceKey);
+			((Throwable) result).printStackTrace();
+		}
+	}
+	
 	private boolean isLocalNode(Node n) {
 		try {
 			return myIMTPManager.getLocalNode().equals(n);

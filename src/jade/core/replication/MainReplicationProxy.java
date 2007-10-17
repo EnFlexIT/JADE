@@ -25,7 +25,10 @@ package jade.core.replication;
 
 //#MIDP_EXCLUDE_FILE
 
+import java.util.Vector;
+
 import jade.core.Node;
+import jade.core.NodeDescriptor;
 import jade.core.Service;
 import jade.core.SliceProxy;
 import jade.core.GenericCommand;
@@ -96,12 +99,14 @@ public class MainReplicationProxy extends SliceProxy implements MainReplicationS
 	}
     }
 
-    public void addReplica(String sliceName, String smAddr, int sliceIndex) throws IMTPException {
+    public void addReplica(String sliceName, String smAddr, int sliceIndex, NodeDescriptor dsc, Vector services) throws IMTPException {
 	try {
 	    GenericCommand cmd = new GenericCommand(H_ADDREPLICA, NAME, null);
 	    cmd.addParam(sliceName);
 	    cmd.addParam(smAddr);
 	    cmd.addParam(new Integer(sliceIndex));
+	    cmd.addParam(dsc);
+	    cmd.addParam(services);
 
 	    Node n = getNode();
 	    Object result = n.accept(cmd);

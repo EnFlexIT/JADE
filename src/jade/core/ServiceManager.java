@@ -26,6 +26,8 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 
+import java.util.Vector;
+
 import jade.security.JADESecurityException;
 
 
@@ -158,5 +160,9 @@ public interface ServiceManager {
     */
     void deactivateService(String name) throws IMTPException, ServiceException;
 
-
+    /**
+     * Retrieve the list of locally installed services as a Vector of ServiceDescriptor objects
+     * @return the list of locally installed services as a Vector of ServiceDescriptor objects
+     */
+    Vector getLocalServices(); 
 }
