@@ -148,4 +148,20 @@ class TopicTable {
 			return agents.contains(aid);
 		}
 	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer("REGISTRATIONS:\n");
+		Iterator it = allRegistrations.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry entry = (Map.Entry) it.next();
+			TopicInfo info = (TopicInfo) entry.getValue();
+			AID topic = (AID) entry.getKey();
+			sb.append("- Topic "+topic.getLocalName()+"\n");
+			AID[] agents = info.getAgents();
+			for (int i = 0; i < agents.length; ++i) {
+				sb.append("  - "+agents[i].getLocalName()+"\n");
+			}
+		}
+		return sb.toString();
+	}
 }

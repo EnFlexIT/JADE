@@ -113,6 +113,13 @@ public class TopicManagementService extends BaseService {
 	}
 	
 	
+	public String dump(String key) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(topicTable.toString());
+		sb.append(super.dump(key));
+		return (sb.toString());
+	}
+	
 	/**
 	 * Inner class CommandOutgoingFilter.
 	 * Intercepts the SEND_MESSAGE VCommand and broadcast messages directed to a topic to all
@@ -306,6 +313,7 @@ public class TopicManagementService extends BaseService {
 				if (cmdName.equals(TopicManagementSlice.H_REGISTER)) {
 					AID aid = (AID) params[0];
 					AID topic = (AID) params[1];
+					System.out.println("Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
 					if (myLogger.isLoggable(Logger.FINER)) {
 						myLogger.log(Logger.FINER, "Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
 					}					
@@ -314,6 +322,7 @@ public class TopicManagementService extends BaseService {
 				else if(cmdName.equals(TopicManagementSlice.H_DEREGISTER)) {
 					AID aid = (AID) params[0];
 					AID topic = (AID) params[1];
+					System.out.println("Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
 					if (myLogger.isLoggable(Logger.FINER)) {
 						myLogger.log(Logger.FINER, "Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
 					}					

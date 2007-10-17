@@ -28,6 +28,7 @@ import jade.core.behaviours.Behaviour;
 
 import jade.util.leap.Map;
 import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
 
 
 
@@ -271,6 +272,36 @@ public abstract class BaseService implements Service {
 			// Invalidate the cache entry
 			slices.remove(realName);
 		}
+	}
+	
+	/**
+	 * This method can be redefined to support service internal data inspection by means of the ContainerMonitorAgent
+	 * included in the misc add-on.
+	 * The default implementation just dumps the map of cached slices
+	 * @param key A hint indicating which service data should be dumped
+	 * @return A string representation of the service internal data
+	 */
+	public String dump(String key) {
+		StringBuffer sb = new StringBuffer("CACHED SLICES:\n");
+		Iterator it = slices.keySet().iterator();
+		while (it.hasNext()) {
+			String name = (String) it.next();
+			sb.append("- ").append(name).append(" --> "+stringifySlice((Slice) slices.get(name))).append("\n");
+		}
+		
+		return sb.toString();
+	}
+
+	public static final String stringifySlice(Slice s) {
+		StringBuffer sb = new StringBuffer("SLICE ");
+		try {
+			sb.append(s.getClass().getName()).append(": node = "+s.getNode().getName());
+		}
+		catch (ServiceException se) {
+			// Should never happen as this is a local call
+			se.printStackTrace();
+		}
+		return sb.toString();
 	}
 	
 	//#MIDP_EXCLUDE_BEGIN
