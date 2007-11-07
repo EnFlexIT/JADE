@@ -318,5 +318,5 @@ public abstract class BaseService implements Service {
 	private Map aliases;
 	
 	protected ServiceFinder myFinder;
-	protected jade.util.Logger myLogger = jade.util.Logger.getMyLogger(getName());
+	protected transient jade.util.Logger myLogger = jade.util.Logger.getMyLogger(getName());
 }

@@ -41,7 +41,7 @@ import jade.util.Logger;
  */
 public abstract class BaseNode implements Node, Serializable {
 
-	private Logger myLogger;
+	private transient Logger myLogger;
 
 	public BaseNode(String name, boolean hasPM) {
 		myName = name;
