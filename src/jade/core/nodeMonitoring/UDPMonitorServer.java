@@ -411,7 +411,7 @@ class UDPMonitorServer {
 	protected void pingReceived(String nodeID, boolean isTerminating) {
 
 		if (logger.isLoggable(Logger.FINEST)) {
-			logger.log(Logger.FINE, "UDP ping message for node '" + nodeID + "' received. (termination-flag: " + isTerminating + ")");
+			logger.log(Logger.FINEST, "UDP ping message for node '" + nodeID + "' received. (termination-flag: " + isTerminating + ")");
 		}
 		UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
 
@@ -435,8 +435,7 @@ class UDPMonitorServer {
 			}
 		} 
 		else {
-			if (logger.isLoggable(Logger.INFO))
-				logger.log(Logger.INFO, "UDP ping message with the unknown node ID '" + nodeID + "' has been received");
+			logger.log(Logger.WARNING, "UDP ping message with the unknown node ID '" + nodeID + "' received");
 			myService.handleOrphanNode(nodeID);
 		}
 	}

@@ -40,21 +40,13 @@ import jade.core.MainContainer;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.WakerBehaviour;
-import jade.core.management.AgentManagementSlice;
 import jade.core.nodeMonitoring.NodeMonitoringService;
 import jade.core.nodeMonitoring.UDPNodeMonitoringService;
-import jade.domain.FIPANames;
-import jade.domain.introspection.IntrospectionOntology;
+import jade.core.replication.MainReplicationService;
 
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.LEAPACLCodec;
 import jade.util.Logger;
 
 import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Iterator;
 
@@ -93,6 +85,8 @@ public class FaultRecoveryService extends BaseService {
 	
 	private PersistentStorage myPS;
 	private NodeSerializer nodeSerializer;
+	
+	private boolean bootComplete = false;
 	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
@@ -136,28 +130,33 @@ public class FaultRecoveryService extends BaseService {
 	public void boot(Profile p) throws ServiceException {
 		if (myMain != null) {
 			try {
-				String oldAddress = myPS.getLocalAddress();
-				String newAddress = myContainer.getServiceManager().getLocalAddress();
-				myPS.storeLocalAddress(newAddress);
-				
-				if (oldAddress != null) {
-					myLogger.log(Logger.INFO, "Initiating fault recovery procedure...");
-					// Recover all non-child nodes first
-					Map allNodes = myPS.getAllNodes(false);
-					Iterator it = allNodes.keySet().iterator();
-					while (it.hasNext()) {
-						String name = (String) it.next();
-						checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
-					}
-					// Then recover all child nodes
-					allNodes = myPS.getAllNodes(true);
-					it = allNodes.keySet().iterator();
-					while (it.hasNext()) {
-						String name = (String) it.next();
-						checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
-					}
+				// Do not activate the fault recovery procedure if the Main Container is replicated: in that case all containers were already adopted
+				// by existing Main Container replicas
+				MainReplicationService replService = (MainReplicationService) myContainer.getServiceFinder().findService(MainReplicationService.NAME);
+				if (replService == null || replService.getAllSlices().length <= 1) {
+					String oldAddress = myPS.getLocalAddress();
+					String newAddress = myContainer.getServiceManager().getLocalAddress();
+					myPS.storeLocalAddress(newAddress);
 					
-					myLogger.log(Logger.INFO, "Fault recovery procedure completed.");
+					if (oldAddress != null) {
+						myLogger.log(Logger.INFO, "Initiating fault recovery procedure...");
+						// Recover all non-child nodes first
+						Map allNodes = myPS.getAllNodes(false);
+						Iterator it = allNodes.keySet().iterator();
+						while (it.hasNext()) {
+							String name = (String) it.next();
+							checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
+						}
+						// Then recover all child nodes
+						allNodes = myPS.getAllNodes(true);
+						it = allNodes.keySet().iterator();
+						while (it.hasNext()) {
+							String name = (String) it.next();
+							checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
+						}
+						
+						myLogger.log(Logger.INFO, "Fault recovery procedure completed.");
+					}
 				}
 			}
 			catch (Exception e) {
@@ -166,6 +165,7 @@ public class FaultRecoveryService extends BaseService {
 				throw new ServiceException(msg, e);
 			}
 		}
+		bootComplete = true;
 	}
 	
 	public void shutdown() {
@@ -258,7 +258,7 @@ public class FaultRecoveryService extends BaseService {
 				if (name.equals(NodeMonitoringService.NODE_UNREACHABLE)) {
 					handleNodeUnreachable((Node) cmd.getParams()[0]);
 				}
-				else if (name.equals(NodeMonitoringService.NODE_UNREACHABLE)) {
+				else if (name.equals(NodeMonitoringService.NODE_REACHABLE)) {
 					handleNodeReachable((Node) cmd.getParams()[0]);
 				}
 				else if (name.equals(UDPNodeMonitoringService.ORPHAN_NODE)) {
@@ -349,8 +349,23 @@ public class FaultRecoveryService extends BaseService {
 	 * Try to recover the orphan node
 	 */
 	private void handleOrphanNode(String nodeName) {
-		myLogger.log(Logger.INFO, "Recovering orphan node "+nodeName+"...");
-		// FIXME: To be implemented
+		if (bootComplete) {
+			myLogger.log(Logger.INFO, "Handling orphan node "+nodeName+"...");
+			try {
+				byte[] nn = myPS.getUnreachableNode(nodeName);
+				if (nn != null) {
+					myLogger.log(Logger.INFO, "Try to recover orphan node "+nodeName);
+					String address = myContainer.getServiceManager().getLocalAddress();
+					checkNode(nodeName, nn, address, address);
+				}
+				else {
+					myLogger.log(Logger.WARNING, "Orphan node "+nodeName+" not found --> Cannot recover it");
+				}
+			}
+			catch (Exception e) {
+				myLogger.log(Logger.WARNING, "Error searching for unreachable node "+nodeName+" in the persistent storage", e);
+			}
+		}
 	}
 	
 	/**

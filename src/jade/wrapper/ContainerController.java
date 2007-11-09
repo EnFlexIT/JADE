@@ -23,22 +23,13 @@ Boston, MA  02111-1307, USA.
 
 package jade.wrapper;
 
-import jade.wrapper.PlatformController.Listener;
 import jade.core.AID;
 import jade.core.NotFoundException;
-import jade.core.IMTPException;
 import jade.core.AgentManager;
 import jade.core.AgentContainer;
 import jade.core.MainContainer;
 
-import jade.core.event.*;
-
 import jade.mtp.MTPException;
-
-import java.util.Vector;
-import java.util.Enumeration;
-import jade.security.JADEPrincipal;
-import jade.security.Credentials;
 
 /**
    This class is a Proxy class, allowing access to a JADE agent

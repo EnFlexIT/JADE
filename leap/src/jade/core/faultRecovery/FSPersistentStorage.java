@@ -158,6 +158,7 @@ class FSPersistentStorage implements PersistentStorage {
 	public void setUnreachable(String name) throws Exception {
 		File f = getFSPSFile(name+NODE_POSTFIX, EXTENSION);
 		if (!f.exists()) {
+			// Try as a child node
 			f = getFSPSFile(name+NODE_POSTFIX, CHILD_EXTENSION);
 		}
 		if (f.exists()) {
@@ -171,6 +172,7 @@ class FSPersistentStorage implements PersistentStorage {
 	public void resetUnreachable(String name) throws Exception {
 		File f = getFSPSFile(name+NODE_POSTFIX, EXTENSION+UNREACHABLE_EXTENSION);
 		if (!f.exists()) {
+			// Try as a child node
 			f = getFSPSFile(name+NODE_POSTFIX, CHILD_EXTENSION+UNREACHABLE_EXTENSION);
 		}
 		if (f.exists()) {
@@ -212,8 +214,20 @@ class FSPersistentStorage implements PersistentStorage {
 		}
 		return nodes;
 	}
+	
+	public byte[] getUnreachableNode(String name) throws Exception {
+		File f = getFSPSFile(name+NODE_POSTFIX, EXTENSION+UNREACHABLE_EXTENSION);
+		if (!f.exists()) {
+			// Try as an unreachable child node
+			f = getFSPSFile(name+NODE_POSTFIX, CHILD_EXTENSION+UNREACHABLE_EXTENSION);
+		}
+		if (f.exists()) {
+			return readContent(f);
+		}
+		return null;
+	}
 
-	public void storeAgent(String name, byte[] aa) throws Exception {
+	/*public void storeAgent(String name, byte[] aa) throws Exception {
 		File f = getFSPSFile(name+AGENT_POSTFIX, EXTENSION);
 		writeContent(f, aa);
 		if (myLogger.isLoggable(Logger.FINE)) {
@@ -240,7 +254,8 @@ class FSPersistentStorage implements PersistentStorage {
 				return (name.endsWith(end));
 			}
 		} );
-		//#DOTNET_EXCLUDE_END
+		//#DOTNET_EXCLUDE_END  
+		*/
 		
 		/*#DOTNET_INCLUDE_BEGIN
 		String[] ss = locationDir.list(new FilenameFilter() {
@@ -256,12 +271,12 @@ class FSPersistentStorage implements PersistentStorage {
 		}
 		#DOTNET_INCLUDE_END*/
 		
-		Map agents = new HashMap(ff.length);
+		/*Map agents = new HashMap(ff.length);
 		for (int i = 0; i < ff.length; ++i) {
 			agents.put(getAgentName(ff[i].getName()), readContent(ff[i]));
 		}
 		return agents;
-	}
+	}*/
 	
 	private String getNodeName(String filename) {
 		int index = filename.indexOf(EXTENSION);
@@ -269,11 +284,11 @@ class FSPersistentStorage implements PersistentStorage {
 		return filename.substring(0, length);
 	}
 	
-	private String getAgentName(String filename) {
+	/*private String getAgentName(String filename) {
 		int index = filename.indexOf(EXTENSION);
 		int length = index - 6; // 6 is the length of "-agent"
 		return filename.substring(0, length);
-	}
+	}*/
 	
 	private File getFSPSFile(String name, String ext) {
 		String fileName = locationDir.getPath()+fileSeparator+name+ext;
@@ -315,17 +330,17 @@ class FSPersistentStorage implements PersistentStorage {
 			byte[] content = new byte[length];
 			try {
 				fis = new FileInputStream(file);
-      	int cnt = 0;
-      	int n;
-      	do {
-        	n = fis.read(content, cnt, length-cnt);
-        	if (n == -1) {
-          	throw new EOFException("EOF reading packet data");
-        	} 
-        	cnt += n;
-      	} 
-      	while (cnt < length);
-      	return content;
+				int cnt = 0;
+				int n;
+				do {
+					n = fis.read(content, cnt, length-cnt);
+					if (n == -1) {
+						throw new EOFException("EOF reading packet data");
+					} 
+					cnt += n;
+				} 
+				while (cnt < length);
+				return content;
 			}
 			finally {
 				if (fis != null) {

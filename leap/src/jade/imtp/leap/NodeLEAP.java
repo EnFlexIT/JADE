@@ -23,11 +23,10 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
-import jade.core.IMTPManager;
+import java.io.ObjectStreamException;
+
 import jade.core.BaseNode;
-import jade.core.Service;
 import jade.core.HorizontalCommand;
-import jade.core.VerticalCommand;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
 
@@ -94,4 +93,29 @@ class NodeLEAP extends BaseNode {
 			terminationLock.notifyAll();
 		}
 	}
+	
+	//#MIDP_EXCLUDE_BEGIN
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// LEAP nodes are serialized by means of the DeliverableDataOutput/InputStream classes.
+	// However we also implements the node<-->stub substitution standard methods
+	// to achieve the same result in case one serializes them using Java Serialization
+	//////////////////////////////////////////////////////////////////////////////////////////
+	private Object writeReplace() throws ObjectStreamException {
+		try {
+			NodeStub stub = (NodeStub) CommandDispatcher.getDispatcher().buildLocalStub(this);
+			stub.setName(getName());
+			stub.setPlatformManager(hasPlatformManager());
+			return stub;
+		}
+		catch (IMTPException imtpe) {
+			throw new NodeStubAccessException("Can't retrieve NodeStub. "+imtpe.getMessage());
+		}
+	}
+	
+	private static class NodeStubAccessException extends ObjectStreamException {
+		public NodeStubAccessException(String message) {
+			super(message);
+		}
+	}
+	//#MIDP_EXCLUDE_END
 }

@@ -137,17 +137,7 @@ public abstract class BaseNode implements Node, Serializable {
 	}
 
 	public void platformManagerDead(String deadPMAddr, String notifyingPMAddr) throws IMTPException {
-		myLogger.log(Logger.INFO, "PlatformManager at "+deadPMAddr+" no longer valid!");
-		if (deadPMAddr.equals(notifyingPMAddr)) {
-			// This is a PlatformManager that recovered from a fault
-			((ServiceManagerImpl) myServiceManager).reattach(notifyingPMAddr);
-		}
-		else {
-			System.out.println("@@@@ Adding PM address "+notifyingPMAddr);
-			myServiceManager.addAddress(notifyingPMAddr);
-			System.out.println("@@@@ Removing PM address "+deadPMAddr);
-			myServiceManager.removeAddress(deadPMAddr);
-		}
+		((ServiceManagerImpl) myServiceManager).platformManagerDead(deadPMAddr, notifyingPMAddr);
 	}
 
 	/**

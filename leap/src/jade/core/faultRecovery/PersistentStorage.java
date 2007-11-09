@@ -37,20 +37,32 @@ import java.util.Map;
    @author Giovanni Caire - TILAB
  */
 public interface PersistentStorage {
+	/** Initialize this persistent storage */
 	void init(Profile p) throws Exception;
+	/** Close this persistent storage performing all necessary clean-up operations */
 	void close();
+	/** Clear all information stored in this persistent storage */
 	void clear() throws Exception;
 	
+	/** Store the Main Container local address */
 	void storeLocalAddress(String address) throws Exception;
+	/** Retrieve the Main COntainer local address */
 	String getLocalAddress() throws Exception;
 	
+	/** Store a (possibly child) node */
 	void storeNode(String name, boolean isChild, byte[] nn) throws Exception;
+	/** Remove a (possibly child) reachable node */
 	void removeNode(String name) throws Exception;
+	/** Mark a previously stored node as unreachable */
 	void setUnreachable(String name) throws Exception;
+	/** Mark a previously stored node as reachable again */
 	void resetUnreachable(String name) throws Exception;
+	/** Retrieve all stored reachable nodes */
 	Map getAllNodes(boolean children) throws Exception;
+	/** Retrieve a stored unreachable node */
+	byte[] getUnreachableNode(String name) throws Exception;
 
-	void storeAgent(String name, byte[] aa) throws Exception;
+	/*void storeAgent(String name, byte[] aa) throws Exception;
 	void removeAgent(String name) throws Exception;
-	Map getAllAgents() throws Exception;
+	Map getAllAgents() throws Exception;*/
 }

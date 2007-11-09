@@ -97,9 +97,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	}
 
 	public synchronized void addAddress(String addr) throws IMTPException {
-		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Adding PlatformManager address " + addr);
-		}
+		myLogger.log(Logger.INFO, "Adding PlatformManager address " + addr);
 
 		if (invalidPlatformManager || !addr.equals(myPlatformManager.getLocalAddress())) {
 			backupManagers.put(addr, myIMTPManager.getPlatformManagerProxy(addr));
@@ -110,9 +108,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	}
 
 	public synchronized void removeAddress(String addr) throws IMTPException {
-		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Removing PlatformManager address " + addr);
-		}
+		myLogger.log(Logger.INFO, "Removing PlatformManager address " + addr);
 
 		backupManagers.remove(addr);
 		if (compareAddresses(addr, myPlatformManager.getLocalAddress())) {
@@ -403,6 +399,30 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	////////////////////////////////////////////////////
 	// Main container fault management related methods
 	////////////////////////////////////////////////////
+	void platformManagerDead(String deadPMAddr, String notifyingPMAddr) throws IMTPException {
+		myLogger.log(Logger.INFO, "PlatformManager at "+deadPMAddr+" no longer valid!");
+		
+		if (deadPMAddr.equals(myPlatformManager.getLocalAddress())) {
+			// Issue a DEAD_PLATFORM_MANAGER incoming vertical command
+			GenericCommand gCmd = new GenericCommand(Service.DEAD_PLATFORM_MANAGER, null, null);
+			gCmd.addParam(myPlatformManager.getLocalAddress());
+			Object result = myCommandProcessor.processIncoming(gCmd);
+			if (result instanceof Throwable) {
+				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_PLATFORM_MANAGER command.");
+				((Throwable) result).printStackTrace();
+			}
+		}
+		
+		if (deadPMAddr.equals(notifyingPMAddr)) {
+			// This is a PlatformManager that recovered from a fault
+			reattach(notifyingPMAddr);
+		}
+		else {
+			addAddress(notifyingPMAddr);
+			removeAddress(deadPMAddr);
+		}
+	}
+
 	/**
 	 * This method implements the platform reattachement procedure that is activated after a fault
 	 * and a successive recover of the Main Container.
@@ -414,7 +434,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		// PM is invalid (a previous reattach/reconnect attempt failed).
 		// Otherwise we just do nothing
 		if (invalidPlatformManager || pmAddr.equals(myPlatformManager.getLocalAddress())) {
-			invalidatePlatformManager();
+			invalidPlatformManager = true;
 			try {
 				myPlatformManager = myIMTPManager.getPlatformManagerProxy(pmAddr);
 				String name = myPlatformManager.addNode(localNodeDescriptor, getLocalServices(), false);
@@ -457,7 +477,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			} 
 			catch (IMTPException imtpe) {
 				// The current PlatformManager is actually down --> try to reconnect
-				invalidatePlatformManager();
+				invalidPlatformManager = true;
 				
 				Iterator it = backupManagers.keySet().iterator();
 				while (it.hasNext()) {
@@ -482,20 +502,6 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		return false;
 	}
 
-	private void invalidatePlatformManager() {
-		if (!invalidPlatformManager) {
-			invalidPlatformManager = true;
-			// Issue a DEAD_PLATFORM_MANAGER incoming vertical command
-			GenericCommand gCmd = new GenericCommand(Service.DEAD_PLATFORM_MANAGER, null, null);
-			gCmd.addParam(myPlatformManager.getLocalAddress());
-			Object result = myCommandProcessor.processIncoming(gCmd);
-			if (result instanceof Throwable) {
-				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_PLATFORM_MANAGER command.");
-				((Throwable) result).printStackTrace();
-			}
-		}
-	}
-	
 	private void handlePMRefreshed(String pmAddr) {
 		// Clear any cached slice of the Main container
 		Object[] services = localServices.values().toArray();

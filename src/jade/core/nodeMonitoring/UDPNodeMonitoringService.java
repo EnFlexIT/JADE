@@ -364,7 +364,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	 * Inner class UDPMonitorIncomingFilter
 	 * An incoming filter is needed to react to failures of main containers
 	 * that are monitoring this node by stopping the related UDP Monitor clients.
-	 * This main containers are either the main container a node is attached to
+	 * This main containers is either the main container a node is attached to
 	 * or a main container replica if the Main Replication Service is active    
 	 */
 	private class UDPMonitorIncomingFilter extends Filter {
