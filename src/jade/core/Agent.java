@@ -53,6 +53,7 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 //#MIDP_EXCLUDE_END
 import jade.util.leap.Properties;
+import jade.wrapper.gateway.JadeGateway;
 
 /*#MIDP_INCLUDE_BEGIN
  import javax.microedition.midlet.*;
@@ -466,6 +467,7 @@ public class Agent implements Runnable, Serializable
 	private transient List o2aQueue;
 	private int o2aQueueSize = 0;
 	private transient Map o2aLocks;
+	private Behaviour o2aManager = null;
 	private transient Object suspendLock;
 	//#MIDP_EXCLUDE_END
 
@@ -1259,7 +1261,7 @@ public class Agent implements Runnable, Serializable
 	 <br>
 	 <b>NOT available in MIDP</b>
 	 <br>
-	 @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
+	 @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
 	 */
 	public void putO2AObject(Object o, boolean blocking) throws InterruptedException {
 		// Drop object on the floor if object-to-agent communication is
@@ -1286,9 +1288,13 @@ public class Agent implements Runnable, Serializable
 				o2aLocks.put(o, cond);
 			}
 		} // end synchronization
-
-		// Reactivate the agent. This method is synchronized on the scheduler
-		activateAllBehaviours();
+		// Reactivate the O2AManager if any or the whole agent if no O2AManager is set. 
+		if (o2aManager == null){
+			// This method is synchronized on the scheduler
+			activateAllBehaviours();
+		} else {
+			o2aManager.restart();
+		}
 		if (blocking)
 			// Sleep on the condition. This method is synchronized on the condvar
 			cond.waitOn();
@@ -1309,7 +1315,7 @@ public class Agent implements Runnable, Serializable
 	 <br>
 	 @return the first object in the queue, or <code>null</code> if
 	 the queue is empty.
-	 @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
+	 @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
 	 @see jade.core.Agent#setEnabledO2ACommunication(boolean enabled, int queueSize)
 	 */
 	public Object getO2AObject() {
@@ -1356,8 +1362,8 @@ public class Agent implements Runnable, Serializable
 	 will be queued. If the passed value is 0, no maximum limit is set
 	 up for the queue.
 
-	 @see jade.wrapper.Agent#putO2AObject(Object o, boolean blocking)
-	 @see jade.core.Agent#getO2AObject()
+	 @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
+	 @see jade.core.AgentController#getO2AObject()
 
 	 */
 	public void setEnabledO2ACommunication(boolean enabled, int queueSize) {
@@ -1381,6 +1387,25 @@ public class Agent implements Runnable, Serializable
 			o2aQueue = null;
 		}
 
+	}
+	
+	/**
+	 * Sets the behaviour responsible for managing objects passed to the agent by
+	 * means of the Object-To-Agent (O2A) communication mechanism.
+	 * If the O2A manager behaviour is set, whenever an object is inserted in the
+	 * O2A queue by means of the <code>putO2AObject()</code> method, only the manager 
+	 * is waken up. This improves the efficiency since all behaviours not interested in 
+	 * O2A communication remain sleeping.  
+	 <br>
+	 <b>NOT available in MIDP</b>
+	 <br>
+	 * @param b The behaviour that will act as O2A manager.
+	 * 
+	 * @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
+	 * @see jade.core.AgentController#getO2AObject()
+	 */
+	public void setO2AManager(Behaviour b) {
+		o2aManager = b;
 	}
 	//#MIDP_EXCLUDE_END
 

@@ -23,7 +23,7 @@ import jade.util.Logger;
  **/
 public class GatewayAgent extends Agent {
 	
-	private  GatewayBehaviour myB = null; 
+	private  GatewayBehaviour myB = null;
 	private final Logger myLogger = Logger.getMyLogger(this.getClass().getName());
 	
 	/** subclasses may implement this method.
@@ -88,6 +88,7 @@ public class GatewayAgent extends Agent {
 			}
 		};
 		addBehaviour(myB);
+		setO2AManager(myB);
 	}
 	
 }
