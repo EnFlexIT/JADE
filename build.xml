@@ -145,7 +145,7 @@ ant dist - to create the distribution files
     <!-- Create the http.jar file -->
                 <delete file="${lib}/http.jar" quiet="true"/>
     <jar jarfile="${lib}/http.jar">
-      <fileset dir="${build}" includes="**/jade/mtp/http/*"/>
+      <fileset dir="${build}" includes="**/jade/mtp/http/**"/>
     </jar>
     <!-- Create the jade.jar file -->
 		<delete file="${lib}/jade.jar" quiet="true"/>
