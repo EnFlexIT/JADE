@@ -23,7 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.imtp.leap;
 
+//#MIDP_EXCLUDE_BEGIN
 import java.io.ObjectStreamException;
+//#MIDP_EXCLUDE_END
 
 import jade.core.BaseNode;
 import jade.core.HorizontalCommand;

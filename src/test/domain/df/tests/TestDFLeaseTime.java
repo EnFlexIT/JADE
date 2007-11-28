@@ -100,9 +100,9 @@ public class TestDFLeaseTime extends Test {
   			}
   			l.log("DF search-1 result OK: 1 item found as expected");
   			
-  			// Wait
+  			// Wait for the lease time plus some seconds to give enough time to the DF to remove the expired registration
   			l.log("Now wait for the registration lease time to expire...");
-  			try{Thread.sleep(LEASE_TIME);}catch(Exception e){}
+  			try{Thread.sleep(LEASE_TIME+5000);}catch(Exception e){}
   			
   	  	// Search again with the DF
   			try {

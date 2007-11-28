@@ -44,7 +44,7 @@ import java.util.HashMap;
  @author Giovanni Caire - TILAB
  */
 public class TestMainFault extends Test {
-	private static final int BACKUPMAIN_PORT = 1234;
+	private static final int BACKUPMAIN_PORT = 5677;
 	private static final int PERIPHERAL_PORT = 5678;
 	
 	private static final String PING_NAME = "ping";

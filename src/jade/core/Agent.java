@@ -53,7 +53,6 @@ import jade.util.leap.Map;
 import jade.util.leap.HashMap;
 //#MIDP_EXCLUDE_END
 import jade.util.leap.Properties;
-import jade.wrapper.gateway.JadeGateway;
 
 /*#MIDP_INCLUDE_BEGIN
  import javax.microedition.midlet.*;
@@ -460,10 +459,14 @@ public class Agent implements Runnable, Serializable
 	//#APIDOC_EXCLUDE_END
 
 
-	private transient MessageQueue msgQueue;
+	public static final String MSG_QUEUE_CLASS = "jade_core_Agent_msgQueueClass";
+	
 	private transient AgentToolkit myToolkit;
+	
+	private transient MessageQueue msgQueue;
+	private int msgQueueMaxSize = 0;
 	//#MIDP_EXCLUDE_BEGIN
-	private int       msgQueueMaxSize = 0;
+	private transient boolean temporaryMessageQueue;
 	private transient List o2aQueue;
 	private int o2aQueueSize = 0;
 	private transient Map o2aLocks;
@@ -542,12 +545,10 @@ public class Agent implements Runnable, Serializable
 		//#MIDP_EXCLUDE_BEGIN
 		myToolkit = DummyToolkit.instance();
 		o2aLocks = new HashMap();
-		msgQueue = new MessageQueue(msgQueueMaxSize);
 		suspendLock = new Object();
+		temporaryMessageQueue = true;
 		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
-		 msgQueue = new MessageQueue();
-		 #MIDP_INCLUDE_END*/
+		msgQueue = new InternalMessageQueue(msgQueueMaxSize);
 		stateLock = new Object(); 
 		pendingTimers = new AssociationTB();
 		myActiveLifeCycle = new ActiveLifeCycle();
@@ -555,8 +556,63 @@ public class Agent implements Runnable, Serializable
 		myScheduler = new Scheduler(this);
 		theDispatcher = TimerDispatcher.getTimerDispatcher();
 	}
-
+	
 	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Developer can override this method to provide an alternative message queue creation mechanism
+	 * @return The MessageQueue to be used by this agent or null if the internal message queue must be used
+	 */
+	protected MessageQueue createMessageQueue() {
+		String msgQueueClass = getProperty(MSG_QUEUE_CLASS, null);
+		if (msgQueueClass != null) {
+			try {
+				return (MessageQueue) Class.forName(msgQueueClass, true, getClass().getClassLoader()).newInstance();
+			}
+			catch (Exception e) {
+				System.out.println("Error loading MessageQueue of class "+msgQueueClass+" ["+e+"]");
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * If the agent still has a temporary message queue, create the real one and copy messages if any
+	 */
+	void initMessageQueue() {
+		if (temporaryMessageQueue) {
+			temporaryMessageQueue = false;
+			MessageQueue queue = createMessageQueue();
+			if (queue != null) {
+				queue.setMaxSize(msgQueueMaxSize);
+				// Copy messages (if any) from the old message queue to the new one
+				synchronized (msgQueue) {
+					int size = msgQueue.size();
+					if (size > 0) {
+						List l = new ArrayList(size);
+						msgQueue.copyTo(l);
+						Iterator it = l.iterator();
+						while (it.hasNext()) {
+							queue.addLast((ACLMessage) it.next());
+						}
+					}
+					msgQueue = queue;
+				}
+			}
+		}
+	}
+	
+	/**
+	 This is only called by AgentContainerImpl
+	 */
+	MessageQueue getMessageQueue() {
+		return msgQueue;
+	}
+
+	// For persistence service
+	private void setMessageQueue(MessageQueue mq) {
+		msgQueue = mq;
+	}
+
 	/**
 	 Constructor to be used by special "agents" that will never powerUp.
 	 */
@@ -825,9 +881,7 @@ public class Agent implements Runnable, Serializable
 	 */
 	public void setQueueSize(int newSize) throws IllegalArgumentException {
 		msgQueue.setMaxSize(newSize);
-		//#MIDP_EXCLUDE_BEGIN
 		msgQueueMaxSize = newSize;
-		//#MIDP_EXCLUDE_END
 	}
 
 	/**
@@ -934,19 +988,6 @@ public class Agent implements Runnable, Serializable
 	Scheduler getScheduler() {
 		return myScheduler;
 	}
-
-	/**
-	 This is only called by AgentContainerImpl
-	 */
-	MessageQueue getMessageQueue() {
-		return msgQueue;
-	}
-
-	// For persistence service
-	private void setMessageQueue(MessageQueue mq) {
-		msgQueue = mq;
-	}
-
 
 	/////////////////////////////
 	// Mobility related code
@@ -1363,7 +1404,7 @@ public class Agent implements Runnable, Serializable
 	 up for the queue.
 
 	 @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
-	 @see jade.core.AgentController#getO2AObject()
+	 @see getO2AObject()
 
 	 */
 	public void setEnabledO2ACommunication(boolean enabled, int queueSize) {
@@ -1402,7 +1443,7 @@ public class Agent implements Runnable, Serializable
 	 * @param b The behaviour that will act as O2A manager.
 	 * 
 	 * @see jade.wrapper.AgentController#putO2AObject(Object o, boolean blocking)
-	 * @see jade.core.AgentController#getO2AObject()
+	 * @see getO2AObject()
 	 */
 	public void setO2AManager(Behaviour b) {
 		o2aManager = b;
@@ -1732,8 +1773,7 @@ public class Agent implements Runnable, Serializable
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 
-		// Restore transient fields (apart from myThread, which will be set when the agent will be powered up)
-		msgQueue = new MessageQueue(msgQueueMaxSize);
+		// Restore transient fields apart from myThread, that will be set when the agent will be powered up)
 		stateLock = new Object();
 		suspendLock = new Object();
 		pendingTimers = new AssociationTB();
@@ -1743,6 +1783,8 @@ public class Agent implements Runnable, Serializable
 			o2aQueue = new ArrayList(o2aQueueSize);
 		o2aLocks = new HashMap();
 		myToolkit = DummyToolkit.instance();
+		temporaryMessageQueue = true;
+		msgQueue = new InternalMessageQueue(msgQueueMaxSize);
 
 		//#PJAVA_EXCLUDE_BEGIN
 		//For persistence service
@@ -1855,17 +1897,12 @@ public class Agent implements Runnable, Serializable
 	public final ACLMessage receive(MessageTemplate pattern) {
 		ACLMessage msg = null;
 		synchronized (msgQueue) {
-			for (Iterator messages = msgQueue.iterator(); messages.hasNext(); ) {
-				ACLMessage cursor = (ACLMessage)messages.next();
-				if (pattern == null || pattern.match(cursor)) {
-					msgQueue.remove(cursor);
-					//#MIDP_EXCLUDE_BEGIN
-					myToolkit.handleReceived(myAID, cursor);
-					//#MIDP_EXCLUDE_END
-					msg = cursor;
-					break; // Exit while loop
-				}
-			}
+			msg = msgQueue.receive(pattern);
+			//#MIDP_EXCLUDE_BEGIN
+			if (msg != null) {
+				myToolkit.handleReceived(myAID, msg);
+			 }
+			//#MIDP_EXCLUDE_END
 		}
 		return msg;
 	}

@@ -310,7 +310,19 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			myIMTPManager.initialize(myProfile);
 			//#J2ME_EXCLUDE_BEGIN
 			if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, true) && ((ProfileImpl)myProfile).isMain()) {
-				MainDetectionManager.export((ProfileImpl)myProfile, myIMTPManager);
+				try {
+					MainDetectionManager.export((ProfileImpl)myProfile, myIMTPManager);
+				}
+				catch (ProfileException pe) {
+					if ("true".equalsIgnoreCase(myProfile.getBootProperties().getProperty(Profile.DETECT_MAIN))) {
+						// The detect-main option was explicitly set to true in the boot properties --> let the exception through
+						throw pe;
+					}
+					else {
+						// The detect-main option was NOT explicitly specified in the boot properties --> just print a warning
+						myLogger.log(Logger.WARNING, "Automatic main-detection mechanism initialization failed ("+pe.getMessage()+"). Mechanism disabled!");
+					}
+				}
 			}
 			//#J2ME_EXCLUDE_END
 		}
@@ -970,8 +982,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	}
 
 	public Agent addLocalAgent(AID id, Agent a) {
-
 		a.setToolkit(this);
+		//#MIDP_EXCLUDE_BEGIN
+		// Initialize the agent message queue after the toolkit is set and before the agent is inserted in the LADT
+		a.initMessageQueue();
+		//#MIDP_EXCLUDE_END
 		return localAgents.put(id, a);
 	}
 
@@ -1005,12 +1020,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	//#MIDP_EXCLUDE_BEGIN
 	public void fillListFromMessageQueue(List messages, Agent a) {
 		MessageQueue mq = a.getMessageQueue();
-
 		synchronized(mq) {
-			Iterator i = mq.iterator();
-			while (i.hasNext()) {
-				messages.add(i.next());
-			}
+			mq.copyTo(messages);
 		}
 	}
 	//#MIDP_EXCLUDE_END

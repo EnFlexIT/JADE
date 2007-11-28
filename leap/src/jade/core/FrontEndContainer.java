@@ -523,6 +523,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		Agent agent = (Agent) Class.forName(className).newInstance();
 		agent.setArguments(args);
 		agent.setToolkit(this);
+		//#MIDP_EXCLUDE_BEGIN
+		agent.initMessageQueue();
+		//#MIDP_EXCLUDE_END
 		return agent;
 	}
 	
