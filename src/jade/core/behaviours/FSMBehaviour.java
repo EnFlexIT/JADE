@@ -155,6 +155,7 @@ public class FSMBehaviour extends SerialBehaviour {
 		if (b != null) {
 			b.setParent(null);
 		}
+		theTransitionTable.removeTransitionsFromState(name);
 		if (name.equals(firstName)) {
 			firstName = null;
 		}
@@ -525,6 +526,9 @@ public class FSMBehaviour extends SerialBehaviour {
 			}
 		}
 		
+		void removeTransitionsFromState(String StateName) {
+			transitions.remove(StateName);
+		}
 	}
 	
 	
