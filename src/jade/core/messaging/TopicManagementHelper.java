@@ -43,6 +43,7 @@ public interface TopicManagementHelper extends ServiceHelper {
 	 */
 	public static final String SERVICE_NAME = "jade.core.messaging.TopicManagement";
 	public static final String TOPIC_SUFFIX = "TOPIC_";
+	public static final String TOPIC_TEMPLATE_WILDCARD = "*";
 	 
 	/**
 	 * Create a topic with a given name.

@@ -34,6 +34,7 @@ import jade.core.management.AgentManagementSlice;
 import jade.lang.acl.ACLMessage;
 import jade.util.Logger;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Iterator;
 
@@ -138,20 +139,21 @@ public class TopicManagementService extends BaseService {
 				GenericMessage gMsg = (GenericMessage) cmd.getParam(1);
 				AID receiver = (AID) cmd.getParam(2);
 				
-				if (isTopic(receiver)) {
+				if (TopicUtility.isTopic(receiver)) {
 					// This message is directed to a Topic
 					AID topic = receiver;
 					if (myLogger.isLoggable(Logger.FINE)) {
 						myLogger.log(Logger.FINE, "Handling message about topic "+topic.getLocalName());
 					}
 					ACLMessage msg = gMsg.getACLMessage();
-					AID[] interestedAgents = topicTable.getInterestedAgents(receiver, msg);
-					if (interestedAgents != null && interestedAgents.length > 0) {
+					Collection interestedAgents = topicTable.getInterestedAgents(topic, msg);
+					if (interestedAgents.size() > 0) {
 						// Forward the message to all agents interested in that topic
 						msg.addUserDefinedParameter(ACLMessage.IGNORE_FAILURE, "true");
 						gMsg.setModifiable(false);
-						for (int i = 0; i < interestedAgents.length; ++i) {
-							AID target = interestedAgents[i];
+						Iterator it = interestedAgents.iterator();
+						while (it.hasNext()) {
+							AID target = (AID) it.next();
 							if (myLogger.isLoggable(Logger.FINE)) {
 								myLogger.log(Logger.FINE, "Forwarding message to agent "+target.getName());
 							}
@@ -344,7 +346,6 @@ public class TopicManagementService extends BaseService {
 		}
 	} // END of inner class ServiceComponent
 	
-	
 	/**
 	 * Inner class TopicHelperImpl
 	 */
@@ -356,12 +357,11 @@ public class TopicManagementService extends BaseService {
 		}
 		
 		public AID createTopic(String topicName) {
-			AID id = new AID(topicName+'@'+TOPIC_SUFFIX, AID.ISGUID);
-			return id;
+			return TopicUtility.createTopic(topicName);
 		}
 		
 		public boolean isTopic(AID id) {
-			return TopicManagementService.isTopic(id);
+			return TopicUtility.isTopic(id);
 		}
 		
 		public void register(AID topic) throws ServiceException {
@@ -379,17 +379,6 @@ public class TopicManagementService extends BaseService {
 	///////////////////////////////////////////////////
 	// Utility methods
 	///////////////////////////////////////////////////
-	private static final boolean isTopic(AID id) {
-		// NOTE that checking the endsWith() condition is much faster as it does not involve extracting
-		// the HAP from the AID --> Whenever an AID is not a topic we immediately detect that
-		if (id.getName().endsWith(TopicManagementHelper.TOPIC_SUFFIX)) {
-			return TopicManagementHelper.TOPIC_SUFFIX.equals(id.getHap());
-		}
-		else {
-			return false;
-		}
-	}
-	
 	private void broadcastRegistration(AID aid, AID topic, Service.Slice[] slices) throws ServiceException {
 		if (myLogger.isLoggable(Logger.CONFIG)) {
 			myLogger.log(Logger.CONFIG, "Registering agent "+aid.getName()+" to topic "+topic.getLocalName());

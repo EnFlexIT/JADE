@@ -29,65 +29,56 @@ package jade.core.messaging;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * @author Giovanni Caire - TILAB
  */
 class TopicTable {
-	// Maps a given topic with a TopicInfo object embedding the relevant information for that topic 
-	private Map allRegistrations = new HashMap();
+	private TTNode root = new TTNode("", null);
 	
+	/**
+	 * Register the interest of an agent for a given topic
+	 */
 	final synchronized void register(AID aid, AID topic) {
-		TopicInfo info = (TopicInfo) allRegistrations.get(topic);
-		if (info == null) {
-			info = new TopicInfo(topic);
-			allRegistrations.put(topic, info);
-		}
-		info.addAgent(aid);
+		RegistrationInfo info = new RegistrationInfo(aid, topic);
+		root.register(info); 
 	}
-	
+		
+	/**
+	 * De-register the interest of an agent for a given topic
+	 */
 	final synchronized void deregister(AID aid, AID topic) {
-		TopicInfo info = (TopicInfo) allRegistrations.get(topic);
-		if (info != null) {
-			info.removeAgent(aid);
-			if (info.isEmpty()) {
-				// NO Agent is interested in this topic anymore --> remove it
-				allRegistrations.remove(topic);
-			}
-		}
-	}
-	
-	final synchronized List getAllRegistrations() {
-		List l = new ArrayList();
-		Iterator it = allRegistrations.values().iterator();
-		while (it.hasNext()) {
-			TopicInfo info = (TopicInfo) it.next();
-			AID[] agents = info.getAgents();
-			for (int i = 0; i < agents.length; ++i) {
-				l.add(new TopicRegistration(agents[i], info.getTopic()));
-			}
-		}
-		return l;
+		RegistrationInfo info = new RegistrationInfo(aid, topic);
+		root.deregister(info);
 	}
 	
 	/**
 	 * Retrieve all agents that are interested in receiving a given message directed to a given topic
-	 * NOTE that only a section of this method is synchronized to speed up performances 
 	 */
-	final synchronized AID[] getInterestedAgents(AID topic, ACLMessage msg) {
-		AID[] interestedAgents = null;
-		TopicInfo info = (TopicInfo) allRegistrations.get(topic);
-		if (info != null) {
-			interestedAgents = info.getAgents();
-		}
-		return interestedAgents;
+	final synchronized Collection getInterestedAgents(AID topic, ACLMessage msg) {
+		RegistrationInfo info = new RegistrationInfo(null, topic);
+		Set s = new HashSet();
+		root.fillInterestedAgents(info, s);
+		return s;
+	}
+
+	/**
+	 * Retrieve the list of all TopicRegistration objects
+	 */
+	final synchronized List getAllRegistrations() {
+		List l = new ArrayList();
+		root.fillRegistrations(l);
+		return l;
 	}
 	
 	/**
@@ -95,73 +86,201 @@ class TopicTable {
 	 */
 	final synchronized List getRelevantTopics(AID aid) {
 		List l = new ArrayList();
-		Iterator it = allRegistrations.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();
-			TopicInfo info = (TopicInfo) entry.getValue();
-			if (info.containsAgent(aid)) {
-				l.add(entry.getKey());
-			}
-		}
+		root.fillRelevantTopics(aid, l);
 		return l;
+	}
+	
+	public String toString() {
+		List l = getAllRegistrations();
+		StringBuffer sb = new StringBuffer("TOPIC-TABLE\n");
+		Iterator it = l.iterator();
+		while (it.hasNext()) {
+			TopicRegistration tr = (TopicRegistration) it.next();
+			sb.append(tr).append('\n');
+		}
+		return sb.toString();
 	}
 	
 	
 	/**
-	 * Inner class TopicInfo
-	 * This class embeds all information related to a given topic i.e. all registrations to that topic
+	 * Inner class RegistrationInfo.
+	 * This class includes the information related to a given registration properly 
+	 * prepared to be registered in the TopicTable
 	 */
-	private class TopicInfo {
-		private AID topic;
-		// This is used to keep agents interested in this topic
-		private Set agents = new HashSet();
-		// This is used to deliver messages to agents interested in this topic without any synchronization requirement with respect to insertions and deletions  
-		private volatile AID[] agentsArray = new AID[0];
+	private class RegistrationInfo {
+		private AID aid;
+		private boolean template = false;
+		private StringTokenizer st;
 		
-		private TopicInfo(AID topic) {
-			this.topic = topic;
-		}
-		
-		public final AID getTopic() {
-			return topic;			
+		private RegistrationInfo(AID aid, AID topic) {
+			st = new StringTokenizer(topic.getLocalName(), ".");
+			this.aid = aid;
 		}
 		
-		public final void addAgent(AID aid) {
-			agents.add(aid);
-			agentsArray = (AID[]) agents.toArray(new AID[0]);
+		/**
+		 * If a topic has the form "foo.bar" returns "foo" at the first invocation, "bar" at the second and null at the third.
+		 * If a topic has the form "foo.bar.*" returns "foo" at the first invocation, "bar" at the second, null at the third and isTemplate() will return true.
+		 */
+		private String nextName() {
+			String name = null;
+			if (st.hasMoreTokens()) {
+				name = st.nextToken();
+				if (name.equals(TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD)) {
+					template = true;
+					name = null;
+				}
+			}
+			return name;
 		}
 		
-		public final void removeAgent(AID aid) {
-			agents.remove(aid);
-			agentsArray = (AID[]) agents.toArray(new AID[0]);
-		}
-				
-		public final AID[] getAgents() {
-			return agentsArray;
+		private AID getAID() {
+			return aid;
 		}
 		
-		public final boolean isEmpty() {
-			return agents.isEmpty();
+		private boolean isTemplate() {
+			return template;
 		}
-		
-		public final boolean containsAgent(AID aid) {
-			return agents.contains(aid);
-		}
-	}
+	} // END of inner class RegistrationInfo
 	
-	public String toString() {
-		StringBuffer sb = new StringBuffer("REGISTRATIONS:\n");
-		Iterator it = allRegistrations.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();
-			TopicInfo info = (TopicInfo) entry.getValue();
-			AID topic = (AID) entry.getKey();
-			sb.append("- Topic "+topic.getLocalName()+"\n");
-			AID[] agents = info.getAgents();
-			for (int i = 0; i < agents.length; ++i) {
-				sb.append("  - "+agents[i].getLocalName()+"\n");
+	
+	/**
+	 * Inner class TTNode
+	 */
+	private class TTNode {
+		private String name;
+		private List interestedAgents = new LinkedList();
+		private List templateInterestedAgents = new LinkedList();
+		private Map children = new HashMap();
+		private TTNode parent;
+		
+		private TTNode(String name, TTNode parent) {
+			this.name = name;
+			this.parent = parent;
+		}
+		
+		private final void register(RegistrationInfo info) {
+			String nextName = info.nextName();
+			if (nextName != null) {
+				TTNode childNode = (TTNode) children.get(nextName);
+				if (childNode == null) {
+					childNode = new TTNode(nextName, this);
+					children.put(nextName, childNode);
+					System.out.println("### Adding child node "+nextName+" to node "+name);
+				}
+				childNode.register(info);
+			}
+			else {
+				if (info.isTemplate()) {
+					templateInterestedAgents.add(info.getAID());
+				}
+				else {
+					System.out.println("### Adding agent "+info.getAID().getName()+" to node "+name+" ("+getTopicName()+")");
+					interestedAgents.add(info.getAID());
+				}
 			}
 		}
-		return sb.toString();
-	}
+		
+		private final void deregister(RegistrationInfo info) {
+			String nextName = info.nextName();
+			if (nextName != null) {
+				TTNode childNode = (TTNode) children.get(nextName);
+				if (childNode != null) {
+					childNode.deregister(info);
+				}
+			}
+			else {
+				if (info.isTemplate()) {
+					templateInterestedAgents.remove(info.getAID());
+				}
+				else {
+					interestedAgents.remove(info.getAID());
+				}
+				// If after this de-registration this node is empty, remove it 	
+				removeIfEmpty();
+			}
+		}
+		
+		private final void fillInterestedAgents(RegistrationInfo info, Collection interestedAgents) {
+			System.out.println("### Visiting node "+name);
+			// Add all agents interested in the topic represented by this node as a template
+			interestedAgents.addAll(this.templateInterestedAgents);
+			String nextName = info.nextName();
+			if (nextName != null) {
+				TTNode childNode = (TTNode) children.get(nextName);
+				if (childNode != null) {
+					childNode.fillInterestedAgents(info, interestedAgents);
+				}
+			}
+			else {
+				interestedAgents.addAll(this.interestedAgents);
+			}
+		}
+		
+		private final void fillRegistrations(List allRegistrations) {
+			// Fill local registrations
+			String topicName = getTopicName();
+			if (interestedAgents.size() > 0) {
+				AID topic = TopicUtility.createTopic(topicName);
+				for (int i = 0; i < interestedAgents.size(); ++i) {
+					AID aid = (AID) interestedAgents.get(i);
+					allRegistrations.add(new TopicRegistration(aid, topic));
+				}
+			}
+			if (templateInterestedAgents.size() > 0) {
+				String templateTopicName = (topicName.length() > 0 ? topicName+'.'+TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD);
+				AID topic = TopicUtility.createTopic(templateTopicName);
+				for (int i = 0; i < templateInterestedAgents.size(); ++i) {
+					AID aid = (AID) templateInterestedAgents.get(i);
+					allRegistrations.add(new TopicRegistration(aid, topic));
+				}
+			}
+			
+			// Fill child nodes registrations
+			Iterator it = children.values().iterator();
+			while (it.hasNext()) {
+				TTNode childNode = (TTNode) it.next();
+				childNode.fillRegistrations(allRegistrations);
+			}
+		}
+		
+		private final void fillRelevantTopics(AID aid, List relevantTopics) {
+			// Add the local topic (directly or as a template) if necessary
+			String topicName = getTopicName();
+			if (interestedAgents.contains(aid)) {
+				relevantTopics.add(TopicUtility.createTopic(topicName));
+			}
+			if (templateInterestedAgents.contains(aid)) {
+				String templateTopicName = (topicName.length() > 0 ? topicName+'.'+TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD);
+				relevantTopics.add(TopicUtility.createTopic(templateTopicName));
+			}
+			
+			// Add child nodes topics if necessary
+			Iterator it = children.values().iterator();
+			while (it.hasNext()) {
+				TTNode childNode = (TTNode) it.next();
+				childNode.fillRelevantTopics(aid, relevantTopics);
+			}
+		}
+		
+		private final void removeIfEmpty() {
+			if (interestedAgents.isEmpty() && templateInterestedAgents.isEmpty() && children.isEmpty()) {
+				parent.children.remove(name);
+				if (parent != root) {
+					parent.removeIfEmpty();
+				}
+			}
+		}
+		
+		private final String getTopicName() {
+			if (this == root) {
+				return "";
+			}
+			else if (parent == root) {
+				return name;
+			}
+			else {
+				return parent.getTopicName()+"."+name;
+			}
+		}
+	} // END of inner class TTNode
 }

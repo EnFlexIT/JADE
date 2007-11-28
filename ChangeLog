@@ -1,22 +1,31 @@
 MAJOR CHANGES in JADE XXX (XXX)
 ==========================================================================
 GENERAL IMPROVEMENTS:
-- detect-main (to be done)
+- Extended TopicManagementService to deal with registrations to topic templates (e.g. foo.bar.*)
+- Added support for different implementations of the Agent MessageQueue. By Arend Freije [a.freije@minihouse.com] 
+- Added method setO2AManager() in Agent class to associate a single behaviour to the O2A communication mechanism. 
+- Modified automatic main detection mechanism to print a warning and go on when the initialization fails (on the Main Container) and it was not explicitly tured on
+- Modified automatic main detection mechanism to require users to specify '*' as platform name (on peripheral containers) when they want to connect to whatever platform 
 - Added support to deregister transitions in FSMBehaviour 
 - Modified MainReplicationService to issue NEW_NODE and NEW_SLICE VCommands when a Main Container replica enters the ring
-- Added method dump() to BaseService to support runtime service inspection by means of the ContainerMonitorAgent
+- Added method dump() to BaseService to support runtime service inspection by means of the ContainerMonitorAgent (misc Add-On)
 - Added method getLocalServices() in ServiceManager interface
+- Modified KeyStoreKeyManager to support selection of the keystore type (default still JKS, but other possible, eg. PKCS12). By Arend Freije [a.freije@minihouse.com] 
+
  
 BUG-FIXES:
 - Fixed bug in SSAchieveREResponder related to the receiption of successive messages when a performative different than REQUEST was used (Fix by Chris Audley)
 - Fixed bug in WakerBehaviour reset() method
+- Included HTTPS-classes in http.jar (also fixed build.xml). By Arend Freije [a.freije@minihouse.com] 
 
 LEAP:
 
 
 ADD-ONS:
 - Misc Add-on
-  - Added support for DUMP-SERVICE action
+  - Added support for leader election within an open group (members can appear and disappear at any time) of agents 
+  - Added support for DUMP-SERVICE action in ContainerMonitorAgent
+
 
 - JADE-SHARP Add-on
 

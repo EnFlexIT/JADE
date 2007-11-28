@@ -25,5 +25,23 @@
 			<WhenTestPass>The test passes if both registered agents correcty receive the message about topic T
 			</WhenTestPass>
 		</Test>
+		<Test name="Topic template" skip="false">
+			<TestClassName>test.topic.tests.TestTopicTemplate</TestClassName>
+			<WhatTest>This test checks that the TopicManagementService correctly deals with a topic registration refering to a topic template i.e. a topic of the form foo.bar.*
+			</WhatTest>
+			<HowWorkTest>LOAD PHASE: An agent able to send messages about topic T on demand is created. The tester agent i) registers to topic template T.*, ii) triggers the emission of a message about topic T, iii) triggers the emission of a message about topic T.sub1, iv) triggers the emission of a message about topic Tsub1 (note the difference with T.sub1), v) deregisters from topic template T.*
+			</HowWorkTest>
+			<WhenTestPass>The test passes if 2 messages are received
+			</WhenTestPass>
+		</Test>
+		<Test name="Topic registration propagation to new containers" skip="false">
+			<TestClassName>test.topic.tests.TestRegistrationPropagation</TestClassName>
+			<WhatTest>This test checks if current topic registrations are correctly propagated to a newly started container
+			</WhatTest>
+			<HowWorkTest>LOAD PHASE: none. The tester agent i) registers to topic T, ii) creates a new container with an agent able to send messages about topic T on demand, iii) triggers the emission of a message about topic T, iv) deregisters from topic T. 
+			</HowWorkTest>
+			<WhenTestPass>The test passes if 1 message is received
+			</WhenTestPass>
+		</Test>
 </TestsList>
 

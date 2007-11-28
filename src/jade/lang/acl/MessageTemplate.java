@@ -35,6 +35,8 @@ import jade.util.leap.ArrayList;
 
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
+import jade.core.messaging.TopicManagementHelper;
+import jade.core.messaging.TopicUtility;
 
 /**
  A pattern for matching incoming ACL messages. This class allows to
@@ -436,7 +438,55 @@ public class MessageTemplate implements Serializable {
 		
 	}//end class CustomMsgLiteral
 	
-	
+	private static class MatchTopic implements MatchExpression {
+		private String topicName;
+		private boolean isTemplate;
+		private boolean matchAll = false;
+		
+		MatchTopic(AID topic) {
+			String tmp = topic.getLocalName();
+			if (tmp.equals(TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD)) {
+				matchAll = true;
+			}
+			else {
+				if (tmp.endsWith("."+TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD)) {
+					topicName = tmp.substring(0, tmp.length()-2);
+					isTemplate = true;
+				}
+				else {
+					topicName = tmp;
+					isTemplate = false;
+				}
+			}
+		}
+		
+		public boolean match(ACLMessage msg) {
+			Iterator it = msg.getAllReceiver();
+			while (it.hasNext()) {
+				AID receiver = (AID) it.next();
+				if (TopicUtility.isTopic(receiver)) {
+					if (matchAll) {
+						return true;
+					}
+					else {
+						String name = receiver.getLocalName();
+						if (name.equals(topicName)) {
+							return true;
+						}
+						else if (isTemplate && name.startsWith(topicName+'.')) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		
+		public String toString() {
+			String name = (matchAll ? TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : (isTemplate ? topicName+'.'+TopicManagementHelper.TOPIC_TEMPLATE_WILDCARD : topicName));
+			return "( Topic: "+name+" )";
+		}
+	}
 	/**
 	 @serial
 	 */
@@ -491,7 +541,7 @@ public class MessageTemplate implements Serializable {
 	 @return A new <code>MessageTemplate</code> matching messages about the given topic
 	 */
 	public static MessageTemplate MatchTopic(AID topic) {
-		return new MessageTemplate(new Literal(new AID[]{topic}, RECEIVER));
+		return new MessageTemplate(new MatchTopic(topic));
 	}
 	
 	/**

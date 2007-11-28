@@ -51,7 +51,7 @@ public class TopicMessageCollectorAgent extends Agent {
 				
 				addBehaviour(new CyclicBehaviour(this) {
 					public void action() {
-						ACLMessage msg = myAgent.receive(MessageTemplate.MatchReceiver(new AID[]{topic}));
+						ACLMessage msg = myAgent.receive(MessageTemplate.MatchTopic(topic));
 						if (msg != null) {
 							// Forward the received message to the target agent
 							msg.setSender(myAgent.getAID());

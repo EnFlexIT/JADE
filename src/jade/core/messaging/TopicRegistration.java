@@ -48,4 +48,8 @@ class TopicRegistration {
 	public final AID getTopic() {
 		return topic;
 	}
+	
+	public String toString() {
+		return aid.getName()+" --> "+topic.getLocalName();
+	}
 }
