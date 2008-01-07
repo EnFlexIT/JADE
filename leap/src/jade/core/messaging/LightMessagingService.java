@@ -88,6 +88,9 @@ public class LightMessagingService extends BaseService
     // The component managing asynchronous message delivery and retries
     private MessageManager myMessageManager;
 
+	// The ID of the Platform this service belongs to
+	private String platformID;
+	
     /**
      * Performs the passive initialization step of the service. This
      * method is called <b>before</b> activating the service. Its role
@@ -105,6 +108,7 @@ public class LightMessagingService extends BaseService
         super.init(ac, p);
         myContainer = ac;
 
+		platformID = myContainer.getPlatformID();
         // Initialize its own ID
         // String platformID = myContainer.getPlatformID();
         myMessageManager = MessageManager.instance(p);
@@ -195,7 +199,7 @@ public class LightMessagingService extends BaseService
     public void deliverNow(GenericMessage msg, AID receiverID)
         throws UnreachableException {
         try {
-            if (myContainer.livesHere(receiverID)) {
+            if (livesHere(receiverID)) {
                 localSlice.deliverNow(msg, receiverID);
             } else {
                 // Dispatch it through the ACC
@@ -231,6 +235,11 @@ public class LightMessagingService extends BaseService
         }
     }
 
+	private boolean livesHere(AID id) {
+		String hap = id.getHap();
+		return CaseInsensitiveString.equalsIgnoreCase(hap, platformID);
+	}
+	
     private void forwardMessage(GenericMessage msg, AID receiver, String address)
         throws MTPException {
         try {

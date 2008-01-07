@@ -1013,6 +1013,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		localAgents.release(id);
 	}
 
+	public boolean isLocalAgent(AID id) {
+		return localAgents.contains(id);
+	}
+	
 	public AID[] agentNames() {
 		return localAgents.keys();
 	}
@@ -1107,13 +1111,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		localAgents.release(receiverID);
 
 		return true;
-	}
-
-	// Tells whether the given AID refers to an agent of this platform
-	// or not.
-	public boolean livesHere(AID id) {
-		String hap = id.getHap();
-		return CaseInsensitiveString.equalsIgnoreCase(hap, AID.getPlatformID());
 	}
 
 	public ContainerID getID() {

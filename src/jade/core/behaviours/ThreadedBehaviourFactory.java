@@ -313,6 +313,7 @@ public class ThreadedBehaviourFactory {
 			notifyAll();
 		}
 		
+		// Only the dedicated thread can suspend a threaded behaviour
 		private synchronized void suspend() {
 			if (Thread.currentThread() == myThread) {
 				suspended = true;
@@ -331,6 +332,9 @@ public class ThreadedBehaviourFactory {
 		public void run() {
 			if (threadState == CREATED_STATE) {
 				threadedBehaviours.addElement(this);
+			}
+			else if (threadState == SUSPENDED_STATE) {
+				invokeMethod(myBehaviour, "handleResumed");
 			}
 			threadState = RUNNING_STATE;
 			try {
@@ -362,6 +366,9 @@ public class ThreadedBehaviourFactory {
 							if (suspended) {
 								threadState = SUSPENDED_STATE;
 								myThread = null;
+								// If the Behaviour defined a handleSuspended() method invoke it from within the terminating thread 
+								// to give it a chance to clean up any allocated resources
+								invokeMethod(myBehaviour, "handleSuspended");
 								return;
 							}
 							if (!myBehaviour.isRunnable()) {
@@ -383,14 +390,12 @@ public class ThreadedBehaviourFactory {
 				threadState = INTERRUPTED_STATE;
 				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
-			catch (java.lang.ThreadDeath td) {
-				try {
-					System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
-					terminate();
-				}
-				finally {
-					throw td;
-				}
+			catch (ThreadDeath td) {
+				threadState = INTERRUPTED_STATE;
+				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
+				// ThreadDeath errors should always be propagated so that the top level handler can perform the necessary clean up
+				terminate();
+				throw td;
 			}
 			catch (Throwable t) {
 				threadState = ERROR_STATE;
@@ -400,7 +405,7 @@ public class ThreadedBehaviourFactory {
 		}
 		
 		/**
-		 * Interrupt a threaded behaviour. This method should always be used instead of 
+		 * Interrupt a threaded behaviour. This method should be used instead of 
 		 * getThread().interrupt() because the latter may have no effect if called just after 
 		 * the threaded behaviour suspended itself
 		 */
@@ -420,7 +425,15 @@ public class ThreadedBehaviourFactory {
 		}
 
 		private void terminate() {
+			if (Thread.currentThread() == myThread) {
+				if (threadState == INTERRUPTED_STATE || threadState == ERROR_STATE) {
+					// If the Behaviour defined a handleAborted() method invoke it from within the terminating thread 
+					// to give it a chance to clean up any allocated resources
+					invokeMethod(myBehaviour, "handleAborted");
+				}
+			}
 			finished = true;
+			// Restart the wrapper so that it terminates too and is removed from the Agent scheduler
 			super.restart();
 			threadedBehaviours.removeElement(this);
 			synchronized(ThreadedBehaviourFactory.this) {
@@ -442,6 +455,9 @@ public class ThreadedBehaviourFactory {
 	} // END of inner class ThreadedBehaviourWrapper
 	//#APIDOC_EXCLUDE_END
 	
+	private void invokeMethod(Object obj, String methodName) {
+		// FIXME: To be implemented 
+	}
 	
 	/**
 	 Inner class DummyParentBehaviour.

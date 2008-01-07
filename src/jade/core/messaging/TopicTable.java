@@ -41,6 +41,15 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
+ * Topics can have the form x.y.z... and agents can register to "topic templates" like x.y.* meaning that they 
+ * want to receive all messages concerning topics that start with x.y (e.g. x.y, x.y.z, x.y.t and so on).
+ * Each '.' separated part of a topic is called a topic section.
+ * Registrations of agent interest in topics are organized in a tree of TTNode-s (TopicTable Node). Each TTNode
+ * corresponds to a topic section and represents a topic whose name is the full path of the TTNode in the tree.
+ * Each TTNode includes 
+ * - The list of agents interested in the TTNode topic
+ * - The list of agents interested in the TTNode as a template 
+ * - A list of child TTNode
  * @author Giovanni Caire - TILAB
  */
 class TopicTable {
@@ -165,7 +174,6 @@ class TopicTable {
 				if (childNode == null) {
 					childNode = new TTNode(nextName, this);
 					children.put(nextName, childNode);
-					System.out.println("### Adding child node "+nextName+" to node "+name);
 				}
 				childNode.register(info);
 			}
@@ -174,7 +182,6 @@ class TopicTable {
 					templateInterestedAgents.add(info.getAID());
 				}
 				else {
-					System.out.println("### Adding agent "+info.getAID().getName()+" to node "+name+" ("+getTopicName()+")");
 					interestedAgents.add(info.getAID());
 				}
 			}
@@ -201,7 +208,6 @@ class TopicTable {
 		}
 		
 		private final void fillInterestedAgents(RegistrationInfo info, Collection interestedAgents) {
-			System.out.println("### Visiting node "+name);
 			// Add all agents interested in the topic represented by this node as a template
 			interestedAgents.addAll(this.templateInterestedAgents);
 			String nextName = info.nextName();

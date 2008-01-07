@@ -45,6 +45,6 @@ public abstract class FEService {
 	}
 	
 	void init(BackEnd be) {
-		myBackEnd = null;
+		myBackEnd = be;
 	}
 }

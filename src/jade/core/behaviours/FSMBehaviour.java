@@ -247,6 +247,15 @@ public class FSMBehaviour extends SerialBehaviour {
 		theTransitionTable.removeTransition(source);
 	}
 	
+	/**
+	 * Check if a default transition exits from a given source state.
+	 * @param source The name of the source state
+	 * @return <code>true</code> if a default transition exits from the given source state. <code>false</code> otherwise.
+	 */
+	public boolean hasDefaultTransition(String source) {
+		return (theTransitionTable.getTransition(source) != null);
+	}
+	
 	/** 
 	 Retrieve the child behaviour associated to the FSM state with
 	 the given name.
@@ -520,6 +529,16 @@ public class FSMBehaviour extends SerialBehaviour {
 			if(tfs != null) {
 				Transition t = (Transition) tfs.get(new Integer(event));
 				return t;
+			}
+			else {
+				return null;
+			}
+		}
+		
+		Transition getTransition(String s) {
+			TransitionsFromState tfs = (TransitionsFromState) transitions.get(s);
+			if(tfs != null) {
+				return tfs.getDefaultTransition();
 			}
 			else {
 				return null;

@@ -104,7 +104,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	// A flag indicating whether or not we must accept foreign agents
 	private boolean acceptForeignAgents = false;
 	
-	// The ID of the PLatformthis service belongs to
+	// The ID of the Platform this service belongs to
 	private String platformID;
 	
 	// The concrete agent container, providing access to LADT, etc.

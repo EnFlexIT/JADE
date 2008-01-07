@@ -226,6 +226,10 @@ class LADT {
 
     }
 
+    synchronized boolean contains(AID key) {
+    	return agents.containsKey(key);
+    }
+    
     // For debugging purpose
     public String[] getStatus() {
         synchronized(agents) {

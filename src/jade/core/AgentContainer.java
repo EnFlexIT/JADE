@@ -65,6 +65,7 @@ public interface AgentContainer {
 	Agent addLocalAgent(AID id, Agent a);
 	void removeLocalAgent(AID id);
 	//#APIDOC_EXCLUDE_END
+	boolean isLocalAgent(AID id);
 	Agent acquireLocalAgent(AID id);
 	void releaseLocalAgent(AID id);
 	AID[] agentNames();
@@ -75,15 +76,12 @@ public interface AgentContainer {
 	void fillListFromReadyBehaviours(List behaviours, Agent a);
 	void fillListFromBlockedBehaviours(List behaviours, Agent a);
 
-	// GC-MODIFY-18022007-START
 	void becomeLeader(AMSEventQueueFeeder feeder);
-	// GC-MODIFY-18022007-END
 	//#MIDP_EXCLUDE_END
 
 	void addAddressToLocalAgents(String address);
 	void removeAddressFromLocalAgents(String address);
 	boolean postMessageToLocalAgent(ACLMessage msg, AID receiverID);
-	boolean livesHere(AID id);
 	Location here();
 
 	void shutDown();

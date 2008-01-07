@@ -98,8 +98,7 @@ public class OutgoingEncodingFilter extends Filter {
 			}
 			
 			// Check if the receiver is on the same container or not
-			if (myAgentContainer.acquireLocalAgent(receiver) != null){
-				myAgentContainer.releaseLocalAgent(receiver);
+			if (myAgentContainer.isLocalAgent(receiver)){
 				// Receiver is local --> do not encode the message
 				return true;
 			} 
