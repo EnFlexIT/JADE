@@ -146,12 +146,12 @@ public class AID implements Comparable, Serializable {
 			throw new RuntimeException("Unknown Platform Name");
 		}
 		name = n.trim(); 
-		// Concatenates the HAP only if the passed name 
-		// does not ends already with HAP (case-insensitive)
-		if (! ( (name.length() > hap.length()) && 
+		// Concatenates the HAP 
+		/*if (! ( (name.length() > hap.length()) && 
 				name.regionMatches(true, name.length() - hap.length(), hap, 0, hap.length()))) {
 			name = name.concat("@"+hap);
-		}
+		}*/
+		name = name.concat("@"+hap);
 		hashCode = name.toLowerCase().hashCode();			
 	}
 	
