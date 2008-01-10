@@ -30,28 +30,28 @@ package jade.wrapper;
  */
 public class ControllerException extends Exception {
 
-  /**
-   * Creates a new exception object, with a default detail message.
-   */
-  ControllerException() {
-    super("Agent error.");
-  }
+	/**
+	 * Creates a new exception object, with a default detail message.
+	 */
+	public ControllerException() {
+		super("Agent error.");
+	}
 
-  /**
-   * Creates a new exception object, with a given detail message.
-   * @param message The detail message for the new exception object.
-   */
-  public ControllerException(String message) {
-    super(message);
-  }
+	/**
+	 * Creates a new exception object, with a given detail message.
+	 * @param message The detail message for the new exception object.
+	 */
+	public ControllerException(String message) {
+		super(message);
+	}
 
-  /**
-   * Creates a new exception object, extracting message from another throwable.
-   * @param aThrowable The original exception or error.
-   */
-  ControllerException(Throwable aThrowable) {
-    super(aThrowable.getMessage());
-  }
+	/**
+	 * Creates a new exception object, extracting message from another throwable.
+	 * @param aThrowable The original exception or error.
+	 */
+	public ControllerException(Throwable aThrowable) {
+		super(aThrowable.getMessage());
+	}
 
 }
 

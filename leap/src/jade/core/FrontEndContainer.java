@@ -195,6 +195,15 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 		myBackEnd.detach();
 	}
 	
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Request the FrontEnd to return a local agent reference by his local name
+	 */
+	final Agent getLocalAgent(String localName) {
+		return (Agent) localAgents.get(localName);
+	}
+	//#MIDP_EXCLUDE_END
+	
 	/////////////////////////////////////
 	// FrontEnd interface implementation
 	/////////////////////////////////////

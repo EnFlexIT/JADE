@@ -91,7 +91,7 @@ public class ContainerController {
 			throw new ControllerException("Agent " + localAgentName + " not found.");
 		} 
 		myImpl.releaseLocalAgent(agentID);
-		return new AgentController(agentID, myProxy, myImpl);
+		return new AgentControllerImpl(agentID, myProxy, myImpl);
 	}
 
 
@@ -118,7 +118,7 @@ public class ContainerController {
 
 		try {
 			myProxy.createAgent(agentID, className, args);
-			return new AgentController(agentID, myProxy, myImpl);
+			return new AgentControllerImpl(agentID, myProxy, myImpl);
 		}
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
@@ -151,7 +151,7 @@ public class ContainerController {
 		catch(Exception e) {
 			throw new StaleProxyException(e);
 		}
-		return new AgentController(agentID, myProxy, myImpl);
+		return new AgentControllerImpl(agentID, myProxy, myImpl);
 	}
 	// HP Patch end ------------------------------------------------------------------------------------
 

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.wrapper;
 
@@ -32,28 +32,28 @@ package jade.wrapper;
  */
 public class StaleProxyException extends ControllerException {
 
-  /**
+	/**
      Creates a new exception object, with a default detail message.
-   */
-  StaleProxyException() {
-    super("The proxy is not valid anymore.");
-  }
+	 */
+	public StaleProxyException() {
+		super("The proxy is not valid anymore.");
+	}
 
-  /**
+	/**
      Creates a new exception object, with a given detail message.
      @param message The detail message for the new exception object.
-   */
-  StaleProxyException(String message) {
-    super(message);
-  }
+	 */
+	public StaleProxyException(String message) {
+		super(message);
+	}
 
-  /**
-   * Creates a new exception object, extracting message from another throwable.
-   * @param aThrowable The original exception or error.
-   */
-  StaleProxyException(Throwable aThrowable) {
-    super(aThrowable.getMessage());
-  }
+	/**
+	 * Creates a new exception object, extracting message from another throwable.
+	 * @param aThrowable The original exception or error.
+	 */
+	public StaleProxyException(Throwable aThrowable) {
+		super(aThrowable.getMessage());
+	}
 
 }
 
