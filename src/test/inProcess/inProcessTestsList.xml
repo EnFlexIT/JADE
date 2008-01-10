@@ -55,4 +55,14 @@ create a new agent on the same container, and a new agent on a new container. Th
 			<WhenTestPass> The test passes if the agent is successfully created.
 			</WhenTestPass>
 		</Test>
+
+		<Test name="Test memory leak in agent termination" skip="true">
+			<TestClassName>test.inProcess.test.TestMemoryLeakInAgentTermination</TestClassName>
+			<WhatTest>Test if there are memory leaks in the agent creation/termination process 
+			</WhatTest>
+			<HowWorkTest>The test at each round creates and successively kills an agent and checks if the busy memory increases 
+			</HowWorkTest>			
+			<WhenTestPass>The test passes if 10000 rounds are performed with no memory problems
+			</WhenTestPass>
+		</Test>
 	</TestsList>
