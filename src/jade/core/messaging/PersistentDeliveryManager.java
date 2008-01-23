@@ -61,9 +61,12 @@ class PersistentDeliveryManager {
 
 	// How often to check for expired deliveries
 	private static final long DEFAULT_SENDFAILUREPERIOD = 60*1000; // One minute
+	
+	private static final String FILE_STORAGE_SHORTCUT = "file";
 
 	// Default storage class
 	private static final String DEFAULT_STORAGE = "jade.core.messaging.PersistentDeliveryManager$DummyStorage";
+	private static final String FILE_STORAGE = "jade.core.messaging.FileMessageStorage";
 
 	private static class DeliveryItem {
 
@@ -175,6 +178,9 @@ class PersistentDeliveryManager {
 		try {
 			// Choose the persistent storage method
 			String storageClass = p.getParameter(PersistentDeliveryService.PERSISTENT_DELIVERY_STORAGEMETHOD,DEFAULT_STORAGE);
+			if (FILE_STORAGE_SHORTCUT.equalsIgnoreCase(storageClass)) {
+				storageClass = FILE_STORAGE;
+			}
 			storage = (MessageStorage)Class.forName(storageClass).newInstance();
 			storage.init(p);
 

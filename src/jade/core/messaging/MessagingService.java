@@ -56,6 +56,7 @@ import jade.core.NotFoundException;
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
 import jade.domain.FIPAAgentManagement.Envelope;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 
 import jade.security.JADESecurityException;
@@ -804,6 +805,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				InChannel.Dispatcher dispatcher = new InChannel.Dispatcher() {
 					public void dispatchMessage(Envelope env, byte[] payload) {
 						//log("Message from remote platform received", 2);
+
 						if (myLogger.isLoggable(Logger.FINE))
 							myLogger.log(Logger.FINE,"Message from remote platform received");
 						
@@ -835,6 +837,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						while (it.hasNext()) {
 							AID rcv = (AID)it.next();
 							GenericMessage msg = new GenericMessage(env,payload);
+							String traceId = getTraceId(env);
+							if (traceId != null) {
+								myLogger.log(Logger.INFO, "MTP In-Channel handling message from the outside for receiver "+rcv.getName()+". TraceID = "+traceId);
+								msg.setTraceID(traceId);
+							}
 							myMessageManager.deliver(msg, rcv, MessagingService.this);
 						}
 					}
@@ -1181,6 +1188,9 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			} 
 			else {
 				// Dispatch it through the ACC
+				if (msg.getTraceID() != null) {
+					myLogger.log(Logger.INFO, msg.getTraceID() + " - Activating ACC delivery");
+				}
 				Iterator addresses = receiverID.getAllAddresses();
 				while (addresses.hasNext()) {
 					String address = (String) addresses.next();
@@ -1361,6 +1371,10 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			addPlatformAddresses(aid);
 		
 		try {
+			if (msg.getTraceID() != null) {
+				myLogger.log(Logger.INFO, msg.getTraceID() + " - Routing message out to address "+address);
+				msg.getEnvelope().addProperties(new Property(ACLMessage.TRACE, msg.getTraceID()));
+			}
 			localSlice.routeOut(msg.getEnvelope(),msg.getPayload(), receiver, address);
 		}
 		catch(IMTPException imtpe) {
@@ -1377,6 +1391,20 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	 */
 	public void notifyFailureToSender(GenericMessage msg, AID receiver, InternalError ie) {
 		ACLMessage acl = msg.getACLMessage();
+		if (acl == null) {
+			// ACLMessage can be null in case we get a failure delivering a message coming from an external platform (received by a local MTP).
+			// In this case in fact the message is encoded. Try to decode it so that a suitable FAILURE response can be sent back.
+			// If the payload is mangled in some way (e.g. encrypted) decoding will fail and no suitable FAILURE response will be sent
+			try {
+				acl = ((IncomingEncodingFilter) encInFilter).decodeMessage(msg.getEnvelope(), msg.getPayload());
+				acl.setEnvelope(msg.getEnvelope());
+				msg.setACLMessage(acl);
+			}
+			catch (Exception e) {
+				// Just do nothing
+				e.printStackTrace();
+			}
+		}
 		if (acl != null && "true".equals(acl.getUserDefinedParameter(ACLMessage.IGNORE_FAILURE))) {
 			// Ignore the failure 
 			return;
@@ -1496,6 +1524,17 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				traceCnt++;
 			}
 		}
+	}
+	
+	private String getTraceId(Envelope env) {
+		Iterator it = env.getAllProperties();
+		while (it.hasNext()) {
+			Property p = (Property) it.next();
+			if (p.getName().equals(ACLMessage.TRACE)) {
+				return (String) p.getValue();
+			}
+		}
+		return null; 
 	}
 	
 	// For debugging purpose

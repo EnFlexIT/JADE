@@ -285,7 +285,6 @@ public class MessageTransportProtocol implements MTP {
 		byte[] request;
 		
 		try {
-			
 			HTTPAddress host = new HTTPAddress(addr);
 			if (useProxy) {
 				url = new HTTPAddress(proxyHost,proxyPort,false); //false=>do_not_use HTTPS with the proxy

@@ -1104,7 +1104,7 @@ public class AgentMobilityService extends BaseService {
 		
 		/**
 		 * Inner class ClassInfo
-		 * This utility bean class is used only to keey together some pieces of information related to a class
+		 * This utility bean class is used only to keep together some pieces of information related to a class
 		 */
 		private class ClassInfo {
 			private InputStream classStream;

@@ -2,19 +2,19 @@
  JADE - Java Agent DEvelopment Framework is a framework to develop 
  multi-agent systems in compliance with the FIPA specifications.
  Copyright (C) 2000 CSELT S.p.A. 
- 
+
  GNU Lesser General Public License
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation, 
  version 2.1 of the License. 
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the
  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -53,12 +53,12 @@ import jade.domain.FIPAAgentManagement.APDescription;
 import jade.domain.FIPAAgentManagement.AMSAgentDescription;
 
 /**
- 
+
  @author Francisco Regi, Andrea Soracchi - Universita` di Parma
  @version $Date$ $Revision$
  */
 class MainWindow extends JFrame {
-	
+
 	private MainPanel tree;
 	private ActionProcessor actPro;
 	private PopupMenuAgent popA;
@@ -69,14 +69,14 @@ class MainWindow extends JFrame {
 	private InstallMTPDialog installDlg = new InstallMTPDialog(this, true);
 	private ManageMTPsDialog manageDlg;
 	private String logojade = "images/logosmall.jpg";
-	
+
 	private List containerNames = new LinkedList();
 	private Map addresses = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-	
-	
+
+
 	public MainWindow (rma anRMA) {
 		super(anRMA.getName() +" - JADE Remote Agent Management GUI");
-		
+
 		manageDlg = new ManageMTPsDialog(anRMA, this, false, addresses);
 		tree = new MainPanel(anRMA, this);
 		actPro = new ActionProcessor(anRMA, this, tree);
@@ -103,17 +103,17 @@ class MainWindow extends JFrame {
 		tmp.setIcon(null);
 		popLocalPlatform.add((RMAAction)actPro.actions.get(actPro.MANAGE_MTPS_ACTION));
 		tree.treeAgent.setNewPopupMenu(AgentTree.LOCAL_PLATFORM_TYPE, popLocalPlatform);
-		
+
 		setForeground(Color.black);
 		setBackground(Color.lightGray);
 		Image image = getToolkit().getImage(getClass().getResource(logojade));
 		setIconImage(image);
 		addWindowListener(new WindowCloser(anRMA));
-		
+
 		getContentPane().add(new ToolBar(tree,this,actPro),"North"); // new ToolBar(tree, this, ActionProcessor.actions)
 		getContentPane().add(tree,"Center");
 	}
-	
+
 	public void ShowCorrect() {
 		pack();
 		setSize(600, 400);
@@ -122,48 +122,38 @@ class MainWindow extends JFrame {
 		int centerY = (int)screenSize.getHeight() / 2;
 		setLocation(centerX - 300, centerY - 200);
 		tree.adjustDividersLocation();
-		
+
 		setVisible(true);
 		toFront();
 	}
-	
-	// Perform asynchronous disposal to avoid nasty InterruptedException
-	// printout.
+
+	// Perform asynchronous disposal to avoid nasty InterruptedException printout.
 	public void disposeAsync() {
-		dispose();
-		
-		/*class disposeIt implements Runnable {
-		 private Window toDispose;
-		 
-		 public disposeIt(Window w) {
-		 toDispose = w;
-		 }
-		 
-		 public void run() {
-		 toDispose.dispose();
-		 }
-		 
-		 }
-		 
-		 // Make AWT Event Dispatcher thread dispose RMA window for us.
-		  SwingUtilities.invokeLater(new disposeIt(this));*/
-		
+		//dispose();
+		final Window toDispose = this;
+		// Make AWT Event Dispatcher thread dispose RMA window for us.
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				toDispose.dispose();
+			}
+		});
+
 	}
-	
+
 	public AgentTreeModel getModel() {
 		return tree.treeAgent.getModel();
 	}
-	
+
 	public void resetTree() {
 		Runnable resetIt = new Runnable() {
-			
+
 			public void run() {
 				tree.treeAgent.clearLocalPlatform();
 			}
 		};
 		SwingUtilities.invokeLater(resetIt);
 	}
-	
+
 	public void addContainer(final String name, final InetAddress addr) {
 		Runnable addIt = new Runnable() {
 			public void run() {
@@ -176,12 +166,12 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(addIt);
 	}
-	
+
 	public void removeContainer(final String name) {
-		
+
 		// Remove a container from the tree model
 		Runnable removeIt = new Runnable() {
-			
+
 			public void run() {
 				tree.treeAgent.removeContainerNode(name);
 				containerNames.remove(name);
@@ -190,9 +180,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(removeIt);
 	}
-	
+
 	public void addAgent(final String containerName, final AID agentID, final String state, final String ownership) {
-		
+
 		// Add an agent to the specified container
 		Runnable addIt = new Runnable() {
 			public void run() {
@@ -207,9 +197,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(addIt);
 	}
-	
+
 	public void removeAgent(final String containerName, final AID agentID) {
-		
+
 		// Remove an agent from the specified container
 		Runnable removeIt = new Runnable() {
 			public void run() {
@@ -219,9 +209,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(removeIt);
 	}
-	
+
 	public void modifyAgent(final String containerName, final AID agentID, final String state, final String ownership) {
-		
+
 		// Remove an agent from the specified container
 		Runnable modifyIt = new Runnable() {
 			public void run() {
@@ -231,9 +221,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(modifyIt);
 	}
-	
+
 	public void moveAgent(final String fromContainer, final String toContainer, final AID agentID) {
-		
+
 		// Move an agent from a container node to another
 		Runnable moveIt = new Runnable() {
 			public void run() {
@@ -243,9 +233,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(moveIt);
 	}
-	
+
 	public void modifyFrozenAgent(final String oldContainer, final String newContainer, final AID agentID) {
-		
+
 		// Freeze an agent to the specified container
 		Runnable freezeIt = new Runnable() {
 			public void run() {
@@ -255,9 +245,9 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(freezeIt);
 	}
-	
+
 	public void modifyThawedAgent(final String oldContainer, final String newContainer, final AID agentID) {
-		
+
 		// Thaw an agent to the specified container
 		Runnable thawIt = new Runnable() {
 			public void run() {
@@ -267,7 +257,7 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(thawIt);
 	}
-	
+
 	public void addAddress(final String address, final String where) {
 		Runnable addIt = new Runnable() {
 			public void run() {
@@ -281,67 +271,67 @@ class MainWindow extends JFrame {
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
-		
-		
+
+
 	}
-	
+
 	public void addRemotePlatformFolder(){
 		Runnable addIt = new Runnable(){
 			public void run(){
 				PopupMenuPlatform menu = new PopupMenuPlatform(actPro);
 				tree.treeAgent.setNewPopupMenu(AgentTree.REMOTE_PLATFORMS_FOLDER_TYPE, menu);
 				tree.treeAgent.addRemotePlatformsFolderNode();
-				
+
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
 	}
-	
-	
+
+
 	public void addRemotePlatform(AID name,APDescription profile){
-		
+
 		final APDescription desc = profile;
 		final AID ams = name;
 		Runnable addIt = new Runnable(){
-			
+
 			public void run(){
 				tree.treeAgent.addRemotePlatformNode(ams,desc);
-				
+
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
 	}
-	
-	
+
+
 	public void addRemoteAgentsToRemotePlatform(final APDescription platform,final Iterator i){
-		
+
 		// Add an agent to a specified AMS
 		Runnable addIt = new Runnable() {
 			public void run() {
-				
+
 				while(i.hasNext()){
 					AMSAgentDescription agent = (AMSAgentDescription)i.next();
-					
+
 					tree.treeAgent.addRemoteAgentNode(agent,platform.getName());
 				}
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
-		
+
 	}
-	
+
 	public void removeRemotePlatform(final String platformName){
-		
+
 		Runnable addIt = new Runnable(){
-			
+
 			public void run(){
 				tree.treeAgent.removeRemotePlatformNode(platformName);
-				
+
 			}
 		};
 		SwingUtilities.invokeLater(addIt);
 	}
-	
+
 	public void removeAddress(final String address, final String where) {
 		Runnable removeIt = new Runnable() {
 			public void run() {
@@ -356,22 +346,22 @@ class MainWindow extends JFrame {
 		};
 		SwingUtilities.invokeLater(removeIt);
 	}
-	
-	
+
+
 	public void refreshLocalPlatformName(final String name){
-		
+
 		Runnable refreshName = new Runnable(){
 			public void run(){
 				tree.treeAgent.refreshLocalPlatformName(name);
 			}
-			
+
 		};
 		SwingUtilities.invokeLater(refreshName);
-		
+
 	}
-	
-	
-	
+
+
+
 	public void showErrorDialog(String text, ACLMessage msg) {
 		String messages[] = new String[3];
 		messages[0] = text;
@@ -386,7 +376,7 @@ class MainWindow extends JFrame {
 			break;
 		}
 	}
-	
+
 	public boolean showExitDialog(String message) {
 		int n = JOptionPane.showConfirmDialog(this, "Are you really sure to exit ?", message, JOptionPane.YES_NO_OPTION);
 		if(n == JOptionPane.YES_OPTION)
@@ -394,7 +384,7 @@ class MainWindow extends JFrame {
 		else
 			return false;
 	}
-	
+
 	public boolean showInstallMTPDialog(jade.domain.JADEAgentManagement.InstallMTP imtp) {
 		String[] names = (String[])containerNames.toArray(new String[0]);
 		installDlg.reset(names, imtp.getContainer().getName());
@@ -405,7 +395,7 @@ class MainWindow extends JFrame {
 		imtp.setClassName(installDlg.getClassName());
 		return installDlg.isConfirmed();
 	}
-	
+
 	public boolean showUninstallMTPDialog(jade.domain.JADEAgentManagement.UninstallMTP umtp) {
 		String where = umtp.getContainer().getName();
 		List addrs = (List)addresses.get(where);
@@ -414,7 +404,7 @@ class MainWindow extends JFrame {
 					"Error during MTP removal", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		
+
 		Object[] names = addrs.toArray();
 		String address = (String)JOptionPane.showInputDialog(this, "Choose the MTP to remove.",
 				"Remove an MTP", JOptionPane.INFORMATION_MESSAGE,
@@ -426,24 +416,24 @@ class MainWindow extends JFrame {
 		else
 			return false;
 	}
-	
+
 	public void showManageMTPsDialog() {
 		manageDlg.showCentered();
 	}
-	
-	
+
+
 	public void viewAPDescriptionDialog(APDescription ap, String title){
-		
+
 		if (ap != null)
 		{
 			APDescriptionPanel.showAPDescriptionInDialog(ap,this,title);
 		}
-		
+
 	}
-	
-	
-	
-	
+
+
+
+
 	private void setUI(String ui) {
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf."+ui);
@@ -455,33 +445,33 @@ class MainWindow extends JFrame {
 			e.printStackTrace(System.out);
 		}
 	}
-	
+
 	/**
 	 enables Motif L&F
 	 */
 	public void setUI2Motif() {
 		setUI("motif.MotifLookAndFeel");
 	}
-	
+
 	/**
 	 enables Windows L&F
 	 */
 	public void setUI2Windows() {
 		setUI("windows.WindowsLookAndFeel");
 	}
-	
+
 	/**
 	 enables Multi L&F
 	 */
 	public void setUI2Multi() {
 		setUI("multi.MultiLookAndFeel");
 	}
-	
+
 	/**
 	 enables Metal L&F
 	 */
 	public void setUI2Metal() {
 		setUI("metal.MetalLookAndFeel");
 	}
-	
+
 } 

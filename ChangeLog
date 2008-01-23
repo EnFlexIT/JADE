@@ -1,7 +1,10 @@
 MAJOR CHANGES in JADE XXX (XXX)
 ==========================================================================
 GENERAL IMPROVEMENTS:
+- Added support to specify a jar file where to load agent code at agent startup
 - Extended TopicManagementService to deal with registrations to topic templates (e.g. foo.bar.*)
+- Added responder class for Iterated-Contract-Net protocol using the Single-Session approach
+- Added SSResponderDispatcher class to manage protocol initiation messages and dispatch them to SSResponder behaviours
 - Added support for different implementations of the Agent MessageQueue. By Arend Freije [a.freije@minihouse.com] 
 - Added method setO2AManager() in Agent class to associate a single behaviour to the O2A communication mechanism. 
 - Modified automatic main detection mechanism to print a warning and go on when the initialization fails (on the Main Container) and it was not explicitly tured on
@@ -11,14 +14,18 @@ GENERAL IMPROVEMENTS:
 - Added method dump() to BaseService to support runtime service inspection by means of the ContainerMonitorAgent (misc Add-On)
 - Added method getLocalServices() in ServiceManager interface
 - Modified KeyStoreKeyManager to support selection of the keystore type (default still JKS, but other possible, eg. PKCS12). By Arend Freije [a.freije@minihouse.com] 
-
+- Added method hasDefaultTransition() in FSMBehaviour
+- Sustituted AgentContainer#livesHere() with isLocalAgent()
  
 BUG-FIXES:
 - Fixed bug in SSAchieveREResponder related to the receiption of successive messages when a performative different than REQUEST was used (Fix by Chris Audley)
 - Fixed bug in WakerBehaviour reset() method
 - Included HTTPS-classes in http.jar (also fixed build.xml). By Arend Freije [a.freije@minihouse.com] 
+- Fixed bug in inter-platform communication: if the receiver did not exist in the remote platform no FAILURE message was returned to the sender  
 
 LEAP:
+  - Added support for Object-2-Agent communication on split containers
+  - Fixed bug in FEService.
 
 
 ADD-ONS:
