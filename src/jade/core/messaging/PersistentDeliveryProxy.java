@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core.messaging;
 
@@ -49,159 +49,62 @@ import jade.domain.FIPAAgentManagement.Envelope;
    across an agent lifecycle, as long as the agent ID stays the same.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
-*/
+ */
 public class PersistentDeliveryProxy extends SliceProxy implements PersistentDeliverySlice {
 
+	public boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, NotFoundException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_STOREMESSAGE, NAME, null);
+			cmd.addParam(storeName);
+			// NOTE that we can't send the GenericMessage directly as a parameter
+			// since we would loose the embedded ACLMessage
+			cmd.addParam(msg.getACLMessage());
+			cmd.addParam(msg.getEnvelope());
+			cmd.addParam(msg.getPayload());
+			cmd.addParam(new Boolean(msg.hasForeignReceiver()));
+			cmd.addParam(msg.getTraceID());
+			cmd.addParam(receiver);
 
-    /*public void activateMsgStore(String name) throws IMTPException, NameClashException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_ACTIVATEMSGSTORE, NAME, null);
-	    cmd.addParam(name);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else if(result instanceof NotFoundException) {
+					throw (NotFoundException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
+			return ((Boolean)result).booleanValue();
 		}
-		else if(result instanceof NameClashException) {
-		    throw (NameClashException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void deactivateMsgStore(String name) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_DEACTIVATEMSGSTORE, NAME, null);
-	    cmd.addParam(name);
+	public void flushMessages(AID receiver) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_FLUSHMESSAGES, NAME, null);
+			cmd.addParam(receiver);
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
-		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 
-    public void registerTemplate(String storeName, MessageTemplate mt) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_REGISTERTEMPLATE, NAME, null);
-	    cmd.addParam(storeName);
-	    cmd.addParam(mt);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
 		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
-
-    public void deregisterTemplate(String storeName, MessageTemplate mt) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_DEREGISTERTEMPLATE, NAME, null);
-	    cmd.addParam(storeName);
-	    cmd.addParam(mt);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
-		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }*/
-
-    public boolean storeMessage(String storeName, GenericMessage msg, AID receiver) throws IMTPException, NotFoundException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_STOREMESSAGE, NAME, null);
-	    cmd.addParam(storeName);
-	    // NOTE that we can't send the GenericMessage directly as a parameter
-	    // since we would loose the embedded ACLMessage
-	    cmd.addParam(msg.getACLMessage());
-	    cmd.addParam(msg.getEnvelope());
-	    cmd.addParam(msg.getPayload());
-	    cmd.addParam(receiver);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
-		}
-		else if(result instanceof NotFoundException) {
-		    throw (NotFoundException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
-	    return ((Boolean)result).booleanValue();
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
-
-    public void flushMessages(AID receiver) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_FLUSHMESSAGES, NAME, null);
-	    cmd.addParam(receiver);
-
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
-		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
-		}
-	    }
-
-	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
 }

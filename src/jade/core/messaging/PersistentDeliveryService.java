@@ -270,9 +270,13 @@ public class PersistentDeliveryService extends BaseService {
 					ACLMessage acl = (ACLMessage) params[1];
 					Envelope env = (Envelope) params[2];
 					byte[] payload = (byte[]) params[3];
+					Boolean foreignRecv = (Boolean) params[4];
+					String traceId = (String) params[5];
 					GenericMessage msg = new GenericMessage();
 					msg.update(acl, env, payload);
-					AID receiver = (AID)params[4];
+					msg.setTraceID(traceId);
+					msg.setForeignReceiver(foreignRecv.booleanValue());
+					AID receiver = (AID)params[6];
 
 					boolean stored = storeMessage(storeName, msg, receiver);
 					cmd.setReturnValue(new Boolean(stored));

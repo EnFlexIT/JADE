@@ -1199,7 +1199,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 						return;
 					} 
 					catch (MTPException mtpe) {
-						if (myLogger.isLoggable(Logger.WARNING))
+						if (myLogger.isLoggable(Logger.WARNING) && !isPersistentDeliveryRetry(msg))
 							myLogger.log(Logger.WARNING, "Cannot deliver message to address: " + address + " [" + mtpe.toString() + "]. Trying the next one...");
 					}
 				}
@@ -1229,6 +1229,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Not authorized.", jse);
 			}
 			notifyFailureToSender(msg, receiverID, new InternalError("Not authorized: " + jse.getMessage()));
+		}
+	}
+	
+	private boolean isPersistentDeliveryRetry(GenericMessage msg) {
+		ACLMessage acl = msg.getACLMessage();
+		if (acl != null) {
+			return acl.getAllUserDefinedParameters().containsKey(PersistentDeliveryService.ACL_USERDEF_DUE_DATE);
+		}
+		else {
+			return false;
 		}
 	}
 	

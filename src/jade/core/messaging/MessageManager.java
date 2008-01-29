@@ -213,7 +213,7 @@ class MessageManager {
 			StringBuffer sb = new StringBuffer("(");
 			sb.append(ACLMessage.getPerformative(msg.getPerformative()));
 			sb.append(" sender: ");
-			sb.append(msg.getSender());
+			sb.append(msg.getSender().getName());
 			if (msg.getOntology() != null) {
 				sb.append(" ontology: ");
 				sb.append(msg.getOntology());
