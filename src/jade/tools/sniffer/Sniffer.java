@@ -239,7 +239,7 @@ public class Sniffer extends ToolAgent {
 
 
           // If the message that we just got is one that should be filtered out
-          // then drop that it on the floor.  WARNING - this means that the log file
+          // then drop it.  WARNING - this means that the log file
           // that the sniffer might dump does not include the message!!!!
           boolean filters [];
           String agentName = msg.getSender().getName();
@@ -383,11 +383,14 @@ public class Sniffer extends ToolAgent {
 	    // Here we check to see if the agent is one that we automatically will
 	    // start sniffing.  If so, we invoke DoSnifferAction's doSniff and start
 	    // the sniffing process.
-	    if (preloadContains(agent.getName()) != null) {
-	      ActionProcessor ap = myGUI.actPro;
-        DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
-        sa.doSniff(agent.getName());
-	    } 
+	    // Avoid sniffing myself to avoid infinite recursion
+	    if (!agent.equals(getAID())) {
+		    if (preloadContains(agent.getName()) != null) {
+		      ActionProcessor ap = myGUI.actPro;
+	        DoSnifferAction sa = (DoSnifferAction)ap.actions.get(ap.DO_SNIFFER_ACTION);
+	        sa.doSniff(agent.getName());
+		    } 
+	    }
 	  }
         });
 
@@ -432,8 +435,9 @@ public class Sniffer extends ToolAgent {
     if ( (arguments != null) && ( arguments.length > 0 ))
     {
         String  s = "";
-        for( int i=0; i < arguments.length; ++i )
-            s += arguments[i].toString();
+        for( int i=0; i < arguments.length; ++i ) {
+            s += arguments[i].toString()+' ';
+        }
         properties.setProperty("preload", s );
         
     } else {
@@ -457,6 +461,7 @@ public class Sniffer extends ToolAgent {
     preload = new Hashtable();
     
     String preloadDescriptions = properties.getProperty("preload", null);
+    
     if (preloadDescriptions != null) {
         StringTokenizer parser = new StringTokenizer(preloadDescriptions, ";");
         while (parser.hasMoreElements()) {

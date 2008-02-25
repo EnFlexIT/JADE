@@ -1233,13 +1233,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	private boolean isPersistentDeliveryRetry(GenericMessage msg) {
+		boolean ret = false;
+		//#J2ME_EXCLUDE_BEGIN
 		ACLMessage acl = msg.getACLMessage();
 		if (acl != null) {
-			return acl.getAllUserDefinedParameters().containsKey(PersistentDeliveryService.ACL_USERDEF_DUE_DATE);
+			ret = acl.getAllUserDefinedParameters().containsKey(PersistentDeliveryService.ACL_USERDEF_DUE_DATE);
 		}
-		else {
-			return false;
-		}
+		//#J2ME_EXCLUDE_END
+		return ret;
 	}
 	
 	void deliverInLocalPlatfrom(GenericMessage msg, AID receiverID) throws IMTPException, ServiceException, NotFoundException, JADESecurityException {
