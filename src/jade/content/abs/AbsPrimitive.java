@@ -84,7 +84,7 @@ public class AbsPrimitive implements AbsTerm {
 	 * containing a given <code>int</code> value.
 	 */
 	public static AbsPrimitive wrap(int value) {
-		AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Long((long) value));
+		AbsPrimitive ret = new AbsPrimitive(BasicOntology.INTEGER, new Integer(value));
 		return ret;
 	} 
 
@@ -103,7 +103,7 @@ public class AbsPrimitive implements AbsTerm {
 	 * containing a given <code>float</code> value.
 	 */
 	public static AbsPrimitive wrap(float value) {
-		AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Double((double) value));
+		AbsPrimitive ret = new AbsPrimitive(BasicOntology.FLOAT, new Float(value));
 		return ret;
 	} 
 

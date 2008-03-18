@@ -66,6 +66,9 @@
 				<exclude name="**/jade/content/lang/sl/SLParser.java"/>
 				<exclude name="**/jade/content/lang/sl/SLParserConstants.java"/>
 				<exclude name="**/jade/content/lang/sl/SLParserTokenManager.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParser.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserConstants.java"/>
+				<exclude name="**/jade/content/lang/sl/ExtendedSLParserTokenManager.java"/>
 				<exclude name="**/jade/content/lang/sl/ParseException.java"/>
 				<exclude name="**/jade/content/lang/sl/Token.java"/>
 				<exclude name="**/jade/content/lang/sl/TokenMgrError.java"/>

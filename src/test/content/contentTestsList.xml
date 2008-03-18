@@ -55,6 +55,12 @@
 				Test passed if no exception is fired.
 			</WhenTestPass>
 		</Test>		
+		<Test name="Java types preservation in un-typed attributes" skip="false">
+			<TestClassName>test.content.tests.TestJavaTypesPreservation</TestClassName>
+			<WhatTest> Tests that java types (Integer, Long, Float, Double) are correctly managed also when used in un-typed attributes or within a list</WhatTest>
+			<HowWorkTest> </HowWorkTest>
+			<WhenTestPass> </WhenTestPass>
+		</Test>		
 		<Test name="Agent Action" skip="false">
 			<TestClassName>test.content.tests.TestAgentAction</TestClassName>
 			<WhatTest> Tests a ACLMessage content.</WhatTest>

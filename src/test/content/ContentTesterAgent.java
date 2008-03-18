@@ -33,6 +33,7 @@ import jade.domain.*;
 import jade.lang.acl.*;
 import jade.content.*;
 import jade.content.lang.*;
+import jade.content.lang.sl.SLCodec;
 
 import test.common.*;
 import test.common.agentConfigurationOntology.*;
@@ -61,11 +62,16 @@ public class ContentTesterAgent extends TesterAgent {
 				// Load the codec to be used in the tests
 				Codec codec = null;
 				String codecClassName = (String) getArgument(CODEC_CLASS_NAME);
-				try {
-					codec = (Codec) Class.forName(codecClassName).newInstance();
+				if (codecClassName.equals(SLCodec.class.getName())) {
+					codec = new SLCodec(true);
 				}
-				catch (Exception e) {
-					throw new TestException("Error loading codec "+codecClassName, e);
+				else {
+					try {
+						codec = (Codec) Class.forName(codecClassName).newInstance();
+					}
+					catch (Exception e) {
+						throw new TestException("Error loading codec "+codecClassName, e);
+					}
 				}
 				System.out.println("Test group performed using the "+codec.getName()+" language");
 

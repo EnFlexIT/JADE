@@ -1,7 +1,7 @@
 MAJOR CHANGES in JADE XXX (XXX)
 ==========================================================================
 GENERAL IMPROVEMENTS:
-- Added support to specify a jar file where to load agent code at agent startup
+- Added support to specify the jar file where to load agent code at agent startup
 - Extended TopicManagementService to deal with registrations to topic templates (e.g. foo.bar.*)
 - Added responder class for Iterated-Contract-Net protocol using the Single-Session approach
 - Added SSResponderDispatcher class to manage protocol initiation messages and dispatch them to SSResponder behaviours
@@ -16,6 +16,7 @@ GENERAL IMPROVEMENTS:
 - Modified KeyStoreKeyManager to support selection of the keystore type (default still JKS, but other possible, eg. PKCS12). By Arend Freije [a.freije@minihouse.com] 
 - Added method hasDefaultTransition() in FSMBehaviour
 - Sustituted AgentContainer#livesHere() with isLocalAgent()
+- Modified SLCodec to support Java primitive types (long, int, float double) preservation in un-typed attributes
  
 BUG-FIXES:
 - Fixed bug in SSAchieveREResponder related to the receiption of successive messages when a performative different than REQUEST was used (Fix by Chris Audley)
@@ -29,15 +30,29 @@ LEAP:
 
 
 ADD-ONS:
+- JADE-ANDROID Add-on
+  - New Add-on allowing deployment of JADE-based applications on Google Android platform
+
 - Misc Add-on
   - Added support for leader election within an open group (members can appear and disappear at any time) of agents 
   - Added support for DUMP-SERVICE action in ContainerMonitorAgent
 
-
-- JADE-SHARP Add-on
-
+- WSIG Add-on
+  - Support for optional/unordered parameters in Web Service invocations
+  - Improved AgentAction object construction from Web Service parameters
+  - Improved exception handling and error messages
+  - Added support for further WSDL customization by means of the OntologyName and SuppressOperation annotations.
+  - Modification to use XML validation schemes at non-standard addresses.
+  - Fixed problem related to usage of Basic Ontology types (such as AID) as Web Service operation parameters (bug indicated by Jason Woodrich) 
+  - Some fixes to make things fully compliant to standards.
+  - Updated Guide and examples.
+  
+- XMLCodec Add-on
+  - Modified to preserve Java primitive types (long, int, float double) in un-typed attributes
+  - Modified to properly handle SET and SEQUENCE aggregates
 
 DOCUMENTATION:
+- Aggiornare Administrator's guide con specifica jar agents (a:myClass[code=...])
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 API: NONE

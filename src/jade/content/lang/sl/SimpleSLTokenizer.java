@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.content.lang.sl;
 
@@ -35,14 +35,14 @@ public class SimpleSLTokenizer {
 	private static final String msg = "Parse error: unexpected end of content at #";
 	private String content;
 	private int current = 0;
-	
+
 	/**
 	   Construct a SimpleSLTokenizer that will act on the given String
 	 */
 	public SimpleSLTokenizer(String s) {
 		content = s;
 	}
-	
+
 	/**
 	   Return the next SL token (i.e. '(', ')' or a generic element)
 	   without advancing the pointer
@@ -66,7 +66,7 @@ public class SimpleSLTokenizer {
 			throw new Codec.CodecException(msg+current);
 		}
 	}
-	
+
 	/**
 	   Check that the next character (after eventual spaces) is
 	   'c' and advance the pointer to the character just after
@@ -82,7 +82,7 @@ public class SimpleSLTokenizer {
 			throw new Codec.CodecException(msg+current);
 		}
 	}
-	
+
 	/**
 	   Return the next SL element (i.e. a word or a generic sequence 
 	   of char enclosed into "") and advance the pointer to the character
@@ -94,7 +94,7 @@ public class SimpleSLTokenizer {
 	public String getElement() throws Codec.CodecException {
 		return getElement(true);
 	}
-	
+
 	private String getElement(boolean removeColon) throws Codec.CodecException {
 		try {
 			String el = null;
@@ -121,7 +121,7 @@ public class SimpleSLTokenizer {
 			throw new Codec.CodecException(msg+current);
 		}
 	}
-	
+
 	private String getWord(boolean removeColon) {
 		skipSpaces();
 		int start = current;
@@ -137,62 +137,62 @@ public class SimpleSLTokenizer {
 		String s = content.substring(start, current);
 		return s;
 	}
-	
+
 	private void skipSpaces() {
 		while (isSpace(content.charAt(current))) {
 			current++;
 		}
 	}
-	
+
 	private boolean isSpace(char c) {
 		return (c == ' ' || c == '\t' || c == '\n');
 	}
-	
+
 	private static final String illegalFirstChar = "#0123456789:-?";
-		//FIXME We might improve performance if we merged isAWord and quoteString into a single method
-		// infact they both have to loop over the chars of the String.
-  /**
-   * Test if the given string is a legal SL word using the FIPA XC00008D spec.
-   * In addition to FIPA's restrictions, place the additional restriction 
-   * that a Word can not contain a '\"', that would confuse the parser at
-   * the other end.
-   */
-  public final static boolean isAWord( String s) {
+	//FIXME We might improve performance if we merged isAWord and quoteString into a single method
+	// infact they both have to loop over the chars of the String.
+	/**
+	 * Test if the given string is a legal SL word using the FIPA XC00008D spec.
+	 * In addition to FIPA's restrictions, place the additional restriction 
+	 * that a Word can not contain a '\"', that would confuse the parser at
+	 * the other end.
+	 */
+	public final static boolean isAWord( String s) {
 		// This should permit strings of length 0 to be encoded.
 		if( s==null || s.length()==0 ) {
-	    return false; // words must have at least one character
+			return false; // words must have at least one character
 		}
-		
+
 		if ( illegalFirstChar.indexOf(s.charAt(0)) >= 0 ) {
-	    return false;
+			return false;
 		}
 		for( int i=0; i< s.length(); i++) {
 			char c = s.charAt(i);
-	    if(c == '"' || c == '(' || c == ')' || c <= 0x20 || c >= 0x80 ) {
+			if(c == '"' || c == '(' || c == ')' || c <= 0x20 || c >= 0x80 ) {
 				return false;
 			}
 		}		
 		return true;
-  }
-  
-  /** 
-   * Take a java String and quote it to form a legal FIPA SL0 string.
-   * Add quotation marks to the beginning/end and escape any 
-   * quotation marks inside the string.
-   */
-  public static String quoteString(String s) {
-      // Make the stringBuffer a little larger than strictly
-      // necessary in case we need to insert any additional
-      // characters.  (If our size estimate is wrong, the
-      // StringBuffer will automatically grow as needed).
-      StringBuffer result = new StringBuffer(s.length()+20);
-      result.append("\"");
-      for( int i=0; i<s.length(); i++)
-          if( s.charAt(i) == '"' ) 
-              result.append("\\\"");
-          else 
-              result.append(s.charAt(i));
-      result.append("\"");
-      return result.toString();
-  }
+	}
+
+	/** 
+	 * Take a java String and quote it to form a legal FIPA SL0 string.
+	 * Add quotation marks to the beginning/end and escape any 
+	 * quotation marks inside the string.
+	 */
+	public static String quoteString(String s) {
+		// Make the stringBuffer a little larger than strictly
+		// necessary in case we need to insert any additional
+		// characters.  (If our size estimate is wrong, the
+		// StringBuffer will automatically grow as needed).
+		StringBuffer result = new StringBuffer(s.length()+20);
+		result.append("\"");
+		for( int i=0; i<s.length(); i++)
+			if( s.charAt(i) == '"' ) 
+				result.append("\\\"");
+			else 
+				result.append(s.charAt(i));
+		result.append("\"");
+		return result.toString();
+	}
 }

@@ -29,6 +29,7 @@
 
     <!-- Others -->
     <pathelement location="add-ons/benchmark/classes"/>
+    <pathelement location="add-ons/XMLCodec/classes"/>
   </path>
   
 

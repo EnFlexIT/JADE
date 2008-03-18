@@ -1220,14 +1220,12 @@ StringBuffer image;
 int jjimageLen;
 int lengthOfMatch;
 protected char curChar;
-public SLParserTokenManager(SimpleCharStream stream)
-{
+public SLParserTokenManager(SimpleCharStream stream){
    if (SimpleCharStream.staticFlag)
       throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
    input_stream = stream;
 }
-public SLParserTokenManager(SimpleCharStream stream, int lexState)
-{
+public SLParserTokenManager(SimpleCharStream stream, int lexState){
    this(stream);
    SwitchTo(lexState);
 }
@@ -1372,9 +1370,8 @@ void TokenLexicalActions(Token matchedToken)
    {
       case 17 :
         if (image == null)
-            image = new StringBuffer(new String(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1))));
-         else
-            image.append(new String(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1))));
+            image = new StringBuffer();
+            image.append(input_stream.GetSuffix(jjimageLen + (lengthOfMatch = jjmatchedPos + 1)));
       String tmp = matchedToken.image.substring(1,matchedToken.image.length()-1);
       int numBytes = Integer.parseInt(tmp);
       if (numBytes < 0) {

@@ -50,7 +50,7 @@ public class TestCFReflectiveIntrospector extends Test {
 				try {
 					log("--- Filling message content");
 					myAgent.getContentManager().fillContent(msg, p);
-					log("--- Message content correctly filled");
+					log("--- Message content correctly filled: "+msg.getContent());
 					myAgent.send(msg);
 					template = MessageTemplate.MatchConversationId(msg.getConversationId());
 				}
