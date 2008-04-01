@@ -315,18 +315,18 @@ public class TopicManagementService extends BaseService {
 				if (cmdName.equals(TopicManagementSlice.H_REGISTER)) {
 					AID aid = (AID) params[0];
 					AID topic = (AID) params[1];
-					System.out.println("Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
-					if (myLogger.isLoggable(Logger.FINER)) {
-						myLogger.log(Logger.FINER, "Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
+					//System.out.println("Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, "Received registration of agent "+aid.getName()+" to topic "+topic.getLocalName());
 					}					
 					register(aid, topic);
 				}
 				else if(cmdName.equals(TopicManagementSlice.H_DEREGISTER)) {
 					AID aid = (AID) params[0];
 					AID topic = (AID) params[1];
-					System.out.println("Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
-					if (myLogger.isLoggable(Logger.FINER)) {
-						myLogger.log(Logger.FINER, "Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
+					//System.out.println("Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
+					if (myLogger.isLoggable(Logger.FINE)) {
+						myLogger.log(Logger.FINE, "Received deregistration of agent "+aid.getName()+" from topic "+topic.getLocalName());
 					}					
 					deregister(aid, topic);
 				}
