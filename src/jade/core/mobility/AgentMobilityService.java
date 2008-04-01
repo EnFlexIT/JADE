@@ -303,7 +303,7 @@ public class AgentMobilityService extends BaseService {
 					myLogger.log(Logger.FINE,"Agent " + agentID.getName() + " correctly serialized");
 				}
 				
-				// Gets the container where the agent classes can be retrieved
+				// Gets the container where the agent classes can be retrieved (possibly the agent arrived in this container from another container)
 				String classSiteName = (String)sites.get(a);			
 				if (classSiteName == null) {
 					// The agent was born on this container
@@ -975,7 +975,11 @@ public class AgentMobilityService extends BaseService {
 			
 			String fileName = className.replace('.', '/') + ".class";
 			int length = -1;
-			InputStream classStream = ClassLoader.getSystemResourceAsStream(fileName);
+			InputStream classStream = getClass().getClassLoader().getResourceAsStream(fileName);
+			if (classStream == null) {
+				// This is likely redundant, but...
+				classStream = ClassLoader.getSystemResourceAsStream(fileName);
+			}
 			if (classStream == null) {
 				// In PJAVA for some misterious reason getSystemResourceAsStream()
 				// does not work --> Try to do it by hand
@@ -1025,7 +1029,7 @@ public class AgentMobilityService extends BaseService {
 				}
 			}
 			//#J2ME_EXCLUDE_BEGIN
-			if (classStream == null) {
+			if (classStream == null && agentName != null) {
 				// Maybe the agent was loaded from a separate Jar file
 				try {
 					AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
@@ -1039,7 +1043,7 @@ public class AgentMobilityService extends BaseService {
 					length = info.getLength();
 				}
 				catch (NullPointerException npe) {
-					// No jarfile or class not forund in jarfile. Ignore
+					// No jarfile or class not found in jarfile. Ignore
 				}
 				catch (Exception e) {
 					// Should never happen since findService() never throws exceptions
@@ -1292,12 +1296,24 @@ public class AgentMobilityService extends BaseService {
 		
 		/**
 		 */
-		protected Class resolveClass(ObjectStreamClass v)
-		throws IOException, ClassNotFoundException {
-			MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(classSiteName);
+		protected Class resolveClass(ObjectStreamClass v) throws IOException, ClassNotFoundException {
+			String key = createClassLoaderKey(agentName, classSiteName);
+			MobileAgentClassLoader cl = (MobileAgentClassLoader)loaders.get(key);
 			if (cl == null) {
-				cl = new MobileAgentClassLoader(agentName, classSiteName, finder);
-				loaders.put(classSiteName, cl);
+				try {
+					cl = new MobileAgentClassLoader(agentName, classSiteName, finder, AgentMobilityService.this.getClass().getClassLoader());
+					loaders.put(key, cl);
+				}
+				catch (IMTPException imtpe) {
+					// We are loading an incoming agent --> Should never happen
+					imtpe.printStackTrace();
+					throw new ClassNotFoundException("Error creating MobileAgent ClassLoader. "+imtpe.getMessage());
+				}
+				catch (ServiceException se) {
+					// We are loading an incoming agent --> Should never happen
+					se.printStackTrace();
+					throw new ClassNotFoundException("Error creating MobileAgent ClassLoader. "+se.getMessage());
+				}
 			}
 			//#J2ME_EXCLUDE_BEGIN
 			Class c = Class.forName(v.getName(), true, cl);
@@ -1307,10 +1323,15 @@ public class AgentMobilityService extends BaseService {
 			#J2ME_INCLUDE_END*/
 			return c;
 		}
+		
+		private String createClassLoaderKey(String agentName, String classSiteName) {
+			return agentName+'#'+classSiteName;
+		}
+		
 	}    // END of inner class Deserializer
 	
-	// This Map holds the mapping between a container and the class loader
-	// that can retrieve agent classes from this container.
+	// This Map holds the mapping between a container/agent pair and the class loader
+	// that can retrieve agent classes from that container.
 	private final Map loaders = new HashMap();
 	
 	// This Map holds the mapping between an agent that arrived on this
@@ -1347,6 +1368,17 @@ public class AgentMobilityService extends BaseService {
 		public void clone(Location destination, String newName) {
 			myAgent.changeStateTo(new CopyLifeCycle(destination, newName, myMovable, AgentMobilityService.this));
 		}
+		
+		//#J2ME_EXCLUDE_BEGIN
+		public ClassLoader getContainerClassLoader(String codeSourceContainer, ClassLoader parent) throws ServiceException {
+			try {
+				return new MobileAgentClassLoader(null, codeSourceContainer, AgentMobilityService.this.myFinder, parent);
+			}
+			catch (IMTPException imtpe) {
+				throw new ServiceException("Communication error retrieving code source container slice.", imtpe);
+			}
+		}
+		//#J2ME_EXCLUDE_END
 	}  // END of inner class AgentMobilityHelperImpl
 	
 	

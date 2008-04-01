@@ -50,6 +50,9 @@ public interface AgentMobilityHelper extends ServiceHelper {
 	void registerMovable(Movable m);
 	void move(Location destination);
 	void clone(Location destination, String newName);
+	//#J2ME_EXCLUDE_BEGIN
+	ClassLoader getContainerClassLoader(String containerName, ClassLoader parent) throws ServiceException;
+	//#J2ME_EXCLUDE_END
 	
     /**
        The name of this service.

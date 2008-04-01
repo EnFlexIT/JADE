@@ -24,6 +24,7 @@
 package jade.core.management;
 
 import jade.core.HorizontalCommand;
+import jade.core.Specifier;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -52,11 +53,13 @@ import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
 import jade.util.Logger;
+import jade.util.leap.Properties;
 
 //#J2ME_EXCLUDE_BEGIN
 import java.io.IOException;
 import java.io.File;
 //#J2ME_EXCLUDE_END
+import java.util.Vector;
 
 
 /**
@@ -69,6 +72,12 @@ import java.io.File;
  */
 public class AgentManagementService extends BaseService {
 	public static final String NAME = AgentManagementSlice.NAME;
+	
+	// Class properties names
+	public static final String CLASS_NAME = "name";
+	public static final String CLASS_CODE = "code";
+	public static final String CLASS_STATE = "state";
+	
 	
 	/**
 	 The path where to search agent jar files
@@ -510,7 +519,6 @@ public class AgentManagementService extends BaseService {
 		}
 		
 		private void handleRequestStateChange(VerticalCommand cmd) throws IMTPException, JADESecurityException, NotFoundException, ServiceException {
-			
 			Object[] params = cmd.getParams();
 			AID agentID = (AID)params[0];
 			int newState = ((Integer)params[1]).intValue();
@@ -569,7 +577,14 @@ public class AgentManagementService extends BaseService {
 			Agent agent = null;
 			try {
 				//#J2ME_EXCLUDE_BEGIN
-				String jarName = className.replace('.', '_') + ".jar";
+				Properties pp = getClassProperties(className);
+				String jarName = pp.getProperty(CLASS_CODE);
+				className = pp.getProperty(CLASS_NAME);
+				boolean warnIfJarNotFound = true;
+				if (jarName == null) {
+					jarName = className.replace('.', '_') + ".jar";
+					warnIfJarNotFound = false;
+				}
 				jarName = agentsPath + File.separator + jarName;
 				File file = new File(jarName);
 				try {
@@ -583,7 +598,9 @@ public class AgentManagementService extends BaseService {
 							myLogger.log(Logger.WARNING, "Error registering jar file "+file.getPath()+" to CodeLocator. Agent "+agentID.getName()+" may not be able to move properly");
 							e.printStackTrace();
 						}
-						
+					}
+					else if (warnIfJarNotFound) {
+						myLogger.log(Logger.WARNING, "Jar file "+jarName+" for class "+className+" does not exist");
 					}
 				}
 				catch (IOException ioe) {
@@ -618,6 +635,36 @@ public class AgentManagementService extends BaseService {
 				throw new IMTPException("Illegal access exception in createAgent()", iae);
 			}
 		}
+		
+		//#J2ME_EXCLUDE_BEGIN
+		/**
+		 * A class specification may have the form foo.bar[key1=value1;key2=value2...]
+		 * Parse it and fill a Properties object
+		 */
+		private Properties getClassProperties(String str) {
+			Properties pp = new Properties();
+			int index = str.indexOf('[');
+			if (index < 0) {
+				pp.setProperty(CLASS_NAME, str);
+			}
+			else {
+				pp.setProperty(CLASS_NAME, str.substring(0, index));
+				int index1 = str.indexOf(']');
+				String propsStr = str.substring(index+1, index1);
+				Vector propsList = Specifier.parseList(propsStr, ';');
+				for (int i = 0; i < propsList.size(); ++i) {
+					String ps = (String) propsList.get(i);
+					int k = ps.indexOf('=');
+					if (k > 0) {
+						String name = ps.substring(0, k);
+						String value = ps.substring(k+1);
+						pp.setProperty(name, value);
+					}
+				}
+			}
+			return pp;
+		}
+		//#J2ME_EXCLUDE_END
 		
 		private void killAgent(AID agentID) throws IMTPException, NotFoundException {
 			

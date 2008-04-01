@@ -30,6 +30,9 @@
     <!-- Others -->
     <pathelement location="add-ons/benchmark/classes"/>
     <pathelement location="add-ons/XMLCodec/classes"/>
+    <!--
+    <pathelement location="add-ons/misc/classes"/>
+    -->
   </path>
   
 
@@ -100,36 +103,46 @@
         __________________________________________________ -->
   <target name="separate" depends="init" 
           description="Compile files that must be in a separate classpath for mobility tests">
-  	<javac srcdir="src/test" 
-  	       destdir="classes" 
-  	       includes="**/mobility/separate/**"
-	         optimize="on"
-  	       deprecation="off">
-  	  <classpath refid="project.class.path"/>
+    <javac srcdir="src/test" 
+           destdir="classes" 
+           includes="**/mobility/separate/**"
+           optimize="on"
+           deprecation="off">
+      <classpath refid="project.class.path"/>
     </javac> 
-  	<delete file="src/test/separate.jar" quiet="true"/>
-  	<delete file="src/test/separate-behaviours.jar" quiet="true"/>
-  	<delete file="src/test/test_mobility_separate_dummy_DummyAgent.jar" quiet="true"/>
-		<jar jarfile="src/test/separate.jar">
-			<fileset dir="classes">
-  			<include name="**/test/mobility/separate/**"/>
-  			<exclude name="**/test/mobility/separate/behaviours/**"/>
-  			<exclude name="**/test/mobility/separate/dummy/**"/>
-			</fileset>
-		</jar>
-		<jar jarfile="src/test/separate-behaviours.jar">
-			<fileset dir="classes">
-  			<include name="**/test/mobility/separate/behaviours/**"/>
-			</fileset>
-		</jar>
-		<jar jarfile="src/test/test_mobility_separate_dummy_DummyAgent.jar">
-			<fileset dir="classes">
-  			<include name="**/test/mobility/separate/dummy/**"/>
-			</fileset>
-		</jar>
+    <delete file="src/test/separate.jar" quiet="true"/>
+    <delete file="src/test/separate-behaviours.jar" quiet="true"/>
+    <delete file="src/test/test_mobility_separate_dummy_DummyAgent.jar" quiet="true"/>
+    <jar jarfile="src/test/separate.jar">
+      <fileset dir="classes">
+        <include name="**/test/mobility/separate/**"/>
+        <exclude name="**/test/mobility/separate/behaviours/**"/>
+        <exclude name="**/test/mobility/separate/dummy/**"/>
+        <exclude name="**/test/mobility/separate/jar/**"/>
+      </fileset>
+    </jar>
+    <jar jarfile="src/test/separate-behaviours.jar">
+      <fileset dir="classes">
+        <include name="**/test/mobility/separate/behaviours/**"/>
+      </fileset>
+    </jar>
+    <jar jarfile="src/test/test_mobility_separate_dummy_DummyAgent.jar">
+      <fileset dir="classes">
+        <include name="**/test/mobility/separate/dummy/**"/>
+      </fileset>
+      <fileset dir="src">
+        <include name="**/test/mobility/separate/dummy/dummyResource.txt"/>
+      </fileset>
+    </jar>
+    <jar jarfile="src/test/testJarAgent.jar">
+      <fileset dir="classes">
+        <include name="**/test/mobility/separate/jar/**"/>
+      </fileset>
+    </jar>
+
 		
-		<delete dir = "classes/test/mobility/separate"/>
-	</target>
+    <delete dir = "classes/test/mobility/separate"/>
+  </target>
 	
   <!--  __________________________________________________
                             leap
@@ -247,13 +260,19 @@
 
 
   <!--  __________________________________________________
-                            run
+                            runOnly
         __________________________________________________ -->
-  <target name="run" description="run the test suite" depends="lib, separate">
+  <target name="runOnly" description="run the test suite without recompiling anything">
    <java classname="test.common.testSuite.TestSuiteAgent" fork="true" dir="src/test">
   	  <classpath refid="project.class.path"/>
    </java>
   </target>
+
+
+  <!--  __________________________________________________
+                            run
+        __________________________________________________ -->
+  <target name="run" description="run the test suite recompiling all needed resources" depends="lib, separate, runOnly"/>
 
 
   <!--  __________________________________________________

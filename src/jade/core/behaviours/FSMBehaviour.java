@@ -545,8 +545,8 @@ public class FSMBehaviour extends SerialBehaviour {
 			}
 		}
 		
-		void removeTransitionsFromState(String StateName) {
-			transitions.remove(StateName);
+		void removeTransitionsFromState(String stateName) {
+			transitions.remove(stateName);
 		}
 	}
 	
@@ -631,7 +631,15 @@ public class FSMBehaviour extends SerialBehaviour {
 		
 		public void setStatesToReset(String[] ss) {
 			toBeReset = ss;
-		}		
+		}	
+		
+		//#MIDP_EXCLUDE_BEGIN
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append("(TRANSITION trigger=").append(trigger).append(", source=").append(src).append(", dest=").append(dest).append(")");
+			return sb.toString();
+		}
+		//#MIDP_EXCLUDE_END
 	} // END of inner class Transition
 	
 	
@@ -657,5 +665,23 @@ public class FSMBehaviour extends SerialBehaviour {
 			}
 			return t;
 		}
+		
+		//#MIDP_EXCLUDE_BEGIN
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append("Transitions: ");
+			sb.append(super.toString());
+			if (defaultTransition != null) {
+				sb.append(" defaultTransition: "+defaultTransition);
+			}
+			return sb.toString();
+		}
+		//#MIDP_EXCLUDE_END
 	} // END of inner class TransitionsFromState
+	
+	//#MIDP_EXCLUDE_BEGIN
+	public String stringifyTransitionTable() {
+		return theTransitionTable.transitions.toString();
+	}
+	//#MIDP_EXCLUDE_BEGIN
 }

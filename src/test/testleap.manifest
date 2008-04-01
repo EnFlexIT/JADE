@@ -6,10 +6,10 @@ MicroEdition-Profile: MIDP-1.0
 MIDlet-1: JADE-split, , jade.MicroBoot
 MIDlet-2: Config, , jade.util.leap.Config
 MIDlet-3: View-output, , jade.util.leap.OutputViewer
-MIDlet-LEAP-conf: jad
-MIDlet-LEAP-jade_imtp_leap_JICP_BIFEDispatcher_verbosity: 2
-MIDlet-LEAP-host: localhost
-MIDlet-LEAP-port: 1099
+LEAP-conf: conf
+LEAP-jade_imtp_leap_JICP_BIFEDispatcher_verbosity: 2
+LEAP-host: localhost
+LEAP-port: 1099
 MIDlet-Name: LEAP-test
 MIDlet-Vendor: TILAB
 MIDlet-Version: 3.0

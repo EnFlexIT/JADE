@@ -47,36 +47,36 @@ public class TestSearchConstraints extends Test {
 		return new OneShotBehaviour(a) {
 			public void action() {
 				try {
-					log("Searching with AMS with searchConstraints=null ...");
+					log("--- Searching the AMS with searchConstraints=null ...");
 					AMSAgentDescription[] results;
 					results = AMSService.search(myAgent, new AMSAgentDescription());
 					if (results.length != 1) {
-						failed("Search with searchConstraints=null returned "+results.length+" results, i.e. different than 1 (that was expected)");
+						failed("--- Search with searchConstraints=null returned "+results.length+" results while 1 was expected");
 						return;
 					}
-					log("...passed. Searching with AMS with searchConstraints.maxResults=null ...");
+					log("--- ...passed. Searching the AMS with searchConstraints.maxResults=null ...");
 					SearchConstraints s = new SearchConstraints();
 					results = AMSService.search(myAgent, new AMSAgentDescription(), s);
 					if (results.length != 1) {
-						failed("Search with searchConstraints.maxResults=null returned "+results.length+" results, i.e. different than 1 (that was expected).");
+						failed("--- Search with searchConstraints.maxResults=null returned "+results.length+" results while 1 was expected.");
 						return;
 					}
-					log("...passed. Searching with AMS with searchConstraints.maxResults=-1 ...");
+					log("--- ...passed. Searching the AMS with searchConstraints.maxResults=-1 ...");
 					s.setMaxResults(new Long(-1));
 					results = AMSService.search(myAgent, new AMSAgentDescription(), s);
 					if (results.length != 5) {
-						failed("Search with searchConstraints.maxResults=-1 returned "+results.length+" results, i.e. different than 5 (that was expected).");
+						failed("---Search with searchConstraints.maxResults=-1 returned "+results.length+" results while 5 were expected.");
 						return;
 					}
-					log("...passed. Searching with AMS with searchConstraints.maxResults=3 ...");
+					log("--- ...passed. Searching the AMS with searchConstraints.maxResults=3 ...");
 					s.setMaxResults(new Long(3));
 					results = AMSService.search(myAgent, new AMSAgentDescription(), s);
 					if (results.length != 3) {
-						failed("Search with searchConstraints.maxResults=3 returned "+results.length+" results, i.e. different than 3 (that was expected).");
+						failed("---Search with searchConstraints.maxResults=3 returned "+results.length+" results while 3 were expected.");
 						return;
 					}	
-					log("...passed.");
-					passed("AMSService.search returned proper number of results for different values of SearchConstraints and maxResults.");
+					log("--- ...passed.");
+					passed("--- AMSService.search returned proper number of results for different values of SearchConstraints and maxResults.");
 				} catch (FIPAException e) {
 					TestSearchConstraints.this.failed("Exception"+e.getMessage()); 
 					e.printStackTrace();

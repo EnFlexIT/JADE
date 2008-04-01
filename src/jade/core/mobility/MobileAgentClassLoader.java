@@ -41,141 +41,115 @@ class MobileAgentClassLoader extends ClassLoader {
     private String agentName;
     private String sliceName;
     private ServiceFinder finder;
-    private Logger myLogger;
+    private Logger myLogger = Logger.getMyLogger(AgentMobilityService.NAME);
 
-    public MobileAgentClassLoader(String an, String sn, ServiceFinder sf) {
-	//#PJAVA_EXCLUDE_BEGIN
-	super(Thread.currentThread().getContextClassLoader());
-	//#PJAVA_EXCLUDE_END
+    public MobileAgentClassLoader(String an, String sn, ServiceFinder sf, ClassLoader parent) throws IMTPException, ServiceException {
+    	//#PJAVA_EXCLUDE_BEGIN
+    	super(parent);
+		//#PJAVA_EXCLUDE_END
 
-	try {
 		agentName = an;
 	    sliceName = sn;
 	    finder = sf;
 	    classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
-	    myLogger = Logger.getMyLogger(AgentMobilityService.NAME);
-	}
-	catch(IMTPException imtpe) {
-	    // It should never happen...
-	    imtpe.printStackTrace();
-	}
-	catch(ServiceException se) {
-	    // It should never happen...
-	    se.printStackTrace();
-	}
+	    if (classServer == null) {
+			throw new ServiceException("Code source container "+sliceName+" does not exist or does not support mobility");
+	    }
     }
 
     protected Class findClass(String name) throws ClassNotFoundException {
-	byte[] classFile;
+    	byte[] classFile;
 
-	try {
-	    //log("Remote retrieval of code for class " + name, 4);
-            if(myLogger != null) {
-              if(myLogger.isLoggable(Logger.FINE))
-                myLogger.log(Logger.FINE,"Remote retrieval of code for class " + name);
-                    }
-	    try {
-		classFile = classServer.fetchClassFile(name, agentName);
-	    }
-	    catch(IMTPException imtpe) {
-		// Retry once with a newer slice
-		classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
-		classFile = classServer.fetchClassFile(name, agentName);
-	    }
-	}
-	catch (IMTPException imtpe) {
-	    imtpe.printStackTrace();
-	    throw new ClassNotFoundException(name);
-	}
-	catch (ServiceException se) {
-	    throw new ClassNotFoundException(name);
-	}
+    	try {
+    		if(myLogger.isLoggable(Logger.FINE)) {
+    			myLogger.log(Logger.FINE,"Remote retrieval of code for class " + name);
+    		}
+    		try {
+    			classFile = classServer.fetchClassFile(name, agentName);
+    		}
+    		catch(IMTPException imtpe) {
+    			// Get a fresh slice and retry
+    			classServer = (AgentMobilitySlice)finder.findSlice(AgentMobilitySlice.NAME, sliceName);
+    			classFile = classServer.fetchClassFile(name, agentName);
+    		}
+    	}
+    	catch (IMTPException imtpe) {
+    		imtpe.printStackTrace();
+    		throw new ClassNotFoundException(name);
+    	}
+    	catch (ServiceException se) {
+    		throw new ClassNotFoundException(name);
+    	}
 
-	if (classFile != null) {
-	    // log("Code of class " + name + " retrieved. Length is " + classFile.length, 4);
-            if(myLogger != null) {
-              if(myLogger.isLoggable(Logger.FINE))
-                myLogger.log(Logger.FINE,"Code of class " + name + " retrieved. Length is " + classFile.length);
-                    }
-	    return defineClass(name, classFile, 0, classFile.length);
-	}
-	else
-	    throw new ClassNotFoundException(name);
+    	if (classFile != null) {
+    		if(myLogger.isLoggable(Logger.FINE)) {
+    			myLogger.log(Logger.FINE,"Code of class " + name + " retrieved. Length is " + classFile.length);
+    		}
+    		return defineClass(name, classFile, 0, classFile.length);
+    	}
+    	else {
+    		throw new ClassNotFoundException(name);
+    	}
     }
-
+    
     protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-
-	Class c = null;
-
-	// log("Loading class " + name, 5);
-        if(myLogger != null) {
-          if(myLogger.isLoggable(Logger.FINER))
-            myLogger.log(Logger.FINER,"Loading class " + name);
-                }
-
-	//#PJAVA_EXCLUDE_BEGIN
-	c = super.loadClass(name, resolve);
-	//#PJAVA_EXCLUDE_END
-	//#DOTNET_EXCLUDE_BEGIN
-	/*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
-  	// 1) Try to see if the class has already been loaded
-  	c = findLoadedClass(name);
-
-	// 2) Try to load the class using the system class loader
-  	if(c == null) {
-	    try {
-	        c = findSystemClass(name);
-	    }
-	    catch (ClassNotFoundException cnfe) {
-	    }
-	}
-
-  	// 3) If still not found, try to load the class from the proper site
-  	if(c == null) {
-  	    c = findClass(name);
-  	}
-
-  	if(resolve) {
-  	    resolveClass(c);
-  	}
-	#PJAVA_INCLUDE_END*/
-	//#DOTNET_EXCLUDE_END
-
-	/*#DOTNET_INCLUDE_BEGIN
-	System.Type myType = System.Type.GetType(name);
-	if (myType == null)
-	{
-		//resolveClass(c);
-		boolean found = false;
-		int i = 0;
-		System.Reflection.Assembly[] assemblies =  System.AppDomain.get_CurrentDomain().GetAssemblies();
-
-		while (!found && i<assemblies.length)
+    	Class c = null;
+    	if(myLogger.isLoggable(Logger.FINER)) {
+    		myLogger.log(Logger.FINER,"Loading class " + name);
+    	}
+		//#PJAVA_EXCLUDE_BEGIN
+		c = super.loadClass(name, resolve);
+		//#PJAVA_EXCLUDE_END
+		
+		//#DOTNET_EXCLUDE_BEGIN
+		/*#PJAVA_INCLUDE_BEGIN In PersonalJava loadClass(String, boolean) is abstract --> we must implement it
+	  	// 1) Try to see if the class has already been loaded
+	  	c = findLoadedClass(name);
+	
+		// 2) Try to load the class using the system class loader
+	  	if(c == null) {
+		    try {
+		        c = findSystemClass(name);
+		    }
+		    catch (ClassNotFoundException cnfe) {
+		    }
+		}
+	
+	  	// 3) If still not found, try to load the class from the proper site
+	  	if(c == null) {
+	  	    c = findClass(name);
+	  	}
+	
+	  	if(resolve) {
+	  	    resolveClass(c);
+	  	}
+		#PJAVA_INCLUDE_END*/
+		//#DOTNET_EXCLUDE_END
+	
+		/*#DOTNET_INCLUDE_BEGIN
+		System.Type myType = System.Type.GetType(name);
+		if (myType == null)
 		{
-			myType = assemblies[i].GetType(name);
-			found = (myType != null);
-			i++;
+			//resolveClass(c);
+			boolean found = false;
+			int i = 0;
+			System.Reflection.Assembly[] assemblies =  System.AppDomain.get_CurrentDomain().GetAssemblies();
+	
+			while (!found && i<assemblies.length)
+			{
+				myType = assemblies[i].GetType(name);
+				found = (myType != null);
+				i++;
+			}
+	
+			c = Class.FromType( myType );
 		}
-
-		c = Class.FromType( myType );
-	}
-	#DOTNET_INCLUDE_END*/
-
-
-	//log("Class " + name + " loaded", 5);
-        if(myLogger != null) {
-			if(myLogger.isLoggable(Logger.FINER))
-				myLogger.log(Logger.FINER,"Class " + name + " loaded" );
+		#DOTNET_INCLUDE_END*/
+	
+		if(myLogger.isLoggable(Logger.FINER)) {
+			myLogger.log(Logger.FINER,"Class " + name + " loaded" );
 		}
-
-  	return c;
+	
+	  	return c;
     }
-
-    /*
-    private void log(String s, int level) {
-  	if(myLogger != null) {
-  		myLogger.log(s, level);
-  	}
-    }
-    */
 }
