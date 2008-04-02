@@ -148,7 +148,8 @@ public class TopicManagementService extends BaseService {
 					ACLMessage msg = gMsg.getACLMessage();
 					Collection interestedAgents = topicTable.getInterestedAgents(topic, msg);
 					if (interestedAgents.size() > 0) {
-						// Forward the message to all agents interested in that topic
+						// Forward the message to all agents interested in that topic.
+						// Note that if no agents are currently listening to this topic, the message is simply swallowed
 						msg.addUserDefinedParameter(ACLMessage.IGNORE_FAILURE, "true");
 						gMsg.setModifiable(false);
 						Iterator it = interestedAgents.iterator();
