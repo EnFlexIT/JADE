@@ -100,23 +100,31 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	}
 	
 	/**
-	 * Constructor of the behaviour that creates a new empty DataStore
-	 * @see #SubscriptionResponder(Agent,MessageTemplate,SubscriptionResponder.SubscriptionManager,DataStore)
-	 
+	 * Construct a SubscriptionResponder behaviour that handles subscription messages matching a given template. 
+	 * @see #SubscriptionResponder(Agent,MessageTemplate,SubscriptionResponder.SubscriptionManager,DataStore)	 
+	 **/
+	public SubscriptionResponder(Agent a, MessageTemplate mt){
+		this(a, mt, null, new DataStore());
+	}
+	
+	/**
+	 * Construct a SubscriptionResponder behaviour that handles subscription messages matching a given template and
+	 * notifies a given SubscriptionManager about subscription/un-subscription events. 
+	 * @see #SubscriptionResponder(Agent,MessageTemplate,SubscriptionResponder.SubscriptionManager,DataStore)	 
 	 **/
 	public SubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm){
 		this(a, mt, sm, new DataStore());
 	}
 	
 	/**
-	 * Constructor.
+	 * Construct a SubscriptionResponder behaviour that handles subscription messages matching a given template,
+	 * notifies a given SubscriptionManager about subscription/un-subscription events and uses a given DataStore. 
 	 * @param a is the reference to the Agent performing this behaviour.
 	 * @param mt is the MessageTemplate that must be used to match
 	 * subscription messages sent by the initiators. Take care that 
 	 * if mt is null every message is consumed by this protocol.
-	 * @param sm The <code>SubscriptionManager</code> object that manages
-	 * subscriptions. 
-	 * @param store the DataStore for this protocol
+	 * @param sm The <code>SubscriptionManager</code> object that is notified about subscription/un-subscription events
+	 * @param store the DataStore that will be used by protocol
 	 **/
 	public SubscriptionResponder(Agent a, MessageTemplate mt, SubscriptionManager sm, DataStore store) {
 		super(a);
@@ -225,17 +233,16 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	 * message is received that matches the message template
 	 * specified in the constructor. 
 	 * The default implementation creates an new <code>Subscription</code>
-	 * object and registers it to the <code>SubscriptionManager</code> 
-	 * used by this responder. Then it returns null which has
-	 * the effect of sending no reponse. Programmers in general do not need
-	 * to override this method, but just implement the <code>register()</code>
-	 * method of the <code>SubscriptionManager</code> used by this
-	 * <code>SubscriptionResponder</code>. However they could
-	 * override it in case they need to react to the reception of a 
-	 * subscription message in a different way, e.g. by sending back an AGREE.
+	 * object, stores it internally and notify the <code>SubscriptionManager</code> 
+	 * used by this responder if any. Then it returns null which has
+	 * the effect of sending no response. Programmers in general do not need
+	 * to override this method. In case they need to manage Subscription objects in an application specific
+	 * way they should rather use a <code>SubscriptionManager</code> with the <code>register()</code> method properly implemented. 
+	 * However they could override it in case they need to react to the reception of a 
+	 * subscription message in a different way, e.g. by sending back an AGREE message.
 	 * @param subscription the received message
-	 * @return the ACLMessage to be sent as a response (i.e. one of
-	 * <code>agree, refuse, not-understood</code>. 
+	 * @return the ACLMessage to be sent as a response: typically one of
+	 * <code>agree, refuse, not-understood</code> or null if no response must be sent back. 
 	 */
 	protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
 		// Call prepareResponse() for backward compatibility
@@ -246,32 +253,34 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	 * @deprecated Use handleSubscription() instead   
 	 */
 	protected ACLMessage prepareResponse(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-		mySubscriptionManager.register(createSubscription(subscription));
+		Subscription subs = createSubscription(subscription);
+		if (mySubscriptionManager != null) {
+			mySubscriptionManager.register(subs);
+		}
 		return null;
 	}
 	
 	/**   
-	 * This method is called when a CANCEL
-	 * message is received for a previous subscription. 
+	 * This method is called when a CANCEL message is received for a previous subscription. 
 	 * The default implementation retrieves the <code>Subscription</code>
-	 * object the received cancel message refers to and deregisters it from the 
-	 * <code>SubscriptionManager</code> used by this responder. Then it
-	 * returns null which has the effect of sending no reponse. 
+	 * object the received cancel message refers to, notifies the
+	 * <code>SubscriptionManager</code> used by this responder if any and remove the Subscription from its internal structures. 
+	 * Then it returns null which has the effect of sending no response. 
 	 * Programmers in general do not need
-	 * to override this method, but just implement the <code>deregister()</code>
-	 * method of the <code>SubscriptionManager</code> used by this
-	 * <code>SubscriptionResponder</code>. However they could
-	 * override it in case they need to react to the reception of a 
+	 * to override this method. In case they need to manage Subscription objects in an application specific
+	 * way they should rather use a <code>SubscriptionManager</code> with the <code>deregister()</code> method properly implemented.
+	 * However they could override it in case they need to react to the reception of a 
 	 * cancel message in a different way, e.g. by sending back an INFORM.
 	 * @param cancel the received CANCEL message
 	 * @return the ACLMessage to be sent as a response to the 
-	 * cancel operation (i.e. one of
-	 * <code>inform</code> and <code>failure</code>. 
+	 * cancel operation: typically one of <code>inform</code> and <code>failure</code> or null if no response must be sent back. 
 	 */
 	protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
 		Subscription s = getSubscription(cancel);
 		if (s != null) {
-			mySubscriptionManager.deregister(s);
+			if (mySubscriptionManager != null) {
+				mySubscriptionManager.deregister(s);
+			}
 			s.close();
 		}
 		return null;
@@ -339,10 +348,22 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	 Utility method to correctly retrieve the 
 	 <code>Subscription</code> object that is related to the conversation
 	 message <code>msg</code> belongs to.
+	 @param msg The message whose <code>conversation-id</code> indicates the conversation
+	 @return the <code>Subscription</code> object related to the conversation the given message belongs to
 	 */
 	public Subscription getSubscription(ACLMessage msg) {
-		Subscription s = null;
 		String convId = msg.getConversationId();
+		return getSubscription(convId);
+	}
+	
+	/**
+	 Utility method to correctly retrieve the 
+	 <code>Subscription</code> object that is related a given conversation.
+	 @param convId The id of the conversation
+	 @return the <code>Subscription</code> object related to the given conversation
+	 */
+	public Subscription getSubscription(String convId) {
+		Subscription s = null;
 		if (convId != null) {
 			s = (Subscription) subscriptions.get(convId);
 		}
@@ -351,6 +372,8 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	
 	/**
 	 * Utility method that retrieves all Subscription-s done by a given agent
+	 * @param subscriber The AID of the agent whose subscriptions must be retrieved
+	 * @return A <code>Vector</code> including all <code>Subscription</code>-s made by the given agent
 	 */
 	public Vector getSubscriptions(AID subscriber) {
 		// Synchronization is needed to avoid concurrent modification exception in case this method is 
@@ -363,6 +386,24 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 				if (s.getMessage().getSender().equals(subscriber)) {
 					ss.addElement(s);
 				}
+			}
+			return ss;
+		}
+	}
+	
+	/**
+	 * Utility method that retrieves all Subscription-s managed by this <code>SubscriptionResponder</code>
+	 * @return A <code>Vector</code> including all <code>Subscription</code>-s managed by this <code>SubscriptionResponder</code>
+	 */
+	public Vector getSubscriptions() {
+		// Synchronization is needed to avoid concurrent modification exception in case this method is 
+		// invoked from within a separate Thread
+		synchronized (subscriptions) {
+			Vector ss = new Vector();
+			Enumeration en = subscriptions.elements();
+			while (en.hasMoreElements()) {
+				Subscription s = (Subscription) en.nextElement();
+				ss.addElement(s);
 			}
 			return ss;
 		}
@@ -415,17 +456,12 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 	/**
 	 Inner interface SubscriptionManager.
 	 <p>
-	 A <code>SubscriptionResponder</code> only deals with enforcing and
-	 controlling the sequence of messages in a subscription conversation, 
-	 while it delegates the 
-	 registration/deregistration of subscriptions and the creation of 
-	 notifications when required to a <code>SubscriptionManager</code>
-	 object that is passed as parameter in the constructor.
-	 When a new subscription message arrives, the <code>SubscriptionResponder</code>
-	 just calls the <code>register()</code> method of its 
-	 <code>SubscriptionManager</code>. The user is expected to provide 
-	 a class that implements the <code>register()</code> and 
-	 <code>deregister()</code> methods appropriately.
+	 A <code>SubscriptionResponder</code>, besides enforcing and
+	 controlling the sequence of messages in a subscription conversation, also stores current subscriptions
+	 into an internal table. In many cases however it is desirable to manage Subscription objects in an application specific way 
+	 (e.g. storing them to a persistent support such as a DB). To enable that, it is possible to pass a 
+	 SubscriptionManager implementation to the SubscriptionResponder. The SubscriptionManager is notified 
+	 about subscription and cancellation events by means of the register() and deregister() methods.     
 	 <p>
 	 */
 	public static interface SubscriptionManager {
@@ -451,6 +487,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		 */
 		boolean deregister(Subscription s) throws FailureException;
 	} // END of inner interface SubscriptionManager
+
 	
 	/**
 	 Inner calss Subscription
@@ -505,12 +542,7 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		}
 		
 		/** 
-		 This method should be called after a <code>Subscription</code> object
-		 has been deregistered (typically from within the <code>deregister()</code>
-		 method of the <code>SubscriptionManager</code>) and allows the 
-		 <code>SubscriptionResponder</code> to release the resources allocated
-		 for this subscription.
-		 Not calling this method may have unexpected and undesirable side effects.
+		 This method removes the current Subscription object from the SubscriptionResponder internal tables.
 		 */			   
 		public void close(){
 			String convId = subscription.getConversationId();
@@ -522,11 +554,4 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 		// FIXME: Add equals() and hashCode() methods based on the SUBSCRIBE message conversation-id 
 	} // END of inner class Subscription
 	
-	//#MIDP_EXCLUDE_BEGIN
-	
-	// For persistence service
-	private SubscriptionResponder() {
-	}
-	
-	//#MIDP_EXCLUDE_END
 }
