@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.tools.rma;
 
@@ -36,53 +36,52 @@ import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 
 /**
-   
+
    @author Francisco Regi, Andrea Soracchi - Universita` di Parma
    @version $Date$ $Revision$
  */
 class StartNewAgentAction extends ContainerAction {
 
-  private rma myRMA;
-  private Frame mainWnd;
+	private rma myRMA;
+	private Frame mainWnd;
 
-  public StartNewAgentAction(rma anRMA, Frame f,ActionProcessor actPro) {
-    super ("StartNewAgentActionIcon","Start New Agent",actPro);
-    myRMA = anRMA;
-    mainWnd = f;
-  }
+	public StartNewAgentAction(rma anRMA, Frame f,ActionProcessor actPro) {
+		super ("StartNewAgentActionIcon","Start New Agent",actPro);
+		myRMA = anRMA;
+		mainWnd = f;
+	}
 
-  public void doAction(AgentTree.ContainerNode node ) {
+	public void doAction(AgentTree.ContainerNode node ) {
 
-               String containerName = node.getName();
-              int result = doStartNewAgent(containerName);
-  }
+		String containerName = node.getName();
+		int result = doStartNewAgent(containerName);
+	}
 
-  private int doStartNewAgent(String containerName) {
-    int result = StartDialog.showStartNewDialog(containerName, mainWnd);
-    if (result == StartDialog.OK_BUTTON) {
+	private int doStartNewAgent(String containerName) {
+		int result = StartDialog.showStartNewDialog(containerName, mainWnd);
+		if (result == StartDialog.OK_BUTTON) {
 
-      String agentName = StartDialog.getAgentName();
-      String className = StartDialog.getClassName();
-      String container = StartDialog.getContainer();
-      String agentUser = StartDialog.getAgentUser ();
-      String arguments = StartDialog.getArguments();
-     
-      if((agentName.trim().length() > 0) && (className.trim().length() >0))
-      {
-      	  String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
-      	  //not remove '"'and '\'
-	  BootHelper helperParser = new BootHelper();
-      	  Vector al = helperParser.T2(agentSpecifier,true);
-      	  
-      	  ArrayList argList = new ArrayList();
-      	  //return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
-	  Enumeration it = helperParser.getCommandLineAgentSpecifiers(al);
-	  Object[] arg = (it.hasMoreElements()?((Specifier)it.nextElement()).getArgs():new Object[0]);
-      	  myRMA.newAgent(agentName, className, arg, agentUser, container);
-      }
-    }
-    return result;
-  }
+			String agentName = StartDialog.getAgentName();
+			String className = StartDialog.getClassName();
+			String container = StartDialog.getContainer();
+			String agentUser = StartDialog.getAgentUser ();
+			String arguments = StartDialog.getArguments();
+
+			if((agentName.trim().length() > 0) && (className.trim().length() >0))
+			{
+				String agentSpecifier = agentName + ":" + className + "(" + arguments +")";
+				//not remove '"'and '\'
+				BootHelper helperParser = new BootHelper();
+				Vector al = helperParser.T2(agentSpecifier,true);
+
+				//return a list of lists in the form [[agentName1, class, arg1...argN]....[agentNameN, class, arg1, ...argM]]
+				Enumeration it = helperParser.getCommandLineAgentSpecifiers(al);
+				Object[] arg = (it.hasMoreElements()?((Specifier)it.nextElement()).getArgs():new Object[0]);
+				myRMA.newAgent(agentName, className, arg, agentUser, container);
+			}
+		}
+		return result;
+	}
 
 }  // End of StartNewAgentAction
 

@@ -991,16 +991,18 @@ public class BEManagementService extends BaseService {
 						Iterator it = keys.iterator();
 						while (it.hasNext()) {
 							SelectionKey key = (SelectionKey) it.next();
-							if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-								// This is an incoming connection. The channel must be 
-								// the SerevrSocketChannel server
-								//System.out.println(Thread.currentThread().getName()+": ACCEPT_OP on key "+key);
-								handleAcceptOp(key);
-							}
-							else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
-								// This is some incoming data for one of the BE
-								//System.out.println(Thread.currentThread().getName()+": READ_OP on key "+key);
-								handleReadOp(key);
+							if (key.isValid()) {
+								if ((key.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+									// This is an incoming connection. The channel must be 
+									// the SerevrSocketChannel server
+									//System.out.println(Thread.currentThread().getName()+": ACCEPT_OP on key "+key);
+									handleAcceptOp(key);
+								}
+								else if ((key.readyOps() & SelectionKey.OP_READ) != 0) {
+									// This is some incoming data for one of the BE
+									//System.out.println(Thread.currentThread().getName()+": READ_OP on key "+key);
+									handleReadOp(key);
+								}
 							}
 							it.remove();
 						}

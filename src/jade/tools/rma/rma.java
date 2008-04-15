@@ -524,8 +524,11 @@ public class rma extends ToolAgent {
 		ca.setAgentName(agentName);
 		ca.setClassName(className);
 		ca.setContainer(new ContainerID(containerName, null));
-		for(int i = 0; i<arg.length ; i++)
-			ca.addArguments((Object)arg[i]);
+		if (arg != null) {
+			for(int i = 0; i<arg.length ; i++) {
+				ca.addArguments((Object)arg[i]);
+			}
+		}
 		
 		try {
 			Action a = new Action();

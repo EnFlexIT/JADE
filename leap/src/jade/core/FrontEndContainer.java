@@ -295,18 +295,24 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			exiting = true;
 			logger.log(Logger.INFO,"Container shut down activated");
 			
-			// Kill all agents 
+			// Kill all agents. We first get a snapshot of all agents and then scan it to kill them.
+			// This is to avoid deadlock with handleEnd() that calls localAgents.remove()
+			Vector toBeKilled = new Vector();
 			synchronized (localAgents) {
 				Enumeration e = localAgents.elements();
 				while (e.hasMoreElements()) {
-					// Kill agent and wait for its termination
-					Agent a = (Agent) e.nextElement();
-					a.doDelete();
-					a.join();
-					a.resetToolkit();
+					toBeKilled.addElement(e.nextElement());
 				}
-				localAgents.clear();
 			}
+			Enumeration e = toBeKilled.elements();
+			while (e.hasMoreElements()) {
+				// Kill agent and wait for its termination
+				Agent a = (Agent) e.nextElement();
+				a.doDelete();
+				a.join();
+				a.resetToolkit();
+			}
+			localAgents.clear();
 			logger.log(Logger.FINE,"Local agents terminated");
 			
 			// Shut down the connection with the BackEnd. The BackEnd will 

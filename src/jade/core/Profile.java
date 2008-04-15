@@ -70,11 +70,13 @@ public abstract class Profile {
 	
 	/**
 	 This constant is the name of the property whose Boolean value
-	 tells whether to activate multicast detection of main container.
-	 When true, main containers publish their addresses through
-	 a service reachable on a multicast address (by default 239.255.10.99,
-	 port 1199) and peripheral containers obtain the address of master
-	 main container via a multicast request. The default is false. 
+	 tells whether to activate the automatic main container detection mechanism.
+	 By means of this mechanism a peripheral container is able to automatically detect the 
+	 main container host and port at startup time. The mechanism is based on IP multicast communication
+	 and must be activated on both the main container, that publishes its host and port on a given 
+	 multicast address (by default 239.255.10.99, port 1199), and on peripheral containers.    
+	 The default for this option is <code>true</code> on Main Containers and <code>false</code> 
+	 on peripheral containers 
 	 */
 	public static final String DETECT_MAIN = "detect-main";
 	

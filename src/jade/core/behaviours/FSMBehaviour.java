@@ -683,5 +683,5 @@ public class FSMBehaviour extends SerialBehaviour {
 	public String stringifyTransitionTable() {
 		return theTransitionTable.transitions.toString();
 	}
-	//#MIDP_EXCLUDE_BEGIN
+	//#MIDP_EXCLUDE_END
 }
