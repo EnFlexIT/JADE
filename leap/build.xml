@@ -27,7 +27,7 @@
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
-	<property name="version" value="3.5"/>	
+	<property name="version" value="3.6"/>	
 	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
 
 	<!-- Properties for compiling the demo -->
