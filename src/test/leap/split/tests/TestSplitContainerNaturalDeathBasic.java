@@ -20,28 +20,28 @@ public class TestSplitContainerNaturalDeathBasic extends Test {
 	String containerName;
 	JadeController jc = null;
 	Agent myAgent;
-	
+
 	public Behaviour load(Agent a) throws TestException {
-	
+
 		myAgent = a;
 		SequentialBehaviour sb = new SequentialBehaviour(a);
 
 		//Step 1: Initialization phase
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  			try {
+			public void action() {
+				try {
 					containerName = createSplitContainer();
-  			}
-  			catch (Exception e) {
-  				failed("Error initilizing split-container. " + e);
-  				e.printStackTrace();
-  			}
-  		}
-  	} );
-		
+				}
+				catch (Exception e) {
+					failed("Error initilizing split-container. " + e);
+					e.printStackTrace();
+				}
+			}
+		} );
+
 		//Step 2: create KillerAgent via AMS.
-		sb.addSubBehaviour(new OneShotBehaviour(a){
-			public void action(){
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
+			public void onWake(){
 				try{
 					log("Starting killer agent on " + containerName);
 					TestUtility.createAgent(myAgent, KILLER_NAME, "test.leap.split.tests.TestSplitContainerNaturalDeathBasic$KillerAgent", null, null, containerName);
@@ -53,7 +53,7 @@ public class TestSplitContainerNaturalDeathBasic extends Test {
 				}
 			}
 		});
-		
+
 		//3. verify if the container is already alive.
 		sb.addSubBehaviour(new WakerBehaviour(a, 20000){
 			public void handleElapsedTimeout() {
@@ -68,19 +68,19 @@ public class TestSplitContainerNaturalDeathBasic extends Test {
 				}
 			}
 		});
-		
+
 		return sb;
 	}
-	
+
 	public void clean(Agent a) {
 		try {
-  		jc.kill();
-  	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  	}
+			jc.kill();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
-	
+
 	/**
 	 * Override this method to initialize the environment for the test.
 	 * @return name the name of the split-container created.
@@ -92,7 +92,7 @@ public class TestSplitContainerNaturalDeathBasic extends Test {
 		log("split-container created successfully !");
 		return jc.getContainerName();
 	}
-	
+
 	public static class KillerAgent extends Agent{
 		protected void setup() {
 			addBehaviour(new WakerBehaviour(this, 5000) {

@@ -1178,7 +1178,7 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			myMainContainer.initSystemAgents(this, true);
 			myMainContainer.startSystemAgents(this, feeder);
 			myMainContainer.restartReplicatedAgents(this);
-			myProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, Boolean.toString(false));
+			myProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, "false");
 		}
 		catch(Exception e) {
 			e.printStackTrace();

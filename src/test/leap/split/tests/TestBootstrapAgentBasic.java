@@ -21,13 +21,14 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
 import test.common.*;
 
@@ -42,51 +43,51 @@ import test.common.*;
  *
  */
 public class TestBootstrapAgentBasic extends Test{
-	
+
 	private JadeController jc = null;
 	static String PREFIX = "prefix_";
 	static String SUFFIX = "_suffix";
 	String containerName;
 	Agent myAgent;
-	
+
 	public Behaviour load(Agent a) throws TestException {  
-		
+
 		myAgent = a;
 		SequentialBehaviour sb = new SequentialBehaviour(a);
-		
+
 		//Step 1: Initialization phase
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  			try {
-  				log("Creating split container with bootstrap agent...");
+			public void action() {
+				try {
+					log("Creating split container with bootstrap agent...");
 					containerName = createSplitContainerWithBootstrapAgent();
 					log("Split-container with bootstrap agent started...");
-  			}
-  			catch (Exception e) {
-  				failed("Error initilizing split-container with bootstrap agent. " + e);
-  				e.printStackTrace();
-  			}
-  		}
-  	});
-		
+				}
+				catch (Exception e) {
+					failed("Error initilizing split-container with bootstrap agent. " + e);
+					e.printStackTrace();
+				}
+			}
+		});
+
 		//step 2: kill bootstrap agent.
-		sb.addSubBehaviour(new OneShotBehaviour(a) {
-			public void action() {
-  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
-  			try {
-	  			log("Killing agent "+wildcardAgent.getName()+"...");
-	  			//to be sure that the agent has been created.
-	  			Thread.sleep(1000); 
-  				TestUtility.killAgent(myAgent, wildcardAgent);
-  				log("Agent "+wildcardAgent.getName()+" found and killed as expected.");
-  			}
-  			catch (Exception e) {
-  				failed("Cannot kill agent "+wildcardAgent.getName()+". "+e);
-  				e.printStackTrace();
-  			}
-	  	}
-  	});
-		
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
+			public void onWake(){
+				AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
+				try {
+					log("Killing agent "+wildcardAgent.getName()+"...");
+					//to be sure that the agent has been created.
+					Thread.sleep(1000); 
+					TestUtility.killAgent(myAgent, wildcardAgent);
+					log("Agent "+wildcardAgent.getName()+" found and killed as expected.");
+				}
+				catch (Exception e) {
+					failed("Cannot kill agent "+wildcardAgent.getName()+". "+e);
+					e.printStackTrace();
+				}
+			}
+		});
+
 		//Step 3: kill split container.
 		sb.addSubBehaviour(new OneShotBehaviour(){
 			public void action(){
@@ -110,11 +111,11 @@ public class TestBootstrapAgentBasic extends Test{
 		});
 		return sb;
 	}
-	
+
 	public void clean(Agent a) {
 		if (jc != null) {
-	  	jc.kill();
-  	}
+			jc.kill();
+		}
 	}
 
 	/**
@@ -127,5 +128,5 @@ public class TestBootstrapAgentBasic extends Test{
 		jc = TestUtility.launchSplitJadeInstance("Split-Container-1", null, new String("-host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT) + " " + PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX+":jade.core.Agent"));
 		return jc.getContainerName();
 	}
-	
+
 }

@@ -186,7 +186,12 @@ public class MessageTransportProtocol implements MTP {
 						port = IN_PORT;
 						changePortIfBusy = true;
 					}
+					//#DOTNET_EXCLUDE_BEGIN
 					hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),port, useHttps);
+					//#DOTNET_EXCLUDE_END
+					/*#DOTNET_INCLUDE_BEGIN
+					hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),port, useHttps);
+					#DOTNET_INCLUDE_END*/
 				} catch( UnknownHostException ukhexc ) {
 					throw new MTPException("Cannot activate MTP on default address: Unknown Host");
 				} catch( MalformedURLException mexc ) {
@@ -244,7 +249,12 @@ public class MessageTransportProtocol implements MTP {
 			HTTPServer srv = new HTTPServer(port,disp,numKA,saxClass,timeout, changePortIfBusy);
 			int actualPort = srv.getLocalPort();
 			if (actualPort != port) {
-				hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
+				//#DOTNET_EXCLUDE_BEGIN
+					hta = new HTTPAddress(InetAddress.getLocalHost().getCanonicalHostName(),actualPort, useHttps);
+					//#DOTNET_EXCLUDE_END
+					/*#DOTNET_INCLUDE_BEGIN
+					hta = new HTTPAddress(InetAddress.getLocalHost().getHostName(),actualPort, useHttps);
+					#DOTNET_INCLUDE_END*/
 			}
 			//Save the reference to HTTPServer
 			addr2srv.put(hta.toString(),srv);
@@ -285,6 +295,7 @@ public class MessageTransportProtocol implements MTP {
 		byte[] request;
 		
 		try {
+			
 			HTTPAddress host = new HTTPAddress(addr);
 			if (useProxy) {
 				url = new HTTPAddress(proxyHost,proxyPort,false); //false=>do_not_use HTTPS with the proxy

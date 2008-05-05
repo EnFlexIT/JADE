@@ -11,12 +11,12 @@ import test.common.TestUtility;
 import test.common.JadeController;
 
 public class TestExitWhenEmptyOnSplitContainerBasic extends Test{
-	
+
 	Agent myAgent;
 	private String containerName;
 	private JadeController jc;
 	private static final String KILLER_NAME="killer";
-	
+
 	public Behaviour load(Agent a) throws TestException {
 
 		myAgent = a;	
@@ -24,20 +24,20 @@ public class TestExitWhenEmptyOnSplitContainerBasic extends Test{
 
 		//Step 1: Initialization phase
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  			try {
+			public void action() {
+				try {
 					containerName = createSplitContainer();
-  			}
-  			catch (Exception e) {
-  				failed("Error initilizing split-container. " + e);
-  				e.printStackTrace();
-  			}
-  		}
-  	});
-		
+				}
+				catch (Exception e) {
+					failed("Error initilizing split-container. " + e);
+					e.printStackTrace();
+				}
+			}
+		});
+
 		//step 2: creating agent on split-container
-		sb.addSubBehaviour(new OneShotBehaviour(a){
-			public void action(){
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
+			public void onWake(){
 				try{
 					log("Starting killer agent on " + containerName);
 					TestUtility.createAgent(myAgent, KILLER_NAME, "test.leap.split.tests.TestExitWhenEmptyOnSplitContainerBasic$KillerAgent", null, null, containerName);
@@ -49,7 +49,7 @@ public class TestExitWhenEmptyOnSplitContainerBasic extends Test{
 				}
 			}
 		});
-		
+
 		//step 3: verify if container successfully ended.
 		sb.addSubBehaviour(new WakerBehaviour(a, 20000){
 			public void handleElapsedTimeout() {
@@ -65,7 +65,7 @@ public class TestExitWhenEmptyOnSplitContainerBasic extends Test{
 			}
 		});
 		return sb;
-		
+
 	}
 
 	public void clean(Agent a) {
@@ -90,7 +90,7 @@ public class TestExitWhenEmptyOnSplitContainerBasic extends Test{
 		log("split-container created successfully !");
 		return jc.getContainerName();
 	}
-	
+
 	public static class KillerAgent extends Agent{
 		protected void setup() {
 			addBehaviour(new WakerBehaviour(this, 5000) {

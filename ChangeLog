@@ -1,7 +1,8 @@
-MAJOR CHANGES in JADE XXX (XXX)
+MAJOR CHANGES in JADE 3.6 (05 May 2008)
 ==========================================================================
 GENERAL IMPROVEMENTS:
 - Added support to specify the jar file where to load agent code at agent startup
+- SubscriptionResponder: Modified according to comments by Chris Audley and Henrique Lopes Cardoso
 - Extended TopicManagementService to deal with registrations to topic templates (e.g. foo.bar.*)
 - Added responder class for Iterated-Contract-Net protocol using the Single-Session approach
 - Added SSResponderDispatcher class to manage protocol initiation messages and dispatch them to SSResponder behaviours
@@ -21,10 +22,13 @@ GENERAL IMPROVEMENTS:
 BUG-FIXES:
 - Fixed bug in SSAchieveREResponder related to the receiption of successive messages when a performative different than REQUEST was used (Fix by Chris Audley)
 - Fixed bug in WakerBehaviour reset() method
-- Included HTTPS-classes in http.jar (also fixed build.xml). By Arend Freije [a.freije@minihouse.com] 
+- Included HTTPS-classes in http.jar (also fixed build.xml). By Arend Freije  
 - Fixed bug in inter-platform communication: if the receiver did not exist in the remote platform no FAILURE message was returned to the sender  
+- Fixed problem when the PersistentDeliveryService stores a message for a foreign receiver (this information was lost by the PersistentDeliveryProxy). 
 
 LEAP:
+  - FrontEndCOntainer: Modified method exit() to avoid deadlock when activated from MicroRuntime.stop()
+  - BEManagementService: Added sanity check to avoid using a cancelled SelectionKey (problem indicated by Reza Mohseny)
   - Added support for Object-2-Agent communication on split containers
   - Fixed bug in FEService.
 
@@ -52,13 +56,14 @@ ADD-ONS:
   - Modified to properly handle SET and SEQUENCE aggregates
 
 DOCUMENTATION:
-- Aggiornare Administrator's guide con specifica jar agents (a:myClass[code=...])
+- Updated guides
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 API: NONE
 
 EXPECTED BEHAVIOUR:
-- detect-main
+- The detect-main option specified on peripheral containers requires the specification of the name of the platform 
+to connect to by means of the -name option. In order to connect to whatever platform it is possible to specify -name *
 
 
 

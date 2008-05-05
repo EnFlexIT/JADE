@@ -7,6 +7,7 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.Iterator;
@@ -19,11 +20,11 @@ import test.common.*;
  *
  */
 public class TestRemoteCommunicationBasic extends Test{
-	
+
 	private JadeController jcR = null;
 	private JadeController jcCHTTP = null;
 	private JadeController jcC = null;
-	
+
 	private static final String REMOTE_PLATFORM_NAME = "Remote-platform";
 	private static final int REMOTE_PLATFORM_PORT = 9003;
 	static final String PING_NAME = "ping";
@@ -31,42 +32,42 @@ public class TestRemoteCommunicationBasic extends Test{
 	private String containerName;
 	private AID remoteAMS;
 	Agent myAgent;
-	
+
 	public Behaviour load(Agent a) throws TestException {  
-		
+
 
 		myAgent = a;
 		//Launch a remote platform
 		jcR = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), new String[]{Test.DEFAULT_PROTO}); 
-		
+
 		// Construct the AID of the AMS of the remote platform 
 		remoteAMS = new AID("ams@"+REMOTE_PLATFORM_NAME, AID.ISGUID);
 		Iterator it = jcR.getAddresses().iterator();
 		while (it.hasNext()) {
 			remoteAMS.addAddresses((String) it.next());
 		}
-		
-	  //Launch another container with an MTP to communicate with the remote platform
+
+		//Launch another container with an MTP to communicate with the remote platform
 		jcCHTTP = TestUtility.launchJadeInstance("Container-1", "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+Test.DEFAULT_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), null);
-		
+
 		SequentialBehaviour sb = new SequentialBehaviour(a);
-		
+
 		//Step 1: Initialization phase of the split-container
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  			try {
+			public void action() {
+				try {
 					containerName = createSplitContainer();
-  			}
-  			catch (Exception e) {
-  				failed("Error initilizing split-container. " + e);
-  				e.printStackTrace();
-  			}
-  		}
-  	});
-		
+				}
+				catch (Exception e) {
+					failed("Error initilizing split-container. " + e);
+					e.printStackTrace();
+				}
+			}
+		});
+
 		//Step 2: launch ping agent on remote platform
-		sb.addSubBehaviour(new OneShotBehaviour(a){
-			public void action(){
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
+			public void onWake(){
 				try{
 					log("Starting ping agent on " + jcR.getContainerName());
 					//Launch an agent on the remote platform. 
@@ -79,7 +80,7 @@ public class TestRemoteCommunicationBasic extends Test{
 				}
 			}
 		});
-		
+
 		//Step 3: launch controller agent on split-container
 		sb.addSubBehaviour(new OneShotBehaviour(a){
 			public void action(){
@@ -104,46 +105,46 @@ public class TestRemoteCommunicationBasic extends Test{
 				}
 			}
 		});
-		
+
 		//Step 4: Collects INFORM messages from the controller
-  	Behaviour collector = new SimpleBehaviour(a) {
-  		private boolean finished = false;
-  		
-  		public void action() {
-  			//waits for messages from controller
-  			ACLMessage msg = myAgent.receive();
-  			AID controllerAID = new AID(CONTROLLER_NAME + containerName, AID.ISLOCALNAME);
-  			if (msg != null) {
-  				if(msg.getSender().equals(controllerAID)){
-  					//received message from controller
-	  				if(msg.getPerformative() == ACLMessage.INFORM){
-	  					//test successful
-	  					passed("Remote communication successful. " + msg.getContent());
-	  				}else{
-	  					//test failed
-	  					failed("FAILURE: Remote communication failed. " + msg.getContent());
-	  				}
-  				}else{
-  					//received message from unexpected agent
-  					failed("FAILURE: Received message from unexpected agent " + msg.getSender() + ". " + msg.toString());
-  				}
-  				finished = true;
-  			}
-  			else {
-  				block();
-  			}
-  		}
-  		
-  		public boolean done() {
-  			return finished;
-  		}
-  	};
+		Behaviour collector = new SimpleBehaviour(a) {
+			private boolean finished = false;
+
+			public void action() {
+				//waits for messages from controller
+				ACLMessage msg = myAgent.receive();
+				AID controllerAID = new AID(CONTROLLER_NAME + containerName, AID.ISLOCALNAME);
+				if (msg != null) {
+					if(msg.getSender().equals(controllerAID)){
+						//received message from controller
+						if(msg.getPerformative() == ACLMessage.INFORM){
+							//test successful
+							passed("Remote communication successful. " + msg.getContent());
+						}else{
+							//test failed
+							failed("FAILURE: Remote communication failed. " + msg.getContent());
+						}
+					}else{
+						//received message from unexpected agent
+						failed("FAILURE: Received message from unexpected agent " + msg.getSender() + ". " + msg.toString());
+					}
+					finished = true;
+				}
+				else {
+					block();
+				}
+			}
+
+			public boolean done() {
+				return finished;
+			}
+		};
 		sb.addSubBehaviour(collector);
-		
-	
-  	return sb;
+
+
+		return sb;
 	}
-	
+
 	/**
 	 * Override this method to initialize the environment for the test.
 	 * @return name the name of the split-container created.
@@ -155,8 +156,8 @@ public class TestRemoteCommunicationBasic extends Test{
 		log("split-container created successfully !");
 		return jcC.getContainerName();
 	}
-	
-	
+
+
 	protected void killSplitContainer(Agent a){
 		try{
 			TestUtility.killContainer(a, jcC.getContainerName());
@@ -164,14 +165,14 @@ public class TestRemoteCommunicationBasic extends Test{
 			te.printStackTrace();
 		}
 		if(jcC != null) {
-	  	jcC.kill();
-  	}
+			jcC.kill();
+		}
 	}
-	
+
 	public void clean(Agent a) {
-		
+
 		killSplitContainer(a);
-		
+
 		if(jcCHTTP != null){
 			jcCHTTP.kill();
 		}
@@ -180,7 +181,7 @@ public class TestRemoteCommunicationBasic extends Test{
 		}
 	}
 
-	
+
 	/**
 	 Inner class PingAgent
 	 */
@@ -203,14 +204,14 @@ public class TestRemoteCommunicationBasic extends Test{
 			} );
 		}
 	} // END of inner class PingAgent
-	
+
 	public static class ControllerAgent extends Agent{
-		
+
 		String testerName;
 		AID pingAgent;
-		
+
 		protected void setup(){
-			
+
 			Object args[] = getArguments();
 			if(args != null){
 				testerName = (String)args[0];
@@ -223,14 +224,14 @@ public class TestRemoteCommunicationBasic extends Test{
 			ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 			request.addReceiver(pingAgent);
 			send(request);
-		
+
 			addBehaviour(new CyclicBehaviour(this) {
 				public void action() {
-					
+
 					ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
 					AID testerAID = new AID(testerName, AID.ISLOCALNAME);
 					reply.addReceiver(testerAID);
-					
+
 					ACLMessage msg = myAgent.blockingReceive(5000);
 					if (msg != null) {
 						if(msg.getSender().equals(pingAgent)){

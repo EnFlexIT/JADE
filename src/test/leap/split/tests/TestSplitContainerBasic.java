@@ -21,7 +21,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 import jade.core.Agent;
 import jade.core.AID;
@@ -29,6 +29,7 @@ import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
@@ -52,31 +53,31 @@ public class TestSplitContainerBasic extends Test{
 	String containerName;
 	AID pingAgent;
 	Agent myAgent;
-	
+
 	private static final String CONV_ID = "conv-id";
 
 	public Behaviour load(Agent a) throws TestException {
-		
+
 		myAgent = a;
-		
+
 		SequentialBehaviour sb = new SequentialBehaviour(a);
 
 		//Step 1: Initialization phase
 		sb.addSubBehaviour(new OneShotBehaviour(a) {
-  		public void action() {
-  			try {
+			public void action() {
+				try {
 					containerName = createSplitContainer();
-  			}
-  			catch (Exception e) {
-  				failed("Error initilizing split-container. " + e);
-  				e.printStackTrace();
-  			}
-  		}
-  	} );
-		
+				}
+				catch (Exception e) {
+					failed("Error initilizing split-container. " + e);
+					e.printStackTrace();
+				}
+			}
+		} );
+
 		//Step 2: create PingAgent via AMS.
-		sb.addSubBehaviour(new OneShotBehaviour(a){
-			public void action(){
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000){
+			public void onWake(){
 				try{
 					log("Starting ping agent on " + containerName);
 					pingAgent = TestUtility.createAgent(myAgent, PING_NAME, "test.leap.split.tests.TestSplitContainerBasic$PingAgent", null, null, containerName);
@@ -88,8 +89,8 @@ public class TestSplitContainerBasic extends Test{
 				}
 			}
 		});
-		
-		
+
+
 		//Step 3: Send a message (to the PingAgent) 
 		sb.addSubBehaviour(new MsgReceiver(a, MessageTemplate.MatchConversationId(CONV_ID), -1, null, null) {
 			public void onStart() {
@@ -99,23 +100,23 @@ public class TestSplitContainerBasic extends Test{
 				msg.addReceiver(pingAgent);
 				msg.setConversationId(CONV_ID);
 				myAgent.send(msg);
-  		}
-  		
-  		protected void handleMessage(ACLMessage msg) {
-  			if (msg != null) {
-  				if (msg.getPerformative() == ACLMessage.INFORM) {
-	  				log("Response received from ping agent: " + msg);
-  				}
-  				else {
-  					failed("FAILURE notification received. " + msg);
-  				}
-  			}
-  			else {
-  				failed("No response received from ping agent");
-  			}
-  		}
-  	});
-		
+			}
+
+			protected void handleMessage(ACLMessage msg) {
+				if (msg != null) {
+					if (msg.getPerformative() == ACLMessage.INFORM) {
+						log("Response received from ping agent: " + msg);
+					}
+					else {
+						failed("FAILURE notification received. " + msg);
+					}
+				}
+				else {
+					failed("No response received from ping agent");
+				}
+			}
+		});
+
 		//Step 4: kill ping agent
 		sb.addSubBehaviour(new OneShotBehaviour(){
 			public void action(){
@@ -128,8 +129,8 @@ public class TestSplitContainerBasic extends Test{
 				}
 			}
 		});
-		
-		
+
+
 		//Step 5: Send a message to the PingAgent. 
 		sb.addSubBehaviour(new MsgReceiver(a, MessageTemplate.MatchConversationId(CONV_ID), -1, null, null) {
 			public void onStart() {
@@ -139,25 +140,25 @@ public class TestSplitContainerBasic extends Test{
 				msg.addReceiver(pingAgent);
 				msg.setConversationId(CONV_ID);
 				myAgent.send(msg);
-  		}
-  		
-  		protected void handleMessage(ACLMessage msg) {
-  			if (msg != null) {
-  				if (msg.getPerformative() == ACLMessage.INFORM) {
-  					//the ping agent is dead. No response must be received.
-	  				failed("Response received from ping agent. The ping agent is not dead as expected. " + msg);
-  				}
-  				else {
-  					log("Failure notification received as expected. Ping agent successfully killed.");
-  				}
-  			}
-  			else {
-  				log("No response received from ping agent");
-  			}
-  		}
-  	});
-		
-		
+			}
+
+			protected void handleMessage(ACLMessage msg) {
+				if (msg != null) {
+					if (msg.getPerformative() == ACLMessage.INFORM) {
+						//the ping agent is dead. No response must be received.
+						failed("Response received from ping agent. The ping agent is not dead as expected. " + msg);
+					}
+					else {
+						log("Failure notification received as expected. Ping agent successfully killed.");
+					}
+				}
+				else {
+					log("No response received from ping agent");
+				}
+			}
+		});
+
+
 		//Step 6: kill split container.
 		sb.addSubBehaviour(new OneShotBehaviour(){
 			public void action(){
@@ -179,22 +180,22 @@ public class TestSplitContainerBasic extends Test{
 				}
 			}
 		});
-		
+
 		return sb;
 	}
-	
-	
+
+
 	public void clean(Agent a) {
-  	try {
-  		if(jc != null){
-  			jc.kill();
-  		}
-  	}
-  	catch (Exception e) {
-  		e.printStackTrace();
-  	}
-  }  
-	
+		try {
+			if(jc != null){
+				jc.kill();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}  
+
 	/**
 	 * Override this method to initialize the environment for the test.
 	 * @return name the name of the split-container created.
@@ -206,8 +207,8 @@ public class TestSplitContainerBasic extends Test{
 		log("split-container created successfully !");
 		return jc.getContainerName();
 	}
-	
-	
+
+
 	/**
 	 Inner class PingAgent
 	 */
