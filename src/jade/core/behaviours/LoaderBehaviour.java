@@ -326,22 +326,26 @@ public class LoaderBehaviour extends Behaviour {
 
 	private void setInputParameters(Behaviour b, List params) {
 		DataStore ds = b.getDataStore();
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-			Parameter p = (Parameter) it.next();
-			if (p.getMode() == Parameter.IN_MODE || p.getMode() == Parameter.INOUT_MODE) {
-				ds.put(p.getName(), p.getValue());
+		if (params != null) {
+			Iterator it = params.iterator();
+			while (it.hasNext()) {
+				Parameter p = (Parameter) it.next();
+				if (p.getMode() == Parameter.IN_MODE || p.getMode() == Parameter.INOUT_MODE) {
+					ds.put(p.getName(), p.getValue());
+				}
 			}
 		}
 	}
 	
 	private void getOutputParameters(Behaviour b, List params) {
 		DataStore ds = b.getDataStore();
-		Iterator it = params.iterator();
-		while (it.hasNext()) {
-			Parameter p = (Parameter) it.next();
-			if (p.getMode() == Parameter.OUT_MODE || p.getMode() == Parameter.INOUT_MODE) {
-				p.setValue(ds.get(p.getName()));
+		if (params != null) {
+			Iterator it = params.iterator();
+			while (it.hasNext()) {
+				Parameter p = (Parameter) it.next();
+				if (p.getMode() == Parameter.OUT_MODE || p.getMode() == Parameter.INOUT_MODE) {
+					p.setValue(ds.get(p.getName()));
+				}
 			}
 		}
 	}

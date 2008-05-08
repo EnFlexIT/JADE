@@ -1,6 +1,24 @@
 MAJOR CHANGES in JADE 3.6 (05 May 2008)
 ==========================================================================
 GENERAL IMPROVEMENTS:
+
+BUG-FIXES:
+- Added sanity check in LoaderBehaviour to avoid NullPoinerException in case of null parameters (problem reported by Mehrdad Senobari)
+
+
+LEAP:
+
+ADD-ONS:
+
+DOCUMENTATION:
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+
+
+
+MAJOR CHANGES in JADE 3.6 (05 May 2008)
+==========================================================================
+GENERAL IMPROVEMENTS:
 - Added support to specify the jar file where to load agent code at agent startup
 - SubscriptionResponder: Modified according to comments by Chris Audley and Henrique Lopes Cardoso
 - Extended TopicManagementService to deal with registrations to topic templates (e.g. foo.bar.*)
