@@ -27,6 +27,7 @@ package jade.core.nodeMonitoring;
 // Take care that the DOTNET build file (dotnet.xml) uses this file (it is copied just after the preprocessor excluded it)
 //#J2ME_EXCLUDE_FILE
 
+import jade.core.IMTPException;
 import jade.core.Profile;
 
 import java.io.IOException;
@@ -452,9 +453,19 @@ class UDPMonitorServer {
 		}
 
 		if (oldState == UDPNodeFailureMonitor.STATE_CONNECTED) {
-			newState = UDPNodeFailureMonitor.STATE_UNREACHABLE;
-			addDeadline(nodeID, unreachLimit);
-
+			// Try to ping the monitored node explicitly to be sure it is actually disconnected
+			try {
+				myService.pingNode(nodeID);
+				// For some reason we are not receiving PING packets, but the node is alive and reachable.
+				// Print a warning and do as if we received a ping
+				logger.log(Logger.WARNING, "Missing UDP-PING packets from reachable node "+nodeID);
+				pingReceived(nodeID, false);
+			}
+			catch (IMTPException imtpe) {
+				// The node is actually unreachable.
+				newState = UDPNodeFailureMonitor.STATE_UNREACHABLE;
+				addDeadline(nodeID, unreachLimit);
+			}
 		} else if (oldState == UDPNodeFailureMonitor.STATE_UNREACHABLE) {
 			newState = UDPNodeFailureMonitor.STATE_FINAL;
 		}

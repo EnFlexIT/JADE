@@ -236,6 +236,7 @@ public class RMIIMTPManager implements IMTPManager {
 				try {
 					PlatformManager originalPM = getPlatformManagerProxy(originalPMAddr);
 					((PlatformManagerImpl) mgr).setPlatformName(originalPM.getPlatformName());
+					myLogger.log(Logger.INFO, "Connecting to master Main Container at address "+originalPMAddr);
 					mgr.addReplica(originalPMAddr, true); // Do as if it was a propagated info
 					originalPM.addReplica(localAddr, false);
 				}
@@ -246,7 +247,7 @@ public class RMIIMTPManager implements IMTPManager {
 					Throwable t = imtpe.getNested();
 					if ((t != null) && (t instanceof ConnectException)) {
 						// The master main container does not exist. Become the leader
-						myLogger.log(Logger.INFO,"No master main container found at "+originalPMAddr+". Take the leadership");
+						myLogger.log(Logger.INFO,"No master Main Container found at address "+originalPMAddr+". Take the leadership");
 						originalPMAddr = null;
 						myProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, "false");
 					}

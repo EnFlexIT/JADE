@@ -88,7 +88,7 @@ import jade.util.leap.Properties;
 public class BasicProperties extends Properties {
 
     boolean CRState = false;
-    Hashtable keyNames = null;  // for detecting circular definitions
+    Hashtable keyNames = new Hashtable();  // for detecting circular definitions
     Vector sortVector = null;   // only used by sortedKeys
 
     /**
@@ -544,31 +544,33 @@ public class BasicProperties extends Properties {
         String testKey = (aKey.endsWith("!")) ? aKey.substring(0, aKey.length()) : aKey;
         if (testKey.length() == 0) {
             return null;
-        }        
-        if (keyNames == null) {
-            keyNames = new Hashtable();
         }
-        if (keyNames.put(testKey, "x") != null) {  // value doesn't matter
-            throw new PropertiesException(
-                "Circular argument substitution with key: " + aKey);
+        String value = null;
+        // This synchronized block prevents a "Circular argument substitution key" error in case two threads
+        // search for the same key in parallel
+        synchronized (keyNames) {
+	        if (keyNames.put(testKey, "x") != null) {  // value doesn't matter
+	            throw new PropertiesException(
+	                "Circular argument substitution with key: " + aKey);
+	        }
+	        Object data = super.get(testKey);
+	        if (data == null) {
+	            data = super.get(testKey + "!" );
+	        }
+		    value = (data != null) ? data.toString() : null;
+	        if (value != null) {
+	            if (value.length() >= 4) {    // shortest possible value: ${x}
+	                value = doSubstitutions(value);
+	            }
+	        } else {
+	            value = defaultValue;
+	        }
+	        if (value != null) {
+	            value = valueFilter(aKey, value);
+	        }
+	        
+	        keyNames.remove(testKey);
         }
-        Object data = super.get(testKey);
-        if (data == null) {
-            data = super.get(testKey + "!" );
-        }
-	    String value = (data != null) ? data.toString() : null;
-        if (value != null) {
-            if (value.length() >= 4) {    // shortest possible value: ${x}
-                value = doSubstitutions(value);
-            }
-        } else {
-            value = defaultValue;
-        }
-        if (value != null) {
-            value = valueFilter(aKey, value);
-        }
-        
-        keyNames.remove(testKey);
 
         return value;
     }

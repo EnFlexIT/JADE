@@ -28,8 +28,12 @@ package jade.core.nodeMonitoring;
 //#APIDOC_EXCLUDE_FILE
 
 import jade.core.AgentContainer;
+import jade.core.ContainerID;
 import jade.core.GenericCommand;
 import jade.core.HorizontalCommand;
+import jade.core.MainContainer;
+import jade.core.NodeDescriptor;
+import jade.core.NotFoundException;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.NodeFailureMonitor;
@@ -126,6 +130,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	private Hashtable myClients = new Hashtable(2);
 	
 	private ServiceManager myServiceManager;
+	private MainContainer mainContainer;
 	
 	private ServiceComponent localSlice = new ServiceComponent();
 	private Filter incFilter = new UDPMonitorIncomingFilter();
@@ -142,7 +147,8 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		super.init(ac, p);	
 		myServiceManager = ac.getServiceManager();
 		
-		if (ac.getMain() != null) {
+		mainContainer = ac.getMain();
+		if (mainContainer != null) {
 			// We are on the main container --> launch a UDPMonitorServer
 			String host = Profile.getDefaultNetworkName(); 
 			int port = getPosIntValue(p, PORT, DEFAULT_PORT);
@@ -311,6 +317,18 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		catch (Exception e) {
 			// Should never happen
 			e.printStackTrace();
+		}
+	}
+	
+	void pingNode(String nodeID) throws IMTPException {
+		try {
+			// This method is invoked by the UDPMonitorServer --> it can only be invoked on a Main Container 
+			NodeDescriptor dsc = mainContainer.getContainerNode(new ContainerID(nodeID, null));
+			dsc.getNode().ping(false);
+		}
+		catch (NotFoundException nfe) {
+			// Node unknown! This should never happen. DO as if it was unreachable
+			throw new IMTPException("Unknown node");
 		}
 	}
 	

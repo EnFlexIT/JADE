@@ -204,6 +204,7 @@ public class LEAPIMTPManager implements IMTPManager {
 			
 			try {
 				((PlatformManagerImpl) mgr).setPlatformName(masterPM.getPlatformName());
+				logger.log(Logger.INFO, "Connecting to master Main Container at address "+masterPMAddr);
 				mgr.addReplica(masterPMAddr, true); // Do as if it was a propagated info
 				masterPM.addReplica(localAddr, false);
 			}
@@ -214,7 +215,7 @@ public class LEAPIMTPManager implements IMTPManager {
 				Throwable t = imtpe.getNested();
 				if ((t != null) && (t instanceof UnreachableException)) {
 					// The master main container does not exist. Become the leader
-					logger.log(Logger.INFO,"No master main container found at "+masterPMAddr+". Take the leadership");
+					logger.log(Logger.INFO,"No master Main Container found at address "+masterPMAddr+". Take the leadership");
 					masterPMAddr = null;
 					theProfile.setParameter(Profile.LOCAL_SERVICE_MANAGER, "false");
 				}
