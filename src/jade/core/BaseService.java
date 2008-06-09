@@ -263,6 +263,10 @@ public abstract class BaseService implements Service {
 		return getSlice(name);
 	}
 	
+	protected IMTPManager getIMTPManager() {
+		return myIMTPManager;
+	}
+
 	protected void clearCachedSlice(String name) {
 		// slices may be null when calling this method on the Main Container, but on a service not active on the Main Container
 		// --> In this case the service has not been initialized.

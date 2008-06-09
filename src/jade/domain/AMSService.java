@@ -486,11 +486,51 @@ public class AMSService extends FIPAService {
 			throw new FIPAException("Invalid content. "+e);
 		}
 	}
+
+	public static String getFailureReason(Agent a, ACLMessage failure) throws FIPAException {
+		if (failure.getPerformative() != ACLMessage.FAILURE || !failure.getSender().equals(a.getAMS())) {
+			throw new FIPAException("Invalid AMS FAILURE message");
+		}
+		try {
+			String content = failure.getContent();
+			int start = content.indexOf("MTS-error");
+			if (start < 0) {
+				throw new FIPAException("Invalid AMS FAILURE message");
+			}
+			start = content.indexOf(ExceptionVocabulary.INTERNALERROR, start);
+			start = content.indexOf('"', start);
+			int end = content.indexOf('"', start);
+			content = content.substring(start, end);
+
+			if (content.startsWith(ACLMessage.AMS_FAILURE_AGENT_NOT_FOUND)) {
+				content = ACLMessage.AMS_FAILURE_AGENT_NOT_FOUND;
+			}
+			else if (content.startsWith(ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE)) {
+				content = ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE;
+			}
+			else if (content.startsWith(ACLMessage.AMS_FAILURE_SERVICE_ERROR)) {
+				content = ACLMessage.AMS_FAILURE_SERVICE_ERROR;
+			}
+			else if (content.startsWith(ACLMessage.AMS_FAILURE_FOREIGN_AGENT_NO_ADDRESS)) {
+				content = ACLMessage.AMS_FAILURE_FOREIGN_AGENT_NO_ADDRESS;
+			}
+			else if (content.startsWith(ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE)) {
+				content = ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE;
+			}
+			else if (content.startsWith(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR)) {
+				content = ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR;
+			}
+
+			return content;
+		} catch (Exception e) {
+			throw new FIPAException("Invalid content. "+e);
+		}
+	}
+
 	/**
 	 Default constructor.
 	 */
 	public AMSService() {
 	}
-	
 }
 

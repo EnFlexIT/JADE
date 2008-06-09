@@ -108,13 +108,13 @@ public class JadeGateway {
 			try {
 				if (myLogger.isLoggable(Logger.INFO)) 
 					myLogger.log(Logger.INFO, "Requesting execution of command "+command);
-				myAgent.putO2AObject(e, myAgent.ASYNC);
+				myAgent.putO2AObject(e, AgentController.ASYNC);
 			} catch (StaleProxyException exc) {
 				exc.printStackTrace();
 				// in case an exception was thrown, restart JADE
 				// and then reexecute the command
 				restartJADE();
-				myAgent.putO2AObject(e, myAgent.ASYNC);
+				myAgent.putO2AObject(e, AgentController.ASYNC);
 			}
 		}
 		// wait until the answer is ready

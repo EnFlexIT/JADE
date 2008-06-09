@@ -48,10 +48,12 @@ import jade.core.Agent;
 import jade.core.AID;
 import jade.core.ContainerID;
 import jade.core.Profile;
+import jade.core.SliceProxy;
 import jade.core.Specifier;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NotFoundException;
+import jade.core.Service.Slice;
 
 import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.InternalError;
@@ -1192,18 +1194,23 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 					myLogger.log(Logger.INFO, msg.getTraceID() + " - Activating ACC delivery");
 				}
 				Iterator addresses = receiverID.getAllAddresses();
-				while (addresses.hasNext()) {
-					String address = (String) addresses.next();
-					try {
-						forwardMessage(msg, receiverID, address);
-						return;
-					} 
-					catch (MTPException mtpe) {
-						if (myLogger.isLoggable(Logger.WARNING) && !isPersistentDeliveryRetry(msg))
-							myLogger.log(Logger.WARNING, "Cannot deliver message to address: " + address + " [" + mtpe.toString() + "]. Trying the next one...");
+				if (addresses.hasNext()) {
+					while (addresses.hasNext()) {
+						String address = (String) addresses.next();
+						try {
+							forwardMessage(msg, receiverID, address);
+							return;
+						} 
+						catch (MTPException mtpe) {
+							if (myLogger.isLoggable(Logger.WARNING) && !isPersistentDeliveryRetry(msg))
+								myLogger.log(Logger.WARNING, "Cannot deliver message to address: " + address + " [" + mtpe.toString() + "]. Trying the next one...");
+						}
 					}
+					notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_FOREIGN_AGENT_UNREACHABLE + ": " + "No valid address contained within the AID " + receiverID.getName()));
 				}
-				notifyFailureToSender(msg, receiverID, new InternalError("No valid address contained within the AID " + receiverID.getName()));
+				else {
+					notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_FOREIGN_AGENT_NO_ADDRESS));
+				}
 			}
 		} 
 		catch (NotFoundException nfe) {
@@ -1211,24 +1218,24 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver does not exist.", nfe);
 			}
-			notifyFailureToSender(msg, receiverID, new InternalError("Agent not found: " + nfe.getMessage()));
+			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_AGENT_NOT_FOUND + ": " + nfe.getMessage()));
 		} 
 		catch (IMTPException imtpe) {
 			// Can't reach the destination container --> Send a FAILURE message
 			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver unreachable.", imtpe);
-			notifyFailureToSender(msg, receiverID, new InternalError("Agent unreachable: " + imtpe.getMessage()));
+			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE + ": " + imtpe.getMessage()));
 		} 
 		catch (ServiceException se) {
 			// Service error during delivery --> Send a FAILURE message
 			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Service error delivering message.", se);
-			notifyFailureToSender(msg, receiverID, new InternalError("Service error: " + se.getMessage()));
+			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_SERVICE_ERROR + ": " + se.getMessage()));
 		} 
 		catch (JADESecurityException jse) {
 			// Delivery not authorized--> Send a FAILURE message
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.WARNING, msg.getTraceID()+" - Not authorized.", jse);
 			}
-			notifyFailureToSender(msg, receiverID, new InternalError("Not authorized: " + jse.getMessage()));
+			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNAUTHORIZED + ": " + jse.getMessage()));
 		}
 	}
 	
@@ -1292,15 +1299,29 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	
 	private void deliverUntilOK(GenericMessage msg, AID receiverID) throws IMTPException, NotFoundException, ServiceException, JADESecurityException {
 		while (true) {
-			MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
-			ContainerID cid;
+			ContainerID cid = null;
 			try {
-				cid = mainSlice.getAgentLocation(receiverID);
-			} 
-			catch (IMTPException imtpe) {
-				// Try to get a newer slice and repeat...
-				mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
-				cid = mainSlice.getAgentLocation(receiverID);
+				MessagingSlice mainSlice = (MessagingSlice) getSlice(MAIN_SLICE);
+				try {
+					cid = mainSlice.getAgentLocation(receiverID);
+				} 
+				catch (IMTPException imtpe) {
+					// Try to get a newer slice and repeat...
+					mainSlice = (MessagingSlice) getFreshSlice(MAIN_SLICE);
+					cid = mainSlice.getAgentLocation(receiverID);
+				}
+			}
+			catch (ServiceException se) {
+				// This container is no longer able to access the Main --> before propagating the exception
+				// try to see if the receiver lives locally
+				if (myContainer.isLocalAgent(receiverID)) {
+					MessagingSlice localSlice = (MessagingSlice)getIMTPManager().createSliceProxy(getName(), getHorizontalInterface(), getLocalNode());
+					localSlice.dispatchLocally(msg.getSender(), msg, receiverID);
+					return;
+				}
+				else {
+					throw se;
+				}
 			}
 			
 			MessagingSlice targetSlice = oneShotDeliver(cid, msg, receiverID);

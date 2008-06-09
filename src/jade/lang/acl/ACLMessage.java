@@ -177,7 +177,19 @@ public class ACLMessage implements Serializable {
 	 * User defined parameter key specifying that the JADE tracing mechanism should be activated for this message.
 	 */
 	public static final String TRACE = "JADE-trace";
-	
+
+	/**
+	 * AMS failure reasons 
+	 */
+	public static final String AMS_FAILURE_AGENT_NOT_FOUND = "Agent not found";
+	public static final String AMS_FAILURE_AGENT_UNREACHABLE = "Agent unreachable";
+	public static final String AMS_FAILURE_SERVICE_ERROR = "Service error";
+	public static final String AMS_FAILURE_UNAUTHORIZED = "Not authorized";
+	public static final String AMS_FAILURE_FOREIGN_AGENT_UNREACHABLE = "Foreign agent unreachable";
+	public static final String AMS_FAILURE_FOREIGN_AGENT_NO_ADDRESS = "Foreign agent with no address";
+	public static final String AMS_FAILURE_UNEXPECTED_ERROR = "Unexpected error";
+
+
 	/**
 	 @serial
 	 */
@@ -187,7 +199,7 @@ public class ACLMessage implements Serializable {
 	 * used by this class **/
 	private static final int RECEIVERS_EXPECTED_SIZE = 1;
 	private static final int REPLYTO_EXPECTED_SIZE = 1;
-	
+
 	//#MIDP_EXCLUDE_BEGIN
 	private ArrayList dests = new ArrayList(RECEIVERS_EXPECTED_SIZE);
 	private ArrayList reply_to = null; 

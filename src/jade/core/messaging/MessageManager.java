@@ -154,7 +154,7 @@ class MessageManager {
 				catch (Throwable t) {
 					// A MessageManager deliverer thread must never die
 					myLogger.log(Logger.WARNING, "MessageManager cannot deliver message "+stringify(msg)+" to agent "+receiverID.getName()+". "+t);
-					ch.notifyFailureToSender(msg, receiverID, new InternalError("\""+t+"\""));
+					ch.notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_UNEXPECTED_ERROR + ": "+t));
 				}
 				servedCnt++;
 				outBox.handleServed(receiverID);
