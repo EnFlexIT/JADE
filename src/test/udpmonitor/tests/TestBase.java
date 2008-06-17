@@ -111,4 +111,12 @@ public abstract class TestBase extends Test {
 	public JadeController startPeripheralContainer(Agent a, String specificArgs) throws TestException {
 		return TestUtility.launchJadeInstance(PERIPHERAL_CONTAINER_NAME, null, "-container-name "+PERIPHERAL_CONTAINER_NAME+" -container -port "+UDPMonitorTesterAgent.REMOTE_PLATFORM_PORT+" -host " + TestUtility.getContainerHostName(a, getRemoteAMS(), AgentContainer.MAIN_CONTAINER_NAME) + " "+specificArgs, null);		
 	}
+	
+	public int getAddedContainerCnt() {
+		return listener.getAddedContainerCnt();
+	}
+	
+	public int getRemovedContainerCnt() {
+		return listener.getRemovedContainerCnt();
+	}
 }

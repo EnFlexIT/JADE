@@ -24,9 +24,8 @@
  */
 package jade.content.lang;
 
+import jade.content.ContentException;
 import jade.content.onto.*;
-import jade.content.abs.*;
-import jade.util.WrapperException;
 import jade.util.leap.Serializable;
 
 /**
@@ -35,60 +34,60 @@ import jade.util.leap.Serializable;
  */
 public abstract class Codec implements Serializable {
 
-    /**
-     * Class CodecException.
-     *
-     * @author Federico Bergenti
-     */
-    public static class CodecException extends WrapperException {
+	/**
+	 * Class CodecException.
+	 *
+	 * @author Federico Bergenti
+	 */
+	public static class CodecException extends ContentException {
 
-        /**
-         * Constructor
-         *
-         * @param message the message.
-         *
-         */
-        public CodecException(String message) {
-            super(message);
-        }
+		/**
+		 * Constructor
+		 *
+		 * @param message the message.
+		 *
+		 */
+		public CodecException(String message) {
+			super(message);
+		}
 
-	 			/**
+		/**
 	   			 Construct a new <code>CodecException</code>
 	         @param msg The message for this exception.
 	         @param t The exception wrapped by this object.
-				 */
-				public CodecException(String msg, Throwable t) {
-	    		super(msg, t);
-				}		
+		 */
+		public CodecException(String msg, Throwable t) {
+			super(msg, t);
+		}		
 
-    }
+	}
 
-    /** This string is the prefix of all the unnamed slots of a Frame **/
-    public static String UNNAMEDPREFIX = "_JADE.UNNAMED"; 
+	/** This string is the prefix of all the unnamed slots of a Frame **/
+	public static String UNNAMEDPREFIX = "_JADE.UNNAMED"; 
 
-    private String name = null;
+	private String name = null;
 
-    /**
-     * Construct a Codec object with the given name
-     */
-    protected Codec(String name) {
-        this.name = name;
-    }
+	/**
+	 * Construct a Codec object with the given name
+	 */
+	protected Codec(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name of this codec.
-     * @return the name of this codec.
-     */
-    public String getName() {
-        return name;
-    } 
+	/**
+	 * Gets the name of this codec.
+	 * @return the name of this codec.
+	 */
+	public String getName() {
+		return name;
+	} 
 
-    /**
-     * @return the ontology containing the schemas of the operator
-     * defined in this language
-     */
-    public Ontology getInnerOntology() {
-    	return null;
-    }
+	/**
+	 * @return the ontology containing the schemas of the operator
+	 * defined in this language
+	 */
+	public Ontology getInnerOntology() {
+		return null;
+	}
 }
 

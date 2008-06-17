@@ -24,14 +24,14 @@
  */
 package jade.content.onto;
 
-import jade.util.WrapperException;
+import jade.content.ContentException;
 
 /**
  * Generic exception of the content support.
  *
  * @author Federico Bergenti - Universita` di Parma
  */
-public class OntologyException extends WrapperException {
+public class OntologyException extends ContentException {
 
     /**
      * Construct an <code>OntologyException</code> with a given message.

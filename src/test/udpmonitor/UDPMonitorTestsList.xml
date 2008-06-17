@@ -19,17 +19,17 @@
 		</Test>
 		<Test name="Peripheral container with deactivated UDP monitoring" skip="false">
 			<TestClassName>test.udpmonitor.tests.TestUnmonitoredContainer</TestClassName>
-			<WhatTest>This test checks whether a peripheral container with deactivated UDP monitoring gets automatically removed from the platform</WhatTest>
+			<WhatTest>This test checks that a peripheral container without the UDP monitoring activated is NOT removed from the platform anyway</WhatTest>
 			<HowWorkTest> 
 				The test starts a peripheral container WITHOUT the UDPNodeMonitoringService and waits 
-				for the appropriate event from the AMS. Next it waits the maximum time a node can be unreachable + the 
-				maximum time the server waits for a single ping and checks whether the container has been removed from the platform.
+				for the appropriate event from the AMS. Next it waits (3 * maximum time a node can be unreachable)
+				and checks whether the container is still alive.
 		    </HowWorkTest>
 			<WhenTestPass>The test passes if the AMS fires one "ContainerAdded" event and one "RemovedContainer" event</WhenTestPass>
 		</Test>
-		<Test name="Lost connection" skip="false">
+		<Test name="Unexpected container termination" skip="false">
 			<TestClassName>test.udpmonitor.tests.TestLostConnection</TestClassName>
-			<WhatTest>This test checks whether a peripheral container gets removed from a platform when the container doesn't send ping messages anymore.</WhatTest>
+			<WhatTest>This test checks whether a peripheral container gets removed from a platform when a container suddenly disappears.</WhatTest>
 			<HowWorkTest> 
 				The test starts a peripheral container and waits 
 				for the appropriate event from the AMS. Next it kills the whole process of the container and checks whether the container gets
@@ -39,7 +39,7 @@
 				If this event is fired before or any other event is recognized the test fails.</WhenTestPass>		
 		</Test>
 		<Test name="Terminating container" skip="false">
-			<TestClassName>test.udpmonitor.tests.TestLostConnection</TestClassName>
+			<TestClassName>test.udpmonitor.tests.TestTerminatingContainer</TestClassName>
 			<WhatTest>This test checks whether a peripheral container gets removed immediately from a platform when it is killed</WhatTest>
 			<HowWorkTest> 
 				The test starts a peripheral container and waits 

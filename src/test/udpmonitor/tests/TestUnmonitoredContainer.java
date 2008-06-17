@@ -6,12 +6,12 @@ import jade.core.nodeMonitoring.UDPNodeMonitoringService;
 import test.common.*;
 
 /**
- * This test checks whether a peripheral container with deactivated 
- * UDP monitoring gets automatically removed from the platform.
+ * This test checks that a peripheral container with deactivated 
+ * UDP monitoring is not automatically removed from the platform.
  * 
  * The test starts a peripheral container WITHOUT the UDPNodeMonitoringService and waits 
- * for the appropriate event from the AMS. Next it it waits the maximum time a node can be unreachable + the 
- * maximum time the server waits for a single ping and checks whether the container has been removed from the platform.
+ * for the appropriate event from the AMS. Next it it waits (3 * maximum time a node can be unreachable)
+ * and checks whether the container is still alive.
  * 
  * @author Roland Mungenast - Profactor
  */
@@ -38,13 +38,40 @@ public class TestUnmonitoredContainer extends TestBase {
 			}
 		} );
   
-		// Setp 2: Wait for ~ ping-delay-limit + unreachable-limit. The container should have been removed
-		sb.addSubBehaviour(new WakerBehaviour(a, UDPNodeMonitoringService.DEFAULT_PING_DELAY_LIMIT + UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT + 2000) {
+		// Setp 2: Wait for 3 times the unreachable limit  to be sure that no REMOVED-CONTAINER event is received  
+		sb.addSubBehaviour(new WakerBehaviour(a, UDPNodeMonitoringService.DEFAULT_UNREACHABLE_LIMIT * 3) {
 			public void onStart() {
-				log("Wait for ~ ping-delay-limit + unreachable-limit. The container should have been removed...");
+				log("Wait for 3 times the unreachable limit to be sure that the peripheral container is not removed...");
 				super.onStart();
 			}
 
+			public void onWake() {
+			}
+		} );
+	  
+		// Setp 3: Check that no REMOVED-CONTAINER event was received then kill the unmonitored container 
+		sb.addSubBehaviour(new OneShotBehaviour(a) {
+			public void action() {
+				if (getRemovedContainerCnt() > 0) {
+					failed("Unexpected REMOVED-CONTAINER event received");
+				}
+				else {
+					try {
+						log("Up to now the un-monitored container is correctly alive. Now kill it");
+						// This returns when the killed container is actually removed --> There is no need to wait an extra time 
+						// due to the fact that we are killing an un-monitored container.
+						TestUtility.killContainer(myAgent, getRemoteAMS(), jc.getContainerName());
+					} 
+					catch (Exception e) {
+						e.printStackTrace();
+						failed("Error killing un-monitored container."+e);
+					}					
+				}
+			}
+		} );
+		
+		// Step 4: Just wait a bit to be sure the REMOVED-CONTAINER notification is received
+		sb.addSubBehaviour(new WakerBehaviour(a, 2000) {
 			public void onWake() {
 			}
 		} );
@@ -56,7 +83,7 @@ public class TestUnmonitoredContainer extends TestBase {
 		super.clean(a);
 		
 		if (jc != null) {
-			// The container should have already been removed, but the prosess should be still running
+			// The container should have already been removed but ...
 			jc.kill();
 		}
 	}

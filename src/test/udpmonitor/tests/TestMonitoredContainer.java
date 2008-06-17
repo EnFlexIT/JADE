@@ -60,8 +60,8 @@ public class TestMonitoredContainer extends TestBase {
 			try {
 				TestUtility.killContainer(a, getRemoteAMS(), jc.getContainerName());
 			} 
-			catch (TestException te) {
-				te.printStackTrace();
+			catch (Exception e) {
+				e.printStackTrace();
 				jc.kill();
 			}
 		}

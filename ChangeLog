@@ -1,9 +1,14 @@
 MAJOR CHANGES in JADE 3.6 (05 May 2008)
 ==========================================================================
 GENERAL IMPROVEMENTS:
+- Modified UDPNodeMonitoringService to explicitly ping a node that is not sending UDP packets before marking it as UNREACHABLE.
+- Added method getFailureReason() to AMSService to retrieve from an AMS FAILURE message the reason why a message was not delivered to an agent 
+- Modified MessagingService to support message delivery to local agent even when the main container is unreachable
+- Added ContentException as common base class of CodecException and OntologyException to allow common handling of language and ontology related problems
 
 BUG-FIXES:
 - Added sanity check in LoaderBehaviour to avoid NullPoinerException in case of null parameters (problem reported by Mehrdad Senobari)
+- Modified BasicProperties to avoid circular argument substitution exception when two threads search for the same property in parallel (problem reported by Henrique Lopes Cardoso)
 
 
 LEAP:
