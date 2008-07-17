@@ -4,8 +4,6 @@ package jade.wrapper.gateway;
 
 import jade.core.Agent;
 import jade.core.behaviours.*;
-import java.util.HashMap;
-import jade.util.Event;
 import jade.util.Logger;
 
 /**
