@@ -566,7 +566,7 @@ public class Agent implements Runnable, Serializable
 		String msgQueueClass = getProperty(MSG_QUEUE_CLASS, null);
 		if (msgQueueClass != null) {
 			try {
-				return (MessageQueue) Class.forName(msgQueueClass, true, getClass().getClassLoader()).newInstance();
+				return (MessageQueue) Class.forName(msgQueueClass).newInstance();
 			}
 			catch (Exception e) {
 				System.out.println("Error loading MessageQueue of class "+msgQueueClass+" ["+e+"]");
