@@ -175,7 +175,7 @@ public class AbsPrimitive implements AbsTerm {
 	public void set(int value) {
 		if (!getTypeName().equals(BasicOntology.INTEGER))
 			throw new IllegalArgumentException("Wrong type");
-		this.value = new Long((long) value);
+		this.value = new Integer(value);
 	} 
 
 	/**
@@ -200,7 +200,7 @@ public class AbsPrimitive implements AbsTerm {
 	public void set(float value) {
 		if (!getTypeName().equals(BasicOntology.FLOAT))
 			throw new IllegalArgumentException("Wrong type");
-		this.value = new Double((double) value);
+		this.value = new Float(value);
 	}
 
 	/**
@@ -264,7 +264,13 @@ public class AbsPrimitive implements AbsTerm {
 	 * is not <code>BasicOntology.INTEGER</code>
 	 */
 	public int getInteger() {
-		return (int) ((Long) value).longValue();
+		try {
+			return ((Integer) value).intValue();
+		}
+		catch (ClassCastException cce) {
+			// Try as a Long
+			return (int) ((Long) value).longValue();
+		}
 	} 
 
 	/**
@@ -273,7 +279,13 @@ public class AbsPrimitive implements AbsTerm {
 	 * is not <code>BasicOntology.INTEGER</code>
 	 */
 	public long getLong() {
-		return ((Long) value).longValue();
+		try {
+			return ((Long) value).longValue();
+		}
+		catch (ClassCastException cce) {
+			// Try as an Integer
+			return (long) ((Integer) value).intValue();
+		}
 	} 
 
 	//#MIDP_EXCLUDE_BEGIN
@@ -283,7 +295,13 @@ public class AbsPrimitive implements AbsTerm {
 	 * is not <code>BasicOntology.FLOAT</code>
 	 */
 	public float getFloat() {
-		return (float) ((Double) value).doubleValue();
+		try {
+			return ((Float) value).floatValue();
+		}
+		catch (ClassCastException cce) {
+			// Try as a Double
+			return (float) ((Double) value).doubleValue();
+		}
 	} 
 
 	/**
@@ -292,7 +310,13 @@ public class AbsPrimitive implements AbsTerm {
 	 * is not <code>BasicOntology.FLOAT</code>
 	 */
 	public double getDouble() {
-		return ((Double) value).doubleValue();
+		try {
+			return ((Double) value).doubleValue();
+		}
+		catch (ClassCastException cce) {
+			// Try as a Float
+			return (double) ((Float) value).floatValue();
+		}
 	} 
 	//#MIDP_EXCLUDE_END
 
