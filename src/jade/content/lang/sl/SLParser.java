@@ -423,9 +423,15 @@ class SLParser implements SLParserConstants {
     case STRING_LITERAL2:
       s = String();
       if ( (SL0Vocabulary.SET.equalsIgnoreCase(s)) || (SL0Vocabulary.SEQUENCE.equalsIgnoreCase(s)))
-         val = new AbsAggregate(s);
-      else
-         val = new AbsConcept(s);
+        val = new AbsAggregate(s);
+      else {
+        try {
+          val = (AbsConcept) curOntology.getSchema(s).newInstance();
+        }
+        catch (Exception e) {
+          val = new AbsConcept(s);
+        }
+      }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACE:
       case VARIABLE:

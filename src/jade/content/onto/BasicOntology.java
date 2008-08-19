@@ -188,7 +188,14 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			// CONTENT ELEMENT LIST
 			if (abs.getAbsType() == AbsObject.ABS_CONTENT_ELEMENT_LIST) {
 				return AbsHelper.internaliseContentElementList((AbsContentElementList) abs, referenceOnto);
-			} 
+			}
+			//#MIDP_EXCLUDE_BEGIN
+			// CONCEPT_SLOT_FUNCTION
+			if (abs.getAbsType() == AbsObject.ABS_CONCEPT_SLOT_FUNCTION) {
+				AbsObject absConcept = abs.getAbsObject(ConceptSlotFunctionSchema.CONCEPT_SLOT_FUNCTION_CONCEPT);
+				return referenceOnto.createConceptSlotFunction(abs.getTypeName(), (Concept) referenceOnto.toObject(absConcept));
+			}
+			//#MIDP_EXCLUDE_END
 			// AID
 			if (CaseInsensitiveString.equalsIgnoreCase(abs.getTypeName(), BasicOntology.AID)) { 
 				return AbsHelper.internaliseAID((AbsConcept) abs);
@@ -339,6 +346,16 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			if (obj instanceof ACLMessage) {
 				return AbsHelper.externaliseACLMessage((ACLMessage)obj, referenceOnto);
 			}
+			
+			//#MIDP_EXCLUDE_BEGIN
+			if (obj instanceof ConceptSlotFunction) {
+				ConceptSlotFunction csf = (ConceptSlotFunction) obj;
+				AbsObject absConcept = referenceOnto.fromObject(csf.getConcept());
+				AbsConcept absCsf = new AbsConcept(csf.getSlotName());
+				absCsf.set(ConceptSlotFunctionSchema.CONCEPT_SLOT_FUNCTION_CONCEPT, absConcept);
+				return absCsf;
+			}
+			//#MIDP_EXCLUDE_END
 
 			throw new UnknownSchemaException();
 		} 

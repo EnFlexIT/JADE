@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.ArrayList;
 //#J2ME_EXCLUDE_END
 
+import jade.content.Concept;
 import jade.content.abs.AbsObject;
+import jade.content.schema.ConceptSlotFunctionSchema;
 import jade.content.schema.ObjectSchema;
 import jade.content.schema.AgentActionSchema;
 import jade.content.schema.ConceptSchema;
@@ -153,10 +155,13 @@ public class Ontology implements Serializable {
 	private String       name = null;
 	private Introspector introspector = null;
 
-	private Hashtable    elements = new Hashtable(); // Maps type-names to schemas
-	private Hashtable    classes  = new Hashtable(); // Maps type-names to java classes
-	private Hashtable    schemas  = new Hashtable(); // Maps java classes to schemas
-
+	private Hashtable elements = new Hashtable(); // Maps type-names to schemas
+	private Hashtable classes  = new Hashtable(); // Maps type-names to java classes
+	private Hashtable schemas  = new Hashtable(); // Maps java classes to schemas
+	
+	// We use an Hashtable as if it was a Set
+	private Hashtable conceptSlots; 
+	
 	private Logger logger = Logger.getMyLogger(this.getClass().getName());
 
 	// This is required for compatibility with CLDC MIDP where XXX.class
@@ -235,6 +240,10 @@ public class Ontology implements Serializable {
 		return name;
 	}
 
+	public Introspector getIntrospector() {
+		return introspector;
+	}
+
 	/**
 	 * Adds a schema to this ontology
 	 * @param schema The schema to add
@@ -292,8 +301,13 @@ public class Ontology implements Serializable {
 		}
 
 		ObjectSchema ret = (ObjectSchema) elements.get(name.toLowerCase());
-
+				
 		if (ret == null) {
+			// Check if a ConceptSlotFunctionSchema must be returned
+			if (conceptSlots != null && conceptSlots.containsKey(name)) {
+				return new ConceptSlotFunctionSchema(name);
+			}
+			
 			if(logger.isLoggable(Logger.FINE))
 				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for "+name+" not found");
 			for (int i = 0; i < base.length; ++i) {
@@ -301,9 +315,43 @@ public class Ontology implements Serializable {
 					if(logger.isLoggable(Logger.FINE))
 						logger.log(Logger.FINE,"Base ontology # "+i+" for ontology "+getName()+" is null");
 				}
-				ret = base[i].getSchema(name);
-				if (ret != null) {
-					return ret;
+				else {
+					ret = base[i].getSchema(name);
+					if (ret != null) {
+						break;
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * Retrieves the schema associated to a given class in this ontology.
+	 * The search is extended to the base ontologies if the schema is not
+	 * found.
+	 * @param clazz the class whose associated schema must be retrieved.
+	 * @return the schema associated to the given class or <code>null</code> if the schema is not found.
+	 * @throws OntologyException
+	 */
+	public ObjectSchema getSchema(Class clazz) throws OntologyException {
+		if (clazz == null) {
+			throw new OntologyException("Null class");
+		}
+		ObjectSchema ret = (ObjectSchema) schemas.get(clazz);
+		if (ret == null) {
+			if(logger.isLoggable(Logger.FINE))
+				logger.log(Logger.FINE,"Ontology "+getName()+". Schema for class "+clazz+" not found");
+			for (int i = 0; i < base.length; ++i) {
+				if (base[i] == null) {
+					if(logger.isLoggable(Logger.FINE))
+						logger.log(Logger.FINE,"Base ontology # "+i+" for ontology "+getName()+" is null");
+				}
+				else {
+					ret = base[i].getSchema(clazz);
+					if (ret != null) {
+						break;
+					}
 				}
 			}
 		}
@@ -334,7 +382,7 @@ public class Ontology implements Serializable {
 			throw new OntologyException("No schema found for type "+abs.getTypeName());
 		}
 		catch (OntologyException oe) {
-			// This ontology can have been thrown as the Abs descriptor is
+			// This exception may have been thrown due to the fact that the Abs descriptor is
 			// ungrounded. In this case an UngroundedException must be thrown.
 			// Note that we don't check ungrouding before to speed up performances
 			if (!abs.isGrounded()) {
@@ -596,4 +644,70 @@ public class Ontology implements Serializable {
 		return names;
 	}
 	//#J2ME_EXCLUDE_END
+	
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Create a ConceptSlotFunction for a given slot of a given Concept.
+	 * The ConceptSlotFunction class allows treating the slots of an ontological concept as functions.
+	 * For instance, if an ontology defines a concept <code>Person</code> with a slot <code>name</code> and a slot <code>age</code>,
+	 * it is possible to create expression such as<br>
+	 * (= (age (Person :name John)) 41) <br>
+	 * (> (age (Person :name John)) (age (Person :name Bill)))<br>
+	 * (iota ?x (= (age (Person :name John)) ?x))
+	 * @param slotName The name of the slot
+	 * @param c The concept a ConceptSlotFunction must be created for. This concept must have a slot called <code>slotName</code>
+	 * @return A ConceptSlotFunction for the given slotName of the given Concept  
+	 * @see ConceptSlotFunction
+	 * @see useConceptSlotsAsFunctions()
+	 * @since JADE 3.7
+	 */
+	public ConceptSlotFunction createConceptSlotFunction(String slotName, Concept c) throws OntologyException {
+		// Scan the ontology hierarchy and get the ontology where concept c is defined.
+		// Then create a ConceptSlotFunction refering to that ontology
+		ObjectSchema schema = (ObjectSchema) schemas.get(c.getClass());
+		if (schema != null) {
+			if (conceptSlots != null) {
+				if (schema.containsSlot(slotName)) {
+					return new ConceptSlotFunction(slotName, c, this);
+				}
+				else {
+					throw new OntologyException("Schema "+schema.getTypeName()+" for class "+c.getClass()+" does not contain a slot called "+slotName);
+				}
+			}
+			else {
+				throw new OntologyException("Ontology "+name+" does not support usage of concept slots as functions");
+			}
+		}
+		else {
+			for (int i = 0; i < base.length; ++i) {
+				try {
+					return base[i].createConceptSlotFunction(slotName, c);
+				}
+				catch (UnknownSchemaException use) {
+					// Try the next one
+				}
+			}
+		}
+		throw new UnknownSchemaException();
+	}
+	
+	/**
+	 * Instruct this ontology to support usage of concept slots as functions.
+	 * This method must be invoked after all schemas have been completely defined and added to this ontology.
+	 * @see ConceptSlotFunction
+	 * @see createConceptSlotFunction(String, Concept)
+	 * @since JADE 3.7
+	 */
+	protected void useConceptSlotsAsFunctions() {
+		conceptSlots = new Hashtable();
+		Enumeration en = schemas.elements();
+		while (en.hasMoreElements()) {
+			ObjectSchema schema = (ObjectSchema) en.nextElement();
+			String[] slotNames = schema.getNames();
+			for (int i = 0; i < slotNames.length; ++i) {
+				conceptSlots.put(slotNames[i], slotNames[i]);
+			}
+		}
+	}
+	//#MIDP_EXCLUDE_END
 }

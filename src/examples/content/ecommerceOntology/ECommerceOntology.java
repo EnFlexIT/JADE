@@ -67,7 +67,7 @@ public class ECommerceOntology extends Ontology implements ECommerceVocabulary {
     	cs = (ConceptSchema) getSchema(CREDIT_CARD);
     	cs.add(CREDIT_CARD_TYPE, (PrimitiveSchema) getSchema(BasicOntology.STRING)); 
     	cs.add(CREDIT_CARD_NUMBER, (PrimitiveSchema) getSchema(BasicOntology.INTEGER)); 
-    	cs.add(CREDIT_CARD_EXPIRATION_DATE, (PrimitiveSchema) getSchema(BasicOntology.DATE)); 
+    	cs.add(CREDIT_CARD_EXPIRATION_DATE, (PrimitiveSchema) getSchema(BasicOntology.DATE), ObjectSchema.OPTIONAL); 
     	
     	AgentActionSchema as = (AgentActionSchema) getSchema(SELL);
     	as.add(SELL_BUYER, (ConceptSchema) getSchema(BasicOntology.AID));
@@ -81,6 +81,8 @@ public class ECommerceOntology extends Ontology implements ECommerceVocabulary {
     	ps = (PredicateSchema) getSchema(COSTS);
     	ps.add(COSTS_ITEM, (ConceptSchema) getSchema(ITEM));
     	ps.add(COSTS_PRICE, (ConceptSchema) getSchema(PRICE));
+    	
+    	useConceptSlotsAsFunctions();
     } 
     catch (OntologyException oe) {
     	oe.printStackTrace();

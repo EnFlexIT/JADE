@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package test.content;
 
@@ -34,65 +34,65 @@ public abstract class SuccessExpectedInitiator extends FSMBehaviour {
 	public static final String SEND_MSG_STATE = "Send-msg";
 	public static final String GET_REPLY_STATE = "Get-reply";
 	public static final String DUMMY_FINAL_STATE = "Dummy-final";
-	
+
 	public static final int PREPARE_MSG_OK = 1;
 	public static final int PREPARE_MSG_NOK = 0;
-	
-  private MessageTemplate mt = MessageTemplate.and(
-  	MessageTemplate.MatchConversationId(Responder.TEST_CONVERSATION),
-  	MessageTemplate.MatchInReplyTo(Responder.TEST_RESPONSE_ID));
 
-  private ACLMessage sentMsg = null;
-  
-  public SuccessExpectedInitiator(Agent a, DataStore ds, String key) {
-  	super(a);
-  	final String resultKey = key;
-  	
-  	registerTransition(SEND_MSG_STATE, GET_REPLY_STATE, PREPARE_MSG_OK);
-  	registerTransition(SEND_MSG_STATE, DUMMY_FINAL_STATE, PREPARE_MSG_NOK);
-  	
-  	// SEND_MSG_STATE
-  	Behaviour b = new OneShotBehaviour() {
-  		private int ret;
-  		
-  		public void action() {
-  			try {
-  				sentMsg = prepareMessage();
-  				myAgent.send(sentMsg);
-  				ret = PREPARE_MSG_OK;
-  			}
-  			catch (Exception e) {
-  				e.printStackTrace();
-  				getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
-  				ret = PREPARE_MSG_NOK;
-  			}
-  		}
-  		
-  		public int onEnd() {
-  			return ret;
-  		}
-  	};
-  	b.setDataStore(ds);
-  	registerFirstState(b, SEND_MSG_STATE);
-  		
-	  // GET_REPLY_STATE
+	private MessageTemplate mt = MessageTemplate.and(
+			MessageTemplate.MatchConversationId(Responder.TEST_CONVERSATION),
+			MessageTemplate.MatchInReplyTo(Responder.TEST_RESPONSE_ID));
+
+	private ACLMessage sentMsg = null;
+
+	public SuccessExpectedInitiator(Agent a, DataStore ds, String key) {
+		super(a);
+		final String resultKey = key;
+
+		registerTransition(SEND_MSG_STATE, GET_REPLY_STATE, PREPARE_MSG_OK);
+		registerTransition(SEND_MSG_STATE, DUMMY_FINAL_STATE, PREPARE_MSG_NOK);
+
+		// SEND_MSG_STATE
+		Behaviour b = new OneShotBehaviour() {
+			private int ret;
+
+			public void action() {
+				try {
+					sentMsg = prepareMessage();
+					myAgent.send(sentMsg);
+					ret = PREPARE_MSG_OK;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
+					ret = PREPARE_MSG_NOK;
+				}
+			}
+
+			public int onEnd() {
+				return ret;
+			}
+		};
+		b.setDataStore(ds);
+		registerFirstState(b, SEND_MSG_STATE);
+
+		// GET_REPLY_STATE
 		b = new SimpleBehaviour() {
 			private boolean finished = false;
-		
+
 			public void action() {
 				ACLMessage msg = myAgent.receive(mt);
 				if (msg != null) {
 					try {
 						if (checkReply(msg)) {
-	  					getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
+							getDataStore().put(resultKey, new Integer(Test.TEST_PASSED));
 						}
 						else {
-		  				getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
+							getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
 						}
 					}
 					catch (Exception e) {
-	  				e.printStackTrace();
-	  				getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
+						e.printStackTrace();
+						getDataStore().put(resultKey, new Integer(Test.TEST_FAILED));
 					}	
 					finished = true;
 				}
@@ -100,21 +100,21 @@ public abstract class SuccessExpectedInitiator extends FSMBehaviour {
 					block();
 				}
 			}
-		
+
 			public boolean done() {
 				return finished;
 			}
 		};
 		b.setDataStore(ds);
 		registerLastState(b, GET_REPLY_STATE);
-						
+
 		// DUMMY_FINAL
 		registerLastState(new OneShotBehaviour() {
 			public void action() {
 			}
 		}, DUMMY_FINAL_STATE);
 	}
-	
+
 	protected abstract ACLMessage prepareMessage() throws Exception;
 	protected abstract boolean checkReply(ACLMessage reply) throws Exception;
 }  

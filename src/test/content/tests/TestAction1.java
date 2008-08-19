@@ -34,7 +34,7 @@ import test.common.*;
 import test.content.*;
 import java.util.Date;
 
-public class TestAction1 extends Test{
+public class TestAction1 extends Test {
 	
   public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
   	final Logger l = Logger.getLogger();

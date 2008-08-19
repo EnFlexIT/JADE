@@ -5,6 +5,18 @@
 	]>
 -->
 	<TestsList> 
+		<Test name="CSF" skip="false">
+			<TestClassName>test.content.tests.TestCSF</TestClassName>
+			<WhatTest> Tests the usage of the ConceptSlotFunction class.</WhatTest>
+			<HowWorkTest> The test encodes and successively decodes a message whose content makes use of the ConceptSlotFunction class: (= (CSF) value).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired and the fill() operation properly set the slot value as indicated by the ConceptSlotFunction construct.</WhenTestPass>
+		</Test>		
+		<Test name="CSF in IOTA" skip="false">
+			<TestClassName>test.content.tests.TestIotaCSF</TestClassName>
+			<WhatTest> Tests the usage of the ConceptSlotFunction class inside a iota-based expression.</WhatTest>
+			<HowWorkTest> The test encodes and successively decodes a message whose content that makes use of the ConceptSlotFunction class inside a iota-based expression: (iota ?x (= (CSF) ?x)).</HowWorkTest>
+			<WhenTestPass> The test passes if no exception is fired and the apply() operation properly get the slot value as indicated by the ConceptSlotFunction construct.</WhenTestPass>
+		</Test>		
 		<Test name="Integer" skip="false">
 			<TestClassName>test.content.tests.TestInt</TestClassName>
 			<WhatTest> Tests a ACLMessage content.</WhatTest>

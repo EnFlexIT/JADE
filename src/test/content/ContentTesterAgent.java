@@ -47,7 +47,7 @@ import test.content.testOntology.TestOntology;
 public class ContentTesterAgent extends TesterAgent {
 	// Names and default values for group arguments
 	public static final String CODEC_CLASS_NAME = "codec";
-	private static final String CODEC_CLASS_DEFAULT = "jade.content.lang.sl.SLCodec";
+	public static final String CODEC_CLASS_DEFAULT = "jade.content.lang.sl.SLCodec";
 
 	public static final String MSG_NAME = "msg";
 
