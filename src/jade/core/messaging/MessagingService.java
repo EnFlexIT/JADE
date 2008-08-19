@@ -545,9 +545,7 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			AID receiver = (AID)params[1];
 			InternalError ie = (InternalError)params[2];
 			
-			// If (the sender is not the AMS)
-			// The acl message contained inside the GenericMessage should never
-			// be null (it is used to generate the failure message)
+			// The acl message contained inside the GenericMessage cannot be null; the notifyFailureToSender() method already checks that
 			ACLMessage aclmsg = msg.getACLMessage();
 			if((aclmsg.getSender()==null) || (aclmsg.getSender().equals(myContainer.getAMS()))) // sanity check to avoid infinite loops
 				return;
@@ -1222,12 +1220,14 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 		} 
 		catch (IMTPException imtpe) {
 			// Can't reach the destination container --> Send a FAILURE message
-			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Receiver unreachable.", imtpe);
+			String id = (msg.getTraceID() != null ? msg.getTraceID() : MessageManager.stringify(msg));
+			myLogger.log(Logger.WARNING, id+" - Receiver unreachable.", imtpe);
 			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_AGENT_UNREACHABLE + ": " + imtpe.getMessage()));
 		} 
 		catch (ServiceException se) {
 			// Service error during delivery --> Send a FAILURE message
-			myLogger.log(Logger.WARNING, msg.getTraceID()+" - Service error delivering message.", se);
+			String id = (msg.getTraceID() != null ? msg.getTraceID() : MessageManager.stringify(msg));
+			myLogger.log(Logger.WARNING, id+" - Service error delivering message.", se);
 			notifyFailureToSender(msg, receiverID, new InternalError(ACLMessage.AMS_FAILURE_SERVICE_ERROR + ": " + se.getMessage()));
 		} 
 		catch (JADESecurityException jse) {
@@ -1437,7 +1437,11 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 				e.printStackTrace();
 			}
 		}
-		if (acl != null && "true".equals(acl.getUserDefinedParameter(ACLMessage.IGNORE_FAILURE))) {
+		if (acl == null) {
+			myLogger.log(Logger.WARNING, "Cannot notify failure to sender: GenericMessage contains no ACLMessage");
+			return;
+		}
+		if ("true".equals(acl.getUserDefinedParameter(ACLMessage.IGNORE_FAILURE))) {
 			// Ignore the failure 
 			return;
 		}

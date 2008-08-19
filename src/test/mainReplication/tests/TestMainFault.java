@@ -284,7 +284,12 @@ public class TestMainFault extends Test {
 	
 	public void clean(Agent a) {
 		// Remove the AMSSubscriber and unsubscribe from the AMS
-		a.removeBehaviour(subscriber);
+		try {
+			tbf.interrupt(subscriber);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 		a.send(subscriber.getCancel());
 		agents.clear();
 		

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.core.replication;
@@ -52,202 +52,202 @@ import jade.util.Logger;
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
 
-*/
+ */
 public class AddressNotificationService extends BaseService {
 
-    public void init(AgentContainer ac, Profile p) throws ProfileException {
-	super.init(ac, p);
+	public void init(AgentContainer ac, Profile p) throws ProfileException {
+		super.init(ac, p);
 
-	myContainer = ac;
+		myContainer = ac;
 
-	// Create a local slice
-	localSlice = new ServiceComponent(p);
+		// Create a local slice
+		localSlice = new ServiceComponent(p);
 
-    }
-
-    public String getName() {
-	return AddressNotificationSlice.NAME;
-    }
-
-    public Class getHorizontalInterface() {
-	try {
-	    return Class.forName(AddressNotificationSlice.NAME + "Slice");
 	}
-	catch(ClassNotFoundException cnfe) {
-	    return null;
+
+	public String getName() {
+		return AddressNotificationSlice.NAME;
 	}
-    }
 
-    public Service.Slice getLocalSlice() {
-	return localSlice;
-    }
-
-    public Filter getCommandFilter(boolean direction) {
-	if(direction == Filter.INCOMING) {
-	    return incomingFilter;
+	public Class getHorizontalInterface() {
+		try {
+			return Class.forName(AddressNotificationSlice.NAME + "Slice");
+		}
+		catch(ClassNotFoundException cnfe) {
+			return null;
+		}
 	}
-	else {
-	    return null;
+
+	public Service.Slice getLocalSlice() {
+		return localSlice;
 	}
-    }
 
-    public Sink getCommandSink(boolean side) {
-	    return null;
-    }
+	public Filter getCommandFilter(boolean direction) {
+		if(direction == Filter.INCOMING) {
+			return incomingFilter;
+		}
+		else {
+			return null;
+		}
+	}
 
-    public String[] getOwnedCommands() {
-    	return null;
-    }
+	public Sink getCommandSink(boolean side) {
+		return null;
+	}
 
-    public void boot(Profile p) throws ServiceException {
+	public String[] getOwnedCommands() {
+		return null;
+	}
+
+	public void boot(Profile p) throws ServiceException {
+		try {
+			// Get the Service Manager address list, if this node isn't hosting one itself...
+			Node n = getLocalNode();
+			if(!n.hasPlatformManager()) {
+				Object[] slices = getAllSlices();
+				for(int i = 0; i < slices.length; i++) {
+					AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
+					if (slice.getNode().hasPlatformManager()) {
+						addAddress(slice.getServiceManagerAddress());
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			throw new ServiceException("Boot failure", e);
+		}
+	}
+
+
+	private class IncomingFilter extends Filter {
+
+		public boolean accept(VerticalCommand cmd) {
+
 			try {
-			    // Get the Service Manager address list, if this node isn't hosting one itself...
-			    Node n = getLocalNode();
-			    if(!n.hasPlatformManager()) {
-						Object[] slices = getAllSlices();
-						for(int i = 0; i < slices.length; i++) {
-						    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
-						    if (slice.getNode().hasPlatformManager()) {
-						    	addAddress(slice.getServiceManagerAddress());
-						    }
-						}
-			    }
+				String name = cmd.getName();
+				if(name.equals(Service.NEW_REPLICA)) {
+					handleAddressAdded(cmd);
+				}
 			}
-			catch(Exception e) {
-			    throw new ServiceException("Boot failure", e);
+			catch(IMTPException imtpe) {
+				imtpe.printStackTrace();
 			}
-    }
-
-
-    private class IncomingFilter extends Filter {
-
-	public boolean accept(VerticalCommand cmd) {
-
-	    try {
-		String name = cmd.getName();
-		if(name.equals(Service.NEW_REPLICA)) {
-		    handleAddressAdded(cmd);
+			catch(ServiceException se) {
+				se.printStackTrace();
+			}
+			return true;
 		}
-	    }
-	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
-	    }
-	    catch(ServiceException se) {
-		se.printStackTrace();
-	    }
-	    return true;
-	}
 
-	// Vertical command handler methods
+		// Vertical command handler methods
 
-	public void handleAddressAdded(VerticalCommand cmd) throws IMTPException, ServiceException {
-	    Object[] params = cmd.getParams();
-	    String addr = (String)params[0];
+		public void handleAddressAdded(VerticalCommand cmd) throws IMTPException, ServiceException {
+			Object[] params = cmd.getParams();
+			String addr = (String)params[0];
 
-	    // Broadcast the new address to all the slices...
-	    GenericCommand hCmd = new GenericCommand(AddressNotificationSlice.H_ADDSERVICEMANAGERADDRESS, AddressNotificationSlice.NAME, null);
-	    hCmd.addParam(addr);
+			// Broadcast the new address to all the slices...
+			GenericCommand hCmd = new GenericCommand(AddressNotificationSlice.H_ADDSERVICEMANAGERADDRESS, AddressNotificationSlice.NAME, null);
+			hCmd.addParam(addr);
 
-	    broadcastToSlices(hCmd);
-	}
-
-    } // End of IncomingFilter class
-
-
-    private class ServiceComponent implements Service.Slice {
-
-	public ServiceComponent(Profile p) {
-	    myServiceManager = myContainer.getServiceManager();
-	}
-
-
-	// Implementation of the Service.Slice interface
-
-	public Service getService() {
-	    return AddressNotificationService.this;
-	}
-
-	public Node getNode() throws ServiceException {
-	    try {
-		return AddressNotificationService.this.getLocalNode();
-	    }
-	    catch(IMTPException imtpe) {
-		throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
-	    }
-	}
-
-	public VerticalCommand serve(HorizontalCommand cmd) {
-	    VerticalCommand result = null;
-	    try {
-		String cmdName = cmd.getName();
-		Object[] params = cmd.getParams();
-
-		if(cmdName.equals(AddressNotificationSlice.H_ADDSERVICEMANAGERADDRESS)) {
-		    String addr = (String)params[0];
-		    addServiceManagerAddress(addr);
+			broadcastToSlices(hCmd);
 		}
-		else if(cmdName.equals(AddressNotificationSlice.H_GETSERVICEMANAGERADDRESS)) {
-		    cmd.setReturnValue(getServiceManagerAddress());
+
+	} // End of IncomingFilter class
+
+
+	private class ServiceComponent implements Service.Slice {
+
+		public ServiceComponent(Profile p) {
+			myServiceManager = myContainer.getServiceManager();
 		}
-	    }
-	    catch(Throwable t) {
-		cmd.setReturnValue(t);
-		if(result != null) {
-		    result.setReturnValue(t);
+
+
+		// Implementation of the Service.Slice interface
+
+		public Service getService() {
+			return AddressNotificationService.this;
 		}
-	    }
 
-            return result;
-	}
-
-
-	private void addServiceManagerAddress(String addr) throws IMTPException {
-	    try {
-		String localSMAddr = myServiceManager.getLocalAddress();
-		if(!addr.equals(localSMAddr)) {
-		    addAddress(addr);
+		public Node getNode() throws ServiceException {
+			try {
+				return AddressNotificationService.this.getLocalNode();
+			}
+			catch(IMTPException imtpe) {
+				throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+			}
 		}
-	    }
-	    catch(IMTPException imtpe) {
-		imtpe.printStackTrace();
-	    }
+
+		public VerticalCommand serve(HorizontalCommand cmd) {
+			VerticalCommand result = null;
+			try {
+				String cmdName = cmd.getName();
+				Object[] params = cmd.getParams();
+
+				if(cmdName.equals(AddressNotificationSlice.H_ADDSERVICEMANAGERADDRESS)) {
+					String addr = (String)params[0];
+					addServiceManagerAddress(addr);
+				}
+				else if(cmdName.equals(AddressNotificationSlice.H_GETSERVICEMANAGERADDRESS)) {
+					cmd.setReturnValue(getServiceManagerAddress());
+				}
+			}
+			catch(Throwable t) {
+				cmd.setReturnValue(t);
+				if(result != null) {
+					result.setReturnValue(t);
+				}
+			}
+
+			return result;
+		}
+
+
+		private void addServiceManagerAddress(String addr) throws IMTPException {
+			try {
+				String localSMAddr = myServiceManager.getLocalAddress();
+				if(!addr.equals(localSMAddr)) {
+					addAddress(addr);
+				}
+			}
+			catch(IMTPException imtpe) {
+				imtpe.printStackTrace();
+			}
+		}
+
+		private String getServiceManagerAddress() throws IMTPException {
+			return myServiceManager.getLocalAddress();
+		}
+
+	} // End of ServiceComponent class
+
+
+
+	private AgentContainer myContainer;
+
+	private ServiceComponent localSlice;
+
+	// The command sink, source side
+	private final IncomingFilter incomingFilter = new IncomingFilter();
+
+	private ServiceManager myServiceManager;
+
+	private void broadcastToSlices(HorizontalCommand cmd) throws IMTPException, ServiceException {
+
+		Object[] slices = getAllSlices();
+		for(int i = 0; i < slices.length; i++) {
+			AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
+			if (!slice.getNode().hasPlatformManager()) {
+				slice.serve(cmd);
+			}
+		}
+
 	}
 
-	private String getServiceManagerAddress() throws IMTPException {
-	    return myServiceManager.getLocalAddress();
+
+	private void addAddress(String addr) throws IMTPException {
+		if (myLogger.isLoggable(Logger.CONFIG))
+			myLogger.log(Logger.CONFIG,"Adding PlatformManager address "+addr);
+		myServiceManager.addAddress(addr);
 	}
-
-    } // End of ServiceComponent class
-
-
-
-    private AgentContainer myContainer;
-
-    private ServiceComponent localSlice;
-
-    // The command sink, source side
-    private final IncomingFilter incomingFilter = new IncomingFilter();
-
-    private ServiceManager myServiceManager;
-
-    private void broadcastToSlices(HorizontalCommand cmd) throws IMTPException, ServiceException {
-
-	Object[] slices = getAllSlices();
-	for(int i = 0; i < slices.length; i++) {
-	    AddressNotificationSlice slice = (AddressNotificationSlice)slices[i];
-	    if (!slice.getNode().hasPlatformManager()) {
-		    slice.serve(cmd);
-	    }
-	}
-
-    }
-
-
-    private void addAddress(String addr) throws IMTPException {
-            if (myLogger.isLoggable(Logger.CONFIG))
-            	myLogger.log(Logger.CONFIG,"Adding PlatformManager address "+addr);
-			myServiceManager.addAddress(addr);
-    }
 
 
 }

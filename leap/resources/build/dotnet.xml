@@ -66,7 +66,7 @@
 		</copy>
 	  	<!-- 5) Preprocess the whole as if it were for PJAVA -->
 	  	     <pproc basedir="${src}" type="pjava"/>
-	 	 <!-- 6) Add files for agent tools -->
+	 	 <!-- 6) Add files for agent tools, JadeGateway and others -->
 	  	     <copy todir="${src}" overwrite="yes">
 			<fileset dir="${jade-src}">
 				<include name="**/jade/tools/ToolAgent.java"/>
@@ -108,8 +108,12 @@
 				<include name="**/jade/util/ImportableProperties.java"/>
 				<include name="**/jade/core/event/NotificationService.java"/>
 				<include name="**/jade/core/event/NotificationProxy.java"/>
-				<include name="**/jade/core/nodeMonitoring/*.java"/>
 				<include name="**/jade/domain/introspection/AMSSubscriber.java"/>
+
+				<include name="**/jade/wrapper/gateway/*.java"/>
+
+				<include name="**/jade/core/nodeMonitoring/*.java"/>
+
 				<include name="**/jade/mtp/http/BasicFipaDateTime.java"/>
 				<include name="**/jade/mtp/http/HTTPAddress.java"/>
 				<include name="**/jade/mtp/http/HTTPIO.java"/>
