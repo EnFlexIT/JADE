@@ -52,7 +52,7 @@ import java.net.*;
  * @author Nicolas Lhuillier - Motorola
  */
 public class JICPPeer implements ICP, ProtocolManager {
-	private static final int POOL_SIZE = 10;
+	private static final int POOL_SIZE = 50;
 	
   private JICPClient   client;
   private JICPServer   server;

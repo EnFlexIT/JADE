@@ -46,22 +46,30 @@ import jade.util.leap.*;
  */
 class ConnectionWrapper {
 	private Connection myConnection;
+	private TransportAddress destAddr;
 	private boolean oneShot;
 	private boolean locked;
 	private boolean closed;
 	private boolean reused;
 	private long lastUsage;
+	private long nUsages;
 	
-	ConnectionWrapper(Connection c) {
+	ConnectionWrapper(Connection c, TransportAddress ta) {
 		myConnection = c;
+		destAddr = ta;
 		oneShot = false;
 		reused = false;
 		locked = true;
 		closed = false;
+		nUsages = 0;
 	}
 	
 	final Connection getConnection() {
 		return myConnection;
+	}
+	
+	final TransportAddress getDestAddress() {
+		return destAddr;
 	}
 	
 	final void setOneShot() {
@@ -92,6 +100,7 @@ class ConnectionWrapper {
 	
 	synchronized void unlock() {
 		locked = false;
+		nUsages++;
 		lastUsage = System.currentTimeMillis();
 		if (closed) {
 			close();
@@ -110,6 +119,22 @@ class ConnectionWrapper {
 			// Delay the closure to when the connection will be unlocked
 			closed = true;
 		}
+	}
+	
+	synchronized boolean isExpired(long currentTime) {
+		// A locked connection must not be checked for expiration
+		if (!locked) {
+			if ((currentTime - lastUsage) > 120000) {
+				// If the connection is expired also lock it so that it cannot be assigned just before its removal
+				locked = true;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public String toString() {
+		return "[CW: nUsages="+nUsages+", lastUsage="+lastUsage+"]";
 	}
 }
 

@@ -130,13 +130,15 @@ class JICPClient {
 			finally {  
 				if (done) {
 					if (cw.isOneShot()) {
-						pool.remove(ta, cw);
+						// Note that a connection can be marked as one-shot due to the fact that the server is not able to keep it open -->
+						// In this case the connection was inserted in the pool at creation time and must now be removed
+						pool.remove(cw);
 					}
 				}
 				else {
 					// Some error occurred --> The connection (if any) is no longer valid
 					if (cw != null) {
-						pool.remove(ta, cw);
+						pool.remove(cw);
 					}
 				}
 			}
@@ -151,5 +153,6 @@ class JICPClient {
 	 Called by the JICPPeer ticker at each tick
 	 */
 	public void tick(long currentTime) {
+		pool.clearExpiredConnections(currentTime);
 	}
 }

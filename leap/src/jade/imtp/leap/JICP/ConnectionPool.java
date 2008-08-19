@@ -54,6 +54,9 @@ class ConnectionPool {
 	private int size;
 	private boolean closed = false;
 	
+	private long hitCnt = 0;
+	private long missCnt = 0;
+	
 	ConnectionPool(TransportProtocol p, ConnectionFactory f, int ms) {
 		myProtocol = p;
 		myFactory = f;
@@ -72,17 +75,18 @@ class ConnectionPool {
 	ConnectionWrapper acquire(TransportAddress ta, boolean requireFreshConnection) throws ICPException {
 		ConnectionWrapper cw = null;
 		List l = null;
+		String url = myProtocol.addrToString(ta);
 		synchronized (this) {
 			if (closed) {
 				throw new ICPException("Pool closed");			
 			}
 			
-			String url = myProtocol.addrToString(ta);
 			l = (List) connections.get(url);
 			if (l == null) {
 				l = new ArrayList();
 				connections.put(url, l);
 			}
+			
 			if (requireFreshConnection) {
 				// We are checking a given destination. This means that this destination may be no longer valid
 				// --> In order to avoid keeping invalid connections that can lead to very long waiting times, 
@@ -95,6 +99,7 @@ class ConnectionPool {
 					cw = (ConnectionWrapper) it.next();
 					if (cw.lock()) {
 						cw.setReused();
+						hitCnt++;
 						return cw;
 					}
 				}
@@ -105,21 +110,31 @@ class ConnectionPool {
 		try {
 			Connection c = myFactory.createConnection(ta);
 			synchronized (this) {
-				cw = new ConnectionWrapper(c);
+				cw = new ConnectionWrapper(c, ta);
 				if (size < maxSize) {
 					// Reusable connection --> Store it
 					l.add(cw);
 					size++;
 				}
 				else {
-					// OneShot connection --> don't even store it
+					// OneShot connection --> don't even store it. 
 					cw.setOneShot();
 				}
+				missCnt++;
 				return cw;
 			}
 		}
 		catch (IOException ioe) {
 			throw new ICPException("Error creating connection. ", ioe);
+		}
+		finally {
+			// We may have created a new list of connections that end up to be useless (e.g. because the connection is one-shot,
+			// or because there was an error creating the connection) --> remove it
+			synchronized (this) {
+				if (l.isEmpty()) {
+					connections.remove(url);
+				}
+			}
 		}
 	}
 	
@@ -137,7 +152,9 @@ class ConnectionPool {
 		// Now remove all closed connections
 		it = closedConnections.iterator();
 		while (it.hasNext()) {
-			l.remove(it.next());
+			if (l.remove(it.next())) {
+				size--;
+			}
 		}
 	}
 
@@ -145,13 +162,16 @@ class ConnectionPool {
 		cw.unlock();
 	}
 	
-	synchronized void remove(TransportAddress ta, ConnectionWrapper cw) {
+	synchronized void remove(ConnectionWrapper cw) {
 		try {
-			String url = myProtocol.addrToString(ta);
+			String url = myProtocol.addrToString(cw.getDestAddress());
 			List l = (List) connections.get(url);
 			if (l != null) {
 				if (l.remove(cw)) {
 					size--;
+					if (l.isEmpty()) {
+						connections.remove(url);
+					}
 				}
 			}
 			cw.getConnection().close();
@@ -174,6 +194,34 @@ class ConnectionPool {
 		} 
 		connections.clear();
 		closed = true;
+	}
+	
+	void clearExpiredConnections(long currentTime) {
+		Iterator it = getConnectionsList().iterator();
+		while (it.hasNext()) {
+			ConnectionWrapper cw = (ConnectionWrapper) it.next();
+			if (cw.isExpired(currentTime)) {
+				remove(cw);
+				cw.unlock();
+			}
+		}
+	}
+	
+	public String toString() {
+		return "[Connection-pool: total-hit="+hitCnt+", total-miss="+missCnt+", current-size="+size+" connections="+connections+"]";
+	}
+	
+	private synchronized List getConnectionsList() {
+		List cc = new ArrayList();
+		Iterator it = connections.values().iterator();
+		while (it.hasNext()) {
+			List l = (List) it.next();
+			Iterator it1 = l.iterator();
+			while (it1.hasNext()) {
+				cc.add(it1.next());
+			}
+		}
+		return cc;
 	}
 }
 
