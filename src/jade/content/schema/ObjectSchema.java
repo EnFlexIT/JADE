@@ -239,8 +239,16 @@ public abstract class ObjectSchema implements Serializable {
 	 */
 	protected abstract boolean descendsFrom(ObjectSchema s);
 	
+	/** 
+	 * Retrieves an array containing the direct super-schemas of this schema. 
+	 * If this schema has no super-schema an empty array is returned 
+	 * @return an array containing the direct super-schemas of this schema.
+	 * @since JADE 3.7
+	 */
+	public abstract ObjectSchema[] getSuperSchemas();
+	
 	/**
-	 * Get the facets defined upon a slot. More in details this method returns
+	 * Retrieves the facets defined upon a slot. More in details this method returns
 	 * all facets defined in this schema plus all facets defined in super-schemas 
 	 * up to the schema actually declaring the given slot. 
 	 * @param slotName the name of the slot 

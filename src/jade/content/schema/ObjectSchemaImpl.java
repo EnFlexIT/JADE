@@ -520,6 +520,20 @@ class ObjectSchemaImpl extends ObjectSchema {
 		}
 	}
 
+	public ObjectSchema[] getSuperSchemas() {
+		ObjectSchema[] ss = null;
+		if (superSchemas != null) {
+			ss = new ObjectSchema[superSchemas.size()];
+			for (int i = 0; i < ss.length; ++i) {
+				ss[i] = (ObjectSchema) superSchemas.elementAt(i);
+			}
+		}
+		else {
+			ss = new ObjectSchema[0];
+		}
+		return ss;
+	}
+	
 	public Facet[] getFacets(String slotName) {
 		Vector v = getAllFacets(slotName);
 		Facet[] ff = null;
