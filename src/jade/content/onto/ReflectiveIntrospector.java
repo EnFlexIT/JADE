@@ -68,9 +68,10 @@ public class ReflectiveIntrospector implements Introspector {
 				String slotName = names[i];
 
 				// Retrieve the accessor method from the class and call it
-				String methodName = "get" + translateName(slotName);
+				/*String methodName = "get" + translateName(slotName);
 				Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-				Object slotValue = invokeAccessorMethod(getMethod, obj);
+				Object slotValue = invokeAccessorMethod(getMethod, obj);*/
+				Object slotValue = getSlotValue(slotName, obj, schema);
 				if (slotValue != null) {
 					// Agregate slots require a special handling 
 					if (isAggregateObject(slotValue)) {
@@ -93,6 +94,12 @@ public class ReflectiveIntrospector implements Introspector {
 			throw new OntologyException("Schema and Java class do not match", t);
 		} 
 	} 
+	
+	public Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException {
+		String methodName = "get" + translateName(slotName);
+		Method getMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+		return invokeAccessorMethod(getMethod, obj);
+	}
 
 	//#APIDOC_EXCLUDE_BEGIN
 	protected boolean isAggregateObject(Object slotValue) {
@@ -142,7 +149,7 @@ public class ReflectiveIntrospector implements Introspector {
 				AbsObject absSlotValue = abs.getAbsObject(slotName);
 				if (absSlotValue != null) {
 					Object slotValue = null;
-					// Agregate slots require a special handling 
+					// Aggregate slots require a special handling 
 					if (absSlotValue.getAbsType() == AbsObject.ABS_AGGREGATE) {
 						slotValue = internaliseAggregateSlot((AbsAggregate) absSlotValue, referenceOnto);
 					}
@@ -151,9 +158,10 @@ public class ReflectiveIntrospector implements Introspector {
 					}
 
 					// Retrieve the modifier method from the class and call it
-					String methodName = "set" + translateName(slotName);
+					/*String methodName = "set" + translateName(slotName);
 					Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
-					invokeSetterMethod(setMethod, obj, slotValue);
+					invokeSetterMethod(setMethod, obj, slotValue);*/
+					setSlotValue(slotName, slotValue, obj, schema);
 				}             	
 			} 
 
@@ -172,6 +180,12 @@ public class ReflectiveIntrospector implements Introspector {
 			throw new OntologyException("Schema and Java class do not match", t);
 		} 
 	} 
+	
+	public void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException {
+		String methodName = "set" + translateName(slotName);
+		Method setMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+		invokeSetterMethod(setMethod, obj, slotValue);
+	}
 
 	//#APIDOC_EXCLUDE_BEGIN
 	protected Object internaliseAggregateSlot(AbsAggregate absAggregate, Ontology referenceOnto) throws OntologyException {

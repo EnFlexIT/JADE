@@ -80,9 +80,10 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 				// Agregate slots require a special handling 
 				ObjectSchema slotSchema = schema.getSchema(slotName);
 				if (slotSchema instanceof AggregateSchema) {
-					String methodName = "getAll" + translateName(slotName);
+					/*String methodName = "getAll" + translateName(slotName);
 					Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-					Object slotValue = invokeAccessorMethod(getMethod, obj);
+					Object slotValue = invokeAccessorMethod(getMethod, obj);*/
+					Object slotValue = getAggregateSlotValue(slotName, obj);
 					if (slotValue != null) {
 						// Directly call AbsHelper.externaliseIterator() to properly handle different types of aggregate
 						//#J2ME_EXCLUDE_BEGIN
@@ -98,9 +99,10 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 					} 
 				}
 				else {
-					String methodName = "get" + translateName(slotName);
+					/*String methodName = "get" + translateName(slotName);
 					Method getMethod = findMethodCaseInsensitive(methodName, javaClass);
-					Object slotValue = invokeAccessorMethod(getMethod, obj);
+					Object slotValue = invokeAccessorMethod(getMethod, obj);*/
+					Object slotValue = getScalarSlotValue(slotName, obj);
 					if (slotValue != null) {
 						AbsObject absSlotValue = referenceOnto.fromObject(slotValue);
 						AbsHelper.setAttribute(abs, slotName, absSlotValue);
@@ -117,6 +119,33 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 		} 
 	} 
 	
+	public Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException {
+		ObjectSchema slotSchema = schema.getSchema(slotName);
+		if (slotSchema != null) {
+			if (slotSchema instanceof AggregateSchema) {
+				return getAggregateSlotValue(slotName, obj);
+			}
+			else {
+				return getScalarSlotValue(slotName, obj);
+			}
+		}
+		else {
+			throw new OntologyException("No slot named "+slotName+" found in schema "+schema.getTypeName());
+		}
+	}
+	
+	private Object getScalarSlotValue(String slotName, Object obj) throws OntologyException {
+		String methodName = "get" + translateName(slotName);
+		Method getMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+		return invokeAccessorMethod(getMethod, obj);
+	}
+
+	private Object getAggregateSlotValue(String slotName, Object obj) throws OntologyException {
+		String methodName = "getAll" + translateName(slotName);
+		Method getMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+		return invokeAccessorMethod(getMethod, obj);
+	}
+
 	/**
 	 * Translate an abstract descriptor into an object of a proper class 
 	 * representing an element in an ontology 
@@ -144,6 +173,7 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 				if (absSlotValue != null) {
 					Object slotValue = referenceOnto.toObject(absSlotValue);
 					
+					/*
 					// Retrieve the modifier method from the class and call it
 					ObjectSchema slotSchema = schema.getSchema(slotName);
 					String methodName;
@@ -158,7 +188,8 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 						methodName = "set" + translateName(slotName);
 						Method setMethod = findMethodCaseInsensitive(methodName, javaClass);
 						invokeSetterMethod(setMethod, obj, slotValue);
-					}
+					}*/
+					setSlotValue(slotName, slotValue, obj, schema);
 				} 
 			}
 			return obj;
@@ -176,6 +207,28 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 			throw new OntologyException("Schema and Java class do not match", t);
 		} 
 	} 
+	
+	public void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException {
+		ObjectSchema slotSchema = schema.getSchema(slotName);
+		if (slotSchema != null) {
+			String methodName;
+			// Note that here checking if absSlotValue is an AbsAggregate would be wrong as we have add methods only if the schema of the slot is AggregateSchema
+			if (slotSchema instanceof AggregateSchema) {
+				// FIXME: Here we should check for Long --> Integer casting, but how?
+				methodName = "add" + translateName(slotName);
+				Method addMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+				invokeAddMethod(addMethod, obj, slotValue);
+			}
+			else {
+				methodName = "set" + translateName(slotName);
+				Method setMethod = findMethodCaseInsensitive(methodName, obj.getClass());
+				invokeSetterMethod(setMethod, obj, slotValue);
+			}
+		}
+		else {
+			throw new OntologyException("No slot named "+slotName+" found in schema "+schema.getTypeName());
+		}
+	}
 	
 	private void invokeAddMethod(Method method, Object obj, 
 			Object value) throws OntologyException {

@@ -38,74 +38,73 @@ import jade.content.schema.*;
  */
 public class MicroIntrospector implements Introspector {
 
-    /**
-     * Translate an object of a class representing an element in an
-     * ontology into a proper abstract descriptor 
-     * @param onto The reference ontology 
-     * @param obj The Object to be translated
-     * @return The Abstract descriptor produced by the translation 
-		 * @throws UnknownSchemaException If no schema for the object to be
-		 * translated is defined in the ontology that uses this Introspector
-		 * @throws OntologyException If some error occurs during the translation
-     */
-    public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-    				throws OntologyException {
-    				
-    	try {
-        AbsObject abs = schema.newInstance();
-        
-    		Introspectable intro = (Introspectable) obj;
-    		intro.externalise(abs, referenceOnto);
-    		return abs;
-    	}
-    	catch (OntologyException oe) {
-    		// Just forward the exception
-    		throw oe;
-    	}
-    	catch (ClassCastException cce) {
-    		throw new OntologyException("Object "+obj+" is not Introspectable");
-    	}
-    	catch (Throwable t) {
-        throw new OntologyException("Schema and Java class do not match", t);
-    	}
-    } 
+	/**
+	 * Translate an object of a class representing an element in an
+	 * ontology into a proper abstract descriptor 
+	 * @param onto The reference ontology 
+	 * @param obj The Object to be translated
+	 * @return The Abstract descriptor produced by the translation 
+	 * @throws UnknownSchemaException If no schema for the object to be
+	 * translated is defined in the ontology that uses this Introspector
+	 * @throws OntologyException If some error occurs during the translation
+	 */
+	public AbsObject externalise(Object obj, ObjectSchema schema, Class javaClass, Ontology referenceOnto) throws OntologyException {
 
-    /**
-     * Translate an abstract descriptor into an object of a proper class 
-     * representing an element in an ontology 
-     * @param onto The reference ontology 
-     * @param abs The abstract descriptor to be translated
-     *
-     * @return The Java object produced by the translation 
-     * @throws UngroundedException If the abstract descriptor to be translated 
-     * contains a variable
-		 * @throws UnknownSchemaException If no schema for the abstract descriptor
-		 * to be translated is defined in the ontology that uses this Introspector
-     * @throws OntologyException If some error occurs during the translation
-     */
-    public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
-            throws UngroundedException, OntologyException {
-    	try {
-        Object obj = javaClass.newInstance();
-        //DEBUG System.out.println("Object created");
-        
-    		Introspectable intro = (Introspectable) obj;
-    		intro.internalise(abs, referenceOnto);
-    		return intro;
-    	}
-    	catch (OntologyException oe) {
-    		// Just forward the exception
-    		throw oe;
-    	}
-    	catch (ClassCastException cce) {
-    		throw new OntologyException("Class for type "+abs.getTypeName()+" is not Introspectable");
-    	}
-    	catch (Throwable t) {
-        throw new OntologyException("Schema and Java class do not match", t);
-    	}
-    } 
+		try {
+			AbsObject abs = schema.newInstance();
 
-    /**
+			Introspectable intro = (Introspectable) obj;
+			intro.externalise(abs, referenceOnto);
+			return abs;
+		}
+		catch (OntologyException oe) {
+			// Just forward the exception
+			throw oe;
+		}
+		catch (ClassCastException cce) {
+			throw new OntologyException("Object "+obj+" is not Introspectable");
+		}
+		catch (Throwable t) {
+			throw new OntologyException("Schema and Java class do not match", t);
+		}
+	} 
+
+	/**
+	 * Translate an abstract descriptor into an object of a proper class 
+	 * representing an element in an ontology 
+	 * @param onto The reference ontology 
+	 * @param abs The abstract descriptor to be translated
+	 *
+	 * @return The Java object produced by the translation 
+	 * @throws UngroundedException If the abstract descriptor to be translated 
+	 * contains a variable
+	 * @throws UnknownSchemaException If no schema for the abstract descriptor
+	 * to be translated is defined in the ontology that uses this Introspector
+	 * @throws OntologyException If some error occurs during the translation
+	 */
+	public Object internalise(AbsObject abs, ObjectSchema schema, Class javaClass, Ontology referenceOnto) 
+	throws UngroundedException, OntologyException {
+		try {
+			Object obj = javaClass.newInstance();
+			//DEBUG System.out.println("Object created");
+
+			Introspectable intro = (Introspectable) obj;
+			intro.internalise(abs, referenceOnto);
+			return intro;
+		}
+		catch (OntologyException oe) {
+			// Just forward the exception
+			throw oe;
+		}
+		catch (ClassCastException cce) {
+			throw new OntologyException("Class for type "+abs.getTypeName()+" is not Introspectable");
+		}
+		catch (Throwable t) {
+			throw new OntologyException("Schema and Java class do not match", t);
+		}
+	} 
+
+	/**
        Check the structure of a java class associated to an ontological element 
        to ensure that translations to/from abstract descriptors and java objects
        (instances of that class) can be accomplished by this introspector.
@@ -116,8 +115,16 @@ public class MicroIntrospector implements Introspector {
        @param onto The Ontology that uses this Introspector
        @throws OntologyException if the java class does not have the correct 
        structure
-     */
-    public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
-    	// FIXME: Not yet implemented
-    }
+	 */
+	public void checkClass(ObjectSchema schema, Class javaClass, Ontology onto) throws OntologyException {
+		// FIXME: Not yet implemented
+	}
+	
+	public Object getSlotValue(String slotName, Object obj, ObjectSchema schema) throws OntologyException {
+		throw new OntologyException("UNsupported operation");
+	}
+
+	public void setSlotValue(String slotName, Object slotValue, Object obj, ObjectSchema schema) throws OntologyException {
+		throw new OntologyException("UNsupported operation");
+	}
 }
