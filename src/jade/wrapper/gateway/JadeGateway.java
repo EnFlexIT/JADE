@@ -24,12 +24,11 @@ import jade.wrapper.StaleProxyException;
  * that the external system must issue to the JADE based system and pass them as parameters to the execute() 
  * method. When the execute() method returns the internal agent of the JadeGateway as completely executed
  * the behaviour and outputs (if any) can be retrieved from the behaviour object using ad hoc methods 
- * as exemplified below.
+ * as exemplified below.<br>
  <code>
- DoSomeActionBehaviour b = new DoSomeActionBehaviour(....);
- JadeGateway.execute(b);
- // At this point b has been completely executed --> we can get results
- result = b.getResult();
+ DoSomeActionBehaviour b = new DoSomeActionBehaviour(....);<br>
+ JadeGateway.execute(b); // At this point b has been completely executed --> we can get results<br>
+ result = b.getResult();<br>
  </code>
  * <br>
  * When using the JadeGateway class as described above <code>null</code> should be

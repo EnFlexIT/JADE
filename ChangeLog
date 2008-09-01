@@ -1,10 +1,21 @@
-MAJOR CHANGES in JADE 3.6 (05 May 2008)
+MAJOR CHANGES in JADE X.Y (gg mmm yyyy)
 ==========================================================================
 GENERAL IMPROVEMENTS:
+Kernel
 - Modified UDPNodeMonitoringService to explicitly ping a node that is not sending UDP packets before marking it as UNREACHABLE.
 - Added method getFailureReason() to AMSService to retrieve from an AMS FAILURE message the reason why a message was not delivered to an agent 
 - Modified MessagingService to support message delivery to local agent even when the main container is unreachable
+
+Content Language and Ontologies
+- Added support for using concept slot names as functions (to create sentences like (= (age (Person :name John)) 41) ) by means of the ConceptSlotFunction class
 - Added ContentException as common base class of CodecException and OntologyException to allow common handling of language and ontology related problems
+- Added methods getSlotValue() and setSlotValue() in the Introspector interface
+- Added method getSuperSchemas() to retrieve all super-schemas of a given schema (feature suggested by Antonio Amado)
+- Modified AbsPrimitive to properly manage Long/Integer and Double/Float 
+
+Tools
+- Added possibility of specifying a timeout in the message exchange supported by the SocketProxyAgent
+
 
 BUG-FIXES:
 - Added sanity check in LoaderBehaviour to avoid NullPoinerException in case of null parameters (problem reported by Mehrdad Senobari)
@@ -12,13 +23,14 @@ BUG-FIXES:
 
 
 LEAP:
+- Modified LEAP connection pool to release connections when idle for more than 2 min
 
 ADD-ONS:
 
 DOCUMENTATION:
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
-
+- Methods getSlotValue() and setSlotValue() were added to the jade.content.onto.Introspector interface --> Developers who created their own implementation of such interface will have to implement these methods 
 
 
 MAJOR CHANGES in JADE 3.6 (05 May 2008)
