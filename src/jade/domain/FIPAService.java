@@ -33,6 +33,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import jade.domain.FIPAAgentManagement.FIPAManagementVocabulary;
+import jade.domain.FIPAAgentManagement.RefuseException;
 
 import java.util.Date;
 
@@ -154,6 +155,16 @@ public class FIPAService {
 				}
 				else {
 					// We received a REFUSE, NOT_UNDERSTOOD, FAILURE or OUT_OF_SEQUENCE --> ERROR
+					//#MIDP_EXCLIDE_BEGIN Avoid loading all exception classes in MIDP
+					switch (reply.getPerformative()) {
+					case ACLMessage.REFUSE:
+						throw new jade.domain.FIPAAgentManagement.RefuseException(reply);
+					case ACLMessage.FAILURE:
+						throw new jade.domain.FIPAAgentManagement.FailureException(reply);
+					case ACLMessage.NOT_UNDERSTOOD:
+						throw new jade.domain.FIPAAgentManagement.NotUnderstoodException(reply);
+					}
+					//#MIDP_EXCLIDE_END
 					throw new FIPAException(reply);
 				}
 			}

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.domain.FIPAAgentManagement;
@@ -31,19 +31,23 @@ import jade.lang.acl.ACLMessage;
 This class represents a generic FailureException 
 @author Fabio Bellifemine - CSELT S.p.A. 
 @version $Date$ $Revision$
-*/
+ */
 public class FailureException extends FIPAException {
 
-  public FailureException(String msg) {
-    super(msg);
-  }
-  public ACLMessage getACLMessage() {
-    if (msg == null) {
-      msg = new ACLMessage(ACLMessage.FAILURE);
-      msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
-    } else
-      msg.setPerformative(ACLMessage.FAILURE);
-    return msg;
-  }
+	public FailureException(String msg) {
+		super(msg);
+	}
+
+	public FailureException(ACLMessage failure) {
+		super(failure); 
+	}
+
+	public ACLMessage getACLMessage() {
+		if (msg == null) {
+			msg = new ACLMessage(ACLMessage.FAILURE);
+			msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
+		} 
+		return msg;
+	}
 
 }

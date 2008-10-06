@@ -607,8 +607,9 @@ public class Ontology implements Serializable {
 		List names = new ArrayList();
 		for (Enumeration e = elements.keys(); e.hasMoreElements();){
 			String key  = (String)e.nextElement();
-			if ((elements.get(key) instanceof ConceptSchema) ){
-			  names.add(key);
+			Object objSchema = elements.get(key);
+			if ((objSchema instanceof ConceptSchema) ){
+			  names.add(((ConceptSchema)objSchema).getTypeName());
 			}
 		}
 		return names;
@@ -622,8 +623,9 @@ public class Ontology implements Serializable {
 		List names = new ArrayList();
 		for (Enumeration e = elements.keys(); e.hasMoreElements();){
 			String key  = (String)e.nextElement();
-			if ((elements.get(key) instanceof AgentActionSchema) ){
-				names.add(key);
+			Object objSchema = elements.get(key);
+			if ((objSchema instanceof AgentActionSchema) ){
+				names.add(((AgentActionSchema)objSchema).getTypeName());
 			}
 		}
 		return names;
@@ -637,8 +639,9 @@ public class Ontology implements Serializable {
 		List names = new ArrayList();
 		for (Enumeration e = elements.keys(); e.hasMoreElements();){
 			String key  = (String)e.nextElement();
-			if ((elements.get(key) instanceof PredicateSchema) ){
-			  names.add(key);
+			Object objSchema = elements.get(key);
+			if ((objSchema instanceof PredicateSchema) ){
+			  names.add(((PredicateSchema)objSchema).getTypeName());
 			}
 		}
 		return names;

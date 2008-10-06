@@ -19,32 +19,28 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.domain.FIPAAgentManagement;
 /** 
-* 
-* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-* @author Fabio Bellifemine - CSELT S.p.A.
-* @version $Date$ $Revision$
-*/
+ * 
+ * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+ * @author Fabio Bellifemine - CSELT S.p.A.
+ * @version $Date$ $Revision$
+ */
 
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 public class NotUnderstoodException extends FIPAException {
 
-  public NotUnderstoodException(String msg) {
-    super(msg);
-  }
+	public NotUnderstoodException(String msg) {
+		super(msg);
+	}
 
-  public ACLMessage getACLMessage() {
-    if (msg == null) {
-      msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-      msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
-    } else
-      msg.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-    return msg;
-  }
+	public NotUnderstoodException(ACLMessage notUnderstood) {
+		super(notUnderstood); 
+	}
+
 }

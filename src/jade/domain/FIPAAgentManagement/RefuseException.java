@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 
 package jade.domain.FIPAAgentManagement;
@@ -31,19 +31,22 @@ import jade.lang.acl.ACLMessage;
 This class represents a generic RefuseException 
 @author Fabio Bellifemine - CSELT S.p.A. 
 @version $Date$ $Revision$
-*/
+ */
 public class RefuseException extends FIPAException {
 
-  public RefuseException(String msg) {
-    super(msg); 
-  }
+	public RefuseException(String message) {
+		super(message); 
+	}
 
-  public ACLMessage getACLMessage() {
-    if (msg == null) {
-      msg = new ACLMessage(ACLMessage.REFUSE);
-      msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
-    } else
-      msg.setPerformative(ACLMessage.REFUSE);
-    return msg;
-  }
+	public RefuseException(ACLMessage refuse) {
+		super(refuse); 
+	}
+
+	public ACLMessage getACLMessage() {
+		if (msg == null) {
+			msg = new ACLMessage(ACLMessage.REFUSE);
+			msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
+		} 
+		return msg;
+	}
 }
