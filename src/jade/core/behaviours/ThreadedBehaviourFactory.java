@@ -27,7 +27,9 @@ package jade.core.behaviours;
 
 import jade.core.Agent;
 import jade.core.NotFoundException;
+import jade.util.Logger;
 
+import java.lang.reflect.Method;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -65,6 +67,8 @@ public class ThreadedBehaviourFactory {
 	private static final String ERROR_STATE = "ERROR";
 	
 	private Vector threadedBehaviours = new Vector();
+	
+	private Logger myLogger = Logger.getMyLogger(getClass().getName()); 
 	
 	/**
 	 * Wraps a normal JADE Behaviour <code>b</code> into a "threaded behaviour". Adding the 
@@ -334,7 +338,7 @@ public class ThreadedBehaviourFactory {
 				threadedBehaviours.addElement(this);
 			}
 			else if (threadState == SUSPENDED_STATE) {
-				invokeMethod(myBehaviour, "handleResumed");
+				invokeMethod(myBehaviour, "onResumed");
 			}
 			threadState = RUNNING_STATE;
 			try {
@@ -368,7 +372,7 @@ public class ThreadedBehaviourFactory {
 								myThread = null;
 								// If the Behaviour defined a handleSuspended() method invoke it from within the terminating thread 
 								// to give it a chance to clean up any allocated resources
-								invokeMethod(myBehaviour, "handleSuspended");
+								invokeMethod(myBehaviour, "onSuspended");
 								return;
 							}
 							if (!myBehaviour.isRunnable()) {
@@ -384,15 +388,15 @@ public class ThreadedBehaviourFactory {
 			}
 			catch (InterruptedException ie) {
 				threadState = INTERRUPTED_STATE;
-				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
+				myLogger.log(Logger.WARNING, "Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			catch (Agent.Interrupted ae) {
 				threadState = INTERRUPTED_STATE;
-				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
+				myLogger.log(Logger.WARNING, "Threaded behaviour "+myBehaviour.getBehaviourName()+" interrupted before termination");
 			}
 			catch (ThreadDeath td) {
 				threadState = INTERRUPTED_STATE;
-				System.out.println("Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
+				myLogger.log(Logger.WARNING, "Threaded behaviour "+myBehaviour.getBehaviourName()+" stopped before termination");
 				// ThreadDeath errors should always be propagated so that the top level handler can perform the necessary clean up
 				terminate();
 				throw td;
@@ -429,7 +433,7 @@ public class ThreadedBehaviourFactory {
 				if (threadState == INTERRUPTED_STATE || threadState == ERROR_STATE) {
 					// If the Behaviour defined a handleAborted() method invoke it from within the terminating thread 
 					// to give it a chance to clean up any allocated resources
-					invokeMethod(myBehaviour, "handleAborted");
+					invokeMethod(myBehaviour, "onAborted");
 				}
 			}
 			finished = true;
@@ -456,7 +460,16 @@ public class ThreadedBehaviourFactory {
 	//#APIDOC_EXCLUDE_END
 	
 	private void invokeMethod(Object obj, String methodName) {
-		// FIXME: To be implemented 
+		try {
+			Method m = obj.getClass().getMethod(methodName, new Class[0]);
+			m.invoke(obj, new Object[0]);
+		}
+		catch (NoSuchMethodException nsme) {
+			// Callback method not defined. Just do nothing 
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.WARNING, "Error invoking callback method "+methodName, e);
+		}
 	}
 	
 	/**
