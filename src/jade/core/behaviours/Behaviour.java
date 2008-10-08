@@ -168,6 +168,7 @@ public abstract class Behaviour implements Serializable {
 	 Flag indicating whether this Behaviour is runnable or not
 	 */
 	private volatile boolean runnableState = true;
+	private volatile long restartCounter = 0;
 	private volatile String executionState = STATE_READY;
 	
 	//#APIDOC_EXCLUDE_BEGIN
@@ -414,6 +415,9 @@ public abstract class Behaviour implements Serializable {
 	// Sets the runnable/not-runnable state
 	void setRunnable(boolean runnable) {
 		runnableState = runnable;
+		if (runnableState) {
+			restartCounter++;
+		}
 	}
 	
 	/**
@@ -426,6 +430,15 @@ public abstract class Behaviour implements Serializable {
 		return runnableState;
 	}
 	
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	 * This method is used internally by the framework. Developer should not call or redefine it.
+	 */
+	public final long getRestartCounter() {
+		return restartCounter;
+	}
+	//#APIDOC_EXCLUDE_END
+	
 	/**
 	 Blocks this behaviour. When this method is called, the behaviour
 	 state is set to <em>Blocked</em> and a suitable event is fired to
@@ -436,9 +449,18 @@ public abstract class Behaviour implements Serializable {
 	 @see jade.core.behaviours.Behaviour#restart() 
 	 */
 	public void block() {
+		handleBlockEvent();
+	}
+	
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	 * This method is used internally by the framework. Developer should not call or redefine it.
+	 */
+	protected void handleBlockEvent() {
 		myEvent.init(false, NOTIFY_UP);
 		handle(myEvent);
 	}
+	//#APIDOC_EXCLUDE_END
 	
 	
 	/**
@@ -482,17 +504,26 @@ public abstract class Behaviour implements Serializable {
 	 @see jade.core.behaviours.Behaviour#block()
 	 */
 	public void restart() {
-		myEvent.init(true, NOTIFY_UP);
-
-		
 		if(myAgent != null) {
 			myAgent.removeTimer(this);
 		}
-		handle(myEvent);
+		
+		handleRestartEvent();
+		
 		if(myAgent != null) {
 			myAgent.notifyRestarted(this);
 		}
 	}
+	
+	//#APIDOC_EXCLUDE_BEGIN
+	/**
+	 * This method is used internally by the framework. Developer should not call or redefine it.
+	 */
+	public void handleRestartEvent() {
+		myEvent.init(true, NOTIFY_UP);		
+		handle(myEvent);
+	}
+	//#APIDOC_EXCLUDE_END
 	
 	
 	/**

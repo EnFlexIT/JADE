@@ -885,7 +885,7 @@ public class Agent implements Runnable, Serializable
 	}
 
 	/**
-	 * This method retrieves the current lenght of the message queue
+	 * This method retrieves the current length of the message queue
 	 * of this agent.
 	 * @return The number of messages that are currently stored into the
 	 * message queue.
@@ -1523,17 +1523,10 @@ public class Agent implements Runnable, Serializable
 		public void execute() throws JADESecurityException, InterruptedException, InterruptedIOException {
 			// Select the next behaviour to execute
 			Behaviour currentBehaviour = myScheduler.schedule();
-			// Remember how many messages arrived
-			int oldMsgCounter = messageCounter;
+			long oldRestartCounter = currentBehaviour.getRestartCounter();
 
 			// Just do it!
 			currentBehaviour.actionWrapper();
-
-			// If the current Behaviour has blocked and more messages arrived
-			// in the meanwhile, restart the behaviour to give it another chance
-			if((oldMsgCounter != messageCounter) && (!currentBehaviour.isRunnable())) {
-				currentBehaviour.restart();
-			}
 
 			// When it is needed no more, delete it from the behaviours queue
 			if(currentBehaviour.done()) {
@@ -1543,6 +1536,15 @@ public class Agent implements Runnable, Serializable
 			}
 			else {
 				synchronized(myScheduler) {
+					// If the current Behaviour has blocked and it was restarted in the meanwhile 
+					// (e.g. because a message arrived), restart the behaviour to give it another chance.
+					// Furthermore restart it even if it appears to be runnable since, due to the fact that block/restart 
+					// events are managed in an un-synchronized way, we may end up in a situation where the root is runnable,
+					// but some of its childern are not.
+					if(oldRestartCounter != currentBehaviour.getRestartCounter()) {
+						currentBehaviour.handleRestartEvent();
+					}
+					
 					// Need synchronized block (Crais Sayers, HP): What if
 					// 1) it checks to see if its runnable, sees its not,
 					//    so it begins to enter the body of the if clause

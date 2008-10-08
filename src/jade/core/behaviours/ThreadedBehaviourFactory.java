@@ -349,7 +349,7 @@ public class ThreadedBehaviourFactory {
 					synchronized (this) {
 						// If the behaviour was restarted from outside during the action()
 						// method, give it another chance
-						if (restarted && (!myBehaviour.isRunnable())) {
+						if (restarted) {
 							// We can't just set the runnable state of myBehaviour to true since, if myBehaviour
 							// is a CompositeBehaviour, we may end up with myBehaviour runnable, but some of its children not runnable. 
 							// However we can't call myBehaviour.restart() here because there could be a deadlock between a thread

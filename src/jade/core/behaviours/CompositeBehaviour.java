@@ -182,13 +182,13 @@ public abstract class CompositeBehaviour extends Behaviour {
 	 */
 	public abstract Collection getChildren();
 
+	//#APIDOC_EXCLUDE_BEGIN
 	/**
-     Blocks this behaviour. When <code>block()</code> is called 
-     all its children are notified too.
+	 * This method is used internally by the framework. Developer should not call or redefine it.
 	 */
-	public void block() {
+	protected void handleBlockEvent() {
 		// Notify upwards
-		super.block();
+		super.handleBlockEvent();
 
 		// Then notify downwards
 		myEvent.init(false, NOTIFY_DOWN);
@@ -196,17 +196,17 @@ public abstract class CompositeBehaviour extends Behaviour {
 	}
 
 	/**
-     Restarts this behaviour. When <code>restart()</code> is called 
-     all its children are notified too.
+	 * This method is used internally by the framework. Developer should not call or redefine it.
 	 */
-	public void restart() {
+	public void handleRestartEvent() {
 		// Notify downwards
 		myEvent.init(true, NOTIFY_DOWN);
 		handle(myEvent);
 
 		// Then notify upwards
-		super.restart();
+		super.handleRestartEvent();
 	}
+	//#APIDOC_EXCLUDE_END
 
 	/**
      Puts a <code>CompositeBehaviour</code> back in initial state. The
