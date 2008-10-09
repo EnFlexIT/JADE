@@ -23,26 +23,33 @@ Boston, MA  02111-1307, USA.
 
 package test.mobility.tests;
 
-import jade.core.Agent;
-import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.util.leap.Serializable;
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
-import jade.domain.mobility.*;
-import jade.content.*;
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
+import jade.content.lang.leap.LEAPCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Result;
-import jade.content.lang.Codec;
-import jade.content.lang.leap.LEAPCodec;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.LoaderBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.domain.mobility.BehaviourLoadingOntology;
+import jade.domain.mobility.LoadBehaviour;
+import jade.domain.mobility.Parameter;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
+import jade.util.leap.Serializable;
 
-import test.common.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 import test.mobility.MobilityTesterAgent;
-
-import java.io.*;
 
 /**
    Test dynamic loading of behaviours.
@@ -92,8 +99,9 @@ public class TestLoadBehaviour extends Test {
   			LoadBehaviour lb = new LoadBehaviour();
   			lb.setClassName("test.mobility.separate.behaviours.LoadableMsgSender");
   			lb.setParameters(params);
+			FileInputStream str = null;
   			try {
-  				FileInputStream str = new FileInputStream("separate-behaviours.jar");
+  				str = new FileInputStream("separate-behaviours.jar");
   				int length = str.available();
   				byte[] zip = new byte[length];
   				str.read(zip, 0, length);
@@ -109,6 +117,14 @@ public class TestLoadBehaviour extends Test {
   			}
   			catch (Exception e) {
   				failed("Error encoding LoadBehaviour request. "+e);
+  			} finally {
+  				if (str != null) {
+  					try {
+						str.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+  				}
   			}
   		}
   		
