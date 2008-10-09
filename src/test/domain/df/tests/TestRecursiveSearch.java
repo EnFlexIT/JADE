@@ -23,20 +23,20 @@
 
 package test.domain.df.tests;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.domain.*;
-import jade.domain.FIPAAgentManagement.*;
-import jade.lang.acl.ACLMessage;
-import jade.proto.AchieveREInitiator;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.WakerBehaviour;
+import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
-import test.common.*;
-import test.domain.df.*;
-
-import java.util.Vector;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import test.common.JadeController;
+import test.common.Logger;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 
 /** This test create different DF registered one to each other. Different search
@@ -72,7 +72,7 @@ public class TestRecursiveSearch extends Test {
         // file.
         // We launch the DFFederator on a separated container running
         // with the misc add-on in the classpath
-				jc = TestUtility.launchJadeInstance("Container-1", "+"+getTestArgument("federator-classpath"), new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+				jc = TestUtility.launchJadeInstance("Container-1", "+"+getTestArgument("federator-classpath"), "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), null); 
         String args[] = new String[1];
         // FIXME: lasciare solo il nome del file properties quando il DFFederator riesce a caricarlo...
         args[0] = "..\\..\\..\\jade\\src\\test\\domain\\df\\tests\\TestRecursiveSearch.properties";
@@ -89,7 +89,7 @@ public class TestRecursiveSearch extends Test {
         
         for(int i=1; i<7; i++) {
             Integer iAgent = new Integer(i);
-            String localAID = "df" + new String(iAgent.toString());
+            String localAID = "df" + iAgent.toString();
             // aid of the df-th
             AID dfAID = new AID(localAID,AID.ISLOCALNAME);
             

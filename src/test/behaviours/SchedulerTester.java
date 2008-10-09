@@ -1,9 +1,12 @@
 package test.behaviours;
 
-import jade.core.*;
-import jade.core.behaviours.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.SimpleBehaviour;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class SchedulerTester extends Agent {
 	private long tick;
@@ -73,23 +76,23 @@ public class SchedulerTester extends Agent {
 		};
 		
 		// After 5 ticks restart B1 --> B4 should start running
-		Behaviour b = new TWakerBehaviour(this, 5*tick, b1, new String("restart B1 --> B1 should start running"));
+		Behaviour b = new TWakerBehaviour(this, 5*tick, b1, "restart B1 --> B1 should start running");
 		addBehaviour(b);
 		
 		// After 10 ticks block B3 --> nothing should happen as B3 is already terminated
-		b = new TBlockerBehaviour(this, 10*tick, b3, new String("block B3 --> nothing should happen as B3 is already terminated"));
+		b = new TBlockerBehaviour(this, 10*tick, b3, "block B3 --> nothing should happen as B3 is already terminated");
 		addBehaviour(b);
 		
 		// After 15 ticks remove B4 --> B4 should stop
-		b = new TRemoverBehaviour(this, 15*tick, null, b4, new String("remove B4 --> B4 should stop"));
+		b = new TRemoverBehaviour(this, 15*tick, null, b4, "remove B4 --> B4 should stop");
 		addBehaviour(b);
 		
 		// After 20 ticks remove B2 --> Nothing should happen as B2 is blocked
-		b = new TRemoverBehaviour(this, 20*tick, null, b4, new String("remove B2 --> Nothing should happen as B2 is blocked"));
+		b = new TRemoverBehaviour(this, 20*tick, null, b4, "remove B2 --> Nothing should happen as B2 is blocked");
 		addBehaviour(b);
 		
 		// After 25 ticks add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7 
-		b = new TAdderBehaviour(this, 25*tick, null, new Behaviour[]{b5, b6}, new String("add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7"));
+		b = new TAdderBehaviour(this, 25*tick, null, new Behaviour[]{b5, b6}, "add B5 and B6 --> B5 should first remove B6 (B6 shuld never start) and then add B7");
 		addBehaviour(b);
 		
 		b1.block();

@@ -60,21 +60,21 @@ public class TestRTT1Container extends Test {
 
 			// Launch a peripheral container with the proper classpath
 			if (addClasspath != null) {
-				addClasspath = new String("+"+addClasspath);
+				addClasspath = "+"+addClasspath;
 			}
 	    jc = TestUtility.launchJadeInstance("Container", addClasspath, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), new String[] {});
     	String containerName = jc.getContainerName();
     	
 	    // Launch receivers
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String name = new String("r"+i);
+  	  	String name = "r"+i;
     		TestUtility.createAgent(a, name, RoundTripTimeTesterAgent.RECEIVER_CLASS, null, null, containerName); 
   	  }
     
 	    // Launch round trippers
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i;
     		String[] args = new String[] {receiverName, String.valueOf(nIterations), "", String.valueOf(nCouples), a.getLocalName()}; 
     		TestUtility.createAgent(a, senderName, RoundTripTimeTesterAgent.ROUNDTRIPPER_CLASS, args, null, containerName); 
   	  }

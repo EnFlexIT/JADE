@@ -25,14 +25,13 @@ Boston, MA  02111-1307, USA.
 
 package examples.mobile;
 
+import jade.core.Agent;
+import jade.core.Location;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
 import java.util.StringTokenizer;
-
-import jade.core.*;
-import jade.core.behaviours.*;
-
-import jade.domain.mobility.*;
-
-import jade.lang.acl.*;
 
 /**
 This behaviour of the Agent serves all the received messages. In particular,
@@ -69,7 +68,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 		 	return;
 		}
 		else {
-			String replySentence = new String("");
+			String replySentence = "";
 
 			// Get action to perform
 			//String s = msg.getContent().
@@ -80,7 +79,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			{
 				System.out.println("They requested me to exit (Sob!)");
 				// Set reply sentence
-				replySentence = new String("\"OK exiting\"");
+				replySentence = "\"OK exiting\"";
 				myAgent.doDelete();
 			}
 			// STOP COUNTING
@@ -89,7 +88,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 				System.out.println("They requested me to stop counting");
 				((MobileAgent) myAgent).stopCounter();
 				// Set reply sentence
-				replySentence = new String("\"OK stopping\"");
+				replySentence = "\"OK stopping\"";
 			} 				
 			// CONTINUE COUNTING
 			else if (action.equals("continue"))
@@ -97,7 +96,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 				System.out.println("They requested me to continue counting");
 				((MobileAgent) myAgent).continueCounter();
 				// Set reply sentence
-				replySentence = new String("\"OK continuing\"");
+				replySentence = "\"OK continuing\"";
 			} 
 			// MOVE TO ANOTHER LOCATION				
 			else if (action.equals("move"))
@@ -107,7 +106,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			    Location dest = new jade.core.ContainerID(destination, null);
 			    System.out.println("They requested me to go to " + destination);
 				// Set reply sentence
-				replySentence = new String("\"OK moving to " + destination+" \"");
+				replySentence = "\"OK moving to " + destination+" \"";
 				// Prepare to move
 				((MobileAgent)myAgent).nextSite = dest;
 				myAgent.doMove(dest);
@@ -120,7 +119,7 @@ class ServeIncomingMessagesBehaviour extends SimpleBehaviour
 			    Location dest = new jade.core.ContainerID(destination, null);
 			    System.out.println("They requested me to clone myself to " + destination);
 				// Set reply sentence
-				replySentence = new String("\"OK cloning to " + destination+" \"");
+				replySentence = "\"OK cloning to " + destination+" \"";
 				// Prepare to move
 				((MobileAgent)myAgent).nextSite = dest;
 				myAgent.doClone(dest, "clone"+((MobileAgent)myAgent).cnt+"of"+myAgent.getName());

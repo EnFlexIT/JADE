@@ -23,27 +23,33 @@ Boston, MA  02111-1307, USA.
 
 package examples.ontology;
 
-import jade.proto.SimpleAchieveREResponder;
-
-import jade.core.*;
-import jade.core.behaviours.*;
-
-import jade.domain.*;
-
+import jade.content.ContentElementList;
+import jade.content.Predicate;
+import jade.content.abs.AbsPredicate;
 import jade.content.lang.Codec;
-import jade.content.*;
-import jade.content.abs.*;
-import jade.content.onto.*;
-import jade.content.onto.basic.*;
-import jade.content.lang.sl.*;
-
+import jade.content.lang.sl.SLCodec;
+import jade.content.lang.sl.SLVocabulary;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Done;
+import jade.content.onto.basic.TrueProposition;
+import jade.core.Agent;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import examples.ontology.employment.*;
-
-import jade.content.onto.basic.*;
-import jade.util.leap.*;
+import jade.proto.SimpleAchieveREResponder;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import examples.ontology.employment.Address;
+import examples.ontology.employment.Company;
+import examples.ontology.employment.EmploymentOntology;
+import examples.ontology.employment.Engage;
+import examples.ontology.employment.EngagementError;
+import examples.ontology.employment.Person;
+import examples.ontology.employment.PersonTooOld;
+import examples.ontology.employment.WorksFor;
 
 /**
 	This agent is able to engage people on behalf of company 
@@ -203,7 +209,7 @@ public class EngagerAgent extends Agent {
 			}
 			catch (Exception fe){
 				System.out.println(myAgent.getName() + ": Error handling the engagement action.");
-				System.out.println(fe.getMessage().toString());
+				System.out.println(fe.getMessage());
 			}
 			
 			// System.out.println(msg);
@@ -243,7 +249,7 @@ public class EngagerAgent extends Agent {
 			} catch (Exception fe){
 				fe.printStackTrace();
 				System.out.println(getName() + ": Error handling the engagement action.");
-				System.out.println(fe.getMessage().toString());
+				System.out.println(fe.getMessage());
 			}
 			
 			return temp;

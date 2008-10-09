@@ -23,10 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package test.proto.tests;
 
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import test.common.*;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.lang.acl.ACLMessage;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
    @author Giovanni Caire - TILAB
@@ -41,7 +43,7 @@ public abstract class TestBase extends Test {
 		
   	responders = new AID[responderBehaviours.length];
   	for (int i = 0; i < responderBehaviours.length; ++i) {
-  		String resp = new String(RESPONDER_NAME+i);
+  		String resp = RESPONDER_NAME+i;
   		AID id = TestUtility.createAgent(a, resp, TestUtility.CONFIGURABLE_AGENT, null);
   		TestUtility.addBehaviour(a, id, responderBehaviours[i]);
   		msg.addReceiver(id);

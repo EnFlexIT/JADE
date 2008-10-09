@@ -27,18 +27,27 @@ package examples.mobile;
 
 
 // Import required Java classes 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.table.*;
-
-import java.util.*;
-import java.io.*;
-
-import jade.core.*;
-import jade.domain.mobility.*;
+import jade.core.Location;
 import jade.gui.GuiEvent;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Iterator;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.TableColumn;
 
 /**
  * This is the GUI of the MobileAGent. Becuase in Java a new Thread is spawn
@@ -110,14 +119,14 @@ public class MobileAgentGui extends JFrame implements ActionListener
 		main.add(availablePanel);
 		
 		TableColumn c;
-		c = availableSiteList.getColumn((Object) availableSiteList.getColumnName(0));
-		c.setHeaderValue((Object) (new String("ID")));
-		c = availableSiteList.getColumn((Object) availableSiteList.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Name")));
-		c = availableSiteList.getColumn((Object) availableSiteList.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Protocol")));
-		c = availableSiteList.getColumn((Object) availableSiteList.getColumnName(3));
-		c.setHeaderValue((Object) (new String("Address")));
+		c = availableSiteList.getColumn(availableSiteList.getColumnName(0));
+		c.setHeaderValue("ID");
+		c = availableSiteList.getColumn(availableSiteList.getColumnName(1));
+		c.setHeaderValue("Name");
+		c = availableSiteList.getColumn(availableSiteList.getColumnName(2));
+		c.setHeaderValue("Protocol");
+		c = availableSiteList.getColumn(availableSiteList.getColumnName(3));
+		c.setHeaderValue("Address");
 
 		///////////////////////////////////////////////////
 		// Add the list of visited sites to the CENTER part 
@@ -135,14 +144,14 @@ public class MobileAgentGui extends JFrame implements ActionListener
 
 			// Column names
 	
-		c = visitedSiteList.getColumn((Object) visitedSiteList.getColumnName(0));
-		c.setHeaderValue((Object) (new String("ID")));
-		c = visitedSiteList.getColumn((Object) visitedSiteList.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Name")));
-		c = visitedSiteList.getColumn((Object) visitedSiteList.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Protocol")));
-		c = visitedSiteList.getColumn((Object) visitedSiteList.getColumnName(3));
-		c.setHeaderValue((Object) (new String("Address")));
+		c = visitedSiteList.getColumn(visitedSiteList.getColumnName(0));
+		c.setHeaderValue("ID");
+		c = visitedSiteList.getColumn(visitedSiteList.getColumnName(1));
+		c.setHeaderValue("Name");
+		c = visitedSiteList.getColumn(visitedSiteList.getColumnName(2));
+		c.setHeaderValue("Protocol");
+		c = visitedSiteList.getColumn(visitedSiteList.getColumnName(3));
+		c.setHeaderValue("Address");
 
 	
 		/////////////////////////////////////////////////////////////////////

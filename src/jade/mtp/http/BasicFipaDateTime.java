@@ -206,7 +206,7 @@ public class BasicFipaDateTime {
     while( res.length() < size ) {
 	    res = 0 + res;
     }
-    return res.toString();
+    return res;
   }
   
   public String toString()  {

@@ -23,22 +23,41 @@ Boston, MA  02111-1307, USA.
 
 package test.domain.ams.tests;
 
-import jade.core.Agent;
-import jade.core.AID;
-import jade.core.ContainerID;
-import jade.core.behaviours.*;
-import jade.domain.*;
-import jade.content.*;
-import jade.content.lang.*;
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
-import jade.content.onto.*;
-import jade.content.onto.basic.*;
-import jade.lang.acl.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.domain.FIPAAgentManagement.*;
-import jade.util.leap.*;
-import test.common.*;
-import test.domain.ams.*;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Done;
+import jade.content.onto.basic.Result;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.ContainerID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
+import jade.domain.AMSService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAService;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.FIPAAgentManagement.APDescription;
+import jade.domain.FIPAAgentManagement.APService;
+import jade.domain.FIPAAgentManagement.FIPAManagementOntology;
+import jade.domain.FIPAAgentManagement.GetDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
+import jade.domain.JADEAgentManagement.InstallMTP;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
+import jade.domain.JADEAgentManagement.UninstallMTP;
+import jade.lang.acl.ACLMessage;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+import test.common.JadeController;
+import test.common.Logger;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
    Test the InstallMTP and UninstallMTP actions of the 
@@ -64,7 +83,7 @@ public class TestInstallMTP extends Test {
   	cm.registerOntology(jadeOnto);
   	cm.registerOntology(fipaOnto);
   	
-		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+		jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), null); 
 		ret = Test.TEST_FAILED;
   	
 		SequentialBehaviour sb = new SequentialBehaviour(a) {

@@ -219,7 +219,7 @@ public class ACLTimeChooserDialog implements ActionListener {
     p = new JPanel();
     p.setBackground(Color.white);
     if (date == null) {
-      s = new String("No time indication to display");
+      s = "No time indication to display";
     }
 
     else {

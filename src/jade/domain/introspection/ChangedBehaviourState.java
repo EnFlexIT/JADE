@@ -151,7 +151,7 @@ public class ChangedBehaviourState implements Event {
        Retrieve an SL0-like string representation for this object.
     */
     public String toString() {
-  	return new String(NAME+ " Name: "+ behaviour.getName() + " from: " + from + " to: " + to);
+  	return NAME+ " Name: "+ behaviour.getName() + " from: " + from + " to: " + to;
     }
 
 }

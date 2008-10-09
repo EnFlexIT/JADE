@@ -148,7 +148,8 @@ public class APService implements Concept {
         str.append(" :addresses (sequence");
         for (Iterator i=addresses.iterator(); i.hasNext(); ) {
             s=(String)(i.next());
-            str.append(" "+s.toString());
+            str.append(' ');
+            str.append(s);
         }
 	str.append("))");
 	return str.toString();

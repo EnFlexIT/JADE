@@ -24,15 +24,11 @@ Boston, MA  02111-1307, USA.
 package examples.mobile;
 
 // Import required Java classes 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import java.util.*;
+import jade.core.Location;
+
 import java.util.Vector;
 
-// Import required Jade classes
-import jade.core.Location;
+import javax.swing.table.AbstractTableModel;
 
 /**
 @author Tiziana Trucco - CSELT S.p.A.
@@ -82,7 +78,7 @@ public class LocationTableModel extends AbstractTableModel
 	public Object getValueAt(int row, int column)
 	{
 		String id, name, protocol, address;
-		String value = new String(); 
+		String value = ""; 
 		Location loc = (Location) names.get(row);
 
 		switch(column)

@@ -23,11 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.domain.ams.tests;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import test.common.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
  * The test asks the AMS to create an agent that has wildcards in its name, and verify if it's
@@ -52,7 +56,7 @@ public class TestWildcardCreateAgent extends Test {
 	public Behaviour load(Agent a) throws TestException {  	
 		
 		log("Creating container...");
-		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME), null);
+		jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME, null);
 		
 		return new OneShotBehaviour(a) {
   		public void action() {

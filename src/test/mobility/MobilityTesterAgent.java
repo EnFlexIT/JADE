@@ -24,21 +24,17 @@ Boston, MA  02111-1307, USA.
 package test.mobility;
 
 import jade.core.Agent;
-import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-import jade.core.AID;
-import jade.wrapper.*;
-import jade.domain.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.lang.acl.*;
-import jade.proto.*;
-import jade.content.*;
-import jade.content.onto.*;
-import jade.content.lang.*;
-import jade.content.lang.sl.*;
-
-import test.common.*;
+import jade.core.Runtime;
+import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestGroup;
+import test.common.TestUtility;
+import test.common.TesterAgent;
 
 /**
    @author Giovanni Caire - TILAB
@@ -58,10 +54,12 @@ public class MobilityTesterAgent extends TesterAgent {
 			private transient JadeController jc2;
 			
 			protected void initialize(Agent a) throws TestException {
-				jc1 = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+				jc1 = TestUtility.launchJadeInstance("Container-1", null,
+						"-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), null); 
 				setArgument(CONTAINER1_KEY, jc1.getContainerName());
 				
-				jc2 = TestUtility.launchJadeInstance("Container-2", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+				jc2 = TestUtility.launchJadeInstance("Container-2", null,
+						"-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), null); 
 				setArgument(CONTAINER2_KEY, jc2.getContainerName());
 			}
 			

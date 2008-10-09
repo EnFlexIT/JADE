@@ -1,9 +1,12 @@
 package test.behaviours;
 
-import jade.core.*;
-import jade.core.behaviours.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.SequentialBehaviour;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class SequentialBehaviourTester extends Agent {
 	
@@ -73,33 +76,33 @@ public class SequentialBehaviourTester extends Agent {
 		System.out.println("--> B1 should be executed and then main should block as B2 is blocked"); 
 
 		// After 10 ticks add B4(blocked) --> nothing should change
-		Behaviour b = new TAdderBehaviour(this, 10*tick, main, b4, new String("add B4(blocked) --> nothing should change"));
+		Behaviour b = new TAdderBehaviour(this, 10*tick, main, b4, "add B4(blocked) --> nothing should change");
 		addBehaviour(b);
 		
 		// After 15 ticks restart main --> B2 should be executed and main should block again when it's B4 turn
-		b = new TWakerBehaviour(this, 15*tick, main, new String("restart main --> B2 should be executed and main should block again when it's B4 turn"));
+		b = new TWakerBehaviour(this, 15*tick, main, "restart main --> B2 should be executed and main should block again when it's B4 turn");
 		addBehaviour(b);
 		
 		// After 20 ticks add B5 --> nothing should change
-		b = new TAdderBehaviour(this, 20*tick, main, b5, new String("add B5 --> nothing should change"));
+		b = new TAdderBehaviour(this, 20*tick, main, b5, "add B5 --> nothing should change");
 		addBehaviour(b);
 		
 		// After 20 ticks remove B3 --> if B3 is running, main should move to B4 and block (B4 is blocked)
-		b = new TRemoverBehaviour(this, 20*tick, main, b3, new String("remove B3 --> B3 (currently running) should stop, main should move to B4 and block (B4 is blocked)"));
+		b = new TRemoverBehaviour(this, 20*tick, main, b3, "remove B3 --> B3 (currently running) should stop, main should move to B4 and block (B4 is blocked)");
 		addBehaviour(b);
 		
 		// After 25 ticks restart B4 --> main should restart and B4 should be executed
-		b = new TWakerBehaviour(this, 25*tick, b4, new String("restart B4 --> main should restart and B4 should be executed"));
+		b = new TWakerBehaviour(this, 25*tick, b4, "restart B4 --> main should restart and B4 should be executed");
 		addBehaviour(b);
 		
 		// After 28 ticks block B5 --> main should block as soon as B5 starts
-		b = new TBlockerBehaviour(this, 28*tick, b5, new String("block B5 --> main should block as soon as B5 starts"));
+		b = new TBlockerBehaviour(this, 28*tick, b5, "block B5 --> main should block as soon as B5 starts");
 		addBehaviour(b);
 		
 		// After 40 ticks restart B5 and then remove B5 --> main should restart and terminate
-		b = new TWakerBehaviour(this, 40*tick, b5, new String("restart B5 --> main should restart"));
+		b = new TWakerBehaviour(this, 40*tick, b5, "restart B5 --> main should restart");
 		addBehaviour(b);
-		b = new TRemoverBehaviour(this, 41*tick, main, b5, new String("remove B5 --> main should terminate"));
+		b = new TRemoverBehaviour(this, 41*tick, main, b5, "remove B5 --> main should terminate");
 		addBehaviour(b);
 		
 	}

@@ -23,9 +23,12 @@ Boston, MA  02111-1307, USA.
 
 package demo.MeetingScheduler.Ontology;
 
-import jade.util.leap.*;
-import jade.core.AID;
 import jade.content.Concept;
+import jade.core.AID;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
+
 import java.util.Date;
 
 /**
@@ -35,7 +38,7 @@ import java.util.Date;
 
 public class Appointment implements Cloneable,Concept{
 
-    private String description = new String();
+    private String description = "";
     private Date startingOn;
     private Date endingWith;
     private List invited = new ArrayList(); // Vector of Persons

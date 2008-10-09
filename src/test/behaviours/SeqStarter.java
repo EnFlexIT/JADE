@@ -1,11 +1,12 @@
 package test.behaviours;
 
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import java.util.Vector;
-import java.util.Enumeration;
-import test.common.*;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.AgentContainer;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
  * @author Giovanni Caire - TILAB
@@ -40,8 +41,8 @@ public class SeqStarter extends Agent {
     try {
 	    TestUtility.launchJadeInstance("Container", null, "-container", new String[] {});
   	  for (int i = 0; i < nAgents; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i;
     		// Launch the sender on the main
     		String[] agentArgs = new String[] {receiverName, String.valueOf(nMessages), String.valueOf(shortestPeriod*(i+1))}; 
     		TestUtility.createAgent(this, senderName, SENDER_CLASS, agentArgs, getAMS(), AgentContainer.MAIN_CONTAINER_NAME); 

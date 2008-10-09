@@ -45,7 +45,7 @@ import jade.gui.AgentTree;
 
    public void doAction(AgentTree.ContainerNode node) {
    	 
-   	String containerName = new String();
+   	String containerName = "";
    	if(node != null)
    	  	containerName = node.getName();
       myRMA.newAgent("log"+progressiveNumber, "jade.tools.logging.LogManagerAgent", new Object[0], containerName);

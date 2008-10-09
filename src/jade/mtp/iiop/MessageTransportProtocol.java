@@ -612,7 +612,7 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
     private void parseIOR(String s, String typeName) throws MTPException {
       try {
 	// Store stringified IOR
-	ior = new String(s.toUpperCase());
+	ior = s.toUpperCase();
 
 	// Remove 'IOR:' prefix to get Hex digits
 	String hexString = ior.substring(4);
@@ -716,15 +716,15 @@ Notice that, in the third case, BIG_ENDIAN is assumed by default. In the first a
       if((colonPos == -1) || (slashPos == -1))
 	throw new MTPException("Invalid URL string");
 
-      host = new String(s.substring(0, colonPos));
+      host = s.substring(0, colonPos);
       port = Short.parseShort(s.substring(colonPos + 1, slashPos));
       if(poundPos == -1) {
-	objectKey = new String(s.substring(slashPos + 1, s.length()));
+	objectKey = s.substring(slashPos + 1, s.length());
 	anchor = "";
       }
       else {
-	objectKey = new String(s.substring(slashPos + 1, poundPos));
-	anchor = new String(s.substring(poundPos + 1, s.length()));
+	objectKey = s.substring(slashPos + 1, poundPos);
+	anchor = s.substring(poundPos + 1, s.length());
       }
 
       switch(endianness) {

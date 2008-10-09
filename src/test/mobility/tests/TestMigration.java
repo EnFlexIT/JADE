@@ -23,12 +23,22 @@
 
 package test.mobility.tests;
 
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.domain.mobility.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.util.leap.*;
-import test.common.*;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.ContainerID;
+import jade.core.PlatformID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
+import jade.domain.JADEAgentManagement.WhereIsAgentAction;
+import jade.domain.mobility.MobileAgentDescription;
+import jade.domain.mobility.MobilityOntology;
+import jade.domain.mobility.MoveAction;
+import jade.util.leap.Iterator;
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
  @author Giovanni Caire - TILAB
@@ -46,7 +56,7 @@ public class TestMigration extends Test {
 		ma = TestUtility.createAgent(a, MOBILE_AGENT_NAME, "examples.mobile.MobileAgent", null, a.getAMS(), a.here().getName());
 		
 		// Launch a remote platform
-		jcp = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), new String[]{Test.DEFAULT_PROTO}); 
+		jcp = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+"+TestUtility.HTTP_MTP_CLASSPATH, "-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG, new String[]{Test.DEFAULT_PROTO}); 
 		
 		// Construct the AID of the AMS of the remote platform 
 		final AID remoteAMS = new AID("ams@"+REMOTE_PLATFORM_NAME, AID.ISGUID);
@@ -60,7 +70,9 @@ public class TestMigration extends Test {
 		
 		// Launch another container with an MTP to communicate with the 
 		// remote platform
-		jcc = TestUtility.launchJadeInstance("Container-1", "+"+TestUtility.HTTP_MTP_CLASSPATH, new String("-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+Test.DEFAULT_PORT+" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG), null); 
+		jcc = TestUtility.launchJadeInstance("Container-1", "+"+TestUtility.HTTP_MTP_CLASSPATH,
+				"-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+Test.DEFAULT_PORT+
+				" -mtp "+Test.DEFAULT_MTP+" "+TestUtility.HTTP_MTP_ARG, null); 
 		
 		
 		SequentialBehaviour sb = new SequentialBehaviour(a);

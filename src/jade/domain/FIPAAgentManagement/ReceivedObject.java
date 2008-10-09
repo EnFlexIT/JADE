@@ -50,10 +50,10 @@ public class ReceivedObject implements Concept, Serializable {
      **/
     public ReceivedObject() {
 	date = new Date();
-	by = new String();
-	from = new String();
-	id = new String();
-	via = new String();
+	by = "";
+	from = "";
+	id = "";
+	via = "";
     }
 
 
@@ -160,7 +160,7 @@ public class ReceivedObject implements Concept, Serializable {
      * @return an SL0-like String representation of this object 
      **/
     public String toString() {
-	String s = new String("(ReceivedObject ");
+	String s = "(ReceivedObject ";
 	if (date != null)
 	    s = s + " :date "+date.toString();
 	if ((by != null) && (by.trim().length()>0))

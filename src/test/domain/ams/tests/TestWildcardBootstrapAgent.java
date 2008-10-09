@@ -23,13 +23,15 @@ Boston, MA  02111-1307, USA.
 
 package test.domain.ams.tests;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.ContainerID;
-import jade.core.behaviours.*;
-import test.common.*;
-import test.domain.ams.*;
-import jade.domain.JADEAgentManagement.JADEManagementVocabulary;;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.JADEAgentManagement.JADEManagementVocabulary;
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
  * Test the creation of bootstrap agent having wildcards in its name.
@@ -47,7 +49,7 @@ public class TestWildcardBootstrapAgent extends Test {
   		public void action() {
   			try {
 	  			log("Creating container with wildcarded bootstrap agent...");
-	  			jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX+":jade.core.Agent"), null); 
+	  			jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -container-name "+CONTAINER_NAME+" "+PREFIX+JADEManagementVocabulary.CONTAINER_WILDCARD+SUFFIX+":jade.core.Agent", null); 
 	  			String containerName = jc.getContainerName();
 	  			AID wildcardAgent = new AID(PREFIX + containerName + SUFFIX, AID.ISLOCALNAME);
 	  			try {

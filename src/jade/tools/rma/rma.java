@@ -23,17 +23,12 @@
 
 package jade.tools.rma;
 
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.io.BufferedReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.InputStreamReader;
 
-import jade.util.leap.List;
-import jade.util.leap.ArrayList;
 import java.util.Map;
-import java.util.TreeMap;
 import jade.util.leap.Iterator;
 import java.net.URL;
 import jade.util.Logger;
@@ -50,7 +45,6 @@ import jade.domain.FIPANames;
 import jade.gui.AgentTreeModel;
 
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 
 import jade.content.onto.basic.Result;
 import jade.content.onto.basic.Action;
@@ -59,7 +53,6 @@ import jade.proto.SimpleAchieveREInitiator;
 
 import jade.tools.ToolAgent;
 import jade.security.JADEPrincipal;
-import jade.security.SDSIName;
 
 
 /**
@@ -987,7 +980,6 @@ public class rma extends ToolAgent {
 			requestMsg.setOntology(FIPAManagementOntology.NAME);
 			
 			GetDescription action = new GetDescription();
-			List l = new ArrayList(1);
 			Action a = new Action();
 			a.setActor(remoteAMS);
 			a.setAction(action);

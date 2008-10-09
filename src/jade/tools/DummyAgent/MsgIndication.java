@@ -78,7 +78,7 @@ class MsgIndication
 			tmpType += " ";
 		
 		// Put the destination agent group in form of a string
-		String dest = new String();
+		String dest = "";
 		Iterator destAG = msg.getAllReceiver();
 		
 		while(destAG.hasNext())

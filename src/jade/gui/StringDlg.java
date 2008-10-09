@@ -68,7 +68,7 @@ public class StringDlg extends JDialog
     {
 	super();
 	parentGUI = parent;
-	this.hint = new String(hint);
+	this.hint = hint;
 	this.out = null;
     }
 	

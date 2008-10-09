@@ -23,10 +23,19 @@ Boston, MA  02111-1307, USA.
 
 package test.behaviours.tests;
 
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import test.common.*;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.AgentContainer;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.ParallelBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.TickerBehaviour;
+import jade.lang.acl.ACLMessage;
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
    @author Giovanni Caire - TILAB
@@ -64,8 +73,8 @@ public class TestBlockTimeout extends Test {
     	
 	    // Launch senders and receivers
   	  for (int i = 0; i < nAgents; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i;
     		// Launch the sender on the main
     		String[] agentArgs = new String[] {receiverName, String.valueOf(nMessages), String.valueOf(shortestPeriod*(i+1))}; 
     		TestUtility.createAgent(a, senderName, SENDER_CLASS, agentArgs, a.getAMS(), AgentContainer.MAIN_CONTAINER_NAME); 
@@ -134,8 +143,8 @@ public class TestBlockTimeout extends Test {
   	try {
   		// Kill senders and receivers
   	  for (int i = 0; i < nAgents; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i;
     		TestUtility.killAgent(a, new AID(senderName, AID.ISLOCALNAME)); 
     		TestUtility.killAgent(a, new AID(receiverName, AID.ISLOCALNAME)); 
   	  }

@@ -74,7 +74,7 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
 			// Launch a peripheral container with the proper classpath for the senders
 			// on the local host. Activate an MTP on it.
 			if (addClasspath1 != null) {
-				addClasspath1 = new String("+"+addClasspath1);
+				addClasspath1 = "+"+addClasspath1;
 			}
 	    jc1 = TestUtility.launchJadeInstance("C-senders", addClasspath1, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT)+" -mtp "+Test.DEFAULT_MTP, new String[] {});
     	String containerName = jc1.getContainerName();
@@ -82,7 +82,7 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
     	// Launch a new platform with the proper classpath for the receivers
     	// on a remote host
 			if (addClasspath2 != null) {
-				addClasspath2 = new String("+"+addClasspath2);
+				addClasspath2 = "+"+addClasspath2;
 			}
 			RemoteManager rm = TestUtility.createRemoteManager(remoteHost, TSDaemon.DEFAULT_PORT, TSDaemon.DEFAULT_NAME);
 			jc2 = TestUtility.launchJadeInstance(rm, REMOTE_PLATFORM_NAME, addClasspath2, "-name "+REMOTE_PLATFORM_NAME+" -port "+REMOTE_PLATFORM_PORT+" -mtp "+Test.DEFAULT_MTP, new String[]{Test.DEFAULT_PROTO}); 
@@ -102,15 +102,15 @@ public class TestRTT2Platforms2HostsIIOP extends Test {
 			  	
 	    // Launch receivers on the remote platform (receivers must be launched first)
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String name = new String("r"+i);
+  	  	String name = "r"+i;
     		TestUtility.createAgent(a, name, RoundTripTimeTesterAgent.RECEIVER_CLASS, null, remoteAMS, null); 
   	  }
 			System.out.println("Receivers created");
   	  
 	    // Launch senders on peripheral container
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i+"@"+REMOTE_PLATFORM_NAME);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i+"@"+REMOTE_PLATFORM_NAME;
     		String[] args = new String[] {receiverName, String.valueOf(nIterations), address, String.valueOf(nCouples), a.getLocalName()}; 
     		TestUtility.createAgent(a, senderName, RoundTripTimeTesterAgent.ROUNDTRIPPER_CLASS, args, null, containerName); 
   	  }

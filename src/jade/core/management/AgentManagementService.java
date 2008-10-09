@@ -609,7 +609,7 @@ public class AgentManagementService extends BaseService {
 				//#J2ME_EXCLUDE_END
 				
 				if (agent == null) {
-					agent = (Agent)Class.forName(new String(className)).newInstance();
+					agent = (Agent)Class.forName(className).newInstance();
 				}
 				
 				agent.setArguments(arguments);

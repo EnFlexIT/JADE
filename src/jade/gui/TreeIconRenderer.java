@@ -74,7 +74,7 @@ public class TreeIconRenderer extends JLabel implements TreeCellRenderer {
      }
       else {
        setIcon(null);
-       setText(value.toString());
+       setText("");
      }
     return this;
  }

@@ -23,16 +23,16 @@ Boston, MA  02111-1307, USA.
 
 package test.proto.tests.contractNet;
 
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.proto.*;
-import jade.lang.acl.*;
-import test.common.*;
-import test.proto.tests.TestBase;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.lang.acl.ACLMessage;
 
-import java.util.Date;
 import java.util.Vector;
-import java.util.Enumeration;
+
+import test.common.TestException;
+import test.proto.tests.TestBase;
 
 /**
    @author Giovanni Caire - TILAB
@@ -64,7 +64,7 @@ public class TestMixedNResp2Rounds extends TestBase {
 
   	ACLMessage msg = new ACLMessage(ACLMessage.CFP);
  		initialize(a, msg);
-  	msg.addReceiver(new AID(new String(RESPONDER_NAME+9), AID.ISLOCALNAME));
+  	msg.addReceiver(new AID(RESPONDER_NAME+9, AID.ISLOCALNAME));
 
   	BasicContractNetInitiator b1 = new BasicContractNetInitiator(a, msg, ds, null, 10000,
   		new int[] {4, 1, 1, 1, 2, 3});

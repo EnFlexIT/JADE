@@ -23,14 +23,21 @@ Boston, MA  02111-1307, USA.
 
 package test.mobility.tests;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import jade.util.leap.*;
-import test.common.*;
-import test.common.behaviours.*;
-import test.mobility.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
+import test.common.Logger;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
+import test.common.behaviours.ListProcessor;
+import test.mobility.MobilityTesterAgent;
 
 /**
    @author Giovanni Caire - TILAB
@@ -71,7 +78,7 @@ public class TestDoMove extends Test {
   			String cName = (String) item;
   			// Request the mobile agent to move
   			l.log("Requesting MobileAgent to move to "+cName);
-				request.setContent(new String("move "+cName));
+				request.setContent("move "+cName);
 				myAgent.send(request);
 				// Give the mobile agent some time to move
 				try {

@@ -24,13 +24,16 @@ Boston, MA  02111-1307, USA.
 package test.content.tests;
 
 import jade.core.Agent;
-import jade.core.behaviours.*;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
 import jade.lang.acl.ACLMessage;
-import jade.content.ContentManager;
-import examples.content.ecommerceOntology.*;
-import test.common.*;
-import test.content.*;
-import test.content.testOntology.*;
+import test.common.Logger;
+import test.common.Test;
+import test.common.TestException;
+import test.content.ContentTesterAgent;
+import test.content.SuccessExpectedInitiator;
+import test.content.testOntology.Exists;
+import test.content.testOntology.Position;
 
 /**
    @author Giovanni Caire - TILAB
@@ -46,7 +49,7 @@ public class TestBoolean extends Test{
   		return new SuccessExpectedInitiator(a, ds, resultKey) {
   			protected ACLMessage prepareMessage() throws Exception {
   				Position p = new Position(1.0, 1.0);
-  				p.setPrecise(new Boolean(VALUE));
+  				p.setPrecise(Boolean.valueOf(VALUE));
   				Exists e = new Exists(p);
   				myAgent.getContentManager().fillContent(msg, e);
   				l.log("Content correctly encoded");

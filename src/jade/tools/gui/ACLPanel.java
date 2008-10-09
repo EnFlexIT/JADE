@@ -39,9 +39,6 @@ import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.Envelope;
 import jade.domain.FIPAAgentManagement.ReceivedObject;
 import jade.lang.acl.*;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.ISO8601;
-import jade.lang.acl.StringACLCodec;
 import jade.tools.sl.SLFormatter;
 
 import jade.util.Logger;

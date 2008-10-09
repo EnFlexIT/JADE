@@ -23,15 +23,20 @@
 
 package test.domain.ams.tests;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.ContainerID;
-import jade.core.behaviours.*;
-import jade.domain.*;
-import jade.lang.acl.*;
-import jade.domain.FIPAAgentManagement.*;
-import test.common.*;
-import test.domain.ams.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
+import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import test.common.JadeController;
+import test.common.Logger;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestUtility;
 
 /**
  Performs the following steps:
@@ -55,7 +60,7 @@ public class TestCreateKillAgent extends Test {
 		final DataStore store = ds;
 		final String key = resultKey;
 		
-		jc = TestUtility.launchJadeInstance("Container-1", null, new String("-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+String.valueOf(Test.DEFAULT_PORT)), null); 
+		jc = TestUtility.launchJadeInstance("Container-1", null, "-container -host "+TestUtility.getContainerHostName(a, null)+" -port "+String.valueOf(Test.DEFAULT_PORT), null); 
 		ret = Test.TEST_FAILED;
 		
 		SequentialBehaviour sb = new SequentialBehaviour(a) {

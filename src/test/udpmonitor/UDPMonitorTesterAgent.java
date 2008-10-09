@@ -23,16 +23,22 @@
 
 package test.udpmonitor;
 
-import java.util.Iterator;
-
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.Runtime;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
-import jade.wrapper.*;
+import jade.core.Runtime;
+import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
 
-import test.common.*;
+import java.util.Iterator;
+
+import test.common.JadeController;
+import test.common.Test;
+import test.common.TestException;
+import test.common.TestGroup;
+import test.common.TestUtility;
+import test.common.TesterAgent;
 
 /**
  * Tester agent for UDP Monitor tests.
@@ -59,8 +65,9 @@ public class UDPMonitorTesterAgent extends TesterAgent {
 				// Start a new platform (Main Container) with UDP monitoring
 				String mtp = Test.DEFAULT_MTP;
 				String proto = Test.DEFAULT_PROTO;
-				main = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+" + TestUtility.HTTP_MTP_CLASSPATH, new String("-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name " + REMOTE_PLATFORM_NAME + " -port " + REMOTE_PLATFORM_PORT
-						+ " -mtp " + mtp + " " + TestUtility.HTTP_MTP_ARG), new String[] {proto});
+				main = TestUtility.launchJadeInstance(REMOTE_PLATFORM_NAME, "+" + TestUtility.HTTP_MTP_CLASSPATH,
+						"-services jade.core.nodeMonitoring.UDPNodeMonitoringService -name " + REMOTE_PLATFORM_NAME +
+						" -port " + REMOTE_PLATFORM_PORT + " -mtp " + mtp + " " + TestUtility.HTTP_MTP_ARG, new String[] {proto});
 
 				// Construct the AID of the AMS of the remote platform
 				AID remoteAMS = new AID("ams@" + REMOTE_PLATFORM_NAME, AID.ISGUID);
@@ -70,8 +77,9 @@ public class UDPMonitorTesterAgent extends TesterAgent {
 				}
 
 				// Start a local container with an MTP to communicate with te remote platform
-				mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+" + TestUtility.HTTP_MTP_CLASSPATH, new String("-container -host " + TestUtility.getLocalHostName() + " -port " + String.valueOf(Test.DEFAULT_PORT) + " -mtp " + mtp + " "
-						+ TestUtility.HTTP_MTP_ARG), null);
+				mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+" + TestUtility.HTTP_MTP_CLASSPATH,
+						"-container -host " + TestUtility.getLocalHostName() + " -port " + String.valueOf(Test.DEFAULT_PORT) +
+						" -mtp " + mtp + " " + TestUtility.HTTP_MTP_ARG, null);
 
 				// Store the remote platform AMS AID as a group argument
 				setArgument(REMOTE_AMS_AID_KEY, remoteAMS);

@@ -72,7 +72,6 @@ public class ACLComboBox extends JComboBox implements Observer {
     this.setRenderer(new ACLPerformativesRenderer());
     this.msg = (ACLMessage)arg;
     this.setSelectedIndex(msg.getPerformative());
-    this.fieldName = fieldName;
     String methodName = "get" + fieldName;
     String theType = "java.lang.String";
     this.setBackground(Color.white);
@@ -107,7 +106,6 @@ public class ACLComboBox extends JComboBox implements Observer {
     this.msg = (ACLMessage)arg;
 
     this.setSelectedItem(msg.getProtocol());
-    this.fieldName = fieldName;
     String methodName = "get" + fieldName;
     String theType = "java.lang.String";
     this.setBackground(Color.white);

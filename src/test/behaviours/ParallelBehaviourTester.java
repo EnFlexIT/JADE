@@ -1,9 +1,12 @@
 package test.behaviours;
 
-import jade.core.*;
-import jade.core.behaviours.*;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.ParallelBehaviour;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class ParallelBehaviourTester extends Agent {
 	
@@ -47,39 +50,39 @@ public class ParallelBehaviourTester extends Agent {
 		System.out.println("--> main should immediately block"); 
 
 		// After 5 ticks restart main --> B1 and B2 should start running
-		Behaviour waker = new TWakerBehaviour(this, 5*tick, main, new String("restart main --> B1 and B2 should start running"));
+		Behaviour waker = new TWakerBehaviour(this, 5*tick, main, "restart main --> B1 and B2 should start running");
 		addBehaviour(waker);
 		
 		// After 10 ticks block main --> B1 and B2 should block too
-		Behaviour blocker = new TBlockerBehaviour(this, 10*tick, main, new String("block main --> B1 and B2 should block too"));
+		Behaviour blocker = new TBlockerBehaviour(this, 10*tick, main, "block main --> B1 and B2 should block too");
 		addBehaviour(blocker);
 		
 		// After 15 ticks add B3 (runnable) --> only B3 should start running
-		Behaviour adder = new TAdderBehaviour(this, 15*tick, main, b3, new String("add B3 (runnable) --> only B3 should start running"));
+		Behaviour adder = new TAdderBehaviour(this, 15*tick, main, b3, "add B3 (runnable) --> only B3 should start running");
 		addBehaviour(adder);
 		
 		// After 20 ticks remove B3 --> main should block too
-		Behaviour remover = new TRemoverBehaviour(this, 20*tick, main, b3, new String("remove B3 --> main should block too"));
+		Behaviour remover = new TRemoverBehaviour(this, 20*tick, main, b3, "remove B3 --> main should block too");
 		addBehaviour(remover);
 		
 		// After 25 ticks add B4 (blocked) --> nothing should happen
-		adder = new TAdderBehaviour(this, 25*tick, main, b4, new String("add B4 (blocked) --> nothing should happen"));
+		adder = new TAdderBehaviour(this, 25*tick, main, b4, "add B4 (blocked) --> nothing should happen");
 		addBehaviour(adder);
 		
 		// After 30 ticks restart B1 --> only B1 should start running
-		waker = new TWakerBehaviour(this, 30*tick, b1, new String("restart B1 --> only B1 should start running"));
+		waker = new TWakerBehaviour(this, 30*tick, b1, "restart B1 --> only B1 should start running");
 		addBehaviour(waker);
 		
 		// After 35 ticks block B1 --> main should block too
-		blocker = new TBlockerBehaviour(this, 35*tick, b1, new String("block B1 --> main should block too"));
+		blocker = new TBlockerBehaviour(this, 35*tick, b1, "block B1 --> main should block too");
 		addBehaviour(blocker);
 		
 		// After 40 ticks remove B1, B2 and B4 --> main should terminate when it will become active again
-		remover = new TRemoverBehaviour(this, 40*tick, main, new Behaviour[]{b1, b2, b4}, new String("remove B1, B2 and B4 --> main should terminate when it will become active again"));
+		remover = new TRemoverBehaviour(this, 40*tick, main, new Behaviour[]{b1, b2, b4}, "remove B1, B2 and B4 --> main should terminate when it will become active again");
 		addBehaviour(remover);
 		
 		// After 45 ticks restart main --> main should terminate as it has no children
-		waker = new TWakerBehaviour(this, 45*tick, main, new String("restart main --> main should terminate as it has no children"));
+		waker = new TWakerBehaviour(this, 45*tick, main, "restart main --> main should terminate as it has no children");
 		addBehaviour(waker);
 	}
 	

@@ -91,7 +91,7 @@ class AgentNameTableModel extends AbstractTableModel
 	public Object getValueAt(int row, int column)
 	{
 		AID aid=getElementAt(row);
-		String out = new String();
+		String out = "";
 		switch (column) {
 		  case 0:  out = aid.getName(); break;
 		  case 1:  for ( Iterator i=aid.getAllAddresses(); i.hasNext(); )

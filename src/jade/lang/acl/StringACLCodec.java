@@ -54,23 +54,23 @@ public class StringACLCodec implements ACLCodec {
 
     /** Key of the user-defined parameter used to signal the automatic JADE
 	conversion of the content into Base64 encoding  **/
-    private static final String BASE64ENCODING_KEY = new String("JADE-Encoding");
+    private static final String BASE64ENCODING_KEY = "JADE-Encoding";
     /** Value of the user-defined parameter used to signal the automatic JADE
 	conversion of the content into Base64 encoding  **/
-    private static final String BASE64ENCODING_VALUE = new String("Base64");
+    private static final String BASE64ENCODING_VALUE = "Base64";
 
-  private static final String SENDER          = new String(" :sender ");
-  private static final String RECEIVER        = new String(" :receiver ");
-  private static final String CONTENT         = new String(" :content "); 
-  private static final String REPLY_WITH      = new String(" :reply-with ");
-  private static final String IN_REPLY_TO     = new String(" :in-reply-to ");
-  private static final String REPLY_TO        = new String(" :reply-to ");
-  private static final String LANGUAGE        = new String(" :language ");
-  private static final String ENCODING        = new String(" :encoding ");
-  private static final String ONTOLOGY        = new String(" :ontology ");
-  private static final String REPLY_BY        = new String(" :reply-by ");
-  private static final String PROTOCOL        = new String(" :protocol ");
-  private static final String CONVERSATION_ID = new String(" :conversation-id ");
+  private static final String SENDER          = " :sender ";
+  private static final String RECEIVER        = " :receiver ";
+  private static final String CONTENT         = " :content "; 
+  private static final String REPLY_WITH      = " :reply-with ";
+  private static final String IN_REPLY_TO     = " :in-reply-to ";
+  private static final String REPLY_TO        = " :reply-to ";
+  private static final String LANGUAGE        = " :language ";
+  private static final String ENCODING        = " :encoding ";
+  private static final String ONTOLOGY        = " :ontology ";
+  private static final String REPLY_BY        = " :reply-by ";
+  private static final String PROTOCOL        = " :protocol ";
+  private static final String CONVERSATION_ID = " :conversation-id ";
 
   ACLParser parser = null;
   Writer out = null;

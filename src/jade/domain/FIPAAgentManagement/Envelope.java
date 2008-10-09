@@ -370,7 +370,7 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
      * @return an SL0-like String representation of this object 
      **/
     public String toString() {
-	String s = new String("(Envelope ");
+	String s = "(Envelope ";
 	Iterator i = getAllTo();
 	if (i.hasNext()) {
 	    s = s + " :to (sequence ";

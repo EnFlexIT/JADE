@@ -354,11 +354,11 @@ to set the agent with which the gui interacts.
 		// Column names
 		TableColumn c;
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(0));
-		c.setHeaderValue((Object) (new String("Agent name")));
+		c.setHeaderValue((Object) ("Agent name"));
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Addresses")));
+		c.setHeaderValue((Object) ("Addresses"));
 		c = registeredTable.getColumn((Object) registeredTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Resolvers")));
+		c.setHeaderValue((Object) ("Resolvers"));
 
 		// Doubleclick = view
 		MouseListener mouseListener = new MouseAdapter() 
@@ -409,12 +409,12 @@ to set the agent with which the gui interacts.
 		foundTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		foundTable.setToolTipText("Double click on agent name to view the services provided by the selected agent");
 		// Column names
-		c = foundTable.getColumn((Object) foundTable.getColumnName(0));
-		c.setHeaderValue((Object) (new String("Agent name")));
-		c = foundTable.getColumn((Object) foundTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Addresses")));
-		c = foundTable.getColumn((Object) foundTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Resolvers")));
+		c = foundTable.getColumn(foundTable.getColumnName(0));
+		c.setHeaderValue("Agent name");
+		c = foundTable.getColumn(foundTable.getColumnName(1));
+		c.setHeaderValue("Addresses");
+		c = foundTable.getColumn(foundTable.getColumnName(2));
+		c.setHeaderValue("Resolvers");
 	
 			// Doubleclick = view
 		MouseListener mouseListener2 = new MouseAdapter() 
@@ -454,11 +454,11 @@ to set the agent with which the gui interacts.
 		// Column names
 	
 		c = parentTable.getColumn((Object) parentTable.getColumnName(0));
-		c.setHeaderValue((Object) (new String("Agent name")));
-		c = parentTable.getColumn((Object) parentTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Addresses")));
-		c = parentTable.getColumn((Object) parentTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Resolvers")));
+		c.setHeaderValue("Agent name");
+		c = parentTable.getColumn(parentTable.getColumnName(1));
+		c.setHeaderValue("Addresses");
+		c = parentTable.getColumn(parentTable.getColumnName(2));
+		c.setHeaderValue("Resolvers");
 
 		MouseListener mouseListenerParent = new MouseAdapter()
 		{
@@ -494,12 +494,12 @@ to set the agent with which the gui interacts.
 		childrenTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 	  // Column names
-		c = childrenTable.getColumn((Object) childrenTable.getColumnName(0));
-		c.setHeaderValue((Object) (new String("Agent name")));
-		c = childrenTable.getColumn((Object) childrenTable.getColumnName(1));
-		c.setHeaderValue((Object) (new String("Addresses")));
-		c = childrenTable.getColumn((Object) childrenTable.getColumnName(2));
-		c.setHeaderValue((Object) (new String("Resolvers")));
+		c = childrenTable.getColumn(childrenTable.getColumnName(0));
+		c.setHeaderValue("Agent name");
+		c = childrenTable.getColumn(childrenTable.getColumnName(1));
+		c.setHeaderValue("Addresses");
+		c = childrenTable.getColumn(childrenTable.getColumnName(2));
+		c.setHeaderValue("Resolvers");
 	
 		MouseListener mouseListenerChildren = new MouseAdapter()
 		{

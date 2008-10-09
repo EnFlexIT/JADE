@@ -24,9 +24,6 @@ Boston, MA  02111-1307, USA.
 package test.domain.df.tests;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.core.AID;
@@ -46,6 +43,10 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SubscriptionInitiator;
 import jade.util.leap.Iterator;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import test.common.Test;
 import test.common.TestException;
 import test.common.TestUtility;
@@ -76,7 +77,7 @@ public class TestDFUnderStress extends Test {
 		TestUtility.launchJadeInstance(SUBSCRIBERS_CONTAINER, null, "-container-name "+SUBSCRIBERS_CONTAINER+" -container -host " + mainHost + " -port " + Test.DEFAULT_PORT, new String[] {});
 		log("--- Starting "+NUMBER_OF_SUBSCRIBERS+" subscriber agents...");
 		for (int i = 0; i < NUMBER_OF_SUBSCRIBERS; ++i) {
-			String agentName = new String("s-" + i);
+			String agentName = "s-" + i;
 			TestUtility.createAgent(a,agentName,"test.domain.df.tests.TestDFUnderStress$SubscriberAgent", null, a.getAMS(), SUBSCRIBERS_CONTAINER);
 		}
 
@@ -86,7 +87,7 @@ public class TestDFUnderStress extends Test {
 			TestUtility.launchJadeInstance(containerName, null, "-container-name "+containerName + " -container -host "+ mainHost + " -port " + Test.DEFAULT_PORT, new String[] {});
 			log("--- Starting "+NUMBER_OF_AGENTS+" registering agents...");
 			for (int i = 0; i < NUMBER_OF_AGENTS; ++i) {
-				String agentName = new String(AGENT_PREFIX + j +"-"+ i);
+				String agentName = AGENT_PREFIX + j +"-"+ i;
 				TestUtility.createAgent(a, agentName, "test.domain.df.tests.TestDFUnderStress$RegisteringAgent", null, a.getAMS(), containerName);
 			}
 		}
@@ -155,7 +156,7 @@ public class TestDFUnderStress extends Test {
 				startTime = System.currentTimeMillis();
 				for (int j = 0; j < NUMBER_OF_CONTAINERS; j++) {						
 					for (int i = 0; i < NUMBER_OF_AGENTS; ++i) {
-						String agentName = new String(AGENT_PREFIX + j +"-"+ i);
+						String agentName = AGENT_PREFIX + j +"-"+ i;
 						AID aid = new AID(agentName,AID.ISLOCALNAME);
 						ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 						msg.addReceiver(aid);

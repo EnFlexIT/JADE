@@ -202,7 +202,7 @@ public class TimeChooser implements ActionListener
 		p = new JPanel();
 		if (date == null)
 		{
-			s = new String("No time indication to display");
+			s = "No time indication to display";
 		}
 		else
 		{	

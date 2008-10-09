@@ -123,7 +123,7 @@ public abstract class BaseNode implements Node, Serializable {
 			return ret;
 		}
 		else {
-			String s = new String("Node "+myName+": Service "+serviceName+" Unknown. Command = "+commandName);
+			String s = "Node "+myName+": Service "+serviceName+" Unknown. Command = "+commandName;
 			throw new ServiceException("-- "+s+" --");
 		}
 	}

@@ -49,7 +49,7 @@ import jade.gui.AgentTree;
 
    public void doAction(AgentTree.ContainerNode node) {
    	 
-   	String containerName = new String();
+   	String containerName = "";
    	if(node != null)
    	  	containerName = node.getName();
       myRMA.newAgent("Introspector"+progressiveNumber, "jade.tools.introspector.Introspector", new Object[0], containerName);

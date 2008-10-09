@@ -70,7 +70,7 @@ public class TestRTT2Containers2Hosts extends Test {
 			// Launch a peripheral container with the proper classpath for the senders
 			// on the local host
 			if (addClasspath1 != null) {
-				addClasspath1 = new String("+"+addClasspath1);
+				addClasspath1 = "+"+addClasspath1;
 			}
 	    jc1 = TestUtility.launchJadeInstance("C-senders", addClasspath1, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), new String[] {});
     	String containerName1 = jc1.getContainerName();
@@ -78,7 +78,7 @@ public class TestRTT2Containers2Hosts extends Test {
 			// Launch a peripheral container with the proper classpath for the receivers
     	// on a remote host
 			if (addClasspath2 != null) {
-				addClasspath2 = new String("+"+addClasspath2);
+				addClasspath2 = "+"+addClasspath2;
 			}
 			RemoteManager rm = TestUtility.createRemoteManager(remoteHost, TSDaemon.DEFAULT_PORT, TSDaemon.DEFAULT_NAME);
 	    jc2 = TestUtility.launchJadeInstance(rm, "C-receivers", addClasspath2, "-container -host "+TestUtility.getLocalHostName()+" -port "+String.valueOf(Test.DEFAULT_PORT), new String[] {});
@@ -86,14 +86,14 @@ public class TestRTT2Containers2Hosts extends Test {
     	
 	    // Launch receivers on container 2 (receivers must be launched first)
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String name = new String("r"+i);
+  	  	String name = "r"+i;
     		TestUtility.createAgent(a, name, RoundTripTimeTesterAgent.RECEIVER_CLASS, null, null, containerName2); 
   	  }
     
 	    // Launch senders on container 1
   	  for (int i = 0; i < nCouples; ++i) {
-  	  	String senderName = new String("s"+i);
-  	  	String receiverName = new String("r"+i);
+  	  	String senderName = "s"+i;
+  	  	String receiverName = "r"+i;
     		String[] args = new String[] {receiverName, String.valueOf(nIterations), "", String.valueOf(nCouples), a.getLocalName()}; 
     		TestUtility.createAgent(a, senderName, RoundTripTimeTesterAgent.ROUNDTRIPPER_CLASS, args, null, containerName1); 
   	  }

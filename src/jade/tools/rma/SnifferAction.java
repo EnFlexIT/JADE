@@ -42,7 +42,7 @@ class SnifferAction extends ContainerAction {
   }
 
   public void doAction(AgentTree.ContainerNode node) {
-  	String containerName = new String();
+  	String containerName = "";
    	if(node != null)
    	  	containerName = node.getName();
 
