@@ -350,13 +350,31 @@ public class MessageTemplate implements Serializable {
 			messageToMatch = msg;
 			this.matchPerformative = matchPerformative;
 		}
-		
+
+	    private static boolean compareByteArrays(byte[] a, byte[] a2) {
+	        if (a==a2)
+	            return true;
+	        if (a==null || a2==null)
+	            return false;
+
+	        int length = a.length;
+	        if (a2.length != length)
+	            return false;
+
+	        for (int i=0; i<length; i++)
+	            if (a[i] != a2[i])
+	                return false;
+
+	        return true;
+	    }
+
 		public boolean match(ACLMessage msg){
 			
 			if(matchPerformative && (messageToMatch.getPerformative() != msg.getPerformative()))
 				return false; 
 			if(messageToMatch.hasByteSequenceContent()) {
-				if (!messageToMatch.getByteSequenceContent().equals(msg.getByteSequenceContent()))
+				// we cannot use Array.equals() here because it is not available in MIDP 
+				if (!compareByteArrays(messageToMatch.getByteSequenceContent(), msg.getByteSequenceContent()))
 					return false;
 				else if(!match(messageToMatch.getContent(),msg.getContent()))
 					return false;
