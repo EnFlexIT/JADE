@@ -132,7 +132,7 @@ public abstract class StateBase implements State, Comparable, Serializable {
             }
         }
 
-        if (found = true) {
+        if (found) {
             return baseCode + idx;
         } else {
             throw new IllegalArgumentException("No such state name: " + name);
