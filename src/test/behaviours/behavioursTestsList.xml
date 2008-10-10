@@ -5,6 +5,13 @@
 	]>
 -->
 	<TestsList> 
+		<Test name="Send and Receive loop" skip="false">
+			<TestClassName>test.behaviours.tests.TestSendReceiveLoop</TestClassName>
+			<WhatTest> Tests the block/restart mechanism during high speed local message dispatching.</WhatTest>
+			<HowWorkTest>The test creates a FSMBehaviour that sends and immediately receives a dummy message. The FSMBehaviour is nested into a Matrioshka of SequentialBehaviour.</HowWorkTest>
+			<WhenTestPass> The test passes if all sent messages are received.</WhenTestPass>
+		</Test>
+
 		<Test name="Behaviour Block with timeout stress test" skip="false">
 			<TestClassName>test.behaviours.tests.TestBlockTimeout</TestClassName>
 			<WhatTest> Tests the behaviour block/restart mechanism when a timeout is specified by stressing it.</WhatTest>
