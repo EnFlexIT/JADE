@@ -40,321 +40,303 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 
 Boston, MA  02111-1307, USA.
 
-*****************************************************************/
-
-
-
-
+ *****************************************************************/
 
 package jade.tools.rma;
 
-
-
-import javax.swing.*;
-
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.awt.event.ActionEvent;
-
-import java.awt.*;
-
-
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.text.Document;
 
 /**
-
-   
-
-   @author Francisco Regi, Andrea Soracchi - Universita` di Parma
-
-   @version $Date$ $Revision$
-
+ * @author Francisco Regi, Andrea Soracchi - Universita` di Parma
+ * @version $Date$ $Revision:
+ *          5206 $
  */
 
-class StartDialog extends JDialog implements ActionListener{
-
-  protected static JTextField agentName;
-
-  protected static JTextField className;
-
-  protected static JTextField container;
-
-  protected static JTextField arguments;
-
-  protected  static JTextField agentUser;
-
-
-
-  protected static JLabel agentNameL= new JLabel("Agent Name");
-
-  protected static JLabel classNameL= new JLabel("Class Name");
-
-  protected static JLabel argAgentL = new JLabel("Arguments");
-
-  protected static JLabel agentUserL = new JLabel("Owner");
-
-  protected static JLabel containerL= new JLabel("Container");
-
-
-
-  protected static JButton OKButton = new JButton ("OK");
-
-  protected static JButton CancelButton = new JButton ("Cancel");
-
-
-
-  protected static String agentNameToolTip = "Name of the Agent to start";
-
-  protected static String classNameToolTip = "Class Name of the Agent to start";
-
-  protected static String argAgentToolTip = "Arguments passed to the agent constructor"; 
-
-  protected static String agentUserToolTip = "The user under which the agent has to be started";  
-
-  protected static String containerToolTip = "Container on which the Agent will start";
-
-
-
-  protected static String result  = "";
-
-  protected static int OK_BUTTON = 0;
-
-  protected static int CANCEL_BUTTON = 1;
-
-  protected static int choice = CANCEL_BUTTON;
-
-
-
-  static {
-
-
-
-    agentName = new JTextField ();
-
-    agentName.setEditable(false);
-
-    agentName.setToolTipText(agentNameToolTip);
-
-    agentNameL.setToolTipText(agentNameToolTip);
-
-
-
-    className = new JTextField ("jade.core.Agent");
-
-    className.setEditable(true);
-
-    className.setToolTipText(classNameToolTip);
-
-    classNameL.setToolTipText(classNameToolTip);
-
-
-
-    arguments = new JTextField();
-
-    arguments.setEditable(true);
-
-    arguments.setToolTipText(argAgentToolTip);
-
-    argAgentL.setToolTipText(argAgentToolTip);
-
-    
-
-    agentUser = new JTextField();
-
-    agentUser.setEditable(true);
-
-    agentUser.setToolTipText(agentUserToolTip);
-
-    agentUserL.setToolTipText(agentUserToolTip);
-
-    
-
-    container = new JTextField ("0");
-
-    container.setEditable(true);
-
-    container.setToolTipText(containerToolTip);
-
-    containerL.setToolTipText(containerToolTip);
-
-
-
-  }
-
-
-
-  protected StartDialog (String agentNameP, Frame frame) {
-
-    super(frame,"Insert Start Parameters",true);
-
-
-
-    getContentPane().setLayout(new GridLayout(6,2));
-
-    agentName.setText(agentNameP);
-
-
-
-    getContentPane().add(agentNameL);
-
-    getContentPane().add(agentName);
-
-
-
-    getContentPane().add(classNameL);
-
-    getContentPane().add(className);
-
-
-
-    getContentPane().add(argAgentL);
-
-    getContentPane().add(arguments);
-
-    
-
-    getContentPane().add(agentUserL);
-
-    getContentPane().add(agentUser);
-
-    
-
-    getContentPane().add(containerL);
-
-    getContentPane().add(container);
-
-
-
-    OKButton.addActionListener(this);
-
-    CancelButton.addActionListener(this);
-
-
-
-    getContentPane().add(OKButton);
-
-    getContentPane().add(CancelButton);
-
-
-
-    setSize(getPreferredSize());
-
-    setLocation(frame.getX() + (frame.getWidth() - getWidth()) / 2, frame.getY() + (frame.getHeight() - getHeight()) / 2);
-
-    setVisible(true);
-
-  }
-
-
-
-  public Dimension getPreferredSize () {
-
-    return (new Dimension(540,150));
-
-  }
-
-
-
-  public void actionPerformed (ActionEvent evt) {
-
-    choice = CANCEL_BUTTON;
-
-    if (evt.getSource()==OKButton) {
-
-      choice = OK_BUTTON;
-
-    }
-
-    dispose();
-
-  }
-
-
-
-  public static int showStartNewDialog(String containerName, Frame owner) {
-
-    choice=CANCEL_BUTTON;
-
-    agentName.setEditable(true);
-
-    container.setEditable(false);
-
-    setContainer(containerName);
-
-    StartDialog panel = new StartDialog("", owner);
-
-    return choice;
-
-  }
-
-
-
-  public static String getAgentName() {
-
-    return agentName.getText();
-
-  }
-
-
-
-  public static String getClassName() {
-
-    return className.getText();
-
-  }
-
-
-
-  public static String getArguments()
-
-  {
-
-  	return arguments.getText().trim();
-
-  }
-
-  
-
-  public static String getAgentUser ()
-
-  {
-
-    return agentUser.getText().trim();
-
-  }
-
-  
-
-  public static String getContainer() {
-
-    return container.getText();
-
-  }
-
-
-
-  public static void setAgentName(String agentNameP) {
-
-    agentName.setText(agentNameP);
-
-  }
-
-
-
-  public static void setClassName(String classNameP) {
-
-    className.setText(classNameP);
-
-  }
-
-
-
-  public static void setContainer(String containerP) {
-
-    container.setText(containerP);
-
-  }
-
-
-
-} 
-
+public class StartDialog extends JDialog implements ActionListener {
+
+	protected static ExtTextField extTextFieldAgentName;
+	protected static Panel panelClassname;
+	protected static JButton jButtonSelectClassname;
+	protected static JComboBox jComboBoxClassnameCombo;
+	protected static DefaultComboBoxModel modelClassnameCombo;
+	protected static JTextField jTextFieldContainer;
+	protected static JTextField jTextFieldArguments;
+	protected static JTextField jTextFieldAgentUser;
+
+	protected static JLabel jLabelAgentName = new JLabel("Agent Name");
+	protected static JLabel jLabelClassname = new JLabel("Class Name");
+	protected static JLabel jLabelArguments = new JLabel("Arguments");
+	protected static JLabel jLabelOwner = new JLabel("Owner");
+	protected static JLabel jLabelContainer = new JLabel("Container");
+
+	protected static JButton jButtonOk = new JButton("OK");
+	protected static JButton jButtonCancel = new JButton("Cancel");
+
+	private final static String ttAgentName = "Name of the Agent to start";
+	private final static String ttClassname = "Class Name of the Agent to start";
+	private final static String ttArguments = "Arguments passed to the agent constructor";
+	private final static String ttOwner = "The user under which the agent has to be started";
+	private final static String ttContainer = "Container on which the Agent will start";
+	private final static String ttSelectClassname = "Search in classpath for classes extending Agent";
+
+	public final static int OK_BUTTON = 0;
+	public final static int CANCEL_BUTTON = 1;
+
+	private static StartDialog dialog;
+
+	private static int choice = CANCEL_BUTTON;
+	private static String classname;
+	private static String agentname;
+
+	private AgentClassSelectionDialog acs;
+
+    private static class ExtTextField extends JTextField implements ActionListener, DocumentListener {
+
+		private StartDialog startDialog;
+
+		public ExtTextField() {
+			super(0);
+			addActionListener(this);
+			Document doc = this.getDocument();
+			doc.addDocumentListener(this);
+		}
+
+		public void setStartDialog(StartDialog startDialog) {
+			this.startDialog = startDialog;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// nothing to do
+		}
+
+		public void insertUpdate(DocumentEvent e) {
+			startDialog.updateOkButtonEnabled();
+		}
+
+		public void removeUpdate(DocumentEvent e) {
+			startDialog.updateOkButtonEnabled();
+		}
+
+		public void changedUpdate(DocumentEvent e) {
+			// nothing to do
+		}
+	}
+
+	static {
+		classname = "";
+		agentname = "";
+
+		extTextFieldAgentName = new ExtTextField();
+		extTextFieldAgentName.setEditable(false);
+		extTextFieldAgentName.setToolTipText(ttAgentName);
+		jLabelAgentName.setToolTipText(ttAgentName);
+
+		// className = new JTextField ("jade.core.Agent");
+		//
+		// className.setEditable(true);
+		//
+		// className.setToolTipText(classNameToolTip);
+
+		jLabelClassname.setToolTipText(ttClassname);
+
+//		ClassFinder finder = new ClassFinder();
+//		long t0 = System.currentTimeMillis();
+//		long t1, t2, t3;
+//		finder = new ClassFinder();
+//		t1 = System.currentTimeMillis() - t0;
+//		Vector v = finder.findSubclasses(Agent.class.getName());
+//		t2 = System.currentTimeMillis() - t0;
+//		Vector agentClasses = new Vector(v.size());
+//		for (int i = 0; i < v.size(); i++) {
+//			agentClasses.add(((Class) v.get(i)).getName());
+//		}
+//		t3 = System.currentTimeMillis() - t0;
+//		System.out.println("t1=" + t1);
+//		System.out.println("t2=" + t2);
+//		System.out.println("t3=" + t3);
+
+//		classNameCombo = new JComboBox(agentClasses);
+
+		modelClassnameCombo = new DefaultComboBoxModel();
+
+		jComboBoxClassnameCombo = new JComboBox(modelClassnameCombo);
+		jComboBoxClassnameCombo.setEditable(true);
+		jComboBoxClassnameCombo.setToolTipText(ttClassname);
+		jComboBoxClassnameCombo.setSelectedItem(classname);
+
+		jButtonSelectClassname = new BasicArrowButton(BasicArrowButton.EAST);
+		jButtonSelectClassname.setToolTipText(ttSelectClassname);
+
+		panelClassname = new Panel(new BorderLayout());
+		panelClassname.add(jComboBoxClassnameCombo, BorderLayout.CENTER);
+		panelClassname.add(jButtonSelectClassname, BorderLayout.EAST);
+
+		jTextFieldArguments = new JTextField();
+		jTextFieldArguments.setEditable(true);
+		jTextFieldArguments.setToolTipText(ttArguments);
+		jLabelArguments.setToolTipText(ttArguments);
+
+		jTextFieldAgentUser = new JTextField();
+		jTextFieldAgentUser.setEditable(true);
+		jTextFieldAgentUser.setToolTipText(ttOwner);
+		jLabelOwner.setToolTipText(ttOwner);
+
+		jTextFieldContainer = new JTextField("0");
+		jTextFieldContainer.setEditable(true);
+		jTextFieldContainer.setToolTipText(ttContainer);
+		jLabelContainer.setToolTipText(ttContainer);
+
+		dialog = new StartDialog();
+	}
+
+	protected StartDialog() {
+		super((Frame)null, "Insert Start Parameters", true);
+
+		getContentPane().setLayout(new GridLayout(6, 2));
+
+		getContentPane().add(jLabelAgentName);
+		getContentPane().add(extTextFieldAgentName);
+
+		getContentPane().add(jLabelClassname);
+//		getContentPane().add(classNameCombo);
+		getContentPane().add(panelClassname);
+
+		getContentPane().add(jLabelArguments);
+		getContentPane().add(jTextFieldArguments);
+
+		getContentPane().add(jLabelOwner);
+		getContentPane().add(jTextFieldAgentUser);
+
+		getContentPane().add(jLabelContainer);
+		getContentPane().add(jTextFieldContainer);
+
+		jButtonOk.addActionListener(this);
+		jButtonCancel.addActionListener(this);
+		jButtonSelectClassname.addActionListener(this);
+		jComboBoxClassnameCombo.addActionListener(this);
+		extTextFieldAgentName.setStartDialog(this);
+
+		getContentPane().add(jButtonOk);
+		getContentPane().add(jButtonCancel);
+	}
+
+	public void doShow(String agentNameP) {
+		extTextFieldAgentName.setText(agentNameP);
+		jComboBoxClassnameCombo.setSelectedItem(classname);
+		jButtonOk.setEnabled(false);
+		pack();
+		setLocationRelativeTo(null);
+		setAlwaysOnTop(true);
+		setVisible(true);
+	}
+
+	public Dimension getPreferredSize() {
+		return (new Dimension(540, 150));
+	}
+
+	private void insertOrMoveComboItem(String s) {
+		if (s != null) {
+			s = s.trim();
+			for (int i = modelClassnameCombo.getSize()-1; i >= 0; i--) {
+				if (s.equals(modelClassnameCombo.getElementAt(i))) {
+					modelClassnameCombo.removeElementAt(i);
+				}
+			}
+			modelClassnameCombo.insertElementAt(s, 0);
+		}
+	}
+
+	void updateOkButtonEnabled() {
+		String selClassname = (String)jComboBoxClassnameCombo.getSelectedItem();
+		String currAgentName = extTextFieldAgentName.getText(); 
+		boolean okEnabled =
+			selClassname != null && selClassname.length() > 0 &&
+			currAgentName != null && currAgentName.length() > 0;
+		jButtonOk.setEnabled(okEnabled);
+	}
+
+	public void actionPerformed(ActionEvent evt) {
+		if (evt.getSource() == jComboBoxClassnameCombo) {
+			updateOkButtonEnabled();
+		} else if (evt.getSource() == jButtonSelectClassname) {
+			if (acs == null) {
+				acs = new AgentClassSelectionDialog();
+			}
+			if (acs.doShow() == AgentClassSelectionDialog.DLG_OK) {
+				setClassName(acs.getSelectedClassname());
+			}
+		} else {
+			choice = CANCEL_BUTTON;
+	
+			if (evt.getSource() == jButtonOk) {
+				choice = OK_BUTTON;
+				agentname = extTextFieldAgentName.getText();
+		        classname = (String)jComboBoxClassnameCombo.getSelectedItem();
+				insertOrMoveComboItem(classname);
+			}
+			dispose();
+		}
+	}
+
+	public static int showStartNewDialog(String containerName, Frame owner) {
+		choice = CANCEL_BUTTON;
+
+		extTextFieldAgentName.setEditable(true);
+		jTextFieldContainer.setEditable(false);
+
+		setContainer(containerName);
+		dialog.doShow("");
+
+		return choice;
+	}
+
+	public static String getAgentName() {
+		return agentname;
+	}
+
+	public static String getClassName() {
+		return classname;
+	}
+
+	public static String getArguments()	{
+		return jTextFieldArguments.getText().trim();
+	}
+
+	public static String getAgentUser()	{
+		return jTextFieldAgentUser.getText().trim();
+	}
+
+	public static String getContainer() {
+		return jTextFieldContainer.getText();
+	}
+
+	public static void setAgentName(String agentNameP) {
+		extTextFieldAgentName.setText(agentNameP);
+	}
+
+	public static void setClassName(String classNameP) {
+		jComboBoxClassnameCombo.setSelectedItem(classNameP);
+	}
+
+	public static void setContainer(String containerP) {
+		jTextFieldContainer.setText(containerP);
+	}
+
+}
