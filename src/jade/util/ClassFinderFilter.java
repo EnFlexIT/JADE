@@ -21,10 +21,10 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.rma;
+package jade.util;
 
-import java.net.URL;
+//#J2ME_EXCLUDE_FILE
 
-public interface ClassFinderListener {
-	public void add(Class clazz, URL location);
+public interface ClassFinderFilter {
+	public boolean include(Class superClazz, Class clazz);
 }

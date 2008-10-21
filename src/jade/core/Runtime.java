@@ -322,12 +322,12 @@ public class Runtime {
 	}
 	
 	public static String getRevision() {
-		String revision = "$WCREV$"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
+		String revision = "6054"; // The $ surrounded WCREV keyword is automatically replaced by WCREV with subversion
 		return revision;
 	}
 	
 	public static String getDate() {
-		String date = "$WCDATE$"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
+		String date = "2008/10/09 14:13:09"; // The $ surrounded WCDATE keyword is automatically replaced by WCREV with subversion
 		return date;
 	}
 }

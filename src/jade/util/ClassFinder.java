@@ -21,11 +21,9 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.rma;
+package jade.util;
 
-/*
- * ClassFinder.java
- */
+//#J2ME_EXCLUDE_FILE
 
 import java.io.File;
 import java.io.FileFilter;

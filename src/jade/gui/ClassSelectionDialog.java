@@ -21,7 +21,11 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
 *****************************************************************/
 
-package jade.tools.rma;
+package jade.gui;
+
+import jade.util.ClassFinder;
+import jade.util.ClassFinderFilter;
+import jade.util.ClassFinderListener;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
