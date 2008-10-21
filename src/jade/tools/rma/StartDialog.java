@@ -44,6 +44,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
+import jade.core.Agent;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -105,7 +107,7 @@ public class StartDialog extends JDialog implements ActionListener {
 	private static String classname;
 	private static String agentname;
 
-	private AgentClassSelectionDialog acs;
+	private ClassSelectionDialog csd;
 
     private static class ExtTextField extends JTextField implements ActionListener, DocumentListener {
 
@@ -276,11 +278,11 @@ public class StartDialog extends JDialog implements ActionListener {
 		if (evt.getSource() == jComboBoxClassnameCombo) {
 			updateOkButtonEnabled();
 		} else if (evt.getSource() == jButtonSelectClassname) {
-			if (acs == null) {
-				acs = new AgentClassSelectionDialog();
+			if (csd == null) {
+				csd = new ClassSelectionDialog(this, "Select Agent class", Agent.class.getName());
 			}
-			if (acs.doShow() == AgentClassSelectionDialog.DLG_OK) {
-				setClassName(acs.getSelectedClassname());
+			if (csd.doShow() == ClassSelectionDialog.DLG_OK) {
+				setClassName(csd.getSelectedClassname());
 			}
 		} else {
 			choice = CANCEL_BUTTON;

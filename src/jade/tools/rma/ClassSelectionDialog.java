@@ -23,10 +23,9 @@ Boston, MA  02111-1307, USA.
 
 package jade.tools.rma;
 
-import jade.core.Agent;
-
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -49,7 +48,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-public class AgentClassSelectionDialog extends JDialog implements WindowListener, ActionListener, ListSelectionListener {
+public class ClassSelectionDialog extends JDialog implements WindowListener, ActionListener, ListSelectionListener {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel jContentPane = null;
@@ -65,6 +64,7 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 	public final static int DLG_OK = 1;
 	public final static int DLG_CANCEL = 0;
 	private boolean classesLoaded;
+	private String classname;
 
 	private static final int ACC_INTERFACE = 0x0200;
 	private static final int ACC_ABSTRACT = 0x0400;
@@ -82,6 +82,11 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 
 		private int numberOfClasses;
 		private List classNamesCache;
+		private String classname;
+
+		public ClassUpdater(String classname) {
+			this.classname = classname;
+		}
 
 		public void add(Class clazz, URL location) {
 			numberOfClasses++;
@@ -96,7 +101,7 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 			classNamesCache = new ArrayList(UPDATE_EVERY);
 			numberOfClasses = 0;
 			ClassFinder cf = new ClassFinder();
-			cf.findSubclasses(Agent.class.getName(), this, new ClassFilter());
+			cf.findSubclasses(classname, this, new ClassFilter());
 			if (classNamesCache.size() > 0) {
 				appendToList(classNamesCache);
 				classNamesCache.clear();
@@ -174,10 +179,11 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 	/**
 	 * @param owner
 	 */
-	public AgentClassSelectionDialog() {
-		super();
+	public ClassSelectionDialog(Dialog owner, String title, String classname) {
+		super(owner, title, true);
 		initialize();
 		classesLoaded = false;
+		this.classname = classname;
 	}
 
 	public int doShow() {
@@ -196,7 +202,6 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 	 */
 	private void initialize() {
 		this.setSize(300, 200);
-		this.setTitle("Select Agent class");
 		this.setModal(true);
 		this.setContentPane(getJContentPane());
 		this.addWindowListener(this);
@@ -299,7 +304,7 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 	public void windowOpened(WindowEvent e) {
 		if (!classesLoaded) {
 			setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			ClassUpdater cu = new ClassUpdater();
+			ClassUpdater cu = new ClassUpdater(classname);
 			new Thread(cu).start();
 		}
 	}
