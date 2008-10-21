@@ -72,7 +72,7 @@ public class AgentClassSelectionDialog extends JDialog implements WindowListener
 	private class ClassFilter implements ClassFinderFilter {
 		public boolean include(Class superClazz, Class clazz) {
 			int modifiers = clazz.getModifiers();
-			return ((modifiers & (ACC_ABSTRACT | ACC_INTERFACE)) == 0) && superClazz.isAssignableFrom(clazz);
+			return ((modifiers & (ACC_ABSTRACT | ACC_INTERFACE)) == 0);
 		}
 	}
 

@@ -303,18 +303,18 @@ public class ClassFinder {
 
 	private void manageClass(Set setOfClasses, Class superClass, Class c, URL url) {
 		boolean include;
-			include = true;
-			if (filter != null) {
-				include = filter.include(superClass, c);
-			}
-			if (include) {
-				results.put(c, url);
-				if (setOfClasses.add(c)) {
-					if (listener != null) {
-						listener.add(c, url);
-					}
+		include = superClass.isAssignableFrom(c);
+		if (include && filter != null) {
+			include = filter.include(superClass, c);
+		}
+		if (include) {
+			results.put(c, url);
+			if (setOfClasses.add(c)) {
+				if (listener != null) {
+					listener.add(c, url);
 				}
 			}
+		}
 	}
 
 	private final void findSubclasses(URL location, String packageName, Class superClass, Set setOfClasses) {
