@@ -23,6 +23,8 @@ Boston, MA  02111-1307, USA.
 
 package jade.gui;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.util.ClassFinder;
 import jade.util.ClassFinderFilter;
 import jade.util.ClassFinderListener;
