@@ -180,10 +180,10 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		synchronized (jTable) {
 			if (list.size() > 0) {
 				jTableModel.appendStaticRows(list);
-				jLabelStatus.setText("Searching in classpath for classes that extend jade.core.Agent ("+jTableModel.getRowCount()+" found so far)");
+				jLabelStatus.setText("Searching in classpath for classes that extend "+classname+" ("+jTableModel.getRowCount()+" found so far)");
 			} else {
 				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-				jLabelStatus.setText("Classpath contains "+jTableModel.getRowCount()+" classes that extend jade.core.Agent");
+				jLabelStatus.setText("Classpath contains "+jTableModel.getRowCount()+" classes that extend "+classname);
 			}
 		}
 	}
