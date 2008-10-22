@@ -120,10 +120,12 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	public static class ClassesTableModel extends AbstractTableModel {
 		private static final long serialVersionUID = 1L;
 
-		private Vector rowData;
+		private Vector dynamicRowData;
+		private Vector staticRowData;
 
 		public ClassesTableModel() {
-			rowData = new Vector();
+			dynamicRowData = new Vector();
+			staticRowData = new Vector();
 		}
 
 		public String getColumnName(int col) {
@@ -131,7 +133,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		}
 
 		public int getRowCount() {
-			return rowData.size();
+			return dynamicRowData.size()+staticRowData.size();
 		}
 
 		public int getColumnCount() {
@@ -139,35 +141,43 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		}
 
 		public Object getValueAt(int row, int col) {
-			return rowData.get(row);
+			return getRowValue(row);
 		}
 
 		public boolean isCellEditable(int row, int col) {
 			return false;
 		}
 
-		public void setValueAt(Object value, int row, int col) {
-			rowData.set(row, (String) value);
-			fireTableCellUpdated(row, col);
+		public void appendStaticRows(Collection newRows) {
+			if (newRows.size() > 0) {
+				int firstRow = staticRowData.size();
+				staticRowData.addAll(newRows);
+				fireTableRowsInserted(firstRow, staticRowData.size()-1);
+			}
 		}
 
-		public void appendRows(Collection newRows) {
-			if (newRows.size() > 0) {
-				int firstRow = rowData.size();
-				rowData.addAll(newRows);
-				fireTableRowsInserted(firstRow, rowData.size()-1);
+		public void setDynamicRows(Collection rows) {
+			dynamicRowData.clear();
+			fireTableRowsDeleted(0, dynamicRowData.size());
+			if (rows.size() > 0) {
+				dynamicRowData.addAll(rows);
+				fireTableRowsInserted(0, dynamicRowData.size()-1);
 			}
 		}
 
 		public String getRowValue(int index) {
-			return (String)rowData.elementAt(index);
+			if (index < dynamicRowData.size()) {
+				return (String)dynamicRowData.get(index);
+			} else {
+				return (String)staticRowData.get(index-dynamicRowData.size());
+			}
 		}
 	}
 
 	private void appendToList(List list) {
 		synchronized (jTable) {
 			if (list.size() > 0) {
-				jTableModel.appendRows(list);
+				jTableModel.appendStaticRows(list);
 				jLabelStatus.setText("Searching in classpath for classes that extend jade.core.Agent ("+jTableModel.getRowCount()+" found so far)");
 			} else {
 				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
@@ -190,13 +200,20 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		this.classname = classname;
 	}
 
-	public int doShow() {
+	public int doShow(Collection firstRows) {
 		jButtonOk.setEnabled(false);
+		synchronized (jTable) {
+			jTableModel.setDynamicRows(firstRows);
+		}
 		pack();
 		setLocationRelativeTo(null);
 		setAlwaysOnTop(true);
 		setVisible(true);
 		return result;
+	}
+
+	public int doShow() {
+		return doShow(new Vector(0));
 	}
 
 	/**
@@ -219,7 +236,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	private JPanel getJContentPane() {
 		if (jContentPane == null) {
 			jLabelStatus = new JLabel();
-			jLabelStatus.setText("");
+			jLabelStatus.setPreferredSize(new Dimension(0, 15));
 			jContentPane = new JPanel();
 			jContentPane.setLayout(new BorderLayout());
 			jContentPane.add(getJPanel(), BorderLayout.SOUTH);
