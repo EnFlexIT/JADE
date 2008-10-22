@@ -63,7 +63,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.text.Document;
 
 /**
@@ -184,8 +183,10 @@ public class StartDialog extends JDialog implements ActionListener {
 		jComboBoxClassnameCombo.setToolTipText(ttClassname);
 		jComboBoxClassnameCombo.setSelectedItem(classname);
 
-		jButtonSelectClassname = new BasicArrowButton(BasicArrowButton.EAST);
+//		jButtonSelectClassname = new BasicArrowButton(BasicArrowButton.EAST);
+		jButtonSelectClassname = new JButton("...");
 		jButtonSelectClassname.setToolTipText(ttSelectClassname);
+		jButtonSelectClassname.setPreferredSize(new Dimension(20, 0));
 
 		panelClassname = new Panel(new BorderLayout());
 		panelClassname.add(jComboBoxClassnameCombo, BorderLayout.CENTER);
