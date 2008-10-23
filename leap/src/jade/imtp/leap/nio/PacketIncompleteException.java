@@ -5,7 +5,4 @@ package jade.imtp.leap.nio;
 import java.io.IOException;
 
 class PacketIncompleteException extends IOException {
-	PacketIncompleteException() {
-		super(null);
-	}
 }
