@@ -36,6 +36,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.net.URL;
@@ -71,6 +73,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	public final static int DLG_CANCEL = 0;
 	private boolean classesLoaded;
 	private String classname;
+	private ClassFinderFilter classfilter;
 
 	private static final int ACC_INTERFACE = 0x0200;
 	private static final int ACC_ABSTRACT = 0x0400;
@@ -78,7 +81,11 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	private class ClassFilter implements ClassFinderFilter {
 		public boolean include(Class superClazz, Class clazz) {
 			int modifiers = clazz.getModifiers();
-			return ((modifiers & (ACC_ABSTRACT | ACC_INTERFACE)) == 0);
+			boolean doInclude = ((modifiers & (ACC_ABSTRACT | ACC_INTERFACE)) == 0);
+			if (doInclude) {
+				doInclude = !clazz.getName().equals(classname);
+			}
+			return doInclude;
 		}
 	}
 
@@ -89,9 +96,11 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		private int numberOfClasses;
 		private List classNamesCache;
 		private String classname;
+		private ClassFinderFilter classfilter;
 
-		public ClassUpdater(String classname) {
+		public ClassUpdater(String classname, ClassFinderFilter classfilter) {
 			this.classname = classname;
+			this.classfilter = classfilter;
 		}
 
 		public void add(Class clazz, URL location) {
@@ -107,7 +116,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 			classNamesCache = new ArrayList(UPDATE_EVERY);
 			numberOfClasses = 0;
 			ClassFinder cf = new ClassFinder();
-			cf.findSubclasses(classname, this, new ClassFilter());
+			cf.findSubclasses(classname, this, classfilter);
 			if (classNamesCache.size() > 0) {
 				appendToList(classNamesCache);
 				classNamesCache.clear();
@@ -195,11 +204,16 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	/**
 	 * @param owner
 	 */
-	public ClassSelectionDialog(Dialog owner, String title, String classname) {
+	public ClassSelectionDialog(Dialog owner, String title, String classname, ClassFinderFilter classfilter) {
 		super(owner, title, true);
 		initialize();
 		classesLoaded = false;
 		this.classname = classname;
+		this.classfilter = classfilter;
+	}
+
+	public ClassSelectionDialog(Dialog owner, String title, String classname) {
+		this(owner, title, classname, null);
 	}
 
 	public int doShow(Collection firstRows) {
@@ -327,7 +341,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	public void windowOpened(WindowEvent e) {
 		if (!classesLoaded) {
 			setCursor(new Cursor(Cursor.WAIT_CURSOR));
-			ClassUpdater cu = new ClassUpdater(classname);
+			ClassUpdater cu = new ClassUpdater(classname, classfilter == null ? new ClassFilter() : classfilter);
 			new Thread(cu).start();
 		}
 	}
@@ -360,6 +374,13 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 			jTable.setModel(getClassesTableModel());
 			jTable.setVisible(true);
 			jTable.getSelectionModel().addListSelectionListener(this);
+			jTable.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent e) {
+					if (e.getClickCount() == 2) {
+						jButtonOk.doClick();
+					}
+				}
+			});
 		}
 		return jTable;
 	}
