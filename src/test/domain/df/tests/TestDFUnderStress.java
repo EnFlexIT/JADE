@@ -68,7 +68,7 @@ public class TestDFUnderStress extends Test {
 	
 	private long startTime;
 	private int totAgents = NUMBER_OF_CONTAINERS * NUMBER_OF_AGENTS;
-	private List<String> summary = new ArrayList<String>();
+	private List summary = new ArrayList();
 
 	public Behaviour load(Agent a) throws TestException {
 		String mainHost = TestUtility.getContainerHostName(a, null);

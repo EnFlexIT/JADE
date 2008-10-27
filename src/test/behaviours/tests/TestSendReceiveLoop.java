@@ -30,7 +30,6 @@ public class TestSendReceiveLoop extends Test {
 
 	AID myAID;
 
-	@Override
 	public Behaviour load(Agent a) throws TestException {
 
 		myAID = new AID(a.getLocalName(), AID.ISLOCALNAME);
@@ -42,7 +41,6 @@ public class TestSendReceiveLoop extends Test {
 		innerChildren.registerFirstState(new OneShotBehaviour() {
 			private static final long serialVersionUID = 1L;
 
-			@Override
 			public void action() {
 				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 				msg.addReceiver(myAID);
@@ -55,13 +53,11 @@ public class TestSendReceiveLoop extends Test {
 
 			boolean received;
 
-			@Override
 			public void onStart() {
 				super.onStart();
 				received = false;
 			}
 
-			@Override
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if (msg == null) {
@@ -71,7 +67,6 @@ public class TestSendReceiveLoop extends Test {
 				}
 			}
 
-			@Override
 			public boolean done() {
 				return received;
 			}
@@ -87,7 +82,6 @@ public class TestSendReceiveLoop extends Test {
 				counter = TOTAL_LOOPS;
 			}
 
-			@Override
 			public void onStart() {
 				super.onStart();
 				received = false;
@@ -96,7 +90,6 @@ public class TestSendReceiveLoop extends Test {
 				myAgent.send(msg);
 			}
 
-			@Override
 			public void action() {
 				ACLMessage msg = myAgent.receive();
 				if (msg == null) {
@@ -106,12 +99,10 @@ public class TestSendReceiveLoop extends Test {
 				}
 			}
 
-			@Override
 			public boolean done() {
 				return received;
 			}
 
-			@Override
 			public int onEnd() {
 				if (counter-- > 0) {
 					return EV_LOOP;
@@ -124,7 +115,6 @@ public class TestSendReceiveLoop extends Test {
 		innerChildren.registerLastState(new OneShotBehaviour() {
 			private static final long serialVersionUID = 1L;
 
-			@Override
 			public void action() {
 				passed("All messages received.");
 			}
