@@ -109,7 +109,7 @@ public class ClassFinder {
 					// Determine search class from fqcn
 					//
 					try {
-						searchClass = Class.forName(fqcn);
+						searchClass = callClassForName(fqcn);
 					} catch (ClassNotFoundException ex) {
 						// if class not found, let empty vector return...
 						errors.add(ex);
@@ -343,7 +343,7 @@ public class ClassFinder {
 
 						try {
 							if (!fqcn.equals(packageName + "." + classname)) {
-								Class c = Class.forName(packageName + "." + classname);
+								Class c = callClassForName(packageName + "." + classname);
 								manageClass(setOfClasses, superClass, c, url);
 							}
 
@@ -375,7 +375,8 @@ public class ClassFinder {
 									// TODO: verify this block
 
 									if (!fqcn.equals(classname)) {
-										Class c = Class.forName(classname);
+										
+										Class c = callClassForName(classname);
 										manageClass(setOfClasses, superClass, c, url);
 									}
 								} catch (ClassNotFoundException cnfex) {
@@ -408,5 +409,9 @@ public class ClassFinder {
 				}
 			} // while
 		} // synch results
+	}
+
+	private Class callClassForName(String classname) throws ClassNotFoundException {
+		return Class.forName(classname, false, getClass().getClassLoader());
 	}
 }
