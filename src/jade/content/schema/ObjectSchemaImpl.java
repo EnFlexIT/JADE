@@ -175,7 +175,7 @@ class ObjectSchemaImpl extends ObjectSchema {
 
 
 	/**
-	 * Add a super schema tho this schema, i.e. this schema will
+	 * Add a super schema to this schema, i.e. this schema will
 	 * inherit all characteristics from the super schema
 	 * @param superSchema the super schema.
 	 */
