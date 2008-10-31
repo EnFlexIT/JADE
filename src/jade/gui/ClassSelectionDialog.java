@@ -91,7 +91,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 
 	private class ClassUpdater implements Runnable, ClassFinderListener {
 
-		private final static int UPDATE_EVERY = 2;
+		private final static int UPDATE_EVERY = 1;
 
 		private int numberOfClasses;
 		private List classNamesCache;
@@ -187,13 +187,20 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 
 	private void appendToList(List list) {
 		synchronized (jTable) {
-			if (list.size() > 0) {
+			boolean stillSearching = list.size() > 0;
+			if (stillSearching) {
 				jTableModel.appendStaticRows(list);
-				jLabelStatus.setText("Searching in classpath for classes that extend "+classname+" ("+jTableModel.getRowCount()+" found so far)");
-			} else {
-				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-				jLabelStatus.setText("Classpath contains "+jTableModel.getRowCount()+" classes that extend "+classname);
 			}
+			updateLabelStatus(stillSearching);
+		}
+	}
+
+	private void updateLabelStatus(boolean stillSearching) {
+		if (stillSearching) {
+			jLabelStatus.setText("Searching in classpath for classes that extend "+classname+" ("+jTableModel.getRowCount()+" found so far)");
+		} else {
+			setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			jLabelStatus.setText("Classpath contains "+jTableModel.getRowCount()+" classes that extend "+classname);
 		}
 	}
 
@@ -341,6 +348,7 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	public void windowOpened(WindowEvent e) {
 		if (!classesLoaded) {
 			setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			updateLabelStatus(true);
 			ClassUpdater cu = new ClassUpdater(classname, classfilter == null ? new ClassFilter() : classfilter);
 			new Thread(cu).start();
 		}
