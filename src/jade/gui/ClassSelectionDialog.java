@@ -230,7 +230,8 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 		}
 		pack();
 		setLocationRelativeTo(null);
-		setAlwaysOnTop(true);
+		// FIXME: Enable this when we will move to JAVA 5
+		// setAlwaysOnTop(true);
 		setVisible(true);
 		return result;
 	}

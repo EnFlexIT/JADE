@@ -226,7 +226,8 @@ public class StartDialog extends JDialog implements ActionListener {
 		jButtonOk.setEnabled(false);
 		pack();
 		setLocationRelativeTo(null);
-		setAlwaysOnTop(true);
+		// FIXME: Enable this when we will move to JAVA 5
+		// setAlwaysOnTop(true);
 		setVisible(true);
 	}
 
