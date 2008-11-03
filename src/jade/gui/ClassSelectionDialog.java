@@ -75,8 +75,8 @@ public class ClassSelectionDialog extends JDialog implements WindowListener, Act
 	private String classname;
 	private ClassFinderFilter classfilter;
 
-	private static final int ACC_INTERFACE = 0x0200;
-	private static final int ACC_ABSTRACT = 0x0400;
+	public static final int ACC_INTERFACE = 0x0200;
+	public static final int ACC_ABSTRACT = 0x0400;
 
 	private class ClassFilter implements ClassFinderFilter {
 		public boolean include(Class superClazz, Class clazz) {

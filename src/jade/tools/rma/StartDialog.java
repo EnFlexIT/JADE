@@ -25,6 +25,7 @@ package jade.tools.rma;
 
 import jade.core.Agent;
 import jade.gui.ClassSelectionDialog;
+import jade.util.ClassFinderFilter;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -33,6 +34,8 @@ import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -88,6 +91,33 @@ public class StartDialog extends JDialog implements ActionListener {
 
 	private ClassSelectionDialog csd;
 
+	private static class AgentClassFilter implements ClassFinderFilter {
+		private final static String[] excluded = new String[] {
+			"jade.domain.ams",
+			"jade.tools.ToolNotifier",
+			"jade.tools.logging.LogHelperAgent"
+		};
+
+		public boolean include(Class superClazz, Class clazz) {
+			String clazzName = clazz.getName();
+			int modifiers = clazz.getModifiers();
+			boolean doInclude = ((modifiers & (ClassSelectionDialog.ACC_ABSTRACT | ClassSelectionDialog.ACC_INTERFACE)) == 0);
+			if (doInclude) {
+				if (clazzName.startsWith("jade.core")) {
+					doInclude = Agent.class.getName().equals(clazzName);
+				}
+			}
+			if (doInclude) {
+				for (int i = 0; i < excluded.length; i++) {
+					if (excluded[i].equals(clazzName)) {
+						doInclude = false;
+						break;
+					}
+				}
+			}
+			return doInclude;
+		}
+	}
     private static class ExtTextField extends JTextField implements ActionListener, DocumentListener {
 
 		private StartDialog startDialog;
@@ -261,9 +291,11 @@ public class StartDialog extends JDialog implements ActionListener {
 			updateOkButtonEnabled();
 		} else if (evt.getSource() == jButtonSelectClassname) {
 			if (csd == null) {
-				csd = new ClassSelectionDialog(this, "Select Agent class", Agent.class.getName());
+				csd = new ClassSelectionDialog(this, "Select Agent class", Agent.class.getName(), new AgentClassFilter());
 			}
-			if (csd.doShow() == ClassSelectionDialog.DLG_OK) {
+			List l = new ArrayList(1);
+			l.add(0, "jade.core.Agent");
+			if (csd.doShow(l) == ClassSelectionDialog.DLG_OK) {
 				setClassName(csd.getSelectedClassname());
 			}
 		} else {
