@@ -110,9 +110,9 @@ public class ClassFinder {
 					//
 					try {
 						searchClass = callClassForName(fqcn);
-					} catch (ClassNotFoundException ex) {
+					} catch (Throwable t) {
 						// if class not found, let empty vector return...
-						errors.add(ex);
+						errors.add(t);
 						return new Vector();
 					}
 
@@ -347,11 +347,9 @@ public class ClassFinder {
 								manageClass(setOfClasses, superClass, c, url);
 							}
 
-						} catch (ClassNotFoundException cnfex) {
-							errors.add(cnfex);
-						} catch (Exception ex) {
-							errors.add(ex);
-						}
+						} catch (Throwable t) {
+							errors.add(t);
+						} 
 					}
 				} else {
 					try {
@@ -379,28 +377,9 @@ public class ClassFinder {
 										Class c = callClassForName(classname);
 										manageClass(setOfClasses, superClass, c, url);
 									}
-								} catch (ClassNotFoundException cnfex) {
-									// that's strange since we're scanning
-									// the same classpath the classloader's
-									// using... oh, well
-									errors.add(cnfex);
-								} catch (NoClassDefFoundError ncdfe) {
-									// dependency problem... class is
-									// unusable anyway, so just ignore it
-									errors.add(ncdfe);
-								} catch (UnsatisfiedLinkError ule) {
-									// another dependency problem... class is
-									// unusable anyway, so just ignore it
-									errors.add(ule);
-								} catch (Exception exception) {
-									// unexpected problem
-									errors.add(exception);
-								} catch (Error error) {
-									// lots of things could go wrong
-									// that we'll just ignore since
-									// they're so rare...
-									errors.add(error);
-								}
+								} catch (Throwable t) {
+									errors.add(t);
+								} 
 							}
 						}
 					} catch (IOException ioex) {

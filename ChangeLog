@@ -1,10 +1,12 @@
-MAJOR CHANGES in JADE X.Y (gg mmm yyyy)
+MAJOR CHANGES in JADE 3.6.1 (04 11 2008)
 ==========================================================================
 GENERAL IMPROVEMENTS:
 Kernel
 - Modified UDPNodeMonitoringService to explicitly ping a node that is not sending UDP packets before marking it as UNREACHABLE.
 - Added method getFailureReason() to AMSService to retrieve from an AMS FAILURE message the reason why a message was not delivered to an agent 
 - Modified MessagingService to support message delivery to local agent even when the main container is unreachable
+- Added support for onSuspended(), onResumed() and onAborted() callback methods on threaded behaviours
+- Modified FIPAService.doFipaRequestClient() to throw FailureException, RefuseException or NotUnderstoodException depending on the response message
 
 Content Language and Ontologies
 - Added support for using concept slot names as functions (to create sentences like (= (age (Person :name John)) 41) ) by means of the ConceptSlotFunction class
@@ -12,12 +14,15 @@ Content Language and Ontologies
 - Added methods getSlotValue() and setSlotValue() in the Introspector interface
 - Added method getSuperSchemas() to retrieve all super-schemas of a given schema (feature suggested by Antonio Amado)
 - Modified AbsPrimitive to properly manage Long/Integer and Double/Float 
+- Modified methods getActionNames(), getConceptNames() and getPredicateNames() of the Ontology class to preserve case.
 
 Tools
+- Modified RMA Start Agent dialog box to provide a list of valid agent classes and to check that the agent name is set
 - Added possibility of specifying a timeout in the message exchange supported by the SocketProxyAgent
 
 
 BUG-FIXES:
+- Fixed problem related to concurrent execution of block() and restart() in composite behaviours with several levels of nesting (in some cases a behaviour could remain blocked even if a message arrived)
 - Added sanity check in LoaderBehaviour to avoid NullPoinerException in case of null parameters (problem reported by Mehrdad Senobari)
 - Modified BasicProperties to avoid circular argument substitution exception when two threads search for the same property in parallel (problem reported by Henrique Lopes Cardoso)
 
@@ -25,9 +30,27 @@ BUG-FIXES:
 LEAP:
 - Modified LEAP connection pool to release connections when idle for more than 2 min
 
+
 ADD-ONS:
+- Misc Add-On: 
+  - Added BeanOntology class that allows creating ontologies without the need of defining the schemas for ontological elements: schemas are automatically created from the ontological classes (beans)
+
+- WSIG Add-On
+  - Management of different WSDL styles:
+    - rpc/encoded (reorganized according to W3C standards)
+    - document/literal(wrapped) WS-I compliant (set as default style)
+  - WSDL kept in memory (optionally written to file system)
+  - Support for standard WSDL download via http (http://.../MyService?WSDL)
+  - Proper management of java.util and jade.leap.util collections
+  - Proper management of optional ontological slots
+  - Management of Date fields according to the ISO-8601 standard
+  - Proper handling of multiple soap requests
+  - Improved example code
+
 
 DOCUMENTATION:
+- Added tutorial on creating ontologies by means of the BeanOntology class
+
 
 POSSIBLE BACKWARD INCOMPATIBILITIES:
 - Methods getSlotValue() and setSlotValue() were added to the jade.content.onto.Introspector interface --> Developers who created their own implementation of such interface will have to implement these methods 

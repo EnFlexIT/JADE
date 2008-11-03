@@ -199,7 +199,7 @@ public class SLFrameCodec implements jade.util.leap.Serializable {
 	  	}
 	  	catch (Exception e) {
 	  	}
-			//#MIDP_EXCLUDE_END
+		//#MIDP_EXCLUDE_END
 	  	// Date
 	  	try {
 	  		return ISO8601.toDate(val);

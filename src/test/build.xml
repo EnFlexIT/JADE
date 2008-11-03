@@ -50,13 +50,26 @@
   <!--   _______________________________________________
                                compile
          _______________________________________________ -->
-  <target name="compile" depends="init" description="compile the tests">
+  <target name="compile" depends="compileResources, compileTests" description="compile the tests including the necessary resources (JADE, examples...)">
+  </target>
+
+
+  <!--   _______________________________________________
+                               compileResources
+         _______________________________________________ -->
+  <target name="compileResources" depends="init">
     <echo message="-------------- Compiling JADE and the examples --------------- " />
     <ant antfile="build.xml" target="examples"/>
 
     <echo message="-------------- Compiling the testSuite add-on ----------------" />
     <ant antfile="build.xml" target="lib" dir="add-ons/testSuite"/>
+  </target>
 
+
+  <!--   _______________________________________________
+                               compileTests
+         _______________________________________________ -->
+  <target name="compileTests" depends="init" description="compile the tests">
     <echo message="-------------- Compiling Tests ----------------" />
     <javac srcdir="src" destdir="classes" optimize="on" deprecation="off">
       <classpath refid="project.class.path"/>
@@ -76,11 +89,17 @@
     </copy>
   </target>
 
-
   <!--   _______________________________________________
                                lib
          _______________________________________________ -->
-  <target name="lib" depends="compile" description="Package all tests into a single jar file">
+  <target name="lib" depends="compile, libTests" description="Package all tests into a single jar file">
+  </target>
+
+    
+  <!--   _______________________________________________
+                               libTests
+         _______________________________________________ -->
+  <target name="libTests" depends="init">
     <echo message="-------------- Packaging all JADE examples into jadeExamples.jar --------------- " />
     <jar jarfile="src/test/jadeExamples.jar">
       <fileset dir="classes">
@@ -97,7 +116,6 @@
     </jar>
   </target>
 
-    
   <!--  __________________________________________________
                             separate
         __________________________________________________ -->
@@ -268,6 +286,12 @@
    </java>
   </target>
 
+
+  <!--  __________________________________________________
+                            rebuildTestsAndRun
+        __________________________________________________ -->
+  <target name="rebuildTestsAndRun" depends="compileTests, libTests, runOnly" description="run the test suite recompiling the tests only">
+  </target>
 
   <!--  __________________________________________________
                             run
