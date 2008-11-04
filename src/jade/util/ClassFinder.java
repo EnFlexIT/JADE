@@ -233,7 +233,11 @@ public class ClassFinder {
 		URL jarURL = null;
 		JarFile jar = null;
 		try {
-			jarURL = new URL("file:/" + file.getCanonicalPath());
+			String canonicalPath = file.getCanonicalPath();
+			if (!canonicalPath.startsWith("/")) {
+				canonicalPath = "/"+canonicalPath;
+			}
+			jarURL = new URL("file:" + canonicalPath);
 			jarURL = new URL("jar:" + jarURL.toExternalForm() + "!/");
 			JarURLConnection conn = (JarURLConnection) jarURL.openConnection();
 			jar = conn.getJarFile();
