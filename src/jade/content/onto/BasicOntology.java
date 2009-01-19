@@ -66,6 +66,10 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	// Content element list 
 	public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
 
+	//#MIDP_EXCLUDE_BEGIN
+	private Map primitiveSchemas;
+	//#MIDP_EXCLUDE_END
+
 	/**
 	 * Constructor
 	 */
@@ -81,12 +85,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 		// translation  
 		try {
 			// Schemas for primitives
-			add(new PrimitiveSchema(STRING));
 			add(new PrimitiveSchema(FLOAT));
 			add(new PrimitiveSchema(INTEGER));
 			add(new PrimitiveSchema(BOOLEAN));
-			add(new PrimitiveSchema(DATE));
-			add(new PrimitiveSchema(BYTE_SEQUENCE));
 
 			// Schemas for aggregates
 			add(new AggregateSchema(SEQUENCE));
@@ -95,15 +96,41 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			// Content element list Schema
 			add(ContentElementListSchema.getBaseSchema()); 
 
+			//#MIDP_EXCLUDE_BEGIN
+			add(new PrimitiveSchema(STRING), String.class);
+			add(new PrimitiveSchema(DATE), Date.class);
+			add(new PrimitiveSchema(BYTE_SEQUENCE), byte[].class);
+			add(new ConceptSchema(AID), AID.class);
+			add(new AgentActionSchema(ACLMSG), ACLMessage.class); 
+			add(new PredicateSchema(TRUE_PROPOSITION), TrueProposition.class);
+			add(new PredicateSchema(FALSE_PROPOSITION), FalseProposition.class);
+			add(new AgentActionSchema(ACTION), Action.class);
+			add(new PredicateSchema(DONE), Done.class);
+			add(new PredicateSchema(RESULT), Result.class);
+			add(new PredicateSchema(EQUALS), Equals.class);
+			//#MIDP_EXCLUDE_END
+			/*#MIDP_INCLUDE_BEGIN
+			add(new PrimitiveSchema(STRING));
+			add(new PrimitiveSchema(DATE));
+			add(new PrimitiveSchema(BYTE_SEQUENCE));
+			add(new ConceptSchema(AID)); 
+			add(new AgentActionSchema(ACLMSG)); 
+			add(new PredicateSchema(TRUE_PROPOSITION));
+			add(new PredicateSchema(FALSE_PROPOSITION));
+			add(new AgentActionSchema(ACTION));
+			add(new PredicateSchema(DONE));
+			add(new PredicateSchema(RESULT));
+			add(new PredicateSchema(EQUALS));
+			#MIDP_INCLUDE_END*/
+
 			// AID Schema
-			ConceptSchema aidSchema = new ConceptSchema(AID);
+			ConceptSchema aidSchema = (ConceptSchema)getSchema(AID);
 			aidSchema.add(AID_NAME, (TermSchema) getSchema(STRING));
 			aidSchema.add(AID_ADDRESSES, (TermSchema) getSchema(STRING), 0, ObjectSchema.UNLIMITED);
 			aidSchema.add(AID_RESOLVERS, aidSchema, 0, ObjectSchema.UNLIMITED);
-			add(aidSchema); 
 
 			// ACLMessage Schema
-			AgentActionSchema msgSchema = new AgentActionSchema(ACLMSG);
+			AgentActionSchema msgSchema = (AgentActionSchema)getSchema(ACLMSG);
 			msgSchema.add(ACLMSG_SENDER, (ConceptSchema) getSchema(AID), ObjectSchema.OPTIONAL);
 			msgSchema.add(ACLMSG_RECEIVERS, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
 			msgSchema.add(ACLMSG_REPLY_TO, (ConceptSchema) getSchema(AID), 0, ObjectSchema.UNLIMITED);
@@ -117,40 +144,42 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			msgSchema.add(ACLMSG_CONTENT, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
 			msgSchema.add(ACLMSG_BYTE_SEQUENCE_CONTENT, (PrimitiveSchema) getSchema(BYTE_SEQUENCE), ObjectSchema.OPTIONAL);
 			msgSchema.add(ACLMSG_ENCODING, (PrimitiveSchema) getSchema(STRING), ObjectSchema.OPTIONAL);
-			add(msgSchema); 
-
-			// TRUE_PROPOSITION schema
-			PredicateSchema truePropSchema = new PredicateSchema(TRUE_PROPOSITION);
-			add(truePropSchema);
-
-			// FALSE_PROPOSITION schema
-			PredicateSchema falsePropSchema = new PredicateSchema(FALSE_PROPOSITION);
-			add(falsePropSchema);
 
 			// ACTION Schema
-			AgentActionSchema actionSchema = new AgentActionSchema(ACTION);
+			AgentActionSchema actionSchema = (AgentActionSchema)getSchema(ACTION);
 			actionSchema.add(ACTION_ACTOR, (TermSchema) getSchema(AID));
 			actionSchema.add(ACTION_ACTION, (TermSchema) ConceptSchema.getBaseSchema());
 			actionSchema.setEncodingByOrder(true);
-			add(actionSchema);
 
 			// DONE Schema
-			PredicateSchema doneSchema = new PredicateSchema(DONE);
+			PredicateSchema doneSchema = (PredicateSchema)getSchema(DONE);
 			doneSchema.add(DONE_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
 			doneSchema.add(DONE_CONDITION, (PredicateSchema) PredicateSchema.getBaseSchema(), ObjectSchema.OPTIONAL);
-			add(doneSchema); 
 
 			// RESULT Schema
-			PredicateSchema resultSchema = new PredicateSchema(RESULT);
+			PredicateSchema resultSchema = (PredicateSchema)getSchema(RESULT);
 			resultSchema.add(RESULT_ACTION, (AgentActionSchema) AgentActionSchema.getBaseSchema());
 			resultSchema.add(RESULT_VALUE, (TermSchema) TermSchema.getBaseSchema());
-			add(resultSchema); 
 
 			// EQUALS Schema
-			PredicateSchema equalsSchema = new PredicateSchema(EQUALS);
+			PredicateSchema equalsSchema = (PredicateSchema)getSchema(EQUALS);
 			equalsSchema.add(EQUALS_LEFT, TermSchema.getBaseSchema());
 			equalsSchema.add(EQUALS_RIGHT, TermSchema.getBaseSchema());
-			add(equalsSchema); 
+
+			//#MIDP_EXCLUDE_BEGIN
+			// this map is only needed to make the getSchema(Class) method work properly also in the case of java primitives
+			primitiveSchemas = new HashMap(10);
+			primitiveSchemas.put(boolean.class, getSchema(BasicOntology.BOOLEAN));
+			primitiveSchemas.put(java.lang.Boolean.class, getSchema(BasicOntology.BOOLEAN));
+			primitiveSchemas.put(int.class, getSchema(BasicOntology.INTEGER));
+			primitiveSchemas.put(long.class, getSchema(BasicOntology.INTEGER));
+			primitiveSchemas.put(java.lang.Integer.class, getSchema(BasicOntology.INTEGER));
+			primitiveSchemas.put(java.lang.Long.class, getSchema(BasicOntology.INTEGER));
+			primitiveSchemas.put(float.class, getSchema(BasicOntology.FLOAT));
+			primitiveSchemas.put(double.class, getSchema(BasicOntology.FLOAT));
+			primitiveSchemas.put(java.lang.Float.class, getSchema(BasicOntology.FLOAT));
+			primitiveSchemas.put(java.lang.Double.class, getSchema(BasicOntology.FLOAT));
+			//#MIDP_EXCLUDE_END
 		} 
 		catch (OntologyException oe) {
 			oe.printStackTrace();
@@ -183,7 +212,16 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			} 
 			// AGGREGATES
 			if (abs.getAbsType() == AbsObject.ABS_AGGREGATE) {
-				return AbsHelper.internaliseList((AbsAggregate) abs, referenceOnto);
+				String absTypeName = abs.getTypeName();
+				if (BasicOntology.SEQUENCE.equals(absTypeName)) {
+					return AbsHelper.internaliseList((AbsAggregate) abs, referenceOnto);
+				} else if (BasicOntology.SET.equals(absTypeName)) {
+					return AbsHelper.internaliseSet((AbsAggregate) abs, referenceOnto);
+			//#MIDP_EXCLUDE_BEGIN
+				} else {
+					return AbsHelper.internaliseJavaCollection((AbsAggregate) abs, referenceOnto);
+			//#MIDP_EXCLUDE_END
+				}
 			} 
 			// CONTENT ELEMENT LIST
 			if (abs.getAbsType() == AbsObject.ABS_CONTENT_ELEMENT_LIST) {
@@ -385,6 +423,26 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			}
 		}
 		return ret;
+	}
+
+	/**
+	 * Redefine the <code>getSchema()</code> method to take into 
+	 * account java primitives.
+	 * @param clazz the class whose associated schema must be retrieved.
+	 * @return the schema associated to the given class or <code>null</code> if the schema is not found.
+	 * @throws OntologyException
+	 */
+	public ObjectSchema getSchema(Class clazz) throws OntologyException {
+		//#MIDP_EXCLUDE_BEGIN
+		ObjectSchema schema = (ObjectSchema)primitiveSchemas.get(clazz);
+		if (schema == null) {
+			schema = super.getSchema(clazz);
+		}
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		ObjectSchema schema = super.getSchema(clazz);
+		#MIDP_INCLUDE_END*/
+		return schema;
 	}
 
 	/**

@@ -32,6 +32,8 @@ import jade.content.schema.*;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
+import jade.util.leap.Set;
+import jade.util.leap.SortedSetImpl;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
@@ -242,6 +244,53 @@ public class AbsHelper {
 
 		return ret;
 	} 
+
+	/**
+	 * Converts an <code>AbsAggregate</code> into a Set using the 
+	 * specified ontology.
+	 * @param onto the ontology
+	 * @return the Set
+	 * @throws OntologyException
+	 */
+	public static Set internaliseSet(AbsAggregate aggregate, Ontology onto) throws OntologyException {
+		Set ret = new SortedSetImpl();
+
+		for (int i = 0; i < aggregate.size(); i++) {
+			Object element = onto.toObject(aggregate.get(i));
+			// Check if the element is a Term, a primitive an AID or a List
+			Ontology.checkIsTerm(element);
+			ret.add(element);
+		}
+
+		return ret;
+	} 
+
+	//#MIDP_EXCLUDE_BEGIN
+	/**
+	 * Converts an <code>AbsAggregate</code> into a List using the 
+	 * specified ontology.
+	 * @param onto the ontology
+	 * @return the List
+	 * @throws OntologyException
+	 */
+	public static java.util.Collection internaliseJavaCollection(AbsAggregate aggregate, Ontology onto) throws OntologyException {
+		java.util.Collection collection;
+
+		try {
+			collection = (java.util.Collection) Class.forName(aggregate.getTypeName()).newInstance();
+		} catch (Exception e) {
+			throw new OntologyException("Cannot instantiate java collection of class "+aggregate.getTypeName(), e);
+		}
+		for (int i = 0; i < aggregate.size(); i++) {
+			Object element = onto.toObject(aggregate.get(i));
+			// Check if the element is a Term, a primitive an AID or a List
+			Ontology.checkIsTerm(element);
+			collection.add(element);
+		}
+
+		return collection;
+	} 
+	//#MIDP_EXCLUDE_END
 
 	/**
 	 * Converts an <code>AbsConcept</code> representing an AID 
