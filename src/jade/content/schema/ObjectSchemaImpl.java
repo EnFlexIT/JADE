@@ -162,7 +162,14 @@ class ObjectSchemaImpl extends ObjectSchema {
 	protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType) {
 		int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
 		try {
-			add(name, BasicOntology.getInstance().getSchema(aggType), optionality);
+			// Get aggregate schema
+			ObjectSchema aggTypeSchema = BasicOntology.getInstance().getSchema(aggType);
+			if (aggTypeSchema == null) {
+				// Create a new aggregate schema and add it to BasicOntology
+				aggTypeSchema = new AggregateSchema(aggType);
+				BasicOntology.getInstance().add(aggTypeSchema);
+			}
+			add(name, aggTypeSchema, optionality);
 			// Add proper facets
 			addFacet(name, new TypedAggregateFacet(elementsSchema));
 			addFacet(name, new CardinalityFacet(cardMin, cardMax));
