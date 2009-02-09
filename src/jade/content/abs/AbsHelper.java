@@ -29,6 +29,7 @@ package jade.content.abs;
 import jade.content.onto.*;
 import jade.content.*;
 import jade.content.schema.*;
+import jade.util.leap.HashSet;
 import jade.util.leap.List;
 import jade.util.leap.ArrayList;
 import jade.util.leap.Iterator;
@@ -253,7 +254,7 @@ public class AbsHelper {
 	 * @throws OntologyException
 	 */
 	public static Set internaliseSet(AbsAggregate aggregate, Ontology onto) throws OntologyException {
-		Set ret = new SortedSetImpl();
+		Set ret = new HashSet();
 
 		for (int i = 0; i < aggregate.size(); i++) {
 			Object element = onto.toObject(aggregate.get(i));

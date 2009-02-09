@@ -29,6 +29,7 @@ package jade.content.onto;
 import jade.content.*;
 import jade.content.abs.*;
 import jade.content.schema.*;
+import jade.util.leap.Collection;
 import jade.util.leap.List;
 import jade.util.leap.Iterator;
 import java.lang.reflect.*;
@@ -233,9 +234,9 @@ public class BCReflectiveIntrospector extends ReflectiveIntrospector {
 	private void invokeAddMethod(Method method, Object obj, 
 			Object value) throws OntologyException {
 		try {
-			List l = (List) value;
+			Collection c = (Collection) value;
 			
-			Iterator it = l.iterator();
+			Iterator it = c.iterator();
 			while (it.hasNext()) {
 				Object ithValue = it.next();
 				invokeSetterMethod(method, obj, ithValue);
