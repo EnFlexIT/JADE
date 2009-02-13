@@ -76,8 +76,13 @@ public class FaultRecoveryService extends BaseService {
 	
 	public static final String CLEAN_STORAGE = "jade_core_faultRecovery_FaultRecoveryService_cleanstorage";
 	public static final String PERSISTENT_STORAGE_CLASS = "jade_core_faultRecovery_FaultRecoveryService_persistentstorage";
+	public static final String ORPHAN_NODE_POLICY = "jade_core_faultRecovery_FaultRecoveryService_orphannodepolicy";
 	
 	public static final String PERSISTENT_STORAGE_CLASS_DEFAULT = "jade.core.faultRecovery.FSPersistentStorage";
+	
+	public static final String ORPHAN_NODE_POLICY_RECOVER = "RECOVER";
+	public static final String ORPHAN_NODE_POLICY_KILL = "KILL";
+	public static final String ORPHAN_NODE_POLICY_IGNORE = "IGNORE";
 	
 	private AgentContainer myContainer;
 	private MainContainer myMain;
@@ -89,6 +94,7 @@ public class FaultRecoveryService extends BaseService {
 	private NodeSerializer nodeSerializer;
 	
 	private boolean bootComplete = false;
+	private String orphanNodePolicy;
 	
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
@@ -101,6 +107,9 @@ public class FaultRecoveryService extends BaseService {
 			
 			// Initialize the serializers
 			nodeSerializer = new NodeSerializer();
+			
+			// Read the policy to handle orphan nodes
+			orphanNodePolicy = p.getParameter(ORPHAN_NODE_POLICY, ORPHAN_NODE_POLICY_RECOVER);
 			
 			// Initialize the PersistentStorage
 			String psClass = p.getParameter(PERSISTENT_STORAGE_CLASS, PERSISTENT_STORAGE_CLASS_DEFAULT);
@@ -388,9 +397,17 @@ public class FaultRecoveryService extends BaseService {
 			try {
 				byte[] nn = myPS.getUnreachableNode(nodeName);
 				if (nn != null) {
-					myLogger.log(Logger.INFO, "Try to recover orphan node "+nodeName);
-					String address = myContainer.getServiceManager().getLocalAddress();
-					checkNode(nodeName, nn, address, address);
+					if (orphanNodePolicy.equals(ORPHAN_NODE_POLICY_RECOVER)) {
+						myLogger.log(Logger.INFO, "Try to recover orphan node "+nodeName);
+						String address = myContainer.getServiceManager().getLocalAddress();
+						checkNode(nodeName, nn, address, address);
+					}
+					else if (orphanNodePolicy.equals(ORPHAN_NODE_POLICY_KILL)) {
+						// FIXME: To be implemented
+					}
+					else if (orphanNodePolicy.equals(ORPHAN_NODE_POLICY_IGNORE)) {
+						// Just do nothing
+					}
 				}
 				else {
 					myLogger.log(Logger.WARNING, "Orphan node "+nodeName+" not found --> Cannot recover it");
