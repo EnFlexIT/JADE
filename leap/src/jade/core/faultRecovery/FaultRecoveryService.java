@@ -72,7 +72,7 @@ import java.util.Iterator;
  @author Giovanni Caire - TILAB
  */
 public class FaultRecoveryService extends BaseService {
-	public static final String NAME = "jade.core.faultRecovery.FaultRecovery";
+	public static final String NAME = FaultRecoveryHelper.SERVICE_NAME;
 	
 	public static final String CLEAN_STORAGE = "jade_core_faultRecovery_FaultRecoveryService_cleanstorage";
 	public static final String PERSISTENT_STORAGE_CLASS = "jade_core_faultRecovery_FaultRecoveryService_persistentstorage";
