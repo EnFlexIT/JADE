@@ -26,6 +26,7 @@ package jade.core.faultRecovery;
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
+import jade.core.ServiceHelper;
 import jade.core.VerticalCommand;
 import jade.core.Service;
 import jade.core.BaseService;
@@ -75,6 +76,7 @@ public class FaultRecoveryService extends BaseService {
 	
 	public static final String CLEAN_STORAGE = "jade_core_faultRecovery_FaultRecoveryService_cleanstorage";
 	public static final String PERSISTENT_STORAGE_CLASS = "jade_core_faultRecovery_FaultRecoveryService_persistentstorage";
+	
 	public static final String PERSISTENT_STORAGE_CLASS_DEFAULT = "jade.core.faultRecovery.FSPersistentStorage";
 	
 	private AgentContainer myContainer;
@@ -109,7 +111,7 @@ public class FaultRecoveryService extends BaseService {
 				boolean cleanStorage = p.getBooleanProperty(CLEAN_STORAGE, false);
 				if (cleanStorage) {
 					myLogger.log(Logger.CONFIG, "Clearing PersistentStorage ...");
-					myPS.clear();
+					myPS.clear(true);
 				}
 			}
 			catch (Exception e) {
@@ -130,33 +132,41 @@ public class FaultRecoveryService extends BaseService {
 	public void boot(Profile p) throws ServiceException {
 		if (myMain != null) {
 			try {
-				// Do not activate the fault recovery procedure if the Main Container is replicated: in that case all containers were already adopted
-				// by existing Main Container replicas
-				MainReplicationService replService = (MainReplicationService) myContainer.getServiceFinder().findService(MainReplicationService.NAME);
-				if (replService == null || replService.getAllSlices().length <= 1) {
-					String oldAddress = myPS.getLocalAddress();
-					String newAddress = myContainer.getServiceManager().getLocalAddress();
-					myPS.storeLocalAddress(newAddress);
-					
-					if (oldAddress != null) {
+				String[] platformInfo = myPS.getPlatformInfo();
+				String oldPlatformName = (platformInfo != null ? platformInfo[0] : null);
+				String oldAddress = (platformInfo != null ? platformInfo[1] : null);
+				String currentPlatformName = myContainer.getPlatformID();
+				String currentAddress = myContainer.getServiceManager().getLocalAddress();
+				myPS.storePlatformInfo(currentPlatformName, currentAddress);
+				if (currentPlatformName.equals(oldPlatformName)) {
+					MainReplicationService replService = (MainReplicationService) myContainer.getServiceFinder().findService(MainReplicationService.NAME);
+					// Do not activate the fault recovery procedure if the Main Container is replicated: in that case all containers were already adopted
+					// by existing Main Container replicas. 
+					if (replService == null || replService.getAllSlices().length <= 1) {
+						// FAULT RECOVERY PROCEDURE
 						myLogger.log(Logger.INFO, "Initiating fault recovery procedure...");
 						// Recover all non-child nodes first
 						Map allNodes = myPS.getAllNodes(false);
 						Iterator it = allNodes.keySet().iterator();
 						while (it.hasNext()) {
 							String name = (String) it.next();
-							checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
+							checkNode(name, (byte[]) allNodes.get(name), oldAddress, currentAddress);
 						}
 						// Then recover all child nodes
 						allNodes = myPS.getAllNodes(true);
 						it = allNodes.keySet().iterator();
 						while (it.hasNext()) {
 							String name = (String) it.next();
-							checkNode(name, (byte[]) allNodes.get(name), oldAddress, newAddress);
+							checkNode(name, (byte[]) allNodes.get(name), oldAddress, currentAddress);
 						}
 						
 						myLogger.log(Logger.INFO, "Fault recovery procedure completed.");
 					}
+				}
+				else {
+					// This is a different platform and we don't want to reattach agents with a different platform name.
+					// Also clear old stuff in the persistent storage
+					myPS.clear(false);
 				}
 			}
 			catch (Exception e) {
@@ -171,7 +181,7 @@ public class FaultRecoveryService extends BaseService {
 	public void shutdown() {
 		if (myPS != null) {
 			try {
-				myPS.clear();
+				myPS.clear(true);
 				myPS.close();
 			}
 			catch (Exception e) {
@@ -191,6 +201,26 @@ public class FaultRecoveryService extends BaseService {
 		else {
 			return outFilter;
 		}
+	}
+	
+	public ServiceHelper getHelper(Agent a) throws ServiceException {
+		// The agent is passed to the helper in the init() method
+		return new FaultRecoveryHelper() {
+			public void init(Agent a) {
+				// Just do nothing
+			}
+			
+			public void reattach() throws ServiceException {
+				try {
+					Node n = myContainer.getNodeDescriptor().getNode();
+					String pmAddress = myContainer.getServiceManager().getLocalAddress();
+					n.platformManagerDead(pmAddress, pmAddress);
+				}
+				catch (IMTPException imtpe) {
+					throw new ServiceException("Communication error: "+imtpe.getMessage(), imtpe);
+				}
+			}
+		};
 	}
 	
 	private void checkNode(String name, byte[] nn, String oldAddress, String currentAddress) {
@@ -229,6 +259,10 @@ public class FaultRecoveryService extends BaseService {
 			String name = cmd.getName();
 			try {
 				if (name.equals(Service.NEW_NODE)) {
+					handleNewNode((NodeDescriptor) cmd.getParams()[0]);
+				}
+				if (name.equals(Service.ADOPTED_NODE)) {
+					// An adopted node is treated exactly as a new node
 					handleNewNode((NodeDescriptor) cmd.getParams()[0]);
 				}
 				else if (name.equals(Service.DEAD_NODE)) {

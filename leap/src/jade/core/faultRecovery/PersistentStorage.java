@@ -42,12 +42,12 @@ public interface PersistentStorage {
 	/** Close this persistent storage performing all necessary clean-up operations */
 	void close();
 	/** Clear all information stored in this persistent storage */
-	void clear() throws Exception;
+	void clear(boolean clearPlatform) throws Exception;
 	
 	/** Store the Main Container local address */
-	void storeLocalAddress(String address) throws Exception;
-	/** Retrieve the Main COntainer local address */
-	String getLocalAddress() throws Exception;
+	void storePlatformInfo(String platformName, String address) throws Exception;
+	/** Retrieve the Platform Information i.e. Platform name and Main Ccntainer local address */
+	String[] getPlatformInfo() throws Exception;
 	
 	/** Store a (possibly child) node */
 	void storeNode(String name, boolean isChild, byte[] nn) throws Exception;

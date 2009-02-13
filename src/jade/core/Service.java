@@ -51,6 +51,12 @@ public interface Service {
 	public static final String DEAD_NODE = "Dead-Node";
 	/**
 	   Service independent vertical command issued on the Main 
+	   container whenever a node that was monitored by a Main container
+	   replica is adopted (i.e. the local Main container starts monitoring it) 
+	 */
+	public static final String ADOPTED_NODE = "Adopted-Node";
+	/**
+	   Service independent vertical command issued on the Main 
 	   container whenever a new slice of a given service is added
 	 */
 	public static final String NEW_SLICE = "New-Slice";

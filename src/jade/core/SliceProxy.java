@@ -76,7 +76,12 @@ public class SliceProxy implements Service.Slice
 		return null;
 	}
 
+	void setLocalNodeDescriptor(NodeDescriptor dsc) {
+		localNodeDescriptor = dsc;
+	}
+	
 	private Node myNode;
+	private transient NodeDescriptor localNodeDescriptor;
 	private transient Service myService;
 
 }

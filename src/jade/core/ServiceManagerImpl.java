@@ -284,7 +284,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 				throw imtpe;
 			}
 		}
-		return checkLocal(slice);
+		return bindToLocalNode(slice);
 	}
 
 	public Service.Slice[] findAllSlices(String serviceKey) throws IMTPException, ServiceException {
@@ -303,7 +303,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		} else {
 			Service.Slice[] ss = new Service.Slice[v.size()];
 			for (int i = 0; i < ss.length; ++i) {
-				ss[i] = checkLocal((Service.Slice) v.elementAt(i));
+				ss[i] = bindToLocalNode((Service.Slice) v.elementAt(i));
 			}
 			return ss;
 		}
@@ -426,10 +426,9 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 	/**
 	 * This method implements the platform reattachement procedure that is activated after a fault
 	 * and a successive recover of the Main Container.
-	 * This is package scoped since it is called by BaseNode.platformManagerDead()
 	 * @see jade.core.faultRecovery.FaultRecoveryService
 	 */
-	synchronized void reattach(String pmAddr) {
+	private synchronized void reattach(String pmAddr) {
 		// We reattach to the recovered PM either if it is our PM or if our
 		// PM is invalid (a previous reattach/reconnect attempt failed).
 		// Otherwise we just do nothing
@@ -539,9 +538,13 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		}
 	}
 
-	private Service.Slice checkLocal(Service.Slice slice) throws ServiceException {
+	private Service.Slice bindToLocalNode(Service.Slice slice) throws ServiceException {
 		if (slice != null) {
-			// If the slice is for the local node be sure it includes the real local
+			// If the newly retrieved slice is a proxy, bind it to the local node
+			if (slice instanceof SliceProxy) {
+				((SliceProxy) slice).setLocalNodeDescriptor(localNodeDescriptor);
+			}
+			// Also if the slice is for the local node be sure it includes the real local
 			// node and not a proxy
 			Node n = slice.getNode();
 			if (n.getName().equals(localNode.getName()) && !n.equals(localNode)) {

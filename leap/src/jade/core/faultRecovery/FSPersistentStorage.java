@@ -31,10 +31,6 @@ import jade.util.Logger;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.*;
-import java.nio.ByteBuffer;
-//#DOTNET_EXCLUDE_BEGIN
-import java.nio.channels.FileChannel;
-//#DOTNET_EXCLUDE_END
 
 /**
    Default implementation of the PersistentStorage interface saving
@@ -49,9 +45,8 @@ class FSPersistentStorage implements PersistentStorage {
 	private static final String EXTENSION = ".fsps";
 	private static final String CHILD_EXTENSION = ".fsps_c";
 	private static final String UNREACHABLE_EXTENSION = ".unreachable";	
-	private static final String LOCAL_ADDRESS_NAME = "address";
+	private static final String PLATFORM_FILE_NAME = "platform";
 	private static final String NODE_POSTFIX = "-node";
-	private static final String AGENT_POSTFIX = "-agent";
 	
 	private String fileSeparator;
 	private File locationDir;
@@ -79,10 +74,13 @@ class FSPersistentStorage implements PersistentStorage {
 		// Nothing to do in this file system based implementation
 	}
 	
-	public void clear() throws Exception {
+	public void clear(final boolean clearPlatformInfo) throws Exception {
 		//#DOTNET_EXCLUDE_BEGIN
 		File[] ff = locationDir.listFiles(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
+				if (!clearPlatformInfo && name.equals(PLATFORM_FILE_NAME+EXTENSION)) {
+					return false;
+				}
 				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION) || name.endsWith(UNREACHABLE_EXTENSION));
 			}
 		} );
@@ -91,6 +89,9 @@ class FSPersistentStorage implements PersistentStorage {
 		/*#DOTNET_INCLUDE_BEGIN
 		String[] ss = locationDir.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
+				if (!clearPlatformInfo && name.equals(PLATFORM_FILE_NAME+EXTENSION)) {
+					return false;
+				}
 				return (name.endsWith(EXTENSION) || name.endsWith(CHILD_EXTENSION) || name.endsWith(UNREACHABLE_EXTENSION));
 			}
 		} );
@@ -110,19 +111,31 @@ class FSPersistentStorage implements PersistentStorage {
 		}
 	}
 	
-	public void storeLocalAddress(String address) throws Exception {
-		File addrFile = getFSPSFile(LOCAL_ADDRESS_NAME, EXTENSION);
-		writeContent(addrFile, address.getBytes());
+	public void storePlatformInfo(String platformName, String address) throws Exception {
+		String tmp = platformName+'@'+address;
+		File platformInfoFile = getFSPSFile(PLATFORM_FILE_NAME, EXTENSION);
+		writeContent(platformInfoFile, tmp.getBytes());
 		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Local address "+address+" saved in persistent storage");
+			myLogger.log(Logger.FINE, "Platform information (name = "+platformName+", address = "+address+" saved in persistent storage");
 		}
 	}
 	
-	public String getLocalAddress() throws Exception {
-		File addrFile = getFSPSFile(LOCAL_ADDRESS_NAME, EXTENSION);
+	public String[] getPlatformInfo() throws Exception {
+		File addrFile = getFSPSFile(PLATFORM_FILE_NAME, EXTENSION);
 		if (addrFile.exists()) {
 			byte[] content = readContent(addrFile);
-			return new String(content);
+			String tmp = new String(content);
+			int k = tmp.indexOf('@');
+			if (k > 0) {
+				String[] platformInfo = new String[2];
+				platformInfo[0] = tmp.substring(0, k);
+				platformInfo[1] = tmp.substring(k+1);
+				return platformInfo;
+			}
+			else {
+				// Wrong format
+				return null;
+			}
 		}
 		else {
 			return null;
@@ -226,69 +239,12 @@ class FSPersistentStorage implements PersistentStorage {
 		}
 		return null;
 	}
-
-	/*public void storeAgent(String name, byte[] aa) throws Exception {
-		File f = getFSPSFile(name+AGENT_POSTFIX, EXTENSION);
-		writeContent(f, aa);
-		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Agent "+name+" saved in persistent storage");
-		}
-	}
-	
-	public void removeAgent(String name) throws Exception {
-		File f = getFSPSFile(name+AGENT_POSTFIX, EXTENSION);
-		if (f.exists()) {
-			f.delete();
-			if (myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, "Agent "+name+" removed from persistent storage");
-			}
-		}
-	}
-	
-	public Map getAllAgents() throws Exception {
-		final String end = AGENT_POSTFIX+EXTENSION;
-		
-		//#DOTNET_EXCLUDE_BEGIN
-		File[] ff = locationDir.listFiles(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return (name.endsWith(end));
-			}
-		} );
-		//#DOTNET_EXCLUDE_END  
-		*/
-		
-		/*#DOTNET_INCLUDE_BEGIN
-		String[] ss = locationDir.list(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return (name.endsWith(end));
-			}
-		} );
-
-		File[] ff = new File[ss.length];
-		for(int i=0; i < ss.length; i++)
-		{
-			ff[i] = new File( locationDir.getPath(), ss[i] );
-		}
-		#DOTNET_INCLUDE_END*/
-		
-		/*Map agents = new HashMap(ff.length);
-		for (int i = 0; i < ff.length; ++i) {
-			agents.put(getAgentName(ff[i].getName()), readContent(ff[i]));
-		}
-		return agents;
-	}*/
 	
 	private String getNodeName(String filename) {
 		int index = filename.indexOf(EXTENSION);
 		int length = index - 5; // 5 is the length of "-node"
 		return filename.substring(0, length);
 	}
-	
-	/*private String getAgentName(String filename) {
-		int index = filename.indexOf(EXTENSION);
-		int length = index - 6; // 6 is the length of "-agent"
-		return filename.substring(0, length);
-	}*/
 	
 	private File getFSPSFile(String name, String ext) {
 		String fileName = locationDir.getPath()+fileSeparator+name+ext;

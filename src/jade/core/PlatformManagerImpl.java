@@ -253,6 +253,8 @@ public class PlatformManagerImpl implements PlatformManager {
 	private String localAddNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated) throws IMTPException, ServiceException, JADESecurityException {
 		Node node = dsc.getNode();
 
+		checkExistence(node);
+		
 		// If the node hosts a Container, adjust node name
 		adjustName(dsc, node);
 
@@ -373,8 +375,7 @@ public class PlatformManagerImpl implements PlatformManager {
 			gCmd.addParam(dsc);
 			Object result = myCommandProcessor.processIncoming(gCmd);
 			if (result instanceof Throwable) {
-				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_NODE command. Node is " + dsc.getName());
-				((Throwable) result).printStackTrace();
+				myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_NODE command. Node is " + dsc.getName(), (Throwable) result);
 			}
 		}
 	}
@@ -495,8 +496,7 @@ public class PlatformManagerImpl implements PlatformManager {
 				gCmd.addParam(sliceKey);
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_SLICE command. Service is " + serviceKey + " node is " + sliceKey);
-					((Throwable) result).printStackTrace();
+					myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_SLICE command. Service is " + serviceKey + " node is " + sliceKey, (Throwable) result);
 				}
 			}
 		}
@@ -560,8 +560,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		gCmd.addParam(newReplica.getLocalAddress());
 		Object result = myCommandProcessor.processIncoming(gCmd);
 		if (result instanceof Throwable) {
-			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_REPLICA command. Replica address is " + newReplica.getLocalAddress());
-			((Throwable) result).printStackTrace();
+			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_REPLICA command. Replica address is " + newReplica.getLocalAddress(), (Throwable) result);
 		}
 	}
 
@@ -603,9 +602,9 @@ public class PlatformManagerImpl implements PlatformManager {
 					if (!n.hasPlatformManager()) {
 						try {
 							n.platformManagerDead(address, getLocalAddress());
-
+							
 						} catch (IMTPException imtpe) {
-							// The node daid while no one was monitoring it
+							// The node died while no one was monitoring it
 							removeTerminatedNode(n);
 						}
 					}
@@ -631,8 +630,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		gCmd.addParam(address);
 		Object result = myCommandProcessor.processIncoming(gCmd);
 		if (result instanceof Throwable) {
-			myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_REPLICA command. Replica address is " + address);
-			((Throwable) result).printStackTrace();
+			myLogger.log(Logger.WARNING, "Unexpected error processing DEAD_REPLICA command. Replica address is " + address, (Throwable) result);
 		}
 	}
 
@@ -655,6 +653,13 @@ public class PlatformManagerImpl implements PlatformManager {
 		NodeDescriptor dsc = getDescriptor(name);
 		if (dsc != null) {
 			monitor(dsc);
+			// Issue an ADOPTED_NODE Vertical command
+			GenericCommand gCmd = new GenericCommand(Service.ADOPTED_NODE, null, null);
+			gCmd.addParam(dsc);
+			Object result = myCommandProcessor.processIncoming(gCmd);
+			if (result instanceof Throwable) {
+				myLogger.log(Logger.WARNING, "Unexpected error processing ADOPTED_NODE command. Node is " + dsc.getName(), (Throwable) result);
+			}
 			myLogger.log(Logger.INFO, "Node <" + n.getName() + "> adopted");
 		} else {
 			myLogger.log(Logger.WARNING, "NO descriptor found for node <" + n.getName() + "> requesting adoption. Ignore...");
@@ -729,8 +734,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		if (result instanceof JADESecurityException) {
 			throw (JADESecurityException) result;
 		} else if (result instanceof Throwable) {
-			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_NODE command. Node is " + dsc.getName());
-			((Throwable) result).printStackTrace();
+			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_NODE command. Node is " + dsc.getName(), (Throwable) result);
 		}
 	}
 	
@@ -739,8 +743,7 @@ public class PlatformManagerImpl implements PlatformManager {
 		gCmd.addParam(sliceKey);
 		Object result = myCommandProcessor.processIncoming(gCmd);
 		if (result instanceof Throwable) {
-			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_SLICE command. Service is " + serviceName + " node is " + sliceKey);
-			((Throwable) result).printStackTrace();
+			myLogger.log(Logger.WARNING, "Unexpected error processing NEW_SLICE command. Service is " + serviceName + " node is " + sliceKey, (Throwable) result);
 		}
 	}
 	
@@ -823,6 +826,10 @@ public class PlatformManagerImpl implements PlatformManager {
 		return childrenArray;
 	}
 
+	private void checkExistence(Node node) {
+		// FIXME: To be implemented
+	}
+	
 	private void adjustName(NodeDescriptor dsc, Node node) {
 		ContainerID cid = dsc.getContainer();
 		if (cid != null) {
