@@ -383,7 +383,7 @@ public class HashMap implements Map, Serializable {
     public Object next() {
       if (modCount != expectedModCount) {
         // ConcurrentModificationException does not exist in CLDC
-        throw new RuntimeException();
+        throw new RuntimeException("concurrent modification");
       } 
 
       Object ret = elements.nextElement();
