@@ -455,4 +455,53 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 		msgSchema.addSuperSchema((AgentActionSchema) getSchema(ACLMSG));
 		return msgSchema;
 	}
+	
+	/**
+	 Convert, if possible, the numeric value srcValue into destClass 
+	 */
+	public static Object resolveNumericValue(Object srcValue, Class destClass) {
+		Object destValue = srcValue;
+		if (srcValue != null) {
+			Class srcClass = srcValue.getClass();
+			if (srcClass != destClass) {
+				if (destClass == Integer.class ||
+					destClass == int.class) {
+					if (srcClass == Long.class) {
+						destValue = Integer.valueOf(((Long)srcValue).intValue());
+					}
+				}
+				else if (destClass == Long.class ||
+						 destClass == long.class) {
+					if (srcClass == Integer.class) {
+						destValue = Long.valueOf(((Integer)srcValue).longValue());
+					}
+				}
+				else if (destClass == Float.class ||
+						 destClass == float.class) {
+					if (srcClass == Integer.class) {
+						destValue = Float.valueOf(((Integer)srcValue).floatValue());
+					}
+					else if (srcClass == Long.class) {
+						destValue = Float.valueOf(((Long)srcValue).floatValue());
+					}
+					else if (srcClass == Double.class) {
+						destValue = Float.valueOf(((Double)srcValue).floatValue());
+					}
+				}
+				else if (destClass == Double.class ||
+						 destClass == double.class) {
+					if (srcClass == Integer.class) {
+						destValue = Double.valueOf(((Integer)srcValue).doubleValue());
+					}
+					else if (srcClass == Long.class) {
+						destValue = Double.valueOf(((Long)srcValue).doubleValue());
+					}
+					else if (srcClass == Float.class) {
+						destValue = Double.valueOf(((Float)srcValue).doubleValue());
+					}
+				}
+			}
+		}
+		return destValue;
+	}
 }

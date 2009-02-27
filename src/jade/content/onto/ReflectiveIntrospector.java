@@ -205,14 +205,8 @@ public class ReflectiveIntrospector implements Introspector {
 				// Maybe the method required an int argument and we supplied 
 				// a Long. Similarly maybe the method required a float and 
 				// we supplied a Double. Try these possibilities
-				if (value instanceof Long) {
-					Integer i = new Integer((int) ((Long) value).longValue());
-					params[0] = i;
-				}
-				else if (value instanceof Double) {
-					Float f = new Float((float) ((Double) value).doubleValue());
-					params[0] = f;
-				}
+				params[0] = BasicOntology.resolveNumericValue(value, method.getParameterTypes()[0]);
+
 				method.invoke(obj, params);
 			}
 		} 
