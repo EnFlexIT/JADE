@@ -1,10 +1,9 @@
 package jade.util.leap;
 
-import static org.junit.Assert.*;
-import jade.util.leap.ArrayList;
-import jade.util.leap.HashSet;
-import jade.util.leap.Iterator;
-import jade.util.leap.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -170,6 +169,133 @@ public class HashSetTest {
 	}
 
 	@Test
+	public void testNull() {
+		HashSet hs2 = new HashSet();
+		hs2.add(null);
+
+		assertEquals(1, hs2.size());
+
+		assertTrue(hs2.contains(null));
+
+		Iterator it = hs2.iterator();
+
+		assertTrue(it.hasNext());
+
+		assertEquals(null, it.next());
+	}
+
+	@Test
+	public void testIteratorRemove() {
+		HashSet hs2 = new HashSet(hs);
+
+		Iterator it = hs2.iterator();
+		assertTrue(it.hasNext());
+		try {
+			it.remove();
+			fail("cannot remove from Iterator before calling next()");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		assertFalse(it.next() == null);
+		assertTrue(it.hasNext());
+		it.remove();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator before calling next()");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		assertFalse(it.next() == null);
+		assertTrue(it.hasNext());
+		it.remove();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator before calling next()");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		assertFalse(it.next() == null);
+		assertTrue(it.hasNext());
+		it.remove();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator before calling next()");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		assertFalse(it.next() == null);
+
+		assertFalse(it.hasNext());
+		it.remove();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator before calling next()");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		assertEquals(0, hs2.size());
+
+		it = hs2.iterator();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator when HashSet is empty");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		hs2 = new HashSet();
+		it = hs2.iterator();
+		try {
+			it.remove();
+			fail("cannot remove from Iterator when HashSet is empty");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+	}
+
+	@Test
+	public void testIteratorConcurrentModification() {
+		HashSet hs2 = new HashSet(hs);
+
+		Iterator it = hs2.iterator();
+		assertTrue(it.hasNext());
+		hs2.add(null);
+		try {
+			it.next();
+			fail("cannot call next() in Iterator after adding an element to the HashSet");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		it = hs2.iterator();
+		assertTrue(it.hasNext());
+		hs2.clear();
+		try {
+			it.next();
+			fail("cannot call next() in Iterator after calling clear() on the HashSet");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+
+		hs2 = new HashSet(hs);
+		hs2.add(null);
+		it = hs2.iterator();
+		assertTrue(it.hasNext());
+		hs2.remove(null);
+		try {
+			it.next();
+			fail("cannot call next() in Iterator after removing an element from the HashSet");
+		} catch (Exception e) {
+			assertTrue(e instanceof RuntimeException);
+		}
+	}
+
+	@Test
 	public void testSerialization() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -181,5 +307,22 @@ public class HashSetTest {
 		HashSet deserializedHs = (HashSet)ois.readObject();
 
 		assertEquals(hs, deserializedHs);
+	}
+
+	@Test
+	public void testSerializationWithNullElement() throws Exception {
+		HashSet hs2 = new HashSet(hs);
+		hs2.add(null);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+		oos.writeObject(hs2);
+		byte[] byteArray = baos.toByteArray();
+
+		ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
+		ObjectInputStream ois = new ObjectInputStream(bais);
+		HashSet deserializedHs = (HashSet)ois.readObject();
+
+		assertEquals(hs2, deserializedHs);
 	}
 }
