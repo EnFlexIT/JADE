@@ -31,19 +31,28 @@
 
 package jade.util.leap;
 
+import jade.util.leap.Iterator;
+
+//#MIDP_EXCLUDE_BEGIN
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+//#MIDP_EXCLUDE_END
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
 
 public class HashSet implements Set, Serializable {
+	//#MIDP_EXCLUDE_BEGIN
 	private static final long serialVersionUID = -6600588891113252130L;
+	//#MIDP_EXCLUDE_END
 
 	private static final String CONCURRENT_MODIFICATION = "concurrent modification";
 
 	private static final Object PRESENT = new Object();
 	private static final Object NULL = new Object();
 
-	private Hashtable hiddenTable;
+	private transient Hashtable hiddenTable;
 	private transient volatile int instanceRevision = 0;
 
 	public HashSet() {
@@ -204,4 +213,30 @@ public class HashSet implements Set, Serializable {
 			expectedInstanceRevision = instanceRevision;
 		}
 	}
+
+	//#MIDP_EXCLUDE_BEGIN
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+
+		out.writeInt(hiddenTable.size());
+
+		Iterator it = iterator();
+
+		while (it.hasNext()) {
+			out.writeObject(it.next());
+		}
+	}
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+
+		int size = in.readInt();
+
+		hiddenTable = new Hashtable(size);
+
+		for (int i = 0; i < size; i++) {
+			add(in.readObject());
+		}
+	}
+	//#MIDP_EXCLUDE_END
 }
