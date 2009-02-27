@@ -455,7 +455,8 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 		msgSchema.addSuperSchema((AgentActionSchema) getSchema(ACLMSG));
 		return msgSchema;
 	}
-	
+
+	//#MIDP_EXCLUDE_BEGIN
 	/**
 	 Convert, if possible, the numeric value srcValue into destClass 
 	 */
@@ -504,4 +505,5 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 		}
 		return destValue;
 	}
+	//#MIDP_EXCLUDE_END
 }
