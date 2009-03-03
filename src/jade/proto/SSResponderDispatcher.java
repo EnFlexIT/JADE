@@ -30,8 +30,13 @@ public abstract class SSResponderDispatcher extends CyclicBehaviour {
 	public final void action() {
 		ACLMessage msg = myAgent.receive(template);
 		if (msg != null) {
-			final String convId = msg.getConversationId();
-			if (convId != null) {
+			// Be sure a conversation-id is set. If not create a suitable one
+			if (msg.getConversationId() == null) {
+				msg.setConversationId(createConversationId(myAgent.getLocalName()));
+			}
+			final String convId = msg.getConversationId();				
+			Behaviour ssResponder = createResponder(msg);
+			if (ssResponder != null) {
 				activeConversations.registerConversation(convId);
 				SequentialBehaviour sb = new SequentialBehaviour() {
 					private static final long serialVersionUID = 12345678L;
@@ -44,9 +49,6 @@ public abstract class SSResponderDispatcher extends CyclicBehaviour {
 				sb.setBehaviourName(convId+"-Responder");
 				sb.addSubBehaviour(createResponder(msg));
 				myAgent.addBehaviour(sb);
-			}
-			else {
-				System.out.println("WARNING: Incoming CFP message received with null conversation ID");
 			}
 		}
 		else {
@@ -61,4 +63,9 @@ public abstract class SSResponderDispatcher extends CyclicBehaviour {
 	 * @return
 	 */
 	protected abstract Behaviour createResponder(ACLMessage initiationMsg); 
+	
+	private static long cnt = 0;
+	private synchronized static String createConversationId(String name) {
+		return "C-"+name+'-'+System.currentTimeMillis()+'-'+(cnt++);
+	}
 }
