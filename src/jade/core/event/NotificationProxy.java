@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core.event;
 
@@ -40,100 +40,100 @@ import jade.core.IMTPException;
    the event notification subsystem installed in the platform.
 
    @author Giovanni Rimassa - FRAMeTech s.r.l.
-*/
+ */
 public class NotificationProxy extends SliceProxy implements NotificationSlice {
 
 
-    public void sniffOn(AID snifferName, AID targetName) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_SNIFFON, NotificationSlice.NAME, null);
-	    cmd.addParam(snifferName);
-	    cmd.addParam(targetName);
+	public void sniffOn(AID snifferName, AID targetName) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_SNIFFON, NotificationSlice.NAME, null);
+			cmd.addParam(snifferName);
+			cmd.addParam(targetName);
 
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void sniffOff(AID snifferName, AID targetName) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_SNIFFOFF, NotificationSlice.NAME, null);
-	    cmd.addParam(snifferName);
-	    cmd.addParam(targetName);
+	public void sniffOff(AID snifferName, AID targetName) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_SNIFFOFF, NotificationSlice.NAME, null);
+			cmd.addParam(snifferName);
+			cmd.addParam(targetName);
 
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void debugOn(AID introspectorName, AID targetName) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_DEBUGON, NotificationSlice.NAME, null);
-	    cmd.addParam(introspectorName);
-	    cmd.addParam(targetName);
+	public void debugOn(AID introspectorName, AID targetName) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_DEBUGON, NotificationSlice.NAME, null);
+			cmd.addParam(introspectorName);
+			cmd.addParam(targetName);
 
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
-    public void debugOff(AID introspectorName, AID targetName) throws IMTPException {
-	try {
-	    GenericCommand cmd = new GenericCommand(H_DEBUGOFF, NotificationSlice.NAME, null);
-	    cmd.addParam(introspectorName);
-	    cmd.addParam(targetName);
+	public void debugOff(AID introspectorName, AID targetName) throws IMTPException {
+		try {
+			GenericCommand cmd = new GenericCommand(H_DEBUGOFF, NotificationSlice.NAME, null);
+			cmd.addParam(introspectorName);
+			cmd.addParam(targetName);
 
 
-	    Node n = getNode();
-	    Object result = n.accept(cmd);
-	    if((result != null) && (result instanceof Throwable)) {
-		if(result instanceof IMTPException) {
-		    throw (IMTPException)result;
+			Node n = getNode();
+			Object result = n.accept(cmd);
+			if((result != null) && (result instanceof Throwable)) {
+				if(result instanceof IMTPException) {
+					throw (IMTPException)result;
+				}
+				else {
+					throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+				}
+			}
 		}
-		else {
-		    throw new IMTPException("An undeclared exception was thrown", (Throwable)result);
+		catch(ServiceException se) {
+			throw new IMTPException("Unable to access remote node", se);
 		}
-	    }
 	}
-	catch(ServiceException se) {
-	    throw new IMTPException("Unable to access remote node", se);
-	}
-    }
 
 }

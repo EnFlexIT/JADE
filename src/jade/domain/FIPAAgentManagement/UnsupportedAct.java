@@ -19,34 +19,31 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.domain.FIPAAgentManagement;
 
 import jade.content.Predicate;
 
 /** 
-* 
-* @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
-* @author Fabio Bellifemine - CSELT S.p.A.
-* @version $Date$ $Revision$
-*/
+ * 
+ * @see jade.domain.FIPAAgentManagement.FIPAManagementOntology
+ * @author Fabio Bellifemine - CSELT S.p.A.
+ * @version $Date$ $Revision$
+ */
 
 public class UnsupportedAct extends NotUnderstoodException implements Predicate {
 
-  public UnsupportedAct() {
-    super("(unsupported-act unknown)");
-  }
-  public UnsupportedAct(String act) {
-    super("(unsupported-act "+act+")");
-    s=act;
-  }
-  
-  /**
-  @serial
-  */
-String s;
-public void setAct(String a){s=a; setMessage("(unsupported-act "+a+")");}
-public String getAct() {return s;}
+	public UnsupportedAct() {
+		super("(unsupported-act unknown)");
+	}
+	public UnsupportedAct(String act) {
+		super("(unsupported-act "+act+")");
+		s=act;
+	}
+
+	String s;
+	public void setAct(String a){s=a; setMessage("(unsupported-act "+a+")");}
+	public String getAct() {return s;}
 
 }

@@ -531,12 +531,11 @@ public class Agent implements Runnable, Serializable
 	//#MIDP_EXCLUDE_END
 
 	/*#MIDP_INCLUDE_BEGIN
-	 public static MIDlet midlet;
+	public static MIDlet midlet;
 
-	 // Flag for agent interruption (necessary as Thread.interrupt()
-	  // is not available in MIDP)
-	   private boolean isInterrupted = false;
-	   #MIDP_INCLUDE_END*/
+	// Flag for agent interruption (necessary as Thread.interrupt() is not available in MIDP)
+	private boolean isInterrupted = false;
+	#MIDP_INCLUDE_END*/
 
 	/**
 	 Default constructor.
@@ -1073,7 +1072,7 @@ public class Agent implements Runnable, Serializable
 	 to <em>suspended</em> within Agent Platform Life Cycle; the
 	 original agent state is saved and will be restored by a
 	 <code>doActivate()</code> call. This method can be called from
-	 the Agent Platform or from the agent iself and stops all agent
+	 the Agent Platform or from the agent itself and stops all agent
 	 activities. Incoming messages for a suspended agent are buffered
 	 by the Agent Platform and are delivered as soon as the agent
 	 resumes. Calling <code>doSuspend()</code> on a suspended agent

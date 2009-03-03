@@ -45,7 +45,7 @@ public class FailureException extends FIPAException {
 	public ACLMessage getACLMessage() {
 		if (msg == null) {
 			msg = new ACLMessage(ACLMessage.FAILURE);
-			msg.setContent("("+getMessage()+")"); //in SL-0 it must be a t-uple
+			msg.setContent(getMessage()); 
 		} 
 		return msg;
 	}

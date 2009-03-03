@@ -74,7 +74,7 @@ public class SSIteratedAchieveREResponder extends SSResponder {
 	 a given DataStore.
 	 */
 	public SSIteratedAchieveREResponder(Agent a, ACLMessage request, DataStore store) {
-		// 4th parameter is fasle since in this protocol we treat the initiation message exactly as all subsequent incoming messages
+		// 4th parameter is false since in this protocol we treat the initiation message exactly as all subsequent incoming messages
 		super(a, request, store, false);
 		
 		initiationPerformative = request.getPerformative();
@@ -191,7 +191,7 @@ public class SSIteratedAchieveREResponder extends SSResponder {
 	 be sent back to the initiator without the need for an explicit 
 	 CANCEL message. The initiator will be able to detect that the 
 	 session has been closed by calling the 
-	 <code>isSessionClosed()</code> method of the 
+	 <code>isSessionTerminated()</code> method of the 
 	 <code>SSIteratedAchieveREInitiator</code> class.
 	 */
 	public void closeSessionOnNextReply() {

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.domain;
 
@@ -38,76 +38,65 @@ constructors, one based on an ACLMessage, and the second based on its
 content, i.e. the exception message.
 @author Giovanni Rimassa - Universita' di Parma
 @version $Date$ $Revision$
-*/
+ */
 
 public class FIPAException extends Exception implements Predicate {
 
-    //#APIDOC_EXCLUDE_BEGIN
+	protected ACLMessage msg; // can be accessed by subclasses
+	
+	private String content;
 
-    /**
-  @serial
-  */
-  protected ACLMessage msg; // can be accessed by subclasses
+	/**
+	 * Constructs a generic <code>FIPAException</code>. The ACL message
+	 * performative is defaulted to <code>not-understood</code>.
+	 * @param message is the content of the ACLMessage
+	 **/
+	public FIPAException(String message) {
+		super();
+		content = message;
+	}
 
-    //#APIDOC_EXCLUDE_END
+	/**
+	 * Constructs a <code>FIPAException</code> from the given ACL
+	 * message.
+	 * @param message is the ACL message representing this exception
+	 **/
+	public FIPAException(ACLMessage message) {
+		this(message.getContent());
+		msg=(ACLMessage)message.clone();
+	}
 
+	/**
+	 * Retrieve the ACL message whose content is represented by this
+	 * exception.
+	 * @return the ACLMessage representing this exception
+	 **/
+	public ACLMessage getACLMessage() {
+		if (msg == null) {
+			msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
+			msg.setContent(getMessage());
+		}
+		return msg;
+	}
 
-  /**
-  @serial
-  */
-  private String content;
+	/**
+	 * Set the content of the ACL message representing this exception
+	 * @param message is the content
+	 **/
+	protected void setMessage(String message) {
+		content=message;
+		if (msg!=null)
+			msg.setContent(message);
+	}
 
-  /**
-   * Constructs a generic <code>FIPAException</code>. The ACL message
-   * performative is defaulted to <code>not-understood</code>.
-   * @param message is the content of the ACLMessage
-  **/
-  public FIPAException(String message) {
-    super();
-    content = message;
-  }
-
-  /**
-   * Constructs a <code>FIPAException</code> from the given ACL
-   * message.
-   * @param message is the ACL message representing this exception
-   **/
-  public FIPAException(ACLMessage message) {
-    this(message.getContent());
-    msg=(ACLMessage)message.clone();
-  }
-
-  /**
-   * Retrieve the ACL message whose content is represented by this
-   * exception.
-   * @return the ACLMessage representing this exception
-   **/
-  public ACLMessage getACLMessage() {
-    if (msg == null) {
-      msg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
-      msg.setContent(getMessage());
-    }
-    return msg;
-  }
-
-  /**
-   * Set the content of the ACL message representing this exception
-   * @param message is the content
-   **/
-  protected void setMessage(String message) {
-    content=message;
-    if (msg!=null)
-      msg.setContent(message);
-  }
-
-  /**
-   * Get the content of the ACL message representing this exception
-   * @return A string representing the message content that describes
-   * this FIPA exception.
-   **/
-  public String getMessage() {
-    return content;
-  }
+	/**
+	 * Get the content of the ACL message representing this exception
+	 * @return A string representing the message content that describes
+	 * this FIPA exception.
+	 **/
+	public String getMessage() {
+		return content;
+	}
 
 }
 
