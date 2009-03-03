@@ -497,6 +497,10 @@ public class DFService extends FIPAService {
 		subscribe.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
 		// Note that iota is not included in SL0
 		subscribe.setLanguage(FIPANames.ContentLanguage.FIPA_SL);	
+		if (constraints == null) {
+			constraints = new SearchConstraints();
+			constraints.setMaxResults(MINUSONE);
+		}		
 		subscribe.setContent(encodeIota(dfName, template, constraints));
 		return subscribe;
 	}
