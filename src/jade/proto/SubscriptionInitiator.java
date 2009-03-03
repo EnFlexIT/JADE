@@ -546,6 +546,9 @@ public class SubscriptionInitiator extends Initiator {
 			cancel.setOntology(subscription.getOntology());
 			cancel.setProtocol(subscription.getProtocol());
 			cancel.setConversationId(subscription.getConversationId());
+			if (!ignoreResponse) {
+				cancel.setReplyWith(subscription.getReplyWith());
+			}
 			fillCancelContent(subscription, cancel);
 			myAgent.send(cancel);
 			// Interrupt the ReplyReceiver to check if this SubscriptionInitiator 
