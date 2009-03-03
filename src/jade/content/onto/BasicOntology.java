@@ -36,6 +36,7 @@ import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.*;
+
 import java.util.Date;
 
 /**
@@ -67,7 +68,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	public static final String         CONTENT_ELEMENT_LIST = ContentElementListSchema.BASE_NAME;
 
 	//#MIDP_EXCLUDE_BEGIN
-	private Map primitiveSchemas;
+	private transient Map primitiveSchemas;
 	//#MIDP_EXCLUDE_END
 
 	/**
@@ -167,25 +168,43 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 			equalsSchema.add(EQUALS_RIGHT, TermSchema.getBaseSchema());
 
 			//#MIDP_EXCLUDE_BEGIN
-			// this map is only needed to make the getSchema(Class) method work properly also in the case of java primitives
-			primitiveSchemas = new HashMap(10);
-			primitiveSchemas.put(boolean.class, getSchema(BasicOntology.BOOLEAN));
-			primitiveSchemas.put(java.lang.Boolean.class, getSchema(BasicOntology.BOOLEAN));
-			primitiveSchemas.put(int.class, getSchema(BasicOntology.INTEGER));
-			primitiveSchemas.put(long.class, getSchema(BasicOntology.INTEGER));
-			primitiveSchemas.put(java.lang.Integer.class, getSchema(BasicOntology.INTEGER));
-			primitiveSchemas.put(java.lang.Long.class, getSchema(BasicOntology.INTEGER));
-			primitiveSchemas.put(float.class, getSchema(BasicOntology.FLOAT));
-			primitiveSchemas.put(double.class, getSchema(BasicOntology.FLOAT));
-			primitiveSchemas.put(java.lang.Float.class, getSchema(BasicOntology.FLOAT));
-			primitiveSchemas.put(java.lang.Double.class, getSchema(BasicOntology.FLOAT));
+			fillPrimitiveSchemas();
 			//#MIDP_EXCLUDE_END
 		} 
 		catch (OntologyException oe) {
 			oe.printStackTrace();
 		} 
 	}
+	
+	//#MIDP_EXCLUDE_BEGIN
+	private void fillPrimitiveSchemas() throws OntologyException {
+		// This map is only needed to make the getSchema(Class) method work properly also in the case of java primitives
+		primitiveSchemas = new HashMap(10);
+		primitiveSchemas.put(boolean.class, getSchema(BasicOntology.BOOLEAN));
+		primitiveSchemas.put(java.lang.Boolean.class, getSchema(BasicOntology.BOOLEAN));
+		primitiveSchemas.put(int.class, getSchema(BasicOntology.INTEGER));
+		primitiveSchemas.put(long.class, getSchema(BasicOntology.INTEGER));
+		primitiveSchemas.put(java.lang.Integer.class, getSchema(BasicOntology.INTEGER));
+		primitiveSchemas.put(java.lang.Long.class, getSchema(BasicOntology.INTEGER));
+		primitiveSchemas.put(float.class, getSchema(BasicOntology.FLOAT));
+		primitiveSchemas.put(double.class, getSchema(BasicOntology.FLOAT));
+		primitiveSchemas.put(java.lang.Float.class, getSchema(BasicOntology.FLOAT));
+		primitiveSchemas.put(java.lang.Double.class, getSchema(BasicOntology.FLOAT));
+	}
 
+	private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		
+		try {
+			fillPrimitiveSchemas();
+		}
+		catch (OntologyException oe) {
+			// Should never happen 
+			oe.printStackTrace();
+		}
+	}
+	//#MIDP_EXCLUDE_END
+	
 	/**
 	 * Returns the singleton instance of the <code>BasicOntology</code>.
 	 * @return the singleton instance of the <code>BasicOntology</code>

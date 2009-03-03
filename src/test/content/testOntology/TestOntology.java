@@ -70,6 +70,7 @@ public class TestOntology extends Ontology {
 	public static final String UNTYPED_CONCEPT_ATTR2 = "attr2";
 	public static final String UNTYPED_CONCEPT_ATTR3 = "attr3";
 	public static final String UNTYPED_CONCEPT_ATTR4 = "attr4";
+	public static final String UNTYPED_CONCEPT_ATTR5 = "attr5";
 	public static final String UNTYPED_CONCEPT_LIST_ELEMENTS = "list-elements";
 
 	// The singleton instance of this ontology
@@ -126,6 +127,7 @@ public class TestOntology extends Ontology {
 			cs.add(UNTYPED_CONCEPT_ATTR2, (TermSchema) TermSchema.getBaseSchema());
 			cs.add(UNTYPED_CONCEPT_ATTR3, (TermSchema) TermSchema.getBaseSchema());
 			cs.add(UNTYPED_CONCEPT_ATTR4, (TermSchema) TermSchema.getBaseSchema());
+			cs.add(UNTYPED_CONCEPT_ATTR5, (TermSchema) TermSchema.getBaseSchema());
 			cs.add(UNTYPED_CONCEPT_LIST_ELEMENTS, (TermSchema) TermSchema.getBaseSchema(), 0, ObjectSchema.UNLIMITED);
 		} 
 		catch (OntologyException oe) {

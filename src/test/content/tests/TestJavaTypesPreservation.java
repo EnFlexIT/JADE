@@ -21,6 +21,7 @@ public class TestJavaTypesPreservation extends Test {
 	public static final Integer INTEGER_VALUE = new Integer(10);
 	public static final Double DOUBLE_VALUE = new Double(10.0d);
 	public static final Float FLOAT_VALUE = new Float(10.0f);
+	public static final String STRING_VALUE = "a < \"5\"";
 
 	public Behaviour load(Agent a, DataStore ds, String resultKey) throws TestException {
 		final Logger l = Logger.getLogger();
@@ -34,10 +35,12 @@ public class TestJavaTypesPreservation extends Test {
 					uc.setAttr2(INTEGER_VALUE);
 					uc.setAttr3(DOUBLE_VALUE);
 					uc.setAttr4(FLOAT_VALUE);
+					uc.setAttr5(STRING_VALUE);
 					uc.addListElements(LONG_VALUE);
 					uc.addListElements(INTEGER_VALUE);
 					uc.addListElements(DOUBLE_VALUE);
 					uc.addListElements(FLOAT_VALUE);
+					uc.addListElements(STRING_VALUE);
 					
 					Exists e = new Exists(uc);
 					myAgent.getContentManager().fillContent(msg, e);
@@ -54,6 +57,7 @@ public class TestJavaTypesPreservation extends Test {
 					ret = ret && checkInteger(uc.getAttr2());
 					ret = ret && checkDouble(uc.getAttr3());
 					ret = ret && checkFloat(uc.getAttr4());
+					ret = ret && checkString(uc.getAttr5());
 					if (ret) {
 						l.log("Attribute values OK");
 					}
@@ -62,6 +66,7 @@ public class TestJavaTypesPreservation extends Test {
 					ret = ret && checkInteger(it.next());
 					ret = ret && checkDouble(it.next());
 					ret = ret && checkFloat(it.next());
+					ret = ret && checkString(it.next());
 					if (ret) {
 						l.log("List values OK");
 					}
@@ -100,6 +105,15 @@ public class TestJavaTypesPreservation extends Test {
 				private boolean checkFloat(Object val) {
 					if (val == null || !(val instanceof Float) || !val.equals(FLOAT_VALUE)) {
 						l.log("--- Wrong Float value: expected "+FLOAT_VALUE+" (Float) found "+stringify(val));
+						return false;
+					}
+					else {
+						return true;
+					}
+				}
+				private boolean checkString(Object val) {
+					if (val == null || !(val instanceof String) || !val.equals(STRING_VALUE)) {
+						l.log("--- Wrong String value: expected "+STRING_VALUE+" (String) found "+stringify(val));
 						return false;
 					}
 					else {

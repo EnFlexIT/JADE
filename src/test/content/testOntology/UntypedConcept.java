@@ -10,6 +10,7 @@ public class UntypedConcept implements Concept {
 	private Object attr2;
 	private Object attr3;
 	private Object attr4;
+	private Object attr5;
 	private List list = new ArrayList();
 	
 	public Object getAttr1() {
@@ -35,6 +36,12 @@ public class UntypedConcept implements Concept {
 	}
 	public void setAttr4(Object attr4) {
 		this.attr4 = attr4;
+	}
+	public Object getAttr5() {
+		return attr5;
+	}
+	public void setAttr5(Object attr5) {
+		this.attr5 = attr5;
 	}
 	public Iterator getAllListElements() {
 		return list.iterator();
