@@ -113,36 +113,76 @@
 	<!-- INIT the whole -->
 	<target name="init"
 	        description="Set time stamp">
-	  <tstamp/>
-	  
-		<antcall target="jade-tag"/>
-	  
-    <condition property="boot-midp-classes-tmp" 
-               value="${j2me-wtk-home}/lib/midpapi.zip">
-       <available file="${j2me-wtk-home}/lib/midpapi.zip"/>
-    </condition>
-    <condition property="boot-midp-classes-tmp" 
-               value="${j2me-wtk-home}/lib/midpapi10.jar${path.separator}${j2me-wtk-home}/lib/cldcapi10.jar">
-       <equals arg1="${midp-version}" arg2="1.0" trim="true" />
-    </condition>
-    <condition property="boot-midp-classes-tmp" 
-               value="${j2me-wtk-home}/lib/midpapi20.jar${path.separator}${j2me-wtk-home}/lib/cldcapi11.jar">
-       <equals arg1="${midp-version}" arg2="2.0" trim="true" />
-    </condition>
-    
-    <!-- Add the WMA classes to the bootclasspath if present -->
-    <condition property="boot-midp-classes" 
-               value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
-    	<isset property="wma-classes" />
-    </condition>
-    <condition property="boot-midp-classes" 
-               value="${boot-midp-classes-tmp}">
-    	<not>
-      	<isset property="wma-classes" />
-      </not>
-    </condition>
+		<tstamp />
 
-		<mkdir dir="${tmp}"/>
+		<antcall target="jade-tag" />
+
+
+		<!-- wireless toolkit 1.x -->
+		<condition property="boot-midp-classes-tmp" value="${j2me-wtk-home}/lib/midpapi.zip">
+			<available file="${j2me-wtk-home}/lib/midpapi.zip" />
+		</condition>
+
+		<!-- wireless toolkit 2.x -->
+		<condition property="midp10.jar" value="midpapi10.jar">
+			<available file="${j2me-wtk-home}/lib/midpapi10.jar" />
+		</condition>
+		<condition property="midp20.jar" value="midpapi20.jar">
+			<available file="${j2me-wtk-home}/lib/midpapi20.jar" />
+		</condition>
+		<condition property="cldc10.jar" value="cldcapi10.jar">
+			<available file="${j2me-wtk-home}/lib/cldcapi10.jar" />
+		</condition>
+		<condition property="cldc11.jar" value="cldcapi11.jar">
+			<available file="${j2me-wtk-home}/lib/cldcapi11.jar" />
+		</condition>
+
+		<!-- wireless toolkit 3.x -->
+		<condition property="midp10.jar" value="midp_1.0.jar">
+			<available file="${j2me-wtk-home}/lib/midp_1.0.jar" />
+		</condition>
+		<condition property="midp20.jar" value="midp_2.0.jar">
+			<available file="${j2me-wtk-home}/lib/midp_2.0.jar" />
+		</condition>
+		<condition property="cldc10.jar" value="cldc_1.0.jar">
+			<available file="${j2me-wtk-home}/lib/cldc_1.0.jar" />
+		</condition>
+		<condition property="cldc11.jar" value="cldc_1.1.jar">
+			<available file="${j2me-wtk-home}/lib/cldc_1.1.jar" />
+		</condition>
+
+		<echo>midp10.jar=${midp10.jar}</echo>
+		<echo>midp20.jar=${midp20.jar}</echo>
+		<echo>cldc10.jar=${cldc10.jar}</echo>
+		<echo>cldc11.jar=${cldc11.jar}</echo>
+		<!-- midp version 1.0, wireless toolkit 2.x/3.x -->
+		<condition property="boot-midp-classes-tmp"
+			value="${j2me-wtk-home}/lib/${midp10.jar}${path.separator}${j2me-wtk-home}/lib/${cldc10.jar}">
+			<equals arg1="${midp-version}" arg2="1.0" trim="true" />
+		</condition>
+
+		<!-- midp version 2.0, wireless toolkit 2.x/3.x -->
+		<condition property="boot-midp-classes-tmp"
+			value="${j2me-wtk-home}/lib/${midp20.jar}${path.separator}${j2me-wtk-home}/lib/${cldc11.jar}">
+			<equals arg1="${midp-version}" arg2="2.0" trim="true" />
+		</condition>
+
+		<!-- Add the WMA classes to the bootclasspath if present -->
+		<condition property="boot-midp-classes"
+			value="${boot-midp-classes-tmp}${path.separator}${wma-classes}">
+			<isset property="wma-classes" />
+		</condition>
+		<condition property="boot-midp-classes" value="${boot-midp-classes-tmp}">
+			<not>
+				<isset property="wma-classes" />
+			</not>
+		</condition>
+
+		<mkdir dir="${tmp}" />
+		<echo>================================================================================</echo>
+		<echo>boot-midp-classes-tmp=${boot-midp-classes-tmp}</echo>
+		<echo>boot-midp-classes=${boot-midp-classes}</echo>
+		<echo>================================================================================</echo>
 	</target>
 	
 	<target name="jade-tag" if="jade-exists" depends="check-jade">
