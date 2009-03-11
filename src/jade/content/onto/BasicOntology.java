@@ -488,12 +488,18 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 					destClass == int.class) {
 					if (srcClass == Long.class) {
 						destValue = Integer.valueOf(((Long)srcValue).intValue());
+					} 
+					else if (srcClass == String.class) {
+						destValue = Integer.parseInt((String)srcValue);
 					}
 				}
 				else if (destClass == Long.class ||
 						 destClass == long.class) {
 					if (srcClass == Integer.class) {
 						destValue = Long.valueOf(((Integer)srcValue).longValue());
+					} 
+					else if (srcClass == String.class) {
+						destValue = Long.parseLong((String)srcValue);
 					}
 				}
 				else if (destClass == Float.class ||
@@ -507,6 +513,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 					else if (srcClass == Double.class) {
 						destValue = Float.valueOf(((Double)srcValue).floatValue());
 					}
+					else if (srcClass == String.class) {
+						destValue = Float.parseFloat((String)srcValue);
+					}
 				}
 				else if (destClass == Double.class ||
 						 destClass == double.class) {
@@ -518,6 +527,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 					}
 					else if (srcClass == Float.class) {
 						destValue = Double.valueOf(((Float)srcValue).doubleValue());
+					}
+					else if (srcClass == String.class) {
+						destValue = Double.parseDouble((String)srcValue);
 					}
 				}
 			}
