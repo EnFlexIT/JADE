@@ -477,12 +477,13 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 
 	//#MIDP_EXCLUDE_BEGIN
 	/**
-	 Convert, if possible, the numeric value srcValue into destClass 
+	 Convert, if possible, the numeric value srcValue into an instance of destClass 
 	 */
 	public static Object resolveNumericValue(Object srcValue, Class destClass) {
 		Object destValue = srcValue;
 		if (srcValue != null) {
 			Class srcClass = srcValue.getClass();
+			// Note that we deal with Integer, int, Long, long... classes only --> we can compare the classes using == and != instead of using instanceof
 			if (srcClass != destClass) {
 				if (destClass == Integer.class ||
 					destClass == int.class) {
@@ -490,7 +491,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Integer.valueOf(((Long)srcValue).intValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = Integer.parseInt((String)srcValue);
+						destValue = new Integer(Integer.parseInt((String)srcValue));
 					}
 				}
 				else if (destClass == Long.class ||
@@ -499,7 +500,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Long.valueOf(((Integer)srcValue).longValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = Long.parseLong((String)srcValue);
+						destValue = new Long(Long.parseLong((String)srcValue));
 					}
 				}
 				else if (destClass == Float.class ||
@@ -514,7 +515,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Float.valueOf(((Double)srcValue).floatValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = Float.parseFloat((String)srcValue);
+						destValue = new Float(Float.parseFloat((String)srcValue));
 					}
 				}
 				else if (destClass == Double.class ||
@@ -529,7 +530,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Double.valueOf(((Float)srcValue).doubleValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = Double.parseDouble((String)srcValue);
+						destValue = new Double(Double.parseDouble((String)srcValue));
 					}
 				}
 			}
