@@ -616,5 +616,37 @@ class ObjectSchemaImpl extends ObjectSchema {
 		}
 		return dsc;
 	}
+
+	@Override
+	public boolean isAssignableFrom(ObjectSchema s) {
+		try {
+			ObjectSchema destSchema;
+			ObjectSchema srcSchema;
+			String[] destSlotNames = getNames();
+			for (String destSlotName : destSlotNames) {
+				
+				destSchema = getSchema(destSlotName);
+				
+				try {
+					srcSchema = s.getSchema(destSlotName);
+	
+					// The slot is present in source and destination schema -> check compatibility
+					if (!destSchema.isAssignableFrom(srcSchema)) {
+						return false;
+					}
+				} catch (OntologyException e) {
+					// The slot is present only in destination schema -> must be not mandatory
+					if (isMandatory(destSlotName)) {
+						return false;
+					}
+				}
+			}
+			return true;
+			
+		} catch (OntologyException e) {
+			return false;
+		}
+	}
+	
 }
 

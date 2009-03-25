@@ -131,4 +131,15 @@ public class AggregateSchema extends TermSchema {
     		return false;
     	}
     }
+    
+	@Override
+	public boolean isAssignableFrom(ObjectSchema s) {
+		if (s != null &&
+			s instanceof AggregateSchema &&
+			s.getTypeName().equals(getTypeName())) {
+			return true;
+		}
+		return false;
+	}
+    
 }

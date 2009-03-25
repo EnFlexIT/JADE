@@ -239,6 +239,17 @@ public abstract class ObjectSchema implements Serializable {
 	 */
 	protected abstract boolean descendsFrom(ObjectSchema s);
 	
+	/**
+	 * This method checks whether or not an abstract object that is an instance 
+	 * of schema s can be used in place of an abstract object that is an instance 
+	 * of this schema.
+	 * Note that unlike the methods isCompatibleWith() and descendsFrom() that
+	 * perform "ontological" checks (i.e. they are related to the reference ontology),
+	 * this method only performs a structural check on the slots regardless of the fact 
+	 * that the two schemas belong to the same ontology or not. 
+	 */
+	public abstract boolean isAssignableFrom(ObjectSchema s);
+	
 	/** 
 	 * Retrieves an array containing the direct super-schemas of this schema. 
 	 * If this schema has no super-schema an empty array is returned 
