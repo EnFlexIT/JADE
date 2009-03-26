@@ -491,7 +491,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Integer.valueOf(((Long)srcValue).intValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = new Integer(Integer.parseInt((String)srcValue));
+						destValue = Integer.valueOf((String)srcValue);
 					}
 				}
 				else if (destClass == Long.class ||
@@ -500,7 +500,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Long.valueOf(((Integer)srcValue).longValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = new Long(Long.parseLong((String)srcValue));
+						destValue = Long.valueOf((String)srcValue);
 					}
 				}
 				else if (destClass == Float.class ||
@@ -515,7 +515,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Float.valueOf(((Double)srcValue).floatValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = new Float(Float.parseFloat((String)srcValue));
+						destValue = Float.valueOf((String)srcValue);
 					}
 				}
 				else if (destClass == Double.class ||
@@ -530,8 +530,11 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						destValue = Double.valueOf(((Float)srcValue).doubleValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = new Double(Double.parseDouble((String)srcValue));
+						destValue = Double.valueOf((String)srcValue);
 					}
+				}
+				else if (destClass == String.class) {
+					destValue = srcValue.toString();
 				}
 			}
 		}

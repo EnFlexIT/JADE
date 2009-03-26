@@ -34,70 +34,90 @@ import jade.util.leap.Iterator;
  * @author Federico Bergenti - Universita` di Parma
  */
 public class AggregateSchema extends TermSchema {
-    public static final String         BASE_NAME = "Aggregate";
-    private static AggregateSchema baseSchema = new AggregateSchema();
+	public static final String         BASE_NAME = "Aggregate";
+	private static AggregateSchema baseSchema = new AggregateSchema();
+	private TermSchema elementsSchema;
 
-    /**
-     * Construct a schema that vinculates an entity to be a generic
-     * aggregate
-     */
-    private AggregateSchema() {
-        super(BASE_NAME);
-    }
+	/**
+	 * Construct a schema that vinculates an entity to be a generic
+	 * aggregate
+	 */
+	private AggregateSchema() {
+		super(BASE_NAME);
+	}
 
-    /**
-     * Creates an <code>AggregateSchema</code> with a given type-name.
-     *
-     * @param typeName The name of this <code>AggregateSchema</code>.
-     */
-    public AggregateSchema(String typeName) {
-        super(typeName);
-    }
+	/**
+	 * Creates an <code>AggregateSchema</code> with a given type-name.
+	 *
+	 * @param typeName The name of this <code>AggregateSchema</code>.
+	 */
+	public AggregateSchema(String typeName) {
+		super(typeName);
+	}
 
-    /**
-     * Retrieve the generic base schema for all aggregates.
-     *
-     * @return the generic base schema for all aggregates.
-     */
-    public static ObjectSchema getBaseSchema() {
-        return baseSchema;
-    } 
-    
-    /**
-     * Creates an Abstract descriptor to hold an aggregate of
-     * the proper type.
-     */
-    public AbsObject newInstance() throws OntologyException {
-        return new AbsAggregate(getTypeName());
-    } 
+	/**
+	 * Creates an <code>AggregateSchema</code> with a given type-name.
+	 *
+	 * @param typeName The name of this <code>AggregateSchema</code>.
+	 */
+	public AggregateSchema(String typeName, TermSchema elementsSchema) {
+		super(typeName);
+		this.elementsSchema = elementsSchema;
+	}
+	
+	/**
+	 * Retrieve the generic base schema for all aggregates.
+	 *
+	 * @return the generic base schema for all aggregates.
+	 */
+	public static ObjectSchema getBaseSchema() {
+		return baseSchema;
+	} 
 
-		/**
+	/**
+	 * Creates an Abstract descriptor to hold an aggregate of
+	 * the proper type.
+	 */
+	public AbsObject newInstance() throws OntologyException {
+		return new AbsAggregate(getTypeName());
+	} 
+
+	public TermSchema getElementsSchema() {
+		if (elementsSchema != null) {
+			return elementsSchema;
+		}
+		else {
+			return (TermSchema) TermSchema.getBaseSchema();
+		}
+	}
+	
+	/**
 	     Check whether a given abstract descriptor complies with this 
 	     schema.
 	     @param abs The abstract descriptor to be checked
 	     @throws OntologyException If the abstract descriptor does not 
 	     complies with this schema
-	   */
-  	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
-			// Check the type of the abstract descriptor
-  		if (abs.getAbsType() != AbsObject.ABS_AGGREGATE) {
-  			throw new OntologyException(abs+" is not an AbsAggregate");
-  		}
-  		
-  		// Validate the elements in the aggregate against their schemas.
-  		// Note that there is no need to check that these schemas are
-  		// compliant with TermSchema.getBaseSchema() because the
-  		// AbsAggregate class already forces that.
-  		AbsAggregate agg = (AbsAggregate) abs;
-  		Iterator it = agg.iterator();
-  		while (it.hasNext()) {
-  			AbsTerm el = (AbsTerm) it.next();
-  			ObjectSchema s = onto.getSchema(el.getTypeName());
-  			s.validate(el, onto);
-  		}
-  	}
-  	
-  	/**
+	 */
+	public void validate(AbsObject abs, Ontology onto) throws OntologyException {
+		// Check the type of the abstract descriptor
+		if (abs.getAbsType() != AbsObject.ABS_AGGREGATE) {
+			throw new OntologyException(abs+" is not an AbsAggregate");
+		}
+
+		// Validate the elements in the aggregate against their schemas.
+		// Note that there is no need to check that these schemas are
+		// compliant with TermSchema.getBaseSchema() because the
+		// AbsAggregate class already forces that.
+		AbsAggregate agg = (AbsAggregate) abs;
+		Iterator it = agg.iterator();
+		while (it.hasNext()) {
+			AbsTerm el = (AbsTerm) it.next();
+			ObjectSchema s = onto.getSchema(el.getTypeName());
+			s.validate(el, onto);
+		}
+	}
+
+	/**
   	   Return true if 
   	   - s is the base schema for the XXXSchema class this schema is
   	     an instance of (e.g. s is ConceptSchema.getBaseSchema() and this 
@@ -105,41 +125,42 @@ public class AggregateSchema extends TermSchema {
   	   - s is the base schema for a super-class of the XXXSchema class
   	     this schema is an instance of (e.g. s is TermSchema.getBaseSchema()
   	     and this schema is an instance of ConceptSchema)
-  	 */
-  	protected boolean descendsFrom(ObjectSchema s) {
-  		if (s != null) {
-  			if (s.equals(getBaseSchema())) {
-	  			return true;
-  			}
-  			return super.descendsFrom(s);
-  		}
-  		else {
-  			return false;
-  		}
-  	}
-  	
-  	/**
+	 */
+	protected boolean descendsFrom(ObjectSchema s) {
+		if (s != null) {
+			if (s.equals(getBaseSchema())) {
+				return true;
+			}
+			return super.descendsFrom(s);
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
   	   The difference between types of aggregates (such as SET and 
   	   SEQUENCE) is quite fuzy. Therefore we don't throw a validation
   	   exception if a SET is found where a SEQUENCE is expected and VV.
-  	 */
-    public boolean equals(Object o) {
-    	if (o != null) {
-	    	return (o instanceof AggregateSchema);
-    	}
-    	else {
-    		return false;
-    	}
-    }
-    
-	@Override
+	 */
+	public boolean equals(Object o) {
+		if (o != null) {
+			return (o instanceof AggregateSchema);
+		}
+		else {
+			return false;
+		}
+	}
+
+	// Propagate the assignability check to the aggregate elements schemas
 	public boolean isAssignableFrom(ObjectSchema s) {
 		if (s != null &&
 			s instanceof AggregateSchema &&
 			s.getTypeName().equals(getTypeName())) {
-			return true;
+			
+			return getElementsSchema().isAssignableFrom(((AggregateSchema)s).getElementsSchema());
 		}
 		return false;
 	}
-    
+
 }

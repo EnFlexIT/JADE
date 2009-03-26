@@ -105,17 +105,13 @@ public class PrimitiveSchema extends TermSchema {
   		}
   	}
   	
-	@Override
 	public boolean isAssignableFrom(ObjectSchema s) {
 		if (s != null &&
 			s instanceof PrimitiveSchema) {
 
 			String srcTypeName = s.getTypeName();
 			String destTypeName = getTypeName();
-			if (destTypeName.equals(srcTypeName) ||
-				(srcTypeName.equals(BasicOntology.STRING) && destTypeName.equals(BasicOntology.INTEGER)) ||
-				(srcTypeName.equals(BasicOntology.STRING) && destTypeName.equals(BasicOntology.FLOAT)) ||
-				(srcTypeName.equals(BasicOntology.INTEGER) && destTypeName.equals(BasicOntology.FLOAT))) {
+			if (destTypeName.equals(srcTypeName)) {
 				return true;
 			}
 		}

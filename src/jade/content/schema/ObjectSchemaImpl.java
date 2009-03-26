@@ -162,14 +162,24 @@ class ObjectSchemaImpl extends ObjectSchema {
 	protected void add(String name, ObjectSchema elementsSchema, int cardMin, int cardMax, String aggType) {
 		int optionality = (cardMin == 0 ? OPTIONAL : MANDATORY);
 		try {
-			// Get aggregate schema
+			// If the aggregate type is not yet present in the BasicOntology, add it (without elements type specification)
 			ObjectSchema aggTypeSchema = BasicOntology.getInstance().getSchema(aggType);
 			if (aggTypeSchema == null) {
 				// Create a new aggregate schema and add it to BasicOntology
 				aggTypeSchema = new AggregateSchema(aggType);
 				BasicOntology.getInstance().add(aggTypeSchema);
 			}
-			add(name, aggTypeSchema, optionality);
+			
+			// If elements are typed, we need an ad-hoc schema to hold the elements type specification
+			ObjectSchema schema = null;
+			if (elementsSchema != null) {
+				schema = new AggregateSchema(aggType, (TermSchema) elementsSchema);
+			}
+			else {
+				schema = aggTypeSchema;
+			}
+			
+			add(name, schema, optionality);
 			// Add proper facets
 			addFacet(name, new TypedAggregateFacet(elementsSchema));
 			addFacet(name, new CardinalityFacet(cardMin, cardMax));
@@ -617,14 +627,27 @@ class ObjectSchemaImpl extends ObjectSchema {
 		return dsc;
 	}
 
-	@Override
 	public boolean isAssignableFrom(ObjectSchema s) {
+		// This = destination schema
+		// s = source schema
+		
+		// Type names must be equals or 
+		// the source schema must have a super-schema with the same type name of the destination type name 
+		// e.g. 
+		// - source schema = LivingBeing
+		// - destination = Person and Person has a super-schema called LivingBeing 
+		if (!s.isCompatibleWith(this)) {
+			return false;
+		}
+		
 		try {
+			// All slots of the destination schema that are present in the source schema too must be assignable.
+			// Slots of the destination schema not present in the source schema must be OPTIONAL. 
 			ObjectSchema destSchema;
 			ObjectSchema srcSchema;
 			String[] destSlotNames = getNames();
-			for (String destSlotName : destSlotNames) {
-				
+			for (int i = 0; i < destSlotNames.length; i++) {
+				String destSlotName = destSlotNames[i];
 				destSchema = getSchema(destSlotName);
 				
 				try {
@@ -641,6 +664,19 @@ class ObjectSchemaImpl extends ObjectSchema {
 					}
 				}
 			}
+			
+			// All slots of the source schema must be present in the destination schema too.
+			String[] srcSlotNames = s.getNames();
+			for (int i = 0; i < srcSlotNames.length; i++) {
+				String srcSlotName = srcSlotNames[i];
+				
+				try {
+					getSchema(srcSlotName);
+				} catch(OntologyException e) {
+					return false;
+				}
+			}
+			
 			return true;
 			
 		} catch (OntologyException e) {
