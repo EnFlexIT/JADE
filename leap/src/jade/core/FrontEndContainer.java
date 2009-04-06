@@ -42,7 +42,7 @@ import java.util.Enumeration;
  @author Jerome Picault - Motorola Labs
  */
 
-class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
+class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {	
 	Logger logger = Logger.getMyLogger(this.getClass().getName());
 	
 	// The table of local agents
@@ -110,6 +110,24 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			e1.printStackTrace();
 		}
 		
+		// Install services if any
+		String feServices = configProperties.getProperty(MicroRuntime.SERVICES_KEY);
+		String beServices = null;
+		Vector svcClasses = Specifier.parseList(feServices, ';');
+		for (Enumeration en=svcClasses.elements(); en.hasMoreElements(); ) {
+			String serviceClassName = (String) en.nextElement();
+			try {
+				FEService svc = (FEService) Class.forName(serviceClassName).newInstance();
+				localServices.put(svc.getName(), svc);
+				beServices = (beServices != null ? beServices+';'+svc.getBEServiceClassName() : svc.getBEServiceClassName());
+			}
+			catch (Throwable t) {
+				logger.log(Logger.SEVERE, "Exception creating service "+t);
+			}
+		}
+		// Store the list of services to be loaded on the back-end
+		configProperties.setProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY, beServices);
+		
 		// Connect to the BackEnd
 		try {
 			myBackEnd = new BackEndWrapper(this, configProperties);
@@ -128,31 +146,16 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			return;
 		}
 		
-		// Install services if any
-		String services = configProperties.getProperty(MicroRuntime.SERVICES_KEY);
-		try {
-			Vector svcClasses = Specifier.parseList(services, ';');
-			for (Enumeration en=svcClasses.elements(); en.hasMoreElements(); ) {
-				try {
-					FEService svc = (FEService) Class.forName((String) en.nextElement()).newInstance();
-					svc.init(myBackEnd);
-					localServices.put(svc.getName(), svc);
-				}
-				catch (Throwable t) {
-					logger.log(Logger.SEVERE, "Exception creating service "+t);
-				}
-			}
-		}
-		catch(Exception e1){
-			configProperties.setProperty(MicroRuntime.SERVICES_KEY, null);
-			logger.log(Logger.SEVERE, "Exception parsing service specifiers "+e1);
-			e1.printStackTrace();
+		// Connect installed services with the BackEnd
+		for (Enumeration en=localServices.elements(); en.hasMoreElements(); ) {
+			FEService svc = (FEService) en.nextElement();
+			svc.init(myBackEnd);
 		}
 			
 		// Start all agents that have been successfully accepted by the main.
 		// NOTE that after the BackEnd creation, each agent-specifier takes the form
 		// <original-name>:<str1>[(str2)] 
-		// where if str2 is NOT present --> the agent was accepted by  the main
+		// where if str2 is NOT present --> the agent was accepted by the main
 		// and str1 represents the actual agent name (with wild cards, if any, properly 
 		// replaced), else there was an exception and str1 is the exception class name 
 		// and str2 is the exception message.

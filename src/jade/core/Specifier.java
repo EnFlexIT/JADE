@@ -40,100 +40,100 @@ import java.util.Vector;
 public class Specifier {
 	public static final char SPECIFIER_SEPARATOR = ';';
 	public static final String NULL_SPECIFIER_LIST = "null";
-	
-    private String   name = null;
-    private String   className = null;
-    private Object[] args = null;
 
-    /**
+	private String   name = null;
+	private String   className = null;
+	private Object[] args = null;
+
+	/**
        Set the name for this specifier object.
        @param n The name to give to this specifier.
-     */
-    public void setName(String n) {
-        name = n;
-    } 
+	 */
+	public void setName(String n) {
+		name = n;
+	} 
 
-    /**
+	/**
        Retrieve the name for this specifier object.
        @return The name of the specifier, if one was set, or
        <code>null</code> otherwise.
-     */
-    public String getName() {
-        return name;
-    } 
+	 */
+	public String getName() {
+		return name;
+	} 
 
-    /**
+	/**
        Set the name of the class of this specifier.
        @param cn The class name to assign to the specifier object.
-     */
-    public void setClassName(String cn) {
-        className = cn;
-    } 
+	 */
+	public void setClassName(String cn) {
+		className = cn;
+	} 
 
-    /**
+	/**
        Retrieve the class name of this specifier.
        @return The class name of the specifier, if one was set, or
        <code>null</code> otherwise.
-     */
-    public String getClassName() {
-        return className;
-    } 
+	 */
+	public String getClassName() {
+		return className;
+	} 
 
-    /**
+	/**
        Set the argument list for this specifier object.
        @param a An object array containing the argument list for this
        specifier.
-     */
-    public void setArgs(Object[] a) {
-        args = a;
-    } 
+	 */
+	public void setArgs(Object[] a) {
+		args = a;
+	} 
 
-    /**
+	/**
        Retrieve the argument list for this specifier.
        @return An object array containing the argument list, if one
        was set, or <code>null</code> otherwise.
-     */
-    public Object[] getArgs() {
-        return args;
-    } 
+	 */
+	public Object[] getArgs() {
+		return args;
+	} 
 
-    /**
-     * This method is used by Boot, ProfileImpl, and RMA in order
-     * to have a String representation of this Specifier according to the
-     * format <code>name:className(arg1 arg2 argn)</code>
-     *
-     * @return A string representation of this specifier, according to
-     * the format above.
-     **/
-    public String toString() {
-	// TAKE CARE: do not change this method otherwise Boot might fail
-	StringBuffer tmp = new StringBuffer();
-	if (name != null) {
-	    tmp.append(name);
-	    tmp.append(":");
-	}
-	if (className != null) {
-	    tmp.append(className);
-	}
-	if (args != null) {
-		tmp.append("(");
-		for (int i=0; i<args.length; i++) {
-			tmp.append(args[i]);
-			if (i<args.length-1) {
-				//#ALL_EXCLUDE_BEGIN
-				tmp.append(" ");
-				//#ALL_EXCLUDE_END
-				/*#ALL_INCLUDE_BEGIN
-				tmp.append(",");
-				//#ALL_INCLUDE_END*/
-			}
+	/**
+	 * This method is used by Boot, ProfileImpl, and RMA in order
+	 * to have a String representation of this Specifier according to the
+	 * format <code>name:className(arg1 arg2 argn)</code>
+	 *
+	 * @return A string representation of this specifier, according to
+	 * the format above.
+	 **/
+	public String toString() {
+		// TAKE CARE: do not change this method otherwise Boot might fail
+		StringBuffer tmp = new StringBuffer();
+		if (name != null) {
+			tmp.append(name);
+			tmp.append(":");
 		}
-		tmp.append(")");
+		if (className != null) {
+			tmp.append(className);
+		}
+		if (args != null) {
+			tmp.append("(");
+			for (int i=0; i<args.length; i++) {
+				tmp.append(args[i]);
+				if (i<args.length-1) {
+					//#ALL_EXCLUDE_BEGIN
+					tmp.append(" ");
+					//#ALL_EXCLUDE_END
+					/*#ALL_INCLUDE_BEGIN
+					tmp.append(",");
+					//#ALL_INCLUDE_END*/
+				}
+			}
+			tmp.append(")");
+		}
+		return tmp.toString();
 	}
-	return tmp.toString();
-    }
 
-  /**
+	/**
      This static utility method can parse the string representation of
      a list of specifiers. The general format of a specifier is used,
      with a comma as argument separator, i.e.:
@@ -145,162 +145,166 @@ public class Specifier {
      @param specsLine The string containing the representation of the
      specifier list, according to the format above.
      @return A vector containing the parsed specifiers.
-   */
-  public static Vector parseSpecifierList(String specsLine) throws Exception {
-  	Vector specs = parseList(specsLine, SPECIFIER_SEPARATOR);
-  	for (int i = 0; i < specs.size(); ++i) {
-  		String s = (String) specs.elementAt(i);
-  		if (s.length() > 0) {
-  			specs.setElementAt(parseSpecifier(s, ','), i);
-  		}
-  		else {
-  			specs.removeElementAt(i--);
-  		}
-  	}
-  	return specs;
-  } 
-  
-  /**
-   * This static utility method produces a string representation of a list of Specifier objects.
-   */
-  public static String encodeSpecifierList(Vector v){
-  	StringBuffer sb = new StringBuffer();
-  	Enumeration elements = v.elements();
-  	while(elements.hasMoreElements()){
-  		sb.append(elements.nextElement());
-  		if(elements.hasMoreElements()){
-  			sb.append(SPECIFIER_SEPARATOR);
-  		}
-  	}
-  	return sb.toString();
-  }
+	 */
+	public static Vector parseSpecifierList(String specsLine) throws Exception {
+		Vector specs = parseList(specsLine, SPECIFIER_SEPARATOR);
+		for (int i = 0; i < specs.size(); ++i) {
+			String s = (String) specs.elementAt(i);
+			if (s.length() > 0) {
+				specs.setElementAt(parseSpecifier(s, ','), i);
+			}
+			else {
+				specs.removeElementAt(i--);
+			}
+		}
+		return specs;
+	} 
 
-  public static final Vector parseList(String list, char delimiter) {
-    Vector v = new Vector();
-    
-    if (list != null && !list.equals("") && !list.equals(NULL_SPECIFIER_LIST)) {
-	    // Copy the string with the specifiers into an array of char
-  	  char[] specsChars = new char[list.length()];
+	/**
+	 * This static utility method produces a string representation of a list of Specifier objects.
+	 */
+	public static String encodeSpecifierList(Vector v){
+		return encodeList(v, SPECIFIER_SEPARATOR);
+	}
 
-    	list.getChars(0, list.length(), specsChars, 0);
+	public static final Vector parseList(String list, char delimiter) {
+		Vector v = new Vector();
 
-    	// Create the StringBuffer to hold the first element
-    	StringBuffer sbElement = new StringBuffer();
-    	int          i = 0;
+		if (list != null && !list.equals("") && !list.equals(NULL_SPECIFIER_LIST)) {
+			// Copy the string with the specifiers into an array of char
+			char[] specsChars = new char[list.length()];
 
-    	while (i < specsChars.length) {
-      	char c = specsChars[i];
+			list.getChars(0, list.length(), specsChars, 0);
 
-      	if (c != delimiter) {
-        	sbElement.append(c);
-      	} 
-      	else {
-        	// The element is terminated.
-      		v.addElement(sbElement.toString().trim());
-        	// Create the StringBuffer to hold the next element
-        	sbElement = new StringBuffer();
-      	} 
-      	++i;
-    	} 
+			// Create the StringBuffer to hold the first element
+			StringBuffer sbElement = new StringBuffer();
+			int          i = 0;
 
-    	// Append the last element
-  		v.addElement(sbElement.toString().trim());
-    }
-  	return v;
-  }
-  
-  /**
-   * Utility method that parses a stringified object specifier in the form
-   * <p><code>name<b>:</b>className<b>(</b><i>separated arglist</i><b>)</b></code></p>
-   * a Specifier object.
-   * Both the name and the list of arguments are optional.
-   * 
-   * @param specString A string containing the representation of the
-   * specifier, according to the format above.
-   * @param argsDelimiter The character to use as a delimiter within the argument list.
-   * @return A specifier object, built according to the parsed information.
-   */
-  public static Specifier parseSpecifier(String specString, char argsDelimiter) throws Exception {
-    Specifier s = new Specifier();
+			while (i < specsChars.length) {
+				char c = specsChars[i];
 
-    // NAME
-    int       index1 = specString.indexOf(':');
-    int       index2 = specString.indexOf('(');
+				if (c != delimiter) {
+					sbElement.append(c);
+				} 
+				else {
+					// The element is terminated.
+					v.addElement(sbElement.toString().trim());
+					// Create the StringBuffer to hold the next element
+					sbElement = new StringBuffer();
+				} 
+				++i;
+			} 
 
-    if (index2 < 0) {
-      index2 = 99999;
-    } 
+			// Append the last element
+			v.addElement(sbElement.toString().trim());
+		}
+		return v;
+	}
 
-    if (index1 > 0 && index1 < index2) {
+	public static String encodeList(Vector v, char delimiter){
+		StringBuffer sb = new StringBuffer();
+		Enumeration elements = v.elements();
+		while(elements.hasMoreElements()){
+			sb.append(elements.nextElement());
+			if(elements.hasMoreElements()){
+				sb.append(delimiter);
+			}
+		}
+		return sb.toString();
+	}
 
-      // The name exists, colon exists, and is followed by the class name
-      s.setName(specString.substring(0, index1));
+	/**
+	 * Utility method that parses a stringified object specifier in the form
+	 * <p><code>name<b>:</b>className<b>(</b><i>separated arglist</i><b>)</b></code></p>
+	 * a Specifier object.
+	 * Both the name and the list of arguments are optional.
+	 * 
+	 * @param specString A string containing the representation of the
+	 * specifier, according to the format above.
+	 * @param argsDelimiter The character to use as a delimiter within the argument list.
+	 * @return A specifier object, built according to the parsed information.
+	 */
+	public static Specifier parseSpecifier(String specString, char argsDelimiter) throws Exception {
+		Specifier s = new Specifier();
 
-      // Skip colon
-      index1++;
-    } 
-    else {
+		// NAME
+		int       index1 = specString.indexOf(':');
+		int       index2 = specString.indexOf('(');
 
-      // No name specified
-      index1 = 0;
-    } 
+		if (index2 < 0) {
+			index2 = 99999;
+		} 
 
-    // CLASS
-    index2 = specString.indexOf('(', index1);
+		if (index1 > 0 && index1 < index2) {
 
-    if (index2 < 0) {
+			// The name exists, colon exists, and is followed by the class name
+			s.setName(specString.substring(0, index1));
 
-      // No arguments --> just add the class name
-      s.setClassName(specString.substring(index1));
-    } 
-    else {
+			// Skip colon
+			index1++;
+		} 
+		else {
 
-      // There are arguments --> add the class name and then parse the args
-      s.setClassName(specString.substring(index1, index2));
+			// No name specified
+			index1 = 0;
+		} 
 
-      // ARGUMENTS
-      if (!specString.endsWith(")")) {
-        throw new Exception("Incorrect specifier \""+specString+"\". Missing final parenthesis");
-      } 
+		// CLASS
+		index2 = specString.indexOf('(', index1);
 
-      // Get everything is in between '(' and ')'
-      String args = specString.substring(index2+1, specString.length()-1);
+		if (index2 < 0) {
 
-      s.setArgs(parseArguments(args, argsDelimiter));
-    } 
+			// No arguments --> just add the class name
+			s.setClassName(specString.substring(index1));
+		} 
+		else {
 
-    return s;
-  } 
+			// There are arguments --> add the class name and then parse the args
+			s.setClassName(specString.substring(index1, index2));
 
-  /**
-   */
-  private static String[] parseArguments(String args, char argsDelimiter) {
-    Vector argList = new Vector();
-    int  argStart = 0;
-    int  argEnd = args.indexOf(argsDelimiter);
+			// ARGUMENTS
+			if (!specString.endsWith(")")) {
+				throw new Exception("Incorrect specifier \""+specString+"\". Missing final parenthesis");
+			} 
 
-    while (argEnd >= 0) {
-      String arg = args.substring(argStart, argEnd);
+			// Get everything is in between '(' and ')'
+			String args = specString.substring(index2+1, specString.length()-1);
 
-      argList.addElement(arg.trim());
+			s.setArgs(parseArguments(args, argsDelimiter));
+		} 
 
-      argStart = argEnd+1;
-      argEnd = args.indexOf(argsDelimiter, argStart);
-    } 
+		return s;
+	} 
 
-    // Last argument
-    String arg = args.substring(argStart, args.length());
+	/**
+	 */
+	private static String[] parseArguments(String args, char argsDelimiter) {
+		Vector argList = new Vector();
+		int  argStart = 0;
+		int  argEnd = args.indexOf(argsDelimiter);
 
-    argList.addElement(arg.trim());
+		while (argEnd >= 0) {
+			String arg = args.substring(argStart, argEnd);
 
-    // Convert the List into an Array
-    String arguments[] = new String[argList.size()];
-    int    i = 0;
+			argList.addElement(arg.trim());
 
-    for (Enumeration e = argList.elements(); e.hasMoreElements(); arguments[i++] = (String) e.nextElement());
+			argStart = argEnd+1;
+			argEnd = args.indexOf(argsDelimiter, argStart);
+		} 
 
-    return arguments;
-  } 
+		// Last argument
+		String arg = args.substring(argStart, args.length());
+
+		argList.addElement(arg.trim());
+
+		// Convert the List into an Array
+		String arguments[] = new String[argList.size()];
+		int    i = 0;
+
+		for (Enumeration e = argList.elements(); e.hasMoreElements(); arguments[i++] = (String) e.nextElement());
+
+		return arguments;
+	} 
 
 
 }

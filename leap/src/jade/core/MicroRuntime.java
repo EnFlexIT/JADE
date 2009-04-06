@@ -73,6 +73,7 @@ public class MicroRuntime {
 	public static final String CONTAINER_NAME_KEY = "container-name";
 	public static final String PLATFORM_KEY = "platform-id";
 	public static final String PLATFORM_ADDRESSES_KEY = "addresses";
+	public static final String BE_REQUIRED_SERVICES_KEY = "be-required-services";
 
 	public static final String JVM_KEY = "jvm";
 

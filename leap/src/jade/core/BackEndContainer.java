@@ -97,6 +97,20 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 		if (pp.getProperty(Profile.SERVICES) == null) {
 			pp.setProperty(Profile.SERVICES, "jade.core.event.NotificationService");
 		}
+		
+		// Merge back-end and front-end services
+		String feServices = pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY);
+		if (feServices != null) {
+			Vector ss = Specifier.parseList(pp.getProperty(Profile.SERVICES), ';');
+			Vector fess = Specifier.parseList(feServices, ';');
+			for (int i = 0; i < fess.size(); ++i) {
+				String s = (String) fess.get(i);
+				if (!ss.contains(s)) {
+					ss.add(s);
+				}
+			}
+			pp.setProperty(Profile.SERVICES, Specifier.encodeList(ss, Specifier.SPECIFIER_SEPARATOR));
+		}
 		return pp;
 	}
 	

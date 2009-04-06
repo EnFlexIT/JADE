@@ -150,7 +150,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 			}
 		}
 		if (r.getParamCnt() > 0) {
-			return (String) r.getParamAt(0);
+			return r.getParamAt(0);
 		}
 		else {
 			return null;
@@ -192,6 +192,7 @@ public class BackEndStub extends MicroStub implements BackEnd {
 		appendProp(sb, FrontEnd.REMOTE_BACK_END_ADDRESSES, pp.getProperty(FrontEnd.REMOTE_BACK_END_ADDRESSES));
 		appendProp(sb, JICPProtocol.OWNER_KEY, pp.getProperty(JICPProtocol.OWNER_KEY));
 		appendProp(sb, MicroRuntime.AGENTS_KEY, pp.getProperty(MicroRuntime.AGENTS_KEY));
+		appendProp(sb, MicroRuntime.BE_REQUIRED_SERVICES_KEY, pp.getProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY));
 		appendProp(sb, JICPProtocol.KEEP_ALIVE_TIME_KEY, pp.getProperty(JICPProtocol.KEEP_ALIVE_TIME_KEY));
 		appendProp(sb, MicroRuntime.PLATFORM_KEY, pp.getProperty(MicroRuntime.PLATFORM_KEY));
 		appendProp(sb, JICPProtocol.MSISDN_KEY, pp.getProperty(JICPProtocol.MSISDN_KEY));
