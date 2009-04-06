@@ -25,14 +25,21 @@ ant dist - to create the distribution files
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
+
     <!-- Create the directory structure -->
     <mkdir dir="${doc}"/>
     <mkdir dir="${lib}"/>
     <mkdir dir="${build}"/>
-    <condition property="javacc.home.is.set">
-      <not>
-        <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
-      </not>
+
+    <!-- Initialize properties that will be used to decide whether or not to activate optional targets -->
+    <!-- NOTE that the '$' character is used to escape special characters. Therefore $${xxx} becomes ${xxx} and is equals to ${xxx} only if xxx is NOT a property -->
+    <condition property="makeParsers">
+      <and>
+        <equals arg1="${rebuildParsers}" arg2="true"/>
+        <not>
+          <equals arg1="${env.JAVACC_HOME}" arg2="$${env.JAVACC_HOME}"/>
+        </not>
+      </and>
     </condition>
     <condition property="jess.home.is.set">
       <not>
@@ -49,8 +56,9 @@ ant dist - to create the distribution files
         <equals arg1="${tagThisVersion}" arg2="true"/>
     </condition>
   </target>
-  <target name="check_javacc" unless="javacc.home.is.set">
-    <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
+
+  <target name="check_javacc" unless="makeParsers">
+    <echo>javacc task is being skipped and the pre-built parsers will be used. If you want to rebuild the parsers, set the rebuildParsers property to true in the build.properties file and set the JAVACC_HOME environment variable to the home directory where your javacc program has been installed.</echo>
   </target>
   <target name="check_jess" unless="jess.home.is.set">
     <echo>jess task is being skipped. If you want to compile the examples based on JESS, set the environment variable JESS_HOME to the home directory where your jess program has been installed.</echo>
@@ -115,13 +123,13 @@ ant dist - to create the distribution files
                               parser
          _______________________________________________ -->
   <target name="parser" depends="init, check_javacc, MakeACLParser, MakeSLParser, MakeExtendedSLParser" description="generate parser with javacc"/>
-  <target name="MakeACLParser" depends="init, check_javacc" if="javacc.home.is.set">
+  <target name="MakeACLParser" depends="init, check_javacc" if="makeParsers">
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/lang/acl" target="src/jade/lang/acl/ACLParser.jj"/>
   </target>
-  <target name="MakeSLParser" depends="init, check_javacc" if="javacc.home.is.set">
+  <target name="MakeSLParser" depends="init, check_javacc" if="makeParsers">
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/SLParser.jj"/>
   </target>
-  <target name="MakeExtendedSLParser" depends="init, check_javacc" if="javacc.home.is.set">
+  <target name="MakeExtendedSLParser" depends="init, check_javacc" if="makeParsers">
     <javacc javacchome="${env.JAVACC_HOME}" outputdirectory="src/jade/content/lang/sl" target="src/jade/content/lang/sl/ExtendedSLParser.jj"/>
   </target>
 
@@ -224,12 +232,9 @@ ant dist - to create the distribution files
                                dist
          _______________________________________________ -->
   <!-- Make distribution zip file and put in ${dist} -->
-  <target name="dist" depends="reminder_javadoc,check_javacc_dist,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
+  <target name="dist" depends="reminder_javadoc,check_javacc,dist_src,dist_examples,dist_doc,dist_bin,dist_all"/>
   <target name="reminder_javadoc">
     <echo>REMINDER!!!!! The javadoc documentation for user should be generated through the ANT target apidoc of the leap distribution. That target filters out irrelevant files and packages.</echo>
-  </target>
-  <target name="check_javacc_dist" unless="javacc.home.is.set">
-    <echo>javacc task is being skipped and THE DISTRIBUTION FILES MIGHT NOT BE PROPERLY GENERATED. If you want to rebuild the parsers, set the environment variable JAVACC_HOME to the home directory where your javacc program has been installed.</echo>
   </target>
   <target name="dist_src" depends="init,parser">
     <jar jarfile="${dist}/JADE-src-${version}.zip">
