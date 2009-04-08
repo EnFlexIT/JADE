@@ -58,7 +58,7 @@ class AgentControllerImpl implements AgentController {
 	}
 
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#getName()
 	 */
 	public String getName() throws StaleProxyException {
@@ -71,7 +71,7 @@ class AgentControllerImpl implements AgentController {
 		return agentID.getName();
 	}       
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#start()
 	 */
 	public void start() throws StaleProxyException {
@@ -83,7 +83,7 @@ class AgentControllerImpl implements AgentController {
 		}  		
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#suspend()
 	 */
 	public void suspend() throws StaleProxyException {
@@ -93,15 +93,9 @@ class AgentControllerImpl implements AgentController {
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
 		}
-		/*jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
-    if (adaptee == null) {
-    	throw new StaleProxyException("Controlled agent does not exist");
-    }
-    adaptee.doSuspend();    
-    myContainer.releaseLocalAgent(agentID);*/
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#activate()
 	 */
 	public void activate() throws StaleProxyException {
@@ -111,15 +105,9 @@ class AgentControllerImpl implements AgentController {
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
 		}
-		/*jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
-    if (adaptee == null) {
-    	throw new StaleProxyException("Controlled agent does not exist");
-    }
-    adaptee.doActivate();
-    myContainer.releaseLocalAgent(agentID);*/
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#kill()
 	 */
 	public void kill() throws StaleProxyException {
@@ -129,15 +117,9 @@ class AgentControllerImpl implements AgentController {
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
 		}
-		/*jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
-    if (adaptee == null) {
-    	throw new StaleProxyException("Controlled agent does not exist");
-    }
-    adaptee.doDelete();
-    myContainer.releaseLocalAgent(agentID);*/
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#move(jade.core.Location)
 	 */
 	public void move(Location where) throws StaleProxyException {
@@ -147,16 +129,10 @@ class AgentControllerImpl implements AgentController {
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
 		}
-		/*jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
-    if (adaptee == null) {
-    	throw new StaleProxyException("Controlled agent does not exist");
-    }
-	  adaptee.doMove(where);
-    myContainer.releaseLocalAgent(agentID);*/
 	}
 
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#clone(jade.core.Location, java.lang.String)
 	 */
 	public void clone(Location where, String newName) throws StaleProxyException {
@@ -166,15 +142,9 @@ class AgentControllerImpl implements AgentController {
 		catch (Throwable t) {
 			throw new StaleProxyException(t);
 		}
-		/*jade.core.Agent adaptee = myContainer.acquireLocalAgent(agentID);
-    if (adaptee == null) {
-    	throw new StaleProxyException("Controlled agent does not exist");
-    }
-	  adaptee.doClone(where, newName);
-    myContainer.releaseLocalAgent(agentID);*/
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#putO2AObject(java.lang.Object, boolean)
 	 */
 	public void putO2AObject(Object o, boolean blocking) throws StaleProxyException {
@@ -190,7 +160,7 @@ class AgentControllerImpl implements AgentController {
 		myContainer.releaseLocalAgent(agentID);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see jade.wrapper.AgentController#getState()
 	 */
 	public State getState() throws StaleProxyException {

@@ -104,8 +104,7 @@ public class OutgoingEncodingFilter extends Filter {
 			} 
 			else {
 				// add necessary fields to the envelope
-				prepareEnvelope(msg, receiver, gmsg);
-				
+				prepareEnvelope(msg, receiver, gmsg);			
 			}
 			
 			// Encode the message using the specified encoding
