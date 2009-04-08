@@ -487,10 +487,6 @@ public class Agent implements Runnable, Serializable
 
 	private transient AssociationTB pendingTimers;
 
-	// Free running counter that increments by one for each message
-	// received.
-	private int messageCounter = 0 ;
-
 	private boolean restarting = false;
 
 	private LifeCycle myLifeCycle;
@@ -2112,7 +2108,6 @@ public class Agent implements Runnable, Serializable
 				//#MIDP_EXCLUDE_END
 				msgQueue.addLast(msg);
 				doWake();
-				messageCounter++;
 			}
 		}
 	}
