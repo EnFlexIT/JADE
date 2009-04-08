@@ -267,7 +267,7 @@ public class ThreadedBehaviourFactory {
 		 */
 		protected void setParent(CompositeBehaviour parent) {
 			super.setParent(parent);
-			myBehaviour.setThreadedParent(parent);
+			myBehaviour.setWrappedParent(parent);
 		}
 		
 		public void setDataStore(DataStore ds) {

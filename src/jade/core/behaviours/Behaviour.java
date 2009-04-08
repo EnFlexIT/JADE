@@ -192,25 +192,28 @@ public abstract class Behaviour implements Serializable {
 		if (parent != null) {
 			myAgent = parent.myAgent;
 		}
-		threadedParent = null;
+		wrappedParent = null;
 	}
 	
-	void setThreadedParent(CompositeBehaviour cb) {
-		threadedParent = cb;
+	void setWrappedParent(CompositeBehaviour cb) {
+		wrappedParent = cb;
 	}
 	
-	private CompositeBehaviour threadedParent;
+	private CompositeBehaviour wrappedParent;
 	//#APIDOC_EXCLUDE_BEGIN
 	protected CompositeBehaviour parent;
 	//#APIDOC_EXCLUDE_END
 	
 	/**
-	 @return The enclosing Behaviour (if present).
+	 * Retrieve the enclosing CompositeBehaviour (if present). In order to access the parent behaviour 
+	 * it is strongly suggested to use this method rather than the <core>parent</code> member variable
+	 * directly. In case of threaded or wrapped behaviour in facts the latter may have unexpected values. 
+	 @return The enclosing CompositeBehaviour (if present).
 	 @see jade.core.behaviours.CompositeBehaviour
 	 */
 	protected CompositeBehaviour getParent() {
-		if (threadedParent != null) {
-			return threadedParent;
+		if (wrappedParent != null) {
+			return wrappedParent;
 		}
 		else {
 			return parent;
