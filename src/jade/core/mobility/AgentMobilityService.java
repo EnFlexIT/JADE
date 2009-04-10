@@ -974,7 +974,6 @@ public class AgentMobilityService extends BaseService {
 				myLogger.log(Logger.FINE, "Fetching class " + className);
 			
 			String fileName = className.replace('.', '/') + ".class";
-			int length = -1;
 			InputStream classStream = getClass().getClassLoader().getResourceAsStream(fileName);
 			if (classStream == null) {
 				// This is likely redundant, but...
@@ -986,61 +985,16 @@ public class AgentMobilityService extends BaseService {
 				if (myLogger.isLoggable(Logger.FINER))
 					myLogger.log(Logger.FINER, "Class not found as a system resource. Try manually");
 
-				String currentCp = System.getProperty("java.class.path");
-				StringTokenizer st = new StringTokenizer(currentCp, File.pathSeparator);
-				while (st.hasMoreTokens()) {
-					try {
-						String path = st.nextToken();
-						if (myLogger.isLoggable(Logger.FINER)) {
-							myLogger.log(Logger.FINER, "Searching in path " + path);
-						}
-						if (path.endsWith(".jar")) {
-							if (myLogger.isLoggable(Logger.FINER)) {
-								myLogger.log(Logger.FINER, "It's a jar file");
-							}
-
-							ClassInfo info = getClassStreamFromJar(fileName, path);
-							if (info != null) {
-								classStream = info.getClassStream();
-								length = info.getLength();
-								break;
-							}
-						} 
-						else {
-							if (myLogger.isLoggable(Logger.FINER)) {
-								myLogger.log(Logger.FINER, "Trying file " + path + "/" + fileName);
-							}
-							
-							File f = new File(path + "/" + fileName);
-							if (f.exists()) {
-								if (myLogger.isLoggable(Logger.FINER)) {
-									myLogger.log(Logger.FINER, "File exists");
-								}
-								classStream = new FileInputStream(f);
-								break;
-							}
-						}
-					} 
-					catch (Exception e) {
-						if (myLogger.isLoggable(Logger.WARNING)) {
-							myLogger.log(Logger.WARNING, e.toString());
-						}
-					}
-				}
+				classStream = manualGetResourceAsStream(fileName);
 			}
+			
 			//#J2ME_EXCLUDE_BEGIN
 			if (classStream == null && agentName != null) {
-				// Maybe the agent was loaded from a separate Jar file
+				// Maybe the class belongs to a separate Jar file --> Try with the CodeLocator
 				try {
 					AgentManagementService amSrv = (AgentManagementService) myFinder.findService(AgentManagementService.NAME);
 					ClassLoader cLoader = amSrv.getCodeLocator().getAgentClassLoader(new AID(agentName, AID.ISGUID));
-					InputStream is = cLoader.getResourceAsStream(fileName);
-
-					// We assign length -1 because in a generic InputStream
-					// the length is not known a priori.
-					ClassInfo info = new ClassInfo(is, -1);
-					classStream = info.getClassStream();
-					length = info.getLength();
+					classStream = cLoader.getResourceAsStream(fileName);
 				}
 				catch (NullPointerException npe) {
 					// No jarfile or class not found in jarfile. Ignore
@@ -1051,6 +1005,7 @@ public class AgentMobilityService extends BaseService {
 				}
 			}
 			//#J2ME_EXCLUDE_END
+			
 			if (classStream == null) {
 				if (myLogger.isLoggable(Logger.WARNING)) {
 					myLogger.log(Logger.WARNING, "Class " + className + " not found");
@@ -1059,17 +1014,11 @@ public class AgentMobilityService extends BaseService {
 			}
 			
 			try {
-				
-				// Length is used no more because we read until the end of the stream.
-				//if (length == -1) {
-				//	length = (int) classStream.available();
-				//}
-				
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				byte[] bytes = new byte[SIZE_JAR_BUFFER];
 				int read = 0;
 				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Class " + className + " fetched. Length is " + length);
+					myLogger.log(Logger.FINER, "Class " + className + " fetched");
 				}
 				
 				DataInputStream dis = new DataInputStream(classStream);
@@ -1084,6 +1033,51 @@ public class AgentMobilityService extends BaseService {
 			catch (IOException ioe) {
 				throw new ClassNotFoundException("IOException reading class bytes. " + ioe.getMessage());
 			}
+		}
+		
+		private InputStream manualGetResourceAsStream(String fileName) {
+			InputStream classStream = null;
+			String currentCp = System.getProperty("java.class.path");
+			StringTokenizer st = new StringTokenizer(currentCp, File.pathSeparator);
+			while (st.hasMoreTokens()) {
+				try {
+					String path = st.nextToken();
+					if (myLogger.isLoggable(Logger.FINER)) {
+						myLogger.log(Logger.FINER, "Searching in path " + path);
+					}
+					if (path.endsWith(".jar")) {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "It's a jar file");
+						}
+
+						ClassInfo info = getClassStreamFromJar(fileName, path);
+						if (info != null) {
+							classStream = info.getClassStream();
+							break;
+						}
+					} 
+					else {
+						if (myLogger.isLoggable(Logger.FINER)) {
+							myLogger.log(Logger.FINER, "Trying file " + path + "/" + fileName);
+						}
+						
+						File f = new File(path + "/" + fileName);
+						if (f.exists()) {
+							if (myLogger.isLoggable(Logger.FINER)) {
+								myLogger.log(Logger.FINER, "File exists");
+							}
+							classStream = new FileInputStream(f);
+							break;
+						}
+					}
+				} 
+				catch (Exception e) {
+					if (myLogger.isLoggable(Logger.WARNING)) {
+						myLogger.log(Logger.WARNING, e.toString());
+					}
+				}
+			}
+			return classStream;
 		}
 		
 		private ClassInfo getClassStreamFromJar(String classFileName, String jarName) throws IOException {

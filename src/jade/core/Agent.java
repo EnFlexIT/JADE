@@ -500,7 +500,7 @@ public class Agent implements Runnable, Serializable
 	/**
 	 This flag is used to distinguish the normal AP_ACTIVE state from
 	 the particular case in which the agent state is set to AP_ACTIVE
-	 during agent termination to allow it to deregister with the AMS. 
+	 during agent termination (takeDown()) to allow it to clean-up properly. 
 	 In this case in fact a call to <code>doDelete()</code>, 
 	 <code>doMove()</code>, <code>doClone()</code> and <code>doSuspend()</code>
 	 should have no effect.
@@ -508,16 +508,6 @@ public class Agent implements Runnable, Serializable
 	private boolean terminating = false;
 
 	//#MIDP_EXCLUDE_BEGIN
-	// For persistence service
-	private void setTerminating(boolean b) {
-		terminating = b;
-	}
-
-	// For persistence service
-	private boolean getTerminating() {
-		return terminating;
-	}
-
 	/** 
 	 When set to false (default) all behaviour-related events (such as ADDED_BEHAVIOUR
 	 or CHANGED_BEHAVIOUR_STATE) are not generated in order to improve performances.
@@ -614,20 +604,6 @@ public class Agent implements Runnable, Serializable
 	Agent(AID id) {
 		setAID(id);
 	}
-
-	// For persistence service
-	private Long persistentID;
-
-	// For persistence service
-	private Long getPersistentID() {
-		return persistentID;
-	}
-
-	// For persistence service
-	private void setPersistentID(Long l) {
-		persistentID = l;
-	}
-
 
 	/** 
 	 * Declared transient because the container changes in case

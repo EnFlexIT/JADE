@@ -54,6 +54,7 @@ public interface AgentContainer {
 	String getPlatformID();
 	MainContainer getMain();
 	ServiceFinder getServiceFinder();
+	
 	//#APIDOC_EXCLUDE_BEGIN
 	ServiceManager getServiceManager();
 	NodeDescriptor getNodeDescriptor();
@@ -65,6 +66,7 @@ public interface AgentContainer {
 	Agent addLocalAgent(AID id, Agent a);
 	void removeLocalAgent(AID id);
 	//#APIDOC_EXCLUDE_END
+	
 	boolean isLocalAgent(AID id);
 	Agent acquireLocalAgent(AID id);
 	void releaseLocalAgent(AID id);

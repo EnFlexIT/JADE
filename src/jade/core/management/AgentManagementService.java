@@ -53,6 +53,9 @@ import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
 import jade.util.Logger;
+import jade.util.leap.ArrayList;
+import jade.util.leap.Iterator;
+import jade.util.leap.List;
 import jade.util.leap.Properties;
 
 //#J2ME_EXCLUDE_BEGIN
@@ -103,8 +106,34 @@ public class AgentManagementService extends BaseService {
 		myContainer = ac;
 		
 		//#J2ME_EXCLUDE_BEGIN
-		// Initialize the code locator
+		// Initialize agent-loaders and code locator
 		agentsPath = p.getParameter(AGENTS_PATH, ".");
+		addAgentLoader(new AgentLoader() {
+			public Agent loadAgent(String className, Properties pp) throws ClassNotFoundException, IllegalAccessException, InstantiationException { 
+				String jarName = pp.getProperty(CLASS_CODE);
+				boolean warnIfJarNotFound = true;
+				if (jarName == null) {
+					jarName = className.replace('.', '_') + ".jar";
+					warnIfJarNotFound = false;
+				}
+				jarName = agentsPath + File.separator + jarName;
+				File file = new File(jarName);
+				try {
+					if (file.exists()) {
+						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
+						return (Agent) Class.forName(className, true, loader).newInstance();
+					}
+					else if (warnIfJarNotFound) {
+						myLogger.log(Logger.WARNING, "Jar file "+jarName+" for class "+className+" does not exist");
+					}
+				}
+				catch (IOException ioe) {
+					myLogger.log(Logger.WARNING, "File "+file.getPath()+" is not a valid Jar file.");
+				}
+				return null;
+			}
+		});
+		
 		codeLocator = new CodeLocator();
 		//#J2ME_EXCLUDE_END
 	}
@@ -577,35 +606,10 @@ public class AgentManagementService extends BaseService {
 			Agent agent = null;
 			try {
 				//#J2ME_EXCLUDE_BEGIN
+				// Try to load the agent using an agent loader
 				Properties pp = getClassProperties(className);
-				String jarName = pp.getProperty(CLASS_CODE);
 				className = pp.getProperty(CLASS_NAME);
-				boolean warnIfJarNotFound = true;
-				if (jarName == null) {
-					jarName = className.replace('.', '_') + ".jar";
-					warnIfJarNotFound = false;
-				}
-				jarName = agentsPath + File.separator + jarName;
-				File file = new File(jarName);
-				try {
-					if (file.exists()) {
-						JarClassLoader loader = new JarClassLoader(file, getClass().getClassLoader());
-						agent = (Agent) Class.forName(className, true, loader).newInstance();
-						try {
-							codeLocator.registerAgent(agentID, loader);
-						}
-						catch (Exception e) {
-							myLogger.log(Logger.WARNING, "Error registering jar file "+file.getPath()+" to CodeLocator. Agent "+agentID.getName()+" may not be able to move properly");
-							e.printStackTrace();
-						}
-					}
-					else if (warnIfJarNotFound) {
-						myLogger.log(Logger.WARNING, "Jar file "+jarName+" for class "+className+" does not exist");
-					}
-				}
-				catch (IOException ioe) {
-					myLogger.log(Logger.WARNING, "File "+file.getPath()+" is not a valid Jar file. Try to laod agent "+agentID.getName()+" from the classpath");
-				}
+				agent = loadAgent(className, pp);
 				//#J2ME_EXCLUDE_END
 				
 				if (agent == null) {
@@ -614,13 +618,8 @@ public class AgentManagementService extends BaseService {
 				
 				agent.setArguments(arguments);
 				
-				AID oldAgentID = agentID;
 				myContainer.initAgent(agentID, agent, owner, initialCredentials);		
-				//#J2ME_EXCLUDE_BEGIN
-				// initAgent() may change the agent name.
-				codeLocator.changeAgentName(oldAgentID, agentID);
-
-				//#J2ME_EXCLUDE_END
+				
 				if (startIt) {
 					myContainer.powerUpLocalAgent(agentID);
 				}
@@ -663,7 +662,7 @@ public class AgentManagementService extends BaseService {
 				}
 			}
 			return pp;
-		}
+		}		
 		//#J2ME_EXCLUDE_END
 		
 		private void killAgent(AID agentID) throws IMTPException, NotFoundException {
@@ -932,6 +931,19 @@ public class AgentManagementService extends BaseService {
 	
 	
 	private void initAgent(AID target, Agent instance, VerticalCommand vCmd) throws IMTPException, JADESecurityException, NameClashException, NotFoundException, ServiceException {
+		//#J2ME_EXCLUDE_BEGIN
+		// If the agent was loaded from a separate space, register it to the codeLocator 
+		if (isLoadedFromSeparateSpace(instance)) {
+			try {
+				codeLocator.registerAgent(target, instance.getClass().getClassLoader());
+			}
+			catch (Exception e) {
+				// Should never happen
+				e.printStackTrace();
+			}
+		}
+		//#J2ME_EXCLUDE_END
+		
 		// Connect the new instance to the local container
 		Agent old = myContainer.addLocalAgent(target, instance);
 		if (instance == old) {
@@ -977,14 +989,46 @@ public class AgentManagementService extends BaseService {
 		}
 	}
 	
-	private void customize(Agent agent) {
+	//#J2ME_EXCLUDE_BEGIN
+	private Agent loadAgent(String className, Properties pp) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+		Iterator it = agentLoaders.iterator();
+		while (it.hasNext()) {
+			AgentLoader al = (AgentLoader) it.next();
+			Agent a = al.loadAgent(className, pp);
+			if (a != null) {
+				return a;
+			}
+		}
+		return null;
+	}
+	
+	public void addAgentLoader(AgentLoader loader) {
+		agentLoaders.add(loader);
+	}
+	
+	private boolean isLoadedFromSeparateSpace(Object obj) {
 		try {
+			Class c = obj.getClass();
+			Class reloadedClass = Class.forName(c.getName(), true, getClass().getClassLoader());
+			if (c == reloadedClass) {
+				return false;
+			}
+		}
+		catch (Throwable t) {
+			// Just do nothing
+		}
+		return true;
+	}
+	//#J2ME_EXCLUDE_END
+	
+	private void customize(Agent agent) {
+		/*try {
 			Behaviour amfServer = (Behaviour) Class.forName("jade.amf.AttributeManagementServer").newInstance();
 			agent.addBehaviour(amfServer);
 		}
 		catch (Exception e) {
 			// The AMF code is not in the classpath --> Just do nothing
-		}
+		}*/
 	}
 	
 	
@@ -1003,6 +1047,7 @@ public class AgentManagementService extends BaseService {
 	//#J2ME_EXCLUDE_BEGIN
 	private String agentsPath = null;
 	private CodeLocator codeLocator;
+	private List agentLoaders = new ArrayList();
 	//#J2ME_EXCLUDE_END
 	
 	// Work-around for PJAVA compilation
