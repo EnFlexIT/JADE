@@ -205,7 +205,7 @@ public class ReflectiveIntrospector implements Introspector {
 				// Maybe the method required an int argument and we supplied 
 				// a Long. Similarly maybe the method required a float and 
 				// we supplied a Double. Try these possibilities
-				params[0] = BasicOntology.resolveNumericValue(value, method.getParameterTypes()[0]);
+				params[0] = BasicOntology.adjustPrimitiveValue(value, method.getParameterTypes()[0]);
 
 				method.invoke(obj, params);
 			}

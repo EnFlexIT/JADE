@@ -479,7 +479,7 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 	/**
 	 Convert, if possible, the numeric value srcValue into an instance of destClass 
 	 */
-	public static Object resolveNumericValue(Object srcValue, Class destClass) {
+	public static Object adjustPrimitiveValue(Object srcValue, Class destClass) {
 		Object destValue = srcValue;
 		if (srcValue != null) {
 			Class srcClass = srcValue.getClass();
@@ -535,6 +535,18 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 				}
 				else if (destClass == String.class) {
 					destValue = srcValue.toString();
+				}
+				else if (destClass == Boolean.class ||
+						 destClass == boolean.class) {
+					if (srcClass == String.class) {
+						String s = (String) srcValue;
+						if (s.equalsIgnoreCase("true")) {
+							destValue = new Boolean(true);
+						}
+						else if (s.equalsIgnoreCase("false")) {
+							destValue = new Boolean(false);
+						}
+					}
 				}
 			}
 		}
