@@ -184,6 +184,7 @@ public abstract class WakerBehaviour extends SimpleBehaviour {
 	 */
 	public void stop() {
 		finished = true;
+		restart();
 	}
 	
 	public final boolean done() {

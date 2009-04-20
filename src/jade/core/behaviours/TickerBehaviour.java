@@ -119,6 +119,7 @@ public abstract class TickerBehaviour extends SimpleBehaviour {
 	 */
 	public void stop() {
 		finished = true;
+		restart();
 	}
 	
 	/**
