@@ -78,7 +78,9 @@ public class AbsObjectImpl implements AbsObject {
 			elements.remove(ciName);
 		}
 		else {
-			orderedKeys.add(name);
+			if (!orderedKeys.contains(name)) {
+				orderedKeys.add(name);
+			}
 			elements.put(ciName, value);
 		}
 		changed = true;
