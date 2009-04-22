@@ -126,7 +126,9 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 			}
 		}
 		// Store the list of services to be loaded on the back-end
-		configProperties.setProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY, beServices);
+		if (beServices != null) {
+			configProperties.setProperty(MicroRuntime.BE_REQUIRED_SERVICES_KEY, beServices);
+		}
 		
 		// Connect to the BackEnd
 		try {
