@@ -71,12 +71,6 @@ class MainDetectionManager {
 
 	private static final String MATCH_ALL_PLATFORMS = "*";
 
-	// multicast listening class
-	private static MulticastMainDetectionListener listener;
-
-	// listener thread
-	private static Thread listenerThread;
-
 	/*
 	 * inner class used to parse and keep addresses from main
 	 */
@@ -416,16 +410,11 @@ class MainDetectionManager {
 		}
 	}
 
-	public static void export(ProfileImpl profile, IMTPManager m) throws ProfileException {
+	public static MulticastMainDetectionListener createListener(ProfileImpl profile, IMTPManager m) throws ProfileException {
 		logger.log(Logger.FINER, "MainDetectionManager::export(...)");
-		listener = new MulticastMainDetectionListener(profile, m);
-		listenerThread = new Thread(listener);
+		MulticastMainDetectionListener listener = new MulticastMainDetectionListener(profile, m);
+		Thread listenerThread = new Thread(listener);
 		listenerThread.start();
-	}
-
-	public static void unexport() {
-		if (listener != null) {
-			listener.stop();
-		}
+		return listener;
 	}
 }

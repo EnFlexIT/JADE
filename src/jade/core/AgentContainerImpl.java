@@ -91,6 +91,11 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected MainContainerImpl myMainContainer; // FIXME: It should go away
 	//#MIDP_EXCLUDE_END
 
+	//#J2ME_EXCLUDE_BEGIN
+	// The listener for multicast main detecton
+	private MulticastMainDetectionListener mainDetectionListener;
+	//#J2ME_EXCLUDE_END
+
 	// The IMTP manager, used to access IMTP-dependent functionalities
 	protected IMTPManager myIMTPManager;
 
@@ -309,9 +314,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			myIMTPManager = myProfile.getIMTPManager();
 			myIMTPManager.initialize(myProfile);
 			//#J2ME_EXCLUDE_BEGIN
+			mainDetectionListener = null;
 			if (myProfile.getBooleanProperty(Profile.DETECT_MAIN, true) && ((ProfileImpl)myProfile).isMain()) {
 				try {
-					MainDetectionManager.export((ProfileImpl)myProfile, myIMTPManager);
+					mainDetectionListener = MainDetectionManager.createListener((ProfileImpl)myProfile, myIMTPManager);
 				}
 				catch (ProfileException pe) {
 					if ("true".equalsIgnoreCase(myProfile.getBootProperties().getProperty(Profile.DETECT_MAIN))) {
@@ -609,7 +615,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		try {
 			myServiceManager.removeNode(myNodeDescriptor);
 			//#J2ME_EXCLUDE_BEGIN
-			MainDetectionManager.unexport();
+			if (mainDetectionListener != null) {
+				mainDetectionListener.stop();
+			}
 			//#J2ME_EXCLUDE_END
 			myIMTPManager.shutDown();
 		}
