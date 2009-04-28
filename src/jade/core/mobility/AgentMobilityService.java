@@ -1016,18 +1016,15 @@ public class AgentMobilityService extends BaseService {
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				byte[] bytes = new byte[SIZE_JAR_BUFFER];
-				int read = 0;
-				if (myLogger.isLoggable(Logger.FINER)) {
-					myLogger.log(Logger.FINER, "Class " + className + " fetched");
-				}
-				
+				int read = 0;		
 				DataInputStream dis = new DataInputStream(classStream);
 				while ((read = dis.read(bytes)) >= 0) {
 					baos.write(bytes, 0, read);
 				}
-				
-				dis.close();
-				
+				dis.close();				
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, "Class " + className + " fetched");
+				}
 				return (baos.toByteArray());
 			} 
 			catch (IOException ioe) {

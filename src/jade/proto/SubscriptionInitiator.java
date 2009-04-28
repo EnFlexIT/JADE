@@ -629,10 +629,9 @@ public class SubscriptionInitiator extends Initiator {
 	
 	
 	protected ProtocolSession getSession(ACLMessage msg, int sessionIndex) {
-		// Store the subscription message actually sent. It can 
-		// be useful to retrieve it to create the CANCEL message
+		// Store the subscription message actually sent to a given receiver (note that msg has 1 and only 1 receiver) 
+		// so that it is possible to retrieve it later on in the cancellation phase
 		getDataStore().put((AID) msg.getAllReceiver().next(), msg);
-		
 		return new Session();
 	}
 	//#APIDOC_EXCLUDE_END
@@ -707,7 +706,6 @@ public class SubscriptionInitiator extends Initiator {
 			return cancelled;
 		}
 	} // End of inner class Session
-	
 }
 
 

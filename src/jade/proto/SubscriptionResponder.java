@@ -551,7 +551,17 @@ public class SubscriptionResponder extends FSMBehaviour implements FIPANames.Int
 			}
 		}
 		
-		// FIXME: Add equals() and hashCode() methods based on the SUBSCRIBE message conversation-id 
+		public boolean equals(Object obj) {
+			if (obj != null && obj instanceof Subscription) {
+				// They are equals if they have the same conversation-id
+				return subscription.getConversationId().equals(((Subscription) obj).subscription.getConversationId());
+			}
+			return false;
+		}
+
+		public int hashCode() {
+			return subscription.getConversationId().hashCode();
+		}
 	} // END of inner class Subscription
 	
 }
