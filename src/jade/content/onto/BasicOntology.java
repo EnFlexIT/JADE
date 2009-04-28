@@ -552,5 +552,12 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 		}
 		return destValue;
 	}
+
+	/**
+	 * @deprecated Use adjustPrimitiveValue() instead
+	 */
+	public static Object resolveNumericValue(Object srcValue, Class destClass) {
+		return adjustPrimitiveValue(srcValue, destClass);
+	}
 	//#MIDP_EXCLUDE_END
 }
