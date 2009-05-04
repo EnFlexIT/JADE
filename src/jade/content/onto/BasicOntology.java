@@ -36,8 +36,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.ISO8601;
 import jade.util.leap.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
@@ -558,9 +556,9 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						//#MIDP_EXCLUDE_BEGIN
 						try {
 							// Try to convert string from W3C-ISO8601 format
-							SimpleDateFormat W3CISO8601DateFormat = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS");
+							java.text.SimpleDateFormat W3CISO8601DateFormat = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS");
 							destValue = W3CISO8601DateFormat.parse(srcValue.toString());
-						} catch (ParseException e1) {
+						} catch (java.text.ParseException e1) {
 							// Date format not correct
 						}
 						//#MIDP_EXCLUDE_END
