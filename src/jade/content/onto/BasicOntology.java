@@ -33,6 +33,7 @@ import jade.content.lang.sl.SL0Vocabulary;
 import jade.core.AID;
 import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.ISO8601;
 import jade.util.leap.*;
 
 import java.text.ParseException;
@@ -50,9 +51,6 @@ import java.util.Date;
  * @author Giovanni Caire - TILAB
  */
 public class BasicOntology extends Ontology implements SL0Vocabulary {
-
-	// Date format used in automatic conversion from string to date
-	public static final SimpleDateFormat ISO8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	// The singleton instance of this ontology
 	private static final BasicOntology theInstance = new BasicOntology();
@@ -554,9 +552,18 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 				}
 				else if (destClass == Date.class) {
 					try {
-						destValue = ISO8601_DATE_FORMAT.parse(srcValue.toString());
-					} catch (ParseException e) {
-						// Date format not correct
+						// Try to convert string from FIPA-ISO8601 format
+						destValue = ISO8601.toDate(srcValue.toString());
+					} catch (Exception e) {
+						//#MIDP_EXCLUDE_BEGIN
+						try {
+							// Try to convert string from W3C-ISO8601 format
+							SimpleDateFormat W3CISO8601DateFormat = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS");
+							destValue = W3CISO8601DateFormat.parse(srcValue.toString());
+						} catch (ParseException e1) {
+							// Date format not correct
+						}
+						//#MIDP_EXCLUDE_END
 					}
 				}
 			}
