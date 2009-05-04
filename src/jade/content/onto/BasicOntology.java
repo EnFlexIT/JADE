@@ -27,8 +27,6 @@ package jade.content.onto;
 import jade.content.*;
 import jade.content.schema.*;
 import jade.content.abs.*;
-import jade.content.OntoAID;
-import jade.content.OntoACLMessage;
 import jade.content.ContentElementList;
 import jade.content.onto.basic.*;
 import jade.content.lang.sl.SL0Vocabulary;
@@ -37,7 +35,10 @@ import jade.core.CaseInsensitiveString;
 import jade.lang.acl.ACLMessage;
 import jade.util.leap.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
 
 /**
  * This class implements an ontology containing schemas for 
@@ -49,6 +50,9 @@ import java.util.Date;
  * @author Giovanni Caire - TILAB
  */
 public class BasicOntology extends Ontology implements SL0Vocabulary {
+
+	// Date format used in automatic conversion from string to date
+	public static final SimpleDateFormat ISO8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	// The singleton instance of this ontology
 	private static final BasicOntology theInstance = new BasicOntology();
@@ -546,6 +550,13 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						else if (s.equalsIgnoreCase("false")) {
 							destValue = new Boolean(false);
 						}
+					}
+				}
+				else if (destClass == Date.class) {
+					try {
+						destValue = ISO8601_DATE_FORMAT.parse(srcValue.toString());
+					} catch (ParseException e) {
+						// Date format not correct
 					}
 				}
 			}
