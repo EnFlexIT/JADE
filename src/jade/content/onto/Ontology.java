@@ -27,6 +27,8 @@ package jade.content.onto;
 import java.util.Hashtable;
 import java.util.Enumeration;
 //#J2ME_EXCLUDE_BEGIN
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 //#J2ME_EXCLUDE_END
@@ -43,7 +45,7 @@ import jade.util.leap.Serializable;
 import jade.util.Logger;
 
 /**
- *  An application-specific ontology describes the elements that agents
+ * An application-specific ontology describes the elements that agents
  * can use within content of messages. It defines a vocabulary and
  * relationships between the elements in such a vocabulary.
  * The relationships can be:
@@ -62,7 +64,7 @@ import jade.util.Logger;
  * <li>a set of <i>element schemas</i>.
  * </ul>
  * Element schemas are objects describing the structure of concepts, actions,
- * and predicates. that are allowed in messages. For example,
+ * and predicates that are allowed in messages. For example,
  * <code>People</code> ontology contains an element schema called
  * <code>Person</code>. This schema states that a <code>Person</code> is
  * characterized by a <code>name</code> and by an <code>address</code>:
@@ -598,54 +600,93 @@ public class Ontology implements Serializable {
 
 	//#J2ME_EXCLUDE_BEGIN
 	/**
+	 * Retrieve the names of the concepts defined in this ontology only (excluding extended ontologies).
+	 * It should be noticed that an agent-action is itself a concept and therefore the returned list 
+	 * also includes names of agent-actions defined in this ontology.
+	 * @return the names of the concepts defined in this ontology only (excluding extended ontologies)
+	 */
+	public List getOwnConceptNames(){
+		return getOwnElementNames(ConceptSchema.class);
+	}
+	
+	/**
 	 * Retrieve the names of all concepts defined in this ontology (including extended ontologies).
 	 * It should be noticed that an agent-action is itself a concept and therefore the returned list 
 	 * also includes names of agent-actions defined in this ontology.
 	 * @return the names of all concepts defined in this ontology (including extended ontologies)
 	 */
 	public List getConceptNames(){
-		List names = new ArrayList();
-		for (Enumeration e = elements.keys(); e.hasMoreElements();){
-			String key  = (String)e.nextElement();
-			Object objSchema = elements.get(key);
-			if ((objSchema instanceof ConceptSchema) ){
-			  names.add(((ConceptSchema)objSchema).getTypeName());
-			}
-		}
-		return names;
+		Set names = getElementNames(ConceptSchema.class);
+		List l = new ArrayList();
+		l.addAll(names);
+		return l;
 	}
 
+	/**
+	 * Retrieve the names of the agent actions defined in this ontology only (excluding extended ontologies).
+	 * @return the names of the agent actions defined in this ontology only (excluding extended ontologies)
+	 */
+	public List getOwnActionNames(){
+		return getOwnElementNames(AgentActionSchema.class);
+	}
+	
 	/**
 	 * Retrieve the names of all agent actions defined in this ontology (including extended ontologies).
 	 * @return the names of all agent actions defined in this ontology (including extended ontologies)
 	 */
 	public List getActionNames(){
-		List names = new ArrayList();
-		for (Enumeration e = elements.keys(); e.hasMoreElements();){
-			String key  = (String)e.nextElement();
-			Object objSchema = elements.get(key);
-			if ((objSchema instanceof AgentActionSchema) ){
-				names.add(((AgentActionSchema)objSchema).getTypeName());
-			}
-		}
-		return names;
+		Set names = getElementNames(AgentActionSchema.class);
+		List l = new ArrayList();
+		l.addAll(names);
+		return l;
 	}
 
+	/**
+	 * Retrieve the names of the predicates defined in this ontology only (excluding extended ontologies).
+	 * @return the names of the predicates defined in this ontology only (excluding extended ontologies)
+	 */
+	public List getOwnPredicateNames(){
+		return getOwnElementNames(PredicateSchema.class);
+	}
+	
 	/**
 	 * Retrieve the names of all predicatess defined in this ontology (including extended ontologies).
 	 * @return the names of all predicatess defined in this ontology (including extended ontologies)
 	 */
 	public List getPredicateNames(){
+		Set names = getElementNames(PredicateSchema.class);
+		List l = new ArrayList();
+		l.addAll(names);
+		return l;
+	}
+	
+	private List getOwnElementNames(Class c) {
 		List names = new ArrayList();
 		for (Enumeration e = elements.keys(); e.hasMoreElements();){
 			String key  = (String)e.nextElement();
-			Object objSchema = elements.get(key);
-			if ((objSchema instanceof PredicateSchema) ){
-			  names.add(((PredicateSchema)objSchema).getTypeName());
+			ObjectSchema objSchema = (ObjectSchema) elements.get(key);
+			if (c.isAssignableFrom(objSchema.getClass())) {
+			  names.add(objSchema.getTypeName());
 			}
 		}
 		return names;
 	}
+
+	private Set getElementNames(Class c){
+		// We use a Set to avoid duplicating names in case an element is overridden
+		Set names = new HashSet();
+		names.addAll(getOwnElementNames(c));
+		Ontology basicOnto = BasicOntology.getInstance();
+		Ontology serializableOnto = SerializableOntology.getInstance();
+		for (int i = 0; i < base.length; ++i) {
+			Ontology o = base[i];
+			// Do not consider elements defined in the BasicOntology and in the SerializableOntology
+			if ((o != null) && (o != basicOnto) && (o != serializableOnto)) {
+				names.addAll(o.getElementNames(c));
+			}
+		}
+		return names;
+	}	
 	//#J2ME_EXCLUDE_END
 	
 	//#MIDP_EXCLUDE_BEGIN
