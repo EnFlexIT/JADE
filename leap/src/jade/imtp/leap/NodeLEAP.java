@@ -31,6 +31,7 @@ import jade.core.BaseNode;
 import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
+import jade.util.Logger;
 
 
 /**
@@ -43,6 +44,7 @@ class NodeLEAP extends BaseNode {
 	// detect node failures.
 	private Object terminationLock = new Object();
 	private boolean terminating = false;
+	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
 	public NodeLEAP(String name, boolean hasPM) {
 		super(name, hasPM);
@@ -64,10 +66,12 @@ class NodeLEAP extends BaseNode {
 		if(hang) {
 			waitTermination();
 		}
+		myLogger.log(Logger.CONFIG, "Node "+getName()+" terminated ("+terminating+")");
 		return terminating;
 	}
 
 	public void exit() throws IMTPException {
+		myLogger.log(Logger.CONFIG, "Node "+getName()+" exiting...");
 		// Unblock threads hung in ping() method (this will deregister the container)
 		terminating = true;
 		notifyTermination();

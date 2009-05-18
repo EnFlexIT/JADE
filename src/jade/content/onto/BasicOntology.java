@@ -553,7 +553,6 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						// Try to convert string from FIPA-ISO8601 format
 						destValue = ISO8601.toDate(srcValue.toString());
 					} catch (Exception e) {
-						//#MIDP_EXCLUDE_BEGIN
 						try {
 							// Try to convert string from W3C-ISO8601 format
 							java.text.SimpleDateFormat W3CISO8601DateFormat = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -561,7 +560,6 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 						} catch (java.text.ParseException e1) {
 							// Date format not correct
 						}
-						//#MIDP_EXCLUDE_END
 					}
 				}
 			}

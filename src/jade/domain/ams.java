@@ -1002,7 +1002,6 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		eventQueue.put(er);
 
 		if (sendSnapshot) {
-
 			try {
 				// Send back the whole container list.
 				ContainerID[] ids = myPlatform.containerIDs();

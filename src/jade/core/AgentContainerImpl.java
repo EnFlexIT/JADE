@@ -1103,7 +1103,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 	}
 
-	// GC-MODIFY-18022007-START
 	//#MIDP_EXCLUDE_BEGIN
 	public void becomeLeader(AMSEventQueueFeeder feeder) {
 		try {
@@ -1117,7 +1116,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 	}
 	//#MIDP_EXCLUDE_END
-	// GC-MODIFY-18022007-END
 
 
 	//#ALL_EXCLUDE_BEGIN

@@ -603,6 +603,9 @@ public class Ontology implements Serializable {
 	 * Retrieve the names of the concepts defined in this ontology only (excluding extended ontologies).
 	 * It should be noticed that an agent-action is itself a concept and therefore the returned list 
 	 * also includes names of agent-actions defined in this ontology.
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of the concepts defined in this ontology only (excluding extended ontologies)
 	 */
 	public List getOwnConceptNames(){
@@ -613,6 +616,9 @@ public class Ontology implements Serializable {
 	 * Retrieve the names of all concepts defined in this ontology (including extended ontologies).
 	 * It should be noticed that an agent-action is itself a concept and therefore the returned list 
 	 * also includes names of agent-actions defined in this ontology.
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of all concepts defined in this ontology (including extended ontologies)
 	 */
 	public List getConceptNames(){
@@ -624,6 +630,9 @@ public class Ontology implements Serializable {
 
 	/**
 	 * Retrieve the names of the agent actions defined in this ontology only (excluding extended ontologies).
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of the agent actions defined in this ontology only (excluding extended ontologies)
 	 */
 	public List getOwnActionNames(){
@@ -632,6 +641,9 @@ public class Ontology implements Serializable {
 	
 	/**
 	 * Retrieve the names of all agent actions defined in this ontology (including extended ontologies).
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of all agent actions defined in this ontology (including extended ontologies)
 	 */
 	public List getActionNames(){
@@ -643,6 +655,9 @@ public class Ontology implements Serializable {
 
 	/**
 	 * Retrieve the names of the predicates defined in this ontology only (excluding extended ontologies).
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of the predicates defined in this ontology only (excluding extended ontologies)
 	 */
 	public List getOwnPredicateNames(){
@@ -651,6 +666,9 @@ public class Ontology implements Serializable {
 	
 	/**
 	 * Retrieve the names of all predicatess defined in this ontology (including extended ontologies).
+	 * <br>
+	 * <b>NOT available in J2ME</b>
+	 * <br>
 	 * @return the names of all predicatess defined in this ontology (including extended ontologies)
 	 */
 	public List getPredicateNames(){
@@ -698,6 +716,9 @@ public class Ontology implements Serializable {
 	 * (= (age (Person :name John)) 41) <br>
 	 * (> (age (Person :name John)) (age (Person :name Bill)))<br>
 	 * (iota ?x (= (age (Person :name John)) ?x))
+	 * <br>
+	 * <b>NOT available in MIDP</b>
+	 * <br>
 	 * @param slotName The name of the slot
 	 * @param c The concept a ConceptSlotFunction must be created for. This concept must have a slot called <code>slotName</code>
 	 * @return A ConceptSlotFunction for the given slotName of the given Concept  
