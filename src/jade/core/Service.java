@@ -82,9 +82,14 @@ public interface Service {
 	public static final String DEAD_PLATFORM_MANAGER = "Dead-Platform-Manager";
 	/**
 	   Service independent vertical command issued on a peripheral 
-	   container when it re-attach to a recovered Main Container
+	   container when it re-attaches to a recovered Main Container
 	 */
 	public static final String REATTACHED = "Reattached";
+	/**
+	   Service independent vertical command issued on a peripheral 
+	   container when it reconnects to a new master Main Container 
+	 */
+	public static final String RECONNECTED = "Reconnected";
 
 	/**
        The <code>Slice</code> nested interface represents that part of

@@ -436,6 +436,7 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			invalidPlatformManager = true;
 			try {
 				myPlatformManager = myIMTPManager.getPlatformManagerProxy(pmAddr);
+				myLogger.log(Logger.INFO, "Re-attaching to PlatformManager at address " + myPlatformManager.getLocalAddress());
 				String name = myPlatformManager.addNode(localNodeDescriptor, getLocalServices(), false);
 				if (!name.equals(localNodeDescriptor.getName())) {
 					myLogger.log(Logger.WARNING, "Container name changed re-attaching to PlatformManager: new name = " + name);
@@ -445,15 +446,14 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 				handlePMRefreshed(pmAddr);
 
 				// Issue a REATTACHED incoming V-Command
-				System.out.println("Issuing REATTACHED Incoming command");
 				GenericCommand gCmd = new GenericCommand(Service.REATTACHED, null, null);
 				Object result = myCommandProcessor.processIncoming(gCmd);
 				if (result instanceof Throwable) {
-					myLogger.log(Logger.SEVERE, "Unexpected error processing REATTACHED command.");
+					myLogger.log(Logger.WARNING, "Unexpected error processing REATTACHED command.");
 					((Throwable) result).printStackTrace();
 				}
 
-				myLogger.log(Logger.INFO, "Re-attached to PlatformManager at " + pmAddr);
+				myLogger.log(Logger.INFO, "Re-attachement OK");
 			} catch (Exception e) {
 				myLogger.log(Logger.SEVERE, "Cannot re-attach to PlatformManager at " + pmAddr + ". " + e);
 				e.printStackTrace();
@@ -488,6 +488,14 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 						myPlatformManager.adopt(localNode, null);
 						handlePMRefreshed(addr);
 	
+						// Issue a RECONNECTED incoming V-Command
+						GenericCommand gCmd = new GenericCommand(Service.RECONNECTED, null, null);
+						Object result = myCommandProcessor.processIncoming(gCmd);
+						if (result instanceof Throwable) {
+							myLogger.log(Logger.WARNING, "Unexpected error processing RECONNECTED command.");
+							((Throwable) result).printStackTrace();
+						}
+						
 						myLogger.log(Logger.INFO, "Reconnection OK");
 						return true;
 					} 

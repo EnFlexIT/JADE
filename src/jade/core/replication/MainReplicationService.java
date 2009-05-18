@@ -84,7 +84,7 @@ public class MainReplicationService extends BaseService {
 
 	private static final boolean INCLUDE_MYSELF = true;
 
-	private static final String[] OWNED_COMMANDS = new String[] {};
+	private static final String[] OWNED_COMMANDS = new String[] {MainReplicationSlice.LEADERSHIP_ACQUIRED};
 
 	public void init(AgentContainer ac, Profile p) throws ProfileException {
 		super.init(ac, p);
@@ -662,7 +662,6 @@ public class MainReplicationService extends BaseService {
 			try {
 				replicas.remove(monitoredLabel);
 				
-				// GC-ADD-18022007-START
 				// Possibly the AMS is dead --> Start intercepting platform and MTP events on behalf of the 
 				// new AMS if any. 
 				AMSEventQueueFeeder feeder = null;
@@ -670,7 +669,6 @@ public class MainReplicationService extends BaseService {
 					feeder = new AMSEventQueueFeeder(new InputQueue(), myContainer.getID());
 					myMain.addListener(feeder);
 				}
-				// GC-ADD-18022007-END
 				
 				myPlatformManager.removeReplica(monitoredSvcMgr, false);
 				myPlatformManager.removeNode(new NodeDescriptor(n), false);
@@ -689,11 +687,12 @@ public class MainReplicationService extends BaseService {
 				MainReplicationSlice newSlice = (MainReplicationSlice) replicas.get(monitoredLabel);
 				attachTo(monitoredLabel, newSlice);
 
-				// GC-MODIFY-18022007-START
 				// Become the new leader if it is the case...
 				if ((oldLabel != 0) && (myLabel == 0)) {
 					myLogger.log(Logger.INFO, "-- I'm the new leader ---");
 					myContainer.becomeLeader(feeder);
+					VerticalCommand cmd = new GenericCommand(MainReplicationSlice.LEADERSHIP_ACQUIRED, NAME, null);
+					submit(cmd);
 				}
 				else {
 					if (feeder != null) {
@@ -701,7 +700,6 @@ public class MainReplicationService extends BaseService {
 						myMain.removeListener(feeder);
 					}
 				}
-				// GC-MODIFY-18022007-END
 
 			} catch (IMTPException imtpe) {
 				imtpe.printStackTrace();

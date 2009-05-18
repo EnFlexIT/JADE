@@ -76,10 +76,15 @@
 			<Description> This item includes tests related to the support for "FIPA-request like" interaction protocols </Description>
 			<TestsListRif>test/proto/achieveRETestsList.xml</TestsListRif>
 		</Tester>
-        <Tester name="Propose Protocol" skip="false">
+		<Tester name="Propose Protocol" skip="false">
 			<ClassName>test.proto.ProposeTesterAgent</ClassName>
 			<Description> This item includes tests related to the support for "FIPA-propose" interaction protocols </Description>
 			<TestsListRif>test/proto/proposeTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Subscription Protocol" skip="false">
+			<ClassName>test.proto.SubscriptionTesterAgent</ClassName>
+			<Description> This item includes tests related to the support for "FIPA-subscribe" interaction protocols </Description>
+			<TestsListRif>test/proto/subscriptionTestsList.xml</TestsListRif>
 		</Tester>
 		<Tester name="Two-Phase-Commit Protocol" skip="true">
 			<ClassName>test.proto.TwoPhTesterAgent</ClassName>
@@ -126,5 +131,11 @@
 			<Description> This item includes tests about the topic-based message delivery mechanism implemented by the TopicManagement service.
 			</Description>
 			<TestsListRif>test/topic/topicTestsList.xml</TestsListRif>
+		</Tester>
+		<Tester name="Stream content messages" skip="true">
+			<ClassName>test.streaming.StreamingTesterAgent</ClassName>
+			<Description> This item includes tests about the exchange of messages with stream content.
+			</Description>
+			<TestsListRif>test/streaming/streamingTestsList.xml</TestsListRif>
 		</Tester>
 	</TesterList>

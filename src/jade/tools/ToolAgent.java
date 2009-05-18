@@ -27,6 +27,7 @@ package jade.tools;
  
 import jade.core.Agent;
 import jade.core.ServiceException;
+import jade.core.event.ContainerAdapter;
 import jade.core.event.ContainerEvent;
 import jade.core.event.ContainerListener;
 import jade.core.event.NotificationHelper;
@@ -216,11 +217,7 @@ public abstract class ToolAgent extends Agent {
 		// Register to be notified about the REATTACHED event in order to handle Main Container faults
 		try {
 			NotificationHelper helper = (NotificationHelper) getHelper(NotificationService.NAME);
-			myContainerListener = new ContainerListener() {
-				public void bornAgent(ContainerEvent ev) {
-				}
-				public void deadAgent(ContainerEvent ev) {
-				}
+			myContainerListener = new ContainerAdapter() {
 				public void reattached(ContainerEvent ev) {
 					// The Main Container lost my subscription --> Subscribe again
 					send(getSubscribe());

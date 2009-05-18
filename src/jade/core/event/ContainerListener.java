@@ -23,8 +23,16 @@
 
 package jade.core.event;
 
+/**
+ * The interface to be implemented by classes that need to be notified about <code>ContainerEvent<code>-s 
+ * by the JADE Notification-Service
+ * 
+ * @see NotificationHelper
+ */
 public interface ContainerListener {
 	void bornAgent(ContainerEvent ev);
 	void deadAgent(ContainerEvent ev);
 	void reattached(ContainerEvent ev);
+	void reconnected(ContainerEvent ev);
+	void leadershipAcquired(ContainerEvent ev);
 }

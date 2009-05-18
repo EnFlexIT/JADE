@@ -58,6 +58,10 @@ public interface MainReplicationSlice extends Service.Slice {
     */
     static final String NAME = "jade.core.replication.MainReplication";
 
+    /**
+     * The vertical command issued on the new master main container just after leadership acquisition
+     */
+    static final String LEADERSHIP_ACQUIRED = "Leadership-Acquired"; 
 
     // Constants for the names of horizontal commands associated to methods
     static final String H_GETLABEL = "1";

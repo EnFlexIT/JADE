@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core.event;
 
@@ -38,19 +38,19 @@ import jade.core.ContainerID;
  */
 public class JADEEvent extends Event {
 
-  private Date time;
+	private Date time;
 
-  public JADEEvent(int type, ContainerID cid) {
-      super(type, cid);
-      time = new Date(); // Now
-  }
+	public JADEEvent(int type, ContainerID cid) {
+		super(type, cid);
+		time = new Date(); // Now
+	}
 
-  public ContainerID getPlace() {
-    return (ContainerID)(getSource());
-  }
-  
-  public Date getTime() {
-    return time;
-  }
+	public ContainerID getPlace() {
+		return (ContainerID)(getSource());
+	}
+
+	public Date getTime() {
+		return time;
+	}
 
 }

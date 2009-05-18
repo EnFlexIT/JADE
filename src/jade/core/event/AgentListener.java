@@ -24,6 +24,12 @@ Boston, MA  02111-1307, USA.
 
 package jade.core.event;
 
+/**
+ * The interface to be implemented by classes that need to be notified about <code>AgentEvent<code>-s 
+ * by the JADE Notification-Service
+ * 
+ * @see NotificationHelper
+ */
 public interface AgentListener {
 
   void changedAgentState(AgentEvent ev);

@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core.event;
 
@@ -33,18 +33,20 @@ import jade.core.ContainerID;
  */
 public class ContainerEvent extends JADEEvent {
 
-  public static final int BORN_AGENT = 1;
-  public static final int DEAD_AGENT = 2;
-  public static final int REATTACHED = 3;
+	public static final int BORN_AGENT = 1;
+	public static final int DEAD_AGENT = 2;
+	public static final int REATTACHED = 3;
+	public static final int RECONNECTED = 4;
+	public static final int LEADERSHIP_ACQUIRED = 5;
 
-  private AID agent;
+	private AID agent;
 
-  public ContainerEvent(int id, AID aid, ContainerID cid) {
-    super(id, cid);
-    agent = aid;
-  }
+	public ContainerEvent(int id, AID aid, ContainerID cid) {
+		super(id, cid);
+		agent = aid;
+	}
 
-  public AID getAgent() {
-    return agent;
-  }
+	public AID getAgent() {
+		return agent;
+	}
 }

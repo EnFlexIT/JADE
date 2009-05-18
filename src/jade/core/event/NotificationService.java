@@ -396,7 +396,10 @@ public class NotificationService extends BaseService {
 					handleInformKilled(cmd);
 				}
 				else if(name.equals(jade.core.management.AgentManagementSlice.INFORM_STATE_CHANGED)) {
-					handleNotifyChangedAgentState(cmd);
+					handleInformStateChanged(cmd);
+				}
+				else if(name.equals(jade.core.replication.MainReplicationSlice.LEADERSHIP_ACQUIRED)) {
+					handleLeadershipAcquired(cmd);
 				}
 			}
 			catch(Throwable t) {
@@ -430,13 +433,17 @@ public class NotificationService extends BaseService {
 			fireDeadAgent(agent);
 		}
 		
-		private void handleNotifyChangedAgentState(VerticalCommand cmd) {
+		private void handleInformStateChanged(VerticalCommand cmd) {
 			Object[] params = cmd.getParams();
 			AID id = (AID)params[0];
 			AgentState from = (AgentState)params[1];
 			AgentState to = (AgentState)params[2];
 			
 			fireChangedAgentState(id, from, to);
+		}
+		
+		private void handleLeadershipAcquired(VerticalCommand cmd) {
+			fireLeadershipAcquired();
 		}
 	} // END of inner class NotificationOutgoingFilter
 	
@@ -445,13 +452,16 @@ public class NotificationService extends BaseService {
 	 * Inner class NotificationIncomingFilter
 	 */
 	private class NotificationIncomingFilter extends Filter {
-		// Notify listeners about the REATTACHED event only when the reattachment procedure 
+		// Notify listeners about the REATTACHED and RECONNECTED events only when the reattachment/reconnection procedure 
 		// has been completed
 		public void postProcess(VerticalCommand cmd) {		
 			try {
 				String name = cmd.getName();
 				if(name.equals(jade.core.Service.REATTACHED)) {
 					handleReattached(cmd);
+				}
+				else if(name.equals(jade.core.Service.RECONNECTED)) {
+					handleReconnected(cmd);
 				}
 			}
 			catch(Throwable t) {
@@ -461,6 +471,10 @@ public class NotificationService extends BaseService {
 		
 		private void handleReattached(VerticalCommand cmd) {
 			fireReattached();
+		}
+		
+		private void handleReconnected(VerticalCommand cmd) {
+			fireReconnected();
 		}
 	} // END of inner class NotificationIncomingFilter
 	
@@ -916,6 +930,36 @@ public class NotificationService extends BaseService {
 			while (it.hasNext()) {
 				ContainerListener cl = (ContainerListener) it.next();
 				cl.reattached(ev);
+			}
+			containerListeners.stopScanning();
+		}
+	}
+	
+	private void fireReconnected() {
+		// NOTE: A normal synchronized block could create deadlock problems
+		// as it prevents concurrent scannings of the listeners list.
+		List l = containerListeners.startScanning();
+		if (l != null) {
+			ContainerEvent ev = new ContainerEvent(ContainerEvent.RECONNECTED, null, myID());
+			Iterator it = l.iterator();
+			while (it.hasNext()) {
+				ContainerListener cl = (ContainerListener) it.next();
+				cl.reconnected(ev);
+			}
+			containerListeners.stopScanning();
+		}
+	}
+	
+	private void fireLeadershipAcquired() {
+		// NOTE: A normal synchronized block could create deadlock problems
+		// as it prevents concurrent scannings of the listeners list.
+		List l = containerListeners.startScanning();
+		if (l != null) {
+			ContainerEvent ev = new ContainerEvent(ContainerEvent.LEADERSHIP_ACQUIRED, null, myID());
+			Iterator it = l.iterator();
+			while (it.hasNext()) {
+				ContainerListener cl = (ContainerListener) it.next();
+				cl.leadershipAcquired(ev);
 			}
 			containerListeners.stopScanning();
 		}
