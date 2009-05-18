@@ -55,7 +55,6 @@ import jade.security.JADESecurityException;
 import jade.security.JADEPrincipal;
 import jade.security.Credentials;
 
-import jade.util.InputQueue;
 import jade.util.Logger;
 
 /**
@@ -120,6 +119,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	}
 	
 	void removeLocalContainer(ContainerID cid) {
+		myLogger.log(Logger.CONFIG, "Stopping AMS and DF...");
 		
 		// Stop the Default DF
 		Agent systemAgent = defaultDF;
@@ -134,6 +134,7 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		systemAgent.resetToolkit();
 		removeListener(theAMS.getQueueFeeder());
 		
+		containers.removeContainer(cid);
 	}
 	
 	void addRemoteContainer(ContainerID cid) {
@@ -787,6 +788,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
+		// If the KillContainer is directed to the local (main) container --> remove it explicitly.
+		// This is necessary since the local container is not monitored and therefore the normal 
+		// container removal procedure cannot apply.
+		if (localContainerID.equals(cid)) {
+			removeLocalContainer(cid);
+		}
 	}
 	
 	/**
@@ -794,8 +801,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	 **/
 	public void shutdownPlatform(JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
 		
-		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "Shutting down agent platform.");
+		if (myLogger.isLoggable(Logger.CONFIG)) {
+			myLogger.log(Logger.CONFIG, "Shutting down agent platform.");
 		}
 		
 		// FIXME: Here we probably need to issue a KILL_PLATFORM VCommand for security check.
@@ -820,8 +827,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
-			myLogger.log(Logger.FINER, "Containers on child nodes shutdown completed.");
+		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Containers on child nodes shutdown completed.");
 		}
 		
 		// Then kill all remaining peripheral containers  
@@ -842,8 +849,8 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
-			myLogger.log(Logger.FINER, "Peripheral containers shutdown completed.");
+		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Peripheral containers shutdown completed.");
 		}
 		
 		// Then kill all auxiliary nodes not holding containers 
@@ -860,22 +867,22 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 			}
 		}
 		
-		if (cnt > 0 && myLogger.isLoggable(Logger.FINER)) {
-			myLogger.log(Logger.FINER, "Backup Main Containers shutdown completed.");
+		if (cnt > 0 && myLogger.isLoggable(Logger.FINE)) {
+			myLogger.log(Logger.FINE, "Backup Main Containers shutdown completed.");
 		}
 		
 		// Finally, kill the local container
 		try {
-			if (myLogger.isLoggable(Logger.FINEST)) {
-				myLogger.log(Logger.FINEST, "Killing local node "+localContainerID.getName());
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Killing local node "+localContainerID.getName());
 			}
 			killContainer(localContainerID, requesterPrincipal, requesterCredentials);
 			
 			// Make sure all containers are succesfully removed from the table...
 			boolean removed = containers.waitUntilEmpty(5000);
 			if (removed) {
-				if (myLogger.isLoggable(Logger.FINEST)) {
-					myLogger.log(Logger.FINEST, "Local node shutdown completed.");
+				if (myLogger.isLoggable(Logger.FINE)) {
+					myLogger.log(Logger.FINE, "Local node shutdown completed.");
 				}
 			}
 		}
@@ -897,14 +904,14 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 	
 	private void shutdownContainer(ContainerID targetID, String type, JADEPrincipal requesterPrincipal, Credentials requesterCredentials) throws JADESecurityException {
 		try {
-			if (myLogger.isLoggable(Logger.FINEST)) {
-				myLogger.log(Logger.FINEST, "Killing "+type+" "+targetID.getName());
+			if (myLogger.isLoggable(Logger.FINER)) {
+				myLogger.log(Logger.FINER, "Killing "+type+" "+targetID.getName());
 			}
 			killContainer(targetID, requesterPrincipal, requesterCredentials);
 			boolean removed = containers.waitForRemoval(targetID, 5000);
 			if (removed) {
-				if (myLogger.isLoggable(Logger.FINEST)) {
-					myLogger.log(Logger.FINEST, type+" "+targetID.getName()+" shutdown completed");
+				if (myLogger.isLoggable(Logger.FINER)) {
+					myLogger.log(Logger.FINER, type+" "+targetID.getName()+" shutdown completed");
 				}
 				return;
 			}
@@ -1453,7 +1460,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		PlatformEvent ev = new PlatformEvent(PlatformEvent.ADDED_CONTAINER, cid);
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.addedContainer(ev);
+			try {
+				l.addedContainer(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1462,7 +1474,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.removedContainer(ev);
+			try {
+				l.removedContainer(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1471,7 +1488,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.bornAgent(ev);
+			try {
+				l.bornAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1480,7 +1502,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.deadAgent(ev);
+			try {
+				l.deadAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1489,7 +1516,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.suspendedAgent(ev);
+			try {
+				l.suspendedAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1498,7 +1530,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.resumedAgent(ev);
+			try {
+				l.resumedAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1507,7 +1544,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.frozenAgent(ev);
+			try {
+				l.frozenAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1516,7 +1558,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.thawedAgent(ev);
+			try {
+				l.thawedAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1525,7 +1572,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.movedAgent(ev);
+			try {
+				l.movedAgent(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	
@@ -1536,7 +1588,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		MTPEvent ev = new MTPEvent(MTPEvent.ADDED_MTP, cid, ch);
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.addedMTP(ev);
+			try {
+				l.addedMTP(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		} 
 	}
 	
@@ -1547,7 +1604,12 @@ public class MainContainerImpl implements MainContainer, AgentManager {
 		MTPEvent ev = new MTPEvent(MTPEvent.REMOVED_MTP, cid, ch);
 		for(int i = 0; i < platformListeners.size(); i++) {
 			AgentManager.Listener l = (AgentManager.Listener)platformListeners.get(i);
-			l.removedMTP(ev);
+			try {
+				l.removedMTP(ev);
+			}
+			catch (RuntimeException re) {
+				re.printStackTrace();
+			}
 		}
 	}
 	

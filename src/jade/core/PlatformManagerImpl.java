@@ -322,7 +322,7 @@ public class PlatformManagerImpl implements PlatformManager {
 
 	public void removeNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
 		localRemoveNode(dsc, propagated);
-		// If this is the local node the node termination will cause the deregistration...
+		// If this is the local node the node termination will cause the deregistration from replicas...
 		if (!propagated && !isLocalNode(dsc.getNode())) {
 			broadcastRemoveNode(dsc);
 		}
