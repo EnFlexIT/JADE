@@ -33,6 +33,10 @@ import jade.core.behaviours.Behaviour;
 import jade.security.*;
 //#MIDP_EXCLUDE_END
 
+//#J2ME_EXCLUDE_BEGIN
+import jade.util.ObjectManager;
+//#J2ME_EXCLUDE_END
+
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
@@ -539,8 +543,13 @@ class FrontEndContainer implements FrontEnd, AgentToolkit, Runnable {
 	
 	
 	private final Agent initAgentInstance(String name, String className, Object[] args) throws Exception {
-		// Create the new agent and add it to the local agents table
-		Agent agent = (Agent) Class.forName(className).newInstance();
+		Agent agent = null;
+		//#J2ME_EXCLUDE_BEGIN
+		agent = (Agent) ObjectManager.load(className, ObjectManager.AGENT_TYPE);
+		//#J2ME_EXCLUDE_END
+		if (agent == null) {
+			agent = (Agent) Class.forName(className).newInstance();
+		}
 		agent.setArguments(args);
 		agent.setToolkit(this);
 		//#MIDP_EXCLUDE_BEGIN

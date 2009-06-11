@@ -26,11 +26,14 @@ package jade.core;
 //#APIDOC_EXCLUDE_FILE
 
 /**
- * JADE kernel services providing a service-helper and whishing this helper to be available in the 
+ * JADE kernel services providing a service-helper and wishing this helper to be available in the 
  * split execution mode too, need to provide a FEService class.
  * When starting a split container the <code>services</code> option works exactly as when starting a  
  * normal container, but the indicated classes must be concrete implementations of the <code>FEService</code>
  * abstract class.
+ * <br> 
+ * It should be noticed that a Front-End service is only intended to provide access to the service helper
+ * and not to actually implement full service functionality 
  * 
  * @author Giovanni Caire - Telecom Italia
  */
@@ -46,11 +49,15 @@ public abstract class FEService {
 	public abstract String getName();
 
 	/**
-	 * Subclasses must implement this method to return the fully qualified name of the class
+	 * In many cases for the Front-End service to work properly it is necessary that the real service
+	 * (or possibly a modified version of it) is active in the Back-End. 
+	 * In such cases subclasses may redefine this method to return the fully qualified name of the class
 	 * implementing the back-end side counterpart of this service.
 	 * @return The fully qualified name of the class implementing the back-end side counterpart of this service
 	 */
-	public abstract String getBEServiceClassName();
+	public String getBEServiceClassName() {
+		return null;
+	}
 
 	/**
 	 * Subclasses must implement this method to return the helper for accessing this service.

@@ -24,7 +24,6 @@
 package jade.core.management;
 
 import jade.core.HorizontalCommand;
-import jade.core.Specifier;
 import jade.core.VerticalCommand;
 import jade.core.GenericCommand;
 import jade.core.Service;
@@ -46,23 +45,20 @@ import jade.core.ProfileException;
 import jade.core.IMTPException;
 import jade.core.NameClashException;
 import jade.core.NotFoundException;
-import jade.core.behaviours.Behaviour;
 
 import jade.security.Credentials;
 import jade.security.JADEPrincipal;
 import jade.security.JADESecurityException;
 
 import jade.util.Logger;
-import jade.util.leap.ArrayList;
-import jade.util.leap.Iterator;
-import jade.util.leap.List;
 import jade.util.leap.Properties;
 
 //#J2ME_EXCLUDE_BEGIN
+import jade.util.ObjectManager;
+
 import java.io.IOException;
 import java.io.File;
 //#J2ME_EXCLUDE_END
-import java.util.Vector;
 
 
 /**
@@ -77,7 +73,6 @@ public class AgentManagementService extends BaseService {
 	public static final String NAME = AgentManagementSlice.NAME;
 	
 	// Class properties names
-	public static final String CLASS_NAME = "name";
 	public static final String CLASS_CODE = "code";
 	public static final String CLASS_STATE = "state";
 	
@@ -106,10 +101,10 @@ public class AgentManagementService extends BaseService {
 		myContainer = ac;
 		
 		//#J2ME_EXCLUDE_BEGIN
-		// Initialize agent-loaders and code locator
+		// Initialize the agent-loader for "jar agents" and the CodeLocator
 		agentsPath = p.getParameter(AGENTS_PATH, ".");
-		addAgentLoader(new AgentLoader() {
-			public Agent loadAgent(String className, Properties pp) throws ClassNotFoundException, IllegalAccessException, InstantiationException { 
+		ObjectManager.addLoader(ObjectManager.AGENT_TYPE, new ObjectManager.Loader() {
+			public Object load(String className, Properties pp) throws ClassNotFoundException, IllegalAccessException, InstantiationException { 
 				String jarName = pp.getProperty(CLASS_CODE);
 				boolean warnIfJarNotFound = true;
 				if (jarName == null) {
@@ -607,9 +602,7 @@ public class AgentManagementService extends BaseService {
 			try {
 				//#J2ME_EXCLUDE_BEGIN
 				// Try to load the agent using an agent loader
-				Properties pp = getClassProperties(className);
-				className = pp.getProperty(CLASS_NAME);
-				agent = loadAgent(className, pp);
+				agent = (Agent) ObjectManager.load(className, ObjectManager.AGENT_TYPE);
 				//#J2ME_EXCLUDE_END
 				
 				if (agent == null) {
@@ -635,35 +628,6 @@ public class AgentManagementService extends BaseService {
 			}
 		}
 		
-		//#J2ME_EXCLUDE_BEGIN
-		/**
-		 * A class specification may have the form foo.bar[key1=value1;key2=value2...]
-		 * Parse it and fill a Properties object
-		 */
-		private Properties getClassProperties(String str) {
-			Properties pp = new Properties();
-			int index = str.indexOf('[');
-			if (index < 0) {
-				pp.setProperty(CLASS_NAME, str);
-			}
-			else {
-				pp.setProperty(CLASS_NAME, str.substring(0, index));
-				int index1 = str.indexOf(']');
-				String propsStr = str.substring(index+1, index1);
-				Vector propsList = Specifier.parseList(propsStr, ';');
-				for (int i = 0; i < propsList.size(); ++i) {
-					String ps = (String) propsList.get(i);
-					int k = ps.indexOf('=');
-					if (k > 0) {
-						String name = ps.substring(0, k);
-						String value = ps.substring(k+1);
-						pp.setProperty(name, value);
-					}
-				}
-			}
-			return pp;
-		}		
-		//#J2ME_EXCLUDE_END
 		
 		private void killAgent(AID agentID) throws IMTPException, NotFoundException {
 			
@@ -990,22 +954,6 @@ public class AgentManagementService extends BaseService {
 	}
 	
 	//#J2ME_EXCLUDE_BEGIN
-	private Agent loadAgent(String className, Properties pp) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-		Iterator it = agentLoaders.iterator();
-		while (it.hasNext()) {
-			AgentLoader al = (AgentLoader) it.next();
-			Agent a = al.loadAgent(className, pp);
-			if (a != null) {
-				return a;
-			}
-		}
-		return null;
-	}
-	
-	public void addAgentLoader(AgentLoader loader) {
-		agentLoaders.add(loader);
-	}
-	
 	private boolean isLoadedFromSeparateSpace(Object obj) {
 		try {
 			Class c = obj.getClass();
@@ -1022,13 +970,6 @@ public class AgentManagementService extends BaseService {
 	//#J2ME_EXCLUDE_END
 	
 	private void customize(Agent agent) {
-		/*try {
-			Behaviour amfServer = (Behaviour) Class.forName("jade.amf.AttributeManagementServer").newInstance();
-			agent.addBehaviour(amfServer);
-		}
-		catch (Exception e) {
-			// The AMF code is not in the classpath --> Just do nothing
-		}*/
 	}
 	
 	
@@ -1047,7 +988,6 @@ public class AgentManagementService extends BaseService {
 	//#J2ME_EXCLUDE_BEGIN
 	private String agentsPath = null;
 	private CodeLocator codeLocator;
-	private List agentLoaders = new ArrayList();
 	//#J2ME_EXCLUDE_END
 	
 	// Work-around for PJAVA compilation
