@@ -1,3 +1,93 @@
+MAJOR CHANGES in JADE 3.7 (01 07 2009)
+==========================================================================
+GENERAL IMPROVEMENTS:
+Kernel
+- Added support for loading agents (and possibly other types of objects) whose code is stored in different spaces (jar file outside the classpath, OSGi bundles...) by means of the ObjectManager class
+- Modified NotificationService, related classes and JADE internals to handle RECONNECTED and LEADERSHIP_ACQUIRED container events 
+
+Behaviours
+- Added WrapperBehaviour to allow modifying behaviours methods on the fly
+- In Ticker and Waker behaviour added restart in stop method
+
+Content Language and Ontologies
+- Registered java classes for primitive schemas. Added support for java collection aggregates to BasicOntology.toObject().
+- Added adjustPrimitiveValues() method in BasicOntology to automatically convert primitive values according to the required type
+- Fixed Set management in AbsHelper and BCReflectiveIntrospector.
+- Added isAssignableFrom() method to ObjectSchema to performs a structural compatibility check on schemas
+
+DF
+- Modified DFService to set max-result to -1 (infinite) by default when creating a DF subscription message
+
+Interaction Protocols
+- Modified SSResponderDispatcher to initialize the conversation-id if not set and manage cases where createResponder() returns null
+- Modified SubscriptionInitiator to properly set the reply-with field in the CANCEL message when a response to the CANCEL message is expected
+
+Others
+- Added class jade.util.leap.HashSet; 
+- Modified build process to recreate parsers only if both the JAVACC_HOME variable is set AND the makeParsers property is set to true in the build.properties file
+
+
+BUG-FIXES:
+- Fixed bug in jade.jar manifest: Replaced backslash with slash in Class-Path property
+- Fixed bug in BasicOntology serialization
+- Fixed bug on set of AbsObject: duplication of attribute names in case of multiple set of same attribute
+- Fixed bug on container shutdown: the shutdown of a peripheral container living in the same VM of a main container used to stop the multicast listener of the main container.
+- Fixed methods getConceptNames(), getActionNames() and getPredicateNames() in Ontology to consider super-ontologies too (bug indicated by Vadim Kimlaychuk)
+- Fixed bug on removal of the local (main) container on platform shutdown: since the local node is not monitored the local container was not properly removed
+
+
+JADE-LEAP:
+- Added support for Java Platform Micro Edition SDK 3.0
+- Modified FaultRecoveryService and JADE kernel to support reattachement of nodes that were considered dead due to a long network disconnection
+- Completed support for ServiceHelper on split container
+- Added FEService class to allow using the TopicManagement Service on split containers
+
+
+JADE-OSGi (NEW): 
+- Added support for running a JADE container inside an OSGi environment
+- Added support for packaging agents into separated bundles
+- Added support for giving agents access to OSGi features
+
+
+ADD-ONS:
+- Misc Add-On: 
+  - Modified BeanOntology to support beans that do not implement ontological interfaces (Predicate, AgentAction, Concept)
+  - Added support in BeanOntology to retrieve elements type in aggregate slots from generics when present 
+  - Modified ContainerMonitorAgent to invoke agent dump() method if defined
+  - Added support for showing wrapped behaviour information when using a WrapperBehaviour in ContainerMonitorAgent
+
+- Web Service Integration Gateway - WSIG Add-On:
+  - Implemented soap fault management
+
+- Web Service Dynamic Client - WSDC Add-On (NEW):
+  - Added support for web service dynamic (i.e. no WSDL import or class generation) invocation and introspection
+  - Added support for certificates (https) and http proxy
+  - Added support for retrieving Services, Ports, Operations and Parameters documentation
+  - Added support for caching DynamicClients by means of the DynamicClientCache class
+
+- Test Suite Add-On:
+  - Added support to fix the port of the TSDaemon RMI UnicastRemoteObject by means of the tsdaemon.remoteobjectport system variable 
+
+- Semantic Framework Add-On
+  - Added extension for reasoning about institutional concepts (obligations, institutional powers, institutional actions...)
+  - Added new demo of a b2b mediation platform
+
+- XMLCodec Add-On
+  - Modified to handle string slots as xml attributes. Improved string encoding to escape forbidden character (<>&"')
+  - Fixed bug for aggregate type (now decode with correct collection class)
+
+
+DOCUMENTATION:
+- Added tutorial on using JADE agents inside an OSGi environment
+- Added tutorial on Web Service Dynamic Client
+- Several improvements to the Javadoc
+
+
+POSSIBLE BACKWARD INCOMPATIBILITIES:
+- Added reconnected() and leadershipAcquired() methods to the ContainerListener interface
+
+
+
 MAJOR CHANGES in JADE 3.6.1 (04 11 2008)
 ==========================================================================
 GENERAL IMPROVEMENTS:
