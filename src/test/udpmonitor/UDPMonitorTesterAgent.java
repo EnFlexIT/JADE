@@ -76,7 +76,7 @@ public class UDPMonitorTesterAgent extends TesterAgent {
 					remoteAMS.addAddresses((String) iter.next());
 				}
 
-				// Start a local container with an MTP to communicate with te remote platform
+				// Start a local container with an MTP to communicate with the remote platform
 				mtpCont = TestUtility.launchJadeInstance("Container-mtp", "+" + TestUtility.HTTP_MTP_CLASSPATH,
 						"-container -host " + TestUtility.getLocalHostName() + " -port " + String.valueOf(Test.DEFAULT_PORT) +
 						" -mtp " + mtp + " " + TestUtility.HTTP_MTP_ARG, null);

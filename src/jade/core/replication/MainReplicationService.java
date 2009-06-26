@@ -80,6 +80,12 @@ public class MainReplicationService extends BaseService {
 	public static final String NAME = MainReplicationSlice.NAME;
 	public static final String SNAPSHOT_ON_FAILURE = "jade_core_replication_MainReplicationService_snapshotonfailure";
 	
+	// Actions to be performed when the node monitoring system considers an unreachable node as dead
+	public static final int REMOVE_NODE = 0;
+	public static final int WAIT = 1;
+	public static final int SUICIDE = 2;
+	
+
 	private static final boolean EXCLUDE_MYSELF = false;
 
 	private static final boolean INCLUDE_MYSELF = true;
@@ -167,7 +173,7 @@ public class MainReplicationService extends BaseService {
 			for (int i = 0; i < temp.length; i++) {
 				replicas.add(temp[i]);
 			}
-			
+
 			if (myLabel > 0) {
 				myLogger.log(Logger.INFO, "Main container ring re-arranged: label = "+myLabel+" monitored label = "+localSlice.monitoredLabel);
 			}
@@ -183,7 +189,19 @@ public class MainReplicationService extends BaseService {
 		}
 	}
 
-	
+	/**
+	 * This method is invoked when the monitored main node remains unreachable for too long and is therefore considered 
+	 * dead. The default implementation simply returns REMOVE_NODE so that the node is removed.
+	 * Subclasses may redefine this method to implement application-specific checks aimed at detecting whether 
+	 * the unreachability depends on a real death or on temporary network problems and returns different actions 
+	 * according to the situation.
+	 * @param unreachableNode The node that is considered dead due to long unreachability
+	 * @return One of REMOVE_NODE, WAIT or SUICIDE.
+	 */
+	protected int checkConnectivity(Node unreachableNode) {
+		return REMOVE_NODE;
+	}
+
 	/**
 	 * Inner class CommandOutgoingFilter
 	 * Keep tool agents information in synch among replicas 
@@ -197,9 +215,15 @@ public class MainReplicationService extends BaseService {
 
 				if (name.equals(jade.core.management.AgentManagementSlice.ADD_TOOL)) {
 					handleNewTool(cmd);
-				} else if (name.equals(jade.core.management.AgentManagementSlice.REMOVE_TOOL)) {
+				} 
+				else if (name.equals(jade.core.management.AgentManagementSlice.REMOVE_TOOL)) {
 					handleDeadTool(cmd);
+				} 
+				//#PJAVA_EXCLUDE_BEGIN
+				else if (name.equals(jade.core.nodeMonitoring.UDPNodeMonitoringService.ORPHAN_NODE)) {
+					handleOrphanNode(cmd);
 				}
+				//#PJAVA_EXCLUDE_END
 			} catch (IMTPException imtpe) {
 				cmd.setReturnValue(imtpe);
 			} catch (ServiceException se) {
@@ -229,9 +253,14 @@ public class MainReplicationService extends BaseService {
 
 			broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
 		}
+		
+		private void handleOrphanNode(VerticalCommand cmd) throws IMTPException, ServiceException {
+			String nodeId = (String) cmd.getParam(0);
+			localSlice.handleOrphanNode(nodeId);
+		}
 	} // End of CommandOutgoingFilter class
 
-	
+
 	/**
 	 * Inner class CommandIncomingFilter
 	 * Keep agents and MTPs information in synch among replicas 
@@ -239,7 +268,7 @@ public class MainReplicationService extends BaseService {
 	private class CommandIncomingFilter extends Filter {
 
 		public void postProcess(VerticalCommand cmd) {
- 			try {
+			try {
 				String name = cmd.getName();
 
 				if (name.equals(jade.core.management.AgentManagementSlice.INFORM_CREATED)) {
@@ -264,16 +293,16 @@ public class MainReplicationService extends BaseService {
 			// Avoid propagating to other slices in case the agent creation failed due to a name-clash
 			if (!(ret != null && ret instanceof NameClashException)) {
 				Object[] params = cmd.getParams();
-	
+
 				AID agentID = (AID) params[0];
 				ContainerID cid = (ContainerID) params[1];
-	
+
 				GenericCommand hCmd = new GenericCommand(MainReplicationSlice.H_BORNAGENT, MainReplicationSlice.NAME, null);
 				hCmd.addParam(agentID);
 				hCmd.addParam(cid);
 				hCmd.setPrincipal(cmd.getPrincipal());
 				hCmd.setCredentials(cmd.getCredentials());
-	
+
 				broadcastToReplicas(hCmd, EXCLUDE_MYSELF);
 			}
 		}
@@ -332,7 +361,7 @@ public class MainReplicationService extends BaseService {
 		}
 	} // End of CommandIncomingFilter class
 
-	
+
 	/**
 	 * Inner class ServiceComponent
 	 */
@@ -497,7 +526,7 @@ public class MainReplicationService extends BaseService {
 				for (int i = 0; i < tools.length; i++) {
 					slice.newTool(tools[i]);
 				}
-				
+
 				// Finally issue a NEW_NODE VCommand and a NEW_SLICE VCommand for each service to allow
 				// local services to propagate service specific information to their slices in the new 
 				// Main Container node.
@@ -648,20 +677,54 @@ public class MainReplicationService extends BaseService {
 		// Implementation of the NodeEventListener interface
 
 		public void nodeAdded(Node n) {
-			//log("Start monitoring node <"+n.getName()+">", 2);
-			if (myLogger.isLoggable(Logger.CONFIG))
-				myLogger.log(Logger.CONFIG, "Start monitoring node <" + n.getName() + ">");
-
+			myLogger.log(Logger.INFO, "Start monitoring main node <" + n.getName() + ">");
+			monitoredNodeUnreachable = false;
 		}
 
 		public void nodeRemoved(Node n) {
-			if (myLogger.isLoggable(Logger.CONFIG)) {
-				myLogger.log(Logger.CONFIG, "Node <" + n.getName() + "> TERMINATED");
+			int action = REMOVE_NODE;
+			if (monitoredNodeUnreachable) {
+				// The monitored Main Container appears to be dead. Clearly we cannot distinguish for sure between a
+				// real death and a long network disconnection --> By redefining the checkConnectivity() method
+				// Applications have an opportunity to perform 
+				// environment specific checks and to force one of the following actions: 
+				// - REMOVE_NODE: the default behaviour. Node n is actually removed and if necessary the leadership is acquired
+				// - WAIT: nothing is done. As soon as an ORPHAN_NODE command is intercepted for node n a new monitor is activated
+				// This action requires the UDPNodeMonitoringService to be active.
+				// - SUICIDE: kill the local container to avoid creating problems when connectivity is re-established
+				action = checkConnectivity(n);
 			}
 
+			switch (action) {
+			case REMOVE_NODE:
+				removeTerminatedNode(n);
+				break;
+			case WAIT:
+				myLogger.log(Logger.WARNING, "Network problems are preventing the monitoring of main node <" + n.getName() + ">. Stop monitor it");
+				toBeMonitored = n;
+				break;
+			case SUICIDE:
+				suicide();
+				break;
+			}
+		}
+
+		public void nodeUnreachable(Node n) {
+			myLogger.log(Logger.WARNING, "Main node <" + n.getName() + "> UNREACHABLE");
+			monitoredNodeUnreachable = true;
+		}
+
+		public void nodeReachable(Node n) {
+			myLogger.log(Logger.INFO, "Main Node <" + n.getName() + "> REACHABLE");
+			monitoredNodeUnreachable = false;
+		}
+
+		private void removeTerminatedNode(Node n) {
+			myLogger.log(Logger.INFO, "Main node <" + n.getName() + "> TERMINATED");
+			
 			try {
 				replicas.remove(monitoredLabel);
-				
+
 				// Possibly the AMS is dead --> Start intercepting platform and MTP events on behalf of the 
 				// new AMS if any. 
 				AMSEventQueueFeeder feeder = null;
@@ -669,7 +732,7 @@ public class MainReplicationService extends BaseService {
 					feeder = new AMSEventQueueFeeder(new InputQueue(), myContainer.getID());
 					myMain.addListener(feeder);
 				}
-				
+
 				myPlatformManager.removeReplica(monitoredSvcMgr, false);
 				myPlatformManager.removeNode(new NodeDescriptor(n), false);
 
@@ -707,15 +770,22 @@ public class MainReplicationService extends BaseService {
 				se.printStackTrace();
 			}
 		}
-
-		public void nodeUnreachable(Node n) {
-			myLogger.log(Logger.WARNING, "Main node <" + n.getName() + "> UNREACHABLE");
+		
+		private void suicide() {
+			myLogger.log(Logger.WARNING, "Due to network problems I'm isolated --> The rest of the platform will consider me dead. Suicide!!!!!!!!");
+			myContainer.shutDown();
 		}
-
-		public void nodeReachable(Node n) {
-			myLogger.log(Logger.INFO, "Main Node <" + n.getName() + "> REACHABLE");
+		
+		private void handleOrphanNode(String nodeId) {
+			if (toBeMonitored != null && toBeMonitored.getName().equals(nodeId)) {
+				// The node to be monitored is reachable again --> Start monitoring it again
+				myLogger.log(Logger.INFO, "Ping received from node "+nodeId+" --> The network is working again. Re-start monitoring node");
+				nodeMonitor = NodeFailureMonitor.getFailureMonitor();
+				nodeMonitor.start(toBeMonitored, this);
+				toBeMonitored = null;
+			}
 		}
-
+		
 		// The active object monitoring the remote node
 		private NodeFailureMonitor nodeMonitor;
 
@@ -723,6 +793,8 @@ public class MainReplicationService extends BaseService {
 		private int monitoredLabel;
 
 		private String monitoredSvcMgr;
+		private Node toBeMonitored;
+		private boolean monitoredNodeUnreachable = false;
 
 	} // End of ServiceComponent class
 

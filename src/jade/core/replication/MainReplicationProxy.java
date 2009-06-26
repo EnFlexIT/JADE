@@ -29,21 +29,13 @@ import java.util.Vector;
 
 import jade.core.Node;
 import jade.core.NodeDescriptor;
-import jade.core.Service;
 import jade.core.SliceProxy;
 import jade.core.GenericCommand;
 import jade.core.AID;
 import jade.core.ContainerID;
-import jade.core.Location;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.core.NotFoundException;
-import jade.core.NameClashException;
-
-import jade.mtp.MTPDescriptor;
-
-import jade.security.Credentials;
-import jade.security.JADESecurityException;
 
 
 /**

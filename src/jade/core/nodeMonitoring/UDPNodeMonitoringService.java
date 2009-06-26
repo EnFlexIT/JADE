@@ -285,6 +285,8 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	
 	private void startUDPClient(String label, String host, int port, int pingDelay, long key) throws ServiceException {
 		try {
+			// Stop any previous client associated to the same label
+			stopUDPClient(label, -1);
 			UDPMonitorClient client = new UDPMonitorClient(getLocalNode(), host, port, pingDelay, key);
 			myClients.put(label, client);
 			client.start();
@@ -382,7 +384,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	 * Inner class UDPMonitorIncomingFilter
 	 * An incoming filter is needed to react to failures of main containers
 	 * that are monitoring this node by stopping the related UDP Monitor clients.
-	 * This main containers is either the main container a node is attached to
+	 * This main container is either the main container a node is attached to
 	 * or a main container replica if the Main Replication Service is active    
 	 */
 	private class UDPMonitorIncomingFilter extends Filter {
@@ -397,7 +399,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 				String address = (String) params[0];
 				stopUDPClient(address, -1);
 			}
-			// Vever veto a command
+			// Never veto a command
 			return true;
 		}
 

@@ -26,6 +26,8 @@ package jade.core.faultRecovery;
 //#J2ME_EXCLUDE_FILE
 //#APIDOC_EXCLUDE_FILE
 
+import jade.core.GenericCommand;
+import jade.core.HorizontalCommand;
 import jade.core.ServiceHelper;
 import jade.core.VerticalCommand;
 import jade.core.Service;
@@ -44,6 +46,7 @@ import jade.core.IMTPException;
 import jade.core.nodeMonitoring.NodeMonitoringService;
 import jade.core.nodeMonitoring.UDPNodeMonitoringService;
 import jade.core.replication.MainReplicationService;
+import jade.core.replication.MainReplicationSlice;
 
 import jade.util.Logger;
 
@@ -83,6 +86,9 @@ public class FaultRecoveryService extends BaseService {
 	public static final String ORPHAN_NODE_POLICY_RECOVER = "RECOVER";
 	public static final String ORPHAN_NODE_POLICY_KILL = "KILL";
 	public static final String ORPHAN_NODE_POLICY_IGNORE = "IGNORE";
+	
+	// Horizontal command to force the termination of an orphan node when the KILL Orphan Node Policy is set
+	public static final String H_KILLNODE = "1";
 	
 	private AgentContainer myContainer;
 	private MainContainer myMain;
@@ -212,6 +218,34 @@ public class FaultRecoveryService extends BaseService {
 		}
 	}
 	
+	public Service.Slice getLocalSlice() {
+		return new Service.Slice() {
+			public Service getService() {
+				return FaultRecoveryService.this;
+			}
+			
+			public Node getNode() throws ServiceException {
+				try {
+					return FaultRecoveryService.this.getLocalNode();
+				} catch (IMTPException imtpe) {
+					throw new ServiceException("Problem in contacting the IMTP Manager", imtpe);
+				}
+			}
+			
+			public VerticalCommand serve(HorizontalCommand cmd) {
+				try {
+					String cmdName = cmd.getName();
+					if (cmdName.equals(H_KILLNODE)) {
+						suicide();
+					}
+				} catch (Throwable t) {
+					cmd.setReturnValue(t);
+				}
+				return null;
+			}
+		};
+	}
+	
 	public ServiceHelper getHelper(Agent a) throws ServiceException {
 		// The agent is passed to the helper in the init() method
 		return new FaultRecoveryHelper() {
@@ -240,23 +274,48 @@ public class FaultRecoveryService extends BaseService {
 		try {
 			node = nodeSerializer.deserialize(nn);
 			node.platformManagerDead(oldAddress, currentAddress);
-			myLogger.log(Logger.INFO, "Node "+name+" recovered.");
+			myLogger.log(Logger.INFO, "Node "+name+" successfully recovered.");
+			return;
 		}
 		catch (IMTPException imtpe) {
 			myLogger.log(Logger.INFO, "Node "+name+" unreachable. It has likely been killed in the meanwhile");
-			// Remove the node from the PS
-			try {
-				myPS.removeNode(node.getName());
-			}
-			catch (Exception ex) {
-				myLogger.log(Logger.WARNING, "Cannot remove node "+node.getName()+" from persistent storage. ", ex);
-			}
 		}
 		catch (Exception e) {
-			myLogger.log(Logger.WARNING, "Error recovering node "+name+". ", e);
+			myLogger.log(Logger.WARNING, "Error deserializing node "+name+". ", e);
+		}
+		// If we get here the node either has been killed in the meanwhile or cannot be deserialized -->
+		// In any case remove it from the PS
+		try {
+			myPS.removeNode(node.getName());
+		}
+		catch (Exception ex) {
+			myLogger.log(Logger.WARNING, "Cannot remove node "+node.getName()+" from persistent storage. ", ex);
 		}
 	}
 		
+	private void killNode(String name, byte[] nn) {
+		Node node = null;
+		try {
+			node = nodeSerializer.deserialize(nn);
+			HorizontalCommand cmd = new GenericCommand(H_KILLNODE, NAME, null);
+			node.accept(cmd);
+			myLogger.log(Logger.INFO, "Node "+name+" successfully killed.");
+		}
+		catch (IMTPException imtpe) {
+			myLogger.log(Logger.INFO, "Node "+name+" unreachable. It has likely been killed in the meanwhile");
+		}
+		catch (Exception e) {
+			myLogger.log(Logger.WARNING, "Error deserializing node "+name+". ", e);
+		}
+		// In any case remove the node from the PS
+		try {
+			myPS.removeNode(node.getName());
+		}
+		catch (Exception ex) {
+			myLogger.log(Logger.WARNING, "Cannot remove node "+node.getName()+" from persistent storage. ", ex);
+		}
+	}
+	
 	
 	/**
 	 Inner class MainCommandIncomingFilter.
@@ -403,14 +462,15 @@ public class FaultRecoveryService extends BaseService {
 						checkNode(nodeName, nn, address, address);
 					}
 					else if (orphanNodePolicy.equals(ORPHAN_NODE_POLICY_KILL)) {
-						// FIXME: To be implemented
+						myLogger.log(Logger.INFO, "Try to kill orphan node "+nodeName);
+						killNode(nodeName, nn);
 					}
 					else if (orphanNodePolicy.equals(ORPHAN_NODE_POLICY_IGNORE)) {
 						// Just do nothing
 					}
 				}
 				else {
-					myLogger.log(Logger.WARNING, "Orphan node "+nodeName+" not found --> Cannot recover it");
+					myLogger.log(Logger.CONFIG, "Orphan node "+nodeName+" not found in persistent storage");
 				}
 			}
 			catch (Exception e) {
@@ -447,7 +507,22 @@ public class FaultRecoveryService extends BaseService {
 		}
 	}
 		
-
+	private void suicide() {
+		myLogger.log(Logger.WARNING, "Activating suicide procedure.....");
+		Thread t = new Thread() {
+			public void run() {
+				try {
+					Thread.sleep(2000);
+				}
+				catch (Exception e) {}
+				myLogger.log(Logger.WARNING, "Suiciding NOW!!!!!!");
+				System.exit(0);
+			}
+		};
+		t.start();
+	}
+	
+	
 	/**
 	 * Inner class NodeSerializer
 	 */

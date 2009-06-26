@@ -206,4 +206,8 @@ class UDPMonitorClient {
 			logger.log(Logger.CONFIG, "UDP monitoring client stopped.");
 
 	}
+	
+	boolean isActive() {
+		return sender != null && sender.isAlive();
+	}
 }

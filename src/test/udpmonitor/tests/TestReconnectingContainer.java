@@ -6,7 +6,7 @@ import jade.core.nodeMonitoring.UDPNodeMonitoringService;
 import test.common.*;
 
 /**
- * This test checks whether a temporal unreachable container doesn't get removed from the platform.
+ * This test checks whether a temporary unreachable container doesn't get removed from the platform.
  * <p>
  * The test starts a peripheral container with a modified version of the UDPNodeMonitoringService that supports
  * interrupting UDPMonitorClients. This is used to make this container stop sending UDP pings for a while.
