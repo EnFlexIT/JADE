@@ -302,7 +302,7 @@ public class FaultRecoveryService extends BaseService {
 			myLogger.log(Logger.INFO, "Node "+name+" successfully killed.");
 		}
 		catch (IMTPException imtpe) {
-			myLogger.log(Logger.INFO, "Node "+name+" unreachable. It has likely been killed in the meanwhile");
+			myLogger.log(Logger.INFO, "Node "+name+" unreachable (it has likely been killed in the meanwhile) or does not support fault recovery.");
 		}
 		catch (Exception e) {
 			myLogger.log(Logger.WARNING, "Error deserializing node "+name+". ", e);
