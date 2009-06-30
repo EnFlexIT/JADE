@@ -84,6 +84,7 @@ ADD-ONS:
 DOCUMENTATION:
 - Added tutorial on using JADE agents inside an OSGi environment
 - Added tutorial on Web Service Dynamic Client
+- Revisited tutorial on HTTP MTP configuration
 - Revisited Online Documentation page
 - Several improvements to the Javadoc
 
