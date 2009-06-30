@@ -4,171 +4,65 @@
 How to use the new HTTP MTP with JADE
 </TITLE>
 <BODY>
-<h1>How to use the new HTTP MTP with JADE</h1><br>
+<h1>Configuring the JADE HTTP MTP </h1>
+<br>
 <i>Jose A. Exposito</i><br>
 <i>Joan Ametller (jametller@ccd.uab.es)</i><br>
 <i>Sergi Robles (srobles@ccd.uab.es)</i><br>
 <i>October 20th 2003</i><br>
 <br>
-<i>Updated: November 20th 2003 (Nicolas Lhuillier, Motorola)</i><br>
+<i>Last update: June 30th 2009</i><br>
 
 <h2>0. Index</h2>
 
 1. Introduction<br>
-2. Building and Installing<br>
-3. Basic Configuration<br>
-4. HTTPS Support<br>
-5. HTTPS Configuration<br>
+2. Basic Configuration<br>
+3. HTTPS Support<br>
+4. HTTPS Configuration<br>
 
 <br>
 <h2>1. Introduction</h2>
-<p>
-This new implementation of the HTTP MTP tries to cover the lacks of
-the old implementation providing a robust, lightweight, efficient, and
-easily-configurable HTTP MTP.</p>
-<p>
-The new implementation has several new features and fixes with respect
-to the old one. In this introduction we will explain which are these
-features and how can they help to agents' programmers.</p>
+<p> The HTTP MTP is directly included in the JADE distribution and is activated 
+  by default on Main Containers. As usual for MTPs it is possible to activate 
+  it on peripheral containers too by means of the -mtps option (look at the JADE 
+  Administrator's guide for details).</p>
+<p>This document describes how to configure it to tune its behaviour according 
+  to the application requirements (e.g. performances) and the environment characteristics 
+  (e.g. firewalls and proxies). Such configurations can be specified by means of 
+  typical JADE command line options in the form <tt>-&lt;key&gt; &lt;value&gt;</tt> or, 
+  in case the <tt>-conf &lt;properties file&gt;</tt> option is used, by means of properties in the form<br>
+  <tt>key=value</tt></p> 
 
-<h3>1.1 Simple Implementation</h3>
-<p>
-This new implementation is composed of only 7 classes in front of the
-~60 of the previous one.</p>
 
-<h3>1.2 Catching Errors</h3>
-<p>
-When the MTP produces an error during its execution, it should
-generate an MTPException. From the agents point of view this exception
-is translated into a FAILURE ACL message sent back to the agent.
-</p><p>
-The old implementation did not throw all the errors. An example was
-when an agent sent messages to a platform that was not on-line. The
-HTTP MTP produced an SocketException which was not transmitted to the
-platform. The result was that agents didn't have a mechanism to decide
-if the message was received or not.
-</p><p>
-In the new implementation all failure cases are transmitted. This
-opens the possibility of building more robust and fault-tolerant
-applications using this new MTP.
-</p>
 
-<h3>1.3 Performance Improving: Persistent connections</h3>
-<p>
-One of the drawbacks of using HTTP MTP instead of the IIOP MTP (not
-only in JADE, also in other platforms) was the low performance of the
-first one. One of the main reasons of this difference is caused
-because IIOP uses persistent connections. HTTP MTP usually starts a
-TCP connection for each message coming from one platform to
-another. Instead of doing the TCP handshaking protocol for every
-message, connections could be reused with the platforms which we
-communicate so often. This new feature improves very much the
-performance of this MTP.
-</p><p>
-This new version of the HTTP MTP can keep some connections to other
-platforms alive. The use of this mechanism improves a lot the timmings
-of inter-platform message sending, and it is totally compatible with
-FIPA-compliant platforms that do not implement it.
-</p><p>
-We can choose to use keep-alive or close connections from the
-configuration.  If we choose to use keep-alive connections but the
-platform, which we want to communicate with does not support it, the
-behaviour of the HTTP MTP will be like if using a close connection
-with this platform.
-</p>
+<h2>2. Basic Configuration</h2>
 
-<h3>1.4 Using HTTP MTP in restricted environments: HTTP Proxies</h3>
-<p>
-Also two experimental features has been included in this
-version. Those are the possibility of using HTTP Proxies and choose
-the outgoing port.
-</p><p>
-As we use an HTTP protocol we can exploit the possibilities of this
-protocol to cross restricted networks. The first of this features is
-the possibility of using an HTTP Proxy instead of sending the messages
-directly to the remote platform. This feature will not affect the FIPA
-compatibility of this protocol, and if the proxy is properly
-configured, the keep-alive mechanism can also work.
-</p><p>
-The second feature is the possibility of choosing the local outgoing
-port for platform connections.
-</p><p>
-This two issues can be useful in some corporative environments where
-network access is usually restricted.
-</p>
 
-<h3>1.5 Easy Configuration</h3>
-<p>
-This version of the HTTP MTP only works with the versions of JADE >=
-3. In this versions a mechanism is included in order to use the
-typical configuration files of JADE to include parameters for the
-MTP. The effect is that the parameters of the MTP are not hardcoded to
-the distribution and we do not need to recompile the MTP every time we
-want to change them.
-</p>
+In order to speed up performances the HTTP MTP is able to reuse connections instead 
+of opening new ones each time a message must be delivered to a remote platform. 
+This mechanism is totally compatible with FIPA-compliant platforms that do not 
+implement it. We can choose to use keep-alive or close connections from the configuration. 
+If we choose to use keep-alive connections but a remote platform, which we want 
+to communicate to does not support it, the behaviour of the HTTP MTP will be to 
+close connections with that platform after each usage. 
+<p> <tt>jade_http_mtp_numKeepAlive=n</tt> </p>
 
-<h3>1.6 HTTPS Support (new)</h3>
-<p>
-Recently, support for HTTPS connections has been added to HTTPS this
-support permits to establish secure and authenticated connections
-between platforms.
-</p>
+<p> This parameter allows specifying the maximum number of connections that the 
+  mtp is allowed to keep. Default value for this parameter is 10. A value of 0 
+  means that the connection reusage mechanism is turned off. </p>
 
-<h2>2. Building and Installing</h2>
-
-<h3>2.1 Building</h3>
-<p>
-The distribution must be unziped within the jade folder. It will add an 
-http-mtp to your add-ons directory. Inside it, exists a "build.xml" Ant file, so using Jakarta Ant
-we only need to run ant with no target to compile the sources and run
-"ant lib" to create the "http.jar" file that will be located in dist folder.
-</p><p>
-If JDK 1.3 is used with target "ant pjava", this creates a pjava version of this MTP (http-pjava.jar).
-Note that this version requires a SAX parser (see section 3) 
-and requires the LEAP add-on to be present and "JadeLeap.jar" for pjava created.
-</p>
-
-<h3>2.2 Installing</h3>
-<p>
-To use the HTTP MTP we can choose to specify it from the command line:
-</p>
-
-<tt>java jade.Boot -mtp jade.mtp.http.MessageTransportProtocol</tt>
-<p>
-or install it from the RMA's graphical environment. Obviously, the http.jar
-containing the MTP class files must be in the classpath.
-</p>
-
-<h2>3. Basic Configuration</h2>
-<p>
-As we said in previous sections, the new version of JADE allows to
-pass configuration parameters to the MTP via the JADE Configuration
-file. So, when we execute jade with a configuration file:
-</p>
-
-<tt>e.g. java jade.Boot -conf jade.conf</tt><br><br>
-
-or directly from the command line:
-<br><br>
-<tt>e.g. java jade.Boot -jade_http_mtp_numKeepAlive 5</tt><br>
-<p>
-We can include some parameters that are exclusive of this MTP and that
-can help its tuning. If we do not specify this parameters in
-the configuration file, default values are taken.
-</p>
-
-<tt>jade_http_mtp_numKeepAlive=n</tt>
-<p>
-This parameter allows you to limit the maximum number of
-persistent connections that the mtp is allowed to keep. Default value
-for this parameter is 10. 0 means keep alive connections are not used.
-</p>
+<p><tt>jade_http_mtp_timeout=milliseconds</tt> 
+<p> The Server part of the HTTP MTP also keeps alive connections from other platforms 
+  that are using the connection reusage feature. By setting up this timeout we 
+  can set a maximum idle time for these connections in order to improve the memory 
+  consumption. Default value for this parameter is 60000 (1 minute). If we want 
+  this time to be infinite we must put this value to 0. </p>
 
 <tt>jade_http_mtp_outPort=n</tt>
 
-<p>We can set the local port open by sockets setting up this
-parameter. If this parameter is not specified, a random port will be
-used.</p>
+<p>This parameter allows specifying the local port used by outgoing connections 
+  with remote platforms. If this parameter is not specified, a random free port 
+  will be used.</p>
 <tt>
 jade_http_mtp_proxyHost=hostName<br>
 jade_http_mtp_proxyPort=portNumber
@@ -180,28 +74,16 @@ connections will be opened directly to the remote platforms.
 </p>
 
 <tt>jade_http_mtp_parser=saxClassName</tt>
-<p>    
-The HTTP MTP needs a SAX XML Parser. We can choose the SAX
-implementation of the parser by indicating a classname (which must be in the classpath).
-Since by default this MTP uses J2SE v1.4 default parser, this option is mandatory with JDK 1.3 or earlier.
-<p>
+<p> The HTTP MTP needs a SAX XML Parser. By means of this parameter it is possible 
+  to specify the SAX parser implementation class (fully qualified class name). 
+  Such class must be in the classpath. If this parameter is not specified the 
+  default SAX parser included in the underlying JDK is used.
 
-<tt>jade_http_mtp_timeout=milliseconds</tt>
-<p>   
-The Server part of the HTTP MTP keeps also connections from
-other platforms that are using the keep-alive feature. By setting up
-this timeout we can set a maximum idle time for this connections in
-order to improve the memory consumption. Default value for this
-parameter is 60000 (1 minute). If we want this time to be infinite we
-must put this value to 0.
-</p>
-
-<h2>4. HTTPS Support</h2>
-<p>
-This last release of HTTP MTP includes support for HTTPS, what means
-HTTP over SSL connections. This functionality basically permits having
-a secure and authenticated channel between platforms using this MTP.
-</p><p> 
+<h2>3. HTTPS Support</h2>
+<p> This HTTP MTP includes support for HTTPS, that means HTTP over SSL connections. 
+  This functionality basically permits having a secure and authenticated channel 
+  between platforms using this MTP. </p>
+<p> 
 
 How it works ? Basically when a connection is being established
 between two platforms, the platform acting as server (receiver), sends
@@ -225,7 +107,7 @@ What we loose ? Obviously we loose in performance. HTTPS MTP is
 approximately 15% slower than normal HTTP MTP.
 </p>
 
-<h2>5. HTTPS Configuration</h2>
+<h2>4. HTTPS Configuration</h2>
 
 <p>HTTPS MTP configuration is not easy as with HTTP MTP. It requires
 to understand some basic concepts that will be exposed in the
@@ -238,7 +120,7 @@ those things are done automatically by this MTP but we must specify
 where this certificates are, and which trust decisions are made when
 remote certificates are received.</p>
 
-<h3>5.1 Java keytool</h3>
+<h3>4.1 Java keytool</h3>
 
 <p>The first step in order to use HTTPS MTP is creating our platform's
 certificate. We can solve this step by using java keytool. This
@@ -272,7 +154,7 @@ Enter key password for <myplatformname><br>
 key. This information is protected with the password
 <i>mypassword</i>.</p>
 
-<h3>5.2 Key Managers</h3>
+<h3>4.2 Key Managers</h3>
 
 <p>The sending of certificates during the handshaking process of the
 protocol is done automatically. Key Managers are responsible to locate
@@ -289,7 +171,7 @@ java jade.Boot -jade_mtp_http_https_keyStoreFile=keyfile
 
 <p> Or putting them inside a jade configuration file</p>
 
-<h3>5.3 Trust Managers</h3>
+<h3>4.3 Trust Managers</h3>
 
 <p>As we said in the introduction, an HTTPS client must perform some
 trust decisions. More precisely, when a server certificate is received
@@ -361,7 +243,7 @@ This will export Alice certificate to the file alice.cer<br><br>
 </ol>
 </ol>
 
-<h3>5.4 Client Authentication</h3>
+<h3>4.4 Client Authentication</h3>
 <p>
 As we said previously, we can force authentication from the server
 side. This means that we are forcing all platforms trying to send
@@ -370,7 +252,7 @@ to restrict the set of platforms being able to send messages to us. To
 enable this feature you only need to set the following parameter:</p><br>
 <i>jade_mtp_http_https_needClientAuth=yes</i>
 
-<h3>5.5 Switching on HTTPS</h3> 
+<h3>4.5 Switching on HTTPS</h3> 
 <p>
 HTTPS MTP is included within the HTTP MTP so it is not really another
 MTP. The behaviour of this MTP is working without secure
@@ -384,7 +266,7 @@ Example starting HTTP MTP with HTTPS support:
 <br><br>
 <b>java jade.Boot -mtp jade.mtp.http.MessageTransportProtocol(https://machine:port/acc)</b>
 
-<h3>5.6 Configuration Examples</h3>
+<h3>4.6 Configuration Examples</h3>
 
 <p>For all the cases explained here we need platform certificate and
 private key. We will suppose that we have created a self signed-certificate
@@ -431,19 +313,13 @@ To run this configurations we only need to invoke JADE with this
 configuration file:<br><br>
 <b>java jade.Boot -conf jade.conf</b><br> 
 
-<h3>5.7 Creating our own KeyManagers and TrustManagers</h3>
-
-TODO
 
 <hr>
 
-<p> <center> <font FACE="Arial" size="-1"><a
-  HREF="http://jade.cselt.it/">JADE</a> is a trademark of <a
-  HREF="http://www.cselt.it">CSELT</a>. <a
-  HREF="http://jade.cselt.it/">JADE</a> has been developed jointly by
-  <a HREF="http://www.cselt.it">CSELT</a> and the <a
-  HREF="http://www.ce.unipr.it">Computer Engineering Group</a> of the
-  <a HREF="http://www.unipr.it">University of Parma</a>.</font>
+<p> <center>
+    <font FACE="Arial" size="-1"><a
+  HREF="http://jade.tilab.com/">JADE</a> is a trademark of <a
+  HREF="http://www.telecomitalia.it">Telecom Italia</a>.</font> 
   </center>
       
   <font FACE="Arial"> <center> <font SIZE=-1>The HTTP implementation
@@ -453,5 +329,5 @@ TODO
   Jose Antonio Exposito, Joan Ametller and Nicolas Lhuillier (Motorola).
 </font> </center> <br>
 	
-</BODY>
+</font></BODY>
 </HTML>
