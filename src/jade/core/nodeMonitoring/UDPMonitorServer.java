@@ -92,6 +92,9 @@ class UDPMonitorServer {
 	private PingHandler pingHandler;
 	private Timer timer;
 	private Hashtable deadlines = new Hashtable();
+	
+	private int orphanNodePingsCnt;
+	private int maxTracedUnknownPings;
 	private Hashtable unknownPingCounters = new Hashtable();
 
 	/*#DOTNET_INCLUDE_BEGIN
@@ -247,13 +250,15 @@ class UDPMonitorServer {
 	/**
 	 * Constructs a new UDPMonitorServer object
 	 */
-	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul) {
+	UDPMonitorServer(UDPNodeMonitoringService s, String h, int p, int pd, int pdl, int ul, int onpc, int mtup) {
 		myService = s;
 		host = h;
 		port = p;
 		pingDelay = pd;
 		pingDelayLimit = pdl;
 		unreachLimit = ul;
+		orphanNodePingsCnt = onpc;
+		maxTracedUnknownPings = mtup;
 
 		logger = Logger.getMyLogger(UDPNodeMonitoringService.NAME);
 		try {
@@ -448,10 +453,10 @@ class UDPMonitorServer {
 			cnt = new Counter();
 			unknownPingCounters.put(nodeID, cnt);
 		}
-		if (cnt.getValue() < 50) {
+		if (cnt.getValue() < maxTracedUnknownPings) {
 			logger.log(Logger.WARNING, "UDP ping message with the unknown node ID '" + nodeID + "' received");
 			cnt.increment();
-			if (cnt.getValue() == 10) {
+			if (cnt.getValue() == orphanNodePingsCnt) {
 				// A node is considered orphan only once after the reception of 10 "unknown pings"
 				final String id = nodeID;
 				Thread t = new Thread() {

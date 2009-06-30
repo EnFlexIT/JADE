@@ -5,6 +5,7 @@ Kernel
 - Added support for loading agents (and possibly other types of objects) whose code is stored in different spaces (jar file outside the classpath, OSGi bundles...) by means of the ObjectManager class
 - Modified NotificationService, related classes and JADE internals to handle RECONNECTED and LEADERSHIP_ACQUIRED container events 
 - Enhanced MainReplicationService with support for application specific checks on connectivity status when a Main Container replica is considered dead due to a long disconnection 
+- Modified UDPNodeMonitoringService to improve the management of UDP ping packets from un-monitored nodes (orphan nodes) 
 
 Behaviours
 - Added WrapperBehaviour to allow modifying behaviours methods on the fly

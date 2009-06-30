@@ -92,7 +92,25 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	 * This property is only meaningful on a main container.
 	 */
 	public static final String UNREACHABLE_LIMIT = PREFIX + "unreachablelimit";
-
+	
+	/**
+	 * This constant is the name of the property whose value contains an
+	 * integer representing the number of UDP ping packets that must be received from an un-monitored node
+	 * before considering it an orphan node and issuing an Orphan-Node Vertical command.<br>
+	 * The default for this property is 10.<br>
+	 * This property is only meaningful on a main container.
+	 */
+	public static final String ORPHAN_NODE_PINGS_CNT = PREFIX + "orphannodepingscnt";
+	
+	/**
+	 * This constant is the name of the property whose value contains an
+	 * integer representing the maximum number of UDP ping packets received from an un-monitored node that are traced.
+	 * Successive packets from the same un-monitored node will be completely ignored
+	 * The default for this property is 100.<br>
+	 * This property is only meaningful on a main container.
+	 */
+	public static final String MAX_TRACED_UNKNOWN_PINGS = PREFIX + "maxtracedunknownpings";
+	
 	/**
 	 * Default port on which the server is waiting for ping messages
 	 */
@@ -115,7 +133,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 
 	/**
 	   Vertical command issued on the Main Container 
-	   when a ping packet is received from an unknown node
+	   when a given number of ping packets are received from an unknown node
 	 */
 	public static final String ORPHAN_NODE = "Orphan-Node";
 	
@@ -155,9 +173,11 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			int pingDelay = getPosIntValue(p, PING_DELAY, DEFAULT_PING_DELAY);
 			int pingDelayLimit = getPosIntValue(p, PING_DELAY_LIMIT, DEFAULT_PING_DELAY_LIMIT);
 			int unreachLimit = getPosIntValue(p, UNREACHABLE_LIMIT, DEFAULT_UNREACHABLE_LIMIT);
+			int orphanNodePingsCnt = getPosIntValue(p, ORPHAN_NODE_PINGS_CNT, 10);
+			int maxTracedUnknownPings = getPosIntValue(p, MAX_TRACED_UNKNOWN_PINGS, 100);
 			
 			try {
-				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit);
+				myServer = new UDPMonitorServer(this, host, port, pingDelay, pingDelayLimit, unreachLimit, orphanNodePingsCnt, maxTracedUnknownPings);
 				myServer.start();
                 //port can be changed if it is already binded to
                 port = myServer.getPort();
