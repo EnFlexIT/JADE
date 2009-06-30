@@ -60,6 +60,7 @@ ADD-ONS:
   - Added support for showing wrapped behaviour information when using a WrapperBehaviour in ContainerMonitorAgent
 
 - Web Service Integration Gateway - WSIG Add-On:
+  - Added support form managing ontologies with private constructor and exposing their singleton instance by means of the getInstance() static method (singleton pattern)
   - Implemented soap fault management
 
 - Web Service Dynamic Client - WSDC Add-On (NEW):
@@ -83,6 +84,7 @@ ADD-ONS:
 DOCUMENTATION:
 - Added tutorial on using JADE agents inside an OSGi environment
 - Added tutorial on Web Service Dynamic Client
+- Revisited Online Documentation page
 - Several improvements to the Javadoc
 
 
