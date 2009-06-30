@@ -92,6 +92,7 @@ class UDPMonitorServer {
 	private PingHandler pingHandler;
 	private Timer timer;
 	private Hashtable deadlines = new Hashtable();
+	private Hashtable unknownPingCounters = new Hashtable();
 
 	/*#DOTNET_INCLUDE_BEGIN
 	 private Socket server;
@@ -202,11 +203,6 @@ class UDPMonitorServer {
 				byte info = datagramBuffer.get();
 				boolean isTerminating = (info & TERMINATING_INFO) != 0;
 
-				// cancel arleady existing deadline
-				TimerTask currDeadline = (TimerTask) deadlines.get(nodeID);
-				if (currDeadline != null) {
-					currDeadline.cancel();
-				}
 				pingReceived(nodeID, isTerminating);
 			}
 		}
@@ -414,9 +410,15 @@ class UDPMonitorServer {
 		if (logger.isLoggable(Logger.FINEST)) {
 			logger.log(Logger.FINEST, "UDP ping message for node '" + nodeID + "' received. (termination-flag: " + isTerminating + ")");
 		}
+		// Cancel the existing deadline if any
+		TimerTask currDeadline = (TimerTask) deadlines.remove(nodeID);
+		if (currDeadline != null) {
+			currDeadline.cancel();
+		}
+		
 		UDPNodeFailureMonitor mon = (UDPNodeFailureMonitor) targets.get(nodeID);
-
 		if (mon != null) {
+			unknownPingCounters.remove(nodeID);
 			synchronized (mon) { // Mutual exclusion with Timer expiration
 				mon.setLastPing(System.currentTimeMillis()); // update time for last ping
 				addDeadline(nodeID, pingDelayLimit);
@@ -436,13 +438,48 @@ class UDPMonitorServer {
 			}
 		} 
 		else {
-			logger.log(Logger.WARNING, "UDP ping message with the unknown node ID '" + nodeID + "' received");
-			myService.handleOrphanNode(nodeID);
+			handleUnknownPing(nodeID);
 		}
 	}
 
+	private void handleUnknownPing(String nodeID) {
+		Counter cnt = (Counter) unknownPingCounters.get(nodeID);
+		if (cnt == null) {
+			cnt = new Counter();
+			unknownPingCounters.put(nodeID, cnt);
+		}
+		if (cnt.getValue() < 50) {
+			logger.log(Logger.WARNING, "UDP ping message with the unknown node ID '" + nodeID + "' received");
+			cnt.increment();
+			if (cnt.getValue() == 10) {
+				// A node is considered orphan only once after the reception of 10 "unknown pings"
+				final String id = nodeID;
+				Thread t = new Thread() {
+					public void run() {
+						myService.handleOrphanNode(id);
+					}
+				};
+				t.start();
+			}
+		}
+	}
+	
+	
+	private class Counter {
+		private int value = 0; 
+		
+		private void increment() {
+			value++;
+		}
+		
+		private int getValue() {
+			return value;
+		}
+	}
+	
+	
 	/**
-	 * This method is invoced by a TimeoutHandler at a timeout
+	 * This method is invoked by a TimeoutHandler at a timeout
 	 */
 	protected void timeout(String nodeID, UDPNodeFailureMonitor mon) {
 		int oldState = mon.getState();
