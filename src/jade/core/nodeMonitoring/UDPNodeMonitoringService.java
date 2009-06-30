@@ -189,7 +189,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			Enumeration en = myClients.elements();
 			while (en.hasMoreElements()) {
 				UDPMonitorClient client = (UDPMonitorClient) en.nextElement();
-				client.stop();
+				client.stop(true);
 			}
 			myClients.clear();
 		}
@@ -286,7 +286,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 	private void startUDPClient(String label, String host, int port, int pingDelay, long key) throws ServiceException {
 		try {
 			// Stop any previous client associated to the same label
-			stopUDPClient(label, -1);
+			stopUDPClient(label, -1, false);
 			UDPMonitorClient client = new UDPMonitorClient(getLocalNode(), host, port, pingDelay, key);
 			myClients.put(label, client);
 			client.start();
@@ -299,11 +299,11 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 		}
 	}
 	
-	private void stopUDPClient(String label, long key) {
+	private void stopUDPClient(String label, long key, boolean sendTerminationFlag) {
 		UDPMonitorClient client = (UDPMonitorClient) myClients.get(label);
 		if (client != null) {
 			if ((key == -1) || (key == client.getKey())) {
-				client.stop();
+				client.stop(sendTerminationFlag);
 				myLogger.log(Logger.INFO, "UDP Monitor Client for "+label+" stopped.");
 				myClients.remove(label);
 			}
@@ -369,7 +369,7 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 				else if (cmdName.equals(UDPNodeMonitoringSlice.H_DEACTIVATEUDP)) {
 					String label = (String) params[0];
 					long key = ((Long) params[1]).longValue();
-					stopUDPClient(label, key);
+					stopUDPClient(label, key, true);
 				}
 			} 
 			catch (Throwable t) {
@@ -393,11 +393,11 @@ public class UDPNodeMonitoringService extends NodeMonitoringService {
 			Object[] params = cmd.getParams();
 			if (name.equals(Service.DEAD_PLATFORM_MANAGER)) {
 				String address = (String) params[0];
-				stopUDPClient(address, -1);
+				stopUDPClient(address, -1, true);
 			}
 			else if (name.equals(Service.DEAD_REPLICA)) {
 				String address = (String) params[0];
-				stopUDPClient(address, -1);
+				stopUDPClient(address, -1, true);
 			}
 			// Never veto a command
 			return true;

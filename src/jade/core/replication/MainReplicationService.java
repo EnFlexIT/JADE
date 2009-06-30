@@ -772,8 +772,8 @@ public class MainReplicationService extends BaseService {
 		}
 		
 		private void suicide() {
-			myLogger.log(Logger.WARNING, "Due to network problems I'm isolated --> The rest of the platform will consider me dead. Suicide!!!!!!!!");
-			myContainer.shutDown();
+			myLogger.log(Logger.WARNING, "Due to network problems I'm isolated --> The rest of the platform will consider me dead. Suicide now!!!!!!!!");
+			System.exit(0);
 		}
 		
 		private void handleOrphanNode(String nodeId) {

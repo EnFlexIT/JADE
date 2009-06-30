@@ -54,6 +54,7 @@ class UDPMonitorClient {
 
 	private boolean running = false;
 	private boolean terminating = false;
+	private boolean sendTerminationFlag = false;
 
 	//#DOTNET_EXCLUDE_BEGIN
 	private DatagramChannel channel;
@@ -138,12 +139,16 @@ class UDPMonitorClient {
 			ping.putInt(nodeName.length());
 			ping.put(nodeName.getBytes());
 
-			if (terminating) {
+			if (terminating && sendTerminationFlag) {
 				ping.put((byte) 1);
-				running = false;
 			} else {
 				ping.put((byte) 0);
 			}
+			
+			if (terminating) {
+				running = false;
+			}
+
 			ping.position(0);
 		}
 	}
@@ -198,8 +203,9 @@ class UDPMonitorClient {
 	/**
 	 * Stop sending UDP ping messages
 	 */
-	public void stop() {
+	public void stop(boolean sendTerminationFlag) {
 		terminating = true;
+		this.sendTerminationFlag = sendTerminationFlag;
 		sender.interrupt();
 
 		if (logger.isLoggable(Logger.CONFIG))
