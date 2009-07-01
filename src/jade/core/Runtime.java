@@ -217,6 +217,16 @@ public class Runtime {
 		terminators.addFirst(r);
 	}
 
+	//#APIDOC_EXCLUDE_BEGIN
+	/** 
+	 * Reset the list of <code>Runnable</code> objects to be executed on JADE termination
+	 * @see invokeOnTermination()
+	 */
+	public void resetTerminators() {
+		terminators.clear();
+	}
+	//#APIDOC_EXCLUDE_END
+	
 	// Called by a starting up container.
 	void beginContainer() {
 		myLogger.log(Logger.INFO, "----------------------------------\n"+getCopyrightNotice()+"----------------------------------------");
