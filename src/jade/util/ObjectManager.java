@@ -82,7 +82,7 @@ public class ObjectManager {
 	
 	public synchronized static boolean removeLoader(String type, Loader loader) {
 		List l = (List) loaders.get(type);
-		if (l == null) {
+		if (l != null) {
 			return l.remove(loader);
 		}
 		return false;
