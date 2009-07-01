@@ -114,7 +114,7 @@ public class ThanksAgent extends Agent {
 				AgentController t2 = ac.createNewAgent(t2AgentName,getClass().getName(),new Object[0]);
 				// fire-up the agent
 				t2.start();
-				System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t1AgentName + " ON CONTAINER "+ac.getContainerName());
+				System.out.println(getLocalName()+" CREATED AND STARTED NEW THANKSAGENT:"+t2AgentName + " ON CONTAINER "+ac.getContainerName());
 			} catch (Exception e2) {
 				e2.printStackTrace();
 			}
