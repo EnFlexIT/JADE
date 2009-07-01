@@ -6,6 +6,7 @@ Kernel
 - Modified NotificationService, related classes and JADE internals to handle RECONNECTED and LEADERSHIP_ACQUIRED container events 
 - Enhanced MainReplicationService with support for application specific checks on connectivity status when a Main Container replica is considered dead due to a long disconnection 
 - Modified UDPNodeMonitoringService to improve the management of UDP ping packets from un-monitored nodes (orphan nodes) 
+- Added method resetTerminators() in Runtime to allows clearing the list of Runnable objects to be executed on JADE termination
 
 Behaviours
 - Added WrapperBehaviour to allow modifying behaviours methods on the fly
@@ -86,6 +87,7 @@ DOCUMENTATION:
 - Added tutorial on Web Service Dynamic Client
 - Revisited tutorial on HTTP MTP configuration
 - Revisited Online Documentation page
+- Revisited FAQ page
 - Several improvements to the Javadoc
 
 

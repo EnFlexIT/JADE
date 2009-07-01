@@ -80,6 +80,14 @@ public class ObjectManager {
 		l.add(loader);
 	}
 	
+	public synchronized static boolean removeLoader(String type, Loader loader) {
+		List l = (List) loaders.get(type);
+		if (l == null) {
+			return l.remove(loader);
+		}
+		return false;
+	}
+	
 	/**
 	 * Try to load an object of a given type by means of the loaders (if any) associated to that type.  
 	 * @param extendedClassName The class of the object to load in the form foo.Bar[key1=value1;key2=value2...]
