@@ -4,7 +4,7 @@
 	<!-- PROPERTIES -->
   <property environment="env"/>
   <property file="buildLEAP.properties"/>
-  <property file="../jade/build.properties"/>
+  <property file="../build.properties"/>
   <property name="java-home" value="${env.JAVA_HOME}"/>
   <property name="root"      value="."/>
   <property name="jade-home" value=".."/>
@@ -27,7 +27,6 @@
 	
 	<!-- Javadoc Header and Footer -->
 	<property name="title" value="JADE-LEAP"/>
-	<property name="version" value="3.6.1"/>	
 	<property name="javadoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://leap.crm-paris.com&quot; target=top>The LEAP Project&lt;/a>&lt;/i>&lt;/center>"/>
 
 	<!-- Properties for compiling the demo -->

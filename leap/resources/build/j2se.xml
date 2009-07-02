@@ -8,7 +8,7 @@
 	<property name="doc" value="${j2se-root}/doc"/>
 	<property name="j2se-title" value="${title} v${version} for J2SE"/>
 	<property name="apidoc-title" value="JADE v${version} API"/>
-	<property name="apidoc-footer" value="&lt;center>&lt;i>&lt;a href=&quot;http://jade.cselt.it&quot; target=top>JADE&lt;/a>&lt;/i>&lt;/center>"/>
+	<property name="apidoc-footer" value="&lt;center>These are the official &lt;i>&lt;a href=&quot;http://jade.tilab.com&quot; target=top>JADE&lt;/a>&lt;/i> API. For these API backward compatibility is guaranteed accross JADE versions&lt;/center>"/>
 
         <!--Filtered src directory property--> 
         <property name="filtered.src" location="${j2se-root}/filtered/src"/>
