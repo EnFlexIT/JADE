@@ -488,49 +488,49 @@ public class BasicOntology extends Ontology implements SL0Vocabulary {
 				if (destClass == Integer.class ||
 					destClass == int.class) {
 					if (srcClass == Long.class) {
-						destValue = Integer.valueOf(((Long)srcValue).intValue());
+						destValue = new Integer(((Long)srcValue).intValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = Integer.valueOf((String)srcValue);
+						destValue = new Integer(Integer.parseInt((String)srcValue));
 					}
 				}
 				else if (destClass == Long.class ||
 						 destClass == long.class) {
 					if (srcClass == Integer.class) {
-						destValue = Long.valueOf(((Integer)srcValue).longValue());
+						destValue = new Long(((Integer)srcValue).longValue());
 					} 
 					else if (srcClass == String.class) {
-						destValue = Long.valueOf((String)srcValue);
+						destValue = new Long(Long.parseLong((String)srcValue));
 					}
 				}
 				else if (destClass == Float.class ||
 						 destClass == float.class) {
 					if (srcClass == Integer.class) {
-						destValue = Float.valueOf(((Integer)srcValue).floatValue());
+						destValue = new Float(((Integer)srcValue).floatValue());
 					}
 					else if (srcClass == Long.class) {
-						destValue = Float.valueOf(((Long)srcValue).floatValue());
+						destValue = new Float(((Long)srcValue).floatValue());
 					}
 					else if (srcClass == Double.class) {
-						destValue = Float.valueOf(((Double)srcValue).floatValue());
+						destValue = new Float(((Double)srcValue).floatValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = Float.valueOf((String)srcValue);
+						destValue = new Float(Float.parseFloat((String)srcValue));
 					}
 				}
 				else if (destClass == Double.class ||
 						 destClass == double.class) {
 					if (srcClass == Integer.class) {
-						destValue = Double.valueOf(((Integer)srcValue).doubleValue());
+						destValue = new Double(((Integer)srcValue).doubleValue());
 					}
 					else if (srcClass == Long.class) {
-						destValue = Double.valueOf(((Long)srcValue).doubleValue());
+						destValue = new Double(((Long)srcValue).doubleValue());
 					}
 					else if (srcClass == Float.class) {
-						destValue = Double.valueOf(((Float)srcValue).doubleValue());
+						destValue = new Double(((Float)srcValue).doubleValue());
 					}
 					else if (srcClass == String.class) {
-						destValue = Double.valueOf((String)srcValue);
+						destValue = new Double(Double.parseDouble((String)srcValue));
 					}
 				}
 				else if (destClass == String.class) {

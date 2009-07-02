@@ -28,7 +28,6 @@ package jade.content.onto;
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;
 import jade.content.abs.AbsConcept;
-import jade.content.schema.ObjectSchema;
 import jade.content.schema.PrimitiveSchema;
 import jade.content.schema.ConceptSchema;
 
