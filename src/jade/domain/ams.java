@@ -191,7 +191,18 @@ public class ams extends Agent /*implements AgentManager.Listener*/ {
 		Behaviour registerTool = new RegisterToolBehaviour();
 		Behaviour deregisterTool = new DeregisterToolBehaviour();
 		Behaviour eventManager = new EventManager();
-		addBehaviour(registerTool);
+		
+		// Temporary patch: 
+		SequentialBehaviour sb = new SequentialBehaviour();
+		sb.addSubBehaviour(new WakerBehaviour(this, 1000) {
+			public void onWake() {
+				// Just do nothing
+			}
+		});
+		sb.addSubBehaviour(registerTool);
+		addBehaviour(sb);
+		
+		
 		addBehaviour(deregisterTool);
 		addBehaviour(eventManager);
 		eventQueue.associate(eventManager);
