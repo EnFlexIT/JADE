@@ -625,6 +625,7 @@ class DeliverableDataInputStream extends DataInputStream {
 			Stub stub = (Stub) Class.forName(stubClassName).newInstance();
 
 			stub.remoteID = readInt();
+			stub.platformName = readString();
 			stub.remoteTAs = deserializeArrayList();	    
 
 			stub.bind(myStubHelper);

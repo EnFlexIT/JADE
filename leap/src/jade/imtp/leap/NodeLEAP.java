@@ -44,10 +44,12 @@ class NodeLEAP extends BaseNode {
 	// detect node failures.
 	private Object terminationLock = new Object();
 	private boolean terminating = false;
+	private CommandDispatcher myDispatcher;
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());
 
-	public NodeLEAP(String name, boolean hasPM) {
+	public NodeLEAP(String name, boolean hasPM, CommandDispatcher dispatcher) {
 		super(name, hasPM);
+		this.myDispatcher = dispatcher;
 	}
 
 	public Object accept(HorizontalCommand cmd) throws IMTPException {
@@ -108,7 +110,7 @@ class NodeLEAP extends BaseNode {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	private Object writeReplace() throws ObjectStreamException {
 		try {
-			NodeStub stub = (NodeStub) CommandDispatcher.getDispatcher().buildLocalStub(this);
+			NodeStub stub = (NodeStub) myDispatcher.buildLocalStub(this);
 			stub.setName(getName());
 			stub.setPlatformManager(hasPlatformManager());
 			return stub;

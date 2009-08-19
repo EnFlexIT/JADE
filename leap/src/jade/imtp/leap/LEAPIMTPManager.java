@@ -93,8 +93,9 @@ public class LEAPIMTPManager implements IMTPManager {
 	public void initialize(Profile p) throws IMTPException {
 		theProfile = p;
 		
-		// Get the singleton CommandDispatcher
-		theDispatcher = CommandDispatcher.getDispatcher();
+		// Get the CommandDispatcher for the local platform
+		String platformName = p.getParameter(Profile.PLATFORM_ID, null);
+		theDispatcher = CommandDispatcher.getDispatcher(platformName);
 		
 		// Add to the CommandDispatcher the ICPs specified in the Profile
 		try {
@@ -119,7 +120,7 @@ public class LEAPIMTPManager implements IMTPManager {
 			}
 			
 			// Initialize the local node
-			localNode = new NodeLEAP("No-Name", theProfile.getBooleanProperty(Profile.MAIN, true));
+			localNode = new NodeLEAP("No-Name", theProfile.getBooleanProperty(Profile.MAIN, true), theDispatcher);
 			Skeleton skel = new NodeSkel(localNode);
 			theDispatcher.registerSkeleton(skel, localNode);
 		}

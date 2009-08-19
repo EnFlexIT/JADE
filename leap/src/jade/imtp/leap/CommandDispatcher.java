@@ -41,8 +41,6 @@ import jade.core.PlatformManager;
 import jade.core.Node;
 import jade.core.IMTPException;
 import jade.core.Profile;
-import jade.core.ProfileException;
-import jade.core.Runtime;
 import jade.core.UnreachableException;
 import jade.mtp.TransportAddress;
 import jade.util.leap.Iterator;
@@ -73,16 +71,25 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 */
 	protected static final String      DEFAULT_NAME = "Default";
 	
+	private static boolean enableMultiplePlatforms;
+	
 	/**
-	 * A singleton instance of the command dispatcher.
+	 * The default singleton instance of the command dispatcher.
 	 */
-	protected static CommandDispatcher commandDispatcher;
+	protected static CommandDispatcher defaultCommandDispatcher;
+	
+	/**
+	 * The singleton map of command dispatchers in case more than one must be present in the same JVM.
+	 */
+	protected static Map dispatchers = new HashMap();
+	
+	private String platformName;
 	
 	/**
 	 * The unique name of this command dispatcher used to avoid loops in
 	 * the forwarding mechanism.
 	 */
-	protected String                   name;
+	protected String name;
 	
 	/**
 	 * The transport address of the default router. Commands that cannot
@@ -140,21 +147,52 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	
 	private Logger myLogger = Logger.getMyLogger(getClass().getName());;
 	
+	static {
+		enableMultiplePlatforms = "true".equals(System.getProperty("jade.enable.multiple.platforms"));
+	}
 	
 	/**
-	 * Returns a reference to the singleton instance of the command
-	 * dispatcher. When no such instance exists, <tt>null</tt> is
-	 * returned.
-	 * 
-	 * @return a reference to the singleton instance of the command
-	 * dispatcher or <tt>null</tt>, if no such instance exists.
+	 * Returns a reference to the singleton instance of the CommandDispatcher for the indicated platform.
+	 * Such instance is created if necessary.
+	 * If no platform name is specified or the enableMultiplePlatforms flag is not set, then use the default 
+	 * CommandDispatcher
+	 * @return the singleton instance of the CommandDispatcher for the indicated platform.
 	 */
-	public static final CommandDispatcher getDispatcher() {
-		if (commandDispatcher == null) {
-			commandDispatcher = new CommandDispatcher();
-		} 
-		return commandDispatcher;
+	public synchronized static final CommandDispatcher getDispatcher(String name) throws IMTPException {
+		System.out.println("Retrieving CommandDispatcher for platform "+name);
+		if (enableMultiplePlatforms) {
+			if (name != null) {
+				CommandDispatcher cd = (CommandDispatcher) dispatchers.get(name);
+				if (cd == null) {
+					cd = new CommandDispatcher();
+					cd.setPlatformName(name);
+					dispatchers.put(name, cd);
+				}
+				return cd;
+			}
+			else {
+				throw new IMTPException("No platform name specified and enable-multiple-platforms mode activated");
+			}
+		}
+		else {
+			// Use the default CommandDispatcher anyway
+			if (defaultCommandDispatcher == null) {
+				defaultCommandDispatcher = new CommandDispatcher();
+				defaultCommandDispatcher.setPlatformName(name);
+			} 
+			return defaultCommandDispatcher;
+		}
 	} 
+	
+	private synchronized static void removeDispatcher(String name) {
+		if (enableMultiplePlatforms) {
+			dispatchers.remove(name);
+		}
+	}
+	
+	private void setPlatformName(String name) {
+		platformName = name;
+	}
 	
 	/**
 	 * A sole constructor. To get a command dispatcher the constructor
@@ -174,16 +212,32 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	synchronized PlatformManager getPlatformManagerProxy(Profile p) throws IMTPException {
 		if(thePlatformManager == null) {
 			
-			PlatformManagerStub stub = new PlatformManagerStub();
+			PlatformManagerStub stub = new PlatformManagerStub(platformName);
 			TransportAddress mainTA = initMainTA(p);
 			stub.bind(this);
 			stub.addTA(mainTA);
-			thePlatformManager = stub;
+			setPlatformManager(stub);
 		}
 		
 		return thePlatformManager;
 	}
+
+	// No need to synchronize it as it is always called within synchronized blocks
+	private void setPlatformManager(PlatformManager pm) throws IMTPException {
+		thePlatformManager = pm;
+		String actualPlatformName  = thePlatformManager.getPlatformName();
+		if (platformName != null) {
+			// PlatformName already set --> Check that it is consistent with the actual name of the platform
+			if (!platformName.equals(actualPlatformName)) {
+				throw new IMTPException("Wrong platform name "+platformName+". It should be "+actualPlatformName);
+			}
+		}
+		else {
+			platformName = actualPlatformName;
+		}
+	}
 	
+	// This is only called when reconnecting to a new Master Main Container --> No need to check again the platformName
 	synchronized void setPlatformManagerProxy(PlatformManager pm) {
 		thePlatformManager = pm;
 	}
@@ -193,7 +247,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		// Try to translate the address into a TransportAddress
 		// using a protocol supported by this CommandDispatcher
 		try {
-			PlatformManagerStub stub = new PlatformManagerStub();
+			PlatformManagerStub stub = new PlatformManagerStub(platformName);
 			TransportAddress ta = stringToAddr(addr);
 			stub.bind(this);
 			stub.addTA(ta);
@@ -340,8 +394,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		try {		
 			// Try to dispatch the command directly
 			responsePayload = dispatchDirectly(destTAs, commandPayload, requireFreshConnection);
-			
-			// Runtime.instance().gc(23);
 		} 
 		catch (UnreachableException ue) {
 			// Direct dispatching failed --> Try through the router
@@ -360,7 +412,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		// Deserialize the response
 		try {
 			Command response = deserializeCommand(responsePayload);
-			// Runtime.instance().gc(25);
 			
 			// Check whether some exceptions to be handled by the
 			// CommandDispatcher occurred on the remote site
@@ -434,8 +485,6 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		forward.addParam(commandPayload);
 		forward.addParam(destTAs);
 		forward.addParam(origin);
-		
-		// Runtime.instance().gc(26);
 		
 		try {
 			return send(routerTA, serializeCommand(forward), requireFreshConnection);
@@ -680,12 +729,12 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @param remoteObject the remote object related to the specified
 	 * skeleton.
 	 */
-	public synchronized void registerSkeleton(Skeleton skeleton, Object remotizedObject) {
+	public synchronized void registerSkeleton(Skeleton skeleton, Object remotizedObject) throws IMTPException {
 		Integer id = null;
 		if(remotizedObject instanceof PlatformManager) {
 			id = new Integer(0);
 			name = "Service-Manager";
-			thePlatformManager = (PlatformManager) remotizedObject;
+			setPlatformManager((PlatformManager) remotizedObject);
 		}
 		else {
 			id = new Integer((int) (System.currentTimeMillis() & 0xffffff));
@@ -703,63 +752,65 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	 * @param remoteObject the remote object related to the specified
 	 * skeleton.
 	 */
-	public void deregisterSkeleton(final Object remoteObject) {
+	public synchronized void deregisterSkeleton(final Object remoteObject) {
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE, "Deregistering skeleton for remotized object "+remoteObject);
 		}
-		try {
-			if (skeletons.size() == 1) {
-				// This is the only skeleton --> The problem described below
-				// can't happen. Moreover the JVM is going to exit --> 
-				// We can't delay the skeleton deregistration
-				Object id = ids.remove(remoteObject);
-				skeletons.remove(id);
-			}
-			else {        
-				// Hack: If the PlatformManager monitoring this node is in the same 
-				// JVM it needs some time to broadcast the termination of this node
-				// to its replicas --> asynchronously deregister the skeleton after 
-				// a while
-				Thread t = new Thread() {
-					public void run() {
-						try {
-							Thread.sleep(1000);
-						}
-						catch (InterruptedException ie) {}
-						Object id = ids.remove(remoteObject);
-						if (myLogger.isLoggable(Logger.FINE)) {
-							myLogger.log(Logger.FINE, "Asynchronous deregisteration of skeleton for remotized object "+remoteObject+". ID is "+id);
-						}
-						skeletons.remove(id);
-					}
-				};
-				t.start();
-			} 
+		if (skeletons.size() == 1) {
+			// This is the only skeleton --> The problem described below (in the "else" clause) 
+			// can't happen. Moreover the JVM is likely going to exit --> We can't delay the skeleton deregistration
+			removeRemoteObject(remoteObject);
 		}
-		catch (NullPointerException npe) {
+		else {        
+			// Hack: If the PlatformManager monitoring this node is in the same 
+			// JVM it needs some time to broadcast the termination of this node
+			// to its replicas (if any) --> asynchronously deregister the skeleton after 
+			// a while
+			Thread t = new Thread() {
+				public void run() {
+					try {
+						Thread.sleep(1000);
+					}
+					catch (InterruptedException ie) {}
+					removeRemoteObject(remoteObject);
+				}
+			};
+			t.start();
 		} 
+	}
+	
+	private synchronized void removeRemoteObject(Object remoteObject) {
+		Object id = ids.remove(remoteObject);
+		if (id != null) {
+			if (myLogger.isLoggable(Logger.FINE)) {
+				myLogger.log(Logger.FINE, "Asynchronous deregisteration of skeleton for remotized object "+remoteObject+". ID is "+id);
+			}
+	 		skeletons.remove(id);
+		}
 		
-		// When there are no more skeletons, close all ICPs
+		// When there are no more skeletons, shutdown the CommandDispatcher (this closes all ICPs)
 		if (ids.isEmpty()) {
 			if (myLogger.isLoggable(Logger.FINE)) {
 				myLogger.log(Logger.FINE, "All skeletons deregistered. Shutting down.");
 			}
 			shutDown();
 		} 
-	} 
+	}
 	
 	public Stub buildLocalStub(Object remotizedObject) throws IMTPException {
 		Stub stub = null;
 		
 		if (remotizedObject instanceof Node) {
-			stub = new NodeStub(getID(remotizedObject));
+			stub = new NodeStub(getID(remotizedObject), platformName);
 		}
 		else if (remotizedObject instanceof PlatformManager) {
-			stub = new PlatformManagerStub();
+			stub = new PlatformManagerStub(platformName);
 		}
 		else {
 			throw new IMTPException("can't create a stub for object "+remotizedObject+".");
 		}
+		
+		stub.bind(this);
 		
 		// Add the local addresses.
 		Iterator it = addresses.iterator();
@@ -813,7 +864,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 	/**
 	 * Shuts the command dispatcher down and deactivates the local ICPs.
 	 */
-	public void shutDown() {
+	private void shutDown() {
 		Iterator peersKeys = icps.keySet().iterator();
 		
 		while (peersKeys.hasNext()) {
@@ -824,13 +875,9 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 					// This call interrupts the listening thread of this peer
 					// and waits for its completion.
 					((ICP) list.get(i)).deactivate();
-					
-					// DEBUG
-					// System.out.println("ICP deactivated.");
 				} 
 				catch (ICPException icpe) {
-					// Do nothing as this means that this peer had never been
-					// activated.
+					// Do nothing as this means that this peer had never been activated.
 				} 
 			}
 			list.clear();
@@ -841,6 +888,8 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		thePlatformManager = null;
 		name = DEFAULT_NAME;
 		nextID = 1;
+		removeDispatcher(platformName);
+		platformName = null;
 	} 
 	
 	// /////////////////////////////////////////

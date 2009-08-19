@@ -39,8 +39,8 @@ class NodeStub extends Stub implements Node {
 		super();
 	}
 	
-	public NodeStub(int id) {
-		super(id);
+	public NodeStub(int id, String platformName) {
+		super(id, platformName);
 	}
 	
 	public void setName(String name) {

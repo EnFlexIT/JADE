@@ -390,28 +390,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
     } 
   } 
 
-  /**
-   * Writes a Long object to this data output stream.
-   * @param l The Long to be written.
-   * @exception LEAPSerializationException if an error occurs during
-   * serialization
-   */
-  /*
-   * public void writeLongObject(Long l) throws LEAPSerializationException {
-   * try {
-   * if (l != null) {
-   * writeBoolean(true);     // Presence flag true
-   * writeLong(l.longValue());
-   * }
-   * else {
-   * writeBoolean(false);    // Presence flag false
-   * }
-   * }
-   * catch (IOException ioe) {
-   * throw new LEAPSerializationException("Error serializing Long");
-   * }
-   * }
-   */
 
   // PRIVATE METHODS
   // All the following methods are used to actually serialize instances of
@@ -439,24 +417,6 @@ class DeliverableDataOutputStream extends DataOutputStream {
       writeObject(v.elementAt(i));
     } 
   } 
-
-  /*
-    private void serializeProperties(Properties props) 
-    throws IOException, LEAPSerializationException {
-    int size = props.size();
-      
-    writeInt(size);
-
-    Enumeration e = props.keys();
-      
-    while (e.hasMoreElements()) {
-    String key = (String) e.nextElement();
-      
-    writeString(key);
-    writeString(props.getProperty(key));
-    } 
-    } 
-  */
 
   /**
    */
@@ -661,8 +621,7 @@ class DeliverableDataOutputStream extends DataOutputStream {
   }
   //#DOTNET_EXCLUDE_END
 
-  // Package-scoped since it is used by the NodeSerializer
-  void serializeNode(Node n) throws LEAPSerializationException {
+  private void serializeNode(Node n) throws LEAPSerializationException {
     try {
 	    writeString(n.getName());
 	    writeBoolean(n.hasPlatformManager());
@@ -726,10 +685,13 @@ class DeliverableDataOutputStream extends DataOutputStream {
 
   private void serializeStub(Stub stub) throws LEAPSerializationException {
     try {
-			writeUTF(stub.getClass().getName());
+		writeUTF(stub.getClass().getName());
 	    // Write the remote ID, uniquely identifying the remotized object this stub points to
 	    writeInt(stub.remoteID);
 
+	    // Write the name of the platform this stub belongs to
+	    writeString(stub.platformName);
+	    
 	    // Write all the transport addresses
 	    serializeArrayList((ArrayList) stub.remoteTAs);
     }

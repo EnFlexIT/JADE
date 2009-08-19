@@ -53,12 +53,12 @@ class PlatformManagerStub extends Stub implements PlatformManager {
 	private static final String AUTH_EXCEPTION = "jade.security.JADESecurityException";
 	private static final String SERVICE_EXCEPTION = "jade.core.ServiceException";
 	
-	/**
-	 * Constructor declaration
-	 * 
-	 */
 	protected PlatformManagerStub() {
-		super(0); // The ID of a PlatformManager is always 0
+		this(null); 
+	}
+	
+	protected PlatformManagerStub(String platformName) {
+		super(0, platformName); // The ID of a PlatformManager is always 0
 	}
 	
 	

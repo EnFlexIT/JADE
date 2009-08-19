@@ -58,6 +58,9 @@ class Stub implements jade.util.leap.Serializable {
 	// The ID of the remote object
 	protected int               remoteID;
 	
+	// The name of the platform this node belongs to (only used when the enablemultipleplatform option is set)
+	protected String            platformName;
+	
 	// The local singleton CommandDispatcher
 	protected transient StubHelper theDispatcher = null;
 	
@@ -67,7 +70,11 @@ class Stub implements jade.util.leap.Serializable {
 	 * Default Constructor
 	 */
 	protected Stub() {
-		theDispatcher = CommandDispatcher.getDispatcher();
+		this(null);
+	}
+	
+	protected Stub(String platformName) {
+		this.platformName = platformName;
 	}
 	
 	/**
@@ -76,8 +83,8 @@ class Stub implements jade.util.leap.Serializable {
 	 * at this stage whether this is a Stub to reach a remote
 	 * object or a Stub for a local object.
 	 */
-	protected Stub(int id) {
-		this();
+	protected Stub(int id, String platformName) {
+		this(platformName);
 		remoteID = id;
 	}
 	
@@ -139,7 +146,12 @@ class Stub implements jade.util.leap.Serializable {
 	//#MIDP_EXCLUDE_BEGIN
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		ois.defaultReadObject();
-		theDispatcher = CommandDispatcher.getDispatcher();
+		try {
+			theDispatcher = CommandDispatcher.getDispatcher(platformName);
+		}
+		catch (IMTPException imtpe) {
+			throw new IOException("Cannot link to a suitable CommandDispatcher: "+imtpe.getMessage());
+		}
 		myLogger = Logger.getMyLogger(getClass().getName());
 	}
 	//#MIDP_EXCLUDE_END

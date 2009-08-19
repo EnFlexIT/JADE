@@ -532,21 +532,12 @@ public class FaultRecoveryService extends BaseService {
 			ObjectOutputStream encoder = new ObjectOutputStream(out);
 			encoder.writeObject(n);
 			return out.toByteArray();
-			
-			// FIXME The code working well with LEAP only. Remove it as soon as things will be tested
-			/*DeliverableDataOutputStream ddos = new DeliverableDataOutputStream(CommandDispatcher.getDispatcher());
-			ddos.serializeNode(n);
-			return ddos.getSerializedByteArray();*/
 		}
 		
 		public Node deserialize(byte[] bb) throws Exception {
 			ByteArrayInputStream inp = new ByteArrayInputStream(bb);
 			ObjectInputStream decoder = new ObjectInputStream(inp);
 			return (Node) decoder.readObject();
-			
-			// FIXME The code working well with LEAP only. Remove it as soon as things will be tested
-			/*DeliverableDataInputStream ddis = new DeliverableDataInputStream(bb, CommandDispatcher.getDispatcher());
-			return ddis.deserializeNode();*/
 		}
 	} // END of inner class NodeSerializer 
 }
