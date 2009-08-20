@@ -1,5 +1,4 @@
 /*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -35,76 +34,72 @@
 package jade.imtp.leap.http;
 
 //#MIDP_EXCLUDE_FILE
-
-import jade.imtp.leap.*;
 import java.io.*;
-import java.net.*;
 
-import java.util.Hashtable;
-import java.util.Enumeration;
 import java.util.StringTokenizer;
 
 /**
  * @author Giovanni Caire - TILAB
  */
 public class HTTPRequest extends HTTPPacket {
-	protected String method = null;
-	protected String file = null;
-	
-  /**
-   * Constructor declaration
-   */
-  public HTTPRequest() {
-  	super();
-  }
 
-  public String getMethod() {
-  	return method;
-  }
-  
-	public void setMethod(String m) {
-		method = m;
-	}
-		
-  public String getFile() {
-  	return file;
-  }
-  
-	public void setFile(String f) {
-		file = f;
-	}
-		
-  /**
-   * Method declaration
-   * @see
-   */
-  protected void readFrom(InputStream is) throws IOException {
-  	super.readFrom(is);
-  	StringTokenizer st = new StringTokenizer(firstLine, " ");
-  	method = st.nextToken();
-  	file = st.nextToken();
-  	httpType = st.nextToken();
-  } 
+    protected String method = null;
+    protected String file = null;
 
-  /**
-   * Method declaration
-   * @see
-   */
-  protected void writeTo(OutputStream os) throws IOException {
-  	firstLine = method+" "+file+" "+httpType;
-  	super.writeTo(os);
-  } 
+    /**
+     * Constructor declaration
+     */
+    public HTTPRequest() {
+        super();
+    }
 
-  /**
-   * Method declaration
-   * @see
-   */
-  public String toString() {
-  	StringBuffer sb = new StringBuffer();
-  	sb.append(method+" "+file+" "+httpType);
-  	sb.append("\n");
-  	sb.append(super.toString());
-  	return sb.toString();
-  }
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String m) {
+        method = m;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String f) {
+        file = f;
+    }
+
+    /**
+     * Method declaration
+     * @see
+     */
+    protected void readFrom(InputStream is) throws IOException {
+        super.readFrom(is);
+        StringTokenizer st = new StringTokenizer(firstLine, " ");
+        method = st.nextToken();
+        file = st.nextToken();
+        httpType = st.nextToken();
+    }
+
+    /**
+     * Method declaration
+     * @see
+     */
+    protected void writeTo(OutputStream os) throws IOException {
+        firstLine = method + " " + file + " " + httpType;
+        super.writeTo(os);
+    }
+
+    /**
+     * Method declaration
+     * @see
+     */
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append(method + " " + file + " " + httpType);
+        sb.append("\n");
+        sb.append(super.toString());
+        return sb.toString();
+    }
 }
 

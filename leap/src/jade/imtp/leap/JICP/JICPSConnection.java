@@ -1,5 +1,4 @@
 /*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -32,13 +31,11 @@
  * Boston, MA  02111-1307, USA.
  * **************************************************************
  */
-
 package jade.imtp.leap.JICP;
 
 //#J2ME_EXCLUDE_FILE
-
 import jade.mtp.TransportAddress;
-import jade.imtp.leap.*;
+import jade.imtp.leap.SSLHelper;
 import jade.util.Logger;
 import java.io.*;
 import java.net.*;
@@ -50,97 +47,93 @@ import javax.net.ssl.*;
  * @author Giosue Vitaglione - TILAB
  */
 public class JICPSConnection extends JICPConnection {
-	private static SSLSocketFactory scsf = null;
-	
-  protected static Logger myLogger = Logger.getMyLogger( JICPSConnection.class.getName() );
 
-  protected JICPSConnection() {
-  	super();
-  }
-  
-  /**
-   * Constructor declaration
-   */
-  public JICPSConnection(TransportAddress ta) throws IOException {
-  	constructJICPSConnectionNoAuth( ta );
-  }
-  public JICPSConnection(TransportAddress ta, boolean useSSLAuth) throws IOException {
-  	if (useSSLAuth){
-  		constructJICPSConnectionWithAuth( ta );
-  	} else {
-		constructJICPSConnectionNoAuth( ta );
-  	}
-  } // end constructor
+    private static SSLSocketFactory scsf = null;
+    protected static Logger myLogger = Logger.getMyLogger(JICPSConnection.class.getName());
 
-  private void constructJICPSConnectionNoAuth(TransportAddress ta) throws IOException {
-	if (myLogger.isLoggable(Logger.WARNING)) {
-		myLogger.log(Logger.WARNING, 
-          "Creating JICPSConnection with NO-AUTHENTICATION (only confidentiality)." );
+    protected JICPSConnection() {
+        super();
     }
 
-  	if (scsf == null) {
-	  	try {
-					SSLContext ctx = SSLContext.getInstance("TLS");
-					ctx.init(null, null, null);
-					scsf = (SSLSocketFactory) ctx.getSocketFactory();
-	  	}
-	  	catch (Exception e) {
-	  		throw new IOException("Error creating SSLSocketFactory. "+e.toString());
-	  	}
-  	}
-  	  	
-  	// For some reason the local address or port may be
-  	// in use
-  	while (true) {
-  		try {  		
-      	sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
-      	((SSLSocket) sc).setEnabledCipherSuites(new String[] {"SSL_DH_anon_WITH_RC4_128_MD5"});
-  			is = sc.getInputStream();
-  			os = getOutputStream();
-    		break;
-  		}
-  		catch (BindException be) {
-  			// Do nothing and try again
-  		}
-  	}
-  }
-
-  private void constructJICPSConnectionWithAuth(TransportAddress ta) throws IOException {
-	if (myLogger.isLoggable(Logger.FINE)) {
-		myLogger.log(Logger.FINE, 
-          "Creating JICPSConnection with MUTUAL AUTHENTICATION." );
+    /**
+     * Constructor declaration
+     */
+    public JICPSConnection(TransportAddress ta) throws IOException {
+        constructJICPSConnectionNoAuth(ta);
     }
-  	if (scsf == null) {
-	  	try {
-			// create and init new SSL context appropriate for mutual Auth
-			SSLContext ctx = JICPSPeer.createContextWithAuth();
-			scsf = (SSLSocketFactory) ctx.getSocketFactory();
-	  	} catch (Exception e) {
-	  		throw new IOException("Error creating SSLSocketFactory. "+e.toString());
-	  	}
-  	}
 
-  	// For some reason the local address or port may be
-  	// in use
-  	while (true) {
-  	  try {  		
-        sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
-	    is = sc.getInputStream();
-  	    os = getOutputStream();
-        break;
-  	  }
-  		catch (BindException be) {
-  		// Do nothing and try again
-  	  }
-  	}// end while
-  }
+    public JICPSConnection(TransportAddress ta, boolean useSSLAuth) throws IOException {
+        if (useSSLAuth) {
+            constructJICPSConnectionWithAuth(ta);
+        } else {
+            constructJICPSConnectionNoAuth(ta);
+        }
+    } // end constructor
 
+    private void constructJICPSConnectionNoAuth(TransportAddress ta) throws IOException {
+        if (myLogger.isLoggable(Logger.WARNING)) {
+            myLogger.log(Logger.WARNING,
+                    "Creating JICPSConnection with NO-AUTHENTICATION (only confidentiality).");
+        }
 
-  /**
-   * Constructor declaration
-   */
-  public JICPSConnection(Socket s) {
-  	super(s);
-  }
+        if (scsf == null) {
+            try {
+                SSLContext ctx = SSLHelper.createContextNoAuth();
+                scsf = (SSLSocketFactory) ctx.getSocketFactory();
+            } catch (Exception e) {
+                throw new IOException("Error creating SSLSocketFactory. " + e.toString());
+            }
+        }
+
+        // For some reason the local address or port may be
+        // in use
+        while (true) {
+            try {
+                sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
+                ((SSLSocket) sc).setEnabledCipherSuites(SSLHelper.getSupportedKeys());
+                is = sc.getInputStream();
+                os = getOutputStream();
+                break;
+            } catch (BindException be) {
+                // Do nothing and try again
+            }
+        }
+    }
+
+    private void constructJICPSConnectionWithAuth(TransportAddress ta) throws IOException {
+        if (myLogger.isLoggable(Logger.FINE)) {
+            myLogger.log(Logger.FINE,
+                    "Creating JICPSConnection with MUTUAL AUTHENTICATION.");
+        }
+        if (scsf == null) {
+            try {
+                // create and init new SSL context appropriate for mutual Auth
+                SSLContext ctx = SSLHelper.createContextWithAuth();
+                scsf = (SSLSocketFactory) ctx.getSocketFactory();
+            } catch (Exception e) {
+                throw new IOException("Error creating SSLSocketFactory. " + e.toString());
+            }
+        }
+
+        // For some reason the local address or port may be
+        // in use
+        while (true) {
+            try {
+                sc = scsf.createSocket(ta.getHost(), Integer.parseInt(ta.getPort()));
+                is = sc.getInputStream();
+                os = getOutputStream();
+                break;
+            } catch (BindException be) {
+                // Do nothing and try again
+            }
+        }// end while
+    }
+
+    /**
+     * Constructor declaration
+     */
+    public JICPSConnection(Socket s) {
+        super(s);
+    }
 }
 

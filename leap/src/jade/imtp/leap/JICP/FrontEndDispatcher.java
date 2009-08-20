@@ -490,12 +490,22 @@ public class FrontEndDispatcher implements FEConnectionManager, Dispatcher, Time
 	}
 	
 	private JICPConnection openConnection(TransportAddress ta) throws IOException {
-		if (myConnectionListener != null) {
-			myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION, null);
-		}
-		JICPConnection c = new JICPConnection(ta);
+                if (myConnectionListener != null) {
+                                myConnectionListener.handleConnectionEvent(ConnectionListener.BEFORE_CONNECTION,null);
+                }
+		JICPConnection c = getConnection(ta);
 		return c;
 	}
+
+        /**
+         * subclasses may overwrite this to provide their version of a JICPConnection
+         * @param ta
+         * @return
+         * @throws IOException
+         */
+        protected JICPConnection getConnection(TransportAddress ta) throws IOException {
+              return new JICPConnection(ta);
+          }
 	
 	// This is synchronized to be sure that commands and responses are always written in a non-overlapping way
 	private synchronized void writePacket(JICPPacket pkt, Connection c) throws IOException {

@@ -1,5 +1,4 @@
 /*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -36,8 +35,8 @@ package jade.imtp.leap.http;
 
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.JICP.Connection;
-import jade.imtp.leap.JICP.JICPProtocol;
 import jade.imtp.leap.JICP.JICPPacket;
+import jade.imtp.leap.JICP.JICPProtocol;
 
 import java.io.*;
 //#MIDP_EXCLUDE_BEGIN
@@ -56,137 +55,142 @@ import javax.microedition.io.*;
  */
 class HTTPClientConnection extends Connection {
 
-	static final String RECIPIENT_ID_FIELD = "recipient-id";
-	
-	//#MIDP_EXCLUDE_BEGIN
-  private HttpURLConnection hc;
-  private static String username, password;
-	//#MIDP_EXCLUDE_END
+    static final String RECIPIENT_ID_FIELD = "recipient-id";
+    //#MIDP_EXCLUDE_BEGIN
+    private HttpURLConnection hc;
+    //#MIDP_EXCLUDE_END
 	/*#MIDP_INCLUDE_BEGIN
-  private HttpConnection hc;
-	#MIDP_INCLUDE_END*/
-  private String url;
-  private InputStream  is;
-  private OutputStream os;
-  private boolean opened;
-  
-  /**
-   * Constructor declaration
-   */
-  public HTTPClientConnection(TransportAddress ta) {
-    url = "http://"+ta.getHost()+":"+ta.getPort()+"/jade";
-    opened = false;
-  }
-  
-  public int writePacket(JICPPacket pkt) throws IOException {
-  	if (!opened) {
-  		int ret = 0;
-	  	//#MIDP_EXCLUDE_BEGIN
-			//#PJAVA_EXCLUDE_BEGIN
-  		// If the HTTP connection must go through an authenticated proxy
-  		// set the proper authenticator
-			Authenticator.setDefault(new Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					if (username == null) {
-						// Try as system properties first
-						username = System.getProperty("http.username");
-						password = System.getProperty("http.password");
-						if (username == null) {
-					  	JTextField usrTF = new JTextField();
-					  	JPasswordField pwdTF = new JPasswordField();
-					  	Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
-					  	int ret = JOptionPane.showConfirmDialog(null, message, null, JOptionPane.OK_CANCEL_OPTION);
-					  	if (ret == 0) {
-					  		username = usrTF.getText();
-					  		password = pwdTF.getText();
-					  	}
-						}
-					}
-					
-				  return new PasswordAuthentication(username,password.toCharArray());
-				}				
-			} );
-			//#PJAVA_EXCLUDE_END
-			hc = (HttpURLConnection) (new URL(url)).openConnection();
-			hc.setDoOutput(true);
-			hc.setRequestMethod("POST");
-			hc.connect();
-			os = hc.getOutputStream();
-	    ret = pkt.writeTo(os);
-	  	//#MIDP_EXCLUDE_END
-			
-	  	/*#MIDP_INCLUDE_BEGIN
-			hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
-			if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
-				hc.setRequestMethod(HttpConnection.GET);
-				hc.setRequestProperty(RECIPIENT_ID_FIELD, pkt.getRecipientID());
-  		}
-  		else {
-				hc.setRequestMethod(HttpConnection.POST);
-		    os = hc.openOutputStream();
-	    	ret = pkt.writeTo(os);
-  		}
-	    #MIDP_INCLUDE_END*/
-	    
-	    opened = true;
-	    return ret;
-  	}
-  	else {
-  		throw new IOException("Write not available");
-  	}
-  }
-  
-  public JICPPacket readPacket() throws IOException {
-    if (opened) {
-    	try {
-		    //#MIDP_EXCLUDE_BEGIN
-				is = hc.getInputStream();
-		    //#MIDP_EXCLUDE_END
-		    /*#MIDP_INCLUDE_BEGIN
-				is = hc.openInputStream();
-		    #MIDP_INCLUDE_END*/
-		    
-		    return JICPPacket.readFrom(is);
-    	}
-    	finally {
-    		try {
-	    		close();
-    		}
-    		catch (Exception e) {
-    		}
-    	}
-    }
-    else {
-			throw new IOException("Can't read from a closed connection");
-    }
-  }
-						
-  /**
-   */
-  public void close() throws IOException {
-  	opened = false;
-		try {is.close();} catch (Exception e) {}
-    is = null;
-		try {os.close();} catch (Exception e) {}
-    os = null;
-    try {
-    	//#MIDP_EXCLUDE_BEGIN
-    	hc.disconnect();
-    	//#MIDP_EXCLUDE_END
-    	/*#MIDP_INCLUDE_BEGIN
-	    hc.close();
-    	#MIDP_INCLUDE_END*/
-    }
-    catch (Exception e) {}
-    hc = null;
-  } 
+    private HttpConnection hc;
+    #MIDP_INCLUDE_END*/
+    private String url;
+    private InputStream is;
+    private OutputStream os;
+    private boolean opened;
 
-  //#MIDP_EXCLUDE_BEGIN
-  /**
-   */
-  public String getRemoteHost() throws Exception {
-  	throw new Exception("Unsupported operation");
-  }
-  //#MIDP_EXCLUDE_END
+    /**
+     * Constructor declaration
+     */
+    public HTTPClientConnection(TransportAddress ta) {
+        url = "http://" + ta.getHost() + ":" + ta.getPort() + "/jade";
+        opened = false;
+        //#MIDP_EXCLUDE_BEGIN
+        //#PJAVA_EXCLUDE_BEGIN
+        // If the HTTP connection must go through an authenticated proxy
+        // set the proper authenticator
+        Authenticator.setDefault(new Authenticator() {
+            private String username = null;
+            private String password = null;
+
+            protected PasswordAuthentication getPasswordAuthentication() {
+                if (username == null) {
+                    // Try as system properties first
+                    username = System.getProperty("http.username");
+                    password = System.getProperty("http.password");
+                    if (username == null) {
+                        JTextField usrTF = new JTextField();
+                        JPasswordField pwdTF = new JPasswordField();
+                        Object[] message = new Object[]{"Insert username and password", usrTF, pwdTF};
+                        int ret = JOptionPane.showConfirmDialog(null, message, null, JOptionPane.OK_CANCEL_OPTION);
+                        if (ret == 0) {
+                            username = usrTF.getText();
+                            password = pwdTF.getText();
+                        }
+                    }
+                }
+
+                return new PasswordAuthentication(username, password.toCharArray());
+            }
+        });
+        //#PJAVA_EXCLUDE_END
+        //#MIDP_EXCLUDE_END
+    }
+
+    public int writePacket(JICPPacket pkt) throws IOException {
+        if (!opened) {
+            int ret = 0;
+            //#MIDP_EXCLUDE_BEGIN
+            hc = (HttpURLConnection) (new URL(url)).openConnection();
+            hc.setDoOutput(true);
+            hc.setRequestMethod("POST");
+            hc.connect();
+            os = hc.getOutputStream();
+            ret = pkt.writeTo(os);
+            //#MIDP_EXCLUDE_END
+
+            /*#MIDP_INCLUDE_BEGIN
+            hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
+            if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
+            hc.setRequestMethod(HttpConnection.GET);
+            hc.setRequestProperty(RECIPIENT_ID_FIELD, pkt.getRecipientID());
+            }
+            else {
+            hc.setRequestMethod(HttpConnection.POST);
+            os = hc.openOutputStream();
+            ret = pkt.writeTo(os);
+            }
+            #MIDP_INCLUDE_END*/
+
+            opened = true;
+            return ret;
+        } else {
+            throw new IOException("Write not available");
+        }
+    }
+
+    public JICPPacket readPacket() throws IOException {
+        if (opened) {
+            try {
+                //#MIDP_EXCLUDE_BEGIN
+                is = hc.getInputStream();
+                //#MIDP_EXCLUDE_END
+		    /*#MIDP_INCLUDE_BEGIN
+                is = hc.openInputStream();
+                #MIDP_INCLUDE_END*/
+
+                return JICPPacket.readFrom(is);
+            } finally {
+                try {
+                    close();
+                } catch (Exception e) {
+                }
+            }
+        } else {
+            throw new IOException("Can't read from a closed connection");
+        }
+    }
+
+    /**
+     */
+    public void close() throws IOException {
+        opened = false;
+        try {
+            is.close();
+        } catch (Exception e) {
+        }
+        is = null;
+        try {
+            os.close();
+        } catch (Exception e) {
+        }
+        os = null;
+        try {
+            //#MIDP_EXCLUDE_BEGIN
+            hc.disconnect();
+            //#MIDP_EXCLUDE_END
+    	/*#MIDP_INCLUDE_BEGIN
+            hc.close();
+            #MIDP_INCLUDE_END*/
+        } catch (Exception e) {
+        }
+        hc = null;
+    }
+
+    //#MIDP_EXCLUDE_BEGIN
+    /**
+     */
+    public String getRemoteHost() throws Exception {
+        throw new Exception("Unsupported operation");
+    }
+    //#MIDP_EXCLUDE_END
 }
 

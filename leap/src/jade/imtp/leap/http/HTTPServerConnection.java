@@ -1,5 +1,4 @@
 /*--- formatted by Jindent 2.1, (www.c-lab.de/~jindent) ---*/
-
 /**
  * ***************************************************************
  * The LEAP libraries, when combined with certain JADE platform components,
@@ -35,8 +34,6 @@
 package jade.imtp.leap.http;
 
 //#MIDP_EXCLUDE_FILE
-
-import jade.mtp.TransportAddress;
 import jade.imtp.leap.JICP.Connection;
 import jade.imtp.leap.JICP.JICPPacket;
 import jade.imtp.leap.JICP.JICPProtocol;
@@ -55,96 +52,100 @@ import java.net.*;
  */
 class HTTPServerConnection extends Connection {
 
-  private Socket sc;
-  private InputStream  is;
-  private OutputStream os;
-  private boolean readAvailable;
-  private boolean writeAvailable;
+    private Socket sc;
+    private InputStream is;
+    private OutputStream os;
+    private boolean readAvailable;
+    private boolean writeAvailable;
 
-  /**
-   * Constructor declaration
-   */
-  public HTTPServerConnection(Socket s) {
-  	sc = s;
-		readAvailable = true;
-		writeAvailable = false;
-  }
-  
-  public JICPPacket readPacket() throws IOException {
-    if (readAvailable) {
-    	// Read an HTTP request from the network
-	    HTTPRequest request = new HTTPRequest();
-			is = sc.getInputStream();
-	    request.readFrom(is);
-	    readAvailable = false;
-	    writeAvailable = true;
-	    if (request.getMethod().equals("GET")) {
-	    	// This is a CONNECT_MEDIATOR
-	    	String recipientID = request.getField(HTTPClientConnection.RECIPIENT_ID_FIELD);
-	    	JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, null); 
-	    	return pkt;
-	    }
-	    else {
-		    // Read the JICPPacket from the HTTP request payload
-		    ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
-		    return JICPPacket.readFrom(bis);
-	    }
+    /**
+     * Constructor declaration
+     */
+    public HTTPServerConnection(Socket s) {
+        sc = s;
+        readAvailable = true;
+        writeAvailable = false;
     }
-    else {
-			throw new IOException("Read not available");
-		}
-  }
-  
-  public int writePacket(JICPPacket pkt) throws IOException {
-  	if (writeAvailable) {
-  		try {
-				// Transform the JICPPacket into a sequence of bytes
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				int ret = pkt.writeTo(bos);
-				// Create an HTTPResponse and set the serialized JICPPacket as payload 
-				HTTPResponse response = new HTTPResponse();
-				response.setCode("200");
-				response.setMessage("OK");
-				response.setHttpType("HTTP/1.1");
-				response.setPayload(bos.toByteArray());
-				// Write the HTTPResponse to os and close the connection
-				os = sc.getOutputStream();
-				response.writeTo(os);
-				os.flush();
-		    readAvailable = true;
-		    writeAvailable = false;
-				return ret;
-  		}
-  		finally {
-    		try {
-	    		close();
-    		}
-    		catch (Exception e) {
-    		}
-  		}
-		}
-		else {
-			throw new IOException("Write not available");
-		}
-  }
-		
-  /**
-   */
-  public void close() throws IOException {
-		readAvailable = false;
-		writeAvailable = false;
-		try {is.close();} catch (Exception e) {}
-    is = null;
-		try {os.close();} catch (Exception e) {}
-    os = null;
-		try {sc.close();} catch (Exception e) {}
-    sc = null;
-  } 
 
-  /**
-   */
-  public String getRemoteHost() throws Exception {
-    return sc.getInetAddress().getHostAddress();
-  }
+    public JICPPacket readPacket() throws IOException {
+        if (readAvailable) {
+            // Read an HTTP request from the network
+            HTTPRequest request = new HTTPRequest();
+            is = sc.getInputStream();
+            request.readFrom(is);
+            readAvailable = false;
+            writeAvailable = true;
+            if (request.getMethod().equals("GET")) {
+                // This is a CONNECT_MEDIATOR
+                String recipientID = request.getField(HTTPClientConnection.RECIPIENT_ID_FIELD);
+                JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, null);
+                return pkt;
+            } else {
+                // Read the JICPPacket from the HTTP request payload
+                ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
+                return JICPPacket.readFrom(bis);
+            }
+        } else {
+            throw new IOException("Read not available");
+        }
+    }
+
+    public int writePacket(JICPPacket pkt) throws IOException {
+        if (writeAvailable) {
+            try {
+                // Transform the JICPPacket into a sequence of bytes
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                int ret = pkt.writeTo(bos);
+                // Create an HTTPResponse and set the serialized JICPPacket as payload
+                HTTPResponse response = new HTTPResponse();
+                response.setCode("200");
+                response.setMessage("OK");
+                response.setHttpType("HTTP/1.1");
+                response.setPayload(bos.toByteArray());
+                // Write the HTTPResponse to os and close the connection
+                os = sc.getOutputStream();
+                response.writeTo(os);
+                os.flush();
+                readAvailable = true;
+                writeAvailable = false;
+                return ret;
+            } finally {
+                try {
+                    close();
+                } catch (Exception e) {
+                }
+            }
+        } else {
+            throw new IOException("Write not available");
+        }
+    }
+
+    /**
+     */
+    public void close() throws IOException {
+        readAvailable = false;
+        writeAvailable = false;
+        try {
+            is.close();
+        } catch (Exception e) {
+        }
+        is = null;
+        try {
+            os.close();
+        } catch (Exception e) {
+        }
+        os = null;
+        try {
+            sc.close();
+        } catch (Exception e) {
+        }
+        sc = null;
+    }
+
+    /**
+     */
+    public String getRemoteHost() throws Exception {
+        return sc.getInetAddress().getHostAddress();
+    }
 }
 

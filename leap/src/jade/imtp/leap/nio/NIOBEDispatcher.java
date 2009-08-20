@@ -9,13 +9,11 @@ import jade.core.BEConnectionManager;
 import jade.core.Profile;
 import jade.core.ProfileException;
 import jade.core.IMTPException;
-import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.BackEndSkel;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.JICP.JICPProtocol;
-import jade.imtp.leap.JICP.JICPMediator;
 import jade.imtp.leap.JICP.JICPMediatorManager;
 import jade.imtp.leap.JICP.JICPPacket;
 import jade.imtp.leap.JICP.Connection;
@@ -24,6 +22,7 @@ import jade.util.Logger;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.logging.Level;
 
 /**
  This class implements the BIFEDispatcher related BackEnd dispatcher 
@@ -200,7 +199,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 				inp = (data[0] == 1);
 			}
 			if (inp) {
-				inpManager.setConnection(c);
+				inpManager.setConnection((NIOJICPConnection) c);
 				if (myLogger.isLoggable(Logger.CONFIG)) {
 					myLogger.log(Logger.CONFIG, myID+": New INP Connection establishd");
 				}
@@ -231,6 +230,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	 connections on its own (the JICPMediatorManager does that in general).
 	 */
 	public void handleConnectionError(Connection c, Exception e) {
+            myLogger.log(Level.WARNING, "connection error", e);
 		if (active && peerActive) {
 			// Try assuming it is the input connection
 			try {
@@ -485,7 +485,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 	 This class manages the delivery of commands to the FrontEnd
 	 */
 	protected class InputManager {
-		private Connection myConnection;
+		private NIOJICPConnection myConnection;
 		private boolean dispatching = false;
 		private boolean connectionRefreshed;
 		private boolean waitingForFlush;
@@ -505,7 +505,7 @@ public class NIOBEDispatcher implements NIOMediator, BEConnectionManager, Dispat
 			return myStub;
 		}
 		
-		synchronized void setConnection(Connection c) {
+		synchronized void setConnection(NIOJICPConnection c) {
 			// Reset the old connection
 			resetConnection();
 			

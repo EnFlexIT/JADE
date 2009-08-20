@@ -41,16 +41,10 @@ import jade.mtp.TransportAddress;
  * @author Giovanni Caire - TILAB
  */
 public class HTTPAddress implements TransportAddress {
-  protected String host;
-  protected String port;
-  protected String file;
-  protected String anchor;
-
-  /**
-   * Constructor declaration
-   */
-  public HTTPAddress() {
-  } 
+  private String host;
+  private String port;
+  private String file;
+  private String anchor;
 
   /**
    * Constructor declaration
@@ -114,7 +108,7 @@ public class HTTPAddress implements TransportAddress {
   public String toString() {
     StringBuffer address = new StringBuffer();
 
-    address.append(HTTPProtocol.NAME);
+    address.append(getProto());
     address.append("://");
     address.append(host);
 

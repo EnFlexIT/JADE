@@ -25,16 +25,13 @@ package jade.imtp.leap.JICP;
 
 //#J2ME_EXCLUDE_FILE
 
-import jade.core.AgentContainer;
 import jade.core.BackEndContainer;
 import jade.core.BEConnectionManager;
 import jade.core.BackEnd;
 import jade.core.FrontEnd;
 import jade.core.IMTPException;
 import jade.core.Profile;
-import jade.core.ProfileImpl;
 import jade.core.ProfileException;
-import jade.core.ContainerID;
 import jade.imtp.leap.FrontEndStub;
 import jade.imtp.leap.MicroSkeleton;
 import jade.imtp.leap.BackEndSkel;

@@ -38,14 +38,13 @@ package jade.imtp.leap.JICP;
 //#J2ME_EXCLUDE_FILE
 
 import jade.core.Profile;
-import jade.core.ProfileException;
 import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
+import jade.imtp.leap.SSLHelper;
 import jade.util.Logger;
 import java.io.*;
 import java.net.*;
 import javax.net.ssl.*;
-import java.security.*;
 
 
 
@@ -74,7 +73,8 @@ public class JICPSPeer extends JICPPeer {
 			myLogger.log(Logger.FINE, 
 					"About to activate JICP peer." );
 		}
-		ctx = createContext(); // create context at activation time
+		ctx = SSLHelper.createContext(); // create context at activation time
+                setUseSSLAuth(SSLHelper.needAuth());
 		if (myLogger.isLoggable(Logger.FINE)) {
 			myLogger.log(Logger.FINE, 
 					"activate() context created ctx="+ctx );
@@ -126,7 +126,7 @@ public class JICPSPeer extends JICPPeer {
 	private ServerSocket getServerSocketWithAuth(String host, int port, boolean changePortIfBusy) throws ICPException {  
 		// Create the SSLContext if necessary
 		if (ctx == null) {
-			ctx = createContextWithAuth();
+			ctx = SSLHelper.createContextWithAuth();
 		}
 
 		// socket to be created
@@ -183,7 +183,7 @@ public class JICPSPeer extends JICPPeer {
 	private ServerSocket getServerSocketNoAuth(String host, int port, boolean changePortIfBusy) throws ICPException {  
 		// Create the SSLContext if necessary
 		if (ctx == null) {
-			ctx = createContextNoAuth();
+			ctx = SSLHelper.createContextNoAuth();
 		}
 		// Create the SSLServerSocket
 		SSLServerSocket sss = null;
@@ -238,77 +238,6 @@ public class JICPSPeer extends JICPPeer {
 	private void setUseSSLAuth(boolean b){
 		useSSLAuth = b;
 	}
-
-
-	private SSLContext createContext() throws ICPException {
-		SSLContext ctx=null;
-		// default parameters
-		if (System.getProperty("javax.net.ssl.keyStore") == null)
-			System.setProperty("javax.net.ssl.keyStore", "keystore");
-		if (System.getProperty("javax.net.ssl.keyStorePassword") == null)
-			System.setProperty("javax.net.ssl.keyStorePassword", "passphrase");
-		if (System.getProperty("javax.net.ssl.trustStore") == null)
-			System.setProperty("javax.net.ssl.trustStore", "truststore");
-
-		// check if keystore files are present (needed for authentication)
-		boolean storesPresent = 
-			(new File( System.getProperty("javax.net.ssl.keyStore") ).canRead()) 
-			&&  (new File( System.getProperty("javax.net.ssl.trustStore") ).canRead());
-
-		// try to open the stores
-		boolean isAbleToOpenStores = true;
-		// FIXME: try to open the stores with the given passphrase
-
-		// if present and able to open stores, use Authenticated SSL
-		if (storesPresent && isAbleToOpenStores) { setUseSSLAuth(true); }
-		if (myLogger.isLoggable(Logger.FINE)) {
-			myLogger.log(Logger.FINE, "keyStore and trustStore found!");
-		}
-
-		// create and init context
-		if (getUseSSLAuth()) {
-			ctx = createContextWithAuth();
-		} else {
-			ctx = createContextNoAuth();
-		}
-		return ctx;
-	} // end createContext
-
-	private SSLContext createContextNoAuth() throws ICPException {
-		SSLContext ctx=null;
-		// Create the SSLContext without authentication if necessary
-		if (ctx == null) {
-			try{
-				ctx = SSLContext.getInstance("TLS");
-				ctx.init(null, null, null);
-			} 
-			catch( Exception e) { 
-				throw new ICPException("Error creating SSLContext.", e);
-			}
-		}
-		return ctx;
-	}// end createContextNoAuth
-
-	static SSLContext createContextWithAuth() throws ICPException {
-		// Create the SSLContext with Authentication 
-		SSLContext ctx=null;
-		try {
-			// open keystore
-			char[] passphrase = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
-			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(new FileInputStream(System.getProperty("javax.net.ssl.keyStore")), passphrase);
-			// init KeyManager
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(ks, passphrase);
-			// create and init context
-			ctx = SSLContext.getInstance("TLS");
-			ctx.init(kmf.getKeyManagers(), null, null);
-		} catch( Exception e) { 
-			throw new ICPException("Error creating SSLContext.", e);
-		}
-		return ctx;
-	}// end createContextWithAuth
-
 
 
 } // end class

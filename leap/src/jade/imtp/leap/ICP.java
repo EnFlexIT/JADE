@@ -42,7 +42,6 @@ package jade.imtp.leap;
  * @version 0.1
  */
 import jade.mtp.TransportAddress;
-import jade.util.WrapperException;
 import jade.core.Profile;
 
 /**
