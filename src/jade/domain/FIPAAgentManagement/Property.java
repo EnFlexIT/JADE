@@ -122,4 +122,9 @@ public class Property implements Concept {
 		return result;
 	}
 	//#MIDP_EXCLUDE_END
+	
+	public Object clone(){
+		return new Property(name, value);
+	}
+	
 }

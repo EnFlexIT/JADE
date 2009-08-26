@@ -448,7 +448,15 @@ public class Envelope implements Concept, jade.util.leap.Serializable {
 		env.payloadEncoding = payloadEncoding;
 		env.date = date;
 		env.transportBehaviour = transportBehaviour;
-		env.properties = (ArrayList)properties.clone();
+		
+		// Deep clone. Particularly important when security is enabled as SecurityObject-s (that are stored as 
+		// Envelope properties) are modified in the encryption process
+		env.properties = new ArrayList(properties.size());
+		for(int i = 0; i < properties.size(); i++) {
+			Property p = (Property)properties.get(i);
+			env.properties.add(p.clone());
+		}
+		
 		return env;
 	}
 	//#APIDOC_EXCLUDE_END
