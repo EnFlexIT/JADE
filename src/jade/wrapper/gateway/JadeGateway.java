@@ -51,7 +51,7 @@ import jade.wrapper.StaleProxyException;
  **/
 public class JadeGateway {
 	
-	private static ContainerController myContainer = null;
+/*	private static ContainerController myContainer = null;
 	private static AgentController myAgent = null;
 	private static String agentType;
 	// jade profile properties
@@ -59,7 +59,9 @@ public class JadeGateway {
 	private static Properties jadeProps;
 	private static Object[] agentArguments;
 	private static final Logger myLogger = Logger.getMyLogger(JadeGateway.class.getName());
+	*/
 	
+	private static DynamicJadeGateway theGateway = new DynamicJadeGateway();
 	
 	/** Searches for the property with the specified key in the JADE Platform Profile. 
 	 *	The method returns the default value argument if the property is not found. 
@@ -69,7 +71,8 @@ public class JadeGateway {
 	 * @see java.util.Properties#getProperty(String, String)
 	 **/
 	public final static String getProfileProperty(String key, String defaultValue) {
-		return profile.getParameter(key, defaultValue);
+		//return profile.getParameter(key, defaultValue);
+		return theGateway.getProfileProperty(key, defaultValue);
 	}
 	
 	/**
@@ -83,7 +86,8 @@ public class JadeGateway {
 	 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 	 **/
 	public final static void execute(Object command) throws StaleProxyException,ControllerException,InterruptedException {
-		execute(command, 0);
+		//execute(command, 0);
+		theGateway.execute(command);
 	}
 	
 	/**
@@ -99,7 +103,8 @@ public class JadeGateway {
 	 * @see jade.wrapper.AgentController#putO2AObject(Object, boolean)
 	 **/
 	public final static void execute(Object command, long timeout) throws StaleProxyException,ControllerException,InterruptedException {
-		Event e = null;
+		theGateway.execute(command, timeout);
+		/*Event e = null;
 		synchronized (JadeGateway.class) {
 			checkJADE();
 			// incapsulate the command into an Event
@@ -117,7 +122,7 @@ public class JadeGateway {
 			}
 		}
 		// wait until the answer is ready
-		e.waitUntilProcessed(timeout);
+		e.waitUntilProcessed(timeout);*/
 	}
 	
 	/**
@@ -126,7 +131,8 @@ public class JadeGateway {
 	 * Normally programmers do not need to invoke this method explicitly.
 	 **/
 	public final static void checkJADE() throws StaleProxyException,ControllerException {
-		if (myContainer == null) {
+		theGateway.checkJADE();
+		/*if (myContainer == null) {
 			initProfile();
 			
 			myContainer = Runtime.instance().createAgentContainer(profile); 
@@ -137,7 +143,7 @@ public class JadeGateway {
 		if (myAgent == null) {
 			myAgent = myContainer.createNewAgent("Control"+myContainer.getContainerName(), agentType, agentArguments);
 			myAgent.start();
-		}
+		}*/
 	}
 	
 	/** Restart JADE.
@@ -146,8 +152,9 @@ public class JadeGateway {
 	 * and finally calls checkJADE
 	 **/
 	private final static void restartJADE() throws StaleProxyException,ControllerException {
-		shutdown();
-		checkJADE();
+		theGateway.restartJADE();
+		/*shutdown();
+		checkJADE();*/
 	}
 	
 	/**
@@ -160,7 +167,8 @@ public class JadeGateway {
 	 * If jadeProfile is null, then a JADE container attaching to a main on the local host is launched
 	 **/
 	public final static void init(String agentClassName, Object[] agentArgs, Properties jadeProfile) {
-		agentType = agentClassName;
+		theGateway.init(agentClassName, agentArgs, jadeProfile);
+		/*agentType = agentClassName;
 		if (agentType == null) {
 			agentType = GatewayAgent.class.getName();
 		}
@@ -171,23 +179,26 @@ public class JadeGateway {
 			jadeProps.setProperty(Profile.MAIN, "false");
 		}
 		
-		agentArguments = agentArgs;
+		agentArguments = agentArgs;*/
 	}
 
 	public final static void init(String agentClassName, Properties jadeProfile) {
-		init(agentClassName, null, jadeProfile);
+		theGateway.init(agentClassName, jadeProfile);
+		//init(agentClassName, null, jadeProfile);
 	}
 	
 	private final static void initProfile() {
+		theGateway.initProfile();
 		// to initialize the profile every restart, otherwise an exception would be thrown by JADE
-		profile = (jadeProps == null ? new ProfileImpl(false) : new ProfileImpl(jadeProps));
+		//profile = (jadeProps == null ? new ProfileImpl(false) : new ProfileImpl(jadeProps));
 	}
 	
 	/**
 	 * Kill the JADE Container in case it is running.
 	 */
 	public final static void shutdown() {
-		try { // try to kill, but neglect any exception thrown
+		theGateway.shutdown();
+		/*try { // try to kill, but neglect any exception thrown
 			if (myAgent != null)
 				myAgent.kill();
 		} catch (Exception e) {
@@ -198,7 +209,7 @@ public class JadeGateway {
 		} catch (Exception e) {
 		}
 		myAgent = null;
-		myContainer = null;
+		myContainer = null;*/
 	}
 	
 	/**
@@ -206,7 +217,8 @@ public class JadeGateway {
 	 * @return true if the container and the gateway agent are active, false otherwise
 	 */
 	public final static boolean isGatewayActive() {
-		return myContainer != null && myAgent != null;
+		return theGateway.isGatewayActive();
+		//return myContainer != null && myAgent != null;
 	}
 	
 	/** This private constructor avoids other objects to create a new instance of this singleton **/
