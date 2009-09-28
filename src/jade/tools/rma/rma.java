@@ -1011,7 +1011,7 @@ public class rma extends ToolAgent {
 			ACLMessage dummyMsg = new ACLMessage(ACLMessage.NOT_UNDERSTOOD);
 			dummyMsg.setOntology(FIPAManagementOntology.NAME);
 			dummyMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL0);
-			String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (set " + buf.toString() +" ) ) )";
+			String content = "(( result (action ( agent-identifier :name ams :addresses (sequence IOR:00000000000000) :resolvers (sequence ) ) (get-description ) ) (sequence " + buf.toString() +" ) ) )";
 			dummyMsg.setContent(content);
 			try{
 				
