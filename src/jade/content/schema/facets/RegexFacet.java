@@ -24,11 +24,6 @@
  */
 package jade.content.schema.facets;
 
-//#J2ME_EXCLUDE_FILE
-
-import java.util.Iterator;
-import java.util.List;
-
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;
 import jade.content.onto.Ontology;
@@ -36,41 +31,26 @@ import jade.content.onto.OntologyException;
 import jade.content.schema.Facet;
 
 /**
- * This facet forces an AbsPrimitive to contain a specific set of values.
+ * This facet forces an AbsPrimitive to contain a specific set of values
+ * expressed as a regular expression.
  */
-public class PermittedValuesFacet implements Facet {
-	private List permittedValues; 
+public class RegexFacet implements Facet {
+	private String regex;
 
 	/**
 	   Construct a <code>PermittedValuesFacet</code> that 
 	   forces an AbsPrimitive to contain a specific set of values
+ 	   expressed as a regular expression
 	 */
-	public PermittedValuesFacet(List permittedValues) {
-		this.permittedValues = permittedValues;
+	public RegexFacet(String regex) {
+		this.regex = regex;
 	}
 	
 	/**
-	  Get the permitted values associated to this facet
+	  Get the regex associated to this facet
 	*/
-	public List getPermittedValues() {
-		return permittedValues;
-	}
-	
-	/**
-	  Get the permitted values as string associated to this facet 
-	 */
-	public String getPermittedValuesString() {
-		StringBuilder sb = new StringBuilder();
-		if (permittedValues != null) {
-			Iterator it = permittedValues.iterator();
-			while(it.hasNext()) {
-				if (sb.length() > 0) {
-					sb.append(", ");
-				}
-				sb.append(it.next());
-			}
-		}
-		return sb.toString();
+	public String getRegex() {
+		return regex;
 	}
 	
 	/**
@@ -86,9 +66,9 @@ public class PermittedValuesFacet implements Facet {
 		
 		AbsPrimitive absPrimitive = (AbsPrimitive) value;
 		Object absValue = absPrimitive.getObject();
-		if (absValue != null && permittedValues != null) {
-			if (!permittedValues.contains(absValue)) {
-				throw new OntologyException(value+" is not a permitted value");
+		if (absValue != null) {
+			if (!absValue.toString().matches(regex)) {
+				throw new OntologyException(value+" not match the regular expression "+regex);
 			}
 		}
 	}
