@@ -24,11 +24,6 @@
  */
 package jade.content.schema.facets;
 
-//#J2ME_EXCLUDE_FILE
-
-import java.util.Iterator;
-import java.util.List;
-
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;
 import jade.content.onto.Ontology;
@@ -39,35 +34,34 @@ import jade.content.schema.Facet;
  * This facet forces an AbsPrimitive to contain a specific set of values.
  */
 public class PermittedValuesFacet implements Facet {
-	private List permittedValues; 
+	private Object[] permittedValues; 
 
 	/**
 	   Construct a <code>PermittedValuesFacet</code> that 
 	   forces an AbsPrimitive to contain a specific set of values
 	 */
-	public PermittedValuesFacet(List permittedValues) {
+	public PermittedValuesFacet(Object[] permittedValues) {
 		this.permittedValues = permittedValues;
 	}
 	
 	/**
 	  Get the permitted values associated to this facet
 	*/
-	public List getPermittedValues() {
+	public Object[] getPermittedValues() {
 		return permittedValues;
 	}
 	
 	/**
 	  Get the permitted values as string associated to this facet 
 	 */
-	public String getPermittedValuesString() {
+	public String getPermittedValuesAsString() {
 		StringBuilder sb = new StringBuilder();
 		if (permittedValues != null) {
-			Iterator it = permittedValues.iterator();
-			while(it.hasNext()) {
+			for (int i=0; i<permittedValues.length; i++) {
 				if (sb.length() > 0) {
 					sb.append(", ");
 				}
-				sb.append(it.next());
+				sb.append(permittedValues[i]);
 			}
 		}
 		return sb.toString();
@@ -87,9 +81,12 @@ public class PermittedValuesFacet implements Facet {
 		AbsPrimitive absPrimitive = (AbsPrimitive) value;
 		Object absValue = absPrimitive.getObject();
 		if (absValue != null && permittedValues != null) {
-			if (!permittedValues.contains(absValue)) {
-				throw new OntologyException(value+" is not a permitted value");
+			for (int i=0; i<permittedValues.length; i++) {
+				if (absValue.equals(permittedValues[i])) {
+					return;
+				}
 			}
+			throw new OntologyException(value+" is not a permitted value ("+getPermittedValuesAsString()+")");
 		}
 	}
 }
