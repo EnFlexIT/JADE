@@ -124,16 +124,17 @@ implements PDPContextManager.Listener, JICPMediatorManager
 		sb.append(JICPProtocol.LOCAL_HOST_KEY);
 		host = p.getParameter(sb.toString(), null);
 		boolean acceptLocalHostOnly = false;
-		if (host == null) {
-			// Local host not specified --> try to get it using JICP GET_ADDRESS
+		if (host == null || host.equals(Profile.LOCALHOST_CONSTANT)) {
+			// Local host not specified --> Get it automatically
 			sb.setLength(idLength);
 			sb.append(JICPProtocol.REMOTE_URL_KEY);
 			String remoteURL = p.getParameter(sb.toString(), null);
 			if (remoteURL != null) {
+				// Retrieve the local host address by means of the GET_ADDRESS JICP functionality
 				host = myPeer.getAddress(remoteURL);
 			} 
 			else {
-				// Retrieve local host automatically
+				// Retrieve the host address/name from the underlying operating system
 				host = Profile.getDefaultNetworkName();
 			}
 		}
