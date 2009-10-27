@@ -218,6 +218,10 @@ public abstract class BaseService implements Service {
 		return null;
 	}
 	
+	public boolean isLocal() {
+		return false;
+	}
+	
 	/** 
 	 This should be properly implemented
 	 by the services that have helpers.
@@ -286,7 +290,8 @@ public abstract class BaseService implements Service {
 	 * @return A string representation of the service internal data
 	 */
 	public String dump(String key) {
-		StringBuffer sb = new StringBuffer("CACHED SLICES:\n");
+		StringBuffer sb = new StringBuffer("Local: ").append(isLocal()).append('\n');
+		sb.append("CACHED SLICES:\n");
 		Iterator it = slices.keySet().iterator();
 		while (it.hasNext()) {
 			String name = (String) it.next();

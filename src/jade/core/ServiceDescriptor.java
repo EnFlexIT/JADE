@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA  02111-1307, USA.
-*****************************************************************/
+ *****************************************************************/
 
 package jade.core;
 
@@ -39,105 +39,105 @@ import jade.util.leap.Serializable;
 
    @see jade.core.Service
 
-*/
+ */
 public class ServiceDescriptor implements Serializable {
 
-    /**
+	/**
        Builds a new service descriptor, describing the given service
        with the given name and properties.
 
        @param sn The name of the described service.
        @param svc The described <code>Service</code> object.
-    */
-    public ServiceDescriptor(String sn, Service svc) {
-	myName = sn;
-	myService = svc;
-	myIsMandatory = false;
-    }
+	 */
+	public ServiceDescriptor(String sn, Service svc) {
+		myName = sn;
+		myService = svc;
+		myIsMandatory = false;
+	}
 
-    /**
+	/**
        Builds an uninitialized service descriptor.
 
        @see jade.core.ServiceDescriptor#setName(String sn)
        @see jade.core.ServiceDescriptor#setService(Service svc)
-    */
-    public ServiceDescriptor() {
-	this(null, null);
-    }
+	 */
+	public ServiceDescriptor() {
+		this(null, null);
+	}
 
-    /**
+	/**
        Change the name (if any) of the described service.
 
        @param sn The name to assign to the described service.
-    */
-    public void setName(String sn) {
-	myName = sn;
-    }
+	 */
+	public void setName(String sn) {
+		myName = sn;
+	}
 
-    /**
+	/**
        Retrieve the name (if any) of the described service.
 
        @return The name of the described service, or <code>null</code>
        if no name was set.
-    */
-    public String getName() {
-	return myName;
-    }
+	 */
+	public String getName() {
+		return myName;
+	}
 
-    /**
+	/**
        Change the described service (if any).
 
        @param svc The <code>Service</code> object that is to be
        described by this service descriptor.
-    */
-    public void setService(Service svc) {
-	myService = svc;
-    }
+	 */
+	public void setService(Service svc) {
+		myService = svc;
+	}
 
-    /**
+	/**
        Retrieve the described service.
 
        @return The <code>Service</code> object described by this
        service descriptor, or <code>null</code> if no service was set.
-    */
-    public Service getService() {
-	return myService;
-    }
-    
-    public void setMandatory(boolean isMandatory) {
-    	myIsMandatory = isMandatory;
-    }
-    
-    public boolean isMandatory() {
-    	return myIsMandatory;
-    }
+	 */
+	public Service getService() {
+		return myService;
+	}
 
-    private String myName;
-    private boolean myIsMandatory;
-    private transient Service myService;
+	public void setMandatory(boolean isMandatory) {
+		myIsMandatory = isMandatory;
+	}
+
+	public boolean isMandatory() {
+		return myIsMandatory;
+	}
+
+	private String myName;
+	private boolean myIsMandatory;
+	private transient Service myService;
 
 	//#MIDP_EXCLUDE_BEGIN
-  private String serviceClass;
-  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+	private String serviceClass;
+	private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
 		if (myService != null) {
 			serviceClass = myService.getClass().getName();
 		}
-    out.defaultWriteObject();
-  }
+		out.defaultWriteObject();
+	}
 
-  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-    in.defaultReadObject();
+	private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+		in.defaultReadObject();
 		if (serviceClass != null) {
-  		try {
-  			myService = (Service) Class.forName(serviceClass).newInstance();
-  		}
-  		catch (ClassNotFoundException cnfe) {
-  			throw cnfe;
-  		}
-  		catch (Throwable t) {
-  			throw new java.io.IOException("Can't create service "+serviceClass+". "+t.getMessage());
-  		}
+			try {
+				myService = (Service) Class.forName(serviceClass).newInstance();
+			}
+			catch (ClassNotFoundException cnfe) {
+				throw cnfe;
+			}
+			catch (Throwable t) {
+				throw new java.io.IOException("Can't create service "+serviceClass+". "+t.getMessage());
+			}
 		}			
-  }
+	}
 	//#MIDP_EXCLUDE_END
 }

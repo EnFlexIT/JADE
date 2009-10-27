@@ -374,48 +374,18 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 		// Initialize all services (without activating them)
 		List services = new ArrayList();
-		ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
-		dsc.setMandatory(true);
-		services.add(dsc);
-		//#MIDP_EXCLUDE_BEGIN
-		dsc = startService("jade.core.messaging.MessagingService", false);
-		//#MIDP_EXCLUDE_END
-		/*#MIDP_INCLUDE_BEGIN
-		 dsc = startService("jade.core.messaging.LightMessagingService", false);
-		 #MIDP_INCLUDE_END*/
-		dsc.setMandatory(true);
-		services.add(dsc);
+		List globalServices = new ArrayList();
+		
+		initMandatoryServices(services, globalServices);
 
 		List l = myProfile.getSpecifiers(Profile.SERVICES);
 		myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
-		Iterator serviceSpecifiers = l.iterator();
-		while(serviceSpecifiers.hasNext()) {
-			Specifier s = (Specifier) serviceSpecifiers.next();
-			String serviceClass = s.getClassName();
-			boolean isMandatory = false;
-			if ( s.getArgs() != null ) {
-				isMandatory = CaseInsensitiveString.equalsIgnoreCase( (String) s.getArgs()[0], "true" );
-			}
-			try {
-				dsc = startService(serviceClass, false);
-				dsc.setMandatory(isMandatory);
-				services.add(dsc);
-			} 
-			catch (ServiceException se) {
-				if (isMandatory) {
-					throw se;
-				}
-				else {
-					myLogger.log(Logger.WARNING,"Exception initializing service " + serviceClass + " : " + se.toString());
-					se.printStackTrace();
-				}
-			}
-		}
+		initAdditionalServices(l.iterator(), services, globalServices);
 
-		// Register with the platform
-		ServiceDescriptor[] descriptors = new ServiceDescriptor[services.size()];
+		// Register with the platform (pass only global services to the Main)
+		ServiceDescriptor[] descriptors = new ServiceDescriptor[globalServices.size()];
 		for (int i = 0; i < descriptors.length; ++i) {
-			descriptors[i] = (ServiceDescriptor) services.get(i);
+			descriptors[i] = (ServiceDescriptor) globalServices.get(i);
 		}
 		// This call performs the real connection to the platform and can modify the 
 		// name of this container
@@ -431,22 +401,8 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		}
 		//#MIDP_EXCLUDE_END
 
-		// Boot all services
-		for (int i = 0; i < descriptors.length; ++i) {	
-			ServiceDescriptor currentServDesc = descriptors[i];
-			try {
-				currentServDesc.getService().boot(myProfile);
-			} 
-			catch(Throwable t) {
-				if ( currentServDesc.isMandatory() ) {
-					throw new ServiceException("An error occurred during service booting", t);
-				}
-				else {
-					myLogger.log(Logger.WARNING,"Exception booting service " + currentServDesc.getName() + " : " + t.toString());
-					t.printStackTrace();
-				}
-			}
-		}
+		// Once we are connected, boot all services
+		bootAllServices(services);
 
 		//#MIDP_EXCLUDE_BEGIN
 		// If we are the master main container --> start the AMS and DF.
@@ -456,6 +412,70 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_END
 	}
 
+	private void initMandatoryServices(List services, List globalServices) throws ServiceException {
+		ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
+		dsc.setMandatory(true);
+		services.add(dsc);
+		globalServices.add(dsc);
+		//#MIDP_EXCLUDE_BEGIN
+		dsc = startService("jade.core.messaging.MessagingService", false);
+		//#MIDP_EXCLUDE_END
+		/*#MIDP_INCLUDE_BEGIN
+		 dsc = startService("jade.core.messaging.LightMessagingService", false);
+		 #MIDP_INCLUDE_END*/
+		dsc.setMandatory(true);
+		services.add(dsc);
+		globalServices.add(dsc);
+	}
+	
+	private void initAdditionalServices(Iterator serviceSpecifiers, List services, List globalServices) throws ServiceException {
+		while(serviceSpecifiers.hasNext()) {
+			Specifier s = (Specifier) serviceSpecifiers.next();
+			String serviceClass = s.getClassName();
+			boolean isMandatory = false;
+			if ( s.getArgs() != null ) {
+				isMandatory = CaseInsensitiveString.equalsIgnoreCase( (String) s.getArgs()[0], "true" );
+			}
+			try {
+				ServiceDescriptor dsc = startService(serviceClass, false);
+				dsc.setMandatory(isMandatory);
+				services.add(dsc);
+				Service svc = dsc.getService();
+				if (svc instanceof BaseService && !((BaseService) svc).isLocal()) {
+					globalServices.add(dsc);
+				}
+			} 
+			catch (ServiceException se) {
+				if (isMandatory) {
+					throw se;
+				}
+				else {
+					myLogger.log(Logger.WARNING,"Exception initializing service " + serviceClass + " : " + se.toString());
+					se.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private void bootAllServices(List services) throws ServiceException {
+		Iterator it = services.iterator();
+		while (it.hasNext()) {
+			ServiceDescriptor dsc = (ServiceDescriptor) it.next();
+			try {
+				dsc.getService().boot(myProfile);
+			} 
+			catch(Throwable t) {
+				if ( dsc.isMandatory() ) {
+					throw new ServiceException("An error occurred during service booting", t);
+				}
+				else {
+					myLogger.log(Logger.WARNING, "Exception booting service " + dsc.getName(), t);
+				}
+			}
+		}
+	}
+	
+	
 	boolean joinPlatform() {
 		//#J2ME_EXCLUDE_BEGIN
 		// Redirect output if the -output option is specified
@@ -686,7 +706,6 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 			else {
 				toBeSent = msg;
 			}
-			isFirst = false;
 			GenericMessage gmsg = new GenericMessage(toBeSent);
 			cmd.addParam(gmsg);
 			cmd.addParam(receiver);

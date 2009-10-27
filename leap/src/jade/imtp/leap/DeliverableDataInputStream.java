@@ -531,11 +531,16 @@ class DeliverableDataInputStream extends DataInputStream {
 	}
 
 	private ServiceDescriptor deserializeServiceDescriptor() throws LEAPSerializationException {
+		String name = null;
+		String className = null;
 		try {
-			String name = readUTF();
-			String   className = readUTF();
+			name = readUTF();
+			className = readUTF();
 			Service svc = (Service) Class.forName(className).newInstance();
 			return new ServiceDescriptor(name, svc);
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new LEAPSerializationException("Cannot deserialize ServiceDescriptor: class "+className+" for service "+name+" not found");
 		}
 		catch (Throwable t) {
 			throw new LEAPSerializationException("Error deserializing ServiceDescriptor");
@@ -543,11 +548,15 @@ class DeliverableDataInputStream extends DataInputStream {
 	}
 
 	private SliceProxy deserializeSliceProxy() throws LEAPSerializationException {
+		String className = null;
 		try {
-			String   className = readUTF();
+			className = readUTF();
 			SliceProxy proxy = (SliceProxy) Class.forName(className).newInstance();
 			proxy.setNode(readNode());
 			return proxy;
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new LEAPSerializationException("Cannot deserialize SliceProxy: class "+className+" not found");
 		}
 		catch (Throwable t) {
 			throw new LEAPSerializationException("Error deserializing SliceProxy");
