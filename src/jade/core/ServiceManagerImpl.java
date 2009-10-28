@@ -148,21 +148,23 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		localNodeDescriptor = desc;
 		localNode = desc.getNode();
 		try {
-			// Install all services locally
+			// Install all services locally and prepare the list of services to notify to the PlatformManager
 			Vector ss = new Vector(services != null ? services.length : 0);
 			if (services != null) {
 				for (int i = 0; i < services.length; ++i) {
+					ServiceDescriptor sd = services[i];
 					try {
-						installServiceLocally(services[i]);
-						ss.addElement(services[i]);
+						installServiceLocally(sd);
+						if (!isLocal(sd.getService())) {
+							ss.addElement(sd);
+						}
 					}
 					catch (Exception e) {
 						if (services[i].isMandatory()) {
 							throw e;
 						}
 						else {
-					  		myLogger.log(Logger.WARNING,"Exception installing service " + services[i].getService() + ". " + e);
-					  		e.printStackTrace();
+					  		myLogger.log(Logger.WARNING, "Exception installing service " + sd.getName(), e);
 						}
 					}
 				}
@@ -221,14 +223,16 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 		try {
 			// Install the service locally
 			installServiceLocally(desc);
-			// Notify the platform manager (add a slice for this service on this node)
-			try {
-				myPlatformManager.addSlice(desc, localNodeDescriptor, false);
-			} catch (IMTPException imtpe) {
-				if (reconnect()) {
+			if (!isLocal(desc.getService())) {
+				// Notify the platform manager (add a slice for this service on this node)
+				try {
 					myPlatformManager.addSlice(desc, localNodeDescriptor, false);
-				} else {
-					throw imtpe;
+				} catch (IMTPException imtpe) {
+					if (reconnect()) {
+						myPlatformManager.addSlice(desc, localNodeDescriptor, false);
+					} else {
+						throw imtpe;
+					}
 				}
 			}
 		} catch (IMTPException imtpe2) {
@@ -237,6 +241,10 @@ public class ServiceManagerImpl implements ServiceManager, ServiceFinder {
 			// Rethrow the exception
 			throw imtpe2;
 		}
+	}
+	
+	private boolean isLocal(Service svc) {
+		return (svc instanceof BaseService && ((BaseService) svc).isLocal());
 	}
 
 	public void deactivateService(String name) throws IMTPException, ServiceException {

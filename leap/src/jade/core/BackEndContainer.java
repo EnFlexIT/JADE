@@ -193,72 +193,38 @@ public class BackEndContainer extends AgentContainerImpl implements BackEnd {
 	protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 		// Initialize all services (without activating them)
 		List services = new ArrayList();
+		initMandatoryServices(services);
+		
+		List l = myProfile.getSpecifiers(Profile.SERVICES);
+		myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
+		initAdditionalServices(l.iterator(), services);
+			
+		// Register with the platform
+		ServiceDescriptor[] descriptors = new ServiceDescriptor[services.size()];
+		for (int i = 0; i < descriptors.length; ++i) {
+			descriptors[i] = (ServiceDescriptor) services.get(i);
+		}
+		if (theBEManager != null) {
+			myNodeDescriptor.setParentNode(theBEManager.getNode());
+		}
+		// Actually join the platform (this call can modify the name of this container)
+		getServiceManager().addNode(myNodeDescriptor, descriptors);
+		if (theBEManager != null) {
+			theBEManager.register(myNodeDescriptor);
+		}
+		
+		// Once we are connected, boot all services
+		bootAllServices(services);
+	}
+	
+	void initMandatoryServices(List services) throws ServiceException {
 		ServiceDescriptor dsc = startService("jade.core.management.BEAgentManagementService", false);
 		dsc.setMandatory(true);
 		services.add(dsc);
 		dsc = startService("jade.core.messaging.MessagingService", false);
 		dsc.setMandatory(true);
 		services.add(dsc);
-		
-		List l = myProfile.getSpecifiers(Profile.SERVICES);
-		myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
-		Iterator serviceSpecifiers = l.iterator();
-		while(serviceSpecifiers.hasNext()) {
-			Specifier s = (Specifier) serviceSpecifiers.next();
-			String serviceClass = s.getClassName();
-			boolean isMandatory = false;
-			if ( s.getArgs() != null ) {
-				isMandatory = CaseInsensitiveString.equalsIgnoreCase( (String) s.getArgs()[0], "true" );
-			}
-			try {
-				dsc = startService(serviceClass, false);
-				dsc.setMandatory(isMandatory);
-				services.add(dsc);
-			} 
-			catch (ServiceException se) {
-				if (isMandatory) {
-					throw se;
-				}
-				else {
-					myLogger.log(Logger.WARNING,"Exception initializing service " + serviceClass + " : " + se.toString());
-					se.printStackTrace();
-				}
-			}
-		}
-		
-		// Register with the platform
-		ServiceDescriptor[] descriptors = new ServiceDescriptor[services.size()];
-		for (int i = 0; i < descriptors.length; ++i) {
-			descriptors[i] = (ServiceDescriptor) services.get(i);
-		}
-		// Actually join the platform (this call can modify the name of this container)
-		if (theBEManager != null) {
-			myNodeDescriptor.setParentNode(theBEManager.getNode());
-		}
-		getServiceManager().addNode(myNodeDescriptor, descriptors);
-		if (theBEManager != null) {
-			theBEManager.register(myNodeDescriptor);
-		}
-		
-		// Boot all services
-		for (int i = 0; i < descriptors.length; ++i) {
-			
-			ServiceDescriptor currentServDesc = descriptors[i];
-			try {
-				currentServDesc.getService().boot(myProfile);
-			} 
-			catch(Throwable t) {
-				if ( currentServDesc.isMandatory() ) {
-					throw new ServiceException("An error occurred during service booting", t);
-				}
-				else {
-					myLogger.log(Logger.WARNING,"Exception booting service " + currentServDesc.getName() + " : " + t.toString());
-					t.printStackTrace();
-				}
-			}
-		}
 	}
-	
 	
 	/////////////////////////////////////
 	// BackEnd interface implementation

@@ -374,18 +374,17 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 	protected void startNode() throws IMTPException, ProfileException, ServiceException, JADESecurityException, NotFoundException {
 		// Initialize all services (without activating them)
 		List services = new ArrayList();
-		List globalServices = new ArrayList();
 		
-		initMandatoryServices(services, globalServices);
+		initMandatoryServices(services);
 
 		List l = myProfile.getSpecifiers(Profile.SERVICES);
 		myProfile.setSpecifiers(Profile.SERVICES, l); // Avoid parsing services twice
-		initAdditionalServices(l.iterator(), services, globalServices);
+		initAdditionalServices(l.iterator(), services);
 
 		// Register with the platform (pass only global services to the Main)
-		ServiceDescriptor[] descriptors = new ServiceDescriptor[globalServices.size()];
+		ServiceDescriptor[] descriptors = new ServiceDescriptor[services.size()];
 		for (int i = 0; i < descriptors.length; ++i) {
-			descriptors[i] = (ServiceDescriptor) globalServices.get(i);
+			descriptors[i] = (ServiceDescriptor) services.get(i);
 		}
 		// This call performs the real connection to the platform and can modify the 
 		// name of this container
@@ -412,11 +411,10 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		//#MIDP_EXCLUDE_END
 	}
 
-	private void initMandatoryServices(List services, List globalServices) throws ServiceException {
+	void initMandatoryServices(List services) throws ServiceException {
 		ServiceDescriptor dsc = startService("jade.core.management.AgentManagementService", false);
 		dsc.setMandatory(true);
 		services.add(dsc);
-		globalServices.add(dsc);
 		//#MIDP_EXCLUDE_BEGIN
 		dsc = startService("jade.core.messaging.MessagingService", false);
 		//#MIDP_EXCLUDE_END
@@ -425,10 +423,9 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 		 #MIDP_INCLUDE_END*/
 		dsc.setMandatory(true);
 		services.add(dsc);
-		globalServices.add(dsc);
 	}
 	
-	private void initAdditionalServices(Iterator serviceSpecifiers, List services, List globalServices) throws ServiceException {
+	void initAdditionalServices(Iterator serviceSpecifiers, List services) throws ServiceException {
 		while(serviceSpecifiers.hasNext()) {
 			Specifier s = (Specifier) serviceSpecifiers.next();
 			String serviceClass = s.getClassName();
@@ -440,24 +437,19 @@ class AgentContainerImpl implements AgentContainer, AgentToolkit {
 				ServiceDescriptor dsc = startService(serviceClass, false);
 				dsc.setMandatory(isMandatory);
 				services.add(dsc);
-				Service svc = dsc.getService();
-				if (svc instanceof BaseService && !((BaseService) svc).isLocal()) {
-					globalServices.add(dsc);
-				}
 			} 
 			catch (ServiceException se) {
 				if (isMandatory) {
 					throw se;
 				}
 				else {
-					myLogger.log(Logger.WARNING,"Exception initializing service " + serviceClass + " : " + se.toString());
-					se.printStackTrace();
+					myLogger.log(Logger.WARNING, "Exception initializing service " + serviceClass , se);
 				}
 			}
 		}
 	}
 
-	private void bootAllServices(List services) throws ServiceException {
+	void bootAllServices(List services) throws ServiceException {
 		Iterator it = services.iterator();
 		while (it.hasNext()) {
 			ServiceDescriptor dsc = (ServiceDescriptor) it.next();
