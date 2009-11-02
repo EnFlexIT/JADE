@@ -1,5 +1,7 @@
 package jade.wrapper.gateway;
 
+//#J2ME_EXCLUDE_FILE
+
 import jade.core.AID;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -63,7 +65,7 @@ public class DynamicJadeGateway {
 	 **/
 	public final void execute(Object command, long timeout) throws StaleProxyException,ControllerException,InterruptedException {
 		Event e = null;
-		synchronized (JadeGateway.class) {
+		synchronized (this) {
 			checkJADE();
 			// incapsulate the command into an Event
 			e = new Event(-1, command);
