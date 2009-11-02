@@ -40,8 +40,11 @@ import jade.util.leap.Iterator;
 import jade.util.leap.Properties;
 import jade.util.leap.EmptyIterator;
 
+/*#MIDP_INCLUDE_BEGIN
 import jade.util.leap.EnumIterator;
 import java.util.Vector;
+#MIDP_INCLUDE_END*/
+
 
 import jade.core.AID;
 //#CUSTOM_EXCLUDE_BEGIN
@@ -177,6 +180,18 @@ public class ACLMessage implements Serializable {
 	 * User defined parameter key specifying that the JADE tracing mechanism should be activated for this message.
 	 */
 	public static final String TRACE = "JADE-trace";
+
+	/**
+	 * User defined parameter key specifying that this message does not need to be cloned by the message delivery service.
+	 * This should be used ONLY when the message object will not be modified after being sent
+	 */
+	public static final String NO_CLONE = "JADE-no-clone";
+
+	/**
+	 * User defined parameter key specifying that this message must be delivered synchronously. It should 
+	 * be noticed that when using synchronous delivery message order is not guaranteed.
+	 */
+	public static final String SYNCH_DELIVERY = "JADE-synch-delivery";
 
 	/**
 	 * AMS failure reasons 
@@ -440,7 +455,7 @@ public class ACLMessage implements Serializable {
 	 * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
 	 */
 	public void setContent(String content) {
-		byteSequenceContent = null; //make to null the other variable
+		byteSequenceContent = null; 
 		if (content != null) {
 			this.content = new StringBuffer(content);
 		}
@@ -459,14 +474,14 @@ public class ACLMessage implements Serializable {
 	 * getByteSequenceContent(setByteSequenceContent(getContent().getBytes())) 
 	 * is equal to getByteSequenceContent()
 	 * </code>
-	 * @param content The new value for the slot.
+	 * @param byteSequenceContent The new value for the slot.
 	 * @see jade.lang.acl.ACLMessage#setContent(String s)
 	 * @see jade.lang.acl.ACLMessage#getByteSequenceContent()
 	 * @see jade.lang.acl.ACLMessage#setContentObject(Serializable s)
 	 */
-	public void setByteSequenceContent(byte[] content) {
-		this.content = null; //make to null the other variable
-		byteSequenceContent = content;
+	public void setByteSequenceContent(byte[] byteSequenceContent) {
+		content = null; 
+		this.byteSequenceContent = byteSequenceContent;
 	}
 	
 	
@@ -700,7 +715,7 @@ public class ACLMessage implements Serializable {
 	 * This method allows to check if the content of this ACLMessage
 	 * is a byteSequence or a String
 	 * @return true if it is a byteSequence, false if it is a String
-	 **/
+	 */
 	public boolean hasByteSequenceContent(){
 		return (byteSequenceContent != null);
 	}
@@ -718,7 +733,6 @@ public class ACLMessage implements Serializable {
 	 * @see jade.lang.acl.ACLMessage#setContent(String)
 	 * @see jade.lang.acl.ACLMessage#getByteSequenceContent()
 	 * @see jade.lang.acl.ACLMessage#getContentObject()
-	 * @see java.io.ObjectInputStream
 	 */
 	public String getContent() {
 		if(content != null)
@@ -738,10 +752,9 @@ public class ACLMessage implements Serializable {
 	 * is equal to getByteSequenceContent()
 	 * </code>
 	 * @return The value of <code>:content</code> slot.
-	 * @see jade.lang.acl.ACLMessage#setContent(String)
 	 * @see jade.lang.acl.ACLMessage#getContent()
+	 * @see jade.lang.acl.ACLMessage#setByteSequenceContent(byte[])
 	 * @see jade.lang.acl.ACLMessage#getContentObject()
-	 * @see java.io.ObjectInputStream
 	 */
 	public byte[] getByteSequenceContent() {
 		if (content != null) 
@@ -876,11 +889,18 @@ public class ACLMessage implements Serializable {
 	}
 	
 	/**
-	 * get a clone of the data structure with all the user defined parameters
+	 * Return all user defined parameters of this ACLMessage in form of a Properties object
 	 **/
 	public Properties getAllUserDefinedParameters() {
 		userDefProps = (userDefProps == null ? new Properties() : userDefProps);
 		return userDefProps; 
+	}
+	
+	/**
+	 * Replace all user defined parameters of this ACLMessage with the specified Properties object.
+	 **/
+	public void setAllUserDefinedParameters(Properties userDefProps) {
+		this.userDefProps = userDefProps; 
 	}
 	
 	/**
@@ -890,10 +910,20 @@ public class ACLMessage implements Serializable {
 	 @return true if the property has been found and removed, false otherwise
 	 */
 	public boolean removeUserDefinedParameter(String key) {
+		return (clearUserDefinedParameter(key) != null);
+	}
+	
+	/**
+	 * Removes the key and its corresponding value from the list of user
+	 * defined parameters in this ACLMessage.
+	 * @param key the key that needs to be removed
+	 * @return the value to which the key had been mapped or null if the key was not present
+	 */
+	public Object clearUserDefinedParameter(String key) {
 		if (userDefProps == null)
-			return false;
+			return null;
 		else
-			return (userDefProps.remove(key) != null);
+			return userDefProps.remove(key);
 	}
 	
 //	#CUSTOM_EXCLUDE_BEGIN

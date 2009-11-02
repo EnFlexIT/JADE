@@ -533,9 +533,16 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 			if (msg.getTraceID() != null) {
 				myLogger.log(Logger.INFO, "MessagingService source sink handling message "+MessageManager.stringify(msg)+" for receiver "+dest.getName()+". TraceID = "+msg.getTraceID());
 			}
-			myMessageManager.deliver(msg, dest, MessagingService.this);
-			if (msg.getTraceID() != null) {
-				myLogger.log(Logger.INFO, msg.getTraceID()+" - Message enqueued to MessageManager.");
+			if (needSynchDelivery(msg)) {
+				// Synchronous delivery: skip the MessageManager 
+				deliverNow(msg, dest);
+			}
+			else {
+				// Normal (asynchronous) delivery
+				myMessageManager.deliver(msg, dest, MessagingService.this);
+				if (msg.getTraceID() != null) {
+					myLogger.log(Logger.INFO, msg.getTraceID()+" - Message enqueued to MessageManager.");
+				}
 			}
 		}
 		
@@ -1549,13 +1556,21 @@ public class MessagingService extends BaseService implements MessageManager.Chan
 	}
 	
 	
+	private final boolean needSynchDelivery(GenericMessage gMsg) {
+		ACLMessage acl = gMsg.getACLMessage();
+		if (acl != null) {
+			return "true".equals(acl.clearUserDefinedParameter(ACLMessage.SYNCH_DELIVERY));
+		}
+		return false;
+	}
+	
 	// Only for debugging:
 	private volatile int traceCnt = 0;
 	
 	private void checkTracing(GenericMessage msg) {
 		ACLMessage acl = msg.getACLMessage();
 		if (acl != null) {
-			if (myLogger.isLoggable(Logger.FINE) || "true".equals(acl.getAllUserDefinedParameters().get(ACLMessage.TRACE))) {
+			if (myLogger.isLoggable(Logger.FINE) || "true".equals(acl.getUserDefinedParameter(ACLMessage.TRACE))) {
 				msg.setTraceID(ACLMessage.getPerformative(acl.getPerformative())+"-"+msg.getSender().getLocalName()+"-"+traceCnt);
 				traceCnt++;
 			}

@@ -1839,7 +1839,8 @@ public class Agent implements Runnable, Serializable
 		catch (Exception e) {
 			msg.setSender(myAID);
 		}
-		myToolkit.handleSend(msg, myAID, true);
+		boolean cloneMessage = !("true".equals(msg.clearUserDefinedParameter(ACLMessage.NO_CLONE)));
+		myToolkit.handleSend(msg, myAID, cloneMessage);
 	}
 
 	/**
