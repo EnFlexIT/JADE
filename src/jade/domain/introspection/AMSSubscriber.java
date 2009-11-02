@@ -28,11 +28,9 @@ package jade.domain.introspection;
 import java.util.Map;
 import java.util.TreeMap;
 
-import jade.core.Agent;
 import jade.core.AID;
 import jade.core.behaviours.*;
 
-import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 
 import jade.lang.acl.ACLMessage;
@@ -49,7 +47,7 @@ import jade.util.leap.Serializable;
  @author Giovanni Caire - TILAB
  @author Giovanni Rimassa - Universita' di Parma
  */
-public abstract class AMSSubscriber extends CyclicBehaviour {
+public abstract class AMSSubscriber extends SimpleBehaviour {
 	// FIXME: Change the values of these constants
 	public static final String AMS_SUBSCRIPTION = "tool-subscription";
 	public static final String AMS_CANCELLATION = "tool-cancellation";
@@ -60,6 +58,7 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
 	private ACLMessage AMSCancellation = new ACLMessage(ACLMessage.CANCEL);
 	
 	private MessageTemplate listenTemplate;
+	private boolean active = true;
 	
 	// Ignore case for event names
 	//#DOTNET_EXCLUDE_BEGIN
@@ -152,29 +151,41 @@ public abstract class AMSSubscriber extends CyclicBehaviour {
 	protected abstract void installHandlers(Map handlersTable);
 	
 	public final void action() {
-		ACLMessage current = myAgent.receive(listenTemplate);
-		if(current != null) {
-			// Handle 'inform' messages from the AMS
-			try {
-				Occurred o = (Occurred) myAgent.getContentManager().extractContent(current);
-				EventRecord er = (EventRecord)o.getWhat();
-				Event ev = er.getWhat();
-				String eventName = ev.getName();
-				EventHandler h = (EventHandler)handlers.get(eventName);
-				if(h != null) {
-					h.handle(ev);
+		if (active) {
+			ACLMessage current = myAgent.receive(listenTemplate);
+			if(current != null) {
+				// Handle 'inform' messages from the AMS
+				try {
+					Occurred o = (Occurred) myAgent.getContentManager().extractContent(current);
+					EventRecord er = (EventRecord)o.getWhat();
+					Event ev = er.getWhat();
+					String eventName = ev.getName();
+					EventHandler h = (EventHandler)handlers.get(eventName);
+					if(h != null) {
+						h.handle(ev);
+					}
+				}
+				catch(ClassCastException cce) {
+					cce.printStackTrace();
+				}
+				catch(Exception fe) {
+					fe.printStackTrace();
 				}
 			}
-			catch(ClassCastException cce) {
-				cce.printStackTrace();
-			}
-			catch(Exception fe) {
-				fe.printStackTrace();
+			else {
+				block();
 			}
 		}
-		else {
-			block();
-		}
+	}
+	
+	public final boolean done() {
+		return !active;
+	}
+	
+	public void cancel() {
+		myAgent.send(getCancel());
+		active = false;
+		restart();
 	}
 	
 	/**
