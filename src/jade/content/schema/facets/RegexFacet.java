@@ -24,6 +24,8 @@
  */
 package jade.content.schema.facets;
 
+//#MIDP_EXCLUDE_FILE
+
 import jade.content.abs.AbsObject;
 import jade.content.abs.AbsPrimitive;
 import jade.content.onto.Ontology;
