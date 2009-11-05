@@ -23,9 +23,18 @@ import java.util.logging.Logger;
  */
 public class NIOHTTPHelper extends HTTPHelper implements BufferTransformer {
 
+    private boolean needToRead = false;
+
     public static ByteBuffer readByteBufferFromHttp(InputStream is) throws IOException {
         HTTPRequest request = new HTTPRequest();
         request.readFrom(is);
+        if (is.markSupported()) {
+            is.mark(2);
+            if (is.read() != -1) {
+                is.reset();
+                throw new IOException("bytes left in stream after constructing HTTPRequest");
+            }
+        }
         if (request.getMethod().equals("GET")) {
             String recipientID = request.getField(RECIPIENT_ID_FIELD);
             JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, null);
@@ -71,6 +80,7 @@ public class NIOHTTPHelper extends HTTPHelper implements BufferTransformer {
     }
 
     public ByteBuffer postprocessBufferRead(ByteBuffer data) throws IOException {
+        needToRead = false;
         data.mark();
         try {
             return constructJICPPacket(data);
@@ -78,6 +88,7 @@ public class NIOHTTPHelper extends HTTPHelper implements BufferTransformer {
             if (log.isLoggable(Level.FINE)) {
                 log.log(Level.FINE, "not enough data available, wait for more", ex);
             }
+            needToRead = true;
             // incomplete, wait for more data
             data.reset();
         }
@@ -87,6 +98,11 @@ public class NIOHTTPHelper extends HTTPHelper implements BufferTransformer {
     public ByteBuffer preprocessBufferToWrite(ByteBuffer dataToSend) throws IOException {
         return wrapInHttpResponse(dataToSend);
     }
+
+    public boolean needSocketData() {
+        return needToRead;
+    }
+
     private static class MyOut extends ByteArrayOutputStream {
 
         private ByteBuffer buffer;

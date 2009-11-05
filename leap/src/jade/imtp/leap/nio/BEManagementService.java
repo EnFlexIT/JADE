@@ -655,21 +655,7 @@ public class BEManagementService extends BaseService {
             // STEP 2) Send back the response if any
             if (reply != null) {
                 try {
-                    try {
-                        connection.writePacket(reply);
-                        try {
-                            // give a chance to handle successfull write
-                            connection.handleWriteSuccess();
-                        } catch (Exception e) {
-                        }
-                    } catch (IOException iOException) {
-                        try {
-                            // give a chance to handle failed write
-                            connection.handleWriteError();
-                        } catch (Exception e) {
-                        }
-                        throw iOException;
-                    }
+                    connection.writePacket(reply);
                 } catch (IOException ioe) {
                     myLogger.log(Logger.WARNING, myLogPrefix + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]", ioe);
                     closeConnection = true;

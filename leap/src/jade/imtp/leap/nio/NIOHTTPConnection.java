@@ -22,28 +22,25 @@ public class NIOHTTPConnection extends NIOJICPConnection {
     @Override
     void init(SocketChannel channel) throws ICPException {
         super.init(channel);
-        addBufferTransformer(new NIOHTTPHelper(this));
+        helper = new NIOHTTPHelper(this);
+        addBufferTransformer(helper);
     }
 
     @Override
     public void notifyMoreDataAvailable() {
-        // do nothing, connection will be closed, this causes problems
+        if (helper.needSocketData()) {
+            super.notifyMoreDataAvailable();
+        }
+    }
+
+    /**
+     * a hook to allow subclasses to trigger extra read (needed in ssl handshaking), not a very nice solution....
+     */
+    protected void doNotifyMoreDataAvailable() {
+        super.notifyMoreDataAvailable();
     }
 
   
     private static Logger log = Logger.getLogger(NIOHTTPConnection.class.getName());
-
-
-    public void handleWriteSuccess() {
-//        try {
-//            if (log.isLoggable(Level.FINE)) {
-//                log.fine("closing http connection");
-//            }
-//            close();
-//        } catch (IOException ex) {
-//            log.log(Level.SEVERE, null, ex);
-//        }
-    }
-
 
 }

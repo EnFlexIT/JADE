@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 /**
 @author Giovanni Caire - TILAB
  */
-public class NIOJICPConnection extends Connection implements ReadWriteListener, MoreDataNotifier {
+public class NIOJICPConnection extends Connection implements MoreDataNotifier {
     // type+info+session+recipient-length+recipient(255)+payload-length(4)
 
     public static final int MAX_HEADER_SIZE = 263;
@@ -254,6 +254,9 @@ public class NIOJICPConnection extends Connection implements ReadWriteListener, 
                 BufferTransformer btf = it.previous();
                 data = btf.postprocessBufferRead(data);
                 if (!data.hasRemaining()&&it.hasPrevious()) {
+                    if (btf.needSocketData()) {
+                        notifyMoreDataAvailable();
+                    }
                     log.warning("no data available for next transformation after " + btf.getClass().getName());
                     break;
                 }
@@ -316,13 +319,6 @@ public class NIOJICPConnection extends Connection implements ReadWriteListener, 
      */
     void init(SocketChannel channel) throws ICPException {
         this.myChannel = (SocketChannel) channel;
-    }
-
-    public void handleWriteSuccess() {
-    }
-
-    public void handleWriteError() {
-
     }
 
     /**

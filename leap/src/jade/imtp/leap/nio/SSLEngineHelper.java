@@ -37,6 +37,7 @@ public final class SSLEngineHelper implements BufferTransformer {
     private NIOJICPConnection connection = null;
     private boolean useUnwrapped = false;
     private static Logger log = Logger.getLogger(SSLEngineHelper.class.getName());
+    private boolean needToRead = false;
 
     /**
      * Creates and initializes ByteBuffers and SSLEngine necessary for ssl/nio.
@@ -254,6 +255,7 @@ public final class SSLEngineHelper implements BufferTransformer {
                     }
                     // prepare buffers for use in recursion
                     clear();
+                    needToRead = true;
                     return 0;
                 } else if (handshakeStatus.equals(HandshakeStatus.NEED_WRAP)) {
                     if (log.isLoggable(Level.FINE)) {
@@ -379,6 +381,7 @@ public final class SSLEngineHelper implements BufferTransformer {
     }
 
     public ByteBuffer postprocessBufferRead(ByteBuffer socketData) throws PacketIncompleteException, IOException {
+        needToRead = false;
         int n = decrypt(socketData);
         if (n > 0) {
             unwrapData.flip();
@@ -386,5 +389,9 @@ public final class SSLEngineHelper implements BufferTransformer {
         } else {
             return EMPTY_BUFFER;
         }
+    }
+
+    public boolean needSocketData() {
+        return needToRead;
     }
 }
