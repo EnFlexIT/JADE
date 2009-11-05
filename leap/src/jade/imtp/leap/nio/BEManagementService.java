@@ -436,10 +436,10 @@ public class BEManagementService extends BaseService {
             return loopers[index];
         }
 
-        final Connection createConnection(SelectionKey key) throws ICPException {
+        final NIOJICPConnection createConnection(SelectionKey key) throws ICPException {
             Socket s = null;
             NIOJICPConnection conn = (NIOJICPConnection) myConnectionFactory.createConnection(s);
-            conn.init(key);
+            conn.init((SocketChannel) key.channel());
             return conn;
         }
 
@@ -449,6 +449,9 @@ public class BEManagementService extends BaseService {
         server Thread pool.
          */
         public void servePacket(KeyManager mgr, JICPPacket pkt) {
+            if (pkt == null) {
+                return;
+            }
             long start = System.currentTimeMillis();
 
             SelectionKey key = mgr.getKey();
@@ -457,7 +460,7 @@ public class BEManagementService extends BaseService {
             InetAddress address = s.getInetAddress();
             int port = s.getPort();
 
-            Connection connection = mgr.getConnection();
+            NIOJICPConnection connection = (NIOJICPConnection) mgr.getConnection();
             NIOMediator mediator = mgr.getMediator();
             JICPPacket reply = null;
             // If there is no mediator associated to this key prepare to close
@@ -467,6 +470,7 @@ public class BEManagementService extends BaseService {
             // STEP 1) Serve the received packet
             int type = pkt.getType();
             String recipientID = pkt.getRecipientID();
+            System.out.println(recipientID + ": type " + type);
             try {
                 switch (type) {
                     case JICPProtocol.GET_ADDRESS_TYPE: {
@@ -545,6 +549,7 @@ public class BEManagementService extends BaseService {
 
                             // Create and start the new mediator
                             mediator = startMediator(id, p);
+                            configureBlocking(pkt, key);
                             closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
                             mediators.put(mediator.getID(), mediator);
 
@@ -596,6 +601,7 @@ public class BEManagementService extends BaseService {
                             mediator = getFromID(recipientID);
 
                             if (mediator != null && mediator.getID() != null) {
+                                configureBlocking(pkt, key);
                                 closeConnection = !mediator.handleIncomingConnection(connection, pkt, address, port);
                                 if (!closeConnection) {
                                     // The mediator wants to keep this connection open --> associate
@@ -649,9 +655,23 @@ public class BEManagementService extends BaseService {
             // STEP 2) Send back the response if any
             if (reply != null) {
                 try {
-                    connection.writePacket(reply);
+                    try {
+                        connection.writePacket(reply);
+                        try {
+                            // give a chance to handle successfull write
+                            connection.handleWriteSuccess();
+                        } catch (Exception e) {
+                        }
+                    } catch (IOException iOException) {
+                        try {
+                            // give a chance to handle failed write
+                            connection.handleWriteError();
+                        } catch (Exception e) {
+                        }
+                        throw iOException;
+                    }
                 } catch (IOException ioe) {
-                    myLogger.log(Logger.WARNING, myLogPrefix + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]");
+                    myLogger.log(Logger.WARNING, myLogPrefix + "Communication error writing return packet to " + address + ":" + port + " [" + ioe + "]", ioe);
                     closeConnection = true;
                 }
             } else {
@@ -678,6 +698,18 @@ public class BEManagementService extends BaseService {
             long end = System.currentTimeMillis();
             if ((end - start) > 100) {
                 System.out.println("Serve time = " + (end - start));
+            }
+        }
+
+        private void configureBlocking(JICPPacket pkt, SelectionKey key) {
+            if (pkt.getData().length==1&&pkt.getData()[0]==1) {
+                try {
+                    // TODO: better to use non blocking, but refactoring needed
+                    key.cancel();
+                    key.channel().configureBlocking(true);
+                } catch (Exception e) {
+                    myLogger.log(Level.SEVERE, "error configuring blocking", e);
+                }
             }
         }
 
@@ -843,22 +875,24 @@ public class BEManagementService extends BaseService {
         }
     } // END of inner class IOEventServer
 
+
     /**
     Inner class KeyManager
     Keep a SelectionKey together with the information associated to it
     such as the connection wrapping the key channel and the mediator
     using that connection (if any).
      */
-    private class KeyManager {
+    private class KeyManager implements MoreDataHandler {
 
         private SelectionKey key;
-        private Connection connection;
+        private NIOJICPConnection connection;
         private NIOMediator mediator;
         private IOEventServer server;
 
-        public KeyManager(SelectionKey k, Connection c, IOEventServer s) {
+        public KeyManager(SelectionKey k, NIOJICPConnection c, IOEventServer s) {
             key = k;
             connection = c;
+            c.setMoreDataHandler(this);
             server = s;
         }
 
@@ -889,12 +923,23 @@ public class BEManagementService extends BaseService {
             } catch (PacketIncompleteException pie) {
                 // The data ready to be read is not enough to complete
                 // a packet. Just do nothing and wait until more data is ready
+                if (myLogger.isLoggable(Level.FINE)) {
+                    myLogger.fine("waiting for more data..");
+                }
             } catch (Exception e) {
                 server.serveException(this, e);
             }
         }
-    } // END of inner class KeyManager
 
+        public void handleExtraData() {
+            new Thread(new Runnable() {
+
+                public void run() {
+                    read();
+                }
+            }).start();
+        }
+    } // END of inner class KeyManager
     /**
     Inner class LoopManager
      */

@@ -41,6 +41,8 @@ import jade.mtp.TransportAddress;
 import jade.imtp.leap.*;
 import jade.core.CaseInsensitiveString;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Class declaration
@@ -52,7 +54,8 @@ class JICPClient {
 	
 	private TransportProtocol protocol;
 	private ConnectionFactory connFactory;
-	private ConnectionPool pool; 
+	private ConnectionPool pool;
+        private static Logger log = Logger.getLogger(JICPClient.class.getName());
 	
 	/**
 	 * Constructor declaration
@@ -112,7 +115,8 @@ class JICPClient {
 			} 
 			catch (EOFException eof) {
 				if (!cw.isReused()) {
-					throw new ICPException("EOF reached");
+                                    log.log(Level.SEVERE, "EOF reached", eof);
+                                    throw new ICPException("EOF reached");
 				}
 			} 
 			catch (IOException ioe) {

@@ -27,7 +27,6 @@ import jade.core.FEConnectionManager;
 import jade.core.FrontEnd;
 import jade.core.BackEnd;
 import jade.core.IMTPException;
-import jade.core.MicroRuntime;
 import jade.core.TimerDispatcher;
 import jade.core.Timer;
 import jade.core.TimerListener;
@@ -38,7 +37,7 @@ import jade.imtp.leap.FrontEndSkel;
 import jade.imtp.leap.Dispatcher;
 import jade.imtp.leap.ICPException;
 import jade.imtp.leap.ConnectionListener;
-import jade.imtp.leap.JICP.Connection; // To avoid ambiguity with microedition.io
+import jade.imtp.leap.JICP.Connection;
 import jade.imtp.leap.JICP.*;
 
 import jade.util.leap.Properties;
@@ -48,7 +47,6 @@ import java.util.Vector;
 import java.io.*;
 
 //#MIDP_EXCLUDE_BEGIN
-import java.net.*;
 //#MIDP_EXCLUDE_END
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.io.*;
@@ -252,7 +250,8 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  }
 
 	  try {
-	      myLogger.log(Logger.INFO, "Creating BackEnd on http://"+mediatorTA.getHost()+":"+mediatorTA.getPort());
+              String proto = ((HTTPClientConnection)getConnection(mediatorTA)).getProtocol();
+	      myLogger.log(Logger.INFO, "Creating BackEnd on "+proto+mediatorTA.getHost()+":"+mediatorTA.getPort());
 	      pkt = deliver(pkt, null);
 
 		    String replyMsg = new String(pkt.getData());
@@ -343,7 +342,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
   private class InputManager extends Thread {
 	  
   	private boolean active = true;
-	  private Connection myConnection = null;
+	private Connection myConnection = null;
   	private int myId;
   	
 	  public void run() {
@@ -364,7 +363,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  	
 	  	while (active) {
 	  		// Open the connection for incoming commands
-				myConnection = new HTTPClientConnection(mediatorTA);
+				myConnection = getConnection(mediatorTA);
 				// Prepare a dummy response
 				JICPPacket rsp = new JICPPacket(JICPProtocol.RESPONSE_TYPE, JICPProtocol.DEFAULT_INFO, null);
 	  		try {
@@ -396,11 +395,11 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  				}
 	  			}
 	  		}
-	  		catch (IOException ioe) {
-					if (active) {
-	  				log("IOException on input connection. "+ioe, 2);
+	  		catch (Exception e) {
+				if (active) {
+	  				log("Exception on input connection. "+e, 2);
 						myDisconnectionManager.setUnreachable(false);
-					}
+				}
 	  		}
 	  	}
 	    log("IM-"+myId+" terminated", 1);
@@ -408,14 +407,17 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
 	  
 	  private void kill() {
 	  	active = false;
-	  	/*try {
+	  	try {
 	  		myConnection.close();
 	  	}
 	  	catch (Exception e) {}
-	  	myConnection = null;*/
+	  	myConnection = null;
 	  }
   } // END of inner class InputManager
-	  		
+
+  protected Connection getConnection(TransportAddress ta) {
+      return new HTTPClientConnection(ta);
+  }
 
   /**
      Deliver a packet to the BackEnd TransportAddress and get back 
@@ -429,7 +431,7 @@ public class HTTPFEDispatcher extends Thread implements FEConnectionManager, Dis
     byte type = pkt.getType();
   	
     if (c == null) {
-    	c = new HTTPClientConnection(mediatorTA);
+    	c = getConnection(mediatorTA);
     }
   	int status = 0;
   	try {

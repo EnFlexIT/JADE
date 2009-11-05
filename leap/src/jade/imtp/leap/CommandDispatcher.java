@@ -398,7 +398,7 @@ class CommandDispatcher implements StubHelper, ICP.Listener {
 		catch (UnreachableException ue) {
 			// Direct dispatching failed --> Try through the router
 			if (myLogger.isLoggable(Logger.FINE)) {
-				myLogger.log(Logger.FINE, "Destination unreachable. Dispatch command through router.");
+				myLogger.log(Logger.FINE, "Destination unreachable. Dispatch command through router.", ue);
 			}
 			
 			if (routerTA != null) {

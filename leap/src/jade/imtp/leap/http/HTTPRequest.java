@@ -73,7 +73,7 @@ public class HTTPRequest extends HTTPPacket {
      * Method declaration
      * @see
      */
-    protected void readFrom(InputStream is) throws IOException {
+    public void readFrom(InputStream is) throws IOException {
         super.readFrom(is);
         StringTokenizer st = new StringTokenizer(firstLine, " ");
         method = st.nextToken();

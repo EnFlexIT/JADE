@@ -69,22 +69,10 @@ class HTTPServerConnection extends Connection {
 
     public JICPPacket readPacket() throws IOException {
         if (readAvailable) {
-            // Read an HTTP request from the network
-            HTTPRequest request = new HTTPRequest();
-            is = sc.getInputStream();
-            request.readFrom(is);
+            JICPPacket pkt = HTTPHelper.readPacketFromHttp(sc.getInputStream());
             readAvailable = false;
             writeAvailable = true;
-            if (request.getMethod().equals("GET")) {
-                // This is a CONNECT_MEDIATOR
-                String recipientID = request.getField(HTTPClientConnection.RECIPIENT_ID_FIELD);
-                JICPPacket pkt = new JICPPacket(JICPProtocol.CONNECT_MEDIATOR_TYPE, JICPProtocol.DEFAULT_INFO, recipientID, null);
-                return pkt;
-            } else {
-                // Read the JICPPacket from the HTTP request payload
-                ByteArrayInputStream bis = new ByteArrayInputStream(request.getPayload());
-                return JICPPacket.readFrom(bis);
-            }
+            return pkt;
         } else {
             throw new IOException("Read not available");
         }
@@ -93,22 +81,15 @@ class HTTPServerConnection extends Connection {
     public int writePacket(JICPPacket pkt) throws IOException {
         if (writeAvailable) {
             try {
-                // Transform the JICPPacket into a sequence of bytes
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                int ret = pkt.writeTo(bos);
                 // Create an HTTPResponse and set the serialized JICPPacket as payload
-                HTTPResponse response = new HTTPResponse();
-                response.setCode("200");
-                response.setMessage("OK");
-                response.setHttpType("HTTP/1.1");
-                response.setPayload(bos.toByteArray());
+                HTTPResponse response = HTTPHelper.wrapInHttp(pkt);
                 // Write the HTTPResponse to os and close the connection
                 os = sc.getOutputStream();
                 response.writeTo(os);
                 os.flush();
                 readAvailable = true;
                 writeAvailable = false;
-                return ret;
+                return response.getPayload().length;
             } finally {
                 try {
                     close();

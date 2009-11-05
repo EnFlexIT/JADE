@@ -84,7 +84,7 @@ public class HTTPResponse extends HTTPPacket {
      * Method declaration
      * @see
      */
-    protected void writeTo(OutputStream os) throws IOException {
+    public void writeTo(OutputStream os) throws IOException {
         firstLine = httpType + " " + code + " " + msg;
         super.writeTo(os);
     }

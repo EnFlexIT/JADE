@@ -55,7 +55,6 @@ import javax.microedition.io.*;
  */
 class HTTPClientConnection extends Connection {
 
-    static final String RECIPIENT_ID_FIELD = "recipient-id";
     //#MIDP_EXCLUDE_BEGIN
     private HttpURLConnection hc;
     //#MIDP_EXCLUDE_END
@@ -71,7 +70,7 @@ class HTTPClientConnection extends Connection {
      * Constructor declaration
      */
     public HTTPClientConnection(TransportAddress ta) {
-        url = "http://" + ta.getHost() + ":" + ta.getPort() + "/jade";
+        url = getProtocol() + ta.getHost() + ":" + ta.getPort() + "/jade";
         opened = false;
         //#MIDP_EXCLUDE_BEGIN
         //#PJAVA_EXCLUDE_BEGIN
@@ -105,11 +104,21 @@ class HTTPClientConnection extends Connection {
         //#MIDP_EXCLUDE_END
     }
 
+    protected String getProtocol() {
+        return "http://";
+    }
+
+    //#MIDP_EXCLUDE_BEGIN
+    protected HttpURLConnection open(String url) throws MalformedURLException, IOException {
+        return (HttpURLConnection) (new URL(url)).openConnection();
+    }
+    //#MIDP_EXCLUDE_END
+
     public int writePacket(JICPPacket pkt) throws IOException {
         if (!opened) {
             int ret = 0;
             //#MIDP_EXCLUDE_BEGIN
-            hc = (HttpURLConnection) (new URL(url)).openConnection();
+            hc = open(url);
             hc.setDoOutput(true);
             hc.setRequestMethod("POST");
             hc.connect();
@@ -121,7 +130,7 @@ class HTTPClientConnection extends Connection {
             hc = (HttpConnection) Connector.open(url, Connector.READ_WRITE, false);
             if (pkt.getType() == JICPProtocol.CONNECT_MEDIATOR_TYPE) {
             hc.setRequestMethod(HttpConnection.GET);
-            hc.setRequestProperty(RECIPIENT_ID_FIELD, pkt.getRecipientID());
+            hc.setRequestProperty(HTTPHelper.RECIPIENT_ID_FIELD, pkt.getRecipientID());
             }
             else {
             hc.setRequestMethod(HttpConnection.POST);

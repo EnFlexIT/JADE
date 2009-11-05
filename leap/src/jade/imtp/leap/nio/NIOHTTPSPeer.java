@@ -5,6 +5,7 @@ package jade.imtp.leap.nio;
 import jade.imtp.leap.JICP.Connection;
 import jade.imtp.leap.JICP.ConnectionFactory;
 import jade.imtp.leap.TransportProtocol;
+import jade.imtp.leap.http.HTTPSProtocol;
 import jade.mtp.TransportAddress;
 import java.io.IOException;
 import java.net.Socket;
@@ -30,7 +31,7 @@ public class NIOHTTPSPeer  extends NIOHTTPPeer {
     }
 
     public TransportProtocol getProtocol() {
-        return super.getProtocol();
+        return HTTPSProtocol.getInstance();
     }
 
 }

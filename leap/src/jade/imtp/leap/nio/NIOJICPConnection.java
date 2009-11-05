@@ -9,29 +9,34 @@ import java.io.EOFException;
 import java.io.ByteArrayOutputStream;
 import java.nio.*;
 import java.nio.channels.*;
-import java.net.Socket;
-import java.net.InetAddress;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
 @author Giovanni Caire - TILAB
  */
-public class NIOJICPConnection extends Connection {
+public class NIOJICPConnection extends Connection implements ReadWriteListener, MoreDataNotifier {
     // type+info+session+recipient-length+recipient(255)+payload-length(4)
 
-    private static final int MAX_HEADER_SIZE = 263;
-    private SelectionKey myKey;
+    public static final int MAX_HEADER_SIZE = 263;
     private SocketChannel myChannel;
     private ByteBuffer headerBuf = ByteBuffer.allocateDirect(MAX_HEADER_SIZE);
-    private ByteBuffer payloadBuf;
+    private ByteBuffer payloadBuf = ByteBuffer.allocateDirect(JICPPacket.MAX_SIZE);
+    private ByteBuffer tmpBuffer = ByteBuffer.allocateDirect(JICPPacket.MAX_SIZE);
+    private ByteBuffer socketData = ByteBuffer.allocateDirect(JICPPacket.MAX_SIZE+MAX_HEADER_SIZE);
     private byte type;
     private byte info;
     private byte sessionID;
     private String recipientID;
-    private byte[] payload;
     private boolean idle = true;
     private static final Logger log = Logger.getLogger(NIOJICPConnection.class.getName());
+    private boolean reuseSocketData = false;
+    private boolean useTmp = false;
+    private MoreDataHandler handler;
+    private List<BufferTransformer> transformers = new LinkedList<BufferTransformer>();
 
     public NIOJICPConnection() {
     }
@@ -48,8 +53,12 @@ public class NIOJICPConnection extends Connection {
      */
     public final synchronized JICPPacket readPacket() throws IOException {
         if (idle) {
-            headerBuf.clear();
-            int n = readHeader(headerBuf);
+            read();
+            int n = transformAndCopyAfterRead(headerBuf,socketData);
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(headerBuf, "headerBuf after transform");
+                NIOHelper.logBuffer(socketData, "socketData after transform");
+            }
             if (n > 0) {
                 //System.out.println("Read "+n+" bytes");
                 idle = false;
@@ -83,92 +92,129 @@ public class NIOJICPConnection extends Connection {
                         throw new IOException("Packet size greater than maximum allowed size. " + payloadLength);
                     }
 
-                    payload = new byte[payloadLength];
+                    if (log.isLoggable(Level.FINE)) {
+                        log.fine("limiting payload to: " + payloadLength);
+                    }
 
-                    int payloadRead = headerBuf.remaining();
-                    int payloadUnread = payloadLength - payloadRead;
-                    if (payloadRead > 0) {
-                        // Part of the payload has already been read.
-                        headerBuf.get(payload, 0, payloadRead);
+                    payloadBuf.limit(payloadLength);
+
+                    NIOHelper.copyAsMuchAsFits(payloadBuf, headerBuf);
+
+                    if (payloadBuf.hasRemaining()) {
+                        transformAndCopyAfterRead(payloadBuf,socketData);
                     }
-                    if (payloadUnread > 0) {
-                        payloadBuf = ByteBuffer.wrap(payload);
-                        payloadBuf.position(payloadRead);
-                        n = readPayload(payloadBuf);
-                        if (payloadBuf.remaining() > 0) {
-                            if (n >= 0) {
-                                throw new PacketIncompleteException();
-                            } else {
-                                idle = true;
-                                throw new EOFException("Channel closed");
-                            }
+                    if (payloadBuf.hasRemaining()) {
+                        if (!socketData.hasRemaining()) {
+                            throw new PacketIncompleteException();
                         }
+                    } else {
+                        return buildPacket();
                     }
+                } else {
+                    return buildPacket();
                 }
-                return buildPacket();
-            } else if (n == -1) {
-                throw new EOFException("Channel closed");
             } else {
-                throw new PacketIncompleteException();
+                if (!socketData.hasRemaining()) {
+                    throw new PacketIncompleteException();
+                }
             }
         } else {
             // We are in the middle of reading the payload of a packet
-            int n = readPayload(payloadBuf);
-            if (payloadBuf.remaining() > 0) {
-                if (n >= 0) {
+            read();
+            transformAndCopyAfterRead(payloadBuf,socketData);
+            if (payloadBuf.hasRemaining()) {
+                if (!socketData.hasRemaining()) {
                     throw new PacketIncompleteException();
-                } else {
-                    idle = true;
-                    throw new EOFException("Channel closed");
                 }
+            } else {
+                return buildPacket();
             }
-            return buildPacket();
+        }
+        return null;
+    }
+
+    private void read() throws IOException {
+        clear();
+        int n = readFromChannel(socketData);
+        if (n == -1) {
+            idle = true;
+            throw new EOFException("Channel closed");
+        }
+        if (log.isLoggable(Level.FINE)) {
+            NIOHelper.logBuffer(socketData,"read from channel in socketBuffer: " + n);
+        }
+        socketData.flip();
+    }
+
+    private void clear() throws IOException {
+        if (log.isLoggable(Level.FINE)) {
+            NIOHelper.logBuffer(socketData, "socketData");
+        }
+        if (reuseSocketData) {
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(socketData,"compacting socketData");
+            }
+            socketData.compact();
+            reuseSocketData = false;
+        } else {
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(socketData,"clearing socketData");
+            }
+            socketData.clear();
+        }
+        if (headerBuf.position() > 0 && headerBuf.hasRemaining()) {
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(headerBuf, "compacting headerBuf");
+            }
+            headerBuf.compact();
+        } else {
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(headerBuf, "clearing headerBuf");
+            }
+            headerBuf.clear();
         }
     }
 
     /**
-     * read data from the socket into the header buffer, subclasses may overwrite to postprocess data before filling
-     * the buffer argument
-     * @param headerBuf
-     * @return
+     * reads data from the socket into a buffer
+     * @param b
+     * @return number of bytes read
      * @throws IOException
      */
-    protected synchronized int readHeader(ByteBuffer headerBuf) throws IOException {
-        return myChannel.read(headerBuf);
-    }
-
-    /**
-     * read data from the socket into the payload buffer, subclasses may overwrite to postprocess data before filling
-     * the buffer argument
-     * @param payloadBuf
-     * @return
-     * @throws IOException
-     */
-    protected synchronized int readPayload(ByteBuffer payloadBuf) throws IOException {
-        return myChannel.read(payloadBuf);
+    private final int readFromChannel(ByteBuffer b) throws IOException {
+        return myChannel.read(b);
     }
 
     private JICPPacket buildPacket() {
+        payloadBuf.flip();
+        byte[] payload = new byte[payloadBuf.remaining()];
+        payloadBuf.get(payload, 0, payload.length);
         JICPPacket pkt = new JICPPacket(type, info, recipientID, payload);
         pkt.setSessionID(sessionID);
         idle = true;
         recipientID = null;
-        payload = null;
-        payloadBuf = null;
+        payloadBuf.clear();
         return pkt;
     }
 
     /**
-    Write a JICPPacket on the connection, first calls {@link #preprocessBufferToWrite(java.nio.ByteBuffer) }
+     * Write a JICPPacket on the connection, first calls {@link #preprocessBufferToWrite(java.nio.ByteBuffer) }.
+     * When the buffer returned by {@link #preprocessBufferToWrite(java.nio.ByteBuffer) }, no write will be performed.
      * @return number of application bytes written to the socket
      */
-    public final int writePacket(JICPPacket pkt) throws IOException {
+    public final synchronized int writePacket(JICPPacket pkt) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         int n = pkt.writeTo(os);
         if (log.isLoggable(Level.FINE)) {
             log.fine("writePacket: number of bytes before preprocessing: " + n);
         }
-        ByteBuffer bb = preprocessBufferToWrite(ByteBuffer.wrap(os.toByteArray()));
+        ByteBuffer toSend = ByteBuffer.wrap(os.toByteArray());
+        ByteBuffer bb = transformBeforeWrite(toSend);
+        if (toSend.hasRemaining()&&transformers.size()>0) {
+            // for direct JICPConnections the data from the packet are used directly
+            // for subclasses the subsequent transformers must transform all data from the packet before sending
+            throw new IOException("still need to transform: " + toSend.remaining());
+        }
         int m = 0;
         if (bb.hasRemaining()) {
             int toWrite = bb.remaining();
@@ -183,6 +229,65 @@ public class NIOJICPConnection extends Connection {
         return m;
     }
 
+    private int transformAndCopyAfterRead(ByteBuffer dst, ByteBuffer data) throws IOException {
+        if (!data.hasRemaining()&&!useTmp) {
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("no bytes available for transformation");
+            }
+            return 0;
+        }
+        int n = 0;
+        if (useTmp) {
+            n = NIOHelper.copyAsMuchAsFits(dst, tmpBuffer);
+            if (log.isLoggable(Level.FINE)) {
+                log.fine("used from tmpBuffer: " + n);
+            }
+            if (tmpBuffer.hasRemaining()) {
+                tmpBuffer.compact();
+            } else {
+                tmpBuffer.clear();
+                useTmp = false;
+            }
+        }
+        if (dst.hasRemaining()) {
+            for (ListIterator<BufferTransformer> it = transformers.listIterator(transformers.size()); it.hasPrevious();) {
+                BufferTransformer btf = it.previous();
+                data = btf.postprocessBufferRead(data);
+                if (!data.hasRemaining()&&it.hasPrevious()) {
+                    log.warning("no data available for next transformation after " + btf.getClass().getName());
+                    break;
+                }
+            }
+            if (data.hasRemaining()) {
+                n += NIOHelper.copyAsMuchAsFits(dst, data);
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("transformed and copied bytes: " + n);
+                }
+                if (data.hasRemaining()) {
+                    tmpBuffer.put(data);
+                    tmpBuffer.flip();
+                    useTmp = true;
+                }
+            }
+        }
+        // possibly not all data from socket buffer consumed, use them in subsequent calls
+        if (socketData.hasRemaining()) {
+            if (log.isLoggable(Level.FINE)) {
+                NIOHelper.logBuffer(socketData, "triggering extra read for socketData");
+            }
+            reuseSocketData = true;
+            notifyMoreDataAvailable();
+        }
+        return n;
+    }
+
+    private ByteBuffer transformBeforeWrite(ByteBuffer data) throws IOException {
+        for (BufferTransformer btf : transformers) {
+            data = btf.preprocessBufferToWrite(data);
+        }
+        return data;
+    }
+
     /**
      * writes data to the channel
      * @param bb
@@ -194,15 +299,6 @@ public class NIOJICPConnection extends Connection {
     }
 
     /**
-     * does nothing, subclasses may override to preprocess the ByteBuffer before {@link #writeToChannel(java.nio.ByteBuffer) sending}
-     * @param dataToSend
-     * @return the preprocessed ByteBuffer
-     */
-    protected ByteBuffer preprocessBufferToWrite(ByteBuffer dataToSend) throws IOException {
-        return dataToSend;
-    }
-
-    /**
     Close the connection
      */
     public void close() throws IOException {
@@ -210,23 +306,59 @@ public class NIOJICPConnection extends Connection {
     }
 
     public String getRemoteHost() {
-        Socket s = myChannel.socket();
-        InetAddress address = s.getInetAddress();
-        return address.getHostAddress();
+        return myChannel.socket().getInetAddress().getHostAddress();
     }
 
-    public void configureBlocking() {
-        try {
-            myKey.cancel();
-            myChannel.configureBlocking(true);
-        } catch (Exception e) {
-            Logger.getLogger(NIOJICPConnection.class.getName()).log(Level.SEVERE, "error configuring blocking", e);
+    /**
+     * sets the channel for this connection
+     * @param channel
+     * @throws ICPException
+     */
+    void init(SocketChannel channel) throws ICPException {
+        this.myChannel = (SocketChannel) channel;
+    }
+
+    public void handleWriteSuccess() {
+    }
+
+    public void handleWriteError() {
+
+    }
+
+    /**
+     * Subclasses that are stateless should override this methods and let it do nothing. When, after reading and {@link #addBufferTransformer(jade.imtp.leap.nio.BufferTransformer) transforming}
+     * data are left in the socketbuffer the {@link MoreDataHandler} is notified to trigger another read/write. This is pointless for subclasses that close the connection after a read/write.
+     *
+     */
+    public void notifyMoreDataAvailable() {
+        /* TODO
+         *
+         * possibly the channel is closed, we won't read/write then, what to do?
+         *
+         * this situation occurs when an extra read is triggered because data are left in the socketbuffer
+         *
+         * after a previous read/write in case of the HTTP protocol, the connection will be closed
+         *
+         * a subsequent read may be successful and may yield a reply, which cannot be send
+         *
+         */
+        if (handler != null) {
+            handler.handleExtraData();
         }
     }
 
-    void init(SelectionKey key) throws ICPException {
-        this.myKey = key;
-        this.myChannel = (SocketChannel) key.channel();
+    public void setMoreDataHandler(MoreDataHandler handler) {
+        this.handler = handler;
+    }
+
+    public MoreDataHandler removeMoreDataHandler() {
+        MoreDataHandler h = this.handler;
+        this.handler = null;
+        return h;
+    }
+
+    public void addBufferTransformer(BufferTransformer transformer) {
+        transformers.add(transformer);
     }
 }
 
