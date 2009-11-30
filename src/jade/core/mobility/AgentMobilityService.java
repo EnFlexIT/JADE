@@ -727,12 +727,21 @@ public class AgentMobilityService extends BaseService {
 
 					//Send a REMOVE_CODE_LOCATOR_ENTRY command to the container with the agent code.
 					AgentMobilitySlice codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
-					try {
-						codeSlice.removeCodeLocatorEntry(target);						
-					} catch (IMTPException imtpe) {
-						// Try to get a newer slice and repeat...
-						codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
-						codeSlice.removeCodeLocatorEntry(target);
+					// Note that the Code-Container can be exited in the meanwhile
+					if (codeSlice != null) {
+						try {
+							try {
+								codeSlice.removeCodeLocatorEntry(target);						
+							} catch (IMTPException imtpe) {
+								// Try to get a newer slice and repeat...
+								codeSlice = (AgentMobilitySlice) getSlice(codeContainerName);
+								codeSlice.removeCodeLocatorEntry(target);
+							}
+						}
+						catch (Exception e) {
+							// We can't notify the Code-Container --> print a warning, but do not stop the agent termination process
+							myLogger.log(Logger.WARNING, "Error notifying home container "+codeContainerName+" of terminating agent "+target.getName(), e);
+						}
 					}
 				}
 			}
