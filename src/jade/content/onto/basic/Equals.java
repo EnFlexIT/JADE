@@ -25,12 +25,10 @@
 package jade.content.onto.basic;
 
 import jade.content.*;
-import jade.content.abs.*;
 import jade.content.onto.*;
 
 /**
-   This class implements the <code>=</code> operator of the
-   FIPA SL0 action.
+   This class implements the <code>=</code> operator of the FIPA SL0 language.
    @author Giovanni Caire - TILAB
  */
 public class Equals implements Predicate {
